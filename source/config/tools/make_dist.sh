@@ -1,24 +1,14 @@
 #  $Id: make_dist.sh,v 1.2 2006/05/26 09:07:50 marc_sturm Exp $
 
-# check whether the revision number is given as the first argument
-# (CVS tag!)
-if test $# != 2 ; then
-	echo "make_dist <CVS tag> <SF login>"
-	exit
-else
-	TAG=$1
-	LOGIN=$2
-fi
-
-# create a dummy directory and extract the current CVS version of OpenMS
-echo "extracting OpenMS revision $1 from cvs..."
+# create a dummy directory and extract the current SVN version of OpenMS
+echo "extracting OpenMS ..."
 cd /tmp
 rm -rf OpenMS-dist
 mkdir OpenMS-dist
 cd OpenMS-dist
-cvs -q -d:ext:${LOGIN}@open-ms.cvs.sourceforge.net:/cvsroot/open-ms co -r ${TAG} OpenMS 1>cvs_extract.log 2>cvs_extract_err.log || ( echo "cannot extract revision ${TAG} of OpenMS" >&0 && exit )
-# remove CVS information
-REMOVE=`find . -name CVS -type d`
+svn co http://svn.sourfeforge.net/svnroot/open-ms/OpenMS 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+# remove SVN information
+REMOVE=`find . -name .svn -type d`
 rm -rf ${REMOVE} 2>/dev/null
 cd OpenMS/source
 FILE="OpenMS-`grep OPENMS_RELEASE_STRING ../include/OpenMS/CONCEPT/VersionInfo.h | head -1 | awk '{print $3}'| tr -d \\"`.tar"

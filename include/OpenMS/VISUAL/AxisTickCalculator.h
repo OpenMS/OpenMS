@@ -43,7 +43,7 @@ namespace OpenMS
 	
 		@ingroup Visual
 		
-		@todo write tests
+		@todo write tests (Cornelia)
 	*/
   class AxisTickCalculator 
 	{
