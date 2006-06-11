@@ -1,0 +1,17 @@
+/****************************************************************************
+** ui.h extension file, included from the uic-generated form implementation.
+**
+** If you wish to add, delete or rename functions or slots use
+** Qt Designer which will update this file, preserving your code. Create an
+** init() function in place of a constructor, and a destroy() function in
+** place of a destructor.
+*****************************************************************************/
+
+#include <qmessagebox.h>
+
+void EditProtein::help()
+{
+QMessageBox::information(this, tr("Database Help: protein"), 
+			 tr("To add a protein to database one must enter an unique Identifier (e.g. s. th. build from pdb entry code) \n and either a pdb-file name or a fasta-file name. Both as absolute names including correct paths.\n The rest of the fields, including protein ID, are filled automatically upon instanciation of class \"MyProtein\""), 1);
+
+}

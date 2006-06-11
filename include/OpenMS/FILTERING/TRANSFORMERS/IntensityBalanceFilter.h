@@ -1,0 +1,116 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: IntensityBalanceFilter.h,v 1.4 2006/06/09 13:52:51 andreas_bertsch Exp $
+// $Author: andreas_bertsch $
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+//
+#ifndef OPENMS_FILTERING_TRANSFORMERS_INTENSITYBALANCEFILTER_H
+#define OPENMS_FILTERING_TRANSFORMERS_INTENSITYBALANCEFILTER_H
+
+#include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+
+#include <map>
+#include <utility>
+
+namespace OpenMS
+{
+  /**
+  IntensityBalanceFilter divides the m/z-range into ten regions and sums the
+  intensity in these regions. The result is the intensity of the two bins with the
+  highest intensity minus the intensity of the seven bins with lowest intensity.
+  */
+  class IntensityBalanceFilter : public FilterFunctor
+  {
+  public:
+    /** @brief standard constructor <br> */
+    IntensityBalanceFilter();
+
+    /** @brief copy constructor <br> */
+    IntensityBalanceFilter(const IntensityBalanceFilter& source);
+
+    /** @brief assignment operator <br> */
+    IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source);
+
+    /** @brief destructor <br> */
+    ~IntensityBalanceFilter();
+
+    static FactoryProduct* create() { return new IntensityBalanceFilter();}
+
+    //std::vector<double> operator()(const ClusterSpectrum& spec);
+
+    //String info() const;
+
+		template <typename SpectrumType> double apply(SpectrumType& spectrum)
+		{
+			double bands = 10;
+    	std::multimap<double, uint> band_intensity;
+    	double size = spectrum.getPrecursorPeak().getPosition()[0];
+    	uint j = 0;
+    	for (uint i = 0; i < bands; ++i)
+    	{
+      	double intensity = 0;
+
+      	//bern 2004 says to only check between 300 and size
+      	//but that seems inappropriate for small peptides (smallest is ca 450)
+      	while (j < spectrum.size() && spectrum.getContainer()[j].getPosition()[0] < (size-300)/bands*(i+1) +300)
+      	{
+        	intensity += spectrum.getContainer()[j++].getIntensity();
+      	}
+      	band_intensity.insert(std::make_pair(intensity,i));
+    	}
+    	j = 0;
+    	double total_intensity = 0;
+    	double twobiggest = 0;
+    	double sevensmallest = 0;
+    	for (std::multimap<double,uint>::reverse_iterator mmrit = band_intensity.rbegin(); mmrit != band_intensity.rend(); ++mmrit,++j)
+    	{
+      	total_intensity += mmrit->first;
+      	//take the two biggest
+      	if (j < 2)
+      	{
+        	twobiggest+=mmrit->first;
+      	}
+      	//take the seven smallest
+      	if (j > 2)
+      	{
+        	sevensmallest += mmrit->first;
+      	}
+    	}
+    	//vector<double> result;
+    	//result.push_back((twobiggest - sevensmallest)/totalIntensity);
+    	return (twobiggest - sevensmallest)/total_intensity;
+		}
+
+
+		static const String getName()
+		{
+			return "IntensityBalanceFilter";
+		}
+
+  private:
+    //static const String info_;
+  };
+}
+#endif // OPENMS_FILTERING_TRANSFORMERS_INTENSITYBALANCEFILTER_H

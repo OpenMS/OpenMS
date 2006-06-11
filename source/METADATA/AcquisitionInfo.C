@@ -1,0 +1,101 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: AcquisitionInfo.C,v 1.1 2006/05/30 15:46:40 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/METADATA/AcquisitionInfo.h>
+
+using namespace std;
+
+namespace OpenMS
+{
+
+	AcquisitionInfo::AcquisitionInfo() 
+		: vector<Acquisition>()
+	{
+	  //????
+	}
+	
+	AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo& source):
+		vector<Acquisition>(source),
+	  spectrum_type_(source.spectrum_type_),
+	  method_of_combination_(source.method_of_combination_)
+	{
+	  //????
+	}
+	
+	AcquisitionInfo::~AcquisitionInfo()
+	{
+	  //????
+	}
+	
+	AcquisitionInfo& AcquisitionInfo::operator = (const AcquisitionInfo& source)
+	{
+	  if (&source == this) return *this;
+	  
+	  vector<Acquisition>::operator=(source);
+	  spectrum_type_ = source.spectrum_type_;
+	  method_of_combination_ = source.method_of_combination_;
+	  
+	  return *this;
+	}
+
+  bool AcquisitionInfo::operator== (const AcquisitionInfo& rhs) const
+  {
+  	return 
+		  spectrum_type_ == rhs.spectrum_type_ &&
+		  method_of_combination_ == rhs.method_of_combination_ &&
+		  std::operator==(*this,rhs);
+		  ;
+  }
+  
+  bool AcquisitionInfo::operator!= (const AcquisitionInfo& rhs) const
+  {
+  	return !(operator==(rhs));
+ 	}
+	
+	const String& AcquisitionInfo::getSpectrumType() const 
+	{
+	  return spectrum_type_; 
+	}
+	
+	void AcquisitionInfo::setSpectrumType(const String& spectrum_type)
+	{
+	  spectrum_type_ = spectrum_type; 
+	}
+	
+	const String& AcquisitionInfo::getMethodOfCombination() const 
+	{
+	  return method_of_combination_; 
+	}
+	
+	void AcquisitionInfo::setMethodOfCombination(const String& method_of_combination)
+	{
+	  method_of_combination_ = method_of_combination; 
+	}
+	
+}
+

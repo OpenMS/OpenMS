@@ -1,0 +1,105 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: DGridFile_test.C,v 1.2 2006/02/27 09:20:44 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Ole Schulz-Trieglaff $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+///////////////////////////
+
+
+#include<OpenMS/FORMAT/TextFile.h>
+#include<OpenMS/FORMAT/DGridFile.h>
+
+#include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
+
+#include<vector>
+
+///////////////////////////
+
+START_TEST(DGridFile_test, "$Id: DGridFile_test.C,v 1.2 2006/02/27 09:20:44 marc_sturm Exp $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+DGridFile* ptr = 0;
+CHECK(DGridFile())
+	ptr = new DGridFile();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(~DGridFile())
+	delete ptr;
+RESULT
+
+CHECK(void load(const String& filename, DGrid& grid) throw (Exception::FileNotFound))
+	PRECISION(0.01)
+	
+	DGrid<2> grid;
+	DGridFile gfile;
+		   
+  gfile.load("data/Grid.xml",grid);
+  DGridCell<2> cell = grid.back();
+  	
+	TEST_EQUAL(cell.minX(),0);
+	TEST_EQUAL(cell.minY(),0);
+	TEST_EQUAL(cell.maxX(),10);
+	TEST_EQUAL(cell.maxY(),10);
+	
+	DGridCell<2>::MappingVector mappings = cell.getMappings();
+	
+	TEST_EQUAL(mappings.size(),2);
+	
+//	DLinearMapping<1>* mapp1 = static_cast<DLinearMapping<1>*>(mappings.back());
+//	DLinearMapping<1>* mapp2 = static_cast<DLinearMapping<1>*>(mappings.back());
+	
+	
+RESULT
+
+CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const throw (Exception::UnableToCreateFile))
+	
+	std::string tmp_filename;
+  DGrid<2> grid;
+	DGridFile gfile;
+  
+  NEW_TMP_FILE(tmp_filename);
+  gfile.load("data/Grid.xml",grid);
+	gfile.store(tmp_filename,grid);
+	
+	TextFile t1(tmp_filename, true);
+	TextFile t2("data/Grid.xml", true);
+	
+	TEST_EQUAL(t1==t2,true)
+	
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

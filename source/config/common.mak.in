@@ -1,0 +1,45 @@
+# -*- Mode: makefile; tab-width: 2; -*-
+# vi: set ts=2:
+#
+# --------------------------------------------------------------------------
+#
+# This is common.mak.in/common.mak
+# Please do ONLY change common.mak.in, as common.mak is automagically 
+# created by configure from config.mak.in
+# 
+# --------------------------------------------------------------------------
+# $Id: common.mak.in,v 1.7 2006/03/08 17:59:40 groepl Exp $
+# $Author: groepl $
+# $Maintainer: Marc Sturm $
+# --------------------------------------------------------------------------
+
+include @OPENMS_PATH@/source@BINFMT_PATH@/config.mak
+
+SOURCES		= $(UIC_SOURCES) $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES)
+OBJECTS 	= $(SOURCES:.C=.o)
+
+# support for conditional Pythone source compilation
+#  PYTHON_SUPPORT has to be defined as empty (do not build Python stuff) 
+#  or as true (build everything)
+# Makefiles have to define PYTHON_MOC_SOURCES and PYTHON_CPP_SOURCES for 
+# for this purpose
+# ADD_CPP_SOURCES = $(PYTHON_SUPPORT:true=$(PYTHON_CPP_SOURCES))
+# ADD_MOC_SOURCES = $(PYTHON_SUPPORT:true=$(PYTHON_MOC_SOURCES))
+
+default:	echodir $(OBJECTS)
+
+echodir:
+	@echo "entering $(DIRECTORY)..."
+
+default_clean:
+	@-$(RM) -rf .Dependencies *~ @TEMPLATE_DIR@ core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES) $(EXECUTABLES) $(EXECUTABLE)
+
+collectlib:	default
+	@echo "collecting objects from $(DIRECTORY)..."
+	@for i in $(OBJECTS) ""; do if [ X"$$i" != X"" ]; then echo $(DIRECTORY)/$$i >>@OPENMS_PATH@/source@BINFMT_PATH@/$(THISLIB).objects ; fi ; done
+
+
+depend: $(SOURCES)
+	@echo "creating .Dependencies for $(DIRECTORY)..."
+	@echo "" > .Dependencies
+	@if (test "$(SOURCES)" != "    "); then @CXX_MAKEDEPEND@ @MAKEDEP_CXX_OPTS@ $(SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES) @MAKEDEP_CXX_SUFFIX@; fi;

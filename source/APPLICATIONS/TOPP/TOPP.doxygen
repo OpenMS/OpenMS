@@ -1,0 +1,69 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: TOPP.doxygen,v 1.4 2006/05/31 16:24:19 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+  @defgroup TOPP TOPP - The OpenMS Proteomics Pipeline
+  
+  @brief TOPP documentation
+  
+  TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
+  can be chained to create analysis pipelines tailored for a specific problem.
+  
+  The TOPP tools can be found in the <tt>OpenMS/source/APPLICATIONS/TOPP/</tt> directory. 
+  Use the command <tt>'make'</tt> to build the tools after you built OpenMS.
+ 	
+ 	All TOPP tools provide the following command line options:
+ 	<UL>
+ 	  <LI><B>-ini &lt;file&gt;</b><BR>TOPP INI file (default: TOPP.ini)
+ 	  <LI><B>-log &lt;file&gt;</b> log file (default: TOPP.log)
+ 	  <LI><B>-n &lt;int&gt;</b> instance number (default: 1)
+ 	  <LI><B>-d &lt;level&gt;</b> debug level (default: 0)
+ 	  <LI><B>--help</b> shows help about the usage of the tool
+ 		<LI><B>--help-opt</b> shows help about the INI file options of the tool
+ 	</UL>
+  
+  @ingroup Applications
+*/
+
+/**
+  @defgroup TOPPView TOPPView - A MS data viewer
+  
+  @brief TOPPView documentation
+  
+  Specview is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
+  and several other text-based file formats. It also supports viewing data from an OpenMS database.
+  The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
+ 	
+ 	\image html TOPPView.gif
+ 	
+  Specview can be found in the <tt>OpenMS/source/APPLICATIONS/TOPP/</tt> directory.
+  
+  Use the command <tt>'make TOPPView'</tt> to build it after you built OpenMS.
+  
+  @ingroup Applications
+*/

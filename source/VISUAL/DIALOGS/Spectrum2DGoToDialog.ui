@@ -1,0 +1,277 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>Spectrum2DGoToDialogTemplate</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>Spectrum2DGoToDialogTemplate</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>470</width>
+            <height>192</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>go to</string>
+    </property>
+    <grid>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="Line" row="2" column="0" rowspan="1" colspan="4">
+            <property name="name">
+                <cstring>line3</cstring>
+            </property>
+            <property name="frameShape">
+                <enum>HLine</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
+            <property name="orientation">
+                <enum>Horizontal</enum>
+            </property>
+        </widget>
+        <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+            <property name="name">
+                <cstring>textLabel2</cstring>
+            </property>
+            <property name="font">
+                <font>
+                    <bold>1</bold>
+                </font>
+            </property>
+            <property name="text">
+                <string>Center to position</string>
+            </property>
+        </widget>
+        <widget class="QLabel" row="1" column="0">
+            <property name="name">
+                <cstring>textLabel1</cstring>
+            </property>
+            <property name="text">
+                <string>position:</string>
+            </property>
+        </widget>
+        <widget class="QPushButton" row="1" column="3">
+            <property name="name">
+                <cstring>gotoButton</cstring>
+            </property>
+            <property name="text">
+                <string>go</string>
+            </property>
+        </widget>
+        <widget class="QLineEdit" row="1" column="1">
+            <property name="name">
+                <cstring>centerPositionXLineEdit</cstring>
+            </property>
+            <property name="sizePolicy">
+                <sizepolicy>
+                    <hsizetype>3</hsizetype>
+                    <vsizetype>0</vsizetype>
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                </sizepolicy>
+            </property>
+            <property name="maximumSize">
+                <size>
+                    <width>100</width>
+                    <height>32767</height>
+                </size>
+            </property>
+            <property name="alignment">
+                <set>AlignAuto</set>
+            </property>
+        </widget>
+        <widget class="QLineEdit" row="1" column="2">
+            <property name="name">
+                <cstring>centerPositionYLineEdit</cstring>
+            </property>
+            <property name="sizePolicy">
+                <sizepolicy>
+                    <hsizetype>3</hsizetype>
+                    <vsizetype>0</vsizetype>
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                </sizepolicy>
+            </property>
+            <property name="maximumSize">
+                <size>
+                    <width>100</width>
+                    <height>32767</height>
+                </size>
+            </property>
+            <property name="alignment">
+                <set>AlignAuto</set>
+            </property>
+        </widget>
+        <widget class="QLabel" row="3" column="0" rowspan="1" colspan="2">
+            <property name="name">
+                <cstring>textLabel2_2</cstring>
+            </property>
+            <property name="font">
+                <font>
+                    <bold>1</bold>
+                </font>
+            </property>
+            <property name="text">
+                <string>Show range</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget" row="4" column="0" rowspan="1" colspan="4">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLineEdit" row="0" column="1">
+                    <property name="name">
+                        <cstring>minXLineEdit</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>300</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="1" column="0">
+                    <property name="name">
+                        <cstring>textLabel2_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Y-Axis:</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="1" column="2">
+                    <property name="name">
+                        <cstring>maxYLineEdit</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>300</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
+                        <cstring>textLabel1_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>X-Axis:</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="2">
+                    <property name="name">
+                        <cstring>maxXLineEdit</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>300</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="1" column="1">
+                    <property name="name">
+                        <cstring>minYLineEdit</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>300</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <widget class="QPushButton" row="4" column="4">
+            <property name="name">
+                <cstring>setVisibleAreaButton</cstring>
+            </property>
+            <property name="text">
+                <string>go</string>
+            </property>
+        </widget>
+    </grid>
+</widget>
+<connections>
+    <connection>
+        <sender>gotoButton</sender>
+        <signal>clicked()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>gotoButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>setVisibleAreaButton</sender>
+        <signal>clicked()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>setVisibleAreaButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>centerPositionXLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>gotoButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>centerPositionYLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>gotoButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>minXLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>setVisibleAreaButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>maxXLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>setVisibleAreaButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>maxYLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>setVisibleAreaButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>minYLineEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>Spectrum2DGoToDialogTemplate</receiver>
+        <slot>setVisibleAreaButton_clicked()</slot>
+    </connection>
+</connections>
+<tabstops>
+    <tabstop>centerPositionXLineEdit</tabstop>
+    <tabstop>centerPositionYLineEdit</tabstop>
+    <tabstop>gotoButton</tabstop>
+    <tabstop>minXLineEdit</tabstop>
+    <tabstop>maxXLineEdit</tabstop>
+    <tabstop>minYLineEdit</tabstop>
+    <tabstop>maxYLineEdit</tabstop>
+    <tabstop>setVisibleAreaButton</tabstop>
+</tabstops>
+<slots>
+    <slot access="protected">gotoButton_clicked()</slot>
+    <slot access="protected">setVisibleAreaButton_clicked()</slot>
+</slots>
+<functions>
+    <function>setMinX(float minX)</function>
+    <function>setMaxX(float maxX)</function>
+    <function returnType="float">getMinX()</function>
+    <function returnType="float">getMaxX()</function>
+    <function>setMinY(float minY)</function>
+    <function>setMaxY(float maxY)</function>
+    <function returnType="float">getMinY()</function>
+    <function returnType="float">getMaxY()</function>
+</functions>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

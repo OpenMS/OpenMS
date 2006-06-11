@@ -1,0 +1,112 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: Spectrum3DWidget.C,v 1.10 2006/06/08 14:29:19 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Cornelia Friedle $
+// --------------------------------------------------------------------------
+
+#include<iostream.h>
+
+//OpenMS
+#include <OpenMS/VISUAL/Spectrum3DWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum3DWidgetPDP.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+
+//QT
+#include <qlayout.h>
+#include <qimage.h>
+
+namespace OpenMS
+{
+	using namespace Internal;
+	
+	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent, const char* name, WFlags f)
+	  : SpectrumWidget(parent, name, f)		
+	{
+		
+		setCanvas(new Spectrum3DCanvas(this));
+		
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
+		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		
+		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
+		this, SIGNAL(sendCursorStatus(double,double,double)));
+		addClient(canvas(),"Canvas",true);
+	}
+	Spectrum3DWidget::~Spectrum3DWidget()
+	{
+	}	
+	void Spectrum3DWidget::setMainPreferences(const Param& prefs)
+	{
+		SpectrumWidget::setMainPreferences(prefs);
+	}
+	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags)
+	{
+		return canvas()->getImage(width,height,flags);
+	}	
+	
+	PreferencesDialogPage* Spectrum3DWidget::createPreferences(QWidget* parent)
+	{
+		PreferencesDialogPage* background = new Spectrum3DWidgetPDP(this, parent);
+		return background;
+	}
+	
+	void Spectrum3DWidget::recalculateAxes()
+	{
+	}	
+	void Spectrum3DWidget::intensityModificationChange_()
+	{
+		canvas()->intensityModificationChange_();
+	}	
+
+	void Spectrum3DWidget::legendModificationChange_()
+	{
+		//canvas()->intensityModificationChange_();
+	}
+	void Spectrum3DWidget::invalidate_()
+	{
+	}
+	
+	Histogram<UnsignedInt,float> Spectrum3DWidget::createIntensityDistribution_()
+	{
+		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500);
+
+		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
+		{
+			for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+			{
+				tmp.inc(peak_it->getIntensity());
+			}
+		}
+		
+		return tmp;
+	}
+	
+	Spectrum3DCanvas * Spectrum3DWidget::canvas() const
+	{
+	  return static_cast<Spectrum3DCanvas*>(canvas_);
+	}
+
+}//namespace
+

@@ -1,0 +1,344 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>InputModifications</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>InputModifications</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>629</width>
+            <height>667</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Partial Modification Input</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout7</cstring>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Partial Modification String</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Here the string signifying the selected partial modifications is displayed</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Here the string signifying the selected partial modifications is displayed</string>
+                    </property>
+                </widget>
+                <widget class="QTextBrowser">
+                    <property name="name">
+                        <cstring>textBrowser1</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>7</hsizetype>
+                            <vsizetype>7</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="textFormat">
+                        <enum>PlainText</enum>
+                    </property>
+                    <property name="autoFormatting">
+                        <set>AutoNone</set>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Here the string signifying the selected partial modifications is displayed</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Here the string signifying the selected partial modifications is displayed</string>
+                    </property>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout4</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Positions</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Here the user can select the positions that possibly can be modified by modifications in actual modification group</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Here the user can select the positions that possibly can be modified by modifications in actual modification group</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Modifications</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Here the user can select the modifications that all possibly can be realized at each of the positions of actual modification group</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Here the user can select the modifications that all possibly can be realized at each of the positions of actual modification group</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout1</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QListBox">
+                    <item>
+                        <property name="text">
+                            <string>New Item</string>
+                        </property>
+                    </item>
+                    <property name="name">
+                        <cstring>listBox1</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>7</hsizetype>
+                            <vsizetype>7</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>2</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="selectionMode">
+                        <enum>Multi</enum>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Here the user can select the positions that possibly can be modified by modifications in actual modification group</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Here the user can select the positions that possibly can be modified by modifications in actual modification group</string>
+                    </property>
+                </widget>
+                <widget class="QListBox">
+                    <item>
+                        <property name="text">
+                            <string>New Item</string>
+                        </property>
+                    </item>
+                    <property name="name">
+                        <cstring>listBox1_2</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>7</hsizetype>
+                            <vsizetype>7</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>2</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="selectionMode">
+                        <enum>Multi</enum>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Here the user can select the modifications that all possibly can be realized at each of the positions of actual modification group</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Here the user can select the modifications that all possibly can be realized at each of the positions of actual modification group</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>pushButton1</cstring>
+            </property>
+            <property name="text">
+                <string>Add Group</string>
+            </property>
+            <property name="autoDefault">
+                <bool>false</bool>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>This button builds a modification group out of actually selected positions and modifications and adds it in correct format to modification string displayed above</string>
+            </property>
+            <property name="whatsThis" stdset="0">
+                <string>This button builds a modification group out of actually selected positions and modifications and adds it in correct format to modification string displayed above</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout5</cstring>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton" row="0" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>pushButton1_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Reset Selections</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>This button clears selections made in fields "Positions" and "Modifications"</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>This button clears selections made in fields "Positions" and "Modifications"</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="0" column="2" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>pushButton4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Reset Partial Modification String</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>This button erases the modification string built so far</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>This button erases the modification string built so far</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="1" column="0">
+                    <property name="name">
+                        <cstring>pushButton5</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Cancel</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>This button closes the partial modification input dialog without altering entry in sample dialog</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>This button closes the partial modification input dialog without altering entry in sample dialog</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="1" column="3">
+                    <property name="name">
+                        <cstring>pushButton3</cstring>
+                    </property>
+                    <property name="font">
+                        <font>
+                            <bold>1</bold>
+                        </font>
+                    </property>
+                    <property name="text">
+                        <string>Done</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                    <property name="default">
+                        <bool>true</bool>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>This button adds the end sign * to partial modification string displayed above, adds it to sample dialog and closes this window</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>This button adds the end sign * to partial modification string displayed above, adds it to sample dialog and closes this window</string>
+                    </property>
+                </widget>
+                <spacer row="1" column="1" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>spacer1</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>320</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </grid>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton3</sender>
+        <signal>clicked()</signal>
+        <receiver>InputModifications</receiver>
+        <slot>done()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton1</sender>
+        <signal>clicked()</signal>
+        <receiver>InputModifications</receiver>
+        <slot>addGroup()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton1_2</sender>
+        <signal>clicked()</signal>
+        <receiver>InputModifications</receiver>
+        <slot>resetSelection()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton4</sender>
+        <signal>clicked()</signal>
+        <receiver>InputModifications</receiver>
+        <slot>resetString()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton5</sender>
+        <signal>clicked()</signal>
+        <receiver>InputModifications</receiver>
+        <slot>close()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in declaration">SampleDialog.h</include>
+    <include location="local" impldecl="in declaration">SpecAnnotate.h</include>
+    <include location="global" impldecl="in implementation">qsqldatabase.h</include>
+    <include location="global" impldecl="in implementation">qstatusbar.h</include>
+    <include location="global" impldecl="in implementation">list</include>
+    <include location="local" impldecl="in implementation">InputModifications.ui.h</include>
+</includes>
+<variables>
+    <variable>SampleDialog* sd;</variable>
+    <variable>SpecAnnotate* msa;</variable>
+    <variable>QMap&lt;QString, QString&gt;* settings_;</variable>
+</variables>
+<slots>
+    <slot access="private">done()</slot>
+    <slot>addGroup()</slot>
+    <slot>resetSelection()</slot>
+    <slot>resetString()</slot>
+</slots>
+<functions>
+    <function access="private">init()</function>
+</functions>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

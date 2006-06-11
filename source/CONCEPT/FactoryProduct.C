@@ -1,0 +1,110 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: FactoryProduct.C,v 1.2 2006/04/07 08:26:29 j-joachim Exp $
+// $Author: j-joachim $
+// $Maintainer: Ole Schulz-Trieglaff$
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/FactoryProduct.h>
+
+namespace OpenMS
+{
+	FactoryProduct::FactoryProduct(): param_(), defaults_(), check_defaults_(true), name_()
+	{
+	}
+
+	FactoryProduct::FactoryProduct(const FactoryProduct& source)
+		: name_(source.name_)
+	{
+		defaults_ = source.defaults_;
+		setParam(source.getParam());
+	}
+
+	FactoryProduct::~FactoryProduct(){}
+
+	FactoryProduct& FactoryProduct::operator = (const FactoryProduct& source)
+	{
+		defaults_ = source.defaults_;
+		setParam(source.getParam());
+		name_ = source.name_;
+		return *this;
+	}
+
+	FactoryProduct::FactoryProduct(const Param& p)
+	{
+		FactoryProduct();
+		setParam(p);
+	}
+
+	void FactoryProduct::setParam(const Param& p)
+	{
+		if (check_defaults_)
+		{
+			for (Param::ConstIterator it = p.begin(); it != p.end(); ++it)
+			{
+				if (defaults_.getValue(it->first)==DataValue::EMPTY)
+	      	throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+					"This parameter of "+name_+" is not registered!",it->first);
+			}
+			param_ = p;
+			param_.setDefaults(defaults_,"",false);
+		}else
+		{
+			param_ = p;
+			param_.setDefaults(defaults_);
+		}
+	}
+
+  const Param& FactoryProduct::getParam() const
+	{
+		return param_;
+	}
+
+  Param& FactoryProduct::getParam()
+	{
+		return param_;
+	}
+
+	const String& FactoryProduct::getName() const
+	{
+		return name_;
+	}
+	
+	bool FactoryProduct::operator == (const FactoryProduct& rhs) const
+	{
+			return getParam()==rhs.getParam() && getName()==rhs.getName();
+	}
+
+	bool FactoryProduct::operator != (const FactoryProduct& rhs) const
+	{
+		return !(operator == (rhs));
+	}
+
+	std::ostream& operator << (std::ostream& os, const FactoryProduct& prod)
+	{
+		os << prod.getName() << ":" << std::endl << prod.getParam();
+		return os;
+	}
+
+}

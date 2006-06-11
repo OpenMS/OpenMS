@@ -1,0 +1,89 @@
+#!/bin/sh
+
+# the total time of the (imaginary) reference system
+REF_TIME=0.26
+
+# try to figure out which syntax we need
+# to prevent a linefeed at the end of echo
+# Some versions of sh use -n as an option
+# others use \c at the end of the line.
+# This is just for cosmetic reasons...
+A=`echo "\c"|grep c`
+if test "$A" != "" ; then 
+	A=`echo -n "k"|grep n` 
+	if test "$A" = "" ; then 
+		ECHO="echo -n "
+		SUFFIX=""
+	else 
+		ECHO="echo"
+		SUFFIX=""
+	fi 
+else  
+	ECHO="echo"
+	SUFFIX="\c"
+fi
+
+
+echo " "
+echo "Now running all OpenMS benchmarks."
+echo " "
+echo "This will take some time...."
+echo " "
+
+# remember any failed benchmarks by setting OK=false
+OK=true
+
+# remove any core in the directory and all backtrace files
+rm core *.backtrace 2>/dev/null
+
+# loop over all single benchmarks
+COUNT=1
+TOTAL_TIME=0.0
+for i in $* ; do
+	# print the name of the benchmark running
+	$ECHO " (${COUNT}) $i: $SUFFIX"
+	
+	# remove potential log files
+	rm $i.log 2>/dev/null
+
+	# run it and examine its return value
+	TIME=`./$i 2>/dev/null`
+	if test $? -eq 0 ; then
+		# test passed - OK
+		echo "${TIME} s"
+		TOTAL_TIME=`echo ${TOTAL_TIME} ${TIME}|awk '{print 1.0 * $1 + 1.0 * $2}'`
+	else 
+		# benchmark crashed
+		OK=false
+			
+		# remember this benchmark program
+		FAILED_BENCHS="${FAILED_BENCHS} $i"
+	fi
+	COUNT=`expr ${COUNT} + 1`
+done
+
+# print a summary of all benchmarks
+echo "====================================="
+echo " "
+
+if test "$OK" = true ; then
+	echo "All benchmarks executed."
+	echo "Total net time required: ${TOTAL_TIME} s."
+	echo "Your system scores `echo ${TOTAL_TIME} ${REF_TIME}|awk '{printf \"%.2f\", $2/$1}'` OpenMSStones"
+	echo " "
+	exit 0
+else
+	echo "The following benchmarks failed:"
+
+	for i in ${FAILED_BENCHS} ; do 
+		echo " - $i"
+	done
+
+	echo " "
+	echo "Please mail the output of this run to one of the developers"
+	echo "and include a detailed description of the system you use."
+	echo "It is also neccessary to include the files ../config.mak ../config.h"
+	echo " "
+
+	exit 1
+fi

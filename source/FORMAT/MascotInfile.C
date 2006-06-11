@@ -1,0 +1,563 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: MascotInfile.C,v 1.14 2006/05/30 15:46:40 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <iostream>
+#include <sstream>
+
+
+#include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+using namespace std;
+
+namespace OpenMS 
+{
+
+	MascotInfile::MascotInfile(const DPeakArrayNonPolymorphic<1>& spec, 
+														 double mz ,
+														 vector<SignedInt> charges, 
+														 std::string search_title,
+														 double retention_time):
+		peaks_(spec), 
+		mz_(mz), 
+		search_title_(search_title),
+		retention_time_(retention_time),
+		experiment_(MSExperiment< DPeak<1> >()),
+		spectrum_(true)
+	{
+		stringstream ss;
+		
+		boundary_ = String::random(22);
+		db_ = "MSDB";
+		search_type_ = "MIS";
+		hits_ = "20";
+		cleavage_ = "Trypsin";
+		mass_type_ = "Monoisotopic";
+		instrument_ = "Default";			
+		missed_cleavages_ = 1;
+		precursor_mass_tolerance_ = 2.0;			
+		ion_mass_tolerance_ = 1.0;
+		taxonomy_ = "All entries";
+		form_version_ = "1.01";
+		for(UnsignedInt i = 0; i < charges.size(); i++)
+		{
+			if (i == 0)
+			{				
+				if (charges[i] > 0)
+				{
+					ss << charges[i] << "+";
+				}
+				else
+				{
+					ss << (-1 * charges[i]) << "-";
+				}
+			}
+			else if (i < (charges.size() - 1))
+			{
+				if (charges[i] > 0)
+				{
+					ss << ", " << charges[i] << "+";
+				}
+				else
+				{
+					ss << ", " << (-1 * charges[i]) << "-";
+				}
+			}
+			else
+			{
+				if (charges[i] > 0)
+				{
+					ss << " and " << charges[i] << "+";
+				}
+				else
+				{
+					ss << " and " << (-1 * charges[i]) << "-";
+				}
+			}								
+		}
+		charges_ = ss.str();
+		
+	}
+	
+	MascotInfile::MascotInfile(const MSExperiment< DPeak<1> >& experiment, 
+														 std::string search_title,
+														 vector<SignedInt> charges):
+		search_title_(search_title),
+		experiment_(experiment),
+		spectrum_(false)
+	{
+		stringstream ss;
+		
+		boundary_ = String::random(22);
+		db_ = "MSDB";
+		search_type_ = "MIS";
+		hits_ = "20";
+		cleavage_ = "Trypsin";
+		mass_type_ = "Monoisotopic";
+		instrument_ = "Default";			
+		missed_cleavages_ = 1;
+		precursor_mass_tolerance_ = 2.0;			
+		ion_mass_tolerance_ = 1.0;
+		taxonomy_ = "All entries";
+		form_version_ = "1.01";
+		for(UnsignedInt i = 0; i < charges.size(); i++)
+		{
+			if (i == 0)
+			{				
+				if (charges[i] > 0)
+				{
+					ss << charges[i] << "+";
+				}
+				else
+				{
+					ss << (-1 * charges[i]) << "-";
+				}
+			}
+			else if (i < (charges.size() - 1))
+			{
+				if (charges[i] > 0)
+				{
+					ss << ", " << charges[i] << "+";
+				}
+				else
+				{
+					ss << ", " << (-1 * charges[i]) << "-";
+				}
+			}
+			else
+			{
+				if (charges[i] > 0)
+				{
+					ss << " and " << charges[i] << "+";
+				}
+				else
+				{
+					ss << " and " << (-1 * charges[i]) << "-";
+				}
+			}								
+		}
+		charges_ = ss.str();
+	}
+	
+	void MascotInfile::writeParameterHeader_(const std::string& name, FILE* fp, bool line_break)
+	{
+		if (line_break)
+		{
+			fputs("\n",fp);
+		}
+		fputs ("--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("\nContent-Disposition: form-data; name=\"",fp);
+		fputs (name.c_str(),fp);
+		fputs ("\"\n\n",fp);
+	}
+	
+	void MascotInfile::write(const std::string& filename)
+	{
+		FILE* fp = fopen (filename.c_str(),"wt");
+		
+		if (spectrum_)
+		{
+			writeHeader_(fp);
+			writeSpectrum_(fp, filename);
+		}
+		else
+		{
+			writeHeader_(fp);
+			writeMSExperiment_(fp, filename);			
+		}
+		
+		//close file		
+		fputs ("\n",fp);	
+		fputs ("\n--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("--",fp);
+		
+		fclose(fp);
+
+	}
+	
+	void MascotInfile::writeHeader_(FILE* fp)
+	{
+		stringstream ss;
+
+		//write header
+		//fputs ("MIME-Version: 1.0 (Generated by OpenMS)\nContent-Type: multipart/mixed; boundary=",fp);
+		//fputs (boundary_.c_str(),fp);
+		//fputs ("\n",fp);
+
+		// search title
+		if (search_title_ != "")
+		{
+			writeParameterHeader_("COM",fp, false);
+			fputs (search_title_.c_str(),fp);
+
+			//user name
+			writeParameterHeader_("USERNAME",fp);
+		}	
+		else
+		{
+			//user name
+			writeParameterHeader_("USERNAME",fp, false);
+		}
+		fputs ("OpenMS",fp);	
+
+		//search type
+		writeParameterHeader_("FORMAT",fp);
+		fputs ("Mascot generic",fp);	
+
+		//precursor mass tolerance unit : Da
+		writeParameterHeader_("TOLU",fp);
+		fputs ("Da",fp);	
+
+		//ion mass tolerance unit : Da
+		writeParameterHeader_("ITOLU",fp);
+		fputs ("Da",fp);	
+
+		//user name
+		writeParameterHeader_("FORMVER",fp);
+		fputs (form_version_.c_str(),fp);	
+		
+		//db name
+		writeParameterHeader_("DB",fp);
+		fputs (db_.c_str(),fp);
+		
+		//search type
+		writeParameterHeader_("SEARCH",fp);
+		fputs (search_type_.c_str(),fp);		
+
+		//search type
+		writeParameterHeader_("REPORT",fp);
+		fputs (hits_.c_str(),fp);	
+		
+		//cleavage enzyme
+		writeParameterHeader_("CLE",fp);
+		fputs (cleavage_.c_str(),fp);	
+
+		//average/monoisotopic
+		writeParameterHeader_("MASS",fp);
+		fputs (mass_type_.c_str(),fp);	
+		
+		//fixed modifications
+		for(vector<String>::iterator it = mods_.begin(); it!=mods_.end();++it)
+		{
+			writeParameterHeader_("MODS",fp);
+			fputs (it->c_str(),fp);
+		}
+
+		//variable modifications
+		for(vector<String>::iterator it = variable_mods_.begin(); it!=variable_mods_.end();++it)
+		{
+			writeParameterHeader_("IT_MODS",fp);
+			fputs (it->c_str(),fp);
+		}
+
+		//instrument
+		writeParameterHeader_("INSTRUMENT",fp);
+		fputs (instrument_.c_str(),fp);	
+		
+		//missed cleavages
+		writeParameterHeader_("PFA",fp);
+		ss.str("");
+		ss << missed_cleavages_;
+		fputs (ss.str().c_str(),fp);			
+
+		//precursor mass tolerance_
+		writeParameterHeader_("TOL",fp);
+		ss.str("");
+		ss << precursor_mass_tolerance_;
+		fputs (ss.str().c_str(),fp);	
+
+		//ion mass tolerance_
+		writeParameterHeader_("ITOL",fp);
+		ss.str("");
+		ss << ion_mass_tolerance_;
+		fputs (ss.str().c_str(),fp);						
+
+		//taxonomy
+		writeParameterHeader_("TAXONOMY",fp);
+		fputs (taxonomy_.c_str(),fp);
+
+		//charge
+		writeParameterHeader_("CHARGE", fp);
+		fputs (charges_.c_str(),fp);
+	}
+	
+	void MascotInfile::writeSpectrum_(FILE* fp, const std::string& filename)
+	{
+		stringstream ss;
+
+		//peak data (includes mass and charge)
+		fputs ("\n--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("\nContent-Disposition: form-data; name=\"FILE\"; filename=\"",fp);
+		fputs (filename.c_str(),fp);
+		fputs ("\"\n\n",fp);
+
+		fputs ("BEGIN IONS\n",fp);
+		//precursor data (includes mz and retention time)
+		ss.str("");
+		ss << mz_;
+		fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
+
+		//retention time
+		ss.str("");
+		ss << retention_time_;
+		fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
+				
+		
+		for (DPeakArrayNonPolymorphic<1>::iterator it = peaks_.begin() ; it != peaks_.end();++it)
+		{
+			//mass
+			ss.str("");
+			ss << it->getPosition()[0];
+			fputs (ss.str().c_str(),fp);
+			fputs (" ",fp);
+			//intensity
+			ss.str("");
+			ss << it->getIntensity();
+			fputs (ss.str().c_str(),fp);
+			fputs ("\n",fp);
+		}
+		fputs ("END IONS\n",fp);
+	}
+
+	void MascotInfile::writeMSExperiment_(FILE* fp, const std::string& filename)
+	{
+		String temp_string;
+		stringstream ss;
+		MSSpectrum< DPeak< 1 > >::PrecursorPeakType precursor_peak;
+		DPosition< 1 >::CoordinateType precursor_position;
+		MSSpectrum< DPeak< 1 > >::ContainerType peaks;
+
+		fputs ("\n--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("\nContent-Disposition: form-data; name=\"FILE\"; filename=\"",fp);
+		fputs (filename.c_str(),fp);
+		fputs ("\"\n\n",fp);
+
+		for(unsigned int i = 0; i < experiment_.size(); i++)
+		{		
+
+			peaks = experiment_[i].getContainer();
+			precursor_peak = 
+				experiment_[i].getPrecursorPeak();
+			precursor_position = 
+				experiment_[i].getPrecursorPeak().getPosition()[0];
+			
+			if (experiment_[i].getMSLevel() == 2)
+			{
+
+				fputs ("\nBEGIN IONS\n",fp);
+		
+				//precursor data (includes mz and retention time)
+				ss.str("");
+				ss << precursor_position;
+				fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
+		
+				//retention time
+				ss.str("");
+				ss << experiment_[i].getRetentionTime();
+				fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
+				fputs("\n",fp);
+						
+				for (DPeakArrayNonPolymorphic<1>::iterator it = peaks.begin(); 
+						 it != peaks.end();
+						 ++it)
+				{
+					//mass
+					ss.str("");
+					ss << it->getPosition()[0];
+					fputs (ss.str().c_str(),fp);
+					fputs (" ",fp);
+					//intensity
+					ss.str("");
+					ss << it->getIntensity();
+					fputs (ss.str().c_str(),fp);
+					fputs ("\n",fp);
+				}
+				fputs ("END IONS\n",fp);
+				
+			}
+		}
+	}
+
+	const string& MascotInfile::getBoundary()
+	{
+		return boundary_;
+	}
+
+  void MascotInfile::setBoundary(const string& boundary)
+  {
+  	boundary_ = boundary;
+  }
+
+  const std::string& MascotInfile::getDB()
+  {
+    return db_;
+  }
+
+  void MascotInfile::setDB(const std::string& db)
+  {
+    db_ = db;
+  }
+
+
+  const std::string& MascotInfile::getSearchType()
+  {
+    return search_type_;
+  }
+
+  void MascotInfile::setSearchType(const std::string& search_type)
+  {
+    search_type_ = search_type;
+  }
+
+
+  const std::string& MascotInfile::getHits()
+  {
+    return hits_;
+  }
+
+  void MascotInfile::setHits(const std::string& hits)
+  {
+    hits_ = hits;
+  }
+
+
+  const std::string& MascotInfile::getCleavage()
+  {
+    return cleavage_;
+  }
+
+  void MascotInfile::setCleavage(const std::string& cleavage)
+  {
+    cleavage_ = cleavage;
+  }
+
+
+  const std::string& MascotInfile::getMassType()
+  {
+    return mass_type_;
+  }
+
+  void MascotInfile::setMassType(const std::string& mass_type)
+  {
+    mass_type_ = mass_type;
+  }
+
+
+  const std::vector<String>& MascotInfile::getModifications()
+  {
+    return mods_;
+  }
+
+  void MascotInfile::setModifications(const std::vector<String>& mods)
+  {
+    mods_ = mods;
+  }
+
+  const std::vector<String>& MascotInfile::getVariableModifications()
+  {
+    return variable_mods_;
+  }
+
+  void MascotInfile::setVariableModifications(const std::vector<String>& variable_mods)
+  {
+    variable_mods_ = variable_mods;
+  }
+
+
+  const std::string& MascotInfile::getInstrument()
+  {
+    return instrument_;
+  }
+
+  void MascotInfile::setInstrument(const std::string& instrument)
+  {
+    instrument_ = instrument;
+  }
+
+
+  UnsignedInt MascotInfile::getMissedCleavages()
+  {
+    return missed_cleavages_;
+  }
+
+  void MascotInfile::setMissedCleavages(UnsignedInt missed_cleavages)
+  {
+    missed_cleavages_ = missed_cleavages;
+  }
+
+
+  float MascotInfile::getPrecursorMassTolerance()
+  {
+    return precursor_mass_tolerance_;
+  }
+
+  void MascotInfile::setPrecursorMassTolerance(float precursor_mass_tolerance)
+  {
+    precursor_mass_tolerance_ = precursor_mass_tolerance;
+  }
+
+
+  float MascotInfile::getPeakMassTolerance()
+  {
+    return ion_mass_tolerance_;
+  }
+
+  void MascotInfile::setPeakMassTolerance(float ion_mass_tolerance)
+  {
+    ion_mass_tolerance_ = ion_mass_tolerance;
+  }
+
+
+  const std::string& MascotInfile::getTaxonomy()
+  {
+    return taxonomy_;
+  }
+
+  void MascotInfile::setTaxonomy(const std::string& taxonomy)
+  {
+    taxonomy_ = taxonomy;
+  }
+
+
+  const std::string& MascotInfile::getFormVersion()
+  {
+    return form_version_;
+  }
+
+  void MascotInfile::setFormVersion(const std::string& form_version)
+  {
+    form_version_ = form_version;
+  }
+
+
+} // namespace OpenMS
+

@@ -1,0 +1,74 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: SqrtMower.C,v 1.5 2006/04/05 11:18:24 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+//
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+
+#include <cmath>
+
+using namespace std;
+
+namespace OpenMS
+{
+  
+  const String SqrtMower::info_ = "scales the peaks to sqrt(height)";
+  
+  SqrtMower::SqrtMower()
+    : MowerFunctor()
+  {
+		name_ = SqrtMower::getName();
+  }
+
+  SqrtMower::SqrtMower(const SqrtMower& source)
+    : MowerFunctor(source)
+  {
+  }
+
+  SqrtMower& SqrtMower::operator=(const SqrtMower& source)
+  {
+    MowerFunctor::operator=(source);
+    return *this;
+  }
+  
+  SqrtMower::~SqrtMower()
+  {
+  }
+
+  void SqrtMower::operator()(MSSpectrum< DPeak<1> >& spec) const
+  {
+    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); ++it )
+    {
+      it->setIntensity(sqrt(it->getIntensity()));
+    }
+  }
+
+  String SqrtMower::info() const
+  {
+    return info_;
+  }
+
+}

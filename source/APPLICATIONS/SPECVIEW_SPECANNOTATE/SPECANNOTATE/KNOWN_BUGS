@@ -1,0 +1,33 @@
+- Problem:    Insert Partial Modifications Graphically: sometimes not all positions of protein or not all modifications are shown
+  Workaround: Press "Cancel" and Restart the Dialog up  to three times -> it should work all right
+
+- Problem:    No selection possibilites are displayed in "Protein" Rollup
+  Workaround: Close SpecAnnotate (only the annotation part) and open it again
+
+- Problem:    Database Edit Dialogs crash (go non-functional, but program does not crash), "driver not loaded" error message pops up
+	      Or the functional part of the programm exits on a "Invalid Query" exception with message: "driver not loaded".
+  Reason:     The QT class QSqlDatabase seems to be not quite thread-safe. It is not possible to access the constructors and thus create
+	      different instances of this class. (normal instanciation via static member QSqlDatabase::addDatabase).
+	      So with standard QT database classes I was not able to get the program running. "SELECT" statements issued in the second thread
+	      (the one which does the actual annotation) caused a segmentation-fault in the qt-library.
+	      The solution I came up with is that I created an own class, exposing the constructors of QSqlDatabase and thus enabling to create
+              distinct instances of this class in each thread. I am aware that this is a hack and might cause the instability described here.
+	      A solution might be to mutex every database access. But this would mean to refactor the whole program, since different code
+	      for database access is used in different parts of the program. Unfortunately I do not have time to do this during my 
+	      "Diplomarbeit". If someone knows another solution, please let me know!
+	      (NOTE: in the former version of this program, using the "mysql++"-API, EVERYTHING WORKED ALL RIGHT!!)
+		
+	      ###UPDATE UPDATE UPDATE###
+	      Now everything works solely with generic QT means. It got more stable, but sometimes Edit Dialogs still go non-functional
+	      or some "Could not connect to database" exceptions are thrown. Hope QT 4 will safe this.
+
+  Workaround: Do your database edits BEFORE any annotation run. or RESTART the program after the annotation runs and then do database edits
+	      Do not more than one annotation run in one programm session.
+	
+
+SOLVED:
+-------
+
+- Problem:    During annotation: MessageBox: "Finished Annotation" opens, but it is not finished yet (Threading doesn't work right)
+  Workaround: Just ignore it and wait until "Done." appears in the text browser ("Annotation Progress")	
+              (maybe CLEAN and rebuild might help)

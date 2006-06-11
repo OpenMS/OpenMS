@@ -1,0 +1,2 @@
+// $Id: header.txt,v 1.3 2005/12/27 12:47:35 marc_sturm Exp $
+document.write("<table border=0><tr><td><img src=\"../common/openms_logo.png\"></td><td valign=bottom><h1>Documentation</h1>|| <a href=\"../misc/welcome.html\" >Home</a> | <a href=\"../install/install.html\" >Installation</a> | <a href=\"../tutorial/tutorial.html\" >Tutorial</a> | <a href=\"../misc/FAQ.html\" >FAQ</a> || <a href=\"../misc/coding_style.pdf\" target=\"_blank\">Coding conventions</a> | <a href=\"../html/index.html\" target=\"_blank\">Class documentation</a> ||</td></tr></table><hr>")

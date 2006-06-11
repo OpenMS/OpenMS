@@ -1,0 +1,132 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: MetaInfoInterface.h,v 1.3 2006/06/01 16:35:32 groepl Exp $
+// $Author: groepl $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_KERNEL_METAINFOINTERFACE_H
+#define OPENMS_KERNEL_METAINFOINTERFACE_H
+
+#include <map>
+#include <string>
+
+#include <iostream>
+
+#include <OpenMS/METADATA/MetaInfo.h>
+
+namespace OpenMS
+{
+
+	/**
+		@brief Interface for classes that can store arbitrary meta information (ype-Name-Value tupels).
+		
+		MetaInfoInterface is a base class for all classes that use one MetaInfo object as member.
+		If you want to add meta information to a class, let it publically inherit the MetaInfoInterface.
+		Meta information is a array of Type-Name-Value tupels.
+		
+		@ingroup Metadata
+	*/
+
+	class MetaInfoInterface
+	{
+    public:
+
+			///constructor
+			MetaInfoInterface();
+			///copy constructor
+			MetaInfoInterface(const MetaInfoInterface& rhs);
+			///destructor
+			~MetaInfoInterface();
+	
+			///assignment operator
+			MetaInfoInterface& operator = (const MetaInfoInterface& rhs);
+
+      /// Equality operator
+      bool operator== (const MetaInfoInterface& rhs) const;
+      /// Equality operator
+      bool operator!= (const MetaInfoInterface& rhs) const;
+	
+			/// returns the value corresponding to a  string
+			DataValue getMetaValue(const std::string& name) const throw (Exception::InvalidValue);
+			/// returns the value corresponding to an index
+			DataValue getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue);
+	
+			/// returns if this MetaInfo is set
+			bool metaValueExists(const std::string& name) const;
+			/// returns if this MetaInfo is set
+			bool metaValueExists(UnsignedInt index) const;
+	
+			/// sets the value (string) corresponding to a name
+			void setMetaValue(const std::string& name, const std::string& value);
+			/// sets the value (string) corresponding to an index
+			void setMetaValue(UnsignedInt index, const std::string& value);
+			/// sets the value (integer) corresponding to a name
+			void setMetaValue(const std::string& name, SignedInt value);
+			/// sets the value (integer) corresponding to an index
+			void setMetaValue(UnsignedInt index, const SignedInt value);
+			/// sets the value (double) corresponding to a name
+			void setMetaValue(const std::string& name, double value);
+			/// sets the value (double) corresponding to an index
+			void setMetaValue(UnsignedInt index, double value);
+			/// sets the DataValue corresponding to a name
+			void setMetaValue(const std::string& name, const DataValue& value);
+			///  sets the DataValue corresponding to an index
+			void setMetaValue(UnsignedInt index, const DataValue& value);
+	
+			/// retuns a reference to the MetaInfoRegistry
+			MetaInfoRegistry& metaRegistry();
+	
+	    /// fills the given vector with a list of all keys for which a value is set
+	    void getKeys(std::vector<std::string>& keys) const;
+	    
+	    /// returns if the MetaInfo is empty
+	    bool isMetaEmpty() const;
+
+	    /// removes all meta values
+	    void clearMetaInfo();
+
+		protected:
+			/// creates the MetaInfo object if it does not exist
+			inline void createIfNotExists_();
+			/// pointer to the MetaInfo object. 0 by default
+			MetaInfo* meta_;
+
+		///@name Boost Serialization
+		//@{
+	 private:
+		friend class boost::serialization::access;
+		/// interface
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int /* version */ )
+		{
+			ar & boost::serialization::make_nvp("metainfo",meta_);
+		}
+		//@}
+
+	};
+
+} // namespace OpenMS
+
+#endif // OPENMS_KERNEL_METAINFOINTERFACE_H

@@ -1,0 +1,73 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>FeaFiDialogTemplate</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>FeaFiDialogTemplate</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>454</width>
+            <height>316</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Find features</string>
+    </property>
+    <grid>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QPushButton" row="1" column="1">
+            <property name="name">
+                <cstring>start_button</cstring>
+            </property>
+            <property name="text">
+                <string>Start</string>
+            </property>
+        </widget>
+        <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+            <property name="name">
+                <cstring>param_label</cstring>
+            </property>
+            <property name="text">
+                <string>No Feature-Finder loaded yet.</string>
+            </property>
+            <property name="alignment">
+                <set>AlignCenter</set>
+            </property>
+        </widget>
+        <widget class="QPushButton" row="1" column="0">
+            <property name="name">
+                <cstring>load_button</cstring>
+            </property>
+            <property name="text">
+                <string>Load Feature-Finder</string>
+            </property>
+        </widget>
+    </grid>
+</widget>
+<connections>
+    <connection>
+        <sender>load_button</sender>
+        <signal>clicked()</signal>
+        <receiver>FeaFiDialogTemplate</receiver>
+        <slot>loadParamFile()</slot>
+    </connection>
+    <connection>
+        <sender>start_button</sender>
+        <signal>clicked()</signal>
+        <receiver>FeaFiDialogTemplate</receiver>
+        <slot>accept()</slot>
+    </connection>
+</connections>
+<tabstops>
+    <tabstop>load_button</tabstop>
+    <tabstop>start_button</tabstop>
+</tabstops>
+<slots>
+    <slot>loadParamFile()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

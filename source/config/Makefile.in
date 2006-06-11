@@ -1,0 +1,166 @@
+# -*- Mode: makefile; tab-width: 2; -*-
+# vi: set ts=2:
+#
+# --------------------------------------------------------------------------
+#
+# This is Makefile.in/Makefile
+# Please do ONLY change Makefile.in, as Makefile is automagically 
+# created by configure from Makefile.in
+#
+# --------------------------------------------------------------------------
+# $Id: Makefile.in,v 1.8 2006/05/26 09:07:50 marc_sturm Exp $
+# $Author: marc_sturm $
+# $Maintainer: Marc Sturm $
+# --------------------------------------------------------------------------
+
+include config.mak
+
+# 	library version number
+LIB_VERSION	= 0.55
+
+#	default library name
+LIBNAME = libOpenMS
+GUILIBNAME = libOpenMS_GUI
+
+# 	names of the static libraries
+STATIC_LIBS	= libOpenMS.a @GUI_STATIC_LIB@
+
+#	names of the shared libraries
+SHARED_LIBS	= $(STATIC_LIBS:.a=.@SHARED_LIB_SUFFIX@)
+
+# names of the library object file lists
+OBJECT_LISTS = $(STATIC_LIBS:.a=.objects)
+
+.SUFFIXES:	.objects .a	.@SHARED_LIB_SUFFIX@
+
+.PHONY: dummy
+
+default:	lib
+
+sharedlibs: $(SHARED_LIBS)
+
+staticlibs: $(STATIC_LIBS)
+
+install:	install.shared
+
+clean:
+	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
+	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS) APPLICATIONS TEST BENCHMARKS EXAMPLES" TARGET=default_clean
+	@-$(RM) -f  $(STATIC_LIBS) $(SHARED_LIBS)
+	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
+
+distclean:	clean
+	@-$(RM) -rf autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h
+
+lib_clean:
+	@$(ECHO) "Removing all installed libraries..."
+	@-$(RM) -rf ../lib
+
+
+libOpenMS.objects:
+	@$(ECHO) "Collecting object files for libraries..."
+	@-rm -f libOpenMS.objects
+	@$(MAKE) subdirs SUBDIRS="$(DIRS)" TARGET=collectlib LIBNAME=$(LIBNAME)
+
+libOpenMS_GUI.objects:
+	@$(ECHO) "Collecting object files for libraries..."
+	@-rm -f libOpenMS_GUI.objects
+	@$(MAKE) subdirs SUBDIRS="$(GUI_DIRS)" TARGET=collectlib LIBNAME=$(GUILIBNAME)
+
+collect:	$(OBJECT_LISTS)
+
+libOpenMS.@SHARED_LIB_SUFFIX@:	collect
+	$(DYNAR) $(DYNAROPTS) $(LIBNAME).@SHARED_LIB_SUFFIX@ `cat $(LIBNAME).objects` -lm
+
+libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
+	$(DYNAR) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
+
+.objects.a:	
+	@$(ECHO) "Creating library $@ ..."
+	$(AR) $(AROPTS) $*.a `cat $*.objects`
+
+lib:	.Dependencies dirs collect $(SHARED_LIBS)
+	@$(ECHO) " "
+	@$(ECHO) "You may now install the libraries with the command"
+	@$(ECHO) " "
+	@$(ECHO) "   make install"
+	@$(ECHO) " "
+	@$(ECHO) "After you ran make install, please verify the validity"
+	@$(ECHO) "of the installed library by executing"
+	@$(ECHO) "   make test"
+	@$(ECHO) " "
+	@$(ECHO) "This will compile and run an extensive test suite."
+	@$(ECHO) " "
+	@$(ECHO) "If you use the shared libraries, don't forget to add"
+	@$(ECHO) "the path "
+	@$(ECHO) " $(OPENMS_PATH)/lib/$(BINFMT) and $(ITCONFIG_PATH)"
+	@$(ECHO) "to your LD_LIBRARY_PATH. "
+	@$(ECHO) "@ADDITIONAL_COMMENTS@"
+
+install.static:	
+	@$(ECHO) Installing static libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@-mkdir $(OPENMS_PATH)/lib 2>/dev/null | cat >/dev/null
+	@-mkdir $(OPENMS_PATH)/lib/$(BINFMT) 2>/dev/null | cat >/dev/null
+	@$(MV) -f $(STATIC_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
+
+install.shared:	
+	@$(ECHO) Installing shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@-mkdir $(OPENMS_PATH)/lib 2>/dev/null | cat >/dev/null 
+	@-mkdir $(OPENMS_PATH)/lib/$(BINFMT) 2>/dev/null | cat >/dev/null
+	@$(MV) -f $(SHARED_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
+
+delete.static:	
+	@$(ECHO) deleting static libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@set -e; for i in $(STATIC_LIBS) ; do $(RM) $(OPENMS_PATH)/lib/$(BINFMT)/$$i 2>/dev/null ; done
+
+delete.shared:	
+	@$(ECHO) deleting shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@set -e; for i in $(SHARED_LIBS) ; do $(RM) $(OPENMS_PATH)/lib/$(BINFMT)/$$i 2>/dev/null ; done
+
+.Dependencies:
+	@$(MAKE) depend
+
+depend:
+	@$(ECHO) "creating dependencies..."
+	@$(ECHO) "" >.Dependencies
+	@for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; echo "" >.Dependencies; cd .. ) ; done
+	@set -e; for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; $(MAKE) depend; cd .. ) ; done
+
+
+dirs:		dummy
+	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS)" TARGET=default
+
+subdirs:	dummy
+	@set -e; for i in $(SUBDIRS) ; do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
+
+
+test:	dummy
+	@cd TEST ; $(MAKE) test
+
+bench:	dummy
+	@cd BENCHMARKS ; $(MAKE) bench
+
+# creates the documentation
+doc:
+	@cd ../doc/ && doxygen ../doc/Doxyfile
+
+# creates the coding conventions
+style:
+	@cd ../doc/misc/ && make coding_style.pdf && rm *.aux *.log *.dvi
+
+
+#
+#    special targets - internal use only! 
+#
+
+dummy:
+
+
+
+configure:  config/configure.in config/configure.header
+	@$(ECHO) "Creating new ./configure from config/configure.in"
+	@autoconf config/configure.in > configure.tmp
+	@cat configure.tmp|sed "2r config/configure.header" >configure
+	@-rm configure.tmp
+	@chmod 755 configure
+

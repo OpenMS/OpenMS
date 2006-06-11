@@ -1,0 +1,10 @@
+- beruecksichtige verschiedenen massenoffsets im pos/neg mode des MALDI massenspektrometers (+1 oder -1, H, Ca, K etc. pp)
+	-> schaue in GlycoMod (Expasy) nach, da ist es drin
+
+
+- rename class "Sample" and put it into OpenMS namespace
+- fulfill all coding conventions and documentation rules
+- remove "enumerate" Method (is obsolete) 
+- create central database access class with mutex to gurarantee thread-safeness
+- remove extra reading of peaklists (peaklists should be read via SpecView)
+- store annotations as metadata directly without detour via internal "peaklist_"

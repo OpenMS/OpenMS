@@ -1,0 +1,142 @@
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<class>LayerItemTemplate</class>
+<widget class="QWidget">
+    <property name="name">
+        <cstring>LayerItemTemplate</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>482</width>
+            <height>47</height>
+        </rect>
+    </property>
+    <property name="sizePolicy">
+        <sizepolicy>
+            <hsizetype>7</hsizetype>
+            <vsizetype>1</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+    </property>
+    <property name="minimumSize">
+        <size>
+            <width>12</width>
+            <height>18</height>
+        </size>
+    </property>
+    <property name="caption">
+        <string>Form1</string>
+    </property>
+    <property name="focusPolicy">
+        <enum>ClickFocus</enum>
+    </property>
+    <widget class="QLayoutWidget">
+        <property name="name">
+            <cstring>layout</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>1</x>
+                <y>-3</y>
+                <width>390</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <hbox>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <property name="margin">
+                <number>5</number>
+            </property>
+            <property name="spacing">
+                <number>1</number>
+            </property>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>checkbox</cstring>
+                </property>
+                <property name="sizePolicy">
+                    <sizepolicy>
+                        <hsizetype>1</hsizetype>
+                        <vsizetype>1</vsizetype>
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                    <size>
+                        <width>12</width>
+                        <height>12</height>
+                    </size>
+                </property>
+                <property name="focusPolicy">
+                    <enum>NoFocus</enum>
+                </property>
+                <property name="text">
+                    <string></string>
+                </property>
+                <property name="checked">
+                    <bool>true</bool>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>label</cstring>
+                </property>
+                <property name="sizePolicy">
+                    <sizepolicy>
+                        <hsizetype>7</hsizetype>
+                        <vsizetype>1</vsizetype>
+                        <horstretch>1</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                    <size>
+                        <width>0</width>
+                        <height>0</height>
+                    </size>
+                </property>
+                <property name="font">
+                    <font>
+                        <family>Courier</family>
+                        <pointsize>11</pointsize>
+                    </font>
+                </property>
+                <property name="text">
+                    <string>textLabel1</string>
+                </property>
+                <property name="alignment">
+                    <set>AlignVCenter|AlignLeft</set>
+                </property>
+            </widget>
+        </hbox>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>checkbox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>LayerItemTemplate</receiver>
+        <slot>toggled(bool)</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="global" impldecl="in declaration">string</include>
+</includes>
+<signals>
+    <signal>stateChanged(int index, bool state)</signal>
+    <signal>activated(int index)</signal>
+    <signal>removeRequest(int index)</signal>
+</signals>
+<slots>
+    <slot>changeState(bool state)</slot>
+    <slot>changeLabel(std::string label)</slot>
+    <slot access="protected">toggled(bool state)</slot>
+    <slot access="protected">remove()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

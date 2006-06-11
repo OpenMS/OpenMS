@@ -1,0 +1,7 @@
+	/**
+		@defgroup Metadata Metadata
+		
+		@brief Classes that capture meta data about a MS or HPLC-MS experiment.
+		
+		The top-level classes are OpenMS::ExperimentalSettings and OpenMS::SpectrumSettings .
+	*/	

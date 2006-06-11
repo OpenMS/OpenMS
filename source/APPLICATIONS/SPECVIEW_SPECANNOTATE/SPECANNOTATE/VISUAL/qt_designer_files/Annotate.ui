@@ -1,0 +1,291 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>Annotate</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>Annotate</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>811</width>
+            <height>621</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Annotating Sample...</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout3</cstring>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;Annotation Progress:&lt;/font&gt;&lt;/b&gt;</string>
+                    </property>
+                </widget>
+                <widget class="QTextBrowser">
+                    <property name="name">
+                        <cstring>textBrowser1</cstring>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout5</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;font size="+1"&gt;&lt;b&gt;Time since Start:&lt;/b&gt;&lt;/font&gt;</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber1</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>8</number>
+                    </property>
+                    <property name="segmentStyle">
+                        <enum>Outline</enum>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel1_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;# Entries in&lt;/font&gt;&lt;/b&gt; 'annotation'</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber2</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout5</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;# Entries in&lt;/font&gt;&lt;/b&gt; 'modification_combination'</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber3</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout6</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;# Entries in&lt;/font&gt;&lt;/b&gt; 'realized_modification'</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber4</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout8</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel1_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;# Entries in&lt;/font&gt;&lt;/b&gt; 'modification_combination_positionless</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber5</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout9</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;b&gt;&lt;font size="+1"&gt;# Entries in&lt;/font&gt;&lt;/b&gt; 'realized_modification_positionless</string>
+                    </property>
+                </widget>
+                <widget class="QLCDNumber">
+                    <property name="name">
+                        <cstring>lCDNumber6</cstring>
+                    </property>
+                    <property name="numDigits">
+                        <number>15</number>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout9</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>pushButton1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Abort</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>pushButton3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Close Window</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton1</sender>
+        <signal>clicked()</signal>
+        <receiver>Annotate</receiver>
+        <slot>abort()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton3</sender>
+        <signal>clicked()</signal>
+        <receiver>Annotate</receiver>
+        <slot>closeWindow()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="global" impldecl="in implementation">qdir.h</include>
+    <include location="global" impldecl="in implementation">qtimer.h</include>
+    <include location="global" impldecl="in implementation">qevent.h</include>
+    <include location="global" impldecl="in implementation">qsqlquery.h</include>
+    <include location="global" impldecl="in implementation">qsqlresult.h</include>
+    <include location="global" impldecl="in implementation">qsqldatabase.h</include>
+    <include location="global" impldecl="in implementation">qmessagebox.h</include>
+    <include location="global" impldecl="in implementation">iostream</include>
+    <include location="local" impldecl="in implementation">CustomEvents.h</include>
+    <include location="global" impldecl="in declaration">qstring.h</include>
+    <include location="global" impldecl="in declaration">qmap.h</include>
+    <include location="global" impldecl="in declaration">string</include>
+    <include location="global" impldecl="in declaration">vector</include>
+    <include location="global" impldecl="in declaration">ext/hash_map</include>
+    <include location="local" impldecl="in declaration">../FUNCTION/string_hash_stl_fixes.h</include>
+    <include location="global" impldecl="in declaration">qdatetime.h</include>
+    <include location="local" impldecl="in declaration">AnnotateThread.h</include>
+    <include location="global" impldecl="in declaration">OpenMS/VISUAL/Spectrum1DWidget.h</include>
+    <include location="local" impldecl="in implementation">Annotate.ui.h</include>
+</includes>
+<variables>
+    <variable access="private">int db_display_update_timer;</variable>
+    <variable access="private">QTime t;</variable>
+    <variable access="private">int timer_ID;</variable>
+    <variable access="private">QMap&lt;QString, QString&gt;* settings_;</variable>
+    <variable access="private">AnnotateThread* qathread;</variable>
+</variables>
+<slots>
+    <slot>run( __gnu_cxx::hash_map&lt;std::string, std::string&gt; sample_data, std::vector&lt;OpenMS::Spectrum1DWidget::Spectrum1D::const_iterator&gt; &amp; peaklist, std::vector&lt;std::string&gt; ov_mods, QMap&lt;QString, QString&gt; * settings )</slot>
+    <slot>addOutput( std::string s )</slot>
+    <slot>ready()</slot>
+    <slot>abort()</slot>
+    <slot>closeWindow()</slot>
+    <slot>timerEvent( QTimerEvent * e )</slot>
+    <slot access="protected">updateDBDisplay()</slot>
+    <slot>customEvent( QCustomEvent * e )</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

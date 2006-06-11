@@ -1,0 +1,176 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: MetaInfo.C,v 1.1 2006/05/30 15:46:40 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/METADATA/MetaInfo.h>
+
+using namespace std;
+
+namespace OpenMS
+{
+	
+	MetaInfoRegistry MetaInfo::registry_ = MetaInfoRegistry();
+	
+	MetaInfo::MetaInfo()
+	{
+		
+	}
+	
+	MetaInfo::MetaInfo(const MetaInfo& rhs)
+	{
+		*this = rhs;
+	}
+	
+	MetaInfo::~MetaInfo()
+	{
+		
+	}
+	
+	MetaInfo& MetaInfo::operator = (const MetaInfo& rhs)
+	{
+		if (this==&rhs) return *this;
+		
+		index_to_value_ = rhs.index_to_value_;
+		
+		return *this;
+	}
+
+  bool MetaInfo::operator== (const MetaInfo& rhs) const
+  {
+  	return index_to_value_ == rhs.index_to_value_;
+  }
+  
+  bool MetaInfo::operator!= (const MetaInfo& rhs) const
+  {
+  	return !(operator==(rhs));
+ 	}
+	
+	DataValue MetaInfo::getValue(const std::string& name) const
+	{
+		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
+		if (it != index_to_value_.end())
+		{
+			return it->second;
+		}
+		return DataValue::EMPTY;		
+	}
+	
+	DataValue MetaInfo::getValue(UnsignedInt index) const
+	{
+		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(index);
+		if (it != index_to_value_.end())
+		{
+			return it->second;
+		}
+		return DataValue::EMPTY;		
+	}
+
+
+	void MetaInfo::setValue(const std::string& name, const std::string& value)
+	{
+		index_to_value_[registry_.getIndex(name)] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(UnsignedInt index, const std::string& value)
+	{
+		index_to_value_[index] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(const std::string& name, SignedInt value)
+	{
+		index_to_value_[registry_.getIndex(name)] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(UnsignedInt index, const SignedInt value)
+	{
+		index_to_value_[index] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(const std::string& name, double value)
+	{
+		index_to_value_[registry_.getIndex(name)] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(UnsignedInt index, double value)
+	{
+		index_to_value_[index] = DataValue(value);
+	}
+
+	void MetaInfo::setValue(const std::string& name, const DataValue& value)
+	{
+		index_to_value_[registry_.getIndex(name)] = value;
+	}
+	
+	void MetaInfo::setValue(UnsignedInt index, const DataValue& value)
+	{
+		index_to_value_[index] = value;
+	}	
+	
+	MetaInfoRegistry& MetaInfo::registry()
+	{
+		return registry_;
+	}
+
+	bool MetaInfo::exists(const std::string& name) const
+	{
+		if (index_to_value_.find(registry_.getIndex(name))==index_to_value_.end())
+		{
+			return false;
+		}
+		return true;		
+	}
+	
+	bool MetaInfo::exists(UnsignedInt index) const
+	{
+		if (index_to_value_.find(index)==index_to_value_.end())
+		{
+			return false;
+		}
+		return true;
+	}
+
+  void MetaInfo::getKeys(vector<string>& keys) const
+  {
+    keys.resize(index_to_value_.size());
+    UnsignedInt i =0;
+		for (map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+		{
+			keys[i++]=registry_.getName(it->first);
+		}
+  }
+
+  bool MetaInfo::empty() const
+	{
+		return index_to_value_.empty();
+	}
+	
+  void MetaInfo::clear()
+	{
+		index_to_value_.clear();
+	}
+
+} //namespace

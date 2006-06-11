@@ -1,0 +1,95 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>ViewModificationCombination</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>ViewModificationCombination</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>394</width>
+            <height>624</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>View of MySQL Database, Table: modification_combination</string>
+    </property>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>pushButton1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>150</x>
+                <y>580</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+    <widget class="QDataTable">
+        <column>
+            <property name="text">
+                <string>Modification_combination_ID</string>
+            </property>
+            <property name="field">
+                <string>modification_combination_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>First_realized_modification_ID</string>
+            </property>
+            <property name="field">
+                <string>first_realized_modification_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>Next_modification_combination_ID</string>
+            </property>
+            <property name="field">
+                <string>next_modification_combination_ID</string>
+            </property>
+        </column>
+        <property name="name">
+            <cstring>dataTable2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>372</width>
+                <height>550</height>
+            </rect>
+        </property>
+        <property name="readOnly">
+            <bool>true</bool>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>modification_combination_ID ASC</string>
+            </stringlist>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>modification_combination</string>
+            </stringlist>
+        </property>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton1</sender>
+        <signal>clicked()</signal>
+        <receiver>ViewModificationCombination</receiver>
+        <slot>close()</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

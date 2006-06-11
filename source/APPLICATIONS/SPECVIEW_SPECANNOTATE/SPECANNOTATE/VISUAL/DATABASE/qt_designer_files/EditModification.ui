@@ -1,0 +1,551 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>EditModification</class>
+<comment>This class connects to table "modification" in database "msannotate"</comment>
+<author>Andreas Hofmann</author>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>EditModification</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>634</width>
+            <height>466</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Connection to MySQL-Database, Table: modification</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QDataBrowser">
+            <property name="name">
+                <cstring>dataBrowser1</cstring>
+            </property>
+            <property name="sort">
+                <stringlist>
+                    <string>modification_ID ASC</string>
+                </stringlist>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>modification</string>
+                </stringlist>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout1</cstring>
+                    </property>
+                    <grid>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLineEdit" row="3" column="3">
+                            <property name="name">
+                                <cstring>QLineEditMinus_average_mass</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>minus_average_mass</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="2" column="3">
+                            <property name="name">
+                                <cstring>QLineEditPlus_average_mass</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>plus_average_mass</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="2" column="1">
+                            <property name="name">
+                                <cstring>QLineEditPlus_formula</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>plus_formula</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="1" column="1">
+                            <property name="name">
+                                <cstring>QLineEditModification_name</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>modification_name</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="0" column="1">
+                            <property name="name">
+                                <cstring>QLineEditModification_ID</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>modification_ID</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="4" column="0">
+                            <property name="name">
+                                <cstring>labelPlus_mono_mass</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Plus-Mass (monoisotopic)</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net monoisotopic molecular weight that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net monoisotopic molecular weight that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="3" column="2">
+                            <property name="name">
+                                <cstring>labelMinus_average_mass</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Minus-Mass (average)</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net average molecular weight that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net average molecular weight that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="3" column="1">
+                            <property name="name">
+                                <cstring>QLineEditMinus_formula</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>minus_formula</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="2" column="0">
+                            <property name="name">
+                                <cstring>labelPlus_formula</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Plus-Formula</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net molecular formula that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net molecular formula that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="4" column="3">
+                            <property name="name">
+                                <cstring>QLineEditModification_sites</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>modification_sites</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="1" column="3">
+                            <property name="name">
+                                <cstring>QLineEditMinus_mono_mass</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>minus_mono_mass</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="1" column="2">
+                            <property name="name">
+                                <cstring>labelMinus_mono_mass</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Minus-Mass (monoisotopic)</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net monoisotopic molecular weight that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net monoisotopic molecular weight that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="4" column="2">
+                            <property name="name">
+                                <cstring>labelModification_sites</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Modification Sites</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>These are the types of residues that can be modified by this modification. They are given as one-letter-codes consecutively (e.g. "MA" would mean Methionine and Alanine)</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These are the types of residues that can be modified by this modification. They are given as one-letter-codes consecutively (e.g. "MA" would mean Methionine and Alanine)</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit" row="4" column="1">
+                            <property name="name">
+                                <cstring>QLineEditPlus_mono_mass</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>plus_mono_mass</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="3" column="0">
+                            <property name="name">
+                                <cstring>labelMinus_formula</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Minus-Formula</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net molecular formula that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net molecular formula that is subtracted from the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="2" column="2">
+                            <property name="name">
+                                <cstring>labelPlus_average_mass</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Plus-Mass (average)</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the net average molecular weight that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This is the net average molecular weight that is added to the molecule if one residue is modified with this modification</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="1" column="0">
+                            <property name="name">
+                                <cstring>labelModification_name</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Modification Name</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>An arbitrary name for this modification - "functor"</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>An arbitrary name for this modification - "functor"</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel" row="0" column="0">
+                            <property name="name">
+                                <cstring>labelModification_ID</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Modification ID</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Database-ID for this modification - "functor"</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Database-ID for this modification - "functor"</string>
+                            </property>
+                        </widget>
+                    </grid>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout5</cstring>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Note</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Here you can store whatever additional information to actual modification you want to!</string>
+                            </property>
+                        </widget>
+                        <widget class="QTextEdit">
+                            <property name="name">
+                                <cstring>textEdit1</cstring>
+                            </property>
+                            <property name="database" stdset="0">
+                                <stringlist>
+                                    <string>(default)</string>
+                                    <string>modification</string>
+                                    <string>note</string>
+                                </stringlist>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout2</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonFirst</cstring>
+                            </property>
+                            <property name="text">
+                                <string>|&lt; &amp;First</string>
+                            </property>
+                            <property name="accel">
+                                <string>Alt+F</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonPrev</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&lt;&lt; &amp;Prev</string>
+                            </property>
+                            <property name="accel">
+                                <string>Alt+P</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonNext</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Next &gt;&gt;</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonLast</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Last &gt;|</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout3</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonInsert</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Insert</string>
+                            </property>
+                            <property name="accel">
+                                <string>Alt+I</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonUpdate</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Update</string>
+                            </property>
+                            <property name="accel">
+                                <string>Alt+U</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>PushButtonDelete</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Delete</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>Help</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Help</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer1</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>400</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>Done</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Done</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>close this window</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>Done</sender>
+        <signal>clicked()</signal>
+        <receiver>EditModification</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonDelete</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>del()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonFirst</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>first()</slot>
+    </connection>
+    <connection>
+        <sender>Help</sender>
+        <signal>clicked()</signal>
+        <receiver>EditModification</receiver>
+        <slot>help()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonInsert</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>insert()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonLast</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>last()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonNext</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>next()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonPrev</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>prev()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonUpdate</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>update()</slot>
+    </connection>
+</connections>
+<tabstops>
+    <tabstop>QLineEditModification_name</tabstop>
+    <tabstop>QLineEditPlus_formula</tabstop>
+    <tabstop>QLineEditMinus_formula</tabstop>
+    <tabstop>QLineEditPlus_mono_mass</tabstop>
+    <tabstop>QLineEditMinus_mono_mass</tabstop>
+    <tabstop>QLineEditPlus_average_mass</tabstop>
+    <tabstop>QLineEditMinus_average_mass</tabstop>
+    <tabstop>QLineEditModification_sites</tabstop>
+    <tabstop>PushButtonFirst</tabstop>
+    <tabstop>PushButtonPrev</tabstop>
+    <tabstop>PushButtonNext</tabstop>
+    <tabstop>PushButtonLast</tabstop>
+    <tabstop>PushButtonInsert</tabstop>
+    <tabstop>PushButtonUpdate</tabstop>
+    <tabstop>PushButtonDelete</tabstop>
+    <tabstop>Done</tabstop>
+</tabstops>
+<includes>
+    <include location="local" impldecl="in implementation">EditModification.ui.h</include>
+</includes>
+<slots>
+    <slot>help()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

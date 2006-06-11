@@ -1,0 +1,497 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>EditProtein</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>EditProtein</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>944</width>
+            <height>270</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Connect to MySQL Database, table: protein</string>
+    </property>
+    <widget class="QDataBrowser">
+        <property name="name">
+            <cstring>dataBrowser1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>930</width>
+                <height>200</height>
+            </rect>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>protein_ID ASC</string>
+            </stringlist>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>protein</string>
+            </stringlist>
+        </property>
+        <grid>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <widget class="QLayoutWidget" row="0" column="0">
+                <property name="name">
+                    <cstring>layout2</cstring>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>labelIdentifier</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Identifier</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>User defined identifier for this protein (must be unique!)</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>User defined identifier for this protein (must be unique!)</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="2" column="3">
+                        <property name="name">
+                            <cstring>QLineEditAverage_mass</cstring>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignRight</set>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>average_mass</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Average molecular mass of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Average molecular mass of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="2" column="1">
+                        <property name="name">
+                            <cstring>QLineEditPdb_filename</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>pdb_filename</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Filename (including path) of the pdb file of this protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Filename (including path) of the pdb file of this protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="1" column="1">
+                        <property name="name">
+                            <cstring>QLineEditIdentifier</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>identifier</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>User defined identifier for this protein (must be unique!)</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>User defined identifier for this protein (must be unique!)</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="0">
+                        <property name="name">
+                            <cstring>labelProtein_ID</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Protein ID</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Unique database ID of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Unique database ID of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="2">
+                        <property name="name">
+                            <cstring>labelMono_mass</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Mono mass</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Monoisotopic molecular mass of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Monoisotopic molecular mass of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="0">
+                        <property name="name">
+                            <cstring>labelFasta_filename</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Fasta filename</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Filename (including path) of the fasta file of this protein (required for SpecAnnotate)</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Filename (including path) of the fasta file of this protein (required for SpecAnnotate)</string>
+                        </property>
+                    </widget>
+                    <widget class="QSpinBox" row="0" column="1">
+                        <property name="name">
+                            <cstring>QSpinBoxProtein_ID</cstring>
+                        </property>
+                        <property name="maxValue">
+                            <number>2147483647</number>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>protein_ID</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Unique database ID of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Unique database ID of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="0" column="3">
+                        <property name="name">
+                            <cstring>QLineEditSequence_oneletter</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>sequence_oneletter</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Sequence of protein in one-letter-code</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Sequence of protein in one-letter-code</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="2">
+                        <property name="name">
+                            <cstring>labelSequence_oneletter</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Sequence oneletter</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Sequence of protein in one-letter-code</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Sequence of protein in one-letter-code</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>labelPdb_filename</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Pdb filename</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Filename (including path) of the pdb file of this protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Filename (including path) of the pdb file of this protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="1" column="3">
+                        <property name="name">
+                            <cstring>QLineEditMono_mass</cstring>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignRight</set>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>mono_mass</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Monoisotopic molecular mass of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Monoisotopic molecular mass of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="2">
+                        <property name="name">
+                            <cstring>labelNo_of_aminoacids</cstring>
+                        </property>
+                        <property name="text">
+                            <string>No of aminoacids</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Number od aminoacids (lenght) of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Number od aminoacids (lenght) of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="2">
+                        <property name="name">
+                            <cstring>labelAverage_mass</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Average mass</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Average molecular mass of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Average molecular mass of protein</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="3" column="1">
+                        <property name="name">
+                            <cstring>QLineEditFasta_filename</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>fasta_filename</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Filename (including path) of the fasta file of this protein (required for SpecAnnotate)</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Filename (including path) of the fasta file of this protein (required for SpecAnnotate)</string>
+                        </property>
+                    </widget>
+                    <widget class="QSpinBox" row="3" column="3">
+                        <property name="name">
+                            <cstring>QSpinBoxNo_of_aminoacids</cstring>
+                        </property>
+                        <property name="maxValue">
+                            <number>2147483647</number>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>protein</string>
+                                <string>no_of_aminoacids</string>
+                            </stringlist>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Number od aminoacids (lenght) of protein</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Number od aminoacids (lenght) of protein</string>
+                        </property>
+                    </widget>
+                </grid>
+            </widget>
+            <widget class="QLayoutWidget" row="1" column="0">
+                <property name="name">
+                    <cstring>layout3</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonFirst</cstring>
+                        </property>
+                        <property name="text">
+                            <string>|&lt; &amp;First</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonPrev</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&lt;&lt; &amp;Prev</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonNext</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Next &gt;&gt;</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonLast</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Last &gt;|</string>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+            <widget class="QLayoutWidget" row="2" column="0">
+                <property name="name">
+                    <cstring>layout4</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonInsert</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Insert</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonUpdate</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Update</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonDelete</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Delete</string>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+        </grid>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>pushButton8</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>810</x>
+                <y>220</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Help</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>220</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Help</string>
+        </property>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>PushButtonFirst</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>first()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonPrev</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>prev()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonNext</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>next()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonLast</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>last()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonInsert</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>insert()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonUpdate</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>update()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonDelete</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>del()</slot>
+    </connection>
+    <connection>
+        <sender>pushButton8</sender>
+        <signal>clicked()</signal>
+        <receiver>EditProtein</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>Help</sender>
+        <signal>clicked()</signal>
+        <receiver>EditProtein</receiver>
+        <slot>help()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in implementation">EditProtein.ui.h</include>
+</includes>
+<slots>
+    <slot>help()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

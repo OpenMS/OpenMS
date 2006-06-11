@@ -1,0 +1,96 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>ViewSequence</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>ViewSequence</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>374</width>
+            <height>547</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>View of MySQL Database, Table: sequence</string>
+    </property>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Done</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>150</x>
+                <y>510</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+    <widget class="QDataTable">
+        <column>
+            <property name="text">
+                <string>Protein_ID</string>
+            </property>
+            <property name="field">
+                <string>protein_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>S_position</string>
+            </property>
+            <property name="field">
+                <string>s_position</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>Aminoacid_ID</string>
+            </property>
+            <property name="field">
+                <string>aminoacid_ID</string>
+            </property>
+        </column>
+        <property name="name">
+            <cstring>dataTable1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>351</width>
+                <height>490</height>
+            </rect>
+        </property>
+        <property name="readOnly">
+            <bool>true</bool>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>protein_ID ASC</string>
+                <string>s_position ASC</string>
+            </stringlist>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>sequence</string>
+            </stringlist>
+        </property>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>Done</sender>
+        <signal>clicked()</signal>
+        <receiver>ViewSequence</receiver>
+        <slot>close()</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

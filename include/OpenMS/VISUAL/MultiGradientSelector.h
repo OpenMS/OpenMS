@@ -1,0 +1,101 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: MultiGradientSelector.h,v 1.5 2006/03/03 17:55:35 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
+#define OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
+
+//OpenMS
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
+
+//QT
+#include <qwidget.h>
+
+//std lib
+#include <vector>
+
+namespace OpenMS {
+
+/**
+	@brief A widget witch allows constructing gradients of multiple colors
+
+	@ingroup Visual
+*/
+class MultiGradientSelector: public QWidget
+{
+	Q_OBJECT
+	public:
+		///Constructor
+		MultiGradientSelector( QWidget * parent = 0, const char * name = 0 );
+		///Desctructor
+		~MultiGradientSelector();
+		
+		///returns a const reference to the gradient
+		const MultiGradient& gradient() const;
+		///returns a mutable reference to the gradient
+		MultiGradient& gradient();
+	
+		/// sets the interploation mode
+		void setInterpolationMode(MultiGradient::InterpolationMode mode);
+		/// returns the interpolaion mode
+		UnsignedInt getInterpolationMode() const;
+	
+		public slots:
+		/// sets what interpolation mode is used
+		void stairsInterpolation(bool state);
+
+	protected:
+		void paintEvent(QPaintEvent * e);
+		void mousePressEvent ( QMouseEvent * e );
+		void mouseMoveEvent (QMouseEvent * e);		
+		void mouseReleaseEvent ( QMouseEvent * e );
+		void mouseDoubleClickEvent ( QMouseEvent * e );
+		void keyPressEvent ( QKeyEvent * e );
+		
+		// the actual gradient
+		MultiGradient gradient_;
+		
+		// border margin
+		SignedInt margin_;
+		// height of the gradient area
+		SignedInt gradient_area_width_;
+		// heigth of the lever area
+		SignedInt lever_area_height_;
+		
+		//position (0-100) in the vector of the selected lever
+		SignedInt selected_;
+		//color of the selected lever
+		QColor selected_color_;  
+		
+		//stores if the left button is pressed
+		bool left_button_pressed_;
+};
+
+}
+#endif // OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
+

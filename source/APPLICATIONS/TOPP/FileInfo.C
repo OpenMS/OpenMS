@@ -1,0 +1,267 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: FileInfo.C,v 1.11 2006/06/02 14:19:11 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#ifdef ANDIMS_DEF
+#include <OpenMS/FORMAT/ANDIFile.h>
+#endif
+
+
+#include "TOPPBase.h"
+
+
+using namespace OpenMS;
+using namespace std;
+
+/**
+	@page FileInfo FileInfo
+	
+	@brief Shows basic information about the data in an MS file.
+	
+	With this tool information about the data range of a file is displayed. It prints that m/z, intensity
+	and retention time range that data lies in and some statistics about the number of spectra 
+	for each MS level is displayed.
+	
+	Additionally an overview of the metadata of the experiment can be displayed.
+
+	@ingroup TOPP
+*/
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond 
+
+class TOPPFileInfo
+	: public TOPPBase
+{
+	public:
+		TOPPFileInfo()
+			: TOPPBase("FileInfo")
+		{
+			
+		}
+	
+	protected:
+		void printToolUsage_()
+		{
+			cerr << endl
+		       << tool_name_ << " -- shows basic information about the file e.g. data ranges and file type." << endl
+		       << endl
+		       << "Usage:" << endl
+					 << "  " << tool_name_ << " [options]" << endl
+					 << endl
+					 << "Options are:" << endl
+					 << "  -in <file>        input file" << endl
+					 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
+					 << "  -m                show meta information about the whole experiment" << endl
+					 << endl
+					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'cdf' (ANDI/MS)" << endl;
+		}
+	
+		void printToolHelpOpt_()
+		{
+			cerr << endl
+		       << tool_name_ << endl
+		       << endl
+		       << "INI options:" << endl
+					 << "  in        input file name" << endl
+					 << "  in_type   input file type (default: determined from input file name extension)" << endl
+					 << "  m         show meta information about the whole experiment" << endl
+					 << endl
+					 << "INI File example section:" << endl
+					 << "  <ITEM name=\"in\" value=\"example.mzData\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"in_type\" value=\"MZDATA\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"m\" value=\"\" type=\"string\"/>" << endl;
+		}
+	
+		void setOptionsAndFlags_()
+		{
+			options_["-in"] = "in";
+			options_["-in_type"] = "in_type";
+		
+			flags_["-m"] = "m";
+		}
+	
+		ExitCodes main_(int , char**)
+		{
+	
+			//-------------------------------------------------------------
+			// parameter handling
+			//-------------------------------------------------------------
+	
+			//input file names and types
+			String in = getParamAsString_("in");
+			String in_type = getParamAsString_("in_type","");
+		
+			if (in_type=="")
+			{
+				in_type = in.suffix('.');
+			}	
+			in_type.toUpper();
+			
+			writeDebug_(String("Input file: ") + in, 1);
+			writeDebug_(String("Input file type: ") + in_type, 1);
+			
+			//-------------------------------------------------------------
+			// loading file
+			//-------------------------------------------------------------
+
+			MSExperiment< DPeak<1> > exp;
+			if (in_type == "MZDATA")
+			{
+				MzDataFile f;
+				f.load(in,exp);			
+			}
+			else if (in_type == "MZXML")
+			{
+				MzXMLFile f;
+				f.load(in,exp);				
+			}
+			else if (in_type == "CDF")
+			{
+	#ifdef ANDIMS_DEF
+				ANDIFile f;
+				f.load(in,exp);			
+	#else
+				writeLog_( String(" Unsupported file type '") + in_type + "' given. Aborting!");
+				return INPUT_FILE_NOT_READABLE;		
+	#endif
+			}
+			else if (in_type == "DTA2D")
+			{
+				DTA2DFile f;
+				f.load(in,exp);			
+			}
+			else
+			{
+				writeLog_( String("Unknown input file type '") + in_type + "' given. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;			
+			}
+	
+			//-------------------------------------------------------------
+			// calculations
+			//-------------------------------------------------------------
+			
+			//basic info
+			exp.updateRanges();
+			vector<UnsignedInt> levels = exp.getMSLevels();
+			
+			cout << endl
+					 << "file name: " << in << endl
+					 << "file type: " << in_type << endl
+					 << endl
+					 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
+					 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
+					 << "intensity range: " << exp.getMinInt() << " / " << exp.getMaxInt() << endl
+					 << "MS levels: ";
+		  if (levels.size()!=0)
+		  {
+		  	cout  << *(levels.begin());
+				for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+				{
+					cout << ", " << *it;
+				}
+			}
+			cout << endl << endl; 				 
+	
+			//count how many spectra per MS level there are
+			vector<UnsignedInt> counts(5);
+			for (MSExperiment< DPeak<1> >::iterator it = exp.begin(); it!=exp.end(); ++it)
+			{
+				counts[it->getMSLevel()]++;	
+			}
+			//output
+			for (UnsignedInt i = 0; i!=5; ++i)
+			{
+				if (counts[i]!=0)
+				{
+					cout << "Spectra of MS Level " << i << ": " << counts[i] << endl;
+				}
+			}		
+			
+			// '-m' show meta info
+			if (getParam_("m")!=DataValue::EMPTY)
+			{
+				String date;
+				exp.getDate().get(date);
+				//basic info
+				cout << endl
+				     << "Meta information" << endl
+				     << "  Experiment Type  : " << ExperimentalSettings::NamesOfExperimentType[exp.getType()] << endl
+				     << "  Date             : " <<  date << endl;		
+				     
+				//basic info
+				cout << endl
+				     << "Sample" << endl
+				     << "  Name             : " << exp.getSample().getName() << endl
+				     << "  Organism         : " << exp.getSample().getOrganism()  << endl
+				     << "  Comment          : " << exp.getSample().getComment()  << endl;		
+
+				//instrument info
+				cout << endl
+				     << "Instument" << endl
+				     << "  Name             : " << exp.getInstrument().getName() << endl
+				     << "  Model            : " << exp.getInstrument().getModel()  << endl	
+				     << "  Vendor           : " << exp.getInstrument().getVendor()  << endl
+				     << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSource().getIonizationMethod()]  << endl
+				     << "  Detector         : " << IonDetector::NamesOfType[exp.getInstrument().getIonDetector().getType()]  << endl
+						 << "  Mass Analyzer(s) : ";
+				for (UnsignedInt i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
+				{
+					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()] << ", ";
+				}
+				cout << endl << endl;
+				
+				//contact persons
+				for (UnsignedInt i=0; i< exp.getContacts().size(); ++i)
+				{
+					cout << "Contact Person" << endl
+					     << "  Name             : " << exp.getContacts()[i].getName() << endl
+					     << "  Email            : " << exp.getContacts()[i].getEmail() << endl
+					     << endl;
+				}
+			}
+			
+			cout << endl << endl;			
+			
+			return OK;
+		}
+};
+
+///@endcond
+
+int main( int argc, char ** argv )
+{
+	TOPPFileInfo tool;
+	return tool.main(argc,argv);
+}
+

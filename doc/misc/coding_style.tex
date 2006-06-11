@@ -1,0 +1,582 @@
+% -*- Mode: C++; tab-width: 2; -*-
+% vi: set ts=2:
+%
+% $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
+% $Author: elange $
+%
+\documentclass[a4]{article}
+\usepackage{a4wide}
+\usepackage{times}
+\title{OpenMS coding conventions}
+\author{}
+\date{$ $Revision: 1.12 $ $}
+
+\newtheorem{example}{Example}
+
+\begin{document}
+\maketitle
+
+\section{Formatting}
+
+{\bf All OpenMS files use a tab width of two.} Use the command {\tt set tabstop=2} in
+{\tt vi} or {\tt set-variable tab-width 2} if you are using {\tt emacs}. For
+those two editors, the indentation behavior should be set automatically
+throught the standard file headers (see below).
+
+Due to these ugly issues with setting the tabwidth in the editor, it is
+perfectly ok not to use tabs at all.  In emacs, you can replace all tabs with
+the right number of spaces by typing the following keys: \texttt{C-x h} (to
+mark the whole buffer), then \texttt{M-x untabify RET}.
+
+Matching pairs of opening and closing curly braces should be set to the same
+column:
+\begin{verbatim}
+while (continue == true)
+{
+  for (int i = 0; i < 10; i++)
+  {
+    ...
+  }
+
+  if (x < 7)
+  {
+    ....
+  }
+}
+\end{verbatim}
+The main reason for this rule is to avoid constructions like:
+
+\begin{verbatim}
+if (isValid(a))
+  return 0;
+\end{verbatim}
+
+which might later be changed to something like
+
+\begin{verbatim}
+if (isValid(a))
+  error = 0;
+  return 0;
+\end{verbatim}
+
+The resulting errors are hard to find. There are two ways to avoid these
+problems: (a) always use braces around a block (b) write everyting in a single
+line. We recommend method (a).
+However, this is mainly a question of personal style, so no explicit checking
+is performed to enforce this rule.
+
+\subsection{Sample .h file}
+
+\begin{footnotesize}
+\begin{verbatim}
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+... copyright header, not shown ...
+//
+// --------------------------------------------------------------------------
+// $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
+// $Author: elange $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_CORE_DPEAK_H
+#define OPENMS_CORE_DPEAK_H
+
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <functional>
+#include <sstream>
+
+namespace OpenMS
+{
+   ... the actual code goes here ...
+} // namespace OpenMS
+
+#endif // OPENMS_CORE_DPEAK_H
+\end{verbatim}
+\end{footnotesize}
+
+\subsection{Sample .C file}
+
+\begin{footnotesize}
+\begin{verbatim}
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+... copyright header, not shown ...
+//
+// --------------------------------------------------------------------------
+// $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
+// $Author: elange $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CORE/DPeak.h>
+
+namespace OpenMS
+{
+   ... the actual code goes here ...
+} // namespace OpenMS
+
+\end{verbatim}
+\end{footnotesize}
+Every \texttt{.h} file must be accompanied by a \texttt{.C} file, even if is
+just a ``dummy''.  This way a global \texttt{make} will
+stumble across errors.
+
+
+\section{Name spaces}
+
+Everything is implemented in the namespace \texttt{OpenMS}.  Please refrain
+from writing \texttt{using namespace OpenMS;} or similar in a context where
+other libraries might be involved (that is, basically everywhere~:-).  This
+applies to \texttt{.C} files as well!  For \texttt{.h} files it is strictly
+forbidden.  Instead, introduce individual symbols to the scope where you need
+them.  E.\,g.\ you only have to write \texttt{using OpenMS::DPeak;} once per
+\texttt{.C} file, and yet this immediately gives a hint to where the symbol is
+defined.\\
+\\
+The use of 'using namespace std;' is forbidden in all headers!!
+
+
+\section{Class requirements}
+
+Each OpenMS class has to provide the following minimal interface:
+\begin{verbatim}
+  /** Class documentation... 
+  */
+  class Test
+  {
+    public:
+
+    /// default constructor
+    Test();
+
+    /// copy constructor 
+    Test(const Test& test);
+
+    /// destructor 
+    virtual ~Test();
+ 
+    /// assignment operator
+    Test& operator = (const Test& test);
+  };
+\end{verbatim}
+Note that the destructor should be a virtual function, unless you have a very
+good reason why it shouldn't.  (E.g., saving a vtable pointer.)  Essentially,
+the reason is that otherwise an \texttt{operator delete} invocation on a
+pointer to a base class will fail badly.
+
+\section{Accessors for members}
+Accessors to protected or private members of a class are implemented as a pair
+of setMember(...) and getMember() methods.
+This is necessary as accessors that return references to a member cannot be wrapped with Python!\\
+There is one exception to this strict rule. For members that are too large to be
+read with the get-method, modified and written back with the set-method, the
+get-method may return a reference to the member. {\bf But} then an additiolal const
+get-method has to be implemented! 
+
+\section{Exception handling}
+
+No OpenMS program should dump a core if an error occurs. Instead, it should
+attempt to die as gracefully as possible. Furthermore, as OpenMS is a
+framework rather than an application, it should give the programmer ways to
+catch and correct errors.
+The recommended procedure to handle -- even fatal -- errors is to throw an exception. Uncaught
+exception will result in a call to {\tt abort} thereby terminating the
+program.\\
+All exceptions used in OpenMS are derived from \texttt{Exception::Base}
+defined in \texttt{CONCEPT/Exception.h}. A default constructor should not be
+implemented for these exceptions. Instead, the constructor of all derived
+exceptions should have the following signature:
+\begin{verbatim}
+  AnyException(const char* file, int line, const char* function[, ...]);
+\end{verbatim}
+Additional arguments are possible but should provide default values (see
+{\tt IndexOverflow} for an example).\\
+The {\tt throw} directive for each exception should be of the form
+\begin{verbatim}
+  throw AnyException(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+\end{verbatim}
+to simplify debugging. {\tt \_\_FILE\_\_}, {\tt \_\_LINE\_\_} and {\tt \_\_PRETTY\_FUNCTION\_\_} are preprocessor
+macros filled in by the compiler. {\bf GeneralException} provides two methods
+({\tt getFile} and {\tt getLine}) that allow the localization of the
+exception's cause.\\
+
+\section{Naming conventions}
+
+\subsection{File names}
+{\bf Header files and source files should be named as the classes they
+contain.}
+Source files end in ".C", while header files end in ".h". File names should be
+capitalized exactly as the class they contain (see below). Each header/source
+file should contain one class only, although exceptions are possible for
+light-weight classes.
+
+
+\subsection{Underscores}
+
+Usage of underscores in names has two different meanings: A trailing ``\_'' at
+the end indicates that something is protected or private to a class.  Apart
+from that, different parts of a name are sometimes separated by an underscore,
+and sometimes separated by capital letters.  (The details are explained below.)
+
+Note that according to the C++ standard, names that start with an underscore
+are reserved for internal purposes of the language and its standard library
+(roughly speaking), so you should never use them.
+
+
+\subsection{Class / type / namespace names}
+
+\textbf{Class names and type names always start with a capital letter.}
+Different parts of the name are separated by capital letters at the beginning
+of the word. No underscores are allowed in type names and class names, except
+for the names of protected types and classes in classes, which are suffixed by
+an underscore.  The same conventions apply for \texttt{namespace}s.
+\begin{example}~\\
+  {\tt class Simple} (ordinary class)\\
+  {\tt class SimpleThing} (ordinary class)\\
+  {\tt class PDBFile} (using an abbreviation)\\
+  {\tt class Buffer\_} (protected or private nested class)\\
+  {\tt class ForwardIteratorTraits\_} (protected or private nested class)
+\end{example}
+
+
+\subsection{Variable names}
+
+\textbf{Variable names are all lower case letters.}  Distinguished parts of
+the name are separated using underscores ``{\tt \_}''. If parts of the name
+are derived from common acronyms (e.g. MS) they should be in upper case.
+Private or protected member variables of classes are suffixed by an
+underscore.
+\begin{example}~\\
+  {\tt int simple;} (ordinary variable)\\
+  {\tt bool is\_found;} (ordinary variable)\\
+  {\tt string MS\_instrument;} (using an abbreviation)\\
+  {\tt int counter\_;} (protected or private member)\\
+  {\tt int persistent\_id\_;} (protected or private member)
+\end{example}
+No prefixing or suffixing is allowed to identify the variable type -- this
+leads to completely illegible documentation and overly long variable names.
+
+
+\subsection{Function names/method names}
+
+\textbf{Function names (including class method names) always start with a
+  lower case letter.}  Parts of the name are separated using capital letters
+(as are types and class names).  They should be comprehensible, but as short
+as possible.  The same variable names must be used in the declaration and in
+the definition.  Arguments that are actually not used in the implementation of
+a function have to be commented out -- this avoids compiler warnings.  The
+argument of \texttt{void} functions (empty argument list) must omitted in both
+the declaration and the definition.  If function arguments are pointers or
+references, the pointer or reference qualifier is appended to the variable
+type. It should not prefix the variable name.
+\begin{example}~\\
+{\tt void hello();} (ordinary function, no arguments) \\
+{\tt int countPeaks(PeakArray const\& p);} (ordinary function) \\
+{\tt bool ignore(string\& /* name */);} (ordinary function with an unused argument) \\
+{\tt bool isAdjacentTo(Peak const * const * const \& p);} (an ordinary function :-) \\
+{\tt bool doSomething\_(int i, string\& name);} (protected or private member function)
+\end{example}
+
+
+\subsection{Enums and preprocessor constants}
+
+\textbf{Enumerated values and preprocessor constants are all upper case
+  letters.}  Parts of the name are separated by underscores.
+\begin{example}~\\
+  {\tt \#define MYCLASS\_SUPPORTS\_MIN\_MAX 0} (preprocessor constant) \\
+  {\tt enum DimensionId \{ DIM\_MZ = 0, DIM\_RT = 1 \};} (enumerated values) \\
+  {\tt enum DimensionId\_ \{ MZ = 0, RT = 1 \};} (enumerated values)
+\end{example}
+(You should avoid using the preprocessor anyway.  Normally, \texttt{const} and
+\texttt{enum} will suffice unless you want to do a really bad thing.)
+
+
+
+
+% \subsection{Quiz}
+
+% Here is a quiz: Which are the syntactic categories of the identifiers in
+% Figure~\ref{Fig:NamingConventions}, accoring to OpenMS coding conventions?  To
+% test your understanding, cover the right column and guess before reading.
+% \begin{figure}
+%   \begin{tabular}{|l|l|}\hline
+%     Some\_Thing  & \\
+%     Some\_thing  & \\
+%     Some\_THING  & \\
+%     some\_Thing  & \\
+%     some\_thing  & variable / member \\
+%     some\_THING  & \\
+%     SOME\_Thing  & \\
+%     SOME\_thing  & \\
+%     SOME\_THING  & preprocessor macro \\
+%     SomeThing    & type / enum / class \\
+%     SomeTHING    & \\
+%     someThing    & function / method \\
+%     someTHING    & \\
+%     SOMEThing    & \\
+%     SOMETHING    & preprocessor macro \\
+%     Some\_Thing\_  & \\
+%     Some\_thing\_  & \\
+%     Some\_THING\_  & \\
+%     some\_Thing\_  & \\
+%     some\_thing\_  & private or protected: member \\
+%     some\_THING\_  & \\
+%     SOME\_Thing\_  & \\
+%     SOME\_thing\_  & \\
+%     SOME\_THING\_  & \\
+%     SomeThing\_    & private or protected: type / enum / class \\
+%     SomeTHING\_    & \\
+%     someThing\_    & \\
+%     someTHING\_    & \\
+%     SOMEThing\_    & \\
+%     SOMETHING\_    & \\
+%     \hline
+%   \end{tabular}
+% \caption{Naming conventions in OpenMS.}
+% \label{Fig:NamingConventions}
+% \end{figure}
+
+\section{Documentation}
+
+\subsection{UML diagrams}
+To generate UML diagrams use yEd and export the diagrams in png format. Do not 
+forget to save also the corresponding .yed file.
+
+
+\subsection{Doxygen}
+Each OpenMS class has to be documented using Doxygen. The documentation is
+inserted in Doxygen format \textbf{in the header file} where the class is
+defined.  Documentation includes the description of the class, of each method,
+type declaration, enum declaration, each constant, and each member variable.\\
+Longer pieces of documentation should start with a brief description, followed
+by an empty line and a detailed description. The empty line is needed to separate 
+the brief from the detailed description.\\
+Descriptions of classes always have a \@brief section!\\
+Please use the doxygen style of the following example for OpenMS:
+\begin{verbatim}
+/**
+  @defgroup DummyClasses Dummy classes
+	
+  @brief This class contains dummy classes
+	
+  Add classes by using the '@ingroup' command. 
+*/
+
+/**
+  @brief Demonstration class. << REQUIRED!
+  
+  A demonstration class for teaching doxygen
+  
+  @note All classes need brief description!
+  @todo Write tests of this class!
+  @ingroup DummyClasses
+*/
+class Test
+{
+  public:
+    /** 
+      @brief An enum type. 
+      
+      The documentation block cannot be put after the enum! 
+    */
+    enum EnumType
+    {
+      int EVal1,     ///< Enum value 1.
+      int EVal2      ///< Enum value 2.
+    };
+    
+    /**
+      @brief constructor.
+      
+      A more elaborate description of the constructor.
+    */
+    Test();
+
+    /** 
+      @brief Dummy function.
+      
+      A normal member taking two arguments and returning an integer value.
+      The paramter @p dummy_a is an integer.
+      @param dummy_a an integer argument.
+      @param dummy_s a constant character pointer.
+      @see Test()
+      @return The dummy results.
+    */
+    int dummy(int dummy_a, const char *dummy_s);
+    
+    /// Short description in one line.
+    int isDummy();
+
+    /** 
+      @name Group of members.
+      
+      Description of the group.
+    */
+    //@{
+    /// Dummy 2.
+    void dummy2();
+    /// Dummy 3.
+    void dummy3();
+    //@}
+    
+  protected:
+    int value;       ///< An integer value.
+};
+\end{verbatim}
+The defgroup command indicates that a comment block contains documentation for a group of classes, files or namespaces.
+This can be used to categorize classes, files or namespaces, and document those categories. 
+You can also use groups as members of other groups, thus building a hierarchy of groups. 
+Using the ingroup command a comment block of a class, file or namespace will be added to the group or groups.\\
+Documentation which does not belong to a specific .C or .h file can be written into a 
+separate Doxygen file (with the ending .doxygen). This file will also be parsed by Doxygen.\\
+Doxygen is not hard to learn, have a look at the manual :-)
+
+
+\subsection{Commenting code}
+
+The code for each .C file has to be commented. Each piece of code in OpenMS
+has to contain at least {\bf 5\% of comments}. The use of {\tt //} instead of
+C style comments ({\tt /* */}) is recommended to avoid problems arising from
+nested comments. Comments should be written in plain \textbf{english} and
+describe the functionality of the next few lines.
+
+To check whether a header or source file fulfils this requirement, use the
+script {\tt OpenMS/doc/tools/check\_coding}. Invoke {\tt check\_coding} with the
+filename to check (or a list of files) and it will print the percentage of
+comments (including Doxygen comments) for each file.
+
+
+\subsection{Examples}
+
+Instructive programming examples can be provided in the
+\texttt{source/EXAMPLES} directory.
+
+
+\subsection{Revision control}
+
+\textbf{OpenMS uses the Concurrent Version System (CVS)} to manage different
+versions of the source files. For easier identification, each OpenMS source
+file contains the \texttt{\$Id{}:\$} and the \texttt{\$Author{}:\$} string in the
+preamble.  The information contained in these tags is updated by CVS during
+the \texttt{commit} process.  To provide a pointer to the ``real author'' (as
+opposed to the one who e.\,g.\ recently fixed a typo in the documentation),
+he/she should add a comment at the end of the preamble.
+
+Examples of \texttt{.h} and \texttt{.C} files have been given above.  In
+non-C++ files (Makefiles, (La)TeX-Files, etc.) the C++ comments are replaced
+by the respective comment characters (e.g.\ ``\#'' for Makefiles, ``\%'' for
+(La)TeX).  TeX will switch to math mode after a \texttt{\$}, but you can work
+around this by writing something like
+% (avoid line break here)
+\mbox{\texttt{Latest CVS \$ \$Date{}:\$ \$}}
+% (/avoid line break here)
+if you want to use it in texts; the one here expands to ``Latest CVS $
+$Date: 2006/04/07 08:21:34 $ $''.
+
+\section{Testing} 
+
+\subsection{General}
+
+{\bf Each OpenMS class has to provide a test program.} This test program has to check
+each method of the class. The test programs reside in the directory
+{\tt OpenMS/source/TEST}. To create a new test program, rename a copy of the file
+{\tt Skeleton\_test.C} to the new class test name (usually {\tt
+<classname>\_test.C}). The test program has to be coded using the class test
+macros as described in the OpenMS online reference. Special care should be taken
+to cover all special cases (e.g. what happens, if a method is called with
+empty strings, negative values, zero, null pointers etc.).
+
+
+\subsection{Structure of a test program}
+
+\subsection{Macros to start, finish and evaluate tests}
+\begin{itemize}
+        \item {\tt START\_TEST(class\_name, version)} \\ Start of a class test file (initialization)
+        \item {\tt END\_TEST} \\ End of a class test file (cleanup)
+        \item {\tt CHECK(name)} \\ Start of a single test, e.g. for a method
+        \item {\tt RESULT} \\ End of a single test
+        \item {\tt STATUS(message)} \\ shows a status message e.g. used to show the progress of a test preparations, that take a while
+\end{itemize}
+
+\subsection{Comparison macros}
+\begin{itemize}
+        \item {\tt TEST\_EQUAL(a, b)}.\\ Tests if two expressions are equal
+        \item {\tt TEST\_NOT\_EQUAL(a, b)}.\\ Tests if two expressions are not equal
+        \item {\tt TEST\_REAL\_EQUAL(a, b)} \\ Tests if two real numbers are equal (within a margin)
+        \item {\tt PRECISION(double)} \\ Sets the margin for TEST\_REAL\_EQUAL(a, b)
+        \item {\tt TEST\_EXCEPTION(exception, expression)} \\ Tests if the expression throws the exception
+        \item {\tt TEST\_FILE(file, template\_file)} \\ Tests if two files are identical
+\end{itemize}
+Do not use methods with side-effects inside the comparison macros i.e. *(it++). The expressions
+in the macro are called serveral times, so the side-effect is triggered several times as well. 
+
+\subsection{Temporary files}
+You might want to create temporary files during the tests. The following macro 
+puts a temporary filename into the string argument. The file is automatically deleted
+after the test.
+\begin{itemize}
+        \item {\tt NEW\_TMP\_FILE(string)}
+\end{itemize}
+
+\subsection{Generating test skeletons from header files}
+The tool {\tt check\_test} in the {\tt source/config/tools/} folder can be used to
+create test skeletons for classes. It has to be built using {\tt make}.\\
+\\
+There is also a PHP wrapper script for the above tool. Call {\tt 'php create\_test.php <header>'}
+to create a test file for the given header.
+
+\subsection{Is this really necessary?}
+
+Yes. Testing is crucial to verify the correctness of the library -- especially when
+using C++. But why has it to be {\em so} complicated, using all these macros
+and stuff? One of the biggest problems when building large class frameworks is
+portability. C++ compilers are strange beasts and there is not a single one
+that accepts the same code as any other compiler. Since one of the main
+concerns of OpenMS is portability, we have to ensure that every single line of
+code compiles on all platforms. Due to the long compilation times and the
+(hopefully in future) large number of different platforms, tests to verify the
+correct behaviour of all classes have to be carried out automatically. This
+implies a well defined interface for all tests, which is the reason for all
+these strange macros. This fixed format also enforces the writing of complete
+class tests. Usually a programmer writes a few lines of code to test the parts
+of the code he wrote for correctness. Of the methods tested after the
+introduction of the test macros, about a tenth of all functions/methods showed
+severe errors or after thorough testing. Most of these errors didn't occur an
+all platforms or didn't show up on trivial input.
+
+Writing tests for {\em each} method of a class also ensures that each line is
+compiled. When using class templates the compiler only compiles the methods
+called. Thus it is possible that a code segment contains syntactical errors
+but the compiler accepts the code happily -- he simply ignores most of the
+code. This is quickly discovered in a complete test of all methods. The same
+is true for configuration dependend preprocessor directives that stem from
+platform dependencies. Often untested code also hides inside the {\tt const}
+version of a method, when there is a non-const method with the same name and
+arguments (for example most of the {\tt getName}) methods in OpenMS. In most
+cases, the non-const version is preferred by the compiler and it is usually
+not clear to the user which version is taken. Again, explicit testing of each
+single method provides help for this problem.
+The ideal method to tackle the problem of untested code is the complete
+coverage analysis of a class. Unfortunately this is only supported for very
+few compilers, so it is not used for testing OpenMS.
+
+One last point: writing the
+test program is a wonderful opportunity to verify and complete the
+documentation! Often enough implementation details are not clear at the time
+the documentation is written. A lot of side effects or special cases that were
+added later do not appear in the documentation. Going through the
+documentation and the implementation in parallel is the best way to verify the
+documentation for consistence and (strange coincidence?!) the best way to
+implement a test program, too!
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "../openms"
+%%% End: 

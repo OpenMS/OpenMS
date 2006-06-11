@@ -1,0 +1,70 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: PeakIcon.C,v 1.4 2006/03/28 12:53:15 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/VISUAL/PeakIcon.h>
+#include <qpainter.h>
+#include <qrect.h>
+
+
+
+
+
+void OpenMS::PeakIcon::drawEllipse(QPainter& painter, QRect r)
+{
+	painter.save();
+  painter.drawEllipse(r);
+	painter.restore();
+}
+
+void OpenMS::PeakIcon::drawTriangle(QPainter& painter, QRect r)
+{
+	painter.save();
+	painter.drawLine(r.x(), r.y() + r.height(), r.x() + int(r.width()/2), r.y());
+  painter.drawLine(r.x() + int(r.width()/2), r.y(), r.x() + r.width(), r.y() + r.height());
+	painter.drawLine(r.x(), r.y() + r.height(), r.x() + r.width(), r.y() + r.height());
+	painter.restore();
+}
+
+void OpenMS::PeakIcon::drawAsterix(QPainter& painter, QRect r)
+{
+	painter.save();
+	painter.drawLine(r.x(), r.y(), r.x() + r.width(), r.y() + r.height());
+	painter.drawLine(r.x(), r.y() + r.height(), r.x() + r.width(), r.y());
+	painter.drawLine(r.x(), r.y() + int(r.height()/2), r.x() + r.width(), int(r.height()/2));
+	painter.drawLine(r.x() + int(r.width()/2), r.y(), r.x() + int(r.width()/2), r.y() + r.height());
+	painter.restore();
+}
+
+void OpenMS::PeakIcon::drawRectangle(QPainter& painter, QRect r)
+{
+	painter.save();
+  painter.drawRect(r);
+  painter.restore();
+}
+
+ 

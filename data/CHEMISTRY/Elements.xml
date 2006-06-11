@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+	<NODE name="Elements">
+		<NODE name="Hydrogen">
+			<ITEM name="Name" value="Hydrogen" type="string" />
+			<ITEM name="Symbol" value="H" type="string" />
+			<ITEM name="AtomicNumber" value="1" type="int" />
+			<ITEM name="AverageWeight" value="1.00794" type="float" />
+			<ITEM name="MonoWeight" value="1.0078250319" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="1" value="99.9885" type="float" />
+				<ITEM name="2" value="0.0115" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Carbon">
+			<ITEM name="Name" value="Carbon" type="string" />
+			<ITEM name="Symbol" value="C" type="string" />
+			<ITEM name="AtomicNumber" value="6" type="int" />
+			<ITEM name="AverageWeight" value="12.0107" type="float" />
+			<ITEM name="MonoWeight" value="12" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="12" value="98.93" type="float" />
+				<ITEM name="13" value="1.07" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Nitrogen">
+			<ITEM name="Name" value="Nitrogen" type="string" />
+			<ITEM name="Symbol" value="N" type="string" />
+			<ITEM name="AtomicNumber" value="7" type="int" />
+			<ITEM name="AverageWeight" value="14.0067" type="float" />
+			<ITEM name="MonoWeight" value="14.0030740074" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="14" value="99.632" type="float" />
+				<ITEM name="15" value="0.368" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Oxygen">
+			<ITEM name="Name" value="Oxygen" type="string" />
+			<ITEM name="Symbol" value="O" type="string" />
+			<ITEM name="AtomicNumber" value="8" type="int" />
+			<ITEM name="AverageWeight" value="15.9994" type="float" />
+			<ITEM name="MonoWeight" value="15.9949146223" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="16" value="99.757" type="float" />
+				<ITEM name="17" value="0.038" type="float" />
+				<ITEM name="18" value="0.205" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Phosphorus">
+			<ITEM name="Name" value="Phosphorus" type="string" />
+			<ITEM name="Symbol" value="P" type="string" />
+			<ITEM name="AtomicNumber" value="15" type="int" />
+			<ITEM name="AverageWeight" value="30.973761" type="float" />
+			<ITEM name="MonoWeight" value="30.97376149" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="31" value="100" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Sulfur">
+			<ITEM name="Name" value="Sulfur" type="string" />
+			<ITEM name="Symbol" value="S" type="string" />
+			<ITEM name="AtomicNumber" value="16" type="int" />
+			<ITEM name="AverageWeight" value="32.065" type="float" />
+			<ITEM name="MonoWeight" value="31.97207073" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="32" value="94.93" type="float" />
+				<ITEM name="33" value="0.76" type="float" />
+				<ITEM name="34" value="4.29" type="float" />
+				<ITEM name="36" value="0.02" type="float" />
+			</NODE>
+		</NODE>
+	</NODE>
+</PARAMETERS>

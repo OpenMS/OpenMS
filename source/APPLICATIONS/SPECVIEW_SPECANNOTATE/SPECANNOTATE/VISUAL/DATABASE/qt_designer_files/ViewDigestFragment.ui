@@ -1,0 +1,111 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>ViewDigestFragment</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>ViewDigestFragment</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>575</width>
+            <height>623</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>View of MySQL Database, Table: digest_fragment</string>
+    </property>
+    <widget class="QDataTable">
+        <column>
+            <property name="text">
+                <string>Digest_fragment_ID</string>
+            </property>
+            <property name="field">
+                <string>digest_fragment_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>Protein_ID</string>
+            </property>
+            <property name="field">
+                <string>protein_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>Enzyme_ID</string>
+            </property>
+            <property name="field">
+                <string>enzyme_ID</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>D_start_pos</string>
+            </property>
+            <property name="field">
+                <string>d_start_pos</string>
+            </property>
+        </column>
+        <column>
+            <property name="text">
+                <string>D_end_pos</string>
+            </property>
+            <property name="field">
+                <string>d_end_pos</string>
+            </property>
+        </column>
+        <property name="name">
+            <cstring>dataTable1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>555</width>
+                <height>550</height>
+            </rect>
+        </property>
+        <property name="readOnly">
+            <bool>true</bool>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>digest_fragment_ID ASC</string>
+            </stringlist>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>digest_fragment</string>
+            </stringlist>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Done</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>240</x>
+                <y>580</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>Done</sender>
+        <signal>clicked()</signal>
+        <receiver>ViewDigestFragment</receiver>
+        <slot>close()</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

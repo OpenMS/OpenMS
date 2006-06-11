@@ -1,0 +1,323 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>EditEnzyme</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>EditEnzyme</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>383</width>
+            <height>251</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Connect to MySQL-Database, Table: enzyme</string>
+    </property>
+    <widget class="QDataBrowser">
+        <property name="name">
+            <cstring>dataBrowser1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>370</width>
+                <height>177</height>
+            </rect>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>enzyme_ID ASC</string>
+            </stringlist>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>enzyme</string>
+            </stringlist>
+        </property>
+        <grid>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <widget class="QLayoutWidget" row="0" column="0">
+                <property name="name">
+                    <cstring>layout1</cstring>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>labelTerminality</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Terminality</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Signifies whether the protease cuts C- or N-terminal</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Signifies whether the protease cuts C- or N-terminal</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="2" column="1">
+                        <property name="name">
+                            <cstring>QLineEditTerminality</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>enzyme</string>
+                                <string>terminality</string>
+                            </stringlist>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="0" column="1">
+                        <property name="name">
+                            <cstring>QLineEditEnzyme_name</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>enzyme</string>
+                                <string>enzyme_name</string>
+                            </stringlist>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>labelCleavage_sites</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Cleavage-Sites</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specifies the aminoacids before or after which the protease cuts. They are given in one-letter-code consecutively (e.g. MA would mean Methionine and Alanine)</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>Specifies the aminoacids before or after which the protease cuts. They are given in one-letter-code consecutively (e.g. MA would mean Methionine and Alanine)</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="1" column="1">
+                        <property name="name">
+                            <cstring>QLineEditCleavage_sites</cstring>
+                        </property>
+                        <property name="database" stdset="0">
+                            <stringlist>
+                                <string>(default)</string>
+                                <string>enzyme</string>
+                                <string>cleavage_sites</string>
+                            </stringlist>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="0">
+                        <property name="name">
+                            <cstring>labelEnzyme_name</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Enzyme Name</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>The name of the protease in question</string>
+                        </property>
+                        <property name="whatsThis" stdset="0">
+                            <string>The name of the protease in question</string>
+                        </property>
+                    </widget>
+                </grid>
+            </widget>
+            <widget class="QLayoutWidget" row="1" column="0">
+                <property name="name">
+                    <cstring>layout2</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonFirst</cstring>
+                        </property>
+                        <property name="text">
+                            <string>|&lt; &amp;First</string>
+                        </property>
+                        <property name="accel">
+                            <string>Alt+F</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonPrev</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&lt;&lt; &amp;Prev</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonNext</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Next &gt;&gt;</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonLast</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Last &gt;|</string>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+            <widget class="QLayoutWidget" row="2" column="0">
+                <property name="name">
+                    <cstring>layout3</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonInsert</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Insert</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonUpdate</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Update</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>PushButtonDelete</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Delete</string>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+        </grid>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Done</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>280</x>
+                <y>200</y>
+                <width>90</width>
+                <height>28</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Help</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>20</x>
+                <y>200</y>
+                <width>90</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Help</string>
+        </property>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>PushButtonFirst</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>first()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonPrev</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>prev()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonNext</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>next()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonLast</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>last()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonInsert</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>insert()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonUpdate</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>update()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonDelete</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser1</receiver>
+        <slot>del()</slot>
+    </connection>
+    <connection>
+        <sender>Done</sender>
+        <signal>clicked()</signal>
+        <receiver>EditEnzyme</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>Help</sender>
+        <signal>clicked()</signal>
+        <receiver>EditEnzyme</receiver>
+        <slot>help()</slot>
+    </connection>
+</connections>
+<tabstops>
+    <tabstop>QLineEditEnzyme_name</tabstop>
+    <tabstop>QLineEditCleavage_sites</tabstop>
+    <tabstop>QLineEditTerminality</tabstop>
+    <tabstop>PushButtonFirst</tabstop>
+    <tabstop>PushButtonPrev</tabstop>
+    <tabstop>PushButtonNext</tabstop>
+    <tabstop>PushButtonLast</tabstop>
+    <tabstop>PushButtonInsert</tabstop>
+    <tabstop>PushButtonUpdate</tabstop>
+    <tabstop>PushButtonDelete</tabstop>
+    <tabstop>Done</tabstop>
+</tabstops>
+<includes>
+    <include location="local" impldecl="in implementation">EditEnzyme.ui.h</include>
+</includes>
+<slots>
+    <slot>help()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

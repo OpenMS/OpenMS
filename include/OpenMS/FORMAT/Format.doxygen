@@ -1,0 +1,29 @@
+	/**
+		@defgroup Format Format
+		
+		@brief IO classes.
+		
+		This module contains all classes that are involved in file or DB IO.
+		
+		@todo use resize for vectors whenever poossible (Marc)
+	*/
+
+	/**
+		@defgroup FileIO File IO
+		
+		@brief File IO classes.
+		
+		This module contains all classes that are involved in file IO.
+		
+		@ingroup Format
+	*/
+
+	/**
+		@defgroup DatabaseIO Database IO
+		
+		@brief Database IO classes.
+		
+		This module contains all classes that are involved in database IO.
+		
+		@ingroup Format
+	*/

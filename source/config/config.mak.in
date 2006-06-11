@@ -1,0 +1,57 @@
+# -*- Mode: makefile; tab-width: 2; -*-
+# vi: set ts=2:
+#
+# --------------------------------------------------------------------------
+#
+# This is config.mak.in/config.mak
+# Please do ONLY change config.mak.in, as config.mak is automagically 
+# created by configure from config.mak.in
+#
+# --------------------------------------------------------------------------
+# $Id: config.mak.in,v 1.3 2006/02/09 09:11:57 marc_sturm Exp $
+# $Author: marc_sturm $
+# $Maintainer: Marc Sturm $
+# --------------------------------------------------------------------------
+
+include @OPENMS_PATH@/source@BINFMT_PATH@/config_defs.mak
+
+#	C++ sources use suffix .C, .y for BISON, .l for FLEX
+#
+.SUFFIXES: .C .y .l .o .C .ui .h Template.C Template_moc.C Template.h .dh
+
+
+# Rule to create .o files from .C files
+#
+.C.o:
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c $*.C -o $@
+
+# Rule to create .C files from the BISON .y files
+#
+.y.C:
+	$(YACC) -p $(PARSER_PREFIX) -d $*.y && $(MV) y.tab.h $*.h && $(MV) y.tab.c $@
+
+# Rule to create .C files from the FLEX .l files
+#
+.l.C:
+	$(LEX) -P$(PARSER_PREFIX) -o$@ $*.l
+
+# Rule to create header files from .ui files (using UIC)
+# .dh files are dummy files required due to the stupidity 
+# of some implementations of make (e.g. SUN)
+# They are just empty files that exist whenever the corresponding
+# *Template.h files exists.
+#
+.ui.dh:
+	$(UIC) -o $(UIC_DIR)/$*Template.h $< && touch $*.dh
+
+.dhTemplate.C:
+	$(UIC) -o $@ -impl $(UIC_DIR)/$*Template.h $*.ui
+
+#
+# Rule to create moc files from header files (using MOC)
+#
+.dhTemplate_moc.C: $*.dh
+	$(MOC) -o $@ $(UIC_DIR)/$*Template.h
+
+.dh_moc.C:  $*.dh
+	$(MOC) -o $@ $(HEADER_DIR)/$*.h

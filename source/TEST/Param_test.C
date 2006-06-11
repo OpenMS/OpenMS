@@ -1,0 +1,419 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: Param_test.C,v 1.11 2006/05/31 16:24:19 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(DPeak<D>, "$Id: Param_test.C,v 1.11 2006/05/31 16:24:19 marc_sturm Exp $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+Param* d10_ptr = 0;
+CHECK(Param())
+	d10_ptr = new Param();
+	TEST_NOT_EQUAL(d10_ptr, 0)
+RESULT
+
+CHECK(~Param())
+	delete d10_ptr;
+RESULT
+
+CHECK(set(string,string) / get(string))
+	Param p;
+	p.setValue("key","value");
+	TEST_EQUAL(p.getValue("key"), "value")
+RESULT
+
+CHECK(set(string,int) / get(string))
+	Param p;
+	p.setValue("key",17);
+	TEST_EQUAL(SignedInt(p.getValue("key")), 17)
+RESULT
+
+CHECK(set(string,float) / get(string))
+	Param p;
+	p.setValue("key",17.4f);
+	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
+RESULT
+
+CHECK(bool empty() const)
+	Param p;
+	TEST_EQUAL(p.empty(), true)
+	p.setValue("key",17.4f);
+	TEST_EQUAL(p.empty(), false)
+RESULT
+
+CHECK(UnsignedInt size() const)
+	Param p;
+	TEST_EQUAL(p.size(), 0)
+	p.setValue("key",17.4f);
+	TEST_EQUAL(p.size(), 1)
+	p.setValue("key",17.4f);
+	TEST_EQUAL(p.size(), 1)
+RESULT
+
+Param p;
+p.setValue("test:float",17.4f);
+p.setValue("test:string","test,test,test");
+p.setValue("test:int",17);
+p.setValue("test2:float",17.5f);
+p.setValue("test2:string","test2");
+p.setValue("test2:int",18);
+
+CHECK(Param(const Param& rhs))
+	Param p2(p);
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+RESULT
+
+CHECK(Param& Param::operator = (const Param& rhs))
+	Param p2;
+	p2=p;
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+RESULT
+
+
+CHECK(void remove(const std::string& prefix))
+	Param p2(p);
+	
+	p2.remove("test:float");
+	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+
+	p2.remove("test:");
+	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test:string"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test:int"), p2.getValue("novaluehere"))
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+
+	p2.remove("test");
+	TEST_EQUAL(p2.getValue("test:float"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test:string"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test:int"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test2:float"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test2:string"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))	
+	
+RESULT
+
+
+CHECK(bool Param::operator == (const Param& rhs))
+	Param p2(p);
+	TEST_EQUAL(p==p2, true)
+	p2.setValue("test:float",17.5f);
+	TEST_EQUAL(p==p2, false)
+	p2 = p;
+	p2.setValue("test:float3",17.4f);
+	TEST_EQUAL(p==p2, false)
+	p2 = p;
+	p2.remove("test:float");
+	TEST_EQUAL(p==p2, false)
+RESULT
+
+CHECK(load(filename))
+	Param p2;
+	TEST_EXCEPTION(Exception::FileNotFound, p2.load("FileDoesNotExist.xml"))	
+RESULT
+
+CHECK( store(filename) / load(filename))
+	Param p2(p);
+	String filename;
+	NEW_TMP_FILE(filename);
+	p2.store(filename);
+	Param p3;
+	p3.load(filename);
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), float(p3.getValue("test:float")))
+	TEST_EQUAL(p2.getValue("test:string"), p3.getValue("test:string"))
+	TEST_EQUAL(p2.getValue("test:int"), p3.getValue("test:int"))
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), float(p3.getValue("test2:float")))
+	TEST_EQUAL(p2.getValue("test2:string"), p3.getValue("test2:string"))
+	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))	
+RESULT
+
+CHECK( insert(prefix, para) )
+	Param p2;
+	p2.insert("test3",p);
+	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test3:test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test3:test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test3:test2:int")), 18)
+	p2.insert("",p);
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)	
+RESULT
+
+CHECK( Param copy(prefix, remove_prefix, new_prefix) )
+	Param p2;
+
+	p2 = p.copy("notthere:");
+	TEST_EQUAL((p2==Param()),true)
+
+	p2 = p.copy("test:");
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_EQUAL(p2.getValue("test2:float"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test2:string"), p2.getValue("novaluehere"))
+	TEST_EQUAL(p2.getValue("test2:int"), p2.getValue("novaluehere"))
+
+	p2 = p.copy("test:",true);
+	TEST_REAL_EQUAL(float(p2.getValue("float")), 17.4)
+	TEST_EQUAL(p2.getValue("string"), "test,test,test")
+
+	p2 = p.copy("test:",true,"tttest");
+	TEST_REAL_EQUAL(float(p2.getValue("tttest:float")), 17.4)
+	TEST_EQUAL(p2.getValue("tttest:string"), "test,test,test")
+
+	p2 = p.copy("test:",false,"tttest");
+	TEST_REAL_EQUAL(float(p2.getValue("tttest:test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("tttest:test:string"), "test,test,test")
+	
+	p2 = p.copy("test");
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_EQUAL(SignedInt(p2.getValue("test:int")), 17)
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
+RESULT
+
+CHECK( setDefaults(prefix, para) )
+	Param defaults;
+	defaults.setValue("float",1.0f);	
+	defaults.setValue("float2",2.0f);
+	defaults.setValue("string","default string1");
+	defaults.setValue("string2","default string2");
+	
+	Param p2;
+	p2.setValue("PATH:float",-1.0f);
+	p2.setValue("PATH:string","some string");
+	p2.setValue("float",-2.0f);
+	p2.setValue("string","other string");
+	
+	TEST_EQUAL(p2.size(),4);
+	
+	p2.setDefaults(defaults);
+	TEST_EQUAL(p2.size(),6);
+	TEST_REAL_EQUAL(float(p2.getValue("float")),-2.0);
+	TEST_REAL_EQUAL(float(p2.getValue("float2")),2.0);
+	TEST_EQUAL(string(p2.getValue("string")),"other string");
+	TEST_EQUAL(string(p2.getValue("string2")),"default string2");
+
+	p2.setDefaults(defaults,"PATH");
+	TEST_EQUAL(p2.size(),8);
+	TEST_REAL_EQUAL(float(p2.getValue("PATH:float")),-1.0);
+	TEST_REAL_EQUAL(float(p2.getValue("PATH:float2")),2.0);
+	TEST_EQUAL(string(p2.getValue("PATH:string")),"some string");
+	TEST_EQUAL(string(p2.getValue("PATH:string2")),"default string2");
+	
+RESULT
+
+char* a1 ="executable";
+char* a2 ="-a";
+char* a3 ="av";
+char* a4 ="-b";
+char* a5 ="bv";
+char* a6 ="-c";
+char* a7 ="cv";
+char* a8 ="rv1";
+char* a9 ="rv2";
+char* command_line[9]; // "executable -a av -b bv -c cv rv1 rv2"
+command_line[0] = a1;
+command_line[1] = a2;
+command_line[2] = a3;
+command_line[3] = a4;
+command_line[4] = a5;
+command_line[5] = a6;
+command_line[6] = a7;
+command_line[7] = a8;
+command_line[8] = a9;
+
+char* command_line2[6]; // "executable -a av -b -c cv"
+command_line2[0] = a1;
+command_line2[1] = a2;
+command_line2[2] = a3;
+command_line2[3] = a4;
+command_line2[4] = a6;
+command_line2[5] = a7;
+
+char* command_line3[6]; // "executable -a -b -c cv rv1"
+command_line3[0] = a1;
+command_line3[1] = a2;
+command_line3[2] = a4;
+command_line3[3] = a6;
+command_line3[4] = a7;
+command_line3[5] = a8;
+
+
+CHECK( parseCommandLine(argc , argv, prefix) )
+	Param p2,p3;
+	p2.parseCommandLine(9,command_line,"test4");
+	p3.setValue("test4:-a","av");
+	p3.setValue("test4:-b","bv");
+	p3.setValue("test4:-c","cv");
+	p3.setValue("test4:misc","rv1 rv2");
+	TEST_EQUAL(p2==p3,true)
+
+	Param p20,p30;
+	p20.parseCommandLine(6,command_line2);
+	p30.setValue("-a","av");
+	p30.setValue("-b","");
+	p30.setValue("-c","cv");
+	TEST_EQUAL(p20==p30,true)
+RESULT
+
+//CHECK( parseCommandLine(argc , argv, params_to_keys) )
+//	Param p4,p5;
+//	map<string,string> mapping;
+//	mapping["-a"]="a";
+//	mapping["-b"]="b";
+//	mapping["-c"]="c";
+//	mapping["misc"]="_nil_";
+//	p4.parseCommandLine(9,command_line,mapping);
+//	p5.setValue("a","av");
+//	p5.setValue("b","bv");
+//	p5.setValue("c","cv");
+//	p5.setValue("_nil_","rv1 rv2");
+//	TEST_EQUAL(p4==p5,true)
+//	
+//	Param p6,p7;
+//	map<string,string> mapping2;
+//	mapping2["-b"]="b";
+//	mapping2["misc"]="_nil_";
+//	mapping2["unknown"]="_uk_";
+//	
+//	p6.parseCommandLine(9,command_line,mapping2);
+//	p7.setValue("b","bv");
+//	p7.setValue("_nil_","av cv rv1 rv2");
+//	p7.setValue("_uk_","-a -c");
+//	TEST_EQUAL(p6==p7,true)
+//
+//	Param p8,p9;
+//	p8.parseCommandLine(6,command_line2,mapping);
+//	p9.setValue("a","av");
+//	p9.setValue("b","");
+//	p9.setValue("c","cv");
+//	TEST_EQUAL(p8==p9,true)
+//RESULT
+
+
+CHECK( void parseCommandLine(const int argc , char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc, const std::string& unknown) )
+	map<string,string> with,without;
+	with["-a"]="a";
+	with["-b"]="b";
+	with["-c"]="c";
+	
+	Param p4,p5;
+	p4.parseCommandLine(9,command_line,with,without,"misc_","unknown_");
+	p5.setValue("a","av");
+	p5.setValue("b","bv");
+	p5.setValue("c","cv");
+	p5.setValue("misc_","rv1 rv2");
+	TEST_EQUAL(p4==p5,true)
+
+	with.clear();
+	with["-a"]="a";
+	without["-b"]="b";
+	
+	Param p40,p50;
+	p40.parseCommandLine(9,command_line,with,without,"misc__","unknown__");
+	p50.setValue("a","av");
+	p50.setValue("b","");
+	p50.setValue("misc__","bv cv rv1 rv2");
+	p50.setValue("unknown__","-c");
+	TEST_EQUAL(p40==p50,true)
+
+	//"executable -a av -b -c cv"	
+	Param p400,p500;
+	p400.parseCommandLine(6,command_line2,with,without,"misc__","unknown__");
+	p500.setValue("a","av");
+	p500.setValue("b","");
+	p500.setValue("misc__","cv");
+	p500.setValue("unknown__","-c");
+	TEST_EQUAL(p400==p500,true)
+
+	//"executable -a -b -c cv rv1"
+	Param p4000,p5000;
+	p4000.parseCommandLine(6,command_line3,with,without,"misc__","unknown__");
+	p5000.setValue("a","");
+	p5000.setValue("b","");
+	p5000.setValue("misc__","cv rv1");
+	p5000.setValue("unknown__","-c");
+	TEST_EQUAL(p4000==p5000,true)
+RESULT
+
+
+CHECK ([EXTRA] ConstIterator begin() const)
+	TEST_EQUAL("test2:float", p.begin()->first)
+	TEST_REAL_EQUAL(p.getValue("test2:float"), p.begin()->second)
+RESULT
+
+CHECK ([EXTRA] ConstIterator end() const)
+	Param::ConstIterator it = p.end();
+	it--;
+	TEST_EQUAL("test:string", it->first)
+	TEST_EQUAL(p.getValue("test:string"), it->second)
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

@@ -1,0 +1,611 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: DSpectrum.h,v 1.21 2006/06/08 10:46:52 marc_sturm Exp $
+// $Author: marc_sturm $
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_KERNEL_DSPECTRUM_H
+#define OPENMS_KERNEL_DSPECTRUM_H
+
+#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/KERNEL/DPickedPeak.h>
+
+#ifdef GSL_DEF
+#include <gsl/gsl_randist.h>
+#else
+#define gsl_ran_gaussian_pdf(a,b) b
+#endif
+
+#include <list>
+
+namespace OpenMS
+{
+
+	/**	
+		@brief Representation of a D-dimensional spectrum.
+		
+		The peak data itself is stored in a container class, which can be a DPeakArray, a 
+		DPeakArrayNonpolymorphic, a DPeakList or a STL container like std::list or std::vector.
+		<BR>
+		Some meta information about the spectrum (ms-level, precursor peak, ...) is 
+		also stored. If you want to store more meta information 
+		see the MSSpectrum and MSExperiment classes.
+		<BR>
+		The interface to the container is wrapped for convenience. Of cause only the 
+		members and type that are containes in  both std::list and std::vector are present.
+		<BR>
+		Additionally an interface for the minimum and maximum position, and the minimum and maximum
+		intensity of the peaks is contained.
+
+		@ingroup Kernel
+	*/
+	template <Size D, typename ContainerT = DPeakArray<D> >
+	class DSpectrum
+		: public MetaInfoInterface
+	{
+		public:
+
+			/**	@name	Type definitions */
+			//@{
+			typedef ContainerT ContainerType;
+			typedef typename ContainerType::PeakType PeakType;
+			typedef DPickedPeak<D> PrecursorPeakType;
+			//@}
+			
+			/**	@name	Type definitions for container interface*/
+			//@{						
+			typedef typename ContainerType::iterator Iterator;
+			typedef typename ContainerType::iterator iterator;
+			typedef typename ContainerType::const_iterator ConstIterator;
+			typedef typename ContainerType::const_iterator const_iterator;
+			typedef typename ContainerType::reverse_iterator ReverseIterator;
+			typedef typename ContainerType::reverse_iterator reverse_iterator;
+			typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
+			typedef typename ContainerType::const_reverse_iterator const_reverse_iterator;
+			typedef typename ContainerType::value_type value_type;
+			typedef typename ContainerType::reference reference;
+			typedef typename ContainerType::const_reference const_reference;
+			typedef typename ContainerType::pointer pointer;
+			typedef typename ContainerType::difference_type difference_type;
+			typedef typename ContainerType::size_type size_type;
+			//@}
+			
+			/**	@name Constructors and Destructor */
+			//@{
+			
+			/// Default constructor
+			DSpectrum()
+				:	MetaInfoInterface(),
+				container_(),
+				min_(0), 
+				max_(0), 
+				int_min_(0), 
+				int_max_(0),
+				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
+				retention_start_(0),
+				retention_stop_(0),
+				ms_level_(1)
+			{
+			}
+	
+			/// Copy constructor
+			DSpectrum(const DSpectrum<D>& rhs)
+				: MetaInfoInterface(rhs), 
+				container_(rhs.container_),
+				min_(rhs.min_),
+				max_(rhs.max_),
+				int_min_(rhs.int_min_),
+				int_max_(rhs.int_max_),
+				retention_time_(rhs.retention_time_),
+				retention_start_(rhs.retention_start_),
+				retention_stop_(rhs.retention_stop_),
+				ms_level_(rhs.ms_level_)
+			{
+			}
+			
+			/// Destructor
+			inline ~DSpectrum()
+			{
+			}
+			//@}
+	
+			/// Assignment operator
+			DSpectrum& operator = (const DSpectrum& rhs)
+			{
+				if (this==&rhs) return *this;
+				
+				MetaInfoInterface::operator=(rhs);
+				container_ = rhs.container_;
+				min_ = rhs.min_;
+				max_ = rhs.max_;
+				int_min_ = rhs.int_min_;
+				int_max_ = rhs.int_max_;
+				retention_time_ = rhs.retention_time_;
+				retention_start_ = rhs.retention_start_;
+				retention_stop_ = rhs.retention_stop_;
+				ms_level_ = rhs.ms_level_;
+				
+				return *this;
+			}
+	
+			/// Equality operator
+			bool operator == (const DSpectrum& rhs) const
+			{
+				return
+					MetaInfoInterface::operator==(rhs) &&
+					container_ == rhs.container_ &&
+					precursor_peak_ == rhs.precursor_peak_ &&
+					retention_time_ == rhs.retention_time_ &&
+					retention_start_ == rhs.retention_start_ &&
+					retention_stop_ == rhs.retention_stop_ &&
+					ms_level_ == rhs.ms_level_
+					;				
+			}
+			
+			/// Equality operator
+			bool operator != (const DSpectrum& rhs) const
+			{
+				return !(operator==(rhs));
+			}
+
+			/**	@name	Wrappers of container accessors */
+			//@{
+			/// Non-mutable access to the peak container
+			inline const ContainerType& getContainer() const 
+			{ 
+				return container_; 
+			}
+			/// Mutable access to the peak container.
+			inline ContainerType& getContainer() 
+			{ 
+				return container_; 
+			}
+			/// Mutable access to the peak container.
+			inline void setContainer(const ContainerType& container) 
+			{ 
+				container_ = container; 
+			}
+
+			/// Returns the const begin iterator of the container
+			inline ConstIterator begin() const 
+			{ 
+				return container_.begin(); 
+			}
+			/// Returns the const end iterator of the container
+			inline ConstIterator end() const 
+			{ 
+				return container_.end(); 
+			}
+	
+			/// Returns the begin iterator of the container
+			inline Iterator begin() 
+			{ 
+				return container_.begin(); 
+			}
+			/// Returns the end iterator of the container
+			inline Iterator end() 
+			{ 
+				return container_.end(); 
+			}
+
+			/// returns the maxium size possbile (the number of peaks)
+			inline size_type max_size() const 
+			{ 
+				return container_.max_size(); 
+			}	
+			/// returns the size (the number of peaks)
+			inline Size size() const 
+			{ 
+				return container_.size(); 
+			}
+			/// Returns if the container is empty
+			inline bool empty() const 
+			{ 
+				return container_.empty(); 
+			}
+      
+      /// Swaps two containers
+      inline void swap(ContainerType& rhs)
+      {
+      	container_.swap(rhs);
+      }
+      
+      /// Comparison of container sizes
+      inline bool operator<(const DSpectrum& rhs)
+      {
+      	return container_<rhs.getContainer();
+      }
+			
+			/// Comparison of container sizes
+			inline bool operator>(const DSpectrum& rhs)
+      {
+      	return container_>rhs.getContainer();
+      }
+
+			/// Comparison of container sizes
+			inline bool operator<=(const DSpectrum& rhs)
+      {
+      	return container_<=rhs.getContainer();
+      }
+      
+      /// Comparison of container sizes
+      inline bool operator>=(const DSpectrum& rhs)
+      {
+      	return container_>=rhs.getContainer();
+      }
+			
+			/// See STL documentation
+			inline ReverseIterator rbegin()
+			{
+				return container_.rbegin();
+			}
+			
+			/// See STL documentation
+			inline ConstReverseIterator rbegin() const
+			{
+				return container_.rbegin();
+			}
+			
+			/// See STL documentation
+			inline ReverseIterator rend()
+			{
+				return container_.rend();
+			}
+			
+			/// See STL documentation
+			inline ConstReverseIterator rend() const
+			{
+				return container_.rend();
+			}
+			
+			/// Inserts an element
+			inline Iterator insert( Iterator loc, const value_type& val )
+			{
+				return container_.insert(loc,val);
+			}
+			
+			/// Inserts an element several times
+			inline void insert( iterator loc, size_type num, const value_type& val )
+			{
+				container_.insert(loc, num, val);
+			}
+			
+			/// Inserts a range of elements
+			template<class InputIterator> void insert( iterator loc, InputIterator start, InputIterator end )
+			{
+				container_.insert(loc, start, end);
+			}
+			
+			/// Erases an element
+			inline Iterator erase( iterator loc )
+			{
+				return container_.erase(loc);
+			}
+			
+			/// Erases a range of elements
+			inline Iterator erase( iterator start, iterator end )
+			{
+				return container_.erase(start, end);
+			}
+			
+			/// Returns the first element
+			inline value_type& front()
+			{
+				return container_.front();
+			}
+			
+			/// Returns the first element
+			inline const value_type& front() const
+			{
+				return container_.front();
+			}      
+			
+			/// Returns the first element
+			inline value_type& back()
+			{
+				return container_.back();
+			}
+			
+			/// Returns the first element
+			inline const value_type& back() const
+			{
+				return container_.back();
+			}
+			
+			/// Removes the last element
+			inline void pop_back()
+			{
+				container_.pop_back();
+			}
+			
+			/// Inserts an element at the end
+			inline void push_back( const value_type& val )
+			{
+				container_.push_back(val);
+			}
+			
+			/// Fills the container with serval copies of a value
+			inline void assign( size_type num, const value_type& val )
+			{
+				container_.assign(num, val);
+			}
+			
+			/// Fills the container with a range of values
+			template<class InputIterator> void assign( InputIterator start, InputIterator end )
+			{
+				container_.assign(start, end);
+			}
+			
+			/// Removes all elements
+			inline void clear()
+			{
+				container_.clear();
+			}
+			
+			/// Resizes the container to size @p num. Uses @p val to fill up if it is shorter than @p num.
+			inline void resize( size_type num, const value_type& val = value_type() )
+			{
+				container_.resize(num, val);
+			}
+			
+			//@}	
+	
+
+			/**	
+				@name Range methods
+			
+				@note The range values are not updated automatically. Call updateRanges() to update the values!
+			*/
+			//@{
+	
+			/// Returns the minimum position
+			const typename PeakType::PositionType& getMin() const	
+			{ 
+				return min_; 
+			}
+			/// Returns the maximum position
+		  const typename PeakType::PositionType& getMax() const 
+		  { 
+		  	return max_; 
+		  }
+	
+			/// Returns the minimum intensity
+			const typename PeakType::IntensityType getMinInt() const	
+			{ 
+				return int_min_; 
+			}
+			/// Returns the maximum intensity
+		  const typename PeakType::IntensityType getMaxInt() const 
+		  { 
+		  	return int_max_; 
+		  }
+			
+			/**
+				@brief Updates minimum and maximum position/intensity.
+				
+				Use this method if you want to update the min/max values after you changed the data in the Container.
+			*/
+			void updateRanges()
+			{
+				//set position boundary
+				min_ = PeakType::PositionType::max;
+				max_ = PeakType::PositionType::min;
+				
+				//set intensity boundary
+				int_min_ = container_.begin()->getIntensity();	
+				int_max_ = container_.begin()->getIntensity();
+				
+				typename PeakType::PositionType::ValueType tmp;
+				typename PeakType::IntensityType tmp2;
+				for (ConstIterator it = container_.begin(); it != container_.end(); ++it)
+				{
+					for (Position i = 0; i < D; ++i)
+					{
+						tmp = it->getPosition()[i];
+						if (tmp < min_[i])
+						{
+							min_[i] = tmp;
+						}
+						if (tmp > max_[i])
+						{
+							max_[i] = tmp;
+						}
+					}
+					tmp2 = it->getIntensity();
+					if (tmp2 < int_min_)
+					{
+						int_min_ = tmp2;
+					}
+					else if (tmp2 > int_max_)
+					{
+						int_max_ = tmp2;
+					}
+				}
+			}
+	
+			//@}
+
+			/**	@name Accessors for meta information*/
+			//@{
+			/// const accessor for the precorsor peak
+			const PrecursorPeakType& getPrecursorPeak() const 
+			{ 
+				return precursor_peak_; 
+			}
+			
+			/// accessor for the precorsor peak
+			PrecursorPeakType& getPrecursorPeak()
+			{ 
+				return precursor_peak_; 
+			}
+			
+			/// sets the precursor peak
+			void setPrecursorPeak(const PrecursorPeakType& peak) 
+			{ 
+				precursor_peak_ = peak; 
+			}
+			
+			/** 
+				@brief accessor for the normalized retention time
+				
+				Returns the normalized retention time, if the gradient start and stop time are known.
+				Otherwise the absolut retention time is returned.
+			*/
+	    double getNormalizedRetentionTime() const 
+	    { 
+	    	return (retention_stop_==0)? retention_time_: (retention_time_-retention_start_)/(retention_stop_-retention_start_); 
+	    }
+			
+			/// returns the absolute retention time (unit is seconds)
+	    double getRetentionTime() const 
+	    { 
+	    	return retention_time_; 
+	    }
+
+			/// returns the retention time interval start (unit is seconds)
+	    double getRetentionTimeStart() const 
+	    { 
+	    	return retention_start_; 
+	    }
+
+			/// returns the retention time interval stop (unit is seconds)
+	    double getRetentionTimeStop() const 
+	    { 
+	    	return retention_stop_; 
+	    }
+	         
+	    /**
+	    	Sets the retention time and the start/stop time of the gradient.
+	    	The latter two are needed for calculating the normalized retention time
+	    */
+	    void setRetentionTime(double rt, double start=0, double stop=0) 
+	    { 
+	    	retention_time_= rt; 
+			retention_start_ = start;
+			retention_stop_ = stop;
+	    }
+	    
+	    /**
+	    	@brief Returns the MS level.
+				
+				For survey scans this is 1, for MS/MS scans 2, ...
+			*/
+			UnsignedInt getMSLevel() const
+			{
+				 return ms_level_; 
+			}
+			
+			///Sets the MS level.
+			void setMSLevel(UnsignedInt ms_level)
+			{
+				ms_level_ = ms_level;
+			}
+			
+			///Returns the name
+			std::string getName() const
+			{
+				 return name_; 
+			}
+			
+			///Sets the name
+			void setName(std::string name)
+			{
+				name_ = name;
+			}
+	
+			//@}
+
+		protected:
+			
+			/// The container with all the peak data
+			ContainerType		container_;
+			
+			/// Minimum position
+			typename PeakType::PositionType min_;
+			/// Maximum position
+			typename PeakType::PositionType max_;
+			
+			/// Minimum intensity
+			typename PeakType::IntensityType int_min_;
+			/// Maximim intensity
+			typename PeakType::IntensityType int_max_;
+			
+			/// Precursor information
+			PrecursorPeakType precursor_peak_;
+			
+			/// retention time
+	    double retention_time_;
+	    /// retention time interval begin (for the calculation of the normalized RT)
+	    double retention_start_;
+	    /// retention time interval end (for the calculation of the normalized RT)
+	    double retention_stop_;
+			
+			/// MS level
+			UnsignedInt ms_level_;
+			
+			/// Name
+			std::string name_;
+
+		///@name Boost Serialization
+		//@{
+	 private:
+		friend class boost::serialization::access;
+		/// interface
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int /* version */ )
+		{
+			ar & boost::serialization::make_nvp("mii",boost::serialization::base_object<MetaInfoInterface>(*this));
+      ar & boost::serialization::make_nvp("container",container_);
+			// ar & boost::serialization::make_nvp("info",info_); // todo
+      ar & boost::serialization::make_nvp("min",min_);
+      ar & boost::serialization::make_nvp("max",max_);
+      ar & boost::serialization::make_nvp("it_min",int_min_);
+      ar & boost::serialization::make_nvp("it_max",int_max_);
+		}
+		//@}
+	
+	};
+
+	///Print the contents to a stream.
+	template <Size D, typename Container>
+	std::ostream& operator << (std::ostream& os, const DSpectrum<D, Container>& dds)
+	{
+		os << "-- DSpectrum BEGIN --"<<std::endl;
+		os << "MS-LEVEL:" <<dds.getMSLevel() << std::endl;
+		os << "RT:" <<dds.getRetentionTime() << std::endl;
+		os << "NAME:" <<dds.getName() << std::endl;
+		os << "-- DSpectrum END --"<<std::endl;
+		
+		return os;
+	}
+
+} // namespace OpenMS
+
+
+
+#endif // OPENMS_KERNEL_SPECTRUM_H
+

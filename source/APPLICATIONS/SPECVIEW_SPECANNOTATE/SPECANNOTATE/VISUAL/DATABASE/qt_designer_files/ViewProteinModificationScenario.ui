@@ -1,0 +1,433 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>ViewProteinModificationScenario</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>ViewProteinModificationScenario</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>694</width>
+            <height>473</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>View of MySQL Database, Table: protein_modification_scenario</string>
+    </property>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>pushButton1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>300</x>
+                <y>430</y>
+                <width>116</width>
+                <height>29</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Done</string>
+        </property>
+    </widget>
+    <widget class="QDataBrowser">
+        <property name="name">
+            <cstring>dataBrowser2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>680</width>
+                <height>410</height>
+            </rect>
+        </property>
+        <property name="sort">
+            <stringlist>
+                <string>protein_modification_scenario_ID ASC</string>
+            </stringlist>
+        </property>
+        <property name="autoEdit">
+            <bool>false</bool>
+        </property>
+        <property name="database" stdset="0">
+            <stringlist>
+                <string>(default)</string>
+                <string>protein_modification_scenario</string>
+            </stringlist>
+        </property>
+        <widget class="QSpinBox">
+            <property name="name">
+                <cstring>QSpinBoxProtein_modification_scenario_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>214</x>
+                    <y>11</y>
+                    <width>90</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="maxValue">
+                <number>2147483647</number>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>protein_modification_scenario_ID</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QSpinBox">
+            <property name="name">
+                <cstring>QSpinBoxProtein_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>214</x>
+                    <y>38</y>
+                    <width>90</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="maxValue">
+                <number>2147483647</number>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>protein_ID</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>labelModification_combination_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>40</y>
+                    <width>174</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Modification_combination_ID</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel1</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>10</y>
+                    <width>250</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Modification_combination_positionless_ID</string>
+            </property>
+        </widget>
+        <widget class="QSpinBox">
+            <property name="name">
+                <cstring>QSpinBoxModification_combination_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>570</x>
+                    <y>40</y>
+                    <width>90</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="maxValue">
+                <number>2147483647</number>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>modification_combination_ID</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>labelProtein_modification_scenario_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>11</x>
+                    <y>11</y>
+                    <width>197</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Protein_modification_scenario_ID</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout5</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>110</x>
+                    <y>341</y>
+                    <width>473</width>
+                    <height>50</height>
+                </rect>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>PushButtonFirst</cstring>
+                    </property>
+                    <property name="text">
+                        <string>|&lt; &amp;First</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>PushButtonPrev</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&lt;&lt; &amp;Prev</string>
+                    </property>
+                    <property name="accel">
+                        <string>Alt+P</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>PushButtonNext</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;Next &gt;&gt;</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>PushButtonLast</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;Last &gt;|</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>570</x>
+                    <y>10</y>
+                    <width>90</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>modification_combination_positionless_ID</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>QLineEditOverall_modifications</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>150</x>
+                    <y>300</y>
+                    <width>510</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>overall_modifications</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>labelOverall_modifications</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>10</x>
+                    <y>300</y>
+                    <width>140</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Overall_modifications</string>
+            </property>
+        </widget>
+        <widget class="QTextEdit">
+            <property name="name">
+                <cstring>textEdit1</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>150</x>
+                    <y>120</y>
+                    <width>510</width>
+                    <height>160</height>
+                </rect>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>partial_modifications</string>
+                </stringlist>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>labelPartial_modifications</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>10</x>
+                    <y>120</y>
+                    <width>130</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Partial_modifications</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>labelProtein_ID</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>11</x>
+                    <y>38</y>
+                    <width>197</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Protein_ID</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>10</x>
+                    <y>80</y>
+                    <width>120</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Annotation_method</string>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>150</x>
+                    <y>80</y>
+                    <width>510</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="database" stdset="0">
+                <stringlist>
+                    <string>(default)</string>
+                    <string>protein_modification_scenario</string>
+                    <string>annotation_method</string>
+                </stringlist>
+            </property>
+        </widget>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>pushButton1</sender>
+        <signal>clicked()</signal>
+        <receiver>ViewProteinModificationScenario</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonFirst</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser2</receiver>
+        <slot>first()</slot>
+    </connection>
+    <connection>
+        <sender>dataBrowser2</sender>
+        <signal>firstRecordAvailable( bool )</signal>
+        <receiver>PushButtonFirst</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonPrev</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser2</receiver>
+        <slot>prev()</slot>
+    </connection>
+    <connection>
+        <sender>dataBrowser2</sender>
+        <signal>prevRecordAvailable( bool )</signal>
+        <receiver>PushButtonPrev</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonNext</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser2</receiver>
+        <slot>next()</slot>
+    </connection>
+    <connection>
+        <sender>dataBrowser2</sender>
+        <signal>nextRecordAvailable( bool )</signal>
+        <receiver>PushButtonNext</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>PushButtonLast</sender>
+        <signal>clicked()</signal>
+        <receiver>dataBrowser2</receiver>
+        <slot>last()</slot>
+    </connection>
+    <connection>
+        <sender>dataBrowser2</sender>
+        <signal>lastRecordAvailable( bool )</signal>
+        <receiver>PushButtonLast</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

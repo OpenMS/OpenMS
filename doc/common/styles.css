@@ -1,0 +1,34 @@
+/* <!-- $Id: styles.css,v 1.4 2005/12/27 16:14:44 marc_sturm Exp $ --> */
+
+body { background-color:#FFFFFF;
+       margin-left:10px;
+       margin-right:10px; }
+
+// { color:darkblue; }
+
+h1 { font-size:250%;
+     color:#DD0000;
+     font-style:italic;}
+
+h2 { font-size:200%;
+     color:#DD0000;
+     font-style:italic;
+     border-bottom:solid thin black; }
+
+h3 { font-size:150%;
+		 color:#DD0000;
+     font-style:bold;}
+     
+a:link { color:#DD0000; 
+				 text-decoration:underline;}
+
+a:visited { color:#DD0000; 
+            text-decoration:underline; }
+
+a:active { color:#DD0000; 
+           text-decoration:none; }
+
+pre { border-style: dotted;
+	    border-width: 1px;
+	    background-color:#EEEEEE;
+	    padding: 5px; }

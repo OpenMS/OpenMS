@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+	<NODE name="Residues">
+		<NODE name="Alanine">
+			<ITEM name="Name" value="Alanine" type="string" />
+			<ITEM name="ShortName" value="Ala" type="string" />
+			<ITEM name="ThreeLetterCode" value="ALA" type="string" />
+			<ITEM name="OneLetterCode" value="A" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="L-Alanine" value="L-Alanine" type="string" />
+				<ITEM name="alanine" value="alanine" type="string" />
+				<ITEM name="Alanin" value="Alanin" type="string" />
+				<ITEM name="alanin" value="alanin" type="string" />
+				<ITEM name="Ala" value="Ala" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C3H7NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+			</NODE>
+		</NODE>
+		<NODE name="Cysteine">
+			<ITEM name="Name" value="Cysteine" type="string" />
+			<ITEM name="ShortName" value="Cys" type="string" />
+			<ITEM name="ThreeLetterCode" value="CYS" type="string" />
+			<ITEM name="OneLetterCode" value="C" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Cys" value="Cys" type="string" />
+				<ITEM name="Cystine" value="Cystine" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H9NO4S" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="H2S" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Aspartate">
+			<ITEM name="Name" value="Aspartate" type="string" />
+			<ITEM name="ShortName" value="Asp" type="string" />
+			<ITEM name="ThreeLetterCode" value="ASP" type="string" />
+			<ITEM name="OneLetterCode" value="D" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Asp" value="Asp" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C4H7NO4" type="string" />
+			<ITEM name="LossName" value="water" type="string" />
+			<ITEM name="LossFormula" value="H2O" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Glutamate">
+			<ITEM name="Name" value="Glutamate" type="string" />
+			<ITEM name="ShortName" value="Glu" type="string" />
+			<ITEM name="ThreeLetterCode" value="GLU" type="string" />
+			<ITEM name="OneLetterCode" value="E" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Glu" value="Glu" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H9NO4" type="string" />
+			<ITEM name="LossName" value="water" type="string" />
+			<ITEM name="LossFormula" value="H2O" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Phenylalanine">
+			<ITEM name="Name" value="Phenylalanine" type="string" />
+			<ITEM name="ShortName" value="Phe" type="string" />
+			<ITEM name="ThreeLetterCode" value="PHE" type="string" />
+			<ITEM name="OneLetterCode" value="F" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Phe" value="Phe" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C9H11NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Glycine">
+			<ITEM name="Name" value="Glycine" type="string" />
+			<ITEM name="ShortName" value="Gly" type="string" />
+			<ITEM name="ThreeLetterCode" value="GLY" type="string" />
+			<ITEM name="OneLetterCode" value="G" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Gly" value="Gly" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C2H5NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Histidine">
+			<ITEM name="Name" value="Histidine" type="string" />
+			<ITEM name="ShortName" value="His" type="string" />
+			<ITEM name="ThreeLetterCode" value="HIS" type="string" />
+			<ITEM name="OneLetterCode" value="H" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="His" value="His" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C6H9N3O2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Isoleucine">
+			<ITEM name="Name" value="Isoleucine" type="string" />
+			<ITEM name="ShortName" value="Ile" type="string" />
+			<ITEM name="ThreeLetterCode" value="ILE" type="string" />
+			<ITEM name="OneLetterCode" value="I" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Ile" value="Ile" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C6H13NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Lysine">
+			<ITEM name="Name" value="Lysine" type="string" />
+			<ITEM name="ShortName" value="Lys" type="string" />
+			<ITEM name="ThreeLetterCode" value="LYS" type="string" />
+			<ITEM name="OneLetterCode" value="K" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Lys" value="Lys" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C6H14N2O2" type="string" />
+			<ITEM name="LossName" value="ammonia" type="string" />
+			<ITEM name="LossFormula" value="NH3" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Leucine">
+			<ITEM name="Name" value="Leucine" type="string" />
+			<ITEM name="ShortName" value="Leu" type="string" />
+			<ITEM name="ThreeLetterCode" value="LEU" type="string" />
+			<ITEM name="OneLetterCode" value="L" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Leu" value="Leu" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C6H13NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Methionine">
+			<ITEM name="Name" value="Methionine" type="string" />
+			<ITEM name="ShortName" value="Met" type="string" />
+			<ITEM name="ThreeLetterCode" value="MET" type="string" />
+			<ITEM name="OneLetterCode" value="M" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Met" value="Met" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H11NO2S" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="H3CSH" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Asparagine">
+			<ITEM name="Name" value="Asparagine" type="string" />
+			<ITEM name="ShortName" value="Asn" type="string" />
+			<ITEM name="ThreeLetterCode" value="ASN" type="string" />
+			<ITEM name="OneLetterCode" value="N" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Asn" value="Asn" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C4H8N2O3" type="string" />
+			<ITEM name="LossName" value="ammonia" type="string" />
+			<ITEM name="LossFormula" value="NH3" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Proline">
+			<ITEM name="Name" value="Proline" type="string" />
+			<ITEM name="ShortName" value="Pro" type="string" />
+			<ITEM name="ThreeLetterCode" value="PRO" type="string" />
+			<ITEM name="OneLetterCode" value="P" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Pro" value="Pro" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H9NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Glutamine">
+			<ITEM name="Name" value="Glutamine" type="string" />
+			<ITEM name="ShortName" value="Gln" type="string" />
+			<ITEM name="ThreeLetterCode" value="GLN" type="string" />
+			<ITEM name="OneLetterCode" value="Q" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Gln" value="Gln" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H10N2O3" type="string" />
+			<ITEM name="LossName" value="ammonia" type="string" />
+			<ITEM name="LossFormula" value="NH3" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Arginine">
+			<ITEM name="Name" value="Arginine" type="string" />
+			<ITEM name="ShortName" value="Arg" type="string" />
+			<ITEM name="ThreeLetterCode" value="ARG" type="string" />
+			<ITEM name="OneLetterCode" value="R" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Arg" value="Arg" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C6H14N4O2" type="string" />
+			<ITEM name="LossName" value="ammonia" type="string" />
+			<ITEM name="LossFormula" value="NH3" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Serine">
+			<ITEM name="Name" value="Serine" type="string" />
+			<ITEM name="ShortName" value="Ser" type="string" />
+			<ITEM name="ThreeLetterCode" value="SER" type="string" />
+			<ITEM name="OneLetterCode" value="S" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Ser" value="Ser" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C3H7NO3" type="string" />
+			<ITEM name="LossName" value="water" type="string" />
+			<ITEM name="LossFormula" value="H2O" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Threonine">
+			<ITEM name="Name" value="Threonine" type="string" />
+			<ITEM name="ShortName" value="Thr" type="string" />
+			<ITEM name="ThreeLetterCode" value="THR" type="string" />
+			<ITEM name="OneLetterCode" value="T" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Thr" value="Thr" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C4H9NO3" type="string" />
+			<ITEM name="LossName" value="water" type="string" />
+			<ITEM name="LossFormula" value="H2O" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Valine">
+			<ITEM name="Name" value="Valine" type="string" />
+			<ITEM name="ShortName" value="Val" type="string" />
+			<ITEM name="ThreeLetterCode" value="VAL" type="string" />
+			<ITEM name="OneLetterCode" value="V" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Val" value="Val" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C5H11NO2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+		<NODE name="Tryptophan">
+			<ITEM name="Name" value="Tryptophan" type="string" />
+			<ITEM name="ShortName" value="Trp" type="string" />
+			<ITEM name="ThreeLetterCode" value="TRP" type="string" />
+			<ITEM name="OneLetterCode" value="W" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Trp" value="Trp" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C11H12N2O2" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+			</NODE>
+		</NODE>
+		<NODE name="Tyrosine">
+			<ITEM name="Name" value="Tyrosine" type="string" />
+			<ITEM name="ShortName" value="Tyr" type="string" />
+			<ITEM name="ThreeLetterCode" value="TYR" type="string" />
+			<ITEM name="OneLetterCode" value="Y" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Tyr" value="Tyr" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C9H11NO3" type="string" />
+			<ITEM name="LossName" value="" type="string" />
+			<ITEM name="LossFormula" value="" type="string" />
+			<NODE name="LowMassIons">
+				<ITEM name="" value="" type="string" />
+			</NODE>
+		</NODE>
+	</NODE>
+</PARAMETERS>
