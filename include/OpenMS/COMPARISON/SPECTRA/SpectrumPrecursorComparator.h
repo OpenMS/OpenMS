@@ -28,29 +28,28 @@
 //
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
+
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
 
   /**
-  SpectrumPrecursorComparator compares just the parent mass of two spectra<br>
-  \param window the mass window where spectrum pairs get similarity > 0<br>
+  	@brief SpectrumPrecursorComparator compares just the parent mass of two spectra
   */
   class SpectrumPrecursorComparator : public CompareFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor 
     SpectrumPrecursorComparator();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor 
     SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source);
 
-    /** @brief destructor <br> */
+    /// destructor 
     ~SpectrumPrecursorComparator();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator 
     SpectrumPrecursorComparator& operator=(const SpectrumPrecursorComparator& source);
 
     static FactoryProduct* create() { return new SpectrumPrecursorComparator();}

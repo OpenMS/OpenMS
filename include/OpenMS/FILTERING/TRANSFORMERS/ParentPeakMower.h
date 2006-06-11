@@ -35,24 +35,24 @@ namespace OpenMS
 {
 
   /**
-  ParentPEakMower gets rid of high peaks that could stem from unfragmented parent ions<br>
+  	@brief ParentPEakMower gets rid of high peaks that could stem from unfragmented parent ions<br>
   
-  \param windowsize consider all peaks inside parent ion m/z +- windowsize
-  \param x what is considered high: intensity > x*mean(peakintensity)
+	  \param windowsize consider all peaks inside parent ion m/z +- windowsize
+	  \param x what is considered high: intensity > x*mean(peakintensity)
   */
   class ParentPeakMower : public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     ParentPeakMower();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ParentPeakMower(const ParentPeakMower& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~ParentPeakMower();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     ParentPeakMower& operator=(const ParentPeakMower& source);
 
     static FactoryProduct* create() { return new ParentPeakMower();}

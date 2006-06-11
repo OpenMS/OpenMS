@@ -39,22 +39,22 @@
 namespace OpenMS
 {
   /**
-  a PeakMarker marks peaks that seem to fulfil some criterion<br>
+  	@brief PeakMarker marks peaks that seem to fulfil some criterion
   */
   class PeakMarker
     : public FactoryProduct
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     PeakMarker() ;
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     PeakMarker(const PeakMarker& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~PeakMarker() {}
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     PeakMarker& operator=(const PeakMarker& source);
     virtual std::map<double,bool> operator()( MSSpectrum< DPeak<1> >&) const = 0;
   };

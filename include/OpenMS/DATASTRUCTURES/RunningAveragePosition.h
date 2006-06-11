@@ -29,24 +29,24 @@
 #ifndef OPENMS_DATASTRUCTURES_RUNNINGAVERAGEPOSITION_H
 #define OPENMS_DATASTRUCTURES_RUNNINGAVERAGEPOSITION_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPosition.h>
 
 namespace OpenMS
 {
 
-  /** @brief A running average position.  Positions can be added and removed.
-             Positions have weights.
+  /**
+  	@brief A running average position.  Positions can be added and removed.
+           Positions have weights.
 
-			Template parameter Position_ will usually be an instance of
-			OpenMS::DPosition, but any type that has begin(), end(), clear(),
-			iterators, a typedef ValueType and an enum DIMENSION should work (maybe
-			I forgot a few concept requirements here).
+		Template parameter Position_ will usually be an instance of
+		OpenMS::DPosition, but any type that has begin(), end(), clear(),
+		iterators, a typedef ValueType and an enum DIMENSION should work (maybe
+		I forgot a few concept requirements here).
 
-			\internal Todo: A lot of convenience methods could be added.  For
-			example, we could overload operator + and -, consequently +=, -=, even <
-			and ==, inherit the whole thing from an extended DPosition with similar
-			methods, initialize from iterator ranges, and and and.
+		@todo A lot of convenience methods could be added.  For
+		example, we could overload operator + and -, consequently +=, -=, even <
+		and ==, inherit the whole thing from an extended DPosition with similar
+		methods, initialize from iterator ranges, and and and.
 	*/
   template < typename Position_ >
   class RunningAveragePosition
@@ -70,10 +70,10 @@ namespace OpenMS
 				weight_sum_           (_arg.weight_sum_)
 		{}
 
-		/** @brief Returns the current running average position. */
+		/// Returns the current running average position. */
     inline PositionType const & getPosition() const throw() { return position_; }
 
-		/** @brief Returns the total weight. */
+		/// Returns the total weight. */
 		inline CoordinateType const & getWeight() const throw() { return weight_sum_; }
 
 		/** Dimensionality of the underlying position type, might be useful in a polymorphic context.*/
@@ -113,9 +113,11 @@ namespace OpenMS
 
    protected:
 
-		/** @brief updates the current average
-		 *  
-		 *   If the sum of weights is zero, the average will be set to zero as well.*/
+		/**
+			@brief updates the current average
+		   
+		  If the sum of weights is zero, the average will be set to zero as well.
+		*/
 		void update ()
 		{
 						

@@ -34,8 +34,6 @@
 #endif
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
 
 
 //qt-includes

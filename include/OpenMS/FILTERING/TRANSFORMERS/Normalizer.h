@@ -35,32 +35,32 @@
 namespace OpenMS
 {
   /**
-  Normalizer normalizes the peak intensities<br>
+  	@brief Normalizer normalizes the peak intensities
  
-	@TODO implement the method fully; implementing it correct; docs!
+		@todo implement the method fully; implementing it correct; docs!
  
-  \param method
-    0 = peaks get scaled relative to the maximum intensity<br>
-    1 = peaks get scaled relative to the TIC <br>
-    2 = peaks get scaled so that a vector with one dimension per peak has length 1<br>
-  \param windows
-    only applicable for method = 0 <br>
-    normalize in <i>windows</i> regions individually<br>
+	  \param method
+	    0 = peaks get scaled relative to the maximum intensity<br>
+	    1 = peaks get scaled relative to the TIC <br>
+	    2 = peaks get scaled so that a vector with one dimension per peak has length 1<br>
+	  \param windows
+	    only applicable for method = 0 <br>
+	    normalize in <i>windows</i> regions individually<br>
   */
   class Normalizer
     :public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     Normalizer();
 
-    /** @brief copy constructror <br> */
+    /// copy constructror
     Normalizer(const Normalizer& source);
 
-    /** @brief desctructor <br> */
+    /// desctructor
     ~Normalizer();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     Normalizer& operator=(const Normalizer& source);
 
     static FactoryProduct* create() { return new Normalizer();}

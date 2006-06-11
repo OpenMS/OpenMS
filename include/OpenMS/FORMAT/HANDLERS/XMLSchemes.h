@@ -26,8 +26,8 @@
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDERS_XMLSCHEMES_H
-#define OPENMS_FORMAT_HANDERS_XMLSCHEMES_H
+#ifndef OPENMS_FORMAT_HANDLERS_XMLSCHEMES_H
+#define OPENMS_FORMAT_HANDLERS_XMLSCHEMES_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -309,5 +309,5 @@ namespace OpenMS
   }
 }
 
-#endif // OPENMS_FORMAT_HANDERS_XMLSCHEMES_H
+#endif // OPENMS_FORMAT_HANDLERS_XMLSCHEMES_H
 

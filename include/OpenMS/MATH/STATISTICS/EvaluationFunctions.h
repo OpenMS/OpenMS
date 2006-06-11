@@ -26,10 +26,10 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_H
-#define OPENMS_MATH_STATISTICS_H
+#ifndef OPENMS_MATH_STATISTICS_EVALUATIONFUNCTIONS_H
+#define OPENMS_MATH_STATISTICS_EVALUATIONFUNCTIONS_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include<OpenMS/CONCEPT/Types.h>
 
 #include <cmath>
 
@@ -134,4 +134,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_H
+#endif // OPENMS_MATH_STATISTICS_EVALUATIONFUNCTIONS_H

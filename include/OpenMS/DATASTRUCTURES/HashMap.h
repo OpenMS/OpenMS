@@ -29,8 +29,9 @@
 #ifndef OPENMS_DATASTRUCTURES_HASHMAP_H
 #define OPENMS_DATASTRUCTURES_HASHMAP_H
 
-#include <OpenMS/CONCEPT/HashFunction.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include<OpenMS/CONCEPT/Types.h>
+#include<OpenMS/CONCEPT/HashFunction.h>
 
 #include <utility>
 #include <algorithm>

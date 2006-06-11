@@ -34,21 +34,21 @@
 namespace OpenMS
 {
   /**
-  scales the intensity of peaks to log(intensity)
+  	@brief Scales the intensity of peaks to log(intensity)
   */
   class SqrtMower : public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     SqrtMower();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     SqrtMower(const SqrtMower& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~SqrtMower();
 
-    /** @brief assignment operator <br>*/
+    /// assignment operator <br>*/
     SqrtMower& operator=(const SqrtMower& source);
 
     static FactoryProduct* create() { return new SqrtMower();}

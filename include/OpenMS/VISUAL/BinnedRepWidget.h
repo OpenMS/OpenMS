@@ -34,7 +34,6 @@
 #include <qpixmap.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
 
 #include<vector>
 

@@ -26,11 +26,10 @@
 // $Maintainer: Ole Schulz-Trieglaff  $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORY_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORY_H
+#ifndef OPENMS_CONCEPT_FACTORY_H
+#define OPENMS_CONCEPT_FACTORY_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
@@ -39,12 +38,13 @@
 namespace OpenMS
 {
 
-  /** @brief  Returns FactoryProduct* based on the name of the desired concrete FactoryProduct
+  /**
+  	@brief Returns FactoryProduct* based on the name of the desired concrete FactoryProduct
     
-   		Factory class of the FeatureFinder - creates instances of all modules such as seeders,
-   		extenders and fitters. 
-   		
-   		@ingroup Concept
+ 		Factory class of the FeatureFinder - creates instances of all modules such as seeders,
+ 		extenders and fitters. 
+ 		
+ 		@ingroup Concept
   */
   template <typename FactoryProduct>
   class Factory
@@ -85,7 +85,8 @@ namespace OpenMS
 				"This FactoryProduct is not registered!",name.c_str());
     }
     
-    /** @brief register new concrete FactoryProduct 
+    /**
+    	@brief register new concrete FactoryProduct 
      
        \param name unique name for concrete FactoryProduct
        \param creator default constructor for concrete FactoryProduct 
@@ -105,4 +106,4 @@ namespace OpenMS
     Factory<FactoryProduct>* Factory<FactoryProduct>::instance_ptr_ = 0;
     
 }
-#endif //OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORY_H
+#endif //OPENMS_CONCEPT_FACTORY_H

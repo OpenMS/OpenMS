@@ -35,8 +35,9 @@
 namespace OpenMS
 {
   /**
-  BernNorm scales the peaks by ranking them and then then scaling them according to rank<br>
-  for exact formula look in  Bioinformatics, Aug 2004; 20: i49 - i54
+  @brief BernNorm scales the peaks by ranking them and then then scaling them according to rank.
+  
+  For exact formula look in  Bioinformatics, Aug 2004; 20: i49 - i54
   
   \param C1
   \param C2
@@ -45,15 +46,15 @@ namespace OpenMS
     :public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     BernNorm();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     BernNorm(const BernNorm& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~BernNorm();
-    /** @brief assignment operator <br> */
+    /// assignment operator
     BernNorm& operator=(const BernNorm& source);
 
     static FactoryProduct* create() { return new BernNorm();}

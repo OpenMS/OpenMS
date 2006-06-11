@@ -33,7 +33,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimator.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <iostream>
@@ -43,13 +42,13 @@
 
 namespace OpenMS
 {
-  /** @brief Simple noise estimator, estimates the signal/noise ratio of each data point in a scan
-   *         based on the median over a small m/z range.
-   *
-   * For each datapoint in the map, we collect a range of data points around it (in the same scan).
-   * We estimate the s/n ratio as the median of the intensities of the points in this range.
-   * The width of this range is give by window_size_ .
-
+  /**
+  	@brief Simple noise estimator, estimates the signal/noise ratio of each data point in a scan
+           based on the median over a small m/z range.
+   
+    For each datapoint in the map, we collect a range of data points around it (in the same scan).
+    We estimate the s/n ratio as the median of the intensities of the points in this range.
+    The width of this range is give by window_size_ .
   */
   template <Size D, typename  ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
   class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, ContainerType>
@@ -138,7 +137,7 @@ namespace OpenMS
     //@}
 
 
-    /** @brief Initialisation of the raw data interval and estimation of noise and baseline levels
+    /// Initialisation of the raw data interval and estimation of noise and baseline levels
 
      **/
 

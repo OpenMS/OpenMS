@@ -34,25 +34,25 @@
 namespace OpenMS
 {
   /**
-  ComplementMarker marks peak pairs which could represent y - b ion pairs<br>
+    @brief ComplementMarker marks peak pairs which could represent y - b ion pairs
   
-  \param tolerance m/z tolerance
-  \param marks times a peak needs to be marked to get marked in the result
+	  \param tolerance m/z tolerance
+	  \param marks times a peak needs to be marked to get marked in the result
   */
   class ComplementMarker
     :public PeakMarker
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     ComplementMarker();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ComplementMarker(const ComplementMarker& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~ComplementMarker();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     ComplementMarker& operator=(const ComplementMarker& source);
 
     static FactoryProduct* create() { return new ComplementMarker();}

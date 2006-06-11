@@ -26,8 +26,8 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORYPRODUCT_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORYPRODUCT_H
+#ifndef OPENMS_CONCEPT_FACTORYPRODUCT_H
+#define OPENMS_CONCEPT_FACTORYPRODUCT_H
 
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -94,4 +94,4 @@ namespace OpenMS
 	std::ostream& operator << (std::ostream& os, const FactoryProduct& prod);
 
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FACTORYPRODUCT_H
+#endif // OPENMS_CONCEPT_FACTORYPRODUCT_H

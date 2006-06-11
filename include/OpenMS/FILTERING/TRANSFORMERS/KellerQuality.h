@@ -26,32 +26,35 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_KELLERQUALITY_H
-#define OPENMS_COMPARISON_CLUSTERING_KELLERQUALITY_H
+#ifndef OPENMS_FILTERING_TRANSFORMERS_KELLERQUALITY_H
+#define OPENMS_FILTERING_TRANSFORMERS_KELLERQUALITY_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <string>
 
 namespace OpenMS{
   /**
-  KellerQuality assigns a quality measure to a spectrum based on the linear regression formula from their 2003 Paper<br>
-  http://www.systemsbiology.org/PDFs/Keller.Emperical%20statistical%20model.Anal%20Chem.02.pdf<br>
+  	@brief KellerQuality assigns a quality measure to a spectrum.
+  	
+  	It is based on the linear regression formula from their 2003 Paper
+  	http://www.systemsbiology.org/PDFs/Keller.Emperical%20statistical%20model.Anal%20Chem.02.pdf
   */
   class KellerQuality : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     KellerQuality();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     KellerQuality(const KellerQuality& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     KellerQuality& operator=(const KellerQuality& source );
 
-    /** @brief destructor <br> */
+    /// destructor
     ~KellerQuality();
 
     static FactoryProduct* create() { return new KellerQuality();}
@@ -69,4 +72,4 @@ namespace OpenMS{
     static const String info_;
   };
 }
-#endif // OPENMS_COMPARISON_CLUSTERING_KELLERQUALITY_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_KELLERQUALITY_H

@@ -33,7 +33,6 @@
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <vector>

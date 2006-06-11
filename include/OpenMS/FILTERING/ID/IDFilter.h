@@ -26,14 +26,12 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDFILTER_H
-#define OPENMS_METADATA_IDFILTER_H
+#ifndef OPENMS_FILTERING_ID_IDFILTER_H
+#define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <vector>
 
@@ -191,4 +189,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_IDFILTER_H
+#endif // OPENMS_FILTERING_ID_IDFILTER_H

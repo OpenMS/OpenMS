@@ -30,12 +30,8 @@
 #define OPENMS_FORMAT_DGRIDFILE_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/FORMAT/HANDLERS/DGridHandler.h>
 
 #include <qxml.h>

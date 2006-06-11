@@ -26,10 +26,11 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_INTENSITYDISTBINS_H
-#define OPENMS_COMPARISON_CLUSTERING_INTENSITYDISTBINS_H
+#ifndef OPENMS_FILTERING_TRANSFORMERS_INTENSITYDISTBINS_H
+#define OPENMS_FILTERING_TRANSFORMERS_INTENSITYDISTBINS_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <vector>
@@ -38,24 +39,24 @@
 namespace OpenMS
 {
   /**
-  IntensityDistBins divides the intensity range into <i>bins</i> regions and counts
-  the peaks that fall into each bin<br>
-  
-  \param bins number of regions
+	  @brief IntensityDistBins divides the intensity range into <i>bins</i> regions and counts
+	         the peaks that fall into each bin
+	  
+	  \param bins number of regions
   */
   class IntensityDistBins : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     IntensityDistBins();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     IntensityDistBins(const IntensityDistBins& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     IntensityDistBins& operator=(const IntensityDistBins& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~IntensityDistBins();
 
     static FactoryProduct* create() { return new IntensityDistBins();}
@@ -74,4 +75,4 @@ namespace OpenMS
     //all (unique) aminoacid masses
   };
 }
-#endif // OPENMS_COMPARISON_CLUSTERING_INTENSITYDISTBINS_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_INTENSITYDISTBINS_H

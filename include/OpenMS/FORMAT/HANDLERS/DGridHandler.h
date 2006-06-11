@@ -30,20 +30,12 @@
 #define OPENMS_FORMAT_HANDLERS_DGRIDHANDLER_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DPosition.h>
-
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/Param.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 
 // all implementations of class DBaseMapping must be

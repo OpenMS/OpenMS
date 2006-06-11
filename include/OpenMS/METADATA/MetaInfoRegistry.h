@@ -26,8 +26,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_METAINFOREGISTRY_H
-#define OPENMS_KERNEL_METAINFOREGISTRY_H
+#ifndef OPENMS_METADATA_METAINFOREGISTRY_H
+#define OPENMS_METADATA_METAINFOREGISTRY_H
 
 #include <map>
 #include <string>
@@ -123,4 +123,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_METAINFOREGISTRY_H
+#endif // OPENMS_METADATA_METAINFOREGISTRY_H

@@ -32,20 +32,12 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/KERNEL/DPosition.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
-
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/Precursor.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/FORMAT/Param.h>

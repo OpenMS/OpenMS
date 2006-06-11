@@ -35,26 +35,26 @@ namespace OpenMS
 {
 
   /**
-  IsotopeMarker marks peak pairs which could represent an ion and its isotope<br>
-  
-  \param marks times a peak needs to be marked to get marked in the result
-  \param mz_variation m/z tolerance
-  \param in_variation intensity variation in fraction of the theoretical isotope peak
+	  @brief IsotopeMarker marks peak pairs which could represent an ion and its isotope
+	  
+	  \param marks times a peak needs to be marked to get marked in the result
+	  \param mz_variation m/z tolerance
+	  \param in_variation intensity variation in fraction of the theoretical isotope peak
   */
   class IsotopeMarker
     :public PeakMarker
   {
   public:
-     /** @brief standard constructor <br> */
+     /// standard constructor
     IsotopeMarker();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     IsotopeMarker(const IsotopeMarker& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~IsotopeMarker();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     IsotopeMarker& operator=(const IsotopeMarker& source);
 
     static FactoryProduct* create() { return new IsotopeMarker();}

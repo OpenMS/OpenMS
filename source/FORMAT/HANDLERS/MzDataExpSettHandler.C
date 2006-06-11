@@ -26,9 +26,6 @@
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
-
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 
 
@@ -401,5 +398,3 @@ namespace OpenMS
 	} // namespace Internal
 
 } // namespace OpenMS
-
-#endif

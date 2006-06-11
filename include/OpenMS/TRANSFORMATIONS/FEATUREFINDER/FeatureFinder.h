@@ -34,14 +34,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>

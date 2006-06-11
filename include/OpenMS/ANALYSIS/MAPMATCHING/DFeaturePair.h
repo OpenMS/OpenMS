@@ -30,7 +30,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DFEATUREPAIR_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DFEATUREPAIR_H
 
-#include<OpenMS/KERNEL/KernelTraits.h>
 #include<OpenMS/KERNEL/DFeature.h>
 
 #include <OpenMS/CONCEPT/Types.h>

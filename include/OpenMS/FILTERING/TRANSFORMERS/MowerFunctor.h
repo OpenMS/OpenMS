@@ -39,19 +39,20 @@
 namespace OpenMS
 {
   /**
-  MowerFunctors do some form of preprocessing to a MSSpectrum<br>
-  todo: rename to PreprocessFunctor
+  	@brief MowerFunctors do some form of preprocessing to a MSSpectrum
+  	
+  	@todo rename to PreprocessFunctor
   */
   class MowerFunctor : public FactoryProduct
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     MowerFunctor() ;
-    /** @brief copy constructor <br> */
+    /// copy constructor
     MowerFunctor(const MowerFunctor& source);
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~MowerFunctor() {}
-    /** @brief assignment operator < br> */
+    /// assignment operator < br> */
     MowerFunctor& operator=(const MowerFunctor& source);
 
     //virtual void operator()(Spectrum< DPeak<1> >&) const = 0;

@@ -27,8 +27,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_DATASTRUCTURES_SVECTOR_H
-#define OPENMS_DATASTRUCTURES_SVECTOR_H
+#ifndef OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
+#define OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 
 #include <vector>
 

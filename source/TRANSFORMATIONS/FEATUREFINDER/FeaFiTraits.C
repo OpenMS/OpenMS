@@ -27,6 +27,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 
 namespace OpenMS
 {

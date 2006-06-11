@@ -26,10 +26,11 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_TRANSFORMERS_PEAKDIFFBINS_H
-#define OPENMS_COMPARISON_TRANSFORMERS_PEAKDIFFBINS_H
+#ifndef OPENMS_FILTERING_TRANSFORMERS_PEAKDIFFBINS_H
+#define OPENMS_FILTERING_TRANSFORMERS_PEAKDIFFBINS_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <vector>
@@ -38,21 +39,21 @@
 namespace OpenMS
 {
   /**
-  PeakDiffBins calculates all differences between pairs and returns the fraction of the total intensity in the specified regions<br>
+  	@brief PeakDiffBins calculates all differences between pairs and returns the fraction of the total intensity in the specified regions
   */
   class PeakDiffBins : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     PeakDiffBins();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     PeakDiffBins(const PeakDiffBins& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     PeakDiffBins& operator=(const PeakDiffBins& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~PeakDiffBins();
 
     static FactoryProduct* create() { return new PeakDiffBins();}
@@ -66,7 +67,7 @@ namespace OpenMS
 			return "PeakDiffBins";
 		}
 
-    /** @brief change layout of bins/regions <br> */
+    /// change layout of bins/regions
     void setmask(std::vector<double>& newmask);
 
   private:
@@ -79,4 +80,4 @@ namespace OpenMS
     std::map<double,int> mask_;
   };
 }
-#endif // OPENMS_COMPARISON_TRANSFORMERS_PEAKDIFFBINS_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_PEAKDIFFBINS_H

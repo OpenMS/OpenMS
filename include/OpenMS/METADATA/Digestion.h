@@ -30,7 +30,6 @@
 #define OPENMS_METADATA_DIGESTION_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/SampleTreatment.h>
 
 namespace OpenMS 

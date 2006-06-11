@@ -37,23 +37,23 @@
 namespace OpenMS
 {
   /**
-  NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss <br>
+  	@brief NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss
   
-  \param tolerance m/z tolerance
+  	\param tolerance m/z tolerance
   */
   class NeutralLossDiffFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     NeutralLossDiffFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     NeutralLossDiffFilter(const NeutralLossDiffFilter& source );
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     NeutralLossDiffFilter& operator=(const NeutralLossDiffFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~NeutralLossDiffFilter();
 
     static FactoryProduct* create() { return new NeutralLossDiffFilter();}

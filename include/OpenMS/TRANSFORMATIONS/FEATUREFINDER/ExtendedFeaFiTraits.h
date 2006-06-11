@@ -31,10 +31,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDFEAFITRAITS_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseFeaFiTraits.h>
-
 #include <OpenMS/DATASTRUCTURES/ScanIndex.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
 #include <OpenMS/KERNEL/RangeUtils.h>
 
 #include <fstream.h>   

@@ -26,8 +26,8 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATSTRUCTURES_MATRIX_H
-#define OPENMS_DATSTRUCTURES_MATRIX_H
+#ifndef OPENMS_DATASTRUCTURES_MATRIX_H
+#define OPENMS_DATASTRUCTURES_MATRIX_H
 
 #include <OpenMS/CONCEPT/Macros.h>
 
@@ -323,5 +323,5 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATSTRUCTURES_MATRIX_H
+#endif // OPENMS_DATASTRUCTURES_MATRIX_H
 

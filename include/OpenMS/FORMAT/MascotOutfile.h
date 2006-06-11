@@ -31,13 +31,9 @@
 #ifndef OPENMS_FORMAT_MASCOTOUTFILE_H
 #define OPENMS_FORMAT_MASCOTOUTFILE_H
 
-
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <fstream>

@@ -43,14 +43,11 @@
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
-
-#include<OpenMS/SYSTEM/StopWatch.h>
 
 #include <fstream.h>   
 #include <sstream>

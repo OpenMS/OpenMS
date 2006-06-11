@@ -30,7 +30,6 @@
 #define OPENMS_METADATA_PROTEINIDENTIFICATION_H
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 
 #include <string>

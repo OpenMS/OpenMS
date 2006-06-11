@@ -37,23 +37,23 @@
 namespace OpenMS
 {
   /**
-  IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks<br>
+  	@brief IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
   
-  \param tolerance m/z tolerance
+ 		\param tolerance m/z tolerance
   */
   class IsotopeDiffFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     IsotopeDiffFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     IsotopeDiffFilter(const IsotopeDiffFilter& source );
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     IsotopeDiffFilter& operator=(const IsotopeDiffFilter& source );
 
-    /** @brief destructor <br> */
+    /// destructor
     ~IsotopeDiffFilter();
 
     static FactoryProduct* create() { return new IsotopeDiffFilter();}

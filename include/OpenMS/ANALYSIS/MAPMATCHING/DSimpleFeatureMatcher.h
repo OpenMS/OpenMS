@@ -31,9 +31,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DSIMPLEFEATUREMATCHER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseFeatureMatcher.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #if defined OPENMS_DEBUG
 #if ! defined V_DSimpleFeatureMatcher

@@ -34,21 +34,21 @@
 namespace OpenMS
 {
   /**
-  PeakDensityfilter calculates peak density<br>
+  	@brief PeakDensityfilter calculates peak density
   */
   class PeakDensityFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     PeakDensityFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     PeakDensityFilter(const PeakDensityFilter& source );
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     PeakDensityFilter& operator=(const PeakDensityFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~PeakDensityFilter();
 
     static FactoryProduct* create() { return new PeakDensityFilter();}

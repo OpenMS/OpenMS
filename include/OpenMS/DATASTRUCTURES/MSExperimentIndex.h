@@ -34,18 +34,15 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
 
-	/** @brief This is an adaptor class for MSExperiment.
+	/**
+		@brief This is an adaptor class for MSExperiment.
 
 	*/
 	template < typename PeakT_  >
@@ -91,9 +88,10 @@ namespace OpenMS
        
      }; // end of class NoSuccessor
 		
-		/** @brief Initialize the container.
+		/**
+			@brief Initialize the container.
 		  
-		    Precondition: The range is sorted with respect to
+		  Precondition: The range is sorted with respect to
 			ComparatorType.  Otherwise the result will be garbage (like with std::unique_copy()).
 			Note that <code>this->size() == this->scan_position_.size() + 1</code>
 			because the first one deals with ranges (pairs).
@@ -124,10 +122,11 @@ namespace OpenMS
 			push_back ( _end ); // we will need the end() of the last scan as well
 		}
 		
-		/** @brief Moves to the next scan.
+		/**
+			@brief Moves to the next scan.
 		    
-		    Retrieves the peak in the next scan whose m/z is closest
-		    to @p peak.
+	    Retrieves the peak in the next scan whose m/z is closest
+	    to @p peak.
 		*/
 		PeakIterator getNextRt(DRawDataPoint<2> const & peak) const throw (NoSuccessor)
 		{
@@ -147,10 +146,11 @@ namespace OpenMS
 			
 		}
 		
-		/** @brief Moves to the previous scan.
+		/**
+			@brief Moves to the previous scan.
 		    
-		    Retrieves the peak in the previous scan whose m/z is closest
-		    to @p peak.
+	    Retrieves the peak in the previous scan whose m/z is closest
+	    to @p peak.
 		*/
 		PeakIterator getPrevRt(DRawDataPoint<2> const & peak) const throw (NoSuccessor)
 		{			
@@ -169,7 +169,7 @@ namespace OpenMS
 			return searchInScan_(scan_begin,scan_end,current_mz);
 		}
 		     
-     	/// Returns the scan number of retention time @p rt (starting with 0). 
+    /// Returns the scan number of retention time @p rt (starting with 0). 
 		typename ScanPositionContainerType::size_type getRank ( CoordinateType const & rt ) const throw()
 		{
 			return std::lower_bound

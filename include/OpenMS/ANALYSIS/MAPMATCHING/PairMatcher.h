@@ -30,13 +30,10 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
-
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
 
 #include <cmath>

@@ -31,25 +31,26 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
-namespace OpenMS{
+namespace OpenMS
+{
   /**
-  TICFilter calculates TIC and ratio of TIC in parent ion range (=parention m/z +- window )<br>
+  	@brief TICFilter calculates TIC and ratio of TIC in parent ion range (=parention m/z +- window )
   
-  \param window half size of parent ion range
+  	\param window half size of parent ion range
   */
   class TICFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     TICFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     TICFilter(const TICFilter& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     TICFilter& operator=(const TICFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~TICFilter();
 
     static FactoryProduct* create() { return new TICFilter();}

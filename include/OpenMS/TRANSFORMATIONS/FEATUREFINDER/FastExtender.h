@@ -30,19 +30,12 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FASTEXTENDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
-
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h> 
 #include <OpenMS/KERNEL/KernelTraits.h>
-
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include<OpenMS/SYSTEM/StopWatch.h>
-
-//#include <OpenMS/DATASTRUCTURES/MutablePriorityQueue.h> 
 
 #include <vector>
 #include <map>

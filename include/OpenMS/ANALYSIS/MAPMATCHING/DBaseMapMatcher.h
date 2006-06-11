@@ -37,8 +37,6 @@
 
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 
 #include <utility>

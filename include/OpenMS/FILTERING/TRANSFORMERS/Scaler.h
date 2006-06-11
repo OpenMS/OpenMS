@@ -35,23 +35,22 @@
 namespace OpenMS
 {
   /**
-  Scaler scales the peak by ranking the peaks and assigning intensity according to rank<br>
-	@TODO TODO really needed?!? ???? 
+  	@brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank<br>
   */
   class Scaler
     :public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     Scaler();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     Scaler(const Scaler& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~Scaler();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     Scaler& operator=(const Scaler& source);
 
     static FactoryProduct* create() { return new Scaler();}

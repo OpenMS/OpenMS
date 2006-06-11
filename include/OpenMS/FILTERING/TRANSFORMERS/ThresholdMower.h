@@ -34,26 +34,26 @@
 namespace OpenMS
 {
   /**
-  ThresholdMover removes all peaks below a Threshold<br>
+  	@brief ThresholdMover removes all peaks below a Threshold
   
-  \param threshold: the threshold
-  for comparable results we suggest normalizing (for example with Normalizer) all
-  Spectra first
+	  \param threshold: the threshold
+	  for comparable results we suggest normalizing (for example with Normalizer) all
+	  Spectra first
   */
   class ThresholdMower
     :public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     ThresholdMower();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ThresholdMower(const ThresholdMower& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~ThresholdMower();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     ThresholdMower& operator=(const ThresholdMower& source);
 
     static FactoryProduct* create() { return new ThresholdMower();}

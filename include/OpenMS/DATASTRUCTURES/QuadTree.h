@@ -26,13 +26,12 @@
 // $Maintainer: Thomas Kadauke $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_QUADTREE_H
-#define OPENMS_VISUAL_QUADTREE_H
+#ifndef OPENMS_DATASTRUCTURES_QUADTREE_H
+#define OPENMS_DATASTRUCTURES_QUADTREE_H
 
 #include <OpenMS/KERNEL/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/DATASTRUCTURES/SortedIteratorWrapper.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 
 #include <vector>
 #include <limits>
@@ -1216,4 +1215,4 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 	//std::cout << std::endl;
 }
 
-#endif
+#endif //OPENMS_DATASTRUCTURES_QUADTREE_H

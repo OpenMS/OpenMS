@@ -33,10 +33,7 @@
 #include <math.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-
 #include <OpenMS/KERNEL/DPickedPeak.h>
-
-#include <OpenMS/KERNEL/DPosition.h>
 
 namespace OpenMS 
 {

@@ -31,7 +31,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 

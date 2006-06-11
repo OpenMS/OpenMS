@@ -40,17 +40,16 @@ namespace OpenMS
   /**
     @brief Linear Resampling of raw data.
 
-  This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
-  Therefore the intensity at every position x in the input raw data is spread to the two
-  adjacent resampling points.
-  This method preserves the area of the input signal and also the centroid position of a peak.
-  Therefore it is recommended for quantitation as well as for identification experiments.
+	  This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
+	  Therefore the intensity at every position x in the input raw data is spread to the two
+	  adjacent resampling points.
+	  This method preserves the area of the input signal and also the centroid position of a peak.
+	  Therefore it is recommended for quantitation as well as for identification experiments.
+	
+	  @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
+       		The resampling rate should be >= the accuracy.
 
-  @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
-       The resampling rate should be >= the accuracy.
-
-
-    @todo TEST
+    @todo write tests
 
    */
 

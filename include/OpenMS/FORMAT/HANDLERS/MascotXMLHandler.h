@@ -30,7 +30,6 @@
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
 
 #include <vector>

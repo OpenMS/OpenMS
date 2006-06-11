@@ -26,35 +26,38 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_TRADSEQQUALITY_H
-#define OPENMS_COMPARISON_CLUSTERING_TRADSEQQUALITY_H
+#ifndef OPENMS_FILTERING_TRANSFORMERS_TRADSEQQUALITY_H
+#define OPENMS_FILTERING_TRANSFORMERS_TRADSEQQUALITY_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
-namespace OpenMS{
+namespace OpenMS
+{
   /**
-  TradSeqQuality returns a number > 0 if the sequest score are above a certain XCorr and above a certain deltaCN<br>
-  
-  \param xcorr_1+ min XCorr for charge state 1
-  \param xcorr_2+ min XCorr for charge state 2
-  \param xcorr_3+ min XCorr for charge state 3
-  \param dCn_1+ min deltaCN for charge state 1
-  \param dCn_2+ min deltaCN for charge state 2
-  \param dCn_3+ min deltaCN for charge state 3
+	  @brief TradSeqQuality returns a number > 0 if the sequest score are above a certain XCorr and above a certain deltaCN
+	  
+	  \param xcorr_1+ min XCorr for charge state 1
+	  \param xcorr_2+ min XCorr for charge state 2
+	  \param xcorr_3+ min XCorr for charge state 3
+	  \param dCn_1+ min deltaCN for charge state 1
+	  \param dCn_2+ min deltaCN for charge state 2
+	  \param dCn_3+ min deltaCN for charge state 3
   */
   class TradSeqQuality : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+  	
+    /// standard constructor
     TradSeqQuality();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     TradSeqQuality(const TradSeqQuality& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     TradSeqQuality& operator=(const TradSeqQuality& source );
 
-    /** @brief destructor <br> */
+    /// destructor
     ~TradSeqQuality();
 
     static FactoryProduct* create() { return new TradSeqQuality();}
@@ -72,4 +75,4 @@ namespace OpenMS{
     static const String info_;
   };
 }
-#endif // OPENMS_COMPARISON_CLUSTERING_TRADSEQQUALITY_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_TRADSEQQUALITY_H

@@ -26,8 +26,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MSSPECTRUM_H
-#define OPENMS_METADATA_MSSPECTRUM_H
+#ifndef OPENMS_KERNEL_MSSPECTRUM_H
+#define OPENMS_KERNEL_MSSPECTRUM_H
 
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
@@ -214,4 +214,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MSSPECTRUM_H
+#endif // OPENMS_KERNEL_MSSPECTRUM_H

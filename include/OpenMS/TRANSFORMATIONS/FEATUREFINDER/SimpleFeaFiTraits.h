@@ -30,12 +30,8 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEFEAFITRAITS_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseFeaFiTraits.h>
-
 #include <OpenMS/DATASTRUCTURES/ScanIndex.h>
-
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS

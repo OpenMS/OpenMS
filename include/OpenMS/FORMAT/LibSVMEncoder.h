@@ -26,8 +26,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_H
-#define OPENMS_FORMAT_H
+#ifndef OPENMS_FORMAT_LIBSVMENCODER_H
+#define OPENMS_FORMAT_LIBSVMENCODER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <svm.h>
@@ -89,4 +89,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_H
+#endif // OPENMS_FORMAT_LIBSVMENCODER_H

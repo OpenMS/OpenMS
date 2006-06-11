@@ -26,13 +26,12 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_SVM_H
-#define OPENMS_ANALYSIS_SVM_H
-
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/STATISTICS/EvaluationFunctions.h>
+#ifndef OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
+#define OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
 
 #include <svm.h>
+
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <string>
 #include <vector>
@@ -213,7 +212,7 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_SVM_H
+#endif // OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
 
 
 

@@ -26,8 +26,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_METAINFOINTERFACE_H
-#define OPENMS_KERNEL_METAINFOINTERFACE_H
+#ifndef OPENMS_METADATA_METAINFOINTERFACE_H
+#define OPENMS_METADATA_METAINFOINTERFACE_H
 
 #include <map>
 #include <string>
@@ -129,4 +129,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_METAINFOINTERFACE_H
+#endif // OPENMS_METADATA_METAINFOINTERFACE_H

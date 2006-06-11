@@ -38,21 +38,21 @@
 namespace OpenMS
 {
   /**
-  MarkerMower uses PeakMarker to find peaks, those that are not marked get removed<br>
+  	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed<br>
   */
   class MarkerMower : public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     MarkerMower();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     MarkerMower(const MarkerMower& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~MarkerMower();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     MarkerMower& operator=(const MarkerMower& source);
 
     static FactoryProduct* create() { return new MarkerMower();}
@@ -64,7 +64,7 @@ namespace OpenMS
 			return "MowerMarker";
 		}
 
-    /** @brief insert new Marker <br> */
+    /// insert new Marker
     void insertmarker(PeakMarker*);
   private:
     static const String info_;

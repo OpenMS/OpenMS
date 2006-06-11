@@ -26,8 +26,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MSEXPERIMENT_H
-#define OPENMS_METADATA_MSEXPERIMENT_H
+#ifndef OPENMS_KERNEL_MSEXPERIMENT_H
+#define OPENMS_KERNEL_MSEXPERIMENT_H
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
@@ -701,4 +701,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MSEXPERIMENT_H
+#endif // OPENMS_KERNEL_MSEXPERIMENT_H

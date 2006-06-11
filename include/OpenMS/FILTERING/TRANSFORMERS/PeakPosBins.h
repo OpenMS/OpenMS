@@ -26,10 +26,11 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_PEAKPOSBINS_H
-#define OPENMS_COMPARISON_CLUSTERING_PEAKPOSBINS_H
+#ifndef OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
+#define OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <vector>
@@ -38,23 +39,23 @@
 namespace OpenMS
 {
   /**
-  PeakPosBins sums the intensity in <i>bins</i> regions<br>
+  	@brief PeakPosBins sums the intensity in <i>bins</i> regions<br>
   
-  \param bins number of regions
+  	\param bins number of regions
   */
   class PeakPosBins : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     PeakPosBins();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     PeakPosBins(const PeakPosBins& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     PeakPosBins& operator=(const PeakPosBins& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~PeakPosBins();
 
     static FactoryProduct* create() { return new PeakPosBins();}
@@ -72,4 +73,4 @@ namespace OpenMS
     static const String info_;
   };
 }
-#endif // OPENMS_COMPARISON_CLUSTERING_PEAKPOSBINS_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H

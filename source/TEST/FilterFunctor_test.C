@@ -29,7 +29,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-//#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Identification.h>
 ///////////////////////////
 

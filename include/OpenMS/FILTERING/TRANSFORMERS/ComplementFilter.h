@@ -32,27 +32,28 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
 #include <map>
+#include <cmath>
 
 namespace OpenMS
 {
   /**
-  total intensity of peak pairs that could result from complementing fragments of charge state 1<br>
+    @brief total intensity of peak pairs that could result from complementing fragments of charge state 1
   
-  \param tolerance mass tolerance <br>
+  	\param tolerance mass tolerance
   */
   class ComplementFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     ComplementFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ComplementFilter(const ComplementFilter& source );
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     ComplementFilter& operator=(const ComplementFilter& source );
 
-    /** @brief destructor <br> */
+    /// destructor
     ~ComplementFilter();
 
     static FactoryProduct* create() { return new ComplementFilter();}

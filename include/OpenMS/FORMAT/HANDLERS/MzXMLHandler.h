@@ -30,14 +30,10 @@
 #define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
-
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <qtextstream.h>

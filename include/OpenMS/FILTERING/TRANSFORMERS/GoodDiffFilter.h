@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+	// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -33,27 +33,28 @@
 
 #include <map>
 #include <string>
+#include <cmath>
 
 namespace OpenMS
 {
   /**
-  GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss <br>
+  	@brief GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss <br>
   
-  \param tolerance m/z tolerance
+  	\param tolerance m/z tolerance
   */
   class GoodDiffFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     GoodDiffFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     GoodDiffFilter(const GoodDiffFilter& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     GoodDiffFilter& operator=(const GoodDiffFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~GoodDiffFilter();
 
     static FactoryProduct* create() { return new GoodDiffFilter();}
@@ -114,9 +115,7 @@ namespace OpenMS
   private:
     //static const String info_;
 
-    /**
-    list of unique amino acid masses<br>
-    */
+    /// list of unique amino acid masses
     std::map<double, char> aamass_;
   };
 }

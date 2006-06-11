@@ -31,16 +31,9 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_DPEAKPICKER_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-
 #include <OpenMS/FORMAT/Param.h>
-
 #include <OpenMS/KERNEL/DimensionDescription.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <iostream>
 #include <fstream>
@@ -70,8 +63,6 @@ namespace OpenMS
 
     @ingroup Transformations
   */
-
-
 
   /**
      @brief This class is the base class for every peak picker.

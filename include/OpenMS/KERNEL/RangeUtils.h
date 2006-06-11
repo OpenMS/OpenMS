@@ -26,8 +26,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_RANGEUTILS_H
-#define OPENMS_METADATA_RANGEUTILS_H
+#ifndef OPENMS_KERNEL_RANGEUTILS_H
+#define OPENMS_KERNEL_RANGEUTILS_H
 
 #include <functional>
 #include <algorithm>
@@ -258,7 +258,7 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_RANGEUTILS_H
+#endif // OPENMS_KERNEL_RANGEUTILS_H
 
 
 

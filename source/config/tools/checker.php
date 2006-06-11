@@ -81,7 +81,7 @@ other options:
 		$dont_report = array("TypeNameIdStringMiscellanyDefs.h");
 		
 		$files=array();
-		exec("find $path/include/ -name \"*.h\"", $files);
+		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
 		foreach ($files as $header)
 		{
 			if ($verbose) print "##file: $header\n";
@@ -160,8 +160,8 @@ other options:
 	if ($do_all OR $argv[2]=="-h")
 	{
 		$files=array();
-		exec("find $path/include/ -name \"*.h\"", $files);
-		exec("find $path/source/ -name \"*.C\" ! -name \"*_moc.C\" ! -name \"moc_*.C\"", $files);
+		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
+		exec("find $path/source/ -name \"*.C\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 		exec("find $path/source/ -name \"Makefile\"", $files);
 		foreach ($files as $infile)
 		{

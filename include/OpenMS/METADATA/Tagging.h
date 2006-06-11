@@ -31,8 +31,6 @@
 
 #include <OpenMS/METADATA/Modification.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 namespace OpenMS 
 {
 	/**

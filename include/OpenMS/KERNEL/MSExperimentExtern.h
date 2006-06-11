@@ -26,16 +26,11 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MSEXPERIMENTEXTERN_H
-#define OPENMS_METADATA_MSEXPERIMENTEXTERN_H
+#ifndef OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
+#define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include<vector>
@@ -856,4 +851,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MSEXPERIMENTEXTERN_H
+#endif // OPENMS_KERNEL_MSEXPERIMENTEXTERN_H

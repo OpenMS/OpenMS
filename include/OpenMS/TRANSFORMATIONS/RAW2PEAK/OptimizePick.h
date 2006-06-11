@@ -30,13 +30,8 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
 
-# include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
-
-#include <OpenMS/FORMAT/Param.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #ifdef GSL_DEF
 #include <gsl/gsl_vector.h>

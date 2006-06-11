@@ -30,32 +30,30 @@
 #define OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <vector>
 
 namespace OpenMS
 {
   /**
-  a FilterFunctor extracts some spectrum characteristics for quality assessment<br>
+  	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   */
   class FilterFunctor : public FactoryProduct
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     FilterFunctor();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     FilterFunctor(const FilterFunctor& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     FilterFunctor& operator=(const FilterFunctor& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~FilterFunctor();
 
-    /** @brief function call operator <br> */
-		
+    /// function call operator
     template <typename SpectrumType> double apply(SpectrumType& spectrum) = 0;
 
   };

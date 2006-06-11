@@ -27,19 +27,13 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHER_DMAPMATCHERREGRESSION_H
-#define OPENMS_ANALYSIS_MAPMATCHER_DMAPMATCHERREGRESSION_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H
+#define OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H
 
 #include<OpenMS/KERNEL/DFeature.h>
-
-#include<OpenMS/DATASTRUCTURES/DRange.h>
-
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapMatcher.h>
-
-#include<OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 #include<iostream.h>  
 #include <utility>
@@ -168,4 +162,4 @@ namespace OpenMS
 	
 } // end of namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHER_MAPMATCHERREGRESSION_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H

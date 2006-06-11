@@ -40,7 +40,8 @@ $ignore = array(
 	"/CONCEPT/Macros.h",
 	"/CONCEPT/Exception.h",
 	"/CONCEPT/Benchmark.h",
-	"/CONCEPT/Benchmark.h"
+	"/CONCEPT/Constants.h",
+	"/config.h"
 	);
 
 $path = $argv[1];

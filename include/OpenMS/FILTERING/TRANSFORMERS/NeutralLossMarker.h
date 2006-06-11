@@ -34,24 +34,24 @@
 namespace OpenMS
 {
   /**
-  NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss ( water, ammonia )<br>
+  	@brief NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss ( water, ammonia )<br>
   
-  \param tolerance m/z tolerance
+  	\param tolerance m/z tolerance
   */
   class NeutralLossMarker
     :public PeakMarker
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     NeutralLossMarker();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     NeutralLossMarker(const NeutralLossMarker& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~NeutralLossMarker();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     NeutralLossMarker& operator=(const NeutralLossMarker& source);
 
     static FactoryProduct* create() { return new NeutralLossMarker();}

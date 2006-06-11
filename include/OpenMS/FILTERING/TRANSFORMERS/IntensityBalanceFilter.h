@@ -37,23 +37,24 @@
 namespace OpenMS
 {
   /**
-  IntensityBalanceFilter divides the m/z-range into ten regions and sums the
-  intensity in these regions. The result is the intensity of the two bins with the
-  highest intensity minus the intensity of the seven bins with lowest intensity.
+	  @brief IntensityBalanceFilter divides the m/z-range into ten regions and sums the
+	         intensity in these regions. 
+	  
+	  The result is the intensity of the two bins with the highest intensity minus the intensity of the seven bins with lowest intensity.
   */
   class IntensityBalanceFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     IntensityBalanceFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     IntensityBalanceFilter(const IntensityBalanceFilter& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~IntensityBalanceFilter();
 
     static FactoryProduct* create() { return new IntensityBalanceFilter();}

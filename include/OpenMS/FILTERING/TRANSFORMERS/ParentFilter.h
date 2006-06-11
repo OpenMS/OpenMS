@@ -34,21 +34,21 @@
 namespace OpenMS
 {
   /**
-  Parentfilter returns parention charge and mass<br>
+  	@brief Parentfilter returns parention charge and mass<br>
   */
   class ParentFilter : public FilterFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     ParentFilter();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ParentFilter(const ParentFilter& source);
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     ParentFilter& operator=(const ParentFilter& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~ParentFilter();
 
     static FactoryProduct* create() { return new ParentFilter();}

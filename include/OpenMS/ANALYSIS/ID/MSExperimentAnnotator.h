@@ -26,10 +26,9 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_H
-#define OPENMS_ANALYSIS_ID_H
+#ifndef OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H
+#define OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Identification.h>
 
@@ -184,4 +183,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_H
+#endif // OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H

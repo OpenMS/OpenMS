@@ -27,6 +27,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+#include <OpenMS/MATH/STATISTICS/EvaluationFunctions.h>
 
 #include <iostream>
 #include <fstream>

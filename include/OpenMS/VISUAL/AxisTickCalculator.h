@@ -32,7 +32,6 @@
 // STL
 #include <vector>
 #include <math.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 namespace OpenMS
 {

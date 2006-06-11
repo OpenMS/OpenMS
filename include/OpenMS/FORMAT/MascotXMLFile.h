@@ -31,7 +31,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 #include <fstream>
 
 #include <qxml.h>

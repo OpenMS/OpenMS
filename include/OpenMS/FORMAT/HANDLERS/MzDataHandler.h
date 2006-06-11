@@ -36,8 +36,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
 

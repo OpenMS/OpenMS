@@ -28,8 +28,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FORMAT_OUTFILE_H
-#define OPENMS_FORMAT_OUTFILE_H
+#ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
+#define OPENMS_FORMAT_SEQUESTOUTFILE_H
 
 
 #include <OpenMS/METADATA/Identification.h>
@@ -60,5 +60,5 @@ namespace OpenMS
   };
 } //namespace OpenMS
 
-#endif // OPENMS_FORMAT_OUTFILE_H
+#endif // OPENMS_FORMAT_SEQUESTOUTFILE_H
 

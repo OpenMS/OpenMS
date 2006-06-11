@@ -36,25 +36,25 @@ namespace OpenMS
 {
 
   /**
-  WindowMower augments the highest peaks in a sliding window <br>
+  	@brief WindowMower augments the highest peaks in a sliding window <br>
   
-  \param peakcount: nr of peaks that are augmented in each step
-  \param windowsize: size of sliding window
+	  \param peakcount: nr of peaks that are augmented in each step
+	  \param windowsize: size of sliding window
   */
   class WindowMower
   	 : public MowerFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+    /// standard constructor
     WindowMower();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     WindowMower(const WindowMower& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     ~WindowMower();
 
-    /** @brief assignment operator <br> */
+    /// assignment operator
     WindowMower& operator=(const WindowMower& source);
 
     static FactoryProduct* create() { return new WindowMower();}
@@ -63,7 +63,6 @@ namespace OpenMS
 	
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
-			// @todo ???
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 			
