@@ -256,6 +256,7 @@ class TOPPIDFilter
 			{				
 				writeDebug_(String("strict filtering (if there is more than one best hit")
 					+ String(" for one spectrum, discard all of them)"), 1);
+				strict = true;
 			}
 			else
 			{

@@ -503,6 +503,13 @@ class TOPPRTModel
 						writeLog_(String("For one spectrum there should not be more than one peptide.")
 								+ String(" Please use the IDFilter with the -strict option to ")
 								+ String("achieve this. Aborting!"));
+						cout << "Hits: " << endl;
+						for(vector<PeptideHit>::iterator it = identifications[i].getPeptideHits().begin(); 
+								it != identifications[i].getPeptideHits().end(); 
+								it++)
+						{
+							cout << it->getSequence() << " score: " << it->getScore() << endl;
+						}
 						return INPUT_FILE_CORRUPT;
 					}
 				}				
@@ -517,8 +524,6 @@ class TOPPRTModel
 																													&training_retention_times,
 																													allowed_amino_acid_characters);
 																													
-			cout << "After encoding" << endl;
-																																
 			if (start_values.size() > 0)
 			{	
 				optimized_parameters = svm.performCrossValidation(encoded_training_sample,
