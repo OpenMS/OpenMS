@@ -252,7 +252,7 @@ class TOPPIDFilter
 			writeDebug_(String("Protein significance threshold fraction: ") + 
 									String(protein_significance_threshold_fraction), 1);
 
-			if (getParamAsString_("strict", "") != "")
+			if (getParamAsString_("strict", "false") != "false")
 			{				
 				writeDebug_(String("strict filtering (if there is more than one best hit")
 					+ String(" for one spectrum, discard all of them)"), 1);

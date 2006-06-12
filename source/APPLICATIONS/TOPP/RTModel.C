@@ -471,8 +471,6 @@ class TOPPRTModel
 			}
 			file.close();				
 	
-			cout << "Before loading analysisXML" << endl;
-	
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
@@ -489,8 +487,6 @@ class TOPPRTModel
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			
-			cout << "After loading analysisXML" << endl;
 
 			for(UnsignedInt i = 0; i < identifications.size(); i++)
 			{
@@ -504,10 +500,7 @@ class TOPPRTModel
 					}
 					else
 					{
-						cout << "For one search there should not be more than one peptide."
-								 << " Please use the IDFilter with the -strict option to "
-								 << "achieve this. Aborting!" << endl;
-						writeLog_(String("For one search there should not be more than one peptide.")
+						writeLog_(String("For one spectrum there should not be more than one peptide.")
 								+ String(" Please use the IDFilter with the -strict option to ")
 								+ String("achieve this. Aborting!"));
 						return INPUT_FILE_CORRUPT;

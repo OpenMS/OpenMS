@@ -101,6 +101,7 @@ class TOPPRTPredict
 			 << "Options are:" << endl
 			 << "  -in <file>   			 input file in analysisXML format (default read from INI file)" << endl
 			 << "  -svm_model <file>   		 svm model in libsvm format (can be produced by RTModel) "
+			 << "  -total_gradient_time <file> the time (in seconds) of the gradient "
 			 << "(default read from INI file)" << endl
 			 << "  -out <file>  			 output file in analysisXML format (default read from INI file)" << endl
 			 << endl
@@ -120,6 +121,7 @@ class TOPPRTPredict
 			options_["-out"] = "out";
 			options_["-in"] = "in";
 			options_["-svm_model"] = "svm_model";
+			options_["-total_gradient_time"] = "total_gradient_time";
 			options_["-ini"] = "ini";
 			options_["-log"] = "log";
 			options_["-n"] = "instance";
@@ -139,6 +141,7 @@ class TOPPRTPredict
 			 << "Options are:" << endl
 			 << "  -in <file>   			 input file in analysisXML format (default read from INI file)" << endl
 			 << "  -svm_model <file>   		 svm model in libsvm format (can be produced by RTModel) "
+			 << "  -total_gradient_time <file> the time (in seconds) of the gradient "
 			 << "(default read from INI file)" << endl
 			 << "  -out <file>  			 output file in analysisXML format (default read from INI file)" << endl
 			 << endl
