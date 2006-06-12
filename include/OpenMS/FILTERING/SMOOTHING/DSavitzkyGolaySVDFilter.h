@@ -269,7 +269,7 @@ namespace OpenMS
     {
       if (distance(it_begin,it_end) <= (int)frame_size_)
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__,distance(it_begin,it_end));
+        return; // scan does not contain enough points, so we skip it
       }
 
       int i;

@@ -139,11 +139,6 @@ namespace OpenMS
 				cerr << "Error: Could not set ModelFitters module" << endl;
 				return false;
 			}
-			if (!setModule("Traits"))
-			{
-				cerr << "Error: Could not set Traits module" << endl;
-				return false;
-			}
 		}
 		return true;
 	}
