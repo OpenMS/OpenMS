@@ -21,11 +21,9 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
 // $Id: MascotOutfile.h,v 1.15 2006/06/10 06:40:18 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeiffer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTOUTFILE_H
@@ -48,7 +46,9 @@ namespace OpenMS
     
     This class serves to read in a Mascot outfile. The information can be 
     retrieved via the >> operator. 
-  
+  	
+  	@todo adapt to common interface: load/store (Nico)
+  	
   	@ingroup FileIO
   */
   class MascotOutfile

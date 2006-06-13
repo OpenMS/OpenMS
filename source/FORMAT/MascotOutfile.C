@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: MascotOutfile.C,v 1.22 2006/06/09 23:47:35 nicopfeifer Exp $
 // $Author: nicopfeifer $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/TimeStamp.h>

@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: MascotInfile.h,v 1.13 2006/05/30 15:46:38 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTINFILE_H
@@ -43,7 +43,9 @@ namespace OpenMS
 		@brief Mascot input file adapter.
 		
 		Creates a file that can be used for Mascot search from a peak list.
-  
+  	
+  	@todo adapt to common interface: load/store (Nico)
+  	
   	@ingroup FileIO
 	*/
   class MascotInfile

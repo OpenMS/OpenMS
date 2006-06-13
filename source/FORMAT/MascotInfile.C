@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: MascotInfile.C,v 1.14 2006/05/30 15:46:40 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <iostream>

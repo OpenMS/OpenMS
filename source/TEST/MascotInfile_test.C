@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: MascotInfile_test.C,v 1.8 2006/03/28 08:03:34 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
