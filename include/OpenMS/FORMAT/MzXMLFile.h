@@ -64,12 +64,12 @@ namespace OpenMS
       template <typename MapType>
       void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
-      		//try to open file
-			QFile qfile(filename.c_str());
-			if (!qfile.exists())
-		    {
-		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		    }
+      	//try to open file
+				QFile qfile(filename.c_str());
+				if (!qfile.exists())
+			    {
+			      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+			    }
 
 				QXmlSimpleReader parser;
 				srand(static_cast<unsigned>(time(0)));
@@ -97,8 +97,7 @@ namespace OpenMS
 				std::ofstream os(filename.c_str());
 				if (!os)
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-																							__PRETTY_FUNCTION__, filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
 
 				//read data and close stream

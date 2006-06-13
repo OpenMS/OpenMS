@@ -67,12 +67,24 @@ namespace OpenMS
 	
 		}
 
-	}
+		template <>
+		template <>
+		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::readPeakSupplementalData_ < DPickedPeak<1,KernelTraits> >( std::vector<void*>& data, DPickedPeak<1,KernelTraits>& peak, Size n)
+		{
+			enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
+
+			peak.setArea( getDatum(data,AREA,n));
+			peak.setFWHM( getDatum(data,FWHM,n));
+			peak.setLeftWidthParameter( getDatum(data,LEFT,n));
+			peak.setRightWidthParameter( getDatum(data,RIGHT,n));
+			peak.setCharge(static_cast<DPickedPeak<1,KernelTraits>::ChargeType>(getDatum(data,CHARGE,n)));
+			peak.setSN( getDatum(data,SN,n));
+			peak.setRValue( getDatum(data,RVALUE,n));
+			peak.setPeakShape(PeakShapeType::Enum(int(getDatum(data,SHAPE,n))));
+		}
+		
+	} // namespace Interanal
 
 } // namespace OpenMS
-
-
-
-
 
 

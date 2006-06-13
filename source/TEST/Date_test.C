@@ -45,7 +45,7 @@ START_TEST(Date, "$Id: Date_test.C,v 1.4 2006/03/28 16:19:59 marc_sturm Exp $")
 
 Date* s_ptr = 0;
 CHECK(Date())
-	s_ptr = new Date;
+	s_ptr = new Date();
 	TEST_NOT_EQUAL(s_ptr, 0)
 RESULT
 

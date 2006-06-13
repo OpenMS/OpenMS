@@ -46,7 +46,7 @@ namespace OpenMS
   	@brief XML handlers for MzXMLFile
 
 		MapType has to be a MSExperiment or have the same interface.
-  		Do not use this class. It is only needed in MzXMLFile.
+  	Do not use this class. It is only needed in MzXMLFile.
   */
 	template <typename MapType>
   class MzXMLHandler
@@ -58,7 +58,8 @@ namespace OpenMS
       ///
       MzXMLHandler(MapType& exp)
 			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-				exp_(&exp),	cexp_(0),
+				exp_(&exp),	
+				cexp_(0),
 				peak_(),
 				spec_(0),
 				analyzer_(0),
@@ -72,8 +73,10 @@ namespace OpenMS
       ///
       MzXMLHandler(const MapType& exp)
 			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-				exp_(0), cexp_(&exp),
+				exp_(0), 
+				cexp_(&exp),
 				peak_(),
+				spec_(),
 				decoder_(),
 				peak_count_(0),
 				spec_write_counter_(1)
@@ -142,13 +145,15 @@ namespace OpenMS
 		/// Possible precisions for Base64 data encoding
 		enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
 
-		typedef typename MapType::SpectrumType Spectrum;
-		typedef typename MapType::SpectrumType::PrecursorPeakType PrecursorPeakType;
+		typedef typename MapType::SpectrumType SpectrumType;
+		typedef typename SpectrumType::PeakType PeakType;
+		typedef typename SpectrumType::Iterator PeakIterator;
+		typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
 
 		/**@name temporary datastructures to hold parsed data */
     //@{
-		typename MapType::SpectrumType::PeakType peak_;
-		Spectrum* spec_;
+   	PeakIterator peak_;
+		SpectrumType* spec_;
 		MassAnalyzer* analyzer_;
 		MetaInfoDescription* meta_;
 		QString meta_id_;
@@ -245,19 +250,20 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					peak_.getPosition()[0] = data[n];
-					peak_.getIntensity() = data[n+1];
-     				spec_->getContainer().push_back(peak_);
-				}
+					
+					peak_->getPosition()[0] = data[n];
+					peak_->setIntensity(data[n+1]);
+ 					++peak_;
+ 				}
 			}else											//precision 32
 			{
 				float* data = decoder_.decodeFloatCorrected(chars.ascii(), chars.length());
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					peak_.getPosition()[0] = data[n];
-					peak_.getIntensity() = data[n+1];
-     				spec_->getContainer().push_back(peak_);
+					peak_->getPosition()[0] = data[n];
+					peak_->setIntensity(data[n+1]);
+     			++peak_;
 				}
 			}
 		}
@@ -300,9 +306,11 @@ namespace OpenMS
 		switch(tag)
 			{
 			case MSRUN: case MZXML:
-				if (tag==MSRUN && !getQAttribute(SCANCOUNT).isEmpty())  // optional attribute
+				if (tag==MSRUN && !getQAttribute(SCANCOUNT).isEmpty()) // optional attribute
+				{  
 					exp_->reserve( asUnsignedInt_(getQAttribute(SCANCOUNT)) );
-
+				}
+				
 				// look for schema information
 				if (!getQAttribute(SCHEMA).isEmpty())
 				{
@@ -383,7 +391,7 @@ namespace OpenMS
 				break;
 			case PRECURSORMZ:
 				{
-					typename MapType::SpectrumType::PrecursorPeakType& peak
+					PrecursorPeakType& peak
 						= spec_->getPrecursorPeak();
 					peak.setIntensity( asFloat_(getQAttribute(PRECURSOR_INTENSITY)) );
 					// optional attribute
@@ -394,12 +402,14 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
-					exp_->push_back( Spectrum() );
-					spec_ = &(*exp_)[exp_->size()-1];
+					exp_->insert(exp_->end(), SpectrumType() );
+					spec_ = &(exp_->back());
 
 					// required attributes
-					peak_count_ = asSignedInt_( getQAttribute(PEAKSCOUNT) );
 					spec_->setMSLevel( asSignedInt_(getQAttribute(MSLEVEL)) );
+					peak_count_ = asSignedInt_( getQAttribute(PEAKSCOUNT) );
+					spec_->resize(peak_count_);
+					peak_ = spec_->begin();
 
 					//optinal attributes
 					for (int i=0; i<attributes.length(); i++)
@@ -435,14 +445,14 @@ namespace OpenMS
 				break;
 			case OPERATOR:
 				{
-					ContactPerson contact;
-					contact.setName( QString("%2,%1").arg(getQAttribute(FIRST_NAME))
-																					 .arg(getQAttribute(LAST_NAME)).ascii());
+					exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
+					exp_->getContacts().back().setName( QString("%2,%1").arg(getQAttribute(FIRST_NAME)).arg(getQAttribute(LAST_NAME)).ascii());
 					if (!getQAttribute(EMAIL).isEmpty())
-						contact.setEmail(getAttribute(EMAIL));
-					contact.setContactInfo( QString("%1,%2").arg(getQAttribute(PHONE))
-																									.arg(getQAttribute(URI)).ascii());
-					exp_->getContacts().push_back(contact);
+					{
+						exp_->getContacts().back().setEmail(getAttribute(EMAIL));
+					}
+					exp_->getContacts().back().setContactInfo( QString("%1,%2").arg(getQAttribute(PHONE)).arg(getQAttribute(URI)).ascii());
+					
 				}
 				break;
 			case MANUFACTURER:
@@ -463,7 +473,8 @@ namespace OpenMS
 			case ANALYZER:
 				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,ANALYZER))
 				{
-					analyzer_ = new MassAnalyzer();
+					exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
+					analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
 					analyzer_->setType( (MassAnalyzer::AnalyzerType)
 						str2enum_(ANALYZERTYPEMAP,getQAttribute(VALUE),"analyzer type")
 					);
@@ -541,8 +552,6 @@ namespace OpenMS
 
 		if (tag==INSTRUMENT && analyzer_)
 		{
-			exp_->getInstrument().getMassAnalyzers().push_back(*analyzer_);
-			delete analyzer_;
 			analyzer_ = 0;
 		}
 		return true;
@@ -555,7 +564,7 @@ namespace OpenMS
 		UnsignedInt count_tmp_  = 0;
 		for (UnsignedInt s=0; s<cexp_->size(); s++)
 		{
-			const Spectrum& spec = (*cexp_)[s];
+			const SpectrumType& spec = (*cexp_)[s];
 			if (spec.size()!=0) ++count_tmp_;
 		}
 
@@ -666,7 +675,7 @@ namespace OpenMS
 		// write scans
 		for (UnsignedInt s=0; s<cexp_->size(); s++)
 		{
-			const Spectrum& spec = (*cexp_)[s];
+			const SpectrumType& spec = (*cexp_)[s];
 
 			//do not write empty spectra
 			if (spec.size()==0) continue;

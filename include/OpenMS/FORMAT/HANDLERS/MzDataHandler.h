@@ -46,12 +46,12 @@ namespace OpenMS
 	{
 
 		/**
-			 @brief XML handler for MzDataFile
-
-			 MapType has to be a MSExperiment or have the same interface.
-			 Do not use this class. It is only needed in MzDataFile.
-
-			 @todo Should handle double as well as float data; use types defined in the Traits.
+			@brief XML handler for MzDataFile
+			
+			MapType has to be a MSExperiment or have the same interface.
+			Do not use this class. It is only needed in MzDataFile.
+			
+			@todo implement and test SupDesc part (Jens)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -63,9 +63,9 @@ namespace OpenMS
       ///
       MzDataHandler(MapType& exp)
 				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-					exp_(&exp), cexp_(0),
+					exp_(&exp), 
+					cexp_(0),
 					peak_count_(0),
-					peak_(),
 					exp_sett_str_(),
 					exp_sett_(exp_sett_str_, IO_ReadWrite),
 					decoder_(2),
@@ -77,9 +77,9 @@ namespace OpenMS
       ///
       MzDataHandler(const MapType& exp)
 				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-					exp_(0), cexp_(&exp),
+					exp_(0), 
+					cexp_(&exp),
 					peak_count_(0),
-					peak_(),
 					exp_sett_str_(),
 					exp_sett_(),
 					decoder_(2),
@@ -152,13 +152,14 @@ namespace OpenMS
 			/// Possible endian-types for Base64 data encoding
 			enum Endian { UNKNOWN_ENDIAN, LITTLE, BIG};
 
+			typedef typename MapType::SpectrumType SpectrumType;
+			typedef typename MapType::PeakType PeakType;
+
 			/**@name temporary datastructures to hold parsed data */
 			//@{
-			typedef typename MapType::SpectrumType Spectrum;
-
+				
 			Size peak_count_;
-			typename Spectrum::PeakType peak_;
-			Spectrum* spec_;
+			SpectrumType* spec_;
 			Precursor* prec_;
 			Acquisition* acq_;
 			MetaInfoDescription* meta_;
@@ -234,6 +235,15 @@ namespace OpenMS
 			{
 			}
 
+			/**
+				 @brief Read supplemental data for derived classes of DPeak, e.g. for
+				 picked peaks.  Default is to do nothing.
+			*/
+			template <typename PeakType>
+			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, Size /*n*/)
+			{
+			}
+			
 		};
 
 		//--------------------------------------------------------------------------------
@@ -320,8 +330,16 @@ namespace OpenMS
 			case DESCRIPTION: exp_sett_ << '<' << qname << '>'; break;
 			case CVPARAM:	cvParam_(attributes.value("name"),attributes.value("value")); break;
 		  case USERPARAM:	userParam_(attributes.value("name"),attributes.value("value")); break;
-			case SPECTRUM: spec_ = new Spectrum(); break;
-		  case SPECTRUMLIST: exp_->reserve( asSignedInt_(attributes.value("count")) ); break;
+			case SPECTRUM: 
+				exp_->insert(exp_->end(),SpectrumType());
+				//std::cout << "Capacity: " << exp_->capacity() << std::endl;
+				spec_ = &(exp_->back()); 
+				break;
+		  case SPECTRUMLIST: 
+		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
+		  	exp_->reserve( asSignedInt_(attributes.value("count")) ); 
+		  	//std::cout << Date::now() << " done" << std::endl;
+		  	break;
 			case ACQSPEC:
 				spec_->getAcquisitionInfo().setSpectrumType(attributes.value("spectrumType").ascii());
 				spec_->getAcquisitionInfo().setMethodOfCombination(
@@ -330,7 +348,8 @@ namespace OpenMS
 				break;
 			case ACQUISITION:
 				{
-					acq_ = new Acquisition();
+					spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
+					acq_ = &(spec_->getAcquisitionInfo().back());
 					acq_->setNumber(asSignedInt_(attributes.value("acqNumber")));
 				}	
 				break;
@@ -346,7 +365,7 @@ namespace OpenMS
 																											 );
 				break;
 			case PRECURSOR:
-				prec_ = new Precursor();
+				prec_ = &(spec_->getPrecursor());
 				//UNHANDLED: attributes.value("spectrumRef");
 				break;
 			case SUPDATADESC:
@@ -357,10 +376,11 @@ namespace OpenMS
 				// store precision for later
 				precisions_.push_back((Precision)str2enum_(PRECISION,attributes.value("precision")));
 				endians_.push_back((Endian)str2enum_(ENDIAN,attributes.value("endian")));
-				if (is_parser_in_tag_[INTENARRAYBINARY] || is_parser_in_tag_[MZARRAYBINARY])
+				if (is_parser_in_tag_[MZARRAYBINARY])
 				{
-					// length should be the same in both arrays
 					peak_count_ = asSignedInt_(attributes.value("length"));
+					//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
+					spec_->getContainer().reserve(peak_count_);
 				}
 				break;
 			case MZDATA:
@@ -422,17 +442,9 @@ namespace OpenMS
 				precisions_.clear();
 				endians_.clear();
 				break;
-			case PRECURSOR:
-				spec_->setPrecursor(*prec_);
-				delete prec_;
-				break;
 			case SUPDESC:
 				spec_->getMetaInfoDescriptions()[meta_id_.ascii()] = *meta_;
 				delete meta_;
-				break;
-			case ACQUISITION:
-				spec_->getAcquisitionInfo().push_back(*acq_);
-				delete acq_;
 				break;
 			}  
 			return true;
@@ -552,46 +564,22 @@ namespace OpenMS
 					}
 				}
 			}
-
+			
 			const int MZ = 0;
 			const int INTENS = 1;
-
-			if (data_.size()>2)
-			{
-				typedef DPickedPeak<1> PickedPeak;
-				PickedPeak picked_peak_;
-				enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
-
-				//push_back the peaks into the container
-				for (Size n = 0 ; n < peak_count_ ; n++)
-				{
-					picked_peak_.getIntensity() = getDatum(ptrs,INTENS,n);
-					picked_peak_.getPosition()[0] = getDatum(ptrs,MZ,n);
-					picked_peak_.setArea( getDatum(ptrs,AREA,n));
-					picked_peak_.setFWHM( getDatum(ptrs,FWHM,n));
-					picked_peak_.setLeftWidthParameter( getDatum(ptrs,LEFT,n));
-					picked_peak_.setRightWidthParameter( getDatum(ptrs,RIGHT,n));
-					picked_peak_.setCharge(
-																 static_cast<PickedPeak::ChargeType>(getDatum(ptrs,CHARGE,n))
-																);
-					picked_peak_.setSN( getDatum(ptrs,SN,n));
-					picked_peak_.setRValue( getDatum(ptrs,RVALUE,n));
-					picked_peak_.setPeakShape(PeakShapeType::Enum(int(getDatum(ptrs,SHAPE,n))));
-					spec_->getContainer().push_back(picked_peak_);
-				}
-			}
-			else   // this works only if MapType::PeakType is at leat DRawDataPoint
+			
+			// this works only if MapType::PeakType is at leat DRawDataPoint
 			{
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < peak_count_ ; n++)
 				{
-					peak_.getIntensity() = getDatum(ptrs,INTENS,n);
-					peak_.getPosition()[0] = getDatum(ptrs,MZ,n);
-					spec_->getContainer().push_back(peak_);
+					spec_->insert(spec_->end(), PeakType());
+					spec_->back().getIntensity() = getDatum(ptrs,INTENS,n);
+					spec_->back().getPosition()[0] = getDatum(ptrs,MZ,n);
+					//read supplemental data for derived classes (do nothing for DPeak)
+					readPeakSupplementalData_(ptrs,spec_->back(),n);
 				}
 			}
-			exp_->push_back(*spec_);
-			delete spec_;
 		}
 
 		template <typename MapType>
@@ -607,7 +595,7 @@ namespace OpenMS
 			UnsignedInt count_tmp_  = 0;
 			for (UnsignedInt s=0; s<cexp_->size(); s++)
 			{
-				const Spectrum& spec = (*cexp_)[s];
+				const SpectrumType& spec = (*cexp_)[s];
 				if (spec.size()!=0) ++count_tmp_;
 			}
 
@@ -615,7 +603,7 @@ namespace OpenMS
 
 			for (UnsignedInt s=0; s<cexp_->size(); s++)
 			{
-				const Spectrum& spec = (*cexp_)[s];
+				const SpectrumType& spec = (*cexp_)[s];
 
 				//do not write empty spectra
 				if (spec.size()==0) continue;
@@ -661,7 +649,7 @@ namespace OpenMS
 				writeUserParam_(os, spec.getInstrumentSettings(), 6);
 				os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 
-				typedef typename Spectrum::PrecursorPeakType PrecursorPeak;
+				typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
 				if (spec.getPrecursorPeak() != PrecursorPeak()
 						|| spec.getPrecursor() != Precursor())
 				{
@@ -726,6 +714,15 @@ namespace OpenMS
 		template <>
 		template <>
 		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::writeDerivedPeakSupplementalData_ < DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > >( std::ostream& os, DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > const & container);
+
+		/**
+			 @brief Partial specialization that reads supplemental data for picked peaks.
+
+			 @note Partial specialization must be placed in .C file
+		*/
+		template <>
+		template <>
+		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::readPeakSupplementalData_ < DPickedPeak<1,KernelTraits> >( std::vector<void*>& data, DPickedPeak<1,KernelTraits>& peak, Size n);
 
 
 	} // namespace Internal

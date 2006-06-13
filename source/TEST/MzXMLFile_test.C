@@ -269,6 +269,20 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 	TEST_EQUAL(t3==t4,true)
 RESULT
 
+CHECK(load/store for Float Kernel Traits)
+	std::string tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+	
+  MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e;
+  MzXMLFile f;
+	
+	f.load("data/MzXMLFile_test_2.mzXML",e);
+	f.store(tmp_filename,e);
+	TextFile t3(tmp_filename, true);
+	TextFile t4("data/MzXMLFile_test_2.mzXML", true);
+	TEST_EQUAL(t3==t4,true)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

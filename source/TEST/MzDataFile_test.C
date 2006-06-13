@@ -56,12 +56,61 @@ RESULT
 CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
 	PRECISION(0.01)
 
-	MSExperiment< DPickedPeak<1> > e;
+  //---------------------------------------------------------------------------
+  // test with DRawDataPoint (only peak data is tested, no meta data)
+  //---------------------------------------------------------------------------
+
+	MSExperiment< DRawDataPoint<1> > e2;
 	MzDataFile mzdata;
 	
 	//test exception
-	TEST_EXCEPTION( Exception::FileNotFound , mzdata.load("dummy/dummy.MzData",e) )
+	TEST_EXCEPTION( Exception::FileNotFound , mzdata.load("dummy/dummy.MzData",e2) )
 	
+	// real test
+	mzdata.load("data/MzDataFile_test_1.mzData",e2);
+  //---------------------------------------------------------------------------
+  // 60 : (120,100)
+  // 120: (110,100) (120,200) (130,100)
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
+	//--------------------------------------------------------------------------- 
+  TEST_EQUAL(e2.size(), 3)
+
+	TEST_EQUAL(e2[0].getContainer().size(), 1)
+	TEST_EQUAL(e2[1].getContainer().size(), 3)
+	TEST_EQUAL(e2[2].getContainer().size(), 5)
+
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
+
+  //---------------------------------------------------------------------------
+  // test with DPickedPeak
+  //---------------------------------------------------------------------------
+	MSExperiment< DPickedPeak<1> > e;
+
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
   //---------------------------------------------------------------------------
@@ -360,15 +409,14 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 	TextFile t1(tmp_filename, true);
 	TextFile t2("data/MzDataFile_test_1.mzData", true);
 	TEST_EQUAL(t1==t2,true)
-//
-//	MSExperiment< DRawDataPoint<1> > e2;
-//
-//	NEW_TMP_FILE(tmp_filename);
-//	f.load("data/MzDataFile_test_2.mzData",e2);
-//	f.store(tmp_filename,e2);
-//	TextFile t3(tmp_filename, true);
-//	TextFile t4("data/MzDataFile_test_2.mzData", true);
-//	TEST_EQUAL(t3==t4,true)
+
+	MSExperiment< DRawDataPoint<1> > e2;
+	NEW_TMP_FILE(tmp_filename);
+	f.load("data/MzDataFile_test_2.mzData",e2);
+	f.store(tmp_filename,e2);
+	TextFile t3(tmp_filename, true);
+	TextFile t4("data/MzDataFile_test_2.mzData", true);
+	TEST_EQUAL(t3==t4,true)
 RESULT
 
 // check load for 64Bit precision and endian conversion
@@ -419,6 +467,21 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getRValue(), 100)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getSN(), 100)
 	TEST_EQUAL(e[0].getContainer()[2].getPeakShape(), 100)
+RESULT
+
+// check for Float Kernel traits
+CHECK(load/store for Float Kernel Traits)
+	std::string tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+  
+  MzDataFile f;
+	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e2;
+	
+	f.load("data/MzDataFile_test_2.mzData",e2);
+	f.store(tmp_filename,e2);
+	TextFile t3(tmp_filename, true);
+	TextFile t4("data/MzDataFile_test_2.mzData", true);
+	TEST_EQUAL(t3==t4,true)
 RESULT
 
 /////////////////////////////////////////////////////////////
