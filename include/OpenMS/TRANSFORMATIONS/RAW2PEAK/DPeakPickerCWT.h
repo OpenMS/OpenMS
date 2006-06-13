@@ -31,6 +31,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_DPEAKPICKERCWT_H
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DPeakPicker.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DExtractSignalRegions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
 
