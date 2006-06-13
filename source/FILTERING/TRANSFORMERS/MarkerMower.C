@@ -42,7 +42,7 @@ namespace OpenMS
   IsotopeMarker, ComplementMarker, NeutralLossMarker are used per default<br>
   */
   MarkerMower::MarkerMower()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = MarkerMower::getName();
     //todo remove
@@ -52,7 +52,7 @@ namespace OpenMS
   }
 
   MarkerMower::MarkerMower(const MarkerMower& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
 		name_ = source.getName();
   }
@@ -63,7 +63,7 @@ namespace OpenMS
 
   MarkerMower& MarkerMower::operator=(const MarkerMower& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 

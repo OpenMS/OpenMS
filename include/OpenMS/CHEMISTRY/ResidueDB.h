@@ -25,9 +25,6 @@
 // $Author: andreas_bertsch $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
-
-// TODO data structures for neutral losses
 
 #ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
@@ -47,6 +44,8 @@ namespace OpenMS
 			
 			The residues stored in this DB are defined in a
 			XML file under data/CHEMISTRY/residues.xml
+			
+			@todo data structures for neutral losses (Andreas)
 	*/
 	class ResidueDB
 	{					

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MowerFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $
+// $Id: PreprocessingFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $
 // $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
@@ -32,7 +32,7 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 ///////////////////////////
 
@@ -40,7 +40,7 @@
 #include <iostream>
 
 ///////////////////////////
-START_TEST(MowerFunctor, "$Id: MowerFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $")
+START_TEST(PreprocessingFunctor, "$Id: PreprocessingFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ START_TEST(MowerFunctor, "$Id: MowerFunctor_test.C,v 1.8 2006/04/05 11:18:25 mar
 using namespace OpenMS;
 using namespace std;
 
-MowerFunctor* mfp;
+PreprocessingFunctor* mfp;
 
 ClusterFactory* factoryp = ClusterFactory::instance();
 
@@ -57,19 +57,19 @@ DTAFile dtafile;
 MSSpectrum< DPeak<1> > spec;
 dtafile.load("data/spectrum.dta",spec);
 
-vector<String> catalogue = factoryp->catalogue("MowerFunctor");
+vector<String> catalogue = factoryp->catalogue("PreprocessingFunctor");
 
-// go through all registered MowerFunctors and check if they accept a spectrum 
+// go through all registered PreprocessingFunctors and check if they accept a spectrum 
 for ( vector<String>::const_iterator cvit = catalogue.begin();
     cvit != catalogue.end(); ++cvit )
 {
   CHECK()
     STATUS("ClusterFactory::create("+*cvit+")")
-    mfp = dynamic_cast<MowerFunctor*>(factoryp->create(*cvit));
+    mfp = dynamic_cast<PreprocessingFunctor*>(factoryp->create(*cvit));
     TEST_NOT_EQUAL(mfp, 0)
   RESULT
 
-  CHECK(MowerFunctor::operator())
+  CHECK(PreprocessingFunctor::operator())
     STATUS(*cvit+"::operator()")
     (*mfp)(spec);
   RESULT

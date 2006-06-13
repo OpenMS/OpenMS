@@ -80,8 +80,7 @@ namespace OpenMS
 
     /** @brief return the additional ClusterRun <br>*/
     const ClusterExperiment::ClusterRun* reference() const {return clusterrunp_;}
-
-    //tmp todo
+    
   public:
     /** TRUE if <b>this</b> needs an DBAdapter* <br>*/
     bool needsAdapter_;

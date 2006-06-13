@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 namespace OpenMS
 {
@@ -41,7 +41,7 @@ namespace OpenMS
 	  Spectra first
   */
   class ThresholdMower
-    :public MowerFunctor
+    :public PreprocessingFunctor
   {
   public:
     /// standard constructor

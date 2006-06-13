@@ -53,7 +53,7 @@ namespace OpenMS
 
      The convolution of the signal and the wavelet is computed in the fourier space.
 
-     @todo write test
+     @todo write test (Eva)
   */
   template <Size D>
   class ContinuousWaveletTransformFFT : public ContinuousWaveletTransform<D>

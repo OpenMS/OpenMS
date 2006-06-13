@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <map>
 
 namespace OpenMS
@@ -42,7 +42,7 @@ namespace OpenMS
 	  \param windowsize: size of sliding window
   */
   class WindowMower
-  	 : public MowerFunctor
+  	 : public PreprocessingFunctor
   {
   public:
     /// standard constructor

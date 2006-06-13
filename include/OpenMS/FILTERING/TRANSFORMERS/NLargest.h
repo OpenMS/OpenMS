@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
 #define OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <algorithm>
 
 namespace OpenMS
@@ -40,7 +40,7 @@ namespace OpenMS
   	\param n number of peaks to keep
   */
   class NLargest
-    :public MowerFunctor
+    :public PreprocessingFunctor
   {
   public:
 	

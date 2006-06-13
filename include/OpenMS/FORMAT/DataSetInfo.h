@@ -75,7 +75,7 @@ namespace OpenMS
 		///PersistentObject interface
     virtual void clearChildIds_()
     {
-    	//TODO	
+    	//TODO Persistence	
     };		
 
   private:

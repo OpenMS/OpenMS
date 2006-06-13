@@ -31,5 +31,8 @@
 
 namespace OpenMS
 {
-	
+	namespace Math
+	{
+		
+	}
 } // namespace OpenMS

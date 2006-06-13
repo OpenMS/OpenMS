@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		Contains mathemtical auxiliary functions.
 		
-		@todo write tests
+		@todo write tests (Marc)
 		
 		@ingroup Concept
 	*/
@@ -92,7 +92,7 @@ namespace OpenMS
 		/**
 			@brief auxiliary function for the visualization
 			
-			@todo document me
+			@todo document me (Marc)
 			
 			@ingroup Math
 		*/
@@ -108,7 +108,7 @@ namespace OpenMS
 		/**
 			@brief auxiliary function for the visualization
 			
-			@todo document me
+			@todo document me (Marc)
 			
 			@ingroup Math
 		*/

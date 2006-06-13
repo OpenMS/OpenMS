@@ -34,7 +34,7 @@ using namespace std;
 namespace OpenMS
 {
   Normalizer::Normalizer()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = Normalizer::getName();
     defaults_.setValue("windows", 10); // only applicable for max normalizing, run twice for other methods
@@ -42,7 +42,7 @@ namespace OpenMS
   }
 
   Normalizer::Normalizer(const Normalizer& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
 		name_ = source.getName();
   }
@@ -53,7 +53,7 @@ namespace OpenMS
 
   Normalizer& Normalizer::operator=(const Normalizer& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 

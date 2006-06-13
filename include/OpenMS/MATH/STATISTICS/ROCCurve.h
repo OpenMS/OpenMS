@@ -45,7 +45,7 @@ namespace OpenMS
   /**
   	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values <br>
   	
-  	@todo add to Math namespace
+  	@todo add to Math namespace (Andreas)
   	
   	@ingroup Math
   */

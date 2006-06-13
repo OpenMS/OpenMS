@@ -59,7 +59,7 @@ namespace OpenMS
 		
 		@ingroup Concept
 		
-		@todo complete tests
+		@todo complete tests (Marc)
 	*/ 
 	string streamClassName(const std::type_info& t);
 

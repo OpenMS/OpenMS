@@ -55,7 +55,7 @@ namespace OpenMS
 
   	@ingroup PeakPickingCWT
   	
-  	@todo write a test
+  	@todo write a test (Eva)
    */
   namespace OptimizationFunctions
   {

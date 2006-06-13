@@ -42,7 +42,7 @@ namespace OpenMS
 
 				It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
 
-				@todo write test
+				@todo write test (Eva)
 		*/
 		//@{
 	

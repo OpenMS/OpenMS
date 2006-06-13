@@ -21,13 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MowerFunctor.h,v 1.7 2006/06/09 13:52:51 andreas_bertsch Exp $
+// $Id: PreprocessingFunctor.h,v 1.7 2006/06/09 13:52:51 andreas_bertsch Exp $
 // $Author: andreas_bertsch $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
-#ifndef OPENMS_FILTERING_TRANSFORMERS_MOWERFUNCTOR_H
-#define OPENMS_FILTERING_TRANSFORMERS_MOWERFUNCTOR_H
+
+#ifndef OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
+#define OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 
 #include <vector>
 #include <map>
@@ -39,21 +39,20 @@
 namespace OpenMS
 {
   /**
-  	@brief MowerFunctors do some form of preprocessing to a MSSpectrum
+  	@brief Base class for MSSpectrum preprocessing classes
   	
-  	@todo rename to PreprocessFunctor
   */
-  class MowerFunctor : public FactoryProduct
+  class PreprocessingFunctor : public FactoryProduct
   {
   public:
     /// standard constructor
-    MowerFunctor() ;
+    PreprocessingFunctor() ;
     /// copy constructor
-    MowerFunctor(const MowerFunctor& source);
+    PreprocessingFunctor(const PreprocessingFunctor& source);
     /// destructor
-    virtual ~MowerFunctor() {}
-    /// assignment operator < br> */
-    MowerFunctor& operator=(const MowerFunctor& source);
+    virtual ~PreprocessingFunctor() {}
+    /// assignment operator
+    PreprocessingFunctor& operator=(const PreprocessingFunctor& source);
 
     //virtual void operator()(Spectrum< DPeak<1> >&) const = 0;
 
@@ -61,4 +60,4 @@ namespace OpenMS
 	};
 
 }
-#endif // OPENMS_FILTERING_TRANSFORMERS_MOWERFUNCTOR_H
+#endif // OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H

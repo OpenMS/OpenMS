@@ -52,6 +52,9 @@ namespace OpenMS
 		public:
 		
 		/** @brief Representation of a modification
+		
+			@todo add detailed constructor ? (Andreas)
+		
 		*/
 		class Modification
 		{
@@ -62,8 +65,6 @@ namespace OpenMS
 				//@{
 				/// default constructor
 				Modification();
-
-				// detailed constructor ? TODO
 				
 				/// copy constructor
 				Modification(const Modification& modification);

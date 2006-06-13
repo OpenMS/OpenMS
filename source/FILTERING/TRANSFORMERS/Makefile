@@ -49,7 +49,7 @@ CPP_SOURCES= \
   WindowMower.C\
   FilterFunctor.C\
   IsotopeDiffFilter.C\
-  MowerFunctor.C\
+  PreprocessingFunctor.C\
   Normalizer.C\
   PeakDensityFilter.C\
   TICFilter.C\

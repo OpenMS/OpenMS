@@ -34,7 +34,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 
 using namespace std;
@@ -145,7 +145,7 @@ namespace OpenMS
       const char* name = attributes.value("name").ascii();
       if (name != 0 )
       {
-        forwardconfigurablep_ = dynamic_cast<MowerFunctor*>(ClusterFactory::instance()->create(name));
+        forwardconfigurablep_ = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->create(name));
         if (!forwardconfigurablep_)
         {
           throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"unknown FactoryProduct",name);
@@ -263,8 +263,8 @@ namespace OpenMS
     {
       if ( forwardconfigurablep_)
       {
-        //if configurablep_ is really a MowerFunctor* has already been checked in startElement
-        MowerFunctor* tmp = dynamic_cast<MowerFunctor*>(forwardconfigurablep_);
+        //if configurablep_ is really a PreprocessingFunctor* has already been checked in startElement
+        PreprocessingFunctor* tmp = dynamic_cast<PreprocessingFunctor*>(forwardconfigurablep_);
         crun_.addMower(tmp);
         forwardconfigurablep_ = 0;
       }
@@ -288,7 +288,7 @@ namespace OpenMS
     {
       if ( forwardconfigurablep_)
       {
-        //if configurablep_ is really a MowerFunctor* has already been checked in startElement
+        //if configurablep_ is really a PreprocessingFunctor* has already been checked in startElement
         ClusterFunctor* tmp = dynamic_cast<ClusterFunctor*>(forwardconfigurablep_);
         crun_.setClusterFunc(tmp);
         forwardconfigurablep_ = 0;
@@ -320,7 +320,7 @@ namespace OpenMS
     {
       if ( forwardconfigurablep_)
       {
-        //if configurablep_ is really a MowerFunctor* has already been checked in startElement
+        //if configurablep_ is really a PreprocessingFunctor* has already been checked in startElement
         AnalysisFunctor* tmp = dynamic_cast<AnalysisFunctor*>(forwardconfigurablep_);
         crun_.addAnalysisFunctor(tmp);
         forwardconfigurablep_ = 0;

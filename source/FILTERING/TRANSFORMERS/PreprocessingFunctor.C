@@ -21,27 +21,27 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MowerFunctor.C,v 1.3 2006/03/28 12:53:13 marc_sturm Exp $
+// $Id: PreprocessingFunctor.C,v 1.3 2006/03/28 12:53:13 marc_sturm Exp $
 // $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 namespace OpenMS
 {
-  MowerFunctor::MowerFunctor()
+  PreprocessingFunctor::PreprocessingFunctor()
     : FactoryProduct()
   {
-		name_ = MowerFunctor::getName();
+		name_ = PreprocessingFunctor::getName();
   }
 
-  MowerFunctor::MowerFunctor(const MowerFunctor& source)
+  PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
     : FactoryProduct(source)
   {
 		name_ = source.getName();
   }
 
-  MowerFunctor& MowerFunctor::operator=(const MowerFunctor& source)
+  PreprocessingFunctor& PreprocessingFunctor::operator=(const PreprocessingFunctor& source)
   {
    	FactoryProduct::operator=(source);
     return *this;

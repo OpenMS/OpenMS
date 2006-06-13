@@ -38,7 +38,7 @@
 #include <vector>
 
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
@@ -79,7 +79,7 @@ namespace OpenMS
     QComboBox* ppbox_;
 
     CompareFunctor* cfp_;
-    std::vector<MowerFunctor*> mowers_;
+    std::vector<PreprocessingFunctor*> mowers_;
     double binsize_;
 		uint binspread_;
     QPushButton* ok_;

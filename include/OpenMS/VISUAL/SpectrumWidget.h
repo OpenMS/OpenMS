@@ -204,7 +204,7 @@ namespace OpenMS
 		
 
 		/// creates the intensity distribution of the widget
-		virtual Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
+		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
 		
 		virtual void recalculateAxes() = 0;
 		

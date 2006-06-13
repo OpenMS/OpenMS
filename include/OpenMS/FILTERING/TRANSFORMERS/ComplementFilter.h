@@ -82,11 +82,6 @@ namespace OpenMS
 	      {
 	        --j;
 	      }
-	      else
-	      {
-	        // @todo another Exception?!?  Which one? ????
-	        //throw CanNotHappen(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-	      }
 	    }
 	    //vector<double> res;
 	    //res.push_back(result);

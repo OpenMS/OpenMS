@@ -67,7 +67,7 @@ namespace OpenMS
     gridlayout_->addWidget(ok_,4,2);
     
     fillbox_("CompareFunctor",cfbox_);
-    fillbox_("MowerFunctor",ppbox_);
+    fillbox_("PreprocessingFunctor",ppbox_);
     connect(addpp_,SIGNAL(clicked()),this,SLOT(addpp()));
     connect(clearpp_,SIGNAL(clicked()),this,SLOT(clearpp()));
     connect(usecf_,SIGNAL(clicked()),this,SLOT(usecf()));
@@ -96,7 +96,7 @@ namespace OpenMS
 
   void ClusterRunWidget::addpp()
   {
-    MowerFunctor* mfp = dynamic_cast<MowerFunctor*>(ClusterFactory::instance()->create(ppbox_->currentText().ascii()));
+    PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->create(ppbox_->currentText().ascii()));
     configure_(mfp);
     mowers_.push_back(mfp);
     ppnames_->setText(ppnames_->text() + "\n" + ppbox_->currentText());
@@ -146,10 +146,10 @@ namespace OpenMS
       CompareFunctor* cfp = dynamic_cast<CompareFunctor*>(ClusterFactory::instance()->duplicate(cfp_));
       result->setSimFunc(cfp);
     }
-    for ( vector<MowerFunctor*>::const_iterator cvit = mowers_.begin();
+    for ( vector<PreprocessingFunctor*>::const_iterator cvit = mowers_.begin();
         cvit != mowers_.end(); ++cvit )
     {
-      MowerFunctor* mfp = dynamic_cast<MowerFunctor*>(ClusterFactory::instance()->duplicate(*cvit));
+      PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->duplicate(*cvit));
       result->addMower(mfp);
     }
     result->setBinSize(binsize_);

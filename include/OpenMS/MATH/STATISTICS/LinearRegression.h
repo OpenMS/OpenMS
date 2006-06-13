@@ -41,7 +41,7 @@ namespace OpenMS
 	/**
 		@brief Linear regression 
 		
-		@todo document me, add to Math namespace
+		@todo document me, add to Math namespace (Eva)
 		
 		@ingroup Math
 	*/

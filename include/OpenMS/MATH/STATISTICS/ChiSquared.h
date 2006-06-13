@@ -38,7 +38,7 @@ namespace OpenMS
   /**
   	@brief Chi squared computation, includes binning.
 
-  	@todo add to Math namespace
+  	@todo add to Math namespace (Clemens)
   	
   	@ingroup Math
   */

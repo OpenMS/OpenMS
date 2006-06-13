@@ -161,7 +161,7 @@ namespace OpenMS
 			 
 			 These make begin(), end() etc. from container_type accessible.
 
-			 \todo Fix check_test so that it will parse Matrix.h !  Workaround: To
+			 @todo Fix check_test so that it will parse Matrix.h !  Workaround: To
 			 see if Matrix_test.C is really complete, comment these access
 			 declarations out.
 		*/

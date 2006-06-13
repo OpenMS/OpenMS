@@ -29,14 +29,14 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 namespace OpenMS
 {
   /**
   	@brief Scales the intensity of peaks to log(intensity)
   */
-  class SqrtMower : public MowerFunctor
+  class SqrtMower : public PreprocessingFunctor
   {
   public:
     /// standard constructor

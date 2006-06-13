@@ -54,7 +54,7 @@ namespace OpenMS
   class ClusterFunctor;
   class AnalysisFunctor;
   class CompareFunctor;
-  class MowerFunctor;
+  class PreprocessingFunctor;
   class DBAdapter;
   class Cluster;
   
@@ -161,7 +161,7 @@ namespace OpenMS
 			///PersistentObject interface
 	    virtual void clearChildIds_()
 	    {
-	    	//TODO	
+	    	//TODO Persistence	
 	    };
 	    
 
@@ -203,7 +203,7 @@ namespace OpenMS
       void setBinSize(double);
       void setBinSpread(uint);
       void setNorm(Norm);
-      int addMower(MowerFunctor*);
+      int addMower(PreprocessingFunctor*);
       void setSimFunc(CompareFunctor* );
       void setClusterFunc(ClusterFunctor*);
       int addAnalysisFunctor(AnalysisFunctor*);
@@ -216,7 +216,7 @@ namespace OpenMS
       const Norm& getNorm() const { return norm_;}
       const std::map<int,ClusterNode*>& getClustering() const { return clusters_;}
       inline const CompareFunctor* getSimFunc() const {return sim_funcp_;}
-      const std::vector<MowerFunctor*>& getPreprocessqueue() const {return preprocess_queue_;}
+      const std::vector<PreprocessingFunctor*>& getPreprocessqueue() const {return preprocess_queue_;}
       const ClusterFunctor* getClusterFunc() const { return cluster_funcp_;}
       /** @brief read access to the underlying ClusterExperiment::Analysis <br> */
       const Analysis& operator[](uint pos) const throw(Exception::IndexOverflow);
@@ -275,7 +275,7 @@ namespace OpenMS
 			///PersistentObject interface
 	    virtual void clearChildIds_()
 	    {
-	    	//TODO	
+	    	//TODO Persistence	
 	    };
     
     private:
@@ -294,7 +294,7 @@ namespace OpenMS
 
       bool didrun_;
       CompareFunctor* sim_funcp_;
-      std::vector<MowerFunctor*> preprocess_queue_;
+      std::vector<PreprocessingFunctor*> preprocess_queue_;
       ClusterFunctor* cluster_funcp_;
       std::vector<Analysis> analysis_queue_;
       Norm norm_;
@@ -349,7 +349,7 @@ namespace OpenMS
     void setBinSize(double size, int pos = -1);
     void setBinSpread(uint spread, int pos = -1);
     void setNorm(Norm norm, int pos = -1);
-    int addMower(MowerFunctor* funcp, int pos = -1);
+    int addMower(PreprocessingFunctor* funcp, int pos = -1);
     void setClusterFunc(ClusterFunctor* funcp, int pos = -1);
     void setSimFunc(CompareFunctor* funcp, int pos = -1);
     int addAnalysisFunctor(AnalysisFunctor* func, int pos = -1);

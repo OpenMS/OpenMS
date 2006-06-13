@@ -52,7 +52,7 @@ namespace OpenMS
 
      @ingroup PeakPickingCWT
 
-     @todo write test
+     @todo write test (Eva)
   */
   template <Size D>
   class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform<D>

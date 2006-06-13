@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -40,7 +40,7 @@ namespace OpenMS
   /**
   	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed<br>
   */
-  class MarkerMower : public MowerFunctor
+  class MarkerMower : public PreprocessingFunctor
   {
   public:
     /// standard constructor

@@ -41,7 +41,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 
 ///////////////////////////
@@ -102,8 +102,8 @@ CHECK(ClusterExperiment::setClusterFunc())
 RESULT
 
 CHECK(ClusterExperiment::addMower())
-  cexp->addMower(dynamic_cast<MowerFunctor*>(factoryp->create("ParentPeakMower")));
-  cexp->addMower(dynamic_cast<MowerFunctor*>(factoryp->create("Normalizer")));
+  cexp->addMower(dynamic_cast<PreprocessingFunctor*>(factoryp->create("ParentPeakMower")));
+  cexp->addMower(dynamic_cast<PreprocessingFunctor*>(factoryp->create("Normalizer")));
   TEST_EQUAL((*cexp)[0].getPreprocessqueue()[0]->getName(),"ParentPeakMower")
   TEST_EQUAL((*cexp)[0].getPreprocessqueue()[1]->getName(),"Normalizer")
 RESULT

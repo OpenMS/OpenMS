@@ -38,19 +38,19 @@ namespace OpenMS
   const String SqrtMower::info_ = "scales the peaks to sqrt(height)";
   
   SqrtMower::SqrtMower()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = SqrtMower::getName();
   }
 
   SqrtMower::SqrtMower(const SqrtMower& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
   }
 
   SqrtMower& SqrtMower::operator=(const SqrtMower& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
   

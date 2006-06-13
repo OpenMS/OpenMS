@@ -108,7 +108,7 @@ namespace OpenMS
 		///
 		virtual void legendModificationChange_();
 		///
-		virtual Histogram<UnsignedInt, float> createIntensityDistribution_();   
+		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
 		
 		void setMainPreferences(const Param& prefs);
 		

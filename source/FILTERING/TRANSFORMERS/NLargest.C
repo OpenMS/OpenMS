@@ -33,7 +33,7 @@ namespace OpenMS
 {
 
   NLargest::NLargest()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = NLargest::getName();
     defaults_.setValue("n", 200);
@@ -41,7 +41,7 @@ namespace OpenMS
   }
 
 	NLargest::NLargest(Size n)
-		: MowerFunctor()
+		: PreprocessingFunctor()
 	{
 		name_ = NLargest::getName();
 		defaults_.setValue("n", 200);
@@ -50,7 +50,7 @@ namespace OpenMS
 	}
 
   NLargest::NLargest(const NLargest& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
 		defaults_ = source.defaults_;
 		param_ = source.param_;
@@ -63,7 +63,7 @@ namespace OpenMS
 
   NLargest& NLargest::operator=(const NLargest& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 /*

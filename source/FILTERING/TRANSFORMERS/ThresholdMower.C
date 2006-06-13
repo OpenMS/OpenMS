@@ -35,7 +35,7 @@ namespace OpenMS
   const String ThresholdMower::info_ = "deletes all peaks below [threshold]";
 
   ThresholdMower::ThresholdMower()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = ThresholdMower::getName();
     defaults_.setValue("threshold", 0.05f);
@@ -43,7 +43,7 @@ namespace OpenMS
   }
 
   ThresholdMower::ThresholdMower(const ThresholdMower& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
   }
   
@@ -53,7 +53,7 @@ namespace OpenMS
 
   ThresholdMower& ThresholdMower::operator=(const ThresholdMower& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 

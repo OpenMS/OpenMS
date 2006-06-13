@@ -739,8 +739,7 @@ namespace OpenMS
 			 "left/right" or "right/left", such that a value between 0 and 1 is
 			 returned.
 
-			 \todo Take the quality of the features themselves into account, i.e.,
-			 how good they fit to their model.
+			 @todo Take the quality of the features themselves into account, i.e. how good they fit to their model.
 		*/
 		TranslationType translation_ ( FeatureType const & left, FeatureType const & right ) const 
 		{

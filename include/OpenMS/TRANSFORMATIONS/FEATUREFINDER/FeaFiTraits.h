@@ -212,7 +212,7 @@ namespace OpenMS
 	 	*/
   	void sortData_();
   	
-  	/// TODO: Remove. Only for debugging purposes
+  	/// @todo Remove. Only for debugging purposes
     void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat);
     
     /// Calculate area of a triangle (needed for gift wrap algorithm)

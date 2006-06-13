@@ -94,7 +94,7 @@ namespace OpenMS
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
 
-    @todo Fix and add test
+    @todo Fix and add test (Eva)
   */
   template <Size D, typename MapType = MSExperiment< DRawDataPoint<1> > >
   class DSavitzkyGolayQRFilter : public DSmoothFilter<D, MapType>

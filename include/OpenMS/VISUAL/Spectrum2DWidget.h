@@ -142,7 +142,7 @@ namespace OpenMS
 
 	protected:
 		virtual void intensityModificationChange_();
-		virtual Histogram<UnsignedInt,float> createIntensityDistribution_();
+		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
 		
 		void legendModificationChange_();
 		

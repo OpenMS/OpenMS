@@ -35,6 +35,7 @@
 #include <vector>
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 using namespace std;
 
 ///////////////////////////

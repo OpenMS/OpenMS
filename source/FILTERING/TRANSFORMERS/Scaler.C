@@ -35,13 +35,13 @@ namespace OpenMS
   //const String Scaler::info_ = "Scales the peaks";
   
   Scaler::Scaler()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
-		name_ = MowerFunctor::getName();
+		name_ = PreprocessingFunctor::getName();
   }
 
   Scaler::Scaler(const Scaler& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
   }
 
@@ -51,7 +51,7 @@ namespace OpenMS
 
   Scaler& Scaler::operator=(const Scaler& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 

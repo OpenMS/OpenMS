@@ -52,7 +52,7 @@ namespace OpenMS
     To improve the run time of the peak picker the raw mass spectra are decomposed into
     smaller parts.
 
-    @todo fix and add test
+    @todo fix and add test (Eva)
   */
 
   template <Size D, typename ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >

@@ -197,7 +197,7 @@ ifeq ($(ENABLE_GUI),true)
 	EXECUTABLES_COMPARISON = \
 		BinnedRep_test\
 		CompareFunctor_test \
-		MowerFunctor_test\
+		PreprocessingFunctor_test\
 		FilterFunctor_test\
 		ClNode_test\
 		Cluster_test\

@@ -39,18 +39,18 @@ namespace OpenMS
 {
   typedef double intensity;
   /**
-  Bin Representation of a 1D DSpectrum (stick spectrum)<br>
-  Bin Dimensions: <br>
-    BinSize = size of the bins <br>
-    BinSpread > 0 adds peaks to more bins <br>
-      expample: <br>
-      spread 0:  | =>   # <br>
-      spread 1:  | =>  ### <br>
-      spread 2:  | =? ##### <br> <br>
-  since small binsizes tend to produce very sparse Vectors ( < 1%)<br>
-  a sparse Vector is used<br>
+	  @brief Bin Representation of a 1D MSSpectrum (stick spectrum)
+	  
+	  Bin Dimensions: <br>
+	    BinSize = size of the bins <br>
+	    BinSpread > 0 adds peaks to more bins <br>
+	      expample: <br>
+	      spread 0:  | =>   # <br>
+	      spread 1:  | =>  ### <br>
+	      spread 2:  | =? ##### <br> <br>
+	  since small binsizes tend to produce very sparse Vectors ( < 1%)<br>
+	  a sparse Vector is used<br>
   
-  @todo move to ?
   */
   class BinnedRep
   {

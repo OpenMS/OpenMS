@@ -40,7 +40,7 @@ namespace OpenMS
     
     Offers functions like meanSquareError or pearsonCorrelationCoefficient
 
-  	@todo add to Math namespace! merge with BasicStatistics?
+  	@todo add to Math namespace! merge with BasicStatistics? (Nico)
     
     @ingroup Math
   */

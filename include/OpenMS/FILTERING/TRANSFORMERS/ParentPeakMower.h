@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
 #define OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 namespace OpenMS
 {
@@ -40,7 +40,7 @@ namespace OpenMS
 	  \param windowsize consider all peaks inside parent ion m/z +- windowsize
 	  \param x what is considered high: intensity > x*mean(peakintensity)
   */
-  class ParentPeakMower : public MowerFunctor
+  class ParentPeakMower : public PreprocessingFunctor
   {
   public:
     /// standard constructor

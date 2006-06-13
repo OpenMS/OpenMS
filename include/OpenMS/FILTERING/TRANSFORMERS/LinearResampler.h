@@ -49,7 +49,7 @@ namespace OpenMS
 	  @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
        		The resampling rate should be >= the accuracy.
 
-    @todo write tests
+    @todo write tests (Eva)
 
    */
 

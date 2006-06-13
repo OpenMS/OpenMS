@@ -352,7 +352,7 @@ namespace OpenMS
     } 
   }
 
-  int ClusterExperiment::addMower(MowerFunctor* funcp,int pos)
+  int ClusterExperiment::addMower(PreprocessingFunctor* funcp,int pos)
   {
     if (pos == -1)
     {

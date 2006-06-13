@@ -36,8 +36,7 @@
 namespace OpenMS
 {
 	/**
-	
-		@todo comment 
+		@todo comment (Ole)
 	*/
 	template<Size D> 
 	class DGrid : public std::vector<DGridCell<D> >

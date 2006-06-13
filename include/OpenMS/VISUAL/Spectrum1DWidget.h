@@ -88,7 +88,7 @@ namespace OpenMS
 		
 	protected:
 		virtual void intensityModificationChange_();
-		virtual Histogram<UnsignedInt,float> createIntensityDistribution_();
+		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
 		
 		void legendModificationChange_();
 		
@@ -109,7 +109,7 @@ namespace OpenMS
 		void clearHighlighting(); // Clear canvas highlighting and statusbar message when out of canvas
 	
 	signals:
-		void visibleAreaChanged(double, double); //< Gets emitted whenever the visible area changes. // TODO: remove
+		void visibleAreaChanged(double, double); //< Gets emitted whenever the visible area changes.
 		
 	protected:
 		void setLabelMode_(UnsignedInt label_mode);  //<set label mode of widget axis, side effect: set modes of axes as well

@@ -35,7 +35,7 @@ namespace OpenMS
   //const String WindowMower::info_ = "augments the [peakcount] highest peaks in windows of size [windowsize]";
   
   WindowMower::WindowMower()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = WindowMower::getName();
     defaults_.setValue("windowsize", 50); // smallest amino acid
@@ -44,13 +44,13 @@ namespace OpenMS
   }
 
   WindowMower::WindowMower(const WindowMower& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
   }
 
   WindowMower& WindowMower::operator=(const WindowMower& source)
   {
-    MowerFunctor::operator=(source);
+    PreprocessingFunctor::operator=(source);
     return *this;
   }
 

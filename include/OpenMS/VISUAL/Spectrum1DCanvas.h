@@ -190,7 +190,7 @@ namespace OpenMS
 		QPoint action_start_pos_;
 		QPoint action_current_pos_;
 
-		AreaType data_area_; // TODO: remove
+		AreaType data_area_; // TODO: remove?
 		std::vector<SpectrumIteratorType> visible_begin_;  //< iterator on first visible peak
 		std::vector<SpectrumIteratorType> visible_end_;    //< iterator on one after the last visible peak
 		SpectrumIteratorType nearest_peak_; //< iterator on peak next to mouse position

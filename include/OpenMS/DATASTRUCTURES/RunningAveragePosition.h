@@ -46,7 +46,7 @@ namespace OpenMS
 		@todo A lot of convenience methods could be added.  For
 		example, we could overload operator + and -, consequently +=, -=, even <
 		and ==, inherit the whole thing from an extended DPosition with similar
-		methods, initialize from iterator ranges, and and and.
+		methods, initialize from iterator ranges, and and and. (Clemens)
 	*/
   template < typename Position_ >
   class RunningAveragePosition

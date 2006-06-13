@@ -32,7 +32,7 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
@@ -74,10 +74,10 @@ namespace OpenMS
     {
       cluster_funcp_ = dynamic_cast<ClusterFunctor*>(fp->duplicate(source.cluster_funcp_));
     }
-    for ( vector<MowerFunctor*>::const_iterator cvit = source.preprocess_queue_.begin();
+    for ( vector<PreprocessingFunctor*>::const_iterator cvit = source.preprocess_queue_.begin();
         cvit != source.preprocess_queue_.end(); ++cvit )
     {
-      MowerFunctor* mfp = dynamic_cast<MowerFunctor*>(fp->duplicate(*cvit));
+      PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(fp->duplicate(*cvit));
       preprocess_queue_.push_back(mfp);
     }
   }
@@ -105,10 +105,10 @@ namespace OpenMS
     {
       cluster_funcp_ = dynamic_cast<ClusterFunctor*>(fp->duplicate(source.cluster_funcp_));
     }
-    for ( vector<MowerFunctor*>::const_iterator cvit = source.preprocess_queue_.begin();
+    for ( vector<PreprocessingFunctor*>::const_iterator cvit = source.preprocess_queue_.begin();
         cvit != source.preprocess_queue_.end(); ++cvit )
     {
-      MowerFunctor* mfp = dynamic_cast<MowerFunctor*>(fp->duplicate(*cvit));
+      PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(fp->duplicate(*cvit));
       preprocess_queue_.push_back(mfp);
     }
     return *this;
@@ -127,7 +127,7 @@ namespace OpenMS
       delete mit->second;
     }
     delete sim_funcp_;
-    for (vector<MowerFunctor*>::iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end() ;++lit)
+    for (vector<PreprocessingFunctor*>::iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end() ;++lit)
     {
       delete *lit;
     }
@@ -152,7 +152,7 @@ namespace OpenMS
     binspread_ = spread;
   }
 
-  int ClusterExperiment::ClusterRun::addMower(MowerFunctor* mower)
+  int ClusterExperiment::ClusterRun::addMower(PreprocessingFunctor* mower)
   {
     didrun_ = 0;
     preprocess_queue_.push_back(mower);
@@ -186,7 +186,7 @@ namespace OpenMS
 
   void ClusterExperiment::ClusterRun::preprocess(MSSpectrum< DPeak<1> >& spec) const
   {
-    for (vector<MowerFunctor*>::const_iterator it = preprocess_queue_.begin(); it != preprocess_queue_.end(); ++it)
+    for (vector<PreprocessingFunctor*>::const_iterator it = preprocess_queue_.begin(); it != preprocess_queue_.end(); ++it)
     {
       (**it)(spec);
     }
@@ -301,7 +301,7 @@ namespace OpenMS
 //    if ( getNorm() == arithmetic ) f.writeAttributeString("norm","arithmetic");
 //    else if ( getNorm() == geometric ) f.writeAttributeString("norm","geometric");
 //    else if ( getNorm() == none ) f.writeAttributeString("norm","none");
-//    for (vector<MowerFunctor*>::const_iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end(); ++lit)
+//    for (vector<PreprocessingFunctor*>::const_iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end(); ++lit)
 //    {
 //      f.writePointer("FactoryProduct",*lit);
 //    }
@@ -356,7 +356,7 @@ namespace OpenMS
       document << "<Preprocessing>\n";
       document << indent(++ind);
 
-      for (vector<MowerFunctor*>::const_iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end(); ++lit)
+      for (vector<PreprocessingFunctor*>::const_iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end(); ++lit)
       {
         document << "<FilterFunc ";
         // TODO (*lit)->save(document ,ind);

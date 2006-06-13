@@ -45,7 +45,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
 
 //Mower hopefully improve the Quality of the Spectra
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
@@ -158,7 +158,7 @@ namespace OpenMS
     
     
     // Preprocessing
-		//registerfp(MowerFunctor::getName(), &MowerFunctor::create);
+		//registerfp(PreprocessingFunctor::getName(), &PreprocessingFunctor::create);
     registerfp(ThresholdMower::getName(),&ThresholdMower::create);
     registerfp(WindowMower::getName(),&WindowMower::create);
     registerfp(Scaler::getName(),&Scaler::create);
@@ -211,9 +211,9 @@ namespace OpenMS
       {
         tmp = dynamic_cast<FilterFunctor*>(tmp);
       }
-      else if ( type == "MowerFunctor" )
+      else if ( type == "PreprocessingFunctor" )
       {
-        tmp = dynamic_cast<MowerFunctor*>(tmp);
+        tmp = dynamic_cast<PreprocessingFunctor*>(tmp);
       }
       else if ( type == "AnalysisFunctor" )
       {
@@ -257,10 +257,10 @@ namespace OpenMS
       const FilterFunctor* fftmp = dynamic_cast<const FilterFunctor*>(tmplate);
       *ffp = *fftmp;
     }
-    else if ( dynamic_cast<MowerFunctor*>(copy) )
+    else if ( dynamic_cast<PreprocessingFunctor*>(copy) )
     {
-      MowerFunctor* mfp = dynamic_cast<MowerFunctor*>(copy);
-      const MowerFunctor* mftmp = dynamic_cast<const MowerFunctor*>(tmplate);
+      PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(copy);
+      const PreprocessingFunctor* mftmp = dynamic_cast<const PreprocessingFunctor*>(tmplate);
       *mfp = *mftmp;
     }
     else if ( dynamic_cast<AnalysisFunctor*>(copy) )

@@ -35,7 +35,7 @@ namespace OpenMS
   //const String BernNorm::info_ = "normalizes all peaks to range [1:0]";
   
   BernNorm::BernNorm()
-    : MowerFunctor()
+    : PreprocessingFunctor()
   {
 		name_ = BernNorm::getName();
     // values from the paper
@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
   BernNorm::BernNorm(const BernNorm& source)
-    : MowerFunctor(source)
+    : PreprocessingFunctor(source)
   {
   }
 
@@ -58,7 +58,7 @@ namespace OpenMS
 
   BernNorm& BernNorm::operator = (const BernNorm& source)
   {
-    MowerFunctor::operator = (source);
+    PreprocessingFunctor::operator = (source);
     return *this;
   }
 

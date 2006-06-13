@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
 #define OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <vector>
 
 namespace OpenMS
@@ -37,7 +37,7 @@ namespace OpenMS
   /**
   	@brief Normalizer normalizes the peak intensities
  
-		@todo implement the method fully; implementing it correct; docs!
+		@todo implement the method fully; implementing it correct; docs! (Andreas)
  
 	  \param method
 	    0 = peaks get scaled relative to the maximum intensity<br>
@@ -48,7 +48,7 @@ namespace OpenMS
 	    normalize in <i>windows</i> regions individually<br>
   */
   class Normalizer
-    :public MowerFunctor
+    :public PreprocessingFunctor
   {
   public:
     /// standard constructor

@@ -40,16 +40,16 @@
 namespace OpenMS
 {
   /**
-     @brief This class is the base class of the continuous wavelet transformation.
-   */
+  	@brief This class is the base class of the continuous wavelet transformation.
+   
+		@todo move the typenames into their corresponding header files! (Eva)
+		@todo remove depencies on DPeakPicker (Eva)
+  */
   template <Size D>
   class ContinuousWaveletTransform
   {
-    /** TODO: - move the typenames into their corresponding header files!
-     *        - remove depencies on DPeakPicker
-     */
-
     /** @name Type definitions
+    	
     */
     //@{
     typedef std::vector<DRawDataPoint<D> > RawDataVector;

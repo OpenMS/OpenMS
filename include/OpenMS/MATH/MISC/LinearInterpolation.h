@@ -42,7 +42,7 @@ namespace OpenMS
   	You may ask for value() and derivative().
   	Interpolation is simply linear.  Original values beyond the boundaries are implicitly taken as zero.
 
-  	@todo add to Math namespace
+  	@todo add to Math namespace (Clemens)
   	
   	@ingroup Math
   */

@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_SCALER_H
 #define OPENMS_FILTERING_TRANSFORMERS_SCALER_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <map>
 
 namespace OpenMS
@@ -38,7 +38,7 @@ namespace OpenMS
   	@brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank<br>
   */
   class Scaler
-    :public MowerFunctor
+    :public PreprocessingFunctor
   {
   public:
     /// standard constructor

@@ -169,7 +169,7 @@ namespace OpenMS
     const DoubleProxy operator[] (uint pos) const;
     DoubleProxy operator[] (uint pos);
     
-    double at(uint pos) const ; //todo throw 
+    double at(uint pos) const ;
     void push_back(double value);
 
     void clear();

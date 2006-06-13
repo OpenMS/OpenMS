@@ -29,7 +29,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
 #define OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <map>
 
 namespace OpenMS
@@ -43,7 +43,7 @@ namespace OpenMS
   \param C2
   */
   class BernNorm
-    :public MowerFunctor
+    :public PreprocessingFunctor
   {
   public:
     /// standard constructor

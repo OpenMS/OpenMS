@@ -26,8 +26,6 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-// TODO: write tests for the "make-functions", and document them.
-
 
 #ifndef OPENMS_KERNEL_COMPARATORUTILS_H
 #define OPENMS_KERNEL_COMPARATORUTILS_H
@@ -47,6 +45,8 @@ namespace OpenMS
    	E.g. you can use  @p PointerComparator<DPeak<1>::IntensityLess> 
    	to compare  DPeak<1>* , the same way as
     DPeak<1>::IntensityLess works for DPeak<1> .
+    
+    @todo write tests for the "make-functions", and document them (Clemens)
   */
   template < class Cmp >
 	struct PointerComparator

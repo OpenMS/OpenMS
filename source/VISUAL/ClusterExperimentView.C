@@ -30,7 +30,7 @@
 #include <OpenMS/VISUAL/DIALOGS/SortDialog.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/MowerFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <qpopupmenu.h>
 #include <qaction.h>

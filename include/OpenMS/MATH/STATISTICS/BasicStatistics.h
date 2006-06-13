@@ -39,7 +39,7 @@ namespace OpenMS
   /**
   	@brief Calculates some basic statistical parameters of a distribution: sum, mean, variance, and provides the normal approximation.
 
-  	@todo add to Math namespace
+  	@todo add to Math namespace (Clemens)
   	
   	@ingroup Math
   */
@@ -171,19 +171,16 @@ namespace OpenMS
       return;
     }
 
-		// TODO: rename to getMean()
     /// Returns the mean.
     coordinate_type mean ()     const throw() { return mean_; }
 		void setMean ( coordinate_type const & mean ) throw() { mean_ = mean; }
 
-		// TODO: rename to getVariance()
     /// Returns the variance.
-    coordinate_type variance () const throw() { return variance_; }
+    coordinate_type variance() const throw() { return variance_; }
 		void setVariance ( coordinate_type const & variance ) throw() { variance_ = variance; }
 
-		// TODO: rename to getSum()
     /// Returns the sum.
-    probability_type sum ()     const throw() { return sum_; }
+    probability_type sum()     const throw() { return sum_; }
 		void setSum ( probability_type const & sum ) throw() { sum_ = sum; }
 
 
