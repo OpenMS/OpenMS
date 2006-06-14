@@ -804,7 +804,8 @@ namespace OpenMS
 				cout << "Error while reading 2D file: " <<e.what()<<endl;
 				return 0;
 			}
-			
+			w3->widget()->canvas()->setDotGradient(getPrefAsString("Preferences:3D:Dot:Gradient"));
+		
 			connect(w3->widget()->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(update3DToolbar(QWidget*)));
 			
 			connectWindowSignals(w3);
