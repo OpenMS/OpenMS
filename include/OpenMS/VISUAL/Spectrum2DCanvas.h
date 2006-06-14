@@ -38,7 +38,6 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 // QT
-class QImage;
 class QPainter;
 
 namespace OpenMS
@@ -122,9 +121,6 @@ namespace OpenMS
 			@param height The height of the chart in pixels.
 		*/
 		void print(QPainter* p, int width, int height);
-		
-		/// Returns an image of the contents. See SpectrumWidget .
-		QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0);
 		
 		/**
 			@brief Sets the mode for 2D dots.

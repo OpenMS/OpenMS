@@ -35,7 +35,6 @@
 
 //QT
 #include <qlayout.h>
-#include <qimage.h>
 
 namespace OpenMS
 {
@@ -45,8 +44,12 @@ namespace OpenMS
 	Spectrum3DWidget::Spectrum3DWidget(QWidget* parent, const char* name, WFlags f)
 	  : SpectrumWidget(parent, name, f)		
 	{
-		
 		setCanvas(new Spectrum3DCanvas(this));
+		
+		delete(grid_);
+		grid_ = new QGridLayout(this, 1,1);	
+		grid_->addWidget(canvas_, 1, 1);
+		
 		
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
 		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
@@ -55,17 +58,16 @@ namespace OpenMS
 		this, SIGNAL(sendCursorStatus(double,double,double)));
 		addClient(canvas(),"Canvas",true);
 	}
+	
 	Spectrum3DWidget::~Spectrum3DWidget()
 	{
-	}	
+	
+	}
+	
 	void Spectrum3DWidget::setMainPreferences(const Param& prefs)
 	{
 		SpectrumWidget::setMainPreferences(prefs);
 	}
-	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags)
-	{
-		return canvas()->getImage(width,height,flags);
-	}	
 	
 	PreferencesDialogPage* Spectrum3DWidget::createPreferences(QWidget* parent)
 	{
@@ -73,9 +75,12 @@ namespace OpenMS
 		return background;
 	}
 	
+	
 	void Spectrum3DWidget::recalculateAxes()
 	{
-	}	
+		
+	}
+	
 	void Spectrum3DWidget::intensityModificationChange_()
 	{
 		canvas()->intensityModificationChange_();
@@ -87,6 +92,7 @@ namespace OpenMS
 	}
 	void Spectrum3DWidget::invalidate_()
 	{
+		
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum3DWidget::createIntensityDistribution_()

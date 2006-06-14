@@ -178,16 +178,16 @@ namespace OpenMS
 
 		/// Non-mutable access to the peak shape
 		inline const PeakShapeType::Enum& getPeakShape() const { return type_; }
-		/// Mutable access to the peak charge
+		/// Mutable access to the peak shape 
 		inline PeakShapeType::Enum& getPeakShape() { return type_; }
-		/// Mutable access to the peak charge
+		/// Mutable access to the peak shape
 		inline void setPeakShape(const PeakShapeType::Enum& type) { type_ = type; }	
 
 		/// Non-mutable access to the peak charge
 		inline const ChargeType& getCharge() const { return charge_; }
-		/// Mutable access to the peak charge
+		/// Mutable access to the peak charge (Set to 0 if unknown)
 		inline ChargeType& getCharge() { return charge_; }
-		/// Mutable access to the peak charge
+		/// Mutable access to the peak charge (Set to 0 if unknown)
 		inline void setCharge(const ChargeType& charge) { charge_ = charge; }	
 
 		/// Non-mutable access to the signal to noise value

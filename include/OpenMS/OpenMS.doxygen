@@ -44,5 +44,7 @@
 	
 	OpenMS comes with several example applications ready to use. See the \ref Applications modules for details.
 	
+	@todo Release: update installation notes on website, SpecView -> TOPPView (Marc)
+	
 */
 

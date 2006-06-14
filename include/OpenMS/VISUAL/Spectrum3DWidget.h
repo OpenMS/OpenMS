@@ -88,9 +88,6 @@ namespace OpenMS
 		 */
 		Spectrum3DCanvas* canvas() const;
 		
-		// Docu in SpectrumWidget
-		QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0);
-		
 		/**
 		 *@brief Creates a preferences dialog Page
 		 *
@@ -99,7 +96,7 @@ namespace OpenMS
 		 *@param parent the parent widget for the dialog page
 		 */
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
-		///
+		// Docu in SpectrumWidget
 		virtual void recalculateAxes();
 		///
 		virtual void invalidate_();

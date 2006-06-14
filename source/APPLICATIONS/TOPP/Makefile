@@ -53,19 +53,21 @@ EXECUTABLES=\
 	TOPPView\
 	FeatureFinder\
 	$(GSL_EXEC)\
-	BaselineFilter
+	BaselineFilter\
+	IDFilter\
+	MascotAdapter\
+	PeakPicker\
+	$(LIBSVM_EXEC)
+
 #	SpectrumComparator\
 #	SpectrumLibBuilder\
 #	SpectrumLibMatcher\
 #	Dewarper\
-#	PeakPicker\
-	IDFilter\
 #	FeaturePairSplitter\
 #	PairMatcher\
-	MascotAdapter\
 #	RawDataResampler\
 #	UnlabeledMatcher\
-#	$(LIBSVM_EXEC)
+
 
 default: all
 

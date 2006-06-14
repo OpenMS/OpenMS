@@ -103,7 +103,9 @@ using namespace std;
 		one spectrum you can specify by the <b>strict</b> option in the 
 		commandline or the ini file that you want to drop all of them. 
 		If you do not specify this option these identifications will be kept.						 
-		
+
+	@todo Fix --help and --help-opt output (Nico)
+
 	@ingroup TOPP
 */
 

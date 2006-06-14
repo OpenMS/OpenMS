@@ -65,7 +65,6 @@ namespace OpenMS
 		
 		@todo Add PeakPicker dialog (Eva)
 		@todo Fix Feature Convex hull display (Marc)
-		@todo Fix multi-dataset Display color problem (Marc)
 		@todo How to display MS-MS/MS Scans (Marc)
 		
 		@ingroup spectrum_widgets

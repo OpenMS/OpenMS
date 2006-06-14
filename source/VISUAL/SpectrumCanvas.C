@@ -67,8 +67,10 @@ namespace OpenMS
 	{
 		setFrameShape(NoFrame);
 		connect(this, SIGNAL(contentsMoving(int, int)), this, SLOT(move_(int, int)));
-	
 	  createCustomMouseCursors_();
+	  
+	  //reserve enough space for 20 datasets
+	  datasets_.reserve(20);
 	  
 		// we need to initialize the painting buffer in the
 		// constructor for maximum performance

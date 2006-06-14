@@ -43,10 +43,10 @@ namespace OpenMS
 		
 		It contains the data itself (DSpectrum) and metadata about spectrum specific instrument settings,
 		aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
-		<BR>
+		
 		Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
 		a vector of spectras with additional information about the experiment. 
-		<BR>
+		
 		Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS spectrum.
 		The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than
 		the current spectrum.

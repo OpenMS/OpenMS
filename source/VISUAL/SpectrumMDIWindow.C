@@ -82,6 +82,8 @@
 #include <qpopupmenu.h>
 #include <qmenubar.h>
 #include <qstatusbar.h>
+#include <qimage.h>
+
 
 // STL
 #include <iostream>
@@ -913,15 +915,8 @@ namespace OpenMS
 					{
 						file_name.append("."+format.lower());
 					}
-					//determine flags
-					unsigned int flags=0;
 	
-					if (dialog->getColorMode()==SaveImageDialog::GREYSCALE)
-					{
-						flags = flags | Spectrum1DCanvas::GREYSCALE;
-					}
-	
-					QImage image = window->widget()->getImage(dialog->getXSize(),dialog->getYSize(),flags);
+					QImage image = window->widget()->getImage(dialog->getXSize(),dialog->getYSize());
 					image.save(file_name,format,100);
 				}
 			}
@@ -944,7 +939,7 @@ namespace OpenMS
 				unsigned int dpix = metrics.logicalDpiX();
 				unsigned int dpiy = metrics.logicalDpiY();
 				QRect body(dpix,dpiy,metrics.width()-2*dpix,metrics.height()-2*dpiy);			// one inch margin
-				QImage image = window->widget()->getImage(body.width(),body.height(),Spectrum1DCanvas::GREYSCALE|Spectrum1DCanvas::THICKLINES);
+				QImage image = window->widget()->getImage(body.width(),body.height());
 				p.drawImage(body,image);
 				QString titel = QString("%1\n%2").arg(window->caption().section('/',-1)).arg(QDate::currentDate().toString());
 				//	p.drawText(dpix,0,body.width(),dpiy, Qt::AlignCenter, titel);
@@ -1726,6 +1721,12 @@ namespace OpenMS
 			exp.setName(new_name); // set layername
 			exp.resize(1);
 			exp[0].insert(exp[0].begin(), picked[0].begin(), picked[0].end());
+			//color picked peaks
+			for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
+			{
+				it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+			}
+			
 			w->widget()->canvas()->finishAdding();
 			
 			updateLayerbar();

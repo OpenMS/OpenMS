@@ -32,9 +32,6 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 
-// QT
-class QImage;
-
 namespace OpenMS
 {
 	class Spectrum2DCanvas;
@@ -105,9 +102,6 @@ namespace OpenMS
 		*/
 		Spectrum2DCanvas* canvas() const;
 		
-		// Docu in SpectrumWidget
-		QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0);
-		
 		/**
 			@brief Creates a preferences dialog page
 			
@@ -130,6 +124,7 @@ namespace OpenMS
 		bool getShowColors();
 		bool getShowPoints();
 		
+		// Docu in SpectrumWidget
 		virtual void recalculateAxes();
 		
 	signals:

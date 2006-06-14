@@ -33,9 +33,9 @@
 
 #include <qaction.h>
 #include <qlayout.h>
+#include <qimage.h>
 
 #include <iostream>
-
 
 using namespace std;
 
@@ -66,13 +66,14 @@ namespace OpenMS
 		x_axis_->setPaletteBackgroundColor(backgroundColor());
 		y_axis_->showLegend(show_legend_);
 		x_axis_->showLegend(show_legend_);
-	// 	y_axis_->setInverseOrientation(true);
 	
 		vspacer_->hide();
 		hspacer_->hide();
 		
-	//	vspacer_->setBackgroundColor(Qt::red);
-	//	hspacer_->setBackgroundColor(Qt::red);
+//		vspacer_->setBackgroundColor(Qt::red); //For debugging
+//		hspacer_->setBackgroundColor(Qt::red); //For debugging
+//		x_axis_->setBackgroundColor(Qt::green); //For debugging
+//		y_axis_->setBackgroundColor(Qt::green); //For debugging
 		
 		vspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed));
 		hspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum));
@@ -300,6 +301,83 @@ namespace OpenMS
 	
 		recalculateAxes();
 		canvas()->update();
+	}
+
+	QImage SpectrumWidget::getImage(UnsignedInt width, UnsignedInt height)
+	{
+		//hide();
+		this->setUpdatesEnabled(false);
+		
+		//hide scrollbars and spacers if necessary
+		bool hor_sc_off_ = (canvas()->hScrollBarMode()==QScrollView::AlwaysOff);
+		bool ver_sc_off_ = (canvas()->vScrollBarMode()==QScrollView::AlwaysOff);
+		if (!hor_sc_off_)
+		{
+			canvas()->setHScrollBarMode(QScrollView::AlwaysOff);
+			hspacer_->hide();
+		}
+		if (!ver_sc_off_)
+		{
+			canvas()->setVScrollBarMode(QScrollView::AlwaysOff);
+			vspacer_->hide();
+		}
+		
+		//store old background colors and size
+	 	QColor c_a = x_axis_->paletteBackgroundColor();
+	 	QColor c_o = y_axis_->paletteBackgroundColor();
+	 	QColor c_t = paletteBackgroundColor();
+		
+		//set white background
+		y_axis_->setPaletteBackgroundColor(white);
+		x_axis_->setPaletteBackgroundColor(white);
+		setBackgroundColor(white);
+	
+		//set pen width
+		int pen = width/1024;
+		canvas()->setPenWidth(pen);
+		y_axis_->setPenWidth(pen);
+		x_axis_->setPenWidth(pen);
+		
+	 	//store size and resize
+		int h = this->height();
+		int w = this->width();
+
+		grid_->activate();
+		resize(width,height);		
+				
+		//take an image
+		QPixmap p = QPixmap::grabWidget(this);
+		QImage image = p.convertToImage();
+		
+		//resore background colors
+	 	y_axis_->setPaletteBackgroundColor(c_o);
+	 	x_axis_->setPaletteBackgroundColor(c_a);
+		setBackgroundColor(c_t);
+		
+		//restore pen withs
+		canvas()->setPenWidth(0);
+		y_axis_->setPenWidth(0);
+		x_axis_->setPenWidth(0);
+		
+		//show scrollbars and spacers again
+		if (!hor_sc_off_)
+		{
+			canvas()->setHScrollBarMode(QScrollView::Auto);
+			hspacer_->show();
+		}
+		if (!ver_sc_off_)
+		{
+			canvas()->setVScrollBarMode(QScrollView::Auto);
+			vspacer_->show();
+		}
+		
+		//restore size
+		resize(w,h);
+		
+		this->setUpdatesEnabled(true);
+		//show();
+		
+		return image;
 	}
 
 } //namespace OpenMS

@@ -26,9 +26,6 @@
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-//Qt
-#include <qimage.h>
-
 //STL
 #include <math.h>
 #include<iostream.h>
@@ -51,8 +48,8 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	viewport()->setMouseTracking(true);
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
-	setVScrollBarMode (QScrollView::AlwaysOff);
-	setHScrollBarMode ( QScrollView::AlwaysOff ) ; 
+	setVScrollBarMode(QScrollView::AlwaysOff);
+	setHScrollBarMode(QScrollView::AlwaysOff ); 
 	action_mode_ = AM_SELECT;
 	activateDataSet(0);
 	current_zoom_ = 0;	
@@ -60,7 +57,9 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
 {
-}	
+
+}
+
 void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 {
 	viewport()->resize( e->size().width(),e->size().height());
@@ -119,14 +118,7 @@ const Spectrum3DCanvas::AreaType& Spectrum3DCanvas::getDataArea_()
 	//TODO
 	//const AreaType dummy;
 	return dummy_;
-}	
-
-QImage Spectrum3DCanvas::getImage(UnsignedInt /*width*/, UnsignedInt /*height*/, UnsignedInt /*flags*/)
-{
-	QImage image;
-	return image;
 }
-
 
 void Spectrum3DCanvas::intensityModificationChange_()
 {

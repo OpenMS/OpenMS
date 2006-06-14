@@ -109,11 +109,7 @@ namespace OpenMS
 			IM_NONE,		///f(x)=x
 			IM_LOG			///f(x)=ln(x)
 		};
-
-		///Special flags that control drawing (e.g. optimise for printing)
-		static const UnsignedInt GREYSCALE=0x01;      ///< Greyscale
-		static const UnsignedInt HIDEGRIDLINES=0x02;  ///< Don't show grid lines
-		static const UnsignedInt THICKLINES=0x04;     ///< Draw thick lines
+		
 		//@}
 
 		/**

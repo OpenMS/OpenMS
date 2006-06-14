@@ -41,10 +41,10 @@ namespace OpenMS
  		
   	The first line contains the singly protonated peptide mass (MH+) and the peptide charge state separated by a space.
   	Subsequent lines contain space separated pairs of fragment ion m/z and intensity values.
-  
-  	@ingroup FileIO
   	
-  	@todo Fix handling of the precursor mass (Marc)
+  	From precusor mass and charge state the mass-charge-ratio is calculated and stored in the spectrum as precursor mass.
+  	
+  	@ingroup FileIO
   */
   class DTAFile
   {
@@ -58,7 +58,7 @@ namespace OpenMS
  				@brief Loads a DTA file to a spectrum.
  				
  				The content of the file is stored in @p spectrum.
- 				@p spectrum has to be a DSpectrum or have the same interface.
+ 				@p spectrum has to be a DSpectrum<1>/MSSpectrum<1> or have the same interface.
       */
       template <typename SpectrumType>
       void load(const String& filename, SpectrumType& spectrum) throw (Exception::FileNotFound,Exception::ParseError)
@@ -98,9 +98,11 @@ namespace OpenMS
 					if (strings.size()!=2)
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
-					}					
-					spectrum.getPrecursorPeak().getPosition()[0] = strings[0].toDouble();
-					spectrum.getPrecursorPeak().setCharge(strings[1].toInt());
+					}
+					double mh_mass = strings[0].toDouble();
+					SignedInt charge = strings[1].toInt();
+					spectrum.getPrecursorPeak().getPosition()[0] = (mh_mass - 1.0) / charge + 1.0;
+					spectrum.getPrecursorPeak().setCharge(charge);
 				}
 				catch(...)
 				{
@@ -148,7 +150,7 @@ namespace OpenMS
       	@brief Stores a spectrum in a DTA file.
       	
       	The content of @p spectrum is stored in a file.
-      	@p spectrum has to be a DSpectrum or have the same interface.
+      	@p spectrum has to be a DSpectrum<1>/MSSpectrum<1> or have the same interface.
       */
       template <typename SpectrumType>
       void store(const String& filename, const SpectrumType& spectrum) const throw (Exception::UnableToCreateFile)
@@ -159,10 +161,20 @@ namespace OpenMS
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
 		
-				// Write the first line: precursor m/z and charge
-				os << spectrum.getPrecursorPeak().getPosition()[0] 
-					 << " " << spectrum.getPrecursorPeak().getCharge()
-					 << std::endl;
+				// Write mh+ mass
+				if (spectrum.getPrecursorPeak().getCharge()==0)
+				{
+					//unknown charge
+					os << spectrum.getPrecursorPeak().getPosition()[0];
+				}
+				else
+				{
+					//known charge
+					os << ((spectrum.getPrecursorPeak().getPosition()[0] - 1.0) * spectrum.getPrecursorPeak().getCharge() +1.0);
+				}
+				 
+				//charge
+				os << " " << spectrum.getPrecursorPeak().getCharge() << std::endl;
 		
 				// Iterate over all peaks of the spectrum and
 				// write one line for each peak of the spectrum.

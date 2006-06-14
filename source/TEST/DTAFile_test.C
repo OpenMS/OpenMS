@@ -63,7 +63,7 @@ CHECK(void load(const String& filename, SpectrumType& spec) throw (Exception::Fi
 	f1.load("data/DTAFile_test.dta",s);
 	
 	TEST_EQUAL(s.size(), 25);
-	TEST_REAL_EQUAL(s.getPrecursorPeak().getPosition()[0], 1745.22)
+	TEST_REAL_EQUAL(s.getPrecursorPeak().getPosition()[0], 582.40666)
 	TEST_REAL_EQUAL(s.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
@@ -176,7 +176,7 @@ CHECK(void load(const String& filename, SpectrumType& spec) throw (Exception::Fi
 	f1.load("data/DTAFile_test.dta",s2);
 	
 	TEST_EQUAL(s2.size(), 25);
-	TEST_REAL_EQUAL(s2.getPrecursorPeak().getPosition()[0], 1745.22)
+	TEST_REAL_EQUAL(s2.getPrecursorPeak().getPosition()[0], 582.4066)
 	TEST_REAL_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
@@ -291,6 +291,9 @@ CHECK(void store(const String& filename, const SpectrumType& spec) const throw (
 	DSpectrum<1> spec, spec2;
 	DSpectrum<1>::PeakType peak;
 	
+	spec.getPrecursorPeak().getPosition()[0] = 582.40666;
+	spec.getPrecursorPeak().setCharge(3);
+	
 	peak.getPosition()[0] = 11.4;
 	peak.setIntensity(11.5);
 	spec.getContainer().push_back(peak);
@@ -307,6 +310,9 @@ CHECK(void store(const String& filename, const SpectrumType& spec) const throw (
 	dta.store(filename,spec);
 	//load file
 	dta.load(filename,spec2);
+
+	TEST_REAL_EQUAL(spec.getPrecursorPeak().getPosition()[0],582.40666)
+	TEST_REAL_EQUAL(spec.getPrecursorPeak().getCharge(),3)
 	
 	ABORT_IF(spec2.getContainer().size() != 3)
 	

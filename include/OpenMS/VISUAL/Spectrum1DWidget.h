@@ -29,9 +29,6 @@
 #ifndef OPENMS_VISUAL_SPECTRUM1DWIDGET_H
 #define OPENMS_VISUAL_SPECTRUM1DWIDGET_H
 
-// QT
-#include <qimage.h>
-
 // STL
 #include <vector>
 
@@ -68,9 +65,6 @@ namespace OpenMS
 		virtual ~Spectrum1DWidget();
 	
 		Spectrum1DCanvas* canvas() const;
-		
-		// Docu in SpectrumWidget
-		QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0); 
 		
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
@@ -117,7 +111,8 @@ namespace OpenMS
 		void setIntensityAxisRelative_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
 		void setIntensityAxisAbsolute_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
 		bool isIntensityAxisAbsolute_() const;  //< returns true if the intensity axis is absolute, false if relative (percent)
-
+		
+		// Docu in SpectrumWidget
 		virtual void recalculateAxes();
 	};
 } // namespace OpenMS

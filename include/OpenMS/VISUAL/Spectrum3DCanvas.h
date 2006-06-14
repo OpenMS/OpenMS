@@ -41,7 +41,6 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
 class QPainter;
-class QPixmap;
 class QGLWidget;
 
 namespace OpenMS
@@ -50,6 +49,12 @@ namespace OpenMS
   
   /**
      @brief Canvas for 3D-visualization of map data
+     
+     @todo Show only Spectra with MS-level 1 (Cornelia)
+     
+     @todo Fix intensity distribution (Cornelia)
+     
+     @todo Fix taking of images (Cornelia)
      
      @ingroup spectrum_widgets
   */	
@@ -75,20 +80,20 @@ namespace OpenMS
     ///
     enum DotModes 
       {
-	DOT_BLACK = 0,            ///< use black only
-	DOT_GRADIENT = 1          ///< use gradient
+			DOT_BLACK = 0,            ///< use black only
+			DOT_GRADIENT = 1          ///< use gradient
       };
     ///
     enum ShadeModes 
       {
-	SHADE_FLAT = 0,            
-	SHADE_SMOOTH = 1         
+			SHADE_FLAT = 0,            
+			SHADE_SMOOTH = 1         
       };
     ///
     enum IntScale 
       {
-	INT_LINEAR = 0,            
-	INT_LOG = 1         
+			INT_LINEAR = 0,            
+			INT_LOG = 1         
       };
     //@}
     
@@ -100,13 +105,10 @@ namespace OpenMS
     */
     virtual PreferencesDialogPage* createPreferences(QWidget* parent);
     
-	    ///
+	  ///
     virtual const AreaType& getDataArea_();
     
-    /// Returns an image of the contents. See SpectrumWidget .
-    QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0);
-    
-	    ///
+	  ///
     virtual void setMainPreferences(const Param& prefs);
     
     ///returns the Spectrum3DOpenGLcanvas     

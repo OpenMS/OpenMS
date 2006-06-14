@@ -120,14 +120,6 @@ QDialog(parent,name,modal,f)
 	size_proportions_->setChecked(true);
 	connect(size_proportions_,SIGNAL(toggled(bool)),this,SLOT(proportionsActivated(bool)));
 	grid->addWidget(size_proportions_,2,1);
-	
-	//add color mode selector and label
-	label = new QLabel("Color:",this);
-	grid->addWidget(label,3,0);
-	color_mode_ = new QComboBox( false, this);
-	color_mode_->insertItem("Color");
-	color_mode_->insertItem("Greyscale");
-	grid->addWidget(color_mode_,3,1,Qt::AlignLeft);
 }
 
 void SaveImageDialog::setSize(int x, int y)
@@ -202,15 +194,5 @@ QString SaveImageDialog::getFormat()
 {
 	return format_->currentText();
 }
-
-SaveImageDialog::colorMode SaveImageDialog::getColorMode()
-{
-	if (color_mode_->currentText()=="Greyscale")
-	{
-		return GREYSCALE;
-	}
-	return COLOR;
-}	
-
 
 

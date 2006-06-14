@@ -32,9 +32,6 @@
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-// QT
-#include <qimage.h>
-
 using namespace std;
 
 namespace OpenMS
@@ -139,11 +136,6 @@ namespace OpenMS
 		y_axis_->showLegend(show_legend_);
 		x_axis_->showLegend(show_legend_);
 		update();
-	}
-	
-	QImage Spectrum2DWidget::getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags)
-	{
-		return canvas()->getImage(width, height, flags);
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum2DWidget::createIntensityDistribution_()

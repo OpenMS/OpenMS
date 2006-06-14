@@ -53,8 +53,6 @@ namespace OpenMS
 		public:
 			///Constructor
 			SaveImageDialog( QWidget * parent = 0, const char * name = 0, bool modal = FALSE, WFlags f = 0 );
-			///Color modes
-			enum colorMode {GREYSCALE,COLOR};
 			///set size and size ratio
 			void setSize(int x, int y);
 			///accessors for the width
@@ -63,9 +61,6 @@ namespace OpenMS
 			int getYSize();
 			///accessors for the format
 			QString getFormat();
-			///accessors for the color mode
-			colorMode getColorMode();
-		
 		
 		public slots:
 			///changes width keeping proprotions
@@ -85,9 +80,7 @@ namespace OpenMS
 			QLineEdit* size_y_;
 			QCheckBox* size_proportions_;
 			//ratio size_x_/size_y_
-			float size_ratio_; 
-			//color
-			QComboBox* color_mode_;
+			float size_ratio_;
 	
 			//set the size ratio (width/height)
 			void setSizeRatio_(float r);

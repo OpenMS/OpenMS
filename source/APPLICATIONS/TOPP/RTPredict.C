@@ -69,6 +69,8 @@ using namespace std;
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
 	@endcode inside the peptide entities in the analysisXML output file.
+
+	@todo Fix --help and --help-opt output (Nico)
 	
 	@ingroup TOPP
 */

@@ -32,11 +32,14 @@
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
+
 //STL
+#include <algorithm>	
 
 //QT
-#include <qpainter.h>
 #include <qimage.h>
+#include <qpainter.h>
+
 
 using namespace std;
 
@@ -1198,39 +1201,6 @@ namespace OpenMS
 		}	
 	}
 	
-	QImage Spectrum2DCanvas::getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags)
-	{
-		if (flags & THICKLINES)
-		{
-			pen_width_ = 2;	
-		} 
-		else
-		{
-			pen_width_ = 0;
-		}
-	
-		QPixmap buffer(width, height);
-		QPainter painter(&buffer);
-		print(&painter,width,height);
-		QImage image = buffer.convertToImage();
-	
-		if (flags & GREYSCALE)
-		{
-			for (unsigned int y = 0; y!= height;y++)
-			{
-				unsigned int *p = (unsigned int*)image.scanLine(y);
-				for (unsigned int x = 0;x != width;x++)
-				{
-					// TODO: add brightness/contrast control
-					unsigned int cgrey = static_cast<int>((qRed(*p)+qGreen(*p)+qBlue(*p))/3);
-					*p++ = qRgb(cgrey,cgrey,cgrey);
-				}
-			}
-		}
-		invalidate_();
-		return image;
-	}
-	
 	void Spectrum2DCanvas::createHorzScan_(float min, float max)
 	{
 		DSpectrum<1> spectrum;
@@ -1354,7 +1324,7 @@ namespace OpenMS
 		currentDataSet().updateRanges();
 		
 		//not empty
-		if (currentDataSet().getSize() != 0)
+		if (std::find(currentDataSet().getMSLevels().begin(), currentDataSet().getMSLevels().end(),UnsignedInt(1))!=currentDataSet().getMSLevels().end())
 		{
 			recalculate_ = true;
 			emit sendStatusMessage("constructing quad tree",0);
@@ -1386,6 +1356,11 @@ namespace OpenMS
 	
 					for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
 					{
+						if (exp_it->getMSLevel()!=1)
+						{
+							continue;
+						}
+						
 						//cout << endl << endl << "new Spectrum Peaks: " << exp_it->size() << endl;
 						for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
 						{

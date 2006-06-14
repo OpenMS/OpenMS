@@ -175,7 +175,9 @@ using namespace std;
 			</li>
 		</ul>
 	</ul>		
-		
+	
+	@todo Fix --help and --help-opt output (Nico)
+	
 	@ingroup TOPP
 */
 

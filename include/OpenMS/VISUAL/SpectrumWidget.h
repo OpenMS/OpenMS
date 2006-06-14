@@ -35,6 +35,7 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 //STL
 
@@ -70,13 +71,6 @@ namespace OpenMS
 		Q_OBJECT
 	
 	public:
-		/// Special flags that control drawing (e.g. optimise for printing)
-		static const UnsignedInt GREYSCALE=0x01;
-		/// Special flags that control drawing (e.g. optimise for printing)
-		static const UnsignedInt HIDEGRIDLINES=0x02;
-		/// Special flags that control drawing (e.g. optimise for printing)
-		static const UnsignedInt THICKLINES=0x04;
-
 		/**
 			@brief Returns image of the diagram.
 			
@@ -87,7 +81,7 @@ namespace OpenMS
 			@param flags Image creation flags.
 			@returns The created image.
 		*/
-		virtual QImage getImage(UnsignedInt width, UnsignedInt height, UnsignedInt flags=0) = 0;
+		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
 		
 		/**
 			@brief Returns pointer to canvas object
@@ -111,7 +105,10 @@ namespace OpenMS
 			
 			@return the x-axis widget
 		*/
-		inline AxisWidget* xAxis() { return x_axis_; }
+		inline AxisWidget* xAxis() 
+		{ 
+			return x_axis_; 
+		}
 		
 		/**
 			@brief Returns pointer to y-axis widget
@@ -122,7 +119,10 @@ namespace OpenMS
 			
 			@return the y-axis widget
 		*/
-		inline AxisWidget* yAxis() { return y_axis_; }
+		inline AxisWidget* yAxis() 
+		{ 
+			return y_axis_; 
+		}
 		
 		/**
 			@brief Sets the spectrum window
@@ -206,16 +206,25 @@ namespace OpenMS
 		/// creates the intensity distribution of the widget
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
 		
+		
 		virtual void recalculateAxes() = 0;
 		
+		/// Canvas widget
 		SpectrumCanvas* canvas_;
-
+		
+		///Main layout
 		QGridLayout* grid_;
+		
+		/// Vertical axis
 		AxisWidget* y_axis_;
+		/// Horizontal axis
 		AxisWidget* x_axis_;
+		/// Spacer for the horizontal axis
 		QWidget* hspacer_;
+		/// Spacer for the vertical axis
 		QWidget* vspacer_;
 		
+		/// Flag that indicates if the axis legend is shown
 		bool show_legend_;
 		
 		///for storing the old maximum when the intensities are transformed

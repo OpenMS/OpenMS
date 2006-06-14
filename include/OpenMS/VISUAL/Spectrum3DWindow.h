@@ -35,9 +35,6 @@
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
 
-
-//qt-includes
-#include <qimage.h>
 namespace OpenMS
 {
 	class Spectrum3DWidget;

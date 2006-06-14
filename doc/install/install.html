@@ -335,6 +335,16 @@ After you have installed OpenMS, you can test your installation by executing the
 <b>Note</b>: To test the DB connectivity, copy the file '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt' to 'DB_credentials.txt' 
 and fill in your DB access details. As long as the 'DB_credentials.txt' file remains there, the DB will be tested with any subsequent call of 'make test'.
 
+<h2>Building the TOPP tools</h2>
+After you have installed OpenMS, you can build the TOPP tools with the following command:
+<PRE>
+&gt; cd &lt;path_to_OpenMS&gt;/source/APPLICATIONS/TOPP/
+&gt; make
+</PRE>
+Now the TOPP tools are ready to use.
+<BR>
+<BR>
+<b>Note</b>: You have to add the OpenMS libaray location to your LD_LIBRARY_PATH. See the output of 'make install' for details.
 
 <!-- ........ Content ends here ........ -->
 
