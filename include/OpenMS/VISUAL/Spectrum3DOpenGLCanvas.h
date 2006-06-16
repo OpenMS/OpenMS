@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include<OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 namespace OpenMS
 {
 
@@ -72,7 +73,10 @@ namespace OpenMS
 		typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
 		///
 		enum DimensionId { MZ = DimDesc::MZ, RT = DimDesc::RT };
-	//@}
+		
+		typedef DPeak<1> PeakT;
+		typedef DSpectrum< 1, OpenMS::DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
+		//@}
 
 
 

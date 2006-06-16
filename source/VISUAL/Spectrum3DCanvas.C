@@ -98,6 +98,8 @@ SignedInt Spectrum3DCanvas::finishAdding()
 	current_data_ = getDataSetCount()-1;
 
 	openglcanvas_->updateMinMaxValues();
+	min_disp_ints_.push_back(openglcanvas_->overall_values_.min_[2]);
+	max_disp_ints_.push_back(openglcanvas_->overall_values_.max_[2]);	
 	emit layerActivated(this);
 	invalidate_();
 	return current_data_;
@@ -154,16 +156,16 @@ void Spectrum3DCanvas::invalidate_()
  	openglwidget()->updateGL();
 }
 
-void Spectrum3DCanvas::removeDataSet(int)
+void Spectrum3DCanvas::removeDataSet(int /*data_set*/)
 {
-	// if (data_set >= int(getDataSetCount()))
+// 	if (data_set >= int(getDataSetCount()))
 // 		{
 // 			return;
 // 		}
 	
 // 		//remove the data
-// 		delete data_sets_[data_set];
-// 		data_sets_.erase(data_sets_.begin()+data_set);
+// 		delete datasets_[data_set];
+// 		datasets_.erase(data_sets_.begin()+data_set);
 // 		layer_visible_.erase(layer_visible_.begin()+data_set);
 	
 	

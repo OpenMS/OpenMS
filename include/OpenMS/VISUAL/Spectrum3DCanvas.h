@@ -139,22 +139,12 @@ namespace OpenMS
     void connectMouseEvents();
     
     Spectrum3DOpenGLCanvas* openglcanvas_; 
-    
-//     //min and max values of the different datasets
-//     std::vector<double> min_rt_;
-//     std::vector<double> min_mz_;
-//     std::vector<double> min_intensity_;
-//     std::vector<double> max_rt_;
-//     std::vector<double> max_mz_;
-//     std::vector<double> max_intensity_;
-    double  min_rt_,min_mz_,min_intensity_;
-    double  max_rt_, max_mz_, max_intensity_;
     const AreaType dummy_;
-	     int current_zoom_;
+    int current_zoom_;
     
 public slots:
-		///shows the contextmenu at position p
-		void showContextMenu(QPoint p);
+    ///shows the contextmenu at position p
+    void showContextMenu(QPoint p);
     // Docu in base class
     void activateDataSet(int data_set);
     // Docu in base class
