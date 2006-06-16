@@ -435,7 +435,7 @@ CHECK(PeakIterator())
 	MSExperiment<> exp;
 	exp.set2DData(plist);
 		
-	MSExperiment<>::PeakIterator rt_it = exp.RTBegin();
+	MSExperiment<>::PeakIterator rt_it = exp.peakBegin();
  	
 	TEST_EQUAL(rt_it->getPosition()[0],2.0);
 	rt_it++;
@@ -445,7 +445,47 @@ CHECK(PeakIterator())
 	rt_it++;
 	TEST_EQUAL(rt_it->getPosition()[0],11.0);
 	rt_it++;
+	TEST_EQUAL(rt_it==exp.peakEnd(),true);
+RESULT
 
+CHECK(Iterator RTBegin(double rt))
+	MSExperiment< DRawDataPoint<1> > tmp;
+	MSSpectrum< DRawDataPoint<1> > s;
+	DRawDataPoint<1> p;
+	
+	s.setRetentionTime(30.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(40.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(45.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(50.0);
+	tmp.push_back(s);
+	
+	TEST_REAL_EQUAL(tmp.RTBegin(20.0)->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(tmp.RTBegin(30.0)->getRetentionTime(),30.0)
+	TEST_REAL_EQUAL(tmp.RTBegin(31.0)->getRetentionTime(),40.0)
+	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
+RESULT
+
+CHECK(Iterator RTEnd(double rt))
+	MSExperiment< DRawDataPoint<1> > tmp;
+	MSSpectrum< DRawDataPoint<1> > s;
+	DRawDataPoint<1> p;
+	
+	s.setRetentionTime(30.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(40.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(45.0);
+	tmp.push_back(s);	
+	s.setRetentionTime(50.0);
+	tmp.push_back(s);
+	
+	TEST_REAL_EQUAL(tmp.RTEnd(20.0)->getRetentionTime(),30.0);
+	TEST_REAL_EQUAL(tmp.RTEnd(30.0)->getRetentionTime(),40.0);
+	TEST_REAL_EQUAL(tmp.RTEnd(31.0)->getRetentionTime(),40.0);
+	TEST_EQUAL(tmp.RTEnd(55.0)==tmp.end(), true);
 RESULT
 
 CHECK(sortSpectra())
@@ -476,7 +516,7 @@ CHECK(sortSpectra())
 	
 	exp.sortSpectra(true);
 	
-	MSExperiment<>::PeakIterator rt_it = exp.RTBegin();
+	MSExperiment<>::PeakIterator rt_it = exp.peakBegin();
  	
 	TEST_EQUAL(rt_it->getPosition()[0],3.0);
 	rt_it++;
@@ -486,7 +526,7 @@ CHECK(sortSpectra())
 	rt_it++;
 	TEST_EQUAL(rt_it->getPosition()[0],14.0);
 	rt_it++;
-
+	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
 CHECK(const String& getName() const)

@@ -194,10 +194,10 @@ namespace OpenMS
 		prefs_ = prefs;
 		canvas()->setMainPreferences(prefs);
 	
-		setMirroredXAxis(! canvas()->getMappingInfo()->isXAxisAsc());
-		setMirroredYAxis(! canvas()->getMappingInfo()->isYAxisAsc());
+		setMirroredXAxis(! canvas()->getMappingInfo().isXAxisAsc());
+		setMirroredYAxis(! canvas()->getMappingInfo().isYAxisAsc());
 	
-		if (! canvas()->getMappingInfo()->isMzToXAxis())
+		if (! canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// swap legend text
 			std::string tmp = x_axis_->getLegend();
@@ -281,14 +281,14 @@ namespace OpenMS
 	void SpectrumWidget::switchAxis(bool swapped_axes) 
 	{
 		// check if we have to swap axis
-		if (swapped_axes != canvas()->getMappingInfo()->isMzToXAxis()) return;
+		if (swapped_axes != canvas()->getMappingInfo().isMzToXAxis()) return;
 	
 		// get current axis orientation
 		bool mirrored_x_axis = x_axis_->hasInverseOrientation();
 		bool mirrored_ordinate = y_axis_->hasInverseOrientation();
 	
 		// update mapping info
-		canvas()->getMappingInfo()->isMzToXAxis() ? canvas()->getMappingInfo()->setMzToYAxis() : canvas()->getMappingInfo()->setMzToXAxis();
+		canvas()->getMappingInfo().isMzToXAxis() ? canvas()->getMappingInfo().setMzToYAxis() : canvas()->getMappingInfo().setMzToXAxis();
 	
 		// swap information about inverse orientation
 		x_axis_->setInverseOrientation(mirrored_ordinate);

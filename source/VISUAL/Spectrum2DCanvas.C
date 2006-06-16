@@ -778,10 +778,22 @@ namespace OpenMS
 			float x = cell.minX();
 			for (int j = 0; x <= visible_area_.maxX(); j++)
 			{
-				const float left_top = marching_squares_matrices_[data_set][i][j];
-				const float right_top = marching_squares_matrices_[data_set][i][j + 1];
-				const float left_bottom = marching_squares_matrices_[data_set][i + 1][j];
-				const float right_bottom = marching_squares_matrices_[data_set][i + 1][j + 1];
+
+				float left_top = marching_squares_matrices_[data_set][i][j];
+				float right_top = 0;
+				float left_bottom = 0;
+				float right_bottom = marching_squares_matrices_[data_set][i + 1][j + 1];
+
+				if ( getMappingInfo().isMzToXAxis() )
+				{
+				  right_top = marching_squares_matrices_[data_set][i][j + 1];
+				  left_bottom = marching_squares_matrices_[data_set][i + 1][j];
+				}
+				else
+				{
+				  left_bottom = marching_squares_matrices_[data_set][i][j + 1];
+				  right_top = marching_squares_matrices_[data_set][i + 1][j];		
+				}
 	
 				const float minimum = min(left_top, min(right_top, min(left_bottom, right_bottom)));
 				const float maximum = max(left_top, max(right_top, max(left_bottom, right_bottom)));
@@ -956,14 +968,14 @@ namespace OpenMS
 		QPoint cell_size = chartToContext_(PointType(visible_area_.minX() + cell_width, visible_area_.minY() + cell_height), width, height);
 	
 		float y = cell.minY();
-		vector<vector<QColor> > color_matrix;
+		vector<vector<const QColor*> > color_matrix;
 		for (int i = 0; y <= visible_area_.maxY() + cell_height; i++)
 		{
-			color_matrix.insert(color_matrix.end(), vector<QColor>() );
+			color_matrix.insert(color_matrix.end(), vector<const QColor*>() );
 			float x = cell.minX();
 			for (int j = 0; x <= visible_area_.maxX() + cell_width; j++)
 			{
-				color_matrix.back().push_back(heightColor_(marching_squares_matrices_[data_set][i][j]));
+				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[data_set][i][j]));
 				x += cell_width;
 			}
 			y += cell_height;
@@ -977,26 +989,36 @@ namespace OpenMS
 			float x = cell.minX();
 			for (int j = 0; x <= visible_area_.maxX(); j++)
 			{
-				const QColor left_top = color_matrix[i][j];
-				const QColor right_top = color_matrix[i][j + 1];
-				const QColor left_bottom = color_matrix[i + 1][j];
-				const QColor right_bottom = color_matrix[i + 1][j + 1];
+				const QColor* left_top = color_matrix[i][j];
+				const QColor* right_top = 0;
+				const QColor* left_bottom = 0;
+				const QColor* right_bottom = color_matrix[i + 1][j + 1];
 	
+				if ( getMappingInfo().isMzToXAxis() )
+				{
+					right_top = color_matrix[i][j + 1];
+					left_bottom = color_matrix[i + 1][j];
+				}
+				else
+				{
+					left_bottom = color_matrix[i][j + 1];
+					right_top = color_matrix[i + 1][j];					
+				}
 				QPoint cell_pos = chartToContext_(PointType(x, y), width, height);
 		
-				int left_red = left_top.red() << 8;
-				int left_green = left_top.green() << 8;
-				int left_blue = left_top.blue() << 8;
-				int right_red = right_top.red() << 8;
-				int right_green = right_top.green() << 8;
-				int right_blue = right_top.blue() << 8;
+				int left_red = left_top->red() << 8;
+				int left_green = left_top->green() << 8;
+				int left_blue = left_top->blue() << 8;
+				int right_red = right_top->red() << 8;
+				int right_green = right_top->green() << 8;
+				int right_blue = right_top->blue() << 8;
 	
-				const int left_d_red = ((left_bottom.red() << 8) - left_red) / cell_size.y();
-				const int left_d_green = ((left_bottom.green() << 8) - left_green) / cell_size.y();
-				const int left_d_blue = ((left_bottom.blue() << 8) - left_blue) / cell_size.y();
-				const int right_d_red = ((right_bottom.red() << 8) - right_red) / cell_size.y();
-				const int right_d_green = ((right_bottom.green() << 8) - right_green) / cell_size.y();
-				const int right_d_blue = ((right_bottom.blue() << 8) - right_blue) / cell_size.y();
+				const int left_d_red = ((left_bottom->red() << 8) - left_red) / cell_size.y();
+				const int left_d_green = ((left_bottom->green() << 8) - left_green) / cell_size.y();
+				const int left_d_blue = ((left_bottom->blue() << 8) - left_blue) / cell_size.y();
+				const int right_d_red = ((right_bottom->red() << 8) - right_red) / cell_size.y();
+				const int right_d_green = ((right_bottom->green() << 8) - right_green) / cell_size.y();
+				const int right_d_blue = ((right_bottom->blue() << 8) - right_blue) / cell_size.y();
 	
 				pixel = image_start;
 				pixel += cell_pos.y() * buffer_->width() + cell_pos.x();

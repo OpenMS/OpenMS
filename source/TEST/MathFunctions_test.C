@@ -30,7 +30,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <iostream>
 #include <vector>
 
@@ -40,91 +40,43 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Histogram, "$Id: Histogram_test.C,v 1.3 2006/03/28 08:03:34 marc_sturm Exp $")
+START_TEST(Distribution, "$Id: Histogram_test.C,v 1.3 2006/03/28 08:03:34 marc_sturm Exp $")
 
 /////////////////////////////////////////////////////////////
 
-Histogram<float,float>* dis_ptr = 0;
-
-CHECK( Histogram())
-	dis_ptr = new Histogram<float,float>();
-	TEST_NOT_EQUAL(dis_ptr, 0)
+CHECK(inline static double ceil_decimal(double x, int decPow))
+	TEST_REAL_EQUAL(ceil_decimal(12345.671,-2),12345.68)
+	TEST_REAL_EQUAL(ceil_decimal(12345.67,-1),12345.7)
+	TEST_REAL_EQUAL(ceil_decimal(12345.67,0),12346.0)
+	TEST_REAL_EQUAL(ceil_decimal(12345.67,1),12350.0)
+	TEST_REAL_EQUAL(ceil_decimal(12345.67,2),12400.0)
 RESULT
 
-CHECK( ~Histogram() )
-	delete dis_ptr;
+CHECK(inline static double round_decimal(double x, int decPow))
+	TEST_REAL_EQUAL(round_decimal(12345.671,-2),12345.67)
+	TEST_REAL_EQUAL(round_decimal(12345.67,-1),12345.7)
+	TEST_REAL_EQUAL(round_decimal(12345.67,0),12346.0)
+	TEST_REAL_EQUAL(round_decimal(12345.67,1),12350.0)
+	TEST_REAL_EQUAL(round_decimal(12345.67,2),12300.0)
 RESULT
 
-Histogram<float,float> d(0, 10, 1);
+CHECK(inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2))
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,1.0,0.0,100.0),50.0)
+RESULT 
 
-CHECK( Histogram(const Histogram&))
-	Histogram<float, float> d2(d);
-	TEST_EQUAL(d == d2, true)
-RESULT
+CHECK(inline double linear2log(double x, bool is_percent=false, double max=0))
 
-CHECK( min() )
-	TEST_REAL_EQUAL(d.min(), 0.0)
 RESULT
 
-CHECK( max() ) 
-	TEST_REAL_EQUAL(d.max(), 10.0)
+CHECK(inline double log2linear(double x, bool is_percent=false, double max=0))
+
 RESULT
 
-CHECK( binSize() )
-	TEST_REAL_EQUAL(d.binSize(), 1)
+CHECK(inline bool isOdd(UnsignedInt x))
+
 RESULT
 
-CHECK( size() )
-	TEST_EQUAL(d.size(), 10)
-RESULT
 
-CHECK( inc(double val, double inrement) )
-	d.inc(5, 250.3);
-	TEST_REAL_EQUAL(d.maxValue(), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.inc(10.1, 250.3))
-RESULT
-
-CHECK( minValue() )
-	TEST_REAL_EQUAL(d.minValue(), 0.0)
-RESULT
-
-CHECK( maxValue() )
-	TEST_REAL_EQUAL(d.maxValue(), 250.3)
-RESULT
-
-CHECK( binValue(UnsignedInt index) )
-	TEST_REAL_EQUAL(d.binValue(UnsignedInt(5)), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(UnsignedInt(11)))
-RESULT
-	
-CHECK( binValue(double val) )
-	TEST_REAL_EQUAL(d.binValue(5.5f), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(10.1f))
-RESULT
-	
-CHECK( set(double min, double max, double bin_size) )
-	d.set(1, 11, 2);
-	TEST_REAL_EQUAL(d.min(), 1)
-	TEST_REAL_EQUAL(d.max(), 11)
-	TEST_REAL_EQUAL(d.size(), 5)
-	TEST_REAL_EQUAL(d.binSize(), 2)
-RESULT
-
-CHECK(bool operator == )
-	Histogram<float, float> dist(1, 11, 2);
-	TEST_EQUAL(d == dist, true)
-RESULT
-
-CHECK(bool operator != )
-	Histogram<float, float> dist(1, 12, 2);
-	TEST_EQUAL(d != dist, true)
-RESULT
-
-CHECK(Histogram& operator = )
-	Histogram<float, float> dist;
-	dist = d;
-	TEST_EQUAL(d == dist, true)
-RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -44,7 +44,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	String_test\
 	Date_test\
 	HashMap_test\
-	Histogram_test\
 	IndexSet_test\
 	RunningAveragePosition_test\
 	ScanIndex_test\
@@ -172,6 +171,8 @@ EXECUTABLES_MATH = \
 	LinearInterpolation_test\
 	BasicStatistics_test\
 	ROCCurve_test\
+	Histogram_test\
+	MathFunctions_test\
 	${GSL_EXECUTABLES_MATH}
 
 #FILTERING

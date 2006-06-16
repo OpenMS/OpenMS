@@ -62,7 +62,17 @@ namespace OpenMS
   		public PersistentObject
   {
     public:
-			
+
+			///Comparator for the retention time.
+			struct RTLess
+				: public std::binary_function <MSSpectrum, MSSpectrum, bool>
+			{
+				bool operator () (const MSSpectrum& a, const MSSpectrum& b) const
+				{
+					return (a.getRetentionTime() < b.getRetentionTime());
+				}
+			};
+				
 			/// Peak type
 			typedef PeakT PeakType;
 			

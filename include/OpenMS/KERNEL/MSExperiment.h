@@ -75,7 +75,6 @@ namespace OpenMS
 		typedef typename TraitsType::CoordinateType CoordinateType;  	
     typedef typename TraitsType::IntensityType IntensityType; 
 
-
   	/// Constructor
     MSExperiment()
 			: std::vector<MSSpectrum<PeakT> >(),
@@ -385,16 +384,41 @@ namespace OpenMS
 				 
 				
 			/// Returns an iterator pointing at the first peak			 
-			PeakIterator RTBegin()
+			PeakIterator peakBegin()
 			{
 				return (PeakIterator(this->at(0).begin() , this->at(0).getRetentionTime(), 0 , *this) );
 			}
 	
 			/// Returns an iterator pointing at the last peak
-			PeakIterator RTEnd()
+			PeakIterator peakEnd()
 			{
 				return(PeakIterator( (this->at(this->size()-1).end()), this->at(this->size()-1).getRetentionTime(), (this->size()-1), *this ) );
 			}			
+
+			/**
+				@brief Fast search for spectrum range begin
+				
+				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+			*/
+			Iterator RTBegin(double rt)
+			{
+				SpectrumType s;
+				s.setRetentionTime(rt);
+				return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+			}
+
+			/**
+				@brief Fast search for spectrum range end (returns the path-the-end iterator)
+				
+				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+			*/
+			Iterator RTEnd(double rt)
+			{
+				SpectrumType s;
+				s.setRetentionTime(rt);
+				return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+			}
+
 			
 			/**	
 				@name Range methods  

@@ -247,13 +247,13 @@ namespace OpenMS
 		/**
 			@brief Returns the mapping info
 			
-			Returns a pointer to the mapping info object
+			Returns a reference to the mapping info object
 			@return the mapping info
 			@see MappingInfo
 		*/
-		inline MappingInfo* getMappingInfo() 
+		inline MappingInfo& getMappingInfo() 
 		{ 
-			return &mapping_info_; 
+			return mapping_info_; 
 		}
 		
 		/**

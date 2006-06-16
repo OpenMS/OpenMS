@@ -109,9 +109,9 @@ namespace OpenMS
 		{
 			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 			
-		  (w->canvas()->getMappingInfo()->isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
-		  (w->canvas()->getMappingInfo()->isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
-		  (w->canvas()->getMappingInfo()->isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
+		  (w->canvas()->getMappingInfo().isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
+		  (w->canvas()->getMappingInfo().isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
+		  (w->canvas()->getMappingInfo().isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
 		
 			log_check_box_->setChecked(w->isLogIntensity());
 			rel_check_box_->setChecked(!w->isAbsoluteIntensity());

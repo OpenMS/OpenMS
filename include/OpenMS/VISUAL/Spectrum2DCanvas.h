@@ -65,8 +65,6 @@ namespace OpenMS
 		
 		@todo Marching squares: wird nicht feiner beim Zoomen, log scale (Marc)
 		
-		@todo fix background color when saving image (Marc)
-		
 		@ingroup spectrum_widgets
 	*/
 	class Spectrum2DCanvas : public SpectrumCanvas

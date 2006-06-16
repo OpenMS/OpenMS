@@ -79,12 +79,15 @@ class MultiGradient
 
 
 	/** 
-		returns the color as @p position. If the @p position is higher or lower than the range [0,100] the highest, 
+		@brief Returns the color as @p position.
+		
+		If the @p position is higher or lower than the range [0,100] the highest, 
 		respectively the lowest, color is returned.
 	*/
 	QColor interpolatedColorAt(double position) const;
 	/** 
-		returns the color as @p position with the gradient stretched between @p min and @p max. 
+		@brief returns the color as @p position with the gradient stretched between @p min and @p max.
+		 
 		If the @p position is higher or lower than the range [min,max] the highest, 
 		respectively the lowest, color is returned.
 	*/
@@ -95,7 +98,9 @@ class MultiGradient
 	/// deactivates the precalculation of values ( and deletes the precalculated values)
 	void deactivatePrecalculationMode();
 	/** 
-		returns a precalculated color. If the @p position is higher or lower than the the range
+		@brief Returns a precalculated color. 
+		
+		If the @p position is higher or lower than the the range
 		specified in activatePrecalculationMode(...) the highest, respectively the lowest, color is returned.
 		If precalcualtion mode is not activated, the exception is thrown.
 	*/

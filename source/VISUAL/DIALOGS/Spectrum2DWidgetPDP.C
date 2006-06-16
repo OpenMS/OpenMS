@@ -91,9 +91,9 @@ namespace OpenMS
 		void Spectrum2DWidgetPDP::load()
 		{
 			Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(manager_);
-		  (w->canvas()->getMappingInfo()->isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
-		  (w->canvas()->getMappingInfo()->isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
-		  (w->canvas()->getMappingInfo()->isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
+		  (w->canvas()->getMappingInfo().isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
+		  (w->canvas()->getMappingInfo().isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
+		  (w->canvas()->getMappingInfo().isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
 		}
 		
 		void Spectrum2DWidgetPDP::save()

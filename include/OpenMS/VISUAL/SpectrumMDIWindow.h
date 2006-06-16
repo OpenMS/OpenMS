@@ -192,7 +192,7 @@ namespace OpenMS
 			//finds features in the active spectrum
 			void findFeaturesActiveSpectrum();
 		
-		private slots:
+		protected slots:
 			void closeFileByTab(OpenMS::SignedInt);
 			void focusSpectrumByAddress(int);
 			void removeWidgetFromBar(QObject*);
@@ -214,8 +214,7 @@ namespace OpenMS
 		  void setBackView3D(bool on);
 		  void setTopView3D(bool on);
 		  void setResetZoomView3D(bool on);
-		
-		protected slots:
+
 			///use this event to do the cleanup
 		  virtual void closeEvent(QCloseEvent * e);
 			/// Call whenever a window is closed

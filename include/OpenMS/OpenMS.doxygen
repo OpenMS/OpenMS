@@ -50,7 +50,8 @@
 
 /*
 	ToDo-Liste Marc:
-	- 2DView: Oberschläsche, bei vertauschter Achse
+	- Finish Math function tests
+	- 1DView: Intensity bei Log-Mode falsch
 	- Math tests, docu
 	- SpectrumWidget/Window docu, remove
 	- Static ints durch Enums ersetzen

@@ -41,14 +41,12 @@ namespace OpenMS
 		
 		Contains mathemtical auxiliary functions.
 		
-		@todo write tests (Marc)
-		
 		@ingroup Concept
 	*/
 	namespace Math
 	{
 		/**
-			@brief rounds x up to the next decimal power 10^decPow
+			@brief rounds @p x up to the next decimal power 10 ^ @p decPow
 			
 			@verbatim
 			e.g.: (123.0 , 1)  => 130
@@ -64,7 +62,7 @@ namespace OpenMS
 		}
 		
 		/**
-			@brief rounds x to the next decimal power 10^decPow
+			@brief rounds @p x to the next decimal power 10 ^ @p decPow
 			
 			@verbatim
 			e.g.: (123.0 , 1)  => 120
@@ -90,9 +88,11 @@ namespace OpenMS
 		}
 	
 		/**
-			@brief auxiliary function for the visualization
+			@brief Transforms a number from linear to log10 scale
 			
-			@todo document me (Marc)
+			@param x The number to transform
+			@param is_percent Flag for percentage mode
+			@param max 100% value (for percentage mode)
 			
 			@ingroup Math
 		*/
@@ -100,15 +100,22 @@ namespace OpenMS
 		{
 			//std::cout << "linear2log: "<<x << " "<<is_percent<<" "<<max<<std::endl;
 			if (is_percent)
-				return log10(x/max*100+1);
-			else 
-				return log10(x+1);
+			{
+				return log10(x/max*100+1); //+1 to avoid negative logarithms
+			}
+			else
+			{ 
+				return log10(x+1); //+1 to avoid negative logarithms
+			}
 		}
 		
 		/**
-			@brief auxiliary function for the visualization
+			@brief Transforms a number from log10 to to linear scale
 			
-			@todo document me (Marc)
+			@param x The number to transform
+			@param is_percent Flag for percentage mode
+			@param max 100% value (for percentage mode)
+			
 			
 			@ingroup Math
 		*/
@@ -116,9 +123,13 @@ namespace OpenMS
 		{
 			//std::cout << "log2linear: "<<x << " "<<is_percent<<" "<<max<<std::endl;
 			if (is_percent)
-				return pow(10,x)*max/100.0;
+			{
+				return (pow(10,x)-1)*max/100.0;
+			}
 			else
-				return pow(10,x);
+			{
+				return pow(10,x)-1;
+			}
 		}
 		
 		/**

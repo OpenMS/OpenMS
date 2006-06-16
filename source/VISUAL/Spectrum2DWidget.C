@@ -112,7 +112,7 @@ namespace OpenMS
 	{
 		const SpectrumCanvas::AreaType area = canvas()->visible_area_;
 		
-		if (canvas()->getMappingInfo()->isMzToXAxis())
+		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			x_axis_->setAxisBounds(area.minX(), area.maxX());
 			y_axis_->setAxisBounds(area.minY(), area.maxY());

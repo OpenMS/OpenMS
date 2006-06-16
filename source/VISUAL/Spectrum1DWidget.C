@@ -122,7 +122,7 @@ namespace OpenMS
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(data): x: " << visible_area.minX() << " " <<visible_area.maxX() << "   y: " <<visible_area.minY() << " " <<visible_area.maxY() << endl;
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(visible): x: " << data_area.minX() << " " <<data_area.maxX() << "   y: " <<data_area.minY() << " " <<data_area.maxY() << endl;
 	
-		const MappingInfo& mapping_info = *canvas()->getMappingInfo();
+		const MappingInfo& mapping_info = canvas()->getMappingInfo();
 	
 		//calculate margins around data_area
 		double mx = 0.002*(data_area.maxX() - data_area.minX());
@@ -336,7 +336,7 @@ namespace OpenMS
 	{
 		//cout << "Spectrum1DWidget::setLabelMode_"<<endl;
 		label_mode_ = label_mode;
-		if (canvas()->getMappingInfo()->isMzToXAxis())
+		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y-axis (ordinate) is intensity axis
 			x_axis_->setLogScale(false);
@@ -357,7 +357,7 @@ namespace OpenMS
 	void Spectrum1DWidget::setIntensityAxisAbsolute_()
 	// Just a simple wrapper that simplifies using the enumeration (label_mode_) under different mappings (MappingInfo)
 	{
-		if (canvas()->getMappingInfo()->isMzToXAxis())
+		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y axis is intensity Axis
 			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE) return; // intensity axis already set to absolute
@@ -388,7 +388,7 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::setIntensityAxisRelative_()
 	{
-		if (canvas()->getMappingInfo()->isMzToXAxis())
+		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y axis is intensity Axis
 			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT) return; // intensity axis already set to relative values (%)
@@ -419,7 +419,7 @@ namespace OpenMS
 	
 	bool Spectrum1DWidget::isIntensityAxisAbsolute_() const
 	{
-		if (canvas()->getMappingInfo()->isMzToXAxis())
+		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y axis is intensity Axis
 			return (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE);
