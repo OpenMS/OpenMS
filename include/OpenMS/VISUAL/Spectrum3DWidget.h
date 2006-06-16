@@ -96,7 +96,7 @@ namespace OpenMS
 		 *@param parent the parent widget for the dialog page
 		 */
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
-		// Docu in SpectrumWidget
+		// Docu in base class
 		virtual void recalculateAxes();
 		///
 		virtual void invalidate_();

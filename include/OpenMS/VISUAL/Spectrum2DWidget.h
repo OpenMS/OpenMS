@@ -124,7 +124,7 @@ namespace OpenMS
 		bool getShowColors();
 		bool getShowPoints();
 		
-		// Docu in SpectrumWidget
+		// Docu in base class
 		virtual void recalculateAxes();
 		
 	signals:
@@ -137,6 +137,7 @@ namespace OpenMS
 
 	protected:
 		virtual void intensityModificationChange_();
+		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
 		
 		void legendModificationChange_();

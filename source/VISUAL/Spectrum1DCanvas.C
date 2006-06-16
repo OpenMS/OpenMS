@@ -43,7 +43,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	using namespace Internal;
-	
+		
 	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent, const char* name, WFlags f)
 		: SpectrumCanvas(parent, name, f | WRepaintNoErase),
 		zoom_factor_(2.0),
@@ -202,8 +202,8 @@ namespace OpenMS
 				if (action_mode_ == AM_ZOOM)
 				{
 					rubber_band_.show();	
-					rubber_band_.setTopLeft(chartToWidget_(PointType(pos.X(), data_area_.maxY())));
-					rubber_band_.setBottomRight(chartToWidget_(PointType(pos.X(), data_area_.minY())));
+					rubber_band_.setTopLeft(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.maxY())));
+					rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.minY())));
 	
 					rubber_band_.updateRegion(viewport());
 					zoom_status_ = QString("%1 => ").arg(pos.X(),0,'f',2);
@@ -390,7 +390,7 @@ namespace OpenMS
 					else // zoom on position axis only
 					{
 						rubber_band_.updateRegion(viewport());
-						rubber_band_.setBottomRight(chartToWidget_(PointType(pos.X(), data_area_.minY())));
+						rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.minY())));
 						rubber_band_.updateRegion(viewport());
 					}
 				}
@@ -509,8 +509,8 @@ namespace OpenMS
 	
 		SpectrumIteratorType nearest_it = left_it;
 	
-	// 	double dest_interval_start = chartToWidget_(Point<float>(0, data_area_.minY())).y();
-	// 	double dest_interval_end = chartToWidget_(Point<float>(0, data_area_.maxY())).y();
+	// 	double dest_interval_start = SpectrumCanvas::chartToWidget_(Point<float>(0, data_area_.minY())).y();
+	// 	double dest_interval_end = SpectrumCanvas::chartToWidget_(Point<float>(0, data_area_.maxY())).y();
 		double dest_interval_start, dest_interval_end;
 		// select source interval start and end depending on diagram orientation
 	
@@ -759,7 +759,7 @@ namespace OpenMS
 			}
 	
 			p = chartToWidget_(*i);
-			p0 = chartToWidget_(PointType(i->getPosition()[0], 0.0f));
+			p0 = SpectrumCanvas::chartToWidget_(PointType(i->getPosition()[0], 0.0f));
 	
 			// highlight selected peak
 			if (i == nearest_peak_)
@@ -813,8 +813,7 @@ namespace OpenMS
 			if (visible_end_[index] == getDataSet(index)[0].begin()) return;
 	
 			// draw line (clipping performed by Qt on both sides)
-			painter_.drawLine(chartToWidget_(*(visible_begin_[index] - 1)),
-			                  chartToWidget_(*visible_begin_[index]));
+			painter_.drawLine(chartToWidget_(*(visible_begin_[index] - 1)), chartToWidget_(*visible_begin_[index]));
 			return;
 		}
 	

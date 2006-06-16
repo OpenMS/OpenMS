@@ -199,14 +199,15 @@ namespace OpenMS
 		~SpectrumWidget();
 	
 		void setCanvas(SpectrumCanvas* canvas);
+  	
   	virtual void intensityModificationChange_() = 0;
+  	
 		virtual void legendModificationChange_() = 0;
-		
 
 		/// creates the intensity distribution of the widget
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
 		
-		
+		/// recalculates the Axis ticks
 		virtual void recalculateAxes() = 0;
 		
 		/// Canvas widget
@@ -231,7 +232,8 @@ namespace OpenMS
 		double old_max_intensity_;
 		
 	private slots:
-		void setAxes_(DRange<2> area);
+		/// updates the axes, when the visible area changes
+		void updateAxes_(DRange<2> area);
 		
 	private:
 		SpectrumWindow* spectrum_window_;

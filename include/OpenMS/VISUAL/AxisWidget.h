@@ -204,12 +204,6 @@ namespace OpenMS
 			///repaint the content of the widget to the internal pixmap if content or size changed.
 			void invalidate_();
 	
-					///Special flags that control drawing (e.g. optimise for printing)
-			///default (0x00) is: color, gridlines
-			static const unsigned int GREYSCALE=0x01;
-			static const unsigned int HIDEGRIDLINES=0x02;
-			static const unsigned int THICKLINES=0x04;
-	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline double scale_(double x)
 			{

@@ -123,7 +123,8 @@ namespace OpenMS
 		{ 
 			return zoom_factor_; 
 		}
-
+		
+		// Docu in base class
 		virtual void setMainPreferences(const Param& prefs);
 		
 		///PreferencesManager
@@ -131,14 +132,58 @@ namespace OpenMS
 
 		bool getSnapToMax();
 		void setSnapToMax(bool b);
+		/**
+			@brief returns the snap_factor_.
+			
+			@see snap_factor_
+		*/
 		double getSnapFactor();
 
 		bool isAbsoluteIntensity() const;	
 
 		void clearHighlighting();
 
-	protected:
+	public slots:
 		
+		void setDrawMode(QAction*); //< Sets draw mode to one of the supported types
+		void drawModePeaks();
+		void drawModeLines();
+		void intensityAxisAbsolute();
+		void intensityAxisRelative();
+		
+		// Docu in base class
+		void activateDataSet(int data_set);
+		// Docu in base class
+		void removeDataSet(int data_set);
+		// Docu in base class
+		SignedInt finishAdding();
+
+		void setZoomFactor(double);  //< Sets zoom_factor_ to non default value.
+		void setVisibleArea(double lo, double hi);
+		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
+	
+	protected:
+		// Docu in base class
+		virtual const AreaType& getDataArea_();
+		
+		void drawIcon(const PeakType& peak, const QPoint& p);
+		
+		/**
+			@brief Changes visible area interval
+			
+			This method is for convenience only. It calls changeVisibleArea_(const AreaType&) .
+		*/
+		void changeVisibleArea_(double lo, double hi);  
+		
+		/// Calls chartToWidget_(const PointType&) but takes snap_factor_ and layer_factor_ into account.
+		QPoint chartToWidget_(const PeakType& peak);
+		
+		void setBounds_();
+		
+		// Docu in base class
+		QPoint chartToWidget_(const PointType& pos);
+		
+		// Docu in base class
 		virtual void intensityModificationChange_();
 
 		void legendModificationChange_();
@@ -149,9 +194,10 @@ namespace OpenMS
 
 		RubberBand rubber_band_;
 
-		///Forces a redraw. Must be called after changes that make a redraw necessary.
+		// Docu in base class
 		virtual void invalidate_();
-
+		
+		// Docu in base class
 		void changeVisibleArea_(const AreaType& new_area);
 
 		/// Structure that (one day) will hold all style information (like pen color, font name, ...).
@@ -184,13 +230,17 @@ namespace OpenMS
 		UnsignedInt max_layer_;
 
 		bool snap_to_max_mode_;
+		
+		///Itensity multiplication factor for 'snap to maximum intensity mode'.
 		double snap_factor_;
 
 		// selected diagram action mode and helper variables
 		QPoint action_start_pos_;
 		QPoint action_current_pos_;
 
-		AreaType data_area_; // TODO: remove?
+		/// Area that encloses all peaks of all datasets
+		AreaType data_area_;
+		
 		std::vector<SpectrumIteratorType> visible_begin_;  //< iterator on first visible peak
 		std::vector<SpectrumIteratorType> visible_end_;    //< iterator on one after the last visible peak
 		SpectrumIteratorType nearest_peak_; //< iterator on peak next to mouse position
@@ -217,39 +267,7 @@ namespace OpenMS
 		void contentsMouseReleaseEvent( QMouseEvent *);
 		void contentsMouseMoveEvent( QMouseEvent *);
 
-	public slots:
-		
-		void setDrawMode(QAction*); //< Sets draw mode to one of the supported types
-		void drawModePeaks();
-		void drawModeLines();
-		void intensityAxisAbsolute();
-		void intensityAxisRelative();
-		
-		// Docu in SpectrumCanvas
-		void activateDataSet(int data_set);
-		// Docu in SpectrumCanvas
-		void removeDataSet(int data_set);
-		// Docu in SpectrumCanvas
-		SignedInt finishAdding();
 
-		void setZoomFactor(double);  //< Sets zoom_factor_ to non default value.
-		void setVisibleArea(double lo, double hi);
-		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
-	
-	protected:
-		
-		using SpectrumCanvas::changeVisibleArea_;
-		
-		using SpectrumCanvas::chartToWidget_;
-		
-		virtual const AreaType& getDataArea_();
-		
-		void drawIcon(const PeakType& peak, const QPoint& p);
-	
-	private:
-		void changeVisibleArea_(double lo, double hi);  //< changes visible areas position intervall
-		QPoint chartToWidget_(const PeakType& peak);
-		void setBounds_();
 	};
 } // namespace OpenMS
 

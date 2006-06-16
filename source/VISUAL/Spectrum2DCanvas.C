@@ -727,8 +727,7 @@ namespace OpenMS
 				}  else
 				{
 					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
-				}  
-				// 		p->drawDot(pos.x(), pos.y(), inter);
+				}
 			}
 			else //Draw special feature attributes like convex hull
 			{
@@ -960,14 +959,13 @@ namespace OpenMS
 		vector<vector<QColor> > color_matrix;
 		for (int i = 0; y <= visible_area_.maxY() + cell_height; i++)
 		{
-			vector<QColor> line;
+			color_matrix.insert(color_matrix.end(), vector<QColor>() );
 			float x = cell.minX();
 			for (int j = 0; x <= visible_area_.maxX() + cell_width; j++)
 			{
-				line.push_back(heightColor_(marching_squares_matrices_[data_set][i][j]));
+				color_matrix.back().push_back(heightColor_(marching_squares_matrices_[data_set][i][j]));
 				x += cell_width;
 			}
-			color_matrix.push_back(line);
 			y += cell_height;
 		}
 	

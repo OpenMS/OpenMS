@@ -29,8 +29,6 @@
 #ifndef OPENMS_VISUAL_MAPPINGINFO_H
 #define OPENMS_VISUAL_MAPPINGINFO_H
 
-//#include <OpenMS/FORMAT/Param.h>
-
 namespace OpenMS 
 {
 	class Param;

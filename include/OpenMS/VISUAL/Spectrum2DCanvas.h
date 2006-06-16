@@ -194,7 +194,8 @@ namespace OpenMS
 			@param parent the parent widget for the dialog page
 		*/
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
+		
+		// Docu in base class
 		void setMainPreferences(const Param& prefs);
 		
 	signals:
@@ -215,11 +216,11 @@ namespace OpenMS
 		bool getShowColors();
 		bool getShowPoints();
 
-		// Docu in SpectrumCanvas
+		// Docu in base class
 		void activateDataSet(int data_set);
-		// Docu in SpectrumCanvas
+		// Docu in base class
 		void removeDataSet(int data_set);
-		// Docu in SpectrumCanvas
+		// Docu in base class
 		SignedInt finishAdding();
 	
 	protected:
@@ -241,7 +242,7 @@ namespace OpenMS
 		*/
 		void refresh_();
 		
-		// redraws and reblits the widget.
+		// Docu in base class
 		virtual void invalidate_();
 		
 		/**
@@ -301,15 +302,16 @@ namespace OpenMS
 		*/
 		void paintColorMap_(UnsignedInt data_set, QPainter* p, int width, int height);
 		
+		// Docu in base class
 		virtual void intensityModificationChange_();
-		
+		// Docu in base class
 		virtual void intensityDistributionChange_();
 		
 		/// recalculates the surface gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateSurfaceGradient_();
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateDotGradient_();
-		/// returns the data area of the current dataset's QuadTree
+		/// Returns the data area of the current dataset's QuadTree
 		virtual const AreaType& getDataArea_();
 		
 		void createHorzScan_(float min, float max);
@@ -327,11 +329,11 @@ namespace OpenMS
 		
 		// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
-		// returns the color associated with val for the surface gradient
+		/// Returns the color associated with @p val for the surface gradient
 		const QColor& heightColor_(float val);
-		// performs the marching squares calculations for a dataset and stores the matrix
+		/// Performs the marching squares calculations for a dataset and stores the matrix
 		void getMarchingSquareMatrix_(UnsignedInt data_set);
-		// returns the chart coordinates of the left top marching square cell
+		/// Returns the chart coordinates of the left top marching square cell
 		AreaType getLeftTopCell_(UnsignedInt data_set);
 		
 		/// Highlights peak under cursor and start/stop peak for measurement
@@ -342,25 +344,26 @@ namespace OpenMS
 		/// Returns the nearest peak to position @p pos
 		DPeak<2>* findNearestPeak_(QPoint pos);
 		
-		// this tree stores only the peaks which are actually
-		// shown. It's a pointer since the
-		// constructor of a QuadTree needs the bounding area
-		// of all points ever inserted, and this area is not
-		// known in the Spectrum2DCanvas constructor.
+		/**
+			@brief This quad tree stores the peaks which are actually shown. 
+			
+			It's a pointer since the constructor of a QuadTree needs the bounding area
+		  of all points ever inserted, and this area is not known in the Spectrum2DCanvas constructor.
+		*/
 		std::vector<QuadTreeType_*> trees_;
 		
 		/// marching squares matrices for the datasets
 		std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
-		// this contains the highes value in the marching squares matrix
+		/// Contains the highes value in the marching squares matrix foreach dataset
 		std::vector<float> max_values_;
 		
-		// whether or not to show the height map
+		/// Flags whether or not to show the height map for each dataset
 		std::vector<bool> show_contours_;
-		// whether or not to show the surface gradient
+		/// Flags whether or not to show the surface gradient for each dataset
 		std::vector<bool> show_colors_;
-		// whether or not to show individual peaks
+		/// Flags whether or not to show individual peaks for each dataset
 		std::vector<bool> show_points_;
-		// whether or not to show points scaled
+		/// Flag whether or not to show points scaled for each dataset
 		bool intensity_scaled_dots_;
 		
 		// the last interesting mouse position.

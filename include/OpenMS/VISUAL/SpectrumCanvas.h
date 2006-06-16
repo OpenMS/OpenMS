@@ -424,7 +424,17 @@ namespace OpenMS
 		void timeoutZoom_();
 		
 	protected:
+		
+		/**
+			@brief QT resize event of the widget
+			
+		*/
 		virtual void viewportResizeEvent(QResizeEvent* e);
+		
+		/**
+			@brief QT repaint event of the widget
+			
+		*/
 		virtual void viewportPaintEvent(QPaintEvent* e);
 		
 		/**
@@ -446,14 +456,16 @@ namespace OpenMS
 			
 			Repaints the content into buffer_ after a data or view change (e.g. zoom, translate, displayed intesity). You need to
 			reimplement this method and you need to draw all contents into buffer_ rather than to paint on the widget directly.
+			
+			@see recalculate_
 		*/
 		virtual void invalidate_() = 0;
 		
 		/**
 			@brief Sets the visible area
 			
-			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. If parts of the area are
-			outside of the data area, the new area will be adjusted.
+			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
+			If parts of the area are outside of the data area, the new area will be adjusted.
 			@param new_area The new visible area.
 		*/
 		virtual void changeVisibleArea_(const AreaType& new_area);

@@ -105,26 +105,22 @@ namespace OpenMS
     */
     virtual PreferencesDialogPage* createPreferences(QWidget* parent);
     
-	  ///
+	  // Docu in base class
     virtual const AreaType& getDataArea_();
     
-	  ///
+	  // Docu in base class
     virtual void setMainPreferences(const Param& prefs);
     
     ///returns the Spectrum3DOpenGLcanvas     
     Spectrum3DOpenGLCanvas* openglwidget();
     
-    ///calls the method updateGL() of the QGLWidget
+    // Docu in base class
     virtual void invalidate_();
     
-//     // Docu in SpectrumCanvas
-//     void activateDataSet(int data_set);
-//     // Docu in SpectrumCanvas
-//     void removeDataSet(int data_set);
-//     // Docu in SpectrumCanvas
+		// Docu in base class
     SignedInt finishAdding();
     
-	    /// updates the intensity which is changed in the contextmenu
+	  // Docu in base class
     virtual  void intensityModificationChange_();
     
     void updateView();
@@ -157,11 +153,11 @@ namespace OpenMS
 	     int current_zoom_;
     
 public slots:
-///shows the contextmenu at position p
-void showContextMenu(QPoint p);
-        // Docu in SpectrumCanvas
+		///shows the contextmenu at position p
+		void showContextMenu(QPoint p);
+    // Docu in base class
     void activateDataSet(int data_set);
-    // Docu in SpectrumCanvas
+    // Docu in base class
     void removeDataSet(int data_set);
   };
   

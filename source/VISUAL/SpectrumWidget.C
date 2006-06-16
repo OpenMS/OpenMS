@@ -99,7 +99,7 @@ namespace OpenMS
 		grid_->addWidget(canvas_, 1, 1);
 	
 		connect(canvas_, SIGNAL(contextMenu(QPoint)), this, SIGNAL(contextMenu(QPoint)));
-		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(setAxes_(DRange<2>)));
+		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes_(DRange<2>)));
 		
 		canvas_->setSpectrumWidget(this);
 	}
@@ -238,10 +238,11 @@ namespace OpenMS
 		return canvas_->getIntensityModification() == SpectrumCanvas::IM_LOG;
 	}
 	
-	void SpectrumWidget::setAxes_(SpectrumCanvas::AreaType /*area*/)
+	void SpectrumWidget::updateAxes_(SpectrumCanvas::AreaType /*area*/)
 	{
 		recalculateAxes();
 		
+		//show hide spaces when scollbars are shown/hidden
 		if (canvas_->visibleWidth() < canvas_->contentsWidth())
 		{
 			vspacer_->setMinimumSize(y_axis_->width(), canvas_->horizontalScrollBar()->sizeHint().height());

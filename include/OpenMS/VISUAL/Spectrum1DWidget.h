@@ -112,7 +112,7 @@ namespace OpenMS
 		void setIntensityAxisAbsolute_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
 		bool isIntensityAxisAbsolute_() const;  //< returns true if the intensity axis is absolute, false if relative (percent)
 		
-		// Docu in SpectrumWidget
+		// Docu in base class
 		virtual void recalculateAxes();
 	};
 } // namespace OpenMS
