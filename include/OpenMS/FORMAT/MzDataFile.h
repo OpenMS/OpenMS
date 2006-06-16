@@ -39,7 +39,7 @@ namespace OpenMS
   /**
   	@brief File adapter for MzData files
   
-  	
+  	@todo Add external CVs 
   
   	@ingroup FileIO
   */

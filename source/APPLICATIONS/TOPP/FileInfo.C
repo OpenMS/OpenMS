@@ -52,7 +52,10 @@ using namespace std;
 	for each MS level is displayed.
 	
 	Additionally an overview of the metadata of the experiment can be displayed.
-
+	
+	@todo determine Type of XML file: MzMXL, MzData, ... (Marc)
+	@todo determine if raw or picked data is contained (Marc)
+	
 	@ingroup TOPP
 */
 

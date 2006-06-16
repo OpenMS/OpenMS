@@ -50,11 +50,16 @@
 
 /*
 	ToDo-Liste Marc:
-	- Finish Math function tests
-	- 1DView: Intensity bei Log-Mode falsch
-	- Math tests, docu
+	- Prozent-Modes entfernen -> Auch in Math functions -> Aus Preferences entfernen
+	- Achsenrichtungen weg -> Aus Preferences entfernen
+	- 1D-View Log erst beim Zeichnen errechnen
 	- SpectrumWidget/Window docu, remove
 	- Static ints durch Enums ersetzen
+
+  - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
+  - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
+	- Klassen für Tryptischen Verdau und Theoretische Spektren
+	- Rohdaten-Erkenner schreiben
 	
 	- OMSSA anschauen	
 */

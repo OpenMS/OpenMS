@@ -61,19 +61,32 @@ CHECK(inline static double round_decimal(double x, int decPow))
 RESULT
 
 CHECK(inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2))
-	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,1.0,0.0,100.0),50.0)
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,1.0,0.0,600.0),300.0)
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.25,1.0,0.0,600.0),200.0)
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,0.75,0.0,600.0),400.0)
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,1.0,150.0,600.0),375.0)
+	TEST_REAL_EQUAL(intervalTransformation(0.5,0.0,1.0,0.0,450.0),225.0)
 RESULT 
 
 CHECK(inline double linear2log(double x, bool is_percent=false, double max=0))
-
+	TEST_REAL_EQUAL(linear2log(0.0),0.0)
+	TEST_REAL_EQUAL(linear2log(9.0),1.0)
+	TEST_REAL_EQUAL(linear2log(99.0),2.0)
+	TEST_REAL_EQUAL(linear2log(999.0),3.0)
 RESULT
 
 CHECK(inline double log2linear(double x, bool is_percent=false, double max=0))
-
+	TEST_REAL_EQUAL(log2linear(0.0),0.0)
+	TEST_REAL_EQUAL(log2linear(1.0),9.0)
+	TEST_REAL_EQUAL(log2linear(2.0),99.0)
+	TEST_REAL_EQUAL(log2linear(3.0),999.0)
 RESULT
 
 CHECK(inline bool isOdd(UnsignedInt x))
-
+	TEST_EQUAL(isOdd(0),false)
+	TEST_EQUAL(isOdd(1),true)
+	TEST_EQUAL(isOdd(2),false)
+	TEST_EQUAL(isOdd(3),true)
 RESULT
 
 
