@@ -167,6 +167,11 @@ RESULT
 
 CHECK( store(filename) / load(filename))
 	Param p2(p);
+	
+	//exception
+	Param p300;
+	TEST_EXCEPTION(Exception::UnableToCreateFile, p300.store("/does/not/exist/FileDoesNotExist.xml"))	
+	
 	String filename;
 	NEW_TMP_FILE(filename);
 	p2.store(filename);

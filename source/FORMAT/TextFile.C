@@ -80,27 +80,33 @@ namespace OpenMS
 	void TextFile::save(const String& filename) 
 		throw (Exception::UnableToCreateFile)
 	{
-		ofstream outfile;
-		outfile.open (filename.c_str(), ofstream::out);
+		ofstream os;
+		os.open (filename.c_str(), ofstream::out);
+		
+		if(!os)
+		{
+			 throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+		
 		for (Iterator it = begin(); it!=end(); ++it)
 		{
 			if (it->hasSuffix("\n"))
 			{
 				if (it->hasSuffix("\r\n"))
 				{
-					outfile << it->substr(0,-2)<< endl;
+					os << it->substr(0,-2)<< endl;
 				}
 				else
 				{
-					outfile << it->substr(0,-1) << endl;
+					os << it->substr(0,-1) << endl;
 				}
 			}
 			else
 			{
-				outfile << *it << endl;
+				os << *it << endl;
 			}
 		}
-		outfile.close();
+		os.close();
 	}
 	
 	

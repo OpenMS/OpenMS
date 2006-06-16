@@ -59,6 +59,7 @@ void print_usage()
 			 << endl
 			 << "Options are:" << endl
 			 << "  --help            shows this help" << endl
+			 << "  --ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
 			 << endl ;
 }
 
@@ -67,6 +68,7 @@ int main( int argc, char ** argv )
 	//list of all the valid options
 	map<string,string> valid_options, valid_flags;
 	valid_flags["--help"] = "help";
+	valid_options["--ini"] = "ini";
 	
 	Param param;
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unkonwn");
@@ -86,11 +88,15 @@ int main( int argc, char ** argv )
 		return 1;
 	}
 	
-	try
-	{
+//	try
+//	{
 	  QApplication a( argc, argv );
 	  OpenMS::SpectrumMDIWindow* mw = OpenMS::SpectrumMDIWindow::instance();
 	  a.setMainWidget(mw);
+	  if (!param.getValue("ini").isEmpty())
+	  {
+	  	mw->loadPreferences((String)param.getValue("ini"));
+	  }
 	  mw->setCaption( "TOPPView" );
 	  mw->show();
 	  
@@ -111,12 +117,12 @@ int main( int argc, char ** argv )
 	  int res = a.exec();
 		mw->savePreferences();
 	  return res;
-	}
-	catch(Exception::Base& e)
-	{
-		cout << "Error: Unexpected error (" << e.what() <<")"<< endl;
-		return 1;
-	}
+//	}
+//	catch(Exception::Base& e)
+//	{
+//		cout << "Error: Unexpected error (" << e.what() <<")"<< endl;
+//		return 1;
+//	}
 	
 	return 0;
 }

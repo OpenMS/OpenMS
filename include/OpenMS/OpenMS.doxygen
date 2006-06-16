@@ -48,3 +48,12 @@
 	
 */
 
+/*
+	ToDo-Liste Marc:
+	- 2DView: Oberschläsche, bei vertauschter Achse
+	- Math tests, docu
+	- SpectrumWidget/Window docu, remove
+	- Static ints durch Enums ersetzen
+	
+	- OMSSA anschauen	
+*/

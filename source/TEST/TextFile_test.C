@@ -56,6 +56,9 @@ RESULT
 
 CHECK(void load(const String& filename, bool trim_lines=false) throw (Exception::FileNotFound))
 	TextFile file;
+	
+	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))	
+	
 	file.load("data/TextFile_test_infile.txt");
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
@@ -65,6 +68,9 @@ RESULT
 
 CHECK(void save(const String& filename) throw (Exception::UnableToCreateFile))
 	TextFile file;
+
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.save("/does/not/exist/FileDoesNotExist.txt"))	
+
 	file.push_back("line1");
 	file.push_back("line2\n");
 	file.push_back("line3\r\n");

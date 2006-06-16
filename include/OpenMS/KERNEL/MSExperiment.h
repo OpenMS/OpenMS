@@ -31,6 +31,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -64,21 +65,23 @@ namespace OpenMS
   {
     public:
 		typedef MSSpectrum<PeakT> SpectrumType;
-		typedef typename std::vector< MSSpectrum<PeakT> >::iterator Iterator;
-    typedef typename std::vector< MSSpectrum<PeakT> >::const_iterator ConstIterator;
+    typedef std::vector<SpectrumType> Base;
+		typedef typename std::vector<SpectrumType>::iterator Iterator;
+    typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
+    
     typedef PeakT PeakType;
-		typedef typename PeakType::CoordinateType CoordinateType;  	
-    typedef std::vector<MSSpectrum<PeakT> > Base;
+    typedef typename PeakType::TraitsType TraitsType;
+    typedef DRange<2, TraitsType> AreaType;
+		typedef typename TraitsType::CoordinateType CoordinateType;  	
+    typedef typename TraitsType::IntensityType IntensityType; 
+
 
   	/// Constructor
     MSExperiment()
 			: std::vector<MSSpectrum<PeakT> >(),
 			ExperimentalSettings(),
 			PersistentObject(),
-			mz_min_(0),
-			mz_max_(0),
-			rt_min_(0),
-			rt_max_(0),
+			rt_mz_range_(AreaType::zero),
 			it_min_(0),
 			it_max_(0),
 			ms_levels_(),
@@ -93,10 +96,7 @@ namespace OpenMS
 			std::vector<MSSpectrum<PeakT> >(source),
 			ExperimentalSettings(source),
 			PersistentObject(source),
-			mz_min_(source.mz_min_),
-			mz_max_(source.mz_max_),
-			rt_min_(source.rt_min_),
-			rt_max_(source.rt_max_),
+			rt_mz_range_(source.rt_mz_range_),
 			it_min_(source.it_min_),
 			it_max_(source.it_max_),
 			ms_levels_(source.ms_levels_),
@@ -415,8 +415,7 @@ namespace OpenMS
 				//empty
 				if (this->size()==0)
 				{
-					mz_min_ = mz_max_ = 0;
-					rt_min_ = rt_max_ = 0;
+					rt_mz_range_ = AreaType::zero;
 					it_min_ = it_max_ = 0;
 					return;
 				}
@@ -425,9 +424,7 @@ namespace OpenMS
 				double rt;
 			
 				//initialize
-				rt_min_ = rt_max_ = this->begin()->getRetentionTime();				
-				mz_min_ = std::numeric_limits<typename SpectrumType::PeakType::CoordinateType>::max();
-				mz_max_ = -1.0 * std::numeric_limits<typename SpectrumType::PeakType::IntensityType>::max();
+				rt_mz_range_ = AreaType::empty;
 				it_min_ = std::numeric_limits<typename SpectrumType::PeakType::CoordinateType>::max();
 				it_max_ = -1.0 * std::numeric_limits<typename SpectrumType::PeakType::IntensityType>::max();
 				nr_dpoints_ = 0;
@@ -437,8 +434,9 @@ namespace OpenMS
 				{
 					//rt
 					rt = it->getRetentionTime();
-					if (rt < rt_min_) rt_min_ = rt;
-					if (rt > rt_max_) rt_max_ = rt;
+					
+					if (rt < rt_mz_range_.min()[0]) rt_mz_range_.setMinX(rt);
+					if (rt > rt_mz_range_.max()[0]) rt_mz_range_.setMaxX(rt);
 					
 					//ms levels
 					if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
@@ -449,8 +447,8 @@ namespace OpenMS
 					it->updateRanges();
 					
 					//mz
-					if (it->getMin()[0] < mz_min_) mz_min_ = it->getMin()[0];
-					if (it->getMax()[0] > mz_max_) mz_max_ = it->getMax()[0];
+					if (it->getMin()[0] < rt_mz_range_.min()[1]) rt_mz_range_.setMinY(it->getMin()[0]);
+					if (it->getMax()[0] > rt_mz_range_.max()[1]) rt_mz_range_.setMaxY(it->getMax()[0]);
 					
 					//int
 					if (it->getMinInt() < it_min_) it_min_ = it->getMinInt();			
@@ -468,39 +466,49 @@ namespace OpenMS
 			}
 			
 			/// returns the minimal m/z value
-			typename SpectrumType::PeakType::CoordinateType getMinMZ() const
+			CoordinateType getMinMZ() const
 			{
-				return mz_min_;
+				return rt_mz_range_.min()[1];
 			}
 
 			/// returns the maximal m/z value
-			typename SpectrumType::PeakType::CoordinateType getMaxMZ() const
+			CoordinateType getMaxMZ() const
 			{
-				return mz_max_;
+				return rt_mz_range_.max()[1];
 			}
 
 			/// returns the minimal retention time value
-			double getMinRT() const
+			CoordinateType getMinRT() const
 			{
-				return rt_min_;
+				return rt_mz_range_.min()[0];
 			}
 			
 			/// returns the maximal retention time value
-			double getMaxRT() const
+			CoordinateType getMaxRT() const
 			{
-				return rt_max_;
+				return rt_mz_range_.max()[0];
 			}
 
 			/// returns the minimal intensity value
-			double getMinInt() const
+			IntensityType getMinInt() const
 			{
 				return it_min_;
 			}
 			
 			/// returns the maximal intensity value
-			double getMaxInt() const
+			IntensityType getMaxInt() const
 			{
 				return it_max_;
+			}
+
+			/**
+				@brief Returns RT and m/z range the data lies in.
+				
+				RT is dimension 0, m/z is dimension 1
+			*/
+			const AreaType& getDataRange() const
+			{
+				return rt_mz_range_;
 			}
 			
 			/// returns the number of peaks in all spectra
@@ -654,13 +662,12 @@ namespace OpenMS
 	    {
 	    	//TODO Persistence	
 	    };	
-
-			/// boundaries of m/z 
-			typename SpectrumType::PeakType::CoordinateType mz_min_, mz_max_;
-			///
+			
+			///Base class typedef
 			typedef typename std::vector<MSSpectrum<PeakT> > Base_;
-			/// boundaries of retention time
-			double rt_min_, rt_max_;
+			
+			/// boundaries of RT (dimension 0)  and m/z (dimension 1)
+			AreaType rt_mz_range_;
 			/// boundaries of the intensity
 			double it_min_, it_max_;
 			/// MS levels of the data

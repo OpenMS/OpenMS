@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/Param.h>
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -190,129 +191,133 @@ namespace OpenMS
 		return out;
 	}
 
-	void Param::store(const string& filename) const
+	void Param::store(const string& filename) const throw (Exception::UnableToCreateFile)
 	{
 		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
 		UnsignedInt common, level=1;
 		
-	  FILE* fp = fopen (filename.c_str(),"wt");
-	  if (fp!=NULL)
-	  {
-	  	fputs ("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n",fp);
-	  	fputs ("<PARAMETERS>\n",fp);
-			for(map<string,DataValue>::const_iterator it = values_.begin(); it != values_.end();++it)
+		ofstream os;
+		os.open (filename.c_str(), ofstream::out);
+		
+		if(!os)
+		{
+			 throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+		
+  	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+  	os << "<PARAMETERS>\n";
+		for(map<string,DataValue>::const_iterator it = values_.begin(); it != values_.end();++it)
+		{
+			//init variables
+			key = it->first;
+			if (key.find(":")==string::npos)
 			{
-				//init variables
-				key = it->first;
-				if (key.find(":")==string::npos)
+				key_without_prefix = key;
+				new_prefix = "";
+			}
+			else
+			{
+				key_without_prefix = key.substr(key.rfind(":")+1,key.size());
+				new_prefix = key.substr(0,key.rfind(":")+1);
+			} 
+			//common prefix
+			common=0;
+			for (UnsignedInt i=0;i<min(key.size(),prefix.size());++i)
+			{
+				if (prefix[i]!=key[i])
 				{
-					key_without_prefix = key;
-					new_prefix = "";
+					break;
 				}
-				else
+				if (prefix[i]==':')
 				{
-					key_without_prefix = key.substr(key.rfind(":")+1,key.size());
-					new_prefix = key.substr(0,key.rfind(":")+1);
-				} 
-				//common prefix
-				common=0;
-				for (UnsignedInt i=0;i<min(key.size(),prefix.size());++i)
-				{
-					if (prefix[i]!=key[i])
-					{
-						break;
-					}
-					if (prefix[i]==':')
-					{
-						common = i+1;
-					}
+					common = i+1;
 				}
+			}
 //				cout << "key_wo: "<<key_without_prefix<<endl;
 //				cout << "key   : "<<key<<endl;
 //				cout << "prefix: "<<prefix<<endl;
 //				cout << "|||   : "<<key.substr(0, common)<<endl;
-				//write down
-				down = prefix.substr(common, prefix.size());
-				if (down!="")
-				{
-//					cout << "  <-  : "<<down<<endl;
-					for (UnsignedInt i = 0; i < down.size();++i)
-					{
-						if (down[i]==':')
-						{
-							--level;
-							string tmp = string (2*level,' ');
-							fputs ( tmp.c_str(),fp);
-							fputs ( "</NODE>\n",fp);						
-						}
-					}	
-				}
-				
-				//write up
-				up = key.substr(common, key.size()-common-key_without_prefix.size());
-				if (up!="")
-				{
-//					cout << "  ->  : "<<up<<endl;
-					while (up != "")
-					{
-						UnsignedInt pos = up.find(":");
-						string tmp = string (2*level,' ');
-						fputs ( tmp.c_str(),fp);
-						tmp = "<NODE name=\""+up.substr(0,pos)+"\" >\n";
-						fputs ( tmp.c_str(),fp);
-						++level;
-						up = up.substr(pos+1,up.size());
-					}				
-				}
-				
-				//write item
-				string tmp = string (2*level,' ');
-				fputs ( tmp.c_str(),fp);
-				if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
-				{
-					type = "int";
-				}
-				if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
-				{
-					type = "float";
-				}
-				if (it->second.valueType()==DataValue::STRVALUE )
-				{
-					type = "string";
-				}
-				
-				if(it->second.valueType()!=DataValue::EMPTYVALUE)
-				{
-					tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" />\n";
-					fputs ( tmp.c_str(),fp);					
-				}
-					
-				//set new prefix
-				prefix = new_prefix;
-				//cout << "newprf: "<<new_prefix<<endl;
-				//cout << endl;				
-			}
-			
-			//close remaining prefix tags
-			down = prefix;
+			//write down
+			down = prefix.substr(common, prefix.size());
 			if (down!="")
 			{
-//				cout << "  <-  : "<<down<<endl;
+//					cout << "  <-  : "<<down<<endl;
 				for (UnsignedInt i = 0; i < down.size();++i)
 				{
 					if (down[i]==':')
 					{
 						--level;
 						string tmp = string (2*level,' ');
-						fputs ( tmp.c_str(),fp);
-						fputs ( "</NODE>\n",fp);						
+						os << tmp.c_str();
+						os << "</NODE>\n";						
 					}
 				}	
 			}
 			
-			fputs ("</PARAMETERS>\n",fp);
-	    fclose (fp);
-	  }
+			//write up
+			up = key.substr(common, key.size()-common-key_without_prefix.size());
+			if (up!="")
+			{
+//					cout << "  ->  : "<<up<<endl;
+				while (up != "")
+				{
+					UnsignedInt pos = up.find(":");
+					string tmp = string (2*level,' ');
+					os << tmp.c_str();
+					tmp = "<NODE name=\""+up.substr(0,pos)+"\" >\n";
+					os << tmp.c_str();
+					++level;
+					up = up.substr(pos+1,up.size());
+				}				
+			}
+			
+			//write item
+			string tmp = string (2*level,' ');
+			os << tmp.c_str();
+			if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
+			{
+				type = "int";
+			}
+			if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
+			{
+				type = "float";
+			}
+			if (it->second.valueType()==DataValue::STRVALUE )
+			{
+				type = "string";
+			}
+			
+			if(it->second.valueType()!=DataValue::EMPTYVALUE)
+			{
+				tmp = "<ITEM name=\""+key_without_prefix+"\" value=\""+it->second.toString()+"\" type=\""+type+"\" />\n";
+				os << tmp.c_str();					
+			}
+				
+			//set new prefix
+			prefix = new_prefix;
+			//cout << "newprf: "<<new_prefix<<endl;
+			//cout << endl;				
+		}
+		
+		//close remaining prefix tags
+		down = prefix;
+		if (down!="")
+		{
+//				cout << "  <-  : "<<down<<endl;
+			for (UnsignedInt i = 0; i < down.size();++i)
+			{
+				if (down[i]==':')
+				{
+					--level;
+					string tmp = string (2*level,' ');
+					os << tmp.c_str();
+					os << "</NODE>\n";						
+				}
+			}	
+		}
+		
+		os << "</PARAMETERS>\n";
+    os.close();
 	}
 	
 	void Param::load(const string& filename) throw (FileNotFound)
@@ -386,91 +391,6 @@ namespace OpenMS
       }
     }
 	}
-	
-//	void Param::parseCommandLine(const int argc , char **argv, const map<string,string>& params_to_keys)
-//	{
-//		//determine misc key
-//    string misc_key = "misc";
-//		if (params_to_keys.find("misc")!=params_to_keys.end())
-//		{
-//			misc_key = params_to_keys.find("misc")->second;
-//		}
-//
-//		//determine unknown key
-//    string unknown_key = "unknown";
-//		if (params_to_keys.find("unknown")!=params_to_keys.end())
-//		{
-//			unknown_key = params_to_keys.find("unknown")->second;
-//		}
-//
-//		//parse arguments
-//    string arg,arg1;
-//    for(int i = 1; i < argc; ++i )
-//    { 
-//      //load the current and next argument:  arg and arg1 ("" at the last argument)
-//      arg = argv[i];
-//      if (i+1<argc)
-//      {
-//      	arg1 = argv[i+1];
-//      }
-//    	else
-//    	{
-//    		arg1 = "";
-//    	}
-//
-//      //flag (option without text argument)
-//      if(arg[0]  == '-' && (arg1[0] == '-' || arg1 ==""))
-//      {
-//				if (params_to_keys.find(arg)==params_to_keys.end())
-//				{
-//	      	if (values_[unknown_key].isEmpty())
-//	      	{
-//	      		values_[unknown_key] = arg;
-//	      	}
-//	      	else
-//	      	{
-//	      		values_[unknown_key] = string(values_[unknown_key])+" "+arg;
-//	      	}
-//				}
-//				else
-//				{
-//					values_[params_to_keys.find(arg)->second] = "";
-//				}	      	
-//      }
-//      //option with argument
-//      else if(arg[0]  == '-')
-//      {
-//				if (params_to_keys.find(arg)==params_to_keys.end())
-//				{
-//	      	if (values_[unknown_key].isEmpty())
-//	      	{
-//	      		values_[unknown_key] = arg;
-//	      	}
-//	      	else
-//	      	{
-//	      		values_[unknown_key] = string(values_[unknown_key])+" "+arg;
-//	      	}
-//				}
-//				else
-//				{
-//	      	values_[params_to_keys.find(arg)->second] = arg1;
-//	      	++i;
-//				}	   
-//      }      
-//      //just text arguments (not preceded by an option)
-//      else
-//      {
-//      	if (values_[misc_key].isEmpty())
-//      	{
-//      		values_[misc_key] = arg;
-//      	}
-//      	else
-//      	{
-//      		values_[misc_key] = string(values_[misc_key])+" "+arg;
-//      	}
-//      }
-//    }
-//	}
 
 	void Param::parseCommandLine(const int argc , char **argv, const map<string, string>& options_with_argument, const map<string, string>& options_without_argument, const string& misc, const string& unknown)
 	{
@@ -559,6 +479,11 @@ namespace OpenMS
 	bool Param::empty() const
 	{
 		return values_.empty();
+	}
+
+	void Param::clear()
+	{
+		values_.clear();
 	}
 
 }	//namespace

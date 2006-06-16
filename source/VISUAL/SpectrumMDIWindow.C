@@ -133,9 +133,6 @@ namespace OpenMS
 		PreferencesManager(),
 		recent_files_()
 	{
-		//set preferences file name + load preferencs
-		loadPreferences();
-	
 		//prevents errors caused by too small width,height values
 		setMinimumSize(200,200);
 	
@@ -144,7 +141,7 @@ namespace OpenMS
 		setCentralWidget(dummy);
 		QVBoxLayout* box_layout = new QVBoxLayout(dummy);
 		tab_bar_ = new EnhancedTabBar(dummy);
-		QTab* tmp = new QTab("bla buff");
+		QTab* tmp = new QTab("dummy");
 		tab_bar_->addTab(tmp);
 		tab_bar_->setMinimumSize(tab_bar_->sizeHint());
 		tab_bar_->removeTab(tmp);
@@ -234,11 +231,12 @@ namespace OpenMS
 		//add Layer Manager
 		layer_manager_ = new LayerManager(layer_bar_, "LayerManager");
 		layer_bar_->hide();
-	
-		//update recent files menu
-		updateRecentMenu_();
-		MetaInfo::registry().registerName("FeatureDrawMode",
-																		 "Specify what to draw of the Feature: BoundingBox, ConvexHulls");
+		
+		//register meta value names
+		MetaInfo::registry().registerName("FeatureDrawMode", "Specify what to draw of the Feature: BoundingBox, ConvexHulls");
+
+		//set preferences file name + load preferencs
+		loadPreferences();
 	}
 	
 	
@@ -1780,42 +1778,55 @@ namespace OpenMS
 	
 	void SpectrumMDIWindow::loadPreferences(string filename)
 	{
+		//compose default ini file path
+		String default_ini_file;
+	  char * home;
+	  home = getenv ("HOME");
+	  if (home!=NULL)
+	  {
+	  	default_ini_file = home;
+	  	default_ini_file = default_ini_file + "/";
+	  }
+		default_ini_file = default_ini_file + ".TOPPView.ini";
+		
 		if (filename=="")
 		{
-			//set preferences filename
-			prefs_.setValue("PreferencesFile" , string(qApp->argv()[0])+".ini");
+			filename = default_ini_file;
 		}
-		else
-		{
-			prefs_.setValue("PreferencesFile" , filename);
-		}
-	
+		prefs_.setValue("PreferencesFile" , filename);
+		
 		//load preferences, if file exists
 		FILE * infile;
-	  infile = fopen (string(prefs_.getValue("PreferencesFile")).c_str(), "r");
+	  infile = fopen (filename.c_str(), "r");
 	  if (infile != NULL)
 		{
-			prefs_.load(string(prefs_.getValue("PreferencesFile")));
+			prefs_.clear();
+			prefs_.setValue("PreferencesFile" , filename);
+			prefs_.load(filename);
 	  }
 		else
 		{
+			if (filename != default_ini_file)
+			{
+				cerr << "Unable to load INI File: '" << filename << "'" << endl;
+			}
 			close (infile);
 		}
 		
 		//set missing defaults
 	  checkPreferences_();
+	  
 		//set the recent files
 		Param p = prefs_.copy("Preferences:RecentFiles");
-		if (p.size()==0)
+		if (p.size()!=0)
 		{
-			return;
+			for (Param::ConstIterator it=p.begin() ; it!=p.end() ; ++it)
+			{
+				recent_files_.push_back(string(it->second));
+			}
 		}
-	
-		for (Param::ConstIterator it=p.begin() ; it!=p.end() ; ++it)
-		{
-			recent_files_.push_back(string(it->second));
-		}
-		//cout << prefs_ << endl;
+
+		updateRecentMenu_();
 	}
 	
 	void SpectrumMDIWindow::savePreferences()
@@ -1827,9 +1838,16 @@ namespace OpenMS
 		{
 			prefs_.setValue("Preferences:RecentFiles:"+String(i),recent_files_[i]);
 		}
-	
+		
 		//save only the subsection that begins with "Preferences:"
-		prefs_.copy("Preferences:").store(string(prefs_.getValue("PreferencesFile")));
+		try
+		{
+			prefs_.copy("Preferences:").store(string(prefs_.getValue("PreferencesFile")));
+		}
+		catch(Exception::UnableToCreateFile& e)
+		{
+			cerr << "Unable to create INI File: '" << string(prefs_.getValue("PreferencesFile")) << "'" << endl;
+		}
 	}
 	
 	

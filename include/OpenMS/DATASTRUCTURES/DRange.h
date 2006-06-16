@@ -67,16 +67,6 @@ namespace OpenMS
 		typedef typename Base::PositionType PositionType;
 		/// Coordinate type of the positions
 		typedef typename Base::CoordinateType CoordinateType;
-	
-//		typedef std::pair<PositionType, PositionType>	ValueType;
-//		typedef ValueType& Reference;
-//		typedef const ValueType& ConstReference;
-//		typedef ValueType* Pointer;
-//		typedef	ValueType value_type;
-//		typedef Reference reference;
-//		typedef ConstReference const_reference;
-//		typedef Pointer pointer;
-
 		///Types that describe the kind of intersection between two ranges
 		enum DRangeIntersection 
 		{
@@ -112,6 +102,13 @@ namespace OpenMS
 		
 		/// Copy constructor.
 		DRange(const DRange& range)
+			: Base(range)
+		{
+			
+		}
+
+		/// Copy constructor for the base class
+		DRange(const Base& range)
 			: Base(range)
 		{
 			
@@ -260,7 +257,7 @@ namespace OpenMS
   		return true;
     }
     
-		/// Set all coordinates to zero
+		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
       for(Position i = 0; i != D; i++)

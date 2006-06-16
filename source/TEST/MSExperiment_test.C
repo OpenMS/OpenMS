@@ -288,6 +288,14 @@ RESULT
 
 CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],0.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],0.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],0.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],0.0)
+RESULT
+
+CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
+	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
 RESULT
 
@@ -350,6 +358,12 @@ CHECK(void updateRanges())
 	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
 	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
 	TEST_REAL_EQUAL(tmp.getMaxRT(),50.0)
+	
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],5.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],10.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],30.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],50.0)
+	
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getMSLevels()[1],3)

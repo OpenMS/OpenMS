@@ -104,7 +104,9 @@ namespace OpenMS
 			UnsignedInt size() const;
 			///Returns if there are no entries.
 			bool empty() const;
-
+			/// Deletes all entries
+			void clear();
+			
       ///Insert all values of @p para and adds the prefix @p prefix.
       void insert(const std::string& prefix, const Param& para);
       ///Remove all entries that start with @p prefix.
@@ -125,7 +127,7 @@ namespace OpenMS
       Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
 
       ///Write XML file.
-      void store(const std::string& filename) const;
+      void store(const std::string& filename) const throw (Exception::UnableToCreateFile);
       ///Read XML file.
       void load(const std::string& filename) throw (Exception::FileNotFound);
 
