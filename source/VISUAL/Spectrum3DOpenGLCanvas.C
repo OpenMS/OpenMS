@@ -1152,6 +1152,7 @@ void Spectrum3DOpenGLCanvas::setResetZoomView()
 {
 	canvas_3d_.current_zoom_ = 0;	
 	zoom_mode_ = false;
+	// todo
 	view_mode_ = VIEW_SELECT;
 	xRot_ = 0;
 	yRot_ = 0;
@@ -1164,6 +1165,7 @@ void Spectrum3DOpenGLCanvas::setResetZoomView()
 
 void Spectrum3DOpenGLCanvas::setZoomView()
 {
+	// todo anzeige
 	zoom_mode_ = true;
 	view_mode_ = VIEW_ZOOM;
 	zoom_ = 1.0;
