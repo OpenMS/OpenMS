@@ -157,6 +157,7 @@ namespace OpenMS
 
 
 		void updateMinMaxValues();
+		void updateIntensityScale();
 		void dataToZoomArray(double x_1, double y_1, double x_2, double y_2);
 		///
 
@@ -186,6 +187,7 @@ namespace OpenMS
 		void setSelectView();
 		bool getShowSelect();		
 		bool getShowZoom();
+		void setIntensityScale(bool);
 
     ///
     int xRotation() const { return xRot_; }
@@ -226,9 +228,11 @@ namespace OpenMS
 		bool zoom_mode_;
 		bool show_zoom_selection_;		
 		bool grid_exists_;
+		bool intensity_scale_;
 
 	  DRange<2> range;
 		DRange<3> overall_values_;
+		DRange<1> int_scale_;
 		///member gridvectors which contains the data for the ticks
 		GridVector grid_mz_,grid_rt_, grid_intensity_,grid_intensity_log_;
 

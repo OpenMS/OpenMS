@@ -1096,6 +1096,14 @@ namespace OpenMS
 		show_top_view_3d_->setOn(false);		
 		connect(show_top_view_3d_, SIGNAL(toggled(bool)), this, SLOT(setTopView3D(bool)));
 		
+		intensity_scaled_dots_button_3d_ = new QToolButton(QIconSet(QPixmap(XPM_intensity_scaled_dots)), "setIntensityScaledDots", "setIntensityScaledDots", 0, 0, tool_bar_3d_, "setIntensityScaledDots");
+		intensity_scaled_dots_button_3d_->setToggleButton(true);
+		intensity_scaled_dots_button_3d_ ->setOn(false);
+		connect(intensity_scaled_dots_button_3d_, SIGNAL(toggled(bool)), this, SLOT(setIntensityScaledDots3D(bool)));
+	
+
+
+
 		show_reset_view_3d_ = new QToolButton(QIconSet(QPixmap(XPM_reset_zoom)), "resetZoom", "resetZoom", 0, 0, tool_bar_3d_, "resetZoom");
 		show_reset_view_3d_->setToggleButton(true);
 		show_reset_view_3d_->setOn(false);
@@ -1294,6 +1302,7 @@ namespace OpenMS
 			win->setIntensityScaledDots(on);
 		}
 	}
+	
 
 
 
@@ -1304,6 +1313,7 @@ namespace OpenMS
 		{
 			show_back_view_3d_->setOn(false);	
 			show_top_view_3d_->setOn(false);	
+			intensity_scaled_dots_button_3d_->setOn(false);
 			show_reset_view_3d_->setOn(false);
 			if (Spectrum3DWindow* win = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
 				{
@@ -1317,6 +1327,7 @@ namespace OpenMS
 		{
 			show_back_view_3d_->setOn(false);	
 			show_top_view_3d_->setOn(false);	
+			intensity_scaled_dots_button_3d_->setOn(false);
 			show_reset_view_3d_->setOn(false);
 			if (Spectrum3DWindow* win = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
 			{
@@ -1324,12 +1335,28 @@ namespace OpenMS
 			}
 		}
 	}
+	void SpectrumMDIWindow::setIntensityScaledDots3D(bool on)
+	{
+			if(on)
+			{
+				show_back_view_3d_->setOn(false);	
+				show_top_view_3d_->setOn(false);	
+				intensity_scaled_dots_button_3d_->setOn(false);
+				show_reset_view_3d_->setOn(false);
+				
+				if (Spectrum3DWindow* win = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
+				{
+						win->widget()->canvas()->openglwidget()->setIntensityScale(on);
+				}
+			}
+	}
 	void SpectrumMDIWindow::setResetZoomView3D(bool on)
 	{
 		if(on)
 		{
 			show_back_view_3d_->setOn(false);	
 			show_top_view_3d_->setOn(false);	
+			intensity_scaled_dots_button_3d_->setOn(false);
 			show_reset_view_3d_->setOn(false);
 			if (Spectrum3DWindow* win = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
 		  {

@@ -55,7 +55,7 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 		canvas_3d_(canvas_3d)
 {
 	//	setFocusPolicy(QWidget::TabFocus);
-			//new and old values for the angels
+	//new and old values for the angels
 	xRot_ = 0;
 	yRot_ = 0;
 	zRot_ = 0;
@@ -78,6 +78,7 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	showbackview_=false;
 	view_mode_ = VIEW_SELECT;
 	grid_exists_=false;
+	intensity_scale_=false;
 }
 	
 Spectrum3DOpenGLCanvas::  ~Spectrum3DOpenGLCanvas()
@@ -88,22 +89,51 @@ Spectrum3DOpenGLCanvas::  ~Spectrum3DOpenGLCanvas()
 }
 void Spectrum3DOpenGLCanvas::updateMinMaxValues()
 {
-	canvas_3d_.currentDataSet().updateRanges();
-	// update of the Min-Values
-	overall_values_.min_[0] =canvas_3d_.currentDataSet().getMinRT();
-	overall_values_.min_[1] =canvas_3d_.currentDataSet().getMinMZ();
-	overall_values_.min_[2] =canvas_3d_.currentDataSet().getMinInt();
-	// update of the Max-Values
-	overall_values_.max_[0]=canvas_3d_.currentDataSet().getMaxRT();
-	overall_values_.max_[1]=canvas_3d_.currentDataSet().getMaxMZ();
-	overall_values_.max_[2]=canvas_3d_.currentDataSet().getMaxInt();
-
+	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
+	{
+		canvas_3d_.getDataSet(i).updateRanges();
+		// update of the Min-Values
+		if(overall_values_.min_[0]>canvas_3d_.getDataSet(i).getMinRT())
+		{
+			overall_values_.min_[0] =canvas_3d_.getDataSet(i).getMinRT();
+		}
+		if(overall_values_.min_[1]>canvas_3d_.getDataSet(i).getMinMZ())
+		{
+			overall_values_.min_[1] =canvas_3d_.getDataSet(i).getMinMZ();
+		}
+		if(overall_values_.min_[2]>canvas_3d_.getDataSet(i).getMinInt())
+		{
+			overall_values_.min_[2] =canvas_3d_.getDataSet(i).getMinInt();
+		}
+			// update of the Max-Values
+		if(overall_values_.max_[0]<canvas_3d_.getDataSet(i).getMaxRT())
+		{
+			overall_values_.max_[0]=canvas_3d_.getDataSet(i).getMaxRT();
+		}
+		if(overall_values_.max_[1]<canvas_3d_.getDataSet(i).getMaxMZ())
+		{
+			overall_values_.max_[1]=canvas_3d_.getDataSet(i).getMaxMZ();
+		}
+		if(overall_values_.max_[2]<canvas_3d_.getDataSet(i).getMaxInt())
+		{
+			overall_values_.max_[2]=canvas_3d_.getDataSet(i).getMaxInt();
+		}
+	}
 }
 
 void Spectrum3DOpenGLCanvas::calculateGridLines_()
 {
-	grid_intensity_log_=  AxisTickCalculator::calcLogGridLines_(log10(overall_values_.min_[2]),log10(overall_values_.max_[2])); 
-	grid_intensity_=  AxisTickCalculator::calcGridLines_(overall_values_.min_[2],overall_values_.max_[2],3); 
+	if(intensity_scale_)
+	{
+		grid_intensity_log_=  AxisTickCalculator::calcLogGridLines_(log10(int_scale_.min_[0]),log10(int_scale_.max_[0])); 
+		grid_intensity_=  AxisTickCalculator::calcGridLines_(int_scale_.min_[0],int_scale_.max_[0],3); 
+
+	}
+	else
+	{
+		grid_intensity_log_=  AxisTickCalculator::calcLogGridLines_(log10(overall_values_.min_[2]),log10(overall_values_.max_[2])); 
+		grid_intensity_=  AxisTickCalculator::calcGridLines_(overall_values_.min_[2],overall_values_.max_[2],3); 
+	}
 	grid_rt_=  AxisTickCalculator::calcGridLines_(overall_values_.min_[0],overall_values_.max_[0],3);
 	grid_mz_=  AxisTickCalculator::calcGridLines_(overall_values_.min_[1],overall_values_.max_[1],3);
 	grid_exists_ = true;
@@ -157,17 +187,12 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 			stickdata_ = makeDataAsTopView();
 			break;
 		case VIEW_ZOOM:
-			if(!show_zoom_selection_)
+			stickdata_ = makeDataAsTopView();
+			if(show_zoom_selection_)
 				{
-				zoomselection_ = makeZoomSelection();
-				stickdata_ = makeDataAsTopView(); 
-			}
-			else
-				if(show_zoom_selection_)
-					{
-						zoomselection_ = makeZoomSelection();
-					}
-				break;
+					zoomselection_ = makeZoomSelection();
+				}
+			break;
 		}
 	}
 }
@@ -196,6 +221,11 @@ void Spectrum3DOpenGLCanvas::paintGL()
 		if( view_mode_ !=VIEW_ZOOM && view_mode_ != VIEW_TOP)
 			{
 				glCallList(axeslabel_);
+				if(grid_exists_)
+					{
+						makeFont();
+						paintAxesScale();
+					}
 			}
 		if(show_zoom_selection_)
 			
@@ -204,13 +234,8 @@ void Spectrum3DOpenGLCanvas::paintGL()
 			}
 		glCallList(coord_);
 		
-		if(grid_exists_)
-			{
-				makeFont();
-				paintAxesScale();
-			}
 	}
-
+	
 }
 
 void Spectrum3DOpenGLCanvas::paintAxesScale()
@@ -604,31 +629,36 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 					{
 						//	canvas_3d_.getDataSet(i).sortSpectra(true);
 					
-					for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
-					{			
-						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
-										{
-											qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-											glBegin(GL_POINTS);
-											qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
-											glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-																 -corner_,
+						for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
+						{	
+						
+							if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
+							{
+								
+								if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+								{
+									qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+									glBegin(GL_POINTS);
+									qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
+														 -corner_,
 																 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-											glEnd();					
-										}
-									else
-										{
-											glBegin(GL_POINTS);
-											qglColor(black);			
-											glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-																 -corner_,
-																 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-											glEnd();					
-										}
+									glEnd();					
 								}
+								else
+								{
+									glBegin(GL_POINTS);
+									qglColor(black);			
+									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
+														 -corner_,
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+									glEnd();					
+								}
+							}
 						}
+					}
 				}
-		}
+			}
 		glEndList();
 		return list; 
 }
@@ -646,6 +676,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		{
 			glShadeModel(GL_FLAT); 
 		}
+	
 	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
 		{
 			recalculateDotGradient_(i);		 
@@ -661,32 +692,35 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		
 					for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
 					{			
-						glBegin(GL_LINES);
-						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+						if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
 						{
-							qglColor(QColor( gradient_.precalculatedColorAt(overall_values_.min_[2])));
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-												 -corner_,
-																 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-							qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+							glBegin(GL_LINES);
+							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+							{
+								qglColor(QColor( gradient_.precalculatedColorAt(overall_values_.min_[2])));
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
+													 -corner_,
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+								qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
 							
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-												 -corner_+(GLfloat)scaledIntensity(it->getIntensity()),
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
+													 -corner_+(GLfloat)scaledIntensity(it->getIntensity()),
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+							}
+							else
+							{
+								qglColor(black);			
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
+													 -corner_,
 												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
+													 -corner_+(GLfloat)scaledIntensity(it->getIntensity()),
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+							}
+							glEnd();
 						}
-						else
-						{
-							qglColor(black);			
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-												 -corner_,
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-												 -corner_+(GLfloat)scaledIntensity(it->getIntensity()),
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-						}
-						glEnd();
 					}
-				
+					
 				}
 			}
 			
@@ -718,22 +752,24 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 				//	canvas_3d_.getDataSet(i).sortSpectra(true);
 				for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
 				{			
+					if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
+					{
 					
-					recalculateDotGradientLog_(i);		 
-					if(canvas_3d_.isDataSetVisible(i))
-					{		
-						glBegin(GL_LINES);
-						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
-						{
-							qglColor(QColor( gradient_.precalculatedColorAt(log10(overall_values_.min_[2]))));
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
-												 -corner_,
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-							qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
-							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-												 -corner_+(GLfloat)scaledLogIntensity(log10(it->getIntensity())),
-												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
-						}
+						recalculateDotGradientLog_(i);		 
+						if(canvas_3d_.isDataSetVisible(i))
+						{		
+							glBegin(GL_LINES);
+							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
+							{
+								qglColor(QColor( gradient_.precalculatedColorAt(log10(overall_values_.min_[2]))));
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
+													 -corner_,
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+								qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
+								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
+													 -corner_+(GLfloat)scaledLogIntensity(log10(it->getIntensity())),
+													 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+							}
 						else
 						{
 							qglColor(black);			
@@ -741,10 +777,11 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 												 -corner_,
 												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
 							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()),
-																 -corner_+(GLfloat)scaledLogIntensity(log10(it->getIntensity())),
+												 -corner_+(GLfloat)scaledLogIntensity(log10(it->getIntensity())),
 												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
 						}
-						glEnd();
+							glEnd();
+						}
 					}
 					
 				}
@@ -910,8 +947,17 @@ double Spectrum3DOpenGLCanvas::scaledInversMZ(double mz)
 
 double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity)
 {
-	double scaledintensity = intensity -overall_values_.min_[2];
-	scaledintensity = ( scaledintensity * 2.0 * corner_)/(overall_values_.max_[2]-overall_values_.min_[2]);
+	double scaledintensity;
+	if(intensity_scale_)
+	{
+		scaledintensity = intensity -int_scale_.min_[0];
+		scaledintensity = ( scaledintensity * 2.0 * corner_)/(int_scale_.max_[0]-int_scale_.min_[0]);
+	}
+	else
+	{
+		scaledintensity = intensity -overall_values_.min_[2];
+		scaledintensity = ( scaledintensity * 2.0 * corner_)/(overall_values_.max_[2]-overall_values_.min_[2]);
+	}
 	return scaledintensity;
 }
 
@@ -1081,6 +1127,28 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 		 overall_values_.max_[1]= scale_y1;
 	 } 
 }
+void Spectrum3DOpenGLCanvas::updateIntensityScale()
+{
+		for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
+		{
+				for (Spectrum3DCanvas::ExperimentType::Iterator spec_it = canvas_3d_.getDataSet(i).RTBegin(overall_values_.min_[0]); 
+						 spec_it != canvas_3d_.getDataSet(i).RTEnd(overall_values_.max_[0]); 
+						 ++spec_it)
+				{
+					for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
+					{
+						if(	int_scale_.min_[0]> it->getIntensity())
+						{
+							int_scale_.min_[0]= it->getIntensity(); 
+						}
+						if(	int_scale_.max_[0]< it->getIntensity())
+							{
+							int_scale_.max_[0]= it->getIntensity(); 
+						} 
+					}
+				}
+		}
+}
 
 // sets the Multigradient gradient_
 void Spectrum3DOpenGLCanvas::setDotGradient(const std::string& gradient)
@@ -1112,9 +1180,13 @@ void Spectrum3DOpenGLCanvas::recalculateDotGradientLog_(UnsignedInt i)
 ///view front toolbar
 void Spectrum3DOpenGLCanvas::setBackView()
 {
-	
-	zoom_mode_ = false;
-	
+	if(intensity_scale_)
+	{
+		intensity_scale_ = false;
+		initializeGL();
+		updateGL();
+	}
+zoom_mode_ = false;
 	view_mode_ = VIEW_SELECT;
 	
 	if(showbackview_)
@@ -1132,27 +1204,26 @@ void Spectrum3DOpenGLCanvas::setBackView()
 void Spectrum3DOpenGLCanvas::setTopView()
 {
 	zoom_mode_ = false;
-	
+	intensity_scale_ = false;
 	view_mode_ = VIEW_TOP;
 	xRot_old_ = xRot_;
 	yRot_old_ = yRot_;
 	zRot_old_ = zRot_;	
 	xRot_ = 90*16;
 	yRot_ = 0;
-	zRot_ = 0;
-	
+	zRot_ = 0;	
 	showbackview_ = true;
-	
- 	initializeGL();
+	initializeGL();
  	updateGL();
 
 }
 
 void Spectrum3DOpenGLCanvas::setResetZoomView()
 {
+	intensity_scale_ = false;
 	canvas_3d_.current_zoom_ = 0;	
 	zoom_mode_ = false;
-	// todo
+	updateMinMaxValues();
 	view_mode_ = VIEW_SELECT;
 	xRot_ = 0;
 	yRot_ = 0;
@@ -1162,17 +1233,29 @@ void Spectrum3DOpenGLCanvas::setResetZoomView()
  	updateGL();
 	
 }
-
+void Spectrum3DOpenGLCanvas::setIntensityScale(bool on)
+{
+	intensity_scale_ = on;
+	updateIntensityScale();
+	view_mode_ = VIEW_SELECT;
+	xRot_ = 0;
+	yRot_ = 0;
+	zRot_ = 0;
+	zoom_ = 1.25;
+ 	initializeGL();
+ 	updateGL();
+}
 void Spectrum3DOpenGLCanvas::setZoomView()
 {
-	// todo anzeige
+	intensity_scale_ = false;
 	zoom_mode_ = true;
 	view_mode_ = VIEW_ZOOM;
 	zoom_ = 1.0;
+	//saving the old angels
 	xRot_old_ = xRot_;
 	yRot_old_ = yRot_;
-	zRot_old_ = zRot_;	
-	
+	zRot_old_ = zRot_;		
+	// setting the topview angels
 	xRot_ = 90*16;
 	yRot_ = 0;
 	zRot_ = 0;
@@ -1182,7 +1265,7 @@ void Spectrum3DOpenGLCanvas::setZoomView()
 
 void Spectrum3DOpenGLCanvas::setSelectView()
 {
-	
+	intensity_scale_ = false;
 	zoom_ = 1.25;
 	zoom_mode_ = false;
 	view_mode_ = VIEW_SELECT;

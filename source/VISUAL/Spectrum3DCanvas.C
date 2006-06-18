@@ -151,25 +151,23 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 
 void Spectrum3DCanvas::invalidate_()
 {
-	openglwidget()->updateGL();
+	//	openglwidget()->updateGL();
 	openglwidget()->initializeGL();
  	openglwidget()->updateGL();
 }
 
-void Spectrum3DCanvas::removeDataSet(int /*data_set*/)
+void Spectrum3DCanvas::removeDataSet(int data_set)
 {
-// 	if (data_set >= int(getDataSetCount()))
-// 		{
-// 			return;
-// 		}
-	
-// 		//remove the data
-// 		delete datasets_[data_set];
-// 		datasets_.erase(data_sets_.begin()+data_set);
-// 		layer_visible_.erase(layer_visible_.begin()+data_set);
-	
-	
-	// todo: 	openglcanvas_->removeDataSet(int);
+	if (data_set >= int(getDataSetCount()))
+		{
+			return;
+		}
+ 		datasets_.erase(datasets_.begin()+data_set);
+		layer_visible_.erase(layer_visible_.begin()+data_set);
+		max_disp_ints_.erase(max_disp_ints_.begin()+data_set);
+		min_disp_ints_.erase(min_disp_ints_.begin()+data_set);
+		openglcanvas_->updateMinMaxValues();
+		invalidate_();
 }
 
 Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()

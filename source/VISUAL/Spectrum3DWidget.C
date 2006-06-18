@@ -78,7 +78,6 @@ namespace OpenMS
 	
 	void Spectrum3DWidget::recalculateAxes()
 	{
-		
 	}
 	
 	void Spectrum3DWidget::intensityModificationChange_()
@@ -88,11 +87,9 @@ namespace OpenMS
 
 	void Spectrum3DWidget::legendModificationChange_()
 	{
-		//canvas()->intensityModificationChange_();
 	}
 	void Spectrum3DWidget::invalidate_()
 	{
-		
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum3DWidget::createIntensityDistribution_()

@@ -207,6 +207,8 @@ namespace OpenMS
 			void showColors(bool);
 			void showContours(bool);
 		  void setIntensityScaledDots(bool on);
+		void setIntensityScaledDots3D(bool on);
+		
 			void setActionMode2D(QAction*);
 		  void setActionMode3D(QAction*);
 			void resetZoom();
@@ -275,6 +277,7 @@ namespace OpenMS
 			QToolButton* show_back_view_3d_;
 			QToolButton* show_top_view_3d_;
 		  QToolButton*  show_reset_view_3d_;
+		  QToolButton* intensity_scaled_dots_button_3d_;
 		
 		  /// Main workspace
 			QWorkspace* ws_;	
