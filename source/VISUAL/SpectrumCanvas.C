@@ -54,8 +54,7 @@ namespace OpenMS
 			buffer_(0),
 			action_mode_(AM_ZOOM),
 			intensity_modification_(IM_NONE),
-			min_disp_ints_(),
-			max_disp_ints_(),
+			disp_ints_(),
 			mapping_info_(),
 			pen_width_(0),
 			show_grid_(true),
@@ -65,6 +64,7 @@ namespace OpenMS
 			spectrum_widget_(0),
 			datasets_()
 	{
+		resetRanges_();
 		setFrameShape(NoFrame);
 		connect(this, SIGNAL(contentsMoving(int, int)), this, SLOT(move_(int, int)));
 	  createCustomMouseCursors_();
@@ -113,10 +113,9 @@ namespace OpenMS
 		buffer_ = new QPixmap(width(), height());
 	}
 	
-	void SpectrumCanvas::setDispInt(double min, double max)
+	void SpectrumCanvas::setDispInt(float min, float max)
 	{
-		min_disp_ints_[current_data_] = min;
-		max_disp_ints_[current_data_] = max;
+		disp_ints_[current_data_] = make_pair(min,max);
 		intensityDistributionChange_();
 	}
 	
@@ -259,9 +258,8 @@ namespace OpenMS
 	
 	void SpectrumCanvas::updateScrollbars_()
 	{
-		const AreaType& area_ = getDataArea_();
-		QPoint left_top = - chartToWidget_(PointType(area_.minX(), area_.minY()));
-		QPoint size = left_top + chartToWidget_(PointType(area_.maxX(), area_.maxY()));
+		QPoint left_top = - chartToWidget_(PointType(getDataRange_().minX(), getDataRange_().minY()));
+		QPoint size = left_top + chartToWidget_(PointType(getDataRange_().maxX(), getDataRange_().maxY()));
 		
 		// block contentsMoving signal, because calling the private
 		// move_() slot falsely changes the visible area
@@ -293,7 +291,7 @@ namespace OpenMS
 	{
 		if (zoom_stack_.empty())
 		{
-			visible_area_ = getDataArea_();
+			visible_area_ = getDataRange_();
 		}
 		else
 		{
@@ -309,7 +307,7 @@ namespace OpenMS
 	
 	void SpectrumCanvas::resetZoom()
 	{
-		changeVisibleArea_(getDataArea_());
+		changeVisibleArea_(getDataRange_());
 	}
 	
 	void SpectrumCanvas::setVisibleArea(AreaType area)
@@ -498,8 +496,64 @@ namespace OpenMS
 			layer_visible_[i]=b;
 			invalidate_();
 		}
-	}	
+	}
 
+  const SpectrumCanvas::AreaType& SpectrumCanvas::getDataRange_()
+  {
+  	return overall_data_range_;
+  }
+
+	const std::pair<float,float>& SpectrumCanvas::getIntensityRange_()
+	{
+		return overall_intensity_range_;
+	}
+
+	void SpectrumCanvas::updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim)
+	{
+		if (data_set >= datasets_.size())
+		{
+			return;
+		}
+		
+		//update intenity
+		float min_int = overall_intensity_range_.first;
+		float max_int = overall_intensity_range_.second;
+		if (datasets_[data_set].getMaxInt() > max_int) max_int = datasets_[data_set].getMaxInt();
+		if (datasets_[data_set].getMinInt() < min_int) min_int = datasets_[data_set].getMinInt();
+		overall_intensity_range_ = std::pair<float,float>(min_int, max_int);
+		
+		
+		//update mz and RT
+		AreaType::PositionType min = overall_data_range_.min();
+		AreaType::PositionType max = overall_data_range_.max();
+		if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
+		if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
+		if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
+		if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
+		overall_data_range_.setMin(min);
+		overall_data_range_.setMax(max);
+		
+		//cout << "Update range: " << overall_data_range_ << endl;
+		//cout << "Update intensity: " << overall_intensity_range_.first <<" - "<<overall_intensity_range_.second<< endl;
+	}
+
+	void SpectrumCanvas::resetRanges_()
+	{
+		overall_intensity_range_ = pair<float, float>(numeric_limits<float>::max(), -numeric_limits<float>::max());
+		overall_data_range_ = AreaType::empty;
+		//cout << "Reset range: " << overall_data_range_ << endl;
+	}
+	
+	void SpectrumCanvas::recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim)
+	{
+		resetRanges_();
+		
+		for (UnsignedInt i=0; i< datasets_.size(); ++i)
+		{
+			updateRanges_(i, mz_dim, rt_dim);
+		}
+	}
+	
 } //namespace
 
 

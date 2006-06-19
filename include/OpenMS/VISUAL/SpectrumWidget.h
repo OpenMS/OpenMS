@@ -195,13 +195,18 @@ namespace OpenMS
 		virtual void switchAxis(bool swapped_axes);
 		
 	protected:
+		/// Default constructor
 		SpectrumWidget(QWidget* parent = 0, const char* name="SpectrumWidget", WFlags f=0);
+		/// Destructor
 		~SpectrumWidget();
-	
+		
+		/// Adds the canvas to the layout and connects some signals/slots
 		void setCanvas(SpectrumCanvas* canvas);
   	
+  	/// Switches between log/normal intensities
   	virtual void intensityModificationChange_() = 0;
   	
+  	/// Shows/hides the axis units
 		virtual void legendModificationChange_() = 0;
 
 		/// creates the intensity distribution of the widget
@@ -230,13 +235,13 @@ namespace OpenMS
 		
 		///for storing the old maximum when the intensities are transformed
 		double old_max_intensity_;
+	
 		
+		SpectrumWindow* spectrum_window_;	
+	
 	private slots:
 		/// updates the axes, when the visible area changes
 		void updateAxes_(DRange<2> area);
-		
-	private:
-		SpectrumWindow* spectrum_window_;
 	};
 }
 

@@ -284,7 +284,7 @@ namespace OpenMS
 			
 			///Tab bar
 			EnhancedTabBar* tab_bar_;
-			///map (maps int(&(*QWidget)) to *QWidget) used for toolbar and tabbar
+			///map (maps int(&(*QWidget)) to SpectrumWindow*) used for toolbar and tabbar
 			std::map<PointerSizeInt,SpectrumWindow*> id_map_;
 			
 			/// Label for messages in the status bar

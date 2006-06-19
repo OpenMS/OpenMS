@@ -163,8 +163,6 @@ namespace OpenMS
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 	
 	protected:
-		// Docu in base class
-		virtual const AreaType& getDataArea_();
 		
 		void drawIcon(const PeakType& peak, const QPoint& p);
 		
@@ -184,7 +182,7 @@ namespace OpenMS
 		QPoint chartToWidget_(const PointType& pos);
 		
 		// Docu in base class
-		virtual void intensityModificationChange_();
+//		virtual void intensityModificationChange_();
 
 		void legendModificationChange_();
 
@@ -200,17 +198,6 @@ namespace OpenMS
 		// Docu in base class
 		void changeVisibleArea_(const AreaType& new_area);
 
-		/// Structure that (one day) will hold all style information (like pen color, font name, ...).
-		struct Style
-		{
-			double border;
-		} style_ ;
-
-		/**
-			*	Helper variables (get set in adjustBuffer_) that simplify layout.
-			*/
-		double grid_row_width_, grid_collumn_height_;
-
 		std::vector<SpectrumIteratorType> selected_peaks_;
 
 		QPainter painter_;	//< the (one and only) painter. 
@@ -224,27 +211,30 @@ namespace OpenMS
 		double old_max_intensity_;
 		bool absolute_intensity_;
 
-		//scaling factor for relative scale with multiple layers
+		/// Scaling factor for relative scale with multiple layers
 		double layer_factor_;
-		//layer with highest maximum
+		
+		/// Layer with highest intsnsity
 		UnsignedInt max_layer_;
-
+		
+		/// Flag for 'snap to maximum intensity mode'.
 		bool snap_to_max_mode_;
 		
-		///Itensity multiplication factor for 'snap to maximum intensity mode'.
+		/// Itensity multiplication factor for 'snap to maximum intensity mode'.
 		double snap_factor_;
 
 		// selected diagram action mode and helper variables
 		QPoint action_start_pos_;
 		QPoint action_current_pos_;
-
-		/// Area that encloses all peaks of all datasets
-		AreaType data_area_;
 		
-		std::vector<SpectrumIteratorType> visible_begin_;  //< iterator on first visible peak
-		std::vector<SpectrumIteratorType> visible_end_;    //< iterator on one after the last visible peak
-		SpectrumIteratorType nearest_peak_; //< iterator on peak next to mouse position
-		SpectrumIteratorType findPeakAtPosition(QPoint);  //< find peak next to position
+		/// Iterator on first visible peak (for each spectrum)
+		std::vector<SpectrumIteratorType> visible_begin_;
+		/// Iterator after the last visible peak (for each spectrum)
+		std::vector<SpectrumIteratorType> visible_end_;    
+		/// Iterator on peak next to mouse position
+		SpectrumIteratorType nearest_peak_;
+		/// Find peak next to the given position
+		SpectrumIteratorType findPeakAtPosition(QPoint);  
 		
 		// data set drawing
 		QPen norm_pen_; // pen for drawing of normal peaks
@@ -252,10 +242,11 @@ namespace OpenMS
 		QPen icon_pen_; // pen for drawing of icons
 
 		QString zoom_status_;  // Status message in zoom-mode
-		bool is_highlighted_;   // peak is highlighted
+		bool is_highlighted_;  // peak is highlighted
 
-		void drawPoints_(UnsignedInt index);
+		/// Draws peaks for dataset @p index
 		void drawPeaks_(UnsignedInt index);
+		/// Draws connectedLines for dataset @p index
 		void drawConnectedLines_(UnsignedInt index);
 
 		/// EVENTS

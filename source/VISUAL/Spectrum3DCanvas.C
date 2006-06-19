@@ -36,6 +36,8 @@
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DCanvasPDP.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 	using namespace Internal;
@@ -98,8 +100,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 	current_data_ = getDataSetCount()-1;
 
 	openglcanvas_->updateMinMaxValues();
-	min_disp_ints_.push_back(openglcanvas_->overall_values_.min_[2]);
-	max_disp_ints_.push_back(openglcanvas_->overall_values_.max_[2]);	
+	disp_ints_.push_back(pair<float,float>(openglcanvas_->overall_values_.min_[2], openglcanvas_->overall_values_.max_[2]));
 	emit layerActivated(this);
 	invalidate_();
 	return current_data_;
@@ -113,13 +114,6 @@ void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
 {
 	return new Spectrum3DCanvasPDP(this,parent);
-}	
-
-const Spectrum3DCanvas::AreaType& Spectrum3DCanvas::getDataArea_()
-{
-	//TODO
-	//const AreaType dummy;
-	return dummy_;
 }
 
 void Spectrum3DCanvas::intensityModificationChange_()
@@ -159,15 +153,14 @@ void Spectrum3DCanvas::invalidate_()
 void Spectrum3DCanvas::removeDataSet(int data_set)
 {
 	if (data_set >= int(getDataSetCount()))
-		{
-			return;
-		}
- 		datasets_.erase(datasets_.begin()+data_set);
-		layer_visible_.erase(layer_visible_.begin()+data_set);
-		max_disp_ints_.erase(max_disp_ints_.begin()+data_set);
-		min_disp_ints_.erase(min_disp_ints_.begin()+data_set);
-		openglcanvas_->updateMinMaxValues();
-		invalidate_();
+	{
+		return;
+	}
+	datasets_.erase(datasets_.begin()+data_set);
+	layer_visible_.erase(layer_visible_.begin()+data_set);
+	disp_ints_.erase(disp_ints_.begin()+data_set);
+	openglcanvas_->updateMinMaxValues();
+	invalidate_();
 }
 
 Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
@@ -227,5 +220,6 @@ UnsignedInt Spectrum3DCanvas::getDotInterpolationSteps()
 	}
 	return UnsignedInt(prefs_.getValue("Preferences:3D:InterpolationSteps"));
 }
+
 }//namspace
 

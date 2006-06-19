@@ -68,12 +68,10 @@ namespace OpenMS
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		viewport()->setMouseTracking(true);
 		action_mode_ = AM_SELECT;
-		min_intensity_ = numeric_limits<float>::max();
-		max_intensity_ = -1 * numeric_limits<float>::max();
-		min_x_ = numeric_limits<float>::max();
-		max_x_ = -1 * numeric_limits<float>::max();
-		min_y_ = numeric_limits<float>::max();
-		max_y_ = -1 * numeric_limits<float>::max();
+//		min_x_ = numeric_limits<float>::max();
+//		max_x_ = -1 * numeric_limits<float>::max();
+//		min_y_ = numeric_limits<float>::max();
+//		max_y_ = -1 * numeric_limits<float>::max();
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -722,7 +720,7 @@ namespace OpenMS
 				if (intensity_scaled_dots_)
 				{
 					// points get scaled relative to the minimum displayed intensity
-					int radius = static_cast<int>(log10(i->second->getIntensity() - min_intensity_)/2);
+					int radius = static_cast<int>(log10(i->second->getIntensity() - overall_intensity_range_.first)/2);
 					p->drawEllipse(pos.x()- radius, pos.y() - radius, 2*radius, 2*radius);  
 				}  else
 				{
@@ -1150,7 +1148,7 @@ namespace OpenMS
 		zoom_(PointType(visible_area_.center()), zoom_out_factor);
 	}
 	
-	const Spectrum2DCanvas::AreaType& Spectrum2DCanvas::getDataArea_()
+	const Spectrum2DCanvas::AreaType& Spectrum2DCanvas::getDataRange_()
 	{
 		return trees_[current_data_]->getArea();
 	}
@@ -1162,9 +1160,13 @@ namespace OpenMS
 		QuadTreeType_* new_tree = new QuadTreeType_(visible_area_);
 		for (ExperimentType::Iterator exp_it = currentDataSet().begin(); exp_it != currentDataSet().end(); ++exp_it)
 		{
+			if (exp_it->getMSLevel()!=1)
+			{
+				continue;
+			}
 			for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
 			{
-				if (i->getIntensity() >= min_disp_ints_[current_data_] && i->getIntensity() <= max_disp_ints_[current_data_])
+				if (i->getIntensity() >= getMinDispInt() && i->getIntensity() <= getMaxDispInt())
 				{
 					try
 					{
@@ -1199,13 +1201,13 @@ namespace OpenMS
 		//cout << "recalculateDotGradient_" << endl;
 		if (intensity_modification_ == IM_LOG)
 		{
-			//cout << "LOG:" <<" "<< log(min_intensity_) <<" "<< log(max_intensity_)<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(log(min_intensity_+1), log(max_intensity_+1), getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "LOG:" <<" "<< log(overall_intensity_range_.first) <<" "<< log(overall_intensity_range_.second)<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(log(overall_intensity_range_.first+1), log(overall_intensity_range_.second+1), getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
 		}
 		else
 		{
-			//cout << "NORMAL:" << min_intensity_ <<" "<< max_intensity_<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(min_intensity_, max_intensity_, getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "NORMAL:" << overall_intensity_range_.first <<" "<< overall_intensity_range_.second<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(overall_intensity_range_.first, overall_intensity_range_.second, getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
 		}	
 	}
 	
@@ -1213,11 +1215,11 @@ namespace OpenMS
 	{
 		if (intensity_modification_ == IM_LOG)
 		{
-			surface_gradient_.activatePrecalculationMode(log(min_intensity_+1), log(max_intensity_+1), getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));
+			surface_gradient_.activatePrecalculationMode(log(overall_intensity_range_.first+1), log(overall_intensity_range_.second+1), getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));
 		}
 		else
 		{
-			surface_gradient_.activatePrecalculationMode(min_intensity_, max_intensity_, getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));		
+			surface_gradient_.activatePrecalculationMode(overall_intensity_range_.first, overall_intensity_range_.second, getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));		
 		}	
 	}
 	
@@ -1330,20 +1332,20 @@ namespace OpenMS
 	SignedInt Spectrum2DCanvas::finishAdding()
 	{
 		//cout << "2DCanvas::finishAdding()" << endl;
-		
+
+		current_data_ = getDataSetCount()-1;
+		currentDataSet().updateRanges(1);
+
 		//set visibility to true
 		layer_visible_.push_back(true);
 		show_contours_.push_back(false);
 		show_colors_.push_back(false);
 		show_points_.push_back(true);
-	
-		current_data_ = getDataSetCount()-1;
-		//cout<<"new data set: " << current_data_ << endl;
 		
 		trees_.push_back(0);
-		currentDataSet().updateRanges();
 		
-		//not empty
+		
+		//if there are spectra with MS-level 1
 		if (std::find(currentDataSet().getMSLevels().begin(), currentDataSet().getMSLevels().end(),UnsignedInt(1))!=currentDataSet().getMSLevels().end())
 		{
 			recalculate_ = true;
@@ -1351,22 +1353,23 @@ namespace OpenMS
 			
 			// find lower left and upper right bound (position and intensity)		
 			//values for the current dataset
-			min_disp_ints_.push_back(currentDataSet().getMinInt());
-			max_disp_ints_.push_back(currentDataSet().getMaxInt());
+			disp_ints_.push_back(pair<float,float>(currentDataSet().getMinInt(),currentDataSet().getMaxInt()));
 			//overall values
-			if (currentDataSet().getMaxInt() > max_intensity_) max_intensity_ = currentDataSet().getMaxInt();
-			if (currentDataSet().getMinInt() < min_intensity_) min_intensity_ = currentDataSet().getMinInt();
-			if (currentDataSet().getMinMZ() < min_x_) min_x_ = currentDataSet().getMinMZ();
-			if (currentDataSet().getMaxMZ() > max_x_) max_x_ = currentDataSet().getMaxMZ();
-			if (currentDataSet().getMinRT() < min_y_) min_y_ = currentDataSet().getMinRT();
-			if (currentDataSet().getMaxRT() > max_y_) max_y_ = currentDataSet().getMaxRT();
+//			if (currentDataSet().getMaxInt() > overall_intensity_range_.second) overall_intensity_range_.second = currentDataSet().getMaxInt();
+//			if (currentDataSet().getMinInt() < overall_intensity_range_.first) overall_intensity_range_.first = currentDataSet().getMinInt();
+//			if (currentDataSet().getMinMZ() < min_x_) min_x_ = currentDataSet().getMinMZ();
+//			if (currentDataSet().getMaxMZ() > max_x_) max_x_ = currentDataSet().getMaxMZ();
+//			if (currentDataSet().getMinRT() < min_y_) min_y_ = currentDataSet().getMinRT();
+//			if (currentDataSet().getMaxRT() > max_y_) max_y_ = currentDataSet().getMaxRT();
+			
+			updateRanges_(current_data_,0,1);
 			
 			//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
-			//cout<<"Overall new boudaries MZ: "<< min_x_ << " " << max_x_ << " RT: " << min_y_ << " " << max_y_ << endl;
-			AreaType new_area(min_x_, min_y_, max_x_, max_y_);
-			if (new_area != visible_area_)
+			//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
+			
+			if (overall_data_range_ != visible_area_)
 			{ 
-				visible_area_ = new_area;
+				visible_area_ = overall_data_range_;
 				
 				bool insertion_error = false;
 				
@@ -1385,7 +1388,7 @@ namespace OpenMS
 						for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
 						{
 							//cout << endl << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
-							if (i->getIntensity() >= min_disp_ints_[data_set] && i->getIntensity() <= max_disp_ints_[data_set])
+							if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
 							{
 								try
 								{
@@ -1420,9 +1423,6 @@ namespace OpenMS
 		else
 		{
 			// create empty tree for empty data sets
-			// WARNING: This is probably a really bad hack.
-			// AFAICS, data sets for valid files should NOT
-			// be empty. But some files crash without this hack.
 			trees_[trees_.size()-1] = new QuadTreeType_(AreaType(0, 0, 0, 0));
 		}
 	  viewport()->setCursor(Qt::ArrowCursor);
@@ -1455,32 +1455,32 @@ namespace OpenMS
 		show_contours_.erase(show_contours_.begin()+data_set);
 		show_colors_.erase(show_colors_.begin()+data_set);
 		show_points_.erase(show_points_.begin()+data_set);
-		max_disp_ints_.erase(max_disp_ints_.begin()+data_set);
-		min_disp_ints_.erase(min_disp_ints_.begin()+data_set);
+		disp_ints_.erase(disp_ints_.begin()+data_set);
 		
 		//update visible area and boundaries
-		max_intensity_ = -1 * numeric_limits<float>::max();
-		min_intensity_ = numeric_limits<float>::max();
-		max_x_ = -1 * numeric_limits<float>::max();
-		min_x_ = numeric_limits<float>::max();
-		max_y_ = -1 * numeric_limits<float>::max();
-		min_y_ = numeric_limits<float>::max();
-		for (UnsignedInt i=0; i<getDataSetCount(); i++)
-		{
-			if (getDataSet(i).getMaxInt() > max_intensity_) max_intensity_ = getDataSet(i).getMaxInt();
-			if (getDataSet(i).getMinInt() < min_intensity_) min_intensity_ = getDataSet(i).getMinInt();
-			if (getDataSet(i).getMaxMZ() > max_x_) max_x_ = getDataSet(i).getMaxMZ();
-			if (getDataSet(i).getMinMZ() < min_x_) min_x_ = getDataSet(i).getMinMZ();
-			if (getDataSet(i).getMaxRT() > max_y_) max_y_ = getDataSet(i).getMaxRT();
-			if (getDataSet(i).getMinRT() < min_y_) min_y_ = getDataSet(i).getMinRT();
-		}
+//		overall_intensity_range_.second = -1 * numeric_limits<float>::max();
+//		overall_intensity_range_.first = numeric_limits<float>::max();
+//		max_x_ = -1 * numeric_limits<float>::max();
+//		min_x_ = numeric_limits<float>::max();
+//		max_y_ = -1 * numeric_limits<float>::max();
+//		min_y_ = numeric_limits<float>::max();
+//		for (UnsignedInt i=0; i<getDataSetCount(); i++)
+//		{
+//			if (getDataSet(i).getMaxInt() > overall_intensity_range_.second) overall_intensity_range_.second = getDataSet(i).getMaxInt();
+//			if (getDataSet(i).getMinInt() < overall_intensity_range_.first) overall_intensity_range_.first = getDataSet(i).getMinInt();
+//			if (getDataSet(i).getMaxMZ() > max_x_) max_x_ = getDataSet(i).getMaxMZ();
+//			if (getDataSet(i).getMinMZ() < min_x_) min_x_ = getDataSet(i).getMinMZ();
+//			if (getDataSet(i).getMaxRT() > max_y_) max_y_ = getDataSet(i).getMaxRT();
+//			if (getDataSet(i).getMinRT() < min_y_) min_y_ = getDataSet(i).getMinRT();
+//		}
+
+		recalculateRanges_(0,1);
+
+		//cout<<"Overall new boudaries: "<< overall_data_range_<< endl;
 		
-		//cout<<"Overall new boudaries MZ: "<< min_x_ << " " << max_x_ << " RT: " << min_y_ << " " << max_y_ << endl;
-		
-		AreaType new_area(min_x_, min_y_, max_x_, max_y_);
-		if (new_area != visible_area_)
+		if (overall_data_range_ != visible_area_)
 		{ 
-			visible_area_ = new_area;
+			visible_area_ = overall_data_range_;
 			
 			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 			{
@@ -1488,11 +1488,15 @@ namespace OpenMS
 				//cout << endl << endl << "new Experiment (Spectra: " << getDataSet(data_set).size() << ")" << endl;
 				for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
 				{
+					if (exp_it->getMSLevel()!=1)
+					{
+						continue;
+					}
 					//cout << endl << "new Spectrum (Peaks: " << exp_it->size() << ")" << endl;
 					for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
 					{
 						//cout << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
-						if (i->getIntensity() >= min_disp_ints_[data_set] && i->getIntensity() <= max_disp_ints_[data_set])
+						if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
 						{
 							try
 							{
@@ -1513,9 +1517,9 @@ namespace OpenMS
 		emit sendStatusMessage("",0);
 	
 		//update current data set
-		if (getDataSetCount() >= current_data_)
+		if (current_data_ >= getDataSetCount())
 		{
-			--current_data_;
+			current_data_ = getDataSetCount()-1;
 		}
 	
 		if (datasets_.empty())
@@ -1542,6 +1546,6 @@ namespace OpenMS
 	
 		invalidate_();
 	}
-	
+
 } //namespace
 

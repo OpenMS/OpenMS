@@ -310,12 +310,11 @@ namespace OpenMS
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateDotGradient_();
 		/// Returns the data area of the current dataset's QuadTree
-		virtual const AreaType& getDataArea_();
+		virtual const AreaType& getDataRange_();
 		
 		void createHorzScan_(float min, float max);
 		void createVertScan_(float min, float max);
 		
-	private:
 		typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
 		
 		// zooms around position pos with factor.
@@ -375,10 +374,8 @@ namespace OpenMS
 		// temporary peak that is constructed out of the 1D Peak and the RT (for findNearestPeak_)
 		DPeak<2> tmp_peak_;
 		
-		// overall min and max intensity of all datasets
-		float min_intensity_, max_intensity_;
-		// overall min and max x- and y-values of all datasets
-		float min_x_,	max_x_, min_y_, max_y_;
+//		// overall min and max x- and y-values of all datasets
+//		float min_x_,	max_x_, min_y_, max_y_;
 		
 		// Gradient for dots
 		MultiGradient dot_gradient_;

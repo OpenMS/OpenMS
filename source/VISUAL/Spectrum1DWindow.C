@@ -53,7 +53,7 @@ namespace OpenMS
 		widget()->show();
 		setCentralWidget(widget());
 		connectWidgetSignals(widget());
-		connect(widget(), SIGNAL(visibleAreaChanged(double, double)), this, SIGNAL(loXHiXChanged(double, double)));
+		//connect(widget(), SIGNAL(visibleAreaChanged(double, double)), this, SIGNAL(loXHiXChanged(double, double)));
 	}
 	
 	Spectrum1DWidget* Spectrum1DWindow::widget()
@@ -99,11 +99,6 @@ namespace OpenMS
 	int Spectrum1DWindow::getDrawMode()
 	{
 		return widget()->canvas()->getDrawMode();
-	}
-	
-	void Spectrum1DWindow::setLoXHiXNoEmit(double low,double hi)
-	{
-		emit changeLoXHiX(low,hi);
 	}
 	
 	void Spectrum1DWindow::setDrawMode(QAction* a)

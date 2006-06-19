@@ -50,6 +50,8 @@ namespace OpenMS
 		
 		It can also be used to define a left and right boundary inside the values.
 		
+		@todo splitters disappear sometimes (Marc)
+		
 		@ingroup Visual
 	*/
 	class HistogramWidget : public QWidget

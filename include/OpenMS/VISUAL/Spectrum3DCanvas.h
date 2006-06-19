@@ -56,6 +56,8 @@ namespace OpenMS
      
      @todo Fix taking of images (Cornelia)
      
+     @todo Replace IntScale by SpectrumCanvas::IntensityModifications
+     
      @ingroup spectrum_widgets
   */	
   class Spectrum3DCanvas : public SpectrumCanvas
@@ -106,9 +108,6 @@ namespace OpenMS
     virtual PreferencesDialogPage* createPreferences(QWidget* parent);
     
 	  // Docu in base class
-    virtual const AreaType& getDataArea_();
-    
-	  // Docu in base class
     virtual void setMainPreferences(const Param& prefs);
     
     ///returns the Spectrum3DOpenGLcanvas     
@@ -138,8 +137,7 @@ namespace OpenMS
     void resizeEvent(QResizeEvent * e);
     void connectMouseEvents();
     
-    Spectrum3DOpenGLCanvas* openglcanvas_; 
-    const AreaType dummy_;
+    Spectrum3DOpenGLCanvas* openglcanvas_;
     int current_zoom_;
     
 public slots:

@@ -106,8 +106,9 @@ namespace OpenMS
 		///All modifications of intensity
 		enum IntensityModifications
 		{
-			IM_NONE,		///f(x)=x
-			IM_LOG			///f(x)=ln(x)
+			IM_NONE,		   ///<f(x)=x
+			IM_LOG			   ///<f(x)=ln(x)
+//			IM_PERCENTAGE  ///<f(x)=x/max(x)*100
 		};
 		
 		//@}
@@ -208,9 +209,9 @@ namespace OpenMS
 			Returns the minimum intensity a peak needs to be shown
 			@return the minimum displayed intensity
 		*/
-		inline double getMinDispInt() const 
+		inline float getMinDispInt() const 
 		{ 
-			return min_disp_ints_[current_data_]; 
+			return disp_ints_[current_data_].first; 
 		}
 		
 		/**
@@ -219,9 +220,9 @@ namespace OpenMS
 			Returns the maximum intensity a peak can have to be shown
 			@return the maximum displayed intensity
 		*/
-		inline double getMaxDispInt() const 
+		inline float getMaxDispInt() const 
 		{ 
-			return max_disp_ints_[current_data_];
+			return disp_ints_[current_data_].second;
 		}
 		
 		/**
@@ -242,7 +243,7 @@ namespace OpenMS
 			@param min the minimum displayed intensity
 			@param max the maximum displayed intensity
 		*/
-		virtual void setDispInt(double min, double max);
+		virtual void setDispInt(float min, float max);
 		
 		/**
 			@brief Returns the mapping info
@@ -484,12 +485,11 @@ namespace OpenMS
 		*/
 		void updateScrollbars_();
 		
-		/**
-			@brief Returns the data area
-			
-			Returns the area which encloses all data.
-		*/
-		virtual const AreaType& getDataArea_() = 0;
+		/// Returns the area which encloses all data points.
+		virtual const AreaType& getDataRange_();
+
+		/// Returns the interval which encloses all intensities.
+		const std::pair<float,float>& getIntensityRange_();
 		
 		/**
 			@brief Convert pixel to chart coordinates
@@ -549,11 +549,8 @@ namespace OpenMS
 		/// Stores the used intensity modification function
 		IntensityModifications intensity_modification_;
 		
-		/// Stores the minimum displayed intensities for all layers
-		std::vector<float> min_disp_ints_;
-		
-		/// Stores the maximum displayed intensities for all layers
-		std::vector<float> max_disp_ints_;
+		/// Stores the minimum/maximum displayed intensities for all layers
+		std::vector< std::pair<float,float> > disp_ints_;
 		
 		/// Stores the mapping info
 		MappingInfo mapping_info_;
@@ -563,6 +560,50 @@ namespace OpenMS
 		
 		/// Stores the currently visible area.
 		AreaType visible_area_;
+
+		/**
+			@brief Updates data and intensity range with the values of dataset @p data_set
+			
+			@param mz_dim Index of the dataset in datasets_
+			@param mz_dim Index of m/z in overall_data_range_
+			@param rt_dim Index of RT in overall_data_range_			
+			
+			@see datasets_
+			@see overall_data_range_
+			@see overall_intensity_range_
+			
+			@note Make sure the updateRanges() of the datasets has been called before this method is called
+		*/
+		void updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim);
+
+		/**
+			@brief Resets data and intensity range to +/- infinity
+		
+			@see overall_data_range_
+			@see overall_intensity_range_
+		*/
+		void resetRanges_();
+		
+		/**
+			@brief Recalculates the data and intensity range.
+			
+			This method calls resetRanges_() followed by updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt)
+			for all datasets.
+	
+			@param mz_dim Index of m/z in overall_data_range_
+			@param rt_dim Index of RT in overall_data_range_		
+			
+			@see datasets_
+			@see overall_data_range_
+			@see overall_intensity_range_
+		*/
+		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim);
+		
+		/// Stores the data range (m/z and RT) of all datasets
+		AreaType overall_data_range_;
+
+		/// Stores the intensity range of all datasets
+		std::pair<float,float> overall_intensity_range_;
 		
 		/// Stores whether or not to show a grid.
 		bool show_grid_;

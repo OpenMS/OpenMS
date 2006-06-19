@@ -1129,7 +1129,6 @@ namespace OpenMS
 					connect(dynamic_cast<SpectrumWindow*>(ws_->activeWindow())->widget()->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),dynamic_cast<SpectrumWindow*>(window)->widget()->canvas(),SLOT(setVisibleArea(DRange<2>)));
 					connect(dynamic_cast<SpectrumWindow*>(window)->widget()->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)),dynamic_cast<SpectrumWindow*>(ws_->activeWindow())->widget()->canvas(),SLOT(setVisibleArea(DRange<2>)));
 					//add links to the map
-	
 					link_map_[PointerSizeInt(&(*ws_->activeWindow()))]=PointerSizeInt(&(*window));
 					link_map_[PointerSizeInt(&(*window))]=PointerSizeInt(&(*ws_->activeWindow()));
 				}
@@ -1143,15 +1142,13 @@ namespace OpenMS
 		int active_address = PointerSizeInt(&(*ws_->activeWindow()));
 		int active_linked_to_address = link_map_[active_address];
 		if (active_linked_to_address != 0)
-		{
-				//disconnect link from active
-				disconnect(ws_->activeWindow(),SIGNAL(loXHiXChanged(double,double)),0,0);
-				link_map_.erase(active_address);
-	
-				//disconnect link to active
-				QWidget* active_linked_to = id_map_[active_linked_to_address];
-				disconnect(active_linked_to,SIGNAL(loXHiXChanged(double,double)),0,0);
-				link_map_.erase(active_linked_to_address);
+		{		
+			//remove signals		
+			disconnect(id_map_[active_linked_to_address]->widget()->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)), dynamic_cast<SpectrumWindow*>(ws_->activeWindow())->widget()->canvas(),SLOT(setVisibleArea(DRange<2>)));
+			disconnect(dynamic_cast<SpectrumWindow*>(ws_->activeWindow())->widget()->canvas(),SIGNAL(visibleAreaChanged(DRange<2>)), id_map_[active_linked_to_address]->widget()->canvas(),SLOT(setVisibleArea(DRange<2>)));
+			//remove from the map
+			link_map_.erase(active_address);
+			link_map_.erase(active_linked_to_address);
 		}
 	}
 	

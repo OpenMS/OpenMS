@@ -98,9 +98,12 @@ namespace OpenMS
 
 		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
 		{
-			for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+			if (spec_it->getMSLevel()==1)
 			{
-				tmp.inc(peak_it->getIntensity());
+				for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+				{
+					tmp.inc(peak_it->getIntensity());
+				}
 			}
 		}
 		

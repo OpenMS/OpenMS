@@ -427,8 +427,13 @@ namespace OpenMS
 			*/
 			//@{
 
-			/// updates the m/z, intensity, retention time and MS level ranges
-			void updateRanges()
+			/**
+				@brief Updates the m/z, intensity, retention time and MS level ranges
+				
+				@param ms_level MS level to consider for number of peaks, m/z range , RT range 
+				       and intensity range (All MS levels if negative)
+			*/
+			void updateRanges(SignedInt ms_level=-1)
 			{
 				//clear MS levels
 				ms_levels_.clear();
@@ -456,37 +461,38 @@ namespace OpenMS
 				//update
 				for (typename std::vector<MSSpectrum<PeakT> >::iterator it = this->begin(); it!=this->end(); ++it)
 				{
-					//rt
-					rt = it->getRetentionTime();
-					
-					if (rt < rt_mz_range_.min()[0]) rt_mz_range_.setMinX(rt);
-					if (rt > rt_mz_range_.max()[0]) rt_mz_range_.setMaxX(rt);
-					
 					//ms levels
 					if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
 					{
 						ms_levels_.push_back(it->getMSLevel());
 					}
-					
-					it->updateRanges();
-					
-					//mz
-					if (it->getMin()[0] < rt_mz_range_.min()[1]) rt_mz_range_.setMinY(it->getMin()[0]);
-					if (it->getMax()[0] > rt_mz_range_.max()[1]) rt_mz_range_.setMaxY(it->getMax()[0]);
-					
-					//int
-					if (it->getMinInt() < it_min_) it_min_ = it->getMinInt();			
-					if (it->getMaxInt() > it_max_) it_max_ = it->getMaxInt();
-					
-					// calculate size
-					nr_dpoints_ += it->size();
+
+					//spectrum lengths
 					spectra_lengths_.push_back(it->size());
+					
+					if (ms_level < SignedInt(0) || SignedInt(it->getMSLevel())==ms_level)
+					{
+						// calculate size
+						nr_dpoints_ += it->size();
+	
+						//rt
+						rt = it->getRetentionTime();
+						if (rt < rt_mz_range_.min()[0]) rt_mz_range_.setMinX(rt);
+						if (rt > rt_mz_range_.max()[0]) rt_mz_range_.setMaxX(rt);
+						
+						it->updateRanges();
+						
+						//mz
+						if (it->getMin()[0] < rt_mz_range_.min()[1]) rt_mz_range_.setMinY(it->getMin()[0]);
+						if (it->getMax()[0] > rt_mz_range_.max()[1]) rt_mz_range_.setMaxY(it->getMax()[0]);
+						
+						//int
+						if (it->getMinInt() < it_min_) it_min_ = it->getMinInt();			
+						if (it->getMaxInt() > it_max_) it_max_ = it->getMaxInt();
+					}
 										
 				}
 				std::sort(ms_levels_.begin(), ms_levels_.end());
-				
-				std::vector<UnsignedInt>::const_iterator citer = spectra_lengths_.begin();
-				
 			}
 			
 			/// returns the minimal m/z value
@@ -539,6 +545,12 @@ namespace OpenMS
 			UnsignedInt getSize() const
 			{
 				return nr_dpoints_;
+			}
+
+			/// returns an array of the spectrum lengths
+			const std::vector<UnsignedInt>& getSpectraLengths() const
+			{
+				return spectra_lengths_;
 			}
 
 			/// returns an array of MS levels

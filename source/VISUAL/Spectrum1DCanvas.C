@@ -52,13 +52,9 @@ namespace OpenMS
 		max_layer_(0),
 		snap_to_max_mode_(false),
 		snap_factor_(1.0),
-		data_area_(1.0, 1.0, 1000.0, 100.0),
 		zoom_status_(),
 		is_highlighted_(false)
 	{
-		// set style definitions
-		style_.border = 7;
-	
 		// get mouse coordinates while mouse moves over diagramm.	
 		viewport()->setMouseTracking(TRUE);
 	
@@ -112,11 +108,6 @@ namespace OpenMS
 		return SpectrumCanvas::chartToWidget_(PointType(peak.getPosition()[0], snap_factor_*layer_factor_*peak.getIntensity()));
 	}
 	
-	const Spectrum1DCanvas::AreaType& Spectrum1DCanvas::getDataArea_()
-	{
-		return data_area_;
-	}
-	
 	void Spectrum1DCanvas::zoomIn(double position, int /*steps*/)
 	{
 		double delta, newLo, newHi;
@@ -141,8 +132,8 @@ namespace OpenMS
 		newHi = position+delta;
 	
 		// fit too data set bounds
-		if (newLo < data_area_.minX()) newLo = data_area_.minX();
-		if (newHi > data_area_.maxX()) newHi = data_area_.maxX();
+		if (newLo < overall_data_range_.minX()) newLo = overall_data_range_.minX();
+		if (newHi > overall_data_range_.maxX()) newHi = overall_data_range_.maxX();
 	
 	// 	setVisibleAreaAnimated(newLo, newHi, steps);
 		changeVisibleArea_(newLo, newHi);
@@ -158,15 +149,15 @@ namespace OpenMS
 		newLo = position-delta;
 		newHi = position+delta;
 	
-		if (newLo < data_area_.minX())
+		if (newLo < overall_data_range_.minX())
 		{
-			changeVisibleArea_(data_area_.minX(), data_area_.minX() + 2 * delta);
+			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.minX() + 2 * delta);
 			return;
 		}
 	
-		if (newHi >data_area_.maxX())
+		if (newHi >overall_data_range_.maxX())
 		{
-			changeVisibleArea_(data_area_.maxX() - 2 * delta, data_area_.maxX());
+			changeVisibleArea_(overall_data_range_.maxX() - 2 * delta, overall_data_range_.maxX());
 			return;
 		}
 	
@@ -202,8 +193,8 @@ namespace OpenMS
 				if (action_mode_ == AM_ZOOM)
 				{
 					rubber_band_.show();	
-					rubber_band_.setTopLeft(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.maxY())));
-					rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.minY())));
+					rubber_band_.setTopLeft(SpectrumCanvas::chartToWidget_(PointType(pos.X(), overall_data_range_.maxY())));
+					rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), overall_data_range_.minY())));
 	
 					rubber_band_.updateRegion(viewport());
 					zoom_status_ = QString("%1 => ").arg(pos.X(),0,'f',2);
@@ -278,21 +269,21 @@ namespace OpenMS
 						if (e->state() & QMouseEvent::ShiftButton)
 						{
 							//check if selected area is outside data area and correct errors
-							if (area.minX() < data_area_.minX())
+							if (area.minX() < overall_data_range_.minX())
 							{
-								area.setMinX(data_area_.minX());
+								area.setMinX(overall_data_range_.minX());
 							}
-							if (area.minY() < data_area_.minY())
+							if (area.minY() < overall_data_range_.minY())
 							{
-								area.setMinY(data_area_.minY());
+								area.setMinY(overall_data_range_.minY());
 							}
-							if (area.maxX() > data_area_.maxX())
+							if (area.maxX() > overall_data_range_.maxX())
 							{
-								area.setMaxX(data_area_.maxX());
+								area.setMaxX(overall_data_range_.maxX());
 							}
-							if (area.maxY() > data_area_.maxY())
+							if (area.maxY() > overall_data_range_.maxY())
 							{
-								area.setMaxY(data_area_.maxY());
+								area.setMaxY(overall_data_range_.maxY());
 							}
 	
 							changeVisibleArea_(area);
@@ -390,7 +381,7 @@ namespace OpenMS
 					else // zoom on position axis only
 					{
 						rubber_band_.updateRegion(viewport());
-						rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), data_area_.minY())));
+						rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), overall_data_range_.minY())));
 						rubber_band_.updateRegion(viewport());
 					}
 				}
@@ -418,13 +409,13 @@ namespace OpenMS
 						newLo = visible_area_.minX() + dx;
 						newHi = visible_area_.maxX() + dx;
 						// check if we are falling out of bounds
-						if (newLo < data_area_.minX())
+						if (newLo < overall_data_range_.minX())
 						{
-							changeVisibleArea_(data_area_.minX(), data_area_.minX()+(visible_area_.maxX()-visible_area_.minX()));
+							changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.minX()+(visible_area_.maxX()-visible_area_.minX()));
 						}
-						else if (newHi > data_area_.maxX())
+						else if (newHi > overall_data_range_.maxX())
 						{
-							changeVisibleArea_(data_area_.maxX()-(visible_area_.maxX()-visible_area_.minX()), data_area_.maxX());
+							changeVisibleArea_(overall_data_range_.maxX()-(visible_area_.maxX()-visible_area_.minX()), overall_data_range_.maxX());
 						}
 						else
 						{
@@ -509,8 +500,8 @@ namespace OpenMS
 	
 		SpectrumIteratorType nearest_it = left_it;
 	
-	// 	double dest_interval_start = SpectrumCanvas::chartToWidget_(Point<float>(0, data_area_.minY())).y();
-	// 	double dest_interval_end = SpectrumCanvas::chartToWidget_(Point<float>(0, data_area_.maxY())).y();
+	// 	double dest_interval_start = SpectrumCanvas::chartToWidget_(Point<float>(0, overall_data_range_.minY())).y();
+	// 	double dest_interval_end = SpectrumCanvas::chartToWidget_(Point<float>(0, overall_data_range_.maxY())).y();
 		double dest_interval_start, dest_interval_end;
 		// select source interval start and end depending on diagram orientation
 	
@@ -582,13 +573,13 @@ namespace OpenMS
 			return;
 		}
 	
-		//remove the data
+		//remove settings
 		datasets_.erase(datasets_.begin()+data_set);
-	
-		//remove visibility setting
+		disp_ints_.erase(disp_ints_.begin()+data_set);	
 		layer_visible_.erase(layer_visible_.begin()+data_set);
+		draw_modes_.erase(draw_modes_.begin()+data_set);
 	
-		//renew values from visible_begin_ and visible_end_
+		//refresh values of visible_begin_ and visible_end_
 		visible_begin_.clear();
 		visible_end_.clear();
 		for (UnsignedInt index=0; index < getDataSetCount(); ++index)
@@ -597,61 +588,62 @@ namespace OpenMS
 			visible_end_.push_back(getDataSet(index)[0].end());
 		}
 	
-		//remove draw mode
-		draw_modes_.erase(draw_modes_.begin()+data_set);
-	
 		//update current data set
-		if (getDataSetCount() >= current_data_)
+		if (current_data_ >= getDataSetCount())
 		{
-			--current_data_;
+			current_data_ = getDataSetCount()-1;
 		}
 	
 		if (datasets_.empty())
 		{
+			resetRanges_();
 			return;
 		}
 	
 		//update visible area
-		data_area_.setMinX(getDataSet(0)[0].getMin()[0]);
-		data_area_.setMaxX(getDataSet(0)[0].getMax()[0]);
-		data_area_.setMinY(1.0);  // minimal intensity always 1.0
-		data_area_.setMaxY(getDataSet(0)[0].getMaxInt());
+		resetRanges_();
+		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
 		max_layer_ = 0;
 	
-		for (UnsignedInt index = 1; index < getDataSetCount(); ++index)
+		for (UnsignedInt index = 0; index < getDataSetCount(); ++index)
 		{
-			if (data_area_.minX() > getDataSet(index)[0].getMin()[0])
+			//update m/z
+			if (overall_data_range_.minX() > getDataSet(index).getMinMZ())
 			{
-				data_area_.setMinX(getDataSet(index)[0].getMin()[0]);
+				overall_data_range_.setMinX(getDataSet(index).getMinMZ());
 			}
-			if (data_area_.maxX() < getDataSet(index)[0].getMax()[0])
+			if (overall_data_range_.maxX() < getDataSet(index).getMaxMZ())
 			{
-				data_area_.setMaxX(getDataSet(index)[0].getMax()[0]);
+				overall_data_range_.setMaxX(getDataSet(index).getMaxMZ());
 			}
-	
-			if (data_area_.maxY() < getDataSet(index)[0].getMaxInt())
+			if (overall_data_range_.maxY() < getDataSet(index).getMaxInt())
 			{
-				data_area_.setMaxY(getDataSet(index)[0].getMaxInt());
+				overall_data_range_.setMaxY(getDataSet(index).getMaxInt());
 				max_layer_ = index;
 			}
+
+		//cout << "DataSet: "<< index << endl;
+		//cout << "Name: "<< getDataSet(index).getName() << endl;
+		//cout << getDataSet(index).getDataRange() << endl;
+
 		}
-	
-		// extend region for cosmectical reasons -> peak with smallest/highest position won't fall on diagramm border on maximized view
-		data_area_.setMaxY(data_area_.maxY() + 0.002 * (data_area_.maxY() - data_area_.minY()));
-		data_area_.setMinX(data_area_.minX() - 0.002 * (data_area_.maxX() - data_area_.minX()));
-		data_area_.setMaxX(data_area_.maxX() + 0.002 * (data_area_.maxX() - data_area_.minX()));
-	
-	
-		changeVisibleArea_(data_area_);
+		float width = overall_data_range_.width();
+		overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
+		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
+		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());	
+		
+		//cout << overall_data_range_ << endl;
+		
+		changeVisibleArea_(overall_data_range_);
 	
 		//
-		if (data_area_.maxX() - data_area_.minX() <1.0)
+		if (overall_data_range_.maxX() - overall_data_range_.minX() <1.0)
 		{
-			changeVisibleArea_(data_area_.minX() -1.0, data_area_.maxX() + 1.0);
+			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0);
 		}
 		else
 		{
-			changeVisibleArea_(data_area_.minX(), data_area_.maxX());
+			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX());
 		}
 		showGridLines(show_grid_);
 	}
@@ -688,27 +680,6 @@ namespace OpenMS
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	// data plotting
-	void Spectrum1DCanvas::drawPoints_(UnsignedInt index)
-	{
-		painter_.save();
-		painter_.setBrush(NoBrush);
-	
-		QPoint p;
-		for (SpectrumIteratorType i = visible_begin_[index]; i != visible_end_[index]; ++i)
-		{
-			// project diagramm coordinates on paint device coordinates
-			p = chartToWidget_(*i);
-	
-			// set normal/highlighted pen
-			painter_.setPen(i == nearest_peak_ ? high_pen_ : norm_pen_);
-			// draw point
-			painter_.drawLine(p.x(), p.y() - 1, p.x(), p.y() + 1);
-			painter_.drawLine(p.x() - 1, p.y(), p.x() + 1, p.y());
-		}
-	
-		painter_.restore();
-	}
-	
 	
 	void Spectrum1DCanvas::drawIcon(const PeakType& peak, const QPoint& p)
 	{
@@ -745,7 +716,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::drawPeaks_(UnsignedInt index)
 	{
 		// font for drawing of values on highlighted peaks
-		QFont high_font(QFont("courier", static_cast<UnsignedInt>(1.5 * grid_row_width_)));
+		QFont high_font(QFont("courier"));
 	
 		painter_.save();
 		painter_.setBrush(NoBrush);
@@ -753,7 +724,7 @@ namespace OpenMS
 		QPoint p, p0;
 		for (SpectrumIteratorType i = visible_begin_[index]; i != visible_end_[index]; ++i)
 		{
-			if (i->getIntensity() < min_disp_ints_[current_data_] || i->getIntensity() > max_disp_ints_[current_data_])
+			if (i->getIntensity() < disp_ints_[index].first || i->getIntensity() > disp_ints_[index].second)
 			{
 				continue;
 			}
@@ -970,142 +941,142 @@ namespace OpenMS
 	}
 	
 	
-	void Spectrum1DCanvas::intensityModificationChange_()
-	{
-		//cout << "IM_CHANGE" <<endl;
-		if (intensity_modification_ == IM_LOG)
-			scaleAllData_(true);
-		else if (intensity_modification_ == IM_NONE)
-			scaleAllData_(false);
-		//cout << "/IM_CHANGE" <<endl;
-		invalidate_();
-	}
+//	void Spectrum1DCanvas::intensityModificationChange_()
+//	{
+//		//cout << "IM_CHANGE" <<endl;
+//		if (intensity_modification_ == IM_LOG)
+//			scaleAllData_(true);
+//		else if (intensity_modification_ == IM_NONE)
+//			scaleAllData_(false);
+//		//cout << "/IM_CHANGE" <<endl;
+//		invalidate_();
+//	}
 	
 	void Spectrum1DCanvas::legendModificationChange_()
 	{
 		update();
 	}
 	
-	void Spectrum1DCanvas::scaleData_(bool is_log)
-	{
-		//abort if there is no data
-		if (getDataSetCount()==0 || currentDataSet()[0].size()==0)	return ;
+//	void Spectrum1DCanvas::scaleData_(bool is_log)
+//	{
+//		//abort if there is no data
+//		if (getDataSetCount()==0 || currentDataSet()[0].size()==0)	return ;
+//	
+//		bool is_intensity_axis_percent = !isAbsoluteIntensity();
+//	
+//		if (is_log)
+//		{
+//			old_max_intensity_ = overall_data_range_.maxY();
+//			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
+//			{
+//				if (it->getIntensity()!=0)
+//				{
+//					//				cerr<<  it->getIntensity() << " => ";
+//					it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, overall_data_range_.maxY());
+//					//				cerr << it->getIntensity() << endl;
+//				}
+//			}
+//		}
+//		else
+//		{
+//			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
+//			{
+//				if (it->getIntensity()!=0)
+//				{
+//					//					cerr << it->getIntensity() << " => ";
+//					it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
+//					//					cerr << it->getIntensity() << endl;
+//				}
+//			}
+//		}
+//		currentDataSet()[0].updateRanges();
+//	}
 	
-		bool is_intensity_axis_percent = !isAbsoluteIntensity();
-	
-		if (is_log)
-		{
-			old_max_intensity_ = data_area_.maxY();
-			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
-			{
-				if (it->getIntensity()!=0)
-				{
-					//				cerr<<  it->getIntensity() << " => ";
-					it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, data_area_.maxY());
-					//				cerr << it->getIntensity() << endl;
-				}
-			}
-		}
-		else
-		{
-			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
-			{
-				if (it->getIntensity()!=0)
-				{
-					//					cerr << it->getIntensity() << " => ";
-					it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
-					//					cerr << it->getIntensity() << endl;
-				}
-			}
-		}
-		currentDataSet()[0].updateRanges();
-	}
-	
-	void Spectrum1DCanvas::scaleAllData_(bool is_log)
-	{
-		//cout << "SCALE ALL DATA"<<endl;
-		//abort if there is no data
-		if (getDataSetCount()==0)	return;
-	
-		bool is_intensity_axis_percent = !isAbsoluteIntensity();
-	
-		for (UnsignedInt index = 0; index < getDataSetCount(); ++index)
-		{
-			if (getDataSet(index)[0].size()==0) continue;
-	
-			if (is_log)
-			{
-				old_max_intensity_ = data_area_.maxY();
-				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
-				{
-					if (it->getIntensity()!=0)
-					{
-						//cerr<<  it->getIntensity() << " => ";
-						it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, data_area_.maxY());
-						//cerr << it->getIntensity() << endl;
-					}
-				}
-			}
-			else
-			{
-				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
-				{
-					if (it->getIntensity()!=0)
-					{
-						//cerr << it->getIntensity() << " => ";
-						it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
-						//cerr << it->getIntensity() << endl;
-					}
-				}
-			}
-			getDataSet(index)[0].updateRanges();
-			//cout << "/SCALE ALL DATA"<<endl;
-		}
-	
-		//update visible area
-		data_area_.setMinY( (is_log)? 0.0 : 1.0);
-		data_area_.setMaxY(getDataSet(0)[0].getMaxInt());
-	
-		for (UnsignedInt index = 1; index < getDataSetCount(); ++index)
-		{
-			if (data_area_.maxY() < getDataSet(index)[0].getMaxInt())
-			{
-				data_area_.setMaxY(getDataSet(index)[0].getMaxInt());
-			}
-		}
-	
-		// extend region for cosmectical reasons -> peak with smallest/highest position won't fall on diagramm border on maximized view
-		if (is_log)
-		{
-			//double min = log2linear(data_area_.minY(),is_intensity_axis_percent, old_max_intensity_);
-			double max = log2linear(data_area_.maxY(),is_intensity_axis_percent, old_max_intensity_);
-	 
-			//data_area_.setMaxY( linear2log(max + 0.002*(max - min), is_intensity_axis_percent, old_max_intensity_));
-			data_area_.setMaxY( linear2log(max, is_intensity_axis_percent, old_max_intensity_));
-		}else
-		{
-			//data_area_.setMaxY( data_area_.maxY() + 0.002*(data_area_.maxY()  - data_area_.minY()));
-			data_area_.setMaxY( data_area_.maxY());
-		}
-	
-		visible_area_.setMaxY(data_area_.maxY());
-		visible_area_.setMinY(data_area_.minY());
-													
-		//set displayed intensity range
-		min_disp_ints_[current_data_] = 0;
-		max_disp_ints_[current_data_] = data_area_.maxY();
-	}
+//	void Spectrum1DCanvas::scaleAllData_(bool is_log)
+//	{
+//		//cout << "SCALE ALL DATA"<<endl;
+//		//abort if there is no data
+//		if (getDataSetCount()==0)	return;
+//	
+//		bool is_intensity_axis_percent = !isAbsoluteIntensity();
+//	
+//		for (UnsignedInt index = 0; index < getDataSetCount(); ++index)
+//		{
+//			if (getDataSet(index)[0].size()==0) continue;
+//	
+//			if (is_log)
+//			{
+//				old_max_intensity_ = overall_data_range_.maxY();
+//				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
+//				{
+//					if (it->getIntensity()!=0)
+//					{
+//						//cerr<<  it->getIntensity() << " => ";
+//						it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, overall_data_range_.maxY());
+//						//cerr << it->getIntensity() << endl;
+//					}
+//				}
+//			}
+//			else
+//			{
+//				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
+//				{
+//					if (it->getIntensity()!=0)
+//					{
+//						//cerr << it->getIntensity() << " => ";
+//						it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
+//						//cerr << it->getIntensity() << endl;
+//					}
+//				}
+//			}
+//			getDataSet(index)[0].updateRanges();
+//			//cout << "/SCALE ALL DATA"<<endl;
+//		}
+//	
+//		//update visible area
+//		overall_data_range_.setMinY( (is_log)? 0.0 : 1.0);
+//		overall_data_range_.setMaxY(getDataSet(0)[0].getMaxInt());
+//	
+//		for (UnsignedInt index = 1; index < getDataSetCount(); ++index)
+//		{
+//			if (overall_data_range_.maxY() < getDataSet(index)[0].getMaxInt())
+//			{
+//				overall_data_range_.setMaxY(getDataSet(index)[0].getMaxInt());
+//			}
+//		}
+//	
+//		// extend region for cosmectical reasons -> peak with smallest/highest position won't fall on diagramm border on maximized view
+//		if (is_log)
+//		{
+//			//double min = log2linear(overall_data_range_.minY(),is_intensity_axis_percent, old_max_intensity_);
+//			double max = log2linear(overall_data_range_.maxY(),is_intensity_axis_percent, old_max_intensity_);
+//	 
+//			//overall_data_range_.setMaxY( linear2log(max + 0.002*(max - min), is_intensity_axis_percent, old_max_intensity_));
+//			overall_data_range_.setMaxY( linear2log(max, is_intensity_axis_percent, old_max_intensity_));
+//		}else
+//		{
+//			//overall_data_range_.setMaxY( overall_data_range_.maxY() + 0.002*(overall_data_range_.maxY()  - overall_data_range_.minY()));
+//			overall_data_range_.setMaxY( overall_data_range_.maxY());
+//		}
+//	
+//		visible_area_.setMaxY(overall_data_range_.maxY());
+//		visible_area_.setMinY(overall_data_range_.minY());
+//													
+//		//set displayed intensity range
+//		getMinDispInt() = 0;
+//		getMaxDispInt() = overall_data_range_.maxY();
+//	}
 	
 	void Spectrum1DCanvas::intensityAxisAbsolute()
 	{
 		if (!isAbsoluteIntensity())
 		{
 			// Rescale data before switching to absolute log scale
-			if (intensity_modification_ == IM_LOG)
-			{
-				scaleData_(false);
-	 			intensityModificationChange_();
-			}
+//			if (intensity_modification_ == IM_LOG)
+//			{
+//				scaleData_(false);
+//	 			intensityModificationChange_();
+//			}
 			absolute_intensity_ = true;
 			invalidate_();
 		}
@@ -1116,11 +1087,11 @@ namespace OpenMS
 		if (isAbsoluteIntensity())
 		{
 			// Rescale data before switching to absolute log scale
-			if (intensity_modification_ == IM_LOG)
-			{
-				scaleData_(false); 
-				intensityModificationChange_();
-			}
+//			if (intensity_modification_ == IM_LOG)
+//			{
+//				scaleData_(false); 
+//				intensityModificationChange_();
+//			}
 			absolute_intensity_ = false;
 			invalidate_();
 		}
@@ -1188,7 +1159,7 @@ namespace OpenMS
 	{
 		snap_to_max_mode_ = b;
 		setBounds_();
-		emit visibleAreaChanged(getDataArea_());
+		emit visibleAreaChanged(getDataRange_());
 		invalidate_();
 	}
 	
@@ -1214,70 +1185,18 @@ namespace OpenMS
 
 	SignedInt Spectrum1DCanvas::finishAdding()
 	{
-		UnsignedInt index = getDataSetCount()-1;
-		current_data_ = index;
+		current_data_ = getDataSetCount()-1;
 		currentDataSet().updateRanges();
 		
 		if (currentDataSet().size()==0 || currentDataSet().getSize()==0)
 		{
 			datasets_.resize(getDataSetCount()-1);
-			current_data_ = index-1;
+			current_data_ = current_data_-1;
 			return -1;
 		}
-		
-		//add display intensity ranges
-		min_disp_ints_.resize(index+1);
-		max_disp_ints_.resize(index+1);
-	
-		//set visibility to true
-		layer_visible_.push_back(true);
 
-		
-		if (getIntensityModification()==IM_LOG)
-		{
-			scaleData_(true);
-		}
-	
-		// sort peaks in non descending order of position
-		currentDataSet()[0].getContainer().sortByNthPosition(0);
-		
-		//if this is the first spectrum, set the min/max pos/int to the first value
-		//update visible area
-		if (index == 0)
-		{
-			data_area_.setMinX(currentDataSet().getMinMZ());
-			data_area_.setMaxX(currentDataSet().getMaxMZ());
-			data_area_.setMinY(0.0);  // minimal intensity always 0.0
-			data_area_.setMaxY(currentDataSet().getMaxInt());
-	
-			//extend region for cosmectical reasons -> peak with smallest/highest position 
-			//won't fall on diagramm border on maximized view
-			data_area_.setMinX(data_area_.minX() - 0.002 * data_area_.width());
-			data_area_.setMaxX(data_area_.maxX() + 0.002 * data_area_.width());
-			data_area_.setMaxY(data_area_.maxY() + 0.002 * data_area_.height());
-		}
-	
-		if (data_area_.minX() > currentDataSet().getMinMZ())
-		{
-			data_area_.setMinX(currentDataSet().getMinMZ());
-			data_area_.setMinX(data_area_.minX() - 0.002 * data_area_.width());
-		}
-		if (data_area_.maxX() < currentDataSet().getMaxMZ())
-		{
-			data_area_.setMaxX(currentDataSet().getMaxMZ());
-			data_area_.setMaxX(data_area_.maxX() + 0.002 * data_area_.width());
-		}
-	
-		if (data_area_.maxY() < currentDataSet().getMaxInt())
-		{
-			data_area_.setMaxY(currentDataSet().getMaxInt());
-			data_area_.setMaxY(data_area_.maxY() + 0.002 * data_area_.height());
-			max_layer_ = index;
-		}
-	
 		//set displayed intensity range
-		min_disp_ints_[current_data_] = currentDataSet().getMinInt();
-		max_disp_ints_[current_data_] = currentDataSet().getMaxInt();
+		disp_ints_.push_back(pair<float,float>(currentDataSet().getMinInt(),currentDataSet().getMaxInt()));
 	
 		//add new values to visible_begin_ and visible_end_
 		visible_begin_.push_back(currentDataSet()[0].begin());
@@ -1286,21 +1205,59 @@ namespace OpenMS
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
 	
-		changeVisibleArea_(data_area_);
+		//set visibility to true
+		layer_visible_.push_back(true);
+	
+		// sort peaks in accending order of position
+		currentDataSet()[0].getContainer().sortByNthPosition(0);
+		
+		//update m/z
+		bool range_changed = false;
+		if (overall_data_range_.minX() > currentDataSet().getMinMZ())
+		{
+			overall_data_range_.setMinX(currentDataSet().getMinMZ());
+			range_changed = true;
+			
+		}
+		if (overall_data_range_.maxX() < currentDataSet().getMaxMZ())
+		{
+			overall_data_range_.setMaxX(currentDataSet().getMaxMZ());
+			range_changed = true;
+			
+		}
+		if (range_changed)
+		{
+			float width = overall_data_range_.width();
+			overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
+			overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
+		}
+				
+		//update Intensity
+		overall_data_range_.setMinY(0.0);
+		if (overall_data_range_.maxY() < currentDataSet().getMaxInt())
+		{
+			overall_data_range_.setMaxY(currentDataSet().getMaxInt());
+			overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
+			max_layer_ = current_data_;
+		}
+		
+		//cout << overall_data_range_ << endl;
+		
+		changeVisibleArea_(overall_data_range_);
 	
 		//
-		if (data_area_.width() < 1.0)
+		if (overall_data_range_.width() < 1.0)
 		{
-			changeVisibleArea_(data_area_.minX() -1.0, data_area_.maxX() + 1.0);
+			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0);
 		}
 		else
 		{
-			changeVisibleArea_(data_area_.minX(), data_area_.maxX());
+			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX());
 		}
 		
 		showGridLines(show_grid_);
 	
-		return index;
+		return current_data_;
 	}
 
 }//Namespace

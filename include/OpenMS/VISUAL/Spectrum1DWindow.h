@@ -68,13 +68,9 @@ namespace OpenMS
 			void setSnapToMax(bool b);
 			
 		public slots:
-			void setLoXHiXNoEmit(double,double);
       virtual void showGoToDialog();				
 		protected:
 			virtual void createContextMenu_();
-		signals:
-			void loXHiXChanged(double,double);	
-			void changeLoXHiX(double,double);
 	};
 }
 #endif

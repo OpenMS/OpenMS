@@ -219,7 +219,7 @@ namespace OpenMS
     QPoint lastMousePos_,firstMousePos_;    
 
 		///member vairables for the BB ans the resize event
-    double corner_,zoom_ ,near_, far_;
+    double corner_, zoom_ ,near_, far_;
 		float width_;
     float heigth_;
 
@@ -229,8 +229,7 @@ namespace OpenMS
 		bool show_zoom_selection_;		
 		bool grid_exists_;
 		bool intensity_scale_;
-
-	  DRange<2> range;
+		
 		DRange<3> overall_values_;
 		DRange<1> int_scale_;
 		///member gridvectors which contains the data for the ticks

@@ -50,10 +50,8 @@ namespace OpenMS
 		// TODO: TICWidget overwrites 1DCanvas (canvas_)
 		//set the label mode for the axes  - side effect
 		setCanvas(new Spectrum1DCanvas(this, "Spectrum1DCanvas"));
-		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)),
-		        this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
-		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
-		        this, SIGNAL(sendCursorStatus(double,double,double)));
+		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
+		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		setLabelMode_(label_mode_);
 		x_axis_->setLegend("m/z");
 		y_axis_->setLegend("Intensity");
@@ -117,7 +115,7 @@ namespace OpenMS
 	{
 		
 		const SpectrumCanvas::AreaType& visible_area = canvas()->visible_area_;
-		const SpectrumCanvas::AreaType& data_area = canvas()->getDataArea_();
+		const SpectrumCanvas::AreaType& data_area = canvas()->getDataRange_();
 		
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(data): x: " << visible_area.minX() << " " <<visible_area.maxX() << "   y: " <<visible_area.minY() << " " <<visible_area.maxY() << endl;
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(visible): x: " << data_area.minX() << " " <<data_area.maxX() << "   y: " <<data_area.minY() << " " <<data_area.maxY() << endl;

@@ -632,7 +632,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 						for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
 						{	
 						
-							if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
+							if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 							{
 								
 								if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -692,7 +692,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		
 					for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
 					{			
-						if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
+						if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 						{
 							glBegin(GL_LINES);
 							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -752,7 +752,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 				//	canvas_3d_.getDataSet(i).sortSpectra(true);
 				for (BaseSpectrum::Iterator it = spec_it->MZBegin(overall_values_.min_[1]); it!=spec_it->MZEnd(overall_values_.max_[1]); ++it)
 				{			
-					if(it->getIntensity()>= canvas_3d_.min_disp_ints_[i] && it->getIntensity()<= canvas_3d_.max_disp_ints_[i])
+					if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 					{
 					
 						recalculateDotGradientLog_(i);		 
