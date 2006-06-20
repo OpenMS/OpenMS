@@ -1917,7 +1917,7 @@ namespace OpenMS
 		default_preferences.setValue("3D:Dot:InterpolationSteps",100);
 		default_preferences.setValue("3D:BackgroundColor", "#ffffff");
 		default_preferences.setValue("3D:AxesColor", "#000000");
-		default_preferences.setValue("3D:IntScale:Mode",0);	
+		default_preferences.setValue("3D:IntMode",0);	
 		default_preferences.setValue("3D:Dot:LineWidth",3);
 		prefs_.setDefaults(default_preferences,"Preferences");
 	}

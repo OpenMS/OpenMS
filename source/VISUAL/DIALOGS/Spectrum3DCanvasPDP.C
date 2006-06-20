@@ -45,22 +45,18 @@ using namespace std;
 
 namespace OpenMS
 {
-
 	namespace Internal
 	{
-	
 		Spectrum3DCanvasPDP::Spectrum3DCanvasPDP(Spectrum3DCanvas* manager, QWidget* parent, const char* name, WFlags f)
 				: PreferencesDialogPage(manager,parent,name,f)
 		{
 			help_ = "This is the preferences dialog of 3D spectrum!"
 								"<br>";
-			
 			QGridLayout* grid;
 			QLabel * label;
 			grid = new QGridLayout(this, 2, 1);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
-			
 			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",this);
 			QVButtonGroup* coloring_group = new QVButtonGroup("Color Mode:",box);
 			//coloring_group->setFrameStyle(QFrame::NoFrame);
@@ -133,7 +129,8 @@ void Spectrum3DCanvasPDP::load()
 			shade_mode_smooth_->setChecked(true);
 		}
 	}
-	if (man->getIntScaleMode()==Spectrum3DCanvas::INT_LINEAR)
+
+	if(man->getIntScaleMode()==Spectrum3DCanvas::INT_LINEAR)
 	{
 		intensity_mode_lin_->setChecked(true);
 	}
@@ -154,9 +151,8 @@ void Spectrum3DCanvasPDP::load()
 void Spectrum3DCanvasPDP::save()
 {
 	Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
-
-	if (dot_mode_gradient_->isChecked())
-			{
+	if(dot_mode_gradient_->isChecked())
+	{
 				man->setPref("Preferences:3D:Dot:Gradient",dot_gradient_->gradient().toString());
 				man->setDotGradient(dot_gradient_->gradient().toString());
 
@@ -181,26 +177,21 @@ void Spectrum3DCanvasPDP::save()
 				}
 		} 
 	if(intensity_mode_lin_->isChecked())
-		{
-			man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
-		}
+	{
+		man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
+	}
 	else 
+	{
+		if(intensity_mode_log_->isChecked())
 		{
-			if(intensity_mode_log_->isChecked())
-				{
-					man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-				}
+			man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
 		}
+	}
 	man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
 	man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
 	man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
-
 	man->invalidate_();	
-
 }
-
-
 } // namespace Internal
-
 } //namespace
 

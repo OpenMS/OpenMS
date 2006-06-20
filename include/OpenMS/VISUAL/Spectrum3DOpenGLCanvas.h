@@ -69,7 +69,7 @@ namespace OpenMS
 		};
 		///
 		typedef std::vector<std::vector<double> > GridVector;
-	 ///
+		///
 		typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
 		///
 		enum DimensionId { MZ = DimDesc::MZ, RT = DimDesc::RT };
@@ -77,8 +77,6 @@ namespace OpenMS
 		typedef DPeak<1> PeakT;
 		typedef DSpectrum< 1, OpenMS::DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
 		//@}
-
-
 
  public:
     /**
@@ -141,113 +139,158 @@ namespace OpenMS
 		/// method to make the font
 		void paintAxesScale();
 
-		///Mouse-and Wheel- Events
+		///reimplementation if the mouseMoveEvent
     void mouseMoveEvent(QMouseEvent *e);
+		///reimplementation if the mousePressEvent
 		void mouseReleaseEvent(QMouseEvent *e);
+		///reimplementation if the mouseRealeaseEvent
     void mousePressEvent(QMouseEvent *e);
+		///reimplementation if the wheelEvent
 		void wheelEvent(QWheelEvent * e);
+		
 		/**
 			 @brief Sets the 3D stick gradient.
 			 the dot mode is set to	DOT_GRADIENT.
 			 @param gradient A string containing the gradient description.
 		*/
 		void setDotGradient(const std::string& gradient);
-		///
-
-
-
+		
+		///updates the min-and max values of mz, rt and intensity
 		void updateMinMaxValues();
+		/// updates the min and max values of the intensity
 		void updateIntensityScale();
+		
+		/// calcualtes the zoom area , which is shown
 		void dataToZoomArray(double x_1, double y_1, double x_2, double y_2);
-		///
-
+		
+		/// returns the BB-rt-coordinate :  value --> BB-coordinates
 		double scaledRT(double rt);
-		double scaledZoomRT(double rt);
+		/// returns the rt-value : BB-coordinates  --> value
 		double scaledInversRT(double mz);
-	  double scaledMZ(double mz);
-		double scaledZoomMZ(double mz);
+	  /// returns the BB-mz-coordinate :  values --> BB-coordinates
+		double scaledMZ(double mz);
+		///  returns the mz-value : BB-coordinates  --> value
 		double scaledInversMZ(double mz);
-    double scaledIntensity(double intensity);
-		double scaledZoomIntensity(double intensity);
+    /// returns the BB-intensity -coordinate :  values --> BB-coordinates
+		double scaledIntensity(double intensity);
+		/// returns the log-intensity-value : BB-coordinates  --> value
 		double scaledLogIntensity(double intensity);
+
 		/// recalculates the dot gradient inerpolation values.
 		void recalculateDotGradient_(UnsignedInt);
 		/// recalculates the logarthmic dot gradient inerpolation values.
 		void recalculateDotGradientLog_(UnsignedInt i);
-		
 		///calculate the ticks for the gridlines
 		void calculateGridLines_();
-		
-		
-		//views from toolbar
+		///sets the BackView
 		void setBackView();
+		/// sets the topview
 		void setTopView();
+		/// sets the resetZoomView
 		void setResetZoomView();
+		/// sets the Zoomview
 		void setZoomView();
+		/// sets the selectView
 		void setSelectView();
-		bool getShowSelect();		
+		/// returns if the current status is VIEW_SELECT
+		bool getShowSelect();	
+		/// returns if the current status is VIEW_ZOOM
 		bool getShowZoom();
+		/// sets  int_scale_ and show the picks with scales intensity
 		void setIntensityScale(bool);
 
-    ///
+    /// return xRot_
     int xRotation() const { return xRot_; }
-    int yRotation() const { return yRot_; }
-    int zRotation() const { return zRot_; }
-    void normalizeAngle(int *angle);
-		
+    /// return yRot_
+		int yRotation() const { return yRot_; }
+    /// return zRot_
+		int zRotation() const { return zRot_; }
+    /// normalize the angel
+		void normalizeAngle(int *angle);
+		///
 		ViewMode view_mode_;
-		//displaylisten
+		/// displaylist
     GLuint stickdata_;
+		/// displaylist
 		GLuint coord_;
+		/// displaylist
 		GLuint axeslabel_;
+		
+		/// displaylist
 		GLuint zoomselection_;
+		/// displaylist
 		GLuint zoomdata_;
+		/// displaylist
 		GLuint ground_;
-
 		//preferences
 		MultiGradient gradient_;
 
 		// reference to Spectrum3DCanvas
 		Spectrum3DCanvas& canvas_3d_;
   
-		/// member variables for the rotation
+		/// member x-variables for the rotation
     int xRot_,xRot_old_;
-    int yRot_,yRot_old_;
+		/// member y-variables for the rotation
+		int yRot_,yRot_old_;
+		/// member z-variables for the rotation
     int zRot_,zRot_old_;
 
 		/// member variables fot the zoom-modus
     QPoint lastMousePos_,firstMousePos_;    
 
-		///member vairables for the BB ans the resize event
-    double corner_, zoom_ ,near_, far_;
-		float width_;
-    float heigth_;
-
-		bool second_paint_;
-		bool topview_,showbackview_;
-		bool zoom_mode_;
-		bool show_zoom_selection_;		
-		bool grid_exists_;
-		bool intensity_scale_;
-		
+		///member variable for the x and y axis of the BB 
+    double corner_;
+		/// member variable for the zoom- Modus
+		double zoom_ ;
+		/// member variable for the z- axis of the BB
+		double near_;
+		/// member variable for the z- axis of the BB
+		double far_;
+		/// the width of the viewport
+		float width_;	
+		/// the height of the viewport
+		float heigth_;
+		/// object which contains the min and max values of mz, rt and intensity
 		DRange<3> overall_values_;
+		///object wich contains the values of the current min and max intensity
 		DRange<1> int_scale_;
-		///member gridvectors which contains the data for the ticks
-		GridVector grid_mz_,grid_rt_, grid_intensity_,grid_intensity_log_;
-
-		double x_1_,x_2_,y_1_,y_2_;
+		///member gridvectors which contains the data for the mz-axis-ticks
+		GridVector grid_mz_;
+		///member gridvectors which contains the data for the rt-axis-ticks
+		GridVector grid_rt_;
+		///member gridvectors which contains the data for the intensity-axis-ticks
+		GridVector grid_intensity_;
+		///member gridvectors which contains the data for the log-intensity-axis-ticks
+		GridVector grid_intensity_log_;
+		/// is set to true in TopView : if(showbackview)->the old angels ar set in setBackView
+		bool showbackview_;
+		/// if it is true the zoom_selection is shown
+		bool show_zoom_selection_;		
+		/// if gris_exits_ ie treu the GridVector have been calcualted
+		bool grid_exists_;
+		/// if it is true the current peaks are shown with scaled intensity
+		bool intensity_scale_;
+	
+		/// x1 coordinate of the zoomselection
+		double x_1_;
+		/// x2 coordinate of the zoomselection
+		double x_2_;
+		/// y1 coordinate of the zoomselection
+		double y_1_;
+		/// y2 coordinate of the zoomselection
+		double y_2_;
 
 public slots:
+    /// first normalize the angel and then set xRot_ 
     void setRotationX(int angle);
+		/// first normalize the angel and then set yRot_ 
     void setRotationY(int angle);
+		/// first normalize the angel and then set zRot_ 
     void setRotationZ(int angle);
+		/// set the member variable zoom_ and calls initializeGL and updateGL
 		void setZoomFactor(double zoom);
 signals:
-    void xRotationChanged(int angle);
-    void yRotationChanged(int angle);
-    void zRotationChanged(int angle);
-		void zoomFactorChanged(double zoom);
-
+		/// signal which is emmited in the mouseReleaseEvent 
 		void rightButton(QPoint pos);
 	};
   

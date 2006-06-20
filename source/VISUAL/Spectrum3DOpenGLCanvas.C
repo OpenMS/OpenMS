@@ -73,8 +73,6 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	x_2_ = 0.0;
 	y_2_ = 0.0;	
 	//prefernces-values
-	second_paint_ = false;
-	zoom_mode_ = false;
 	showbackview_=false;
 	view_mode_ = VIEW_SELECT;
 	grid_exists_=false;
@@ -173,8 +171,8 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 		{
 		case VIEW_SELECT:
 			calculateGridLines_();
- 			if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
- 			{
+			if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
+				{
 				stickdata_ = makeDataAsStickLog();
 			}
  			else
@@ -339,9 +337,8 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						}
 				}
 	}
-	// intensity ax
 	if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
-		{
+	{
 			if(zoom_<3)
 			{
 				for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
@@ -956,7 +953,7 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity)
 	else
 	{
 		scaledintensity = intensity -overall_values_.min_[2];
-		scaledintensity = ( scaledintensity * 2.0 * corner_)/(overall_values_.max_[2]-overall_values_.min_[2]);
+ 		scaledintensity = ( scaledintensity * 2.0 * corner_)/(overall_values_.max_[2]-overall_values_.min_[2]);
 	}
 	return scaledintensity;
 }
@@ -988,7 +985,6 @@ void Spectrum3DOpenGLCanvas::setRotationY(int angle)
 	if (angle != yRot_) 
 	{
 		yRot_ = angle;
-		emit yRotationChanged(angle);
 		updateGL();
 	}
 }
@@ -999,7 +995,6 @@ void Spectrum3DOpenGLCanvas::setRotationZ(int angle)
 	if (angle != zRot_)
 	{
 		zRot_ = angle;
-		emit zRotationChanged(angle);
 		updateGL();
 	}
 }	
@@ -1018,7 +1013,7 @@ void Spectrum3DOpenGLCanvas::normalizeAngle(int *angle)
 
 void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom)
 {
-	emit zoomFactorChanged(zoom);
+	zoom_ = zoom;
 	initializeGL();
 	updateGL();
 }
@@ -1026,20 +1021,19 @@ void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom)
 ///////////////wheel- and MouseEvents//////////////////
 void Spectrum3DOpenGLCanvas::wheelEvent ( QWheelEvent * e )
 {
-	second_paint_ = true;
-	if(!zoom_mode_)
+	if(view_mode_!= VIEW_ZOOM)
 		{
 			int wheel = e->delta();
 			double distance = double(wheel/480.0);
-			zoom_ = zoom_+distance;
-			if(zoom_>0.0)
+			double zoom = zoom_+distance;
+			if(zoom>0.0)
 				{	
-					setZoomFactor( zoom_);
+					setZoomFactor( zoom);
 				}
 			else
 				{
-					zoom_=1.0;
-					setZoomFactor( zoom_);
+					zoom = 0.25;
+					setZoomFactor( zoom);
 				}
 		}
 }
@@ -1077,7 +1071,7 @@ void Spectrum3DOpenGLCanvas::mousePressEvent ( QMouseEvent * e)
 {
 	firstMousePos_ = e->pos();
 	lastMousePos_ = e->pos();
-	if(!zoom_mode_)
+	if(view_mode_!= VIEW_ZOOM)
 	{
 		lastMousePos_ = e->pos();
 	}
@@ -1090,7 +1084,7 @@ void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 			emit rightButton(e->globalPos());
 		}
 
-	if(view_mode_== VIEW_ZOOM && zoom_mode_)
+	if(view_mode_== VIEW_ZOOM )
 		{			
 			dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
 			show_zoom_selection_ = false;
@@ -1186,7 +1180,7 @@ void Spectrum3DOpenGLCanvas::setBackView()
 		initializeGL();
 		updateGL();
 	}
-zoom_mode_ = false;
+	
 	view_mode_ = VIEW_SELECT;
 	
 	if(showbackview_)
@@ -1203,8 +1197,10 @@ zoom_mode_ = false;
 
 void Spectrum3DOpenGLCanvas::setTopView()
 {
-	zoom_mode_ = false;
-	intensity_scale_ = false;
+	if(intensity_scale_)
+		{
+			intensity_scale_ = false;
+		}
 	view_mode_ = VIEW_TOP;
 	xRot_old_ = xRot_;
 	yRot_old_ = yRot_;
@@ -1219,10 +1215,10 @@ void Spectrum3DOpenGLCanvas::setTopView()
 }
 
 void Spectrum3DOpenGLCanvas::setResetZoomView()
-{
-	intensity_scale_ = false;
-	canvas_3d_.current_zoom_ = 0;	
-	zoom_mode_ = false;
+{if(intensity_scale_)
+		{
+			intensity_scale_ = false;
+		}
 	updateMinMaxValues();
 	view_mode_ = VIEW_SELECT;
 	xRot_ = 0;
@@ -1247,8 +1243,10 @@ void Spectrum3DOpenGLCanvas::setIntensityScale(bool on)
 }
 void Spectrum3DOpenGLCanvas::setZoomView()
 {
-	intensity_scale_ = false;
-	zoom_mode_ = true;
+	if(intensity_scale_)
+		{
+			intensity_scale_ = false;
+		}
 	view_mode_ = VIEW_ZOOM;
 	zoom_ = 1.0;
 	//saving the old angels
@@ -1265,9 +1263,11 @@ void Spectrum3DOpenGLCanvas::setZoomView()
 
 void Spectrum3DOpenGLCanvas::setSelectView()
 {
-	intensity_scale_ = false;
+	if(intensity_scale_)
+		{
+			intensity_scale_ = false;
+		}
 	zoom_ = 1.25;
-	zoom_mode_ = false;
 	view_mode_ = VIEW_SELECT;
 	x_1_ = 0.0;
 	y_1_ = 0.0;

@@ -54,7 +54,7 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	setHScrollBarMode(QScrollView::AlwaysOff ); 
 	action_mode_ = AM_SELECT;
 	activateDataSet(0);
-	current_zoom_ = 0;	
+
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -88,9 +88,9 @@ void Spectrum3DCanvas::updateView()
 	else
 		{
 			if(action_mode_ == AM_ZOOM)
-				{
-					openglcanvas_->setZoomView();
-				}
+			{
+				openglcanvas_->setZoomView();
+			}
 		}
 }
 
@@ -119,16 +119,17 @@ PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
 void Spectrum3DCanvas::intensityModificationChange_()
 {
 	if(intensity_modification_ == SpectrumCanvas::IM_LOG)
-	{
+		{
 		setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-	}
+		}
 	else
-	{
-		if(intensity_modification_==SpectrumCanvas::IM_NONE)
+		{
+			if(intensity_modification_==SpectrumCanvas::IM_NONE)
 		{
 			setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
 		}
 	}
+	
 	SpectrumCanvas::intensityModificationChange_();
 }
 
@@ -145,7 +146,6 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 
 void Spectrum3DCanvas::invalidate_()
 {
-	//	openglwidget()->updateGL();
 	openglwidget()->initializeGL();
  	openglwidget()->updateGL();
 }
