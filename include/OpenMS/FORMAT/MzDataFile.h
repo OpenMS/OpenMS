@@ -40,7 +40,11 @@ namespace OpenMS
   	@brief File adapter for MzData files
   
   	@todo Add external CVs 
-  
+  	
+  	@todo Fix writing of SpectrumRef (Jens)
+  	
+  	@todo Software:completionTime => dateTime (Jens)
+  	
   	@ingroup FileIO
   */
   class MzDataFile

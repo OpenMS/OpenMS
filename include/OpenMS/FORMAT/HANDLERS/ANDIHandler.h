@@ -47,6 +47,9 @@ namespace OpenMS
 
 		MapType has to be a MSExperiment or have the same interface.
   	Do not use this class. It is only needed in ANDIFile.
+  	
+  	@todo Optimize + Test with RawDataPoint (Jens)
+  	
   */
 	template <typename MapType>
   class ANDIHandler
@@ -410,7 +413,7 @@ namespace OpenMS
 		if (mass_factor==0.0f) mass_factor = 1.0f;
 		if (intens_factor==0.0f) intens_factor = 1.0f;
 
-		spec_ = new MSSpectrum<>();
+		spec_ = new typename MapType::SpectrumType();
 
 		spec_->setRetentionTime( float_(scan_data->scan_acq_time), 
 																			 float_(global_data->delay_time), 

@@ -299,6 +299,8 @@ namespace OpenMS
   	bool MzXMLHandler<MapType>::startElement(const QString & /*uri*/,
 	const QString & /*local_name*/,	const QString & qname, const QXmlAttributes & attributes )
   {
+  	//std::cout << qname << std::endl;
+  	
 		int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 		atts_ = &attributes;
@@ -404,7 +406,7 @@ namespace OpenMS
 				{
 					exp_->insert(exp_->end(), SpectrumType() );
 					spec_ = &(exp_->back());
-
+					
 					// required attributes
 					spec_->setMSLevel( asSignedInt_(getQAttribute(MSLEVEL)) );
 					peak_count_ = asSignedInt_( getQAttribute(PEAKSCOUNT) );
@@ -430,6 +432,7 @@ namespace OpenMS
 							case RETTIME:
 								spec_->setRetentionTime(
 																	asFloat_(value.remove(0,2).remove('S')));
+								//std::cout << spec_->getRetentionTime() << std::endl;
 								break;
 							case STARTMZ:      sett.setMzRangeStart( asDouble_(value)); break;
 							case ENDMZ:				 sett.setMzRangeStop( asDouble_(value)); break;
