@@ -100,6 +100,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 	current_data_ = getDataSetCount()-1;
 	currentDataSet().updateRanges(1);	
 	recalculateRanges_(1,0,2);
+	visible_area_.assign(overall_data_range_);
 	disp_ints_.push_back(pair<float,float>(overall_data_range_.min_[2], overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	invalidate_();
@@ -160,6 +161,7 @@ void Spectrum3DCanvas::removeDataSet(int data_set)
 	layer_visible_.erase(layer_visible_.begin()+data_set);
 	disp_ints_.erase(disp_ints_.begin()+data_set);
 	recalculateRanges_(1,0,2);
+	visible_area_.assign(overall_data_range_);
 	invalidate_();
 }
 
