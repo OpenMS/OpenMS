@@ -57,16 +57,17 @@ EXECUTABLES=\
 	IDFilter\
 	MascotAdapter\
 	PeakPicker\
+	UnlabeledMatcher\
+	PairMatcher\
+	Dewarper\
 	$(LIBSVM_EXEC)
 
 #	SpectrumComparator\
 #	SpectrumLibBuilder\
 #	SpectrumLibMatcher\
-#	Dewarper\
 #	FeaturePairSplitter\
-#	PairMatcher\
 #	RawDataResampler\
-#	UnlabeledMatcher\
+
 
 
 default: all
