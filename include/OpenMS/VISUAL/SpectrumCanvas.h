@@ -390,6 +390,13 @@ namespace OpenMS
 			@param b if @c true, the Y axis is mirrored, if @c falseit is shown normally
 		*/
 		void setMirroredYAxis(bool b);
+
+		/**
+			@brief Returns the area which encloses all data points.
+			
+			The order domensions is dependent on the derived class.
+		*/
+		const DRange<3>& getDataRange();
 		
 	signals:
 		/// Signal emitted whenever a new Layer is activated within the current window
@@ -485,12 +492,6 @@ namespace OpenMS
 		*/
 		void updateScrollbars_();
 		
-		/// Returns the area which encloses all data points.
-		virtual const AreaType& getDataRange_();
-
-		/// Returns the interval which encloses all intensities.
-		const std::pair<float,float>& getIntensityRange_();
-		
 		/**
 			@brief Convert pixel to chart coordinates
 			
@@ -564,46 +565,42 @@ namespace OpenMS
 		/**
 			@brief Updates data and intensity range with the values of dataset @p data_set
 			
-			@param mz_dim Index of the dataset in datasets_
+			@param data_set Index of the dataset in datasets_
 			@param mz_dim Index of m/z in overall_data_range_
 			@param rt_dim Index of RT in overall_data_range_			
+			@param it_dim Index of intensity in overall_data_range_	
 			
 			@see datasets_
 			@see overall_data_range_
-			@see overall_intensity_range_
 			
 			@note Make sure the updateRanges() of the datasets has been called before this method is called
 		*/
-		void updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim);
+		void updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
 
 		/**
-			@brief Resets data and intensity range to +/- infinity
+			@brief Resets data and range to +/- infinity
 		
 			@see overall_data_range_
-			@see overall_intensity_range_
 		*/
 		void resetRanges_();
 		
 		/**
-			@brief Recalculates the data and intensity range.
+			@brief Recalculates the data range.
 			
-			This method calls resetRanges_() followed by updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt)
+			This method calls resetRanges_() followed by updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
 			for all datasets.
 	
 			@param mz_dim Index of m/z in overall_data_range_
 			@param rt_dim Index of RT in overall_data_range_		
+			@param it_dim Index of intensity in overall_data_range_	
 			
 			@see datasets_
 			@see overall_data_range_
-			@see overall_intensity_range_
 		*/
-		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim);
+		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
 		
 		/// Stores the data range (m/z and RT) of all datasets
-		AreaType overall_data_range_;
-
-		/// Stores the intensity range of all datasets
-		std::pair<float,float> overall_intensity_range_;
+		DRange<3> overall_data_range_;
 		
 		/// Stores whether or not to show a grid.
 		bool show_grid_;

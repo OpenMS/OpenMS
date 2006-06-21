@@ -241,6 +241,30 @@ CHECK(void setMaxY(CoordinateType const c))
 	TEST_REAL_EQUAL(tmp.maxY(),57.67)
 RESULT
 
+
+
+CHECK(template <Size D2> void assign(const DIntervalBase<D2> rhs))
+DIntervalBase<2>::PositionType p1;
+p1[0]=5.0;
+p1[1]=17.5;
+DIntervalBase<2>::PositionType p2;
+p2[0]=65.0;
+p2[1]=-57.5;
+DIntervalBase<2> i2(p1,p2);
+
+DIntervalBase<3> tmp;
+tmp.assign(i2);
+TEST_REAL_EQUAL(tmp.min()[0],5.0);
+TEST_REAL_EQUAL(tmp.min()[1],-57.5);
+TEST_REAL_EQUAL(tmp.max()[0],65.0);
+TEST_REAL_EQUAL(tmp.max()[1],17.5);
+
+DIntervalBase<1> tmp2;
+tmp2.assign(i2);
+TEST_REAL_EQUAL(tmp2.min()[0],5.0);
+TEST_REAL_EQUAL(tmp2.max()[0],65.0);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

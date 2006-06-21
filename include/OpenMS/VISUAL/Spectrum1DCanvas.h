@@ -7,7 +7,7 @@
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
+//  modify it under the terms of the GNU Lesser General Publicf
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
 //
@@ -64,19 +64,23 @@ namespace OpenMS
 		friend class Spectrum1DWidget;
 		
 	public:
-		
-		//icons
-		static const UnsignedInt IT_NOICON = 0x00;
-		static const UnsignedInt IT_CIRCLE = 0x01;
-		static const UnsignedInt IT_TRIANGLE = 0x02;
-		static const UnsignedInt IT_ASTERIX = 0x03;
-		static const UnsignedInt IT_SQUARE = 0x04;
-
-		// label modes of x axis and y axis
-		static const UnsignedInt LM_XABSOLUTE_YABSOLUTE = 0x00;
-		static const UnsignedInt LM_XPERCENT_YABSOLUTE = 0x01;
-		static const UnsignedInt LM_XABSOLUTE_YPERCENT = 0x02;
-		static const UnsignedInt LM_XPERCENT_YPERCENT = 0x03;
+		/// Icons for marking peaks
+		enum Icons
+		{
+			IT_NOICON,
+			IT_CIRCLE,
+			IT_TRIANGLE,
+			IT_ASTERIX, 
+			IT_SQUARE
+		};
+		/// Label modes (percentage or absolut) of x axis and y axis
+		enum LabelMode
+		{
+			LM_XABSOLUTE_YABSOLUTE,
+			LM_XPERCENT_YABSOLUTE,
+			LM_XABSOLUTE_YPERCENT,
+			LM_XPERCENT_YPERCENT
+		};
 		
 		/**
 			@brief Default constructor
@@ -97,8 +101,8 @@ namespace OpenMS
 	
 		// some high level functions that use low level widget functions
 		// zoom and translate operations (with animation, visualisation)
-		void zoomOut(double x,int animatedSteps=1);
-		void zoomIn(double x, int animatedSteps=1);
+		void zoomOut(double x);
+		void zoomIn(double x);
 		void translate(double x, int animatedSteps=1);
 
 		// function to mark a peak with an icon
@@ -119,19 +123,17 @@ namespace OpenMS
 			return draw_modes_[current_data_]; 
 		}
 		
-		inline double getZoomFactor() const 
-		{ 
-			return zoom_factor_; 
-		}
-		
 		// Docu in base class
 		virtual void setMainPreferences(const Param& prefs);
 		
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
+		
+		/// Returns the snap_to_max_mode_ flag
 		bool getSnapToMax();
+		/// Sets the snap_to_max_mode_ flag
 		void setSnapToMax(bool b);
+		
 		/**
 			@brief returns the snap_factor_.
 			
@@ -140,8 +142,6 @@ namespace OpenMS
 		double getSnapFactor();
 
 		bool isAbsoluteIntensity() const;	
-
-		void clearHighlighting();
 
 	public slots:
 		
@@ -158,7 +158,6 @@ namespace OpenMS
 		// Docu in base class
 		SignedInt finishAdding();
 
-		void setZoomFactor(double);  //< Sets zoom_factor_ to non default value.
 		void setVisibleArea(double lo, double hi);
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 	
@@ -176,20 +175,17 @@ namespace OpenMS
 		/// Calls chartToWidget_(const PointType&) but takes snap_factor_ and layer_factor_ into account.
 		QPoint chartToWidget_(const PeakType& peak);
 		
-		void setBounds_();
+		/**
+			@brief Updates visible_begin_ and visible_end_ .
+			
+			In snap-to-max-intensity mode it also updates the maximum intensity in the visible area.
+		*/
+		void updateVisibleAreaBounds_();
 		
 		// Docu in base class
-		QPoint chartToWidget_(const PointType& pos);
+		virtual void intensityModificationChange_();
 		
-		// Docu in base class
-//		virtual void intensityModificationChange_();
-
-		void legendModificationChange_();
-
-		/// scale data depending on log/linear and absolute/percent
-		void scaleData_(bool is_log);
-		void scaleAllData_(bool is_log);
-
+		/// RubberBand for zooming
 		RubberBand rubber_band_;
 
 		// Docu in base class
@@ -198,64 +194,58 @@ namespace OpenMS
 		// Docu in base class
 		void changeVisibleArea_(const AreaType& new_area);
 
+		/// Array of selected peak iterators
 		std::vector<SpectrumIteratorType> selected_peaks_;
+		
+		/// The (one and only) painter. 
+		QPainter painter_;	
 
-		QPainter painter_;	//< the (one and only) painter. 
-		
-		// state variables
-		double zoom_factor_;
-		std::vector<int> draw_modes_;
-		double margin_;
-		
-		///for storing the old maximum when the intensities are transformed
-		double old_max_intensity_;
+		/// Flag that indicates if intensity is absolute or relative
 		bool absolute_intensity_;
-
 		/// Scaling factor for relative scale with multiple layers
 		double layer_factor_;
-		
-		/// Layer with highest intsnsity
-		UnsignedInt max_layer_;
-		
 		/// Flag for 'snap to maximum intensity mode'.
 		bool snap_to_max_mode_;
-		
 		/// Itensity multiplication factor for 'snap to maximum intensity mode'.
 		double snap_factor_;
 
-		// selected diagram action mode and helper variables
+		/// start position of mouse actions
 		QPoint action_start_pos_;
+		/// current position of mouse actions
 		QPoint action_current_pos_;
-		
-		/// Iterator on first visible peak (for each spectrum)
+
+		/// Draw modes (for each spectrum)
+		std::vector<DrawModes> draw_modes_;
+		/// Iterators on first visible peak (for each spectrum)
 		std::vector<SpectrumIteratorType> visible_begin_;
-		/// Iterator after the last visible peak (for each spectrum)
+		/// Iterators after the last visible peak (for each spectrum)
 		std::vector<SpectrumIteratorType> visible_end_;    
 		/// Iterator on peak next to mouse position
 		SpectrumIteratorType nearest_peak_;
 		/// Find peak next to the given position
 		SpectrumIteratorType findPeakAtPosition(QPoint);  
 		
-		// data set drawing
-		QPen norm_pen_; // pen for drawing of normal peaks
-		QPen high_pen_; // pen for drawing of highlighted peaks
-		QPen icon_pen_; // pen for drawing of icons
-
-		QString zoom_status_;  // Status message in zoom-mode
-		bool is_highlighted_;  // peak is highlighted
+		/// pen for drawing of normal peaks
+		QPen norm_pen_;
+		/// pen for drawing of highlighted peaks
+		QPen high_pen_;
+		/// pen for drawing of icons
+		QPen icon_pen_; 
 
 		/// Draws peaks for dataset @p index
 		void drawPeaks_(UnsignedInt index);
 		/// Draws connectedLines for dataset @p index
 		void drawConnectedLines_(UnsignedInt index);
 
-		/// EVENTS
-		/// Most of the drawing is done during paint event
+		/// QT Event
 		void viewportPaintEvent( QPaintEvent * );
-		/// Mouse events.
+		/// QT Event
 		void contentsMousePressEvent( QMouseEvent *);
+		/// QT Event
 		void contentsMouseDoubleClickEvent( QMouseEvent *);
+		/// QT Event
 		void contentsMouseReleaseEvent( QMouseEvent *);
+		/// QT Event
 		void contentsMouseMoveEvent( QMouseEvent *);
 
 

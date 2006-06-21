@@ -53,13 +53,10 @@ namespace OpenMS
 			Spectrum1DWidget* widget();
 			
 			virtual void setDrawMode(QAction* a);
-			virtual int getDrawMode();
 			
 			void switchAxis(bool b);
 			void setMirroredXAxis(bool b);
 			void setMirroredYAxis(bool b);
-			///hands the preferences of the parent object down to the child
-			virtual void setMainPreferences(const Param& prefs);
 
 			///PreferencesManager
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);

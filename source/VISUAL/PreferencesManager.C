@@ -175,6 +175,7 @@ void PreferencesManager::removePref(const String& name)
 ///returns the preference entry @p name as SignedInt
 SignedInt PreferencesManager::getPrefAsInt(const String& name) const
 {
+	//cout << name << ": " << (string)prefs_.getValue(name) << endl;
 	return (SignedInt)(prefs_.getValue(name));
 }
 

@@ -56,7 +56,15 @@ namespace OpenMS
      
      @todo Fix taking of images (Cornelia)
      
-     @todo Replace IntScale by SpectrumCanvas::IntensityModifications
+     @todo Replace IntScale by SpectrumCanvas::IntensityModifications (Cornelia)
+     
+     @todo Axis labels (Cornelia)
+     
+     @todo Add translation
+     
+     @todo /share/data/MS/Examples/mzData/MS_small.mzData crashes when opening
+     
+     @todo use SpectrumCanvas::visible_area (for visible data) and SpectrumCanvas::overall_data_range_ (bounding box that encloses the data)
      
      @ingroup spectrum_widgets
   */	

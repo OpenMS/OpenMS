@@ -154,9 +154,7 @@ namespace OpenMS
 			 @param gradient A string containing the gradient description.
 		*/
 		void setDotGradient(const std::string& gradient);
-		
-		///updates the min-and max values of mz, rt and intensity
-		void updateMinMaxValues();
+
 		/// updates the min and max values of the intensity
 		void updateIntensityScale();
 		

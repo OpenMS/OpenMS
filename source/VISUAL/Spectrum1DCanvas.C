@@ -46,14 +46,10 @@ namespace OpenMS
 		
 	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent, const char* name, WFlags f)
 		: SpectrumCanvas(parent, name, f | WRepaintNoErase),
-		zoom_factor_(2.0),
 		absolute_intensity_(false),
 		layer_factor_(1.0),
-		max_layer_(0),
 		snap_to_max_mode_(false),
-		snap_factor_(1.0),
-		zoom_status_(),
-		is_highlighted_(false)
+		snap_factor_(1.0)
 	{
 		// get mouse coordinates while mouse moves over diagramm.	
 		viewport()->setMouseTracking(TRUE);
@@ -108,26 +104,25 @@ namespace OpenMS
 		return SpectrumCanvas::chartToWidget_(PointType(peak.getPosition()[0], snap_factor_*layer_factor_*peak.getIntensity()));
 	}
 	
-	void Spectrum1DCanvas::zoomIn(double position, int /*steps*/)
+	void Spectrum1DCanvas::zoomIn(double position)
 	{
 		double delta, newLo, newHi;
 	
-		delta = (visible_area_.maxX()-visible_area_.minX())/(2*zoom_factor_);
+		delta = (visible_area_.maxX()-visible_area_.minX())/4.0;
 		newLo = position - delta;
 		newHi = position + delta;
-	
-	// 	setVisibleAreaAnimated(newLo, newHi, steps);
+		
 		changeVisibleArea_(newLo, newHi);
 	}
 	
 	
-	void Spectrum1DCanvas::zoomOut(double position,int /*steps*/)
+	void Spectrum1DCanvas::zoomOut(double position)
 	{
 		double delta;
 		double newLo;
 		double newHi;
 	
-		delta = zoom_factor_*(visible_area_.maxX()-visible_area_.minX())/2;
+		delta = (visible_area_.maxX()-visible_area_.minX());
 		newLo = position-delta;
 		newHi = position+delta;
 	
@@ -135,7 +130,6 @@ namespace OpenMS
 		if (newLo < overall_data_range_.minX()) newLo = overall_data_range_.minX();
 		if (newHi > overall_data_range_.maxX()) newHi = overall_data_range_.maxX();
 	
-	// 	setVisibleAreaAnimated(newLo, newHi, steps);
 		changeVisibleArea_(newLo, newHi);
 	}
 	
@@ -185,7 +179,6 @@ namespace OpenMS
 					rubber_band_.setTopLeft(p);
 					rubber_band_.setBottomRight(p);
 					rubber_band_.updateRegion(viewport());
-					zoom_status_ = QString("(%1,%2) => ").arg(pos.X(),0,'f',2).arg(pos.Y(),0,'f',2);
 				}
 			}
 			else
@@ -197,7 +190,6 @@ namespace OpenMS
 					rubber_band_.setBottomRight(SpectrumCanvas::chartToWidget_(PointType(pos.X(), overall_data_range_.minY())));
 	
 					rubber_band_.updateRegion(viewport());
-					zoom_status_ = QString("%1 => ").arg(pos.X(),0,'f',2);
 				}
 			}
 			if (action_mode_ == AM_TRANSLATE) viewport()->setCursor(cursor_translate_in_progress_);
@@ -224,7 +216,7 @@ namespace OpenMS
 						nearest_peak_->setMetaValue(4, SignedInt(Spectrum1DCanvas::IT_CIRCLE));
 						selected_peaks_.push_back(nearest_peak_);
 	
-						std::ostringstream msg;
+						ostringstream msg;
 						msg << "Selected peak at position " << nearest_peak_->getPosition()[0]  << " (" << (selected_peaks_.size()-1);
 						msg << " peaks selected altogether.)";
 						emit sendStatusMessage(msg.str(), 5000);
@@ -232,20 +224,19 @@ namespace OpenMS
 					else
 					{
 						nearest_peak_->setMetaValue(4,SignedInt(Spectrum1DCanvas::IT_NOICON));
-						std::vector<SpectrumIteratorType>::iterator it_tmp =
-						  std::find(selected_peaks_.begin(), selected_peaks_.end(), nearest_peak_);
+						vector<SpectrumIteratorType>::iterator it_tmp = std::find(selected_peaks_.begin(), selected_peaks_.end(), nearest_peak_);
 	
 						if(it_tmp != selected_peaks_.end())
 						{
 							selected_peaks_.erase(it_tmp);
 	
-							std::ostringstream msg;
+							ostringstream msg;
 							msg << "Deselected peak at position " << nearest_peak_->getPosition()[0]  << " (" << (selected_peaks_.size()-1);
 							msg << " peaks selected altogether.)";
 							emit sendStatusMessage(msg.str(), 5000);
 						}
 	
-						//std::cout << "selected_peaks_.size(): " << selected_peaks_.size() << std::endl;
+						//cout << "selected_peaks_.size(): " << selected_peaks_.size() << endl;
 					}
 					invalidate_();
 				}
@@ -256,7 +247,6 @@ namespace OpenMS
 				// zoom-in-at-position or zoom-in-to-area
 				if (e->button() == LeftButton)
 				{
-					zoom_status_ = "";
 					rubber_band_.hide();
 					rubber_band_.updateRegion(viewport());
 					QRect rect = rubber_band_.getRect();
@@ -265,27 +255,25 @@ namespace OpenMS
 					if (rect.width() > 4 && rect.height() > 4)   // free zoom
 					{
 						Spectrum1DCanvas::AreaType area(widgetToChart_(rect.topLeft()), widgetToChart_(rect.bottomRight()));
-						//area.normalize();
 						if (e->state() & QMouseEvent::ShiftButton)
 						{
-							//check if selected area is outside data area and correct errors
-							if (area.minX() < overall_data_range_.minX())
+							//check if selected area is outside visible area and correct errors
+							if (area.minX() < visible_area_.minX())
 							{
-								area.setMinX(overall_data_range_.minX());
+								area.setMinX(visible_area_.minX());
 							}
-							if (area.minY() < overall_data_range_.minY())
+							if (area.minY() < visible_area_.minY())
 							{
-								area.setMinY(overall_data_range_.minY());
+								area.setMinY(visible_area_.minY());
 							}
-							if (area.maxX() > overall_data_range_.maxX())
+							if (area.maxX() > visible_area_.maxX())
 							{
-								area.setMaxX(overall_data_range_.maxX());
+								area.setMaxX(visible_area_.maxX());
 							}
-							if (area.maxY() > overall_data_range_.maxY())
+							if (area.maxY() > visible_area_.maxY())
 							{
-								area.setMaxY(overall_data_range_.maxY());
+								area.setMaxY(visible_area_.maxY());
 							}
-	
 							changeVisibleArea_(area);
 						}
 						else
@@ -295,7 +283,7 @@ namespace OpenMS
 					}
 					else                                        // position axis only zoom
 					{
-						zoomIn(widgetToChart_(rect.topLeft()).X(), 10);
+						zoomIn(widgetToChart_(rect.topLeft()).X());
 					}
 				}
 	
@@ -320,8 +308,10 @@ namespace OpenMS
 				}
 				break;
 			}
-			default:/* throw new std::runtime_error("undefined action mode: action_mode_="+action_mode_);*/
-				break;
+			case AM_MEASURE:
+			{
+				
+			}	
 		}
 	}
 	
@@ -359,14 +349,12 @@ namespace OpenMS
 			{ 
 				emit sendCursorStatus();
 	 			viewport()->setCursor(Qt::ArrowCursor);
-				is_highlighted_ = true;
 				nearest_peak_ = findPeakAtPosition(p);
 				invalidate_();
 				break;
 			}
 			case AM_ZOOM:
 			{
-				is_highlighted_ = true;
 				viewport()->setCursor(Qt::CrossCursor);
 				PointType pos = widgetToChart_(p);
 	
@@ -427,82 +415,74 @@ namespace OpenMS
 				}
 				break;
 			}
-			default: /*throw new std::runtime_error("undefined action mode: action_mode_="+action_mode_);*/
-				break;
+			case AM_MEASURE:
+			{
+				
+			}
 		}
 	}
 	
 	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition(QPoint p)
-	//  Input: position p on screen
-	//  Algorithmn:
-	//	1. step:
-	//		transform interval [P.x, P.x+1.0) into diagramm metrics: [P.x, P.x+1.0) => [d.x1, d.x2)
-	//	2. step:
-	//		find the 2 iterators in the data set that points to the first peak that falls into this interval
-	//		and the first, that falls off the interval
-	//	Depending on how many peaks (if any) lie between this two iterators further decisions have to be made
-	//  Case 0: no peak
-	//	Case 1: one peak => we already found the nearest peak
-	// 	Case 2: several peaks => as all peaks between these two iterators will be projected on the same line on the screen further
-	//					decision must me made (based on P.y) (see code)
-	// now a slightly modified version is used. the only difference is, that the source interval
-	// has a length of 3 pixels (to simplify grabbing of a peak).
-	
 	{
+		//  Input: position p on screen
+		//  Algorithmn:
+		//	1. step:
+		//		transform interval [P.x, P.x+1.0) into diagramm metrics: [P.x, P.x+1.0) => [d.x1, d.x2)
+		//	2. step:
+		//		find the 2 iterators in the data set that points to the first peak that falls into this interval
+		//		and the first, that falls off the interval
+		//	Depending on how many peaks (if any) lie between this two iterators further decisions have to be made
+		//  Case 0: no peak
+		//	Case 1: one peak => we already found the nearest peak
+		// 	Case 2: several peaks => as all peaks between these two iterators will be projected on the same line on the screen further
+		//					decision must me made (based on P.y) (see code)
+		// now a slightly modified version is used. the only difference is, that the source interval
+		// has a length of 3 pixels (to simplify grabbing of a peak).
+		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
-	// 	int coord;
-		double interval_start, interval_end;
 		PointType lt = widgetToChart_(p - QPoint(1, 1));
 		PointType rb = widgetToChart_(p + QPoint(1, 1));
-	/*	if (mapping_info_.isMzToXAxis())
-		{*/
-			interval_start = lt.X();
-			interval_end = rb.X();
-	/*	}
-		else
-		{
-			interval_start = lt.y;
-			interval_end = rb.y;
-		}*/
-	
+		double interval_start = min(lt.X(),rb.X());
+		double interval_end = max(lt.X(),rb.X());
+		
 		// debug code:
-		//	std::cout << "Intervall start: " << interval_start << std::endl;
-		//	std::cout << "Intervall end:   " << interval_end << std::endl;
+		//	cout << "Intervall start: " << interval_start << endl;
+		//	cout << "Intervall end:   " << interval_end << endl;
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
 		temp.getPosition()[0] = interval_start;
-		SpectrumIteratorType left_it = std::lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
+		SpectrumIteratorType left_it = lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
 		temp.getPosition()[0] = interval_end;
-		SpectrumIteratorType	right_it = std::lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
+		SpectrumIteratorType	right_it = lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
 	
 		//debug code:
-		//	std::cout << "left_it and *left_it: "  << left_it->getPosition()[0] << " " << left_it->getIntensity() << std::endl;
-		//	std::cout << "right_it and *right_it: "  << right_it->getPosition()[0] << " " << right_it->getIntensity() << std::endl;
+		//	cout << "left_it and *left_it: "  << left_it->getPosition()[0] << " " << left_it->getIntensity() << endl;
+		//	cout << "right_it and *right_it: "  << right_it->getPosition()[0] << " " << right_it->getIntensity() << endl;
 	
 		if (left_it == right_it)
 		{
-		//	std::cout << "case 0: no peak" << std::endl;	// debug code
+		//	cout << "case 0: no peak" << endl;	// debug code
 			return currentDataSet()[0].end();  // both are equal => no peak falls into this interval
 		}
 	
 		if (left_it == right_it-1 )
 		{
-		//	std::cout << "case 1: one peak falls into the interval " << std::endl; // debug code
+		//	cout << "case 1: one peak falls into the interval " << endl; // debug code
 			return left_it;
 		}
 	
 		// debug code
-		//	std::cout << " case 3: several peaks in the same interval" << std::endl;
-		//	std::cout << left_it->getIntensity() << " " << right_it->getIntensity() << std::endl;
+		//	cout << " case 3: several peaks in the same interval" << endl;
+		//	cout << left_it->getIntensity() << " " << right_it->getIntensity() << endl;
 	
 		SpectrumIteratorType nearest_it = left_it;
 	
-	// 	double dest_interval_start = SpectrumCanvas::chartToWidget_(Point<float>(0, overall_data_range_.minY())).y();
-	// 	double dest_interval_end = SpectrumCanvas::chartToWidget_(Point<float>(0, overall_data_range_.maxY())).y();
-		double dest_interval_start, dest_interval_end;
+		double dest_interval_start = SpectrumCanvas::chartToWidget_(DPosition<2>(0, overall_data_range_.minY())).y();
+		double dest_interval_end = SpectrumCanvas::chartToWidget_(DPosition<2>(0, overall_data_range_.maxY())).y();
+		//double dest_interval_start, dest_interval_end;
 		// select source interval start and end depending on diagram orientation
 	
 		if (mapping_info_.isMzToXAxis())
@@ -600,41 +580,19 @@ namespace OpenMS
 			return;
 		}
 	
-		//update visible area
-		resetRanges_();
+		//update range area
+		recalculateRanges_(0,2,1);
 		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
-		max_layer_ = 0;
-	
-		for (UnsignedInt index = 0; index < getDataSetCount(); ++index)
-		{
-			//update m/z
-			if (overall_data_range_.minX() > getDataSet(index).getMinMZ())
-			{
-				overall_data_range_.setMinX(getDataSet(index).getMinMZ());
-			}
-			if (overall_data_range_.maxX() < getDataSet(index).getMaxMZ())
-			{
-				overall_data_range_.setMaxX(getDataSet(index).getMaxMZ());
-			}
-			if (overall_data_range_.maxY() < getDataSet(index).getMaxInt())
-			{
-				overall_data_range_.setMaxY(getDataSet(index).getMaxInt());
-				max_layer_ = index;
-			}
-
-		//cout << "DataSet: "<< index << endl;
-		//cout << "Name: "<< getDataSet(index).getName() << endl;
-		//cout << getDataSet(index).getDataRange() << endl;
-
-		}
 		float width = overall_data_range_.width();
 		overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
 		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
-		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());	
+		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
 		//cout << overall_data_range_ << endl;
 		
-		changeVisibleArea_(overall_data_range_);
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		changeVisibleArea_(tmp);
 	
 		//
 		if (overall_data_range_.maxX() - overall_data_range_.minX() <1.0)
@@ -648,21 +606,18 @@ namespace OpenMS
 		showGridLines(show_grid_);
 	}
 	
-	void Spectrum1DCanvas::setZoomFactor(double d)
-	{
-		zoom_factor_ = d;
-	}
-	
 	void Spectrum1DCanvas::setDrawMode(QAction* a)
 	{
 		QString name = a->name();
 	
 		if (name == "setPeakMode")
+		{
 			draw_modes_[current_data_] = DM_PEAKS;
+		}
 		else if (name == "setConnectedLineMode")
+		{
 			draw_modes_[current_data_]= DM_CONNECTEDLINES;
-	
-		//throw new std::runtime_error("unknown QAction");
+		}
 		invalidate_();
 	}
 	
@@ -715,57 +670,56 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::drawPeaks_(UnsignedInt index)
 	{
-		// font for drawing of values on highlighted peaks
-		QFont high_font(QFont("courier"));
-	
 		painter_.save();
 		painter_.setBrush(NoBrush);
-	
+		painter_.setPen(norm_pen_);
+		
+		//Factor to stretch the log value to the shown intensity interval
+		float log_factor = getDataSet(index).getMaxInt()/log(getDataSet(index).getMaxInt());
+		
 		QPoint p, p0;
-		for (SpectrumIteratorType i = visible_begin_[index]; i != visible_end_[index]; ++i)
+		bool custom_color;
+		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; ++it)
 		{
-			if (i->getIntensity() < disp_ints_[index].first || i->getIntensity() > disp_ints_[index].second)
+			if (it->getIntensity() < disp_ints_[index].first || it->getIntensity() > disp_ints_[index].second)
 			{
 				continue;
 			}
-	
-			p = chartToWidget_(*i);
-			p0 = SpectrumCanvas::chartToWidget_(PointType(i->getPosition()[0], 0.0f));
-	
-			// highlight selected peak
-			if (i == nearest_peak_)
+			if (intensity_modification_==IM_NONE)
 			{
-				painter_.setFont(high_font);
+				p = chartToWidget_(*it);
+			}
+			else
+			{
+				p = SpectrumCanvas::chartToWidget_(PointType(it->getPosition()[0], log(it->getIntensity()+1)*log_factor));
+			}
+			p0 = SpectrumCanvas::chartToWidget_(PointType(it->getPosition()[0], 0.0f));
+			
+			// highlight selected peak
+			if (it->getPosition()[0] == nearest_peak_->getPosition()[0])
+			{
 				painter_.setPen(high_pen_);
-	
 				painter_.drawLine(p0, p);
-	
-				// convert peak value to original value if intensity in logarithmic scale
-				bool is_intensity_axis_percent = !isAbsoluteIntensity();
-				double tmp_intens = (intensity_modification_ == IM_NONE) ?
-					i->getIntensity() : log2linear(i->getIntensity(),is_intensity_axis_percent,old_max_intensity_);
-	
-				emit sendCursorStatus( i->getPosition()[0], tmp_intens);
+				painter_.setPen(norm_pen_);
+				emit sendCursorStatus( it->getPosition()[0], it->getIntensity());
 			}
 			else
 			{
 				// custom peak color
-				if (i->metaValueExists(5))
+				custom_color = it->metaValueExists(5);
+				if (custom_color)
 				{
-					QColor color = QColor(string(i->getMetaValue(5)).c_str());
-					QPen pen(color, pen_width_);
+					QPen pen(QColor(string(it->getMetaValue(5)).c_str()), pen_width_);
 					painter_.setPen(pen);
 				}
-	
-				else
+				painter_.drawLine(p0, p);
+				if (custom_color)
 				{
 					painter_.setPen(norm_pen_);
 				}
-				// draw normal peak
-				painter_.drawLine(p0, p);
 			}
-	
-			drawIcon(*i, p);
+			//draw icon if necessary
+			drawIcon(*it, p);
 		}
 		painter_.restore();
 	}
@@ -774,58 +728,78 @@ namespace OpenMS
 	{
 		painter_.save();
 		painter_.setBrush(NoBrush);
-		// drawing of the peaks
 		painter_.setPen(norm_pen_);
-		bool firstPoint=true;
+
+		//Factor to stretch the log value to the shown intensity interval
+		float log_factor = getDataSet(index).getMaxInt()/log(getDataSet(index).getMaxInt());
+		
+		//cases where 1 or 0 points are shown
 		if (visible_begin_[index]==visible_end_[index])
 		{
 			// check cases where no peak at all is visible
-			if (visible_begin_[index] == getDataSet(index)[0].end()) return;
-			if (visible_end_[index] == getDataSet(index)[0].begin()) return;
-	
+			if (visible_begin_[index] == getDataSet(index)[0].end()) 
+			{
+				painter_.restore();
+				return;
+			}
+			if (visible_end_[index] == getDataSet(index)[0].begin())
+			{
+				painter_.restore();
+				return;
+			}
 			// draw line (clipping performed by Qt on both sides)
 			painter_.drawLine(chartToWidget_(*(visible_begin_[index] - 1)), chartToWidget_(*visible_begin_[index]));
 			return;
 		}
 	
 		// connect peaks in visible area; (no clipping needed)
+		bool firstPoint=true;
 		QPoint p;
+		bool custom_color;
 		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; it++)
 		{
+			if (intensity_modification_==IM_NONE)
+			{
+				p = chartToWidget_(*it);
+			}
+			else
+			{
+				p = SpectrumCanvas::chartToWidget_(PointType(it->getPosition()[0], log(it->getIntensity()+1)*log_factor));
+			}
+
 			// connect lines
 			if (firstPoint)
 			{
-				p = chartToWidget_(*it);
+				
 				painter_.moveTo(p);
 				firstPoint = false;
-			} else
+			} 
+			else
 			{
-				p = chartToWidget_(*it);
 				// custom peak color
-				if (it->metaValueExists(5))
+				custom_color = it->metaValueExists(5);
+				if (custom_color)
 				{
-					QColor color = QColor(string(it->getMetaValue(5)).c_str());
-					QPen pen(color, pen_width_);
+					QPen pen(QColor(string(it->getMetaValue(5)).c_str()), pen_width_);
 					painter_.setPen(pen);
 				}
 				painter_.lineTo(p);
+				if (custom_color)
+				{
+					painter_.setPen(norm_pen_);
+				}
 			};
 	
 			// highlight selected peak
-			if (it == nearest_peak_)
+			if (it->getPosition()[0] == nearest_peak_->getPosition()[0])
 			{
 				painter_.save();
 				painter_.setPen(high_pen_);
 				painter_.drawLine(p.x(), p.y()-4, p.x(), p.y()+4);
 				painter_.drawLine(p.x()-4, p.y(), p.x()+4, p.y());
 				painter_.restore();
-				double tmp_intens;
-				if (intensity_modification_ == IM_NONE)
-					tmp_intens = it->getIntensity();
-				else
-					tmp_intens = log2linear(it->getIntensity(),!isAbsoluteIntensity(),old_max_intensity_);
-	
-				emit sendCursorStatus( it->getPosition()[0], tmp_intens);
+
+				emit sendCursorStatus( it->getPosition()[0], it->getIntensity());
 			}
 			// draw associated icon
 			drawIcon(*it, p);
@@ -852,46 +826,47 @@ namespace OpenMS
 		mapping_info_.setParam(prefs.copy("Preferences:1D:Mapping:",true));
 	}
 	
-	void Spectrum1DCanvas::setBounds_()
+	void Spectrum1DCanvas::updateVisibleAreaBounds_()
 	{
 		if (!datasets_.empty())
 		{
 			// get iterators on peaks that outline the visible area
-			PeakType temp;
-			temp.getPosition()[0] = visible_area_.minX();
 			for (UnsignedInt i=0; i<getDataSetCount();++i)
 			{
-				visible_begin_[i] = std::upper_bound(getDataSet(i)[0].begin(), getDataSet(i)[0].end(), temp, PeakType::PositionLess());
-			}
-	
-			temp.getPosition()[0] = visible_area_.maxX();
-			for (UnsignedInt i=0; i<getDataSetCount();++i)
-			{
-				visible_end_[i] = std::upper_bound(visible_begin_[i], getDataSet(i)[0].end(), temp, PeakType::PositionLess());
+				visible_begin_[i] = getDataSet(i)[0].MZBegin(visible_area_.minX());
+				visible_end_[i]   = getDataSet(i)[0].MZBegin(visible_area_.maxX());
 			}
 	
 			// If snap-to-max-mode is on: find local max and set factor to increase all data appropriately
-			if (snap_to_max_mode_) {
-				double local_max  = std::max_element(visible_begin_[0], visible_end_[0], PeakType::IntensityLess())->getIntensity();
-				for (UnsignedInt i=1; i<getDataSetCount();++i)
+			if (snap_to_max_mode_) 
+			{
+				double local_max  = -numeric_limits<double>::max();
+				for (UnsignedInt i=0; i<getDataSetCount();++i)
 				{
-					SpectrumIteratorType tmp  = std::max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
-					if (tmp->getIntensity() > local_max) local_max = tmp->getIntensity();
+					SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
+					if (tmp->getIntensity() > local_max) 
+					{
+						local_max = tmp->getIntensity();
+					}
 				}
-				snap_factor_ = 1.0*datasets_[max_layer_][0].getMaxInt()/local_max;
+				snap_factor_ = 1.0*overall_data_range_.max()[1]/local_max;
 			}
-			else 
+			else
+			{ 
 				snap_factor_ = 1.0;
-	
+			}
+			
 			if (action_mode_ != AM_SELECT)
+			{
 				nearest_peak_ = visible_end_[current_data_];
+			}
 		}
 	}
 	
 	void Spectrum1DCanvas::invalidate_()
 	{
 		//cout << "INVALIDATE"<<endl;
-		setBounds_();
+		updateVisibleAreaBounds_();
 	
 		// get color settings
 		setPaletteBackgroundColor(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
@@ -921,7 +896,7 @@ namespace OpenMS
 			if (isAbsoluteIntensity())
 				layer_factor_ = 1.0;
 			else 
-				layer_factor_ = 1.0*datasets_[max_layer_][0].getMaxInt()/getDataSet(i)[0].getMaxInt();
+				layer_factor_ = 1.0*overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
 	
 			switch (draw_modes_[i])
 			{
@@ -931,7 +906,6 @@ namespace OpenMS
 				case DM_CONNECTEDLINES:
 					drawConnectedLines_(i);
 				break;
-				default: /*throw new std::runtime_error("undefined draw mode: draw_modes_="+draw_modes_);*/ break;
 			}
 		}
 	
@@ -941,142 +915,15 @@ namespace OpenMS
 	}
 	
 	
-//	void Spectrum1DCanvas::intensityModificationChange_()
-//	{
-//		//cout << "IM_CHANGE" <<endl;
-//		if (intensity_modification_ == IM_LOG)
-//			scaleAllData_(true);
-//		else if (intensity_modification_ == IM_NONE)
-//			scaleAllData_(false);
-//		//cout << "/IM_CHANGE" <<endl;
-//		invalidate_();
-//	}
-	
-	void Spectrum1DCanvas::legendModificationChange_()
+	void Spectrum1DCanvas::intensityModificationChange_()
 	{
-		update();
+		invalidate_();
 	}
-	
-//	void Spectrum1DCanvas::scaleData_(bool is_log)
-//	{
-//		//abort if there is no data
-//		if (getDataSetCount()==0 || currentDataSet()[0].size()==0)	return ;
-//	
-//		bool is_intensity_axis_percent = !isAbsoluteIntensity();
-//	
-//		if (is_log)
-//		{
-//			old_max_intensity_ = overall_data_range_.maxY();
-//			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
-//			{
-//				if (it->getIntensity()!=0)
-//				{
-//					//				cerr<<  it->getIntensity() << " => ";
-//					it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, overall_data_range_.maxY());
-//					//				cerr << it->getIntensity() << endl;
-//				}
-//			}
-//		}
-//		else
-//		{
-//			for (SpectrumIteratorType it=currentDataSet()[0].begin();it!=currentDataSet()[0].end();++it)
-//			{
-//				if (it->getIntensity()!=0)
-//				{
-//					//					cerr << it->getIntensity() << " => ";
-//					it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
-//					//					cerr << it->getIntensity() << endl;
-//				}
-//			}
-//		}
-//		currentDataSet()[0].updateRanges();
-//	}
-	
-//	void Spectrum1DCanvas::scaleAllData_(bool is_log)
-//	{
-//		//cout << "SCALE ALL DATA"<<endl;
-//		//abort if there is no data
-//		if (getDataSetCount()==0)	return;
-//	
-//		bool is_intensity_axis_percent = !isAbsoluteIntensity();
-//	
-//		for (UnsignedInt index = 0; index < getDataSetCount(); ++index)
-//		{
-//			if (getDataSet(index)[0].size()==0) continue;
-//	
-//			if (is_log)
-//			{
-//				old_max_intensity_ = overall_data_range_.maxY();
-//				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
-//				{
-//					if (it->getIntensity()!=0)
-//					{
-//						//cerr<<  it->getIntensity() << " => ";
-//						it->getIntensity() = linear2log(it->getIntensity(), is_intensity_axis_percent, overall_data_range_.maxY());
-//						//cerr << it->getIntensity() << endl;
-//					}
-//				}
-//			}
-//			else
-//			{
-//				for (SpectrumIteratorType it=getDataSet(index)[0].begin();it!=getDataSet(index)[0].end();++it)
-//				{
-//					if (it->getIntensity()!=0)
-//					{
-//						//cerr << it->getIntensity() << " => ";
-//						it->getIntensity() = log2linear(it->getIntensity(), is_intensity_axis_percent, old_max_intensity_);
-//						//cerr << it->getIntensity() << endl;
-//					}
-//				}
-//			}
-//			getDataSet(index)[0].updateRanges();
-//			//cout << "/SCALE ALL DATA"<<endl;
-//		}
-//	
-//		//update visible area
-//		overall_data_range_.setMinY( (is_log)? 0.0 : 1.0);
-//		overall_data_range_.setMaxY(getDataSet(0)[0].getMaxInt());
-//	
-//		for (UnsignedInt index = 1; index < getDataSetCount(); ++index)
-//		{
-//			if (overall_data_range_.maxY() < getDataSet(index)[0].getMaxInt())
-//			{
-//				overall_data_range_.setMaxY(getDataSet(index)[0].getMaxInt());
-//			}
-//		}
-//	
-//		// extend region for cosmectical reasons -> peak with smallest/highest position won't fall on diagramm border on maximized view
-//		if (is_log)
-//		{
-//			//double min = log2linear(overall_data_range_.minY(),is_intensity_axis_percent, old_max_intensity_);
-//			double max = log2linear(overall_data_range_.maxY(),is_intensity_axis_percent, old_max_intensity_);
-//	 
-//			//overall_data_range_.setMaxY( linear2log(max + 0.002*(max - min), is_intensity_axis_percent, old_max_intensity_));
-//			overall_data_range_.setMaxY( linear2log(max, is_intensity_axis_percent, old_max_intensity_));
-//		}else
-//		{
-//			//overall_data_range_.setMaxY( overall_data_range_.maxY() + 0.002*(overall_data_range_.maxY()  - overall_data_range_.minY()));
-//			overall_data_range_.setMaxY( overall_data_range_.maxY());
-//		}
-//	
-//		visible_area_.setMaxY(overall_data_range_.maxY());
-//		visible_area_.setMinY(overall_data_range_.minY());
-//													
-//		//set displayed intensity range
-//		getMinDispInt() = 0;
-//		getMaxDispInt() = overall_data_range_.maxY();
-//	}
 	
 	void Spectrum1DCanvas::intensityAxisAbsolute()
 	{
 		if (!isAbsoluteIntensity())
 		{
-			// Rescale data before switching to absolute log scale
-//			if (intensity_modification_ == IM_LOG)
-//			{
-//				scaleData_(false);
-//	 			intensityModificationChange_();
-//			}
 			absolute_intensity_ = true;
 			invalidate_();
 		}
@@ -1086,12 +933,6 @@ namespace OpenMS
 	{
 		if (isAbsoluteIntensity())
 		{
-			// Rescale data before switching to absolute log scale
-//			if (intensity_modification_ == IM_LOG)
-//			{
-//				scaleData_(false); 
-//				intensityModificationChange_();
-//			}
 			absolute_intensity_ = false;
 			invalidate_();
 		}
@@ -1101,8 +942,6 @@ namespace OpenMS
 	{
 		return absolute_intensity_;
 	}
-	
-	
 	
 	void Spectrum1DCanvas::changeVisibleArea_(const Spectrum1DCanvas::AreaType& new_area)
 	{
@@ -1125,7 +964,7 @@ namespace OpenMS
 		zoom_timeout_ = false;
 		QTimer::singleShot(2000, this, SLOT(timeoutZoom_()));
 	
-		setBounds_();
+		updateVisibleAreaBounds_();
 		emit visibleAreaChanged(new_area);
 		recalculate_ = true;
 		invalidate_();
@@ -1137,9 +976,9 @@ namespace OpenMS
 		
 	}
 	
-	std::vector<Spectrum1DCanvas::SpectrumIteratorType> Spectrum1DCanvas::getSelectedPeaks()
+	vector<Spectrum1DCanvas::SpectrumIteratorType> Spectrum1DCanvas::getSelectedPeaks()
 	{
-		std::vector<SpectrumIteratorType> result = selected_peaks_;
+		vector<SpectrumIteratorType> result = selected_peaks_;
 		
 		//to also have the last peak of the spectrum as border: add the peak BEFORE currentDataSet()[0].end()
 		if (!currentDataSet()[0].empty())
@@ -1158,8 +997,10 @@ namespace OpenMS
 	void Spectrum1DCanvas::setSnapToMax(bool b)
 	{
 		snap_to_max_mode_ = b;
-		setBounds_();
-		emit visibleAreaChanged(getDataRange_());
+		updateVisibleAreaBounds_();
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		emit visibleAreaChanged(tmp);
 		invalidate_();
 	}
 	
@@ -1171,16 +1012,6 @@ namespace OpenMS
 	PreferencesDialogPage* Spectrum1DCanvas::createPreferences(QWidget* parent)
 	{
 		return new Spectrum1DCanvasPDP(this, parent);
-	}
-	
-	void Spectrum1DCanvas::clearHighlighting()
-	{
-		if (is_highlighted_) {
-			is_highlighted_ = false;
-			emit sendCursorStatus();
-			nearest_peak_ = currentDataSet()[0].end();
-			invalidate_();
-		}
 	}
 
 	SignedInt Spectrum1DCanvas::finishAdding()
@@ -1211,39 +1042,18 @@ namespace OpenMS
 		// sort peaks in accending order of position
 		currentDataSet()[0].getContainer().sortByNthPosition(0);
 		
-		//update m/z
-		bool range_changed = false;
-		if (overall_data_range_.minX() > currentDataSet().getMinMZ())
-		{
-			overall_data_range_.setMinX(currentDataSet().getMinMZ());
-			range_changed = true;
-			
-		}
-		if (overall_data_range_.maxX() < currentDataSet().getMaxMZ())
-		{
-			overall_data_range_.setMaxX(currentDataSet().getMaxMZ());
-			range_changed = true;
-			
-		}
-		if (range_changed)
-		{
-			float width = overall_data_range_.width();
-			overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
-			overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
-		}
-				
-		//update Intensity
-		overall_data_range_.setMinY(0.0);
-		if (overall_data_range_.maxY() < currentDataSet().getMaxInt())
-		{
-			overall_data_range_.setMaxY(currentDataSet().getMaxInt());
-			overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
-			max_layer_ = current_data_;
-		}
+		//update ranges
+		recalculateRanges_(0,2,1);
+		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
+		float width = overall_data_range_.width();
+		overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
+		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
+		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
 		//cout << overall_data_range_ << endl;
-		
-		changeVisibleArea_(overall_data_range_);
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		changeVisibleArea_(tmp);
 	
 		//
 		if (overall_data_range_.width() < 1.0)

@@ -720,7 +720,7 @@ namespace OpenMS
 				if (intensity_scaled_dots_)
 				{
 					// points get scaled relative to the minimum displayed intensity
-					int radius = static_cast<int>(log10(i->second->getIntensity() - overall_intensity_range_.first)/2);
+					int radius = static_cast<int>(log10(i->second->getIntensity() - overall_data_range_.min()[2])/2);
 					p->drawEllipse(pos.x()- radius, pos.y() - radius, 2*radius, 2*radius);  
 				}  else
 				{
@@ -1138,19 +1138,14 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::zoomIn_(const PointType& /*pos*/)
 	{
-		static const float zoom_in_factor = 0.95;
+		float zoom_in_factor = 0.95;
 		zoom_(PointType(visible_area_.center()), zoom_in_factor);
 	}
 	
 	void Spectrum2DCanvas::zoomOut_(const PointType& /*pos*/)
 	{
-		static const float zoom_out_factor = 1.05;
+		float zoom_out_factor = 1.05;
 		zoom_(PointType(visible_area_.center()), zoom_out_factor);
-	}
-	
-	const Spectrum2DCanvas::AreaType& Spectrum2DCanvas::getDataRange_()
-	{
-		return trees_[current_data_]->getArea();
 	}
 	
 	void Spectrum2DCanvas::intensityDistributionChange_()
@@ -1201,13 +1196,13 @@ namespace OpenMS
 		//cout << "recalculateDotGradient_" << endl;
 		if (intensity_modification_ == IM_LOG)
 		{
-			//cout << "LOG:" <<" "<< log(overall_intensity_range_.first) <<" "<< log(overall_intensity_range_.second)<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(log(overall_intensity_range_.first+1), log(overall_intensity_range_.second+1), getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(log(overall_data_range_.min()[2]+1), log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
 		}
 		else
 		{
-			//cout << "NORMAL:" << overall_intensity_range_.first <<" "<< overall_intensity_range_.second<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(overall_intensity_range_.first, overall_intensity_range_.second, getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(overall_data_range_.min()[2], overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
 		}	
 	}
 	
@@ -1215,11 +1210,11 @@ namespace OpenMS
 	{
 		if (intensity_modification_ == IM_LOG)
 		{
-			surface_gradient_.activatePrecalculationMode(log(overall_intensity_range_.first+1), log(overall_intensity_range_.second+1), getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));
+			surface_gradient_.activatePrecalculationMode(log(overall_data_range_.min()[2]+1), log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));
 		}
 		else
 		{
-			surface_gradient_.activatePrecalculationMode(overall_intensity_range_.first, overall_intensity_range_.second, getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));		
+			surface_gradient_.activatePrecalculationMode(overall_data_range_.min()[2], overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));		
 		}	
 	}
 	
@@ -1354,22 +1349,19 @@ namespace OpenMS
 			// find lower left and upper right bound (position and intensity)		
 			//values for the current dataset
 			disp_ints_.push_back(pair<float,float>(currentDataSet().getMinInt(),currentDataSet().getMaxInt()));
-			//overall values
-//			if (currentDataSet().getMaxInt() > overall_intensity_range_.second) overall_intensity_range_.second = currentDataSet().getMaxInt();
-//			if (currentDataSet().getMinInt() < overall_intensity_range_.first) overall_intensity_range_.first = currentDataSet().getMinInt();
-//			if (currentDataSet().getMinMZ() < min_x_) min_x_ = currentDataSet().getMinMZ();
-//			if (currentDataSet().getMaxMZ() > max_x_) max_x_ = currentDataSet().getMaxMZ();
-//			if (currentDataSet().getMinRT() < min_y_) min_y_ = currentDataSet().getMinRT();
-//			if (currentDataSet().getMaxRT() > max_y_) max_y_ = currentDataSet().getMaxRT();
 			
-			updateRanges_(current_data_,0,1);
+			//overall values
+			updateRanges_(current_data_,0,1,2);
 			
 			//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
 			//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
 			
-			if (overall_data_range_ != visible_area_)
+			AreaType tmp;
+			tmp.assign(overall_data_range_);
+			
+			if (tmp != visible_area_)
 			{ 
-				visible_area_ = overall_data_range_;
+				visible_area_.assign(overall_data_range_);
 				
 				bool insertion_error = false;
 				
@@ -1458,29 +1450,15 @@ namespace OpenMS
 		disp_ints_.erase(disp_ints_.begin()+data_set);
 		
 		//update visible area and boundaries
-//		overall_intensity_range_.second = -1 * numeric_limits<float>::max();
-//		overall_intensity_range_.first = numeric_limits<float>::max();
-//		max_x_ = -1 * numeric_limits<float>::max();
-//		min_x_ = numeric_limits<float>::max();
-//		max_y_ = -1 * numeric_limits<float>::max();
-//		min_y_ = numeric_limits<float>::max();
-//		for (UnsignedInt i=0; i<getDataSetCount(); i++)
-//		{
-//			if (getDataSet(i).getMaxInt() > overall_intensity_range_.second) overall_intensity_range_.second = getDataSet(i).getMaxInt();
-//			if (getDataSet(i).getMinInt() < overall_intensity_range_.first) overall_intensity_range_.first = getDataSet(i).getMinInt();
-//			if (getDataSet(i).getMaxMZ() > max_x_) max_x_ = getDataSet(i).getMaxMZ();
-//			if (getDataSet(i).getMinMZ() < min_x_) min_x_ = getDataSet(i).getMinMZ();
-//			if (getDataSet(i).getMaxRT() > max_y_) max_y_ = getDataSet(i).getMaxRT();
-//			if (getDataSet(i).getMinRT() < min_y_) min_y_ = getDataSet(i).getMinRT();
-//		}
-
-		recalculateRanges_(0,1);
+		recalculateRanges_(0,1,2);
 
 		//cout<<"Overall new boudaries: "<< overall_data_range_<< endl;
 		
-		if (overall_data_range_ != visible_area_)
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		if (tmp != visible_area_)
 		{ 
-			visible_area_ = overall_data_range_;
+			visible_area_.assign(overall_data_range_);
 			
 			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 			{

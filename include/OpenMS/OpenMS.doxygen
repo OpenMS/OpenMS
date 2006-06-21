@@ -50,16 +50,15 @@
 
 /*
 	ToDo-Liste Marc:
-	- updateRanges/resetRanges/recalculateRanges überall einbauen
-	- Log-Mode on the fly berechnen (1D)
-	- Prozent-Mode oder Log-Modus, nicht mehr beides
-	- 1D: Achen vertauscht -> Seg fault beim SELECT_MODE
+	- Snap-, Prozent- oder Log-Modus -- nicht alles
+	- Features wieder einbauen
 	- Achsenrichtungen weg -> Aus Preferences entfernen (1D + 2D)
 	- SpectrumWidget/Window docu, remove
-	- Static ints durch Enums ersetzen
+	- File-Type force/automatic
 	
 	TOPPView (später)
-	- overall_area_range_ + overall_intsity_range zu DRange<3> zusammenfassen -> Geht auch für 1D
+	- Farben an aktuellen Int-Bereich anpassen
+	- testen, ob 2D-View mit geometric hashing besser ist
 	
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?

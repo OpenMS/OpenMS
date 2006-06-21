@@ -60,8 +60,6 @@ namespace OpenMS
 		
 			///
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-			///
-		  virtual void setMainPreferences(const Param& pref);
 
 			///
 		  virtual void showGoToDialog();

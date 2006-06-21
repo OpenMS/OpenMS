@@ -79,8 +79,6 @@ namespace OpenMS
 				
 			}
 			
-			virtual int getDrawMode() { return 0; }
-			
 			void showGridLines(bool b);
 			bool getGridMode();
 			
@@ -92,9 +90,6 @@ namespace OpenMS
 			
 			///connect the signals/slots of window and widget (status messages, mode changes)
 			void connectWidgetSignals(SpectrumWidget* sw);
-
-			///hands the preferences of the parent object down to the child
-			virtual void setMainPreferences(const Param& prefs)=0;
 
 			///PreferencesManager
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;

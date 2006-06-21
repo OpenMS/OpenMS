@@ -34,6 +34,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/config.h>
 
 class QAction;
@@ -69,9 +70,10 @@ namespace OpenMS
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
-		bool isAbsoluteIntensity() const;
-		
-		inline UnsignedInt getLabelMode() { return label_mode_; }
+		inline Spectrum1DCanvas::LabelMode getLabelMode() 
+		{ 
+			return label_mode_; 
+		}
 		
 		void minimizeToChart();
 
@@ -79,17 +81,7 @@ namespace OpenMS
 
 		bool getSnapToMax();
 		void setSnapToMax(bool b);
-		
-	protected:
-		virtual void intensityModificationChange_();
-		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
-		
-		void legendModificationChange_();
-		
-		/// state variables
-		UnsignedInt label_mode_;
-		bool log_switched_;
-	
+
 	public slots:
 		void switchAxis(bool b);
 		void setDrawMode(QAction*); //< Sets draw mode to one of the supported types
@@ -97,16 +89,24 @@ namespace OpenMS
 		void drawModeLines();
 		void intensityAxisAbsolute();
 		void intensityAxisRelative();
-		void setZoomFactor(double);  //< Sets zoom_factor_ to non default value.
 		void setVisibleArea(double, double);	//< Sets visible area to [position1, position2] and emits visibleAreaChanged
 		void mouseMoveEvent( QMouseEvent *e);
-		void clearHighlighting(); // Clear canvas highlighting and statusbar message when out of canvas
 	
 	signals:
-		void visibleAreaChanged(double, double); //< Gets emitted whenever the visible area changes.
-		
+		void visibleAreaChanged(double, double); //< Gets emitted whenever the visible area changes.		
+
 	protected:
-		void setLabelMode_(UnsignedInt label_mode);  //<set label mode of widget axis, side effect: set modes of axes as well
+		// Docu in base class
+		virtual void intensityModificationChange_();
+		// Docu in base class
+		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
+		
+		// Docu in base class
+		void legendModificationChange_();
+		
+		/// Label mode: percentage or absolut
+		Spectrum1DCanvas::LabelMode label_mode_;
+		
 		/// Wrappers to retrieve and set label modes in a mapping-safe way. Programmers should use these whenever possible.
 		void setIntensityAxisRelative_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
 		void setIntensityAxisAbsolute_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.

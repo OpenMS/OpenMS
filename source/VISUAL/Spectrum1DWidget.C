@@ -44,22 +44,21 @@ namespace OpenMS
 	
 	Spectrum1DWidget::Spectrum1DWidget(QWidget* parent, const char* name, WFlags f)
 		: SpectrumWidget(parent, name, f),
-		label_mode_(Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT),
-		log_switched_(false)
+		label_mode_(Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT)
 	{
 		// TODO: TICWidget overwrites 1DCanvas (canvas_)
 		//set the label mode for the axes  - side effect
 		setCanvas(new Spectrum1DCanvas(this, "Spectrum1DCanvas"));
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
-		setLabelMode_(label_mode_);
+		
+		recalculateAxes();
+		
 		x_axis_->setLegend("m/z");
 		y_axis_->setLegend("Intensity");
 		addClient(canvas(),"Canvas",true);
 	
 		setMouseTracking(true);
-		connect(x_axis_, SIGNAL(sendAxisMouseMovement()),this, SLOT(clearHighlighting()));
-		connect(y_axis_, SIGNAL(sendAxisMouseMovement()),this, SLOT(clearHighlighting()));
 	}
 	
 	Spectrum1DCanvas* Spectrum1DWidget::canvas() const
@@ -81,12 +80,7 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::mouseMoveEvent( QMouseEvent* /*e*/)
 	{
-		clearHighlighting();
-	}
-	
-	void Spectrum1DWidget::clearHighlighting()
-	{
-		canvas()->clearHighlighting();
+		
 	}
 	
 	void Spectrum1DWidget::setVisibleArea(double x1, double x2)
@@ -99,10 +93,12 @@ namespace OpenMS
 		switch (label_mode_)
 		{
 			case Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT:
-				setLabelMode_(Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE);
+				label_mode_ = Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE;
+				recalculateAxes();
 			break;
 			case Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE:
-				setLabelMode_(Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT);
+				label_mode_ = Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT;
+				recalculateAxes();
 			break;
 			default:  // in the other 2 cases nothing needs to be done
 			break;
@@ -113,9 +109,24 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::recalculateAxes()
 	{
+		//set intensity axis to log scale if necessary
+		if (canvas()->getMappingInfo().isMzToXAxis())
+		{
+			// y-axis is intensity axis
+			x_axis_->setLogScale(false);
+			y_axis_->setLogScale(isLogIntensity());
+		}
+		else
+		{
+			// x-axis is intensity axis
+			y_axis_->setLogScale(false);
+			x_axis_->setLogScale(isLogIntensity());
+		}
 		
 		const SpectrumCanvas::AreaType& visible_area = canvas()->visible_area_;
-		const SpectrumCanvas::AreaType& data_area = canvas()->getDataRange_();
+		
+		SpectrumCanvas::AreaType data_area;
+		data_area.assign(canvas()->getDataRange());
 		
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(data): x: " << visible_area.minX() << " " <<visible_area.maxX() << "   y: " <<visible_area.minY() << " " <<visible_area.maxY() << endl;
 		//cout << "Spectrum1DWidget::recalculateAxes() IN(visible): x: " << data_area.minX() << " " <<data_area.maxX() << "   y: " <<data_area.minY() << " " <<data_area.maxY() << endl;
@@ -204,54 +215,22 @@ namespace OpenMS
 		}
 		//cout << "Spectrum1DWidget::recalculateAxes() OUT: x: " << lx << " " <<hx << "   y: " <<ly << " " <<hy << endl;
 		
-		// Undo logarithmic scale, setAxis deals with plain min and max
-		bool is_intensity_axis_percent = !canvas()->isAbsoluteIntensity();
-		if ((canvas()->getIntensityModification() == SpectrumCanvas::IM_NONE && log_switched_)
-				|| (canvas()->getIntensityModification() == SpectrumCanvas::IM_LOG && !log_switched_))
+		if (mapping_info.isMzToXAxis())  // y = intensity
 		{
-			if (mapping_info.isMzToXAxis()) // y = intensity
-			{
-				if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
-					y_axis_->setAxisBounds(log2linear(ly/canvas()->getSnapFactor(), is_intensity_axis_percent, old_max_intensity_),
-																	 log2linear(hy/canvas()->getSnapFactor(), is_intensity_axis_percent, old_max_intensity_));
-				else
-					y_axis_->setAxisBounds(log2linear(ly, is_intensity_axis_percent, old_max_intensity_),
-																	 log2linear(hy, is_intensity_axis_percent, old_max_intensity_));
-			}
-			else // x = intensity
-			{
-				if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
-					x_axis_->setAxisBounds(log2linear(lx/canvas()->getSnapFactor(), is_intensity_axis_percent, old_max_intensity_),
-																	 log2linear(hx/canvas()->getSnapFactor(), is_intensity_axis_percent, old_max_intensity_));
-				else
-					x_axis_->setAxisBounds(log2linear(lx, is_intensity_axis_percent, old_max_intensity_),
-																	 log2linear(hx, is_intensity_axis_percent, old_max_intensity_));
-			}
-		}
-		else  // no logarithmic scale
-		{
-			if (mapping_info.isMzToXAxis())  // y = intensity
-			{
-				x_axis_->setAxisBounds(lx, hx);
-				if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
-					y_axis_->setAxisBounds(ly/canvas()->getSnapFactor(), hy/canvas()->getSnapFactor());
-				else
-					y_axis_->setAxisBounds(ly, hy);
-			}else  // x = intensity
-			{
+			x_axis_->setAxisBounds(lx, hx);
+			if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
+				y_axis_->setAxisBounds(ly/canvas()->getSnapFactor(), hy/canvas()->getSnapFactor());
+			else
 				y_axis_->setAxisBounds(ly, hy);
-				if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
-					x_axis_->setAxisBounds(lx/canvas()->getSnapFactor(), hx/canvas()->getSnapFactor());
-				else
-					x_axis_->setAxisBounds(lx, hx);
-			}
 		}
-		log_switched_ = false;
-	}
-	
-	void Spectrum1DWidget::setZoomFactor(double d)
-	{
-		canvas()->setZoomFactor(d);
+		else  // x = intensity
+		{
+			y_axis_->setAxisBounds(ly, hy);
+			if (canvas()->getSnapToMax()) // Adjust axis values in snap-to-max-intensity-mode
+				x_axis_->setAxisBounds(lx/canvas()->getSnapFactor(), hx/canvas()->getSnapFactor());
+			else
+				x_axis_->setAxisBounds(lx, hx);
+		}
 	}
 	
 	void Spectrum1DWidget::setDrawMode(QAction* a)
@@ -271,18 +250,21 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::intensityModificationChange_()
 	{
-		log_switched_ = true;
-		//cout << "Spectrum1DWidget::intensityModificationChange_()"<<endl;
-		setLabelMode_(label_mode_);  // update label mode of axes (intensity_modification_ is used there)
-		//cout << "Spectrum1DWidget::intensityModificationChange_() NACH LABEL MODE"<<endl;
+		recalculateAxes();
+		
 	 	canvas()->intensityModificationChange_();
-		if (getSnapToMax())	setSnapToMax(true);
+		
+		//
+		if (getSnapToMax())
+		{
+			setSnapToMax(true);
+		}
 		recalculateAxes();
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum1DWidget::createIntensityDistribution_()
 	{
-		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500);
+		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 	
 		for (Spectrum1DCanvas::ExperimentType::SpectrumType::ConstIterator it = canvas()->currentDataSet()[0].begin(); it != canvas()->currentDataSet()[0].end(); ++it)
 		{
@@ -318,37 +300,10 @@ namespace OpenMS
 		if (getSnapToMax())	setSnapToMax(true);
 	}
 	
-	bool Spectrum1DWidget::isAbsoluteIntensity() const
-	{
-		return canvas()->isAbsoluteIntensity();
-	}
-	
 	// destructor
 	Spectrum1DWidget::~Spectrum1DWidget()
 	{
 		
-	}
-	
-	//  label mode
-	void Spectrum1DWidget::setLabelMode_(UnsignedInt label_mode)
-	{
-		//cout << "Spectrum1DWidget::setLabelMode_"<<endl;
-		label_mode_ = label_mode;
-		if (canvas()->getMappingInfo().isMzToXAxis())
-		{
-			// y-axis (ordinate) is intensity axis
-			x_axis_->setLogScale(false);
-			y_axis_->setLogScale(isLogIntensity());
-		}
-		else
-		{
-			// x-axis is intensity axis
-			y_axis_->setLogScale(false);
-			x_axis_->setLogScale(isLogIntensity());
-		}
-		//cout << "Spectrum1DWidget::setLabelMode_ VOR recalculate"<<endl;
-		recalculateAxes();
-		//cout << "Spectrum1DWidget::setLabelMode_ NACH recalculate"<<endl;
 	}
 	
 	// mapping safe wrappers start here
@@ -358,30 +313,36 @@ namespace OpenMS
 		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y axis is intensity Axis
-			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE) return; // intensity axis already set to absolute
+			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE) 
+			{
+				return; // intensity axis already set to absolute
+			}
 			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE);
-				return;
-			} else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT)
+				label_mode_ = Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE;
+			} 
+			else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE);
-				return;
+				label_mode_ = Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE;
 			}
-		} else
+		} 
+		else
 		{
 			// x axis is intensity axis
-			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT) return; // intensity axis already set to absolute
+			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT) 
+			{
+				return; // intensity axis already set to absolute
+			}
 			if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE);
-				return;
-			} else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT)
+				label_mode_ = Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE;
+			} 
+			else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT);
-				return;
+				label_mode_ = Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT;
 			}
 		}
+		recalculateAxes();
 	}
 	
 	void Spectrum1DWidget::setIntensityAxisRelative_()
@@ -389,30 +350,36 @@ namespace OpenMS
 		if (canvas()->getMappingInfo().isMzToXAxis())
 		{
 			// y axis is intensity Axis
-			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT) return; // intensity axis already set to relative values (%)
+			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT) 
+			{
+				return; // intensity axis already set to relative values (%)
+			}
 			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT);
-				return;
-			} else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE)
+				label_mode_ = Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT;
+			} 
+			else if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XPERCENT_YPERCENT);
-				return;
+				label_mode_ = Spectrum1DCanvas::LM_XPERCENT_YPERCENT;
 			}
-		} else
+		} 
+		else
 		{
 			// x axis is intensity axis
-			if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT) return; // intensity axis already set to relative values (%)
+			if (label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE || label_mode_ == Spectrum1DCanvas::LM_XPERCENT_YPERCENT) 
+			{
+				return; // intensity axis already set to relative values (%)
+			}
 			if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE);
-				return;
-			} else if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT)
+				label_mode_ = Spectrum1DCanvas::LM_XPERCENT_YABSOLUTE;
+			} 
+			else if (label_mode_ == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT)
 			{
-				setLabelMode_(Spectrum1DCanvas::LM_XPERCENT_YPERCENT);
-				return;
+				label_mode_ = Spectrum1DCanvas::LM_XPERCENT_YPERCENT;
 			}
 		}
+		recalculateAxes();
 	}
 	
 	bool Spectrum1DWidget::isIntensityAxisAbsolute_() const

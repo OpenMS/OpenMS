@@ -165,11 +165,6 @@ namespace OpenMS
 		tic_->show();
 	}
 	
-	void Spectrum2DWindow::setMainPreferences(const Param& prefs)
-	{
-		widget()->setMainPreferences(prefs);
-	}
-	
 	PreferencesDialogPage* Spectrum2DWindow::createPreferences(QWidget* parent)
 	{
 		return widget()->createPreferences(parent);

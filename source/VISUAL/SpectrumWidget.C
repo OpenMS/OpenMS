@@ -175,7 +175,8 @@ namespace OpenMS
 	
 	void SpectrumWidget::setIntensityModificationNone()
 	{
-		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_NONE) {
+		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_NONE)
+		{
 			canvas_->setIntensityModification(SpectrumCanvas::IM_NONE);
 			intensityModificationChange_();
 		}
@@ -183,7 +184,8 @@ namespace OpenMS
 	
 	void SpectrumWidget::setIntensityModificationLog()
 	{
-		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_LOG) {
+		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_LOG)
+		{
 			canvas_->setIntensityModification(SpectrumCanvas::IM_LOG);
 			intensityModificationChange_();
 		}

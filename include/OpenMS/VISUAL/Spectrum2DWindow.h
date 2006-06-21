@@ -69,9 +69,6 @@ namespace OpenMS
 		bool getShowContours();
 
     void setIntensityScaledDots(bool on);
-    
-		///hands the preferences of the parent object down to the child
-		virtual void setMainPreferences(const Param& prefs);
 
 		/// returns the mode for 2D dots   
 		SignedInt getDotMode();

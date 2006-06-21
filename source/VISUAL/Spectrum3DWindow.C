@@ -48,22 +48,15 @@ namespace OpenMS
 	Spectrum3DWindow::~Spectrum3DWindow()
 	{
 	}
-
-
-	void Spectrum3DWindow::setMainPreferences(const Param& pref)
-	{ 
-	  widget()->setMainPreferences(pref);
-	}
-		void Spectrum3DWindow::showGoToDialog()
+	
+	void Spectrum3DWindow::showGoToDialog()
 	{
 	}	
 
 	void Spectrum3DWindow::createContextMenu_()
 	{
 		SpectrumWindow::createContextMenu_();
-		}
-	
-
+	}
 		
 	PreferencesDialogPage* Spectrum3DWindow::createPreferences(QWidget* parent)
 	{  

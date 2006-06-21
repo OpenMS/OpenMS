@@ -165,7 +165,22 @@ namespace OpenMS
 					max_ = max;
 					normalize_();
 				}
-		
+				
+				/**
+					@brief Assignment from a DIntervalBase of different dimensions.
+					
+					Only the dimensions 0 upto min(D,D2)-1 are copied.
+				*/
+				template <Size D2>
+				void assign(const DIntervalBase<D2> rhs)
+				{
+					for (UnsignedInt i=0; i<std::min(D,D2); ++i)
+					{
+						min_[i] = rhs.min()[i];
+						max_[i] = rhs.max()[i];
+					}
+				}
+				
 				//}@
 		
 				/**	@name Predicates */

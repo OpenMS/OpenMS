@@ -309,8 +309,6 @@ namespace OpenMS
 		void recalculateSurfaceGradient_();
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateDotGradient_();
-		/// Returns the data area of the current dataset's QuadTree
-		virtual const AreaType& getDataRange_();
 		
 		void createHorzScan_(float min, float max);
 		void createVertScan_(float min, float max);

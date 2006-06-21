@@ -114,7 +114,7 @@ namespace OpenMS
 		  (w->canvas()->getMappingInfo().isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
 		
 			log_check_box_->setChecked(w->isLogIntensity());
-			rel_check_box_->setChecked(!w->isAbsoluteIntensity());
+			rel_check_box_->setChecked(!w->canvas()->isAbsoluteIntensity());
 		}
 		
 		void Spectrum1DWidgetPDP::save()

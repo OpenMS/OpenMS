@@ -268,7 +268,7 @@ namespace OpenMS
 			{
 				// create 1D window
 				w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-				w->setMainPreferences(prefs_);
+				w->widget()->setMainPreferences(prefs_);
 				Spectrum1DWindow* w1 = dynamic_cast<Spectrum1DWindow*>(w);
 				
 				//determine Spectrum id
@@ -292,7 +292,7 @@ namespace OpenMS
 				{
 					//create 2D window
 					w = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
-					w->setMainPreferences(prefs_);
+					w->widget()->setMainPreferences(prefs_);
 					Spectrum2DWindow* w2 = dynamic_cast<Spectrum2DWindow*>(w);
 					w2->widget()->canvas()->setDotMode(getPrefAsInt("Preferences:2D:Dot:Mode"));
 					w2->widget()->canvas()->setDotGradient(getPrefAsString("Preferences:2D:Dot:Gradient"));
@@ -313,7 +313,7 @@ namespace OpenMS
 				{
 					// create 3D window
 					w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
-					w->setMainPreferences(prefs_);
+					w->widget()->setMainPreferences(prefs_);
 					Spectrum3DWindow* w3 = dynamic_cast<Spectrum3DWindow*>(w);				
 					//			w3->widget()->canvas()->setDotMode(getPrefAsInt("Preferences:3D:Dot:Mode"));
 					w3->widget()->canvas()->setDotGradient(getPrefAsString("Preferences:3D:Dot:Gradient").c_str());
@@ -538,7 +538,7 @@ namespace OpenMS
 		else
 		{
 			w1 = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-			w1->setMainPreferences(prefs_);
+			w1->widget()->setMainPreferences(prefs_);
 			//try to read the data from file
 			try
 			{			
@@ -643,7 +643,7 @@ namespace OpenMS
 		{
 			w2 = new Spectrum2DWindow(ws_, "Spectrum2DWindow", WDestructiveClose);
 			
-			w2->setMainPreferences(prefs_);					
+			w2->widget()->setMainPreferences(prefs_);					
 			//try to read the data from file
 			try
 			{
@@ -766,7 +766,7 @@ namespace OpenMS
 		{
 			w3 = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
 			
-			w3->setMainPreferences(prefs_);					
+			w3->widget()->setMainPreferences(prefs_);					
 			//try to read the data from file
 			try
 			{
@@ -1424,7 +1424,7 @@ namespace OpenMS
 			//set draw mode
 			if (dynamic_cast<Spectrum1DWindow*>(w)) {
 	
-				switch (((Spectrum1DWindow*)w)->getDrawMode())
+				switch (((Spectrum1DWindow*)w)->widget()->canvas()->getDrawMode())
 				{
 					case Spectrum1DCanvas::DM_PEAKS:
 						set_peak_mode_->setOn(true);
@@ -1919,6 +1919,7 @@ namespace OpenMS
 		default_preferences.setValue("3D:AxesColor", "#000000");
 		default_preferences.setValue("3D:IntMode",0);	
 		default_preferences.setValue("3D:Dot:LineWidth",3);
+		default_preferences.setValue("3D:IntScale:Mode",0);
 		prefs_.setDefaults(default_preferences,"Preferences");
 	}
 	

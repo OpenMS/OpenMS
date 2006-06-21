@@ -96,19 +96,9 @@ namespace OpenMS
 		widget()->setMirroredYAxis(b);
 	}
 	
-	int Spectrum1DWindow::getDrawMode()
-	{
-		return widget()->canvas()->getDrawMode();
-	}
-	
 	void Spectrum1DWindow::setDrawMode(QAction* a)
 	{
 		widget()->setDrawMode(a);
-	}
-	
-	void Spectrum1DWindow::setMainPreferences(const Param& prefs)
-	{
-		widget()->setMainPreferences(prefs);
 	}
 	
 	PreferencesDialogPage* Spectrum1DWindow::createPreferences(QWidget* parent)
