@@ -185,12 +185,12 @@ void Spectrum3DCanvasPDP::save()
 		if(intensity_mode_log_->isChecked())
 		{
 			man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-		}
+			}
 	}
 	man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
 	man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
 	man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
-	man->invalidate_();	
+ 	man->invalidate_();	
 }
 } // namespace Internal
 } //namespace
