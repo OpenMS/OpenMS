@@ -98,10 +98,8 @@ SignedInt Spectrum3DCanvas::finishAdding()
 {
 	layer_visible_.push_back(true);
 	current_data_ = getDataSetCount()-1;
-	currentDataSet().updateRanges(1);
-	
+	currentDataSet().updateRanges(1);	
 	recalculateRanges_(1,0,2);
-
 	disp_ints_.push_back(pair<float,float>(overall_data_range_.min_[2], overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	invalidate_();

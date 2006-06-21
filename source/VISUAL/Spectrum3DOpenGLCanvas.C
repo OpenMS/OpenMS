@@ -140,8 +140,8 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 			calculateGridLines_();
 			if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
 				{
-				stickdata_ = makeDataAsStickLog();
-			}
+					stickdata_ = makeDataAsStickLog();
+				}
  			else
  			{ 
 				stickdata_ =  makeDataAsStick();
@@ -606,7 +606,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 									qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
 									glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
 														 -corner_,
-																 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
+														 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
 									glEnd();					
 								}
 								else
@@ -919,7 +919,7 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity)
 	}
 	else
 	{
-		scaledintensity = intensity -overall_values_.min_[2];
+		scaledintensity = intensity -canvas_3d_.overall_data_range_.min_[2];
 		scaledintensity = ( scaledintensity * 2.0 * corner_)/(canvas_3d_.overall_data_range_.max_[2]-canvas_3d_.overall_data_range_.min_[2]);
 	}
 	return scaledintensity;
