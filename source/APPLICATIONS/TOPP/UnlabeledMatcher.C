@@ -198,7 +198,7 @@ protected:
     //-------------------------------------------------------------
 
     writeDebug_(String(" Writing feature pairs, ") + pairsfile + String("\'."),1);
-    writeDebug_(feature_pair_vector.size(),1);
+    writeDebug_(String("Number of feature pairs: " + feature_pair_vector.size()),1);
 
     FeaturePairVectorFile feature_pair_vector_file;
     feature_pair_vector_file.store(pairsfile,feature_pair_vector);
