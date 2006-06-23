@@ -154,5 +154,12 @@ namespace OpenMS {
 						&& protein_hits_.size() == 0
 						&& date_ == temp_date);		
 	}
+	
+  void ProteinIdentification::setProteinHits(const std::vector<ProteinHit>& protein_hits)
+  {
+  	protein_hits_ = protein_hits;
+  }
+
+
 
 }// namespace OpenMS
