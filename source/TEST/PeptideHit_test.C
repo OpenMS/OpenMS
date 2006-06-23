@@ -204,6 +204,25 @@ CHECK(~PeptideHit())
   delete ptr1;
 RESULT
 
+CHECK(void addProteinIndex(const DateTime& date, const String& accession))
+	DateTime date;
+	vector< pair<String, String> > indices;
+
+	date.set("2006-12-12 11:59:59");
+	ptr1 = new PeptideHit();
+
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACD392");
+	indices = ptr1->getProteinIndices();
+	TEST_EQUAL(indices.size(), 2)
+	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[0].second == String("ACC392"), true)
+	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[1].second == String("ACD392"), true)
+
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

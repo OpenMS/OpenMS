@@ -133,6 +133,14 @@ namespace OpenMS
 		}
 	}
 
+	void PeptideHit::addProteinIndex(const DateTime& date, const String& accession) 
+	{ 
+		String date_time = "";
+		
+		date.get(date_time);
+		addProteinIndex(make_pair(date_time, accession));		
+	}
+
   /// returns the score of the peptide hit 
   float PeptideHit::getScore() const 
   {

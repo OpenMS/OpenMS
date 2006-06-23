@@ -33,6 +33,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 namespace OpenMS
 {
@@ -112,6 +113,13 @@ namespace OpenMS
 			*/
 		void addProteinIndex(const std::pair<String, String>& index); 
 				
+			/**
+				@brief Adds a references to a protein hit of this peptide hit
+			 	
+				The format of one reference is < DateTime, Accession >
+			*/
+		void addProteinIndex(const DateTime& date, const String& accession); 
+
     //@}
 
 

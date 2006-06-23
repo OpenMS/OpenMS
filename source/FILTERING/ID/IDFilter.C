@@ -217,18 +217,8 @@ namespace OpenMS
 		filtered_identification = new Identification();
 		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
 		{
-			/*
-			for(UnsignedInt i = 0; i < filtered_peptide_hits.size(); i++)
-			{
-				filtered_peptide_hits[i].updateProteinIndices(new_protein_indices);
-			}
-			for(UnsignedInt i = 0; i < filtered_protein_hits.size(); i++)
-			{
-				filtered_protein_hits[i].updatePeptideIndices(new_peptide_indices);
-			}
-			*/		
   		filtered_identification->setPeptideAndProteinHits(filtered_peptide_hits, 
-  																								filtered_protein_hits);
+  																											filtered_protein_hits);
 			filtered_identification->setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification->setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
 			filtered_identification->setCharge(identification.getCharge());  																								
