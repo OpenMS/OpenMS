@@ -74,19 +74,8 @@ namespace OpenMS
 			/// Destructor
 			virtual ~SpectrumWindow();
 			
-			virtual void setDrawMode(QAction* /*a*/)
-			{
-				
-			}
-			
-			void showGridLines(bool b);
-			bool getGridMode();
-			
 			void setActionMode(QAction* a);
 			int getActionMode();
-			
-			/// Zoom out as far as possible
-			void resetZoom();
 			
 			///connect the signals/slots of window and widget (status messages, mode changes)
 			void connectWidgetSignals(SpectrumWidget* sw);

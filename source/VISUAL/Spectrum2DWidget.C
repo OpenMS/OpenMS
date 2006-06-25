@@ -61,58 +61,14 @@ namespace OpenMS
 	
 	Spectrum2DWidget::~Spectrum2DWidget()
 	{
-	}
-	
-	void Spectrum2DWidget::showContours(bool on)
-	{
-		canvas()->showContours(on);
-	}
-	
-	void Spectrum2DWidget::showColors(bool on)
-	{
-		canvas()->showColors(on);
-	}
-	
-	void Spectrum2DWidget::showPoints(bool on)
-	{
-		canvas()->showPoints(on);
-	}
-	
-	void Spectrum2DWidget::changeShowContours()
-	{
-		canvas()->changeShowContours();
-	}
-	
-	void Spectrum2DWidget::changeShowColors()
-	{
-		canvas()->changeShowColors();
-	}
-	
-	void Spectrum2DWidget::changeShowPoints()
-	{
-		canvas()->changeShowPoints();
-	}
-	
-	bool Spectrum2DWidget::getShowContours()
-	{
-		return canvas()->getShowContours();
-	}
-	
-	bool Spectrum2DWidget::getShowColors()
-	{
-		return canvas()->getShowColors();
-	}
-	
-	bool Spectrum2DWidget::getShowPoints()
-	{
-		return canvas()->getShowPoints();
+		
 	}
 	
 	void Spectrum2DWidget::recalculateAxes()
 	{
 		const SpectrumCanvas::AreaType area = canvas()->visible_area_;
 		
-		if (canvas()->getMappingInfo().isMzToXAxis())
+		if (canvas()->isMzToXAxis())
 		{
 			x_axis_->setAxisBounds(area.minX(), area.maxX());
 			y_axis_->setAxisBounds(area.minY(), area.maxY());
@@ -124,18 +80,9 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DWidget::intensityModificationChange_()
+	void Spectrum2DWidget::intensityModeChange_()
 	{
-		//cout << "IM_CHANGE_WINDOW_2D"<<endl;
-		canvas()->intensityModificationChange_();
-	}
-	
-	
-	void Spectrum2DWidget::legendModificationChange_()
-	{
-		y_axis_->showLegend(show_legend_);
-		x_axis_->showLegend(show_legend_);
-		update();
+		canvas()->intensityModeChange_();
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum2DWidget::createIntensityDistribution_()

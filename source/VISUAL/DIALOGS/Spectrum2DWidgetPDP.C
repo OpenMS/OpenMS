@@ -56,6 +56,8 @@ namespace OpenMS
 			QGridLayout* grid;
 		
 			grid = new QGridLayout(this,1,1);
+			grid->setMargin(6);
+			grid->setSpacing(4);	
 			
 			canvas_ = manager->client("Canvas", this);
 			grid->addMultiCellWidget(canvas_, 0,1,0,1);
@@ -67,19 +69,7 @@ namespace OpenMS
 			axis_mapping_->insertItem("X-Axis");
 			axis_mapping_->insertItem("Y-Axis");  
 			grid->addWidget(box,2,0);
-		
-			box = new QGroupBox(2,Qt::Horizontal,"Axis orientation (from lower left corner)",this);
-			label = new QLabel("Select x axis orientation: ",box);
-			x_axis_orientation_ = new QComboBox(false, box, "read-only combobox");
-			x_axis_orientation_->insertItem("Ascending");
-			x_axis_orientation_->insertItem("Descending");
-		
-			label = new QLabel("Select y axis orientation: ",box);
-			y_axis_orientation_ = new QComboBox(false, box, "read-only combobox");
-			y_axis_orientation_->insertItem("Ascending");
-			y_axis_orientation_->insertItem("Descending");
-			grid->addWidget(box,2,1);
-		
+
 			load();
 		}
 		
@@ -91,17 +81,13 @@ namespace OpenMS
 		void Spectrum2DWidgetPDP::load()
 		{
 			Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(manager_);
-		  (w->canvas()->getMappingInfo().isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
-		  (w->canvas()->getMappingInfo().isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
-		  (w->canvas()->getMappingInfo().isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
+		  (w->canvas()->isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
 		}
 		
 		void Spectrum2DWidgetPDP::save()
 		{
 			Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(manager_);
-			(axis_mapping_->currentText()=="X-Axis") ? w->switchAxis(false) : w->switchAxis(true);
-			(x_axis_orientation_->currentText()=="Ascending") ? w->setMirroredXAxis(false) : w->setMirroredXAxis(true);
-			(y_axis_orientation_->currentText()=="Ascending") ? w->setMirroredYAxis(false) : w->setMirroredYAxis(true);
+			(axis_mapping_->currentText()=="X-Axis") ? w->mzToXAxis(true) : w->mzToXAxis(false);
 		
 			canvas_->save();
 		}

@@ -114,9 +114,9 @@ namespace OpenMS
 			Device independent drawing function. Draws the contents on painter @p p.
 			This function follows the 
 		
-			@param p The QPainter to draw the chart to.
-			@param width The width of the chart in pixels.
-			@param height The height of the chart in pixels.
+			@param p The QPainter to draw the data to.
+			@param width The width of the canvas in pixels.
+			@param height The height of the canvas in pixels.
 		*/
 		void print(QPainter* p, int width, int height);
 		
@@ -206,10 +206,6 @@ namespace OpenMS
 		void showColors(bool on);
 		void showPoints(bool on);
 
-		void changeShowContours();
-		void changeShowColors();
-		void changeShowPoints();
-
 		bool getShowContours();
 		bool getShowColors();
 		bool getShowPoints();
@@ -224,10 +220,10 @@ namespace OpenMS
 	protected:
 		//* @name Mouse events */
 		//@{	
-		virtual void contentsMousePressEvent(QMouseEvent* e);
-		virtual void contentsMouseReleaseEvent(QMouseEvent* e);
-		virtual void contentsMouseMoveEvent(QMouseEvent* e);
-		virtual void contentsWheelEvent(QWheelEvent* e);
+		virtual void mousePressEvent(QMouseEvent* e);
+		virtual void mouseReleaseEvent(QMouseEvent* e);
+		virtual void mouseMoveEvent(QMouseEvent* e);
+		virtual void wheelEvent(QWheelEvent* e);
 		//@}
 		
 		/**
@@ -244,19 +240,6 @@ namespace OpenMS
 		virtual void invalidate_();
 		
 		/**
-			@brief Paints the chart's content.
-		
-			Paints the user selected view modes in the following
-			order: surface gradient, height map and dots.
-		
-			@param data_set The index of the dataset
-			@param p The QPainter to paint on.
-			@param width The chart's width in pixels.
-			@param height The chart's height in pixels.
-	*/
-		void paintContent_(UnsignedInt data_set, QPainter* p, int width, int height);
-		
-		/**
 			@brief Paints individual peaks.
 		
 			Paints the peaks as small ellipses. Peaks are
@@ -267,10 +250,8 @@ namespace OpenMS
 			
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
-			@param width The chart's width in pixels.
-			@param height The chart's height in pixels.
 		*/
-		void paintPoints_(UnsignedInt data_set, QPainter* p, int width, int height);
+		void paintPoints_(UnsignedInt data_set, QPainter* p);
 		
 		/**
 			@brief Paints data as a height map.
@@ -281,10 +262,8 @@ namespace OpenMS
 			
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
-			@param width The chart's width in pixels.
-			@param height The chart's height in pixels.
 		*/
-		void paintContourLines_(UnsignedInt data_set, QPainter* p, int width, int height);
+		void paintContourLines_(UnsignedInt data_set, QPainter* p);
 		
 		/**
 			@brief Paints data as a colored surface gradient.
@@ -295,13 +274,11 @@ namespace OpenMS
 			
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
-			@param width The chart's width in pixels.
-			@param height The chart's height in pixels.
 		*/
-		void paintColorMap_(UnsignedInt data_set, QPainter* p, int width, int height);
+		void paintColorMap_(UnsignedInt data_set, QPainter* p);
 		
 		// Docu in base class
-		virtual void intensityModificationChange_();
+		virtual void intensityModeChange_();
 		// Docu in base class
 		virtual void intensityDistributionChange_();
 		
@@ -324,12 +301,12 @@ namespace OpenMS
 		
 		// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
-		/// Returns the color associated with @p val for the surface gradient
+		/// Returns the color associated with @p val for the surface gradient. Takes Log mode into accout
 		const QColor& heightColor_(float val);
-		/// Performs the marching squares calculations for a dataset and stores the matrix
-		void getMarchingSquareMatrix_(UnsignedInt data_set);
-		/// Returns the chart coordinates of the left top marching square cell
-		AreaType getLeftTopCell_(UnsignedInt data_set);
+		/// Performs the marching squares calculations for a dataset and stores the matrix in marching_squares_matrices_
+		void calculateMarchingSquareMatrix_(UnsignedInt data_set);
+		/// Returns the marching square cell with the smallest data coordinates
+		AreaType getOriginCell_(UnsignedInt data_set);
 		
 		/// Highlights peak under cursor and start/stop peak for measurement
 		void highlightPeaks_();
@@ -361,8 +338,6 @@ namespace OpenMS
 		/// Flag whether or not to show points scaled for each dataset
 		bool intensity_scaled_dots_;
 		
-		// the last interesting mouse position.
-		QPoint mouse_pos_;
 		// the nearest peak to the mouse cursor.
 		DPeak<2>* nearest_peak_;
 		/// start peak of measuring mode
@@ -371,9 +346,6 @@ namespace OpenMS
 		DPeak<2>* measurement_stop_;
 		// temporary peak that is constructed out of the 1D Peak and the RT (for findNearestPeak_)
 		DPeak<2> tmp_peak_;
-		
-//		// overall min and max x- and y-values of all datasets
-//		float min_x_,	max_x_, min_y_, max_y_;
 		
 		// Gradient for dots
 		MultiGradient dot_gradient_;

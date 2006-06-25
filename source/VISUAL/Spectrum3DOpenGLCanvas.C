@@ -1004,35 +1004,30 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 		initializeGL();
 	}
 	if(view_mode_!= VIEW_ZOOM)
-		{
-			int d_x = e->x() - lastMousePos_.x();
-			int d_y = e->y() - lastMousePos_.y();
-			setRotationX(xRot_ + 8 * d_y);
-			setRotationY(yRot_ + 8 * d_x);
-			lastMousePos_ = e->pos();
-		}
-  
-	if(view_mode_== VIEW_ZOOM)
-		{
- 			lastMousePos_ = e->pos();
- 			x_1_ = ((firstMousePos_.x()- width_/2) * corner_ * 2) / width_;
- 			y_1_ = -300 + (((firstMousePos_.y()-heigth_/2) * corner_* 2) / heigth_);
- 			x_2_ = ((lastMousePos_.x()- width_/2) * corner_ * 2) / width_;
- 			y_2_ = -300 + (((lastMousePos_.y()-heigth_/2) * corner_* 2) / heigth_);
-			show_zoom_selection_ = true;
- 			initializeGL();
- 			updateGL();
-		}
+	{
+		int d_x = e->x() - lastMousePos_.x();
+		int d_y = e->y() - lastMousePos_.y();
+		setRotationX(xRot_ + 8 * d_y);
+		setRotationY(yRot_ + 8 * d_x);
+		lastMousePos_ = e->pos();
+	}
+	else
+	{
+		lastMousePos_ = e->pos();
+		x_1_ = ((firstMousePos_.x()- width_/2) * corner_ * 2) / width_;
+		y_1_ = -300 + (((firstMousePos_.y()-heigth_/2) * corner_* 2) / heigth_);
+		x_2_ = ((lastMousePos_.x()- width_/2) * corner_ * 2) / width_;
+		y_2_ = -300 + (((lastMousePos_.y()-heigth_/2) * corner_* 2) / heigth_);
+		show_zoom_selection_ = true;
+		initializeGL();
+		updateGL();
+	}
 	
 }
 void Spectrum3DOpenGLCanvas::mousePressEvent ( QMouseEvent * e)
 {
 	firstMousePos_ = e->pos();
 	lastMousePos_ = e->pos();
-	if(view_mode_!= VIEW_ZOOM)
-	{
-		lastMousePos_ = e->pos();
-	}
 }
 
 void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
@@ -1175,22 +1170,6 @@ void Spectrum3DOpenGLCanvas::setTopView()
 
 }
 
-void Spectrum3DOpenGLCanvas::setResetZoomView()
-{if(intensity_scale_)
-		{
-			intensity_scale_ = false;
-		}
-	canvas_3d_.recalculateRanges_(1,0,2);
-	canvas_3d_.visible_area_.assign(canvas_3d_.overall_data_range_);
-	view_mode_ = VIEW_SELECT;
-	xRot_ = 0;
-	yRot_ = 0;
-	zRot_ = 0;
-	zoom_ = 1.25;
- 	initializeGL();
- 	updateGL();
-	
-}
 void Spectrum3DOpenGLCanvas::setIntensityScale(bool on)
 {
 	intensity_scale_ = on;

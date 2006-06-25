@@ -61,11 +61,12 @@ namespace OpenMS
 			void browseDefaultPath_();
 		
 		protected:
+			
+			//general
 			QLineEdit* main_default_path_;
 			QSpinBox* recent_files_;
-			QRadioButton* map_view_2d_;
-			QRadioButton* map_view_3d_;
-			
+			QComboBox* default_map_view_;
+			QComboBox* show_legend_;				
 			//db
 			QLineEdit* db_host_;
 			QLineEdit* db_port_;
@@ -80,23 +81,16 @@ namespace OpenMS
 			ColorSelector* back_color_2D_;
 			QComboBox* axis_mapping_2d_;
 			QComboBox* axis_mapping_;
-			QComboBox* x_axis_orientation_;
-			QComboBox* y_axis_orientation_;
-			QCheckBox* log_check_box_;
-			QCheckBox* rel_check_box_;
-			QCheckBox* x_show_legend_;
-			QCheckBox* y_show_legend_;
 			
 			//2d
 			QSpinBox* marching_squares_steps_;
-			QSpinBox* dot_interpolation_steps_;
-			QSpinBox* surface_interpolation_steps_;
+			QSpinBox* contour_steps_;
+			
+			QSpinBox* interpolation_steps_;
 			QRadioButton* dot_mode_black_;
 			QRadioButton* dot_mode_gradient_;
 			MultiGradientSelector* dot_gradient_;
 			MultiGradientSelector* surface_gradient_;
-			QComboBox* x_axis_orientation_2d_;
-			QComboBox* y_axis_orientation_2d_;
 			
 			//3d
 		

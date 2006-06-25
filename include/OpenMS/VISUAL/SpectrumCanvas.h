@@ -1,4 +1,3 @@
-// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -33,7 +32,6 @@
 //OpenMS
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/VISUAL/MappingInfo.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -43,7 +41,7 @@
 #include <vector>
 
 //QT
-#include <qscrollview.h>
+#include <qwidget.h>
 #include <qcursor.h>
 
 class QPainter;
@@ -61,8 +59,7 @@ namespace OpenMS
 		derives from QScrollView, so scrollbars are provided. The viewing
 		area is also managed by this class.
 		
-		It also provides commonly used constants such as ActionModes or
-		IntensityModifications.
+		It also provides commonly used constants such as ActionModes or IntensityModes.
 		
 		To provide additional spectrum views, you can derive from this class.
 		You should also create a subclass from SpectrumWidget which encloses
@@ -71,7 +68,7 @@ namespace OpenMS
 		
 		@ingroup spectrum_widgets
 	*/
-	class SpectrumCanvas : public QScrollView, public PreferencesManager
+	class SpectrumCanvas : public QWidget, public PreferencesManager
 	{
 		Q_OBJECT
 		
@@ -94,7 +91,7 @@ namespace OpenMS
 		typedef DRange<2> AreaType;
 		
 		
-		///All action modes for the mouse
+		///Mouse action modes
 		enum ActionModes 
 		{
 			AM_SELECT,		///< select a peaks
@@ -103,12 +100,13 @@ namespace OpenMS
 			AM_MEASURE		///< measure distance between peaks
 		};
 		
-		///All modifications of intensity
-		enum IntensityModifications
+		///Display modes of intensity
+		enum IntensityModes
 		{
-			IM_NONE,		   ///<f(x)=x
-			IM_LOG			   ///<f(x)=ln(x)
-//			IM_PERCENTAGE  ///<f(x)=x/max(x)*100
+			IM_NONE,		    ///< Normal mode: f(x)=x
+			IM_LOG,			    ///< Log mode: f(x)=ln(x)
+			IM_PERCENTAGE,  ///< Shows intensities normalized by dataset maximum: f(x)=x/max(x)*100
+			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
 		};
 		
 		//@}
@@ -160,45 +158,48 @@ namespace OpenMS
 			
 			Sets the action mode for the left mouse button, e.g. zoom, translate etc.
 			@param mode the new action mode.
-			@see ActionModes
+			
+			@see actionModeChange_()
 		*/
 		inline void setActionMode(ActionModes mode) 
 		{ 
-			action_mode_ = mode; 
+			action_mode_ = mode;
+			actionModeChange_();
 		}
 		
 		/**
-			@brief Returns the intensity modification
+			@brief Returns the intensity mode
 			
-			Returns the current intensity modification of type IntensityModifications
+			Returns the current intensity mode of type IntensityModes
 			
-			@return the current intensity modification
+			@return the current intensity mode
 		*/
-		inline SignedInt getIntensityModification() const 
+		inline SignedInt getIntensityMode() const 
 		{ 
-			return intensity_modification_; 
+			return intensity_mode_; 
 		}
 		
 		/**
-			@brief Sets the intensity modification
+			@brief Sets the intensity mode
 			
-			Sets the intensity modification
+			Sets the intensity mode
 			
-			@param mod the new intensity modification
+			@param mod the new intensity mode
+			
+			@see intensityModeChange_()
 		*/
-		inline void setIntensityModification(IntensityModifications mod) 
+		inline void setIntensityMode(IntensityModes mod) 
 		{
-			intensity_modification_ = mod;
-			intensityModificationChange_();
+			intensity_mode_ = mod;
+			intensityModeChange_();
 		}
 		
 		/**
-			@brief Returns the grid mode
+			@brief Returns if the grid is currently shown
 			
-			Returns if the grid is currently shown
 			@return @c true if the grid is visible, @c false otherwise
 		*/
-		inline bool getGridMode() const 
+		inline bool gridLinesShown() const 
 		{ 
 			return show_grid_; 
 		}
@@ -231,7 +232,7 @@ namespace OpenMS
 			Returns the current visible area.
 			@return the visible area
 		*/
-		inline AreaType getVisibleArea() 
+		inline const AreaType& getVisibleArea() 
 		{ 
 			return visible_area_;
 		}
@@ -245,17 +246,11 @@ namespace OpenMS
 		*/
 		virtual void setDispInt(float min, float max);
 		
-		/**
-			@brief Returns the mapping info
-			
-			Returns a reference to the mapping info object
-			@return the mapping info
-			@see MappingInfo
-		*/
-		inline MappingInfo& getMappingInfo() 
-		{ 
-			return mapping_info_; 
-		}
+		/// Returns the mapping of m/z to axes
+		bool isMzToXAxis();
+		
+		/// Sets the mapping of m/z to axes
+		void mzToXAxis(bool mz_to_x_axis);
 		
 		/**
 			@brief Sets the pen width
@@ -341,7 +336,13 @@ namespace OpenMS
 		{ 
 			return currentDataSet().getMaxInt(); 
 		}
-	
+
+		/**
+			@brief Returns the area which encloses all data points.
+			
+			The order domensions is dependent on the derived class.
+		*/
+		const DRange<3>& getDataRange();	
 		
 	public slots:
 		/**
@@ -375,29 +376,6 @@ namespace OpenMS
 		*/
 		void setVisibleArea(AreaType area);
 		
-		/**
-			@brief Whether or not the X axis should be mirrored
-			
-			Sets whether the X axis should be the other way around
-			@param b if @c true, the X axis is mirrored, if @c falseit is shown normally
-		*/
-		void setMirroredXAxis(bool b);
-		
-		/**
-			@brief Whether or not the Y axis should be mirrored
-			
-			Sets whether the Y axis should be the other way around
-			@param b if @c true, the Y axis is mirrored, if @c falseit is shown normally
-		*/
-		void setMirroredYAxis(bool b);
-
-		/**
-			@brief Returns the area which encloses all data points.
-			
-			The order domensions is dependent on the derived class.
-		*/
-		const DRange<3>& getDataRange();
-		
 	signals:
 		/// Signal emitted whenever a new Layer is activated within the current window
 		void layerActivated(QWidget* w);
@@ -426,8 +404,6 @@ namespace OpenMS
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
 
 	private slots:
-		/// Updates the scroll bars
-		void move_(int x, int y);
 		/// Sets zoom_timeout_ to true. Connected to a timer
 		void timeoutZoom_();
 		
@@ -437,13 +413,13 @@ namespace OpenMS
 			@brief QT resize event of the widget
 			
 		*/
-		virtual void viewportResizeEvent(QResizeEvent* e);
+		virtual void resizeEvent(QResizeEvent* e);
 		
 		/**
 			@brief QT repaint event of the widget
 			
 		*/
-		virtual void viewportPaintEvent(QPaintEvent* e);
+		virtual void paintEvent(QPaintEvent* e);
 		
 		/**
 			@brief Change of the intensity distribution
@@ -452,12 +428,14 @@ namespace OpenMS
 		*/
 		virtual void intensityDistributionChange_();
 
-		/**
-			@brief Change of the intensity modifiaction
-			
-			This function is called whenever the intensity modification changes. Reimplement if you need to react on such changes.
-		*/
-		virtual void intensityModificationChange_();
+		///This function is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
+		virtual void intensityModeChange_();
+
+		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
+		virtual void actionModeChange_();
+
+		///This function is called whenever the action mode changes. Reimplement if you need to react on such changes.
+		virtual void axisMappingChange_();
 		
 		/**
 			@brief Invalidates the contents of the back buffer and repaints.
@@ -493,44 +471,68 @@ namespace OpenMS
 		void updateScrollbars_();
 		
 		/**
-			@brief Convert pixel to chart coordinates
-			
-			Translates pixel coordinates to chart coordinates with respect toa given window size
-			@param p the pixel coordinates
-			@param width the window width
-			@param height the window height
-			@return chart coordinates
-		*/
-		PointType contextToChart_(QPoint p, int width, int height);
-		
-		/**
-			@brief Convert chart to pixel coordinates
-			
-			Translates chart coordinates to pixel coordinates with respect to a given window size
-			@param pos the chart coordinates
-			@param width the window width
-			@param height the window height
-			@return pixel coordinates
-		*/
-		QPoint chartToContext_(const PointType& pos, int width, int height);
-		
-		/**
 			@brief Convert widget to chart coordinates
 			
 			Translates widget coordinates to chart coordinates.
-			@param pos the widget coordinates
+			@param x the widget coordinate x
+			@param x the widget coordinate y
 			@return chart coordinates
 		*/
-		PointType widgetToChart_(const QPoint& pos);
-		
+		inline PointType widgetToData_(float x, float y)
+		{
+			if (!isMzToXAxis())
+			{
+				return PointType(
+								visible_area_.minX() + (height() - y) / height()  * visible_area_.width(),
+								visible_area_.minY() + x  / width() * visible_area_.height() 
+								);
+			}
+			else
+			{
+				return PointType(
+								visible_area_.minX() + x / width() * visible_area_.width(),
+								visible_area_.minY() + (height() - y) / height() * visible_area_.height() 
+								);			
+			}		
+		}
+
+		/// Calls widgetToData_(float, float) with x and y position of @p pos
+		inline PointType widgetToData_(const QPoint& pos)
+		{
+			return widgetToData_(pos.x(), pos.y());
+		}
+				
 		/**
 			@brief Convert chart to widget coordinates
 			
 			Translates chart coordinates to widget coordinates.
-			@param pos the chart coordinates
+			@param x the chart coordinate x
+			@param y the chart coordinate y
 			@return widget coordinates
 		*/
-		QPoint chartToWidget_(const PointType& pos);
+		inline QPoint dataToWidget_(float x, float y)
+		{
+			if (!isMzToXAxis())
+			{
+				return QPoint(
+					 				static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * width()),
+					 				height() - static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * height())
+						      );
+			}
+			else
+			{
+				return QPoint(
+					       static_cast<int>((x - visible_area_.minX()) / visible_area_.width() * width()),
+						     height() - static_cast<int>((y - visible_area_.minY()) / visible_area_.height() * height())
+						     );		
+			}
+		}
+		
+		/// Calls dataToWidget_(float, float) with x and y position of @p pos
+		inline QPoint dataToWidget_(const PointType& pos)
+		{
+			return dataToWidget_(pos.X(), pos.Y());
+		}
 		
 		/**
 			@brief Paints grid lines
@@ -547,14 +549,14 @@ namespace OpenMS
 		/// Stores the current action mode (Pick, Zoom, Translate)
 		ActionModes action_mode_;
 		
-		/// Stores the used intensity modification function
-		IntensityModifications intensity_modification_;
+		/// Stores the used intensity mode function
+		IntensityModes intensity_mode_;
 		
 		/// Stores the minimum/maximum displayed intensities for all layers
 		std::vector< std::pair<float,float> > disp_ints_;
 		
-		/// Stores the mapping info
-		MappingInfo mapping_info_;
+		/// Stores the mapping of m/z
+		bool mz_to_x_axis_;
 		
 		/// Stores the pen width. Drawing thicker lines (e.g. in printing) leads to better results
 		UnsignedInt pen_width_;
@@ -641,6 +643,10 @@ namespace OpenMS
 		
 		/// Array of datasets
 		std::vector<ExperimentType > datasets_;
+
+		/// start position of mouse actions
+		QPoint last_mouse_pos_;
+
 	};
 }
 

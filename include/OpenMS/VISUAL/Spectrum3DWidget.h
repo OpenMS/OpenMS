@@ -101,9 +101,7 @@ namespace OpenMS
 		///
 		virtual void invalidate_();
 		///	
-		virtual void intensityModificationChange_();
-		// Docu in base class
-		virtual void legendModificationChange_();
+		virtual void intensityModeChange_();
 		///
 		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
 		

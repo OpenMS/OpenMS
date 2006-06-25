@@ -51,23 +51,13 @@ namespace OpenMS
 			~Spectrum1DWindow();
 			
 			Spectrum1DWidget* widget();
-			
-			virtual void setDrawMode(QAction* a);
-			
-			void switchAxis(bool b);
-			void setMirroredXAxis(bool b);
-			void setMirroredYAxis(bool b);
 
 			///PreferencesManager
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
-			bool getSnapToMax();
-			void setSnapToMax(bool b);
 			
 		public slots:
-      virtual void showGoToDialog();				
-		protected:
-			virtual void createContextMenu_();
+      virtual void showGoToDialog();
+
 	};
 }
 #endif

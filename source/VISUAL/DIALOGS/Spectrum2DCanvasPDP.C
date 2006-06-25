@@ -59,7 +59,7 @@ namespace OpenMS
 			QGridLayout* grid;
 			QLabel* label;
 				
-			grid = new QGridLayout(this,2,2);
+			grid = new QGridLayout(this,3,7);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
 			
@@ -71,31 +71,33 @@ namespace OpenMS
 			dot_mode_black_ = new QRadioButton("Black",coloring_group);
 			dot_mode_gradient_ = new QRadioButton("Gradient",coloring_group);
 			dot_gradient_ = new MultiGradientSelector(box);
-			box->addSpace(0);
-			label = new QLabel("Interpolation steps: ",box);
-			dot_interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
-			dot_interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
 			
 			grid->addMultiCellWidget(box,0,1,0,0);
 			
 			//Surface mode
 			box = new QGroupBox(2,Qt::Horizontal,"Surface coloring",this);
-			label = new QLabel("Gradient: ",box);
 			surface_gradient_ = new MultiGradientSelector(box);
-			label = new QLabel("Squares per axis: ",box);
-			marching_squares_steps_ = new QSpinBox(10,1000,1,box,"");
-			marching_squares_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			label = new QLabel("Interpolation steps: ",box);
-			surface_interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
-			surface_interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
 			grid->addWidget(box,0,1);
-			
-			//Misc
-			box = new QGroupBox(2,Qt::Horizontal,"Misc",this);
+
+			//colors
+			box = new QGroupBox(2,Qt::Horizontal,"Colors",this);
 			label = new QLabel("Background color: ",box);
 			background_color_ = new ColorSelector(box);
+			label = new QLabel("Interpolation steps: ",box);
+			interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
+			interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
 			grid->addWidget(box,1,1);
-		
+			
+			//details
+			box = new QGroupBox(2,Qt::Horizontal,"Surface/contour details",this);
+			label = new QLabel("Squares per axis: ",box);
+			marching_squares_steps_ = new QSpinBox(10,100,1,box,"");
+			marching_squares_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+			label = new QLabel("Contour lines: ",box);
+			contour_steps_ = new QSpinBox(3,30,1,box,"");
+			contour_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+			grid->addWidget(box,2,0);
+
 			load();
 		}
 					
@@ -120,8 +122,8 @@ namespace OpenMS
 			surface_gradient_->gradient().fromString(man->getPrefAsString("Preferences:2D:Surface:Gradient"));
 			background_color_->setColor(QColor(man->getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 			marching_squares_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:MarchingSquaresSteps")));
-			dot_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:Dot:InterpolationSteps")));
-			surface_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:Surface:InterpolationSteps")));
+			interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:InterpolationSteps")));
+			contour_steps_->setValue(UnsignedInt(man->getPref("Preferences:2D:Contour:Lines")));
 		}
 		
 		void Spectrum2DCanvasPDP::save()
@@ -140,10 +142,11 @@ namespace OpenMS
 			man->setSurfaceGradient(surface_gradient_->gradient().toString());
 			man->setPref("Preferences:2D:BackgroundColor",background_color_->getColor().name().ascii());
 			man->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
-			man->setPref("Preferences:2D:Dot:InterpolationSteps",dot_interpolation_steps_->value());
-			man->setPref("Preferences:2D:Surface:InterpolationSteps",surface_interpolation_steps_->value());
+			man->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
+			man->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
 			
-			//TODO remove bad hack with recalculate
+			man->recalculateDotGradient_();
+			man->recalculateSurfaceGradient_();
 			man->recalculate_ = true;
 			man->invalidate_();
 		}

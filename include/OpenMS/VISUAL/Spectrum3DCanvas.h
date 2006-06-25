@@ -1,4 +1,3 @@
-
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
@@ -54,13 +53,15 @@ namespace OpenMS
      
      @todo Fix taking of images (Cornelia)
      
-     @todo Replace IntScale by SpectrumCanvas::IntensityModifications (Cornelia)
+     @todo Replace IntScale by SpectrumCanvas::IntensityModes (Cornelia)
      
      @todo Axis labels (Cornelia)
      
      @todo Add translation
      
      @todo /share/data/MS/Examples/mzData/MS_small.mzData crashes when opening
+     
+     @todo Make axes visible in zoom/top view
      
      @ingroup spectrum_widgets
   */	
@@ -124,9 +125,11 @@ namespace OpenMS
     SignedInt finishAdding();
     
 	  // Docu in base class
-    virtual  void intensityModificationChange_();
+    virtual  void intensityModeChange_();
+
+	  // Docu in base class
+    virtual  void actionModeChange_();
     
-    void updateView();
     ///preferences
     SignedInt getDotMode();
     void setDotGradient(const std::string& gradient);
@@ -137,7 +140,6 @@ namespace OpenMS
     
     
     //resizeEvents
-    void viewportResizeEvent(QResizeEvent* e);
     void resizeEvent(QResizeEvent * e);
     void connectMouseEvents();
     

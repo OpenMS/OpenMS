@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
 
 //STL
 
@@ -159,11 +160,23 @@ namespace OpenMS
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
 		
-		bool isLogIntensity() const;
-		inline bool getShowLegend() const { return show_legend_; }
+		/// Returns if the axis labels are shown
+		bool isLegendShown() const;
+		
+		/// Sets the intensity mode of the SpectrumCanvas
+		void setIntensityMode(SpectrumCanvas::IntensityModes mode);
+		
+		/// SpectrumWidgetActionModes
+		void setActionMode(SpectrumCanvas::ActionModes mode);
+
+		/// Returns if the axis labels are shown
+		void showLegend(bool show);
+
+		/// Hides x-axis and y-axis
+		void hideAxes();
 		
 	signals:
-		///signals that draw or display mode changed (e.g. used to update the tool bar)
+		/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
 		void modesChanged(QWidget*);
 		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
@@ -171,28 +184,17 @@ namespace OpenMS
 		void contextMenu(QPoint pos);
 		
 	public slots:
-		void actionModeSelect();
-		void actionModeZoom();
-		void actionModeTranslate();
-		void actionModeMeasure();
-		void setActionMode(QAction* a);
-		void setActionMode(OpenMS::SignedInt mode);
-		void setIntensityModificationNone();
-		void setIntensityModificationLog();
+		/// Calls setActionMode(SpectrumCanvas::ActionModes) according to the name of @a 
+		void setActionMode(QAction* a) throw (Exception::NotImplemented);
+		/// Behaves like setIntensityMode(SpectrumCanvas::IntensityModes)
+		void setIntensityMode(int mode);
+		/// Shows the intensity distribution of the data
 		void showIntensityDistribution();
-		void showLegend();
-		void showNoLegend();
-		void setMirroredXAxis(bool b);
-		void setMirroredYAxis(bool b);
-
-		/**
-			@brief Sets whether grid lines are shown or not.
-			
-			@param show Boolean variable deciding whether or not to show the grid lines.
-		*/
-		void showGridLines(bool show);
-
-		virtual void switchAxis(bool swapped_axes);
+		/// Class showLegend(bool) after casting @p show to a bool
+		void showLegend(int show);
+		
+		/// Sets mapping of m/z values to x-axis or y-axis
+		virtual void mzToXAxis(bool mz_to_x_axis);
 		
 	protected:
 		/// Default constructor
@@ -204,10 +206,7 @@ namespace OpenMS
 		void setCanvas(SpectrumCanvas* canvas);
   	
   	/// Switches between log/normal intensities
-  	virtual void intensityModificationChange_() = 0;
-  	
-  	/// Shows/hides the axis units
-		virtual void legendModificationChange_() = 0;
+  	virtual void intensityModeChange_() = 0;
 
 		/// creates the intensity distribution of the widget
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
@@ -229,9 +228,6 @@ namespace OpenMS
 		QWidget* hspacer_;
 		/// Spacer for the vertical axis
 		QWidget* vspacer_;
-		
-		/// Flag that indicates if the axis legend is shown
-		bool show_legend_;
 		
 		///for storing the old maximum when the intensities are transformed
 		double old_max_intensity_;

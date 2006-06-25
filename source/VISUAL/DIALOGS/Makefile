@@ -43,7 +43,6 @@ GUI_CPP_SOURCES=\
 	PreferencesDialog.C\
 	PreferencesDialogPage.C\
 	SpectrumMDIWindowPDP.C\
-	AxisWidgetPDP.C\
 	Spectrum1DWidgetPDP.C\
 	Spectrum1DCanvasPDP.C\
 	Spectrum2DWidgetPDP.C\
@@ -66,7 +65,6 @@ GUI_MOC_SOURCES=\
 	PreferencesDialog_moc.C\
 	PreferencesDialogPage_moc.C\
 	SpectrumMDIWindowPDP_moc.C\
-	AxisWidgetPDP_moc.C\
 	Spectrum1DWidgetPDP_moc.C\
 	Spectrum1DCanvasPDP_moc.C\
 	Spectrum2DWidgetPDP_moc.C\

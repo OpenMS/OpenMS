@@ -30,7 +30,6 @@
 
 #include <OpenMS/VISUAL/SpectrumWindow.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
 
 #include <qpopupmenu.h>
 
@@ -54,11 +53,6 @@ namespace OpenMS
 	{
 		widget_ = widget;
 		widget_->setSpectrumWindow(this);
-	}
-	
-	void SpectrumWindow::resetZoom()
-	{
-		widget_->canvas()->resetZoom();
 	}
 	
 	void SpectrumWindow::showStatusMessage(std::string msg,OpenMS::UnsignedInt time)
@@ -100,16 +94,6 @@ namespace OpenMS
 		return widget_->getActionMode();
 	}
 	
-	bool SpectrumWindow::getGridMode()
-	{
-		return widget_->canvas()->getGridMode();
-	}
-	
-	void SpectrumWindow::showGridLines(bool b)
-	{
-		widget_->showGridLines(b);
-	}
-	
 	void SpectrumWindow::createContextMenu_()
 	{
 		if (context_menu_!=0)
@@ -121,28 +105,34 @@ namespace OpenMS
 		context_menu_ = new QPopupMenu(this);
 	 	SignedInt item;
 	
-		//intensity modification
+		//intensity mode
 		QPopupMenu* intensity_menu = new QPopupMenu(context_menu_);
 	
-		item = intensity_menu->insertItem("linear",widget_,SLOT(setIntensityModificationNone()));
-		if (widget_->canvas()->getIntensityModification() == SpectrumCanvas::IM_NONE) intensity_menu->setItemEnabled(item,false);
+		item = intensity_menu->insertItem("Linear mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_NONE);
+		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_NONE) intensity_menu->setItemEnabled(item,false);
 	
-		item = intensity_menu->insertItem("logarithmic",widget_,SLOT(setIntensityModificationLog()));
-		if (widget_->canvas()->getIntensityModification() == SpectrumCanvas::IM_LOG) intensity_menu->setItemEnabled(item,false);
+		item = intensity_menu->insertItem("Logarithmic mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_LOG);
+		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_LOG) intensity_menu->setItemEnabled(item,false);
+
+		item = intensity_menu->insertItem("Percentage mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_PERCENTAGE);
+		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_PERCENTAGE) intensity_menu->setItemEnabled(item,false);
+
+		item = intensity_menu->insertItem("Snap to max intensity",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_SNAP);
+		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_SNAP) intensity_menu->setItemEnabled(item,false);
 	
-		context_menu_->insertItem("intensity scale",intensity_menu);
+		context_menu_->insertItem("Intensity mode",intensity_menu);
 		context_menu_->insertSeparator();	
 	
-		//intensity modification
+		//intensity mode
 		context_menu_->insertItem("intensity distribution",widget_,SLOT(showIntensityDistribution()));
 		context_menu_->insertSeparator();
 	
 		//legend menu
 		QPopupMenu* legend_menu = new QPopupMenu(context_menu_);
-		item = legend_menu->insertItem("on",widget_,SLOT(showLegend()));
-		if (widget_->getShowLegend()) legend_menu->setItemEnabled(item,false);
-		item = legend_menu->insertItem("off",widget_,SLOT(showNoLegend()));
-		if (!widget_->getShowLegend()) legend_menu->setItemEnabled(item,false);
+		item = legend_menu->insertItem("shown",widget_,SLOT(showLegend(int)),0,1);
+		if (widget_->isLegendShown()) legend_menu->setItemEnabled(item,false);
+		item = legend_menu->insertItem("hidden",widget_,SLOT(showLegend(int)),0,0);
+		if (!widget_->isLegendShown()) legend_menu->setItemEnabled(item,false);
 		context_menu_->insertItem("legend",legend_menu);
 		context_menu_->insertSeparator();	
 	

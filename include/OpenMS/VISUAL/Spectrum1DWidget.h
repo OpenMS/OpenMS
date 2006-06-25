@@ -69,26 +69,8 @@ namespace OpenMS
 		
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-		
-		inline Spectrum1DCanvas::LabelMode getLabelMode() 
-		{ 
-			return label_mode_; 
-		}
-		
-		void minimizeToChart();
-
-		void setMainPreferences(const Param& prefs);
-
-		bool getSnapToMax();
-		void setSnapToMax(bool b);
 
 	public slots:
-		void switchAxis(bool b);
-		void setDrawMode(QAction*); //< Sets draw mode to one of the supported types
-		void drawModePeaks();
-		void drawModeLines();
-		void intensityAxisAbsolute();
-		void intensityAxisRelative();
 		void setVisibleArea(double, double);	//< Sets visible area to [position1, position2] and emits visibleAreaChanged
 		void mouseMoveEvent( QMouseEvent *e);
 	
@@ -97,21 +79,9 @@ namespace OpenMS
 
 	protected:
 		// Docu in base class
-		virtual void intensityModificationChange_();
+		virtual void intensityModeChange_();
 		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
-		
-		// Docu in base class
-		void legendModificationChange_();
-		
-		/// Label mode: percentage or absolut
-		Spectrum1DCanvas::LabelMode label_mode_;
-		
-		/// Wrappers to retrieve and set label modes in a mapping-safe way. Programmers should use these whenever possible.
-		void setIntensityAxisRelative_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
-		void setIntensityAxisAbsolute_(); //< sets correct label_mode_ depending on mapping_info_ and previous label_mode_.
-		bool isIntensityAxisAbsolute_() const;  //< returns true if the intensity axis is absolute, false if relative (percent)
-		
 		// Docu in base class
 		virtual void recalculateAxes();
 	};

@@ -50,53 +50,40 @@ namespace OpenMS
 	{
 		grid_ = new QGridLayout(this, 2, 2);
 		
+		//add axes
 		QVBoxLayout* vbox = new QVBoxLayout();
 		QHBoxLayout* hbox = new QHBoxLayout();
-		
 		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
-		x_axis_ = new AxisWidget(AxisWidget::TOP, "",this);
-	
-		vspacer_ = new QWidget(this);
-		hspacer_ = new QWidget(this);
-	
-		addClient(y_axis_,"Y-Axis",true);
-		addClient(x_axis_,"X-Axis",true);
-	
+		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
 		y_axis_->setPaletteBackgroundColor(backgroundColor());
 		x_axis_->setPaletteBackgroundColor(backgroundColor());
-		y_axis_->showLegend(show_legend_);
-		x_axis_->showLegend(show_legend_);
-	
+		vspacer_ = new QWidget(this);
+		hspacer_ = new QWidget(this);
 		vspacer_->hide();
 		hspacer_->hide();
-		
-//		vspacer_->setBackgroundColor(Qt::red); //For debugging
-//		hspacer_->setBackgroundColor(Qt::red); //For debugging
-//		x_axis_->setBackgroundColor(Qt::green); //For debugging
-//		y_axis_->setBackgroundColor(Qt::green); //For debugging
-		
 		vspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed));
 		hspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum));
-		
 		vbox->addWidget(y_axis_);
 		vbox->addWidget(vspacer_);
 		hbox->addWidget(x_axis_);
 		hbox->addWidget(hspacer_);
-		
-		grid_->addLayout(vbox, 1, 0);
-		grid_->addLayout(hbox, 0, 1);
-	
-		grid_->setRowStretch(0,1);
-		grid_->setRowStretch(1,20);
+		grid_->addLayout(vbox, 0, 0);
+		grid_->addLayout(hbox, 1, 1);
+		grid_->setRowStretch(0,20);
+		grid_->setRowStretch(1,1);
 		grid_->setColStretch(0,1);
 		grid_->setColStretch(1,20);
+//		vspacer_->setBackgroundColor(Qt::red); //For debugging
+//		hspacer_->setBackgroundColor(Qt::red); //For debugging
+//		x_axis_->setBackgroundColor(Qt::green); //For debugging
+//		y_axis_->setBackgroundColor(Qt::green); //For debugging
 	}
 	
 	
 	void SpectrumWidget::setCanvas(SpectrumCanvas* canvas)
 	{
 		canvas_ = canvas;
-		grid_->addWidget(canvas_, 1, 1);
+		grid_->addWidget(canvas_, 0, 1);
 	
 		connect(canvas_, SIGNAL(contextMenu(QPoint)), this, SIGNAL(contextMenu(QPoint)));
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes_(DRange<2>)));
@@ -106,11 +93,7 @@ namespace OpenMS
 	
 	SpectrumWidget::~SpectrumWidget()
 	{
-	}
-	
-	void SpectrumWidget::showGridLines(bool show)
-	{
-		canvas_->showGridLines(show);
+		
 	}
 	
 	SignedInt SpectrumWidget::getActionMode() const 
@@ -118,88 +101,48 @@ namespace OpenMS
 		return canvas_->getActionMode(); 
 	}
 	
-	void SpectrumWidget::setActionMode(QAction* a)
+	void SpectrumWidget::setActionMode(QAction* a) throw (Exception::NotImplemented)
 	{
-		QString name;
-		name=a->name();
-		if(name=="setPickAction") actionModeSelect(); 
-		else if(name=="setZoomAction") actionModeZoom(); 
-		else if(name=="setTranslateAction") actionModeTranslate();
-		else if(name=="setMeasureAction") actionModeMeasure();
-		//todo else throw new std::runtime_error("unknown QAction");
+		string name = a->name();
+		if(name=="SpectrumCanvas::AM_SELECT") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_SELECT); 
+		else if (name=="SpectrumCanvas::AM_ZOOM") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_ZOOM); 
+		else if(name=="SpectrumCanvas::AM_TRANSLATE") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_TRANSLATE); 
+		else if(name=="SpectrumCanvas::AM_MEASURE") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_MEASURE); 
+		else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	
-	// ### is this function really necessary?
-	void SpectrumWidget::setActionMode(SignedInt mode)
+	void SpectrumWidget::setActionMode(SpectrumCanvas::ActionModes mode)
 	{
-		if(mode==SpectrumCanvas::AM_SELECT) actionModeSelect(); 
-		else if(mode==SpectrumCanvas::AM_ZOOM) actionModeZoom(); 
-		else if(mode==SpectrumCanvas::AM_TRANSLATE) actionModeTranslate();
-	}
-	
-	void SpectrumWidget::actionModeSelect()
-	{
-		if (getActionMode() != SpectrumCanvas::AM_SELECT)
+		if (getActionMode() != mode)
 		{
-			canvas_->setActionMode(SpectrumCanvas::AM_SELECT);
+			canvas_->setActionMode(mode);
 			emit modesChanged(this);
 		}
 	}
 	
-	void SpectrumWidget::actionModeZoom()
+	void SpectrumWidget::setIntensityMode(SpectrumCanvas::IntensityModes mode)
 	{
-		if (getActionMode() != SpectrumCanvas::AM_ZOOM)
+		if (canvas_->getIntensityMode() != mode)
 		{
-			canvas_->setActionMode(SpectrumCanvas::AM_ZOOM);
-			emit modesChanged(this);
+			canvas_->setIntensityMode(mode);
+			intensityModeChange_();
 		}
 	}
 	
-	void SpectrumWidget::actionModeTranslate()
+	void SpectrumWidget::setIntensityMode(int mode)
 	{
-		if (getActionMode() != SpectrumCanvas::AM_TRANSLATE)
-		{
-			canvas_->setActionMode(SpectrumCanvas::AM_TRANSLATE);
-			emit modesChanged(this);
-		}
-	}
-	
-	void SpectrumWidget::actionModeMeasure()
-	{
-		if (getActionMode() != SpectrumCanvas::AM_MEASURE)
-		{
-			canvas_->setActionMode(SpectrumCanvas::AM_MEASURE);
-			emit modesChanged(this);
-		}
-	}
-	
-	void SpectrumWidget::setIntensityModificationNone()
-	{
-		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_NONE)
-		{
-			canvas_->setIntensityModification(SpectrumCanvas::IM_NONE);
-			intensityModificationChange_();
-		}
-	}
-	
-	void SpectrumWidget::setIntensityModificationLog()
-	{
-		if (canvas_->getIntensityModification() != SpectrumCanvas::IM_LOG)
-		{
-			canvas_->setIntensityModification(SpectrumCanvas::IM_LOG);
-			intensityModificationChange_();
-		}
+		setIntensityMode((SpectrumCanvas::IntensityModes)(mode));
 	}
 	
 	void SpectrumWidget::setMainPreferences(const Param& prefs)
 	{
 		prefs_ = prefs;
 		canvas()->setMainPreferences(prefs);
-	
-		setMirroredXAxis(! canvas()->getMappingInfo().isXAxisAsc());
-		setMirroredYAxis(! canvas()->getMappingInfo().isYAxisAsc());
-	
-		if (! canvas()->getMappingInfo().isMzToXAxis())
+		
+		x_axis_->showLegend(getPrefAsString("Preferences:Legend")=="Show");
+		y_axis_->showLegend(getPrefAsString("Preferences:Legend")=="Show");
+		
+		if (! canvas()->isMzToXAxis())
 		{
 			// swap legend text
 			std::string tmp = x_axis_->getLegend();
@@ -223,107 +166,80 @@ namespace OpenMS
 		}
 	}
 	
-	void SpectrumWidget::showLegend()
+	void SpectrumWidget::showLegend(bool show)
 	{
-		show_legend_ = true;
-		legendModificationChange_();
+		y_axis_->showLegend(show);
+		x_axis_->showLegend(show);
+		update();
 	}
-	
-	void SpectrumWidget::showNoLegend()
+
+	void SpectrumWidget::showLegend(int show)
 	{
-		show_legend_ = false;
-		legendModificationChange_();
-	}
-	
-	bool SpectrumWidget::isLogIntensity() const
-	{
-		return canvas_->getIntensityModification() == SpectrumCanvas::IM_LOG;
+		showLegend((bool)(show));
 	}
 	
 	void SpectrumWidget::updateAxes_(SpectrumCanvas::AreaType /*area*/)
 	{
 		recalculateAxes();
 		
+		int yy;
 		//show hide spaces when scollbars are shown/hidden
-		if (canvas_->visibleWidth() < canvas_->contentsWidth())
-		{
-			vspacer_->setMinimumSize(y_axis_->width(), canvas_->horizontalScrollBar()->sizeHint().height());
-			vspacer_->show();
-		}
-		else
-		{
-			vspacer_->hide();
-		}
-		
-		if (canvas_->visibleHeight() < canvas_->contentsHeight())
-		{
-			hspacer_->setMinimumSize(canvas_->verticalScrollBar()->sizeHint().width(), x_axis_->height());
-			hspacer_->show();
-		}
-		else
-		{
-			hspacer_->hide();
-		}
+//		if (canvas_->visibleWidth() < canvas_->contentsWidth())
+//		{
+//			vspacer_->setMinimumSize(y_axis_->width(), canvas_->horizontalScrollBar()->sizeHint().height());
+//			vspacer_->show();
+//		}
+//		else
+//		{
+//			vspacer_->hide();
+//		}
+//		
+//		if (canvas_->visibleHeight() < canvas_->contentsHeight())
+//		{
+//			hspacer_->setMinimumSize(canvas_->verticalScrollBar()->sizeHint().width(), x_axis_->height());
+//			hspacer_->show();
+//		}
+//		else
+//		{
+//			hspacer_->hide();
+//		}
 	}
 	
-	void SpectrumWidget::setMirroredXAxis(bool b)
-	{
-		canvas()->setMirroredXAxis(b);
-		x_axis_->setInverseOrientation(b);
-		x_axis_->update();
-	}
-	
-	void SpectrumWidget::setMirroredYAxis(bool  b )
-	{
-		canvas()->setMirroredYAxis(b);
-		y_axis_->setInverseOrientation(b);
-		y_axis_->update();
-	}
-	
-	void SpectrumWidget::switchAxis(bool swapped_axes) 
+	void SpectrumWidget::mzToXAxis(bool mz_to_x_axis) 
 	{
 		// check if we have to swap axis
-		if (swapped_axes != canvas()->getMappingInfo().isMzToXAxis()) return;
+		if (mz_to_x_axis == canvas()->isMzToXAxis()) return;
 	
-		// get current axis orientation
-		bool mirrored_x_axis = x_axis_->hasInverseOrientation();
-		bool mirrored_ordinate = y_axis_->hasInverseOrientation();
-	
-		// update mapping info
-		canvas()->getMappingInfo().isMzToXAxis() ? canvas()->getMappingInfo().setMzToYAxis() : canvas()->getMappingInfo().setMzToXAxis();
-	
-		// swap information about inverse orientation
-		x_axis_->setInverseOrientation(mirrored_ordinate);
-		y_axis_->setInverseOrientation(mirrored_x_axis);
+		// update mapping info of cnavas
+		canvas()->mzToXAxis(mz_to_x_axis);
 	
 		// swap legend text
 		std::string tmp = x_axis_->getLegend();
-		// and update axis with swapped legend text
 		x_axis_->setLegend(y_axis_->getLegend());
 		y_axis_->setLegend(tmp);
 	
 		recalculateAxes();
-		canvas()->update();
+		canvas()->update(); //?????
 	}
 
 	QImage SpectrumWidget::getImage(UnsignedInt width, UnsignedInt height)
 	{
 		//hide();
 		this->setUpdatesEnabled(false);
-		
+		int yy;
 		//hide scrollbars and spacers if necessary
-		bool hor_sc_off_ = (canvas()->hScrollBarMode()==QScrollView::AlwaysOff);
-		bool ver_sc_off_ = (canvas()->vScrollBarMode()==QScrollView::AlwaysOff);
-		if (!hor_sc_off_)
-		{
-			canvas()->setHScrollBarMode(QScrollView::AlwaysOff);
-			hspacer_->hide();
-		}
-		if (!ver_sc_off_)
-		{
-			canvas()->setVScrollBarMode(QScrollView::AlwaysOff);
-			vspacer_->hide();
-		}
+//		bool hor_sc_off_ = (canvas()->hScrollBarMode()==QScrollView::AlwaysOff);
+//		bool ver_sc_off_ = (canvas()->vScrollBarMode()==QScrollView::AlwaysOff);
+//		if (!hor_sc_off_)
+//		{
+//			canvas()->setHScrollBarMode(QScrollView::AlwaysOff);
+//			hspacer_->hide();
+//		}
+//		if (!ver_sc_off_)
+//		{
+//			canvas()->setVScrollBarMode(QScrollView::AlwaysOff);
+//			vspacer_->hide();
+//		}
 		
 		//store old background colors and size
 	 	QColor c_a = x_axis_->paletteBackgroundColor();
@@ -363,17 +279,17 @@ namespace OpenMS
 		x_axis_->setPenWidth(0);
 		
 		//show scrollbars and spacers again
-		if (!hor_sc_off_)
-		{
-			canvas()->setHScrollBarMode(QScrollView::Auto);
-			hspacer_->show();
-		}
-		if (!ver_sc_off_)
-		{
-			canvas()->setVScrollBarMode(QScrollView::Auto);
-			vspacer_->show();
-		}
-		
+//		if (!hor_sc_off_)
+//		{
+//			canvas()->setHScrollBarMode(QScrollView::Auto);
+//			hspacer_->show();
+//		}
+//		if (!ver_sc_off_)
+//		{
+//			canvas()->setVScrollBarMode(QScrollView::Auto);
+//			vspacer_->show();
+//		}
+//		
 		//restore size
 		resize(w,h);
 		
@@ -381,6 +297,18 @@ namespace OpenMS
 		//show();
 		
 		return image;
+	}
+
+	bool SpectrumWidget::isLegendShown() const 
+	{
+		//Both are shown or hidden, so we simply return the label of the x-axis
+		return x_axis_->isLegendShown(); 
+	}
+
+	void SpectrumWidget::hideAxes()
+	{
+		y_axis_->hide();
+		x_axis_->hide();
 	}
 
 } //namespace OpenMS

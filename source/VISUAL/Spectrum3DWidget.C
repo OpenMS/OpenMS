@@ -80,14 +80,11 @@ namespace OpenMS
 	{
 	}
 	
-	void Spectrum3DWidget::intensityModificationChange_()
+	void Spectrum3DWidget::intensityModeChange_()
 	{
-		canvas()->intensityModificationChange_();
+		canvas()->intensityModeChange_();
 	}	
 
-	void Spectrum3DWidget::legendModificationChange_()
-	{
-	}
 	void Spectrum3DWidget::invalidate_()
 	{
 	}

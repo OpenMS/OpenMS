@@ -66,36 +66,11 @@ namespace OpenMS
 			grid->addWidget(colors_,0,0);
 		
 			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Mapping",this);
-			QLabel* label = new QLabel("Map m/z to: ",box);
+			new QLabel("Map m/z to: ",box);
 			axis_mapping_ = new QComboBox(false, box, "read-only combobox");
 			axis_mapping_->insertItem("X-Axis");
 			axis_mapping_->insertItem("Y-Axis");  
 			grid->addWidget(box,1,0);
-		
-			box = new QGroupBox(2,Qt::Horizontal,"Axis orientation (from lower left corner)",this);
-			label = new QLabel("Select x axis orientation: ",box);
-			x_axis_orientation_ = new QComboBox(false, box, "read-only combobox");
-			x_axis_orientation_->insertItem("Ascending");
-			x_axis_orientation_->insertItem("Descending");
-		
-			label = new QLabel("Select y axis orientation: ",box);
-			y_axis_orientation_ = new QComboBox(false, box, "read-only combobox");
-			y_axis_orientation_->insertItem("Ascending");
-			y_axis_orientation_->insertItem("Descending");
-			grid->addWidget(box,1,1);
-		
-			box = new QGroupBox( 2,Qt::Vertical,"Intensity scale",this);
-			log_check_box_ = new QCheckBox("Logarithmic", box, "log CheckBox" );
-			rel_check_box_ = new QCheckBox("Relative(%)",box, "log CheckBox" );
-			grid->addWidget(box,0,1);
-		
-			box = new QGroupBox( 2,Qt::Vertical, "X-Axis",this);
-			x_page_= manager->client("X-Axis",box);
-			grid->addWidget(box,2,0);
-		
-			box = new QGroupBox( 2,Qt::Vertical,"Y-Axis",this);
-			y_page_ = manager->client("Y-Axis",box);
-			grid->addWidget(box,2,1);
 		
 			load();
 		}
@@ -109,41 +84,15 @@ namespace OpenMS
 		{
 			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 			
-		  (w->canvas()->getMappingInfo().isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
-		  (w->canvas()->getMappingInfo().isXAxisAsc())? x_axis_orientation_->setCurrentText("Ascending"): x_axis_orientation_->setCurrentText("Descending");
-		  (w->canvas()->getMappingInfo().isYAxisAsc())? y_axis_orientation_->setCurrentText("Ascending"): y_axis_orientation_->setCurrentText("Descending");
-		
-			log_check_box_->setChecked(w->isLogIntensity());
-			rel_check_box_->setChecked(!w->canvas()->isAbsoluteIntensity());
+		  (w->canvas()->isMzToXAxis()) ? axis_mapping_->setCurrentText("X-Axis") : axis_mapping_->setCurrentText("Y-Axis");
 		}
 		
 		void Spectrum1DWidgetPDP::save()
 		{
 			Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(manager_);
 			
-			(axis_mapping_->currentText()=="X-Axis") ? w->switchAxis(false) : w->switchAxis(true);
-			(x_axis_orientation_->currentText()=="Ascending") ? w->setMirroredXAxis(false) : w->setMirroredXAxis(true);
-			(y_axis_orientation_->currentText()=="Ascending") ? w->setMirroredYAxis(false) : w->setMirroredYAxis(true);
-					
-			if (log_check_box_->isChecked())
-			{
-				w->setIntensityModificationLog();
-			}
-			else
-			{
-				w->setIntensityModificationNone();
-			}
-			if (rel_check_box_->isChecked())
-			{
-				w->intensityAxisRelative();
-			}
-			else
-			{
-				w->intensityAxisAbsolute();
-			}
-			x_page_->save();
-			y_page_->save();
-		
+			(axis_mapping_->currentText()=="X-Axis") ? w->mzToXAxis(true) : w->mzToXAxis(false);
+
 			colors_->save();
 		}
 

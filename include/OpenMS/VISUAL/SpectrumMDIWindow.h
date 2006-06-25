@@ -112,7 +112,14 @@ namespace OpenMS
 			{
 				for (StringListIterator it=begin; it!=end; ++it)
 				{
-					addSpectrum(*it,true,bool(getPrefAsInt("Preferences:DefaultMapView2D")),true);
+					if (getPrefAsString("Preferences:DefaultMapView")=="2D")
+					{
+						addSpectrum(*it,true,true,true);
+					}
+					else
+					{
+						addSpectrum(*it,true,false,true);
+					}
 				}
 				maximizeActiveSpectrum();
 				tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));
@@ -197,17 +204,13 @@ namespace OpenMS
 			void focusSpectrumByAddress(int);
 			void removeWidgetFromBar(QObject*);
 			void setActionMode(QAction*);
-			void setDrawMode(QAction*);
-			void setSnapToMax(bool); 	
+			void setDrawMode(QAction*);	
 			void showGridLines(bool); 	
-			void switchAxis(bool);
-			void setMirroredXAxis(bool);
-			void setMirroredYAxis(bool);
 			void showPoints(bool);
 			void showColors(bool);
 			void showContours(bool);
 		  void setIntensityScaledDots(bool on);
-		void setIntensityScaledDots3D(bool on);
+			void setIntensityScaledDots3D(bool on);
 		
 			void setActionMode2D(QAction*);
 		  void setActionMode3D(QAction*);
@@ -215,7 +218,6 @@ namespace OpenMS
 			void openRecentFile(int i);
 		  void setBackView3D(bool on);
 		  void setTopView3D(bool on);
-		  void setResetZoomView3D(bool on);
 
 			///use this event to do the cleanup
 		  virtual void closeEvent(QCloseEvent * e);
@@ -245,12 +247,8 @@ namespace OpenMS
 			QAction* set_pick_action_;
 			QAction* set_peak_mode_;
 			QAction* set_connected_lines_mode_;
-			QToolButton* snap_button_;
 			QToolButton* grid_button_;
 			QToolButton* print_button_;
-			QToolButton* switch_axis_button_;
-			QToolButton* mirror_xaxis_button_;
-			QToolButton* mirror_yaxis_button_;
 			QToolButton* reset_zoom_button_;
 			//Combobox for linking spectra
 			QComboBox* link_box_;
@@ -267,7 +265,7 @@ namespace OpenMS
 		  QToolButton* show_contours_button_2d_;
 		  QToolButton* intensity_scaled_dots_button_2d_;
 	  	QToolButton* reset_zoom_button_2d_;
-		
+			QToolButton* grid_button_2d_;
 		
 		  //3DWidget
 		  QToolBar* tool_bar_3d_;

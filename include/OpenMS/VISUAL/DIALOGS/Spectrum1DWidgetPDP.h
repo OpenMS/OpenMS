@@ -56,12 +56,6 @@ namespace OpenMS
 			protected:            
 				PreferencesDialogPage* colors_;
 				QComboBox* axis_mapping_;
-				QComboBox* x_axis_orientation_;
-				QComboBox* y_axis_orientation_;
-				QCheckBox* log_check_box_;
-				QCheckBox* rel_check_box_;
-				PreferencesDialogPage* x_page_;
-				PreferencesDialogPage* y_page_;
 		};
 	
 	} //namespace Internal

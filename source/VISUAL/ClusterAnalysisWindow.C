@@ -117,11 +117,11 @@ namespace OpenMS
     mainlayout_->add(mainsplit_);
     mainsplit_->setResizeMode(leftbox_,QSplitter::KeepSize);
     bottombin_->draw_upside_down();
-    bottomspec_->setMirroredYAxis(1);
-    topspec_->setDrawMode(new QAction(this,"setPeakMode"));
-    bottomspec_->setDrawMode(new QAction(this,"setPeakMode"));
-    topspec_->showGridLines(0);
-    bottomspec_->showGridLines(0);
+    //bottomspec_->setMirroredYAxis(1);
+    topspec_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+    bottomspec_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+    topspec_->canvas()->showGridLines(0);
+    bottomspec_->canvas()->showGridLines(0);
     rightlayout_->add(rightsplit_);
     QPopupMenu* loadmenu_ = new QPopupMenu(this);
     menubar_->insertItem("connectDB",this,SLOT(connect2DB()),0,1);

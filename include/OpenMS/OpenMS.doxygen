@@ -50,14 +50,15 @@
 
 /*
 	ToDo-Liste Marc:
-	- Snap-, Prozent- oder Log-Modus -- nicht alles
-	- Features wieder einbauen
-	- Achsenrichtungen weg -> Aus Preferences entfernen (1D + 2D)
 	- SpectrumWidget/Window docu, remove
+	- 1D+2D: Snap-, Prozent- oder Log-Modus
+	- Scrollbars wieder einbauen
+	- Features wieder einbauen
 	- File-Type force/automatic
 	
 	TOPPView (später)
-	- Farben an aktuellen Int-Bereich anpassen
+	- 2D: Oberflächen kontinuerilich entlang RT
+	- 2D: Farben an aktuellen Int-Bereich anpassen
 	- testen, ob 2D-View mit geometric hashing besser ist
 	
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64

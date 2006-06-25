@@ -53,7 +53,6 @@ namespace OpenMS
 		widget()->show();
 		setCentralWidget(widget());
 		connectWidgetSignals(widget());
-		//connect(widget(), SIGNAL(visibleAreaChanged(double, double)), this, SIGNAL(loXHiXChanged(double, double)));
 	}
 	
 	Spectrum1DWidget* Spectrum1DWindow::widget()
@@ -64,41 +63,6 @@ namespace OpenMS
 	Spectrum1DWindow::~Spectrum1DWindow()
 	{
 	
-	}
-	
-	void Spectrum1DWindow::createContextMenu_()
-	{
-		SpectrumWindow::createContextMenu_();
-		
-		SignedInt item;
-		//axis modes
-		QPopupMenu* axis_menu = new QPopupMenu(context_menu_);
-		item = axis_menu->insertItem("absolute",widget(),SLOT(intensityAxisAbsolute()));
-		if (widget()->getLabelMode() == Spectrum1DCanvas::LM_XABSOLUTE_YABSOLUTE) axis_menu->setItemEnabled(item,false);
-		item = axis_menu->insertItem("relative",widget(),SLOT(intensityAxisRelative()));
-		if (widget()->getLabelMode() == Spectrum1DCanvas::LM_XABSOLUTE_YPERCENT) axis_menu->setItemEnabled(item,false);
-		context_menu_->insertItem("y axis label",axis_menu);
-		context_menu_->insertSeparator();
-	}
-	
-	void Spectrum1DWindow::switchAxis(bool b)
-	{
-		widget()->switchAxis(b);
-	}
-	
-	void Spectrum1DWindow::setMirroredXAxis(bool b)
-	{
-		widget()->setMirroredXAxis(b);
-	}
-	
-	void Spectrum1DWindow::setMirroredYAxis(bool b)
-	{
-		widget()->setMirroredYAxis(b);
-	}
-	
-	void Spectrum1DWindow::setDrawMode(QAction* a)
-	{
-		widget()->setDrawMode(a);
 	}
 	
 	PreferencesDialogPage* Spectrum1DWindow::createPreferences(QWidget* parent)
@@ -114,16 +78,6 @@ namespace OpenMS
 	  goToDialog.setMaxPosition(visible_area.maxX());
 	  goToDialog.exec();
 	  widget()->setVisibleArea(goToDialog.getMinPosition(),goToDialog.getMaxPosition());
-	}
-	
-	bool Spectrum1DWindow::getSnapToMax()
-	{
-		return ((Spectrum1DWidget*)widget_)->getSnapToMax();
-	}
-	
-	void Spectrum1DWindow::setSnapToMax(bool b)
-	{
-		((Spectrum1DWidget*)widget_)->setSnapToMax(b);
 	}
 
 } //namespace

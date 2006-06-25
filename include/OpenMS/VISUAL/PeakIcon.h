@@ -44,16 +44,30 @@ namespace OpenMS
 	class PeakIcon
 	{
 		public:
-			/// Constructor
-			PeakIcon();
+			/// Icon names
+			enum Icon
+			{
+				IT_NOICON,
+				IT_ELLIPSE,
+				IT_TRIANGLE,
+				IT_ASTERIX, 
+				IT_SQUARE
+			};
+			
+			/// Draws an icon into a boundingbox
+      static void drawIcon(Icon icon, QPainter& painter, const QRect& r);
 			/// Draws an ellipse into a boundingbox
-      static void drawEllipse(QPainter& painter, QRect r);
+      static void drawEllipse(QPainter& painter, const QRect& r);
       /// Draws a triangle into a boundingbox
-      static void drawTriangle(QPainter& painter, QRect r);
+      static void drawTriangle(QPainter& painter, const QRect& r);
       /// Draws an asterix into a boundingbox
-      static void drawAsterix(QPainter& painter, QRect r);
+      static void drawAsterix(QPainter& painter, const QRect& r);
       /// Draws a rectangle into a boundingbox
-      static void drawRectangle(QPainter& painter, QRect r);     
+      static void drawRectangle(QPainter& painter, const QRect& r);   
+        
+		protected:
+			/// Constructor is protexcted as all methods are static
+			PeakIcon();				
 	};
 }
 #endif

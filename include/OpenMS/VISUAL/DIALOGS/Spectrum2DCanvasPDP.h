@@ -62,8 +62,8 @@ namespace OpenMS
 				MultiGradientSelector* surface_gradient_;
 			  ColorSelector* background_color_;
 			  QSpinBox* marching_squares_steps_;
-			  QSpinBox* dot_interpolation_steps_;
-			  QSpinBox* surface_interpolation_steps_;
+			  QSpinBox* interpolation_steps_;
+			  QSpinBox* contour_steps_;
 		};
 	
 	} //namespace Internal

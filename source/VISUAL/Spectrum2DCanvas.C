@@ -64,14 +64,8 @@ namespace OpenMS
 	{
 		// prevents errors caused by too small width,height values
 		setMinimumSize(200,200);
-		
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		viewport()->setMouseTracking(true);
-		action_mode_ = AM_SELECT;
-//		min_x_ = numeric_limits<float>::max();
-//		max_x_ = -1 * numeric_limits<float>::max();
-//		min_y_ = numeric_limits<float>::max();
-//		max_y_ = -1 * numeric_limits<float>::max();
+		setMouseTracking(true);
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -82,57 +76,34 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DCanvas::print(QPainter* p, int width, int height)
-	{
-		for (UnsignedInt i=0; i<trees_.size(); i++)
-		{
-			if (layer_visible_[i])
-			{
-				paintContent_(i, p, width, height);
-			}
-		}
-	}
-	
 	void Spectrum2DCanvas::showContours(bool on)
 	{
-		recalculate_ = show_contours_[current_data_] != on;
-		show_contours_[current_data_] = on;
-		invalidate_();
+		if (on != show_contours_[current_data_])
+		{
+			recalculate_ = true;
+			show_contours_[current_data_] = on;
+			invalidate_();
+		}
 	}
 	
 	void Spectrum2DCanvas::showColors(bool on)
 	{
-		recalculate_ = show_colors_[current_data_] != on;
-		show_colors_[current_data_] = on;
-		invalidate_();
+		if (on != show_colors_[current_data_])
+		{
+			recalculate_ = true;
+			show_colors_[current_data_] = on;
+			invalidate_();
+		}
 	}
 	
 	void Spectrum2DCanvas::showPoints(bool on)
 	{
-		recalculate_ = show_points_[current_data_] != on;
-		show_points_[current_data_] = on;
-		invalidate_();
-	}
-	
-	void Spectrum2DCanvas::changeShowContours()
-	{
-		recalculate_ = true;
-		show_contours_[current_data_] = !(show_contours_[current_data_]);
-		invalidate_();
-	}
-	
-	void Spectrum2DCanvas::changeShowColors()
-	{
-		recalculate_ = true;
-		show_colors_[current_data_] = !(show_colors_[current_data_]);
-		invalidate_();
-	}
-	
-	void Spectrum2DCanvas::changeShowPoints()
-	{
-		recalculate_ = true;
-		show_points_[current_data_] = !(show_points_[current_data_]);
-		invalidate_();
+		if (on != show_points_[current_data_])
+		{
+			recalculate_ = true;
+			show_points_[current_data_] = on;
+			invalidate_();
+		}
 	}
 	
 	bool Spectrum2DCanvas::getShowContours()
@@ -156,18 +127,14 @@ namespace OpenMS
 	  invalidate_();
 	}
 	
-	void Spectrum2DCanvas::contentsMousePressEvent(QMouseEvent* e)
+	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
 	{
-		// when pressing down the mouse, only the position
-		// has to be stored, since with no tool any action
-		// is performed when the mouse button is pressed
-		// but the mouse is not (yet) moved
-		mouse_pos_ = contentsToViewport(e->pos());
+		last_mouse_pos_ = e->pos();
 	  if (e->button() == LeftButton)
 		{
 			if (action_mode_ == AM_TRANSLATE)
 			{
-				viewport()->setCursor(cursor_translate_in_progress_);
+				setCursor(cursor_translate_in_progress_);
 			}
 			else if (action_mode_ == AM_MEASURE)
 			{
@@ -189,14 +156,14 @@ namespace OpenMS
 		e->accept();
 	}
 	
-	void Spectrum2DCanvas::contentsMouseReleaseEvent(QMouseEvent* e)
+	void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
-		QPoint pos = contentsToViewport(e->pos());
+		QPoint pos = e->pos();
 		
 		if (e->button() == Qt::RightButton)
 		{
 			// context menu
-			emit contextMenu(contentsToViewport(e->globalPos()));
+			emit contextMenu(e->globalPos());
 			return;
 		}
 		
@@ -208,7 +175,7 @@ namespace OpenMS
 				if (e->button() == Qt::LeftButton)
 				{
 					// clear rubber band
-					AreaType area(widgetToChart_(mouse_pos_), widgetToChart_(pos));
+					AreaType area(widgetToData_(last_mouse_pos_), widgetToData_(pos));
 					//area.normalize();
 					
 					if (e->state() & Qt::ShiftButton)
@@ -246,9 +213,9 @@ namespace OpenMS
 					
 					if (measurement_start_)
 					{
-						emit sendStatusMessage(QString("Measured: dRT = %3, dMZ = %1, dInt = %2")
+						emit sendStatusMessage(QString("Measured: dRT = %3, dMZ = %1, Intensity ratio = %2")
 																	.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
-																	.arg(measurement_stop_->getIntensity() - measurement_start_->getIntensity())
+																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
 																	.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
 					}
 				}
@@ -256,12 +223,12 @@ namespace OpenMS
 			}
 			case AM_ZOOM:
 			{
-				if (mouse_pos_ == pos)
+				if (last_mouse_pos_ == pos)
 				{
 					if (e->button() == Qt::LeftButton)
 					{
 						// left button means zoom in
-						zoomIn_(widgetToChart_(pos));
+						zoomIn_(widgetToData_(pos));
 					}
 					else if (e->button() == Qt::MidButton)
 					{
@@ -279,16 +246,16 @@ namespace OpenMS
 					if (e->button() == Qt::LeftButton)
 					{
 						// sort coordinates ascending
-						int min_x = mouse_pos_.x();
+						int min_x = last_mouse_pos_.x();
 						int max_x = pos.x();
-						int min_y = mouse_pos_.y();
+						int min_y = last_mouse_pos_.y();
 						int max_y = pos.y();
 						if (min_x > max_x) swap(min_x, max_x);
 						if (min_y > max_y) swap(min_y, max_y);
 	
 						// transform widget coordinates to chart coordinates
-						PointType left_top = widgetToChart_(QPoint(min_x, min_y));
-						PointType right_bottom = widgetToChart_(QPoint(max_x, max_y));
+						PointType left_top = widgetToData_(min_x, min_y);
+						PointType right_bottom = widgetToData_(max_x, max_y);
 						
 						// eventually adjust values to the QuadTree area's
 						// borders
@@ -309,7 +276,7 @@ namespace OpenMS
 			}
 			case AM_TRANSLATE:
 			{
-	      viewport()->setCursor(cursor_translate_);  // open-hand cursor
+	      setCursor(cursor_translate_);  // open-hand cursor
 				// do nothing, because releasing the mouse while
 				// moving only means that we're done moving, and
 				// so we don't have to do anything here.
@@ -322,7 +289,7 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::highlightPeaks_()
 	{
-		QPainter p(viewport());
+		QPainter p(this);
 		
 		if (measurement_start_)
 		{
@@ -332,16 +299,16 @@ namespace OpenMS
 			
 			if (measurement_stop_)
 			{
-				line_end = chartToWidget_(measurement_stop_->getPosition());
+				line_end = dataToWidget_(measurement_stop_->getPosition());
 				//cout << "Line end: " << line_end << endl;
 			}
 			else
 			{
-				line_end = mouse_pos_;
+				line_end = last_mouse_pos_;
 				//cout << "Ende: " << line_end.x() << " " << line_end.y() << endl;
 			}
 			
-			p.drawLine(chartToWidget_(measurement_start_->getPosition()), line_end);
+			p.drawLine(dataToWidget_(measurement_start_->getPosition()), line_end);
 		}
 		
 		highlightPeak_(&p, nearest_peak_);
@@ -357,7 +324,7 @@ namespace OpenMS
 		const QPoint diff(5, 5);
 		p->setPen(QPen(Qt::red, 2));
 		
-		QPoint peak_pos(chartToWidget_(peak->getPosition()));
+		QPoint peak_pos(dataToWidget_(peak->getPosition()));
 		QRect peak_rect(peak_pos - diff, peak_pos + diff);
 		
 		//cout << "Highlight: " << peak_rect.x() << " " << peak_rect.y() << endl;
@@ -369,7 +336,7 @@ namespace OpenMS
 	{
 		const QPoint diff(5, 5);
 		QRect rect(pos - diff, pos + diff);
-		AreaType area(widgetToChart_(rect.topLeft()), widgetToChart_(rect.bottomRight()));
+		AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 				
 		DPeak<2>* max_peak = 0;
 		float max_int = -1 * numeric_limits<float>::max();
@@ -394,19 +361,20 @@ namespace OpenMS
 		return max_peak;
 	}
 	
-	void Spectrum2DCanvas::contentsMouseMoveEvent(QMouseEvent* e)
+	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
-		QPoint pos = contentsToViewport(e->pos());
+		QPoint pos = e->pos();
 		
 		switch (action_mode_)
 		{
 			default:
 			case AM_SELECT:
 			{
-	      viewport()->setCursor(Qt::ArrowCursor);
+	      setCursor(Qt::ArrowCursor);
 				// highlight nearest peak
 				if (e->state() == Qt::NoButton)
 				{
+					
 					DPeak<2>* max_peak = findNearestPeak_(pos);
 					
 					if (max_peak)
@@ -417,10 +385,10 @@ namespace OpenMS
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="") sendStatusMessage(meta, 0);
 					}
-					else if (!max_peak)
+					else
 					{
 						//show Peak Coordinates (without intensity)
-						PointType pnt = widgetToChart_(pos);
+						PointType pnt = widgetToData_(pos);
 						emit sendCursorStatus( pnt[0], -1.0, pnt[1]);				
 					}
 					
@@ -430,13 +398,13 @@ namespace OpenMS
 				else if (e->state() & Qt::LeftButton)
 				{
 					// select 1D spectrum
-					QRect rect_horz(QPoint(0, mouse_pos_.y()), QPoint(viewport()->width(), pos.y()));
-					QRect rect_vert(QPoint(mouse_pos_.x(), 0), QPoint(pos.x(), viewport()->height()));
-					QRect rect_mid(mouse_pos_, pos);
+					QRect rect_horz(QPoint(0, last_mouse_pos_.y()), QPoint(width(), pos.y()));
+					QRect rect_vert(QPoint(last_mouse_pos_.x(), 0), QPoint(pos.x(), height()));
+					QRect rect_mid(last_mouse_pos_, pos);
 	
 					// draw rubber band(s)
 					refresh_();
-					QPainter p(viewport());
+					QPainter p(this);
 					p.setPen(Qt::NoPen);
 					p.setBrush(Qt::red);
 					p.setRasterOp(Qt::XorROP);
@@ -460,7 +428,7 @@ namespace OpenMS
 			}
 			case AM_MEASURE:
 			{
-	      viewport()->setCursor(Qt::ArrowCursor);
+	      setCursor(Qt::ArrowCursor);
 				// highlight nearest peak
 				if (e->state() == Qt::NoButton)
 				{
@@ -481,13 +449,13 @@ namespace OpenMS
 				else if (e->state() & Qt::LeftButton && measurement_start_)
 				{
 					measurement_stop_ = findNearestPeak_(pos);
-					mouse_pos_ = pos;
+					last_mouse_pos_ = pos;
 					refresh_();
 				
 					if (measurement_stop_)
 					{
 						emit sendCursorStatus(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ],
-						                      measurement_stop_->getIntensity() - measurement_start_->getIntensity(),
+						                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
 						                      measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]);
 					}
 					else
@@ -500,61 +468,73 @@ namespace OpenMS
 			case AM_ZOOM:
 			{
 				//show Peak Coordinates
-				PointType pnt = widgetToChart_(pos);
+				PointType pnt = widgetToData_(pos);
 				emit sendCursorStatus( pnt[MZ], -1.0, pnt[RT]);
 	      //set Cursor
-	      viewport()->setCursor(Qt::CrossCursor);
+	      setCursor(Qt::CrossCursor);
 				
 				if (e->state() & Qt::LeftButton)
 				{
 					// draw zoom rect
 					refresh_();
-					QPainter p(viewport());
+					QPainter p(this);
 					p.setBrush(Qt::red);
 					p.setRasterOp(Qt::XorROP);
-					p.drawRect(mouse_pos_.x(), mouse_pos_.y(), pos.x() - mouse_pos_.x(), pos.y() - mouse_pos_.y());
+					p.drawRect(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
 				}
 				break;
 			}
 			case AM_TRANSLATE:
 			{
-				//show Peak Coordinates
-				PointType pnt = widgetToChart_(pos);
-				emit sendCursorStatus( pnt[MZ], -1.0, pnt[RT]);
 				//set Cursor
-	      viewport()->setCursor(cursor_translate_);
+	      setCursor(cursor_translate_);
 				
 				if (e->state() & Qt::LeftButton)
 				{
-	        viewport()->setCursor(cursor_translate_in_progress_);
-					// move the visible area
-					
-					QPoint pmove = mouse_pos_ - pos;
+					setCursor(cursor_translate_in_progress_);
+					//caldulate data coordinates of shift
+					PointType old_data = widgetToData_(last_mouse_pos_);
+					PointType new_data = widgetToData_(pos);
+					//calculate x shift
+					double shift = old_data.X() - new_data.X();
+					double newLoX = visible_area_.minX() + shift;
+					double newHiX = visible_area_.maxX() + shift;
+					// check if we are falling out of bounds
+					if (newLoX < overall_data_range_.minX())
+					{
+						newLoX = overall_data_range_.minX();
+						newHiX = newLoX + visible_area_.width();
+					}
+					if (newHiX > overall_data_range_.maxX())
+					{
+						newHiX = overall_data_range_.maxX();
+						newLoX = newHiX - visible_area_.width();
+					}
+					//calculate y shift
+					shift = old_data.Y() - new_data.Y();
+					double newLoY = visible_area_.minY() + shift;
+					double newHiY = visible_area_.maxY() + shift;
+					// check if we are falling out of bounds
+					if (newLoY < overall_data_range_.minY())
+					{
+						newLoY = overall_data_range_.minY();
+						newHiY = newLoY + visible_area_.height();
+					}
+					if (newHiY > overall_data_range_.maxY())
+					{
+						newHiY = overall_data_range_.maxY();
+						newLoY = newHiY - visible_area_.height();
+					}
+	     		
+	     		//cahge area
+					changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
 	
-					PointType move = widgetToChart_(pmove);
-	
-					PointType left_top = PointType(move.X(), move.Y());
-	
-					// eventually adjust values to the QuadTree area's borders
-					if (left_top.X() < trees_[current_data_]->getArea().minX()) 
-						left_top.setX(trees_[current_data_]->getArea().minX());
-					if (left_top.Y() < trees_[current_data_]->getArea().minY()) 
-						left_top.setY(trees_[current_data_]->getArea().minY());
-					if (left_top.X() + visible_area_.width() > trees_[current_data_]->getArea().maxX()) 
-						left_top.setX(trees_[current_data_]->getArea().maxX() - visible_area_.width());
-					if (left_top.Y() + visible_area_.height() > trees_[current_data_]->getArea().maxY()) 
-						left_top.setY(trees_[current_data_]->getArea().maxY() - visible_area_.height());
-	
-					PointType right_bottom = PointType(left_top.X() + visible_area_.width(), left_top.Y() + visible_area_.height());
-	
-					changeVisibleArea_(AreaType(left_top, right_bottom));
-	
-					mouse_pos_ = pos;
+					last_mouse_pos_ = pos;
 				}
 				if (e->button() == Qt::RightButton)
 				{
 					// context menu
-					emit contextMenu(contentsToViewport(e->globalPos()));
+					emit contextMenu(e->globalPos());
 				}
 				break;
 			}
@@ -563,23 +543,21 @@ namespace OpenMS
 		e->accept();
 	}
 	
-	void Spectrum2DCanvas::contentsWheelEvent(QWheelEvent* e)
+	void Spectrum2DCanvas::wheelEvent(QWheelEvent* e)
 	{
-	  QPoint pos = contentsToViewport(e->pos());
-	
 		switch (action_mode_)
 		{
 		case AM_ZOOM:
 			if (e->delta() > 0)
 			{
 				// forward rotation -> zoom in
-				zoomIn_(widgetToChart_(pos));
+				zoomIn_(widgetToData_(e->pos()));
 			}
 	
 			else
 			{
 				// backward rotation -> zoom out
-				zoomOut_(widgetToChart_(pos));
+				zoomOut_(widgetToData_(e->pos()));
 			}
 	
 			e->accept();
@@ -599,7 +577,7 @@ namespace OpenMS
 	
 	const QColor& Spectrum2DCanvas::heightColor_(float val)
 	{
-		if (intensity_modification_ == IM_LOG)
+		if (intensity_mode_ == IM_LOG)
 		{
 			return surface_gradient_.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
 		}
@@ -608,33 +586,23 @@ namespace OpenMS
 			return surface_gradient_.precalculatedColorAt(val);
 		}
 	}
-	
-	Spectrum2DCanvas::AreaType Spectrum2DCanvas::getLeftTopCell_(UnsignedInt data_set)
-	{
-		PointType cell_size(trees_[data_set]->getArea().width() / getPrefAsInt("Preferences:2D:MarchingSquaresSteps"), trees_[data_set]->getArea().height() / getPrefAsInt("Preferences:2D:MarchingSquaresSteps"));
-		PointType pos(float(int(visible_area_.minX() / cell_size.X())) * cell_size.X(), float(int(visible_area_.minY() / cell_size.Y())) * cell_size.Y());
 		
-		return AreaType(pos.X(), pos.Y(), pos.X() + cell_size.X(), pos.Y() + cell_size.Y() /*/ 10.0f*/);
-	}
-	
-	void Spectrum2DCanvas::getMarchingSquareMatrix_(UnsignedInt data_set)
+	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UnsignedInt data_set)
 	{
+		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		const double cell_width = visible_area_.width() / steps;
+		const double cell_height = visible_area_.height() / steps;
+		const double half_width = cell_width / 2.0f;
+		const double half_height = cell_height / 2.0f;
+	
 		//cout << "Marching squares matrix for dataset " << data_set <<":" <<endl;
-		AreaType cell = getLeftTopCell_(data_set);
-	
-		const float cell_width = cell.width();
-		const float cell_height = cell.height();
-		const float half_width = cell_width / 2;
-		const float half_height = cell_height / 2;
-	
-		float y = cell.minY();
-	
+		float y = visible_area_.minY();
 		int i, j;
-		for (i = 0; y <= visible_area_.maxY() + cell_height; i++)
+		for (i = 0; i <= steps; i++)
 		{
-			float x = cell.minX();
+			float x = visible_area_.minX();
 			vector<float> line;
-			for (j = 0; x <= visible_area_.maxX() + cell_width; j++)
+			for (j = 0; j <= steps; j++)
 			{
 				// build sum of all peak heights in the current cell
 				float sum = 0.0f;
@@ -644,9 +612,9 @@ namespace OpenMS
 					sum += i->second->getIntensity();
 				}
 				// log mode
-				if (intensity_modification_ == IM_LOG)
+				if (intensity_mode_ == IM_LOG)
 				{
-					sum += log(sum+1); // prevent log of numbers smaller than one
+					sum = log(sum+1); // prevent log of numbers smaller than one
 				}
 				// store max
 				if (sum > max_values_[data_set])
@@ -662,32 +630,12 @@ namespace OpenMS
 			marching_squares_matrices_[data_set].push_back(line);
 			y += cell_height;
 		}
+		//cout << "rows: " << marching_squares_matrices_[data_set].size() << " cols: " << marching_squares_matrices_[data_set][0].size() << endl;
 	}
 	
-	void Spectrum2DCanvas::paintContent_(UnsignedInt data_set, QPainter* p, int width, int height)
-	{
-		emit sendStatusMessage("repainting", 0);
-		if (trees_[data_set] && !(trees_[data_set]->begin(trees_[data_set]->getArea()) == trees_[data_set]->end()))
-		{
-			if (show_colors_[data_set])
-			{
-				paintColorMap_(data_set, p, width, height);
-			}
+
 	
-			if (show_contours_[data_set])
-			{
-				paintContourLines_(data_set, p, width, height);
-			}
-	
-			if (show_points_[data_set])
-			{
-				paintPoints_(data_set, p,width,height);
-			}
-		}
-		emit sendStatusMessage("", 0);
-	}
-	
-	void Spectrum2DCanvas::paintPoints_(UnsignedInt data_set, QPainter* p, int width, int height)
+	void Spectrum2DCanvas::paintPoints_(UnsignedInt data_set, QPainter* p)
 	{
 		p->setPen(Qt::black);
 		p->setBrush(Qt::black);
@@ -700,10 +648,10 @@ namespace OpenMS
 		{
 			if (!isFeature)
 			{
-				QPoint pos = chartToContext_(i->first, width, height);
+				QPoint pos = dataToWidget_(i->first);
 				if (getDotMode()==DOT_GRADIENT)
 				{
-					if (intensity_modification_ == IM_LOG)
+					if (intensity_mode_ == IM_LOG)
 					{
 						//prevent log of numbers samller than 1
 						inter = dot_gradient_.precalculatedColorAt(log(i->second->getIntensity()+1)); 
@@ -743,7 +691,7 @@ namespace OpenMS
 							for(DFeature<2>::ConvexHullType::const_iterator it=feature->getConvexHulls()[hull].begin(); 
 									it!=feature->getConvexHulls()[hull].end(); ++it, ++index)
 							{
-								QPoint p = chartToContext_(*it, width, height);
+								QPoint p = dataToWidget_(*it);
 								points.setPoint(index, p.x(), p.y());
 							}	
 							p->drawPolygon(points);
@@ -753,54 +701,50 @@ namespace OpenMS
 		}                
 	}
 	
-	void Spectrum2DCanvas::paintContourLines_(UnsignedInt data_set, QPainter* p, int width, int height)
+	void Spectrum2DCanvas::paintContourLines_(UnsignedInt data_set, QPainter* p)
 	{
-		const float height_difference = max_values_[data_set] / 10.0f; //TODO
-	
-		if (height_difference == 0) return;
-	
-	
+		if (max_values_[data_set] == 0) return;
+		
 		p->setPen(Qt::black);
-	
-		AreaType cell = getLeftTopCell_(data_set);
-	
-		const float cell_width = cell.width();
-		const float cell_height = cell.height();
-	
-		QPoint cell_size = chartToContext_(PointType(visible_area_.minX() + cell_width, visible_area_.minY() + cell_height), width, height);
+		
+		//intensity steps where lines are drawn (valid for all the dataset)
+		float intensity_step = max_values_[data_set] / getPrefAsInt("Preferences:2D:Contour:Lines");
+		
+		//calculate data/pixel width and height or a cell
+		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		SignedInt pixel_width = width() / steps;
+		SignedInt pixel_height = height() / steps;
+		float data_width = visible_area_.width() / steps;
+		float data_height = visible_area_.height() / steps;
 	
 		// draw the lines
-		float y = cell.minY();
-		for (int i = 0; y <= visible_area_.maxY(); i++)
+		float y = visible_area_.minY();
+		for (int i = 0; i < steps; i++)
 		{
-			float x = cell.minX();
-			for (int j = 0; x <= visible_area_.maxX(); j++)
+			float x = visible_area_.minX();
+			for (int j = 0; j < steps; j++)
 			{
+				float left_bottom = marching_squares_matrices_[data_set][i][j];
+				float right_bottom = 0;
+				float left_top = 0;
+				float right_top = marching_squares_matrices_[data_set][i + 1][j + 1];
 
-				float left_top = marching_squares_matrices_[data_set][i][j];
-				float right_top = 0;
-				float left_bottom = 0;
-				float right_bottom = marching_squares_matrices_[data_set][i + 1][j + 1];
-
-				if ( getMappingInfo().isMzToXAxis() )
+				if ( isMzToXAxis() )
 				{
-				  right_top = marching_squares_matrices_[data_set][i][j + 1];
-				  left_bottom = marching_squares_matrices_[data_set][i + 1][j];
+				  right_bottom = marching_squares_matrices_[data_set][i][j + 1];
+				  left_top = marching_squares_matrices_[data_set][i + 1][j];
 				}
 				else
 				{
-				  left_bottom = marching_squares_matrices_[data_set][i][j + 1];
-				  right_top = marching_squares_matrices_[data_set][i + 1][j];		
+				  left_top = marching_squares_matrices_[data_set][i][j + 1];
+				  right_bottom = marching_squares_matrices_[data_set][i + 1][j];		
 				}
 	
+				QPoint cell_pos = dataToWidget_(x, y) - QPoint(0,pixel_height+1);
+
 				const float minimum = min(left_top, min(right_top, min(left_bottom, right_bottom)));
 				const float maximum = max(left_top, max(right_top, max(left_bottom, right_bottom)));
-	
-				const float first = static_cast<float>(static_cast<int>(minimum / height_difference)) * height_difference;
-	
-				QPoint cell_pos = chartToContext_(PointType(x, y), width, height);
-	
-				for (float height = first; height <= maximum; height += height_difference)
+				for (float height = ceil(minimum / intensity_step) * intensity_step; height <= maximum; height += intensity_step)
 				{
 					// this bitset indicates which points are above the height threshold
 					int state = (left_top > height) << 3 |
@@ -821,43 +765,43 @@ namespace OpenMS
 	
 						case 1:
 						{
-							p->drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+							p->drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height,
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 14:
 						{
-							p->drawLine(cell_pos.x() + cell_size.x() - int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+							p->drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height,
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 2:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x() - int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y());
+													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height);
 							break;
 						}
 						case 13:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
+													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
 	
-													cell_pos.y() + cell_size.y());
+													cell_pos.y() + pixel_height);
 							break;
 						}
 						case 3:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 	
 							break;
 						}
@@ -865,64 +809,64 @@ namespace OpenMS
 						{
 							p->drawLine(cell_pos.x(),
 	
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 4:
 						{
-							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 11:
 						{
-							p->drawLine(cell_pos.x() + cell_size.x() - int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+							p->drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 5:
 						{
-							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y(),
-													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y());
+													cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height);
 							break;
 						}
 						case 10:
 						{
-							p->drawLine(cell_pos.x() + cell_size.x() - int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+							p->drawLine(cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y(),
-													cell_pos.x() + cell_size.x() - int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y());
+													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height);
 							break;
 						}
 						case 6:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x() - int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y());
-							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width - int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height);
+							p->drawLine(cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + pixel_height - int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							break;
 						}
 						case 9:
 						{
-							p->drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * cell_size.x()),
-													cell_pos.y() + cell_size.y(),
-													cell_pos.x() + cell_size.x(),
-													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * cell_size.y()));
+							p->drawLine(cell_pos.x() + int(betweenFactor_(left_bottom, right_bottom, height) * pixel_width),
+													cell_pos.y() + pixel_height,
+													cell_pos.x() + pixel_width,
+													cell_pos.y() + int(betweenFactor_(right_top, right_bottom, height) * pixel_height));
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x() - int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y());
 							break;
 						}
@@ -930,80 +874,88 @@ namespace OpenMS
 						case 7:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+													cell_pos.y() + int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y());
 							break;
 						}
 						case 8:
 						{
 							p->drawLine(cell_pos.x(),
-													cell_pos.y() + cell_size.y() - int(betweenFactor_(left_top, left_bottom, height) * cell_size.y()),
-													cell_pos.x() + cell_size.x() - int(betweenFactor_(left_top, right_top, height) * cell_size.x()),
+													cell_pos.y() + pixel_height - int(betweenFactor_(left_top, left_bottom, height) * pixel_height),
+													cell_pos.x() + pixel_width - int(betweenFactor_(left_top, right_top, height) * pixel_width),
 													cell_pos.y());
 	
 							break;
 						}
 					}
 				}
-				x += cell_width;
+				x += data_width;
 			}
-			y += cell_height;
+			y += data_height;
 		}
 	}
 	
-	void Spectrum2DCanvas::paintColorMap_(UnsignedInt data_set, QPainter* p, int width, int height)
+	void Spectrum2DCanvas::paintColorMap_(UnsignedInt data_set, QPainter* p)
 	{
+		if (max_values_[data_set] == 0) return;
+		
 		QImage image(buffer_->width(), buffer_->height(), 32);
 		QRgb* image_start = reinterpret_cast<QRgb*>(image.scanLine(0));
 		const uint image_line_diff = reinterpret_cast<QRgb*>(image.scanLine(1)) - image_start;
-	
-		AreaType cell = getLeftTopCell_(data_set);
+
+		//calculate data/pixel width and height or a cell
+		SignedInt steps = getPrefAsInt("Preferences:2D:MarchingSquaresSteps");
+		SignedInt pixel_width = width() / steps;
+		SignedInt pixel_height = height() / steps;
+		float data_width = visible_area_.width() / steps;
+		float data_height = visible_area_.height() / steps;
 		
-		const float cell_width = cell.width();
-		const float cell_height = cell.height();
-	
-		QPoint cell_size = chartToContext_(PointType(visible_area_.minX() + cell_width, visible_area_.minY() + cell_height), width, height);
-	
-		float y = cell.minY();
+		//cout << "Pixel size: " << pixel_width << " " << pixel_height <<endl;
+		//cout << "Data size: " << data_width << " " << data_height <<endl;
+		
+		//construct color matrix
 		vector<vector<const QColor*> > color_matrix;
-		for (int i = 0; y <= visible_area_.maxY() + cell_height; i++)
+		//cout << "color matrix for dataset " << data_set << ": " << endl;
+		for (SignedInt i = 0; i <= steps; i++)
 		{
 			color_matrix.insert(color_matrix.end(), vector<const QColor*>() );
-			float x = cell.minX();
-			for (int j = 0; x <= visible_area_.maxX() + cell_width; j++)
+			for (SignedInt j = 0; j <= steps; j++)
 			{
-				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[data_set][i][j]));
-				x += cell_width;
+				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[data_set][i][j] / max_values_[data_set] * overall_data_range_.max()[2]));
+
+				//cout << 255.0 - color_matrix.back().back()->red() << " ";
 			}
-			y += cell_height;
+			//cout << endl;
 		}
-	
+		
+		//draw
 		QRgb* pixel;
-	
-		y = cell.minY();
-		for (int i = 0; y <= visible_area_.maxY(); i++)
+		float y = visible_area_.minY();
+		for (int i = 0; i < steps; i++)
 		{
-			float x = cell.minX();
-			for (int j = 0; x <= visible_area_.maxX(); j++)
+			float x = visible_area_.minX();
+			for (int j = 0; j < steps; j++)
 			{
-				const QColor* left_top = color_matrix[i][j];
-				const QColor* right_top = 0;
-				const QColor* left_bottom = 0;
-				const QColor* right_bottom = color_matrix[i + 1][j + 1];
+				const QColor* left_top = 0;
+				const QColor* right_top = color_matrix[i + 1][j + 1];
+				const QColor* left_bottom = color_matrix[i][j];
+				const QColor* right_bottom = 0;
 	
-				if ( getMappingInfo().isMzToXAxis() )
+				if ( isMzToXAxis() )
 				{
-					right_top = color_matrix[i][j + 1];
-					left_bottom = color_matrix[i + 1][j];
+					right_bottom = color_matrix[i][j + 1];
+					left_top = color_matrix[i + 1][j];
 				}
 				else
 				{
-					left_bottom = color_matrix[i][j + 1];
-					right_top = color_matrix[i + 1][j];					
+					left_top = color_matrix[i][j + 1];
+					right_bottom = color_matrix[i + 1][j];					
 				}
-				QPoint cell_pos = chartToContext_(PointType(x, y), width, height);
-		
+				QPoint cell_pos = dataToWidget_(x, y) - QPoint(0,pixel_height+1);
+				
+				//cout << cell_pos.x() << " " << cell_pos.y() << endl;
+				
 				int left_red = left_top->red() << 8;
 				int left_green = left_top->green() << 8;
 				int left_blue = left_top->blue() << 8;
@@ -1011,33 +963,33 @@ namespace OpenMS
 				int right_green = right_top->green() << 8;
 				int right_blue = right_top->blue() << 8;
 	
-				const int left_d_red = ((left_bottom->red() << 8) - left_red) / cell_size.y();
-				const int left_d_green = ((left_bottom->green() << 8) - left_green) / cell_size.y();
-				const int left_d_blue = ((left_bottom->blue() << 8) - left_blue) / cell_size.y();
-				const int right_d_red = ((right_bottom->red() << 8) - right_red) / cell_size.y();
-				const int right_d_green = ((right_bottom->green() << 8) - right_green) / cell_size.y();
-				const int right_d_blue = ((right_bottom->blue() << 8) - right_blue) / cell_size.y();
+				const int left_d_red = ((left_bottom->red() << 8) - left_red) / pixel_height;
+				const int left_d_green = ((left_bottom->green() << 8) - left_green) / pixel_height;
+				const int left_d_blue = ((left_bottom->blue() << 8) - left_blue) / pixel_height;
+				const int right_d_red = ((right_bottom->red() << 8) - right_red) / pixel_height;
+				const int right_d_green = ((right_bottom->green() << 8) - right_green) / pixel_height;
+				const int right_d_blue = ((right_bottom->blue() << 8) - right_blue) / pixel_height;
 	
 				pixel = image_start;
 				pixel += cell_pos.y() * buffer_->width() + cell_pos.x();
 	
-				for (int py = 0; py != cell_size.y() + 1; py++)
+				for (int py = 0; py !=pixel_height + 1; py++)
 				{
 					QRgb* start_pixel = pixel;
 	
 					// vertical clipping
 					if (cell_pos.y() + py >= 0 && cell_pos.y() + py < buffer_->height())
 					{
-						const int d_red = (right_red - left_red) / cell_size.x();
-						const int d_green = (right_green - left_green) / cell_size.x();
+						const int d_red = (right_red - left_red) / pixel_width;
+						const int d_green = (right_green - left_green) / pixel_width;
 	
-						const int d_blue = (right_blue - left_blue) / cell_size.x();
+						const int d_blue = (right_blue - left_blue) / pixel_width;
 	
 						int c_red = left_red;
 						int c_green = left_green;
 						int c_blue = left_blue;
 	
-						for (int px = 0; px != cell_size.x() + 1; px++)
+						for (int px = 0; px != pixel_width + 1; px++)
 						{
 							// horizontal clipping
 							if (cell_pos.x() + px >= 0 && cell_pos.x() + px < buffer_->width())
@@ -1064,18 +1016,16 @@ namespace OpenMS
 					// next line
 					pixel = start_pixel + image_line_diff;
 				}
-	
-				x += cell_width;
+				x += data_width;
 			}
-			y += cell_height;
+			y += data_height;
 		}
-	
 		p->drawImage(0, 0, image);
 	}
 	
 	void Spectrum2DCanvas::refresh_()
 	{
-		bitBlt(viewport(), 0, 0, buffer_, 0, 0, viewport()->width(), viewport()->height(), Qt::CopyROP, true);
+		bitBlt(this, 0, 0, buffer_, 0, 0, width(), height(), Qt::CopyROP, true);
 		
 		highlightPeaks_();
 	}
@@ -1084,16 +1034,17 @@ namespace OpenMS
 	{
 		if (recalculate_)
 		{
+			//clear matrix
 			marching_squares_matrices_.clear();
+			marching_squares_matrices_.resize(getDataSetCount());
 			max_values_.clear();
-	
+			max_values_.resize(getDataSetCount());
+			// recalculate for datasets with visible surfaces and contour lines
 			for (UnsignedInt i=0; i<getDataSetCount(); i++)
 			{
-				marching_squares_matrices_.push_back(std::vector< std::vector<float> >());
-				max_values_.push_back(0.0f);
 				if (layer_visible_[i] && (show_colors_[i] || show_contours_[i]))
 				{
-					getMarchingSquareMatrix_(i);
+					calculateMarchingSquareMatrix_(i);
 				}
 			}
 			recalculate_ = false;
@@ -1101,8 +1052,33 @@ namespace OpenMS
 		buffer_->fill(QColor(getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 		QPainter p(buffer_);
 		p.setRasterOp(Qt::AndROP);
-		print(&p, viewport()->width(), viewport()->height());
-	  
+
+		emit sendStatusMessage("repainting", 0);
+
+		for (UnsignedInt i=0; i<trees_.size(); i++)
+		{
+			if (layer_visible_[i])
+			{
+				//tree exists and contains points
+				if (trees_[i] && trees_[i]->begin(trees_[i]->getArea()) != trees_[i]->end())
+				{
+					if (show_colors_[i])
+					{
+						paintColorMap_(i, &p);
+					}
+					if (show_contours_[i])
+					{
+						paintContourLines_(i, &p);
+					}
+					if (show_points_[i])
+					{
+						paintPoints_(i, &p);
+					}
+				}
+			}
+		}
+		emit sendStatusMessage("", 0);
+
 		p.setRasterOp(Qt::CopyROP);
 		paintGridLines_(&p);
 		refresh_();
@@ -1119,8 +1095,8 @@ namespace OpenMS
 		if (new_width >= trees_[current_data_]->getArea().width()) new_width = trees_[current_data_]->getArea().width();
 		if (new_height >= trees_[current_data_]->getArea().height()) new_height = trees_[current_data_]->getArea().height();
 	
-		float half_width = new_width / 2;
-		float half_height = new_height / 2;
+		float half_width = new_width / 2.0f;
+		float half_height = new_height / 2.0f;
 	
 		// calculate new position
 		if (new_pos.X() < trees_[current_data_]->getArea().minX() + half_width) 
@@ -1184,37 +1160,37 @@ namespace OpenMS
 		emit visibleAreaChanged(visible_area_);
 	}
 	
-	void Spectrum2DCanvas::intensityModificationChange_()
+	void Spectrum2DCanvas::intensityModeChange_()
 	{
 		recalculateDotGradient_();
 		recalculateSurfaceGradient_();
-		SpectrumCanvas::intensityModificationChange_();
+		SpectrumCanvas::intensityModeChange_();
 	}
 	
 	void Spectrum2DCanvas::recalculateDotGradient_()
 	{
 		//cout << "recalculateDotGradient_" << endl;
-		if (intensity_modification_ == IM_LOG)
+		if (intensity_mode_ == IM_LOG)
 		{
-			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(log(overall_data_range_.min()[2]+1), log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<getPrefAsInt("Preferences:2D:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:InterpolationSteps"));
 		}
 		else
 		{
-			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<getPrefAsInt("Preferences:2D:Dot:InterpolationSteps")<<endl;
-			dot_gradient_.activatePrecalculationMode(overall_data_range_.min()[2], overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:Dot:InterpolationSteps"));
+			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<getPrefAsInt("Preferences:2D:InterpolationSteps")<<endl;
+			dot_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:InterpolationSteps"));
 		}	
 	}
 	
 	void Spectrum2DCanvas::recalculateSurfaceGradient_()
 	{
-		if (intensity_modification_ == IM_LOG)
+		if (intensity_mode_ == IM_LOG)
 		{
-			surface_gradient_.activatePrecalculationMode(log(overall_data_range_.min()[2]+1), log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));
+			surface_gradient_.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), getPrefAsInt("Preferences:2D:InterpolationSteps"));
 		}
 		else
 		{
-			surface_gradient_.activatePrecalculationMode(overall_data_range_.min()[2], overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:Surface:InterpolationSteps"));		
+			surface_gradient_.activatePrecalculationMode(0, overall_data_range_.max()[2], getPrefAsInt("Preferences:2D:InterpolationSteps"));		
 		}	
 	}
 	
@@ -1223,11 +1199,11 @@ namespace OpenMS
 		DSpectrum<1> spectrum;
 		DPeakArray<1>& array = spectrum.getContainer();
 		
-		for (int x = 0; x != viewport()->width(); x++)
+		for (int x = 0; x != width(); x++)
 		{
 			// get chart coordinates for this pixel column
-			PointType px1 = widgetToChart_(QPoint(x, 0));
-			PointType px2 = widgetToChart_(QPoint(x + 1, 0));
+			PointType px1 = widgetToData_(x, 0);
+			PointType px2 = widgetToData_(x + 1, 0);
 			
 			AreaType area(px1.X(), min, px2.X(), max);
 			
@@ -1256,11 +1232,11 @@ namespace OpenMS
 		DSpectrum<1> spectrum;
 		DPeakArray<1>& array = spectrum.getContainer();
 		
-		for (int y = 0; y != viewport()->height(); y++)
+		for (int y = 0; y != height(); y++)
 		{
 			// get chart coordinates for this pixel column
-			PointType py1 = widgetToChart_(QPoint(0, y));
-			PointType py2 = widgetToChart_(QPoint(0, y + 1));
+			PointType py1 = widgetToData_(0, y);
+			PointType py2 = widgetToData_(0, y + 1);
 			
 			AreaType area(min, py1.Y(), max, py2.Y());
 			
@@ -1321,7 +1297,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::setMainPreferences(const Param& prefs)
 	{
 		SpectrumCanvas::setMainPreferences(prefs);
-		mapping_info_.setParam(prefs.copy("Preferences:2D:Mapping:",true));
+		//TODO ???? mapping_info_.setParam(prefs.copy("Preferences:2D:Mapping:",true));
 	}
 	
 	SignedInt Spectrum2DCanvas::finishAdding()
@@ -1409,7 +1385,7 @@ namespace OpenMS
 				intensityDistributionChange_();
 			}
 			
-			intensityModificationChange_();
+			intensityModeChange_();
 			emit sendStatusMessage("",0);
 		}
 		else
@@ -1417,7 +1393,7 @@ namespace OpenMS
 			// create empty tree for empty data sets
 			trees_[trees_.size()-1] = new QuadTreeType_(AreaType(0, 0, 0, 0));
 		}
-	  viewport()->setCursor(Qt::ArrowCursor);
+	  setCursor(Qt::ArrowCursor);
 		
 		emit layerActivated(this);
 
@@ -1491,7 +1467,7 @@ namespace OpenMS
 				trees_[data_set] = new_tree;
 			}
 		}
-		intensityModificationChange_();
+		intensityModeChange_();
 		emit sendStatusMessage("",0);
 	
 		//update current data set

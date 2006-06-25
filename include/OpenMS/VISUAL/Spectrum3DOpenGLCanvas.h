@@ -184,8 +184,6 @@ namespace OpenMS
 		void setBackView();
 		/// sets the topview
 		void setTopView();
-		/// sets the resetZoomView
-		void setResetZoomView();
 		/// sets the Zoomview
 		void setZoomView();
 		/// sets the selectView

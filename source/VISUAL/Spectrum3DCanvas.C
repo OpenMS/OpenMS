@@ -47,14 +47,11 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 {  
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setFocusPolicy(QWidget::TabFocus);
-	viewport()->setMouseTracking(true);
+	setMouseTracking(true);
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
-	setVScrollBarMode(QScrollView::AlwaysOff);
-	setHScrollBarMode(QScrollView::AlwaysOff ); 
 	action_mode_ = AM_SELECT;
 	activateDataSet(0);
-
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -64,35 +61,13 @@ Spectrum3DCanvas::~Spectrum3DCanvas()
 
 void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 {
-	viewport()->resize( e->size().width(),e->size().height());
-	viewportResizeEvent(e);
-}	
-
-
-void Spectrum3DCanvas::viewportResizeEvent(QResizeEvent *e)
-{
+	//resize( e->size().width(),e->size().height());
 	openglcanvas_ ->resize(e->size().width(),e->size().height());
 }
 
 void Spectrum3DCanvas::showContextMenu(QPoint p)
 {
 	emit contextMenu(p);
-}
-
-void Spectrum3DCanvas::updateView()
-{
-	if (action_mode_ == AM_SELECT)
-	{
-		openglcanvas_->setSelectView();
-	}
-	else
-		{
-
-			if(action_mode_ == AM_ZOOM)
-			{
-				openglcanvas_->setZoomView();
-			}
-		}
 }
 
 SignedInt Spectrum3DCanvas::finishAdding()
@@ -118,32 +93,45 @@ PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
 	return new Spectrum3DCanvasPDP(this,parent);
 }
 
-void Spectrum3DCanvas::intensityModificationChange_()
+void Spectrum3DCanvas::intensityModeChange_()
 {
-	if(intensity_modification_ == SpectrumCanvas::IM_LOG)
-		{
+	if(intensity_mode_ == IM_LOG)
+	{
 		setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-		}
-	else
-		{
-			if(intensity_modification_==SpectrumCanvas::IM_NONE)
-		{
-			setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
-		}
+	}
+	else if(intensity_mode_==IM_NONE)
+	{
+		setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
 	}
 	
-	SpectrumCanvas::intensityModificationChange_();
+	SpectrumCanvas::intensityModeChange_();
+}
+
+void Spectrum3DCanvas::actionModeChange_()
+{
+	if (action_mode_ == AM_SELECT)
+	{
+		openglcanvas_->setSelectView();
+	}
+	else if(action_mode_ == AM_ZOOM)
+	{
+		openglcanvas_->setZoomView();
+	}
+	else
+	{
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	}
 }
 
 void Spectrum3DCanvas::activateDataSet(int data_set)
 {
-		if ((data_set >= int(getDataSetCount())) || data_set==int(current_data_))
-		{
-			return ;
-		}
-		current_data_ = data_set;
-		emit layerActivated(this);
-		invalidate_();
+	if ((data_set >= int(getDataSetCount())) || data_set==int(current_data_))
+	{
+		return ;
+	}
+	current_data_ = data_set;
+	emit layerActivated(this);
+	invalidate_();
 }
 
 void Spectrum3DCanvas::invalidate_()

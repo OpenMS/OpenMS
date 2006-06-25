@@ -80,9 +80,11 @@ namespace OpenMS
 			dot_line_width_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
 			grid->addWidget(box,2,0);	
 
-			box = new QGroupBox(2,Qt::Horizontal,"Background",this);
+			box = new QGroupBox(2,Qt::Horizontal,"Colors",this);
 			label = new QLabel("Background color: ",box);
 			background_color_ = new ColorSelector(box);
+			label = new QLabel("Axes Color: ",box);
+			axes_color_ = new ColorSelector(box);
 			grid->addWidget(box,0,1);	
 
 			box = new QGroupBox(2,Qt::Horizontal,"Intensity",this);
@@ -90,11 +92,6 @@ namespace OpenMS
 			intensity_mode_lin_ = new QRadioButton("Linear",intenstiy_group);
 			intensity_mode_log_ = new QRadioButton("Log",intenstiy_group);
 			grid->addWidget(box,1,1);	
-
-			box = new QGroupBox(2,Qt::Horizontal,"Axes",this);
-			label = new QLabel("Axes Color: ",box);
-			axes_color_ = new ColorSelector(box);
-			grid->addWidget(box,2,1);	
 			
 			load();
 		}

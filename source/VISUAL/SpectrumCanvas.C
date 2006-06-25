@@ -50,12 +50,12 @@ namespace OpenMS
 {
 
 	SpectrumCanvas::SpectrumCanvas(QWidget* parent, const char* name, WFlags f)
-		: QScrollView(parent, name, f | Qt::WNoAutoErase | Qt::WStaticContents),
+		: QWidget(parent, name, f | WNoAutoErase | WStaticContents ),
 			buffer_(0),
 			action_mode_(AM_ZOOM),
-			intensity_modification_(IM_NONE),
+			intensity_mode_(IM_NONE),
 			disp_ints_(),
-			mapping_info_(),
+			mz_to_x_axis_(true),
 			pen_width_(0),
 			show_grid_(true),
 			recalculate_(false),
@@ -64,9 +64,8 @@ namespace OpenMS
 			spectrum_widget_(0),
 			datasets_()
 	{
+		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 		resetRanges_();
-		setFrameShape(NoFrame);
-		connect(this, SIGNAL(contentsMoving(int, int)), this, SLOT(move_(int, int)));
 	  createCustomMouseCursors_();
 	  
 	  //reserve enough space for 20 datasets
@@ -89,20 +88,20 @@ namespace OpenMS
 		cursor_translate_in_progress_ = QCursor(*pm2); 
 	}
 	
-	void SpectrumCanvas::viewportResizeEvent(QResizeEvent* /* e */)
+	void SpectrumCanvas::resizeEvent(QResizeEvent* /* e */)
 	{
 		adjustBuffer_();
 		updateScrollbars_();
 		invalidate_();
 	}
 	
-	void SpectrumCanvas::viewportPaintEvent(QPaintEvent* e)
+	void SpectrumCanvas::paintEvent(QPaintEvent* e)
 	{
 		// blit changed parts of backbuffer on widget
 		QMemArray<QRect> rects = e->region().rects();
 		for (int i = 0; i < (int)rects.size(); ++i)
 		{
-			bitBlt(viewport(), rects[i].topLeft(), buffer_, rects[i]);
+			bitBlt(this, rects[i].topLeft(), buffer_, rects[i]);
 		}
 	}
 	
@@ -131,112 +130,38 @@ namespace OpenMS
 		invalidate_();
 	}
 	
-	void SpectrumCanvas::intensityModificationChange_()
+	void SpectrumCanvas::intensityModeChange_()
 	{
 		recalculate_ = true;
 		invalidate_();
 	}
+
+	bool SpectrumCanvas::isMzToXAxis() 
+	{ 
+		return mz_to_x_axis_; 
+	}
 	
-	void SpectrumCanvas::setMirroredXAxis(bool b)
+	void SpectrumCanvas::mzToXAxis(bool mz_to_x_axis)
 	{
-		if (b)
-		{
-			mapping_info_.setXAxisDesc();
-		}
-		else
-		{
-			mapping_info_.setXAxisAsc();
-		}
+		mz_to_x_axis_ = mz_to_x_axis;
+		axisMappingChange_();
+	}
+
+	void SpectrumCanvas::axisMappingChange_()
+	{
+		updateScrollbars_();
+		recalculate_ = true;
 		invalidate_();
 	}
-	
-	void SpectrumCanvas::setMirroredYAxis(bool b)
+
+	void SpectrumCanvas::actionModeChange_()
 	{
-		if (b)
-		{
-			mapping_info_.setYAxisDesc();
-		}
-		else
-		{
-			mapping_info_.setYAxisAsc();
-		}
-		invalidate_();
-	}
-	
-	SpectrumCanvas::PointType SpectrumCanvas::contextToChart_(QPoint p, int width, int height)
-	{
-		// transform point and context if necessary
-		if (!mapping_info_.isXAxisAsc()) p.setX(width - p.x());
-		if (mapping_info_.isYAxisAsc()) p.setY(height - p.y());
 		
-		if (!mapping_info_.isMzToXAxis())
-		{
-			int tmp = p.x();
-			p.setX(p.y());
-			p.setY(tmp);
-			
-			std::swap(width, height);
-		}
-		
-		// calculate point4
-		const float pixel_width = visible_area_.width() / static_cast<float>(width);
-		const float pixel_height = visible_area_.height() / static_cast<float>(height);
-		
-		return PointType(visible_area_.minX() + pixel_width * static_cast<float>(p.x()),
-		                    visible_area_.minY() + pixel_height * static_cast<float>(p.y()));
-	}
-	
-	QPoint SpectrumCanvas::chartToContext_(const PointType& pos, int width, int height)
-	{
-//		cout << "Pos          -- X    : " << pos.X() << " Y: " << pos.Y() << endl;
-//		cout << "Pixel        -- Width: " << width << " Height: " << height << endl;
-//		cout << "Visible area -- Width: " << visible_area_.width() << " Height: " << visible_area_.height() << endl;
-//		cout << "             -- X    : " << visible_area_.minX() << " " << visible_area_.maxX() << endl;
-//		cout << "             -- Y    : " << visible_area_.minY() << " " << visible_area_.maxY() << endl;
-		if (!mapping_info_.isMzToXAxis())
-		{
-			//cout << "SWAP" << endl;
-			std::swap(width, height);
-		}
-		
-		// calculate point for common case
-		const float pixel_width = visible_area_.width() / static_cast<float>(width);
-	
-		const float pixel_height = visible_area_.height() / static_cast<float>(height);
-		
-		QPoint p(static_cast<int>((pos.X() - visible_area_.minX()) / pixel_width),
-		         static_cast<int>((pos.Y() - visible_area_.minY()) / pixel_height));
-		
-		//cout << "Calculated   -- Width: " << p.x() << " Height: " << p.y() << endl;
-		
-		// transform point if necessary
-		if (!mapping_info_.isMzToXAxis())
-		{
-			std::swap(width, height);
-			
-			int tmp = p.x();
-			p.setX(p.y());
-			p.setY(tmp);
-		}
-		
-		if (mapping_info_.isYAxisAsc()) p.setY(height - p.y());
-		if (!mapping_info_.isXAxisAsc()) p.setX(width - p.x());
-		
-		return p;
-	}
-	
-	SpectrumCanvas::PointType SpectrumCanvas::widgetToChart_(const QPoint& pos)
-	{
-		return contextToChart_(pos, viewport()->width(), viewport()->height());
-	}
-	
-	QPoint SpectrumCanvas::chartToWidget_(const PointType& pos)
-	{
-		return chartToContext_(pos, viewport()->width(), viewport()->height());
 	}
 	
 	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area)
 	{
+		
 		//store old zoom state
 		if (zoom_timeout_)
 		{
@@ -258,27 +183,20 @@ namespace OpenMS
 	
 	void SpectrumCanvas::updateScrollbars_()
 	{
-		QPoint left_top = - chartToWidget_(PointType(overall_data_range_.minX(), overall_data_range_.minY()));
-		QPoint size = left_top + chartToWidget_(PointType(overall_data_range_.maxX(), overall_data_range_.maxY()));
-		
-		// block contentsMoving signal, because calling the private
-		// move_() slot falsely changes the visible area
-		blockSignals(true);
-		resizeContents(size.x(), size.y());
-		setContentsPos(left_top.x(), left_top.y());
-		blockSignals(false);
-	}
-	
-	void SpectrumCanvas::move_(int x, int y)
-	{
-		PointType left_top = widgetToChart_(contentsToViewport(QPoint(x, y)));
-		PointType right_bottom = left_top + (widgetToChart_(QPoint(viewport()->width(), viewport()->height()))
-		                                      - widgetToChart_(QPoint(0, 0)));
-		
-	  visible_area_ = AreaType(left_top, right_bottom);
-		emit visibleAreaChanged(visible_area_);
-		recalculate_ = true;
-		invalidate_();
+		int yy;
+//		//cout << "d  X: "<<overall_data_range_.minX() <<" Y: "<< overall_data_range_.minY() << endl;
+//		QPoint left_top = - dataToWidget_(overall_data_range_.minX(), overall_data_range_.minY(), true);
+//		QPoint size = left_top + dataToWidget_(overall_data_range_.maxX(), overall_data_range_.maxY(), false);
+//		
+//		//cout << "tl X: "<< left_top.x() << " Y: "<< left_top.y() << endl;
+//		//cout << "s  X: "<< size.x() << " Y: "<< size.y() << endl << endl;
+//		
+//		// block contentsMoving signal, because calling the private
+//		// move_() slot falsely changes the visible area
+//		blockSignals(true);
+//		resizeContents(size.x(), size.y());
+//		setContentsPos(left_top.x(), left_top.y());
+//		blockSignals(false);
 	}
 	
 	void SpectrumCanvas::timeoutZoom_()
@@ -329,27 +247,12 @@ namespace OpenMS
 	
 		unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
 	
-		if (mapping_info_.isXAxisAsc())
-		{
-			xl = 0;
-			xh = viewport()->width();
-		}
-		else
-		{
-			xl = viewport()->width();
-			xh = 0;
-		}
-	
-		if (mapping_info_.isYAxisAsc())
-		{
-			yl = viewport()->height();
-			yh = 0;
-		}
-		else
-		{
-			yl = 0;
-			yh = viewport()->height();
-		}
+		xl = 0;
+		xh = width();
+
+		yl = height();
+		yh = 0;
+
 	
 		// drawing of grid lines and associated text	
 		QColor grid_line_color;
@@ -388,13 +291,13 @@ namespace OpenMS
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					grid_line_color = QColor(0, 0, 0);
-					break;
-				case 1:	// style settings for small intervals
 					grid_line_color = QColor(90, 90, 90);
 					break;
+				case 1:	// style settings for small intervals
+					grid_line_color = QColor(130, 130, 130);
+					break;
 				case 2: // style settings for smalles intervals
-					grid_line_color = QColor(140, 140, 140);
+					grid_line_color = QColor(170, 170, 170);
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
@@ -542,7 +445,7 @@ namespace OpenMS
 			updateRanges_(i, mz_dim, rt_dim, it_dim);
 		}
 	}
-	
+
 } //namespace
 
 

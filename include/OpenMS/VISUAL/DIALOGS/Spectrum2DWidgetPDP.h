@@ -54,8 +54,6 @@ namespace OpenMS
 			protected:
 				PreferencesDialogPage* canvas_;
 			  QComboBox* axis_mapping_;
-				QComboBox* x_axis_orientation_;
-	  		QComboBox* y_axis_orientation_;
 		};
 	
 	} //namespace Internal

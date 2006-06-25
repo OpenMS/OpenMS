@@ -40,7 +40,6 @@ class QPixmap;
 
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/MappingInfo.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -56,7 +55,7 @@ namespace OpenMS
 	
 		@ingroup Visual
 	*/
-	class AxisWidget : public QWidget, public PreferencesManager
+	class AxisWidget : public QWidget
 	{
 		Q_OBJECT
 		
@@ -83,7 +82,7 @@ namespace OpenMS
 			void showLegend(bool show_legend);
 	
 			// returns true if legend is shown
-			bool isLegendShown();
+			bool isLegendShown() const;
 	
 			/// return constant reference to grid_line_
 			/// gridlines are calculated by setAxisBounds or set by the user using setGridLines
@@ -148,7 +147,6 @@ namespace OpenMS
 			bool setTickLevel(UnsignedInt level);
 			void mouseMoveEvent( QMouseEvent *e);
 	
-	    PreferencesDialogPage* createPreferences(QWidget* parent);
 		protected:
 			/// Vector that defines the position of the ticks/gridlines and the shown values on axis
 			GridVector grid_line_;

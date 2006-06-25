@@ -52,12 +52,12 @@ namespace OpenMS
 		grid_->setColStretch(1, 3);
 		
 		tic_ = new 	Spectrum1DWidget(w);
-		tic_->minimizeToChart();
-		tic_->switchAxis(true);
+		tic_->hideAxes();
+		tic_->mzToXAxis(true);
 		tic_->hide();
 	
 		projection_ = new Spectrum1DWidget(w);
-		projection_->minimizeToChart();
+		projection_->hideAxes();
 		projection_->hide();
 		
 		setWidget_(new Spectrum2DWidget(w));
@@ -100,21 +100,6 @@ namespace OpenMS
 		context_menu_->insertItem("1D projections",proj_menu);
 	}
 	
-	void Spectrum2DWindow::showPoints(bool on)
-	{
-		widget()->showPoints(on);
-	}
-	
-	void Spectrum2DWindow::showColors(bool on)
-	{
-		widget()->showColors(on);
-	}
-	
-	void Spectrum2DWindow::showContours(bool on)
-	{
-		widget()->showContours(on);
-	}
-	
 	void Spectrum2DWindow::show1DProjections(bool on)
 	{
 	// 	show_1D_projections_ = on;
@@ -140,21 +125,6 @@ namespace OpenMS
 		show1DProjections(!(projection_->isVisible() || tic_->isVisible()));
 	}
 	
-	bool Spectrum2DWindow::getShowPoints()
-	{
-		return widget()->getShowPoints();
-	}
-	
-	bool Spectrum2DWindow::getShowColors()
-	{
-		return widget()->getShowColors();
-	}
-	
-	bool Spectrum2DWindow::getShowContours()
-	{
-		return widget()->getShowContours();
-	}
-	
 	void Spectrum2DWindow::horizontalSpectrum(const DSpectrum<1>&)
 	{
 		projection_->show();
@@ -173,11 +143,6 @@ namespace OpenMS
 	SignedInt Spectrum2DWindow::getDotMode()
 	{
 		return widget()->canvas()->getDotMode();
-	}
-	
-	void Spectrum2DWindow::setIntensityScaledDots(bool on)
-	{
-	  widget()->canvas()->setIntensityScaledDots(on);
 	}
 	
 	void Spectrum2DWindow::showGoToDialog()

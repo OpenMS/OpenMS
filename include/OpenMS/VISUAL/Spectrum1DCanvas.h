@@ -64,15 +64,6 @@ namespace OpenMS
 		friend class Spectrum1DWidget;
 		
 	public:
-		/// Icons for marking peaks
-		enum Icons
-		{
-			IT_NOICON,
-			IT_CIRCLE,
-			IT_TRIANGLE,
-			IT_ASTERIX, 
-			IT_SQUARE
-		};
 		/// Label modes (percentage or absolut) of x axis and y axis
 		enum LabelMode
 		{
@@ -118,10 +109,11 @@ namespace OpenMS
 		*/
 		std::vector<SpectrumIteratorType> getSelectedPeaks();
 		
-		inline int getDrawMode() const
-		{ 
-			return draw_modes_[current_data_]; 
-		}
+		/// Returns the draw mode of the current dataset
+		DrawModes getDrawMode() const;
+
+		/// Sets draw mode of the current dataset
+		void setDrawMode(DrawModes mode);
 		
 		// Docu in base class
 		virtual void setMainPreferences(const Param& prefs);
@@ -129,27 +121,16 @@ namespace OpenMS
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
-		/// Returns the snap_to_max_mode_ flag
-		bool getSnapToMax();
-		/// Sets the snap_to_max_mode_ flag
-		void setSnapToMax(bool b);
-		
 		/**
 			@brief returns the snap_factor_.
 			
 			@see snap_factor_
 		*/
 		double getSnapFactor();
-
-		bool isAbsoluteIntensity() const;	
-
-	public slots:
 		
-		void setDrawMode(QAction*); //< Sets draw mode to one of the supported types
-		void drawModePeaks();
-		void drawModeLines();
-		void intensityAxisAbsolute();
-		void intensityAxisRelative();
+	public slots:
+		/// Calls setDrawMode(DrawModes)
+		void setDrawMode(QAction*); 
 		
 		// Docu in base class
 		void activateDataSet(int data_set);
@@ -162,7 +143,7 @@ namespace OpenMS
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 	
 	protected:
-		
+		// Draws the icon defined in the meta info of @peak peak at the position @p
 		void drawIcon(const PeakType& peak, const QPoint& p);
 		
 		/**
@@ -172,8 +153,8 @@ namespace OpenMS
 		*/
 		void changeVisibleArea_(double lo, double hi);  
 		
-		/// Calls chartToWidget_(const PointType&) but takes snap_factor_ and layer_factor_ into account.
-		QPoint chartToWidget_(const PeakType& peak);
+		/// Calls dataToWidget_(const PointType&) but takes snap_factor_ and layer_factor_ into account.
+		QPoint dataToWidget_(const PeakType& peak);
 		
 		/**
 			@brief Updates visible_begin_ and visible_end_ .
@@ -183,7 +164,7 @@ namespace OpenMS
 		void updateVisibleAreaBounds_();
 		
 		// Docu in base class
-		virtual void intensityModificationChange_();
+		virtual void intensityModeChange_();
 		
 		/// RubberBand for zooming
 		RubberBand rubber_band_;
@@ -204,15 +185,8 @@ namespace OpenMS
 		bool absolute_intensity_;
 		/// Scaling factor for relative scale with multiple layers
 		double layer_factor_;
-		/// Flag for 'snap to maximum intensity mode'.
-		bool snap_to_max_mode_;
 		/// Itensity multiplication factor for 'snap to maximum intensity mode'.
 		double snap_factor_;
-
-		/// start position of mouse actions
-		QPoint action_start_pos_;
-		/// current position of mouse actions
-		QPoint action_current_pos_;
 
 		/// Draw modes (for each spectrum)
 		std::vector<DrawModes> draw_modes_;
@@ -238,15 +212,15 @@ namespace OpenMS
 		void drawConnectedLines_(UnsignedInt index);
 
 		/// QT Event
-		void viewportPaintEvent( QPaintEvent * );
+		void paintEvent( QPaintEvent * );
 		/// QT Event
-		void contentsMousePressEvent( QMouseEvent *);
+		void mousePressEvent( QMouseEvent *);
 		/// QT Event
-		void contentsMouseDoubleClickEvent( QMouseEvent *);
+		void mouseDoubleClickEvent( QMouseEvent *);
 		/// QT Event
-		void contentsMouseReleaseEvent( QMouseEvent *);
+		void mouseReleaseEvent( QMouseEvent *);
 		/// QT Event
-		void contentsMouseMoveEvent( QMouseEvent *);
+		void mouseMoveEvent( QMouseEvent *);
 
 
 	};

@@ -36,9 +36,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisWidget.h>
-//#include <OpenMS/CONCEPT/Exception.h>
-//#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/VISUAL/DIALOGS/AxisWidgetPDP.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 // ANSI C/C++
 #include "stdio.h"
@@ -49,11 +47,10 @@ using namespace std;
 
 namespace OpenMS
 {
-	using namespace Internal;
 	using namespace Math;
 	
 	AxisWidget::AxisWidget(UnsignedInt alignment, const char* legend, QWidget* parent, const char* name, WFlags f)
-		: QWidget( parent, name, f | WRepaintNoErase), PreferencesManager(),
+		: QWidget( parent, name, f | WRepaintNoErase),
 		is_log_(false),
 		show_legend_(false),
 		alignment_(alignment),
@@ -348,7 +345,7 @@ namespace OpenMS
 	  }
 	}
 	
-	bool AxisWidget::isLegendShown()
+	bool AxisWidget::isLegendShown() const
 	{
 		return show_legend_;
 	}
@@ -568,12 +565,6 @@ namespace OpenMS
 	{
 		grid_line_.clear();
 		grid_line_.push_back(grid);
-	}
-	
-	
-	PreferencesDialogPage* AxisWidget::createPreferences(QWidget* parent)
-	{
-		return new AxisWidgetPDP(this,parent);
 	}
 	
 	void AxisWidget::mouseMoveEvent( QMouseEvent* /*e*/)

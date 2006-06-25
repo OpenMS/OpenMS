@@ -112,18 +112,6 @@ namespace OpenMS
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 	public slots:	
-		void showContours(bool on);
-		void showColors(bool on);
-		void showPoints(bool on);
-		
-		void changeShowContours();
-		void changeShowColors();
-		void changeShowPoints();
-		
-		bool getShowContours();
-		bool getShowColors();
-		bool getShowPoints();
-		
 		// Docu in base class
 		virtual void recalculateAxes();
 		
@@ -136,11 +124,9 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area);
 
 	protected:
-		virtual void intensityModificationChange_();
+		virtual void intensityModeChange_();
 		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
-		
-		void legendModificationChange_();
 		
 	private:
 		/// shows the context menu at position p

@@ -59,16 +59,6 @@ namespace OpenMS
 		~Spectrum2DWindow();
 		
 		Spectrum2DWidget* widget();
-		
-		void showPoints(bool on);
-		void showColors(bool on);
-		void showContours(bool on);
-    
-		bool getShowPoints();
-		bool getShowColors();
-		bool getShowContours();
-
-    void setIntensityScaledDots(bool on);
 
 		/// returns the mode for 2D dots   
 		SignedInt getDotMode();
