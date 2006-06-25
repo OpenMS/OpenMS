@@ -49,9 +49,7 @@ namespace OpenMS
   
   /**
      @brief Canvas for 3D-visualization of map data
-     
-     @todo Show only Spectra with MS-level 1 (Cornelia)
-     
+   
      @todo Fix intensity distribution (Cornelia)
      
      @todo Fix taking of images (Cornelia)
@@ -63,8 +61,6 @@ namespace OpenMS
      @todo Add translation
      
      @todo /share/data/MS/Examples/mzData/MS_small.mzData crashes when opening
-     
-     @todo use SpectrumCanvas::visible_area (for visible data) and SpectrumCanvas::overall_data_range_ (bounding box that encloses the data)
      
      @ingroup spectrum_widgets
   */	

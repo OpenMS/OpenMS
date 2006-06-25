@@ -209,7 +209,7 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 	glColor3fv(black);	//rt-axe
 	if(yRot_> 280*16 ^ yRot_<80*16)
 		{
-			if(zoom_<3)
+			if(zoom_<2)
 				{
 					for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
 						{
@@ -224,10 +224,7 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 							
 							glPopAttrib ();
 						}
-				}
-			if(zoom_<2.0)
-				{
-					for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
 						{
 							String result(grid_rt_[1][i]);
 							glPushAttrib (GL_LIST_BIT);
@@ -259,7 +256,7 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 
 	if(yRot_>10*16 && yRot_<190*16 )
 		{
-			if(zoom_<3)
+			if(zoom_<2)
 			{
 				for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
 				{
@@ -272,9 +269,6 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
 						glPopAttrib ();
 				}
-			}
-			if(zoom_<2.0)
-				{
 				for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
 					{
 						String result(grid_mz_[1][i]);
@@ -323,50 +317,48 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 		}
 	else
 	{
-		if(zoom_<3)
+		
+		if(zoom_<2.0)
 			{
-			for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+				for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
 				{
 					String result(grid_intensity_[0][i]);
 					glPushAttrib (GL_LIST_BIT);
 					glListBase(fontOffset);
-					glRasterPos3d(-corner_-result.length()-8.0, 
+					glRasterPos3d(-corner_-result.length()-width_/200.0-5.0, 
 												-corner_+scaledIntensity(grid_intensity_[0][i]),
 												-near_-2*corner_);
 					glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
 					glPopAttrib ();
 				}
-			}
-		if(zoom_<2.0)
-			{
 				for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
-					{
-						String result(grid_intensity_[1][i]);
-						glPushAttrib (GL_LIST_BIT);
-						glListBase(fontOffset);
-						glRasterPos3d(-corner_-result.length()-8.0, 
-													-corner_+scaledIntensity(grid_intensity_[1][i]),
-													-near_-2*corner_);
-						glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-						glPopAttrib ();
-						
-					}
+				{
+					String result(grid_intensity_[1][i]);
+					glPushAttrib (GL_LIST_BIT);
+					glListBase(fontOffset);
+					glRasterPos3d(-corner_-result.length()-width_/200.0-5.0, 
+												-corner_+scaledIntensity(grid_intensity_[1][i]),
+												-near_-2*corner_);
+					glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+					glPopAttrib ();
+					
+				}
 			}
 		if(width_>1000 && heigth_>700&& zoom_<1.5)
+		{
+			for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
 			{
-				for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
-					{
-						String result(grid_intensity_[2][i]);
-						glPushAttrib (GL_LIST_BIT);
-						glListBase(fontOffset);
-						glRasterPos3d(-corner_-result.length()-8.0, 
-												-corner_+scaledIntensity(grid_intensity_[2][i]),
-													-near_-2*corner_);
-						glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-						glPopAttrib ();
+				String result(grid_intensity_[2][i]);
+				glPushAttrib (GL_LIST_BIT);
+				glListBase(fontOffset);
+				glRasterPos3d(-corner_-result.length()-width_/200.0-5.0, 
+											-corner_+scaledIntensity(grid_intensity_[2][i]),
+											-near_-2*corner_);
+				glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+				glPopAttrib ();
 				
-					}
 			}
+		}
 	}
 }
 
@@ -470,10 +462,8 @@ void Spectrum3DOpenGLCanvas::makeFont()
 		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00} 
 	};
 	GLuint i;
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	
-	fontOffset = glGenLists (128);
-	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);	
+	fontOffset = glGenLists (128);	
 	for ( i = 32; i < 127; i++) {
 		glNewList(i+fontOffset, GL_COMPILE);
 		glBitmap(8, 13, 0.0, 0.0, 8.0, 0.0, rasters[i-32]);
@@ -596,7 +586,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 						for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 						{	
 						
-							if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+							if(spec_it->getMSLevel()==1 && it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 							{
 								
 								if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -656,7 +646,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		
 					for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 					{			
-						if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+						if(spec_it->getMSLevel()==1 &&it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 						{
 							glBegin(GL_LINES);
 							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -720,7 +710,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 					//	canvas_3d_.getDataSet(i).sortSpectra(true);
 					for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 					{			
-						if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+						if(spec_it->getMSLevel()==1 && it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 						{
 							glBegin(GL_LINES);
 							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))

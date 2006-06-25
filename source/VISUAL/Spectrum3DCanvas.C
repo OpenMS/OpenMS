@@ -87,6 +87,7 @@ void Spectrum3DCanvas::updateView()
 	}
 	else
 		{
+
 			if(action_mode_ == AM_ZOOM)
 			{
 				openglcanvas_->setZoomView();
