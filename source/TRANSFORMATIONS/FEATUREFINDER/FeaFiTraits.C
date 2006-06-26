@@ -212,13 +212,19 @@ namespace OpenMS
 					charge[f.getCharge()]++;
 					const Param& p = f.getModelDescription().getParam();
 					++mz_model[ p.getValue("MZ") ];
-					if (f.getCharge()!=0)	++mz_stdev[p.getValue("MZ:isotope:stdev")];
+					
+					DataValue dp = p.getValue("MZ:isotope:stdev");
+					if (!dp.isEmpty() && dp.toString() != "")
+					{
+						++mz_stdev[p.getValue("MZ:isotope:stdev")];
+					}
 					
 				}catch( BaseModelFitter::UnableToFit ex)
 				{
-						for (IndexSet::ConstIterator it=peaks.begin(); it!=peaks.end(); ++it) {
-							getPeakFlag(*it) = FeaFiTraits::UNUSED;
-						}
+					for (IndexSet::ConstIterator it=peaks.begin(); it!=peaks.end(); ++it) 
+					{
+						getPeakFlag(*it) = FeaFiTraits::UNUSED;
+					}
 					std::cout << " " << ex.what() << std::endl;
 					watch.stop();
 					std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;

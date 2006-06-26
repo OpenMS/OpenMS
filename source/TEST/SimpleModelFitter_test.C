@@ -150,7 +150,7 @@ CHECK( DFeature<2> fit(const IndexSet& set) throw (UnableToFit))
 	TEST_REAL_EQUAL(feature.getPosition()[MZ], mean[MZ]);
 	TEST_REAL_EQUAL(feature.getPosition()[RT], mean[RT]);
 	TEST_REAL_EQUAL(feature.getIntensity(), 79820.9);
-	TEST_EQUAL(feature.getCharge(), 0);
+	TEST_EQUAL(feature.getCharge(), 1);
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
 
