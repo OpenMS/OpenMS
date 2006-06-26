@@ -79,7 +79,6 @@ namespace OpenMS
 			
 			@param width The image's width.
 			@param height The image's height.
-			@param flags Image creation flags.
 			@returns The created image.
 		*/
 		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
@@ -153,6 +152,9 @@ namespace OpenMS
 		
 		///Get the mouse action mode
 		SignedInt getActionMode() const;
+
+		/// SpectrumWidgetActionModes
+		void setActionMode(SpectrumCanvas::ActionModes mode);
 		
 		///Set the main Param object
 		void setMainPreferences(const Param& prefs);
@@ -162,15 +164,12 @@ namespace OpenMS
 		
 		/// Returns if the axis labels are shown
 		bool isLegendShown() const;
-		
-		/// Sets the intensity mode of the SpectrumCanvas
-		void setIntensityMode(SpectrumCanvas::IntensityModes mode);
-		
-		/// SpectrumWidgetActionModes
-		void setActionMode(SpectrumCanvas::ActionModes mode);
 
 		/// Returns if the axis labels are shown
 		void showLegend(bool show);
+
+		/// Sets the intensity mode of the SpectrumCanvas
+		void setIntensityMode(SpectrumCanvas::IntensityModes mode);
 
 		/// Hides x-axis and y-axis
 		void hideAxes();
@@ -180,11 +179,13 @@ namespace OpenMS
 		void modesChanged(QWidget*);
 		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
+		/// Displays peak information in the status bar (m/z, RT, intensity)
 		void sendCursorStatus(double,double,double);
+		/// Opens the context menu
 		void contextMenu(QPoint pos);
 		
 	public slots:
-		/// Calls setActionMode(SpectrumCanvas::ActionModes) according to the name of @a 
+		/// Calls setActionMode(SpectrumCanvas::ActionModes) according to the name of @p a 
 		void setActionMode(QAction* a) throw (Exception::NotImplemented);
 		/// Behaves like setIntensityMode(SpectrumCanvas::IntensityModes)
 		void setIntensityMode(int mode);
@@ -192,7 +193,6 @@ namespace OpenMS
 		void showIntensityDistribution();
 		/// Class showLegend(bool) after casting @p show to a bool
 		void showLegend(int show);
-		
 		/// Sets mapping of m/z values to x-axis or y-axis
 		virtual void mzToXAxis(bool mz_to_x_axis);
 		
@@ -201,25 +201,21 @@ namespace OpenMS
 		SpectrumWidget(QWidget* parent = 0, const char* name="SpectrumWidget", WFlags f=0);
 		/// Destructor
 		~SpectrumWidget();
-		
 		/// Adds the canvas to the layout and connects some signals/slots
 		void setCanvas(SpectrumCanvas* canvas);
-  	
-  	/// Switches between log/normal intensities
+  	/// Switch between different intensitiy modes
   	virtual void intensityModeChange_() = 0;
-
 		/// creates the intensity distribution of the widget
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
-		
 		/// recalculates the Axis ticks
 		virtual void recalculateAxes() = 0;
 		
-		/// Canvas widget
+		/// Pointer to the canvas widget
 		SpectrumCanvas* canvas_;
-		
+		/// Pointer to the main window widget
+		SpectrumWindow* spectrum_window_;	
 		///Main layout
 		QGridLayout* grid_;
-		
 		/// Vertical axis
 		AxisWidget* y_axis_;
 		/// Horizontal axis
@@ -228,12 +224,6 @@ namespace OpenMS
 		QWidget* hspacer_;
 		/// Spacer for the vertical axis
 		QWidget* vspacer_;
-		
-		///for storing the old maximum when the intensities are transformed
-		double old_max_intensity_;
-	
-		
-		SpectrumWindow* spectrum_window_;	
 	
 	private slots:
 		/// updates the axes, when the visible area changes

@@ -50,13 +50,13 @@
 
 /*
 	ToDo-Liste Marc:
-	- SpectrumWidget/Window docu, remove
-	- 1D+2D: Snap-, Prozent- oder Log-Modus
-	- Scrollbars wieder einbauen
+	- 2D: Snap-, Prozent- oder Log-Modus
+	- Scrollbars wieder einbauen (Spacer entfernen?)
 	- Features wieder einbauen
 	- File-Type force/automatic
 	
 	TOPPView (später)
+	- Projektionen
 	- 2D: Oberflächen kontinuerilich entlang RT
 	- 2D: Farben an aktuellen Int-Bereich anpassen
 	- testen, ob 2D-View mit geometric hashing besser ist

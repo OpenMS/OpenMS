@@ -64,6 +64,11 @@ namespace OpenMS
 			spectrum_widget_(0),
 			datasets_()
 	{
+		// get mouse coordinates while mouse moves over diagramm.	
+		setMouseTracking(TRUE);
+		// prevents errors caused by too small width,height values
+		setMinimumSize(200,200);
+		// Take as much space as possible
 		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 		resetRanges_();
 	  createCustomMouseCursors_();

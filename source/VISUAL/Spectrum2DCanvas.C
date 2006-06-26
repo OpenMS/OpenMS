@@ -62,10 +62,7 @@ namespace OpenMS
 		tmp_peak_(),
 		dot_gradient_()
 	{
-		// prevents errors caused by too small width,height values
-		setMinimumSize(200,200);
-		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		setMouseTracking(true);
+
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -574,18 +571,6 @@ namespace OpenMS
 		float hi = max(v1, v2);
 		return (hi - lo == 0) ? 1 : (val - lo) / (hi - lo);
 	}
-	
-	const QColor& Spectrum2DCanvas::heightColor_(float val)
-	{
-		if (intensity_mode_ == IM_LOG)
-		{
-			return surface_gradient_.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
-		}
-		else
-		{
-			return surface_gradient_.precalculatedColorAt(val);
-		}
-	}
 		
 	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UnsignedInt data_set)
 	{
@@ -639,7 +624,6 @@ namespace OpenMS
 	{
 		p->setPen(Qt::black);
 		p->setBrush(Qt::black);
-		QColor inter = Qt::black;
 	
 		// TODO: ConstIterator
 		bool isFeature = getDataSet(data_set).metaValueExists("FeatureDrawMode");
@@ -651,18 +635,8 @@ namespace OpenMS
 				QPoint pos = dataToWidget_(i->first);
 				if (getDotMode()==DOT_GRADIENT)
 				{
-					if (intensity_mode_ == IM_LOG)
-					{
-						//prevent log of numbers samller than 1
-						inter = dot_gradient_.precalculatedColorAt(log(i->second->getIntensity()+1)); 
-					}
-					else
-					{
-						inter = dot_gradient_.precalculatedColorAt(i->second->getIntensity());
-						//cout << "Int: " << i->second->getIntensity() << " -> " << inter.name() << endl;
-					}
-					p->setPen(inter);
-					p->setBrush(inter);
+					p->setPen(heightColor_(i->second->getIntensity()));
+					p->setBrush(heightColor_(i->second->getIntensity()));
 				}
 				
 				if (intensity_scaled_dots_)
@@ -670,7 +644,8 @@ namespace OpenMS
 					// points get scaled relative to the minimum displayed intensity
 					int radius = static_cast<int>(log10(i->second->getIntensity() - overall_data_range_.min()[2])/2);
 					p->drawEllipse(pos.x()- radius, pos.y() - radius, 2*radius, 2*radius);  
-				}  else
+				}
+				else
 				{
 					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
 				}

@@ -50,10 +50,7 @@ namespace OpenMS
 		layer_factor_(1.0),
 		snap_factor_(1.0)
 	{
-		// get mouse coordinates while mouse moves over diagramm.	
-		setMouseTracking(TRUE);
-	
-		activateDataSet(0);
+		
 	}
 	
 	//change the current data set
@@ -636,13 +633,13 @@ namespace OpenMS
 			{
 				continue;
 			}
-			if (intensity_mode_==IM_NONE)
+			if (intensity_mode_==IM_LOG)
 			{
-				p = dataToWidget_(*it);
+				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
 			}
 			else
 			{
-				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
+				p = dataToWidget_(*it);
 			}
 			p0 = SpectrumCanvas::dataToWidget_(it->getPosition()[0], 0.0f);
 			
@@ -709,13 +706,13 @@ namespace OpenMS
 		bool custom_color;
 		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; it++)
 		{
-			if (intensity_mode_==IM_NONE)
+			if (intensity_mode_==IM_LOG)
 			{
-				p = dataToWidget_(*it);
+				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
 			}
 			else
 			{
-				p = SpectrumCanvas::dataToWidget_(it->getPosition()[0], log(it->getIntensity()+1)*log_factor);
+				p = dataToWidget_(*it);
 			}
 
 			// connect lines
@@ -789,7 +786,7 @@ namespace OpenMS
 			}
 	
 			// If snap-to-max-mode is on: find local max and set factor to increase all data appropriately
-			if (intensity_mode_ == IM_PERCENTAGE) 
+			if (intensity_mode_ == IM_SNAP) 
 			{
 				double local_max  = -numeric_limits<double>::max();
 				for (UnsignedInt i=0; i<getDataSetCount();++i)
@@ -816,7 +813,6 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::invalidate_()
 	{
-		//cout << "INVALIDATE"<<endl;
 		updateVisibleAreaBounds_();
 	
 		// get color settings
@@ -827,7 +823,7 @@ namespace OpenMS
 		high_pen_ = QPen(QColor(getPrefAsString("Preferences:1D:HighColor").c_str()), pen_width_+2);
 		icon_pen_ = QPen(QColor(getPrefAsString("Preferences:1D:IconColor").c_str()), pen_width_);
 	
-	// repaint content
+		//repaint content
 		painter_.begin(buffer_);
 		// flushing buffer_ with widget color
 		painter_.fillRect(0, 0, width(), height(), backgroundColor());
@@ -841,30 +837,30 @@ namespace OpenMS
 				continue;
 			}
 	
-			// If multiple layers are shown and drawn in relative scale: 
-			// increase each spectrum maximum to 100%
 			if (intensity_mode_ == IM_PERCENTAGE)
 			{
-				layer_factor_ = 1.0;
+				layer_factor_ = overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
 			}
 			else 
 			{
-				layer_factor_ = 1.0*overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
+				layer_factor_ = 1.0;
 			}
+			
 			switch (draw_modes_[i])
 			{
 				case DM_PEAKS:
 					drawPeaks_(i);
-				break;
+					break;
 				case DM_CONNECTEDLINES:
 					drawConnectedLines_(i);
-				break;
+					break;
+				default:
+					throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		}
 	
 		painter_.end();
 		repaint(false);
-		//cout << "/INVALIDATE"<<endl;
 	}
 	
 	

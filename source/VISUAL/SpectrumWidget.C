@@ -45,7 +45,6 @@ namespace OpenMS
 	SpectrumWidget::SpectrumWidget(QWidget* parent, const char* name, WFlags f)
 		: QWidget(parent,name,f),
 			canvas_(0),
-			old_max_intensity_(0.0),
 			spectrum_window_(0)
 	{
 		grid_ = new QGridLayout(this, 2, 2);

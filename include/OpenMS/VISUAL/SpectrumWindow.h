@@ -74,9 +74,6 @@ namespace OpenMS
 			/// Destructor
 			virtual ~SpectrumWindow();
 			
-			void setActionMode(QAction* a);
-			int getActionMode();
-			
 			///connect the signals/slots of window and widget (status messages, mode changes)
 			void connectWidgetSignals(SpectrumWidget* sw);
 

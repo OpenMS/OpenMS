@@ -304,7 +304,8 @@ namespace OpenMS
 	
 	void AxisWidget::setLogScale(bool is_log)
 	{
-	  if (is_log_ != is_log){
+	  if (is_log_ != is_log)
+	  {
 	    is_log_ = is_log;
 			
 			if (is_log_) setAxisBounds(min_,max_);  // reset AxisBound - side effect: logarithmic transformation

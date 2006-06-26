@@ -55,8 +55,6 @@ namespace OpenMS
 		x_axis_->setLegend("m/z");
 		y_axis_->setLegend("Intensity");
 		addClient(canvas(),"Canvas",true);
-	
-		setMouseTracking(true);
 	}
 	
 	Spectrum1DCanvas* Spectrum1DWidget::canvas() const
@@ -76,74 +74,52 @@ namespace OpenMS
 	
 	void Spectrum1DWidget::recalculateAxes()
 	{
-		//set intensity axis to log scale if necessary
+		//determine axes
+		AxisWidget* mz_axis,* it_axis;
 		if (canvas()->isMzToXAxis())
 		{
-			// y-axis is intensity axis
-			x_axis_->setLogScale(false);
-			y_axis_->setLogScale(canvas()->getIntensityMode() == SpectrumCanvas::IM_LOG);
+			mz_axis = x_axis_;
+			it_axis = y_axis_;
 		}
 		else
 		{
-			// x-axis is intensity axis
-			x_axis_->setLogScale(canvas()->getIntensityMode() == SpectrumCanvas::IM_LOG);
-			y_axis_->setLogScale(false);
+			mz_axis = y_axis_;
+			it_axis = x_axis_;
 		}
 		
-		const SpectrumCanvas::AreaType& visible_area = canvas()->visible_area_;
-		
-		SpectrumCanvas::AreaType data_area;
-		data_area.assign(canvas()->getDataRange());
-	
 		// recalculate gridlines
-		double lx,hx,ly,hy;
-	
-		if (canvas()->isMzToXAxis())
+		mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
+		switch(canvas()->getIntensityMode())
 		{
-			lx = visible_area.minX();
-			hx = visible_area.maxX();
-			ly = visible_area.minY();
-			hy = visible_area.maxY();
-		}
-		else
-		{
-			lx = visible_area.minY();
-			hx = visible_area.maxY();
-			ly = visible_area.minX();
-			hy = visible_area.maxX();
-		}
-
-		if (canvas()->isMzToXAxis())  // y = intensity
-		{
-			x_axis_->setAxisBounds(lx, hx);
-			if (canvas()->getIntensityMode() == SpectrumCanvas::IM_PERCENTAGE) // Adjust axis values in snap-to-max-intensity-mode
-			{
-				y_axis_->setAxisBounds(ly/canvas()->getSnapFactor(), hy/canvas()->getSnapFactor());
-			}
-			else
-			{
-				y_axis_->setAxisBounds(ly, hy);
-			}
-		}
-		else  // x = intensity
-		{
-			y_axis_->setAxisBounds(ly, hy);
-			if (canvas()->getIntensityMode() == SpectrumCanvas::IM_PERCENTAGE) // Adjust axis values in snap-to-max-intensity-mode
-			{
-				x_axis_->setAxisBounds(lx/canvas()->getSnapFactor(), hx/canvas()->getSnapFactor());
-			}
-			else
-			{
-				x_axis_->setAxisBounds(lx, hx);
-			}
+			case SpectrumCanvas::IM_NONE:
+				it_axis->setLogScale(false);
+				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+				break;
+			case SpectrumCanvas::IM_PERCENTAGE:
+				it_axis->setLogScale(false);
+				it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
+				break;
+			case SpectrumCanvas::IM_LOG:
+				it_axis->setLogScale(true);
+				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+				break;
+			case SpectrumCanvas::IM_SNAP:
+				it_axis->setLogScale(false);
+				it_axis->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
+				break;
+			default:
+				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 	}
 	
 	void Spectrum1DWidget::intensityModeChange_()
 	{
-		//recalculate axes before and after (for grid update)
+		//recalculate axes before (for grid update)
 		recalculateAxes();
+		
 	 	canvas()->intensityModeChange_();
+		
+		//recalculate axes after (for range changes)
 		recalculateAxes();
 	}
 	

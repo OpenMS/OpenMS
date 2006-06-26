@@ -214,8 +214,8 @@ namespace OpenMS
 		connect(draw_modes_,SIGNAL(selected(QAction*)),this,SLOT(setDrawMode(QAction*)));
 		connect(grid_button_,SIGNAL(toggled(bool)),this,SLOT(showGridLines(bool)));
 		connect(grid_button_2d_,SIGNAL(toggled(bool)),this,SLOT(showGridLines(bool)));
-		connect(action_modes_2d_,SIGNAL(selected(QAction*)),this,SLOT(setActionMode2D(QAction*)));
-		connect(action_modes_3d_,SIGNAL(selected(QAction*)),this,SLOT(setActionMode3D(QAction*)));
+		connect(action_modes_2d_,SIGNAL(selected(QAction*)),this,SLOT(setActionMode(QAction*)));
+		connect(action_modes_3d_,SIGNAL(selected(QAction*)),this,SLOT(setActionMode(QAction*)));
 	
 		//layer bar (for managing several Spectra in a 1D-Window)
 		layer_bar_ = new QToolBar(this,"layerbar");
@@ -1209,7 +1209,7 @@ namespace OpenMS
 		SpectrumWindow* window = activeWindow();
 		if (window!=0)
 		{
-			window->setActionMode(a);
+			window->widget()->setActionMode(a);
 		};
 	}
 	
@@ -1297,22 +1297,6 @@ namespace OpenMS
 				}
 			}
 	}
-	
-	void SpectrumMDIWindow::setActionMode2D(QAction* a)
-	{
-		if (Spectrum2DWindow* win = active2DWindow())
-		{
-			win->setActionMode(a);
-		}
-	}
-
-	void SpectrumMDIWindow::setActionMode3D(QAction* a)
-	{
-		if (Spectrum3DWindow* win = active3DWindow())
-		{
-			win->setActionMode(a);
-		}
-	}
 
 	void SpectrumMDIWindow::update3DToolbar(QWidget* w)
 	{	
@@ -1372,7 +1356,7 @@ namespace OpenMS
 				};
 	
 				//set action mode
-				switch (((Spectrum1DWindow*)w)->getActionMode())
+				switch (((Spectrum1DWindow*)w)->widget()->getActionMode())
 				{
 					case SpectrumCanvas::AM_SELECT:
 						set_pick_action_->setOn(true);
@@ -1424,7 +1408,7 @@ namespace OpenMS
 	      intensity_scaled_dots_button_2d_->setOn(wi->widget()->canvas()->isIntensityScaledDots());
 	
 				//set action mode
-				switch (wi->getActionMode())
+				switch (wi->widget()->getActionMode())
 				{
 					case SpectrumCanvas::AM_SELECT:
 						set_pick_action_2d_->setOn(true);
@@ -1453,7 +1437,7 @@ namespace OpenMS
 			{
 				Spectrum3DWindow* wi = dynamic_cast<Spectrum3DWindow*>(w);
 				//set action mode
-				switch (wi->getActionMode())
+				switch (wi->widget()->getActionMode())
 				{
 					case SpectrumCanvas::AM_SELECT:
 						set_pick_action_3d_->setOn(true);

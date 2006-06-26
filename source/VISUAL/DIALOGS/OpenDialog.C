@@ -54,7 +54,7 @@ namespace OpenMS
 		: OpenDialogTemplate(parent,name,fl),
 			prefs_(preferences)
 	{
-		if (!(bool(getPrefAsInt_("Preferences:DefaultMapView2D"))))
+		if (!(bool(getPrefAsInt_("Preferences:DefaultMapView"))))
 		{
 			d3_radio->setChecked(true);
 		}

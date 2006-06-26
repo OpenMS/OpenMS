@@ -475,7 +475,7 @@ namespace OpenMS
 			
 			Translates widget coordinates to chart coordinates.
 			@param x the widget coordinate x
-			@param x the widget coordinate y
+			@param y the widget coordinate y
 			@return chart coordinates
 		*/
 		inline PointType widgetToData_(float x, float y)

@@ -302,7 +302,17 @@ namespace OpenMS
 		// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
 		/// Returns the color associated with @p val for the surface gradient. Takes Log mode into accout
-		const QColor& heightColor_(float val);
+		inline const QColor& heightColor_(float val)
+		{
+			if (intensity_mode_ == IM_LOG)
+			{
+				return surface_gradient_.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
+			}
+			else
+			{
+				return surface_gradient_.precalculatedColorAt(val);
+			}
+		}
 		/// Performs the marching squares calculations for a dataset and stores the matrix in marching_squares_matrices_
 		void calculateMarchingSquareMatrix_(UnsignedInt data_set);
 		/// Returns the marching square cell with the smallest data coordinates

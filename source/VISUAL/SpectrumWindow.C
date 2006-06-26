@@ -38,10 +38,10 @@ namespace OpenMS
 
 	SpectrumWindow::SpectrumWindow(QWidget* parent, const char* name, WFlags f)  
 		: QMainWindow(parent,name,f),
-		PreferencesManager(),
-		context_menu_(0)
+			PreferencesManager(),
+			context_menu_(0)
 	{
-		setMinimumSize(200,200);	// prevents errors caused by too small width,height values
+		setMinimumSize(300,300);	// prevents errors caused by too small width,height values
 	}
 	
 	SpectrumWindow::~SpectrumWindow()
@@ -81,17 +81,6 @@ namespace OpenMS
 		connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
 		connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(modesChangedSlot(QWidget*)));
 		connect(sw, SIGNAL(contextMenu(QPoint)), this, SLOT(showContextMenu_(QPoint)));
-	}
-	
-	void SpectrumWindow::setActionMode(QAction* a)
-	{
-		emit sendCursorStatus();
-		widget_->setActionMode(a);
-	}
-	
-	int SpectrumWindow::getActionMode()
-	{
-		return widget_->getActionMode();
 	}
 	
 	void SpectrumWindow::createContextMenu_()

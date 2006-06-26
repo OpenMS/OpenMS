@@ -211,9 +211,7 @@ namespace OpenMS
 			void showContours(bool);
 		  void setIntensityScaledDots(bool on);
 			void setIntensityScaledDots3D(bool on);
-		
-			void setActionMode2D(QAction*);
-		  void setActionMode3D(QAction*);
+
 			void resetZoom();
 			void openRecentFile(int i);
 		  void setBackView3D(bool on);

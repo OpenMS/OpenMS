@@ -45,13 +45,10 @@ namespace OpenMS
 Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	: SpectrumCanvas(parent, name, f | WRepaintNoErase)
 {  
-	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setFocusPolicy(QWidget::TabFocus);
-	setMouseTracking(true);
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
 	action_mode_ = AM_SELECT;
-	activateDataSet(0);
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
