@@ -30,8 +30,7 @@
 
 #include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
 #include <OpenMS/VISUAL/SpectrumMDIWindow.h>
-#include <OpenMS/VISUAL/Spectrum2DWidget.h>
-#include <OpenMS/VISUAL/Spectrum3DWidget.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
@@ -289,11 +288,11 @@ namespace OpenMS
 			axis_mapping_->setCurrentText(manager_->getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo").c_str());
 
 			//2D
-			if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DWidget::DOT_GRADIENT)
+			if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_GRADIENT)
 			{
 				dot_mode_gradient_->setChecked(true);
 			}
-			else if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DWidget::DOT_BLACK)
+			else if (UnsignedInt(manager_->getPref("Preferences:2D:Dot:Mode"))==Spectrum2DCanvas::DOT_BLACK)
 			{
 				dot_mode_black_->setChecked(true);
 			}
@@ -307,30 +306,30 @@ namespace OpenMS
 			axis_mapping_2d_->setCurrentText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str());
 	
 			//3d
-			if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DWidget::DOT_GRADIENT)
+			if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_GRADIENT)
 			{
 				dot_mode_gradient_3d_->setChecked(true);
 
-				if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DWidget::SHADE_FLAT)
+				if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_FLAT)
 				{
 					shade_mode_flat_3d_->setChecked(true);
 				}
-				else if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DWidget::SHADE_SMOOTH)
+				else if (UnsignedInt(manager_->getPref("Preferences:3D:Shade:Mode"))==Spectrum3DCanvas::SHADE_SMOOTH)
 				{
 					shade_mode_smooth_3d_->setChecked(true);
 				}
 			}
-			else if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DWidget::DOT_BLACK)
+			else if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_BLACK)
 			{
 				dot_mode_black_3d_->setChecked(true);
 			}
-			if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DWidget::INT_LINEAR)
+			if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DCanvas::INT_LINEAR)
 			{
 				intensity_mode_lin_3d_->setChecked(true);
 			}
 			else
 			{
-				if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DWidget::INT_LOG)
+				if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DCanvas::INT_LOG)
 				{
 					intensity_mode_log_3d_->setChecked(true);
 				}
@@ -366,11 +365,11 @@ namespace OpenMS
 			//2D
 			if (dot_mode_gradient_->isChecked())
 			{
-				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DWidget::DOT_GRADIENT);
+				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DCanvas::DOT_GRADIENT);
 			}
 			else	if (dot_mode_black_->isChecked())
 			{
-				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DWidget::DOT_BLACK);
+				manager_->setPref("Preferences:2D:Dot:Mode", Spectrum2DCanvas::DOT_BLACK);
 			}
 			manager_->setPref("Preferences:2D:MarchingSquaresSteps",marching_squares_steps_->value());
 			manager_->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
@@ -383,30 +382,30 @@ namespace OpenMS
 			//3d
 			if (dot_mode_gradient_3d_->isChecked())
 			{
-				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DWidget::DOT_GRADIENT);
+				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DCanvas::DOT_GRADIENT);
 			}
 			else	if (dot_mode_black_3d_->isChecked())
 			{
-				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DWidget::DOT_BLACK);	
+				manager_->setPref("Preferences:3D:Dot:Mode", Spectrum3DCanvas::DOT_BLACK);	
 			}
 			manager_->setPref("Preferences:3D:Dot:Gradient",dot_gradient_3d_->gradient().toString());
 			manager_->setPref("Preferences:3D:Dot:InterpolationSteps",dot_interpolation_steps_3d_->value());
 
 			if (shade_mode_flat_3d_->isChecked())
 			{
-			manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DWidget::SHADE_FLAT);
+			manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DCanvas::SHADE_FLAT);
 			}
 			else	if (shade_mode_smooth_3d_->isChecked())
 			{
-				manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DWidget::SHADE_SMOOTH);	
+				manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DCanvas::SHADE_SMOOTH);	
 			}
 			if (intensity_mode_lin_3d_->isChecked())
 			{
-			manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DWidget::INT_LINEAR);
+			manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DCanvas::INT_LINEAR);
 			}
 			else	if (	intensity_mode_log_3d_->isChecked())
 			{
-				manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DWidget::INT_LOG);	
+				manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DCanvas::INT_LOG);	
 			}
 		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().ascii());
 			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().ascii());

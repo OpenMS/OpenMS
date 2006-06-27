@@ -82,7 +82,7 @@ namespace OpenMS
 	
 	void Spectrum3DWidget::intensityModeChange_()
 	{
-		canvas()->intensityModeChange_();
+		
 	}	
 
 	void Spectrum3DWidget::invalidate_()

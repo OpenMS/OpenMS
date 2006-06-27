@@ -86,75 +86,59 @@ namespace OpenMS
 			label = new QLabel("Axes Color: ",box);
 			axes_color_ = new ColorSelector(box);
 			grid->addWidget(box,0,1);	
-
-			box = new QGroupBox(2,Qt::Horizontal,"Intensity",this);
-			QVButtonGroup* intenstiy_group = new QVButtonGroup("Intensity scale:",box);
-			intensity_mode_lin_ = new QRadioButton("Linear",intenstiy_group);
-			intensity_mode_log_ = new QRadioButton("Log",intenstiy_group);
-			grid->addWidget(box,1,1);	
 			
 			load();
 		}
-Spectrum3DCanvasPDP::~Spectrum3DCanvasPDP()
-{
-	
-}
+
+		Spectrum3DCanvasPDP::~Spectrum3DCanvasPDP()
+		{
+			
+		}
+				
+		void Spectrum3DCanvasPDP::load()
+		{
+			Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
+			
+			if (man->getDotMode()==Spectrum3DCanvas::DOT_GRADIENT)
+			{
+				dot_mode_gradient_->setChecked(true);
+			}
+			else
+			{
+				if (man->getDotMode()==Spectrum3DCanvas::DOT_BLACK)
+				{
+					dot_mode_black_->setChecked(true);
+				}
+			}
+			if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
+			{
+				shade_mode_flat_->setChecked(true);
+			}
+			else
+			{
+				if (man->getShadeMode()==Spectrum3DCanvas::SHADE_SMOOTH)
+				{
+					shade_mode_smooth_->setChecked(true);
+				}
+			}
+			
+			background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
+			dot_gradient_->gradient().fromString(man->getPref("Preferences:3D:Dot:Gradient"));
+			dot_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
+			dot_line_width_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:LineWidth")));
+			axes_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:AxesColor").c_str()));
+		}
 		
-void Spectrum3DCanvasPDP::load()
-{
-	Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
-	
-	if (man->getDotMode()==Spectrum3DCanvas::DOT_GRADIENT)
-	{
-		dot_mode_gradient_->setChecked(true);
-	}
-	else
-	{
-		if (man->getDotMode()==Spectrum3DCanvas::DOT_BLACK)
+		void Spectrum3DCanvasPDP::save()
 		{
-			dot_mode_black_->setChecked(true);
-		}
-	}
-	if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
-	{
-		shade_mode_flat_->setChecked(true);
-	}
-	else
-	{
-		if (man->getShadeMode()==Spectrum3DCanvas::SHADE_SMOOTH)
-		{
-			shade_mode_smooth_->setChecked(true);
-		}
-	}
-
-	if(man->getIntScaleMode()==Spectrum3DCanvas::INT_LINEAR)
-	{
-		intensity_mode_lin_->setChecked(true);
-	}
-	else 
-	{
-		if (man->getIntScaleMode()==Spectrum3DCanvas::INT_LOG)
-		{
-			intensity_mode_log_->setChecked(true);
-		}		
-	}
-	background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
-	dot_gradient_->gradient().fromString(man->getPref("Preferences:3D:Dot:Gradient"));
-	dot_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
-	dot_line_width_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:LineWidth")));
-	axes_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:AxesColor").c_str()));
-}
-
-void Spectrum3DCanvasPDP::save()
-{
-	Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
-	if(dot_mode_gradient_->isChecked())
-	{
+			Spectrum3DCanvas* man = static_cast<Spectrum3DCanvas*>(manager_);
+			if(dot_mode_gradient_->isChecked())
+			{
 				man->setPref("Preferences:3D:Dot:Gradient",dot_gradient_->gradient().toString());
 				man->setDotGradient(dot_gradient_->gradient().toString());
-
+		
 				man->setPref("Preferences:3D:Dot:InterpolationSteps",dot_interpolation_steps_->value());
-
+		
 				man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_GRADIENT);
 		
 				if(shade_mode_flat_ -> isChecked())
@@ -165,30 +149,19 @@ void Spectrum3DCanvasPDP::save()
 				{
 					man->setPref("Preferences:3D:Shade:Mode",Spectrum3DCanvas::SHADE_SMOOTH);
 				}
- 			}	
-	else
-		{ 
-			if(dot_mode_black_->isChecked())
-				{
-					man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
-				}
-		} 
-	if(intensity_mode_lin_->isChecked())
-	{
-		man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
-	}
-	else 
-	{
-		if(intensity_mode_log_->isChecked())
-		{
-			man->setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-			}
-	}
-	man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
-	man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
-	man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
- 	man->invalidate_();	
-}
-} // namespace Internal
+			}	
+			else
+			{ 
+				if(dot_mode_black_->isChecked())
+					{
+						man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
+					}
+			} 
+			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
+			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
+			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
+		 	man->invalidate_();	
+		}
+	} // namespace Internal
 } //namespace
 

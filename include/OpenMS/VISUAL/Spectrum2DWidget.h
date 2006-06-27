@@ -65,15 +65,6 @@ namespace OpenMS
 	{
 		Q_OBJECT
 	public:
-		/**	@name Type definitions */
-		//@{
-		///View modes for 2D dots.
-		enum DotModes 
-		{
-			DOT_BLACK = 0,            ///< use black only
-			DOT_GRADIENT = 1          ///< use gradient
-		};
-		//@}
 
 		/**
 			@brief Constructor
