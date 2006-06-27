@@ -1,11 +1,33 @@
 # -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
-# --------------------------------------------------------------------------
+# ==========================================================================
 #
-# This is Makefile.in/Makefile
-# Please do ONLY change Makefile.in, as Makefile is automagically 
+# This is Makefile.in / Makefile
+# Please do ONLY change Makefile.in,
+# as Makefile is automagically
 # created by configure from Makefile.in
+#
+# ==========================================================================
+#
+# --------------------------------------------------------------------------
+#                   OpenMS Mass Spectrometry Framework
+# --------------------------------------------------------------------------
+#  Copyright (C) 2004 -- Oliver Kohlbacher, Knut Reinert
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
 # $Id: Makefile.in,v 1.8 2006/05/26 09:07:50 marc_sturm Exp $
@@ -22,7 +44,7 @@ LIB_VERSION	= 0.55
 LIBNAME = libOpenMS
 GUILIBNAME = libOpenMS_GUI
 
-# 	names of the static libraries
+# names of the static libraries
 STATIC_LIBS	= libOpenMS.a @GUI_STATIC_LIB@
 
 #	names of the shared libraries
@@ -70,9 +92,13 @@ libOpenMS_GUI.objects:
 collect:	$(OBJECT_LISTS)
 
 libOpenMS.@SHARED_LIB_SUFFIX@:	collect
+	@$(ECHO)
+	@$(ECHO) "Linking shared library:  OpenMS"
 	$(DYNAR) $(DYNAROPTS) $(LIBNAME).@SHARED_LIB_SUFFIX@ `cat $(LIBNAME).objects` -lm
 
 libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
+	@$(ECHO)
+	@$(ECHO) "Linking shared library:  OpenMS_GUI"
 	$(DYNAR) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
 
 .objects.a:	
@@ -87,13 +113,15 @@ lib:	.Dependencies dirs collect $(SHARED_LIBS)
 	@$(ECHO) " "
 	@$(ECHO) "After you ran make install, please verify the validity"
 	@$(ECHO) "of the installed library by executing"
+	@$(ECHO) " "
 	@$(ECHO) "   make test"
 	@$(ECHO) " "
 	@$(ECHO) "This will compile and run an extensive test suite."
 	@$(ECHO) " "
-	@$(ECHO) "If you use the shared libraries, don't forget to add"
-	@$(ECHO) "the path "
-	@$(ECHO) " $(OPENMS_PATH)/lib/$(BINFMT) and $(ITCONFIG_PATH)"
+	@$(ECHO) "If you use the shared libraries, don't forget to add the path"
+	@$(ECHO) " "
+	@$(ECHO) "   $(OPENMS_PATH)/lib/$(BINFMT) "
+	@$(ECHO) " "
 	@$(ECHO) "to your LD_LIBRARY_PATH. "
 	@$(ECHO) "@ADDITIONAL_COMMENTS@"
 

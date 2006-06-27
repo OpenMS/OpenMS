@@ -1,12 +1,33 @@
 # -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
-# --------------------------------------------------------------------------
+# ==========================================================================
 #
 # This is common.mak.in/common.mak
 # Please do ONLY change common.mak.in, as common.mak is automagically 
 # created by configure from config.mak.in
 # 
+# ==========================================================================
+#
+# --------------------------------------------------------------------------
+#                   OpenMS Mass Spectrometry Framework
+# --------------------------------------------------------------------------
+#  Copyright (C) 2004 -- Oliver Kohlbacher, Knut Reinert
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
 # --------------------------------------------------------------------------
 # $Id: common.mak.in,v 1.7 2006/03/08 17:59:40 groepl Exp $
 # $Author: groepl $
@@ -29,17 +50,18 @@ OBJECTS 	= $(SOURCES:.C=.o)
 default:	echodir $(OBJECTS)
 
 echodir:
-	@echo "entering $(DIRECTORY)..."
+	@echo " "
+	@echo "entering directory $(DIRECTORY) ..."
 
 default_clean:
 	@-$(RM) -rf .Dependencies *~ @TEMPLATE_DIR@ core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES) $(EXECUTABLES) $(EXECUTABLE)
 
 collectlib:	default
-	@echo "collecting objects from $(DIRECTORY)..."
+	@echo "collecting objects from directory $(DIRECTORY)..."
 	@for i in $(OBJECTS) ""; do if [ X"$$i" != X"" ]; then echo $(DIRECTORY)/$$i >>@OPENMS_PATH@/source@BINFMT_PATH@/$(THISLIB).objects ; fi ; done
 
-
 depend: $(SOURCES)
-	@echo "creating .Dependencies for $(DIRECTORY)..."
+	@echo "creating .Dependencies for directory $(DIRECTORY)..."
 	@echo "" > .Dependencies
 	@if (test "$(SOURCES)" != "    "); then @CXX_MAKEDEPEND@ @MAKEDEP_CXX_OPTS@ $(SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES) @MAKEDEP_CXX_SUFFIX@; fi;
+
