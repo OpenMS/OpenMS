@@ -63,6 +63,8 @@ namespace OpenMS
      
      @todo Make axes visible in zoom/top view
      
+     @todo mini.dta2d
+     
      @ingroup spectrum_widgets
   */	
   class Spectrum3DCanvas : public SpectrumCanvas
@@ -123,9 +125,6 @@ namespace OpenMS
     
 		// Docu in base class
     SignedInt finishAdding();
-    
-	  // Docu in base class
-    virtual  void intensityModeChange_();
 
 	  // Docu in base class
     virtual  void actionModeChange_();
@@ -135,11 +134,9 @@ namespace OpenMS
     void setDotGradient(const std::string& gradient);
     String getDotGradient();
     SignedInt getShadeMode();
-    SignedInt getIntScaleMode();
     UnsignedInt getDotInterpolationSteps();
     
-    
-    //resizeEvents
+    //resizeEvent
     void resizeEvent(QResizeEvent * e);
     void connectMouseEvents();
     

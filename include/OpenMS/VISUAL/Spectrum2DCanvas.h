@@ -161,27 +161,6 @@ namespace OpenMS
 		*/
 		void setSurfaceGradient(const std::string& gradient);
 		
-		
-		/**
-			@brief Scale dots according to intesity
-		
-			Sets whether or not a peak representing dot should be resized
-			according to the peak's intensity.
-		
-			@param on if @c true, the dots are scaled, if @c false all dots are of the same size
-		*/
-		void setIntensityScaledDots(bool on);
-		
-		/**
-			@brief Returns whether or not dots are scaled
-		
-			Returns whether or not dots are scaled according to their peak's
-			intensity.
-		
-			@return @c true, if dots are scaled, @c false otherwise
-		*/
-		bool isIntensityScaledDots() { return intensity_scaled_dots_; }
-		
 		/**
 			@brief Creates a preferences dialog page
 		
@@ -293,7 +272,7 @@ namespace OpenMS
 		typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
 		
 		// zooms around position pos with factor.
-		void zoom_(const PointType& pos, float factor);
+		void zoom_(const PointType& pos, float factor, bool add_to_stack = false);
 		// zooms in around position pos with a fixed factor.
 		void zoomIn_(const PointType& pos);
 		// zooms out around position pos with a fixed factor.
@@ -301,18 +280,13 @@ namespace OpenMS
 		
 		// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
-		/// Returns the color associated with @p val for the surface gradient. Takes Log mode into accout
-		inline const QColor& heightColor_(float val)
-		{
-			if (intensity_mode_ == IM_LOG)
-			{
-				return surface_gradient_.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
-			}
-			else
-			{
-				return surface_gradient_.precalculatedColorAt(val);
-			}
-		}
+		/**
+			@brief  Returns the color associated with @p val for the gradient @p gradient.
+			
+			Takes intensity modes into account.
+		*/
+		const QColor& heightColor_(float val, const MultiGradient& gradient);
+		
 		/// Performs the marching squares calculations for a dataset and stores the matrix in marching_squares_matrices_
 		void calculateMarchingSquareMatrix_(UnsignedInt data_set);
 		/// Returns the marching square cell with the smallest data coordinates

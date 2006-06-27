@@ -55,12 +55,12 @@ namespace OpenMS
 		show_contours_(),
 		show_colors_(),
 		show_points_(),
-	  intensity_scaled_dots_(false),
 		nearest_peak_(0),
 		measurement_start_(0),
 		measurement_stop_(0),
 		tmp_peak_(),
-		dot_gradient_()
+		dot_gradient_(),
+		surface_gradient_()
 	{
 
 	}
@@ -116,12 +116,6 @@ namespace OpenMS
 	bool Spectrum2DCanvas::getShowPoints()
 	{
 		return show_points_[current_data_];
-	}
-	
-	void Spectrum2DCanvas::setIntensityScaledDots(bool on)
-	{
-	  intensity_scaled_dots_ = on;
-	  invalidate_();
 	}
 	
 	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
@@ -266,7 +260,7 @@ namespace OpenMS
 							right_bottom.setY(trees_[current_data_]->getArea().maxY());
 					 
 						//emit visibleAreaChanged(visible_area_);
-						changeVisibleArea_(AreaType(left_top, right_bottom));
+						changeVisibleArea_(AreaType(left_top, right_bottom), true);
 					}
 				}
 				break;
@@ -571,6 +565,27 @@ namespace OpenMS
 		float hi = max(v1, v2);
 		return (hi - lo == 0) ? 1 : (val - lo) / (hi - lo);
 	}
+	
+	const QColor& Spectrum2DCanvas::heightColor_(float val, const MultiGradient& gradient)
+	{
+		switch (intensity_mode_)
+		{
+			case IM_NONE:
+				return gradient.precalculatedColorAt(val);
+				break;
+			case IM_LOG:
+				return gradient.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
+				break;
+			case IM_PERCENTAGE:
+				return gradient.precalculatedColorAt(val*percentage_factor_);
+				break;
+			case IM_SNAP:
+				return gradient.precalculatedColorAt(val*snap_factor_);
+				break;
+			default:
+				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		}
+	}
 		
 	void Spectrum2DCanvas::calculateMarchingSquareMatrix_(UnsignedInt data_set)
 	{
@@ -624,31 +639,31 @@ namespace OpenMS
 	{
 		p->setPen(Qt::black);
 		p->setBrush(Qt::black);
-	
-		// TODO: ConstIterator
+		
+		if (intensity_mode_ == IM_PERCENTAGE)
+		{
+			percentage_factor_ = overall_data_range_.max()[2]/getDataSet(data_set).getMaxInt();
+		}
+		else 
+		{
+			percentage_factor_ = 1.0;
+		}
+		
 		bool isFeature = getDataSet(data_set).metaValueExists("FeatureDrawMode");
 		for (QuadTreeType_::SortedIterator i = trees_[data_set]->sortedBegin(visible_area_);
 				 i != trees_[data_set]->sortedEnd(); ++i)
 		{
 			if (!isFeature)
 			{
-				QPoint pos = dataToWidget_(i->first);
+				
 				if (getDotMode()==DOT_GRADIENT)
 				{
-					p->setPen(heightColor_(i->second->getIntensity()));
-					p->setBrush(heightColor_(i->second->getIntensity()));
+					p->setPen(heightColor_(i->second->getIntensity(), dot_gradient_));
+					p->setBrush(heightColor_(i->second->getIntensity(), dot_gradient_));
 				}
 				
-				if (intensity_scaled_dots_)
-				{
-					// points get scaled relative to the minimum displayed intensity
-					int radius = static_cast<int>(log10(i->second->getIntensity() - overall_data_range_.min()[2])/2);
-					p->drawEllipse(pos.x()- radius, pos.y() - radius, 2*radius, 2*radius);  
-				}
-				else
-				{
-					p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
-				}
+				QPoint pos = dataToWidget_(i->first);
+				p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
 			}
 			else //Draw special feature attributes like convex hull
 			{
@@ -659,6 +674,7 @@ namespace OpenMS
 					String mode = getDataSet(data_set).getMetaValue("FeatureDrawMode").toString();
 	
 					if (mode=="ConvexHulls")
+					{
 						for (UnsignedInt hull=0; hull<feature->getConvexHulls().size(); ++hull) // Draw the convex hulls
 						{
 							QPointArray points(feature->getConvexHulls()[hull].size());
@@ -671,6 +687,7 @@ namespace OpenMS
 							}	
 							p->drawPolygon(points);
 						}
+					}
 				}
 			}
 		}                
@@ -897,8 +914,7 @@ namespace OpenMS
 			color_matrix.insert(color_matrix.end(), vector<const QColor*>() );
 			for (SignedInt j = 0; j <= steps; j++)
 			{
-				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[data_set][i][j] / max_values_[data_set] * overall_data_range_.max()[2]));
-
+				color_matrix.back().push_back(&heightColor_(marching_squares_matrices_[data_set][i][j] / max_values_[data_set] * overall_data_range_.max()[2], surface_gradient_));
 				//cout << 255.0 - color_matrix.back().back()->red() << " ";
 			}
 			//cout << endl;
@@ -1059,7 +1075,7 @@ namespace OpenMS
 		refresh_();
 	}
 	
-	void Spectrum2DCanvas::zoom_(const PointType& pos, float factor)
+	void Spectrum2DCanvas::zoom_(const PointType& pos, float factor, bool add_to_stack)
 	{
 		// calculate new width
 		float new_width = visible_area_.width() * factor;
@@ -1084,13 +1100,13 @@ namespace OpenMS
 			new_pos.setY(trees_[current_data_]->getArea().maxY() - half_height);
 	
 		// set visible area accordingly and redraw
-		changeVisibleArea_(AreaType(new_pos.X() - half_width, new_pos.Y() - half_height, new_pos.X() + half_width, new_pos.Y() + half_height));
+		changeVisibleArea_(AreaType(new_pos.X() - half_width, new_pos.Y() - half_height, new_pos.X() + half_width, new_pos.Y() + half_height), add_to_stack);
 	}
 	
 	void Spectrum2DCanvas::zoomIn_(const PointType& /*pos*/)
 	{
 		float zoom_in_factor = 0.95;
-		zoom_(PointType(visible_area_.center()), zoom_in_factor);
+		zoom_(PointType(visible_area_.center()), zoom_in_factor, true);
 	}
 	
 	void Spectrum2DCanvas::zoomOut_(const PointType& /*pos*/)
@@ -1372,11 +1388,7 @@ namespace OpenMS
 		
 		emit layerActivated(this);
 
-		if (parentWidget()!=0)
-		{
-			dynamic_cast<Spectrum2DWidget*>(parentWidget())->recalculateAxes();
-		}
-		invalidate_();
+		resetZoom();
 		
 		return current_data_;
 	}

@@ -65,22 +65,6 @@ namespace OpenMS
 		 */
 		virtual ~Spectrum3DWidget();
 		
-		enum DotModes 
-			{
-				DOT_BLACK = 0,            ///< use black only
-				DOT_GRADIENT = 1          ///< use gradient
-			};
-		
-    enum ShadeModes 
-      {
-				SHADE_FLAT = 0,            
-				SHADE_SMOOTH = 1         
-      };
-		enum IntScale 
-      {
-				INT_LINEAR = 0,            
-				INT_LOG = 1         
-      };
 		/**
 		 *@brief returns the Canvas Widget
 		 *Returns the Canvas Widget

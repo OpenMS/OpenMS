@@ -58,7 +58,6 @@ Spectrum3DCanvas::~Spectrum3DCanvas()
 
 void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 {
-	//resize( e->size().width(),e->size().height());
 	openglcanvas_ ->resize(e->size().width(),e->size().height());
 }
 
@@ -88,20 +87,6 @@ void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
 {
 	return new Spectrum3DCanvasPDP(this,parent);
-}
-
-void Spectrum3DCanvas::intensityModeChange_()
-{
-	if(intensity_mode_ == IM_LOG)
-	{
-		setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LOG);
-	}
-	else if(intensity_mode_==IM_NONE)
-	{
-		setPref("Preferences:3D:IntScale:Mode",Spectrum3DCanvas::INT_LINEAR);
-	}
-	
-	SpectrumCanvas::intensityModeChange_();
 }
 
 void Spectrum3DCanvas::actionModeChange_()
@@ -162,19 +147,11 @@ Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
 SignedInt Spectrum3DCanvas::getDotMode()
 {
 	if (prefs_.getValue("Preferences:3D:Dot:Mode").isEmpty())
-			{
-				return 0;
-			}
-	
-	return SignedInt(prefs_.getValue("Preferences:3D:Dot:Mode"));
-}
-SignedInt Spectrum3DCanvas::getIntScaleMode()
-{
-	if(prefs_.getValue("Preferences:3D:IntScale:Mode").isEmpty())
 	{
 		return 0;
-	}		
-	return SignedInt(prefs_.getValue("Preferences:3D:IntScale:Mode"));
+	}
+	
+	return SignedInt(prefs_.getValue("Preferences:3D:Dot:Mode"));
 }
 
 String Spectrum3DCanvas::getDotGradient()

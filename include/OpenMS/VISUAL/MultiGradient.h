@@ -104,7 +104,7 @@ class MultiGradient
 		specified in activatePrecalculationMode(...) the highest, respectively the lowest, color is returned.
 		If precalcualtion mode is not activated, the exception is thrown.
 	*/
-	const QColor& precalculatedColorAt(double position) throw (Exception::OutOfSpecifiedRange);
+	const QColor& precalculatedColorAt(double position) const throw (Exception::OutOfSpecifiedRange);
 
 	///return the number of color points
 	UnsignedInt size() const;

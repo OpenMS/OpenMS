@@ -73,11 +73,10 @@ namespace OpenMS
 	void Spectrum1DWindow::showGoToDialog()
 	{
 	  Spectrum1DGoToDialog goToDialog(this, "Spectrum1DGoToDialog");
-	  const SpectrumCanvas::AreaType& visible_area = widget()->canvas()->getVisibleArea();
-	  goToDialog.setMinPosition(visible_area.minX());
-	  goToDialog.setMaxPosition(visible_area.maxX());
+	  goToDialog.setMinPosition(widget()->canvas()->getVisibleArea().minX());
+	  goToDialog.setMaxPosition(widget()->canvas()->getVisibleArea().maxX());
 	  goToDialog.exec();
-	  widget()->setVisibleArea(goToDialog.getMinPosition(),goToDialog.getMaxPosition());
+	  widget()->canvas()->setVisibleArea(SpectrumCanvas::AreaType(goToDialog.getMinPosition(),0,goToDialog.getMaxPosition(),0));
 	}
 
 } //namespace

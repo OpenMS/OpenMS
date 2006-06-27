@@ -375,6 +375,13 @@ namespace OpenMS
 			@param area the new visible area
 		*/
 		void setVisibleArea(AreaType area);
+
+		/**
+			@brief Returns the intensity scaling factor for 'snap to maximum intensity mode'.
+			
+			@see snap_factor_
+		*/
+		double getSnapFactor();
 		
 	signals:
 		/// Signal emitted whenever a new Layer is activated within the current window
@@ -402,10 +409,6 @@ namespace OpenMS
 
 		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
-
-	private slots:
-		/// Sets zoom_timeout_ to true. Connected to a timer
-		void timeoutZoom_();
 		
 	protected:
 		
@@ -452,9 +455,11 @@ namespace OpenMS
 			
 			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
 			If parts of the area are outside of the data area, the new area will be adjusted.
+			
 			@param new_area The new visible area.
+			@param add_to_stack If the new area is to add to the zoom_stack_
 		*/
-		virtual void changeVisibleArea_(const AreaType& new_area);
+		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 		
 		/**
 			@brief Go back in zoom history
@@ -626,9 +631,6 @@ namespace OpenMS
 		/// The cursor used in while the view is dragged in the @c translate action mode
 		QCursor cursor_translate_in_progress_;
 
-		/// Stores if the current area was visible for >= 2 secs. If so, the area gets added to the zoom stack later on
-		bool zoom_timeout_;
-
 		/// Stores the index of the currently marked dataset in the layerbar.
 		UnsignedInt current_data_;
 
@@ -646,7 +648,20 @@ namespace OpenMS
 
 		/// start position of mouse actions
 		QPoint last_mouse_pos_;
-
+		
+		/**
+			@brief Intensity scaling factor for relative scale with multiple layers.
+			
+			In this mode all datasets are scaled to the same maximum.
+		*/
+		double percentage_factor_;
+		
+		/**
+			@brief Intensity scaling factor for 'snap to maximum intensity mode'.
+			
+			In this mode the highest currently visible intensisty is treated like the maximum overall intensity.
+		*/
+		double snap_factor_;
 	};
 }
 

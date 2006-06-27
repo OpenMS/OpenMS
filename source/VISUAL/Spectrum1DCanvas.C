@@ -45,10 +45,7 @@ namespace OpenMS
 	using namespace Internal;
 		
 	Spectrum1DCanvas::Spectrum1DCanvas(QWidget* parent, const char* name, WFlags f)
-		: SpectrumCanvas(parent, name, f | WRepaintNoErase),
-		absolute_intensity_(false),
-		layer_factor_(1.0),
-		snap_factor_(1.0)
+		: SpectrumCanvas(parent, name, f | WRepaintNoErase)
 	{
 		
 	}
@@ -80,24 +77,19 @@ namespace OpenMS
 		painter.end();
 	}
 	
-	void Spectrum1DCanvas::setVisibleArea(double lo, double hi)
-	{
-		changeVisibleArea_(lo, hi);
-	}
-	
 	void Spectrum1DCanvas::setVisibleArea(DRange<2> range)
 	{
-		changeVisibleArea_(range.minX(), range.maxX());
+		changeVisibleArea_(AreaType(range.minX(), visible_area_.minY(), range.maxX(), visible_area_.maxY()));
 	}
 	
-	void Spectrum1DCanvas::changeVisibleArea_(double lo, double hi)
+	void Spectrum1DCanvas::changeVisibleArea_(double lo, double hi, bool add_to_stack)
 	{
-		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()));
+		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), add_to_stack);
 	}
 	
 	QPoint Spectrum1DCanvas::dataToWidget_(const PeakType& peak)
 	{
-		return SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*layer_factor_*peak.getIntensity());
+		return SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*percentage_factor_*peak.getIntensity());
 	}
 	
 	void Spectrum1DCanvas::zoomIn(double position)
@@ -108,7 +100,7 @@ namespace OpenMS
 		newLo = position - delta;
 		newHi = position + delta;
 		
-		changeVisibleArea_(newLo, newHi);
+		changeVisibleArea_(newLo, newHi, true);
 	}
 	
 	
@@ -272,7 +264,7 @@ namespace OpenMS
 						}
 						else
 						{
-							changeVisibleArea_(area.minX(), area.maxX());
+							changeVisibleArea_(area.minX(), area.maxX(), true);
 						}
 					}
 					else                                        // position axis only zoom
@@ -582,9 +574,18 @@ namespace OpenMS
 	{
 		string name = a->name();
 	
-		if (name == "DM_PEAKS") setDrawMode(DM_PEAKS);
-		else if (name == "DM_CONNECTEDLINES") setDrawMode(DM_CONNECTEDLINES);
-		else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		if (name == "DM_PEAKS") 
+		{
+			setDrawMode(DM_PEAKS);
+		}
+		else if (name == "DM_CONNECTEDLINES")
+		{
+			setDrawMode(DM_CONNECTEDLINES);
+		}
+		else 
+		{
+			throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		}
 	}
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
@@ -771,50 +772,10 @@ namespace OpenMS
 	void Spectrum1DCanvas::setMainPreferences(const Param& prefs)
 	{
 		SpectrumCanvas::setMainPreferences(prefs);
-		//TODO ????? mapping_info_.setParam(prefs.copy("Preferences:1D:Mapping:",true));
-	}
-	
-	void Spectrum1DCanvas::updateVisibleAreaBounds_()
-	{
-		if (!datasets_.empty())
-		{
-			// get iterators on peaks that outline the visible area
-			for (UnsignedInt i=0; i<getDataSetCount();++i)
-			{
-				visible_begin_[i] = getDataSet(i)[0].MZBegin(visible_area_.minX());
-				visible_end_[i]   = getDataSet(i)[0].MZBegin(visible_area_.maxX());
-			}
-	
-			// If snap-to-max-mode is on: find local max and set factor to increase all data appropriately
-			if (intensity_mode_ == IM_SNAP) 
-			{
-				double local_max  = -numeric_limits<double>::max();
-				for (UnsignedInt i=0; i<getDataSetCount();++i)
-				{
-					SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
-					if (tmp->getIntensity() > local_max) 
-					{
-						local_max = tmp->getIntensity();
-					}
-				}
-				snap_factor_ = 1.0*overall_data_range_.max()[1]/local_max;
-			}
-			else
-			{ 
-				snap_factor_ = 1.0;
-			}
-			
-			if (action_mode_ != AM_SELECT)
-			{
-				nearest_peak_ = visible_end_[current_data_];
-			}
-		}
 	}
 	
 	void Spectrum1DCanvas::invalidate_()
 	{
-		updateVisibleAreaBounds_();
-	
 		// get color settings
 		setPaletteBackgroundColor(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
 		setBackgroundColor(QColor(getPrefAsString("Preferences:1D:BackgroundColor").c_str()));
@@ -839,11 +800,11 @@ namespace OpenMS
 	
 			if (intensity_mode_ == IM_PERCENTAGE)
 			{
-				layer_factor_ = overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
+				percentage_factor_ = overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
 			}
 			else 
 			{
-				layer_factor_ = 1.0;
+				percentage_factor_ = 1.0;
 			}
 			
 			switch (draw_modes_[i])
@@ -869,31 +830,49 @@ namespace OpenMS
 		invalidate_();
 	}
 	
-	void Spectrum1DCanvas::changeVisibleArea_(const Spectrum1DCanvas::AreaType& new_area)
+	void Spectrum1DCanvas::changeVisibleArea_(const Spectrum1DCanvas::AreaType& new_area, bool add_to_stack)
 	{
 		//prevent deadlock
 		if (new_area==visible_area_)
 		{
 			return;
 		}
-		
-		//store old zoom state
-		if (zoom_timeout_)
-		{
-			zoom_stack_.push(visible_area_);
-		}
-		
-		visible_area_ = new_area;
-		
-		updateScrollbars_();
-		
-		zoom_timeout_ = false;
-		QTimer::singleShot(2000, this, SLOT(timeoutZoom_()));
 	
-		updateVisibleAreaBounds_();
-		emit visibleAreaChanged(new_area);
-		recalculate_ = true;
-		invalidate_();
+		if (!datasets_.empty())
+		{
+			// get iterators on peaks that outline the visible area
+			for (UnsignedInt i=0; i<getDataSetCount();++i)
+			{
+				visible_begin_[i] = getDataSet(i)[0].MZBegin(new_area.minX());
+				visible_end_[i]   = getDataSet(i)[0].MZBegin(new_area.maxX());
+			}
+	
+			// If snap-to-max-mode is on: find local max and set factor to increase all data appropriately
+			if (intensity_mode_ == IM_SNAP) 
+			{
+				double local_max  = -numeric_limits<double>::max();
+				for (UnsignedInt i=0; i<getDataSetCount();++i)
+				{
+					SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
+					if (tmp->getIntensity() > local_max) 
+					{
+						local_max = tmp->getIntensity();
+					}
+				}
+				snap_factor_ = overall_data_range_.max()[1]/local_max;
+			}
+			else
+			{ 
+				snap_factor_ = 1.0;
+			}
+			
+			if (action_mode_ != AM_SELECT)
+			{
+				nearest_peak_ = visible_end_[current_data_];
+			}
+		}
+
+		SpectrumCanvas::changeVisibleArea_(new_area, add_to_stack);
 	}
 	
 	// destructor
@@ -913,11 +892,6 @@ namespace OpenMS
 		}
 	
 		return result; 
-	}
-	
-	double Spectrum1DCanvas::getSnapFactor()
-	{
-		return snap_factor_;
 	}
 	
 	PreferencesDialogPage* Spectrum1DCanvas::createPreferences(QWidget* parent)
@@ -961,23 +935,10 @@ namespace OpenMS
 		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
-		//cout << overall_data_range_ << endl;
-		AreaType tmp;
-		tmp.assign(overall_data_range_);
-		changeVisibleArea_(tmp);
-	
-		//
-		if (overall_data_range_.width() < 1.0)
-		{
-			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0);
-		}
-		else
-		{
-			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX());
-		}
+		resetZoom();
 		
-		invalidate_();
-	
+		emit layerActivated(this);
+		
 		return current_data_;
 	}
 

@@ -254,7 +254,7 @@ using namespace OpenMS::Exception;
 		pre_.clear();
 	}
 
-	const QColor& MultiGradient::precalculatedColorAt(double position) throw (Exception::OutOfSpecifiedRange)
+	const QColor& MultiGradient::precalculatedColorAt(double position) const throw (Exception::OutOfSpecifiedRange)
 	{
 		if (pre_.size()==0)
 		{

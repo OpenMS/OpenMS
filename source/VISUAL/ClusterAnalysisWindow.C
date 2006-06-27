@@ -273,8 +273,8 @@ namespace OpenMS
       current_cspectra_[y].spec().updateRanges();
       double lo_x =  min( current_cspectra_[x].getSpec().getMin()[0] , current_cspectra_[y].getSpec().getMin()[0]);
       double high_x = max( current_cspectra_[x].getSpec().getMax()[0] , current_cspectra_[y].getSpec().getMax()[0]) ;
-      topspec_->setVisibleArea(lo_x,high_x);
-      bottomspec_->setVisibleArea(lo_x,high_x);
+      topspec_->canvas()->setVisibleArea(SpectrumCanvas::AreaType(lo_x,0,high_x,0));
+      bottomspec_->canvas()->setVisibleArea(SpectrumCanvas::AreaType(lo_x,0,high_x,0));
     }
     else
     {

@@ -36,7 +36,6 @@
 #include "ICONS/handclosed.xpm"
 
 // QT
-#include <qtimer.h>
 #include <qpainter.h>
 #include <qpixmap.h>
 #include <qbitmap.h>
@@ -59,10 +58,11 @@ namespace OpenMS
 			pen_width_(0),
 			show_grid_(true),
 			recalculate_(false),
-			zoom_timeout_(false),
 			current_data_(0),
 			spectrum_widget_(0),
-			datasets_()
+			datasets_(),
+			percentage_factor_(1.0),
+			snap_factor_(1.0)
 	{
 		// get mouse coordinates while mouse moves over diagramm.	
 		setMouseTracking(TRUE);
@@ -164,11 +164,15 @@ namespace OpenMS
 		
 	}
 	
-	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area)
+	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
 	{
-		
+		if (new_area==visible_area_)
+		{
+			return;
+		}
+
 		//store old zoom state
-		if (zoom_timeout_)
+		if (add_to_stack)
 		{
 			zoom_stack_.push(visible_area_);
 		}
@@ -176,9 +180,6 @@ namespace OpenMS
 		visible_area_ = new_area;
 		
 		updateScrollbars_();
-		
-		zoom_timeout_ = false;
-		QTimer::singleShot(2000, this, SLOT(timeoutZoom_()));
 	
 		emit visibleAreaChanged(new_area);
 		recalculate_ = true;
@@ -204,32 +205,23 @@ namespace OpenMS
 //		blockSignals(false);
 	}
 	
-	void SpectrumCanvas::timeoutZoom_()
-	{
-		zoom_timeout_ = true;
-	}
-	
-	
 	void SpectrumCanvas::zoomBack_()
 	{
 		if (zoom_stack_.empty())
 		{
-			visible_area_.assign(overall_data_range_);
+			resetZoom();
 		}
 		else
 		{
-			visible_area_ = zoom_stack_.top();
+			changeVisibleArea_(zoom_stack_.top());
 			zoom_stack_.pop();
 		}
-		
-		updateScrollbars_();
-		emit visibleAreaChanged(visible_area_);
-		recalculate_ = true;
-		invalidate_();
 	}
 	
 	void SpectrumCanvas::resetZoom()
 	{
+		zoom_stack_ = stack<AreaType>();
+
 		AreaType tmp;
 		tmp.assign(overall_data_range_);
 		changeVisibleArea_(tmp);
@@ -237,10 +229,7 @@ namespace OpenMS
 	
 	void SpectrumCanvas::setVisibleArea(AreaType area)
 	{
-		if (visible_area_ != area)
-		{
-			changeVisibleArea_(area);
-		}
+		changeVisibleArea_(area);
 	}
 	
 	
@@ -449,6 +438,11 @@ namespace OpenMS
 		{
 			updateRanges_(i, mz_dim, rt_dim, it_dim);
 		}
+	}
+
+	double SpectrumCanvas::getSnapFactor()
+	{
+		return snap_factor_;
 	}
 
 } //namespace

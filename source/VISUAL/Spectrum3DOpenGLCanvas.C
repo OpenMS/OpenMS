@@ -77,9 +77,11 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	view_mode_ = VIEW_SELECT;
 	grid_exists_=false;
 	intensity_scale_=false;
+	
+	setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 }
 	
-Spectrum3DOpenGLCanvas::  ~Spectrum3DOpenGLCanvas()
+Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()
 {
  	grid_rt_.erase(	grid_rt_.begin(),	grid_rt_.end());
 	grid_mz_.erase(grid_mz_.begin(),grid_mz_.end());
@@ -138,7 +140,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 		{
 		case VIEW_SELECT:
 			calculateGridLines_();
-			if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
+			if(canvas_3d_.intensity_mode_)
 			{
 				stickdata_ = makeDataAsStickLog();
 			}
@@ -298,7 +300,7 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						}
 				}
 	}
-	if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
+	if(canvas_3d_.intensity_mode_)
 	{
 			if(zoom_<3)
 			{
@@ -812,7 +814,7 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 								-near_-2*corner_-scaledMZ(grid_mz_[2][i]));
 	}
 	
-	if(canvas_3d_.getPrefAsInt("Preferences:3D:IntScale:Mode"))
+	if(canvas_3d_.intensity_mode_)
 		{
 			for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
 				{	

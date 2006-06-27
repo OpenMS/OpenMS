@@ -71,7 +71,6 @@ namespace OpenMS
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 	public slots:
-		void setVisibleArea(double, double);	//< Sets visible area to [position1, position2] and emits visibleAreaChanged
 		void mouseMoveEvent( QMouseEvent *e);
 	
 	signals:

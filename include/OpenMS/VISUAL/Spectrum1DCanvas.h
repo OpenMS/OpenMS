@@ -121,13 +121,6 @@ namespace OpenMS
 		///PreferencesManager
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
-		/**
-			@brief returns the snap_factor_.
-			
-			@see snap_factor_
-		*/
-		double getSnapFactor();
-		
 	public slots:
 		/// Calls setDrawMode(DrawModes)
 		void setDrawMode(QAction*); 
@@ -139,7 +132,6 @@ namespace OpenMS
 		// Docu in base class
 		SignedInt finishAdding();
 
-		void setVisibleArea(double lo, double hi);
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 	
 	protected:
@@ -151,17 +143,10 @@ namespace OpenMS
 			
 			This method is for convenience only. It calls changeVisibleArea_(const AreaType&) .
 		*/
-		void changeVisibleArea_(double lo, double hi);  
+		void changeVisibleArea_(double lo, double hi, bool add_to_stack = false);  
 		
-		/// Calls dataToWidget_(const PointType&) but takes snap_factor_ and layer_factor_ into account.
+		/// Calls dataToWidget_(const PointType&) but takes snap_factor_ and percentage_factor_ into account.
 		QPoint dataToWidget_(const PeakType& peak);
-		
-		/**
-			@brief Updates visible_begin_ and visible_end_ .
-			
-			In snap-to-max-intensity mode it also updates the maximum intensity in the visible area.
-		*/
-		void updateVisibleAreaBounds_();
 		
 		// Docu in base class
 		virtual void intensityModeChange_();
@@ -173,20 +158,13 @@ namespace OpenMS
 		virtual void invalidate_();
 		
 		// Docu in base class
-		void changeVisibleArea_(const AreaType& new_area);
+		void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 
 		/// Array of selected peak iterators
 		std::vector<SpectrumIteratorType> selected_peaks_;
 		
 		/// The (one and only) painter. 
-		QPainter painter_;	
-
-		/// Flag that indicates if intensity is absolute or relative
-		bool absolute_intensity_;
-		/// Scaling factor for relative scale with multiple layers
-		double layer_factor_;
-		/// Itensity multiplication factor for 'snap to maximum intensity mode'.
-		double snap_factor_;
+		QPainter painter_;
 
 		/// Draw modes (for each spectrum)
 		std::vector<DrawModes> draw_modes_;

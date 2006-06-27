@@ -209,7 +209,6 @@ namespace OpenMS
 			void showPoints(bool);
 			void showColors(bool);
 			void showContours(bool);
-		  void setIntensityScaledDots(bool on);
 			void setIntensityScaledDots3D(bool on);
 
 			void resetZoom();
@@ -261,7 +260,6 @@ namespace OpenMS
 			QToolButton* show_points_button_2d_;
 			QToolButton* show_colors_button_2d_;
 		  QToolButton* show_contours_button_2d_;
-		  QToolButton* intensity_scaled_dots_button_2d_;
 	  	QToolButton* reset_zoom_button_2d_;
 			QToolButton* grid_button_2d_;
 		

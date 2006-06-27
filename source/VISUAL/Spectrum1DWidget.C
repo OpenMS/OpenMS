@@ -67,11 +67,6 @@ namespace OpenMS
 		
 	}
 	
-	void Spectrum1DWidget::setVisibleArea(double x1, double x2)
-	{
-		canvas()->setVisibleArea(x1, x2);
-	}
-	
 	void Spectrum1DWidget::recalculateAxes()
 	{
 		//determine axes

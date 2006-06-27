@@ -1044,11 +1044,6 @@ namespace OpenMS
 		show_points_button_2d_ ->setOn(false);
 		connect(show_points_button_2d_, SIGNAL(toggled(bool)), this, SLOT(showPoints(bool)));
 	
-		intensity_scaled_dots_button_2d_ = new QToolButton(QIconSet(QPixmap(XPM_intensity_scaled_dots)), "Show intensisty scaled dots", "Show intensisty scaled dots", 0, 0, tool_bar_2d_, "setIntensityScaledDots");
-		intensity_scaled_dots_button_2d_->setToggleButton(true);
-		intensity_scaled_dots_button_2d_ ->setOn(false);
-		connect(intensity_scaled_dots_button_2d_, SIGNAL(toggled(bool)), this, SLOT(setIntensityScaledDots(bool)));
-	
 		show_colors_button_2d_ = new QToolButton(QIconSet(QPixmap(XPM_colors)), "Show colored surface", "Show colored surface", 0, 0, tool_bar_2d_, "showColors");
 		show_colors_button_2d_->setToggleButton(true);
 		show_colors_button_2d_->setOn(false);
@@ -1098,7 +1093,7 @@ namespace OpenMS
 		connect(intensity_scaled_dots_button_3d_, SIGNAL(toggled(bool)), this, SLOT(setIntensityScaledDots3D(bool)));
 	
 		show_reset_view_3d_ = new QToolButton(QIconSet(QPixmap(XPM_reset_zoom)), "Reset zoom", "Reset zoom", 0, 0, tool_bar_3d_, "resetZoom");
-		connect(show_reset_view_3d_, SIGNAL(toggled(bool)), this, SLOT(resetZoom()));
+		connect(show_reset_view_3d_, SIGNAL(clicked()), this, SLOT(resetZoom()));
 		
 }
 	
@@ -1243,14 +1238,6 @@ namespace OpenMS
 		if (Spectrum2DWindow* win = active2DWindow())
 		{
 			win->widget()->canvas()->showContours(on);
-		}
-	}
-	
-	void SpectrumMDIWindow::setIntensityScaledDots(bool on)
-	{
-		if (Spectrum2DWindow* win = active2DWindow())
-		{
-			win->widget()->canvas()->setIntensityScaledDots(on);
 		}
 	}
 
@@ -1405,7 +1392,6 @@ namespace OpenMS
 				show_points_button_2d_->setOn(wi->widget()->canvas()->getShowPoints());
 				show_colors_button_2d_->setOn(wi->widget()->canvas()->getShowColors());
 				show_contours_button_2d_->setOn(wi->widget()->canvas()->getShowContours());
-	      intensity_scaled_dots_button_2d_->setOn(wi->widget()->canvas()->isIntensityScaledDots());
 	
 				//set action mode
 				switch (wi->widget()->getActionMode())
