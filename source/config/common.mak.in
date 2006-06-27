@@ -51,17 +51,17 @@ default:	echodir $(OBJECTS)
 
 echodir:
 	@echo " "
-	@echo "entering directory $(DIRECTORY) ..."
+	@echo "Entering directory $(DIRECTORY) ..."
 
 default_clean:
 	@-$(RM) -rf .Dependencies *~ @TEMPLATE_DIR@ core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES) $(EXECUTABLES) $(EXECUTABLE)
 
 collectlib:	default
-	@echo "collecting objects from directory $(DIRECTORY)..."
+	@echo "Collecting objects from directory $(DIRECTORY)..."
 	@for i in $(OBJECTS) ""; do if [ X"$$i" != X"" ]; then echo $(DIRECTORY)/$$i >>@OPENMS_PATH@/source@BINFMT_PATH@/$(THISLIB).objects ; fi ; done
 
 depend: $(SOURCES)
-	@echo "creating .Dependencies for directory $(DIRECTORY)..."
+	@echo "Creating .Dependencies for directory $(DIRECTORY)..."
 	@echo "" > .Dependencies
 	@if (test "$(SOURCES)" != "    "); then @CXX_MAKEDEPEND@ @MAKEDEP_CXX_OPTS@ $(SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES) @MAKEDEP_CXX_SUFFIX@; fi;
 

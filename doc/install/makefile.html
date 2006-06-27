@@ -1,0 +1,228 @@
+<!-- $Id: install.html,v 1.13 2006/05/08 06:13:42 marc_sturm Exp $ -->
+<!-- $Author: $ -->
+<!-- $Maintainer: Clemens Groepl $ -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<title>OpenMS Makefile</title>
+	<link rel="stylesheet" media="all" href="../common/styles.css">
+</head>
+<body>
+<script type="text/javascript" src="../common/header.txt"></script>
+
+<!-- ........ Content starts here ........ -->
+
+<H1>Makefile</H1>
+
+This document describes the 'make' targets defined in <code>OpenMS/source/Makefile</code>.
+
+<h2>Frequently used</h2>
+
+Only a few make targets are needed for your every day work.
+A typical compile-link-test cycle will look like this:
+<pre>
+make
+make install
+make test
+</pre>
+These make targets are:
+
+<dl>
+	<dt>default</dt>
+	<dd>The default target is made if you type <code>make</code> without further arguments.<br>
+	See the next target, 'lib'.</dd>
+
+	<dt>lib</dt>
+	<dd>Create the shared libraries OpenMS and OpenMS_GUI.<br>
+	This requires:
+	<ul>
+		<li>Creating the dependencies for object files (&rarr; depend, .Dependencies)</li>
+		<li>Collecting the names of the object files (&rarr; collect)</li>
+		<li>Updating the directories (&rarr; dirs).  The object files are
+		(re)compiled from the source code, as necessary (using a rule  &rarr; %.o : %.C)</li>
+		<li>Linking the generated object files
+		(using a rule  &rarr; %.so : %.objects)</li>
+	</ul>
+	These subtasks will be explained below.
+	</dd>
+	
+	<dt>install</dt>
+	<dd>Install the shared libraries.
+	<ul>
+		<li>The shared libraries are moved to the lib directory
+			(typically OpenMS/&lt;architecture&gt;/lib/).</li>
+		<li>Remember that the lib directory must be included
+			in the in LD_LIBRARY_PATH environment variable.</li>
+	</ul>
+	</dd>
+
+	<dt>test</dt>
+	<dd>Runs an extensive test suite (see <code>source/TEST/</code>).
+	</dd>
+
+	<dt>doc<dt>
+	<dd>Creates the class documentation using doxygen.</dd>
+
+</dl>
+
+<h2>Less frequently used</h2>
+
+	Normally you will not invoke these targets directly, at least not very often.
+	Nevertheless they are necessary in certain situations and
+	perhaps important for understanding how the build system works.
+
+	<dl>
+
+	<dt>depend</dt>
+	<dd>
+	Make will (re)compile a <code>*.o</code> file only if at least one of its
+	source files (<code>*.h</code>, <code>*.C</code>, etc.) has changed.  The
+	dependency information is stored in <code>.Dependencies</code> files, one per
+	directory.  The <code>.Dependencies</code> files are included by the
+	<code>Makefile</code> so that its update check will work.  The
+	<code>.Dependencies</code> lines are created by the compiler using a special
+	option.
+	<p>
+	<i><b>Note:</b> For performance reasons, <code>make</code> will not check
+					whether the <code>.Dependencies</code> files themselves are
+					up-to-date.</i>
+	<p>
+	For example,  when you have added or removed source files, then <code>make</code> might
+	fail to realize that an <code>*.o</code> file needs to be recompiled,
+	or it might complain that it doesn't know how to generate some <code>*.h</code> file which
+	is in fact unnecessary.
+	<p>
+	Call <code>make depend</code> if you think the <code>.Dependencies</code> files are outdated.
+	(<i>Note for the impatient:</i> It suffices to call <code>make depend</code>
+	in those directories where the changes have taken place.)
+	<p>
+	<code>make</code> checks whether the file <code>source/.Dependencies</code>
+	exists, and if not, <i>all</i> <code>.Dependencies</code> files are created
+	automatically.  Thus <code>make depend</code> is implied when you compile
+	OpenMS for the first
+	time.
+	<p>
+	(<i>Note for experienced users:</i> On the other hand,
+	<code>source/.Dependencies</code> is deleted by <code>configure</code> to
+	trigger a (re)compilation process.  If you have invoked
+	<code>configure</code> but you are fairly sure the <code>*.o</code> files are still fine,
+	you can <code>touch source/.Dependencies</code> to keep <code>make</code>
+	from compiling everything from scratch.)
+	
+	<dt>dirs</dt>
+	<dd>
+	Runs over the source directories listed in <code>$(DIRS)</code> and calls
+	make recursively.  The target is <code>default</code>, which means that
+	the <code>*.C</code> files are compiled to <code>*.o</code> files.
+	</dd>
+
+	<dt>collect</dt>
+	<dd>
+	This will collect the names of the object files that go into the libraries
+	(<code>OpenMS</code>, <code>OpenMS_GUI</code>).  Theses lists are stored in two files
+	(currently <code>libOpenMS.objects</code> and <code>libOpenMS_GUI.objects</code>),
+	which are handed on to the linker.
+	<p>
+	<i><b>Note:</b> For reasons similar to those explained for <code>make depend</code>,
+	the <code>*.objects</code> files might become outdated when you have changed the <code>Makefile</code>s
+	in subdirectories, most notably the <code>CPP_SOURCES</code> variable and its relatives
+	which are defined there.</i>
+	<p>
+  Such an error might show up when linking the library
+	(because an <code>*.o</code> file listed in an <code>*.objects</code> file is not found) or, worse,
+	when linking an application against the <code>OpenMS</code> and <code>COpenMS_GUI</code> libraries
+	(because you get undefined or doubly defined symbol names).
+	<p>
+	In such a case,
+	the remedy is to call <code>make collect</code> and then <code>make lib</code>
+	again.
+	</dd>
+
+	<dt>staticlibs, sharedlibs</dt>
+	<dd>Normally <code>make lib</code> will create shared libraries.  However,
+	there are situations in which you might prefer to use a static library instead,
+	for example to simplify the debugging process.  Then you can use <code>make staticlibs</code>
+	to create the static versions of the libraries.
+	<p>
+	<i><b>Note</b></i> however, that when you link an application against the
+	OpenMS libraries, the linker will generally prefer the shared libraries over
+	the static libraries.  Therefore it is necessary to remove the shared
+	libraries to make the static libraries effective.
+	This can be done by <code>make delete.shared</code>.
+	<dd>
+
+	<dt>install.static, install.shared</dt>
+	<dd>Installs the static / shared libraries.</dd>
+
+	<dt>delete.static delete.shared</dt>
+	<dd>Removes the installed static / shared libraries.</dd>
+
+	<dt>lib_clean</dt>
+	<dd>A more radical solution.  Removes the whole <code>OpenMS/lib</code> directory.
+	This might help e.g. if you have changed the compiler version and
+	the old path to the libraries does no longer apply.
+	</dd>
+
+	<dt>clean</dt>
+	<dd>Clean up.  This removes <code>*.o</code>, <code>*.objects</code>, <code>core.*</code>, <code>*~</code>, and <code>.Dependencies</code>.
+	Removes the installed libraries.  Purges the subdirectories recursively
+	using <code>make default_clean</code>,  etc., etc., etc..
+	See <code>common.mak</code> for details.
+	</dd>
+
+	</dl>
+	
+<h2>Files</h2>
+
+We add a few links to the most important files controlling the build process:
+
+<dl>
+
+	<dt><a href="../../source/Makefile">source/Makefile</a></dt>
+	<dd>Top-level Makefile.
+	<br>
+	Generated from
+	<a href="../../source/config/Makefile.in">Makefile.in</a>
+	by configure.
+	</dd>
+
+	<dt><a href="../../source/common.mak">common.mak</a></dt>
+	<dd>Provides targets used by subordinated Makefiles.
+	<br>
+	Generated from
+	<a href="../../source/config/common.mak.in">common.mak.in</a>
+	by configure.
+	</dd>
+
+	<dt><a href="../../source/config_defs.mak">config_defs.mak</a></dt>
+	<dd>Provides definitions and macros to be used by subordinated <code>Makefile</code>s.
+	Most of this reflects the options given to the <code>configure</code> script
+	and the results of its test.
+	<br>
+	Generated from
+	<a href="../../source/config/config_defs.mak.in">config_defs.mak.in</a>
+	by configure.
+	</dd>
+
+	<dt><a href="../../include/OpenMS/config.h">OpenMS/config.h</a></dt>
+	<dd>C++ header file containing macro definitions generated by <code>configure</code>.
+	Most of this reflects the options given to the <code>configure</code> script
+	and the results of its test.
+	<br>
+	Generated from
+	<a href="../../source/config/config.h.in">config.h.in</a>
+	by configure.
+	<br>
+	Link to class documentation: <a href="../html/config_8h.html">config.h.html</a>
+
+	</dd>
+
+	</dl>
+
+<br>
+<hr>
+
+<!-- ........ Content ends here ........ -->
+
+</body>
+</html>

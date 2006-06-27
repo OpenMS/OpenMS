@@ -102,7 +102,8 @@ libOpenMS_GUI.@SHARED_LIB_SUFFIX@:	collect
 	$(DYNAR) $(DYNAROPTS) $(GUILIBNAME).@SHARED_LIB_SUFFIX@ `cat $(GUILIBNAME).objects` -lm
 
 .objects.a:	
-	@$(ECHO) "Creating library $@ ..."
+	@$(ECHO)
+	@$(ECHO) "Linking static library:  $@"
 	$(AR) $(AROPTS) $*.a `cat $*.objects`
 
 lib:	.Dependencies dirs collect $(SHARED_LIBS)
@@ -138,18 +139,18 @@ install.shared:
 	@$(MV) -f $(SHARED_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
 
 delete.static:	
-	@$(ECHO) deleting static libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@$(ECHO) Deleting static libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
 	@set -e; for i in $(STATIC_LIBS) ; do $(RM) $(OPENMS_PATH)/lib/$(BINFMT)/$$i 2>/dev/null ; done
 
 delete.shared:	
-	@$(ECHO) deleting shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
+	@$(ECHO) Deleting shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
 	@set -e; for i in $(SHARED_LIBS) ; do $(RM) $(OPENMS_PATH)/lib/$(BINFMT)/$$i 2>/dev/null ; done
 
 .Dependencies:
 	@$(MAKE) depend
 
 depend:
-	@$(ECHO) "creating dependencies..."
+	@$(ECHO) "Creating dependencies..."
 	@$(ECHO) "" >.Dependencies
 	@for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; echo "" >.Dependencies; cd .. ) ; done
 	@set -e; for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; $(MAKE) depend; cd .. ) ; done
