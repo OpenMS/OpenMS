@@ -141,14 +141,6 @@ class TOPPIDFilter
 					 << "All peptides that are not a substring of" << endl 
 					 << "			a sequence in this file are "
 					 << "filtered out (default read from INI file)." << endl
-					 << endl
-					 << "Common TOPP options are:" << endl
-					 << "  -ini <file>       TOPP INI file (default: TOPP.ini)" << endl
-					 << "  -log <file>       log file (default: TOPP.log)" << endl
-					 << "  -n <int>          instance number (default: 1)" << endl
-					 << "  -d <level>        sets debug level (default: 0)" << endl
-					 << "  --help            shows this help" << endl
-		       << "  --help-opt        shows help on the INI options accepted" << endl
 					 << endl ;
 		}
 		

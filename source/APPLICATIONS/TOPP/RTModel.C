@@ -166,14 +166,6 @@ class TOPPRTModel
 					 << "Options are:" << endl
 					 << "  -in <file>   input file in analysisXML format (default read from INI file)" << endl
 					 << "  -out <file>  output file: the model in libsvm format (default read from INI file)" << endl
-					 << endl
-					 << "Common TOPP options are:" << endl
-					 << "  -ini <file>       TOPP INI file (default: TOPP.ini)" << endl
-					 << "  -log <file>       log file (default: TOPP.log)" << endl
-					 << "  -n <int>          instance number (default: 1)" << endl
-					 << "  -d <level>        sets debug level (default: 0)" << endl
-					 << "  --help            shows this help" << endl
-		       << "  --help-opt        shows help on the INI options accepted" << endl
 					 << endl ;
 		}
 	
@@ -208,14 +200,6 @@ class TOPPRTModel
 					 << "Options are:" << endl
 					 << "  -in <file>   input file in analysisXML format (default read from INI file)" << endl
 					 << "  -out <file>  output file: the model in libsvm format (default read from INI file)" << endl
-					 << endl
-					 << "Common TOPP options are:" << endl
-					 << "  -ini <file>       TOPP INI file (default: TOPP.ini)" << endl
-					 << "  -log <file>       log file (default: TOPP.log)" << endl
-					 << "  -n <int>          instance number (default: 1)" << endl
-					 << "  -d <level>        sets debug level (default: 0)" << endl
-					 << "  --help            shows this help" << endl
-		       << "  --help-opt        shows help on the INI options accepted" << endl
 					 << endl ;
 		}
 
