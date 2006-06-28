@@ -117,24 +117,36 @@ namespace OpenMS
 
 		tag_ = String(qname.ascii());
 		
-		if (tag_ == "peptide")
-		{
-			String attribute_value;
-			attribute_value = String(attributes.value(0).ascii()).trim();
-  		peptide_identification_index_ = attribute_value.toInt() - 1;
-		}
-		else if (tag_ == "u_peptide")
-		{
-			String attribute_value;
-			attribute_value = String(attributes.value(0).ascii()).trim();
-  		peptide_identification_index_ = attribute_value.toInt() - 1;
-		}
-		else if (tag_ == "protein")
+		if (tag_ == "protein")
 		{
 			String attribute_value;
 			attribute_value = String(attributes.value(0).ascii()).trim();
   		actual_protein_hit_.setAccession(attribute_value);
+		}		
+		else 
+		{
+			if (tag_ == "peptide")
+			{
+				String attribute_value;
+				attribute_value = String(attributes.value(0).ascii()).trim();
+	  		peptide_identification_index_ = attribute_value.toInt() - 1;
+			}
+			else if (tag_ == "u_peptide")
+			{
+				String attribute_value;
+				attribute_value = String(attributes.value(0).ascii()).trim();
+	  		peptide_identification_index_ = attribute_value.toInt() - 1;
+			}
+  		if (peptide_identification_index_ > identifications_->size())
+  		{
+				throw Exception::ParseError(__FILE__, __LINE__
+																		, __PRETTY_FUNCTION__, ".mascotXML", 
+																		"No header information present: use "
+																		"the show_header=1 option in the "
+																		"./export_dat.pl script");  			
+  		}			
 		}
+		
 		return true;
 
 	}
