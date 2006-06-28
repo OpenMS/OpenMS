@@ -105,8 +105,6 @@
 #include "ICONS/tile_horizontal.xpm"
 #include "ICONS/tile_vertical.xpm"
 #include "ICONS/measure.xpm"
-#include "ICONS/top_peaks.xpm"
-#include "ICONS/3d_peaks.xpm"
 
 
 using namespace std;
@@ -1070,28 +1068,13 @@ namespace OpenMS
 		action_modes_3d_ = new QActionGroup(tool_bar_3d_);
 		action_modes_3d_->setExclusive(TRUE);
 		
-		set_pick_action_3d_ = new QAction( QString("Select"), QPixmap(XPM_noAction), NULL, CTRL + Key_Q, action_modes_3d_,"SpectrumCanvas::AM_SELECT",TRUE);
+		set_pick_action_3d_ = new QAction( QString("Select"), QPixmap(XPM_noAction), NULL, CTRL + Key_Q, action_modes_3d_,"SpectrumCanvas::AM_TRANSLATE",TRUE);
 		set_pick_action_3d_->setOn(true);
 		set_pick_action_3d_->addTo(tool_bar_3d_);
 		set_zoom_action_3d_ = new QAction( QString("Zoom"), QPixmap(XPM_zoom), NULL, CTRL + Key_W, action_modes_3d_,"SpectrumCanvas::AM_ZOOM",TRUE);
 		set_zoom_action_3d_->addTo(tool_bar_3d_);
 		tool_bar_3d_->addSeparator();
-		
-		show_back_view_3d_ =new QToolButton(QIconSet(QPixmap(XPM_3d_peaks)), "Side view", "Side view", 0, 0, tool_bar_3d_, "backView");
-		show_back_view_3d_->setToggleButton(true);
-		show_back_view_3d_->setOn(false);
-		connect(show_back_view_3d_, SIGNAL(toggled(bool)), this, SLOT(setBackView3D(bool)));
-			
-		show_top_view_3d_=new QToolButton(QIconSet(QPixmap(XPM_top_peaks)), "Top view", "Top view", 0, 0, tool_bar_3d_, "showTopView");
-		show_top_view_3d_->setToggleButton(true);
-		show_top_view_3d_->setOn(false);		
-		connect(show_top_view_3d_, SIGNAL(toggled(bool)), this, SLOT(setTopView3D(bool)));
-		
-		intensity_scaled_dots_button_3d_ = new QToolButton(QIconSet(QPixmap(XPM_intensity_scaled_dots)), "setIntensityScaledDots", "setIntensityScaledDots", 0, 0, tool_bar_3d_, "setIntensityScaledDots");
-		intensity_scaled_dots_button_3d_->setToggleButton(true);
-		intensity_scaled_dots_button_3d_ ->setOn(false);
-		connect(intensity_scaled_dots_button_3d_, SIGNAL(toggled(bool)), this, SLOT(setIntensityScaledDots3D(bool)));
-	
+
 		show_reset_view_3d_ = new QToolButton(QIconSet(QPixmap(XPM_reset_zoom)), "Reset zoom", "Reset zoom", 0, 0, tool_bar_3d_, "resetZoom");
 		connect(show_reset_view_3d_, SIGNAL(clicked()), this, SLOT(resetZoom()));
 		
@@ -1241,57 +1224,16 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumMDIWindow::setBackView3D(bool on)
-	{
-		if(on)
-		{
-			show_back_view_3d_->setOn(false);	
-			show_top_view_3d_->setOn(false);	
-			intensity_scaled_dots_button_3d_->setOn(false);
-			show_reset_view_3d_->setOn(false);
-			if (Spectrum3DWindow* win = active3DWindow())
-				{
-					win->widget()->canvas()->openglwidget()->setBackView();
-				}
-		}
-	}
-	void SpectrumMDIWindow::setTopView3D(bool on)
-	{
-		if(on)
-		{
-			show_back_view_3d_->setOn(false);	
-			show_top_view_3d_->setOn(false);	
-			intensity_scaled_dots_button_3d_->setOn(false);
-			show_reset_view_3d_->setOn(false);
-			if (Spectrum3DWindow* win = active3DWindow())
-			{
-				win->widget()->canvas()->openglwidget()->setTopView();
-			}
-		}
-	}
-	void SpectrumMDIWindow::setIntensityScaledDots3D(bool on)
-	{
-			if(on)
-			{
-				show_back_view_3d_->setOn(false);	
-				show_top_view_3d_->setOn(false);	
-				intensity_scaled_dots_button_3d_->setOn(false);
-				show_reset_view_3d_->setOn(false);
-				
-				if (Spectrum3DWindow* win = active3DWindow())
-				{
-						win->widget()->canvas()->openglwidget()->setIntensityScale(on);
-				}
-			}
-	}
+
+
 
 	void SpectrumMDIWindow::update3DToolbar(QWidget* w)
 	{	
-		if (Spectrum3DCanvas* wi = dynamic_cast<Spectrum3DCanvas*>(w))
-		{
-			set_pick_action_3d_->setOn(wi->openglwidget()->getShowSelect());
-			set_zoom_action_3d_->setOn(wi->openglwidget()->getShowZoom());
-		}
+	// 	if (Spectrum3DCanvas* wi = dynamic_cast<Spectrum3DCanvas*>(w))
+// 		{
+// 			set_pick_action_3d_->setOn(wi->openglwidget()->getShowSelect());
+// 			set_zoom_action_3d_->setOn(wi->openglwidget()->getShowZoom());
+// 		}
 	}
 	void SpectrumMDIWindow::update2DToolbar(QWidget* w)
 	{
@@ -1425,7 +1367,7 @@ namespace OpenMS
 				//set action mode
 				switch (wi->widget()->getActionMode())
 				{
-					case SpectrumCanvas::AM_SELECT:
+					case SpectrumCanvas::AM_TRANSLATE:
 						set_pick_action_3d_->setOn(true);
 						break;
 					case SpectrumCanvas::AM_ZOOM:

@@ -132,7 +132,6 @@ namespace OpenMS
     ///preferences
     SignedInt getDotMode();
     void setDotGradient(const std::string& gradient);
-    String getDotGradient();
     SignedInt getShadeMode();
     UnsignedInt getDotInterpolationSteps();
     

@@ -48,7 +48,7 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	setFocusPolicy(QWidget::TabFocus);
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
-	action_mode_ = AM_SELECT;
+	action_mode_ = AM_TRANSLATE;
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -75,6 +75,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 	visible_area_.assign(overall_data_range_);
 	disp_ints_.push_back(pair<float,float>(overall_data_range_.min_[2], overall_data_range_.max_[2]));
 	emit layerActivated(this);
+	recalculate_ = true;
 	invalidate_();
 	return current_data_;
 }
@@ -91,17 +92,22 @@ PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)
 
 void Spectrum3DCanvas::actionModeChange_()
 {
-	if (action_mode_ == AM_SELECT)
+	switch(action_mode_)
 	{
-		openglcanvas_->setSelectView();
-	}
-	else if(action_mode_ == AM_ZOOM)
-	{
-		openglcanvas_->setZoomView();
-	}
-	else
-	{
+	case AM_TRANSLATE:
+		openglwidget()->setZoomFactor(1.25);
+		invalidate_();
+		break;
+	case AM_ZOOM:
+		openglwidget()->setZoomFactor(1.0);
+		invalidate_();
+		break;
+	case AM_MEASURE:
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		break;
+	case AM_SELECT:
+		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		break;
 	}
 }
 
@@ -152,15 +158,6 @@ SignedInt Spectrum3DCanvas::getDotMode()
 	}
 	
 	return SignedInt(prefs_.getValue("Preferences:3D:Dot:Mode"));
-}
-
-String Spectrum3DCanvas::getDotGradient()
-{	
-	if(prefs_.getValue("Preferences:3D:Dot:Gradient").isEmpty())
-	{
-		return 0;
-	}
-	return String(prefs_.getValue("Preferences:3D:Dot:Gradient"));
 }
 
 void Spectrum3DCanvas::setDotGradient(const std::string& gradient)

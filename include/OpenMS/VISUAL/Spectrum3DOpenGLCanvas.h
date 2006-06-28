@@ -173,8 +173,6 @@ namespace OpenMS
 		double scaledInversMZ(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
 		double scaledIntensity(double intensity);
-		/// returns the log-intensity-value : BB-coordinates  --> value
-		double scaledLogIntensity(double intensity);
 
 		/// recalculates the dot gradient inerpolation values.
 		void recalculateDotGradient_(UnsignedInt);
@@ -182,27 +180,13 @@ namespace OpenMS
 		void recalculateDotGradientLog_(UnsignedInt i);
 		///calculate the ticks for the gridlines
 		void calculateGridLines_();
-		///sets the BackView
-		void setBackView();
-		/// sets the topview
-		void setTopView();
-		/// sets the Zoomview
-		void setZoomView();
-		/// sets the selectView
-		void setSelectView();
-		/// returns if the current status is VIEW_SELECT
-		bool getShowSelect();	
-		/// returns if the current status is VIEW_ZOOM
-		bool getShowZoom();
-		/// sets  int_scale_ and show the picks with scales intensity
-		void setIntensityScale(bool);
-
+	
     /// return xRot_
-    int xRotation() const { return xRot_; }
+    int xRotation() const { return xrot_; }
     /// return yRot_
-		int yRotation() const { return yRot_; }
+		int yRotation() const { return yrot_; }
     /// return zRot_
-		int zRotation() const { return zRot_; }
+		int zRotation() const { return zrot_; }
     /// normalize the angel
 		void normalizeAngle(int *angle);
 		///
@@ -227,11 +211,11 @@ namespace OpenMS
 		Spectrum3DCanvas& canvas_3d_;
   
 		/// member x-variables for the rotation
-    int xRot_,xRot_old_;
+    int xrot_;
 		/// member y-variables for the rotation
-		int yRot_,yRot_old_;
+		int yrot_;
 		/// member z-variables for the rotation
-    int zRot_,zRot_old_;
+    int zrot_;
 
 		/// member variables fot the zoom-modus
     QPoint lastMousePos_,firstMousePos_;    
@@ -242,8 +226,8 @@ namespace OpenMS
 		double zoom_ ;
 		/// member variable for the z- axis of the BB
 		double near_;
-		/// member variable for the z- axis of the BB
-		double far_;
+ 		/// member variable for the z- axis of the BB
+ 		double far_;
 		/// the width of the viewport
 		float width_;	
 		/// the height of the viewport
@@ -260,15 +244,8 @@ namespace OpenMS
 		GridVector grid_intensity_;
 		///member gridvectors which contains the data for the log-intensity-axis-ticks
 		GridVector grid_intensity_log_;
-		/// is set to true in TopView : if(showbackview)->the old angels ar set in setBackView
-		bool showbackview_;
 		/// if it is true the zoom_selection is shown
 		bool show_zoom_selection_;		
-		/// if gris_exits_ ie treu the GridVector have been calcualted
-		bool grid_exists_;
-		/// if it is true the current peaks are shown with scaled intensity
-		bool intensity_scale_;
-	
 		/// x1 coordinate of the zoomselection
 		double x_1_;
 		/// x2 coordinate of the zoomselection

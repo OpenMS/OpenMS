@@ -209,14 +209,9 @@ namespace OpenMS
 			void showPoints(bool);
 			void showColors(bool);
 			void showContours(bool);
-			void setIntensityScaledDots3D(bool on);
-
 			void resetZoom();
 			void openRecentFile(int i);
-		  void setBackView3D(bool on);
-		  void setTopView3D(bool on);
-
-			///use this event to do the cleanup
+				///use this event to do the cleanup
 		  virtual void closeEvent(QCloseEvent * e);
 			/// Call whenever a window is closed
 		  virtual void windowClosed();
@@ -268,10 +263,7 @@ namespace OpenMS
 			QActionGroup* action_modes_3d_;
 			QAction* set_zoom_action_3d_;
 		  QAction* set_pick_action_3d_;
-			QToolButton* show_back_view_3d_;
-			QToolButton* show_top_view_3d_;
 		  QToolButton*  show_reset_view_3d_;
-		  QToolButton* intensity_scaled_dots_button_3d_;
 		
 		  /// Main workspace
 			QWorkspace* ws_;	
