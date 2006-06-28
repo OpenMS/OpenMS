@@ -42,6 +42,7 @@ CPP_SOURCES=\
 	ModelDescription.C\
 	SimpleExtender.C\
 	SimpleSeeder.C\
+	LessSimplerSeeder.C\
 	SimpleModelFitter.C\
 	GaussModel.C\
 	ProductModel.C\

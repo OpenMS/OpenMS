@@ -320,10 +320,73 @@ namespace OpenMS
 		}
 		
 		std::sort(peaks_.begin(),
-		          peaks_.end(),
-		          LexicographicComparator<RTless,MZless>());
+		             peaks_.end(),
+		             LexicographicComparator<RTless,MZless>());
 
 		scan_index_.init ( peaks_.begin(), peaks_.end() );
+		
+		/// Temporal storage for the calculation of s/n ratios
+		std::vector<PeakType> last_scan_;
+		
+		/// Estimates the signal to noise ratio 
+		DSignalToNoiseEstimatorWindowing<2> sn_estimator_;
+		sn_estimator_.setWindowSize(1000);
+		
+		String gp_fname("sn_ratios.txt");
+		ofstream outfile( gp_fname.c_str() );
+		
+		// estimate s/n ratios
+		for(PeakVector::const_iterator citer = peaks_.begin();
+		     citer != peaks_.end();
+			 ++citer)
+		{
+			if (last_scan_.size() > 0)
+			{
+				// check whether retention time has changed (i.e. a new scan has begun)
+				if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
+				{
+					// estimate noise for last scan
+					sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+			
+					for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+			      	 	   cit != last_scan_.end(); 
+				      	   ++cit)
+					{
+						// save s/n values
+						double sn = sn_estimator_.getSignalToNoise(cit);
+						if (sn < 0) 
+						{
+							std::cout << "Negative sn !" << std::endl;
+							sn = 0;
+						}  
+						sn_ratios_.push_back(sn);
+						outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+					}
+					// empty container
+					last_scan_.clear();
+				}
+			}
+						
+			// store new peak
+			last_scan_.push_back(*citer);		
+		}
+		
+		// estimate noise for last scan
+		sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+			
+		for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+		 	   cit != last_scan_.end(); 
+		   	   ++cit)
+		{
+			// save s/n values
+			sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
+			outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+		}
+		// empty container
+		last_scan_.clear();
+		
+		outfile.close();
+		std::cout << sn_ratios_.size() << " vs " << peaks_.size() << std::endl;
 			
 	}	// end sortData()
 		

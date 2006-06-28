@@ -26,27 +26,27 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LessSimplerSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <iostream>
 
 namespace OpenMS
 {
 
-	SimpleSeeder::SimpleSeeder(): 
+	LessSimplerSeeder::LessSimplerSeeder(): 
 		BaseSeeder(), is_initialised_(false),
 		nr_seeds_(1), noise_threshold_(0)
 	{
-		name_ = SimpleSeeder::getName();
-		defaults_.setValue("intensity_perc",0.03f);
-		defaults_.setValue("min_intensity",-1.0f);
+		name_ = LessSimplerSeeder::getName();
+		defaults_.setValue("min_snratio",2.0f);
 		param_ = defaults_;
 	}
 
-	SimpleSeeder::~SimpleSeeder(){}
+	LessSimplerSeeder::~LessSimplerSeeder(){}
 
-  Index SimpleSeeder::nextSeed() throw (NoSuccessor)
+    Index LessSimplerSeeder::nextSeed() throw (NoSuccessor)
 	{
+		std::cout << "LessSimplerSeeder in nextSeed() " << std::endl;
 		if (!is_initialised_) 
 		{
 			
@@ -57,6 +57,9 @@ namespace OpenMS
 			
 			current_peak_ = indizes_.begin();
 			is_initialised_ = true;
+			
+			// initialize minimum sn ratio for seeds
+			noise_threshold_ = param_.getValue("min_snratio");
 			
 		}
 				
@@ -77,29 +80,17 @@ namespace OpenMS
 		std::cout	<< "Processing seed " << nr_seeds_	<< " ("
 							<< traits_->getPeakRt(*current_peak_) << ","
 							<< traits_->getPeakMz(*current_peak_)
-							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
+							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) 
+							<< " and s/n " << traits_->getPeakSN(*current_peak_) << std::endl;
 				
 		nr_seeds_++;
 		
-		// we set the intensity threshold to a fixed percentage of the 5th largest intensity
-		if (nr_seeds_ == 6) 
-		{
-			noise_threshold_ = param_.getValue("min_intensity");
-			
-			if (noise_threshold_ < 0.0)
-			{	
-				float int_perc = param_.getValue("intensity_perc");;
-				noise_threshold_ = int_perc * traits_->getPeakIntensity(*current_peak_);
-				//std::cout << " Setting noise threshold to relative value..." << std::endl;
-			}
-		
-		}	
-		std::cout << "SimpleSeeder: Intensity threshold for seeds is " << noise_threshold_ << std::endl;
+		std::cout << "LessSimplerSeeder: s/n threshold for seeds is " << noise_threshold_ << std::endl;
 		// if the intensity of the next seed is below this threshold,
 		// seeding stops and we throw an execption.
-		if (traits_->getPeakIntensity(*current_peak_) < noise_threshold_) 
+		if (traits_->getPeakSN(*current_peak_) < noise_threshold_) 
 		{
-			std::cout << "Intensity below threshold: " << noise_threshold_ << std::endl;
+			std::cout << "Below threshold: " << noise_threshold_ << std::endl;
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_); 	
 		}
 		
@@ -109,10 +100,10 @@ namespace OpenMS
 		return *current_peak_++;
 	}
 	
-	void SimpleSeeder::sort_() 
+	void LessSimplerSeeder::sort_() 
 	{
 		
-		SimpleSeeder::IntensityLess comp = SimpleSeeder::IntensityLess::IntensityLess(traits_);
+		LessSimplerSeeder::IntensityLess comp = LessSimplerSeeder::IntensityLess::IntensityLess(traits_);
 		sort(indizes_.begin(),indizes_.end(),comp);
 		
 		// we want to retrieve the peak with the highest

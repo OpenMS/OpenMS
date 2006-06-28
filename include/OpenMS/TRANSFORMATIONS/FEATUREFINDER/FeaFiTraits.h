@@ -37,6 +37,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
+
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
@@ -124,30 +127,33 @@ namespace OpenMS
     
     void addSinglePeak(const DRawDataPoint<2>& peak)
     { 
-    	if (peak.getIntensity() >= min_intensity_ )
+		
+		if (peak.getIntensity() >= min_intensity_ )
     	{
     		peaks_.push_back(peak); 
     		flags_.push_back(UNUSED);
-    	}	
+		}	
     }
        
-	  /// Non-mutable acess flag with Index @p index . 
+	  /// non-mutable acess flag with index @p index . 
     const Flag& getPeakFlag(const UnsignedInt index) const throw (Exception::IndexOverflow) { return flags_.at(index); }
-    /// Mutable acess flag with Index @p index.
+    /// mutable acess flag with index @p index.
     Flag& getPeakFlag(const UnsignedInt index) throw (Exception::IndexOverflow) { return flags_.at(index); }
  
-    /// acess peak with Index @p index. 
+    /// acess peak with index @p index. 
     const PeakType& getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index); }
     /// retrieve the number of peaks.
     const UnsignedInt getNumberOfPeaks() { return peaks_.size(); }
 
-		 /// acess intensity of peak with Index @p index.
+	/// acess intensity of peak with index @p index.
     const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getIntensity(); }
-    /// acess m/z of peak with Index @p index .
+    /// acess m/z of peak with index @p index .
     const CoordinateType& getPeakMz(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getPosition()[MZ]; }
-    /// acess retention time of peak with Index @p index.
+    /// acess retention time of peak with index @p index.
     const CoordinateType& getPeakRt(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getPosition()[RT]; }
-    /// acess scan number of peak with Index @p index 
+	/// returns signal/noise ration of peak with index @p index
+	const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)  { return sn_ratios_.at(index); }
+    /// acess scan number of peak with index @p index 
     const UnsignedInt getPeakScanNr(const UnsignedInt index) const throw (Exception::IndexOverflow);
    
     /** @brief get index of next peak in m/z dimensio.
@@ -181,11 +187,10 @@ namespace OpenMS
     /// run main loop
     const FeatureVector& run(
 			const std::vector<BaseSeeder*>& seeders,
-    	const std::vector<BaseExtender*>& extenders,
-			const std::vector<BaseModelFitter*>& fitters
-		);
+    	    const std::vector<BaseExtender*>& extenders,
+			const std::vector<BaseModelFitter*>& fitters);
 
-    /** @brief Calculate the convex hull of the peaks contained in @p set
+       /** @brief Calculate the convex hull of the peaks contained in @p set
 		  
 				Uses the gift wrap algorithm 
 		*/
@@ -237,7 +242,10 @@ namespace OpenMS
 
 	/// Minium intensity of a data point that we accept
 	IntensityType min_intensity_;
-       
+	
+	/// Stores a the signal / noise ratio for each peak
+	std::vector<double> sn_ratios_;
+	      
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H

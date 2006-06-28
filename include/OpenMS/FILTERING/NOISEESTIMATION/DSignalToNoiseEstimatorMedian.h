@@ -113,7 +113,7 @@ namespace OpenMS
     {
       window_size_ = ne.window_size_;
       median_perc_ = ne.median_perc_;
-      param_       = ne.param_;
+      param_           = ne.param_;
       return *this;
     }
     //@}
@@ -138,9 +138,6 @@ namespace OpenMS
 
 
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
-
-     **/
-
     void init(ConstIterator it_begin, ConstIterator it_end)
     {
       CoordinateType current_rt = it_begin->getPosition()[RT];

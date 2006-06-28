@@ -86,7 +86,7 @@ namespace OpenMS
     inline DSignalToNoiseEstimatorWindowing(const Param& parameters)
         : DSignalToNoiseEstimator<D,ContainerType>(parameters)
     {
-      // if a parameter is missed in the param object the value should be substituted by a default value
+      // if a parameter is missing in the param object, the value is substituted by a default value
       DataValue dv = param_.getValue("SignalToNoiseEstimationParameter:Bucket");
       if (dv.isEmpty() || dv.toString() == "") bucket_size_ = 10;
       else bucket_size_ = (int)dv;
@@ -162,7 +162,6 @@ namespace OpenMS
 
       int length = distance(first_, last_);
       std::vector<float> Z(number_of_buckets, std::numeric_limits<float>::max());
-      //  std::vector<float> signal_to_noise(length);
       std::vector<float> Y(number_of_buckets, -1.*(std::numeric_limits<float>::max() - 10));
       std::vector<float> W(number_of_buckets, 0);
       std::vector<float> w(number_of_buckets, 0);

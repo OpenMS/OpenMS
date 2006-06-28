@@ -32,7 +32,7 @@
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RobustSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LessSimplerSeeder.h>
 
 namespace OpenMS
 {
@@ -40,6 +40,7 @@ namespace OpenMS
 	{
 		Factory<BaseSeeder>::registerProduct("SimpleSeeder", &SimpleSeeder::create);
 		Factory<BaseSeeder>::registerProduct("RobustSeeder", &RobustSeeder::create);
+		Factory<BaseSeeder>::registerProduct("LessSimplerSeeder", &LessSimplerSeeder::create);
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}
@@ -50,7 +51,7 @@ namespace OpenMS
 
 	BaseSeeder::~BaseSeeder() {}
 
-  BaseSeeder& BaseSeeder::operator = (const BaseSeeder& source)
+    BaseSeeder& BaseSeeder::operator = (const BaseSeeder& source)
 	{
 		FeaFiModule::operator = (source);
 		return *this;
