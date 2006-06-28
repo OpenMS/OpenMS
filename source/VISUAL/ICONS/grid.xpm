@@ -2,7 +2,7 @@
 static const char *XPM_grid[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 2 1",
-"  c gray100",
+"  c white",
 ". c black",
 /* pixels */
 "    .       .       .       .   ",

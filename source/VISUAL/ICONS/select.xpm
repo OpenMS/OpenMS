@@ -1,5 +1,5 @@
 /* XPM */
-static const char *XPM_noAction[] = {
+static const char *XPM_select[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 2 1",
 "  c black",

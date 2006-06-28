@@ -50,7 +50,7 @@
 
 /*
 	ToDo-Liste Marc:
-	- toolbars überarbeiten (gemeinsame) und update-funtionen zusammenlegen
+	- 2D: draw modi zusammenlegen!
 	- set main preferences
 	- 2D: Snap-Modus
 	- Übereinandermalen von peaks durch zeichenmodus verhindern, also nicht mehr sortieren

@@ -100,16 +100,6 @@ namespace OpenMS
 		return canvas_->getActionMode(); 
 	}
 	
-	void SpectrumWidget::setActionMode(QAction* a) throw (Exception::NotImplemented)
-	{
-		string name = a->name();
-		if(name=="SpectrumCanvas::AM_SELECT") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_SELECT); 
-		else if (name=="SpectrumCanvas::AM_ZOOM") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_ZOOM); 
-		else if(name=="SpectrumCanvas::AM_TRANSLATE") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_TRANSLATE); 
-		else if(name=="SpectrumCanvas::AM_MEASURE") setActionMode(SpectrumCanvas::SpectrumCanvas::AM_MEASURE); 
-		else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-	}
-	
 	void SpectrumWidget::setActionMode(SpectrumCanvas::ActionModes mode)
 	{
 		if (getActionMode() != mode)
@@ -126,11 +116,6 @@ namespace OpenMS
 			canvas_->setIntensityMode(mode);
 			intensityModeChange_();
 		}
-	}
-	
-	void SpectrumWidget::setIntensityMode(int mode)
-	{
-		setIntensityMode((SpectrumCanvas::IntensityModes)(mode));
 	}
 	
 	void SpectrumWidget::setMainPreferences(const Param& prefs)

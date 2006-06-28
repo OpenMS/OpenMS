@@ -165,13 +165,7 @@ namespace OpenMS
 			/// closes the active window
 			void closeFile();
 			/// updates the toolbar, when the active window changes
-			void updateToolbar(QWidget* w);
-			/// updates the toolbar, when the active layer of a 1D Window changes
-			void update1DToolbar(QWidget* w);
-			/// updates the toolbar, when the active layer of a 2D Window changes
-			void update2DToolbar(QWidget* w);
-		  /// updates the toolbar, when the active layer of a 2D Window changes
-			void update3DToolbar(QWidget* w);
+			void updateToolbar(QWidget* widget);
 			/// adapts the layer bar to the active window
 			void updateLayerbar();
 			/// brings the tab corresponding to the active window in front
@@ -204,14 +198,16 @@ namespace OpenMS
 			void focusSpectrumByAddress(int);
 			void removeWidgetFromBar(QObject*);
 			void setActionMode(QAction*);
-			void setDrawMode(QAction*);	
+			void setDrawMode1D(QAction*);	
+			void setIntensityMode(QAction* a);
 			void showGridLines(bool); 	
 			void showPoints(bool);
 			void showColors(bool);
 			void showContours(bool);
 			void resetZoom();
 			void openRecentFile(int i);
-				///use this event to do the cleanup
+
+			///use this event to do the cleanup
 		  virtual void closeEvent(QCloseEvent * e);
 			/// Call whenever a window is closed
 		  virtual void windowClosed();
@@ -223,48 +219,53 @@ namespace OpenMS
 			SpectrumMDIWindow(QWidget* parent=0, const char* name="SpectrumMDIWindow", WFlags f=0);
 			///not accessable as this class is a singleton
 			~SpectrumMDIWindow();     
-		
-			//toolbar
-			void createToolBar_();			
-			QToolBar* tool_bar_;
-			//layers
+
+			/// Layer mangment bar
 			QToolBar* layer_bar_;
+			/// Layer mangment widget
 			LayerManager* layer_manager_;
+
+			/** @name Toolbar 
+			*/
+			//@{
+			/// Creates the toolbars and connects the signals and slots
+			void createToolBar_();
+
+			QToolBar* tool_bar_;
 			
-			// 1DWidget
+			//common actions
 			QActionGroup* action_modes_;
-			QActionGroup* draw_modes_;
-			QAction* set_zoom_action_;
-			QAction* set_translate_action_;
-			QAction* set_pick_action_;
-			QAction* set_peak_mode_;
-			QAction* set_connected_lines_mode_;
+			QAction* am_zoom_;
+			QAction* am_translate_;
+			QAction* am_select_;
+			QAction* am_measure_;
+
+			//common intensity modes
+			QActionGroup* intensity_modes_;
+			QAction* im_none_;
+			QAction* im_log_;
+			QAction* im_percentage_;
+			QAction* im_snap_;
+			
+			//common buttons
+			QToolButton* reset_zoom_button_;
 			QToolButton* grid_button_;
 			QToolButton* print_button_;
-			QToolButton* reset_zoom_button_;
-			//Combobox for linking spectra
+			
+			//1D specific stuff
+			QToolBar* tool_bar_1d_;
+			QActionGroup* draw_modes_;
+			QAction* dm_peaks_1d_;
+			QAction* dm_rawdata_1d_;
 			QComboBox* link_box_;
-
-			// 2DWidget
+			
+			//2D specific stuff
 			QToolBar* tool_bar_2d_;
-			QActionGroup* action_modes_2d_;
-			QAction* set_zoom_action_2d_;
-			QAction* set_translate_action_2d_;
-			QAction* set_pick_action_2d_;
-			QAction* set_measure_action_2d_;
-			QToolButton* show_points_button_2d_;
-			QToolButton* show_colors_button_2d_;
-		  QToolButton* show_contours_button_2d_;
-	  	QToolButton* reset_zoom_button_2d_;
-			QToolButton* grid_button_2d_;
-		
-		  //3DWidget
-		  QToolBar* tool_bar_3d_;
-			QActionGroup* action_modes_3d_;
-			QAction* set_zoom_action_3d_;
-		  QAction* set_pick_action_3d_;
-		  QToolButton*  show_reset_view_3d_;
-		
+			QToolButton* dm_points_2d_;
+			QToolButton* dm_surface_2d_;
+		  QToolButton* dm_contours_2d_;
+			//@} 
+			
 		  /// Main workspace
 			QWorkspace* ws_;	
 			

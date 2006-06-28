@@ -94,25 +94,7 @@ namespace OpenMS
 		context_menu_ = new QPopupMenu(this);
 	 	SignedInt item;
 	
-		//intensity mode
-		QPopupMenu* intensity_menu = new QPopupMenu(context_menu_);
-	
-		item = intensity_menu->insertItem("Linear mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_NONE);
-		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_NONE) intensity_menu->setItemEnabled(item,false);
-	
-		item = intensity_menu->insertItem("Logarithmic mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_LOG);
-		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_LOG) intensity_menu->setItemEnabled(item,false);
-
-		item = intensity_menu->insertItem("Percentage mode",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_PERCENTAGE);
-		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_PERCENTAGE) intensity_menu->setItemEnabled(item,false);
-
-		item = intensity_menu->insertItem("Snap to max intensity",widget_,SLOT(setIntensityMode(int)),0,SpectrumCanvas::IM_SNAP);
-		if (widget_->canvas()->getIntensityMode() == SpectrumCanvas::IM_SNAP) intensity_menu->setItemEnabled(item,false);
-	
-		context_menu_->insertItem("Intensity mode",intensity_menu);
-		context_menu_->insertSeparator();	
-	
-		//intensity mode
+		//intensity distrubution
 		context_menu_->insertItem("intensity distribution",widget_,SLOT(showIntensityDistribution()));
 		context_menu_->insertSeparator();
 	

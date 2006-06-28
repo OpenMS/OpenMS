@@ -185,10 +185,6 @@ namespace OpenMS
 		void contextMenu(QPoint pos);
 		
 	public slots:
-		/// Calls setActionMode(SpectrumCanvas::ActionModes) according to the name of @p a 
-		void setActionMode(QAction* a) throw (Exception::NotImplemented);
-		/// Behaves like setIntensityMode(SpectrumCanvas::IntensityModes)
-		void setIntensityMode(int mode);
 		/// Shows the intensity distribution of the data
 		void showIntensityDistribution();
 		/// Class showLegend(bool) after casting @p show to a bool

@@ -122,9 +122,6 @@ namespace OpenMS
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
 	public slots:
-		/// Calls setDrawMode(DrawModes)
-		void setDrawMode(QAction*); 
-		
 		// Docu in base class
 		void activateDataSet(int data_set);
 		// Docu in base class

@@ -569,24 +569,6 @@ namespace OpenMS
 		
 		invalidate_();
 	}
-	
-	void Spectrum1DCanvas::setDrawMode(QAction* a)
-	{
-		string name = a->name();
-	
-		if (name == "DM_PEAKS") 
-		{
-			setDrawMode(DM_PEAKS);
-		}
-		else if (name == "DM_CONNECTEDLINES")
-		{
-			setDrawMode(DM_CONNECTEDLINES);
-		}
-		else 
-		{
-			throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-	}
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
 	{
