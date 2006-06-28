@@ -577,7 +577,7 @@ class TOPPMascotAdapter
 				{
 					mascot_infile->write(mascot_data_dir + "/" + mascot_infile_name);
 					file_info.setFile(logfile.c_str());
-					writeLog_("The Mascot process created the following output:");
+					writeDebug_("The Mascot process created the following output:", 0);
 					/// calling the Mascot process
 					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
