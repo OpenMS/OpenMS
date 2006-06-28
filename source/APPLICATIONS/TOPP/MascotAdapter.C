@@ -261,7 +261,7 @@ class TOPPMascotAdapter
 			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
 			String ini_location;
 			// path to the log file
-			String logfile = "";
+			String logfile = "mascot.log";
 			// log filestream (as long as the real logfile is not determined yet)
 			ofstream log;		
 			String inputfile_name;
@@ -334,7 +334,10 @@ class TOPPMascotAdapter
 			mascotXML_file_name = getParamAsString_("additional_in");
 			writeDebug_(String("Additional input file: ") + mascotXML_file_name, 1);
 
-			logfile = getParamAsString_("log");
+			if (!getParam_("log").isEmpty())
+			{
+				logfile = getParamAsString_("log");
+			}
 
 			if (getParamAsString_("mascot_in", "false") != "false")
 			{
