@@ -580,7 +580,8 @@ class TOPPMascotAdapter
 						" >> " + String(file_info.absFilePath().ascii()) + ";"
 						+ "./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
-						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 > " + 
+						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
+						"show_header=1 > " + 
 						mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
