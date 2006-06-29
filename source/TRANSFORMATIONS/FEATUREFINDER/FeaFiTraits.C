@@ -330,7 +330,7 @@ namespace OpenMS
 		
 		/// Estimates the signal to noise ratio 
 		DSignalToNoiseEstimatorWindowing<2> sn_estimator_;
-		sn_estimator_.setWindowSize(1000);
+		//sn_estimator_.setWindowSize(1000);
 		
 		String gp_fname("sn_ratios.txt");
 		ofstream outfile( gp_fname.c_str() );
@@ -354,11 +354,7 @@ namespace OpenMS
 					{
 						// save s/n values
 						double sn = sn_estimator_.getSignalToNoise(cit);
-						if (sn < 0) 
-						{
-							std::cout << "Negative sn !" << std::endl;
-							sn = 0;
-						}  
+						if (sn < 0)  sn = 0;
 						sn_ratios_.push_back(sn);
 						outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
 					}
@@ -386,8 +382,7 @@ namespace OpenMS
 		last_scan_.clear();
 		
 		outfile.close();
-		std::cout << sn_ratios_.size() << " vs " << peaks_.size() << std::endl;
-			
+					
 	}	// end sortData()
 		
 	void FeaFiTraits::writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat)

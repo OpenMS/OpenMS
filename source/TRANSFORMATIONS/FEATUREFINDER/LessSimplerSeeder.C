@@ -46,7 +46,6 @@ namespace OpenMS
 
     Index LessSimplerSeeder::nextSeed() throw (NoSuccessor)
 	{
-		std::cout << "LessSimplerSeeder in nextSeed() " << std::endl;
 		if (!is_initialised_) 
 		{
 			

@@ -209,11 +209,11 @@ namespace OpenMS
   	/** @brief We sort the peaks according to their position.
 	 
 	       In 1D m/z, in the 2D case m/z and rt. That is,
-	 			 the peaks are first sorted by their rt value
-	 			 and peaks with equal rt (i.e. scan index) are 
-	 			 then sorted by m/z. In addition,
+	 	   the peaks are first sorted by their rt value
+	 	   and peaks with equal rt (i.e. scan index) are 
+	 	   then sorted by m/z. In addition,
 	       we initialise the vector of scan indizes
-	 			 in order to retrieve quickly the scan number of a peak.
+	 		in order to retrieve quickly the scan number of a peak.
 	 	*/
   	void sortData_();
   	
@@ -221,12 +221,12 @@ namespace OpenMS
     void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat);
     
     /// Calculate area of a triangle (needed for gift wrap algorithm)
-		inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
-		{
-			// triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
-			return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
-				   - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
-		}
+	inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
+	{
+		// triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
+		return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
+			   - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
+	}
    	    
     /// vector of peaks
     PeakVector peaks_;

@@ -50,9 +50,13 @@ namespace OpenMS
     This class provides the estimation of the signal to noise ratios in a given raw data
     points intervall using the method of Roegnvaldsson et al. described in "Modular, Scriptable, and Automated
     Analysis Tools for High-Throughput Peptide Mass Fingerprinting".
+	
     NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
     for each scan, and not for the whole map.
 
+	???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
+	Please use it carefully.
+	
     @ingroup PeakPickingCWT
   */
   template <Size D, typename  ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
