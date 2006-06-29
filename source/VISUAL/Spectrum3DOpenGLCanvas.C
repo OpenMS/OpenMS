@@ -59,6 +59,9 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	y_1_=0.0;
 	x_2_=0.0;
 	y_2_=0.0;	
+	xrot_=0;
+	yrot_ = 0;
+	zrot_=0;
 	setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 }
 	
