@@ -71,8 +71,7 @@ namespace OpenMS
 				rank_(source.rank_), 
 				accession_(source.accession_), 
 				accession_type_(source.accession_type_),
-				sequence_(source.sequence_), 
-				corresponding_peptide_indices_(source.corresponding_peptide_indices_)
+				sequence_(source.sequence_)
   {
   }
   
@@ -94,7 +93,6 @@ namespace OpenMS
     accession_.erase();
     accession_type_.erase();
     rank_ = 0;
-    corresponding_peptide_indices_.clear();
   }
    
   /// assignment operator
@@ -111,7 +109,6 @@ namespace OpenMS
     sequence_ = source.sequence_;
     accession_ = source.accession_;
     accession_type_ = source.accession_type_;
-    corresponding_peptide_indices_ = source.corresponding_peptide_indices_;
     return *this;
   }
 	
@@ -173,12 +170,6 @@ namespace OpenMS
 		return accession_type_;
 	}    	
 	
-	/// returns the corresponding peptide indices
-	const std::vector<UnsignedInt>& ProteinHit::getPeptideIndices() const 
-	{
-		return corresponding_peptide_indices_;
-	}
-
   /// sets the score of the protein hit 
   void ProteinHit::setScore(const double& score) 
   {
@@ -223,51 +214,5 @@ namespace OpenMS
 //		//PersistentObject::deserialize_(attribute_name, value);
 //		//todo attribute setzen
 //  }
-
-	void ProteinHit::addPeptideIndex(const uint& index) 
-	{ 
-		bool found = false;
-		
-		for(vector<uint>::iterator it = corresponding_peptide_indices_.begin(); 
-				it != corresponding_peptide_indices_.end();
-				it++)
-		{
-			if (*it == index)
-			{
-				found = true;
-			}
-		}
-		if (!found)
-		{
-			corresponding_peptide_indices_.push_back(index);		
-		}
-	}
-
-	/// sets the corresponding peptide indices
-	void ProteinHit::setPeptideIndices(const std::vector< uint >& indices)
-	{
-		corresponding_peptide_indices_ = indices;		
-	}
-
-  void ProteinHit::updatePeptideIndices(std::vector<UnsignedInt> new_indices)
-  {
-  	vector< UnsignedInt > new_corresponding_peptide_indices;
-  	vector< UnsignedInt >::iterator it;
-  	vector< UnsignedInt >::iterator begin;
-  		
-  	for(UnsignedInt i = 0; i < corresponding_peptide_indices_.size(); i++)
-  	{
-  		begin = new_indices.begin();
-  		it = find(new_indices.begin(), new_indices.end(), corresponding_peptide_indices_[i]);
-  		if (it != new_indices.end())
-  		{
-  			new_corresponding_peptide_indices.push_back(it - begin);
-  		}
-  	}
-  	corresponding_peptide_indices_.clear();
-  	corresponding_peptide_indices_ = new_corresponding_peptide_indices;
-  }
-
-
 
 } // namespace OpenMS

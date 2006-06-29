@@ -142,11 +142,23 @@ namespace OpenMS
 	{
 		String partial_date;
 		Date::get(partial_date);
-			
-		date = partial_date + " " 
-								+ String(hour_) + ":" 
-								+ String(minute_) + ":" 
-								+ String(second_);
+		
+		date = partial_date + " ";
+		if (hour_ < 10)
+		{
+			date = date + "0";
+		}
+		date = date + String(hour_) + ":";
+		if (minute_ < 10)
+		{
+			date = date + "0";
+		}
+		date = date + String(minute_) + ":";
+		if (minute_ < 10)
+		{
+			date = date + "0";			
+		}
+		date = date + String(second_);
 	}
 	
 	void DateTime::get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year,

@@ -92,11 +92,7 @@ namespace OpenMS
 		String getAccession() const;
 		/// returns the type of the accession string of the protein
 		std::string getAccessionType() const;   	
-		/// returns the corresponding peptide indices
-		const std::vector<UnsignedInt>& getPeptideIndices() const;
 
-		/// sets the corresponding peptide indices
-		void setPeptideIndices(const std::vector< uint >& indices);
     /// sets the score of the protein hit 
     void setScore(const double& score);
     /// sets the type of the score
@@ -110,17 +106,6 @@ namespace OpenMS
 		/// sets the type of the accession string of the protein
 		void setAccessionType(const std::string& accession_type);  	
 				
-		/// adds a peptide index to the protein hit
-		void addPeptideIndex(const uint& index); 
-		
-    /// updates the corresponding peptide indices 
-    /// 'new_indices' has the old indices in a new order or with 
-    /// some indices missing. For every old peptide index the position
-    /// of that index is searched in new_indices. If it can not be
-    /// found then the index is removed otherwise the new index is the 
-    /// position at which the old index could be found in 'new_indices'
-	  void updatePeptideIndices(std::vector<UnsignedInt> new_indices);
-
     //@}
 
 		/// clears all information of the protein hit
@@ -134,8 +119,6 @@ namespace OpenMS
     std::string accession_type_;	///< the type of the accession
     String sequence_;							///< the amino acid sequence of the 
     															///< protein hit
-		std::vector< UnsignedInt > corresponding_peptide_indices_;	///< the indices 
-																	///< of the corresponding peptides		
 
   };
 

@@ -91,7 +91,6 @@ namespace OpenMS
       const std::vector<float> const_precursor_mz_values_;
 			String tag_;      	
 			bool inside_protein_;
-			std::vector<UnsignedInt> actual_peptide_indices_;
 			DateTime date_;
 			String date_time_string_;
   };

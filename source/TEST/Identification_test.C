@@ -33,6 +33,7 @@
 #include <string>
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -63,6 +64,7 @@ vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 DateTime date;
 MascotXMLFile xml_file;
+AnalysisXMLFile analysis_xml_file;
 vector<PeptideHit>* hits;
 
 date.now();
@@ -320,12 +322,12 @@ CHECK(bool empty())
 RESULT
 
 CHECK(const std::vector<PeptideHit>* getReferencingHits(String date_time, String accession))
+	
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
 				   		&identifications, 
 							&precursor_retention_times, 
 							&precursor_mz_values);
-							
 	hits = identifications[0].getReferencingHits(String("2006-03-09 11:31:52"), String("AAN17824"));
 	TEST_EQUAL(hits->size(), 2)
 	TEST_EQUAL((*hits)[0].getSequence(), "LHASGITVTEIPVTATNFK")
@@ -337,6 +339,21 @@ CHECK(const std::vector<PeptideHit>* getReferencingHits(String date_time, String
 RESULT
 
 CHECK(const std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iteratorT h_end, String date_time))
+	vector<ProteinIdentification> p_ids;
+
+	xml_file.load("data/tmp_mascot_in.out.mascotXML",
+							&protein_identification, 
+				   		&identifications, 
+							&precursor_retention_times, 
+							&precursor_mz_values);
+							
+	p_ids.push_back(protein_identification);
+	analysis_xml_file.store("data/try_test.analysisXML",
+							p_ids, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values);							
+							
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
 				   		&identifications, 

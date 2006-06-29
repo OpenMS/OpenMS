@@ -159,15 +159,10 @@ namespace OpenMS
  		 
  		if (tag_ == "protein")
  		{	
- 			if (actual_peptide_indices_.size() > 0)
- 			{
- 				actual_protein_hit_.setPeptideIndices(actual_peptide_indices_);
- 			}
  			/// since Mascot uses SwissProt IDs we set this type here
 			actual_protein_hit_.setAccessionType("SwissProt");
  			protein_identification_->insertProteinHit(actual_protein_hit_);
  			actual_protein_hit_.clear();
- 			actual_peptide_indices_.clear();
  		}
  		else if (tag_ == "peptide")
  		{
@@ -189,7 +184,6 @@ namespace OpenMS
 			if (!already_stored)
 			{
 				actual_peptide_hit_.addProteinIndex(make_pair(date_time_string_, actual_protein_hit_.getAccession()));
-				actual_peptide_indices_.push_back((*identifications_)[peptide_identification_index_].getPeptideHits().size());
 	 			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
 			}
 			else
@@ -201,7 +195,6 @@ namespace OpenMS
  		}
  		else if (tag_ == "u_peptide")
  		{
-			actual_peptide_indices_.push_back((*identifications_)[peptide_identification_index_].getPeptideHits().size());
  			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
  			actual_peptide_hit_.clear();
  		}

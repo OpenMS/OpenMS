@@ -646,15 +646,6 @@ class TOPPMascotAdapter
 				}
 				precursor_retention_times = mascot_outfile->getPrecursorRetentionTimes();
 			
-				/// Deletion of temporary Mascot files
-				if (!mascot_out)
-				{
-					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						+ "rm " + mascotXML_file_name + ";";
-					system(call.c_str());
-				}
-			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
@@ -667,6 +658,15 @@ class TOPPMascotAdapter
 													 		 precursor_mz_values,
 													 		 contact_person);
 													 		 												 		 
+				/// Deletion of temporary Mascot files
+				if (!mascot_out)
+				{
+					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
+						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
+						+ "rm " + mascotXML_file_name + ";";
+					system(call.c_str());
+				}
+			
 			} // from if(!mascot_in)
 			return OK;	
 		}
