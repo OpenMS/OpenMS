@@ -96,6 +96,7 @@ void Spectrum3DCanvas::actionModeChange_()
 	{
 	case AM_TRANSLATE:
 		openglwidget()->setZoomFactor(1.25);
+		openglwidget()->resetAngels();
 		invalidate_();
 		break;
 	case AM_ZOOM:

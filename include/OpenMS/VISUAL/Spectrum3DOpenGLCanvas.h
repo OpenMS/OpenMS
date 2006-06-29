@@ -175,9 +175,7 @@ namespace OpenMS
 		double scaledIntensity(double intensity);
 
 		/// recalculates the dot gradient inerpolation values.
-		void recalculateDotGradient_(UnsignedInt);
-		/// recalculates the logarthmic dot gradient inerpolation values.
-		void recalculateDotGradientLog_(UnsignedInt i);
+		void recalculateDotGradient_();
 		///calculate the ticks for the gridlines
 		void calculateGridLines_();
 	
@@ -189,6 +187,8 @@ namespace OpenMS
 		int zRotation() const { return zrot_; }
     /// normalize the angel
 		void normalizeAngle(int *angle);
+		///
+		void resetAngels();
 		///
 		ViewMode view_mode_;
 		/// displaylist
