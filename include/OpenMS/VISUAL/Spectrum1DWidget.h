@@ -78,11 +78,9 @@ namespace OpenMS
 
 	protected:
 		// Docu in base class
-		virtual void intensityModeChange_();
-		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
 		// Docu in base class
-		virtual void recalculateAxes();
+		virtual void recalculateAxes_();
 	};
 } // namespace OpenMS
 

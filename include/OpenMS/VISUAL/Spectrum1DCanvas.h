@@ -60,9 +60,6 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		
-		friend class Internal::Spectrum1DCanvasPDP;
-		friend class Spectrum1DWidget;
-		
 	public:
 		/// Label modes (percentage or absolut) of x axis and y axis
 		enum LabelMode
@@ -145,18 +142,16 @@ namespace OpenMS
 		/// Calls dataToWidget_(const PointType&) but takes snap_factor_ and percentage_factor_ into account.
 		QPoint dataToWidget_(const PeakType& peak);
 		
-		// Docu in base class
-		virtual void intensityModeChange_();
-		
 		/// RubberBand for zooming
 		RubberBand rubber_band_;
 
 		// Docu in base class
 		virtual void invalidate_();
-		
 		// Docu in base class
-		void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
-
+		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+		// Docu in base class
+		virtual void recalculateSnapFactor_();
+		
 		/// Array of selected peak iterators
 		std::vector<SpectrumIteratorType> selected_peaks_;
 		

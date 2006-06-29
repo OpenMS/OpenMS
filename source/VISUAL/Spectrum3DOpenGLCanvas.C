@@ -605,14 +605,17 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 	{
 		if(canvas_3d_.layer_visible_[i]==true)
 		{	
-			canvas_3d_.getDataSet(i).sortSpectra(false);
 			for (Spectrum3DCanvas::ExperimentType::Iterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 					 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 					 ++spec_it)
 			{
+				if (spec_it->getMSLevel()!=1)
+				{
+					continue;
+				}
 				for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 				{	
-					if(spec_it->getMSLevel()==1 && it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+					if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 					{
 						glBegin(GL_POINTS);
 						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -657,14 +660,17 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 	{
 		if(canvas_3d_.isDataSetVisible(i))
 		{	
-			canvas_3d_.getDataSet(i).sortSpectra(false);
 			for (Spectrum3DCanvas::ExperimentType::Iterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 					 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 					 ++spec_it)
 			{
+				if (spec_it->getMSLevel()!=1)
+				{
+					continue;
+				}
 				for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 				{			
-					if(spec_it->getMSLevel()==1 &&it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+					if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 					{
 						glBegin(GL_LINES);
 
@@ -746,16 +752,19 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 	recalculateDotGradient_();
 	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
 		{
-			canvas_3d_.getDataSet(i).sortSpectra(false);
 			if(canvas_3d_.isDataSetVisible(i))
 			{		
 				for (Spectrum3DCanvas::ExperimentType::Iterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 						 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 						 ++spec_it)
 				{
+					if (spec_it->getMSLevel()!=1)
+					{
+						continue;
+					}
 					for (BaseSpectrum::Iterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 					{			
-						if(spec_it->getMSLevel()==1 && it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+						if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 						{
 							glBegin(GL_LINES);
 							if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))

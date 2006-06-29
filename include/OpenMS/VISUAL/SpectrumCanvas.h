@@ -343,6 +343,14 @@ namespace OpenMS
 			The order domensions is dependent on the derived class.
 		*/
 		const DRange<3>& getDataRange();	
+
+		/**
+			@brief Returns repaints the whole widget.
+			
+			Call this method after you changed the settings through the pulic interface of PreferencesManager
+			in order to notify the widget of the changes.
+		*/
+		virtual void repaintAll();	
 		
 	public slots:
 		/**
@@ -409,7 +417,9 @@ namespace OpenMS
 
 		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
-		
+			
+		/// Forces recalculation of axis ticks in the connected widget.
+		void recalculateAxes();
 	protected:
 		
 		/**
@@ -460,6 +470,13 @@ namespace OpenMS
 			@param add_to_stack If the new area is to add to the zoom_stack_
 		*/
 		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+
+		/**
+			@brief REcalculates the intensity scaling factor for 'snap to maximum intensity mode'.
+			
+			@see snap_factor_
+		*/
+		virtual void recalculateSnapFactor_();
 		
 		/**
 			@brief Go back in zoom history

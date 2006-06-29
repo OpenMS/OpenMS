@@ -148,15 +148,16 @@ namespace OpenMS
 		  	
 			for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
 			{
-				if (spec->getMSLevel()==1)
+				if (spec->getMSLevel()!=1)
 				{
-					for (typename MSSpectrum<PeakT>::const_iterator it = spec->begin(); it!=spec->end(); ++it)
-					{
-						cont.insert(cont.end(), typename Container::value_type());
-						cont.back().getPosition()[RT] = spec->getRetentionTime();
-						cont.back().setIntensity(it->getIntensity());
-						cont.back().getPosition()[MZ] = it->getPosition()[0];
-					}
+					continue;
+				}
+				for (typename MSSpectrum<PeakT>::const_iterator it = spec->begin(); it!=spec->end(); ++it)
+				{
+					cont.insert(cont.end(), typename Container::value_type());
+					cont.back().getPosition()[RT] = spec->getRetentionTime();
+					cont.back().setIntensity(it->getIntensity());
+					cont.back().getPosition()[MZ] = it->getPosition()[0];
 				}
 			}
 	  }

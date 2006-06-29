@@ -56,9 +56,10 @@ namespace OpenMS
 	
   class Spectrum3DOpenGLCanvas:public QGLWidget
   {
-	
     Q_OBJECT
-	 
+		
+		friend class Spectrum3DCanvas;
+		
 		/**	@name Type definitions */
 		//@{
 		enum ViewMode

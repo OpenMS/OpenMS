@@ -70,6 +70,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 {
 	layer_visible_.push_back(true);
 	current_data_ = getDataSetCount()-1;
+	currentDataSet().sortSpectra(true);
 	currentDataSet().updateRanges(1);	
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
@@ -83,6 +84,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 {
 	SpectrumCanvas::setMainPreferences(prefs);
+	openglwidget()->gradient_.fromString(getPrefAsString("Preferences:3D:Dot:Gradient"));
 }
 
 PreferencesDialogPage * Spectrum3DCanvas::createPreferences(QWidget* parent)

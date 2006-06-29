@@ -32,9 +32,11 @@
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 
 //QT
 #include <qlayout.h>
+#include <qimage.h>
 
 namespace OpenMS
 {
@@ -64,11 +66,6 @@ namespace OpenMS
 	
 	}
 	
-	void Spectrum3DWidget::setMainPreferences(const Param& prefs)
-	{
-		SpectrumWidget::setMainPreferences(prefs);
-	}
-	
 	PreferencesDialogPage* Spectrum3DWidget::createPreferences(QWidget* parent)
 	{
 		PreferencesDialogPage* background = new Spectrum3DWidgetPDP(this, parent);
@@ -76,14 +73,9 @@ namespace OpenMS
 	}
 	
 	
-	void Spectrum3DWidget::recalculateAxes()
+	void Spectrum3DWidget::recalculateAxes_()
 	{
 	}
-	
-	void Spectrum3DWidget::intensityModeChange_()
-	{
-		
-	}	
 
 	void Spectrum3DWidget::invalidate_()
 	{
@@ -95,12 +87,13 @@ namespace OpenMS
 
 		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
 		{
-			if (spec_it->getMSLevel()==1)
+			if (spec_it->getMSLevel()!=1)
 			{
-				for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-				{
-					tmp.inc(peak_it->getIntensity());
-				}
+				continue;
+			}
+			for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+			{
+				tmp.inc(peak_it->getIntensity());
 			}
 		}
 		
@@ -111,6 +104,10 @@ namespace OpenMS
 	{
 	  return static_cast<Spectrum3DCanvas*>(canvas_);
 	}
-
+	
+	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height)
+	{	
+		return canvas()->openglwidget()->renderPixmap(width,height).convertToImage();
+	}
 }//namespace
 

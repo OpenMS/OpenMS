@@ -104,7 +104,7 @@ namespace OpenMS
 
 	public slots:	
 		// Docu in base class
-		virtual void recalculateAxes();
+		virtual void recalculateAxes_();
 		
 	signals:
 		/**
@@ -115,7 +115,6 @@ namespace OpenMS
 		void visibleAreaChanged(DRange<2> area);
 
 	protected:
-		virtual void intensityModeChange_();
 		// Docu in base class
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_();
 		

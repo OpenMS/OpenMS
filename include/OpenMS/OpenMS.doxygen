@@ -50,12 +50,9 @@
 
 /*
 	ToDo-Liste Marc:
-	- 2D: draw modi zusammenlegen!
-	- set main preferences
-	- 2D: Snap-Modus
-	- Übereinandermalen von peaks durch zeichenmodus verhindern, also nicht mehr sortieren
 	- Scrollbars wieder einbauen (Spacer entfernen?)
 	- Features wieder einbauen
+	- includes checken
 	- File-Type force/automatic
 	
 	TOPPView (später)

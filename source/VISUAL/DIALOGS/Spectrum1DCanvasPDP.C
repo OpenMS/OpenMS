@@ -97,7 +97,7 @@ namespace OpenMS
 			w->setPref("Preferences:1D:IconColor",icon_color_->getColor().name().ascii());
 			w->setPref("Preferences:1D:BackgroundColor",back_color_->getColor().name().ascii());
 		
-			w->invalidate_();
+			w->repaintAll();
 		}
 
 	} // namespace Internal

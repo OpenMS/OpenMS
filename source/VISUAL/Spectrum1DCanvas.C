@@ -770,9 +770,10 @@ namespace OpenMS
 		painter_.begin(buffer_);
 		// flushing buffer_ with widget color
 		painter_.fillRect(0, 0, width(), height(), backgroundColor());
-	
+		
+		emit recalculateAxes();
 		paintGridLines_(&painter_);
-	
+		
 		for (UnsignedInt i=0; i< getDataSetCount();++i)
 		{
 			if (layer_visible_[i]==false)
@@ -806,12 +807,6 @@ namespace OpenMS
 		repaint(false);
 	}
 	
-	
-	void Spectrum1DCanvas::intensityModeChange_()
-	{
-		invalidate_();
-	}
-	
 	void Spectrum1DCanvas::changeVisibleArea_(const Spectrum1DCanvas::AreaType& new_area, bool add_to_stack)
 	{
 		//prevent deadlock
@@ -828,30 +823,13 @@ namespace OpenMS
 				visible_begin_[i] = getDataSet(i)[0].MZBegin(new_area.minX());
 				visible_end_[i]   = getDataSet(i)[0].MZBegin(new_area.maxX());
 			}
-	
-			// If snap-to-max-mode is on: find local max and set factor to increase all data appropriately
-			if (intensity_mode_ == IM_SNAP) 
-			{
-				double local_max  = -numeric_limits<double>::max();
-				for (UnsignedInt i=0; i<getDataSetCount();++i)
-				{
-					SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
-					if (tmp->getIntensity() > local_max) 
-					{
-						local_max = tmp->getIntensity();
-					}
-				}
-				snap_factor_ = overall_data_range_.max()[1]/local_max;
-			}
-			else
-			{ 
-				snap_factor_ = 1.0;
-			}
 			
 			if (action_mode_ != AM_SELECT)
 			{
 				nearest_peak_ = visible_end_[current_data_];
 			}
+
+			recalculateSnapFactor_();	
 		}
 
 		SpectrumCanvas::changeVisibleArea_(new_area, add_to_stack);
@@ -907,7 +885,7 @@ namespace OpenMS
 		layer_visible_.push_back(true);
 	
 		// sort peaks in accending order of position
-		currentDataSet()[0].getContainer().sortByNthPosition(0);
+		currentDataSet()[0].getContainer().sortByPosition();
 		
 		//update ranges
 		recalculateRanges_(0,2,1);
@@ -923,6 +901,27 @@ namespace OpenMS
 		
 		return current_data_;
 	}
+
+  void Spectrum1DCanvas::recalculateSnapFactor_()
+  {
+		if (intensity_mode_ == IM_SNAP) 
+		{
+			double local_max  = -numeric_limits<double>::max();
+			for (UnsignedInt i=0; i<getDataSetCount();++i)
+			{
+				SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
+				if (tmp->getIntensity() > local_max) 
+				{
+					local_max = tmp->getIntensity();
+				}
+			}
+			snap_factor_ = overall_data_range_.max()[1]/local_max;
+		}
+		else
+		{ 
+			snap_factor_ = 1.0;
+		}  	
+  }
 
 }//Namespace
 

@@ -50,8 +50,6 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UnsignedInt)));
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)), this, SIGNAL(sendCursorStatus(double,double,double)));
 		
-		recalculateAxes();
-		
 		x_axis_->setLegend("m/z");
 		y_axis_->setLegend("Intensity");
 		addClient(canvas(),"Canvas",true);
@@ -67,7 +65,7 @@ namespace OpenMS
 		
 	}
 	
-	void Spectrum1DWidget::recalculateAxes()
+	void Spectrum1DWidget::recalculateAxes_()
 	{
 		//determine axes
 		AxisWidget* mz_axis,* it_axis;
@@ -105,17 +103,6 @@ namespace OpenMS
 			default:
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
-	}
-	
-	void Spectrum1DWidget::intensityModeChange_()
-	{
-		//recalculate axes before (for grid update)
-		recalculateAxes();
-		
-	 	canvas()->intensityModeChange_();
-		
-		//recalculate axes after (for range changes)
-		recalculateAxes();
 	}
 	
 	Histogram<UnsignedInt,float> Spectrum1DWidget::createIntensityDistribution_()

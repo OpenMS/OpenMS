@@ -36,8 +36,9 @@
 //QT
 #include <qcolor.h>
 
-//std lib
+//STL
 #include <map>
+#include <vector>
 
 namespace OpenMS {
 
@@ -120,12 +121,19 @@ class MultiGradient
 	void fromString(const std::string& gradient);
 
 	protected:
-	// map of index and color
+	/// Map of index and color
 	std::map<UnsignedInt,QColor> pos_col_;
-	// current interpolation mode
+	/// Current interpolation mode
 	UnsignedInt interpolation_mode_;
-	// precalculated color
-	std::map<double,QColor> pre_;
+	/// Precalculated colors
+	std::vector<QColor> pre_;
+	/// Minimum of the precalculated color range
+	double pre_min_;
+	/// Size of the precalculated color range
+	double pre_size_;
+	/// Steps of the precalculated color range
+	SignedInt pre_steps_;
+
 };
 
 }

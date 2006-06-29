@@ -31,7 +31,6 @@
 
 #include <OpenMS/KERNEL/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/DATASTRUCTURES/SortedIteratorWrapper.h>
 
 #include <vector>
 #include <limits>
@@ -470,18 +469,6 @@ namespace OpenMS
 		typedef const_iterator ConstIterator;
 
 		/**
-			Refers to a SortedIterator using non-const semantics.
-			@sa SortedConstIterator, Iterator, ConstIterator
-		*/
-		typedef SortedIteratorWrapper<Iterator, Cmp> SortedIterator;
-
-		/**
-			Refers to a SortedIterator using const semantics.
-			@sa SortedIterator, Iterator, ConstIterator
-		*/
-		typedef SortedIteratorWrapper<ConstIterator, Cmp> SortedConstIterator;
-
-		/**
 			This type is provided, because the OpenMS coding
 			convention states that types start with a capital
 			letter, in contrast to the STL types.
@@ -587,40 +574,6 @@ namespace OpenMS
 			@sa end()
 		*/
 		inline ConstIterator end() const;
-
-		/**
-			Constructs a mutable SortedIterator pointing to the first
-			point in the tree which lies in the specified @p area.
-			@param area The area to iterate over.
-			@return The iterator pointing to the first point.
-			@sa SortedIterator
-		*/
-		inline SortedIterator sortedBegin(const AreaType& area);
-
-		/**
-			Constructs a mutable SortedIterator pointing to nowhere
-			(i.e. the element past the last element, in
-			compliance to STL iterators). Every iterator which
-			gets incremented over and over once points to
-			nowhere and hence is equal to the iterator returned
-			by this function.
-			@return An iterator pointing to nowhere.
-		*/
-		inline SortedIterator sortedEnd();
-
-		/**
-			This is the const version of sortedBegin(). Data associated
-			with points that can be accessed through a SortedConstIterator
-			is not mutable.
-			@sa begin()
-		*/
-		inline SortedConstIterator sortedBegin(const AreaType& area) const;
-
-		/**
-			This is the const version of sortedEnd().
-			@sa end()
-		*/
-		inline SortedConstIterator sortedEnd() const;
 
 		/**
 			Returns the QuadTree's area.
@@ -1074,30 +1027,6 @@ template<typename Traits, typename Data>
 inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::end() const
 {
 	return ConstIterator();
-}
-
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::SortedIterator OpenMS::QuadTree<Traits, Data>::sortedBegin(const AreaType& area)
-{
-	return SortedIterator(begin(area), end());
-}
-
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::SortedIterator OpenMS::QuadTree<Traits, Data>::sortedEnd()
-{
-	return SortedIterator();
-}
-
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::SortedConstIterator OpenMS::QuadTree<Traits, Data>::sortedBegin(const AreaType& area) const
-{
-	return SortedConstIterator(begin(area), end());
-}
-
-template<typename Traits, typename Data>
-inline typename OpenMS::QuadTree<Traits, Data>::SortedConstIterator OpenMS::QuadTree<Traits, Data>::sortedEnd() const
-{
-	return SortedConstIterator();
 }
 
 template<typename Traits, typename Data>

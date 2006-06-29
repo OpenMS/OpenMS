@@ -69,10 +69,10 @@ namespace OpenMS
   */	
   class Spectrum3DCanvas : public SpectrumCanvas
   {
+    Q_OBJECT
     
     friend class Spectrum3DOpenGLCanvas;
-	    
-    Q_OBJECT
+    
   public:
     /// Constructor
     Spectrum3DCanvas(QWidget* parent = 0, const char* name = "Spectrum3DCanvas", WFlags f = 0);	

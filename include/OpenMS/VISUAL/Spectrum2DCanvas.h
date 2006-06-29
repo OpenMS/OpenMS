@@ -71,11 +71,6 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		
-		friend class Spectrum2DWidget;
-		
-		friend class Internal::Spectrum2DCanvasPDP;
-		
-		
 	public:
 		/**	@name Type definitions */
 		//@{
@@ -175,19 +170,28 @@ namespace OpenMS
 		// Docu in base class
 		void setMainPreferences(const Param& prefs);
 		
+		// Docu in base class
+		virtual void repaintAll();
+		
 	signals:
 		void selectedHorz(const DSpectrum<1>&);
 		void selectedVert(const DSpectrum<1>&);
 	
 	public slots:
-	
+		
+		/// Sets if countours are shown
 		void showContours(bool on);
-		void showColors(bool on);
+		/// Sets if colored surface is shown
+		void showSurface(bool on);
+		/// Sets if dots are shown
 		void showPoints(bool on);
-
-		bool getShowContours();
-		bool getShowColors();
-		bool getShowPoints();
+		
+		/// Returns if countours are shown
+		bool contoursAreShown();
+		/// Returns if colored surface is shown
+		bool surfaceIsShown();
+		/// Returns if dots are shown
+		bool dotsAreShown();
 
 		// Docu in base class
 		void activateDataSet(int data_set);
@@ -221,16 +225,13 @@ namespace OpenMS
 		/**
 			@brief Paints individual peaks.
 		
-			Paints the peaks as small ellipses. Peaks are
-			drawn in sorted order such that lower peaks are
-			drawn first. This ensures that high peaks are always
-			visible. The peaks are colored according to the
+			Paints the peaks as small ellipses. The peaks are colored according to the
 			selected dot gradient.
 			
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
 		*/
-		void paintPoints_(UnsignedInt data_set, QPainter* p);
+		void paintDots_(UnsignedInt data_set, QPainter* p);
 		
 		/**
 			@brief Paints data as a height map.
@@ -242,7 +243,7 @@ namespace OpenMS
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
 		*/
-		void paintContourLines_(UnsignedInt data_set, QPainter* p);
+		void paintContours_(UnsignedInt data_set, QPainter* p);
 		
 		/**
 			@brief Paints data as a colored surface gradient.
@@ -254,13 +255,14 @@ namespace OpenMS
 			@param data_set The index of the dataset.
 			@param p The QPainter to paint on.
 		*/
-		void paintColorMap_(UnsignedInt data_set, QPainter* p);
+		void paintSurface_(UnsignedInt data_set, QPainter* p);
 		
 		// Docu in base class
 		virtual void intensityModeChange_();
 		// Docu in base class
 		virtual void intensityDistributionChange_();
-		
+		// DOcu in base class
+		virtual void recalculateSnapFactor_();
 		/// recalculates the surface gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateSurfaceGradient_();
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
@@ -281,7 +283,7 @@ namespace OpenMS
 		// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
 		/**
-			@brief  Returns the color associated with @p val for the gradient @p gradient.
+			@brief Returns the color associated with @p val for the gradient @p gradient.
 			
 			Takes intensity modes into account.
 		*/
@@ -316,11 +318,9 @@ namespace OpenMS
 		/// Flags whether or not to show the height map for each dataset
 		std::vector<bool> show_contours_;
 		/// Flags whether or not to show the surface gradient for each dataset
-		std::vector<bool> show_colors_;
+		std::vector<bool> show_surface_;
 		/// Flags whether or not to show individual peaks for each dataset
-		std::vector<bool> show_points_;
-		/// Flag whether or not to show points scaled for each dataset
-		bool intensity_scaled_dots_;
+		std::vector<bool> show_dots_;
 		
 		// the nearest peak to the mouse cursor.
 		DPeak<2>* nearest_peak_;

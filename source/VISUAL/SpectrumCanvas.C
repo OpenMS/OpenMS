@@ -137,6 +137,7 @@ namespace OpenMS
 	
 	void SpectrumCanvas::intensityModeChange_()
 	{
+		recalculateSnapFactor_();
 		recalculate_ = true;
 		invalidate_();
 	}
@@ -190,19 +191,6 @@ namespace OpenMS
 	void SpectrumCanvas::updateScrollbars_()
 	{
 		int yy;
-//		//cout << "d  X: "<<overall_data_range_.minX() <<" Y: "<< overall_data_range_.minY() << endl;
-//		QPoint left_top = - dataToWidget_(overall_data_range_.minX(), overall_data_range_.minY(), true);
-//		QPoint size = left_top + dataToWidget_(overall_data_range_.maxX(), overall_data_range_.maxY(), false);
-//		
-//		//cout << "tl X: "<< left_top.x() << " Y: "<< left_top.y() << endl;
-//		//cout << "s  X: "<< size.x() << " Y: "<< size.y() << endl << endl;
-//		
-//		// block contentsMoving signal, because calling the private
-//		// move_() slot falsely changes the visible area
-//		blockSignals(true);
-//		resizeContents(size.x(), size.y());
-//		setContentsPos(left_top.x(), left_top.y());
-//		blockSignals(false);
 	}
 	
 	void SpectrumCanvas::zoomBack_()
@@ -443,6 +431,17 @@ namespace OpenMS
 	double SpectrumCanvas::getSnapFactor()
 	{
 		return snap_factor_;
+	}
+
+	void SpectrumCanvas::repaintAll()
+	{
+		recalculate_ = true;
+		invalidate_();
+	}
+
+	void SpectrumCanvas::recalculateSnapFactor_()
+	{
+		
 	}
 
 } //namespace

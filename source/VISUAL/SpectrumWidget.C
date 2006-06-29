@@ -85,7 +85,8 @@ namespace OpenMS
 		grid_->addWidget(canvas_, 0, 1);
 	
 		connect(canvas_, SIGNAL(contextMenu(QPoint)), this, SIGNAL(contextMenu(QPoint)));
-		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes_(DRange<2>)));
+		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
+		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
 		
 		canvas_->setSpectrumWidget(this);
 	}
@@ -162,31 +163,9 @@ namespace OpenMS
 		showLegend((bool)(show));
 	}
 	
-	void SpectrumWidget::updateAxes_(SpectrumCanvas::AreaType /*area*/)
+	void SpectrumWidget::updateAxes()
 	{
-		recalculateAxes();
-		
-		int yy;
-		//show hide spaces when scollbars are shown/hidden
-//		if (canvas_->visibleWidth() < canvas_->contentsWidth())
-//		{
-//			vspacer_->setMinimumSize(y_axis_->width(), canvas_->horizontalScrollBar()->sizeHint().height());
-//			vspacer_->show();
-//		}
-//		else
-//		{
-//			vspacer_->hide();
-//		}
-//		
-//		if (canvas_->visibleHeight() < canvas_->contentsHeight())
-//		{
-//			hspacer_->setMinimumSize(canvas_->verticalScrollBar()->sizeHint().width(), x_axis_->height());
-//			hspacer_->show();
-//		}
-//		else
-//		{
-//			hspacer_->hide();
-//		}
+		recalculateAxes_();
 	}
 	
 	void SpectrumWidget::mzToXAxis(bool mz_to_x_axis) 
@@ -202,13 +181,17 @@ namespace OpenMS
 		x_axis_->setLegend(y_axis_->getLegend());
 		y_axis_->setLegend(tmp);
 	
-		recalculateAxes();
-		canvas()->update(); //?????
+		recalculateAxes_();
+	}
+
+	void SpectrumWidget::intensityModeChange_()
+	{
+		
 	}
 
 	QImage SpectrumWidget::getImage(UnsignedInt width, UnsignedInt height)
 	{
-		//hide();
+		hide();
 		this->setUpdatesEnabled(false);
 		int yy;
 		//hide scrollbars and spacers if necessary
@@ -249,8 +232,7 @@ namespace OpenMS
 		resize(width,height);		
 				
 		//take an image
-		QPixmap p = QPixmap::grabWidget(this);
-		QImage image = p.convertToImage();
+		QImage image = QPixmap::grabWidget(this).convertToImage();
 		
 		//resore background colors
 	 	y_axis_->setPaletteBackgroundColor(c_o);
@@ -278,7 +260,7 @@ namespace OpenMS
 		resize(w,h);
 		
 		this->setUpdatesEnabled(true);
-		//show();
+		show();
 		
 		return image;
 	}

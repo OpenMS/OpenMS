@@ -76,12 +76,6 @@ namespace OpenMS
 		public:
 			static SpectrumMDIWindow* instance();
 			
-			/// Accessor for the workspace
-			inline QWorkspace* getWorkspace() 
-			{ 
-				return ws_; 
-			}
-			
 			/**
 				@brief Opens and displays a spectrum form a file
 				
@@ -103,7 +97,6 @@ namespace OpenMS
 			*/
 			void addDBSpectrum(UnsignedInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
 
-			void addTab(SpectrumWindow*, const String&);
 			/// maximizes the size of the active window
 			void maximizeActiveSpectrum();
 			/// opens all the files that are inside the handed over iterator range
@@ -124,21 +117,9 @@ namespace OpenMS
 				maximizeActiveSpectrum();
 				tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));
 			}
-			/// connect the slots/signals for status messages and mode changes (paint or mouse mode)
-			void connectWindowSignals(SpectrumWindow* sw);	
 			/// returns selected peaks of the active spectrum framed by \c data_set_.begin() and the last peak BEFORE \c data_set_.end();
 			std::vector<MSExperiment<>::SpectrumType::Iterator> getActiveSpectrumSelectedPeaks();
-		
-			
-			///returns a pointer to the active SpectrumWindow (0 if none is sctive)
-			SpectrumWindow*  activeWindow() const;
-			///returns a pointer to the active Spectrum1DWindow (0 the active window is no Spectrum1DWindow or there is no active window)
-			Spectrum1DWindow* active1DWindow() const;
-			///returns a pointer to the active Spectrum2DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
-			Spectrum2DWindow* active2DWindow() const;
-			///returns a pointer to the active Spectrum3DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
-			Spectrum3DWindow* active3DWindow() const;
-			
+
 			/**
 				@brief Loads the preferences from the filename given.
 				
@@ -147,9 +128,6 @@ namespace OpenMS
 			void loadPreferences(std::string filename="");
 			/// stores the preferences (used when this window is closed)
 			void savePreferences();
-
-			/// PreferencesManager
-			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 		public slots:
 			/// shows the dialog for opening spectra from file or the database
@@ -197,16 +175,21 @@ namespace OpenMS
 			void closeFileByTab(OpenMS::SignedInt);
 			void focusSpectrumByAddress(int);
 			void removeWidgetFromBar(QObject*);
+			void openRecentFile(int i);
+			
+			/** @name Toolbar slots
+			*/
+			//@{			
 			void setActionMode(QAction*);
 			void setDrawMode1D(QAction*);	
 			void setIntensityMode(QAction* a);
 			void showGridLines(bool); 	
 			void showPoints(bool);
-			void showColors(bool);
+			void showSurface(bool);
 			void showContours(bool);
 			void resetZoom();
-			void openRecentFile(int i);
-
+			//@}
+			
 			///use this event to do the cleanup
 		  virtual void closeEvent(QCloseEvent * e);
 			/// Call whenever a window is closed
@@ -220,50 +203,64 @@ namespace OpenMS
 			///not accessable as this class is a singleton
 			~SpectrumMDIWindow();     
 
+			/// Adds a tab for the window in the tabbar 
+			void addTab_(SpectrumWindow*, const String&);
+			/// connect the slots/signals for status messages and mode changes (paint or mouse mode)
+			void connectWindowSignals_(SpectrumWindow* sw);	
+			///returns a pointer to the active SpectrumWindow (0 if none is sctive)
+			SpectrumWindow*  activeWindow_() const;
+			///returns a pointer to the active Spectrum1DWindow (0 the active window is no Spectrum1DWindow or there is no active window)
+			Spectrum1DWindow* active1DWindow_() const;
+			///returns a pointer to the active Spectrum2DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
+			Spectrum2DWindow* active2DWindow_() const;
+			///returns a pointer to the active Spectrum3DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
+			Spectrum3DWindow* active3DWindow_() const;
+			// Docu in base class
+			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
+
 			/// Layer mangment bar
 			QToolBar* layer_bar_;
 			/// Layer mangment widget
 			LayerManager* layer_manager_;
 
-			/** @name Toolbar 
-			*/
-			//@{
 			/// Creates the toolbars and connects the signals and slots
 			void createToolBar_();
 
+			/** @name Toolbar members
+			*/
+			//@{
 			QToolBar* tool_bar_;
-			
 			//common actions
 			QActionGroup* action_modes_;
 			QAction* am_zoom_;
 			QAction* am_translate_;
 			QAction* am_select_;
 			QAction* am_measure_;
-
 			//common intensity modes
 			QActionGroup* intensity_modes_;
 			QAction* im_none_;
 			QAction* im_log_;
 			QAction* im_percentage_;
 			QAction* im_snap_;
-			
 			//common buttons
 			QToolButton* reset_zoom_button_;
 			QToolButton* grid_button_;
 			QToolButton* print_button_;
-			
 			//1D specific stuff
 			QToolBar* tool_bar_1d_;
 			QActionGroup* draw_modes_;
 			QAction* dm_peaks_1d_;
 			QAction* dm_rawdata_1d_;
 			QComboBox* link_box_;
-			
 			//2D specific stuff
 			QToolBar* tool_bar_2d_;
 			QToolButton* dm_points_2d_;
 			QToolButton* dm_surface_2d_;
 		  QToolButton* dm_contours_2d_;
+			QActionGroup* draw_modes_2d_;		  
+			QAction* dm2_points_2d_;
+			QAction* dm2_surface_2d_;
+		  QAction* dm2_contours_2d_;
 			//@} 
 			
 		  /// Main workspace

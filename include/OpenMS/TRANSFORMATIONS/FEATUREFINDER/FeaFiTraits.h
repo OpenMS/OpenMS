@@ -62,8 +62,9 @@ namespace OpenMS
 	/**
 			@brief Traits class for the feature finding algorithm.
 			
-			@ingroup FeatureFinder
-		   	
+			@todo Remove sn_ratios.txt after test (Ole)
+			
+			@ingroup FeatureFinder 	
 	 **/
   class FeaFiTraits 
   {

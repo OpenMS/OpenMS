@@ -64,9 +64,9 @@ namespace OpenMS
 		
 	}
 	
-	void Spectrum2DWidget::recalculateAxes()
+	void Spectrum2DWidget::recalculateAxes_()
 	{
-		const SpectrumCanvas::AreaType area = canvas()->visible_area_;
+		const SpectrumCanvas::AreaType area = canvas()->getVisibleArea();
 		
 		if (canvas()->isMzToXAxis())
 		{
@@ -80,23 +80,19 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DWidget::intensityModeChange_()
-	{
-		canvas()->intensityModeChange_();
-	}
-	
 	Histogram<UnsignedInt,float> Spectrum2DWidget::createIntensityDistribution_()
 	{
 		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 		
 		for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
 		{
-			if (spec_it->getMSLevel()==1)
+			if (spec_it->getMSLevel()!=1)
 			{
-				for (Spectrum2DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-				{
-					tmp.inc(peak_it->getIntensity());
-				}
+				continue;
+			}
+			for (Spectrum2DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+			{
+				tmp.inc(peak_it->getIntensity());
 			}
 		}
 		

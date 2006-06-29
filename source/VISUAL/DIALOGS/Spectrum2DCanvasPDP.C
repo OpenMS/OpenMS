@@ -145,10 +145,7 @@ namespace OpenMS
 			man->setPref("Preferences:2D:InterpolationSteps",interpolation_steps_->value());
 			man->setPref("Preferences:2D:Contour:Lines",contour_steps_->value());
 			
-			man->recalculateDotGradient_();
-			man->recalculateSurfaceGradient_();
-			man->recalculate_ = true;
-			man->invalidate_();
+			man->repaintAll();
 		}
 
 

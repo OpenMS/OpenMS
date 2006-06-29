@@ -160,7 +160,8 @@ namespace OpenMS
 			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
-		 	man->invalidate_();	
+			
+			man->repaintAll();
 		}
 	} // namespace Internal
 } //namespace

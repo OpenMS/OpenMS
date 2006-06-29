@@ -226,23 +226,33 @@ CHECK(general precalcluation mode test)
 	mg.activatePrecalculationMode(-50,50,100);
 	
 	//Test precalclulated Values
-	TEST_EQUAL(mg.precalculatedColorAt(-571)==QColor(255,255,255),true);
-	TEST_EQUAL(mg.precalculatedColorAt(-50)==QColor(255,255,255),true);
+	TEST_EQUAL(mg.precalculatedColorAt(-570).red(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-570).green(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-570).blue(),255);
+
+	TEST_EQUAL(mg.precalculatedColorAt(-50).red(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-50).green(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-50).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(-25).red(),191);
-	TEST_EQUAL(mg.precalculatedColorAt(-25).green(),191);
+	TEST_EQUAL(mg.precalculatedColorAt(-25).red(),193);
+	TEST_EQUAL(mg.precalculatedColorAt(-25).green(),193);
 	TEST_EQUAL(mg.precalculatedColorAt(-25).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(0).red(),127);
-	TEST_EQUAL(mg.precalculatedColorAt(0).green(),127);
+	TEST_EQUAL(mg.precalculatedColorAt(0).red(),128);
+	TEST_EQUAL(mg.precalculatedColorAt(0).green(),128);
 	TEST_EQUAL(mg.precalculatedColorAt(0).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(25).red(),63);
-	TEST_EQUAL(mg.precalculatedColorAt(25).green(),63);
+	TEST_EQUAL(mg.precalculatedColorAt(25).red(),64);
+	TEST_EQUAL(mg.precalculatedColorAt(25).green(),64);
 	TEST_EQUAL(mg.precalculatedColorAt(25).blue(),255);
-	
-	TEST_EQUAL(mg.precalculatedColorAt(50)==QColor(0,0,255),true);
-	TEST_EQUAL(mg.precalculatedColorAt(571)==QColor(0,0,255),true);
+
+	TEST_EQUAL(mg.precalculatedColorAt(50).red(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(50).green(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(50).blue(),255);
+
+	TEST_EQUAL(mg.precalculatedColorAt(570).red(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(570).green(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(570).blue(),255);
 	
 	//Test exceptions
 	mg.deactivatePrecalculationMode();

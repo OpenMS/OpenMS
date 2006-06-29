@@ -191,6 +191,8 @@ namespace OpenMS
 		void showLegend(int show);
 		/// Sets mapping of m/z values to x-axis or y-axis
 		virtual void mzToXAxis(bool mz_to_x_axis);
+		/// updates the axes by calling recalculateAxes_();
+		void updateAxes();
 		
 	protected:
 		/// Default constructor
@@ -200,11 +202,11 @@ namespace OpenMS
 		/// Adds the canvas to the layout and connects some signals/slots
 		void setCanvas(SpectrumCanvas* canvas);
   	/// Switch between different intensitiy modes
-  	virtual void intensityModeChange_() = 0;
+  	virtual void intensityModeChange_();
 		/// creates the intensity distribution of the widget
 		virtual Math::Histogram<UnsignedInt,float> createIntensityDistribution_() = 0;
 		/// recalculates the Axis ticks
-		virtual void recalculateAxes() = 0;
+		virtual void recalculateAxes_() = 0;
 		
 		/// Pointer to the canvas widget
 		SpectrumCanvas* canvas_;
@@ -220,10 +222,6 @@ namespace OpenMS
 		QWidget* hspacer_;
 		/// Spacer for the vertical axis
 		QWidget* vspacer_;
-	
-	private slots:
-		/// updates the axes, when the visible area changes
-		void updateAxes_(DRange<2> area);
 	};
 }
 

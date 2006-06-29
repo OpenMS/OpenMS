@@ -88,8 +88,8 @@ int main( int argc, char ** argv )
 		return 1;
 	}
 	
-//	try
-//	{
+	try
+	{
 	  QApplication a( argc, argv );
 	  OpenMS::SpectrumMDIWindow* mw = OpenMS::SpectrumMDIWindow::instance();
 	  a.setMainWidget(mw);
@@ -117,12 +117,12 @@ int main( int argc, char ** argv )
 	  int res = a.exec();
 		mw->savePreferences();
 	  return res;
-//	}
-//	catch(Exception::Base& e)
-//	{
-//		cout << "Error: Unexpected error (" << e.what() <<")"<< endl;
-//		return 1;
-//	}
+	}
+	catch(Exception::Base& e)
+	{
+		cout << "Error: Unexpected error (" << e.what() <<")"<< endl;
+		return 1;
+	}
 	
 	return 0;
 }

@@ -81,16 +81,13 @@ namespace OpenMS
 		 */
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
 		// Docu in base class
-		virtual void recalculateAxes();
+		virtual void recalculateAxes_();
 		// Docu in base class
 		virtual void invalidate_();
 		// Docu in base class
-		virtual void intensityModeChange_();
-		// Docu in base class
 		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
-		
-		void setMainPreferences(const Param& prefs);
-		
+		// Docu in base class
+		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
 	};
 	
 }//namespace

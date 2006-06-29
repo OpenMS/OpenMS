@@ -53,8 +53,8 @@ namespace OpenMS
 		marching_squares_matrices_(),
 		max_values_(),
 		show_contours_(),
-		show_colors_(),
-		show_points_(),
+		show_surface_(),
+		show_dots_(),
 		nearest_peak_(0),
 		measurement_start_(0),
 		measurement_stop_(0),
@@ -83,39 +83,39 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DCanvas::showColors(bool on)
+	void Spectrum2DCanvas::showSurface(bool on)
 	{
-		if (on != show_colors_[current_data_])
+		if (on != show_surface_[current_data_])
 		{
 			recalculate_ = true;
-			show_colors_[current_data_] = on;
+			show_surface_[current_data_] = on;
 			invalidate_();
 		}
 	}
 	
 	void Spectrum2DCanvas::showPoints(bool on)
 	{
-		if (on != show_points_[current_data_])
+		if (on != show_dots_[current_data_])
 		{
 			recalculate_ = true;
-			show_points_[current_data_] = on;
+			show_dots_[current_data_] = on;
 			invalidate_();
 		}
 	}
 	
-	bool Spectrum2DCanvas::getShowContours()
+	bool Spectrum2DCanvas::contoursAreShown()
 	{
 		return show_contours_[current_data_];
 	}
 	
-	bool Spectrum2DCanvas::getShowColors()
+	bool Spectrum2DCanvas::surfaceIsShown()
 	{
-		return show_colors_[current_data_];
+		return show_surface_[current_data_];
 	}
 	
-	bool Spectrum2DCanvas::getShowPoints()
+	bool Spectrum2DCanvas::dotsAreShown()
 	{
-		return show_points_[current_data_];
+		return show_dots_[current_data_];
 	}
 	
 	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
@@ -635,7 +635,7 @@ namespace OpenMS
 	
 
 	
-	void Spectrum2DCanvas::paintPoints_(UnsignedInt data_set, QPainter* p)
+	void Spectrum2DCanvas::paintDots_(UnsignedInt data_set, QPainter* p)
 	{
 		p->setPen(Qt::black);
 		p->setBrush(Qt::black);
@@ -650,8 +650,7 @@ namespace OpenMS
 		}
 		
 		bool isFeature = getDataSet(data_set).metaValueExists("FeatureDrawMode");
-		for (QuadTreeType_::SortedIterator i = trees_[data_set]->sortedBegin(visible_area_);
-				 i != trees_[data_set]->sortedEnd(); ++i)
+		for (QuadTreeType_::Iterator i = trees_[data_set]->begin(visible_area_); i != trees_[data_set]->end(); ++i)
 		{
 			if (!isFeature)
 			{
@@ -693,7 +692,7 @@ namespace OpenMS
 		}                
 	}
 	
-	void Spectrum2DCanvas::paintContourLines_(UnsignedInt data_set, QPainter* p)
+	void Spectrum2DCanvas::paintContours_(UnsignedInt data_set, QPainter* p)
 	{
 		if (max_values_[data_set] == 0) return;
 		
@@ -888,7 +887,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum2DCanvas::paintColorMap_(UnsignedInt data_set, QPainter* p)
+	void Spectrum2DCanvas::paintSurface_(UnsignedInt data_set, QPainter* p)
 	{
 		if (max_values_[data_set] == 0) return;
 		
@@ -1033,12 +1032,13 @@ namespace OpenMS
 			// recalculate for datasets with visible surfaces and contour lines
 			for (UnsignedInt i=0; i<getDataSetCount(); i++)
 			{
-				if (layer_visible_[i] && (show_colors_[i] || show_contours_[i]))
+				if (layer_visible_[i] && (show_surface_[i] || show_contours_[i]))
 				{
 					calculateMarchingSquareMatrix_(i);
 				}
 			}
 			recalculate_ = false;
+			recalculateSnapFactor_();
 		}
 		buffer_->fill(QColor(getPrefAsString("Preferences:2D:BackgroundColor").c_str()));
 		QPainter p(buffer_);
@@ -1053,17 +1053,17 @@ namespace OpenMS
 				//tree exists and contains points
 				if (trees_[i] && trees_[i]->begin(trees_[i]->getArea()) != trees_[i]->end())
 				{
-					if (show_colors_[i])
+					if (show_surface_[i])
 					{
-						paintColorMap_(i, &p);
+						paintSurface_(i, &p);
 					}
 					if (show_contours_[i])
 					{
-						paintContourLines_(i, &p);
+						paintContours_(i, &p);
 					}
-					if (show_points_[i])
+					if (show_dots_[i])
 					{
-						paintPoints_(i, &p);
+						paintDots_(i, &p);
 					}
 				}
 			}
@@ -1257,17 +1257,17 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::setDotMode(SignedInt mode)
 	{
-		prefs_.setValue("Preferences:Dot:Mode", mode);
+		prefs_.setValue("Preferences:2D:Dot:Mode", mode);
 	}
 	
 	SignedInt Spectrum2DCanvas::getDotMode()
 	{
-		if (prefs_.getValue("Preferences:Dot:Mode").isEmpty())
+		if (prefs_.getValue("Preferences:2D:Dot:Mode").isEmpty())
 		{
 			return 0;
 		}
 		
-		return SignedInt(prefs_.getValue("Preferences:Dot:Mode"));
+		return SignedInt(prefs_.getValue("Preferences:2D:Dot:Mode"));
 	}
 	
 	void Spectrum2DCanvas::setDotGradient(const string& gradient)
@@ -1288,7 +1288,10 @@ namespace OpenMS
 	void Spectrum2DCanvas::setMainPreferences(const Param& prefs)
 	{
 		SpectrumCanvas::setMainPreferences(prefs);
-		//TODO ???? mapping_info_.setParam(prefs.copy("Preferences:2D:Mapping:",true));
+		surface_gradient_.fromString(getPrefAsString("Preferences:2D:Surface:Gradient"));
+		recalculateSurfaceGradient_();
+		dot_gradient_.fromString(getPrefAsString("Preferences:2D:Dot:Gradient"));
+		recalculateDotGradient_();
 	}
 	
 	SignedInt Spectrum2DCanvas::finishAdding()
@@ -1301,8 +1304,8 @@ namespace OpenMS
 		//set visibility to true
 		layer_visible_.push_back(true);
 		show_contours_.push_back(false);
-		show_colors_.push_back(false);
-		show_points_.push_back(true);
+		show_surface_.push_back(false);
+		show_dots_.push_back(true);
 		
 		trees_.push_back(0);
 		
@@ -1342,7 +1345,6 @@ namespace OpenMS
 						{
 							continue;
 						}
-						
 						//cout << endl << endl << "new Spectrum Peaks: " << exp_it->size() << endl;
 						for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
 						{
@@ -1408,8 +1410,8 @@ namespace OpenMS
 		//remove settings
 		layer_visible_.erase(layer_visible_.begin()+data_set);
 		show_contours_.erase(show_contours_.begin()+data_set);
-		show_colors_.erase(show_colors_.begin()+data_set);
-		show_points_.erase(show_points_.begin()+data_set);
+		show_surface_.erase(show_surface_.begin()+data_set);
+		show_dots_.erase(show_dots_.begin()+data_set);
 		disp_ints_.erase(disp_ints_.begin()+data_set);
 		
 		//update visible area and boundaries
@@ -1487,6 +1489,39 @@ namespace OpenMS
 	
 		invalidate_();
 	}
-
+	
+	void Spectrum2DCanvas::repaintAll()
+	{				
+		recalculateDotGradient_();
+		recalculateSurfaceGradient_();
+		SpectrumCanvas::repaintAll();
+	}
+	
+	void Spectrum2DCanvas::recalculateSnapFactor_()
+	{
+		if (intensity_mode_ == IM_SNAP) 
+		{
+			double local_max  = -numeric_limits<double>::max();
+			for (UnsignedInt i=0; i<trees_.size(); i++)
+			{
+				if (layer_visible_[i])
+				{
+					for (QuadTreeType_::Iterator it = trees_[i]->begin(visible_area_); it != trees_[i]->end(); ++it)
+					{
+						if (it->second->getIntensity() > local_max)
+						{
+							local_max = it->second->getIntensity();
+						}
+					}
+				}
+			}
+			snap_factor_ = overall_data_range_.max()[2]/local_max;			
+		}
+		else
+		{ 
+			snap_factor_ = 1.0;
+		}
+	}
+	
 } //namespace
 

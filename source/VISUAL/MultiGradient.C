@@ -135,9 +135,9 @@ using namespace OpenMS::Exception;
 				map<UnsignedInt,QColor>::const_iterator it0 = it1;
 				--it0;
 				double factor = (position-it0->first)/(it1->first-it0->first);
-				return QColor(SignedInt(factor*it1->second.red()+(1-factor)*it0->second.red()) 
-				            , SignedInt(factor*it1->second.green()+(1-factor)*it0->second.green()) 
-				            , SignedInt(factor*it1->second.blue()+(1-factor)*it0->second.blue())  );
+				return QColor(SignedInt(factor*it1->second.red()+(1-factor)*it0->second.red()+0.001) 
+				            , SignedInt(factor*it1->second.green()+(1-factor)*it0->second.green()+0.001) 
+				            , SignedInt(factor*it1->second.blue()+(1-factor)*it0->second.blue()+0.001)  );
 			}
 		}
 		//stairs
@@ -153,7 +153,7 @@ using namespace OpenMS::Exception;
 
 	QColor MultiGradient::interpolatedColorAt(double position, double min, double max) const
 	{
-		return interpolatedColorAt((position-min)/(max-min)*100);
+		return interpolatedColorAt((position-min)/(max-min)*100.0);
 	}
 
 	void MultiGradient::setInterpolationMode(UnsignedInt mode)
@@ -238,15 +238,16 @@ using namespace OpenMS::Exception;
 	
 	void MultiGradient::activatePrecalculationMode(double min, double max, UnsignedInt steps)
 	{
+		pre_min_ = std::min(min,max);
+		pre_size_ = fabs(max-min);
+		pre_steps_ = steps - 1;
 		pre_.clear();
-		double step_length = fabs(max - min)/steps;
-		pre_[min] = interpolatedColorAt(0);
-		for (UnsignedInt step = 1; step < steps; ++step)
+		pre_.reserve(steps);
+		for (UnsignedInt step = 0; step < steps; ++step)
 		{
-			//cout << step << " -> "<<min+step_length*step<<endl;
-			pre_[min+step_length*step] = interpolatedColorAt(double(step)/steps*100);
+			pre_.push_back(interpolatedColorAt(step,0,pre_steps_));
+			//cout << pre_.back().red() << " " << pre_.back().green() << " " << pre_.back().blue() << endl;
 		}
-		pre_[max] = interpolatedColorAt(100);
 	}
 	
 	void MultiGradient::deactivatePrecalculationMode()
@@ -260,16 +261,10 @@ using namespace OpenMS::Exception;
 		{
 			throw OutOfSpecifiedRange(__FILE__, __LINE__, __PRETTY_FUNCTION__, position,0,0);
 		}
-			
-		//lookup
-		map<double,QColor>::const_iterator it = pre_.lower_bound(position);
-		// error handling
-		if (it==pre_.end())
-		{
-			--it;
-		}
-		//return ref
-		return it->second;
+		SignedInt tmp = static_cast<SignedInt>(pre_steps_ * (position - pre_min_) / pre_size_);
+		if (tmp <= 0.0) return pre_[0];
+		if (tmp >= pre_steps_) return pre_[pre_steps_];
+		return pre_[tmp];	
 	}
 
 	bool MultiGradient::exists (SignedInt position)
