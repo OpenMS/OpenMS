@@ -339,20 +339,6 @@ CHECK(const std::vector<PeptideHit>* getReferencingHits(String date_time, String
 RESULT
 
 CHECK(const std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iteratorT h_end, String date_time))
-	vector<ProteinIdentification> p_ids;
-
-	xml_file.load("data/tmp_mascot_in.out.mascotXML",
-							&protein_identification, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values);
-							
-	p_ids.push_back(protein_identification);
-	analysis_xml_file.store("data/try_test.analysisXML",
-							p_ids, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values);							
 							
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
