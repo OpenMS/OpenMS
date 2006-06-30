@@ -134,6 +134,7 @@ ifeq ($(ENABLE_DB),true)
 endif
 
 EXECUTABLES_FORMAT = \
+	FileHandler_test\
 	RTTI_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\

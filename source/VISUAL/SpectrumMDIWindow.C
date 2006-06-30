@@ -21,16 +21,10 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SpectrumMDIWindow.C,v 1.120 2006/06/09 22:00:08 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
-#ifdef ANDIMS_DEF
-#include <OpenMS/FORMAT/ANDIFile.h>
-#endif
 
 #ifdef DB_DEF
 #include <OpenMS/FORMAT/DBAdapter.h>
@@ -51,10 +45,7 @@
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/LayerManager.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DPeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
@@ -427,7 +418,7 @@ namespace OpenMS
 		}
 	}
 	
-	void SpectrumMDIWindow::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
+	void SpectrumMDIWindow::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
 	{
 		//for comparison
 		String filename_lower(filename);
@@ -458,7 +449,7 @@ namespace OpenMS
 					}
 					else //open it
 					{
-						w = addSpectrum1D_(filename,caption,as_new_window,use_mower);
+						w = addSpectrum1D_(filename,caption,as_new_window,use_mower,force_type);
 					}
 				}
 				// 2D Files
@@ -467,12 +458,12 @@ namespace OpenMS
 					//open in 2D view
 					if ((as_new_window && maps_as_2d) || (!as_new_window && active2DWindow_()!=0))
 					{
-						w = addSpectrum2D_(filename,caption,as_new_window,use_mower);
+						w = addSpectrum2D_(filename,caption,as_new_window,use_mower,force_type);
 					}
 					//open in 3D view
 					else if ((as_new_window && !maps_as_2d) || (!as_new_window && active3DWindow_()!=0))
 					{
-						w = addSpectrum3D_(filename,caption,as_new_window,use_mower);
+						w = addSpectrum3D_(filename,caption,as_new_window,use_mower,force_type);
 					}
 					else
 					//wrong active window type
@@ -497,12 +488,8 @@ namespace OpenMS
 	  setCursor(Qt::ArrowCursor);
 	}
 	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum1D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower /*use_mower*/)
+	SpectrumWindow* SpectrumMDIWindow::addSpectrum1D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower /*use_mower*/, FileHandler::Type force_type)
 	{
-		//for comparison
-		String filename_lower(filename);
-		filename_lower.toLower();
-		
 		Spectrum1DWindow* w1;
 		
 		//open in active window
@@ -510,25 +497,19 @@ namespace OpenMS
 		{
 			w1 = active1DWindow_();
 	
-			//DTA
-			if (filename_lower.hasSuffix(".dta"))
+			try
 			{
-				try
-				{
-					Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-					exp.setName(caption);  // set layername
-					exp.resize(1);
-					DTAFile inF;
-					inF.load(filename,exp[0]);
-					w1->widget()->canvas()->finishAdding();
-					updateLayerbar();
-				}
-				catch(Exception::Base& e)
-				{
-					//QMessageBox::warning ( this , "Error while reading DTA file", e.what());
-					cout << "Error while reading DTA file: " <<e.what()<<endl;
-					return 0;
-				}
+				Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
+				FileHandler().loadExperiment(filename, exp, force_type);
+				exp.setName(caption);  // set layername
+				w1->widget()->canvas()->finishAdding();
+				updateLayerbar();
+			}
+			catch(Exception::Base& e)
+			{
+				//QMessageBox::warning ( this , "Error while reading DTA file", e.what());
+				cout << "Error while reading DTA file: " <<e.what()<<endl;
+				return 0;
 			}
 		}
 		//open in new window
@@ -539,17 +520,12 @@ namespace OpenMS
 			//try to read the data from file
 			try
 			{			
-				//DTA
-				if (filename_lower.hasSuffix(".dta"))
-				{
-					Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-					exp.setName(caption);  // set layername
-					exp.resize(1);
-					DTAFile inF;
-					inF.load(filename,exp[0]);
-					w1->widget()->canvas()->finishAdding();
-					updateLayerbar();
-				}
+				Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
+				FileHandler().loadExperiment(filename,exp, force_type);
+				
+				exp.setName(caption);  // set layername
+				w1->widget()->canvas()->finishAdding();
+				updateLayerbar();
 			}
 			catch(Exception::Base& e)
 			{
@@ -567,7 +543,7 @@ namespace OpenMS
 		return w1;
 	}
 	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum2D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower /*use_mower*/)
+	SpectrumWindow* SpectrumMDIWindow::addSpectrum2D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower use_mower, FileHandler::Type force_type)
 	{
 		//for comparison
 		String filename_lower(filename);
@@ -594,33 +570,10 @@ namespace OpenMS
 				}
 				else
 				{
-					//do for each kind of 2D window
 					Spectrum2DCanvas::ExperimentType& exp = w2->widget()->canvas()->addEmptyDataSet();
 	
-					//DTA2D
-					if (filename_lower.hasSuffix(".dta2d"))
-					{
-						DTA2DFile().load(filename,exp);
-					}
-					//NETcdf
-					else if ((filename_lower.hasSuffix(".cdf")))
-					{
-	#ifdef ANDIMS_DEF
-						ANDIFile().load(filename,exp);
-	#endif
-					}
-					//mzXML
-					else if ((filename_lower.hasSuffix(".mzxml")))
-					{
-						MzXMLFile().load(filename,exp);
-					}
-					//mzData
-					else if ((filename_lower.hasSuffix(".mzdata")))
-					{
-						MzDataFile().load(filename,exp);
-					}
+					FileHandler().loadExperiment(filename, exp, force_type);
 	
-					//do for each kind of 2D window
 					exp.setName(caption);  // set layername
 					w2->widget()->canvas()->finishAdding();
 				}
@@ -654,32 +607,15 @@ namespace OpenMS
 				else
 				{
 					Spectrum2DCanvas::ExperimentType& exp = w2->widget()->canvas()->addEmptyDataSet();
-	
-					//DTA2D
-					if (filename_lower.hasSuffix(".dta2d"))
-					{
-						DTA2DFile().load(filename,exp);
-					}
-					//NETcdf
-					else if ((filename_lower.hasSuffix(".cdf")))
-					{
-	#ifdef ANDIMS_DEF
-						ANDIFile().load(filename,exp);
-	#endif
-					}
-					//mzXML
-					else if ((filename_lower.hasSuffix(".mzxml")))
-					{
-						MzXMLFile().load(filename,exp);
-					}
-					//mzData
-					else if ((filename_lower.hasSuffix(".mzdata")))
-					{
-						MzDataFile().load(filename,exp);
-					}
-					
-					// Do for each kind of file
+					FileHandler().loadExperiment(filename, exp, force_type);
 					exp.setName(caption);  // set layername
+					//check if we should better open a 1D window
+					if (exp.size()==1)
+					{
+						delete(w2);
+						addSpectrum1D_(filename, caption, true, use_mower, force_type)->showMaximized();
+						return 0;
+					}
 					w2->widget()->canvas()->finishAdding();
 				}
 			}
@@ -699,12 +635,8 @@ namespace OpenMS
 		return w2;
 	}
 	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum3D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower /*use_mower*/)
-	{
-		//for comparison
-		String filename_lower(filename);
-		filename_lower.toLower();
-		
+	SpectrumWindow* SpectrumMDIWindow::addSpectrum3D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower use_mower, FileHandler::Type force_type)
+	{		
 		Spectrum3DWindow* w3;
 		
 		//open in active window
@@ -713,33 +645,8 @@ namespace OpenMS
 			w3 = active3DWindow_();
 			try
 			{
-				//do for each kind of 3D window
 				Spectrum3DCanvas::ExperimentType& exp = w3->widget()->canvas()->addEmptyDataSet();
-		
-				//DTA2D
-				if (filename_lower.hasSuffix(".dta2d"))
-				{
-					DTA2DFile().load(filename,exp);
-				}
-				//NETcdf
-				else if ((filename_lower.hasSuffix(".cdf")))
-				{
-#ifdef ANDIMS_DEF
-					ANDIFile().load(filename,exp);
-#endif
-				}
-				//mzXML
-				else if ((filename_lower.hasSuffix(".mzxml")))
-				{
-					MzXMLFile().load(filename,exp);
-				}
-				//mzData
-				else if ((filename_lower.hasSuffix(".mzdata")))
-				{
-					MzDataFile().load(filename,exp);
-				}
-				
-				//do for each kind of 3D window
+				FileHandler().loadExperiment(filename, exp, force_type);
 				exp.setName(caption);  // set layername
 				w3->widget()->canvas()->finishAdding();
 				updateLayerbar();
@@ -761,31 +668,17 @@ namespace OpenMS
 			try
 			{
 				Spectrum3DCanvas::ExperimentType& exp = w3->widget()->canvas()->addEmptyDataSet();
-	
-				//DTA2D
-				if (filename_lower.hasSuffix(".dta2d"))
-				{
-					DTA2DFile().load(filename,exp);
-				}
-				//NETcdf
-				else if ((filename_lower.hasSuffix(".cdf")))
-				{
-	#ifdef ANDIMS_DEF
-					ANDIFile().load(filename,exp);
-	#endif
-				}
-				//mzXML
-				else if ((filename_lower.hasSuffix(".mzxml")))
-				{
-					MzXMLFile().load(filename,exp);
-				}
-				//mzData
-				else if ((filename_lower.hasSuffix(".mzdata")))
-				{
-					MzDataFile().load(filename,exp);
-				}
-				
+				FileHandler().loadExperiment(filename, exp, force_type);
 				exp.setName(caption);  // set layername
+
+				//check if we should better open a 1D window
+				if (exp.size()==1)
+				{
+					delete(w3);
+					addSpectrum1D_(filename, caption, true, use_mower, force_type)->showMaximized();
+					return 0;
+				}
+
 				w3->widget()->canvas()->finishAdding();
 			}
 			catch(Exception::Base& e)
@@ -1791,7 +1684,7 @@ namespace OpenMS
 			{
 				for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
 				{
-					addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower());
+					addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower(),dialog.forcedFileType());
 				}
 			}
 			else

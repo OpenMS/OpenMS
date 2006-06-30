@@ -28,13 +28,9 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#ifdef ANDIMS_DEF
-#include <OpenMS/FORMAT/ANDIFile.h>		
-#endif
+
 
 #include "TOPPBase.h"
 
@@ -83,7 +79,7 @@ class TOPPFileConverter
 					 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
 					 << "  -out_type <type>  output file type (default: determined from output file extension)" << endl
 					 << endl
-					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'cdf' (ANDI/MS)" << endl
+					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDI_MS'" << endl
 					 << "                       'feat' (features) can be converted, but will lose feature specific information" << endl
 					 << "Valid output types are: 'mzData', 'mzXML', 'DTA2D'" << endl;	
 		}
@@ -123,76 +119,52 @@ class TOPPFileConverter
 	
 			//input file names and types
 			String in = getParamAsString_("in");
-			String in_type = getParamAsString_("in_type","");
-		
-			if (in_type=="")
+			FileHandler fh;
+			FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
+			
+			if (in_type==FileHandler::UNKNOWN)
 			{
-				in_type = in.suffix('.');
+				in_type = fh.getTypeByFileName(in);
 			}	
-			in_type.toUpper();
 			
 			writeDebug_(String("Input file: ") + in, 1);
-			writeDebug_(String("Input file type: ") + in_type, 1);
+			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 1);
 	
 			//output file names and types
 			String out = getParamAsString_("out");
-			String out_type = getParamAsString_("out_type","");
-		
-			if (out_type=="")
+			FileHandler::Type out_type = fh.nameToType(getParamAsString_("out_type",""));
+			
+			if (out_type==FileHandler::UNKNOWN)
 			{
-				out_type = out.suffix('.');
-			}	
-			out_type.toUpper();
-
+				out_type = fh.getTypeByFileName(out);
+			}
+			
 			writeDebug_(String("Output file: ") + out, 1);
-			writeDebug_(String("Output file type: ") + out_type, 1);
+			writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 			
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-		
-			//load input file data
 			MSExperiment< DPeak<1> > exp;
-			if (in_type == "MZDATA")
-			{
-				MzDataFile f;
-				f.load(in,exp);			
-			}
-			else if (in_type == "MZXML")
-			{
-				MzXMLFile f;
-				f.load(in,exp);				
-			}
-			else if (in_type == "CDF")
-			{
-	#ifdef ANDIMS_DEF
-				ANDIFile f;
-				f.load(in,exp);			
-	#else
-				writeLog_( String(" Unsupported file type '") + in_type + "' given. Aborting!");
-				return INPUT_FILE_NOT_READABLE;			
-	#endif	
-			}
-			else if (in_type == "DTA2D")
-			{
-				DTA2DFile f;
-				f.load(in,exp);			
-			}
-			else if (in_type == "FEAT")
+			
+			if (in_type == FileHandler::FEATURE)
 			{
 				// This works because DFeature<DIM> is derived from DPeak<DIM>.
 				// However you will lose information and waste memory.
 				// Enough reasons to issue a warning!
 				writeLog_("Warning:  Converting features to peaks.  You will lose information!");	
-				DFeatureMapFile f;
 				DFeatureMap<2> fm;
-				f.load(in,fm);
+				DFeatureMapFile().load(in,fm);
 				fm.sortByPosition();
 				exp.set2DData(fm);
 			}
+			else if (in_type != FileHandler::UNKNOWN)
+			{
+				fh.loadExperiment(in,exp,in_type);
+			}
 			else
 			{
-				writeLog_( String("Unknown input file type '") + in_type + "' given. Aborting!");
+				writeLog_("Unknown input file type given. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;			
 			}
@@ -200,25 +172,22 @@ class TOPPFileConverter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-		
-			if (out_type == "MZDATA")
+			
+			if (out_type == FileHandler::MZDATA)
 			{
-				MzDataFile f;
-				f.store(out,exp);			
+				MzDataFile().store(out,exp);			
 			}
-			else if (out_type == "MZXML")
+			else if (out_type == FileHandler::MZXML)
 			{
-				MzXMLFile f;
-				f.store(out,exp);				
+				MzXMLFile().store(out,exp);				
 			}
-			else if (out_type == "DTA2D")
+			else if (out_type == FileHandler::DTA2D)
 			{
-				DTA2DFile f;
-				f.store(out,exp);			
+				DTA2DFile().store(out,exp);			
 			}
 			else
 			{
-				writeLog_( String("Unknown output file type '") + out_type + "' given. Aborting!");
+				writeLog_("Unknown output file type given. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;					
 			}

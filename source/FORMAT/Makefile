@@ -56,7 +56,8 @@ CPP_SOURCES= \
 	DGridFile.C\
 	RTTI.C\
 	FASTAFile.C\
-	MascotXMLFile.C
+	MascotXMLFile.C\
+	FileHandler.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

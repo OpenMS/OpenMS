@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: OpenDialog.C,v 1.9 2006/05/30 15:46:44 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
@@ -57,6 +55,12 @@ namespace OpenMS
 		if (!(bool(getPrefAsInt_("Preferences:DefaultMapView"))))
 		{
 			d3_radio->setChecked(true);
+		}
+		FileHandler fh;
+		filetypes_->insertItem("Detect automatically",0);
+		for (int i=1; i< FileHandler::SIZE_OF_TYPE; ++i)
+		{
+			filetypes_->insertItem(fh.typeToName((FileHandler::Type)(i)),i);
 		}
 	}
 	
@@ -209,6 +213,11 @@ namespace OpenMS
 		}
 		return false;	
 	}
+
+  FileHandler::Type OpenDialog::forcedFileType() const
+  {
+  	return (FileHandler::Type) (filetypes_->currentItem());
+  }
 
 }
 

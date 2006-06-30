@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: OpenDialog.h,v 1.3 2006/03/28 08:03:27 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
@@ -32,6 +30,7 @@
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/OpenDialogTemplate.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <vector>
 
@@ -52,16 +51,18 @@ namespace OpenMS
 		
 		public:
 			/// Data source
-			enum DataSource {
+			enum DataSource 
+			{
 				FILE, 	///< getNames() contains file names
 				DB      ///< getNames() contains database ids
-				};
+			};
 
-			/// Use the following mower
-			enum Mower {
+			/// Available mowers
+			enum Mower
+			{
 				NO_MOWER, 	     ///< none
 				NOISE_ESTIMATOR  ///< cut of according to noise estimator
-				};
+			};
 			
 			/// constructor
 			OpenDialog(Param& preferences, QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
@@ -78,6 +79,8 @@ namespace OpenMS
 			Mower getMower() const;
 			/// returns the location where the spectra are to be opened
 			bool isOpenAsNewTab() const;
+			/// returns the forced file type (FileHandler::UNKNOWN if none)
+			FileHandler::Type forcedFileType() const;
 			
 		protected slots:
 			/// browses filesystem or database for spectra to open

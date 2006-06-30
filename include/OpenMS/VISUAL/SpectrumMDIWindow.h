@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SpectrumMDIWindow.h,v 1.53 2006/06/09 22:32:48 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -84,8 +82,9 @@ namespace OpenMS
 				@param maps_as_2d If maps are displayed 2D or 3D
 				@param maximize If the window the new file was added to should be displayed maximized
 				@param use_mower If a mower should be used to suppress noise in the data
+				@param force_type File type to force
 			*/
-			void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+			void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
 			/**
 				@brief Opens and displays a spectrum form the database
 				
@@ -94,6 +93,7 @@ namespace OpenMS
 				@param maps_as_2d If maps are displayed 2D or 3D
 				@param maximize If the window the new file was added to should be displayed maximized
 				@param use_mower If a mower should be used to suppress noise in the data
+				@param force_type File type to force
 			*/
 			void addDBSpectrum(UnsignedInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
 
@@ -307,11 +307,11 @@ namespace OpenMS
 			QPopupMenu* recent_menu_;
 			
 			///add 1D spectrum
-			SpectrumWindow* addSpectrum1D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+			SpectrumWindow* addSpectrum1D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
 			///add 2D spectrum
-			SpectrumWindow* addSpectrum2D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+			SpectrumWindow* addSpectrum2D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
 			///add 3D spectrum
-			SpectrumWindow* addSpectrum3D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+			SpectrumWindow* addSpectrum3D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
 			
 			/// Adds the result of featurefinding to the canvas
 			void setFeatureMap_(Spectrum2DCanvas* canvas, Spectrum2DCanvas::ExperimentType& exp, String caption);

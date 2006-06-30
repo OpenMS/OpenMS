@@ -50,12 +50,11 @@
 
 /*
 	ToDo-Liste Marc:
-
-	- File-Type force/automatic
+  - FileConverter checken (mzXML als output)
 	- Features wieder einbauen
 	- Projektionen
-	- includes checken
-
+  - Mower
+  
 	TOPPView (später)
 	- 2D: Oberflächen kontinuierlich entlang RT
 	- testen, ob 2D-View mit geometric hashing besser ist

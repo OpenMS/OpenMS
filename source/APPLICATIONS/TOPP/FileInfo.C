@@ -28,13 +28,7 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#ifdef ANDIMS_DEF
-#include <OpenMS/FORMAT/ANDIFile.h>
-#endif
-
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include "TOPPBase.h"
 
@@ -122,50 +116,24 @@ class TOPPFileInfo
 	
 			//input file names and types
 			String in = getParamAsString_("in");
-			String in_type = getParamAsString_("in_type","");
-		
-			if (in_type=="")
+			FileHandler fh;
+			FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
+			
+			if (in_type==FileHandler::UNKNOWN)
 			{
-				in_type = in.suffix('.');
+				in_type = fh.getTypeByFileName(in);
 			}	
-			in_type.toUpper();
 			
 			writeDebug_(String("Input file: ") + in, 1);
-			writeDebug_(String("Input file type: ") + in_type, 1);
+			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 1);
 			
 			//-------------------------------------------------------------
 			// loading file
 			//-------------------------------------------------------------
-
 			MSExperiment< DPeak<1> > exp;
-			if (in_type == "MZDATA")
+			if (! fh.loadExperiment(in,exp,in_type) )
 			{
-				MzDataFile f;
-				f.load(in,exp);			
-			}
-			else if (in_type == "MZXML")
-			{
-				MzXMLFile f;
-				f.load(in,exp);				
-			}
-			else if (in_type == "CDF")
-			{
-	#ifdef ANDIMS_DEF
-				ANDIFile f;
-				f.load(in,exp);			
-	#else
-				writeLog_( String(" Unsupported file type '") + in_type + "' given. Aborting!");
-				return INPUT_FILE_NOT_READABLE;		
-	#endif
-			}
-			else if (in_type == "DTA2D")
-			{
-				DTA2DFile f;
-				f.load(in,exp);			
-			}
-			else
-			{
-				writeLog_( String("Unknown input file type '") + in_type + "' given. Aborting!");
+				writeLog_("Unknown input file type given. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;			
 			}
@@ -180,7 +148,7 @@ class TOPPFileInfo
 			
 			cout << endl
 					 << "file name: " << in << endl
-					 << "file type: " << in_type << endl
+					 << "file type: " <<  fh.typeToName(in_type) << endl
 					 << endl
 					 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
 					 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
