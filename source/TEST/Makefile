@@ -67,7 +67,6 @@ EXECUTABLES_METADATA = \
 	Instrument_test\
 	ProteinHit_test\
 	PeptideHit_test\
-	Identification_test\
 	SampleTreatment_test\
 	Digestion_test\
 	Modification_test\
