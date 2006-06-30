@@ -239,51 +239,6 @@ CHECK(void setAccessionType(const std::string& accession_type))
 	TEST_EQUAL(ptr1->getAccessionType(), accession_type)
 RESULT
 
-CHECK(addPeptideIndex(const uint& index))
-	vector<uint> indices;
-	indices.push_back(1); 
-	indices.push_back(2); 
-	indices.push_back(3);
-	ptr1 = new ProteinHit();
-	ptr1->addPeptideIndex(1);
-	ptr1->addPeptideIndex(1);
-	TEST_EQUAL(ptr1->getPeptideIndices().size(), 1);
-	ptr1->addPeptideIndex(2);
-	ptr1->addPeptideIndex(3);
-	TEST_EQUAL(ptr1->getPeptideIndices() == indices, true)
-RESULT
-
-CHECK(const vector<uint>& getPeptideIndices() const)
-vector<uint> indices;
-	indices.push_back(1); 
-	indices.push_back(2); 
-	indices.push_back(3);
-	ptr1 = new ProteinHit();
-	ptr1->addPeptideIndex(1);
-	ptr1->addPeptideIndex(2);
-	ptr1->addPeptideIndex(3);
-	TEST_EQUAL(ptr1->getPeptideIndices() == indices, true);
-RESULT
-
-CHECK(const vector<uint>& updatePeptideIndices() const)
-	vector<UnsignedInt> indices;
-	vector<UnsignedInt> indices_new;
-	indices.push_back(1); 
-	indices.push_back(2); 
-	indices.push_back(3);
-	indices.push_back(4);
-	indices.push_back(5);
-	indices.push_back(6);
-	indices_new.push_back(3);
-	indices_new.push_back(5);
-
-	ptr1 = new ProteinHit();
-	ptr1->setPeptideIndices(indices);
-	ptr1->updatePeptideIndices(indices_new);
-	TEST_EQUAL(ptr1->getPeptideIndices()[0], 0);
-	TEST_EQUAL(ptr1->getPeptideIndices()[1], 1);
-RESULT
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
