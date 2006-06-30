@@ -329,11 +329,13 @@ namespace OpenMS
 		std::vector<PeakType> last_scan_;
 		
 		/// Estimates the signal to noise ratio 
+		/// TODO: Set parameters for noise estimator from outside
 		DSignalToNoiseEstimatorWindowing<2> sn_estimator_;
-		//sn_estimator_.setWindowSize(1000);
 		
+		#ifdef DEBUG_FEATUREFINDER
 		String gp_fname("sn_ratios.txt");
 		ofstream outfile( gp_fname.c_str() );
+		#endif 
 		
 		// estimate s/n ratios
 		for(PeakVector::const_iterator citer = peaks_.begin();
@@ -354,9 +356,14 @@ namespace OpenMS
 					{
 						// save s/n values
 						double sn = sn_estimator_.getSignalToNoise(cit);
-						if (sn < 0)  sn = 0;
-						sn_ratios_.push_back(sn);
+						// Oles super bugfix
+						if (sn < 0)  sn = 1;
+						sn_ratios_.push_back(log10(sn));
+						
+						#ifdef DEBUG_FEATUREFINDER
 						outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+						#endif
+						
 					}
 					// empty container
 					last_scan_.clear();
@@ -376,12 +383,17 @@ namespace OpenMS
 		{
 			// save s/n values
 			sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
+			
+			#ifdef DEBUG_FEATUREFINDER
 			outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+			#endif
 		}
 		// empty container
 		last_scan_.clear();
 		
+		#ifdef DEBUG_FEATUREFINDER
 		outfile.close();
+		#endif
 					
 	}	// end sortData()
 		
@@ -392,14 +404,13 @@ namespace OpenMS
 		// write feature + surrounding region to file
 		if (!last)
 		{	
-				String gp_fname("plot.gp");
-				ofstream gpfile( gp_fname.c_str(), std::ios_base::app  );
+			String gp_fname("plot.gp");
+			ofstream gpfile( gp_fname.c_str(), std::ios_base::app  );
 				  			
-  			String file_pl = "feature" + String(nr_feat);
-  			String file    = "feature" + String(nr_feat);
+  			String file    = "region" + String(nr_feat);
   		
   			// write feature to output stream
-  			gpfile << "replot \'" << file_pl << "\' w i title \"\" " << std::endl;
+  			gpfile << "replot \'" << file << "\' w i title \"\" " << std::endl;
   			 			
   			ofstream myfile(file.c_str()); // data file
   			IndexSet::const_iterator citer = peaks.begin();
@@ -410,7 +421,7 @@ namespace OpenMS
   				citer++;
   			}
   			myfile.close();
-  	  	gpfile.close();	
+  	  		gpfile.close();	
   	  	
 		} else {
 

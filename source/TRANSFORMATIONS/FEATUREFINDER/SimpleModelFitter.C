@@ -278,12 +278,10 @@ namespace OpenMS
 		f.setIntensity(peak_sum);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 		
-		//	#ifdef DEBUG_FEATUREFINDER
 		std::cout << Date::now() << " Feature " << counter_  
 							<< ": (" << f.getPosition()[RT]
 							<< "," << f.getPosition()[MZ] << ") Qual.:"
 							<< max_quality << "\n";
-		//	#endif
 		
 		f.setIntensity(peak_sum);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
@@ -303,7 +301,7 @@ namespace OpenMS
 		// the following code is only executed if debug flag is set.
 		#ifdef DEBUG_FEATUREFINDER
 
-		String fname = "feat"+String(counter_);
+		String fname = "model"+String(counter_);
 		ofstream file(fname.c_str()); // gnuplot file with feature model
 
 		DPeakArray<2> dpa;
@@ -313,14 +311,14 @@ namespace OpenMS
 			file << it->getPosition()[RT] << " " << it->getPosition()[MZ] << " "
 					<< it->getIntensity() << "\n";
 
-		fname = "cut"+String(counter_);
+		fname = "region_cut"+String(counter_);
 		ofstream file2(fname.c_str()); // gnuplot file with peaks after cutoff
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) {
 			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
 			{
 				const DRawDataPoint<2>& p = traits_->getPeak(*it);
 				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " "
-						<< final->getIntensity(p.getPosition()) << "\n";
+						<< p.getIntensity() << "\n";
 			}
 		}
 		#endif

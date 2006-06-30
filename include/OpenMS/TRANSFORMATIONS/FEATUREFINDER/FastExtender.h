@@ -193,7 +193,8 @@ namespace OpenMS
   	
   	/// This flag indicates whether the first seed has already been processed. 
   	bool first_seed_seen_;
-    	
+    
+	/// Tolerance of the sum of intensities in the feature regions	
   	double intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
@@ -209,36 +210,38 @@ namespace OpenMS
   	std::priority_queue<IndexWithPriority, 
   	            				std::vector<IndexWithPriority>, 
   	           					IndexWithPriority::PriorityLess> boundary_;    
-  	           					
-  	/*MutablePriorityQueue<IndexWithPriority, 
-  	                    std::vector<IndexWithPriority>, 
-  	                    IndexWithPriority::PriorityLess,
-  	                    IndexMap > boundary_; */ 	            
-  	             			
+  	
+	/// Interpolates the priority of a peak in rt	             			
   	LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
-		LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
+	/// Interpolates the priority of a peak in mz
+	LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
 		
-		UnsignedInt nr_peaks_seen_;
-		
-		IntensityType intensity_sum_;
+	/// Counts the number of peak we encountered so far
+	UnsignedInt nr_peaks_seen_;
+	
+	/// The sum of the peaks in the feature region
+	IntensityType intensity_sum_;
   	
+	/// A moving average of the intensities collected so far
   	std::vector<IntensityType> moving_avg_;
   	
+	/// The last moving average we computed 
   	IntensityType last_avg_;
   	
+	/// The tolerance of the average intensities
   	IntensityType intensity_avg_tol_;  	
   	
   	float dist_mz_up_; 
-		float dist_mz_down_; 
-		float dist_rt_up_; 
-		float dist_rt_down_;   	
-		
-		float priority_threshold_;
-		
-		float extension_baseline_;
-		
-		void init_();
+	float dist_mz_down_; 
+	float dist_rt_up_; 
+	float dist_rt_down_;   	
+	
+	/// Peaks with intensity below this baseline are ignored		
+	float extension_baseline_;
+	
+	/// Initializes the extender class.
+	void init_();
 		
   };
 }

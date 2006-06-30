@@ -56,6 +56,7 @@
 #include <sstream>
 #include <string>
 #include <limits>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -72,7 +73,7 @@ namespace OpenMS
   public:  
   
   	/// Defines the coordinates of peaks / features.
-		enum DimensionId
+	enum DimensionId
 		{
 			RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
 			MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
@@ -115,13 +116,11 @@ namespace OpenMS
     /// set iterator range as data for FeatureFinder
     template <class ConstPeakIterator>
     void setData(ConstPeakIterator begin, ConstPeakIterator end) 
-    {
-    	  	
+    {    	  	
     	for (ConstPeakIterator it=begin; it!=end;++it)
    		{
       	addSinglePeak(*it);
-   		} 
-   		
+   		}    		
    		// sorts the peak data
    		sortData_();
     }
@@ -186,14 +185,13 @@ namespace OpenMS
     UnsignedInt getPrevRt(const UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor);
 
     /// run main loop
-    const FeatureVector& run(
-			const std::vector<BaseSeeder*>& seeders,
-    	    const std::vector<BaseExtender*>& extenders,
-			const std::vector<BaseModelFitter*>& fitters);
+    const FeatureVector& run(const std::vector<BaseSeeder*>& seeders,
+    	    							  const std::vector<BaseExtender*>& extenders,
+			                              const std::vector<BaseModelFitter*>& fitters);
 
        /** @brief Calculate the convex hull of the peaks contained in @p set
 		  
-				Uses the gift wrap algorithm 
+			Uses the gift wrap algorithm 
 		*/
 		const ConvexHullType calculateConvexHull(const IndexSet& set);
 		

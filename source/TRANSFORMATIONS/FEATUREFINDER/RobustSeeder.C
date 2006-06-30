@@ -72,7 +72,7 @@ namespace OpenMS
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_);
 		}		
 		std::cout << " Processing seed " << nr_seeds_
-		          << " with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
+		              << " with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
 												
 		// if the intensity of the next seed is below this threshold,
 		// seeding stops and we throw an execption.

@@ -59,5 +59,5 @@ include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
-#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
+ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
  

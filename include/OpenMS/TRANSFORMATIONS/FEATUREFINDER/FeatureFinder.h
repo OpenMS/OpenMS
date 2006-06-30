@@ -155,7 +155,7 @@ namespace OpenMS
     /// start feature finding 
     const FeatureVector& run();
 
-		friend std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
+	friend std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
 
   protected:
 

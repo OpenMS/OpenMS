@@ -36,7 +36,7 @@ namespace OpenMS
 	FastExtender::FastExtender() : BaseExtender(),
 	first_seed_seen_(false), last_extracted_(0), 
 	nr_peaks_seen_(0), intensity_sum_(0), moving_avg_(), 
-	last_avg_(0), priority_threshold_(-1)
+	last_avg_(0)
 	{
 		name_ = FastExtender::getName();
 		defaults_.setValue("tolerance_rt",2.0f);
@@ -45,13 +45,14 @@ namespace OpenMS
 		defaults_.setValue("dist_mz_down",2.0f);
 		defaults_.setValue("dist_rt_up",5.0f);
 		defaults_.setValue("dist_rt_down",5.0f);
-		defaults_.setValue("priority_thr",0.01f);
 		defaults_.setValue("intensity_factor",0.001f);
 		defaults_.setValue("intensity_avg_tolerance",500.0f);
 		defaults_.setValue("extension_baseline",300.0f);
 		defaults_.setValue("moving_avg_size",10);
 				
 		param_ = defaults_;
+		
+		std::cout << "Starting FastExtender..." << std::endl;
 		
 		init_();
 	}
@@ -71,8 +72,7 @@ namespace OpenMS
 		dist_rt_down_ = param_.getValue("dist_rt_down");
 		
 		extension_baseline_ = param_.getValue("extension_baseline");			
-		priority_threshold_ = param_.getValue("priority_thr");
-
+		
 		// initialise distributions to interpolate the priority
 		score_distribution_rt_.getData().push_back(1.0);
 		score_distribution_rt_.setScale(tol_rt);
@@ -81,24 +81,19 @@ namespace OpenMS
 		score_distribution_mz_.getData().push_back(1.0);
 		score_distribution_mz_.setScale(tol_mz);
 		score_distribution_mz_.setOffset(0);
-		
-		// reserve enough space in mutable queue
-		//unsigned int peak_nr = traits_->getNumberOfPeaks();
-		//boundary_.reserve(peak_nr);						
+				
 	}
 
   const IndexSet& FastExtender::extend(const UnsignedInt seed_index)
-  {
-  	
+  {  	
 		// empty region and boundary datastructures
 		region_.clear();
-		//boundary_.clear(); // works only with mutable queue
 		while (boundary_.size() > 0) boundary_.pop();
 		priorities_.clear();
 		running_avg_.clear();
 		
-		nr_peaks_seen_       = 0;
-		intensity_sum_       = 0;
+		nr_peaks_seen_  = 0;
+		intensity_sum_    = 0;
 		last_avg_            = 0;
 				
 		// remember last peak to be extracted from the boundary
@@ -118,16 +113,16 @@ namespace OpenMS
 			IndexWithPriority const index_priority = boundary_.top();
 			boundary_.pop();
 			
-			nr_peaks_seen_++;
+			++nr_peaks_seen_;
 									
 			UnsignedInt const current_index       = index_priority.index;
 			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
 						
 			// remember last peak to be extracted from the boundary
 			last_extracted_ = current_index;
-						
+		
 			double intensity_thr = intensity_factor_ * intensity_sum_;
-			if (current_intensity < intensity_thr) 
+			if (current_intensity < intensity_thr && current_intensity < extension_baseline_) 
 			{
 				std::cout << "Skipping peak : current intensity: " << current_intensity << " threshold: " << intensity_thr << std::endl;	
 				continue;
@@ -150,16 +145,15 @@ namespace OpenMS
 				continue;
 			}
 			last_avg_ = intens_avg;
-			
-					
+		
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
 			
 			// get position of current peak
 			FeaFiTraits::PositionType const curr_pos = traits_->getPeak(current_index).getPosition();
-			// and add it to the current average of positions weighted by the intensity
-			running_avg_.add(curr_pos,current_intensity);
+			// and add it to the current average of positions weighted by intensity
+			running_avg_.add(curr_pos);
 			
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
@@ -175,6 +169,7 @@ namespace OpenMS
 			
 			intensity_sum_ += current_intensity;
 			
+			// update moving average of collected intensities
 			if (moving_avg_.size() == (unsigned int)param_.getValue("moving_avg_size") )
 			{
 				moving_avg_.erase(moving_avg_.begin());
@@ -208,7 +203,9 @@ namespace OpenMS
 				 current_rt < curr_mean[RT] - dist_rt_down_ )
 			{
 				return true;
+				std::cout << "FastExtender: Too far from centroid !! " << std::endl;
 			}
+	
 		return false;
 	}	
 	
@@ -319,32 +316,20 @@ namespace OpenMS
 		// we don't care about points with intensity zero
 		if (traits_->getPeakIntensity(current_index) == 0) return;
 			
-		if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED 
-		    /*&& !isTooFarFromCentroid_(current_index)*/ ) 
+		if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED) 
 		{
+			// is this point allready contained in the boundary??
 			std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
 			double pr_new = computePeakPriority_(current_index); 
 													
 			if (piter == priorities_.end()) // not yet in boundary
 			{
-				if (pr_new > priority_threshold_) // check if priority larger than threshold
-				{
 					priorities_[current_index] = pr_new;
 					IndexWithPriority peak(current_index,pr_new);
 					boundary_.push(peak);	// add to boundary
-				} 
 			} 
-			/*else // already in boundary
-			{
-				double pr_curr = piter->second;
-				if (pr_new > pr_curr) // update priority only if larger than old one.
-				{
-					priorities_[current_index] = pr_new;
-					IndexWithPriority peak(current_index,pr_new);
-					boundary_.update(peak);	 // update boundary
-				} 
-			} // end if (piter == priorities_.end())
-*/				
+			else std::cout << "Already in boundary !! " << std::endl;
+			
 		} // end if traits_->...		
 	}
 	
