@@ -483,6 +483,7 @@ namespace OpenMS
 															date_times);
 
 						} // peptide_hits_it
+						delete referencing_peptide_hits;
 					} // identifications
 					os	<< "\t\t\t\t<userParam name=\"protein_identification_index\" value=\"" 
 					   << j << "\"/>\n"
@@ -551,6 +552,7 @@ namespace OpenMS
 															date_times);
 
 						} // peptide_hits_it
+						delete referencing_peptide_hits;
 					} // identifications
 					os  << "\t\t\t<userParam name=\"identification_index\" value=\""
 							<< j << "\"/>\n"
@@ -620,6 +622,7 @@ namespace OpenMS
 												const_identifications_[i].getDateTime(),
 												date_times);
 			}
+			delete non_referencing_peptide_hits;
 		}
 
 		os << "\t</ident>\n"
