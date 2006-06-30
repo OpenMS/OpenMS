@@ -128,7 +128,8 @@ CHECK(void today())
 RESULT
 
 CHECK(~DateTime())
-  // ???
+	s_ptr = new DateTime();
+	delete s_ptr;
 RESULT
 
 

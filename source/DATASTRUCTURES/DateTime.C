@@ -154,7 +154,7 @@ namespace OpenMS
 			date = date + "0";
 		}
 		date = date + String(minute_) + ":";
-		if (minute_ < 10)
+		if (second_ < 10)
 		{
 			date = date + "0";			
 		}
