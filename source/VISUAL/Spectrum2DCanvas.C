@@ -204,10 +204,21 @@ namespace OpenMS
 					
 					if (measurement_start_)
 					{
+						if (isMzToXAxis())
+						{
+							emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
+																		.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
+																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
+																		.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
+						}
+						else
+						{
 						emit sendStatusMessage(QString("Measured: dRT = %3, dMZ = %1, Intensity ratio = %2")
-																	.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
-																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																	.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
+																		.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
+																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
+																		.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
+									
+						}
 					}
 				}
 				break;
@@ -427,8 +438,8 @@ namespace OpenMS
 					
 					if (max_peak && max_peak != nearest_peak_ && !measurement_start_)
 					{
-						//show Peak Coordinates (with intensity)
-						emit sendCursorStatus(max_peak->getPosition()[MZ], max_peak->getIntensity(), max_peak->getPosition()[RT]);
+						//show Peak Coordinates
+						emit sendCursorStatus(max_peak->getPosition()[RT], max_peak->getIntensity(), max_peak->getPosition()[MZ]);
 						string meta = max_peak->getMetaValue(3).toString();
 						if (meta!="")
 							sendStatusMessage(meta, 0);
@@ -460,7 +471,7 @@ namespace OpenMS
 			{
 				//show Peak Coordinates
 				PointType pnt = widgetToData_(pos);
-				emit sendCursorStatus( pnt[MZ], -1.0, pnt[RT]);
+				emit sendCursorStatus( pnt[RT], -1.0, pnt[MZ]);
 	      //set Cursor
 	      setCursor(Qt::CrossCursor);
 				
@@ -1292,6 +1303,10 @@ namespace OpenMS
 		recalculateSurfaceGradient_();
 		dot_gradient_.fromString(getPrefAsString("Preferences:2D:Dot:Gradient"));
 		recalculateDotGradient_();
+		if (getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo") != "X-Axis")
+		{
+			mzToXAxis(false);
+		}
 	}
 	
 	SignedInt Spectrum2DCanvas::finishAdding()
@@ -1326,18 +1341,16 @@ namespace OpenMS
 			//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
 			//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
 			
-			AreaType tmp;
-			tmp.assign(overall_data_range_);
+			AreaType tmp_area;
+			tmp_area.assign(overall_data_range_);
 			
-			if (tmp != visible_area_)
-			{ 
-				visible_area_.assign(overall_data_range_);
-				
+			if (tmp_area != visible_area_)
+			{		
 				bool insertion_error = false;
 				
 				for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 				{
-					QuadTreeType_* new_tree = new QuadTreeType_(visible_area_);
+					QuadTreeType_* new_tree = new QuadTreeType_(tmp_area);
 	
 					for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
 					{
@@ -1369,7 +1382,7 @@ namespace OpenMS
 				}
 				if (insertion_error)
 				{
-					cout << "Warning: Multiple similar peak positions in one data set!" << endl;
+					cout << "Warning: Multiple identical peak positions in one data set!" << endl;
 				}
 				//cout << "Peaks added!" << endl;
 			}
@@ -1520,6 +1533,62 @@ namespace OpenMS
 		else
 		{ 
 			snap_factor_ = 1.0;
+		}
+	}
+
+	void Spectrum2DCanvas::updateScrollbars_()
+	{
+		if (isMzToXAxis())
+		{
+			emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+			emit updateVScrollbar(overall_data_range_.min()[1],visible_area_.min()[1],visible_area_.max()[1],overall_data_range_.max()[1]);
+		}
+		else
+		{
+			emit updateVScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+			emit updateHScrollbar(overall_data_range_.min()[1],visible_area_.min()[1],visible_area_.max()[1],overall_data_range_.max()[1]);
+		}
+	}
+
+	void Spectrum2DCanvas::horizontalScrollBarChange(int value)
+	{
+		AreaType new_area = visible_area_;
+		if (isMzToXAxis())
+		{
+			new_area.setMinX(value);
+			new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
+			changeVisibleArea_(new_area);
+		}
+		else
+		{
+			new_area.setMinY(value);
+			new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
+			changeVisibleArea_(new_area);
+		}
+	}
+
+	void Spectrum2DCanvas::verticalScrollBarChange(int value)
+	{
+		AreaType new_area = visible_area_;
+		if (!isMzToXAxis())
+		{
+			double range = (overall_data_range_.maxX() - overall_data_range_.minX())- (visible_area_.maxX() - visible_area_.minX());
+			double newval = (1.0 - (double(value) - overall_data_range_.minX()) / range )* range + overall_data_range_.minX();
+			//cout << value << " " << newval << " " << newval + (visible_area_.maxX() - visible_area_.minX()) << endl;
+			//cout << "Min: " <<  overall_data_range_.minX() << " Range: " << range << endl << endl;
+			new_area.setMinX(newval);
+			new_area.setMaxX(newval + (visible_area_.maxX() - visible_area_.minX()));
+			changeVisibleArea_(new_area);
+		}
+		else
+		{
+			double range = (overall_data_range_.maxY() - overall_data_range_.minY())- (visible_area_.maxY() - visible_area_.minY());
+			double newval = (1.0 - (double(value) - overall_data_range_.minY()) / range )* range + overall_data_range_.minY();
+			//cout << value << " " << newval << " " << newval + (visible_area_.maxY() - visible_area_.minY()) << endl;
+			//cout << "Min: " <<  overall_data_range_.minY() << " Range: " << range << endl << endl;
+			new_area.setMinY(newval);
+			new_area.setMaxY(newval + (visible_area_.maxY() - visible_area_.minY()));
+			changeVisibleArea_(new_area);
 		}
 	}
 	

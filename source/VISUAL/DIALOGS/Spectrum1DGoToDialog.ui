@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>Spectrum1DGoToDialogTemplate</class>
 <widget class="QDialog">
     <property name="name">
@@ -8,142 +8,155 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>398</width>
-            <height>199</height>
+            <width>307</width>
+            <height>173</height>
         </rect>
     </property>
     <property name="caption">
         <string>go to</string>
     </property>
-    <grid>
+    <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>unnamed</cstring>
+            <cstring>layout2</cstring>
         </property>
-        <widget class="QPushButton" row="5" column="2">
+        <property name="geometry">
+            <rect>
+                <x>6</x>
+                <y>6</y>
+                <width>295</width>
+                <height>160</height>
+            </rect>
+        </property>
+        <grid>
             <property name="name">
-                <cstring>setVisibleAreaButton</cstring>
+                <cstring>unnamed</cstring>
             </property>
-            <property name="text">
-                <string>go</string>
-            </property>
-        </widget>
-        <widget class="QPushButton" row="1" column="2">
-            <property name="name">
-                <cstring>gotoButton</cstring>
-            </property>
-            <property name="text">
-                <string>go</string>
-            </property>
-        </widget>
-        <widget class="QLineEdit" row="1" column="1">
-            <property name="name">
-                <cstring>centerPositionLineEdit</cstring>
-            </property>
-            <property name="sizePolicy">
-                <sizepolicy>
-                    <hsizetype>3</hsizetype>
-                    <vsizetype>0</vsizetype>
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                </sizepolicy>
-            </property>
-            <property name="maximumSize">
-                <size>
-                    <width>100</width>
-                    <height>32767</height>
-                </size>
-            </property>
-            <property name="alignment">
-                <set>AlignAuto</set>
-            </property>
-        </widget>
-        <widget class="QLabel" row="0" column="0">
-            <property name="name">
-                <cstring>textLabel2</cstring>
-            </property>
-            <property name="font">
-                <font>
-                    <bold>1</bold>
-                </font>
-            </property>
-            <property name="text">
-                <string>Center to position</string>
-            </property>
-        </widget>
-        <widget class="QLabel" row="1" column="0">
-            <property name="name">
-                <cstring>textLabel1</cstring>
-            </property>
-            <property name="text">
-                <string>position:</string>
-            </property>
-        </widget>
-        <widget class="QLabel" row="3" column="0">
-            <property name="name">
-                <cstring>textLabel2_2</cstring>
-            </property>
-            <property name="font">
-                <font>
-                    <bold>1</bold>
-                </font>
-            </property>
-            <property name="text">
-                <string>Show range</string>
-            </property>
-        </widget>
-        <widget class="QLabel" row="4" column="0">
-            <property name="name">
-                <cstring>textLabel4</cstring>
-            </property>
-            <property name="text">
-                <string>left:</string>
-            </property>
-        </widget>
-        <widget class="QLabel" row="5" column="0">
-            <property name="name">
-                <cstring>textLabel5</cstring>
-            </property>
-            <property name="text">
-                <string>right:</string>
-            </property>
-        </widget>
-        <widget class="QLineEdit" row="4" column="1">
-            <property name="name">
-                <cstring>minPositionLineEdit</cstring>
-            </property>
-            <property name="maximumSize">
-                <size>
-                    <width>100</width>
-                    <height>32767</height>
-                </size>
-            </property>
-        </widget>
-        <widget class="QLineEdit" row="5" column="1">
-            <property name="name">
-                <cstring>maxPositionLineEdit</cstring>
-            </property>
-            <property name="maximumSize">
-                <size>
-                    <width>100</width>
-                    <height>32767</height>
-                </size>
-            </property>
-        </widget>
-        <widget class="Line" row="2" column="0" rowspan="1" colspan="3">
-            <property name="name">
-                <cstring>line2</cstring>
-            </property>
-            <property name="frameShape">
-                <enum>HLine</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="orientation">
-                <enum>Horizontal</enum>
-            </property>
-        </widget>
-    </grid>
+            <widget class="QLineEdit" row="4" column="1">
+                <property name="name">
+                    <cstring>minPositionLineEdit</cstring>
+                </property>
+                <property name="maximumSize">
+                    <size>
+                        <width>100</width>
+                        <height>32767</height>
+                    </size>
+                </property>
+            </widget>
+            <widget class="QLabel" row="4" column="0">
+                <property name="name">
+                    <cstring>textLabel4</cstring>
+                </property>
+                <property name="text">
+                    <string>begin:</string>
+                </property>
+            </widget>
+            <widget class="QLabel" row="3" column="0">
+                <property name="name">
+                    <cstring>textLabel2_2</cstring>
+                </property>
+                <property name="font">
+                    <font>
+                        <bold>1</bold>
+                    </font>
+                </property>
+                <property name="text">
+                    <string>Show range</string>
+                </property>
+            </widget>
+            <widget class="QLabel" row="1" column="0">
+                <property name="name">
+                    <cstring>textLabel1</cstring>
+                </property>
+                <property name="text">
+                    <string>m/z:</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="5" column="1">
+                <property name="name">
+                    <cstring>maxPositionLineEdit</cstring>
+                </property>
+                <property name="maximumSize">
+                    <size>
+                        <width>100</width>
+                        <height>32767</height>
+                    </size>
+                </property>
+            </widget>
+            <widget class="QLabel" row="0" column="0">
+                <property name="name">
+                    <cstring>textLabel2</cstring>
+                </property>
+                <property name="font">
+                    <font>
+                        <bold>1</bold>
+                    </font>
+                </property>
+                <property name="text">
+                    <string>Center to position</string>
+                </property>
+            </widget>
+            <widget class="QPushButton" row="1" column="2">
+                <property name="name">
+                    <cstring>gotoButton</cstring>
+                </property>
+                <property name="text">
+                    <string>go</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="1" column="1">
+                <property name="name">
+                    <cstring>centerPositionLineEdit</cstring>
+                </property>
+                <property name="sizePolicy">
+                    <sizepolicy>
+                        <hsizetype>3</hsizetype>
+                        <vsizetype>0</vsizetype>
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                    <size>
+                        <width>100</width>
+                        <height>32767</height>
+                    </size>
+                </property>
+                <property name="alignment">
+                    <set>AlignAuto</set>
+                </property>
+            </widget>
+            <widget class="QPushButton" row="5" column="2">
+                <property name="name">
+                    <cstring>setVisibleAreaButton</cstring>
+                </property>
+                <property name="text">
+                    <string>go</string>
+                </property>
+            </widget>
+            <widget class="Line" row="2" column="0" rowspan="1" colspan="3">
+                <property name="name">
+                    <cstring>line2</cstring>
+                </property>
+                <property name="frameShape">
+                    <enum>HLine</enum>
+                </property>
+                <property name="frameShadow">
+                    <enum>Sunken</enum>
+                </property>
+                <property name="orientation">
+                    <enum>Horizontal</enum>
+                </property>
+            </widget>
+            <widget class="QLabel" row="5" column="0">
+                <property name="name">
+                    <cstring>textLabel5</cstring>
+                </property>
+                <property name="text">
+                    <string>end:</string>
+                </property>
+            </widget>
+        </grid>
+    </widget>
 </widget>
 <connections>
     <connection>

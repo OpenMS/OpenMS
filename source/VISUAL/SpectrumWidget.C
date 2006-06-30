@@ -34,6 +34,7 @@
 #include <qaction.h>
 #include <qlayout.h>
 #include <qimage.h>
+#include <qscrollbar.h>
 
 #include <iostream>
 
@@ -47,46 +48,40 @@ namespace OpenMS
 			canvas_(0),
 			spectrum_window_(0)
 	{
-		grid_ = new QGridLayout(this, 2, 2);
+		grid_ = new QGridLayout(this, 3, 3);
 		
 		//add axes
-		QVBoxLayout* vbox = new QVBoxLayout();
-		QHBoxLayout* hbox = new QHBoxLayout();
 		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);
 		x_axis_ = new AxisWidget(AxisWidget::BOTTOM, "",this);
-		y_axis_->setPaletteBackgroundColor(backgroundColor());
-		x_axis_->setPaletteBackgroundColor(backgroundColor());
-		vspacer_ = new QWidget(this);
-		hspacer_ = new QWidget(this);
-		vspacer_->hide();
-		hspacer_->hide();
-		vspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed));
-		hspacer_->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum));
-		vbox->addWidget(y_axis_);
-		vbox->addWidget(vspacer_);
-		hbox->addWidget(x_axis_);
-		hbox->addWidget(hspacer_);
-		grid_->addLayout(vbox, 0, 0);
-		grid_->addLayout(hbox, 1, 1);
-		grid_->setRowStretch(0,20);
-		grid_->setRowStretch(1,1);
-		grid_->setColStretch(0,1);
-		grid_->setColStretch(1,20);
-//		vspacer_->setBackgroundColor(Qt::red); //For debugging
-//		hspacer_->setBackgroundColor(Qt::red); //For debugging
-//		x_axis_->setBackgroundColor(Qt::green); //For debugging
-//		y_axis_->setBackgroundColor(Qt::green); //For debugging
+		grid_->addWidget(y_axis_,0,1);
+		grid_->addWidget(x_axis_,1,2);
+//	x_axis_->setBackgroundColor(Qt::green); //For debugging
+//	y_axis_->setBackgroundColor(Qt::green); //For debugging
+
+		//add scrollbars
+		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
+		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
+		grid_->addWidget(y_scrollbar_,0,0);
+		grid_->addWidget(x_scrollbar_,2,2);		
+		x_scrollbar_->hide();
+		y_scrollbar_->hide();
 	}
 	
 	
 	void SpectrumWidget::setCanvas(SpectrumCanvas* canvas)
 	{
 		canvas_ = canvas;
-		grid_->addWidget(canvas_, 0, 1);
+		grid_->addWidget(canvas_, 0, 2);
 	
 		connect(canvas_, SIGNAL(contextMenu(QPoint)), this, SIGNAL(contextMenu(QPoint)));
+		//axes
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
 		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
+		//scrollbars
+		connect(canvas_, SIGNAL(updateHScrollbar(float,float,float,float)), this, SLOT(updateHScrollbar(float,float,float,float)));
+		connect(canvas_, SIGNAL(updateVScrollbar(float,float,float,float)), this, SLOT(updateVScrollbar(float,float,float,float)));
+		connect(x_scrollbar_, SIGNAL(sliderMoved(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
+		connect(y_scrollbar_, SIGNAL(sliderMoved(int)), canvas_, SLOT(verticalScrollBarChange(int)));
 		
 		canvas_->setSpectrumWidget(this);
 	}
@@ -190,23 +185,18 @@ namespace OpenMS
 	}
 
 	QImage SpectrumWidget::getImage(UnsignedInt width, UnsignedInt height)
-	{
-		hide();
-		this->setUpdatesEnabled(false);
-		int yy;
-		//hide scrollbars and spacers if necessary
-//		bool hor_sc_off_ = (canvas()->hScrollBarMode()==QScrollView::AlwaysOff);
-//		bool ver_sc_off_ = (canvas()->vScrollBarMode()==QScrollView::AlwaysOff);
-//		if (!hor_sc_off_)
-//		{
-//			canvas()->setHScrollBarMode(QScrollView::AlwaysOff);
-//			hspacer_->hide();
-//		}
-//		if (!ver_sc_off_)
-//		{
-//			canvas()->setVScrollBarMode(QScrollView::AlwaysOff);
-//			vspacer_->hide();
-//		}
+	{		
+		//hide scrollbars if necessary
+		bool x_sc_on = x_scrollbar_->isVisible();
+		bool y_sc_on = y_scrollbar_->isVisible();
+		if (x_sc_on)
+		{
+			x_scrollbar_->hide();
+		}
+		if (y_sc_on)
+		{
+			y_scrollbar_->hide();
+		}
 		
 		//store old background colors and size
 	 	QColor c_a = x_axis_->paletteBackgroundColor();
@@ -244,23 +234,18 @@ namespace OpenMS
 		y_axis_->setPenWidth(0);
 		x_axis_->setPenWidth(0);
 		
-		//show scrollbars and spacers again
-//		if (!hor_sc_off_)
-//		{
-//			canvas()->setHScrollBarMode(QScrollView::Auto);
-//			hspacer_->show();
-//		}
-//		if (!ver_sc_off_)
-//		{
-//			canvas()->setVScrollBarMode(QScrollView::Auto);
-//			vspacer_->show();
-//		}
-//		
+		//show scrollbars again
+		if (x_sc_on)
+		{
+			x_scrollbar_->show();
+		}
+		if (y_sc_on)
+		{
+			y_scrollbar_->show();
+		}
+		
 		//restore size
 		resize(w,h);
-		
-		this->setUpdatesEnabled(true);
-		show();
 		
 		return image;
 	}
@@ -275,6 +260,40 @@ namespace OpenMS
 	{
 		y_axis_->hide();
 		x_axis_->hide();
+	}
+
+	void SpectrumWidget::updateHScrollbar(float min, float disp_min, float disp_max, float max)
+	{
+		if (min == disp_min && max == disp_max)
+		{
+			x_scrollbar_->hide();
+		}
+		else
+		{
+			x_scrollbar_->show();
+			x_scrollbar_->setMinValue(static_cast<int>(min));
+			x_scrollbar_->setMaxValue(static_cast<int>(max-disp_max+disp_min));
+			x_scrollbar_->setValue(static_cast<int>(disp_min));
+			x_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
+		}
+	}
+
+	void SpectrumWidget::updateVScrollbar(float min, float disp_min, float disp_max, float max)
+	{
+		if (min == disp_min && max == disp_max)
+		{
+			y_scrollbar_->hide();
+		}
+		else
+		{
+			//cout << min << " " << disp_min << " " << disp_max << " " << max << endl;
+			//cout << min << " " << max-disp_max+disp_min << " " << max-disp_max+min << endl << endl;
+			y_scrollbar_->show();
+			y_scrollbar_->setMinValue(static_cast<int>(min));
+			y_scrollbar_->setMaxValue(static_cast<int>(max-disp_max+disp_min));
+			y_scrollbar_->setValue(static_cast<int>(max-disp_max+min));
+			y_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
+		}
 	}
 
 } //namespace OpenMS

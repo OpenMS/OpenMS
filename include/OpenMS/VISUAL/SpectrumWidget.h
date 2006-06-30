@@ -44,6 +44,7 @@
 class QPopupMenu;
 class QAction;
 class QGridLayout;
+class QScrollBar;
 
 namespace OpenMS
 {
@@ -191,9 +192,26 @@ namespace OpenMS
 		void showLegend(int show);
 		/// Sets mapping of m/z values to x-axis or y-axis
 		virtual void mzToXAxis(bool mz_to_x_axis);
-		/// updates the axes by calling recalculateAxes_();
+		/// Updates the axes by calling recalculateAxes_();
 		void updateAxes();
-		
+		/**
+			@brief Updates the horizontal scrollbar
+			
+			@param min The overall minimum of the range
+			@param disp_min The displayed minimum 
+			@param disp_max The displayed maximum
+			@param max The overall maximum of the range
+		*/
+		void updateHScrollbar(float min, float disp_min, float disp_max, float max);
+		/**
+			@brief Updates the vertical scrollbar
+			
+			@param min The overall minimum of the range
+			@param disp_min The displayed minimum 
+			@param disp_max The displayed maximum
+			@param max The overall maximum of the range
+		*/
+		void updateVScrollbar(float min, float disp_min, float disp_max, float max);
 	protected:
 		/// Default constructor
 		SpectrumWidget(QWidget* parent = 0, const char* name="SpectrumWidget", WFlags f=0);
@@ -218,10 +236,10 @@ namespace OpenMS
 		AxisWidget* y_axis_;
 		/// Horizontal axis
 		AxisWidget* x_axis_;
-		/// Spacer for the horizontal axis
-		QWidget* hspacer_;
-		/// Spacer for the vertical axis
-		QWidget* vspacer_;
+		/// Horizontal scrollbar
+		QScrollBar* x_scrollbar_;
+		/// Vertical scrollbar
+		QScrollBar* y_scrollbar_;
 	};
 }
 

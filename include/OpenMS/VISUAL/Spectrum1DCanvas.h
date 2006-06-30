@@ -125,8 +125,12 @@ namespace OpenMS
 		void removeDataSet(int data_set);
 		// Docu in base class
 		SignedInt finishAdding();
-
+		// Docu in base class
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
+		// Docu in base class
+		virtual void horizontalScrollBarChange(int value);
+		// Docu in base class
+		virtual void verticalScrollBarChange(int value);
 	
 	protected:
 		// Draws the icon defined in the meta info of @peak peak at the position @p
@@ -151,6 +155,8 @@ namespace OpenMS
 		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 		// Docu in base class
 		virtual void recalculateSnapFactor_();
+		// Docu in base class
+		virtual void updateScrollbars_();
 		
 		/// Array of selected peak iterators
 		std::vector<SpectrumIteratorType> selected_peaks_;

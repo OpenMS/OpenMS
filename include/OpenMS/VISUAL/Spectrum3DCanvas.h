@@ -114,21 +114,18 @@ namespace OpenMS
     */
     virtual PreferencesDialogPage* createPreferences(QWidget* parent);
     
-	  // Docu in base class
-    virtual void setMainPreferences(const Param& prefs);
-    
     ///returns the Spectrum3DOpenGLcanvas     
     Spectrum3DOpenGLCanvas* openglwidget();
     
     // Docu in base class
     virtual void invalidate_();
-    
 		// Docu in base class
     SignedInt finishAdding();
-
 	  // Docu in base class
-    virtual  void actionModeChange_();
-    
+    virtual void actionModeChange_();
+	  // Docu in base class
+    virtual void setMainPreferences(const Param& prefs);
+        
     ///preferences
     SignedInt getDotMode();
     void setDotGradient(const std::string& gradient);

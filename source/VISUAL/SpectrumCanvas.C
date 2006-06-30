@@ -171,7 +171,7 @@ namespace OpenMS
 		{
 			return;
 		}
-
+		
 		//store old zoom state
 		if (add_to_stack)
 		{
@@ -187,10 +187,9 @@ namespace OpenMS
 		invalidate_();
 	}
 	
-	
 	void SpectrumCanvas::updateScrollbars_()
 	{
-		int yy;
+		
 	}
 	
 	void SpectrumCanvas::zoomBack_()
@@ -440,6 +439,16 @@ namespace OpenMS
 	}
 
 	void SpectrumCanvas::recalculateSnapFactor_()
+	{
+		
+	}
+
+	void SpectrumCanvas::horizontalScrollBarChange(int /*value*/)
+	{
+		
+	}
+
+	void SpectrumCanvas::verticalScrollBarChange(int /*value*/)
 	{
 		
 	}

@@ -754,6 +754,10 @@ namespace OpenMS
 	void Spectrum1DCanvas::setMainPreferences(const Param& prefs)
 	{
 		SpectrumCanvas::setMainPreferences(prefs);
+		if (getPrefAsString("Preferences:1D:Mapping:MappingOfMzTo") != "X-Axis")
+		{
+			mzToXAxis(false);
+		}
 	}
 	
 	void Spectrum1DCanvas::invalidate_()
@@ -922,6 +926,40 @@ namespace OpenMS
 			snap_factor_ = 1.0;
 		}  	
   }
+
+	void Spectrum1DCanvas::updateScrollbars_()
+	{
+		if (isMzToXAxis())
+		{
+			emit updateHScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+			emit updateVScrollbar(1,1,1,1);
+		}
+		else
+		{
+			emit updateHScrollbar(1,1,1,1);
+			emit updateVScrollbar(overall_data_range_.min()[0],visible_area_.min()[0],visible_area_.max()[0],overall_data_range_.max()[0]);
+		}
+	}
+
+	void Spectrum1DCanvas::horizontalScrollBarChange(int value)
+	{
+		if (isMzToXAxis())
+		{
+			changeVisibleArea_(value, value + (visible_area_.max()[0] - visible_area_.min()[0]));
+		}
+	}
+
+	void Spectrum1DCanvas::verticalScrollBarChange(int value)
+	{
+		if (!isMzToXAxis())
+		{
+			double range = (overall_data_range_.maxX() - overall_data_range_.minX())- (visible_area_.maxX() - visible_area_.minX());
+			double newval = (1.0 - (double(value) - overall_data_range_.minX()) / range )* range + overall_data_range_.minX();
+			//cout << value << " " << newval << " " << newval + (visible_area_.maxX() - visible_area_.minX()) << endl;
+			//cout << "Min: " <<  overall_data_range_.minX() << " Range: " << range << endl << endl;
+			changeVisibleArea_(newval, newval + (visible_area_.maxX() - visible_area_.minX()));
+		}
+	}
 
 }//Namespace
 

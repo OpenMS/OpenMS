@@ -351,6 +351,13 @@ namespace OpenMS
 			in order to notify the widget of the changes.
 		*/
 		virtual void repaintAll();	
+
+		/**
+			@brief Returns the intensity scaling factor for 'snap to maximum intensity mode'.
+			
+			@see snap_factor_
+		*/
+		double getSnapFactor();
 		
 	public slots:
 		/**
@@ -385,11 +392,18 @@ namespace OpenMS
 		void setVisibleArea(AreaType area);
 
 		/**
-			@brief Returns the intensity scaling factor for 'snap to maximum intensity mode'.
-			
-			@see snap_factor_
+			@brief Notifies the canvas that the horizontal scollbar has been moved.
+		
+			Reimplement this slot to react on scrollbar events.
 		*/
-		double getSnapFactor();
+		virtual void horizontalScrollBarChange(int value);
+
+		/**
+			@brief Notifies the canvas that the vertical scollbar has been moved.
+		
+			Reimplement this slot to react on scrollbar events.
+		*/
+		virtual void verticalScrollBarChange(int value);
 		
 	signals:
 		/// Signal emitted whenever a new Layer is activated within the current window
@@ -420,6 +434,12 @@ namespace OpenMS
 			
 		/// Forces recalculation of axis ticks in the connected widget.
 		void recalculateAxes();
+		
+		/// Triggers the update of the vertical scrollbar
+		void updateVScrollbar(float,float,float,float);
+
+		/// Triggers the update of the horizontal scrollbar
+		void updateHScrollbar(float,float,float,float);
 	protected:
 		
 		/**
@@ -490,7 +510,7 @@ namespace OpenMS
 			
 			Updates the scrollbars after a change of the visible area.
 		*/
-		void updateScrollbars_();
+		virtual void updateScrollbars_();
 		
 		/**
 			@brief Convert widget to chart coordinates

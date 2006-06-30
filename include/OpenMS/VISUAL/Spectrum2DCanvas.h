@@ -199,6 +199,10 @@ namespace OpenMS
 		void removeDataSet(int data_set);
 		// Docu in base class
 		SignedInt finishAdding();
+		// Docu in base class
+		virtual void horizontalScrollBarChange(int value);
+		// Docu in base class
+		virtual void verticalScrollBarChange(int value);
 	
 	protected:
 		//* @name Mouse events */
@@ -221,6 +225,9 @@ namespace OpenMS
 		
 		// Docu in base class
 		virtual void invalidate_();
+		
+		// Docu in base class
+		virtual void updateScrollbars_();
 		
 		/**
 			@brief Paints individual peaks.

@@ -50,15 +50,14 @@
 
 /*
 	ToDo-Liste Marc:
-	- Scrollbars wieder einbauen (Spacer entfernen?)
-	- Features wieder einbauen
-	- includes checken
+
 	- File-Type force/automatic
-	
-	TOPPView (später)
+	- Features wieder einbauen
 	- Projektionen
-	- 2D: Oberflächen kontinuerilich entlang RT
-	- 2D: Farben an aktuellen Int-Bereich anpassen
+	- includes checken
+
+	TOPPView (später)
+	- 2D: Oberflächen kontinuierlich entlang RT
 	- testen, ob 2D-View mit geometric hashing besser ist
 	
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64

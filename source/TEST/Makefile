@@ -84,8 +84,7 @@ EXECUTABLES_METADATA = \
 	SpectrumSettings_test\
 	Gradient_test\
 	HPLC_test\
-	ExperimentalSettings_test\
-	Identification_test
+	ExperimentalSettings_test
 
 EXECUTABLES_SYSTEM = \
 	StopWatch_test

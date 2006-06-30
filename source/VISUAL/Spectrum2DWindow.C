@@ -148,11 +148,11 @@ namespace OpenMS
 	void Spectrum2DWindow::showGoToDialog()
 	{
 	  Spectrum2DGoToDialog goToDialog(this, "Spectrum2DGoToDialog");
-	  const SpectrumCanvas::AreaType& visible_area = widget()->canvas()->getVisibleArea();
-	  goToDialog.setMinX(visible_area.minX());
-	  goToDialog.setMaxX(visible_area.maxX());
-	  goToDialog.setMinY(visible_area.minY());
-	  goToDialog.setMaxY(visible_area.maxY());  
+	  const DRange<3>& area = widget()->canvas()->getDataRange();
+	  goToDialog.setMinX(area.minX());
+	  goToDialog.setMaxX(area.maxX());
+	  goToDialog.setMinY(area.minY());
+	  goToDialog.setMaxY(area.maxY());  
 	  goToDialog.exec();
 	  widget()->canvas()->setVisibleArea(SpectrumCanvas::AreaType( goToDialog.getMinX(), goToDialog.getMinY(), goToDialog.getMaxX(), goToDialog.getMaxY()));
 	}

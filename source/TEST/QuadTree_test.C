@@ -81,7 +81,6 @@ CHECK(constructor QuadTree())
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	TEST_NOT_EQUAL(quadtree_ptr, 0)
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), true)
-	TEST_EQUAL(quadtree_ptr->sortedBegin(quadtree_ptr->getArea()) == quadtree_ptr->sortedEnd(), true)
 	TEST_EQUAL(quadtree_ptr->getArea() == Area(0, 0, 100, 100), true)
 RESULT
 
@@ -93,16 +92,11 @@ CHECK(insert())
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	quadtree_ptr->insert(Point(10, 10), new int(10));
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), false)
-	TEST_EQUAL(quadtree_ptr->sortedBegin(quadtree_ptr->getArea()) == quadtree_ptr->sortedEnd(), false)
 	int size = 0;
 	for (Tree::iterator i = quadtree_ptr->begin(); i != quadtree_ptr->end(); ++i)
 		size++;
 	TEST_EQUAL(size, 1)
-	
-	size = 0;
-	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(quadtree_ptr->getArea()); i != quadtree_ptr->sortedEnd(); ++i)
-		size++;
-	TEST_EQUAL(size, 1)
+
 	delete quadtree_ptr;
 RESULT
 
@@ -114,7 +108,6 @@ CHECK(multiple insert())
 		}
 	}
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), false)
-	TEST_EQUAL(quadtree_ptr->sortedBegin(quadtree_ptr->getArea()) == quadtree_ptr->sortedEnd(), false)
 	
 	int size = 0;
 	for (Tree::iterator i = quadtree_ptr->begin(); i != quadtree_ptr->end(); ++i)
@@ -123,16 +116,6 @@ CHECK(multiple insert())
 	
 	size = 0;
 	for (Tree::iterator i = quadtree_ptr->begin(Area(0, 0, 50, 50)); i != quadtree_ptr->end(); ++i)
-		size++;
-	TEST_EQUAL(size, 25)
-	
-	size = 0;
-	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(quadtree_ptr->getArea()); i != quadtree_ptr->sortedEnd(); ++i)
-		size++;
-	TEST_EQUAL(size, 100)
-	
-	size = 0;
-	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(Area(0, 0, 50, 50)); i != quadtree_ptr->sortedEnd(); ++i)
 		size++;
 	TEST_EQUAL(size, 25)
 	
@@ -151,7 +134,6 @@ CHECK(random insert())
 		quadtree_ptr->insert(pos, new int(rand()));
 	}
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), false)
-	TEST_EQUAL(quadtree_ptr->sortedBegin(quadtree_ptr->getArea()) == quadtree_ptr->sortedEnd(), false)
 	
 	int size = 0;
 	for (Tree::iterator i = quadtree_ptr->begin(); i != quadtree_ptr->end(); ++i)
@@ -162,16 +144,7 @@ CHECK(random insert())
 	for (Tree::iterator i = quadtree_ptr->begin(area); i != quadtree_ptr->end(); ++i)
 		size++;
 	TEST_EQUAL(size, inarea)
-
-	size = 0;
-	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(quadtree_ptr->getArea()); i != quadtree_ptr->sortedEnd(); ++i)
-		size++;
-	TEST_EQUAL(size, 10000)
 	
-	size = 0;
-	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(area); i != quadtree_ptr->sortedEnd(); ++i)
-		size++;
-	TEST_EQUAL(size, inarea)
 RESULT
 
 // CHECK(SortedIterator)
