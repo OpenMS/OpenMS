@@ -49,11 +49,7 @@ namespace OpenMS
   /**
      @brief Canvas for 3D-visualization of map data
    
-     @todo Fix intensity distribution (Cornelia)
-     
      @todo Fix taking of images (Cornelia)
-     
-     @todo Replace IntScale by SpectrumCanvas::IntensityModes (Cornelia)
      
      @todo Axis labels (Cornelia)
      

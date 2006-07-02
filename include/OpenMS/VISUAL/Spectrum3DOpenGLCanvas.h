@@ -134,7 +134,10 @@ namespace OpenMS
 		 * @brief displaylist
 		 */	
 		virtual GLuint makeGround();
-		
+		/**
+		 * @brief displaylist
+		 */	
+		virtual GLuint makeGridLines();
 		/// method to make the font
 		void	makeFont();
 		/// method to make the font		
@@ -198,7 +201,8 @@ namespace OpenMS
 		GLuint coord_;
 		/// displaylist
 		GLuint axeslabel_;
-		
+		///displaylist
+		GLuint gridlines_;
 		/// displaylist
 		GLuint zoomselection_;
 		/// displaylist
