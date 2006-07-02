@@ -153,7 +153,7 @@ namespace OpenMS
     void mousePressEvent(QMouseEvent *e);
 		///reimplementation if the wheelEvent
 		void wheelEvent(QWheelEvent * e);
-		
+		void keyPressEvent(QKeyEvent * e);
 		/**
 			 @brief Sets the 3D stick gradient.
 			 the dot mode is set to	DOT_GRADIENT.
@@ -193,6 +193,8 @@ namespace OpenMS
 		void normalizeAngle(int *angle);
 		///
 		void resetAngels();
+		///
+		void resetTranslation();
 		///
 		ViewMode view_mode_;
 		/// displaylist
@@ -250,7 +252,9 @@ namespace OpenMS
 		///member gridvectors which contains the data for the log-intensity-axis-ticks
 		GridVector grid_intensity_log_;
 		/// if it is true the zoom_selection is shown
-		bool show_zoom_selection_;		
+		bool show_zoom_selection_;	
+		///if the ControlKey is pressed ->true
+		bool translation_on_;	
 		/// x1 coordinate of the zoomselection
 		double x_1_;
 		/// x2 coordinate of the zoomselection
@@ -259,7 +263,10 @@ namespace OpenMS
 		double y_1_;
 		/// y2 coordinate of the zoomselection
 		double y_2_;
-
+		/// x- translation
+		double trans_x_;
+		/// y_translation
+		double trans_y_;
 public slots:
     /// first normalize the angel and then set xRot_ 
     void setRotationX(int angle);

@@ -50,7 +50,7 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 		canvas_3d_(canvas_3d)
 		
 {
-	setFocusPolicy(QWidget::TabFocus);
+	setFocusPolicy(QWidget::StrongFocus);
 	corner_=100.0;	
 	near_=0.0;	
 	far_=600.0;
@@ -62,6 +62,9 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	xrot_=0;
 	yrot_ = 0;
 	zrot_=0;
+	translation_on_ = false;
+	trans_x_ =0.0;
+	trans_y_ = 0.0;
 	setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 }
 	
@@ -137,7 +140,6 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 				xrot_ = 90*16;
 				yrot_ = 0;
 				zrot_ = 0;		
-				zoom_ = 1.25;
 				stickdata_ = makeDataAsTopView();
 				axeslabel_ = makeAxesLabel();	
 				if(show_zoom_selection_)
@@ -187,6 +189,11 @@ void Spectrum3DOpenGLCanvas::resetAngels()
 	zrot_=0;
 
 }
+void Spectrum3DOpenGLCanvas::resetTranslation()
+{
+	trans_x_ = 0.0;
+	trans_y_ = 0.0;
+}
 void Spectrum3DOpenGLCanvas::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -198,7 +205,10 @@ void Spectrum3DOpenGLCanvas::paintGL()
 	glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
 	glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
 	glTranslated(0.0, 0.0,3.0*corner_);
-	
+	if(translation_on_)
+		{
+			glTranslated(trans_x_, trans_y_,0.0);
+		}
 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:BackgroundColor").c_str());
  	qglClearColor(color);
 	glEnable(GL_DEPTH_TEST);
@@ -1155,7 +1165,7 @@ void Spectrum3DOpenGLCanvas::wheelEvent ( QWheelEvent * e )
 
 void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 {
-	if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
+	if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE && !translation_on_)
 	{
 		int d_x = e->x() - lastMousePos_.x();
 		int d_y = e->y() - lastMousePos_.y();
@@ -1177,7 +1187,14 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 			updateGL();
 		}
 	}
-	
+	if(translation_on_)
+	{
+		lastMousePos_ = e->pos();
+		trans_x_= lastMousePos_.x()-firstMousePos_.x();
+		trans_y_ = (heigth_-lastMousePos_.y())-(heigth_ -firstMousePos_.y());
+		canvas_3d_.recalculate_ = false;
+		canvas_3d_.invalidate_();
+	}
 }
 void Spectrum3DOpenGLCanvas::mousePressEvent ( QMouseEvent * e)
 {
@@ -1187,6 +1204,9 @@ void Spectrum3DOpenGLCanvas::mousePressEvent ( QMouseEvent * e)
 
 void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 {
+	canvas_3d_.recalculate_ = true;
+	translation_on_ = false;
+
 	if(e->button()==Qt::RightButton)
 		{
 			emit rightButton(e->globalPos());
@@ -1200,7 +1220,14 @@ void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 			 
 		}
 }
-
+void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent * e) 
+{
+	if(e->key()==Qt::Key_Control)
+	{
+		translation_on_ = true;
+	}
+	
+}
 void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2, double y_2)
 {
  double scale_x1 = scaledInversRT(x_1+100.0);
