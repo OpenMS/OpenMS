@@ -667,18 +667,17 @@ namespace OpenMS
 							writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")),
 												"1000043", "IntensityUnits",7);
 						}
-						writeUserParam_(os, peak);
+						writeUserParam_(os, peak, 7);
 						os << "\t\t\t\t\t\t</ionSelection>\n";
 						os << "\t\t\t\t\t\t<activation>\n";
 					}
 					if (spec.getPrecursor() != Precursor())
 					{
 						const Precursor& prec = spec.getPrecursor();
-						writeCVS_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",6);
-						writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",6);
-						writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,
-											"1000046", "EnergyUnits",6);
-						writeUserParam_(os, prec);
+						writeCVS_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
+						writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
+						writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
+						writeUserParam_(os, prec,7);
 					}
 						os << "\t\t\t\t\t\t</activation>\n";
 					os << "\t\t\t\t\t</precursor>\n"

@@ -106,7 +106,7 @@ OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
 
-default: $(OBJECTS)
+default: echodir $(OBJECTS)
 
 depend:	$(UIC_SOURCES) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
@@ -124,7 +124,8 @@ default_clean: uic_clean
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES) $(ADD_MOC_SOURCES)
 
 echodir:
-	@echo "entering $(DIRECTORY)..."
+	@echo " "
+	@echo "Entering directory $(DIRECTORY) ..."
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."

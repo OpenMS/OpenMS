@@ -125,4 +125,5 @@ OBJECTS 	= $(SOURCES:.C=.o)
 default:	echodir $(OBJECTS)
 
 echodir:
-	@echo "entering $(DIRECTORY)..."
+	@echo " "
+	@echo "Entering directory $(DIRECTORY) ..."

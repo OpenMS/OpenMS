@@ -165,8 +165,11 @@ namespace OpenMS
 			@brief Returns a substring
 			
 			If @p start denotes a position beyond this truncation, an empty string will be returned.	
-			@param start  start position of the substring.<br> If start is negative, the returned string will start at the start'th character from the end of string.
-			@param n length of the substring.<br> If a negative length is given, then that many characters will be omitted from the end of string.<br> 
+			@param start  start position of the substring.<br> 
+			              If start is negative, the returned string will start at the start'th character from the end of string.
+			@param n length of the substring.<br> 
+			         If a negative length is given, then that many characters will be omitted from the end of string.<br>
+			         If NPOS is given, the end is the last character.<br>
 		*/
 		String substr(SignedInt start = 0, SignedInt n = NPOS) const;
 		

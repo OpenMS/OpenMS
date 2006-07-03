@@ -75,10 +75,9 @@ CHECK(setBoundary() / getBoundary())
 RESULT
 
 CHECK( write( filename) (defaults) )
+	// here a fixed name has to be used as it has to be in the tamplate
 	file.write("MascotInfile_test.txt");
-	TextFile written("MascotInfile_test.txt");
-	TextFile stored("data/MascotInfile_test_template1.txt");
-	TEST_EQUAL(written == stored , true)
+	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
 RESULT
 
 CHECK(setDB(...) / getDB())
@@ -145,10 +144,9 @@ CHECK(setModifications(...) / getModifications())
 RESULT
 
 CHECK( write( filename) (settings) )
+	// here a fixed name has to be used as it has to be in the tamplate
 	file.write("MascotInfile_test.txt");
-	TextFile written("MascotInfile_test.txt");
-	TextFile stored("data/MascotInfile_test_template2.txt");
-	TEST_EQUAL(written == stored , true)
+	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
 	remove("MascotInfile_test.txt");
 RESULT
 

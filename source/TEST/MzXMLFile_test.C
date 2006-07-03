@@ -31,7 +31,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
@@ -257,16 +256,12 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 
 
 	f.store(tmp_filename,e);
-	TextFile t1(tmp_filename, true);
-	TextFile t2("data/MzXMLFile_test_1.mzXML", true);
-	TEST_EQUAL(t1==t2,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_1.mzXML");
 
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzXMLFile_test_2.mzXML",e);
 	f.store(tmp_filename,e);
-	TextFile t3(tmp_filename, true);
-	TextFile t4("data/MzXMLFile_test_2.mzXML", true);
-	TEST_EQUAL(t3==t4,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
 RESULT
 
 CHECK(load/store for Float Kernel Traits)
@@ -278,9 +273,7 @@ CHECK(load/store for Float Kernel Traits)
 	
 	f.load("data/MzXMLFile_test_2.mzXML",e);
 	f.store(tmp_filename,e);
-	TextFile t3(tmp_filename, true);
-	TextFile t4("data/MzXMLFile_test_2.mzXML", true);
-	TEST_EQUAL(t3==t4,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
 RESULT
 
 /////////////////////////////////////////////////////////////

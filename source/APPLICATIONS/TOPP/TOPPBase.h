@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: TOPPBase.h,v 1.3 2006/06/01 14:54:44 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -60,7 +58,8 @@ namespace OpenMS
 				CANNOT_WRITE_OUTPUT_FILE,
 				ILLEGAL_PARAMETERS,
 				UNKNOWN_ERROR,
-				EXTERNAL_PROGRAM_ERROR
+				EXTERNAL_PROGRAM_ERROR,
+				PARSE_ERROR
 			};
 			
 			/// Default construtor

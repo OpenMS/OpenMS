@@ -33,7 +33,6 @@
 #include <string>
 
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>

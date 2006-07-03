@@ -39,8 +39,6 @@ namespace OpenMS
 	/**
 		@brief Facilitates file handling by file type recognition.
 		
-		@todo getTypeByContent method (Marc)
-		
 		@ingoup FileIO
 	*/
 	class FileHandler
@@ -53,20 +51,23 @@ namespace OpenMS
 			*/
 			enum Type
 			{
-				UNKNOWN,     ///< Unknown file extension
-				DTA,         ///< DTA file (.dta)
-				DTA2D,       ///< DTA2D file (.dta2d)
-				MZDATA,      ///< MzData file (.MzData)
-				MZXML,       ///< MzXML file (.MzXML)
-				FEATURE,     ///< OpenMS feature file (.feat)
-				ANDIMS,      ///< ANDI\MS file (.cdf)
-				SIZE_OF_TYPE ///< No file type. Simply stores the number of types
+				UNKNOWN,        ///< Unknown file extension
+				DTA,            ///< DTA file (.dta)
+				DTA2D,          ///< DTA2D file (.dta2d)
+				MZDATA,         ///< MzData file (.MzData)
+				MZXML,          ///< MzXML file (.MzXML)
+				FEATURE,        ///< OpenMS feature file (.feat)
+				ANDIMS,         ///< ANDI\MS file (.cdf)
+				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 			
 			static const std::string NamesOfTypes[SIZE_OF_TYPE];
 			
 			/// Determines the file type from a file name
 			Type getTypeByFileName(const String& filename);
+
+			/// Determines the file type of XML files by parsing the first few lines
+			Type getTypeByContent(const String& filename) throw (Exception::FileNotFound);
 			
 			/// Converts a file type name into a Type
 			Type nameToType(const String& name);
@@ -80,9 +81,10 @@ namespace OpenMS
 			/**
 				@brief Loads a file into an MSExperiment
 				
-				@param the filename of the file to load
-				@param exp the MSExperiment to load the data into
-				@param force_type forces to load the file with that file type
+				@param the Filename of the file to load.
+				@param exp The MSExperiment to load the data into.
+				@param force_type Forces to load the file with that file type.<BR>
+				                  If no type is forced, it is determined from the extention ( or from the content if that fails).
 				
 				@return true if the file could be loaded, false otherwise
 			*/
@@ -92,6 +94,18 @@ namespace OpenMS
 				exp = MSExperiment<PeakType>();
 				
 				Type type = getTypeByFileName(filename);
+				try
+				{
+					if (type == UNKNOWN)
+					{
+						type = getTypeByContent(filename);
+					}
+				}
+				catch(Exception::FileNotFound)
+				{
+					
+				}
+				
 				if (force_type != UNKNOWN)
 				{
 					type = force_type;

@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.48 2006/06/10 10:11:06 nicopfeifer Exp $
-# $Author: nicopfeifer $
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
@@ -48,6 +46,7 @@ EXECUTABLES=\
 	FileConverter\
 	FileInfo\
 	FileFilter\
+	FileMerger\
 	DBExporter\
 	DBImporter\
 	TOPPView\
@@ -166,4 +165,7 @@ RawDataResampler: RawDataResampler.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
 UnlabeledMatcher: UnlabeledMatcher.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+
+FileMerger: FileMerger.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)

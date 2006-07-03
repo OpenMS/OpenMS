@@ -30,7 +30,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
 ///////////////////////////
@@ -63,7 +62,7 @@ CHECK(void load(const String& filename, DFeatureMap& map) throw (Exception::File
 	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
 	
 	// real test
-	dfmap_file.load("data/Features.mzData",e);
+	dfmap_file.load("data/DFeatureMapFile.xml",e);
   
   //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
@@ -180,11 +179,9 @@ CHECK(void store(const String& filename, const DFeatureMap& map) const throw (Ex
   DFeatureMapFile f;
   
   NEW_TMP_FILE(tmp_filename);
-  f.load("data/Features.mzData",e);
+  f.load("data/DFeatureMapFile.xml",e);
 	f.store(tmp_filename,e);
-	TextFile t1(tmp_filename, true);
-	TextFile t2("data/Features.mzData", true);
-	TEST_EQUAL(t1==t2,true)
+	TEST_FILE(tmp_filename.c_str(),"data/DFeatureMapFile.xml");
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -26,9 +26,13 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
+#include <fstream>
+
+using namespace std;
+
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "MzData", "MzXML", "Feature file", "ANDI_MS" };
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "Feature file", "ANDIMS" };
 
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
@@ -110,6 +114,30 @@ namespace OpenMS
 				return false;
 		}
 	}
-	
+
+	FileHandler::Type FileHandler::getTypeByContent(const String& filename) throw (Exception::FileNotFound)
+	{
+		ifstream is(filename.c_str());
+    if (!is)
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+    
+    //load first 5 lines
+    String input, tmp;
+    for (UnsignedInt i=0; i<5; ++i)
+    {
+			getline(is,tmp,'\n');
+			input += tmp;
+    }
+		
+		//Search for strings
+    if (input.find("mzXML")!=string::npos) return MZXML;
+    if (input.find("mzData")!=string::npos) return MZDATA;
+    if (input.find("featureMap")!=string::npos) return FEATURE;
+		
+		return UNKNOWN;
+	}
+
 } //namespace
 

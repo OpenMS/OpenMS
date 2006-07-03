@@ -60,8 +60,6 @@ namespace OpenMS
 		instance of the SpectrumWidget class as a child widget (see
 		setWidget_() and widget()).
 		
-		@todo document, remove unneeded methods (Marc)
-		
 		@ingroup spectrum_widgets
 	*/
 	class SpectrumWindow : public QMainWindow, public PreferencesManager

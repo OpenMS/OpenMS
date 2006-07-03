@@ -29,8 +29,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 ///////////////////////////
 
-
-#include<OpenMS/FORMAT/TextFile.h>
 #include<OpenMS/FORMAT/DGridFile.h>
 
 #include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
@@ -93,10 +91,7 @@ CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const 
   gfile.load("data/Grid.xml",grid);
 	gfile.store(tmp_filename,grid);
 	
-	TextFile t1(tmp_filename, true);
-	TextFile t2("data/Grid.xml", true);
-	
-	TEST_EQUAL(t1==t2,true)
+	TEST_FILE(tmp_filename.c_str(),"data/Grid.xml");
 	
 RESULT
 

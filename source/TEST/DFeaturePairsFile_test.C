@@ -30,7 +30,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 ///////////////////////////
@@ -59,7 +58,7 @@ CHECK(void load(const String& filename, DFeaturePairVector& pairs) throw (Except
 	DFeaturePairVector<2> pvector;
 	DFeaturePairsFile pfile;
 		   
-  pfile.load("data/FeaturePairs.xml",pvector);
+  pfile.load("data/DFeaturePairsFile.xml",pvector);
   DFeaturePair<2> pair = pvector.back();
   
   DFeature<2> first  = pair.getFirst();
@@ -82,14 +81,10 @@ CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const 
 	DFeaturePairsFile pfile;
   
   NEW_TMP_FILE(tmp_filename);
-  pfile.load("data/FeaturePairs.xml",pvector);
+  pfile.load("data/DFeaturePairsFile.xml",pvector);
 	pfile.store(tmp_filename,pvector);
 	
-	TextFile t1(tmp_filename, true);
-	TextFile t2("data/FeaturePairs.xml", true);
-	
-	TEST_EQUAL(t1==t2,true)
-	
+	TEST_FILE(tmp_filename.c_str(), "data/DFeaturePairsFile.xml");
 RESULT
 
 /////////////////////////////////////////////////////////////

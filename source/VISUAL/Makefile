@@ -134,7 +134,7 @@ OBJECTS 	= $(SOURCES:.C=.o)
 
 VISUAL_DIRS=DIALOGS
 
-default:	dirs $(OBJECTS)
+default:	echodir dirs $(OBJECTS)
 
 -include .Dependencies
 
@@ -165,7 +165,8 @@ default_clean: uic_clean
 	@$(MAKE) subdirs SUBDIRS="$(VISUAL_DIRS)" TARGET=default_clean
 
 echodir:
-	@echo "entering $(DIRECTORY)..."
+	@echo " "
+	@echo "Entering directory $(DIRECTORY) ..."
 
 collectlib:	echodir
 	@echo "collecting objects from $(DIRECTORY)..."

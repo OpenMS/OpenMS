@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MzXMLHandler.h,v 1.7 2006/05/30 15:46:38 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 
@@ -186,7 +184,7 @@ namespace OpenMS
 			{
 				String name = *it;
 				os << String(indent,'\t') << "<" << tag << " name=\"";
-				if (tag=="processingOperation")
+				if (tag=="processingOperation" && name.find('#')!=std::string::npos)
 				{
 					std::vector<String> parts;
 					name.split('#',parts);
@@ -454,8 +452,7 @@ namespace OpenMS
 					{
 						exp_->getContacts().back().setEmail(getAttribute(EMAIL));
 					}
-					exp_->getContacts().back().setContactInfo( QString("%1,%2").arg(getQAttribute(PHONE)).arg(getQAttribute(URI)).ascii());
-					
+					exp_->getContacts().back().setContactInfo( QString("PHONE: %1 URI: %2").arg(getQAttribute(PHONE)).arg(getQAttribute(URI)).ascii());
 				}
 				break;
 			case MANUFACTURER:
@@ -606,7 +603,8 @@ namespace OpenMS
 
 			os << "\t\t\t<msDetector category=\"msDetector\" value=\""
 				 << enum2str_(TYPEMAP,inst.getIonDetector().getType()) << "\"/>\n";
-			try{
+			try
+			{
 				std::string type = inst.getMetaValue("#InstSoftwareType").toString(),
 				 	name = inst.getMetaValue("#InstSoftware"),
 					version = inst.getMetaValue("#InstSoftwareVersion");
@@ -635,21 +633,46 @@ namespace OpenMS
 			if ( cexp_->getContacts().size()>0 )
 			{
 				const ContactPerson& cont = cexp_->getContacts()[0];
-				std::vector<String> name;
-				cont.getName().split(',',name);
-				os << "\t\t\t<operator first=\"" << name[1]
-					 << "\" last=\"" << name[0];
-
-				std::vector<String> info;
-				cont.getContactInfo().split(',',info);
-				os << "\" phone=\"" << info[0]
-					 << "\" email=\"" << cont.getEmail()
-					 << "\" URI=\"" << info[1] << "\"/>\n";
+				os << "\t\t\t<operator first=\"";
+				std::vector<String> tmp;
+				if (cont.getName().split(',',tmp))
+				{
+					os << tmp[1] << "\" last=\"" << tmp[0];
+				}
+				else
+				{
+					if (cont.getName().split(' ',tmp))
+					{
+						os << tmp[0] << "\" last=\"" << tmp[1];
+					}
+					else
+					{
+						os << "\" last=\"" << cont.getName();
+					}
+				}
+				String info = cont.getContactInfo();
+				if (info.find("PHONE:")!=std::string::npos && info.find("URI:")!=std::string::npos)
+				{
+					UnsignedInt uri = info.find("URI:");
+					os << "\" phone=\"" << info.substr(6,uri-6).trim()
+						 << "\" email=\"" << cont.getEmail()
+						 << "\" URI=\"" << info.substr(uri+4).trim() << "\"/>\n";
+				}
+				else
+				{
+					os << "\" phone=\"\" email=\"" << cont.getEmail() << "\" URI=\"" << info << "\"/>\n";
+				}
 			}
 			writeUserParam_(os,inst,3);
-			DataValue com = inst.getMetaValue("#Comment");
-			if (!com.isEmpty())
-				os << "\t\t\t<comment>" << com << "</comment>\n";
+			try
+			{
+				DataValue com = inst.getMetaValue("#Comment");
+				if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
+			}
+			catch(Exception::InvalidValue exception)
+			{
+
+			}
 			os << "\t\t</msInstrument>\n";
 		}
 
@@ -670,9 +693,16 @@ namespace OpenMS
 		os << "\"/>\n";
 		writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
 
-		DataValue com = cexp_->getProcessingMethod().getMetaValue("#Comment");
-		if (!com.isEmpty())
-			os << "\t\t\t<comment>" << com << "</comment>\n";
+		try
+		{
+			DataValue com = cexp_->getProcessingMethod().getMetaValue("#Comment");
+			if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
+		}
+		catch(Exception::InvalidValue exception)
+		{
+
+		}
+
 		os << "\t\t</dataProcessing>\n";
 
 		// write scans

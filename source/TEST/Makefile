@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.96 2006/06/09 23:47:35 nicopfeifer Exp $
-# $Author: nicopfeifer $
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
@@ -134,7 +132,6 @@ ifeq ($(ENABLE_DB),true)
 endif
 
 EXECUTABLES_FORMAT = \
-	FileHandler_test\
 	RTTI_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
@@ -156,7 +153,8 @@ EXECUTABLES_FORMAT = \
 	FASTAFile_test\
 	MzDataExpSettHandler_test\
 	AnalysisXMLFile_test\
-	MascotXMLFile_test
+	MascotXMLFile_test\
+	FileHandler_test
 
 
 #MATH

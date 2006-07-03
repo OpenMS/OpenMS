@@ -30,7 +30,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
@@ -406,17 +405,14 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 	TEST_EQUAL(e.size(), 6)
 
 	f.store(tmp_filename,e);
-	TextFile t1(tmp_filename, true);
-	TextFile t2("data/MzDataFile_test_1.mzData", true);
-	TEST_EQUAL(t1==t2,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_1.mzData");
 
 	MSExperiment< DRawDataPoint<1> > e2;
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzDataFile_test_2.mzData",e2);
 	f.store(tmp_filename,e2);
-	TextFile t3(tmp_filename, true);
-	TextFile t4("data/MzDataFile_test_2.mzData", true);
-	TEST_EQUAL(t3==t4,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");
+
 RESULT
 
 // check load for 64Bit precision and endian conversion
@@ -479,9 +475,7 @@ CHECK(load/store for Float Kernel Traits)
 	
 	f.load("data/MzDataFile_test_2.mzData",e2);
 	f.store(tmp_filename,e2);
-	TextFile t3(tmp_filename, true);
-	TextFile t4("data/MzDataFile_test_2.mzData", true);
-	TEST_EQUAL(t3==t4,true)
+	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");
 RESULT
 
 /////////////////////////////////////////////////////////////

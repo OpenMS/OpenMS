@@ -63,8 +63,6 @@ namespace OpenMS
 		zoom stack is provided for going back to an earlier
 		view.
 		
-		@todo Marching squares: wird nicht feiner beim Zoomen, log scale (Marc)
-		
 		@ingroup spectrum_widgets
 	*/
 	class Spectrum2DCanvas : public SpectrumCanvas

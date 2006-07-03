@@ -64,8 +64,6 @@ namespace OpenMS
 		as children, which can be accessed by xAxis() and
 		yAxis().
 		
-		@todo document, remove unneeded methods (Marc)
-		
 		@ingroup spectrum_widgets
 	*/
 	class SpectrumWidget : public QWidget, public PreferencesManager

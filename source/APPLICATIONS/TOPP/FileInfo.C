@@ -47,7 +47,6 @@ using namespace std;
 	
 	Additionally an overview of the metadata of the experiment can be displayed.
 	
-	@todo determine Type of XML file: MzMXL, MzData, ... (Marc)
 	@todo determine if raw or picked data is contained (Marc)
 	
 	@ingroup TOPP
@@ -114,18 +113,28 @@ class TOPPFileInfo
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			//input file names and types
+			//file names
 			String in = getParamAsString_("in");
+			writeDebug_(String("Input file: ") + in, 1);
+			
+			//file type
 			FileHandler fh;
 			FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
+			
+			writeDebug_(String("Input file type (from command line): ") + fh.typeToName(in_type), 1);
 			
 			if (in_type==FileHandler::UNKNOWN)
 			{
 				in_type = fh.getTypeByFileName(in);
+				writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
 			}	
+
+			if (in_type==FileHandler::UNKNOWN)
+			{
+				in_type = fh.getTypeByContent(in);
+				writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
+			}
 			
-			writeDebug_(String("Input file: ") + in, 1);
-			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 1);
 			
 			//-------------------------------------------------------------
 			// loading file

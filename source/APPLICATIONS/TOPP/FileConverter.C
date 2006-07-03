@@ -79,7 +79,7 @@ class TOPPFileConverter
 					 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
 					 << "  -out_type <type>  output file type (default: determined from output file extension)" << endl
 					 << endl
-					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDI_MS'" << endl
+					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'" << endl
 					 << "                       'feat' (features) can be converted, but will lose feature specific information" << endl
 					 << "Valid output types are: 'mzData', 'mzXML', 'DTA2D'" << endl;	
 		}
@@ -117,18 +117,27 @@ class TOPPFileConverter
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			//input file names and types
+			//input file names
 			String in = getParamAsString_("in");
+			writeDebug_(String("Input file: ") + in, 1);
+			
+			//input file type
 			FileHandler fh;
 			FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
+			
+			writeDebug_(String("Input file type (from command line): ") + fh.typeToName(in_type), 1);
 			
 			if (in_type==FileHandler::UNKNOWN)
 			{
 				in_type = fh.getTypeByFileName(in);
+				writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
 			}	
-			
-			writeDebug_(String("Input file: ") + in, 1);
-			writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 1);
+
+			if (in_type==FileHandler::UNKNOWN)
+			{
+				in_type = fh.getTypeByContent(in);
+				writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
+			}
 	
 			//output file names and types
 			String out = getParamAsString_("out");

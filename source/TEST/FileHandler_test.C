@@ -45,10 +45,10 @@ CHECK(String typeToName(Type type);)
 	TEST_EQUAL("Unknown", tmp.typeToName(FileHandler::UNKNOWN));
 	TEST_EQUAL("DTA", tmp.typeToName(FileHandler::DTA));
 	TEST_EQUAL("DTA2D", tmp.typeToName(FileHandler::DTA2D));
-	TEST_EQUAL("MzData", tmp.typeToName(FileHandler::MZDATA));
-	TEST_EQUAL("MzXML", tmp.typeToName(FileHandler::MZXML));
+	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
+	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
 	TEST_EQUAL("Feature file", tmp.typeToName(FileHandler::FEATURE));
-	TEST_EQUAL("ANDI_MS", tmp.typeToName(FileHandler::ANDIMS));
+	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
 RESULT
 
 CHECK(String typeToName(Type type))
@@ -56,11 +56,11 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL(FileHandler::UNKNOWN, tmp.nameToType("Unknown"));
 	TEST_EQUAL(FileHandler::DTA, tmp.nameToType("DTA"));
 	TEST_EQUAL(FileHandler::DTA2D, tmp.nameToType("DTA2D"));
-	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("MzData"));
-	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("MzXML"));
+	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
+	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileHandler::FEATURE, tmp.nameToType("Feature file"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDI_MS"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdI_Ms"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
 RESULT
 
 CHECK(Type getTypeByName(const String& filename))
@@ -72,6 +72,14 @@ CHECK(Type getTypeByName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.feat"), FileHandler::FEATURE)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
+RESULT
+
+CHECK(Type getTypeByContent(const String& filename) throws (Exception::FileNotFound))
+	FileHandler tmp;
+	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
+	TEST_EQUAL(tmp.getTypeByContent("data/DFeatureMapFile.xml"), FileHandler::FEATURE)
+	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::UNKNOWN)
 RESULT
 
 CHECK(template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN))
