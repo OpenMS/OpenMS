@@ -314,6 +314,9 @@ namespace OpenMS
 					Spectrum3DCanvas::ExperimentType& exp2 = w3->widget()->canvas()->addEmptyDataSet();
 					exp2 = *exp;
 					delete(exp);
+					
+					//use_mower
+					
 					exp2.setName(caption);   // set layername
 					w3->widget()->canvas()->finishAdding();
 				}
@@ -417,288 +420,164 @@ namespace OpenMS
 			savePreferences();
 		}
 	}
-	
+
 	void SpectrumMDIWindow::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
 	{
 		//for comparison
 		String filename_lower(filename);
 		filename_lower.toLower();
-		
-	  setCursor(Qt::WaitCursor);
-		if (filename != "")
+	  	
+		if (filename == "")
 		{
-			QFileInfo file(filename.c_str());
-			if (file.exists())
+			return;
+		}
+		QFileInfo file(filename.c_str());
+		if (!file.exists())
+		{
+			QMessageBox::warning(this,"Open file error",("The file '"+filename+"' does not exist!").c_str());
+			return;
+		}
+
+		//extract the filename without path
+		String caption = file.fileName().ascii();
+		
+		//update recent files list
+		addRecentFile_(filename);
+
+		//windowpointer
+		SpectrumWindow* w=0;
+		
+		if (as_new_window)
+		{
+			if (filename_lower.hasSuffix(".dta")) //1D
+			{				
+				w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);	
+			}
+			else if (maps_as_2d || filename_lower.hasSuffix(".feat")) //2d or features
 			{
-				//extract the filename without path
-				String caption = file.fileName().ascii();
-				
-				//update recent files list
-				addRecentFile_(filename);
-	
-				//windowpointer
-				SpectrumWindow* w=0;
-	
-				// 1D Files
+				w = new Spectrum2DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);	
+			}
+			else //3d
+			{
+				w = new Spectrum3DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);	
+			}			
+
+			//set main preferences
+			w->widget()->setMainPreferences(prefs_);
+		}
+		else //!as_new_window
+		{
+			if (active1DWindow_()!=0) //1D window
+			{
+				if (!filename_lower.hasSuffix(".dta"))
+				{
+					QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!").c_str());
+					return;
+				}
+
+				w = active1DWindow_();
+			}
+			else if (active2DWindow_()!=0) //2d window
+			{
 				if (filename_lower.hasSuffix(".dta"))
 				{
-					//wrong active window type
-					if (!as_new_window && active1DWindow_()==0)
-					{
-						QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!<BR>Please open the file in new tab.").c_str());
-					}
-					else //open it
-					{
-						w = addSpectrum1D_(filename,caption,as_new_window,use_mower,force_type);
-					}
+					QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!").c_str());
+					return;
 				}
-				// 2D Files
-				else
-				{
-					//open in 2D view
-					if ((as_new_window && maps_as_2d) || (!as_new_window && active2DWindow_()!=0))
-					{
-						w = addSpectrum2D_(filename,caption,as_new_window,use_mower,force_type);
-					}
-					//open in 3D view
-					else if ((as_new_window && !maps_as_2d) || (!as_new_window && active3DWindow_()!=0))
-					{
-						w = addSpectrum3D_(filename,caption,as_new_window,use_mower,force_type);
-					}
-					else
-					//wrong active window type
-					{
-						QMessageBox::warning(this,"Wrong file type",("You cannot open 2D data ("+filename+") in a 1D window!<BR>Please open the file in new tab.").c_str());
-					}
-				}
-				//do for all (in active and in new window, 1D/2D/3D)
-				if (w!=0)
-				{
-					if(maximize)
-					{
-						w->showMaximized();
-					}
-				}
+				w = active2DWindow_();
 			}
-			else //file does not exist
+			else if (active3DWindow_()!=0)//3d window
 			{
-				QMessageBox::warning(this,"Command line file",("The file "+filename+" does not exist!").c_str());
-			}
+				if (filename_lower.hasSuffix(".dta"))
+				{
+					QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 3D window!").c_str());
+					return;
+				}
+				w = active3DWindow_();
+			}	
 		}
-	  setCursor(Qt::ArrowCursor);
-	}
-	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum1D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower /*use_mower*/, FileHandler::Type force_type)
-	{
-		Spectrum1DWindow* w1;
 		
-		//open in active window
-		if (as_new_window == false)
+		//try to read the data from file (feature)
+		if (filename_lower.hasSuffix(".feat"))
 		{
-			w1 = active1DWindow_();
-	
+			DFeatureMap<2> map;
 			try
-			{
-				Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-				FileHandler().loadExperiment(filename, exp, force_type);
-				exp.setName(caption);  // set layername
-				w1->widget()->canvas()->finishAdding();
-				updateLayerbar();
+			{	
+				DFeatureMapFile().load(filename,map);
 			}
 			catch(Exception::Base& e)
 			{
-				//QMessageBox::warning ( this , "Error while reading DTA file", e.what());
-				cout << "Error while reading DTA file: " <<e.what()<<endl;
-				return 0;
+				QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
+				return;
 			}
+			map.sortByPosition();
+			SpectrumCanvas::ExperimentType exp;
+			exp.set2DData(map);
+			setFeatureMap_(w->widget()->canvas(), exp, caption);
+			return;
 		}
-		//open in new window
-		else
-		{
-			w1 = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-			w1->widget()->setMainPreferences(prefs_);
-			//try to read the data from file
-			try
-			{			
-				Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-				FileHandler().loadExperiment(filename,exp, force_type);
-				
-				exp.setName(caption);  // set layername
-				w1->widget()->canvas()->finishAdding();
-				updateLayerbar();
-			}
-			catch(Exception::Base& e)
-			{
-				//QMessageBox::warning ( this , "Error while reading file", e.what());
-				cout << "Error while reading 1D file: " << e.what()<<endl;
-				return 0;
-			}
-						
-			connectWindowSignals_(w1);
-			w1->setCaption(filename.c_str());
-			addClient(w1,filename);
-			addTab_(w1,caption);
-		}
-	
-		return w1;
-	}
-	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum2D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower use_mower, FileHandler::Type force_type)
-	{
-		//for comparison
-		String filename_lower(filename);
-		filename_lower.toLower();
 		
-		Spectrum2DWindow* w2;
-	
-		//open in active window
-		if (as_new_window == false)
-		{
-			w2 = active2DWindow_();
-	
-			try
-			{
-				// FeatureMapFile
-				if ((filename_lower.hasSuffix(".feat")))
-				{
-					DFeatureMap<2> map;
-					DFeatureMapFile().load(filename,map);
-					Spectrum2DCanvas::ExperimentType exp;
-					map.sortByPosition();
-					exp.set2DData(map);
-					setFeatureMap_(w2->widget()->canvas(), exp, caption);
-				}
-				else
-				{
-					Spectrum2DCanvas::ExperimentType& exp = w2->widget()->canvas()->addEmptyDataSet();
-	
-					FileHandler().loadExperiment(filename, exp, force_type);
-	
-					exp.setName(caption);  // set layername
-					w2->widget()->canvas()->finishAdding();
-				}
-				updateLayerbar();
-			}
-			catch(Exception::Base& e)
-			{
-				//QMessageBox::warning ( this , "Error while reading DTA file", e.what());
-				cout << "Error while reading 2D file: " << e.what()<<endl;
-				return 0;
-			}
+		//try to read the data from file (raw/peak data)
+		SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
+		try
+		{	
+			FileHandler().loadExperiment(filename,*exp, force_type);
 		}
-		//open in new window
-		else
+		catch(Exception::Base& e)
 		{
-			w2 = new Spectrum2DWindow(ws_, "Spectrum2DWindow", WDestructiveClose);
-			
-			w2->widget()->setMainPreferences(prefs_);					
-			//try to read the data from file
-			try
-			{
-				if ((filename_lower.hasSuffix(".feat")))
-				{
-					DFeatureMap<2> map;
-					DFeatureMapFile().load(filename,map);
-					Spectrum2DCanvas::ExperimentType exp;
-					map.sortByPosition();
-					exp.set2DData(map);
-					setFeatureMap_(w2->widget()->canvas(), exp, caption);
-				}
-				else
-				{
-					Spectrum2DCanvas::ExperimentType& exp = w2->widget()->canvas()->addEmptyDataSet();
-					FileHandler().loadExperiment(filename, exp, force_type);
-					exp.setName(caption);  // set layername
-					//check if we should better open a 1D window
-					if (exp.size()==1)
-					{
-						delete(w2);
-						addSpectrum1D_(filename, caption, true, use_mower, force_type)->showMaximized();
-						return 0;
-					}
-					w2->widget()->canvas()->finishAdding();
-				}
-			}
-			catch(Exception::Base& e)
-			{
-				//QMessageBox::warning ( this , "Error while reading file", e.what());
-				cout << "Error while reading 2D file: " <<e.what()<<endl;
-				return 0;
-			}
-				
-			connectWindowSignals_(w2);
-			w2->setCaption(filename.c_str());
-			addClient(w2,filename);			
-			addTab_(w2,caption);
-		}	
-		
-		return w2;
-	}
-	
-	SpectrumWindow* SpectrumMDIWindow::addSpectrum3D_(const String& filename, const String& caption, bool as_new_window, OpenDialog::Mower use_mower, FileHandler::Type force_type)
-	{		
-		Spectrum3DWindow* w3;
-		
-		//open in active window
-		if (as_new_window == false)
-		{
-			w3 = active3DWindow_();
-			try
-			{
-				Spectrum3DCanvas::ExperimentType& exp = w3->widget()->canvas()->addEmptyDataSet();
-				FileHandler().loadExperiment(filename, exp, force_type);
-				exp.setName(caption);  // set layername
-				w3->widget()->canvas()->finishAdding();
-				updateLayerbar();
-			}
-			catch(Exception::Base& e)
-			{
-				//QMessageBox::warning ( this , "Error while reading DTA file", e.what());
-				cout << "Error while reading 2D file: " << e.what()<<endl;
-				return 0;
-			}
+			QMessageBox::warning(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
+			return;
 		}
-		//open in new window
-		else
-		{
-			w3 = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
-			
-			w3->widget()->setMainPreferences(prefs_);					
-			//try to read the data from file
-			try
-			{
-				Spectrum3DCanvas::ExperimentType& exp = w3->widget()->canvas()->addEmptyDataSet();
-				FileHandler().loadExperiment(filename, exp, force_type);
-				exp.setName(caption);  // set layername
 
-				//check if we should better open a 1D window
-				if (exp.size()==1)
-				{
-					delete(w3);
-					addSpectrum1D_(filename, caption, true, use_mower, force_type)->showMaximized();
-					return 0;
-				}
+		//check if only one scan is in a 2d file
+		if (as_new_window && active1DWindow_()==0 && exp->size()==1)
+		{
+			delete(w);
+			w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
+			w->widget()->setMainPreferences(prefs_);
+			exp = &(w->widget()->canvas()->addEmptyDataSet());
+			FileHandler().loadExperiment(filename,*exp, force_type);
+		}
 
-				w3->widget()->canvas()->finishAdding();
-			}
-			catch(Exception::Base& e)
+		//do for all (in active and in new window, 1D/2D/3D)
+		if (w!=0)
+		{
+			float cutoff=0;
+			
+			if(use_mower!=OpenDialog::NO_MOWER)
 			{
-				//QMessageBox::warning ( this , "Error while reading file", e.what());
-				cout << "Error while reading 2D file: " <<e.what()<<endl;
-				return 0;
+				/// Estimate the noise for the central scan
+			  UnsignedInt central_scan = (UnsignedInt)ceil((float)(exp->size()-1)/2.0);
+			  vector<float> tmp;
+			  tmp.reserve((*exp)[central_scan].size());
+			  for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = (*exp)[central_scan].begin()
+			  	  ; it != (*exp)[central_scan].end()
+			  	  ; ++it)
+			  {
+			  	tmp.push_back(it->getIntensity());
+			  }
+			  std::sort(tmp.begin(),tmp.end());
+			  cutoff = tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
 			}
 			
-			connectWindowSignals_(w3);
-			
-			w3->setCaption(filename.c_str());
-			
-			addClient(w3,filename);
-			addTab_(w3,caption);
-		}		
-	
-		return w3;
-	}
+			exp->setName(caption);  // set layername
+			w->widget()->canvas()->finishAdding();
+			updateLayerbar();
 
+			if(maximize)
+			{
+				w->showMaximized();
+			}
+			
+			if (as_new_window)
+			{
+				connectWindowSignals_(w);
+				w->setCaption(filename.c_str());
+				addClient(w,filename);
+				addTab_(w,caption);
+			}
+		}
+	}
 	
 	void SpectrumMDIWindow::addRecentFile_(const String& filename)
 	{
@@ -1606,14 +1485,9 @@ namespace OpenMS
 	
 	void SpectrumMDIWindow::openRecentFile(int i)
 	{
-		if (getPrefAsString("Preferences:DefaultMapView")=="2D")
-		{
-			addSpectrum(recent_files_[i].c_str(),true,true,true);
-		}
-		else
-		{
-			addSpectrum(recent_files_[i].c_str(),true,false,true);
-		}
+		setCursor(Qt::WaitCursor);
+		addSpectrum(recent_files_[i].c_str(),true,getPrefAsString("Preferences:DefaultMapView")=="2D",true);
+		setCursor(Qt::ArrowCursor);
 	}
 	
 	void SpectrumMDIWindow::findFeaturesActiveSpectrum()
@@ -1626,9 +1500,9 @@ namespace OpenMS
 			{
 				//find features
 				FeatureFinder& finder = dialog.getFeatureFinder();
-				Spectrum2DCanvas::ExperimentType in = w->widget()->canvas()->currentDataSet();
+				SpectrumCanvas::ExperimentType in = w->widget()->canvas()->currentDataSet();
 				finder.setData(in);
-				Spectrum2DCanvas::ExperimentType out;
+				SpectrumCanvas::ExperimentType out;
 				//copy to sort features by RT
 				DFeatureMap<2> features = finder.run();
 				features.sortByPosition();
@@ -1641,7 +1515,7 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumMDIWindow::setFeatureMap_(Spectrum2DCanvas* canvas, Spectrum2DCanvas::ExperimentType& exp, String caption)
+	void SpectrumMDIWindow::setFeatureMap_(SpectrumCanvas* canvas, SpectrumCanvas::ExperimentType& exp, String caption)
 	{
 		if (exp.size()==0) 
 		{
@@ -1680,6 +1554,7 @@ namespace OpenMS
 		if (dialog.exec())
 		{
 			//Open Files
+			setCursor(Qt::WaitCursor);
 			if (dialog.getSource()==OpenDialog::FILE)
 			{
 				for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
@@ -1695,6 +1570,7 @@ namespace OpenMS
 					addDBSpectrum(it->toInt(),dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower());
 				}
 			}
+			setCursor(Qt::ArrowCursor);
 			maximizeActiveSpectrum();
 		}
 	}

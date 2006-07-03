@@ -306,15 +306,8 @@ namespace OpenMS
 			/// pointer to the recent files menu
 			QPopupMenu* recent_menu_;
 			
-			///add 1D spectrum
-			SpectrumWindow* addSpectrum1D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
-			///add 2D spectrum
-			SpectrumWindow* addSpectrum2D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
-			///add 3D spectrum
-			SpectrumWindow* addSpectrum3D_(const String& filename, const String& caption, bool as_new_window=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
-			
 			/// Adds the result of featurefinding to the canvas
-			void setFeatureMap_(Spectrum2DCanvas* canvas, Spectrum2DCanvas::ExperimentType& exp, String caption);
+			void setFeatureMap_(SpectrumCanvas* canvas, SpectrumCanvas::ExperimentType& exp, String caption);
 
 	}; //class
 	

@@ -204,21 +204,10 @@ namespace OpenMS
 					
 					if (measurement_start_)
 					{
-						if (isMzToXAxis())
-						{
-							emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
-																		.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
-																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																		.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
-						}
-						else
-						{
-						emit sendStatusMessage(QString("Measured: dRT = %3, dMZ = %1, Intensity ratio = %2")
-																		.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
-																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																		.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
-									
-						}
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
+																	.arg(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ])
+																	.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
+																	.arg(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]).ascii(), 0);
 					}
 				}
 				break;
@@ -456,13 +445,13 @@ namespace OpenMS
 				
 					if (measurement_stop_)
 					{
-						emit sendCursorStatus(measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ],
+						emit sendCursorStatus(measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT],
 						                      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-						                      measurement_stop_->getPosition()[RT] - measurement_start_->getPosition()[RT]);
+						                      measurement_stop_->getPosition()[MZ] - measurement_start_->getPosition()[MZ]);
 					}
 					else
 					{
-						emit sendCursorStatus(measurement_start_->getPosition()[MZ], measurement_start_->getIntensity(), measurement_start_->getPosition()[RT]);
+						emit sendCursorStatus(measurement_start_->getPosition()[RT], measurement_start_->getIntensity(), measurement_start_->getPosition()[MZ]);
 					}
 				}
 				break;
