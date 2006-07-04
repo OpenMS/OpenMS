@@ -120,9 +120,10 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 					near_,
 					far_);
 
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0, 0.0, -20.0, 
+	gluLookAt(0.0, 0.0, 0.0, 
 						0.0, 0.0, 0.0, 
 						0.0, 1.0, 0.0);
 	if(canvas_3d_.getDataSetCount()!=0 && canvas_3d_.recalculate_ )
@@ -177,7 +178,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 				break;
 			case SpectrumCanvas::AM_MEASURE:
 				break;
-			case SpectrumCanvas::AM_SELECT:
+ 			case SpectrumCanvas::AM_SELECT:
 				break;
 			}
 		}
@@ -206,9 +207,9 @@ void Spectrum3DOpenGLCanvas::paintGL()
 	glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
 	glTranslated(0.0, 0.0,3.0*corner_);
 	if(translation_on_)
-		{
-			glTranslated(trans_x_, trans_y_,0.0);
-		}
+	{
+		glTranslated(trans_x_, trans_y_,0.0);
+	}
 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:BackgroundColor").c_str());
  	qglClearColor(color);
 	glEnable(GL_DEPTH_TEST);
@@ -218,12 +219,9 @@ void Spectrum3DOpenGLCanvas::paintGL()
 	{
 		switch (canvas_3d_.action_mode_)
 		{
+	
 		case SpectrumCanvas::AM_ZOOM:
-			if(canvas_3d_.show_grid_)
-			{
-				glCallList(gridlines_);
-			}
-					glCallList(stickdata_);	
+			glCallList(stickdata_);	
 			if(show_zoom_selection_)
 			{
 				glCallList(zoomselection_);
@@ -233,13 +231,16 @@ void Spectrum3DOpenGLCanvas::paintGL()
 				makeFont();
 				paintAxesScale();
 			}
-			glCallList(coord_);
-			break;
-		case SpectrumCanvas::AM_TRANSLATE:	
 			if(canvas_3d_.show_grid_)
 			{
 				glCallList(gridlines_);
 			}
+			glDisable(GL_DEPTH_TEST);
+			glCallList(coord_);
+			glEnable(GL_DEPTH_TEST);
+			break;
+		
+		case SpectrumCanvas::AM_TRANSLATE:	
 			glCallList(ground_);
 			glCallList(stickdata_);	
 			glCallList(axeslabel_);
@@ -248,7 +249,13 @@ void Spectrum3DOpenGLCanvas::paintGL()
 				makeFont();
 				paintAxesScale();
 			}
+			if(canvas_3d_.show_grid_)
+			{
+				glCallList(gridlines_);
+			}
+			glDisable(GL_DEPTH_TEST);
 			glCallList(coord_);
+			glEnable(GL_DEPTH_TEST);
 			break;
 			case SpectrumCanvas::AM_MEASURE:
 				break;
@@ -266,54 +273,72 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 	
 	if(yrot_> 280*16 ^ yrot_<80*16)
 		{
-			if(zoom_<2)
+			String result("rt");
+			glPushAttrib (GL_LIST_BIT);
+			glListBase(fontOffset);
+			glRasterPos3d( 0.0, 
+										 -corner_-20.0,
+										 -near_-2*corner_+20.0);
+			glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+			glPopAttrib ();
+			
+			if(zoom_<2 && grid_rt_.size()>=2)
+			{
+				for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
 				{
-					for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
-						{
-							String result(grid_rt_[0][i]);
-							glPushAttrib (GL_LIST_BIT);
-							glListBase(fontOffset);
-							
-							glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
-														-corner_-9.0,
-														-near_-2*corner_+10.0);
-							glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-							
-							glPopAttrib ();
-						}
+					String result(grid_rt_[0][i]);
+					glPushAttrib (GL_LIST_BIT);
+					glListBase(fontOffset);
+					glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
+												-corner_-9.0,
+												-near_-2*corner_+10.0);
+					glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+					glPopAttrib ();
+				}
 				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
-						{
-							String result(grid_rt_[1][i]);
-							glPushAttrib (GL_LIST_BIT);
-							glListBase(fontOffset);
-							glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
-														-corner_-9.0,
-														-near_-2*corner_+10.0);
-							glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-							glPopAttrib ();
-							
-						}
-				}
-			if(width_>1000 && heigth_>700&& zoom_<1.5)
 				{
-					for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
-						{
-							String result(grid_rt_[2][i]);
-							glPushAttrib (GL_LIST_BIT);
-							glListBase(fontOffset);
-							glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[2][i]), 
-														-corner_-9.0,
-														-near_-2*corner_+10.0);
-							glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-							glPopAttrib ();
-							
-						}
+					String result(grid_rt_[1][i]);
+					glPushAttrib (GL_LIST_BIT);
+					glListBase(fontOffset);
+					glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
+												-corner_-9.0,
+												-near_-2*corner_+10.0);
+					glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+					glPopAttrib ();
+					
 				}
+			}
+			if(width_>1000 && heigth_>700&& zoom_<1.5 && grid_rt_.size()>=3)
+			{
+				for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+				{
+					String result(grid_rt_[2][i]);
+					glPushAttrib (GL_LIST_BIT);
+					glListBase(fontOffset);
+					glRasterPos3d(-corner_-result.length()+scaledRT(grid_rt_[2][i]), 
+														-corner_-9.0,
+												-near_-2*corner_+10.0);
+					glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+					glPopAttrib ();
+							
+				}
+			}
 		}
+	
+
 
 	if(yrot_>10*16 && yrot_<190*16 || canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM)
 		{
-			if(zoom_<2)
+			String result("mz");
+			glPushAttrib (GL_LIST_BIT);
+			glListBase(fontOffset);
+			glRasterPos3d( -corner_-20.0, 
+										 -corner_-20.0,
+										 -near_-3*corner_);
+			glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+			glPopAttrib ();
+
+			if(zoom_<2 && grid_mz_.size()>=2)
 			{
 				for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
 				{
@@ -339,7 +364,7 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						
 					}
 			}
-			if(width_>1000 && heigth_>700&& zoom_<1.5)
+			if(width_>1000 && heigth_>700 && zoom_<1.5 && grid_mz_.size()>=3)
 				{
 					for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
 						{
@@ -355,11 +380,20 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						}
 				}
 		}
+
 	if(canvas_3d_.action_mode_ != SpectrumCanvas::AM_ZOOM)
 		{
+			String result("intensity");
+			glPushAttrib (GL_LIST_BIT);
+			glListBase(fontOffset);
+			glRasterPos3d( -corner_-20.0, 
+										 corner_+10.0,
+								 -near_-2*corner_+20.0);
+			glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+			glPopAttrib ();
 			if(canvas_3d_.intensity_mode_== SpectrumCanvas::IM_LOG)
 				{
-					if(zoom_<3)
+					if(zoom_<3 && grid_intensity_.size()>=1)
 						{
 							for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
 								{
@@ -380,7 +414,8 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 						 canvas_3d_.intensity_mode_ == SpectrumCanvas::IM_SNAP ||
 						 canvas_3d_.intensity_mode_ == SpectrumCanvas::IM_PERCENTAGE)
 						{
-							if(zoom_<2.0)
+							if(zoom_<2.0 && width_>=800 && 
+								 grid_intensity_.size()>=2)
 								{
 									for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
 										{
@@ -404,22 +439,22 @@ void Spectrum3DOpenGLCanvas::paintAxesScale()
 											glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
 											glPopAttrib ();
 											
-							}
-								}
-							if(width_>1000 && heigth_>700&& zoom_<1.5)
-								{
-									for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
-										{
-											String result(grid_intensity_[2][i]);
-											glPushAttrib (GL_LIST_BIT);
-											glListBase(fontOffset);
-											glRasterPos3d(-corner_-result.length()-width_/200.0-5.0, 
-																		-corner_+scaledIntensity(grid_intensity_[2][i]),
-																		-near_-2*corner_);
-											glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
-											glPopAttrib ();
-											
 										}
+								}
+							if(width_>1000 && heigth_>700&& zoom_<1.5 && grid_intensity_.size()>=3)
+								{
+											for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
+												{
+													String result(grid_intensity_[2][i]);
+													glPushAttrib (GL_LIST_BIT);
+													glListBase(fontOffset);
+													glRasterPos3d(-corner_-result.length()-width_/200.0-5.0, 
+																		-corner_+scaledIntensity(grid_intensity_[2][i]),
+																				-near_-2*corner_);
+													glCallLists(result.length(), GL_UNSIGNED_BYTE,(GLubyte*)result.c_str());
+													glPopAttrib ();
+													
+												}
 								}
 						}
 				}
@@ -538,21 +573,21 @@ GLuint Spectrum3DOpenGLCanvas::makeGround()
 {
 	GLuint list = glGenLists(1);
 	glNewList(list,GL_COMPILE);
-	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:BackgroundColor").c_str());
- 	qglColor(color);
+ 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:BackgroundColor").c_str());
+	qglColor(color);
 	glBegin(GL_QUADS);
-	glVertex3d(-corner_-1.0, 
-						 -corner_-1.0,
-						 -near_-2*corner_+1.0);
-	glVertex3d( -corner_-1.0, 
-							-corner_-1.0,
+	glVertex3d(-corner_, 
+						 -corner_-2.0,
+						 -near_-2*corner_);
+	glVertex3d( -corner_, 
+							-corner_-2.0,
 							-far_+2*corner_);
-	glVertex3d( corner_-1.0, 
-							-corner_-1.0,
+	glVertex3d( corner_, 
+							-corner_-2.0,
 							-far_+2*corner_);
-	glVertex3d(corner_-1.0, 
-						 -corner_-1.0,
-						 -near_-2*corner_+1.0);
+	glVertex3d(corner_, 
+						 -corner_-2.0,
+						 -near_-2*corner_);
 	glEnd();
 	glEndList();
 	return list;
@@ -595,26 +630,26 @@ GLuint Spectrum3DOpenGLCanvas::makeCoordinates()
 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:AxesColor").c_str());
 	qglColor(color);
 	//x_achse
-	glVertex3d(-corner_-1.0, 
-						 -corner_-1.0,
-						 -near_-2*corner_+1.0);
-	glVertex3d( corner_+1.0, 
-							-corner_-1.0,
-							-near_-2*corner_+1.0);
+	glVertex3d(-corner_, 
+						 -corner_,
+						 -near_-2*corner_);
+	glVertex3d( corner_, 
+							-corner_,
+							-near_-2*corner_);
 	//z-achse
-	glVertex3d(-corner_-1.0, 
-						 -corner_-1.0,
-						 -near_-2*corner_+1.0);
-	glVertex3d( -corner_-1.0, 
-							-corner_-1.0,
+	glVertex3d(-corner_, 
+						 -corner_,
+						 -near_-2*corner_);
+	glVertex3d( -corner_, 
+							-corner_,
 							-far_+2*corner_);
 	//y-achse
-	glVertex3d(-corner_-1.0, 
-						 -corner_-1.0,
-						 -near_-2*corner_+1.0);
-	glVertex3d( -corner_-1.0, 
-							corner_+1.0,
-							-near_-2*corner_+1.0);
+	glVertex3d(-corner_, 
+						 -corner_,
+						 -near_-2*corner_);
+	glVertex3d( -corner_, 
+							corner_,
+							-near_-2*corner_);
 	glEnd();
 	glEndList();
 	return list;
@@ -837,66 +872,85 @@ GLuint Spectrum3DOpenGLCanvas::makeGridLines()
 	glBegin(GL_LINES);
 	glColor4ub(0, 0, 0, 80);	
 	//rt
+	if(grid_rt_.size()>=1)
+		{
 	for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
 	{
 		glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), 
-							 -corner_-1.0,
-							  -near_-2*corner_+1.0);
+							 -corner_,
+							  -near_-2*corner_);
 		glVertex3d( -corner_+scaledRT(grid_rt_[0][i]), 
-								-corner_-1.0,
+								-corner_,
 								-far_+2*corner_);
 	}
-	for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
-	{	
-		glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), 
-							 -corner_-1.0,
-							  -near_-2*corner_+1.0);
-		glVertex3d( -corner_+scaledRT(grid_rt_[1][i]), 
-								-corner_-1.0,
-								-far_+2*corner_);
-	
-	}
-	for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
-	{	
-		glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
-							 -corner_-1.0,
-							 -near_-2*corner_+1.0);
-		glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), 
-								-corner_-1.0,	
-								-far_+2*corner_);
-	}
-	//mz
-	for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
-	{
-		glVertex3d(-corner_-1.0, 
-							 -corner_-1.0,
-							 -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-		glVertex3d( corner_+1.0,
-								-corner_-1.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-	}
-	for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
-	{
-		glVertex3d( -corner_-1.0, 
-								-corner_-1.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-		glVertex3d( corner_+1.0,
-								-corner_-1.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-	}
-	for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+		}
+	if(grid_rt_.size()>=2)
 		{
-			glVertex3d( -corner_-1.0, 
-									-corner_-1.0,
+			for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+				{	
+					glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), 
+										 -corner_,
+										 -near_-2*corner_);
+					glVertex3d( -corner_+scaledRT(grid_rt_[1][i]), 
+								-corner_,
+											-far_+2*corner_);
+					
+				}
+		}
+	if(grid_rt_.size()>=3)
+		{
+			for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+				{	
+					glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
+										 -corner_,
+										 -near_-2*corner_);
+					glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), 
+											-corner_,	
+											-far_+2*corner_);
+				}
+		}
+	//mz
+	if(grid_mz_.size()>=1)
+		{
+			for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+				{
+					glVertex3d(-corner_, 
+										 -corner_,
+										 -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+					glVertex3d( corner_,
+											-corner_,
+											-near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+				}
+		}
+	if(grid_mz_.size()>=2)
+	{
+		for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
+		{
+			glVertex3d( -corner_, 
+									-corner_,
+									-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+			glVertex3d( corner_,
+									-corner_,
+								-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+		}
+	}
+	if(grid_mz_.size()>=3)
+	{
+		for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+		{
+			glVertex3d( -corner_, 
+									-corner_,
 									-near_-2*corner_-scaledMZ(grid_mz_[2][i]));
-			glVertex3d( corner_+1.0,
-									-corner_-1.0,
+			glVertex3d( corner_,
+									-corner_,
 									-near_-2*corner_-scaledMZ(grid_mz_[2][i]));
 		}
+	}
 	glEnd();
 	glEndList();
 	return list; 
 }
+
 GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 {
 	GLuint list = glGenLists(1);
@@ -906,98 +960,123 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 	glBegin(GL_LINES);
 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:AxesColor").c_str());
 	qglColor(color);//x_achse
+
 	//RT
-	for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+	if(grid_rt_.size()>=1)
 	{
-		glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), 
-							 -corner_-1.0,
-							 -near_-2*corner_+1.0);
-		glVertex3d( -corner_+scaledRT(grid_rt_[0][i]), 
-								-corner_+4.0,
-								-near_-2*corner_+1.0);
+		for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+		{
+			glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), 
+								 -corner_,
+								 -near_-2*corner_);
+			glVertex3d( -corner_+scaledRT(grid_rt_[0][i]), 
+									-corner_+4.0,
+									-near_-2*corner_);
+			}
 	}
-	for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+	if(grid_rt_.size()>=2)
 	{
+		for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+		{
 		glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), 
-							 -corner_-1.0,
-							 -near_-2*corner_+1.0);
+							 -corner_,
+							 -near_-2*corner_);
 		glVertex3d( -corner_+scaledRT(grid_rt_[1][i]), 
 								-corner_+3.0,
-								-near_-2*corner_+1.0);
+								-near_-2*corner_);
+		}
 	}
-	for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+	if(grid_rt_.size()>=3)
 	{
-		glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
-							 -corner_-1.0,
-							 -near_-2*corner_+1.0);
-		glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), 
-								-corner_+2.0,
-								-near_-2*corner_+1.0);
-	}
-	//MZ
-	for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
-	{
-		glVertex3d(-corner_-1.0, 
-							 -corner_-1.0,
-							 -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-		glVertex3d( -corner_-1.0,
-								-corner_+4.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-	}
-	for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
-	{
-		glVertex3d(-corner_-1.0, 
-							 -corner_-1.0,
-							 -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-		glVertex3d( -corner_-1.0,
-								-corner_+3.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-	}
-	for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
-	{
-		glVertex3d(-corner_-1.0, 
-							 -corner_-1.0,
-							 -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
-		glVertex3d( -corner_-1.0,
-								-corner_+2.0,
-								-near_-2*corner_-scaledMZ(grid_mz_[2][i]));
+		for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
+		{
+			glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), 
+								 -corner_,
+								 -near_-2*corner_);
+			glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), 
+									-corner_+2.0,
+									-near_-2*corner_);
+		}
 	}
 	
+	//MZ	
+	if(grid_mz_.size()>=1)
+	{
+		for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+			{
+				glVertex3d(-corner_, 
+									 -corner_,
+									 -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+				glVertex3d( -corner_,
+										-corner_+4.0,
+										-near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+			}
+	}
+	if(grid_mz_.size()>=2)
+	{
+			for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
+		{
+			glVertex3d(-corner_, 
+								 -corner_,
+							 -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+			glVertex3d( -corner_,
+									-corner_+3.0,
+									-near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+		}
+	}	
+	if(grid_mz_.size()>=3)
+	{
+		for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
+		{
+			glVertex3d(-corner_, 
+								 -corner_,
+								 -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
+			glVertex3d( -corner_,
+									-corner_+2.0,
+									-near_-2*corner_-scaledMZ(grid_mz_[2][i]));
+		}
+	}
+
+
+
 	if(canvas_3d_.intensity_mode_== SpectrumCanvas::IM_LOG)
 		{
-			for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
+			if(grid_intensity_.size()>=1)
+			{
+				for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
 				{	
-					glVertex3d(-corner_-1.0, 
+					glVertex3d(-corner_, 
 										 -corner_+scaledIntensity(grid_intensity_log_[0][i]),
-										 -near_-2*corner_+1.0);
+										 -near_-2*corner_);
 					glVertex3d( -corner_+3.0, 
 											-corner_+scaledIntensity(grid_intensity_log_[0][i]),
 											-near_-2*corner_-3.0);
 				}
-			for(UnsignedInt i = 0;i<grid_intensity_log_[1].size();i++)
+				for(UnsignedInt i = 0;i<grid_intensity_log_[1].size();i++)
 				{
-					glVertex3d(-corner_-1.0, 
+					glVertex3d(-corner_, 
 										 -corner_+scaledIntensity(grid_intensity_log_[1][i]),
-										 -near_-2*corner_+1.0);
+										 -near_-2*corner_);
 					glVertex3d( -corner_+2.0, 
 											-corner_+scaledIntensity(grid_intensity_log_[1][i]),
 											-near_-2*corner_-2.0);
 				}
+			}
 		}
 	else
+	{
+		if(canvas_3d_.intensity_mode_== SpectrumCanvas::IM_NONE||
+			 canvas_3d_.intensity_mode_== SpectrumCanvas::IM_SNAP||
+			 canvas_3d_.intensity_mode_== SpectrumCanvas::IM_PERCENTAGE)
 		{
-			if(canvas_3d_.intensity_mode_== SpectrumCanvas::IM_NONE||
-				 canvas_3d_.intensity_mode_== SpectrumCanvas::IM_SNAP||
-				  canvas_3d_.intensity_mode_== SpectrumCanvas::IM_PERCENTAGE)
+			if(grid_intensity_.size()>=1)
 				{
-					if(grid_intensity_.size()>=1)
-						{
-							for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
-								{	
-									glVertex3d(-corner_-1.0, 
-														 -corner_+scaledIntensity(grid_intensity_[0][i]),
-														 -near_-2*corner_+1.0);
-									glVertex3d( -corner_+4.0, 
+					for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
+						{	
+							glVertex3d(-corner_, 
+												 -corner_+scaledIntensity(grid_intensity_[0][i]),
+														 -near_-2*corner_);
+							glVertex3d( -corner_+4.0, 
 															-corner_+scaledIntensity(grid_intensity_[0][i]),
 															-near_-2*corner_-4.0);
 								}
@@ -1006,9 +1085,9 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 						{
 							for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
 								{
-									glVertex3d(-corner_-1.0, 
+									glVertex3d(-corner_, 
 														 -corner_+scaledIntensity(grid_intensity_[1][i]),
-														 -near_-2*corner_+1.0);
+														 -near_-2*corner_);
 									glVertex3d( -corner_+3.0, 
 															-corner_+scaledIntensity(grid_intensity_[1][i]),
 															-near_-2*corner_-3.0);
@@ -1018,9 +1097,9 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 							{
 								for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
 									{ 
-										glVertex3d(-corner_-1.0, 
+										glVertex3d(-corner_, 
 															 -corner_+scaledIntensity(grid_intensity_[2][i]),
-															 -near_-2*corner_+1.0);
+															 -near_-2*corner_);
 										glVertex3d( -corner_+2.0, 
 													-corner_+scaledIntensity(grid_intensity_[2][i]),
 																-near_-2*corner_-2.0);

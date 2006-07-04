@@ -54,13 +54,7 @@ namespace OpenMS
      @todo Axis labels (Cornelia)
      
      @todo Add translation
-     
-     @todo /share/data/MS/Examples/mzData/MS_small.mzData crashes when opening
-     
-     @todo Make axes visible in zoom/top view
-     
-     @todo mini.dta2d
-     
+
      @ingroup spectrum_widgets
   */	
   class Spectrum3DCanvas : public SpectrumCanvas
