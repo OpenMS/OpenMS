@@ -234,11 +234,9 @@ namespace OpenMS
 	}
 	
 	
-	void SpectrumMDIWindow::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower /*use_mower*/)
+	void SpectrumMDIWindow::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
 	{
 	#ifdef DB_DEF
-	  QApplication::setOverrideCursor(Qt::WaitCursor);
-		
 		//DBConnection for all DB queries
 		DBConnection con;
 		con.connect(getPref("Preferences:DB:Name"), getPref("Preferences:DB:Login"),getPref("DBPassword"),getPref("Preferences:DB:Host"),getPrefAsInt("Preferences:DB:Port"));
@@ -254,6 +252,10 @@ namespace OpenMS
 		con.lastResult().first();
 	
 		SpectrumWindow* w;
+		
+		SpectrumCanvas::ExperimentType* exp;
+		MSExperiment<>* exp2; //temporary data
+		
 		//open in new window
 		if (as_new_window)
 		{
@@ -262,21 +264,15 @@ namespace OpenMS
 			{
 				// create 1D window
 				w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-				w->widget()->setMainPreferences(prefs_);
-				Spectrum1DWindow* w1 = dynamic_cast<Spectrum1DWindow*>(w);
 				
 				//determine Spectrum id
 				con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'");
 				con.lastResult().first();
 				UID spectrum_id = con.lastResult().value(0).toInt();
 				
-				//improve the interface (template function) and hand it to canvas directly -> avoid copying the data
-				Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-				exp.setName(caption);  // set layername
-				MSSpectrum<>* spec = dba.loadSpectrum(spectrum_id);
-				exp.push_back(*spec);
-				delete(spec);
-				w1->widget()->canvas()->finishAdding();
+				//load data
+				exp = &(w->widget()->canvas()->addEmptyDataSet());
+				exp2->push_back(* (dba.loadSpectrum(spectrum_id)));
 			}
 			//create 2D/3D view
 			else
@@ -286,55 +282,22 @@ namespace OpenMS
 				{
 					//create 2D window
 					w = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
-					w->widget()->setMainPreferences(prefs_);
-					Spectrum2DWindow* w2 = dynamic_cast<Spectrum2DWindow*>(w);
 					
 					//load spectrum
-					MSExperiment<>* exp = dba.loadMSExperiment(db_id);
-					
-					//TODO remove: copy data
-					Spectrum2DCanvas::ExperimentType& exp2 = w2->widget()->canvas()->addEmptyDataSet();
-					exp2 = *exp;
-					delete(exp);
-					exp2.setName(caption);   // set layername
-					w2->widget()->canvas()->finishAdding();
+					exp2 = dba.loadMSExperiment(db_id);
+					exp = &(w->widget()->canvas()->addEmptyDataSet());
 				}
 				//create 3D view
 				else
 				{
 					// create 3D window
-					w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
-					w->widget()->setMainPreferences(prefs_);
-					Spectrum3DWindow* w3 = dynamic_cast<Spectrum3DWindow*>(w);				
+					w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);		
 					
-					//load spectrum
-					MSExperiment<>* exp = dba.loadMSExperiment(db_id);
-					
-					//TODO remove: copy data
-					Spectrum3DCanvas::ExperimentType& exp2 = w3->widget()->canvas()->addEmptyDataSet();
-					exp2 = *exp;
-					delete(exp);
-					
-					//use_mower
-					
-					exp2.setName(caption);   // set layername
-					w3->widget()->canvas()->finishAdding();
+					//load data
+					exp2 = dba.loadMSExperiment(db_id);
+					exp = &(w->widget()->canvas()->addEmptyDataSet());
 				}
-			}
-		
-			//do for all windows
-			connectWindowSignals_(w);
-			w->setCaption(caption.c_str());
-			addClient(w,caption);
-			addTab_(w,caption);
-			
-			//do for all (in active and in new window, 1D/2D/3D)
-			if (w!=0)
-			{
-				if(maximize)
-				{
-					w->showMaximized();
-				}
+				w->widget()->setMainPreferences(prefs_);
 			}
 		}
 		//open in active window
@@ -343,11 +306,12 @@ namespace OpenMS
 			//create 1D View
 			if (con.lastResult().value(0).toInt()==1)
 			{
-				Spectrum1DWindow* w1 = active1DWindow_();
+				w = active1DWindow_();
 				//wrong active window type
-				if (w1==0)
+				if (w==0)
 				{
 					QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").c_str());
+					return;
 				}
 				else //open it
 				{
@@ -356,13 +320,9 @@ namespace OpenMS
 					con.lastResult().first();
 					UID spectrum_id = con.lastResult().value(0).toInt();
 					
-					//improve the interface (template function) and hand it to canvas directly -> avoid copying the data
-					Spectrum1DCanvas::ExperimentType& exp = w1->widget()->canvas()->addEmptyDataSet();
-					exp.setName(caption);  // set layername
-					MSSpectrum<>* spec = dba.loadSpectrum(spectrum_id);
-					exp.push_back(*spec);
-					delete(spec);
-					w1->widget()->canvas()->finishAdding();
+					//load data
+					exp = &(w->widget()->canvas()->addEmptyDataSet());
+					exp2->push_back(*(dba.loadSpectrum(spectrum_id)));
 				}
 			}
 			//create 2D/3D view
@@ -374,42 +334,80 @@ namespace OpenMS
 				if (w2==0 && w3==0)
 				{
 					QMessageBox::warning(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").c_str());
+					return;
 				}
 				//create 2D view
-				if (active2DWindow_()!=0)
+				if (w2!=0)
 				{
-					//load spectrum
+					w = w2;
+					
+					//load data
 					MSExperiment<>* exp = dba.loadMSExperiment(db_id);
-
-					//Copy data
-					Spectrum2DCanvas::ExperimentType& exp2 = w2->widget()->canvas()->addEmptyDataSet();
-					exp2 = *exp;
-					delete(exp);
-					exp2.setName(caption);   // set layername
-					w2->widget()->canvas()->finishAdding();
+					exp = &(w->widget()->canvas()->addEmptyDataSet());
+					*exp = *exp2;
+					delete(exp2);
 				}
 				//create 3D view
 				else
 				{
-					//load spectrum
-					MSExperiment<>* exp = dba.loadMSExperiment(db_id);
-	
-					//TODO remove: copy data
-					Spectrum3DCanvas::ExperimentType& exp2 = w3->widget()->canvas()->addEmptyDataSet();
-					exp2 = *exp;
-					delete(exp);
-					exp2.setName(caption);   // set layername
-					w3->widget()->canvas()->finishAdding();
+					w = w3;
+					
+					//load data
+					exp = dba.loadMSExperiment(db_id);
+					exp = &(w->widget()->canvas()->addEmptyDataSet());
 				}
+			}
+
+			*exp = *exp2;
+			delete(exp2);
+			
+			//noise estimator
+			float cutoff = 0;
+			if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
+			{
+			  cutoff = estimateNoise_(*exp);
+			}
+			
+			exp->setName(caption);
+			w->widget()->canvas()->finishAdding();
+
+			//use_mower
+			
+			//do for all windows
+			if (as_new_window)
+			{
+				w->widget()->canvas()->finishAdding(cutoff);
+				connectWindowSignals_(w);
+				w->setCaption(caption.c_str());
+				addClient(w,caption);
+				addTab_(w,caption);
+			}
+			
+			//do for all (in active and in new window, 1D/2D/3D)
+			if(maximize)
+			{
+				w->showMaximized();
 			}
 
 			//do for all windows
 			updateLayerbar();
 		}
-	
-	  QApplication::restoreOverrideCursor();
-	
 	#endif
+	}
+
+	float SpectrumMDIWindow::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
+	{
+	  UnsignedInt central_scan = (UnsignedInt)ceil((float)(exp.size()-1)/2.0);
+	  vector<float> tmp;
+	  tmp.reserve(exp[central_scan].size());
+	  for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = exp[central_scan].begin()
+	  	  ; it != exp[central_scan].end()
+	  	  ; ++it)
+	  {
+	  	tmp.push_back(it->getIntensity());
+	  }
+	  std::sort(tmp.begin(),tmp.end());
+	  return tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
 	}
 	
 	void SpectrumMDIWindow::preferencesDialog()
@@ -540,42 +538,27 @@ namespace OpenMS
 		}
 
 		//do for all (in active and in new window, 1D/2D/3D)
-		if (w!=0)
+		float cutoff=0;
+		
+		if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
 		{
-			float cutoff=0;
-			
-			if(use_mower!=OpenDialog::NO_MOWER)
-			{
-				/// Estimate the noise for the central scan
-			  UnsignedInt central_scan = (UnsignedInt)ceil((float)(exp->size()-1)/2.0);
-			  vector<float> tmp;
-			  tmp.reserve((*exp)[central_scan].size());
-			  for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = (*exp)[central_scan].begin()
-			  	  ; it != (*exp)[central_scan].end()
-			  	  ; ++it)
-			  {
-			  	tmp.push_back(it->getIntensity());
-			  }
-			  std::sort(tmp.begin(),tmp.end());
-			  cutoff = tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
-			}
-			
-			exp->setName(caption);  // set layername
-			w->widget()->canvas()->finishAdding();
-			updateLayerbar();
+		  cutoff = estimateNoise_(*exp);
+		}
+		exp->setName(caption);  // set layername
+		w->widget()->canvas()->finishAdding(cutoff);
+		updateLayerbar();
 
-			if(maximize)
-			{
-				w->showMaximized();
-			}
-			
-			if (as_new_window)
-			{
-				connectWindowSignals_(w);
-				w->setCaption(filename.c_str());
-				addClient(w,filename);
-				addTab_(w,caption);
-			}
+		if(maximize)
+		{
+			w->showMaximized();
+		}
+		
+		if (as_new_window)
+		{
+			connectWindowSignals_(w);
+			w->setCaption(filename.c_str());
+			addClient(w,filename);
+			addTab_(w,caption);
 		}
 	}
 	
@@ -1452,6 +1435,7 @@ namespace OpenMS
 		default_preferences.setValue("DefaultPath", ".");
 		default_preferences.setValue("NumberOfRecentFiles", 15);
 		default_preferences.setValue("Legend", "Show");	
+		default_preferences.setValue("MapIntensityCutoff", "None");	
 		
 		//1d
 		default_preferences.setValue("1D:HighColor", "#ff0000");
@@ -1486,7 +1470,12 @@ namespace OpenMS
 	void SpectrumMDIWindow::openRecentFile(int i)
 	{
 		setCursor(Qt::WaitCursor);
-		addSpectrum(recent_files_[i].c_str(),true,getPrefAsString("Preferences:DefaultMapView")=="2D",true);
+		OpenDialog::Mower mow = OpenDialog::NO_MOWER;
+		if ( getPrefAsString("Preferences:MapIntensityCutoff")=="Noise Estimator")
+		{
+			mow = OpenDialog::NOISE_ESTIMATOR;
+		}
+		addSpectrum(recent_files_[i].c_str(),true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
 		setCursor(Qt::ArrowCursor);
 	}
 	

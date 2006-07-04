@@ -66,7 +66,9 @@ namespace OpenMS
 			QLineEdit* main_default_path_;
 			QSpinBox* recent_files_;
 			QComboBox* default_map_view_;
-			QComboBox* show_legend_;				
+			QComboBox* show_legend_;
+			QComboBox* intensity_cutoff_;
+						
 			//db
 			QLineEdit* db_host_;
 			QLineEdit* db_port_;

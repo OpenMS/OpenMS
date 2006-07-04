@@ -196,7 +196,7 @@ namespace OpenMS
 		// Docu in base class
 		void removeDataSet(int data_set);
 		// Docu in base class
-		SignedInt finishAdding();
+		SignedInt finishAdding(float low_intensity_cutoff = 0);
 		// Docu in base class
 		virtual void horizontalScrollBarChange(int value);
 		// Docu in base class

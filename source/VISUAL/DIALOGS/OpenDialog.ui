@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>OpenDialogTemplate</class>
 <widget class="QDialog">
     <property name="name">
@@ -276,7 +276,10 @@
                         <cstring>use_mower</cstring>
                     </property>
                     <property name="title">
-                        <string>Use mower</string>
+                        <string>Low intenity cutoff</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Sets the lower boundary of the displayed intensity range in 2D/3D mode</string>
                     </property>
                     <vbox>
                         <property name="name">

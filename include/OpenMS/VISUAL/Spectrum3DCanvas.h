@@ -116,7 +116,7 @@ namespace OpenMS
     // Docu in base class
     virtual void invalidate_();
 		// Docu in base class
-    SignedInt finishAdding();
+    SignedInt finishAdding(float low_intensity_cutoff = 0);
 	  // Docu in base class
     virtual void actionModeChange_();
 	  // Docu in base class

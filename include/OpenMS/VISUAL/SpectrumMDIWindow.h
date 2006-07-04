@@ -215,6 +215,9 @@ namespace OpenMS
 			Spectrum2DWindow* active2DWindow_() const;
 			///returns a pointer to the active Spectrum3DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
 			Spectrum3DWindow* active3DWindow_() const;
+			///Estimates the noise in the central scan of the experiment
+			float estimateNoise_(const SpectrumCanvas::ExperimentType& exp);
+			
 			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 

@@ -302,7 +302,7 @@ namespace OpenMS
 		/**
     	@brief Adds another dataset to fill afterwards
     	
-    	Call finishAdding() after you filled the dataset!
+    	Call finishAdding(float) after you filled the dataset!
     	
     	@return reference to the new dataset
     */
@@ -311,11 +311,11 @@ namespace OpenMS
 			@brief Finish adding data after call to addEmtpyDataSet()
 		
 			You can use this method instead of addDataSet (add by copy).
-			First call addEmptyDataSet(),then fill returned reference and finally call finishAdding().
+			First call addEmptyDataSet(),then fill returned reference and finally call finishAdding(float).
 		
 			@return the index of the new dataset
 		*/
-		virtual SignedInt finishAdding() = 0;
+		virtual SignedInt finishAdding(float low_intensity_cutoff = 0) = 0;
 		/**
 			@brief Add another dataset by copy
 		

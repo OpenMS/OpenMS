@@ -1298,7 +1298,7 @@ namespace OpenMS
 		}
 	}
 	
-	SignedInt Spectrum2DCanvas::finishAdding()
+	SignedInt Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		//cout << "2DCanvas::finishAdding()" << endl;
 
@@ -1320,9 +1320,8 @@ namespace OpenMS
 			recalculate_ = true;
 			emit sendStatusMessage("constructing quad tree",0);
 			
-			// find lower left and upper right bound (position and intensity)		
-			//values for the current dataset
-			disp_ints_.push_back(pair<float,float>(currentDataSet().getMinInt(),currentDataSet().getMaxInt()));
+			//intensity range
+			disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
 			
 			//overall values
 			updateRanges_(current_data_,0,1,2);

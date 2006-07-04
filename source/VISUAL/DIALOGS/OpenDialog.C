@@ -56,6 +56,11 @@ namespace OpenMS
 		{
 			d3_radio->setChecked(true);
 		}
+		if ((String)(getPref_("Preferences:MapIntensityCutoff"))!="None")
+		{
+			mower->setCurrentText("Noise Estimator");
+		}
+
 		FileHandler fh;
 		filetypes_->insertItem("Detect automatically",0);
 		for (int i=1; i< FileHandler::SIZE_OF_TYPE; ++i)

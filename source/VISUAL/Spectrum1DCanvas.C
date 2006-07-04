@@ -863,7 +863,7 @@ namespace OpenMS
 		return new Spectrum1DCanvasPDP(this, parent);
 	}
 
-	SignedInt Spectrum1DCanvas::finishAdding()
+	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_data_ = getDataSetCount()-1;
 		currentDataSet().updateRanges();
@@ -876,7 +876,7 @@ namespace OpenMS
 		}
 
 		//set displayed intensity range
-		disp_ints_.push_back(pair<float,float>(currentDataSet().getMinInt(),currentDataSet().getMaxInt()));
+		disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
 	
 		//add new values to visible_begin_ and visible_end_
 		visible_begin_.push_back(currentDataSet()[0].begin());

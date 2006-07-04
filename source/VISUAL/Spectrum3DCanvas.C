@@ -66,7 +66,7 @@ void Spectrum3DCanvas::showContextMenu(QPoint p)
 	emit contextMenu(p);
 }
 
-SignedInt Spectrum3DCanvas::finishAdding()
+SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 {
 	layer_visible_.push_back(true);
 	current_data_ = getDataSetCount()-1;
@@ -74,7 +74,7 @@ SignedInt Spectrum3DCanvas::finishAdding()
 	currentDataSet().updateRanges(1);	
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
-	disp_ints_.push_back(pair<float,float>(overall_data_range_.min_[2], overall_data_range_.max_[2]));
+	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	recalculate_ = true;
 	invalidate_();

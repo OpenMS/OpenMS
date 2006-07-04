@@ -124,7 +124,7 @@ namespace OpenMS
 		// Docu in base class
 		void removeDataSet(int data_set);
 		// Docu in base class
-		SignedInt finishAdding();
+		SignedInt finishAdding(float low_intensity_cutoff = 0);
 		// Docu in base class
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 		// Docu in base class

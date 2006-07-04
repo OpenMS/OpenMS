@@ -74,7 +74,7 @@ namespace OpenMS
 			
 			//-----------General Tab-----------
 			background = new QWidget(this);
-			grid = new QGridLayout(background,5,5);
+			grid = new QGridLayout(background,6,6);
 			grid->setMargin(6);
 			grid->setSpacing(4);
 			
@@ -106,6 +106,14 @@ namespace OpenMS
 			show_legend_->insertItem("Show");
 			show_legend_->insertItem("Hide");
 			grid->addWidget(show_legend_,3,1,AlignTop);
+			//legend
+			label = new QLabel("Map intensity cutoff: ",background);
+			grid->addWidget(label,4,0,AlignTop);
+			intensity_cutoff_ = new QComboBox(false, background, "read-only combobox");
+			intensity_cutoff_->insertItem("None");
+			intensity_cutoff_->insertItem("Noise Estimator");
+			grid->addWidget(intensity_cutoff_,4,1,AlignTop);
+
 			
 			tab->addTab(background,"General");
 		
@@ -270,9 +278,10 @@ namespace OpenMS
 			//general
 			main_default_path_->setText(manager_->getPrefAsString("Preferences:DefaultPath").c_str());
 			recent_files_->setValue(manager_->getPrefAsInt("Preferences:NumberOfRecentFiles"));
-	
 			default_map_view_->setCurrentText(manager_->getPrefAsString("Preferences:DefaultMapView").c_str());
 			show_legend_->setCurrentText(manager_->getPrefAsString("Preferences:Legend").c_str());
+			intensity_cutoff_->setCurrentText(manager_->getPrefAsString("Preferences:MapIntensityCutoff").c_str());
+			
 			
 			//DB
 			db_host_->setText(manager_->getPrefAsString("Preferences:DB:Host").c_str());
@@ -347,7 +356,8 @@ namespace OpenMS
 			manager_->setPref("Preferences:NumberOfRecentFiles", recent_files_->value());
 			manager_->setPref("Preferences:DefaultMapView", default_map_view_->currentText().ascii());
 			manager_->setPref("Preferences:Legend", show_legend_->currentText().ascii());
-			
+			manager_->setPref("Preferences:MapIntensityCutoff", intensity_cutoff_->currentText().ascii());
+
 			//DB
 			manager_->setPref("Preferences:DB:Host",db_host_->text().ascii());
 			manager_->setPref("Preferences:DB:Port",db_port_->text().ascii());
