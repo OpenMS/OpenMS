@@ -68,13 +68,13 @@ namespace OpenMS
 			QWidget* background;
 		
 			//tab widget
-			grid = new QGridLayout(this,1,1);
+			grid = new QGridLayout(this);
 			QTabWidget* tab = new QTabWidget(this);
 			grid->addWidget(tab,0,0);
 			
 			//-----------General Tab-----------
 			background = new QWidget(this);
-			grid = new QGridLayout(background,6,6);
+			grid = new QGridLayout(background,2,2);
 			grid->setMargin(6);
 			grid->setSpacing(4);
 			
@@ -113,13 +113,14 @@ namespace OpenMS
 			intensity_cutoff_->insertItem("None");
 			intensity_cutoff_->insertItem("Noise Estimator");
 			grid->addWidget(intensity_cutoff_,4,1,AlignTop);
-
+			
+			grid->setRowStretch (5,2);
 			
 			tab->addTab(background,"General");
 		
 			//-------------DB Tab-------------
 			background = new QWidget(tab);
-			grid = new QGridLayout(background,6,3);
+			grid = new QGridLayout(background,3,3);
 			grid->setMargin(6);
 			grid->setSpacing(4);
 		
@@ -144,12 +145,14 @@ namespace OpenMS
 			grid->addWidget(label,3,0,AlignLeft);
 			db_login_ = new QLineEdit(background);
 			grid->addWidget(db_login_,3,1,AlignLeft);
-		
+			
+			grid->setRowStretch (4,2);
+			
 			tab->addTab(background,"DB");
 		
 			//-----------1D View Tab-----------
 			background = new QWidget(tab);
-			grid = new QGridLayout(background,3,2);
+			grid = new QGridLayout(background,2,2);
 			grid->setMargin(6);
 			grid->setSpacing(4);
 		
@@ -171,13 +174,15 @@ namespace OpenMS
 			axis_mapping_->insertItem("X-Axis");
 			axis_mapping_->insertItem("Y-Axis");
 			grid->addWidget(box,1,0);
-		
+			
+			grid->setRowStretch (2,2);
+			
 			tab->addTab(background,"1D View");
 		
 			//-----------2D View Tab-----------
 			background = new QWidget(tab);
 		
-			grid = new QGridLayout(background,4,7);
+			grid = new QGridLayout(background,2,2);
 			grid->setMargin(6);
 			grid->setSpacing(4);
 			
@@ -223,13 +228,15 @@ namespace OpenMS
 			axis_mapping_2d_->insertItem("X-Axis");
 			axis_mapping_2d_->insertItem("Y-Axis");
 			grid->addWidget(box,3,0);
-		
+			
+			grid->setRowStretch (4,2);
+			
 			tab->addTab(background,"2D View");
 	
 			//-----------3D View Tab-----------
 			background = new QWidget(tab);
 		
-			grid = new QGridLayout(background,2,1);
+			grid = new QGridLayout(background,2,2);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
 		
@@ -237,13 +244,16 @@ namespace OpenMS
 		  QVButtonGroup* coloring_group_3d = new QVButtonGroup("Color Mode:",box);
 		  coloring_group_3d->setFrameStyle(QFrame::NoFrame);
 			box->addSpace(0);
+	    
 	    dot_mode_black_3d_ = new QRadioButton("Black",coloring_group_3d);
 			dot_mode_gradient_3d_ = new QRadioButton("Gradient",coloring_group_3d);
 			dot_gradient_3d_ = new MultiGradientSelector(box);
 			box->addSpace(0);
+			
 			label = new QLabel("Interpolation steps: ",box);
 			dot_interpolation_steps_3d_ = new QSpinBox(10,1000,1,box,"");
 			dot_interpolation_steps_3d_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+			
 			QVButtonGroup* shading_group_3d = new QVButtonGroup("Shade Mode:",box);
 			shading_group_3d->setFrameStyle(QFrame::NoFrame);
 			shade_mode_flat_3d_ = new QRadioButton("Flat",shading_group_3d);
@@ -255,14 +265,10 @@ namespace OpenMS
 			back_color_3d_ = new ColorSelector(box);
 			label = new QLabel("Axes color: ",box);
 			axes_color_3d_ = new ColorSelector(box);
-			grid->addWidget(box,0,1);
-	
-			box = new QGroupBox(1,Qt::Horizontal,"Intensity",background);
-			QVButtonGroup* intenstiy_group = new QVButtonGroup("Intensity scale:",box);
-			intensity_mode_lin_3d_ = new QRadioButton("Linear",intenstiy_group);
-			intensity_mode_log_3d_ = new QRadioButton("Log",intenstiy_group);
-			grid->addWidget(box,1,1);		
-
+			grid->addWidget(box,0,1);	
+			
+			grid->setRowStretch (2,2);
+			
 			tab->addTab(background,"3D View");
 	
 			load();
@@ -332,17 +338,7 @@ namespace OpenMS
 			{
 				dot_mode_black_3d_->setChecked(true);
 			}
-			if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DCanvas::INT_LINEAR)
-			{
-				intensity_mode_lin_3d_->setChecked(true);
-			}
-			else
-			{
-				if(UnsignedInt(manager_->getPref("Preferences:3D:IntScale:Mode"))==Spectrum3DCanvas::INT_LOG)
-				{
-					intensity_mode_log_3d_->setChecked(true);
-				}
-			}
+
 			dot_interpolation_steps_3d_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Dot:InterpolationSteps")));
 			back_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_3d_->gradient().fromString(manager_->getPrefAsString("Preferences:3D:Dot:Gradient"));
@@ -408,14 +404,6 @@ namespace OpenMS
 			else	if (shade_mode_smooth_3d_->isChecked())
 			{
 				manager_->setPref("Preferences:3D:Shade:Mode", Spectrum3DCanvas::SHADE_SMOOTH);	
-			}
-			if (intensity_mode_lin_3d_->isChecked())
-			{
-			manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DCanvas::INT_LINEAR);
-			}
-			else	if (	intensity_mode_log_3d_->isChecked())
-			{
-				manager_->setPref("Preferences:3D:IntScale:Mode", Spectrum3DCanvas::INT_LOG);	
 			}
 		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().ascii());
 			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().ascii());
