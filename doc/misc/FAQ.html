@@ -1,96 +1,160 @@
 <!-- $Id: FAQ.html,v 1.16 2006/06/01 10:34:15 marc_sturm Exp $ -->
 <!-- $Author: marc_sturm $ -->
 <!-- $Maintainer: Marc Sturm $ -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
 <html>
 <head>
-				<title>OpenMS FAQ</title>
+  <meta name="generator"
+        content=
+        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
+        
+
+  <title>OpenMS FAQ</title>
+  <link rel="stylesheet"
+        media="all"
+        href="../common/styles.css"
+        type="text/css">
 </head>
-<link rel="stylesheet" media="all" href="../common/styles.css">
+
 <body>
+  <script type="text/javascript"
+      src="../common/header.txt">
+</script><!-- ........ Content starts here ........ -->
 
-<script type="text/javascript" src="../common/header.txt"></script>
 
-<!-- ........ Content starts here ........ -->
+  <h1>FAQ</h1>
 
-<H1>FAQ</H1>
 
-<OL>
+  <ul>
+    <li>
+      <h3>After adding a class or after a CVS update, a 'undefined
+      reference' error occurs during execution of programs.</h3>
+      Deleting the files <tt>libOpenMS.objects</tt> and
+      <tt>libOpenMS_GUI.objects</tt> in the <tt>source</tt> folder
+      will reset the files that are added to the library.
+    </li>
 
-	<h3><LI> After adding a class or after a CVS update, a 'undefined reference' error occurs during execution of programs.</h3>
-	
-	Deleting the files <tt>libOpenMS.objects</tt> and <tt>libOpenMS_GUI.objects</tt> in the <tt>source</tt> folder 
-	will reset the files that are added to the library.
 
-	<h3><LI> After a CVS update, a 'No rule to make target' error occurs during 'make'.</h3>
-	
-	Try 'make depend' in order to get the dependencies right!
+    <li>
+      <h3>After a CVS update, a 'No rule to make target' error
+      occurs during 'make'.</h3>
+      Try 'make depend' in order to get the dependencies right!
+    </li>
 
-	<h3><LI> Can I use QT designer to create GUI widgets?</h3>
-	
-	Yes! If you want to create a class called 'Widget':
-	<UL>
-		<LI> Create .ui-File with QT designer and store it as <tt>Widget.ui</tt>. The main widget has to be called <tt>WidgetTemplate</tt>.
-		<LI> Add the class to the <tt>Makefile</tt> (<tt>Widget.C</tt>, <tt>Widget_moc.C</tt>, <tt>WidgetTemplate.C</tt>, 
-				 <tt>WidgetTemplate_moc.C</tt>). Use LayerItem as an example which changes are needed.
-		<LI> From the .ui-File the files <tt>source/VISUAL/ClassTemplate.C</tt> and 
-		     <tt>include/OpenMS/VISUAL/UIC/ClassTemplate.h</tt> are created by the build system when you execute 
-		     <tt>'make depend'</tt> and <tt>'make'</tt>.<BR>DO NOT CHECK IN THESE FILES, AS THEY ARE GENERATED 
-		     AUTOMATICALLY, WHEN NEEDED!!!
-		<LI> Derive the class <tt>Widget</tt> from <tt>WidgetTemplate</tt> and use overloading to define the underlying 
-		     behaviour. You need to check in the <tt>Widget.h</tt> and <tt>Widget.C</tt> files.
-	</UL>
-	
-	<h3><LI> How do I debug uncaught exceptions?</h3>
-	
-	There is a mechanism to have a core dumped if an uncaught exception occurs.<BR>
-	To enable it, the environment variable OPENMS_DUMP_CORE has to be set.<BR>
-	Each time an uncaught exception occures, the OPENMS_DUMP_CORE variable is checked and a segmentation fault is caused, if it is set.
-	
-	<h3><LI> Why is no core dumped, although a fatal error occured?</h3>
-	
-	Try the 'ulimit -c unlimited' command. It sets the maximum size of a core to unlimited.<BR>
-	<br>
-	<i>Note: </i> We observed that, on some systems, no core is dumped even if the size of the
-	core file is set to unlimited. We are not sure what causes this problem.
 
-	<h3><LI> How can I set breakpoints in 'gdb' to debug OpenMS?</h3>
-	
-	Let's say you want to debug the 'TOPPView' application and you want it to stop at line 341 of 'SpectrumMDIWindow.C'.
-	<BR>
-	<OL>
-		<LI>Run gdb:
-			<BR>
-			<tt>shell&gt; gdb TOPPView</tt>
-		<LI>Start the application (and close it):
-			<BR>
-			<tt>gdb&gt; run [arguments] </tt>
-		<LI>Set the breakpoint:
-			<BR>
-			<tt>gdb&gt; break SpectrumMDIWindow.C:341</tt>
-		<LI>Start the application again (with the same arguments):
-			<BR>
-			<tt>gdb&gt; run</tt>
-	</OL>
-	
-	<h3><LI> How do I add a new directory in the <tt>source/</tt> directory to the built system?</H3>
-	
-	Add the new directory name to the end of the '<tt>SUBDIRS</tt>' variable in <tt>source/configure.ac</tt>.
+    <li>
+      <h3>Can I use QT designer to create GUI widgets?</h3>
+      Yes! If you want to create a class called 'Widget':
 
-	<h3><LI> After compiling OpenMS successfully, I receive a linker error saying something about
-	<tt>QString:QString(std::char...)</tt> </H3>
-	
-	Try compiling OpenMS with the multithread version of QT by running configure with the option
-	--with-qt-mt .
+      <ul>
+        <li>Create .ui-File with QT designer and store it as
+        <tt>Widget.ui</tt>. The main widget has to be called
+        <tt>WidgetTemplate</tt>.</li>
 
-<!-- ........ Content ends here ........ -->
 
-</OL>
+        <li>Add the class to the <tt>Makefile</tt>
+        (<tt>Widget.C</tt>, <tt>Widget_moc.C</tt>,
+        <tt>WidgetTemplate.C</tt>, <tt>WidgetTemplate_moc.C</tt>).
+        Use LayerItem as an example which changes are needed.</li>
 
-<BR>
-<BR>
-<BR>
-<BR>	
 
+        <li>From the .ui-File the files
+        <tt>source/VISUAL/ClassTemplate.C</tt> and
+        <tt>include/OpenMS/VISUAL/UIC/ClassTemplate.h</tt> are
+        created by the build system when you execute <tt>'make
+        depend'</tt> and <tt>'make'</tt>.
+        <br>
+        DO NOT CHECK IN THESE FILES, AS THEY ARE GENERATED
+        AUTOMATICALLY, WHEN NEEDED!!!</li>
+
+
+        <li>Derive the class <tt>Widget</tt> from
+        <tt>WidgetTemplate</tt> and use overloading to define the
+        underlying behaviour. You need to check in the
+        <tt>Widget.h</tt> and <tt>Widget.C</tt> files.</li>
+      </ul>
+    </li>
+
+
+    <li>
+      <h3>How do I debug uncaught exceptions?</h3>
+      There is a mechanism to have a core dumped if an uncaught
+      exception occurs.
+      <br>
+      To enable it, the environment variable OPENMS_DUMP_CORE has
+      to be set.
+      <br>
+      Each time an uncaught exception occures, the OPENMS_DUMP_CORE
+      variable is checked and a segmentation fault is caused, if it
+      is set.
+    </li>
+
+
+    <li>
+      <h3>Why is no core dumped, although a fatal error
+      occured?</h3>
+      Try the 'ulimit -c unlimited' command. It sets the maximum
+      size of a core to unlimited.
+      <br>
+      <br>
+      <i>Note:</i> We observed that, on some systems, no core is
+      dumped even if the size of the core file is set to unlimited.
+      We are not sure what causes this problem.
+    </li>
+
+
+    <li>
+      <h3>How can I set breakpoints in 'gdb' to debug OpenMS?</h3>
+      Let's say you want to debug the 'TOPPView' application and
+      you want it to stop at line 341 of 'SpectrumMDIWindow.C'.
+      <br>
+
+
+      <ol>
+        <li>Run gdb:
+        <br>
+        <tt>shell&gt; gdb TOPPView</tt></li>
+
+
+        <li>Start the application (and close it):
+        <br>
+        <tt>gdb&gt; run [arguments]</tt></li>
+
+
+        <li>Set the breakpoint:
+        <br>
+        <tt>gdb&gt; break SpectrumMDIWindow.C:341</tt></li>
+
+
+        <li>Start the application again (with the same arguments):
+        <br>
+        <tt>gdb&gt; run</tt></li>
+      </ol>
+    </li>
+
+
+    <li>
+      <h3>How do I add a new directory in the <tt>source/</tt>
+      directory to the built system?</h3>
+      Add the new directory name to the end of the
+      '<tt>SUBDIRS</tt>' variable in <tt>source/configure.ac</tt>.
+    </li>
+
+
+    <li>
+      <h3>After compiling OpenMS successfully, I receive a linker
+      error saying something about
+      <tt>QString:QString(std::char...)</tt></h3>
+      Try compiling OpenMS with the multithread version of QT by
+      running configure with the option --with-qt-mt . 
+      <!-- ........ Content ends here ........ -->
+    </li>
+  </ul>
+
+  <br>
+  <br>
+  <br>
+  <br>
 </body>
 </html>

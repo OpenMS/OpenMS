@@ -1,86 +1,122 @@
 <!-- $Id: tutorial.html,v 1.24 2006/06/01 10:34:15 marc_sturm Exp $ -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
 <html>
-	<head>
-		<title>OpenMS Tutorial</title>
-		<link rel="stylesheet" media="all" href="../common/styles.css">
-	</head>
-	<body>
-		<script type="text/javascript" src="../common/header.txt"></script>
-		<!-- ........ Content starts here ........ -->
-		
-		<H1>Tutorial</H1>
-		
-		<H2>Kernel</H2>
-			The <tt>KERNEL</tt> folder contains classes that represent the actual MS data: 
-			Peaks, Spectra, Features, Maps, ...
-			<img src="Kernel.png">
+<head>
+  <meta name="generator"
+        content=
+        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
+        
 
-			<H3>Traits</H3>
-				The traits class used as template argument of many Kernel classes determines the type
-				that e.g. position, intensity and charge have. By default most of these types are doubles.
-				<BR>
-				If you do not need double precicion, you can use float traits instead.
+  <title>OpenMS Tutorial</title>
+  <link rel="stylesheet"
+        media="all"
+        href="../common/styles.css"
+        type="text/css">
+</head>
 
-			<H3>D-dimensional coordinates</H3>
-				<B>DPosition</B> represents a coordinate in D-dimensional space. Dimensions are accessed by <tt>operator[]</tt>.
-				<BR>
-				<B>DimenstionDescription</b> is used in order to have a defined order of dimensions, if there is more than one dimension.
-				The following example demonstrates its use for a LC-MS experiment:
-<PRE>
+<body>
+  <script type="text/javascript"
+      src="../common/header.txt">
+</script><!-- ........ Content starts here ........ -->
+
+
+  <h1>Tutorial</h1>
+
+
+  <h2>Kernel</h2>
+  The <tt>KERNEL</tt> folder contains classes that represent the
+  actual MS data: Peaks, Spectra, Features, Maps, ... <img src=
+  "Kernel.png">
+
+  <h3>Traits</h3>
+  The traits class used as template argument of many Kernel classes
+  determines the type that e.g. position, intensity and charge
+  have. By default most of these types are doubles.
+  <br>
+  If you do not need double precicion, you can use float traits
+  instead.
+
+  <h3>D-dimensional coordinates</h3>
+  <b>DPosition</b> represents a coordinate in D-dimensional space.
+  Dimensions are accessed by <tt>operator[]</tt>.
+  <br>
+  <b>DimenstionDescription</b> is used in order to have a defined
+  order of dimensions, if there is more than one dimension. The
+  following example demonstrates its use for a LC-MS experiment:
+
+  <pre>
 // typedef to avoid too long name
-typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
+typedef DimensionDescription &lt; DimensionDescriptionTagLCMS &gt; DimDesc;
 
 // create coordiante
-DPosition<2> coordiante;
+DPosition&lt;2&gt; coordiante;
 
 // sets RT and MZ dimentsion
 coordiante[DimDesc::MZ] = 500.0;
 coordiante[DimDesc::RT] = 0.1;
-</PRE>
-				<B>DRange</B> is a pair of <tt>DPositions</tt> that spans a D-dimensions hypercube and offers some convenient methods
-				e.g. for intersection and center.	
-				
-			<H3>Raw data, peaks and features</H3>
-				<B>DRawDataPoint</B> is rawdata point with a D-dimensional position and an intensity. Raw data means that no 'peak picking'
-				or other pre-processing methods were performed on this data.
-				<BR>
-				<B>DPeak</B> and its derived classes are used for data that on which some kind of 'peak picking' was applied (It also adds
-				a interface for persistent storage e.g. in a DB). Although <tt>DPeak</tt> is a 'picked' peak, it does not contain any
-				information about the 'peak picking'.
-				<BR>
-				<B>DPickedPeak</B> is used if more information from any pre-processing steps e.g. width or full width at half max, is available.
-				<BR>
-				<B>DFeature</B> is also derived from <tt>DRange</tt> but represents a collection of peaks.
-				In general, it summarizes all peaks related to a specific peptide or some other chemical entity. 
+</pre><b>DRange</b> is a pair of <tt>DPositions</tt> that spans a
+D-dimensions hypercube and offers some convenient methods e.g. for
+intersection and center.
 
-			<H3>Spectra</H3>
-				<B>DSpectrum</B> represents a D-dimensional spectrum i.e. a container of D-dimensional data points (any class derived from
-				DRawDataPoint).
-				<BR>One of the template arguments of <tt>DSpectrum</tt> is the Container the data is stored in. As container
-				<tt>DPeakArrayNonPolymorphic</tt>, <tt>DPeakArray</tt> or <tt>DPeakList</tt> are used.
-				<BR>
-				<B>DPeakArrayNonPolymorphic</B> is vector of data points with a more convenient interface for sorting of the data.
-				<BR>
-				<i>DPeakArrayNonPolymorphic is the recommended container, if you do not need polymorphism</i>!
-				<BR>
-				<B>DPeakArray</B> behaves like <tt>DPeakArrayNonPolymorphic</tt> but is polymorphic, i.e. it can hold peaks of 
-				<tt>PeakType</tt> and of classes derived from <tt>PeakType</tt> at a time.
-				<BR>
-				<B>DPeakList</B> behaves like <tt>std::list<PeakType></tt> but is polymorphic.
-				<BR>
-				<BR>
-				The following example demonstrates the use of a 2-dimensional spectrum of raw data with <tt>DPeakArrayNonPolymorphic</tt> as
-				container:
-<PRE>
+  <h3>Raw data, peaks and features</h3>
+  <b>DRawDataPoint</b> is rawdata point with a D-dimensional
+  position and an intensity. Raw data means that no 'peak picking'
+  or other pre-processing methods were performed on this data.
+  <br>
+  <b>DPeak</b> and its derived classes are used for data that on
+  which some kind of 'peak picking' was applied (It also adds a
+  interface for persistent storage e.g. in a DB). Although
+  <tt>DPeak</tt> is a 'picked' peak, it does not contain any
+  information about the 'peak picking'.
+  <br>
+  <b>DPickedPeak</b> is used if more information from any
+  pre-processing steps e.g. width or full width at half max, is
+  available.
+  <br>
+  <b>DFeature</b> is also derived from <tt>DRange</tt> but
+  represents a collection of peaks. In general, it summarizes all
+  peaks related to a specific peptide or some other chemical
+  entity.
+
+  <h3>Spectra</h3>
+  <b>DSpectrum</b> represents a D-dimensional spectrum i.e. a
+  container of D-dimensional data points (any class derived from
+  DRawDataPoint).
+  <br>
+  One of the template arguments of <tt>DSpectrum</tt> is the
+  Container the data is stored in. As container
+  <tt>DPeakArrayNonPolymorphic</tt>, <tt>DPeakArray</tt> or
+  <tt>DPeakList</tt> are used.
+  <br>
+  <b>DPeakArrayNonPolymorphic</b> is vector of data points with a
+  more convenient interface for sorting of the data.
+  <br>
+  <i>DPeakArrayNonPolymorphic is the recommended container, if you
+  do not need polymorphism</i>!
+  <br>
+  <b>DPeakArray</b> behaves like <tt>DPeakArrayNonPolymorphic</tt>
+  but is polymorphic, i.e. it can hold peaks of <tt>PeakType</tt>
+  and of classes derived from <tt>PeakType</tt> at a time.
+  <br>
+  <b>DPeakList</b> behaves like <tt>std::list&lt;PeakType&gt;</tt>
+  but is polymorphic.
+  <br>
+  <br>
+  The following example demonstrates the use of a 2-dimensional
+  spectrum of raw data with <tt>DPeakArrayNonPolymorphic</tt> as
+  container:
+
+  <pre>
 // typedef to avoid too long names
-typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
-typedef DSpectrum<2, DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > > Spectrum2D;
+typedef DimensionDescription &lt; DimensionDescriptionTagLCMS &gt; DimDesc;
+typedef DSpectrum&lt;2, DPeakArrayNonPolymorphic&lt;2, DRawDataPoint&lt;2&gt; &gt; &gt; Spectrum2D;
 
 // create a spectrum
 Spectrum2D spectrum;
 
 // creata a data point
-DRawDataPoint<2> data;
+DRawDataPoint&lt;2&gt; data;
 data.getPosition()[DimDesc::MZ] = 500.0;
 data.getPosition()[DimDesc::RT] = 0.1;
 data.getIntensity() = 47.11;
@@ -91,276 +127,358 @@ spectrum.getContainer().push_back(data);
 // iterate over the data points
 for (Spectrum2D::Iterator it = spectrum.getContainer().begin(); it!=spectrum.getContainer().end(); ++it)
 {
-  cout << *it << endl;
+  cout &lt;&lt; *it &lt;&lt; endl;
 }
-</PRE>
+</pre>
 
-			<H3>Main datastructures</H3>
-			<B>MSSpectrum</B> represents a 1-dimensional spectrum of an arbitrary peak type that holds meta information as well (SpectrumSettings).
-			<BR>
-			<B>MSExperiment</B> represents some two dimensional MS experiment. It is implemented as a vector of MSSpectrum and is derived from ExperimentalSettings for
-			meta information.
-				
-		<H2>Datastructures</H2>
-		
-			The <tt>DATASTRUCTURES</tt> folder contains shared datastructure classes, e.g. 
-			a convenient string implementation.
-		
-		<H2>Format</H2>
-			The <tt>FORMAT</tt> folder contains classes for both database and file I/O.
-			<H3>File adapter</H3>
+  <h3>Main datastructures</h3>
+  <b>MSSpectrum</b> represents a 1-dimensional spectrum of an
+  arbitrary peak type that holds meta information as well
+  (SpectrumSettings).
+  <br>
+  <b>MSExperiment</b> represents some two dimensional MS
+  experiment. It is implemented as a vector of MSSpectrum and is
+  derived from ExperimentalSettings for meta information.
 
-				<B>DTAFile</B> is an adapter to read and write DTA files (*.dta). 
-				DTA is a simple ASCII-based format for MS data.
-				The first line contains the singly protonated peptide mass (MH+) and the peptide charge state. 	Subsequent lines contain the fragment ion m/z and intensity values.
-				<BR>
-				<BR>
-				All of the following file adapters share a common interface and can read and write (except for <tt>ANDIFile</tt>) to different	datastructures that implement at least the interface of <tt>MSExperiment</tt> with peak type
-				<tt>DRawDataPoint</tt>.
-				<BR>
-				<BR>
-				<B>DTA2DFile</B> is an adapter to read and write DTA2D files (*.dta2d),
-				an extension of DTA to hold LCMS data. Each line contains the fragment 
-				ion retension time, m/z and intensity values.
-				<BR>
-				<B>MzXMLFile</B> is an adapter to read and write mzXML files (*.mzXML). Based on XML the format contains MS metadata, e.g. instrument settings and sample description, as well as LCMS and MSMS spectra in base 64 format. For more information see 
-				<a href="http://tools.proteomecenter.org/mzXMLschema.php">Seattle Proteome Center</a>.
-				<BR>
-				<B>MzDataFile</B> is an adapter to read and write mzData files (*.mzData).  
-				Based on XML the format contains MS metadata (conform with PSI-OM)
-				as well as LCMS and MSMS spectra in base 64 format. For more information see
-				<a href="http://psidev.sourceforge.net/ms/">HUPO PSI-MS</a>.<BR>
-				MzDataFile is able to read and write the additional information of picked peaks 	(<tt>DPickedPeak</tt>) as well.
-				<BR>
-				<B>ANDIFile</B> is an adapter to read ANDI/MS files (*.cdf). The binary ANDI/MS format is an 
-				<B>an</B>alytical <B>d</B>ata <B>i</B>nterchange standard for 
-				<B>m</B>ass <B>s</B>pectrometry based on netCDF.
-				<BR>
-				<BR>
-				The following example demonstrates the use of <tt>MzDataFile</tt> and
-				<tt>ANDIFile</tt> to convert one format into another using 
-				<tt>MsExperiment</tt> to hold the data temporarily. The code can be used interchangeable
-				with any other file adapter:
+  <h2>Datastructures</h2>
+  The <tt>DATASTRUCTURES</tt> folder contains shared datastructure
+  classes, e.g. a convenient string implementation.
 
-<PRE>
+  <h2>Format</h2>
+  The <tt>FORMAT</tt> folder contains classes for both database and
+  file I/O.
+
+  <h3>File adapter</h3>
+  <b>DTAFile</b> is an adapter to read and write DTA files (*.dta).
+  DTA is a simple ASCII-based format for MS data. The first line
+  contains the singly protonated peptide mass (MH+) and the peptide
+  charge state. Subsequent lines contain the fragment ion m/z and
+  intensity values.
+  <br>
+  <br>
+  All of the following file adapters share a common interface and
+  can read and write (except for <tt>ANDIFile</tt>) to different
+  datastructures that implement at least the interface of
+  <tt>MSExperiment</tt> with peak type <tt>DRawDataPoint</tt>.
+  <br>
+  <br>
+  <b>DTA2DFile</b> is an adapter to read and write DTA2D files
+  (*.dta2d), an extension of DTA to hold LCMS data. Each line
+  contains the fragment ion retension time, m/z and intensity
+  values.
+  <br>
+  <b>MzXMLFile</b> is an adapter to read and write mzXML files
+  (*.mzXML). Based on XML the format contains MS metadata, e.g.
+  instrument settings and sample description, as well as LCMS and
+  MSMS spectra in base 64 format. For more information see <a href=
+  "http://tools.proteomecenter.org/mzXMLschema.php">Seattle
+  Proteome Center</a>.
+  <br>
+  <b>MzDataFile</b> is an adapter to read and write mzData files
+  (*.mzData). Based on XML the format contains MS metadata (conform
+  with PSI-OM) as well as LCMS and MSMS spectra in base 64 format.
+  For more information see <a href=
+  "http://psidev.sourceforge.net/ms/">HUPO PSI-MS</a>.
+  <br>
+  MzDataFile is able to read and write the additional information
+  of picked peaks (<tt>DPickedPeak</tt>) as well.
+  <br>
+  <b>ANDIFile</b> is an adapter to read ANDI/MS files (*.cdf). The
+  binary ANDI/MS format is an <b>an</b>alytical <b>d</b>ata
+  <b>i</b>nterchange standard for <b>m</b>ass <b>s</b>pectrometry
+  based on netCDF.
+  <br>
+  <br>
+  The following example demonstrates the use of <tt>MzDataFile</tt>
+  and <tt>ANDIFile</tt> to convert one format into another using
+  <tt>MsExperiment</tt> to hold the data temporarily. The code can
+  be used interchangeable with any other file adapter:
+
+  <pre>
 // create the file adapters
 ANDIFile andi;
 MzDataFile mzdata;
 
 // temporary data storage
-MSExperiment< DRawDataPoint<1> > map;
+MSExperiment&lt; DRawDataPoint&lt;1&gt; &gt; map;
 
 // convert ANDI/MS to MzData
 andi.load(map,"dummy.cdf");
 mzdata.store(map,"dummy.mzData");
-</PRE>
+</pre>
+
+  <h2>Metadata</h2>
+  The <tt>METADATA</tt> folder contains classes for storage of MS
+  metadata, e.g. instrument settings and sample description.
+  <br>
+  <br>
+  <b>ExperimentalSettings</b> holds metainformation about the
+  experiment the data was created with e.g. the MS instrument, the
+  HPLC settings and the operator.
+  <br>
+  <br>
+  <b>SpectrumSettings</b> contains metainformation about settings
+  specific to one spectrum, i.e. settings of the MS instrument,
+  precorsor information (if it is a MS spectrum) and results of ID
+  engines (Mascot, Sequest, ...). <img src="MetaData.png">
+
+  <h3>MetaInfo</h3>
+  <img src="MetaInfo.png"
+        align="left"> MetaInfo is used to easily store information
+        of any type you like, that does not fit into the the other
+        classes. It implements Name-Value-Type triplets.
+  <br>
+  <b>DataValue</b> is a data structure that can store any numerical
+  or string information. It also supports casting of the stored
+  value back to its original type.
+  <br>
+  <b>MetaInfo</b> is a associative container that stores
+  <tt>DataValues</tt> as values associated to string keys.
+  Internally a the string keys are converted to integer keys for
+  performance resaons i.e. a <tt>map&lt;UnsignedInt,
+  DataValue&gt;</tt> is used.
+  <br>
+  The <b>MetaInfoRegistry</b> associates the string keys used in
+  <tt>MetaValue</tt> with the integer values that are used for
+  internal storage. Each key used has to be registered at the
+  registry first. The <tt>MetaInfoRegistry</tt> is a singleton.
+  <br>
+  <br>
+  Classes that have one MetaInfo object, inherit from
+  <b>MetaInfoInterface</b>.
+  <br clear="all">
 
 
-		<H2>Metadata</H2>
-		
-			The <tt>METADATA</tt> folder contains classes for storage of MS metadata, e.g. 
-			instrument settings and sample description. 
-			<BR><BR>
-			<b>ExperimentalSettings</b> holds metainformation about the experiment the data was created with e.g. the MS
-			instrument, the HPLC settings and the operator.
-			<BR><BR>
-			<b>SpectrumSettings</b> contains metainformation about
-			settings specific to one spectrum, i.e. settings of the MS instrument, precorsor
-			information (if it is a MS² spectrum) and results of ID engines (Mascot, Sequest, 
-			...).
-			<img src="MetaData.png">
+  <h2>Transformations</h2>
+  The TRANSFORMATIONS folder contains classes for the
+  transformations of raw and peak data.
 
-			<H3>MetaInfo</H3>
-				<img src="MetaInfo.png" align=left>
-				MetaInfo is used to easily store information of any type you like, that does not fit into the the other
-				classes. It implements Name-Value-Type triplets.
-				<BR>
-				<b>DataValue</b> is a data structure that can store any numerical or string information. It also supports
-				casting of the stored value back to its original type.
-				<BR>
-				<b>MetaInfo</b> is a associative container that stores <tt>DataValues</tt> as values associated to string keys.
-				Internally a the string keys are converted to integer keys for performance resaons 
-				i.e. a <tt>map&lt;UnsignedInt, DataValue&gt;</tt> is used.
-				<BR>
-				The <b>MetaInfoRegistry</b> associates the string keys used in <tt>MetaValue</tt> with
-				the integer values that are used for internal storage. Each key used has to be registered at the registry first.
-				The <tt>MetaInfoRegistry</tt> is a singleton.
-				<BR>
-				<BR>
-				Classes that have one MetaInfo object, inherit from <b>MetaInfoInterface</b>.
-				<BR clear="all"> 
+  <h3>RAW2PEAK</h3>
+  In this folder transformations from raw to peak data, the
+  so-called "peak picking", can be found.
+  <br>
+  <br>
+  <b>DPeakPickerCWT</b>
+  <br>
+  This is the main class which you need for peak picking.
+  <br>
+  Using the following code fragment, peak picking on 2 dimensional
+  raw data is performed:
 
-		<H2>Transformations</H2>
-		
-			The TRANSFORMATIONS folder contains classes for the transformations of raw and 
-			peak data. 
-		
-			<H3>RAW2PEAK</H3>
-			In this folder transformations from raw to peak data, the so-called "peak picking", 
-			can be found.
-			
-			<BR><BR><B>DPeakPickerCWT</B><BR>
-			  This is the main class which you need for peak picking.<BR>
-			  Using the following code fragment, peak picking on 2 dimensional raw data is performed:
-<PRE>
-typedef DPeakArrayNonPolymorphic< 2, DRawDataPoint<2> > RawData2D;
+  <pre>
+typedef DPeakArrayNonPolymorphic&lt; 2, DRawDataPoint&lt;2&gt; &gt; RawData2D;
 
 RawData2D raw_data; 
 
 // instantiate a peak picker object
-DPeakPickerCWT<2> p(xml_file);
+DPeakPickerCWT&lt;2&gt; p(xml_file);
 
 //pick the peaks
-raw_data >> p(peaks); 
-</PRE>
+raw_data &gt;&gt; p(peaks); 
+</pre>The constructor of the peak picker needs either the peak
+picking parameter stored in a xml file or in a Param object (when
+the Param object or the file are empty the default peak picking
+paramter are used). Some sample xml files can be found in
+OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
+  <br>
+  To perform the peak picking on a well defined range of the raw
+  data, the method pick can be directly used:
 
-				The constructor of the peak picker needs either the peak picking parameter 
-				stored in a xml file or in a Param object (when the Param object or the 
-				file are empty the default peak picking paramter are used). Some 
-				sample xml files can be found in OpenMS/source/TRANSFORMATIONS/RAW2PEAK.<br>
-				To perform the peak picking on a well defined range of the raw data, the 
-				method pick can be directly used:
-<PRE>
-typedef DPeakArrayNonPolymorphic< D,DRawDataPoint<D> > RawData; 
+  <pre>
+typedef DPeakArrayNonPolymorphic&lt;D,DRawDataPoint&lt;D&gt; &gt; RawData;
 typedef typename RawData::const_iterator RawConstIterator;
 
-pick(RawConstIterator first, RawConstIterator last, std::back_insert_iterator< PeakShape >& output); 
-</PRE>		
+pick(RawConstIterator first, RawConstIterator last, std::back_insert_iterator&lt; PeakShape &gt;&amp; output);
+</pre><b>Note:</b>
 
-				<B>Note:</B>
-				<UL>
-					<LI> Prefer ContinuousWaveletTransformNumIntegration for peak picking!
-					<LI> The Optimization of the peak parameter turned out to be particularly useful for poorly resolved data with strongly overlapping, convoluted peak patterns!
-			  </UL>
-			
-			<BR><BR><B>ContinuousWaveletTransform</B><BR>
-				The DPeakPickerCWT uses the continiuous wavelet transformation (CWT) of the raw data to detect potential peaks.
-			
-			<BR><BR><B>ContinuousWaveletTransformNumIntegration</B><BR>
-				This class computes the convolution happens in the CWT by numerical integration.
-			
-			<BR><BR><B>ContinuousWaveletTransformFFT</B><BR>
-				This class computes the convolution happens in the CWT by fourier transformation (only efficient convoluting two signals of approximately the same length).
-			
-			<BR><BR><B>DExtractSignalRegions</B><BR>
-				This class improves the run time of the peak picker by decomposing the raw mass spectra into smaller parts with a typical length of 10 Da..
-			
-			<BR><BR><B>DSignalToNoiseEstimator</B><BR>
-				This class provides the estimation of the signal to noise ratios in a given raw data points intervall
-			
-			<BR><BR><B>DSignalToNoiseEstimatorWindowing</B><BR>
-				This class computes the signal to noise ratio using the method of 
-				Roegnvaldsson et al. described in "Modular, Scriptable, and Automated Analysis 
-				Tools for High-Throughput Peptide Mass Fingerprinting".
-			
-			<BR><BR><B>OptimizePick</B><BR>
-				  This class implements the optional peak parameter optimization. In the previous 
-					stage, each of the peaks has been fitted independently of the others, but for a 
-					true separation, we need to fit the sum of all peaks to the experimental 
-					signal. OptimizePeak offers a standard technique from nonlinear 
-					optimization, the Levenberg-Marquardt algorithm.
-					
-			<H3>Feature Finder</H3>
-			The FeatureFinder implements an algorithms for the identification of features in LC/MS maps. By feature,
-			we understand a chemical compound, usually a peptide, contained in the sample. Our algorithm is based
-			on an approach that was published in <i>Groepl et al. (2005) Proc. CompLife-05 </i>. Essentially, we
-			identify data points with a high intensity (<i>seeding</i>), collect a region of data points around each
-			seed (<i>extension</i>) and fit a two-dimensional model to each region (<i>model fitting</i>). 
-			This model consists of gaussian mixture representing the m/z dimension and a bigaussian distribution 
-			that is fitted in rt dimension. If the quality of this fit is sufficiently high, we declare this region
-			as feature, estimate its charge and coordinates and continue with the next seed.<br>
-			The FeatureFinder application consists of four different modules: a <b>traits</b> class, <b>seeder</b>,
-			<b>extender</b> and <b>model fitter</b>. The traits class reads the data from a file, estimates the
-			background noise level and provides access to intensity and coordinates of each data point to the
-			individual modules. These modules implements the three steps in the feature finding algoririthm,
-			as described above. Each module has several parameters. For a short description of each module
-			and its parameters, please have a look at the corresponding header file in the directory
-			<tt>/include/TRANSFORMATIONS/FEATUREFINDER/</tt>. In most cases, the standard settings should work
-			fine.<br>
-			There are two possibilities to use the feature finding algorithms. The first and easiest one is
-			to use the corresponding TOPP (TOPP = The OpenMS Proteomics Pipeline) module located in
-			<tt>source/APPLICATIONS/TOPP/</tt>. It is a commandline program that offers an online help and
-			is pretty self-explanatory.<br>
-			The second possibility, for the more advanced user who might even want to implement his or her
-			own modules, is to use OpenMS as a library and write an FeatureFinder application of your own.
-			This is straightforward to do. A short example is given below:
-			<PRE>
-			DTA2DFile dta2d_file;
-			MSExperiment exp;
-	
-			dta2d_file.load("path_to_rawdata_file",exp);
-			  
-			FeatureFinder ff;
-			ff.setData(exp);
-			DfeatureMap<2> features;
-			features = ff.run();			
-			</PRE>
-			This small program loads a data set from a dta2d file, loads this data into the FeatureFinder class
-			and runs the algorithm. The resulting features are stored in an instance of class DFeatureMap which
-			is a simple container for features. The feature map can be stored or used for further processing.<br>
-			The design of the FeatureFinder is in fact a bit more complex that outlined here. For details please
-			have a look at the class diagram given below.
-			<img src="FeatureFinder.png">
-		
-		<H2>Filtering</H2>
-		
-			The FILTERING folder contains classes for calibration, smoothing and the 
-			baseline-filtering of raw data.
+  <ul>
+    <li>Prefer ContinuousWaveletTransformNumIntegration for peak
+    picking!</li>
 
-			<H3>Baseline filtering</H3>
-				This is folder contains classes for baseline filtering of raw data.
-				
-				<BR>
-				<BR>
-				<B>DTopHatFilter</B>
-				<BR>
-				This class implements a morphological baseline filter.
-				Using the following code fragment, the baseline of 2 dimensional raw data is subtracted:
-<PRE>
-typedef DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > RawData2D; 
+
+    <li>The Optimization of the peak parameter turned out to be
+    particularly useful for poorly resolved data with strongly
+    overlapping, convoluted peak patterns!</li>
+  </ul>
+
+  <br>
+  <br>
+  <b>ContinuousWaveletTransform</b>
+  <br>
+  The DPeakPickerCWT uses the continiuous wavelet transformation
+  (CWT) of the raw data to detect potential peaks.
+  <br>
+  <br>
+  <b>ContinuousWaveletTransformNumIntegration</b>
+  <br>
+  This class computes the convolution happens in the CWT by
+  numerical integration.
+  <br>
+  <br>
+  <b>ContinuousWaveletTransformFFT</b>
+  <br>
+  This class computes the convolution happens in the CWT by fourier
+  transformation (only efficient convoluting two signals of
+  approximately the same length).
+  <br>
+  <br>
+  <b>DExtractSignalRegions</b>
+  <br>
+  This class improves the run time of the peak picker by
+  decomposing the raw mass spectra into smaller parts with a
+  typical length of 10 Da..
+  <br>
+  <br>
+  <b>DSignalToNoiseEstimator</b>
+  <br>
+  This class provides the estimation of the signal to noise ratios
+  in a given raw data points intervall
+  <br>
+  <br>
+  <b>DSignalToNoiseEstimatorWindowing</b>
+  <br>
+  This class computes the signal to noise ratio using the method of
+  Roegnvaldsson et al. described in "Modular, Scriptable, and
+  Automated Analysis Tools for High-Throughput Peptide Mass
+  Fingerprinting".
+  <br>
+  <br>
+  <b>OptimizePick</b>
+  <br>
+  This class implements the optional peak parameter optimization.
+  In the previous stage, each of the peaks has been fitted
+  independently of the others, but for a true separation, we need
+  to fit the sum of all peaks to the experimental signal.
+  OptimizePeak offers a standard technique from nonlinear
+  optimization, the Levenberg-Marquardt algorithm.
+
+  <h3>Feature Finder</h3>
+  The FeatureFinder implements an algorithms for the identification
+  of features in LC/MS maps. By feature, we understand a chemical
+  compound, usually a peptide, contained in the sample. Our
+  algorithm is based on an approach that was published in <i>Groepl
+  et al. (2005) Proc. CompLife-05</i> . Essentially, we identify
+  data points with a high intensity (<i>seeding</i>), collect a
+  region of data points around each seed (<i>extension</i>) and fit
+  a two-dimensional model to each region (<i>model fitting</i>).
+  This model consists of gaussian mixture representing the m/z
+  dimension and a bigaussian distribution that is fitted in rt
+  dimension. If the quality of this fit is sufficiently high, we
+  declare this region as feature, estimate its charge and
+  coordinates and continue with the next seed.
+  <br>
+  The FeatureFinder application consists of four different modules:
+  a <b>traits</b> class, <b>seeder</b>, <b>extender</b> and
+  <b>model fitter</b>. The traits class reads the data from a file,
+  estimates the background noise level and provides access to
+  intensity and coordinates of each data point to the individual
+  modules. These modules implements the three steps in the feature
+  finding algoririthm, as described above. Each module has several
+  parameters. For a short description of each module and its
+  parameters, please have a look at the corresponding header file
+  in the directory
+  <tt>/include/TRANSFORMATIONS/FEATUREFINDER/</tt>. In most cases,
+  the standard settings should work fine.
+  <br>
+  There are two possibilities to use the feature finding
+  algorithms. The first and easiest one is to use the corresponding
+  TOPP (TOPP = The OpenMS Proteomics Pipeline) module located in
+  <tt>source/APPLICATIONS/TOPP/</tt>. It is a commandline program
+  that offers an online help and is pretty self-explanatory.
+  <br>
+  The second possibility, for the more advanced user who might even
+  want to implement his or her own modules, is to use OpenMS as a
+  library and write an FeatureFinder application of your own. This
+  is straightforward to do. A short example is given below:
+
+  <pre>
+DTA2DFile dta2d_file;
+MSExperiment exp;
+
+dta2d_file.load("path_to_rawdata_file",exp);
+
+FeatureFinder ff;
+ff.setData(exp);
+DfeatureMap&lt;2&gt; features;
+features = ff.run();
+</pre>
+  <br>
+  This small program loads a data set from a dta2d file, loads this
+  data into the FeatureFinder class and runs the algorithm. The
+  resulting features are stored in an instance of class DFeatureMap
+  which is a simple container for features. The feature map can be
+  stored or used for further processing.
+  <br>
+  The design of the FeatureFinder is in fact a bit more complex
+  that outlined here. For details please have a look at the class
+  diagram given below. <img src="FeatureFinder.png">
+
+  <h2>Filtering</h2>
+  The FILTERING folder contains classes for calibration, smoothing
+  and the baseline-filtering of raw data.
+
+  <h3>Baseline filtering</h3>
+  This is folder contains classes for baseline filtering of raw
+  data.
+  <br>
+  <br>
+  <b>DTopHatFilter</b>
+  <br>
+  This class implements a morphological baseline filter. Using the
+  following code fragment, the baseline of 2 dimensional raw data
+  is subtracted:
+
+  <pre>
+typedef DPeakArrayNonPolymorphic&lt;2, DRawDataPoint&lt;2&gt; &gt; RawData2D; 
 
 RawData2D raw_data, top_hat_filtered; 
 
 // instantiate a top hat filter object
-DTopHatFilter&lt;2&gt top_hat; //use the default constructor with a default value for the length of the structuring element
+DTopHatFilter&lt;2&gt; top_hat; //use the default constructor with a default value for the length of the structuring element
 
 //remove the baseline and and write the filtered signal into the variable top_hat_filtered 
-raw >> top_hat(top_hat_filtered); 
-</PRE>
-				The parameter in the constructor defines the length of the structuring element (given by the number of its data points).
-				<BR><B>Note: </B>
-				The structuring element defines the baseline, so choose its length much bigger than the number of data points of a common 
-				overlapping isotopic peak pattern (e.g. 21)!
+raw &gt;&gt; top_hat(top_hat_filtered); 
+</pre>The parameter in the constructor defines the length of the
+structuring element (given by the number of its data points).
+  <br>
+  <b>Note:</b> The structuring element defines the baseline, so
+  choose its length much bigger than the number of data points of a
+  common overlapping isotopic peak pattern (e.g. 21)!
 
-			<H3>Smoothing</H3>
-				This folder contains smoothing filter classes for raw data.
-				<BR>
-				<BR>
-				<B>DGaussianFilter</B>
-				<BR>
-				This class represents a Gaussian lowpass-filter.<BR>
-				Using the following code fragment, 2 dimensional raw data are smoothed:
-<PRE>
+  <h3>Smoothing</h3>
+  This folder contains smoothing filter classes for raw data.
+  <br>
+  <br>
+  <b>DGaussianFilter</b>
+  <br>
+  This class represents a Gaussian lowpass-filter.
+  <br>
+  Using the following code fragment, 2 dimensional raw data are
+  smoothed:
+
+  <pre>
 typedef DPeakArrayNonPolymorphic&lt; 2,DRawDataPoint&lt;2&gt; &gt; RawData2D; 
 
 RawData2D raw_data, gaussian_filtered; 
 
 // instantiate a savitzky golay filter object 
-DGaussianFilter&lt;2&gt gaussian; //use the default constructor with default values for sigma and the frame length
+DGaussianFilter&lt;2&gt; gaussian; //use the default constructor with default values for sigma and the frame length
 
 //remove the noise and write the filtered signal into the variable gaussian_filtered
-raw >> gaussian(gaussian_filtered);
-</PRE>
-				The parameters in the constructor define the length of the filter (given by the number of its data 
-				points) and the standard deviation of the gaussian. 
-				<BR><B>Note: </B>
-				The gaussian filter is normalized, so the area under a peak is preserved, but the maximum position gets 
-				blurred. 
+raw &gt;&gt; gaussian(gaussian_filtered);
+</pre>The parameters in the constructor define the length of the
+filter (given by the number of its data points) and the standard
+deviation of the gaussian.
+  <br>
+  <b>Note:</b> The gaussian filter is normalized, so the area under
+  a peak is preserved, but the maximum position gets blurred.
+  <br>
+  <br>
+  <b>DSavitzkyGolayQRFilter and DSavitzkyGolaySVDFilter</b>
+  <br>
+  This classes represent SavitzkyGolay lowpass-filter.
 
-<BR><BR><B>DSavitzkyGolayQRFilter and DSavitzkyGolaySVDFilter</B><BR>
-This classes represent SavitzkyGolay lowpass-filter.
-
-<PRE>
+  <pre>
 typedef DPeakArrayNonPolymorphic&lt; 2,DRawDataPoint&lt;2&gt; &gt; RawData2D; 
 
 RawData2D raw_data, sgolay_filtered; 
@@ -369,124 +487,166 @@ RawData2D raw_data, sgolay_filtered;
 DSavitzkyGolaySVDFilter&lt;2&gt; sgolay; //use the default constructor with default values for the order of the polynomial and the frame length
 
 //remove the noise and write the filtered signal into the variable sgolay_filtered
-raw >> sgolay(sgolay_filtered);
-</PRE>
-				The parameters in the constructor define the 
-				length of the filter (given by the number of its data points) and 
-				the order of the polynom which is used.
-				<BR><B>Note:</B>
-				<UL>
-					<LI>By decreasing the order of the polynoms or increasing 
-							the number of data points, the filtered signal gets smoother (the order x 
-							should be 2 &lt;= x &lt;= 4) !
-					<LI>The Savitzky Golay filter preserves the maximum position of a peak much 
-					    better than the Gaussian filter!
-					<LI>The DSavitzkyGolayQRFilter and the DSavitzkyGolaySVDFilter generate 
-							the same filtering, but they vary in run time. Try which one is more 
-							suitable for your application!
-				</UL>
-		
-		<H2>Visual</H2>
-		
-			The <tt>VISUAL</tt> folder contains classes of the GUI.
-			
-			<H3>Preferences Manager</H3>
-				<img src="PreferencesManager.png" align=left>
-				<b>General Description</b><BR>
-				GUI classes that store preferences and create a preferences dialog for them, 
-				are derived from PreferencesManager (abbreviated PM for the rest of the text). 
-				The preferences have to be stored in the private member PM::prefs_, an object 
-				of type Param (see FORMAT/Param.h). PM classes are arranged in a tree 
-				structure, where one PM (the parent) can have several clients. Clients are 
-				added to a parent along with a name, which is used later on in the 
-				visualization of the preferences dialog. See getParent(), setParent(parent), 
-				addClient(client, name), removeClient(client) and setClientName(client, name). 
-				When the showPreferencesDialog() method of any object in the tree is called, 
-				the root object creates a PreferencesDialog and shows it. On the left of the 
-				dialog a tree view that corresponds to the object tree is shown and on the 
-				right the preferences of the selected entry of the tree view are shown (see 
-				figure). All preferences pages on the right side are objects of classes derived 
-				from PreferencesDialogPage (abbreviated PDP). <i>Note:</i><BR>
-				Preferences that are used very often or are time-consuming to construct from 
-				prefs_ can be stored in a second member for faster access. But they should 
-				nevertheless be stored in prefs_, as prefs_ is used to persistently store the 
-				current state of TOPPView.
-				<BR>
-				<BR>
-				<b>Using the default mechanism for adding new Widgets</b><BR>
-				In order to store Preferences of a GUI class and a create preferences dialog 
-				for them, derive your class from PM. If you want to use the default preferences 
-				mechanism, just add the object as client to a parent. Now your object will have 
-				its own dialog page in the preferences dialog. However this page is still 
-				empty! Next, you have to derive a class from PDP in order to fill your object's 
-				preferences page with life (This new class may be a private class of your PM 
-				object, which is defined in the same header/source). In the constructor of the 
-				new PDP class you create all the widgets you want to show on the preferences 
-				page. In oder to see the new PDP in the preferences dialog, you have to 
-				reimplement the createPreferences(parent) method of you PM class. By default 
-				this method creates a PDP object and returns a pointer to it. Now you have to 
-				create and return a pointer to a object of your class derived from PDP. Now you 
-				can see the preferences page but it does not interact with your object at 
-				all... The PDP object has a pointer to its creator(or manager) which is an 
-				argument to its constructor. Through this pointer, the load() method reads the 
-				current settings from the manager and save() writes the preferences back to the 
-				manager. Finally, you have to reimplement the load() and save() methods of the 
-				PDP. Important: This mechanism works only when there are public set/get methods 
-				for all preferences, but they should be there anyway.
-				<BR>
-				<BR>
-				<b>Parents managing clients themselves</b><BR>
-				In cases where you do not want a client to be shown as a child in the tree 
-				structure, you can just integrate the client's preferences page into the 
-				preferences page of the parent. To do that you have to modify the instructions 
-				above in the following manner:
-				<UL>
-					<LI>
-					Set the the parent property of the client, but do not add the client as child 
-					to the parent = &gt; The preference page is not shown in the dialog anymore.
-					<LI>
-					Integrate the child PDP into the client PDP by calling createPreferences(…) of 
-					the child in the createPreferences(…) method of the client.
-					<LI>
-						Call the load()/save() method of the client in the load()/save() method of the 
-						parent</LI>
-				</UL>
-		<!-- ........ Content ends here ........ -->
-		<BR>
-		<BR>
-		<BR>
-		<BR>
-		
-		<H2>Analysis</H2>
-		This folder contains algorithms and modules for the high-level processing and analysis of LC/MS data.
-		
-		<H3>Map Matching</H3>
-		After a raw data map has been picked and searched for features, we need to map features from different
-		maps i.e. experiments onto each other before we are able to make meaningful comparisons. That means
-		that we want to identify groups of features that stem from the same peptide in different experiments.
-		In OpenMS, this procedure consists of three steps: <b>feature matching</b>, <b>map mapping</b> and
-		<b>map dewarping</b>.
-		
-		<BR><BR><B>Feature Matching</B><BR>
-		In this step, we try to identify pairs of features in different maps. So far, two different approaches
-		have been implemented. The first and simpler one is a clustering-like approach and tries to cluster features
-		to pairs based. The distance is a function of retention time, m/z and intensity of the features. The second
-		approach is based on <i>Geometric Hashing</i>. It will usually work better than the simple approach 
-		if there is a significant shift in rt and/or m/z between different experiments.
-			
-		<BR><BR><B>Map Mapping</B><BR>
-		The map mapping step tries to estimate a mapping function that maps the coordinates of the feature partners
-		that have been identified in the last step on each other. Currently we estimate a piecewise linear function
-		using linear regression but it is easy to extend our method to more sophisticated approaches.
-		
-		<BR><BR><B>Map Dewarping</B><BR>
-		The last step in this workflow is called dewarping. It merely consists of the application of the mapping
-		function that was estimated in the last step to the feature coordinates. After the dewarping, features that
-		have been identified as partners should now have very similar if not identical coordinates. This allows
-		an easy comparison of corresponding features in different maps.
-		<BR><BR>
-		The directory <tt>source/EXAMPLES</tt> contains an example program which shows how to use the diferent classes
-		and modules in the map mapping workflow. The class diagram below gives an overview of these classes.		
-		
-	</body>
+raw &gt;&gt; sgolay(sgolay_filtered);
+</pre>The parameters in the constructor define the length of the
+filter (given by the number of its data points) and the order of
+the polynom which is used.
+  <br>
+  <b>Note:</b>
+
+  <ul>
+    <li>By decreasing the order of the polynoms or increasing the
+    number of data points, the filtered signal gets smoother (the
+    order x should be 2 &lt;= x &lt;= 4) !</li>
+
+
+    <li>The Savitzky Golay filter preserves the maximum position of
+    a peak much better than the Gaussian filter!</li>
+
+
+    <li>The DSavitzkyGolayQRFilter and the DSavitzkyGolaySVDFilter
+    generate the same filtering, but they vary in run time. Try
+    which one is more suitable for your application!</li>
+  </ul>
+
+
+  <h2>Visual</h2>
+  The <tt>VISUAL</tt> folder contains classes of the GUI.
+
+  <h3>Preferences Manager</h3>
+  <img src="PreferencesManager.png"
+        align="left"> <b>General Description</b>
+  <br>
+  GUI classes that store preferences and create a preferences
+  dialog for them, are derived from PreferencesManager (abbreviated
+  PM for the rest of the text). The preferences have to be stored
+  in the private member PM::prefs_, an object of type Param (see
+  FORMAT/Param.h). PM classes are arranged in a tree structure,
+  where one PM (the parent) can have several clients. Clients are
+  added to a parent along with a name, which is used later on in
+  the visualization of the preferences dialog. See getParent(),
+  setParent(parent), addClient(client, name), removeClient(client)
+  and setClientName(client, name). When the showPreferencesDialog()
+  method of any object in the tree is called, the root object
+  creates a PreferencesDialog and shows it. On the left of the
+  dialog a tree view that corresponds to the object tree is shown
+  and on the right the preferences of the selected entry of the
+  tree view are shown (see figure). All preferences pages on the
+  right side are objects of classes derived from
+  PreferencesDialogPage (abbreviated PDP). <i>Note:</i>
+  <br>
+  Preferences that are used very often or are time-consuming to
+  construct from prefs_ can be stored in a second member for faster
+  access. But they should nevertheless be stored in prefs_, as
+  prefs_ is used to persistently store the current state of
+  TOPPView.
+  <br>
+  <br>
+  <b>Using the default mechanism for adding new Widgets</b>
+  <br>
+  In order to store Preferences of a GUI class and a create
+  preferences dialog for them, derive your class from PM. If you
+  want to use the default preferences mechanism, just add the
+  object as client to a parent. Now your object will have its own
+  dialog page in the preferences dialog. However this page is still
+  empty! Next, you have to derive a class from PDP in order to fill
+  your object's preferences page with life (This new class may be a
+  private class of your PM object, which is defined in the same
+  header/source). In the constructor of the new PDP class you
+  create all the widgets you want to show on the preferences page.
+  In oder to see the new PDP in the preferences dialog, you have to
+  reimplement the createPreferences(parent) method of you PM class.
+  By default this method creates a PDP object and returns a pointer
+  to it. Now you have to create and return a pointer to a object of
+  your class derived from PDP. Now you can see the preferences page
+  but it does not interact with your object at all... The PDP
+  object has a pointer to its creator(or manager) which is an
+  argument to its constructor. Through this pointer, the load()
+  method reads the current settings from the manager and save()
+  writes the preferences back to the manager. Finally, you have to
+  reimplement the load() and save() methods of the PDP. Important:
+  This mechanism works only when there are public set/get methods
+  for all preferences, but they should be there anyway.
+  <br>
+  <br>
+  <b>Parents managing clients themselves</b>
+  <br>
+  In cases where you do not want a client to be shown as a child in
+  the tree structure, you can just integrate the client's
+  preferences page into the preferences page of the parent. To do
+  that you have to modify the instructions above in the following
+  manner:
+
+  <ul>
+    <li>Set the the parent property of the client, but do not add
+    the client as child to the parent = &gt; The preference page is
+    not shown in the dialog anymore.</li>
+
+
+    <li>Integrate the child PDP into the client PDP by calling
+    createPreferences() of the child in the createPreferences()
+    method of the client.</li>
+
+
+    <li>Call the load()/save() method of the client in the
+    load()/save() method of the parent</li>
+  </ul>
+  <!-- ........ Content ends here ........ -->
+
+  <br>
+  <br>
+  <br>
+  <br>
+
+
+  <h2>Analysis</h2>
+  This folder contains algorithms and modules for the high-level
+  processing and analysis of LC/MS data.
+
+  <h3>Map Matching</h3>
+  After a raw data map has been picked and searched for features,
+  we need to map features from different maps i.e. experiments onto
+  each other before we are able to make meaningful comparisons.
+  That means that we want to identify groups of features that stem
+  from the same peptide in different experiments. In OpenMS, this
+  procedure consists of three steps: <b>feature matching</b>,
+  <b>map mapping</b> and <b>map dewarping</b>.
+  <br>
+  <br>
+  <b>Feature Matching</b>
+  <br>
+  In this step, we try to identify pairs of features in different
+  maps. So far, two different approaches have been implemented. The
+  first and simpler one is a clustering-like approach and tries to
+  cluster features to pairs based. The distance is a function of
+  retention time, m/z and intensity of the features. The second
+  approach is based on <i>Geometric Hashing</i>. It will usually
+  work better than the simple approach if there is a significant
+  shift in rt and/or m/z between different experiments.
+  <br>
+  <br>
+  <b>Map Mapping</b>
+  <br>
+  The map mapping step tries to estimate a mapping function that
+  maps the coordinates of the feature partners that have been
+  identified in the last step on each other. Currently we estimate
+  a piecewise linear function using linear regression but it is
+  easy to extend our method to more sophisticated approaches.
+  <br>
+  <br>
+  <b>Map Dewarping</b>
+  <br>
+  The last step in this workflow is called dewarping. It merely
+  consists of the application of the mapping function that was
+  estimated in the last step to the feature coordinates. After the
+  dewarping, features that have been identified as partners should
+  now have very similar if not identical coordinates. This allows
+  an easy comparison of corresponding features in different maps.
+  <br>
+  <br>
+  The directory <tt>source/EXAMPLES</tt> contains an example
+  program which shows how to use the diferent classes and modules
+  in the map mapping workflow. The class diagram below gives an
+  overview of these classes.
+</body>
 </html>

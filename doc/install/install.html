@@ -1,359 +1,596 @@
 <!-- $Id: install.html,v 1.13 2006/05/08 06:13:42 marc_sturm Exp $ -->
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
 <html>
 <head>
-<title>OpenMS Installation Instructions</title>
+  <meta name="generator"
+        content=
+        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
+        
+
+  <title>OpenMS Installation Instructions</title>
+  <link rel="stylesheet"
+        media="all"
+        href="../common/styles.css"
+        type="text/css">
 </head>
-<link rel="stylesheet" media="all" href="../common/styles.css">
+
 <body>
+  <script type="text/javascript"
+      src="../common/header.txt">
+</script><!-- ........ Content starts here ........ -->
 
-<script type="text/javascript" src="../common/header.txt"></script>
 
-<!-- ........ Content starts here ........ -->
+  <h1>Installation Instructions</h1>
 
-<H1>Installation Instructions</H1>
 
-<h2>Read this!</h2>
+  <h2>Read this!</h2>
+  This document addresses OpenMS users and explains the
+  installation procedure. It especially considers the installation
+  of several libraries which are required by OpenMS. All
+  installations are explained from sources, but you should consider
+  using precompiled packages suited for your system.
+  <br>
+  <br>
+  <font color="red"><b>All architectures:</b></font>
 
-This document addresses OpenMS users and explains the  installation procedure.
-It especially considers the installation of several libraries which are required by OpenMS.
-All installations are explained from sources, but you should consider using precompiled packages suited for your system.
-<BR>
-<BR>
-<Font color=red><B>All architectures:</B></font>
-<UL>
-	<LI>Autoconf version 2.59 or higher is needed for the installation of OpenMS and the contrib package. Autoconf can be downloaded from <a target=blank href="http://www.gnu.org/software/autoconf/">http://www.gnu.org/software/autoconf/</a>.
-	<LI> GCC 3.4.3 and lower will not work due to a bug.
-</UL>
+  <ul>
+    <li>Autoconf version 2.59 or higher is needed for the
+    installation of OpenMS and the contrib package. Autoconf can be
+    downloaded from <a target="blank"
+       href=
+       "http://www.gnu.org/software/autoconf/">http://www.gnu.org/software/autoconf/</a>.</li>
 
-<Font color=red><B>i386 architectures:</B></font>
-<UL>
-	<LI> OpenMS is tested with GCC 3.4.x (x>=4), 4.0 and 4.1.
-	<LI> Before you choose your compiler, see the notes on Qt installation below.
-</UL>
 
-<Font color=red><B>x86_64 architectures:</B></font> 
-<UL>
-	<LI> OpenMS is tested with GCC 4.0.
-	<LI> If the built aborts with errors concerning 'compound literals' use <code>--disable-pedantic</code> in the OpenMS configure.
-	<LI> If ANDI/MS tests fail, you can disable ANDI/MS using <code>--disable-andims</code> in the OpenMS configure.
-</UL>
+    <li>GCC 3.4.3 and lower will not work due to a bug.</li>
+  </ul>
+  <font color="red"><b>i386 architectures:</b></font>
 
-<a name="libraries"></a>
-<h2>Installing required libraries</h2>
-OpenMS depends on several other libraries. Most of them are standard and should be present 
-in many systems anyway. Some of those libraries again depend on others. Here is a little overview of those dependencies:
+  <ul>
+    <li>OpenMS is tested with GCC 3.4.x (x&gt;=4), 4.0 and
+    4.1.</li>
 
-<p>
-<TABLE CELLPADDING=2 CELLSPACING=0>
-	<TR><TD ALIGN="LEFT"> </TD>
-	<TD ALIGN="LEFT">ANDI/MS</TD>
-	<TD ALIGN="LEFT">(requires NetCDF)</TD>
-	</TR>
-	<TR><TD ALIGN="LEFT"> </TD>
-	<TD ALIGN="LEFT">Boost</TD>
-	<TD ALIGN="LEFT"> </TD>
-	</TR>
-	<TR><TD ALIGN="LEFT"> </TD>
-	<TD ALIGN="LEFT">GSL</TD>
-	<TD ALIGN="LEFT"> </TD>
-	</TR>
-	<TR><TD ALIGN="LEFT"> </TD>
-	<TD ALIGN="LEFT">CGAL</TD>
-	<TD ALIGN="LEFT"> </TD>
-	</TR>
-	<TR><TD ALIGN="LEFT"> </TD>
-	<TD ALIGN="LEFT">Qt</TD>
-	<TD ALIGN="LEFT">(requires other libraries for DB support, e.g. MySQL)</TD>
-	</TR>
-</TABLE>
-</p>
 
-<b><font color=red>Note:</font></b> In order to make the installation of the required libraries easier, we composed a package containing the libraries
-ANDI/MS, NetCDF, GSL, CGAL and Boost. This contrib package has three advantages over manual installation
-<ul>
-	<li> you get all the libraries in versions tested with OpenMS.
-	<li> it contains a configure script that builds all the libraries in one step.
-	<li> you don't have to spend hours reading installation instructions of all the libraries.
-</ul>
-We recommend using the contrib package! QT and MySQL are not contained in the contrib package as they are installed on most systems anyway.
-If they are not installed on your system, you have to install those two libraries first.
+    <li>Before you choose your compiler, see the notes on Qt
+    installation below.</li>
+  </ul>
+  <font color="red"><b>x86_64 architectures:</b></font>
 
-<a name="mysql"></a>
-<h3>MySQL</h3>
+  <ul>
+    <li>OpenMS is tested with GCC 4.0.</li>
 
-The MySQL database is accessed by OpenMS through functionality provided by Qt.
-The MySQL versions 4.0.18 and 4.1.10a have been tested and used with OpenMS.
-<br>
-You can get the sources at <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="blank">http://dev.mysql.com/downloads/mysql/4.1.html</a> in the 'source download' section.
-<br>
-Good installation instructions for MySQL can be found at <A  HREF="http://dev.mysql.com/doc/mysql/en/installing-source.html" target="blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</A>.
-<br>
-Basically the installation boils down to this:
-<pre>
-&gt; ./configure --prefix=&lt;prefix&gt
+
+    <li>If the built aborts with errors concerning 'compound
+    literals' use <code>--disable-pedantic</code> in the OpenMS
+    configure.</li>
+
+
+    <li>If ANDI/MS tests fail, you can disable ANDI/MS using
+    <code>--disable-andims</code> in the OpenMS configure.</li>
+  </ul>
+  <a name="libraries"
+        id="libraries"></a>
+
+  <h2>Installing required libraries</h2>
+  OpenMS depends on several other libraries. Most of them are
+  standard and should be present in many systems anyway. Some of
+  those libraries again depend on others. Here is a little overview
+  of those dependencies:
+
+  <table cellpadding="2"
+         cellspacing="0">
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">ANDI/MS</td>
+
+      <td align="left">(requires NetCDF)</td>
+    </tr>
+
+
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">Boost</td>
+
+      <td align="left">&nbsp;</td>
+    </tr>
+
+
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">GSL</td>
+
+      <td align="left">&nbsp;</td>
+    </tr>
+
+
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">CGAL</td>
+
+      <td align="left">&nbsp;</td>
+    </tr>
+
+
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">Qt</td>
+
+      <td align="left">(requires other libraries for DB support,
+      e.g. MySQL)</td>
+    </tr>
+  </table>
+  <b><font color="red">Note:</font></b> In order to make the
+  installation of the required libraries easier, we composed a
+  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL and
+  Boost. This contrib package has three advantages over manual
+  installation
+
+  <ul>
+    <li>you get all the libraries in versions tested with
+    OpenMS.</li>
+
+
+    <li>it contains a configure script that builds all the
+    libraries in one step.</li>
+
+
+    <li>you don't have to spend hours reading installation
+    instructions of all the libraries.</li>
+  </ul>
+  We recommend using the contrib package! QT and MySQL are not
+  contained in the contrib package as they are installed on most
+  systems anyway. If they are not installed on your system, you
+  have to install those two libraries first. <a name="mysql"
+        id="mysql"></a>
+
+  <h3>MySQL</h3>
+  The MySQL database is accessed by OpenMS through functionality
+  provided by Qt. The MySQL versions 4.0.18 and 4.1.10a have been
+  tested and used with OpenMS.
+  <br>
+  You can get the sources at <a href=
+  "http://dev.mysql.com/downloads/mysql/4.1.html"
+        target=
+        "blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
+        in the 'source download' section.
+  <br>
+  Good installation instructions for MySQL can be found at <a href=
+  "http://dev.mysql.com/doc/mysql/en/installing-source.html"
+        target=
+        "blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
+  <br>
+  Basically the installation boils down to this:
+
+  <pre>
+&gt; ./configure --prefix=&lt;prefix&gt;
 &gt; make
 &gt; make install
-</pre>
+</pre><a name="qt"
+        id="qt"></a>
 
-<a name="qt"></a>
-<h3>Qt</h3>
-For GUI, database access and XML parsing we use Qt.
-The Qt-x11-free versions 3.3.2 and 3.3.4 have been tested and used with OpenMS.
-You can obtain the source from 
-<A HREF="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</A>.
-<p>
-  Run configure with the '-verbose' option. With that option a summary is shown before the you have to accept the licence. 
-  Make sure that MySQL (or any other DB you want to use) and OpenGL are support are enabled in the summary.
-</p>
-<PRE>
+  <h3>Qt</h3>
+  For GUI, database access and XML parsing we use Qt. The
+  Qt-x11-free versions 3.3.2 and 3.3.4 have been tested and used
+  with OpenMS. You can obtain the source from <a href=
+  "http://www.trolltech.com/download/index.html"
+        target=
+        "blank">http://www.trolltech.com/download/index.html</a>.
+
+  <p>Run configure with the '-verbose' option. With that option a
+  summary is shown before the you have to accept the licence. Make
+  sure that MySQL (or any other DB you want to use) and OpenGL are
+  support are enabled in the summary.</p>
+
+  <pre>
 &gt; ./configure -verbose (... see below)
 &gt; gmake
-</PRE>
-<p>
-	<B>If OpenGL support is not enabled:</b> On some systems OpenGL is only included in QT when you add the <code>-tread</code> flag 
-	to configure. Note that in that case you have to use the <code>--with-qt-mt</code> flag in the OpenMS configure.
-</p>
-<p>
-	<B>SQL support:</b><BR>
-	Use the configure option '-qt-sql-&lt;driver&gt;' or -plugin-sql-&lt;driver&gt; to enable database support.
-	There is a QT driver for a lot of SQL database provided by QT. Check the QT manual for details.
-</p>
-<p>
-	If our mysql installation is not in the standard path, it was necessary to add <code>-I/&lt;path_to_mysql_includes&gt;</code> 
-	and <code>-L/&lt;path_to_mysql_libraries&gt;</code>. We observed that in some platforms Qt's configure searches the -I and
-	-L paths only <i>after</i> the system default locations.  Thus you are probably best off <i>using the same GCC and Qt 
-	versions as the rest of your system,</i> if possible. This applies in particular if your system already
-	comes along with a Qt installation (which is usually the case for linux).
-</p>
+</pre>
 
-<a name="contrib"> </a>
-<h3>Using the contrib package (recommended)</h3>
-First download the contrib package.<br>
-After extracting the package call the following commands:
-<pre>
+  <p><b>If OpenGL support is not enabled:</b> On some systems
+  OpenGL is only included in QT when you add the
+  <code>-tread</code> flag to configure. Note that in that case you
+  have to use the <code>--with-qt-mt</code> flag in the OpenMS
+  configure.</p>
+
+
+  <p><b>SQL support:</b>
+  <br>
+  Use the configure option '-qt-sql-&lt;driver&gt;' or
+  -plugin-sql-&lt;driver&gt; to enable database support. There is a
+  QT driver for a lot of SQL database provided by QT. Check the QT
+  manual for details.</p>
+
+
+  <p>If our mysql installation is not in the standard path, it was
+  necessary to add <code>-I/&lt;path_to_mysql_includes&gt;</code>
+  and <code>-L/&lt;path_to_mysql_libraries&gt;</code>. We observed
+  that in some platforms Qt's configure searches the -I and -L
+  paths only <i>after</i> the system default locations. Thus you
+  are probably best off <i>using the same GCC and Qt versions as
+  the rest of your system,</i> if possible. This applies in
+  particular if your system already comes along with a Qt
+  installation (which is usually the case for linux).</p>
+  <a name="contrib"
+        id="contrib"></a>
+
+  <h3>Using the contrib package (recommended)</h3>
+  First download the contrib package.
+  <br>
+  After extracting the package call the following commands:
+
+  <pre>
 &gt; autoconf
 &gt; ./configure
-</pre>
-The following configure options can be used:
-<table border=0 cellspacing=0 cellpadding=0>
-	<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><li>--with-compiler=CXX</td><td>&nbsp;use CXX as C++ compiler (default: g++)</td></tr>
-	<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><li>--with-c-compiler=CC&nbsp;&nbsp;</td><td>&nbsp;use CC as C compiler (default: gcc)</td></tr>
-	<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><li>--with-toolset=TS </td><td>&nbsp;use TS as boost toolset. make sure the compiler and toolset match (default: gcc)</td></tr>
-	<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><li>--with-libdir=LD</td><td>&nbsp;make install copies all libraries into LD (default: lib/)</td></tr>
-</table>
-If you do not give any configure options, it is assumed that you want to use 'gcc' as C-compiler, 'g++' as C++-compiler and the boost toolset 'gcc'.
-<br>
-Next you can build all the libraries with
-<pre>
+</pre>The following configure options can be used:
+
+  <table border="0"
+         cellspacing="0"
+         cellpadding="0">
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+      <td>
+        <ul>
+          <li>--with-compiler=CXX</li>
+        </ul>
+      </td>
+
+      <td>&nbsp;use CXX as C++ compiler (default: g++)</td>
+    </tr>
+
+
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+      <td>
+        <ul>
+          <li>--with-c-compiler=CC&nbsp;&nbsp;</li>
+        </ul>
+      </td>
+
+      <td>&nbsp;use CC as C compiler (default: gcc)</td>
+    </tr>
+
+
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+      <td>
+        <ul>
+          <li>--with-toolset=TS</li>
+        </ul>
+      </td>
+
+      <td>&nbsp;use TS as boost toolset. make sure the compiler and
+      toolset match (default: gcc)</td>
+    </tr>
+
+
+    <tr>
+      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+      <td>
+        <ul>
+          <li>--with-libdir=LD</li>
+        </ul>
+      </td>
+
+      <td>&nbsp;make install copies all libraries into LD (default:
+      lib/)</td>
+    </tr>
+  </table>
+  If you do not give any configure options, it is assumed that you
+  want to use 'gcc' as C-compiler, 'g++' as C++-compiler and the
+  boost toolset 'gcc'.
+  <br>
+  Next you can build all the libraries with
+
+  <pre>
 &gt; make
-</pre>
-If you have given a libdir other than 'lib/' call
-<pre>
+</pre>If you have given a libdir other than 'lib/' call
+
+  <pre>
 &gt; make install
-</pre>
-in order to copy the libraries to the specified location.
-<br>
-<br>
-If everything worked, the following directories were created:
-<ul>
-<li>'lib/' or the given libdir<br>
-   It contains the libraries needed for OpenMS.<br>
-   This directory should be added to your LD_LIBRARY_PATH variable.
-<li>'include/'<br>
-   It contains the header files needed for OpenMS.
-</ul>
+</pre>in order to copy the libraries to the specified location.
+  <br>
+  <br>
+  If everything worked, the following directories were created:
 
-<a name="netcdf"> </a>
-<h3>NetCDF (if you do not use the contrib package)</h3>
-NetCDF (network Common Data Form) is an interface for array-oriented
-data access and a library that provides an implementation of the interface. The NetCDF
-library also defines a machine-independent format for representing scientific data. Together, the
-interface, library, and format support the creation, access, and sharing of scientific data.
-<br>
-The NetCDF versions 3.5.1 and 3.6.0 have been tested and used with OpenMS.
-You can get the sources at <A  HREF="http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget" target="blank">http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget</A>.
-<br>
-Installation instructions can be found at <A HREF="http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html" target="blank">http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html</A>.
+  <ul>
+    <li>'lib/' or the given libdir
+    <br>
+    It contains the libraries needed for OpenMS.
+    <br>
+    This directory should be added to your LD_LIBRARY_PATH
+    variable.</li>
 
-<P>
-Since OpenMS has no need for the fortran interface to NetCDF, it is probably
-best to disable it (unless you need it for some other reasons) by setting the
-environment variables FC and F90 to the empty string.  The following
-environment has been applied successfully:
-<PRE>
+
+    <li>'include/'
+    <br>
+    It contains the header files needed for OpenMS.</li>
+  </ul>
+  <a name="netcdf"
+        id="netcdf"></a>
+
+  <h3>NetCDF (if you do not use the contrib package)</h3>
+  NetCDF (network Common Data Form) is an interface for
+  array-oriented data access and a library that provides an
+  implementation of the interface. The NetCDF library also defines
+  a machine-independent format for representing scientific data.
+  Together, the interface, library, and format support the
+  creation, access, and sharing of scientific data.
+  <br>
+  The NetCDF versions 3.5.1 and 3.6.0 have been tested and used
+  with OpenMS. You can get the sources at <a href=
+  "http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget"
+        target=
+        "blank">http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget</a>.
+  <br>
+  Installation instructions can be found at <a href=
+  "http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html"
+        target=
+        "blank">http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html</a>.
+
+  <p>Since OpenMS has no need for the fortran interface to NetCDF,
+  it is probably best to disable it (unless you need it for some
+  other reasons) by setting the environment variables FC and F90 to
+  the empty string. The following environment has been applied
+  successfully:</p>
+
+  <pre>
 export CFLAGS="-O"
 export CXXFLAGS="-O"
 export CPPFLAGS="-DNDEBUG"
 export FC=""
 export F90=""
-</PRE>
+</pre><a name="andims"
+        id="andims"></a>
 
-<a name="andims"></a>
-<h3>ANDI/MS (if you do not use the contrib package)</h3>
-ANDI is a NetCDF based analytical instrument data interchange standard. 
-This data standard primarily supports mass spectrometry and chromatography. 
-<br>
-The version AIA_MS10  has been tested and used with OpenMS.
-You can get the source at <A HREF="http://sourceforge.net/projects/andi" target="blank">http://sourceforge.net/projects/andi</A>.
-<P>
-Due to its age, ANDIMS does not support comfortable install mechanisms.
-<P>
-Download the file AIA_MS10.zip from sourceforge and unzip it to a directory
-of your choice. Next, unzip the file in andims/disk1/ANDI_1.ZIP.
-Now go into the SRC/ directory.
-</p>
-<P>
-You have to edit the Makefile. 
-Please note that if your version of unzip creates all-uppercase filenames, you should 
-convert them manually to all-lowercase filenames, e.g. the directory SRC should contain 
-the file ms10aux.c, not MS10AUX.C.
+  <h3>ANDI/MS (if you do not use the contrib package)</h3>
+  ANDI is a NetCDF based analytical instrument data interchange
+  standard. This data standard primarily supports mass spectrometry
+  and chromatography.
+  <br>
+  The version AIA_MS10 has been tested and used with OpenMS. You
+  can get the source at <a href=
+  "http://sourceforge.net/projects/andi"
+        target="blank">http://sourceforge.net/projects/andi</a>.
 
-<P>
-In the Makefile, you will have to edit the variable OS to match your
-operating system, and you will have to include the line 
-<PRE>
+  <p>Due to its age, ANDIMS does not support comfortable install
+  mechanisms.</p>
+
+
+  <p>Download the file AIA_MS10.zip from sourceforge and unzip it
+  to a directory of your choice. Next, unzip the file in
+  andims/disk1/ANDI_1.ZIP. Now go into the SRC/ directory.</p>
+
+
+  <p>You have to edit the Makefile. Please note that if your
+  version of unzip creates all-uppercase filenames, you should
+  convert them manually to all-lowercase filenames, e.g. the
+  directory SRC should contain the file ms10aux.c, not
+  MS10AUX.C.</p>
+
+
+  <p>In the Makefile, you will have to edit the variable OS to
+  match your operating system, and you will have to include the
+  line</p>
+
+  <pre>
 NETCDF = path/to/your/netcdf/installation
-</PRE>
-such that in $(NETCDF)/include you will find the file netcdf.h.
-</p>
+</pre>such that in $(NETCDF)/include you will find the file
+netcdf.h.
 
-<P>
-Afterwards, you should edit the dependencies that are specified in the end
-of the
-Makefile. Remove any dependency that doesn't seem to work on your system,
-like 
-e.g. all occurrences of a nsi_compat.h
-Now, you can run 
-<PRE>
+  <p>Afterwards, you should edit the dependencies that are
+  specified in the end of the Makefile. Remove any dependency that
+  doesn't seem to work on your system, like e.g. all occurrences of
+  a nsi_compat.h Now, you can run</p>
+
+  <pre>
 &gt; make
-</PRE>
-to compile the library.
+</pre>to compile the library. <a name="gsl"
+        id="gsl"></a>
 
-<a name="gsl"></a>
-<h3>GSL (if you do not use the contrib package)</h3>
-The GNU scientific library is used by us for all kinds of functionalities and calculations.
-Versions 1.4, 1.5 and 1.6 have been tested and used with OpenMS.
-<br>
-<br>
-Download the sources from <A HREF="http://www.gnu.org/software/gsl/" target="blank">http://www.gnu.org/software/gsl/</A>.
-<br>
-<br>
-We did not find a good installation documentation, but this should do the job:
-<PRE>
+  <h3>GSL (if you do not use the contrib package)</h3>
+  The GNU scientific library is used by us for all kinds of
+  functionalities and calculations. Versions 1.4, 1.5 and 1.6 have
+  been tested and used with OpenMS.
+  <br>
+  <br>
+  Download the sources from <a href=
+  "http://www.gnu.org/software/gsl/"
+        target="blank">http://www.gnu.org/software/gsl/</a>.
+  <br>
+  <br>
+  We did not find a good installation documentation, but this
+  should do the job:
+
+  <pre>
 &gt; ./configure
 &gt; make
 &gt; make install
-</PRE>
+</pre><a name="cgal"
+        id="cgal"></a>
 
-<a name="cgal"></a>
-<h3>CGAL (if you do not use the contrib package)</h3>
-The computational geographic algorithms library offers functionalities for many kinds of 
-multidimensional search problems.
-The CGAL versions 3.0.1 and 3.1.0 have been tested and used with OpenMS.<BR>
-<b><font color=red>Note:</font></b> If you want to use gcc 3.4 as compiler, you must use CGAL 3.1.0 or higher!
-<br>
-<br>Get the source code from 
-<A HREF="http://www.cgal.org/download/" target="blank">http://www.cgal.org/download/</A>.
-<br>
-You can find the installation manual as pdf at 
-<A  HREF="http://www.cgal.org/Manual/doc_pdf/installation.pdf" target="blank">http://www.cgal.org/Manual/doc_pdf/installation.pdf</A>.
-<br>
-<br>
-<b><font color=red>Note:</font></b> During the installation of CGAL the platform-specific header file 'compiler_config.h' is created in a platform-specific directory 
-in 'include/CGAL/config/'. You need to copy this file into the 'include/CGAL/' directory.
+  <h3>CGAL (if you do not use the contrib package)</h3>
+  The computational geographic algorithms library offers
+  functionalities for many kinds of multidimensional search
+  problems. The CGAL versions 3.0.1 and 3.1.0 have been tested and
+  used with OpenMS.
+  <br>
+  <b><font color="red">Note:</font></b> If you want to use gcc 3.4
+  as compiler, you must use CGAL 3.1.0 or higher!
+  <br>
+  <br>
+  Get the source code from <a href="http://www.cgal.org/download/"
+        target="blank">http://www.cgal.org/download/</a>.
+  <br>
+  You can find the installation manual as pdf at <a href=
+  "http://www.cgal.org/Manual/doc_pdf/installation.pdf"
+        target=
+        "blank">http://www.cgal.org/Manual/doc_pdf/installation.pdf</a>.
+  <br>
+  <br>
+  <b><font color="red">Note:</font></b> During the installation of
+  CGAL the platform-specific header file 'compiler_config.h' is
+  created in a platform-specific directory in
+  'include/CGAL/config/'. You need to copy this file into the
+  'include/CGAL/' directory. <a name="boost"
+        id="boost"></a>
 
-<a name="boost"></a>
-<h3>Boost (if you do not use the contrib package)</h3>
-Boost is used for serialization, priority queues, smart pointers and other things. <br>
-The Boost version 1.32.0 has been tested and used with OpenMS.<br>
-<br>
-In order to install Boost, you need the boost installer bjam in your path.<br>
-bjam can be downloaded as binary or source code from <a href="http://sourceforge.net/project/showfiles.php?group_id=7586&package_id=72941">sourceforge</a><br>
-<br>
-Installation of boost:<br>
-Get the source code from <A HREF="http://sourceforge.net/project/showfiles.php?group_id=7586" target="blank">sourcefore</A> and untar it.<br>
-Installation instructions for boost can be found at
-<A  HREF="http://www.boost.org/more/getting_started.html" target="blank">http://www.boost.org/more/getting_started.html</A>.<br>
-<br>
-<br>
-When using gcc, the following steps should do the installation:<br>
-<pre>
+  <h3>Boost (if you do not use the contrib package)</h3>
+  Boost is used for serialization, priority queues, smart pointers
+  and other things.
+  <br>
+  The Boost version 1.32.0 has been tested and used with OpenMS.
+  <br>
+  <br>
+  In order to install Boost, you need the boost installer bjam in
+  your path.
+  <br>
+  bjam can be downloaded as binary or source code from <a href=
+  "http://sourceforge.net/project/showfiles.php?group_id=7586&amp;package_id=72941">
+  sourceforge</a>
+  <br>
+  <br>
+  Installation of boost:
+  <br>
+  Get the source code from <a href=
+  "http://sourceforge.net/project/showfiles.php?group_id=7586"
+        target="blank">sourcefore</a> and untar it.
+  <br>
+  Installation instructions for boost can be found at <a href=
+  "http://www.boost.org/more/getting_started.html"
+        target=
+        "blank">http://www.boost.org/more/getting_started.html</a>.
+  <br>
+  <br>
+  <br>
+  When using gcc, the following steps should do the installation:
+  <br>
+
+  <pre>
 &gt; cd &lt;BOOSTDIR&gt;/libs/serialization/build/
 &gt; bjam -sTOOLS=gcc
 &gt; cd &lt;BOOSTDIR&gt;/
 &gt; bjam -sTOOLS=gcc --prefix=&lt;prefix&gt; install
-</pre>
-&lt;BOOSTDIR&gt; is the base directory of the boost sources.
+</pre>&lt;BOOSTDIR&gt; is the base directory of the boost sources.
+<a name="openms"
+        id="openms"></a>
 
-<a name="openms"></a>
-<h2>Installing OpenMS</h2>
+  <h2>Installing OpenMS</h2>
+  If you have not installed the libraries which OpenMS requires,
+  please refer to the section <a href="#libraries">required
+  libraries</a> above. Otherwise you might only get parts of the
+  full OpenMS functionality.
+  <br>
+  Well - consider you have installed everything. Now you need to
+  get the OpenMS source code. The latest stable version of OpenMS
+  can be found in the <a href=
+  "http://sourceforge.net/project/showfiles.php?group_id=90558">files</a>
+  section. For further info see the <a href=
+  "http://open-ms.sourceforge.net/download.html">download
+  instructions</a>.
+  <br>
+  <br>
+  After you got the source code go to the source directory and type
+  in the following commands
 
-If you have not installed the libraries which OpenMS requires, please
-refer to the section <a href="#libraries">required libraries</a> above.
-Otherwise you might only get parts of the full OpenMS functionality. 
-<br>
-Well - consider you have installed everything. Now you need to get
-the OpenMS source code. The latest stable version of OpenMS can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">files</a> section.
-For further info see the <a href="http://open-ms.sourceforge.net/download.html" >download instructions</a>.
-<br>
-<br>
-After you got the source code go to the source directory and type in
- the
-following commands
-
-<PRE>
+  <pre>
 &gt; autoconf
 &gt; ./configure (... see 'configure --help' and below)
 &gt; make
 &gt; make install
-</PRE>
-This should do the job. 
-<br>
-<br>
-The most important configure options are:
-<TABLE border=0>
-	<TR><TD> --with-default-path=DIR&nbsp;&nbsp;&nbsp;</TD><TD>use default path DIR/include for header files and DIR/lib for libraries ("../contrib" if unset)</TD></TR>
-	<TR><TD> --with-qt=QTDIR</TD><TD>QT is installed in QTDIR. </TD></TR>
-	<TR><TD> --with-qt-mt</TD><TD>use a threadsafe version of the QT lib (libqt-mt)/TD></TR>
-	<TR><TD> --with-compiler=CXX</TD><TD>use CXX as C++ compiler</TD></TR>
-	<TR><TD> --enable-optimization</TD><TD>optimize the library for speed. Omits debug info!</TD></TR>
-</TABLE>
-<br>
-If you encounter unsolvable problems during configure, a file called <b>config.diag.tar</b> is created.
-Please send this file together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html">email</a>.
+</pre>This should do the job.
+  <br>
+  <br>
+  The most important configure options are:
+
+  <table border="0">
+    <tr>
+      <td>--with-default-path=DIR&nbsp;&nbsp;&nbsp;</td>
+
+      <td>use default path DIR/include for header files and DIR/lib
+      for libraries ("../contrib" if unset)</td>
+    </tr>
 
 
-<h2>Testing your OpenMS installation</h2>
-After you have installed OpenMS, you can test your installation by executing the following command:
-<PRE>
+    <tr>
+      <td>--with-qt=QTDIR</td>
+
+      <td>QT is installed in QTDIR.</td>
+    </tr>
+
+
+    <tr>
+      <td>--with-qt-mt</td>
+
+      <td>use a threadsafe version of the QT lib
+      (libqt-mt)/TD&gt;</td>
+    </tr>
+
+
+    <tr>
+      <td>--with-compiler=CXX</td>
+
+      <td>use CXX as C++ compiler</td>
+    </tr>
+
+
+    <tr>
+      <td>--enable-optimization</td>
+
+      <td>optimize the library for speed. Omits debug info!</td>
+    </tr>
+  </table>
+
+  <br>
+  If you encounter unsolvable problems during configure, a file
+  called <b>config.diag.tar</b> is created. Please send this file
+  together with a description of the problem by <a href=
+  "http://open-ms.sourceforge.net/team.html">email</a>.
+
+  <h2>Testing your OpenMS installation</h2>
+  After you have installed OpenMS, you can test your installation
+  by executing the following command:
+
+  <pre>
 &gt; cd &lt;path_to_OpenMS&gt;/source/
 &gt; make test
-</PRE>
-<b>Note</b>: You have to add the location of the OpenMS library to the environment variable <b>LD_LIBRARY_PATH</b>.
-See the output of 'make install' for details.  Of course, the locations of the other required libraries must also be added to LD_LIBRARY_PATH.
-<BR>
-<BR>
-<b>Note</b>: To test the DB connectivity, copy the file '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt' to 'DB_credentials.txt' 
-and fill in your DB access details. As long as the 'DB_credentials.txt' file remains there, the DB will be tested with any subsequent call of 'make test'.
+</pre><b>Note</b>: You have to add the location of the OpenMS
+library to the environment variable <b>LD_LIBRARY_PATH</b>. See the
+output of 'make install' for details. Of course, the locations of
+the other required libraries must also be added to LD_LIBRARY_PATH.
+  <br>
+  <br>
+  <b>Note</b>: To test the DB connectivity, copy the file
+  '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
+  to 'DB_credentials.txt' and fill in your DB access details. As
+  long as the 'DB_credentials.txt' file remains there, the DB will
+  be tested with any subsequent call of 'make test'.
 
-<h2>Building the TOPP tools</h2>
-After you have installed OpenMS, you can build the TOPP tools with the following command:
-<PRE>
+  <h2>Building the TOPP tools</h2>
+  After you have installed OpenMS, you can build the TOPP tools
+  with the following command:
+
+  <pre>
 &gt; cd &lt;path_to_OpenMS&gt;/source/APPLICATIONS/TOPP/
 &gt; make
-</PRE>
-Now the TOPP tools are ready to use.
-<BR>
-<BR>
-<b>Note</b>: You have to add the OpenMS libaray location to your LD_LIBRARY_PATH. See the output of 'make install' for details.
+</pre>Now the TOPP tools are ready to use.
+  <br>
+  <br>
+  <b>Note</b>: You have to add the OpenMS libaray location to your
+  LD_LIBRARY_PATH. See the output of 'make install' for details. 
+  <!-- ........ Content ends here ........ -->
 
-<!-- ........ Content ends here ........ -->
-
-<BR>
-<BR>
-<BR>
-<BR>	
-
+  <br>
+  <br>
+  <br>
+  <br>
 </body>
 </html>
