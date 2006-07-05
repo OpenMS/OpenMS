@@ -139,12 +139,12 @@ namespace OpenMS
 	  source_file_ = source_file; 
 	}
 	
-	const std::vector<ContactPerson>& ExperimentalSettings::getContacts() const 
+	const vector<ContactPerson>& ExperimentalSettings::getContacts() const 
 	{
 	  return contacts_; 
 	}
 	
-	std::vector<ContactPerson>&  ExperimentalSettings::getContacts()
+	vector<ContactPerson>&  ExperimentalSettings::getContacts()
 	{
 	  return contacts_; 
 	}
@@ -241,6 +241,25 @@ namespace OpenMS
 		os << "-- EXPERIMENTALSETTINGS END --"<<std::endl;
 		return os;
 	}
-
+	
+ 	const vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications() const
+ 	{
+  	return protein_identifications_;	   		
+ 	}	
+ 		    	
+  vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications()
+  {
+  	return protein_identifications_;	
+  }
+  
+  void ExperimentalSettings::setProteinIdentifications(const vector<ProteinIdentification>& protein_identifications)
+  {
+  	protein_identifications_ = protein_identifications;
+  }
+  
+  void ExperimentalSettings::addProteinIdentifications(ProteinIdentification& protein_identification)
+  {
+  	protein_identifications_.push_back(protein_identification);
+  }
 }
 

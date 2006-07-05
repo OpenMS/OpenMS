@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
 #include <vector>
@@ -134,6 +135,15 @@ namespace OpenMS
     	/// sets the date the experiment was performed
       void setDate(const Date& date);   
 
+		 	/// returns a const reference to the protein identification vector
+		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;		 		    	
+		 	/// returns a mutable reference to the protein identification vector
+		  std::vector<ProteinIdentification>& getProteinIdentifications();		  
+		  /// sets the protein identification vector
+		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
+		  /// adds an identification to the identification vector
+		  void addProteinIdentifications(ProteinIdentification& protein_identification);
+
     protected:
 			Sample sample_;
 			SourceFile source_file_;
@@ -144,6 +154,8 @@ namespace OpenMS
 		  HPLC hplc_;
 		  ExperimentType type_;
 		  Date date_;
+			std::vector<ProteinIdentification> protein_identifications_;
+
   };
 
 	///Print the contents to a stream.

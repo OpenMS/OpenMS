@@ -644,31 +644,6 @@ namespace OpenMS
 				}
 			}
 			
-   	/// returns a const reference to the protein identification vector
-   	const std::vector<ProteinIdentification>& getProteinIdentifications() const
-   	{
-	  	return protein_identifications_;	   		
-   	}	
-   		    	
-   	/// returns a mutable reference to the protein identification vector
-	  std::vector<ProteinIdentification>& getProteinIdentifications()
-	  {
-	  	return protein_identifications_;	
-	  }
-	  
-	  /// sets the protein identification vector
-	  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
-	  {
-	  	protein_identifications_ = protein_identifications;
-	  }
-	  
-	  /// adds an identification to the identification vector
-	  void addProteinIdentifications(ProteinIdentification& protein_identification)
-	  {
-	  	protein_identifications_.push_back(protein_identification);
-	  }
-
-
 		protected:
 		
 			///PersistentObject interface
@@ -690,8 +665,6 @@ namespace OpenMS
 			unsigned int nr_dpoints_;
 			/// Length of each spectrum
 			std::vector<UnsignedInt> spectra_lengths_;
-			/// Protein identifications
-			std::vector<ProteinIdentification> protein_identifications_;
 			/// Name string
 			String name_;
 					
