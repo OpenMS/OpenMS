@@ -312,39 +312,49 @@ namespace OpenMS
 	{
 		stringstream ss;
 
-		//peak data (includes mass and charge)
-		fputs ("\n--",fp);
-		fputs (boundary_.c_str(),fp);
-		fputs ("\nContent-Disposition: form-data; name=\"FILE\"; filename=\"",fp);
-		fputs (filename.c_str(),fp);
-		fputs ("\"\n\n",fp);
-
-		fputs ("BEGIN IONS\n",fp);
-		//precursor data (includes mz and retention time)
-		ss.str("");
-		ss << mz_;
-		fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
-
-		//retention time
-		ss.str("");
-		ss << retention_time_;
-		fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
-				
-		
-		for (DPeakArrayNonPolymorphic<1>::iterator it = peaks_.begin() ; it != peaks_.end();++it)
+		if (mz_ == 0)
 		{
-			//mass
+			//retention time
 			ss.str("");
-			ss << it->getPosition()[0];
-			fputs (ss.str().c_str(),fp);
-			fputs (" ",fp);
-			//intensity
-			ss.str("");
-			ss << it->getIntensity();
-			fputs (ss.str().c_str(),fp);
-			fputs ("\n",fp);
+			ss << retention_time_;
+			cout << "No precursor m/z information for spectrum with rt: " 
+				<< ss.str() << " present" << endl;
 		}
-		fputs ("END IONS\n",fp);
+		else
+		{
+			//peak data (includes mass and charge)
+			fputs ("\n--",fp);
+			fputs (boundary_.c_str(),fp);
+			fputs ("\nContent-Disposition: form-data; name=\"FILE\"; filename=\"",fp);
+			fputs (filename.c_str(),fp);
+			fputs ("\"\n\n",fp);
+	
+			fputs ("BEGIN IONS\n",fp);
+			//precursor data (includes mz and retention time)
+			ss.str("");
+			ss << mz_;
+			fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
+	
+			//retention time
+			ss.str("");
+			ss << retention_time_;
+			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
+			
+			for (DPeakArrayNonPolymorphic<1>::iterator it = peaks_.begin() ; it != peaks_.end();++it)
+			{
+				//mass
+				ss.str("");
+				ss << it->getPosition()[0];
+				fputs (ss.str().c_str(),fp);
+				fputs (" ",fp);
+				//intensity
+				ss.str("");
+				ss << it->getIntensity();
+				fputs (ss.str().c_str(),fp);
+				fputs ("\n",fp);
+			}
+			fputs ("END IONS\n",fp);
+		}
 	}
 
 	void MascotInfile::writeMSExperiment_(FILE* fp, const std::string& filename)
@@ -372,37 +382,46 @@ namespace OpenMS
 			
 			if (experiment_[i].getMSLevel() == 2)
 			{
-
-				fputs ("\nBEGIN IONS\n",fp);
-		
-				//precursor data (includes mz and retention time)
-				ss.str("");
-				ss << precursor_position;
-				fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
-		
-				//retention time
-				ss.str("");
-				ss << experiment_[i].getRetentionTime();
-				fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
-				fputs("\n",fp);
-						
-				for (DPeakArrayNonPolymorphic<1>::iterator it = peaks.begin(); 
-						 it != peaks.end();
-						 ++it)
+				if (precursor_position == 0)
 				{
-					//mass
+					//retention time
 					ss.str("");
-					ss << it->getPosition()[0];
-					fputs (ss.str().c_str(),fp);
-					fputs (" ",fp);
-					//intensity
-					ss.str("");
-					ss << it->getIntensity();
-					fputs (ss.str().c_str(),fp);
-					fputs ("\n",fp);
+					ss << experiment_[i].getRetentionTime();
+					cout << "No precursor m/z information for spectrum with rt: " 
+						<< ss.str() << " present" << endl;
 				}
-				fputs ("END IONS\n",fp);
-				
+				else
+				{
+					fputs ("\nBEGIN IONS\n",fp);
+			
+					//precursor data (includes mz and retention time)
+					ss.str("");
+					ss << precursor_position;
+					fputs(String("PEPMASS=" + ss.str() + "\n").c_str(),fp);
+			
+					//retention time
+					ss.str("");
+					ss << experiment_[i].getRetentionTime();
+					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
+					fputs("\n",fp);
+							
+					for (DPeakArrayNonPolymorphic<1>::iterator it = peaks.begin(); 
+							 it != peaks.end();
+							 ++it)
+					{
+						//mass
+						ss.str("");
+						ss << it->getPosition()[0];
+						fputs (ss.str().c_str(),fp);
+						fputs (" ",fp);
+						//intensity
+						ss.str("");
+						ss << it->getIntensity();
+						fputs (ss.str().c_str(),fp);
+						fputs ("\n",fp);
+					}
+					fputs ("END IONS\n",fp);
+				}
 			}
 		}
 	}
