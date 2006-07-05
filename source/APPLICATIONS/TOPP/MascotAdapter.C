@@ -176,7 +176,7 @@ using namespace std;
 		</ul>
 	</ul>		
 	
-	@todo Fix --help and --help-opt output (Nico)
+	@todo Fix --help-opt output (Nico)
 	
 	@ingroup TOPP
 */
@@ -300,8 +300,20 @@ class TOPPMascotAdapter
 			string mass_type = "Monoisotopic";
 			int status = 0;
 			bool mascot_in = false;
-			bool mascot_out = false;	
-					
+			bool mascot_out = false;
+			DateTime date_time;
+			String date_time_string;
+			String time_string;
+			
+			date_time.now();
+			date_time.get(date_time_string);
+			date_time_string.split(' ', parts);
+			
+			mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
+			mascot_outfile_name	= parts[0] + "_" + parts[1] + "_" + mascot_outfile_name;
+			mascot_output_name = parts[0] + "_" + parts[1] + "_" + mascot_output_name;
+			parts.clear();
+				
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -581,8 +593,7 @@ class TOPPMascotAdapter
 						+ "./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
 						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
-						"show_header=1 > " + 
-						mascotXML_file_name + ";";
+						"show_header=1 > " + mascot_data_dir + "/" + mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
 					{
@@ -590,7 +601,8 @@ class TOPPMascotAdapter
 						<< " in the logfile: \"" << logfile << "\")" << endl;
 						writeLog_("Mascot server problem. Aborting!");
 						call = "rm " + mascot_data_dir + "/" 
-										+ mascot_infile_name + ";";
+										+ mascot_infile_name + "; rm " + mascot_data_dir + "/" 
+										+ mascotXML_file_name + ";";
 						system(call.c_str());
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
@@ -635,7 +647,7 @@ class TOPPMascotAdapter
 					}
 					else
 					{
-						mascotXML_file.load(mascotXML_file_name,
+						mascotXML_file.load(mascot_data_dir + "/" + mascotXML_file_name,
 															&protein_identification,
 															&identifications,
 															&precursor_retention_times,
@@ -663,7 +675,7 @@ class TOPPMascotAdapter
 				{
 					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
 						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						+ "rm " + mascotXML_file_name + ";";
+						+ "rm " + mascot_data_dir + "/" + mascotXML_file_name + ";";
 					system(call.c_str());
 				}
 			
