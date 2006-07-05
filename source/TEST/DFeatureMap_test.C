@@ -57,6 +57,17 @@ CHECK(~DFeatureMap<2>())
 	delete pl_ptr;
 RESULT
 
+CHECK(const String& getName() const)
+	DFeatureMap<2> tmp;
+	TEST_EQUAL(tmp.getName(), "")
+RESULT
+
+CHECK(void setName(const String& name))
+	DFeatureMap<2> tmp;
+	tmp.setName("TEST");
+	TEST_EQUAL(tmp.getName(), "TEST")
+RESULT
+
 CHECK(DFeatureMap<2>(const DFeatureMap& p))
 	DFeatureMap<2> map1;
 	DFeature<2> feature;
@@ -69,7 +80,7 @@ CHECK(DFeatureMap<2>(const DFeatureMap& p))
 	TEST_EQUAL(map1.size(), 1)
 	feature.getIntensity() = 3.0;
 	map1.push_back(feature);
-		
+	map1.setName("test");
 	DFeatureMap<2> map2(map1);
 	TEST_EQUAL(map2.size(), 2)
 	
@@ -82,6 +93,7 @@ CHECK(DFeatureMap<2>(const DFeatureMap& p))
 	TEST_EQUAL(feat2.getIntensity(),1.0);
 	TEST_EQUAL(feat2.getPosition()[0],1.0);
 	TEST_EQUAL(feat2.getPosition()[1],2.0);
+	TEST_EQUAL(map2.getName(),"test");
 	
 RESULT
 
@@ -131,16 +143,20 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
 	f.getPosition()[0] = 1.0;
 	edit.push_back(f);
 	edit.getSample().setName("TEST");
+	edit.setName("testtest");
 	edit = empty;
+	TEST_EQUAL(edit.getName(),"")
 	TEST_REAL_EQUAL(edit.size(),0)
 	TEST_EQUAL(edit.getSample().getName(),empty.getSample().getName())	
 	
 	// normal assignment
 	edit.push_back(f);
 	edit.getSample().setName("TEST2");
+	edit.setName("testtest");
 	empty = edit;
 	TEST_REAL_EQUAL(edit[0].getPosition()[0],empty[0].getPosition()[0])
 	TEST_EQUAL(edit.getSample().getName(),empty.getSample().getName())
+	TEST_EQUAL(edit.getName(),empty.getName())
 RESULT
 
 CHECK(bool operator == (const DFeatureMap& rhs) const)
@@ -149,6 +165,10 @@ CHECK(bool operator == (const DFeatureMap& rhs) const)
 	TEST_EQUAL(empty==edit, true);
 	
 	edit.getSample().setName("TEST");
+	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.setName("TEST");
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;

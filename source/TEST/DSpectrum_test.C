@@ -74,6 +74,69 @@ CHECK([EXTRA] Instantiation w/ DPeakList)
 	TEST_EQUAL(ds.getContainer().size(), 0)
 RESULT
 
+CHECK(DSpectrum(const DSpectrum<D>& rhs))
+	DPeak<1> p;
+	p.setIntensity(0.0);
+	p.getPosition()[0] = 500.0;
+	DPeak<1> p2;
+	p2.setIntensity(100.0);
+	p2.getPosition()[0] = 1300.0;
+
+	DSpectrum<1> s;
+	s.setMetaValue("label",5.0);
+	s.getContainer().push_back(p);
+	s.getContainer().push_back(p2);
+	s.getPrecursorPeak().setIntensity(200.0);
+	s.setMSLevel(17);
+	s.setRetentionTime(7.0,5.0,10.0);
+	s.updateRanges();
+	DSpectrum<1> s2(s);
+
+	TEST_REAL_EQUAL(5.0 , (float)s2.getMetaValue("label"))
+	TEST_EQUAL(2 , s2.getContainer().size())
+	TEST_REAL_EQUAL(200.0 , s2.getPrecursorPeak().getIntensity())
+	TEST_REAL_EQUAL(500.0 , s2.getMin()[0])
+	TEST_REAL_EQUAL(1300.0 , s2.getMax()[0])
+	TEST_REAL_EQUAL(0.0 , s2.getMinInt())
+	TEST_REAL_EQUAL(100.0 , s2.getMaxInt())
+	TEST_EQUAL(17 , s2.getMSLevel())
+	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
+	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
+	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+RESULT
+
+CHECK(DSpectrum& operator = (const DSpectrum& rhs))
+	DPeak<1> p;
+	p.setIntensity(0.0);
+	p.getPosition()[0] = 500.0;
+	DPeak<1> p2;
+	p2.setIntensity(100.0);
+	p2.getPosition()[0] = 1300.0;
+
+	DSpectrum<1> s;
+	s.setMetaValue("label",5.0);
+	s.getContainer().push_back(p);
+	s.getContainer().push_back(p2);
+	s.getPrecursorPeak().setIntensity(200.0);
+	s.setMSLevel(17);
+	s.setRetentionTime(7.0,5.0,10.0);
+	s.updateRanges();
+	DSpectrum<1> s2;
+	s2 = s;
+
+	TEST_REAL_EQUAL(5.0 , (float)s2.getMetaValue("label"))
+	TEST_EQUAL(2 , s2.getContainer().size())
+	TEST_REAL_EQUAL(200.0 , s2.getPrecursorPeak().getIntensity())
+	TEST_REAL_EQUAL(500.0 , s2.getMin()[0])
+	TEST_REAL_EQUAL(1300.0 , s2.getMax()[0])
+	TEST_REAL_EQUAL(0.0 , s2.getMinInt())
+	TEST_REAL_EQUAL(100.0 , s2.getMaxInt())
+	TEST_EQUAL(17 , s2.getMSLevel())
+	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
+	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
+	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+RESULT
+
 CHECK(bool operator == (const DSpectrum& rhs) const)
 	DSpectrum<1> empty,edit;
 	
@@ -88,6 +151,10 @@ CHECK(bool operator == (const DSpectrum& rhs) const)
 	
 	edit = empty;
 	edit.getContainer().push_back(DSpectrum<1>::ContainerType::value_type());
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.getPrecursorPeak().setIntensity(5.5);
 	TEST_EQUAL(empty==edit, false);
 RESULT
 

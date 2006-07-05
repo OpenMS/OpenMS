@@ -105,6 +105,7 @@ namespace OpenMS
 				max_(0), 
 				int_min_(0), 
 				int_max_(0),
+				precursor_peak_(),
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				retention_start_(0),
 				retention_stop_(0),
@@ -120,6 +121,7 @@ namespace OpenMS
 				max_(rhs.max_),
 				int_min_(rhs.int_min_),
 				int_max_(rhs.int_max_),
+				precursor_peak_(rhs.precursor_peak_),
 				retention_time_(rhs.retention_time_),
 				retention_start_(rhs.retention_start_),
 				retention_stop_(rhs.retention_stop_),
@@ -144,6 +146,7 @@ namespace OpenMS
 				max_ = rhs.max_;
 				int_min_ = rhs.int_min_;
 				int_max_ = rhs.int_max_;
+				precursor_peak_ = rhs.precursor_peak_;
 				retention_time_ = rhs.retention_time_;
 				retention_start_ = rhs.retention_start_;
 				retention_stop_ = rhs.retention_stop_;

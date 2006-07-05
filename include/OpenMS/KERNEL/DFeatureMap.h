@@ -84,7 +84,8 @@ namespace OpenMS
 		/// Copy constructor
 		DFeatureMap(const DFeatureMap& map) :
 			Base(map),
-			ExperimentalSettings(map)
+			ExperimentalSettings(map),
+			name_(map.name_)
 		{}
 		/// Destructor
 		virtual ~DFeatureMap() {}
@@ -97,7 +98,8 @@ namespace OpenMS
 				
 			Base::operator=(rhs);
 			ExperimentalSettings::operator=(rhs);
-				
+			name_=rhs.name_;
+			
 			return *this;
 		}
 
@@ -106,7 +108,8 @@ namespace OpenMS
 		{
 			return
 				std::operator==(*this, rhs) && 			
-				ExperimentalSettings::operator==(rhs)
+				ExperimentalSettings::operator==(rhs) &&
+				name_ == rhs.name_;
 				;				
 		}
 			
@@ -153,6 +156,23 @@ namespace OpenMS
 		}
 		/// Serialization
 		friend class boost::serialization::access;
+	
+		/// Returns the name
+		const String& getName() const
+		{
+			return name_;
+		}
+
+		/// Sets the name
+		void setName(const String& name)
+		{
+			name_ = name;
+		}
+	
+		protected:
+			
+			/// Name or Identifier of the feature map
+			String name_;
 	};
 	
 	/// Print the contents to a stream.
