@@ -674,7 +674,7 @@ class TOPPMascotAdapter
 				{
 					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
 						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						+ "rm " + mascot_data_dir + "/" + mascotXML_file_name + ";";
+						+ "rm " + mascotXML_file_name + ";";
 					system(call.c_str());
 				}
 			
