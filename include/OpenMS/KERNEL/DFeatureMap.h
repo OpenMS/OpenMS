@@ -66,25 +66,13 @@ namespace OpenMS
 		typedef TraitsT TraitsType;
 		typedef FeatureT FeatureType;
 		typedef std::vector<FeatureType> Base;
-		typedef std::vector<FeatureType> ContainerType;
-		typedef typename ContainerType::iterator Iterator;
-		typedef typename ContainerType::const_iterator ConstIterator;
-		typedef typename ContainerType::reverse_iterator ReverseIterator;
-		typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
-		typedef FeatureType& Reference;typedef const FeatureType& ConstReference;
+		typedef typename Base::iterator Iterator;
+		typedef typename Base::const_iterator ConstIterator;
+		typedef typename Base::reverse_iterator ReverseIterator;
+		typedef typename Base::const_reverse_iterator ConstReverseIterator;
+		typedef FeatureType& Reference;
+		typedef const FeatureType& ConstReference;
 
-		// STL compatibility
-		typedef FeatureType value_type;
-		typedef FeatureType* pointer;
-		typedef const FeatureType* const_pointer;
-		typedef Reference reference;
-		typedef ConstReference const_reference;
-		typedef typename ContainerType::size_type size_type;
-		typedef typename ContainerType::difference_type difference_type;
-		typedef Iterator iterator;
-		typedef ConstIterator const_iterator;
-		typedef ReverseIterator reverse_iterator;
-		typedef ConstReverseIterator const_reverse_iterator;
 		//@}
 	
 		/**	
@@ -156,10 +144,6 @@ namespace OpenMS
 			std::sort(beg, ed, typename FeatureType::OverallQualityLess() ); 
 		}
 
-		/**@name Serialization
-		 */	
-		//@{
-	 public:
 		/// Serialization interface
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int /* version */ )
@@ -167,11 +151,8 @@ namespace OpenMS
 			ar & boost::serialization::make_nvp("vector",boost::serialization::base_object<std::vector<FeatureT> >(*this));
 			// TODO: serialization of base object ExperimentalSettings
 		}
-		//@}
-
 		/// Serialization
 		friend class boost::serialization::access;
-		
 	};
 	
 	/// Print the contents to a stream.

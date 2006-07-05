@@ -559,53 +559,30 @@ namespace OpenMS
 			{
 				return ms_levels_;
 			}
-						
-			/// Access to peak with index @p index
-			DPeak<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow) 
-			{ 
-				if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
-				const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-				const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
-				
-				UnsignedInt spectra_nr = 0; 
-				UnsignedInt peak_nr    = index;
-				while ( spectra_nr < spectra_lengths_.size() && peak_nr >= spectra_lengths_[spectra_nr] )
-				{
-					peak_nr -= spectra_lengths_[spectra_nr++];	
-				}	
-						
-				DPeak<2> tmp;
-				tmp.getPosition()[RT] =  (*this)[spectra_nr].getRetentionTime();
-				tmp.getPosition()[MZ] = (*this)[spectra_nr].getContainer()[peak_nr].getPosition()[0];
-				tmp.setIntensity((*this)[spectra_nr].getContainer()[peak_nr].getIntensity());
-				
-				return tmp;
-			}
-			
-			/// Access to peak with index @p index
-			const DPeak<2> getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow) 
-			{ 
-				if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
-				const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-				const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
-				
-				UnsignedInt spectra_nr = 0; 
-				UnsignedInt peak_nr    = index;
-				while ( spectra_nr < spectra_lengths_.size() && peak_nr >= spectra_lengths_[spectra_nr] )
-				{
-					peak_nr -= spectra_lengths_[spectra_nr++];	
-				}	
-						
-				DPeak<2> tmp;
-				tmp.getPosition()[RT] =  (*this)[spectra_nr].getRetentionTime();
-				tmp.getPosition()[MZ] = (*this)[spectra_nr].getContainer()[peak_nr].getPosition()[0];
-				tmp.setIntensity((*this)[spectra_nr].getContainer()[peak_nr].getIntensity());
-				
-				return tmp;
-			}
 			//@}
+									
+			/// Access to peak with index @p index as DPeak<2>
+			DPeak<2> getPeak(UnsignedInt index) throw (Exception::IndexOverflow) 
+			{ 
+				if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				
+				const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
+				const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+				
+				UnsignedInt spectra_nr = 0; 
+				UnsignedInt peak_nr    = index;
+				while ( spectra_nr < spectra_lengths_.size() && peak_nr >= spectra_lengths_[spectra_nr] )
+				{
+					peak_nr -= spectra_lengths_[spectra_nr++];	
+				}	
+						
+				DPeak<2> tmp;
+				tmp.getPosition()[RT] =  (*this)[spectra_nr].getRetentionTime();
+				tmp.getPosition()[MZ] = (*this)[spectra_nr].getContainer()[peak_nr].getPosition()[0];
+				tmp.setIntensity((*this)[spectra_nr].getContainer()[peak_nr].getIntensity());
+				
+				return tmp;
+			}
 
 			/// PersistentObject interface
 			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
@@ -713,8 +690,6 @@ namespace OpenMS
 			unsigned int nr_dpoints_;
 			/// Length of each spectrum
 			std::vector<UnsignedInt> spectra_lengths_;
-			/// Retention time of last retrieved peak
-			CoordinateType last_rt_;
 			/// Protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
 			/// Name string
