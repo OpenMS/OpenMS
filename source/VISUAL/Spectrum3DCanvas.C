@@ -68,6 +68,14 @@ void Spectrum3DCanvas::showContextMenu(QPoint p)
 
 SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 {
+	if (type_.back()==DT_FEATURE)
+	{
+		datasets_.resize(datasets_.size()-1);
+		features_.resize(features_.size()-1);
+		type_.resize(type_.size()-1);
+		return -1;
+	}
+	
 	layer_visible_.push_back(true);
 	current_data_ = getDataSetCount()-1;
 	currentDataSet().sortSpectra(true);
@@ -139,6 +147,8 @@ void Spectrum3DCanvas::removeDataSet(int data_set)
 		return;
 	}
 	datasets_.erase(datasets_.begin()+data_set);
+	features_.erase(features_.begin()+data_set);
+	type_.erase(type_.begin()+data_set);
 	layer_visible_.erase(layer_visible_.begin()+data_set);
 	disp_ints_.erase(disp_ints_.begin()+data_set);
 	recalculateRanges_(1,0,2);

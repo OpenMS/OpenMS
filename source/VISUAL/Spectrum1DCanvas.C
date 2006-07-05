@@ -518,6 +518,8 @@ namespace OpenMS
 	
 		//remove settings
 		datasets_.erase(datasets_.begin()+data_set);
+		features_.erase(features_.begin()+data_set);
+		type_.erase(type_.begin()+data_set);
 		disp_ints_.erase(disp_ints_.begin()+data_set);	
 		layer_visible_.erase(layer_visible_.begin()+data_set);
 		draw_modes_.erase(draw_modes_.begin()+data_set);

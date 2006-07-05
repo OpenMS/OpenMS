@@ -1300,10 +1300,7 @@ namespace OpenMS
 	
 	SignedInt Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
 	{
-		//cout << "2DCanvas::finishAdding()" << endl;
-
 		current_data_ = getDataSetCount()-1;
-		currentDataSet().updateRanges(1);
 
 		//set visibility to true
 		layer_visible_.push_back(true);
@@ -1311,87 +1308,96 @@ namespace OpenMS
 		show_surface_.push_back(false);
 		show_dots_.push_back(true);
 		
+		//add quadtree
 		trees_.push_back(0);
-		
-		
-		//if there are spectra with MS-level 1
-		if (std::find(currentDataSet().getMSLevels().begin(), currentDataSet().getMSLevels().end(),UnsignedInt(1))!=currentDataSet().getMSLevels().end())
+
+		if (type_.back()==DT_FEATURE) //Feature data
 		{
-			recalculate_ = true;
-			emit sendStatusMessage("constructing quad tree",0);
 			
-			//intensity range
-			disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
+		}
+		else //peak data
+		{
+			currentDataSet().updateRanges(1);
 			
-			//overall values
-			updateRanges_(current_data_,0,1,2);
-			
-			//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
-			//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
-			
-			AreaType tmp_area;
-			tmp_area.assign(overall_data_range_);
-			
-			if (tmp_area != visible_area_)
-			{		
-				bool insertion_error = false;
+			//if there are spectra with MS-level 1
+			if (std::find(currentDataSet().getMSLevels().begin(), currentDataSet().getMSLevels().end(),UnsignedInt(1))!=currentDataSet().getMSLevels().end())
+			{
+				recalculate_ = true;
+				emit sendStatusMessage("constructing quad tree",0);
 				
-				for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
-				{
-					QuadTreeType_* new_tree = new QuadTreeType_(tmp_area);
-	
-					for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
+				//intensity range
+				disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
+				
+				//overall values
+				updateRanges_(current_data_,0,1,2);
+				
+				//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
+				//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
+				
+				AreaType tmp_area;
+				tmp_area.assign(overall_data_range_);
+				
+				if (tmp_area != visible_area_)
+				{		
+					bool insertion_error = false;
+					
+					for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 					{
-						if (exp_it->getMSLevel()!=1)
+						QuadTreeType_* new_tree = new QuadTreeType_(tmp_area);
+		
+						for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
 						{
-							continue;
-						}
-						//cout << endl << endl << "new Spectrum Peaks: " << exp_it->size() << endl;
-						for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
-						{
-							//cout << endl << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
-							if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
+							if (exp_it->getMSLevel()!=1)
 							{
-								try
+								continue;
+							}
+							//cout << endl << endl << "new Spectrum Peaks: " << exp_it->size() << endl;
+							for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
+							{
+								//cout << endl << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
+								if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
 								{
-									new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));      
-								}
-								catch (Exception::IllegalTreeOperation& e)
-								{
-									// removes problems with identical peak positions
-									insertion_error = true;
+									try
+									{
+										new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));      
+									}
+									catch (Exception::IllegalTreeOperation& e)
+									{
+										// removes problems with identical peak positions
+										insertion_error = true;
+									}
 								}
 							}
 						}
+						
+						delete trees_[data_set];
+						trees_[data_set] = new_tree;
 					}
-					
-					delete trees_[data_set];
-					trees_[data_set] = new_tree;
+					if (insertion_error)
+					{
+						cout << "Warning: Multiple identical peak positions in one data set!" << endl;
+					}
+					//cout << "Peaks added!" << endl;
 				}
-				if (insertion_error)
+				else
 				{
-					cout << "Warning: Multiple identical peak positions in one data set!" << endl;
+					intensityDistributionChange_();
 				}
-				//cout << "Peaks added!" << endl;
+				
+				intensityModeChange_();
+				emit sendStatusMessage("",0);
 			}
 			else
 			{
-				intensityDistributionChange_();
+				// create empty tree for empty data sets
+				trees_[trees_.size()-1] = new QuadTreeType_(AreaType(0, 0, 0, 0));
 			}
+		  setCursor(Qt::ArrowCursor);
 			
-			intensityModeChange_();
-			emit sendStatusMessage("",0);
-		}
-		else
-		{
-			// create empty tree for empty data sets
-			trees_[trees_.size()-1] = new QuadTreeType_(AreaType(0, 0, 0, 0));
-		}
-	  setCursor(Qt::ArrowCursor);
-		
-		emit layerActivated(this);
-
-		resetZoom();
+			emit layerActivated(this);
+	
+			resetZoom();
+		} //peak data
 		
 		return current_data_;
 	}
@@ -1405,6 +1411,8 @@ namespace OpenMS
 	
 		//remove the data
 		datasets_.erase(datasets_.begin()+data_set);
+		features_.erase(features_.begin()+data_set);
+		type_.erase(type_.begin()+data_set);
 		delete trees_[data_set];
 		trees_.erase(trees_.begin()+data_set);
 	

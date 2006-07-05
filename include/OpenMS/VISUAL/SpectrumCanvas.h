@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 //STL
 #include <stack>
@@ -78,6 +79,8 @@ namespace OpenMS
 		
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
+		/// Main data type (features)
+		typedef DFeatureMap<2> FeatureMapType;
 		/// Spectrum type
 		typedef ExperimentType::SpectrumType SpectrumType;
 		/// Spectrum iterator type (iterates over peaks)
@@ -107,6 +110,13 @@ namespace OpenMS
 			IM_LOG,			    ///< Log mode: f(x)=ln(x)
 			IM_PERCENTAGE,  ///< Shows intensities normalized by dataset maximum: f(x)=x/max(x)*100
 			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
+		};
+
+		///Dataset types
+		enum DataType
+		{
+			DT_PEAK,		    ///< Peak/Raw data
+			DT_FEATURE	    ///< Feature data
 		};
 		
 		//@}
@@ -322,6 +332,13 @@ namespace OpenMS
 			@return the index of the new dataset. -1 if no new dataset was created.
 		*/
 		SignedInt addDataSet(const ExperimentType&);
+
+		/**
+			@brief Add another feature dataset by copy
+		
+			@return the index of the new dataset. -1 if no new dataset was created.
+		*/
+		SignedInt addDataSet(const FeatureMapType&);
 		
 		//@}
 		
@@ -683,6 +700,11 @@ namespace OpenMS
 		/// Array of datasets
 		std::vector<ExperimentType > datasets_;
 
+		/// Array of datasets
+		std::vector<FeatureMapType > features_;
+		
+		std::vector<DataType> type_;
+		
 		/// start position of mouse actions
 		QPoint last_mouse_pos_;
 		

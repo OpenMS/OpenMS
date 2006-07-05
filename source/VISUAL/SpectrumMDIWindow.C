@@ -255,6 +255,11 @@ namespace OpenMS
 		
 		SpectrumCanvas::ExperimentType* exp;
 		MSExperiment<>* exp2; //temporary data
+
+		if (activeWindow_()==0)
+		{
+			as_new_window = true;
+		}
 		
 		//open in new window
 		if (as_new_window)
@@ -445,6 +450,11 @@ namespace OpenMS
 		//windowpointer
 		SpectrumWindow* w=0;
 		
+		if (activeWindow_()==0)
+		{
+			as_new_window = true;
+		}
+		
 		if (as_new_window)
 		{
 			if (filename_lower.hasSuffix(".dta")) //1D
@@ -492,7 +502,7 @@ namespace OpenMS
 					return;
 				}
 				w = active3DWindow_();
-			}	
+			}
 		}
 		
 		//try to read the data from file (feature)

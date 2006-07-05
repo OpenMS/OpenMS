@@ -103,16 +103,16 @@ namespace OpenMS
 			template <class StringListIterator>
 			void loadFiles(const StringListIterator& begin, const StringListIterator& end)
 			{
+				//use mower?
+				OpenDialog::Mower mow = OpenDialog::NO_MOWER;
+				if ( getPrefAsString("Preferences:MapIntensityCutoff")=="Noise Estimator")
+				{
+					mow = OpenDialog::NOISE_ESTIMATOR;
+				}
+
 				for (StringListIterator it=begin; it!=end; ++it)
 				{
-					if (getPrefAsString("Preferences:DefaultMapView")=="2D")
-					{
-						addSpectrum(*it,true,true,true);
-					}
-					else
-					{
-						addSpectrum(*it,true,false,true);
-					}
+					addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
 				}
 				maximizeActiveSpectrum();
 				tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));

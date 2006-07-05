@@ -75,6 +75,7 @@ namespace OpenMS
 	  
 	  //reserve enough space for 20 datasets
 	  datasets_.reserve(20);
+	  features_.reserve(20);
 	  
 		// we need to initialize the painting buffer in the
 		// constructor for maximum performance
@@ -328,7 +329,9 @@ namespace OpenMS
 
 	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyDataSet()
 	{
-		datasets_.resize(getDataSetCount()+1);
+		datasets_.push_back(ExperimentType());
+		features_.push_back(FeatureMapType());
+		type_.push_back(DT_PEAK);
 		return datasets_[getDataSetCount()-1];
 	}
 
@@ -371,10 +374,19 @@ namespace OpenMS
 	SignedInt SpectrumCanvas::addDataSet(const ExperimentType& in)
 	{	
 		datasets_.push_back(in);
+		features_.push_back(FeatureMapType());
+		type_.push_back(DT_PEAK);
 		return finishAdding();
 	}
 
-
+	SignedInt SpectrumCanvas::addDataSet(const FeatureMapType& in)
+	{
+		datasets_.push_back(ExperimentType());	
+		features_.push_back(in);
+		type_.push_back(DT_FEATURE);
+		return finishAdding();
+	}
+	
 	void SpectrumCanvas::changeVisibility(int i , bool b)
 	{
 		if (layer_visible_[i]!=b)
