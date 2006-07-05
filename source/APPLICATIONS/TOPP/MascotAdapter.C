@@ -593,7 +593,7 @@ class TOPPMascotAdapter
 						+ "./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
 						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
-						"show_header=1 > " + mascot_data_dir + "/" + mascotXML_file_name + ";";
+						"show_header=1 > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
 					{
@@ -601,8 +601,7 @@ class TOPPMascotAdapter
 						<< " in the logfile: \"" << logfile << "\")" << endl;
 						writeLog_("Mascot server problem. Aborting!");
 						call = "rm " + mascot_data_dir + "/" 
-										+ mascot_infile_name + "; rm " + mascot_data_dir + "/" 
-										+ mascotXML_file_name + ";";
+										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";";
 						system(call.c_str());
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
@@ -647,7 +646,7 @@ class TOPPMascotAdapter
 					}
 					else
 					{
-						mascotXML_file.load(mascot_data_dir + "/" + mascotXML_file_name,
+						mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
 															&precursor_retention_times,
