@@ -99,7 +99,6 @@ namespace OpenMS
 		
 		return tmp;
 	}
-	
 	Spectrum3DCanvas * Spectrum3DWidget::canvas() const
 	{
 	  return static_cast<Spectrum3DCanvas*>(canvas_);
@@ -107,7 +106,9 @@ namespace OpenMS
 	
 	QImage Spectrum3DWidget::getImage(UnsignedInt width, UnsignedInt height)
 	{	
-		return canvas()->openglwidget()->renderPixmap(width,height).convertToImage();
+	
+		//return canvas()->openglwidget()->renderPixmap(width,height).convertToImage();
+		return canvas()->openglwidget()->grabFrameBuffer(true);
 	}
 }//namespace
 
