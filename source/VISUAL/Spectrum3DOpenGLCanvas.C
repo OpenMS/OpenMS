@@ -668,7 +668,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 		{
 			glShadeModel(GL_FLAT); 
 		}
-	recalculateDotGradient_();		 
+ 	//recalculateDotGradient_();		 
 	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
 	{
 		if(canvas_3d_.layer_visible_[i]==true)
@@ -723,7 +723,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		{
 			glShadeModel(GL_FLAT); 
 		}
-	recalculateDotGradient_();		 
+	//recalculateDotGradient_();		 
 	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
 	{
 		if(canvas_3d_.isDataSetVisible(i))
@@ -817,7 +817,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStickLog()
 	{
 		glShadeModel(GL_FLAT); 
 	}
-	recalculateDotGradient_();
+	//recalculateDotGradient_();
 	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
 		{
 			if(canvas_3d_.isDataSetVisible(i))

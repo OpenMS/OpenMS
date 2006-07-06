@@ -115,7 +115,8 @@ namespace OpenMS
     virtual void actionModeChange_();
 	  // Docu in base class
     virtual void setMainPreferences(const Param& prefs);
-        
+		// Docu in base class
+		virtual void intensityModeChange_();
     ///preferences
     SignedInt getDotMode();
     void setDotGradient(const std::string& gradient);
