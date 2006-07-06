@@ -53,7 +53,8 @@ EXECUTABLES_DATASTRUCTURES = \
 	SparseVector_test\
 	BinnedSparseVector_test\
 	DateTime_test\
-	QuadTree_test
+	QuadTree_test\
+	RangeManager_test
 
 EXECUTABLES_METADATA = \
 	MetaInfoRegistry_test\
@@ -71,6 +72,7 @@ EXECUTABLES_METADATA = \
 	Tagging_test\
 	Sample_test\
 	Acquisition_test\
+	Identification_test\
 	AcquisitionInfo_test\
 	Precursor_test\
 	ContactPerson_test\

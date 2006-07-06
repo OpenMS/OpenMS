@@ -45,7 +45,8 @@ CPP_SOURCES=\
 	SparseVector.C\
 	BinnedSparseVector.C\
 	DateTime.C\
-	QuadTree.C
+	QuadTree.C\
+	RangeManager.C
 
 include ../common.mak
 -include .Dependencies

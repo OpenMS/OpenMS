@@ -33,6 +33,7 @@
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
+#include <OpenMS/DATASTRUCTURES/RangeManager.h>
 
 #ifdef GSL_DEF
 #include <gsl/gsl_randist.h>
@@ -65,7 +66,8 @@ namespace OpenMS
 	*/
 	template <Size D, typename ContainerT = DPeakArray<D> >
 	class DSpectrum
-		: public MetaInfoInterface
+		: public MetaInfoInterface,
+			public RangeManager<D, typename ContainerT::PeakType::TraitsType>
 	{
 		public:
 
@@ -74,6 +76,7 @@ namespace OpenMS
 			typedef ContainerT ContainerType;
 			typedef typename ContainerType::PeakType PeakType;
 			typedef DPickedPeak<D> PrecursorPeakType;
+			typedef RangeManager<D, typename ContainerT::PeakType::TraitsType> RangeManagerType;
 			//@}
 			
 			/**	@name	Type definitions for container interface*/
@@ -100,11 +103,8 @@ namespace OpenMS
 			/// Default constructor
 			DSpectrum()
 				:	MetaInfoInterface(),
+				RangeManagerType(),
 				container_(),
-				min_(0), 
-				max_(0), 
-				int_min_(0), 
-				int_max_(0),
 				precursor_peak_(),
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				retention_start_(0),
@@ -115,12 +115,9 @@ namespace OpenMS
 	
 			/// Copy constructor
 			DSpectrum(const DSpectrum<D>& rhs)
-				: MetaInfoInterface(rhs), 
+				: MetaInfoInterface(rhs),
+				RangeManagerType(rhs),
 				container_(rhs.container_),
-				min_(rhs.min_),
-				max_(rhs.max_),
-				int_min_(rhs.int_min_),
-				int_max_(rhs.int_max_),
 				precursor_peak_(rhs.precursor_peak_),
 				retention_time_(rhs.retention_time_),
 				retention_start_(rhs.retention_start_),
@@ -141,11 +138,8 @@ namespace OpenMS
 				if (this==&rhs) return *this;
 				
 				MetaInfoInterface::operator=(rhs);
+				RangeManagerType::operator=(rhs);
 				container_ = rhs.container_;
-				min_ = rhs.min_;
-				max_ = rhs.max_;
-				int_min_ = rhs.int_min_;
-				int_max_ = rhs.int_max_;
 				precursor_peak_ = rhs.precursor_peak_;
 				retention_time_ = rhs.retention_time_;
 				retention_start_ = rhs.retention_start_;
@@ -160,6 +154,7 @@ namespace OpenMS
 			{
 				return
 					MetaInfoInterface::operator==(rhs) &&
+					RangeManagerType::operator==(rhs) &&
 					container_ == rhs.container_ &&
 					precursor_peak_ == rhs.precursor_peak_ &&
 					retention_time_ == rhs.retention_time_ &&
@@ -376,81 +371,13 @@ namespace OpenMS
 			}
 			
 			//@}	
-	
-
-			/**	
-				@name Range methods
 			
-				@note The range values are not updated automatically. Call updateRanges() to update the values!
-			*/
-			//@{
-	
-			/// Returns the minimum position
-			const typename PeakType::PositionType& getMin() const	
-			{ 
-				return min_; 
-			}
-			/// Returns the maximum position
-		  const typename PeakType::PositionType& getMax() const 
-		  { 
-		  	return max_; 
-		  }
-	
-			/// Returns the minimum intensity
-			const typename PeakType::IntensityType getMinInt() const	
-			{ 
-				return int_min_; 
-			}
-			/// Returns the maximum intensity
-		  const typename PeakType::IntensityType getMaxInt() const 
-		  { 
-		  	return int_max_; 
-		  }
-			
-			/**
-				@brief Updates minimum and maximum position/intensity.
-				
-				Use this method if you want to update the min/max values after you changed the data in the Container.
-			*/
-			void updateRanges()
+			// Docu in base class
+			virtual void updateRanges()
 			{
-				//set position boundary
-				min_ = PeakType::PositionType::max;
-				max_ = PeakType::PositionType::min;
-				
-				//set intensity boundary
-				int_min_ = container_.begin()->getIntensity();	
-				int_max_ = container_.begin()->getIntensity();
-				
-				typename PeakType::PositionType::ValueType tmp;
-				typename PeakType::IntensityType tmp2;
-				for (ConstIterator it = container_.begin(); it != container_.end(); ++it)
-				{
-					for (Position i = 0; i < D; ++i)
-					{
-						tmp = it->getPosition()[i];
-						if (tmp < min_[i])
-						{
-							min_[i] = tmp;
-						}
-						if (tmp > max_[i])
-						{
-							max_[i] = tmp;
-						}
-					}
-					tmp2 = it->getIntensity();
-					if (tmp2 < int_min_)
-					{
-						int_min_ = tmp2;
-					}
-					else if (tmp2 > int_max_)
-					{
-						int_max_ = tmp2;
-					}
-				}
+				this->clear_();
+				updateRanges_(container_.begin(),container_.end());
 			}
-	
-			//@}
 
 			/**	@name Accessors for meta information*/
 			//@{
@@ -547,16 +474,6 @@ namespace OpenMS
 			/// The container with all the peak data
 			ContainerType		container_;
 			
-			/// Minimum position
-			typename PeakType::PositionType min_;
-			/// Maximum position
-			typename PeakType::PositionType max_;
-			
-			/// Minimum intensity
-			typename PeakType::IntensityType int_min_;
-			/// Maximim intensity
-			typename PeakType::IntensityType int_max_;
-			
 			/// Precursor information
 			PrecursorPeakType precursor_peak_;
 			
@@ -584,10 +501,10 @@ namespace OpenMS
 			ar & boost::serialization::make_nvp("mii",boost::serialization::base_object<MetaInfoInterface>(*this));
       ar & boost::serialization::make_nvp("container",container_);
 			// ar & boost::serialization::make_nvp("info",info_); // todo
-      ar & boost::serialization::make_nvp("min",min_);
-      ar & boost::serialization::make_nvp("max",max_);
-      ar & boost::serialization::make_nvp("it_min",int_min_);
-      ar & boost::serialization::make_nvp("it_max",int_max_);
+      ar & boost::serialization::make_nvp("min",RangeManagerType::getMinInt());
+      ar & boost::serialization::make_nvp("max",RangeManagerType::getMaxInt());
+      ar & boost::serialization::make_nvp("it_min",RangeManagerType::getMin());
+      ar & boost::serialization::make_nvp("it_max",RangeManagerType::getMax());
 		}
 		//@}
 	

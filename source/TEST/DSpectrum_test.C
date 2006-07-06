@@ -43,6 +43,7 @@ START_TEST(DSpectrum, "$Id: DSpectrum_test.C,v 1.5 2006/06/08 10:46:52 marc_stur
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
 DPeak<2> dp2_1;
 dp2_1.setIntensity(1);
@@ -63,6 +64,11 @@ DSpectrum<3>* ptr = 0;
 CHECK(DSpectrum())
 	ptr = new DSpectrum<3>;
 	TEST_NOT_EQUAL(ptr, 0)
+
+	TEST_EQUAL(ptr->getMin(), DSpectrum<3>::PositionType::max)
+	TEST_EQUAL(ptr->getMax(), DSpectrum<3>::PositionType::min_negative)
+	TEST_REAL_EQUAL(ptr->getMinInt(), numeric_limits<DSpectrum<3>::IntensityType>::max())
+	TEST_REAL_EQUAL(ptr->getMaxInt(), -numeric_limits<DSpectrum<3>::IntensityType>::max())
 RESULT
 
 CHECK(~DSpectrum())
@@ -74,14 +80,43 @@ CHECK([EXTRA] Instantiation w/ DPeakList)
 	TEST_EQUAL(ds.getContainer().size(), 0)
 RESULT
 
-CHECK(DSpectrum(const DSpectrum<D>& rhs))
-	DPeak<1> p;
-	p.setIntensity(0.0);
-	p.getPosition()[0] = 500.0;
-	DPeak<1> p2;
-	p2.setIntensity(100.0);
-	p2.getPosition()[0] = 1300.0;
+CHECK(void updateRanges())
+  DSpectrum<2> s;
+  s.push_back(dp2_1);
+  s.push_back(dp2_2);
+  s.push_back(dp2_1);
+  
+  s.updateRanges();
+  s.updateRanges(); //second time to check the initialization
+    
+  TEST_REAL_EQUAL(s.getMaxInt(),2)
+  TEST_REAL_EQUAL(s.getMinInt(),1)
+  TEST_REAL_EQUAL(s.getMax()[0],10)
+  TEST_REAL_EQUAL(s.getMax()[1],12)
+  TEST_REAL_EQUAL(s.getMin()[0],2)
+  TEST_REAL_EQUAL(s.getMin()[1],3)
+  
+  //test with only one peak
 
+	s.clear();
+  s.push_back(dp2_1);  
+  s.updateRanges();
+  TEST_REAL_EQUAL(s.getMaxInt(),1)
+  TEST_REAL_EQUAL(s.getMinInt(),1)
+  TEST_REAL_EQUAL(s.getMax()[0],2)
+  TEST_REAL_EQUAL(s.getMax()[1],3)
+  TEST_REAL_EQUAL(s.getMin()[0],2)
+  TEST_REAL_EQUAL(s.getMin()[1],3)  
+RESULT
+
+DPeak<1> p;
+p.setIntensity(0.0);
+p.getPosition()[0] = 500.0;
+DPeak<1> p2;
+p2.setIntensity(100.0);
+p2.getPosition()[0] = 1300.0;
+
+CHECK(DSpectrum(const DSpectrum<D>& rhs))
 	DSpectrum<1> s;
 	s.setMetaValue("label",5.0);
 	s.getContainer().push_back(p);
@@ -106,13 +141,6 @@ CHECK(DSpectrum(const DSpectrum<D>& rhs))
 RESULT
 
 CHECK(DSpectrum& operator = (const DSpectrum& rhs))
-	DPeak<1> p;
-	p.setIntensity(0.0);
-	p.getPosition()[0] = 500.0;
-	DPeak<1> p2;
-	p2.setIntensity(100.0);
-	p2.getPosition()[0] = 1300.0;
-
 	DSpectrum<1> s;
 	s.setMetaValue("label",5.0);
 	s.getContainer().push_back(p);
@@ -156,6 +184,13 @@ CHECK(bool operator == (const DSpectrum& rhs) const)
 	edit = empty;
 	edit.getPrecursorPeak().setIntensity(5.5);
 	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.push_back(p);
+	edit.push_back(p2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty==edit, false);	
 RESULT
 
 CHECK(bool operator != (const DSpectrum& rhs) const)
@@ -173,6 +208,13 @@ CHECK(bool operator != (const DSpectrum& rhs) const)
 	edit = empty;
 	edit.getContainer().push_back(DSpectrum<1>::ContainerType::value_type());
 	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.push_back(p);
+	edit.push_back(p2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty!=edit, true);	
 RESULT
 
 
@@ -526,62 +568,6 @@ CHECK(inline bool operator>=(ContainerType& rhs))
 	TEST_EQUAL(s >= s2, true)
 	s2.push_back(dp2_2);
 	TEST_EQUAL(s >= s2 , false)
-RESULT
-
-//*************************** Tests for MetaInfoInterface ****************************************
-
-CHECK(const typename PeakType::PositionType& getMax() const)
-  DSpectrum<2> s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.getMax()[0],0)
-  TEST_REAL_EQUAL(s.getMax()[1],0)
-  s.updateRanges();
-  TEST_REAL_EQUAL(s.getMax()[0],10)
-  TEST_REAL_EQUAL(s.getMax()[1],12)
-RESULT
-
-CHECK(const typename PeakType::PositionType& getMin() const)
-  DSpectrum<2> s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.getMin()[0],0)
-  TEST_REAL_EQUAL(s.getMin()[1],0)
-  s.updateRanges();
-  TEST_REAL_EQUAL(s.getMin()[0],2)
-  TEST_REAL_EQUAL(s.getMin()[1],3)
-RESULT
-
-CHECK(const typename PeakType::IntensityType getMinInt() const)
-  DSpectrum<2> s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.getMinInt(),0)
-  s.updateRanges();
-  TEST_REAL_EQUAL(s.getMinInt(),1)
-RESULT
-
-CHECK(const typename PeakType::IntensityType getMaxInt() const)
-  DSpectrum<2> s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.getMaxInt(),0)
-  s.updateRanges();
-  TEST_REAL_EQUAL(s.getMaxInt(),2)
-RESULT
-
-CHECK(void updateRanges())
-  DSpectrum<2> s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  s.updateRanges();
-  s.updateRanges();
-  TEST_REAL_EQUAL(s.getMaxInt(),2)
-  TEST_REAL_EQUAL(s.getMinInt(),1)
-  TEST_REAL_EQUAL(s.getMax()[0],10)
-  TEST_REAL_EQUAL(s.getMax()[1],12)
-  TEST_REAL_EQUAL(s.getMin()[0],2)
-  TEST_REAL_EQUAL(s.getMin()[1],3)
 RESULT
 
 //*************************** Tests for MetaInfoInterface ****************************************

@@ -258,40 +258,30 @@ RESULT
 
 CHECK(typename SpectrumType::PeakType::CoordinateType getMinMZ() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMinMZ(),0.0)
-RESULT
-
-CHECK(typename SpectrumType::PeakType::CoordinateType getMaxMZ() const)
-	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),0.0)
-RESULT
-
-CHECK(double getMinInt() const)
-	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMinInt(),0.0)
+	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK(double getMaxInt() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxInt(),0.0)
+	TEST_REAL_EQUAL(tmp.getMaxInt(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK(double getMinRT() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMinRT(),0.0)
+	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK(double getMaxRT() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxRT(),0.0)
+	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],0.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],0.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],0.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],0.0)
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
@@ -328,7 +318,7 @@ CHECK(void updateRanges())
 	s.setMSLevel(3);
 	s.setRetentionTime(45.0);
 	p.getPosition()[0] = 9.0;
-	p.setIntensity(-9.0);
+	p.setIntensity(-10.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
 
@@ -336,11 +326,13 @@ CHECK(void updateRanges())
 	s.setMSLevel(3);
 	s.setRetentionTime(50.0);
 	p.getPosition()[0] = 10.0;
-	p.setIntensity(-10.0);
+	p.setIntensity(-9.0);
 	s.getContainer().push_back(p);
 	tmp.push_back(s);	
 	
 	tmp.updateRanges();
+	tmp.updateRanges(); //second time to check the initialization
+	
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),10.0)
 	TEST_REAL_EQUAL(tmp.getMinInt(),-10.0)
@@ -379,6 +371,7 @@ CHECK(void updateRanges())
 	//Update for MS level 1
 	
 	tmp.updateRanges(1);
+	tmp.updateRanges(1);
 	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),7.0)
 	TEST_REAL_EQUAL(tmp.getMinInt(),-7.0)
@@ -410,6 +403,35 @@ CHECK(void updateRanges())
 	TEST_EQUAL(tmp.getSpectraLengths()[2],1)
 	TEST_EQUAL(tmp.getSpectraLengths()[3],1)
 	TEST_EQUAL(tmp.getSize(),2)
+
+	//test with only one peak
+
+	MSExperiment< DRawDataPoint<1> > tmp2;
+	MSSpectrum< DRawDataPoint<1> > s2;
+	DRawDataPoint<1> p2;
+	
+	s2.setRetentionTime(30.0);
+	p2.getPosition()[0] = 5.0;
+	p2.setIntensity(-5.0);
+	s2.getContainer().push_back(p2);
+	tmp2.push_back(s2);
+
+	tmp2.updateRanges();
+	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0)
+	TEST_REAL_EQUAL(tmp2.getMaxMZ(),5.0)
+	TEST_REAL_EQUAL(tmp2.getMinInt(),-5.0)
+	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
+	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
+	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
+
+	tmp2.updateRanges(1);
+	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0)
+	TEST_REAL_EQUAL(tmp2.getMaxMZ(),5.0)
+	TEST_REAL_EQUAL(tmp2.getMinInt(),-5.0)
+	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
+	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
+	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
+	
 RESULT
 
 CHECK(getPeak())

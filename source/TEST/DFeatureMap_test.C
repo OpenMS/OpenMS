@@ -51,6 +51,11 @@ DFeatureMap<2>* pl_ptr = 0;
 CHECK(DFeatureMap<2>())
 	pl_ptr = new DFeatureMap<2>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
+
+	TEST_EQUAL(pl_ptr->getMin(), DFeatureMap<2>::PositionType::max)
+	TEST_EQUAL(pl_ptr->getMax(), DFeatureMap<2>::PositionType::min_negative)
+	TEST_REAL_EQUAL(pl_ptr->getMinInt(), numeric_limits<DFeatureMap<2>::IntensityType>::max())
+	TEST_REAL_EQUAL(pl_ptr->getMaxInt(), -numeric_limits<DFeatureMap<2>::IntensityType>::max())
 RESULT
 
 CHECK(~DFeatureMap<2>())
@@ -68,41 +73,6 @@ CHECK(void setName(const String& name))
 	TEST_EQUAL(tmp.getName(), "TEST")
 RESULT
 
-CHECK(DFeatureMap<2>(const DFeatureMap& p))
-	DFeatureMap<2> map1;
-	DFeature<2> feature;
-	DPosition<2> pos;
-	pos[0] = 1.0;
-	pos[1] = 2.0;
-	feature.getIntensity() = 1.0;
-	feature.getPosition() = pos;
-	map1.push_back(feature);
-	TEST_EQUAL(map1.size(), 1)
-	feature.getIntensity() = 3.0;
-	map1.push_back(feature);
-	map1.setName("test");
-	DFeatureMap<2> map2(map1);
-	TEST_EQUAL(map2.size(), 2)
-	
-	DFeature<2> feat1 = map2.back();
-	map2.pop_back();
-	TEST_EQUAL(feat1.getIntensity(),3.0);
-	
-	DFeature<2> feat2 = map2.back();
-	map2.pop_back();
-	TEST_EQUAL(feat2.getIntensity(),1.0);
-	TEST_EQUAL(feat2.getPosition()[0],1.0);
-	TEST_EQUAL(feat2.getPosition()[1],2.0);
-	TEST_EQUAL(map2.getName(),"test");
-	
-RESULT
-
-DFeatureMap<2> map;
-
-CHECK( empty() const)
-	TEST_EQUAL(map.empty(), true)
-RESULT
-
 DFeature<2> feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
@@ -118,53 +88,74 @@ feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.getIntensity() = 0.01;
 
-CHECK( size() const)
-	TEST_EQUAL(map.size(), 0)
-	
-	map.push_back(feature1);
-	TEST_EQUAL(map.size(), 1)
-
-	map.push_back(feature2);
-	TEST_EQUAL(map.size(), 2)
-
-	map.push_back(feature3);
-	TEST_EQUAL(map.size(), 3)
+CHECK(void updateRanges())
+  DFeatureMap<2> s;
+  s.push_back(feature1);
+  s.push_back(feature2);
+  s.push_back(feature3);
+  
+  s.updateRanges();
+  s.updateRanges(); //second time to check the initialization
+   
+  TEST_REAL_EQUAL(s.getMaxInt(),1.0)
+  TEST_REAL_EQUAL(s.getMinInt(),0.01)
+  TEST_REAL_EQUAL(s.getMax()[0],10.5)
+  TEST_REAL_EQUAL(s.getMax()[1],3.0)
+  TEST_REAL_EQUAL(s.getMin()[0],0.0)
+  TEST_REAL_EQUAL(s.getMin()[1],0.0)
 RESULT
 
-CHECK( empty() const)
-	TEST_EQUAL(map.empty(), false)
+CHECK(DFeatureMap<2>(const DFeatureMap& p))
+	DFeatureMap<2> map1;
+	map1.push_back(feature1);
+	map1.push_back(feature2);
+	map1.push_back(feature3);
+	map1.setName("test");
+	map1.updateRanges();
+	map1.setType(ExperimentalSettings::MS);
+		
+	DFeatureMap<2> map2(map1);
+	
+	TEST_EQUAL(map2.size(),3);
+	TEST_EQUAL(map2.getName(),"test");
+  TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
+  TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
 RESULT
 
 CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
-	DFeatureMap<2> edit,empty;
+	DFeatureMap<2> map1;
+	map1.push_back(feature1);
+	map1.push_back(feature2);
+	map1.push_back(feature3);
+	map1.setName("test");
+	map1.updateRanges();
+	map1.setType(ExperimentalSettings::MS);
 	
-	// assignment of an empty object
-	DFeatureMap<2>::FeatureType f;
-	f.getPosition()[0] = 1.0;
-	edit.push_back(f);
-	edit.getSample().setName("TEST");
-	edit.setName("testtest");
-	edit = empty;
-	TEST_EQUAL(edit.getName(),"")
-	TEST_REAL_EQUAL(edit.size(),0)
-	TEST_EQUAL(edit.getSample().getName(),empty.getSample().getName())	
+	//assignment
+	DFeatureMap<2> map2;
+	map2 = map1;
 	
-	// normal assignment
-	edit.push_back(f);
-	edit.getSample().setName("TEST2");
-	edit.setName("testtest");
-	empty = edit;
-	TEST_REAL_EQUAL(edit[0].getPosition()[0],empty[0].getPosition()[0])
-	TEST_EQUAL(edit.getSample().getName(),empty.getSample().getName())
-	TEST_EQUAL(edit.getName(),empty.getName())
+	TEST_EQUAL(map2.size(),3);
+	TEST_EQUAL(map2.getName(),"test");
+  TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
+  TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
+  	
+  //assignment of empty object
+  map2 = DFeatureMap<2>();
+	
+	TEST_EQUAL(map2.size(),0);
+	TEST_EQUAL(map2.getName(),"");
+	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<DFeatureMap<2>::IntensityType>::max())
+	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<DFeatureMap<2>::IntensityType>::max())
+  TEST_EQUAL(map2.getType(),ExperimentalSettings::UNKNOWN)
 RESULT
 
 CHECK(bool operator == (const DFeatureMap& rhs) const)
-	DFeatureMap<1> empty,edit;
+	DFeatureMap<2> empty,edit;
 	
 	TEST_EQUAL(empty==edit, true);
 	
-	edit.getSample().setName("TEST");
+	edit.setType(ExperimentalSettings::MS);
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
@@ -172,10 +163,39 @@ CHECK(bool operator == (const DFeatureMap& rhs) const)
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
-	DFeatureMap<1>::FeatureType f;
-	f.getPosition()[0] = 1.0;
-	edit.push_back(f);
+	edit.push_back(feature1);
 	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.push_back(feature1);
+	edit.push_back(feature2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty==edit, false);
+RESULT
+
+CHECK(bool operator != (const DFeatureMap& rhs) const)
+	DFeatureMap<2> empty,edit;
+	
+	TEST_EQUAL(empty!=edit, false);
+	
+	edit.setType(ExperimentalSettings::MS);
+	TEST_EQUAL(empty!=edit, true);
+	
+	edit = empty;
+	edit.setName("TEST");
+	TEST_EQUAL(empty!=edit, true);
+	
+	edit = empty;
+	edit.push_back(feature1);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.push_back(feature1);
+	edit.push_back(feature2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty!=edit, true);
 RESULT
 
 /////////////////////////////////////////////////////////////

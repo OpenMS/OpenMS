@@ -1313,7 +1313,7 @@ namespace OpenMS
 
 		if (type_.back()==DT_FEATURE) //Feature data
 		{
-			
+			//disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
 		}
 		else //peak data
 		{

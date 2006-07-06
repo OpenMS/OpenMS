@@ -97,12 +97,64 @@ foreach ($people as $name => $headers)
 				{
 					$name = "NO MAINTAINER";
 				}
-				print "\n\n-- $name --\n\n";
+				print "\n\n-- MISSING TESTS: $name --\n\n";
 				$missing_tests = true;
 			}
 			print "$class\n";
 		}
 	}
+}
+
+//----------------------------------------Which tests are called -------------------------------------------
+
+print "\n\n-- TESTS NOT IN MAKEFILE --\n\n";
+
+$makefile = file("$path/source/TEST/Makefile");
+foreach($makefile as $line)
+{
+	$line = trim($line);
+	if (strpos($line,"_test")!== FALSE && strpos($line,":")=== FALSE && $line[0]!="#" && $line[0]!="@")
+	{
+		$called_tests[] = strtr($line,array("\\"=>""," "=>"", "	"=>""));
+	}
+}
+
+foreach($test_names as $name)
+{
+	if (!in_array($name."_test",$called_tests))
+	{
+		print $name."\n";
+	}
+}
+
+//----------------------------------------Which tests do nothing -------------------------------------------
+
+print "\n\n-- TESTS THAT PROBABLY DO NOT TEST ALL METHODS --\n\n";
+print "Name CHECKs TESTS\n";
+
+foreach($test_names as $name)
+{
+	$file = file("$path/source/TEST/$name"."_test.C");
+	$check = 0;
+	$test = 0;
+	foreach($file as $line)
+	{
+		$line = trim($line);
+		
+		if ($line[0].$line[1]!="//")
+		{
+			if (substr($line,0,5)=="CHECK")
+			{
+				$check++;
+			}
+			if (substr($line,0,15)=="TEST_REAL_EQUAL" || substr($line,0,10)=="TEST_EQUAL" || substr($line,0,14)=="TEST_NOT_EQUAL" || substr($line,0,14)=="TEST_EXCEPTION" || substr($line,0,9)=="TEST_FILE" )
+			{
+				$test++;
+			}
+		}
+	}
+	if ($check<3 || $test < $check)
+	print "$name $check $test\n";
 }
 
 ?>

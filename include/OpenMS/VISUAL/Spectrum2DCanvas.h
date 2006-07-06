@@ -63,6 +63,8 @@ namespace OpenMS
 		zoom stack is provided for going back to an earlier
 		view.
 		
+		@todo Make marching squares continous along RT (Marc)
+		
 		@ingroup spectrum_widgets
 	*/
 	class Spectrum2DCanvas : public SpectrumCanvas
@@ -72,16 +74,20 @@ namespace OpenMS
 	public:
 		/**	@name Type definitions */
 		//@{
-    ///
-		typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
-		///
-		enum DimensionId { MZ = DimensionDescription::MZ, RT = DimensionDescription::RT };		
+    ///Dimensions of the peak/feature data
+		enum DimensionId 
+		{ 
+			MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ, 
+			RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT 
+		};		
+		
 		///View modes for 2D dots.
 		enum DotModes 
 		{
 			DOT_BLACK = 0,            ///< use black only
 			DOT_GRADIENT = 1          ///< use gradient
 		};
+		
 		//@}
 		
 		/**

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -24,35 +24,9 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-/**
-	@mainpage OpenMS
-	@version  0.55
-	@author   Oliver Kohlbacher
-	@author   Knut Reinert
-	
-	@section  OpenMS OpenMS is a free platform for the analysis of HPLC/MS data.
-	
-	For further information like
-	<UL>
-	<LI> Installation instructions
-	<LI> Tutorial
-	<LI> FAQ
-	</UL>
-	see the <a href="../index.html" target=_blank>documentation</a>.
-	
-	OpenMS comes with several example applications ready to use. See the \ref Applications modules for details.
-	
-	@todo Release: update installation notes on website, SpecView -> TOPPView (Marc)
-	
-*/
+#include <OpenMS/DATASTRUCTURES/RangeManager.h>
 
-/*
-	ToDo-Liste Marc:
-	- TV: Features wieder einbauen
-	- TV: Projektionen
-	
-  - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
-  - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
-	- Klassen für Tryptischen Verdau und Theoretische Spektren
-	- Rohdaten-Erkenner schreiben
-*/
+namespace OpenMS
+{
+
+}

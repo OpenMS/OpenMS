@@ -60,6 +60,7 @@ namespace OpenMS
 	template <typename PeakT = DPeak<1> >
   class MSExperiment
  		: public std::vector<MSSpectrum<PeakT> >, 
+ 			public RangeManager<2, typename PeakT::TraitsType>,
   		public ExperimentalSettings,
   		public PersistentObject
   {
@@ -74,30 +75,28 @@ namespace OpenMS
     typedef DRange<2, TraitsType> AreaType;
 		typedef typename TraitsType::CoordinateType CoordinateType;  	
     typedef typename TraitsType::IntensityType IntensityType; 
-
+		typedef RangeManager<2, TraitsType> RangeManagerType;
+			
   	/// Constructor
     MSExperiment()
 			: std::vector<MSSpectrum<PeakT> >(),
+			RangeManagerType(),
 			ExperimentalSettings(),
 			PersistentObject(),
-			rt_mz_range_(AreaType::zero),
-			it_min_(0),
-			it_max_(0),
 			ms_levels_(),
 			nr_dpoints_(0),
 			spectra_lengths_(),
 			name_()
-		{			 
+		{
+			
 		}
 		
     /// Copy constructor
     MSExperiment(const MSExperiment& source):
 			std::vector<MSSpectrum<PeakT> >(source),
+			RangeManagerType(source),
 			ExperimentalSettings(source),
 			PersistentObject(source),
-			rt_mz_range_(source.rt_mz_range_),
-			it_min_(source.it_min_),
-			it_max_(source.it_max_),
 			ms_levels_(source.ms_levels_),
 			nr_dpoints_(source.nr_dpoints_),
 			spectra_lengths_(source.spectra_lengths_),
@@ -427,37 +426,36 @@ namespace OpenMS
 				@note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
 			*/
 			//@{
-
+			// Docu in base class
+			virtual void updateRanges()
+			{
+				updateRanges(-1);
+			}
+			
 			/**
-				@brief Updates the m/z, intensity, retention time and MS level ranges
+				@brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
 				
 				@param ms_level MS level to consider for number of peaks, m/z range , RT range 
 				       and intensity range (All MS levels if negative)
 			*/
-			void updateRanges(SignedInt ms_level=-1)
+			void updateRanges(SignedInt ms_level)
 			{
 				//clear MS levels
 				ms_levels_.clear();
 				// clear spectra lengths
 				spectra_lengths_.clear();
 				spectra_lengths_.reserve(this->size());
+
+				//reset mz/rt/int range
+				this->clear_();
+				//reset point count
+				nr_dpoints_ = 0;
 				
 				//empty
 				if (this->size()==0)
 				{
-					rt_mz_range_ = AreaType::zero;
-					it_min_ = it_max_ = 0;
 					return;
 				}
-				
-				//temporary variable
-				double rt;
-			
-				//initialize
-				rt_mz_range_ = AreaType::empty;
-				it_min_ = std::numeric_limits<typename SpectrumType::PeakType::CoordinateType>::max();
-				it_max_ = -1.0 * std::numeric_limits<typename SpectrumType::PeakType::IntensityType>::max();
-				nr_dpoints_ = 0;
 				
 				//update
 				for (typename std::vector<MSSpectrum<PeakT> >::iterator it = this->begin(); it!=this->end(); ++it)
@@ -477,19 +475,25 @@ namespace OpenMS
 						nr_dpoints_ += it->size();
 	
 						//rt
-						rt = it->getRetentionTime();
-						if (rt < rt_mz_range_.min()[0]) rt_mz_range_.setMinX(rt);
-						if (rt > rt_mz_range_.max()[0]) rt_mz_range_.setMaxX(rt);
+						if (it->getRetentionTime() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRetentionTime());
+						if (it->getRetentionTime() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRetentionTime());
 						
 						it->updateRanges();
 						
+//						std::cout << "---------------------------------------------"<< std::endl;
+//						std::cout << "Int: "<< std::endl;
+//						std::cout << it->getMinInt() << it->getMaxInt() << std::endl << std::endl;
+//						std::cout << "mz/RT:" << std::endl;
+//						std::cout << it->getMin() << it->getMax() << std::endl << std::endl;
+						
+						
 						//mz
-						if (it->getMin()[0] < rt_mz_range_.min()[1]) rt_mz_range_.setMinY(it->getMin()[0]);
-						if (it->getMax()[0] > rt_mz_range_.max()[1]) rt_mz_range_.setMaxY(it->getMax()[0]);
+						if (it->getMin()[0] < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
+						if (it->getMax()[0] > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
 						
 						//int
-						if (it->getMinInt() < it_min_) it_min_ = it->getMinInt();			
-						if (it->getMaxInt() > it_max_) it_max_ = it->getMaxInt();
+						if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());			
+						if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
 					}
 										
 				}
@@ -499,37 +503,25 @@ namespace OpenMS
 			/// returns the minimal m/z value
 			CoordinateType getMinMZ() const
 			{
-				return rt_mz_range_.min()[1];
+				return RangeManagerType::pos_range_.min()[1];
 			}
 
 			/// returns the maximal m/z value
 			CoordinateType getMaxMZ() const
 			{
-				return rt_mz_range_.max()[1];
+				return RangeManagerType::pos_range_.max()[1];
 			}
 
 			/// returns the minimal retention time value
 			CoordinateType getMinRT() const
 			{
-				return rt_mz_range_.min()[0];
+				return RangeManagerType::pos_range_.min()[0];
 			}
 			
 			/// returns the maximal retention time value
 			CoordinateType getMaxRT() const
 			{
-				return rt_mz_range_.max()[0];
-			}
-
-			/// returns the minimal intensity value
-			IntensityType getMinInt() const
-			{
-				return it_min_;
-			}
-			
-			/// returns the maximal intensity value
-			IntensityType getMaxInt() const
-			{
-				return it_max_;
+				return RangeManagerType::pos_range_.max()[0];
 			}
 
 			/**
@@ -539,7 +531,7 @@ namespace OpenMS
 			*/
 			const AreaType& getDataRange() const
 			{
-				return rt_mz_range_;
+				return RangeManagerType::pos_range_;
 			}
 			
 			/// returns the number of peaks in all spectra
@@ -655,10 +647,6 @@ namespace OpenMS
 			///Base class typedef
 			typedef typename std::vector<MSSpectrum<PeakT> > Base_;
 			
-			/// boundaries of RT (dimension 0)  and m/z (dimension 1)
-			AreaType rt_mz_range_;
-			/// boundaries of the intensity
-			double it_min_, it_max_;
 			/// MS levels of the data
 			std::vector<UnsignedInt> ms_levels_;
 			/// Number of all data points

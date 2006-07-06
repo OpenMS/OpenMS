@@ -402,17 +402,31 @@ namespace OpenMS
 
 	float SpectrumMDIWindow::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
 	{
-	  UnsignedInt central_scan = (UnsignedInt)ceil((float)(exp.size()-1)/2.0);
-	  vector<float> tmp;
-	  tmp.reserve(exp[central_scan].size());
-	  for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = exp[central_scan].begin()
-	  	  ; it != exp[central_scan].end()
-	  	  ; ++it)
-	  {
-	  	tmp.push_back(it->getIntensity());
-	  }
-	  std::sort(tmp.begin(),tmp.end());
-	  return tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
+		float noise = 0.0;
+		UnsignedInt count = 0;
+		srand(time(0));
+		while (count<10)
+		{	
+			UnsignedInt scan = (UnsignedInt)( (double)rand() / (double)(RAND_MAX+1) * (exp.size()-1) );
+			 
+			if (scan < exp.size() && exp[scan].getMSLevel()==1)
+			{
+				vector<float> tmp;
+				tmp.reserve(exp[scan].size());
+				for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = exp[scan].begin()
+					  ; it != exp[scan].end()
+					  ; ++it)
+				{
+					tmp.push_back(it->getIntensity());
+				}
+				std::sort(tmp.begin(),tmp.end());
+				noise += tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
+				
+				++count;
+			}
+		}
+		noise /= 10.0;
+		return noise;
 	}
 	
 	void SpectrumMDIWindow::preferencesDialog()
@@ -518,44 +532,45 @@ namespace OpenMS
 				QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
 				return;
 			}
-			map.sortByPosition();
-			SpectrumCanvas::ExperimentType exp;
-			exp.set2DData(map);
-			setFeatureMap_(w->widget()->canvas(), exp, caption);
-			return;
+			map.setName(caption);
+			w->widget()->canvas()->addDataSet(map);
+		}
+		else
+		{
+			//try to read the data from file (raw/peak data)
+			SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
+			try
+			{	
+				FileHandler().loadExperiment(filename,*exp, force_type);
+			}
+			catch(Exception::Base& e)
+			{
+				QMessageBox::warning(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
+				return;
+			}
+	
+			//check if only one scan is in a 2d file
+			if (as_new_window && active1DWindow_()==0 && exp->size()==1)
+			{
+				delete(w);
+				w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
+				w->widget()->setMainPreferences(prefs_);
+				exp = &(w->widget()->canvas()->addEmptyDataSet());
+				FileHandler().loadExperiment(filename,*exp, force_type);
+			}
+	
+			//do for all (in active and in new window, 1D/2D/3D)
+			float cutoff=0;
+			
+			//calculate noise
+			if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
+			{
+			  cutoff = estimateNoise_(*exp);
+			}
+			exp->setName(caption);  // set layername
+			w->widget()->canvas()->finishAdding(cutoff);
 		}
 		
-		//try to read the data from file (raw/peak data)
-		SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
-		try
-		{	
-			FileHandler().loadExperiment(filename,*exp, force_type);
-		}
-		catch(Exception::Base& e)
-		{
-			QMessageBox::warning(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
-			return;
-		}
-
-		//check if only one scan is in a 2d file
-		if (as_new_window && active1DWindow_()==0 && exp->size()==1)
-		{
-			delete(w);
-			w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-			w->widget()->setMainPreferences(prefs_);
-			exp = &(w->widget()->canvas()->addEmptyDataSet());
-			FileHandler().loadExperiment(filename,*exp, force_type);
-		}
-
-		//do for all (in active and in new window, 1D/2D/3D)
-		float cutoff=0;
-		
-		if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
-		{
-		  cutoff = estimateNoise_(*exp);
-		}
-		exp->setName(caption);  // set layername
-		w->widget()->canvas()->finishAdding(cutoff);
 		updateLayerbar();
 
 		if(maximize)
@@ -851,7 +866,7 @@ namespace OpenMS
 		}
 	}
 	
-	void SpectrumMDIWindow::showStatusMessage(string msg,UnsignedInt time=0)
+	void SpectrumMDIWindow::showStatusMessage(string msg,UnsignedInt time)
 	{
 		if (time==0)
 		{
@@ -1499,37 +1514,19 @@ namespace OpenMS
 			{
 				//find features
 				FeatureFinder& finder = dialog.getFeatureFinder();
+				
 				SpectrumCanvas::ExperimentType in = w->widget()->canvas()->currentDataSet();
 				finder.setData(in);
-				SpectrumCanvas::ExperimentType out;
-				//copy to sort features by RT
-				DFeatureMap<2> features = finder.run();
-				features.sortByPosition();
-				out.set2DData(features);
+				
+				DFeatureMap<2> map = finder.run();
 				
 				//display features
-				setFeatureMap_(w->widget()->canvas(), out, w->widget()->canvas()->currentDataSet().getName());
+				map.setName("Features: "+in.getName());
+				w->widget()->canvas()->addDataSet(map);
 				updateLayerbar();
 			}
 		}
 	}
-
-	void SpectrumMDIWindow::setFeatureMap_(SpectrumCanvas* canvas, SpectrumCanvas::ExperimentType& exp, String caption)
-	{
-		if (exp.size()==0) 
-		{
-			return;
-		}
-	
-		// First layer: just the centers
-		exp.setName("Center (Features of " +caption+")");
-		canvas->addDataSet(exp);
-	
-		// Second layer: convex hulls
-		exp.setName("Convex hulls (Features of " +caption+ ")");
-		exp.setMetaValue("FeatureDrawMode",std::string("ConvexHulls"));
-		canvas->addDataSet(exp);
-	}	
 	
 	void SpectrumMDIWindow::closeEvent(QCloseEvent * e)
 	{

@@ -215,7 +215,7 @@ namespace OpenMS
 			Spectrum2DWindow* active2DWindow_() const;
 			///returns a pointer to the active Spectrum3DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
 			Spectrum3DWindow* active3DWindow_() const;
-			///Estimates the noise in the central scan of the experiment
+			///Estimates the noise by evaluating 10 random scans of MS level 1
 			float estimateNoise_(const SpectrumCanvas::ExperimentType& exp);
 			
 			// Docu in base class
@@ -308,9 +308,6 @@ namespace OpenMS
 			QPopupMenu* tools_menu_;
 			/// pointer to the recent files menu
 			QPopupMenu* recent_menu_;
-			
-			/// Adds the result of featurefinding to the canvas
-			void setFeatureMap_(SpectrumCanvas* canvas, SpectrumCanvas::ExperimentType& exp, String caption);
 
 	}; //class
 	
