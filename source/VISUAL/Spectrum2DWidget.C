@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum2DWidget.C,v 1.28 2006/06/09 14:46:55 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -84,15 +82,25 @@ namespace OpenMS
 	{
 		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 		
-		for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
+		if (canvas()->getCurrentDataType()==SpectrumCanvas::DT_PEAK)
 		{
-			if (spec_it->getMSLevel()!=1)
+			for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
 			{
-				continue;
+				if (spec_it->getMSLevel()!=1)
+				{
+					continue;
+				}
+				for (Spectrum2DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+				{
+					tmp.inc(peak_it->getIntensity());
+				}
 			}
-			for (Spectrum2DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+		}
+		else
+		{
+			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas()->currentFeatureMap().begin(); it != canvas()->currentFeatureMap().end(); ++it)
 			{
-				tmp.inc(peak_it->getIntensity());
+				tmp.inc(it->getIntensity());
 			}
 		}
 		

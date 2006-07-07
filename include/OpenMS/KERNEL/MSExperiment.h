@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSExperiment.h,v 1.7 2006/06/09 23:47:35 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -394,6 +392,30 @@ namespace OpenMS
 			{
 				return(PeakIterator( (this->at(this->size()-1).end()), this->at(this->size()-1).getRetentionTime(), (this->size()-1), *this ) );
 			}			
+
+			/**
+				@brief Fast search for spectrum range begin
+				
+				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+			*/
+			ConstIterator RTBegin(double rt) const
+			{
+				SpectrumType s;
+				s.setRetentionTime(rt);
+				return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+			}
+
+			/**
+				@brief Fast search for spectrum range end (returns the path-the-end iterator)
+				
+				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+			*/
+			ConstIterator RTEnd(double rt) const
+			{
+				SpectrumType s;
+				s.setRetentionTime(rt);
+				return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+			}
 
 			/**
 				@brief Fast search for spectrum range begin

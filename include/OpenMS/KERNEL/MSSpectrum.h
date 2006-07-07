@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSSpectrum.h,v 1.4 2006/06/08 15:51:32 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -149,7 +147,30 @@ namespace OpenMS
 				p.getPosition()[0] = mz;
 				return upper_bound(BaseSpectrum::begin(), BaseSpectrum::end(), p, typename PeakType::PositionLess());
 			}
-			
+
+			/**
+				@brief Fast search for peak range begin
+				
+				@note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+			*/
+			const typename BaseSpectrum::ConstIterator MZBegin(double mz) const
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return lower_bound(BaseSpectrum::begin(), BaseSpectrum::end(), p, typename PeakType::PositionLess());
+			}
+
+			/**
+				@brief Fast search for peak range end (returns the path-the-end iterator)
+				
+				@note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
+			*/
+			const typename BaseSpectrum::ConstIterator MZEnd(double mz) const
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return upper_bound(BaseSpectrum::begin(), BaseSpectrum::end(), p, typename PeakType::PositionLess());
+			}			
 			
 			///PersistentObject interface
 			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)

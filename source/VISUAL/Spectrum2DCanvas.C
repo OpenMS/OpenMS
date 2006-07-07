@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum2DCanvas.C,v 1.55 2006/06/09 22:00:08 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -67,9 +65,10 @@ namespace OpenMS
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
-		for (UnsignedInt i=0; i<trees_.size(); i++)
+		for (UnsignedInt i=0; i<getDataSetCount(); i++)
 		{
 			if (trees_[i]) delete trees_[i];
+			if (feature_trees_[i]) delete feature_trees_[i];
 		}
 	}
 	
@@ -248,18 +247,22 @@ namespace OpenMS
 						PointType left_top = widgetToData_(min_x, min_y);
 						PointType right_bottom = widgetToData_(max_x, max_y);
 						
-						// eventually adjust values to the QuadTree area's
-						// borders
-						if (left_top.X() < trees_[current_data_]->getArea().minX()) 
-							left_top.setX(trees_[current_data_]->getArea().minX());
-						if (left_top.Y() < trees_[current_data_]->getArea().minY()) 
-							left_top.setY(trees_[current_data_]->getArea().minY());
-						if (right_bottom.X() > trees_[current_data_]->getArea().maxX()) 
-							right_bottom.setX(trees_[current_data_]->getArea().maxX());
-						if (right_bottom.Y() > trees_[current_data_]->getArea().maxY()) 
-							right_bottom.setY(trees_[current_data_]->getArea().maxY());
-					 
-						//emit visibleAreaChanged(visible_area_);
+
+						// eventually adjust values to the QuadTree area's borders
+						if (getCurrentDataType()==DT_PEAK)
+						{
+							if (left_top.X() < trees_[current_data_]->getArea().minX()) left_top.setX(trees_[current_data_]->getArea().minX());
+							if (left_top.Y() < trees_[current_data_]->getArea().minY()) left_top.setY(trees_[current_data_]->getArea().minY());
+							if (right_bottom.X() > trees_[current_data_]->getArea().maxX()) right_bottom.setX(trees_[current_data_]->getArea().maxX());
+							if (right_bottom.Y() > trees_[current_data_]->getArea().maxY()) right_bottom.setY(trees_[current_data_]->getArea().maxY());
+					 	}
+					 	else
+					 	{
+							if (left_top.X() < feature_trees_[current_data_]->getArea().minX()) left_top.setX(feature_trees_[current_data_]->getArea().minX());
+							if (left_top.Y() < feature_trees_[current_data_]->getArea().minY()) left_top.setY(feature_trees_[current_data_]->getArea().minY());
+							if (right_bottom.X() > feature_trees_[current_data_]->getArea().maxX()) right_bottom.setX(feature_trees_[current_data_]->getArea().maxX());
+							if (right_bottom.Y() > feature_trees_[current_data_]->getArea().maxY()) right_bottom.setY(feature_trees_[current_data_]->getArea().maxY());
+					 	}
 						changeVisibleArea_(AreaType(left_top, right_bottom), true);
 					}
 				}
@@ -330,23 +333,45 @@ namespace OpenMS
 		AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 				
 		DPeak<2>* max_peak = 0;
-		float max_int = -1 * numeric_limits<float>::max();
+		float max_int = -numeric_limits<float>::max();
 		
-		for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area); i != trees_[current_data_]->end(); ++i)
+		if (getCurrentDataType()==DT_PEAK)
 		{
-			//cout << "second: " << i->second->getPosition()[RT] << " " << i->second->getPosition()[MZ] << endl;
-			if (i->second->getIntensity() > max_int)
+			for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area); i != trees_[current_data_]->end(); ++i)
 			{
-				max_int = i->second->getIntensity();
-				
-				tmp_peak_.setIntensity(i->second->getIntensity());
-				tmp_peak_.getPosition()[0] = i->second->getPosition()[0];
-				tmp_peak_.getPosition()[1] = i->first[1];
-				
-				//cout << "Peak MZ: " << tmp_peak_.getPosition()[MZ] << " RT: " << tmp_peak_.getPosition()[RT] << endl;
-				
-				max_peak = &tmp_peak_;
+				//cout << "second: " << i->second->getPosition()[RT] << " " << i->second->getPosition()[MZ] << endl;
+				if (i->second->getIntensity() > max_int)
+				{
+					max_int = i->second->getIntensity();
+					
+					tmp_peak_.setIntensity(i->second->getIntensity());
+					tmp_peak_.getPosition()[0] = i->second->getPosition()[0];
+					tmp_peak_.getPosition()[1] = i->first[1];
+					
+					//cout << "Peak MZ: " << tmp_peak_.getPosition()[MZ] << " RT: " << tmp_peak_.getPosition()[RT] << endl;
+					
+					max_peak = &tmp_peak_;
+				}
 			}
+	 	}
+	 	else
+	 	{
+			for (FeatureQuadTreeType_::Iterator i = feature_trees_[current_data_]->begin(area); i != feature_trees_[current_data_]->end(); ++i)
+			{
+				//cout << "second: " << i->second->getPosition()[RT] << " " << i->second->getPosition()[MZ] << endl;
+				if (i->second->getIntensity() > max_int)
+				{
+					max_int = i->second->getIntensity();
+					
+					tmp_peak_.setIntensity(i->second->getIntensity());
+					tmp_peak_.getPosition()[0] = i->second->getPosition()[1];
+					tmp_peak_.getPosition()[1] = i->second->getPosition()[0];
+					
+					//cout << "Peak MZ: " << tmp_peak_.getPosition()[MZ] << " RT: " << tmp_peak_.getPosition()[RT] << endl;
+					
+					max_peak = &tmp_peak_;
+				}
+			}	 	
 		}
 		
 		return max_peak;
@@ -649,48 +674,65 @@ namespace OpenMS
 			percentage_factor_ = 1.0;
 		}
 		
-		bool isFeature = getDataSet(data_set).metaValueExists("FeatureDrawMode");
-		for (QuadTreeType_::Iterator i = trees_[data_set]->begin(visible_area_); i != trees_[data_set]->end(); ++i)
+		//tmporary varaible
+		QPoint pos;
+		
+		if (type_[data_set]==DT_PEAK) //peaks
 		{
-			if (!isFeature)
+			for (QuadTreeType_::Iterator i = trees_[data_set]->begin(visible_area_); i != trees_[data_set]->end(); ++i)
 			{
-				
 				if (getDotMode()==DOT_GRADIENT)
 				{
 					p->setPen(heightColor_(i->second->getIntensity(), dot_gradient_));
 					p->setBrush(heightColor_(i->second->getIntensity(), dot_gradient_));
 				}
-				
-				QPoint pos = dataToWidget_(i->first);
+				pos = dataToWidget_(i->first);
 				p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
 			}
-			else //Draw special feature attributes like convex hull
+		}
+		else //features
+		{
+			for (FeatureQuadTreeType_::Iterator i = feature_trees_[data_set]->begin(visible_area_); i != feature_trees_[data_set]->end(); ++i)
 			{
-				const DFeature<2>* feature = dynamic_cast<const DFeature<2>* >(&(*(i->second)));
-				if (feature)
+				if (getDotMode()==DOT_GRADIENT)
 				{
-					p->setBrush(Qt::NoBrush);
-					String mode = getDataSet(data_set).getMetaValue("FeatureDrawMode").toString();
-	
-					if (mode=="ConvexHulls")
-					{
-						for (UnsignedInt hull=0; hull<feature->getConvexHulls().size(); ++hull) // Draw the convex hulls
-						{
-							QPointArray points(feature->getConvexHulls()[hull].size());
-							UnsignedInt index=0;
-							for(DFeature<2>::ConvexHullType::const_iterator it=feature->getConvexHulls()[hull].begin(); 
-									it!=feature->getConvexHulls()[hull].end(); ++it, ++index)
-							{
-								QPoint p = dataToWidget_(*it);
-								points.setPoint(index, p.x(), p.y());
-							}	
-							p->drawPolygon(points);
-						}
-					}
+					p->setPen(heightColor_(i->second->getIntensity(), dot_gradient_));
+					p->setBrush(heightColor_(i->second->getIntensity(), dot_gradient_));
 				}
+				pos = dataToWidget_(i->first);
+				p->drawEllipse(pos.x() - 2, pos.y() - 2, 4, 4);
 			}
-		}                
+		}
 	}
+
+	void Spectrum2DCanvas::paintConvexHulls_(UnsignedInt data_set, QPainter* p)
+	{
+		p->setPen(Qt::black);
+		p->setBrush(Qt::NoBrush);
+		
+		QPointArray points;
+		QPoint tmp;
+		FeatureType* feature;
+		
+		for (FeatureQuadTreeType_::Iterator fi = feature_trees_[data_set]->begin(visible_area_); fi != feature_trees_[data_set]->end(); ++fi)
+		{
+			feature = fi->second;
+			//iterate over all convex hulls
+			for (UnsignedInt hull=0; hull<feature->getConvexHulls().size(); ++hull)
+			{
+				
+				points.resize(feature->getConvexHulls()[hull].size());
+				UnsignedInt index=0;
+				//iterate over hull points
+				for(DFeature<2>::ConvexHullType::const_iterator it=feature->getConvexHulls()[hull].begin(); it!=feature->getConvexHulls()[hull].end(); ++it, ++index)
+				{
+					points.setPoint(index, dataToWidget_(it->Y(), it->X()));
+				}	
+				//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
+				p->drawPolygon(points);
+			}
+		}
+	}            
 	
 	void Spectrum2DCanvas::paintContours_(UnsignedInt data_set, QPainter* p)
 	{
@@ -1032,7 +1074,7 @@ namespace OpenMS
 			// recalculate for datasets with visible surfaces and contour lines
 			for (UnsignedInt i=0; i<getDataSetCount(); i++)
 			{
-				if (layer_visible_[i] && (show_surface_[i] || show_contours_[i]))
+				if ( type_[i] == DT_PEAK && layer_visible_[i] && (show_surface_[i] || show_contours_[i]))
 				{
 					calculateMarchingSquareMatrix_(i);
 				}
@@ -1046,25 +1088,36 @@ namespace OpenMS
 
 		emit sendStatusMessage("repainting", 0);
 
-		for (UnsignedInt i=0; i<trees_.size(); i++)
+		for (UnsignedInt i=0; i<getDataSetCount(); i++)
 		{
 			if (layer_visible_[i])
 			{
-				//tree exists and contains points
-				if (trees_[i] && trees_[i]->begin(trees_[i]->getArea()) != trees_[i]->end())
+				if (type_[i]==DT_PEAK)
 				{
-					if (show_surface_[i])
+					//tree exists and contains points
+					if (trees_[i] && trees_[i]->begin(trees_[i]->getArea()) != trees_[i]->end())
 					{
-						paintSurface_(i, &p);
+						if (show_surface_[i])
+						{
+							paintSurface_(i, &p);
+						}
+						if (show_contours_[i])
+						{
+							paintContours_(i, &p);
+						}
+						if (show_dots_[i])
+						{
+							paintDots_(i, &p);
+						}
 					}
-					if (show_contours_[i])
-					{
-						paintContours_(i, &p);
-					}
+				}
+				else //Features
+				{
 					if (show_dots_[i])
 					{
 						paintDots_(i, &p);
 					}
+					paintConvexHulls_(i, &p);
 				}
 			}
 		}
@@ -1083,22 +1136,34 @@ namespace OpenMS
 		PointType new_pos = pos;
 	 
 		// adjust new width (we don't want it bigger than the complete area covered by the QuadTree)
-		if (new_width >= trees_[current_data_]->getArea().width()) new_width = trees_[current_data_]->getArea().width();
-		if (new_height >= trees_[current_data_]->getArea().height()) new_height = trees_[current_data_]->getArea().height();
+		if (getCurrentDataType()==DT_PEAK)
+		{
+			if (new_width >= trees_[current_data_]->getArea().width()) new_width = trees_[current_data_]->getArea().width();
+			if (new_height >= trees_[current_data_]->getArea().height()) new_height = trees_[current_data_]->getArea().height();
+	 	}
+	 	else
+	 	{
+			if (new_width >= feature_trees_[current_data_]->getArea().width()) new_width = feature_trees_[current_data_]->getArea().width();
+			if (new_height >= feature_trees_[current_data_]->getArea().height()) new_height = feature_trees_[current_data_]->getArea().height();
+	 	}
 	
 		float half_width = new_width / 2.0f;
 		float half_height = new_height / 2.0f;
 	
-		// calculate new position
-		if (new_pos.X() < trees_[current_data_]->getArea().minX() + half_width) 
-			new_pos.setX(trees_[current_data_]->getArea().minX() + half_width);
-		if (new_pos.Y() < trees_[current_data_]->getArea().minY() + half_height) 
-			new_pos.setY(trees_[current_data_]->getArea().minY() + half_height);
-		if (new_pos.X() > trees_[current_data_]->getArea().maxX() - half_width) 
-			new_pos.setX(trees_[current_data_]->getArea().maxX() - half_width);
-		if (new_pos.Y() > trees_[current_data_]->getArea().maxY() - half_height) 
-			new_pos.setY(trees_[current_data_]->getArea().maxY() - half_height);
-	
+		if (getCurrentDataType()==DT_PEAK)
+		{
+			if (new_pos.X() < trees_[current_data_]->getArea().minX() + half_width)   new_pos.setX(trees_[current_data_]->getArea().minX() + half_width);
+			if (new_pos.Y() < trees_[current_data_]->getArea().minY() + half_height)  new_pos.setY(trees_[current_data_]->getArea().minY() + half_height);
+			if (new_pos.X() > trees_[current_data_]->getArea().maxX() - half_width)   new_pos.setX(trees_[current_data_]->getArea().maxX() - half_width);
+			if (new_pos.Y() > trees_[current_data_]->getArea().maxY() - half_height)  new_pos.setY(trees_[current_data_]->getArea().maxY() - half_height);
+	 	}
+	 	else
+	 	{
+			if (new_pos.X() < feature_trees_[current_data_]->getArea().minX() + half_width)   new_pos.setX(feature_trees_[current_data_]->getArea().minX() + half_width);
+			if (new_pos.Y() < feature_trees_[current_data_]->getArea().minY() + half_height)  new_pos.setY(feature_trees_[current_data_]->getArea().minY() + half_height);
+			if (new_pos.X() > feature_trees_[current_data_]->getArea().maxX() - half_width)   new_pos.setX(feature_trees_[current_data_]->getArea().maxX() - half_width);
+			if (new_pos.Y() > feature_trees_[current_data_]->getArea().maxY() - half_height)  new_pos.setY(feature_trees_[current_data_]->getArea().maxY() - half_height);
+	 	}
 		// set visible area accordingly and redraw
 		changeVisibleArea_(AreaType(new_pos.X() - half_width, new_pos.Y() - half_height, new_pos.X() + half_width, new_pos.Y() + half_height), add_to_stack);
 	}
@@ -1117,38 +1182,11 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::intensityDistributionChange_()
 	{
-		emit sendStatusMessage("reconstructing quad trees", 0);
-	
-		QuadTreeType_* new_tree = new QuadTreeType_(visible_area_);
-		for (ExperimentType::Iterator exp_it = currentDataSet().begin(); exp_it != currentDataSet().end(); ++exp_it)
-		{
-			if (exp_it->getMSLevel()!=1)
-			{
-				continue;
-			}
-			for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
-			{
-				if (i->getIntensity() >= getMinDispInt() && i->getIntensity() <= getMaxDispInt())
-				{
-					try
-					{
-						new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));  
-					}
-					catch (Exception::IllegalTreeOperation& e)
-					{
-						// removes problems with identical peak positions
-					}   
-				}
-			}
-		}
-	  
-		delete trees_[current_data_];
-		trees_[current_data_] = new_tree;
+		reconstructQuadtree_(current_data_, visible_area_);
 	
 		recalculate_ = true;
 		invalidate_();
-		emit sendStatusMessage("", 0);
-		emit visibleAreaChanged(visible_area_);
+		emit visibleAreaChanged(visible_area_); //??????
 	}
 	
 	void Spectrum2DCanvas::intensityModeChange_()
@@ -1310,94 +1348,47 @@ namespace OpenMS
 		
 		//add quadtree
 		trees_.push_back(0);
-
+		feature_trees_.push_back(0);
+		emit sendStatusMessage("constructing quad tree",0);
+		
 		if (type_.back()==DT_FEATURE) //Feature data
 		{
-			//disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
+			currentFeatureMap_().updateRanges();
+			disp_ints_.push_back(pair<float,float>(0.0,currentFeatureMap().getMaxInt()));
 		}
 		else //peak data
 		{
-			currentDataSet().updateRanges(1);
-			
-			//if there are spectra with MS-level 1
-			if (std::find(currentDataSet().getMSLevels().begin(), currentDataSet().getMSLevels().end(),UnsignedInt(1))!=currentDataSet().getMSLevels().end())
+			currentDataSet_().updateRanges(1);
+			disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
+			recalculate_ = true;
+		}
+				
+		//overall values update
+		updateRanges_(current_data_,0,1,2);
+				
+		AreaType tmp_area;
+		tmp_area.assign(overall_data_range_);
+				
+		if (tmp_area != visible_area_)
+		{		
+			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 			{
-				recalculate_ = true;
-				emit sendStatusMessage("constructing quad tree",0);
+				reconstructQuadtree_(data_set, tmp_area, true);
+			}
+		}
+		else
+		{
+			intensityDistributionChange_(); //????
+		}
 				
-				//intensity range
-				disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
-				
-				//overall values
-				updateRanges_(current_data_,0,1,2);
-				
-				//cout<<"dataset boudaries MZ: "<< currentDataSet().getMinMZ() << " " << currentDataSet().getMaxMZ() << " RT: " << currentDataSet().getMinRT() << " " << currentDataSet().getMaxRT() << endl;
-				//cout<<"Overall new boudaries MZ: "<< overall_data_range_ << endl;
-				
-				AreaType tmp_area;
-				tmp_area.assign(overall_data_range_);
-				
-				if (tmp_area != visible_area_)
-				{		
-					bool insertion_error = false;
-					
-					for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
-					{
-						QuadTreeType_* new_tree = new QuadTreeType_(tmp_area);
+		intensityModeChange_();
 		
-						for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
-						{
-							if (exp_it->getMSLevel()!=1)
-							{
-								continue;
-							}
-							//cout << endl << endl << "new Spectrum Peaks: " << exp_it->size() << endl;
-							for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
-							{
-								//cout << endl << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
-								if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
-								{
-									try
-									{
-										new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));      
-									}
-									catch (Exception::IllegalTreeOperation& e)
-									{
-										// removes problems with identical peak positions
-										insertion_error = true;
-									}
-								}
-							}
-						}
-						
-						delete trees_[data_set];
-						trees_[data_set] = new_tree;
-					}
-					if (insertion_error)
-					{
-						cout << "Warning: Multiple identical peak positions in one data set!" << endl;
-					}
-					//cout << "Peaks added!" << endl;
-				}
-				else
-				{
-					intensityDistributionChange_();
-				}
-				
-				intensityModeChange_();
-				emit sendStatusMessage("",0);
-			}
-			else
-			{
-				// create empty tree for empty data sets
-				trees_[trees_.size()-1] = new QuadTreeType_(AreaType(0, 0, 0, 0));
-			}
-		  setCursor(Qt::ArrowCursor);
-			
-			emit layerActivated(this);
-	
-			resetZoom();
-		} //peak data
+		emit sendStatusMessage("",0);
+		setCursor(Qt::ArrowCursor);
+		
+		emit layerActivated(this);
+		
+		resetZoom();
 		
 		return current_data_;
 	}
@@ -1413,9 +1404,12 @@ namespace OpenMS
 		datasets_.erase(datasets_.begin()+data_set);
 		features_.erase(features_.begin()+data_set);
 		type_.erase(type_.begin()+data_set);
+		
 		delete trees_[data_set];
 		trees_.erase(trees_.begin()+data_set);
-	
+		delete feature_trees_[data_set];
+		feature_trees_.erase(feature_trees_.begin()+data_set);
+		
 		//remove settings
 		layer_visible_.erase(layer_visible_.begin()+data_set);
 		show_contours_.erase(show_contours_.begin()+data_set);
@@ -1436,37 +1430,10 @@ namespace OpenMS
 			
 			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
 			{
-				QuadTreeType_* new_tree = new QuadTreeType_(visible_area_);		
-				//cout << endl << endl << "new Experiment (Spectra: " << getDataSet(data_set).size() << ")" << endl;
-				for (ExperimentType::Iterator exp_it = getDataSet(data_set).begin(); exp_it != getDataSet(data_set).end(); ++exp_it)
-				{
-					if (exp_it->getMSLevel()!=1)
-					{
-						continue;
-					}
-					//cout << endl << "new Spectrum (Peaks: " << exp_it->size() << ")" << endl;
-					for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
-					{
-						//cout << "Peak (RT: " << exp_it->getRetentionTime() << " MZ: " << i->getPosition()[0] << ")" << endl;
-						if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
-						{
-							try
-							{
-								new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));        
-							}
-							catch (Exception::IllegalTreeOperation& e)
-							{
-								// removes problems with identical peak positions
-							}   
-						}
-					}
-				}
-				delete trees_[data_set];
-				trees_[data_set] = new_tree;
+				reconstructQuadtree_(data_set,visible_area_);
 			}
 		}
 		intensityModeChange_();
-		emit sendStatusMessage("",0);
 	
 		//update current data set
 		if (current_data_ >= getDataSetCount())
@@ -1511,15 +1478,28 @@ namespace OpenMS
 		if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UnsignedInt i=0; i<trees_.size(); i++)
+			for (UnsignedInt i=0; i<getDataSetCount(); i++)
 			{
 				if (layer_visible_[i])
 				{
-					for (QuadTreeType_::Iterator it = trees_[i]->begin(visible_area_); it != trees_[i]->end(); ++it)
+					if (type_[i]==DT_PEAK)
 					{
-						if (it->second->getIntensity() > local_max)
+						for (QuadTreeType_::Iterator it = trees_[i]->begin(visible_area_); it != trees_[i]->end(); ++it)
 						{
-							local_max = it->second->getIntensity();
+							if (it->second->getIntensity() > local_max)
+							{
+								local_max = it->second->getIntensity();
+							}
+						}
+					}
+					else
+					{
+						for (FeatureQuadTreeType_::Iterator it = feature_trees_[i]->begin(visible_area_); it != feature_trees_[i]->end(); ++it)
+						{
+							if (it->second->getIntensity() > local_max)
+							{
+								local_max = it->second->getIntensity();
+							}
 						}
 					}
 				}
@@ -1588,5 +1568,67 @@ namespace OpenMS
 		}
 	}
 	
+	void Spectrum2DCanvas::reconstructQuadtree_(UnsignedInt data_set, const AreaType& new_area, bool warn_on_identical_position)
+	{
+		bool insertion_error = false;
+		
+		if (type_[data_set]==DT_PEAK)
+		{
+			QuadTreeType_* new_tree = new QuadTreeType_(new_area);
+					
+			for (ExperimentType::Iterator exp_it = getDataSet_(data_set).begin(); exp_it != getDataSet_(data_set).end(); ++exp_it)
+			{
+				if (exp_it->getMSLevel()!=1)
+				{
+					continue;
+				}
+				for (SpectrumIteratorType i = exp_it->begin(); i != exp_it->end(); ++i)
+				{
+					if (i->getIntensity() >= disp_ints_[data_set].first && i->getIntensity() <= disp_ints_[data_set].second)
+					{
+						try
+						{
+							new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));      
+						}
+						catch (Exception::IllegalTreeOperation& e)
+						{
+							insertion_error = true;
+						}
+					}
+				}
+			}
+
+			delete trees_[data_set];
+			trees_[data_set] = new_tree;
+		}
+		else
+		{
+			FeatureQuadTreeType_* new_tree = new FeatureQuadTreeType_(new_area);
+			
+			for (FeatureMapType::Iterator it = features_[data_set].begin(); it != features_[data_set].end(); ++it)
+			{
+				if (it->getIntensity() >= disp_ints_[data_set].first && it->getIntensity() <= disp_ints_[data_set].second)
+				{
+					try
+					{
+						new_tree->insert(PointType(it->getPosition()[1],it->getPosition()[0]), &(*it));      
+					}
+					catch (Exception::IllegalTreeOperation& e)
+					{
+						insertion_error = true;
+					}
+				}
+			}
+
+			delete feature_trees_[data_set];
+			feature_trees_[data_set] = new_tree;
+		}
+
+		if (insertion_error && warn_on_identical_position)
+		{
+			cout << "Warning: Multiple identical peak positions in one data set!" << endl;
+		}
+	}
+
 } //namespace
 

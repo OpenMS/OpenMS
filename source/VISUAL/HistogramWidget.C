@@ -224,7 +224,7 @@ void HistogramWidget::invalidate_()
 	for (UnsignedInt i=0; i<dist_.size();++i)
 	{
 		UnsignedInt p = UnsignedInt((double(i)/(dist_.size()-1))*(w-margin_));
-		UnsignedInt top = UnsignedInt((double(dist_.bin(i))/dist_.maxValue())*(h-margin_));
+		UnsignedInt top = UnsignedInt((double(dist_[i])/dist_.maxValue())*(h-margin_));
 		painter.drawLine(p+1,h,p+1,h-top);
 	}
 
@@ -232,7 +232,7 @@ void HistogramWidget::invalidate_()
 	double total_sum=0;
 	for (UnsignedInt i=0; i<dist_.size();++i)
 	{
-		total_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_.bin(i);
+		total_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_[i];
 	}	
 
 	// draw part of total intensity
@@ -242,7 +242,7 @@ void HistogramWidget::invalidate_()
 	double int_sum=0;
 	for (UnsignedInt i=0; i<dist_.size();++i)
 	{
-		int_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_.bin(i);
+		int_sum += dist_.min()+(i+0.5)*dist_.binSize() * dist_[i];
 		point.setX(UnsignedInt((double(i)/(dist_.size()-1))*(w-margin_)));
 		point.setY(UnsignedInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 		painter.drawLine(last_point,point);

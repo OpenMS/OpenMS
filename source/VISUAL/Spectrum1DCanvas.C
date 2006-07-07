@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum1DCanvas.C,v 1.53 2006/06/09 22:00:08 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -61,9 +59,9 @@ namespace OpenMS
 		current_data_ = data_set;
 			
 		// no peak is selected
-		nearest_peak_ = currentDataSet()[0].end();
+		nearest_peak_ = currentDataSet_()[0].end();
 		selected_peaks_.clear();
-		selected_peaks_.push_back(currentDataSet()[0].begin());
+		selected_peaks_.push_back(currentDataSet_()[0].begin());
 		
 		emit layerActivated(this);
 	}
@@ -195,7 +193,7 @@ namespace OpenMS
 					emit contextMenu(e->globalPos());
 				}
 				// Peak selection
-				else if (nearest_peak_ != currentDataSet()[0].end())
+				else if (nearest_peak_ != currentDataSet_()[0].end())
 				{
 					if (!nearest_peak_->metaValueExists(4) || (UnsignedInt)(nearest_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
 					{
@@ -306,7 +304,7 @@ namespace OpenMS
 		if (e->button() == LeftButton && action_mode_ == AM_SELECT)
 		{
 			SpectrumIteratorType i = findPeakAtPosition(e->pos());
-			if (i != currentDataSet()[0].end())
+			if (i != currentDataSet_()[0].end())
 			{
 				i->metaRegistry().registerName("extended_label","","");
 				if (i->metaValueExists("extended_label"))
@@ -444,7 +442,7 @@ namespace OpenMS
 		if (left_it == right_it)
 		{
 		//	cout << "case 0: no peak" << endl;	// debug code
-			return currentDataSet()[0].end();  // both are equal => no peak falls into this interval
+			return currentDataSet_()[0].end();  // both are equal => no peak falls into this interval
 		}
 	
 		if (left_it == right_it-1 )
@@ -529,8 +527,8 @@ namespace OpenMS
 		visible_end_.clear();
 		for (UnsignedInt index=0; index < getDataSetCount(); ++index)
 		{
-			visible_begin_.push_back(getDataSet(index)[0].begin());
-			visible_end_.push_back(getDataSet(index)[0].end());
+			visible_begin_.push_back(getDataSet_(index)[0].begin());
+			visible_end_.push_back(getDataSet_(index)[0].end());
 		}
 	
 		//update current data set
@@ -670,12 +668,12 @@ namespace OpenMS
 		if (visible_begin_[index]==visible_end_[index])
 		{
 			// check cases where no peak at all is visible
-			if (visible_begin_[index] == getDataSet(index)[0].end()) 
+			if (visible_begin_[index] == getDataSet_(index)[0].end()) 
 			{
 				painter_.restore();
 				return;
 			}
-			if (visible_end_[index] == getDataSet(index)[0].begin())
+			if (visible_end_[index] == getDataSet_(index)[0].begin())
 			{
 				painter_.restore();
 				return;
@@ -739,13 +737,13 @@ namespace OpenMS
 		}
 	
 		// clipping on left side
-		if (visible_begin_[index] > getDataSet(index)[0].begin())
+		if (visible_begin_[index] > getDataSet_(index)[0].begin())
 		{
 			painter_.drawLine(dataToWidget_(*(visible_begin_[index]-1)), dataToWidget_(*(visible_begin_[index])));
 		}
 	
 		// clipping on right side
-		if (visible_end_[index] < getDataSet(index)[0].end())
+		if (visible_end_[index] < getDataSet_(index)[0].end())
 		{
 			painter_.drawLine( dataToWidget_(*(visible_end_[index]-1)), dataToWidget_(*(visible_end_[index])));
 		}
@@ -826,8 +824,8 @@ namespace OpenMS
 			// get iterators on peaks that outline the visible area
 			for (UnsignedInt i=0; i<getDataSetCount();++i)
 			{
-				visible_begin_[i] = getDataSet(i)[0].MZBegin(new_area.minX());
-				visible_end_[i]   = getDataSet(i)[0].MZBegin(new_area.maxX());
+				visible_begin_[i] = getDataSet_(i)[0].MZBegin(new_area.minX());
+				visible_end_[i]   = getDataSet_(i)[0].MZBegin(new_area.maxX());
 			}
 			
 			if (action_mode_ != AM_SELECT)
@@ -854,7 +852,7 @@ namespace OpenMS
 		//to also have the last peak of the spectrum as border: add the peak BEFORE currentDataSet()[0].end()
 		if (!currentDataSet()[0].empty())
 		{
-			result.push_back((currentDataSet()[0].end() - 1));
+			result.push_back((currentDataSet_()[0].end() - 1));
 		}
 	
 		return result; 
@@ -868,7 +866,7 @@ namespace OpenMS
 	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_data_ = getDataSetCount()-1;
-		currentDataSet().updateRanges();
+		currentDataSet_().updateRanges();
 		
 		if (currentDataSet().size()==0 || currentDataSet().getSize()==0)
 		{
@@ -881,8 +879,8 @@ namespace OpenMS
 		disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
 	
 		//add new values to visible_begin_ and visible_end_
-		visible_begin_.push_back(currentDataSet()[0].begin());
-		visible_end_.push_back(currentDataSet()[0].end());
+		visible_begin_.push_back(currentDataSet_()[0].begin());
+		visible_end_.push_back(currentDataSet_()[0].end());
 	
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
@@ -891,7 +889,7 @@ namespace OpenMS
 		layer_visible_.push_back(true);
 	
 		// sort peaks in accending order of position
-		currentDataSet()[0].getContainer().sortByPosition();
+		currentDataSet_()[0].getContainer().sortByPosition();
 		
 		//update ranges
 		recalculateRanges_(0,2,1);

@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Histogram.h,v 1.9 2006/06/08 15:51:32 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -54,7 +52,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		template < typename T = UnsignedInt, typename BinSizeType = float>
+		template < typename ValueType = UnsignedInt, typename BinSizeType = float>
 		class Histogram
 		{
 		 public:
@@ -62,12 +60,8 @@ namespace OpenMS
 			/** @name Typedefs
 			 */
 			//@{
-			typedef T ValueType;
 			typedef BinSizeType BinType;
-			typedef typename std::vector<T>::const_iterator ConstIterator;
-			typedef typename std::vector<T>::const_iterator const_iterator;
-			typedef typename std::vector<T>::iterator Iterator;
-			typedef typename std::vector<T>::iterator iterator;
+			typedef typename std::vector<ValueType>::const_iterator ConstIterator;
 			//@}
 	
 			/** @name Constructors and Destructors
@@ -105,17 +99,17 @@ namespace OpenMS
 					// if max_ == min_ there is only one bin
 					if (max_ != min_)
 					{
-						bins_ = std::vector<T>(UnsignedInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
+						bins_ = std::vector<ValueType>(UnsignedInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
 					}
 					else
 					{
-						bins_ = std::vector<T>(1, 0);
+						bins_ = std::vector<ValueType>(1, 0);
 					}
 				}
 			}
 	
 			///destructor
-			virtual ~Histogram()
+			~Histogram()
 			{
 			}
 			//@}
@@ -136,31 +130,15 @@ namespace OpenMS
 			}
 	
 			///returns the highest value of all bins
-			T maxValue() const
+			ValueType maxValue() const
 			{
-				T max = std::numeric_limits<T>::min();
-				for (Size i=0;i!=bins_.size();++i)
-				{
-					if (bins_[i] > max)
-					{
-						max = bins_[i];
-					}
-				}
-				return max;
+				return *(std::max_element(bins_.begin(), bins_.end()));
 			}
 	
 			///returns the lowest value of all bins
-			T minValue() const
+			ValueType minValue() const
 			{
-				T min = std::numeric_limits<T>::max();
-				for (Size i=0;i!=bins_.size();++i)
-				{
-					if (bins_[i] < min)
-					{
-						min = bins_[i];
-					}
-				}
-				return min;
+				return *(std::min_element(bins_.begin(), bins_.end()));
 			}
 	
 			///returns the bin size
@@ -174,36 +152,9 @@ namespace OpenMS
 			{
 				return bins_.size();
 			}
-	
-			///returns the value of bin <i>index</i>
-			T bin(UnsignedInt index) const throw(Exception::IndexOverflow)
-			{
-				if (index>=bins_.size())
-				{
-					throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-	
-				return bins_[index];
-			}
-	
-			///returns the value of bin <i>index</i>
-			T bin(SignedInt index) const throw(Exception::IndexOverflow,Exception::IndexUnderflow)
-			{
-				if (index < 0)
-				{
-					throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				else
-				{
-					if ((UnsignedInt)index >= bins_.size())
-					{
-						throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-					}
-				}
-				return binValue((UnsignedInt)index);
-			}
-	
-			T operator [] (UnsignedInt index) const throw(Exception::IndexOverflow)
+			
+			///returns the value of bin @p index
+			ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow)
 			{
 				if (index >= bins_.size())
 				{
@@ -212,43 +163,16 @@ namespace OpenMS
 				return bins_[index];
 			}
 	
-			T operator [] (SignedInt index) const throw(Exception::IndexOverflow, Exception::IndexUnderflow)
+			///returns the value of bin corresponding to the value @p val
+			ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)
 			{
-				if (index < 0)
-				{
-					throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				else
-				{
-					if ((UnsignedInt)index >= bins_.size())
-					{
-						throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-					}
-				}
-				return bins_[(UnsignedInt)index];
+					return bins_[valToBin_(val)];
 			}
 	
-			///returns the value of bin corresponding to the value <i>val</i>
-			T binValue(BinSizeType val) const throw(Exception::OutOfRange)
+			///increases the bin corresponding to value @p val by @p increment
+			void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRange)
 			{
-				if (val < min_ || val > max_)
-				{
-					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				return bins_[UnsignedInt((val-min_)/bin_size_)];
-			}
-	
-			///increases the bin corresponding to value <i>val</i> by <i>increment</i> and returns the value of the bin
-			T inc(BinSizeType val, T increment=1) throw(Exception::OutOfRange)
-			{
-				if (val < min_ || val > max_)
-				{
-					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				else
-				{
-					return (bins_[UnsignedInt(ceil((double(val)-double(min_))/double(bin_size_)))]+=increment);
-				}
+			  bins_[valToBin_(val)]+=increment;
 			}
 	
 			///resets the histogram to the given values (can be used with the default constructur)
@@ -263,11 +187,9 @@ namespace OpenMS
 					min_ = min;
 					max_ = max;
 					bin_size_ = bin_size;
-					// (cg) 2005-04-01 suggest the following:
-					// bins_.clear();
-					// bins_.resize(UnsignedInt(ceil((max_-min_)/bin_size_)),0);
-					// (cg) 2005-04-01 instead of this:
-					bins_ = std::vector<T>(UnsignedInt(ceil((max_-min_)/bin_size_)),0);
+					
+					bins_.clear();
+					bins_.resize(UnsignedInt(ceil((max_-min_)/bin_size_)),0);
 				}
 			}
 			//@}
@@ -287,10 +209,7 @@ namespace OpenMS
 			/// inequality operator
 			bool operator != (const Histogram& histogram) const
 			{
-				return (min_ != histogram.min_ ||
-								max_ != histogram.max_ ||
-								bin_size_ != histogram.bin_size_ ||
-								bins_ != histogram.bins_);
+				return !operator==(histogram);
 			}
 			//@}
 	
@@ -298,10 +217,13 @@ namespace OpenMS
 			 */
 			Histogram& operator = (const Histogram& histogram)
 			{
+				if (&histogram == this) return *this;
+				
 				min_ = histogram.min_;
 				max_ = histogram.max_;
 				bin_size_ = histogram.bin_size_;
 				bins_ = histogram.bins_;
+				
 				return *this;
 			}
 			//@}
@@ -314,23 +236,33 @@ namespace OpenMS
 	
 			/// constant iterator pointing to one position behind the max value of the histogram
 			inline ConstIterator end() const { return bins_.end(); }
-	
-			/// non-constant iterator pointing to the min value of the histogram
-			inline Iterator begin() { return bins_.begin(); }
-	
-			/// non-constant iterator pointing to one position behind the max value of the histogram
-			inline Iterator end() { return bins_.end(); }
 			//@}
 	
 		 protected:
-	
+			/// Lower bound
 			BinSizeType min_;
-	
+			/// Upper bound
 			BinSizeType max_;
-	
+			/// Bin size
 			BinSizeType bin_size_;
-	
-			std::vector<T> bins_;
+			/// Vector of bins
+			std::vector<ValueType> bins_;
+			///
+			UnsignedInt valToBin_(BinSizeType val) const throw (Exception::OutOfRange)
+			{
+				if (val < min_ || val > max_)
+				{
+					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+				}
+				if (val == max_)
+				{
+					return (bins_.size()-1);
+				}
+				else
+				{
+					return (UnsignedInt) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
+				}				
+			}
 		};
 
 } // namespace Math

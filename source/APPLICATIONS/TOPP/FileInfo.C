@@ -49,6 +49,8 @@ using namespace std;
 	
 	@todo determine if raw or picked data is contained (Marc)
 	
+	@todo add Features (Marc)
+	
 	@ingroup TOPP
 */
 

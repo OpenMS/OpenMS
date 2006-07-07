@@ -20,8 +20,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SpectrumCanvas.h,v 1.35 2006/06/08 14:29:18 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -87,6 +85,8 @@ namespace OpenMS
 		typedef SpectrumType::Iterator SpectrumIteratorType;
 		/// Peak type
 		typedef SpectrumType::PeakType PeakType;
+		/// Feature type
+		typedef FeatureMapType::FeatureType FeatureType;
 
     ///Type of the Points
 		typedef DPosition<2> PointType;
@@ -288,17 +288,16 @@ namespace OpenMS
 			@note see changeVisibility(int,bool) as well.
 		*/
 		//@{	
-		
+		/// Returns the data type of the current dataset
+		DataType getCurrentDataType() const;
 		/// Returns the number of datasets
 		UnsignedInt getDataSetCount() const;
-		/// Returns the @p index'th dataset (mutable)
-		ExperimentType& getDataSet(UnsignedInt index) throw (Exception::IndexOverflow);
 		/// Returns the @p index'th dataset (not mutable)
 		const ExperimentType& getDataSet(UnsignedInt index) const throw (Exception::IndexOverflow);
-		/// Returns the active dataset (mutable)
-		ExperimentType& currentDataSet() throw (Exception::IndexOverflow);
 		/// Returns the active dataset (not mutable)
 		const ExperimentType& currentDataSet() const throw (Exception::IndexOverflow);
+		/// Returns the active dataset of feature (not mutable)
+		const FeatureMapType& currentFeatureMap() const throw (Exception::IndexOverflow);
 		/// Returns the name associated with dataset @p index
 		const String& getDataSetName(UnsignedInt index) const;		
 		/// Returns true if dataset @p index is visible. false otherwise
@@ -345,13 +344,27 @@ namespace OpenMS
 		/// Returns the minimum intensity of the active spectrum
 		inline double getCurrentMinIntensity() const 
 		{ 
-			return currentDataSet().getMinInt(); 
+			if (getCurrentDataType()==DT_PEAK)
+			{
+				return currentDataSet().getMinInt(); 
+			}
+			else
+			{
+				return currentFeatureMap().getMinInt(); 
+			}
 		}
 
 		/// Returns the maximum intensity of the active spectrum
 		inline double getCurrentMaxIntensity() const 
 		{ 
-			return currentDataSet().getMaxInt(); 
+			if (getCurrentDataType()==DT_PEAK)
+			{
+				return currentDataSet().getMaxInt(); 
+			}
+			else
+			{
+				return currentFeatureMap().getMaxInt(); 
+			}
 		}
 
 		/**
@@ -458,7 +471,14 @@ namespace OpenMS
 		/// Triggers the update of the horizontal scrollbar
 		void updateHScrollbar(float,float,float,float);
 	protected:
-		
+
+		/// Returns the @p index'th dataset (mutable)
+		ExperimentType& getDataSet_(UnsignedInt index) throw (Exception::IndexOverflow);
+		/// Returns the active dataset (mutable)
+		ExperimentType& currentDataSet_() throw (Exception::IndexOverflow);
+		/// Returns the active dataset of feature (mutable)
+		FeatureMapType& currentFeatureMap_() throw (Exception::IndexOverflow);
+				
 		/**
 			@brief QT resize event of the widget
 			

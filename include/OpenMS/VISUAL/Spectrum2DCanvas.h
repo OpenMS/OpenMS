@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum2DCanvas.h,v 1.39 2006/06/08 15:51:32 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -267,6 +265,14 @@ namespace OpenMS
 			@param p The QPainter to paint on.
 		*/
 		void paintSurface_(UnsignedInt data_set, QPainter* p);
+
+		/**
+			@brief Paints convex hulls of features.
+			
+			@param data_set The index of the dataset.
+			@param p The QPainter to paint on.
+		*/
+		void paintConvexHulls_(UnsignedInt data_set, QPainter* p);
 		
 		// Docu in base class
 		virtual void intensityModeChange_();
@@ -284,14 +290,16 @@ namespace OpenMS
 		
 		typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
 		
-		// zooms around position pos with factor.
+		typedef QuadTree<KernelTraits, FeatureType > FeatureQuadTreeType_;
+		
+		/// zooms around position pos with factor.
 		void zoom_(const PointType& pos, float factor, bool add_to_stack = false);
-		// zooms in around position pos with a fixed factor.
+		/// zooms in around position pos with a fixed factor.
 		void zoomIn_(const PointType& pos);
-		// zooms out around position pos with a fixed factor.
+		/// zooms out around position pos with a fixed factor.
 		void zoomOut_(const PointType& pos);
 		
-		// interpolation helper function
+		/// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);
 		/**
 			@brief Returns the color associated with @p val for the gradient @p gradient.
@@ -314,12 +322,23 @@ namespace OpenMS
 		DPeak<2>* findNearestPeak_(QPoint pos);
 		
 		/**
-			@brief This quad tree stores the peaks which are actually shown. 
+			@brief This quad tree stores the peaks which are actually shown (for peaks). 
 			
 			It's a pointer since the constructor of a QuadTree needs the bounding area
 		  of all points ever inserted, and this area is not known in the Spectrum2DCanvas constructor.
 		*/
 		std::vector<QuadTreeType_*> trees_;
+
+		/**
+			@brief This quad tree stores the peaks which are actually shown (for features). 
+			
+			It's a pointer since the constructor of a QuadTree needs the bounding area
+		  of all points ever inserted, and this area is not known in the Spectrum2DCanvas constructor.
+		*/
+		std::vector<FeatureQuadTreeType_*> feature_trees_;
+		
+		/// Rebuilts the quadtree corresponding to dataset @p data_set with the new area @p new_area
+		void reconstructQuadtree_(UnsignedInt data_set, const AreaType& new_area, bool warn_on_identical_position = false);
 		
 		/// marching squares matrices for the datasets
 		std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;

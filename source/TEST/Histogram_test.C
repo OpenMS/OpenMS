@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Histogram_test.C,v 1.3 2006/03/28 08:03:34 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -78,28 +76,90 @@ CHECK( size() )
 	TEST_EQUAL(d.size(), 10)
 RESULT
 
-CHECK( inc(double val, double inrement) )
-	d.inc(5, 250.3);
-	TEST_REAL_EQUAL(d.maxValue(), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.inc(10.1, 250.3))
-RESULT
-
 CHECK( minValue() )
 	TEST_REAL_EQUAL(d.minValue(), 0.0)
 RESULT
 
 CHECK( maxValue() )
-	TEST_REAL_EQUAL(d.maxValue(), 250.3)
+	TEST_REAL_EQUAL(d.maxValue(), 0.0)
 RESULT
 
-CHECK( binValue(UnsignedInt index) )
-	TEST_REAL_EQUAL(d.binValue(UnsignedInt(5)), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(UnsignedInt(11)))
+CHECK(ValueType operator [] (UnsignedInt index) const throw(Exception::IndexOverflow))
+	d.set(4, 14, 2);
+	TEST_EQUAL(d.size(),5);
+	TEST_REAL_EQUAL(d[0],0.0);
+	TEST_REAL_EQUAL(d[1],0.0);
+	TEST_REAL_EQUAL(d[2],0.0);
+	TEST_REAL_EQUAL(d[3],0.0);
+	TEST_REAL_EQUAL(d[4],0.0);
+	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 RESULT
+
+CHECK( inc(double val, double inrement) )
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
+	d.inc(4, 1.0);
+	d.inc(5.9, 1.0);
+	TEST_REAL_EQUAL(d[0],2.0);
+	TEST_REAL_EQUAL(d[1],0.0);
+	TEST_REAL_EQUAL(d[2],0.0);
+	TEST_REAL_EQUAL(d[3],0.0);
+	TEST_REAL_EQUAL(d[4],0.0);
 	
+	d.inc(8.0, 45.0);
+	d.inc(8.1, 1.0);
+	d.inc(9.9, 4.0);
+
+	TEST_REAL_EQUAL(d[0],2.0);
+	TEST_REAL_EQUAL(d[1],0.0);
+	TEST_REAL_EQUAL(d[2],50.0);
+	TEST_REAL_EQUAL(d[3],0.0);
+	TEST_REAL_EQUAL(d[4],0.0);
+
+	d.inc(12.0, 1.0);
+	d.inc(13.1, 2.0);
+	d.inc(14.0, 3.0);	
+
+	TEST_REAL_EQUAL(d[0],2.0);
+	TEST_REAL_EQUAL(d[1],0.0);
+	TEST_REAL_EQUAL(d[2],50.0);
+	TEST_REAL_EQUAL(d[3],0.0);
+	TEST_REAL_EQUAL(d[4],6.0);
+RESULT
+
+CHECK( ConstIterator begin() const { return bins_.begin(); })
+	Histogram<float,float>::ConstIterator it = d.begin();
+	TEST_REAL_EQUAL(*it, 2.0)
+RESULT
+
+CHECK( ConstIterator end() const { return bins_.end(); })
+	Histogram<float,float>::ConstIterator it = d.begin();
+	TEST_REAL_EQUAL(*it,2.0);
+	++it;
+	TEST_REAL_EQUAL(*it,0.0);
+	++it;
+	TEST_REAL_EQUAL(*it,50.0);
+	++it;
+	TEST_REAL_EQUAL(*it,0.0);
+	++it;
+	TEST_REAL_EQUAL(*it,6.0);
+	++it;
+	TEST_EQUAL(it==d.end(),true);
+RESULT
+
 CHECK( binValue(double val) )
-	TEST_REAL_EQUAL(d.binValue(5.5f), 250.3)
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(10.1f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
+	TEST_REAL_EQUAL(d.binValue(4.0),2.0);
+	TEST_REAL_EQUAL(d.binValue(5.9),2.0);
+	TEST_REAL_EQUAL(d.binValue(6.0),0.0);
+	TEST_REAL_EQUAL(d.binValue(7.9),0.0);
+	TEST_REAL_EQUAL(d.binValue(8.0),50.0);
+	TEST_REAL_EQUAL(d.binValue(9.9),50.0);
+	TEST_REAL_EQUAL(d.binValue(10.0),0.0);
+	TEST_REAL_EQUAL(d.binValue(11.9),0.0);
+	TEST_REAL_EQUAL(d.binValue(12.0),6.0);
+	TEST_REAL_EQUAL(d.binValue(14.0),6.0);
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
 RESULT
 	
 CHECK( set(double min, double max, double bin_size) )
@@ -125,6 +185,7 @@ CHECK(Histogram& operator = )
 	dist = d;
 	TEST_EQUAL(d == dist, true)
 RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

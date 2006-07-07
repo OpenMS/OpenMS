@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum3DOpenGLCanvas.h,v 1.27 2006/06/09 11:47:50 cfriedle Exp $
-// $Author: cfriedle $
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
 

@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum3DCanvas.C,v 1.25 2006/06/09 11:47:50 cfriedle Exp $
-// $Author: cfriedle $
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
@@ -78,8 +76,8 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	
 	layer_visible_.push_back(true);
 	current_data_ = getDataSetCount()-1;
-	currentDataSet().sortSpectra(true);
-	currentDataSet().updateRanges(1);	
+	currentDataSet_().sortSpectra(true);
+	currentDataSet_().updateRanges(1);	
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));

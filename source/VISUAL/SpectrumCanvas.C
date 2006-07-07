@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SpectrumCanvas.C,v 1.28 2006/06/08 14:29:19 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -61,6 +59,7 @@ namespace OpenMS
 			current_data_(0),
 			spectrum_widget_(0),
 			datasets_(),
+			features_(),
 			percentage_factor_(1.0),
 			snap_factor_(1.0)
 	{
@@ -319,7 +318,14 @@ namespace OpenMS
 		{
 			return String::EMPTY;
 		}
-		return datasets_[index].getName();
+		if (type_[index] == DT_PEAK)
+		{
+			return datasets_[index].getName();
+		}
+		else
+		{
+			return features_[index].getName();
+		}
 	}
 	
 	bool SpectrumCanvas::isDataSetVisible(UnsignedInt index) const
@@ -335,7 +341,7 @@ namespace OpenMS
 		return datasets_[getDataSetCount()-1];
 	}
 
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet(UnsignedInt index) throw (Exception::IndexOverflow)
+	SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet_(UnsignedInt index) throw (Exception::IndexOverflow)
 	{
 		if (index >= getDataSetCount())
 		{
@@ -344,13 +350,31 @@ namespace OpenMS
 		return datasets_[index];
 	}
 
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::currentDataSet() throw (Exception::IndexOverflow)
+	SpectrumCanvas::ExperimentType& SpectrumCanvas::currentDataSet_() throw (Exception::IndexOverflow)
 	{
 		if (getDataSetCount()==0)
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
 		}
 		return datasets_[current_data_];
+	}
+
+	const SpectrumCanvas::FeatureMapType& SpectrumCanvas::currentFeatureMap() const throw (Exception::IndexOverflow)
+	{
+		if (getDataSetCount()==0)
+		{
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
+		}
+		return features_[current_data_];
+	}
+
+	SpectrumCanvas::FeatureMapType& SpectrumCanvas::currentFeatureMap_() throw (Exception::IndexOverflow)
+	{
+		if (getDataSetCount()==0)
+		{
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
+		}
+		return features_[current_data_];
 	}
 
 	const SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet(UnsignedInt index) const throw (Exception::IndexOverflow)
@@ -408,19 +432,33 @@ namespace OpenMS
 			return;
 		}
 		
+		
 		//update mz and RT
 		DRange<3>::PositionType min = overall_data_range_.min();
 		DRange<3>::PositionType max = overall_data_range_.max();
-		if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
-		if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
-		if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
-		if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
-		if (datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = datasets_[data_set].getMinInt();
-		if (datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = datasets_[data_set].getMaxInt();
+		
+		if (type_[data_set]==DT_PEAK)
+		{
+			if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
+			if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
+			if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
+			if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
+			if (datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = datasets_[data_set].getMinInt();
+			if (datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = datasets_[data_set].getMaxInt();
+		}
+		else
+		{
+			if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
+			if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
+			if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
+			if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
+			if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
+			if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
+		}
 		overall_data_range_.setMin(min);
 		overall_data_range_.setMax(max);
 		
-		//cout << "Update range: " << overall_data_range_ << endl;
+		//cout << "Updated range: " << overall_data_range_ << endl;
 	}
 
 	void SpectrumCanvas::resetRanges_()
@@ -464,7 +502,12 @@ namespace OpenMS
 	{
 		
 	}
-
+	
+	SpectrumCanvas::DataType SpectrumCanvas::getCurrentDataType() const
+	{
+		return type_[current_data_];
+	}
+		
 } //namespace
 
 
