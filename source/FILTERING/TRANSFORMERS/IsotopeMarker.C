@@ -28,17 +28,11 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
-
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS
 {
  
-  const String IsotopeMarker::info_ = "marks peaks which have at least [peakcount] possible isotope peaks";
-  
   IsotopeMarker::IsotopeMarker()
     : PeakMarker()
   {
@@ -65,6 +59,7 @@ namespace OpenMS
     return *this;
   }
 
+/*
   map<double,bool> IsotopeMarker::operator()(MSSpectrum< DPeak<1> >& spec)const
   {
     double mzvariation = (double)param_.getValue("mz_variation");
@@ -106,10 +101,5 @@ namespace OpenMS
     }
     return result;
   }
-
-  String IsotopeMarker::info() const
-  {
-    return info_;
-  }
-
+	*/
 }

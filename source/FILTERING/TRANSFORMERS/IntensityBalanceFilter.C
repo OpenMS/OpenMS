@@ -32,9 +32,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //const String IntensityBalanceFilter::info_ = "counts the number of peakdifferences that could result from Isotopes";
-    
-
   IntensityBalanceFilter::IntensityBalanceFilter()
     :FilterFunctor()
   { 
@@ -55,12 +52,6 @@ namespace OpenMS
   IntensityBalanceFilter::~IntensityBalanceFilter()
   {
   }
-
-	/*
-  String IntensityBalanceFilter::info() const
-  {
-    return info_;
-  }*/
 
 	/*
   vector<double> IntensityBalanceFilter::operator() (const ClusterSpectrum& cspec)

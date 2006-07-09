@@ -211,6 +211,7 @@ namespace OpenMS
 	std::ostream& operator << (std::ostream& os, const PeptideSequence& peptide);
 
 	std::istream& operator >> (std::istream& os, const PeptideSequence& peptide);
-}
+	
+} // namespace OpenMS
 
 #endif

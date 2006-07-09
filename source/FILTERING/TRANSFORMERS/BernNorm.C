@@ -31,9 +31,6 @@
 using namespace std;
 namespace OpenMS
 {
-
-  //const String BernNorm::info_ = "normalizes all peaks to range [1:0]";
-  
   BernNorm::BernNorm()
     : PreprocessingFunctor()
   {
@@ -113,11 +110,6 @@ namespace OpenMS
         ++it;
       }
     }
-  }
-
-  String BernNorm::info() const
-  {
-    return info_;
   }
 */
 }

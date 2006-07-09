@@ -101,7 +101,14 @@ namespace OpenMS
 					}
 					double mh_mass = strings[0].toDouble();
 					SignedInt charge = strings[1].toInt();
-					spectrum.getPrecursorPeak().getPosition()[0] = (mh_mass - 1.0) / charge + 1.0;
+					if (charge != 0)
+					{
+						spectrum.getPrecursorPeak().getPosition()[0] = (mh_mass - 1.0) / charge + 1.0;
+					}
+					else
+					{
+						spectrum.getPrecursorPeak().getPosition()[0] = mh_mass;
+					}
 					spectrum.getPrecursorPeak().setCharge(charge);
 				}
 				catch(...)

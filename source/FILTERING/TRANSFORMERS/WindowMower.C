@@ -31,9 +31,6 @@
 using namespace std;
 namespace OpenMS
 {
-
-  //const String WindowMower::info_ = "augments the [peakcount] highest peaks in windows of size [windowsize]";
-  
   WindowMower::WindowMower()
     : PreprocessingFunctor()
   {
@@ -57,39 +54,5 @@ namespace OpenMS
   WindowMower::~WindowMower()
   {
   }
-/*
-  void WindowMower::operator()(MSSpectrum< DPeak<1> >& spec) const
-  {
-    double windowsize = (double)param_.getValue("windowsize");
-    uint peakcount = (int)param_.getValue("peakcount");
-    map<double,double> peaksinwindow; // peakheight,pos
-    map<double,int> marks; // peaks get marked if they belong to the <peakcount> highest in the window
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); ++it)
-    {
-       peaksinwindow.clear();
-       for (uint i = 0; (it+i) != spec.end() && (it+i)->getIntensity() < it->getIntensity()+windowsize ; ++i)
-       {
-         peaksinwindow.insert(make_pair((it+i)->getIntensity(),(it+i)->getPosition()[0]));
-       }
-       map<double,double>::reverse_iterator it2 = peaksinwindow.rbegin();
-       for (uint i = 0; i < peakcount && i < peaksinwindow.size(); ++i)
-       {
-         marks[(it2++)->second]++;
-       }
-       //todo do something with the marking, maybe multiply the peaks with it
-       for (uint i = 0; i < spec.size(); ++i)
-       {
-         spec.getContainer()[i].setIntensity( spec.getContainer()[i].getIntensity() + spec.getContainer()[i].getIntensity()*marks[spec.getContainer()[i].getPosition()[0]]);
-       }
-            
-    }
-  }
-*/
-
-	/*
-  String WindowMower::info() const
-  {
-    return info_;
-  }*/
 
 }

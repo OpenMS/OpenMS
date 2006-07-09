@@ -34,9 +34,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  const String BinnedRepSumAgreeingIntensities::info_ = "sum of agreeing intensities for BinnedReps";
-  
   BinnedRepSumAgreeingIntensities::BinnedRepSumAgreeingIntensities()
   {
 		name_ = BinnedRepSumAgreeingIntensities::getName();
@@ -112,12 +109,6 @@ namespace OpenMS
     }
     return 2/(suma+sumb)*similarity * filterfactor;
   }
-
-  String BinnedRepSumAgreeingIntensities::info() const
-  {
-    return info_;
-  }
-
 
 }
 

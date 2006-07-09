@@ -37,8 +37,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //const String TICFilter::info_ = "TIC and ratio of TIC in parent ion range";
-  
   TICFilter::TICFilter()
     :FilterFunctor()
   {
@@ -63,11 +61,6 @@ namespace OpenMS
   }
 
 	/*
-  String TICFilter::info() const
-  {
-    return info_;
-  }
-
   vector<double> TICFilter::operator()(const ClusterSpectrum& cspec)
   {
     vector<double> result;

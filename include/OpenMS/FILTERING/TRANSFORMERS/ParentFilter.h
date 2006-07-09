@@ -55,8 +55,6 @@ namespace OpenMS
 
     //std::vector<double> operator()(const ClusterSpectrum& cspec);
 
-    //String info() const;
-
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 	    //vector<double> result;
@@ -82,8 +80,6 @@ namespace OpenMS
 			return "ParentFilter";
 		}
 
-  private:
-    //static const String info_;
   };
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_PARENTFILTER_H

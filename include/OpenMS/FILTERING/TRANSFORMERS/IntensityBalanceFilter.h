@@ -41,28 +41,38 @@ namespace OpenMS
 	         intensity in these regions. 
 	  
 	  The result is the intensity of the two bins with the highest intensity minus the intensity of the seven bins with lowest intensity.
+
+		@ingroup SpectraFilter
   */
   class IntensityBalanceFilter : public FilterFunctor
   {
+	
   public:
-    /// standard constructor
+		
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     IntensityBalanceFilter();
 
     /// copy constructor
     IntensityBalanceFilter(const IntensityBalanceFilter& source);
 
+		/// destructor
+		virtual ~IntensityBalanceFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
     IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source);
+		// @}
 
-    /// destructor
-    ~IntensityBalanceFilter();
-
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new IntensityBalanceFilter();}
 
-    //std::vector<double> operator()(const ClusterSpectrum& spec);
-
-    //String info() const;
-
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 			double bands = 10;
@@ -85,7 +95,7 @@ namespace OpenMS
     	double total_intensity = 0;
     	double twobiggest = 0;
     	double sevensmallest = 0;
-    	for (std::multimap<double,uint>::reverse_iterator mmrit = band_intensity.rbegin(); mmrit != band_intensity.rend(); ++mmrit,++j)
+    	for (std::multimap<double, uint>::reverse_iterator mmrit = band_intensity.rbegin(); mmrit != band_intensity.rend(); ++mmrit, ++j)
     	{
       	total_intensity += mmrit->first;
       	//take the two biggest
@@ -99,19 +109,17 @@ namespace OpenMS
         	sevensmallest += mmrit->first;
       	}
     	}
-    	//vector<double> result;
-    	//result.push_back((twobiggest - sevensmallest)/totalIntensity);
-    	return (twobiggest - sevensmallest)/total_intensity;
+
+    	return (twobiggest - sevensmallest) / total_intensity;
 		}
 
-
+		///
 		static const String getName()
 		{
 			return "IntensityBalanceFilter";
 		}
+		// @}
 
-  private:
-    //static const String info_;
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_INTENSITYBALANCEFILTER_H

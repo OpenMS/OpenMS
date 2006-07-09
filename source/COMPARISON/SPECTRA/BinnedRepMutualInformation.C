@@ -35,9 +35,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  const String BinnedRepMutualInformation::info_ = "Mutual Information";
-  
   BinnedRepMutualInformation::BinnedRepMutualInformation()
   {
 		name_ = BinnedRepMutualInformation::getName();
@@ -174,11 +171,6 @@ namespace OpenMS
       }
     }
     return result * filterfactor;
-  }
-
-  String BinnedRepMutualInformation::info() const
-  {
-    return info_;
   }
 
 }

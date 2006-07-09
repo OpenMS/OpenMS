@@ -34,16 +34,22 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
   /**
   	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed<br>
+
+		@ingroup SpectraPreprocessing
   */
   class MarkerMower : public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     MarkerMower();
 
     /// copy constructor
@@ -51,13 +57,50 @@ namespace OpenMS
 
     /// destructor
     ~MarkerMower();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     MarkerMower& operator=(const MarkerMower& source);
+		// @}
 
-    static FactoryProduct* create() { return new MarkerMower();}
-    void operator()(MSSpectrum< DPeak<1> >&) const;
-    String info() const;
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new MarkerMower(); }
+
+		///
+		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		{
+			typedef typename SpectrumType::Iterator Iterator;
+		
+			std::map<double, int> marks;
+    	for (std::vector<PeakMarker*>::const_iterator cvit = markers_.begin(); cvit != markers_.end(); ++cvit)
+    	{
+      	std::map<double, bool> marked;
+				(*cvit)->apply(marked, spectrum);
+      	for (std::map<double, bool>::const_iterator cmit = marked.begin(); cmit != marked.end(); ++cmit)
+      	{
+        	if (cmit->second) 
+					{
+						marks[cmit->first]++;
+					}
+      	}
+    	}
+
+			for (Iterator it = spectrum.begin(); it != spectrum.end(); )
+			{
+ 				if (marks[it->getPosition()[0]] > 0)
+				{
+					++it;
+				}
+				else
+				{
+					it = spectrum.getContainer().erase(it);
+				}
+			}
+		}
 
 		static const String getName()
 		{
@@ -66,11 +109,11 @@ namespace OpenMS
 
     /// insert new Marker
     void insertmarker(PeakMarker*);
-  private:
-    static const String info_;
-    /**
-    used Markers
-    */
+		// @}
+	
+	private: 
+	
+    /// used peak markers
     std::vector<PeakMarker*> markers_;
   };
 }

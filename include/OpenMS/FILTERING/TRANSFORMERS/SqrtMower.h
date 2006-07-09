@@ -30,16 +30,22 @@
 #define OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <cmath>
 
 namespace OpenMS
 {
   /**
   	@brief Scales the intensity of peaks to log(intensity)
+
+		@ingroup SpectraPreprocessing
   */
   class SqrtMower : public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     SqrtMower();
 
     /// copy constructor
@@ -47,22 +53,37 @@ namespace OpenMS
 
     /// destructor
     virtual ~SqrtMower();
+		// @}
 
-    /// assignment operator <br>*/
+		// @name Operators
+		// @{
+    /// assignment operator
     SqrtMower& operator=(const SqrtMower& source);
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new SqrtMower();}
 
-    virtual void operator()(MSSpectrum< DPeak<1> >&) const;
+		///
+		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		{
+			typedef typename SpectrumType::Iterator Iterator;
+			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			{
+				it->setIntensity(std::sqrt(it->getIntensity()));
+			}
+			return;
+		}
 
-    virtual String info() const ;
-
+		///
 		static const String getName()
 		{
 			return "SqrtMower";
 		}
-  private:
-    static const String info_;
+		// @}
+		
   };
 
 }

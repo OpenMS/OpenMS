@@ -36,15 +36,20 @@ namespace OpenMS
   /**
   	@brief ThresholdMover removes all peaks below a Threshold
   
-	  \param threshold: the threshold
+	 	@param threshold: the threshold
 	  for comparable results we suggest normalizing (for example with Normalizer) all
 	  Spectra first
+
+		@ingroup SpectraPreprocessing
   */
   class ThresholdMower
-    :public PreprocessingFunctor
+    :	public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     ThresholdMower();
 
     /// copy constructor
@@ -52,20 +57,45 @@ namespace OpenMS
 
     /// destructor
     ~ThresholdMower();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     ThresholdMower& operator=(const ThresholdMower& source);
+		// @}
 
-    static FactoryProduct* create() { return new ThresholdMower();}
-    void operator()(MSSpectrum< DPeak<1> >&) const;
-    String info() const;
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new ThresholdMower(); }
 
+		///
+		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		{
+			typedef typename SpectrumType::Iterator Iterator;
+
+			double threshold = (double)param_.getValue("threshold");
+
+			for (Iterator it = spectrum.begin(); it != spectrum.end(); )
+			{
+				if (it->getIntensity() < threshold)
+				{
+					it = spectrum.getContainer().erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
+		}
+
+		/// 
 		static const String getName()
 		{
 			return "ThresholdMower";
 		}
-  private:
-    static const String info_;
+		// @}
   };
 
 }

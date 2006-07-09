@@ -39,6 +39,14 @@
 namespace OpenMS
 {
   /**
+		@defgroup PeakMarker Peak Marker
+
+		@ingroup Filtering
+	*/
+
+	/**
+		@ingroup PeakMarker
+	
   	@brief PeakMarker marks peaks that seem to fulfil some criterion
   */
   class PeakMarker
@@ -52,11 +60,13 @@ namespace OpenMS
     PeakMarker(const PeakMarker& source);
 
     /// destructor
-    virtual ~PeakMarker() {}
+    virtual ~PeakMarker();
 
     /// assignment operator
-    PeakMarker& operator=(const PeakMarker& source);
-    virtual std::map<double,bool> operator()( MSSpectrum< DPeak<1> >&) const = 0;
+    PeakMarker& operator = (const PeakMarker& source);
+
+		/// method to mark peaks, which are with their positions in @param marked afterwards
+		template <typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum) = 0;
   };
 
 }

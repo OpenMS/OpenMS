@@ -82,10 +82,4 @@ namespace OpenMS
     }
   }
 */
-/*
-  String Normalizer::info() const
-  {
-    return info_;
-  }
-*/
 }

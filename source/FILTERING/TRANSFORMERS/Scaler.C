@@ -31,9 +31,6 @@
 using namespace std;
 namespace OpenMS
 {
-
-  //const String Scaler::info_ = "Scales the peaks";
-  
   Scaler::Scaler()
     : PreprocessingFunctor()
   {
@@ -82,11 +79,6 @@ namespace OpenMS
         it = spec.getContainer().erase(it);
       }
     }                                                
-  }
-
-  String Scaler::info() const
-  {
-    return info_;
   }
 	*/
 

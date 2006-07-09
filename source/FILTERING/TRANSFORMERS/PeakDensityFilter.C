@@ -27,14 +27,11 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakDensityFilter.h>
-#include <cmath>
 
 using namespace std;
 
 namespace OpenMS
 {
-  //const String PeakDensityFilter::info_ = "Scores the PeakDensity according to some Function";
-  
   PeakDensityFilter::PeakDensityFilter()
     :FilterFunctor()
   {
@@ -55,30 +52,5 @@ namespace OpenMS
   
   PeakDensityFilter::~PeakDensityFilter()
   {
-  }
-/*
-  String PeakDensityFilter::info() const
-  {
-    return info_;
-  }
-
-  vector<double> PeakDensityFilter::operator()(const ClusterSpectrum& cspec)
-  {
-    int nrpeaks = cspec.getSpec().getContainer().size();
-    double size = cspec.getParentMass();
-    double density = nrpeaks/size;
-    vector<double> result;
-    result.push_back(density);
-    return result;
-  }
-*/
-  double PeakDensityFilter::gaussfit_(double x)
-  {
-    //parameters obtained by a fitting
-    //values of a good sample (high sequest scores)
-    //versus a gauss function (using gnuplot)
-    double b = 0.0934731;
-    double c = 0.0458471;
-    return exp(-((x-b)*(x-b))/(c*c));
   }
 }

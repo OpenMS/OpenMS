@@ -36,9 +36,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  const String SpectrumCheapDPCorr::info_ = "Correlates Peaks with dynamic programming (when necessary, usually faster)";
-  
   SpectrumCheapDPCorr::SpectrumCheapDPCorr()
     : CompareFunctor(),
 			lastconsensus_()
@@ -71,11 +68,6 @@ namespace OpenMS
     return *this;
   }
 
-  String SpectrumCheapDPCorr::info() const
-  {
-    return info_;
-  }
-
   void SpectrumCheapDPCorr::setFactor(double f)
   { 
     if ( f < 1 && f > 0 )
@@ -97,7 +89,7 @@ namespace OpenMS
   { 
     double var = (double)param_.getValue("variation");
     double score = 0;
-    double filterfactor = filter(csa,csb);
+    double filterfactor = filter(csa, csb);
     const MSSpectrum< DPeak<1> >& x = csa.getSpec();
     const MSSpectrum< DPeak<1> >& y = csb.getSpec();
     bool keeppeaks_ = (int)param_.getValue("keeppeaks");

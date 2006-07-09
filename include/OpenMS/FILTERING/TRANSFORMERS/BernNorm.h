@@ -35,17 +35,22 @@
 namespace OpenMS
 {
   /**
-  @brief BernNorm scales the peaks by ranking them and then then scaling them according to rank.
+  @brief BernNorm scales the peaks by ranking them and then scaling them according to rank.
   
   For exact formula look in  Bioinformatics, Aug 2004; 20: i49 - i54
   
   \param C1
   \param C2
+
+	@ingroup SpectraPreprocessing
   */
   class BernNorm
     :public PreprocessingFunctor
   {
   public:
+
+		// @name Constructors and Destructors
+		//@{
     /// standard constructor
     BernNorm();
 
@@ -54,11 +59,20 @@ namespace OpenMS
 
     /// destructor
     ~BernNorm();
+		//@}
+	
+		// @name Operators
+		// @{
     /// assignment operator
     BernNorm& operator=(const BernNorm& source);
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new BernNorm();}
 
+		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
@@ -115,13 +129,15 @@ namespace OpenMS
 			return;
 		}
 
+		///
 		static const String getName()
 		{
 			return "BernNorm";
 		}
+		// @}
+  
+	};
 
-  private:
-  };
+} // namespace OpenMS
 
-}
 #endif //OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H

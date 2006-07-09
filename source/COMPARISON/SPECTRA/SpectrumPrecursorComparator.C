@@ -34,8 +34,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String SpectrumPrecursorComparator::info_ = "Compares Size";
-  
   SpectrumPrecursorComparator::SpectrumPrecursorComparator()
     : CompareFunctor()
   {
@@ -60,10 +58,6 @@ namespace OpenMS
     return *this;
   }
 
-  String SpectrumPrecursorComparator::info() const
-  {
-    return info_;
-  }
 
   double SpectrumPrecursorComparator::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
   {

@@ -33,60 +33,75 @@
 
 #include <map>
 #include <string>
+#include <cmath>
 
 namespace OpenMS
 {
   /**
   	@brief IsotopeDiffFilter returns total intensity of peak pairs that could result from isotope peaks
   
- 		\param tolerance m/z tolerance
+ 		@param tolerance m/z tolerance
+
+		@ingroup SpectraFilter
   */
   class IsotopeDiffFilter : public FilterFunctor
   {
+	
   public:
-    /// standard constructor
+	
+		// @name Constructors and Destrutors
+		// @{
+    /// default constructor
     IsotopeDiffFilter();
 
     /// copy constructor
     IsotopeDiffFilter(const IsotopeDiffFilter& source );
 
+		/// destructor
+		virtual ~IsotopeDiffFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
-    IsotopeDiffFilter& operator=(const IsotopeDiffFilter& source );
+    IsotopeDiffFilter& operator = (const IsotopeDiffFilter& source);
+		// @}
 
-    /// destructor
-    ~IsotopeDiffFilter();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new IsotopeDiffFilter(); }
 
-    static FactoryProduct* create() { return new IsotopeDiffFilter();}
-
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
-   		double tolerance = (double)param_.getValue("tolerance");;
+   		double tolerance = (double)param_.getValue("tolerance");
     	double isodiff = 0;
     	//iterate over all peaks
     	for (int i = 0; i < (int)spectrum.size(); ++i)
     	{
-      	for (uint j = 1; i+j < spectrum.size() ; ++j)
+      	for (uint j = 1; i+j < spectrum.size(); ++j)
       	{
-        	if (fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] + 1 ) < tolerance && 
+        	if (std::abs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] + 1) < tolerance && 
 							spectrum.getContainer()[i-j].getIntensity() < spectrum.getContainer()[i].getIntensity())
         	{
           	isodiff+= spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i+j].getIntensity();
         	}
-        	else if (fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] ) > 1 + tolerance)
+        	else if (fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]) > 1 + tolerance)
         	{
          		break;
         	}
       	}
     	}
-    	//vector<double> result;
-    	//result.push_back(isodiff);
     	return isodiff;
 		}
 
+		///
 		static const String getName()
 		{
 			return "IsotopeDiffFilter";
 		}
+		// @}
 
   private:
   };

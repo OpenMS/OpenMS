@@ -32,8 +32,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  const String ThresholdMower::info_ = "deletes all peaks below [threshold]";
-
   ThresholdMower::ThresholdMower()
     : PreprocessingFunctor()
   {
@@ -55,24 +53,6 @@ namespace OpenMS
   {
     PreprocessingFunctor::operator=(source);
     return *this;
-  }
-
-  void ThresholdMower::operator()(MSSpectrum< DPeak<1> >& spec) const
-  {
-    double threshold = (double)param_.getValue("threshold");
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); )
-    {
-      if ( it->getIntensity() < threshold )
-      {
-        it = spec.getContainer().erase(it);
-      }
-      else ++it;
-    }
-  }
-
-  String ThresholdMower::info() const
-  {
-    return info_;
   }
 
 }

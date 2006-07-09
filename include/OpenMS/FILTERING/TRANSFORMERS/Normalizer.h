@@ -46,11 +46,16 @@ namespace OpenMS
 	  \param windows
 	    only applicable for method = 0 <br>
 	    normalize in <i>windows</i> regions individually<br>
+
+		@ingroup SpectraPreprocessing
   */
   class Normalizer
     :public PreprocessingFunctor
   {
   public:
+
+		// @name Constructors and Destructors
+		// @{
     /// standard constructor
     Normalizer();
 
@@ -59,28 +64,54 @@ namespace OpenMS
 
     /// desctructor
     ~Normalizer();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     Normalizer& operator=(const Normalizer& source);
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new Normalizer();}
-    //void operator()(MSSpectrum< DPeak<1> >&) const;
-    //String info() const;
 
+		///
 		static const String getName()
 		{
 			return "Normalizer";
 		}
 
-
+		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 		
-	    std::vector<double> max = std::vector<double>((unsigned int)param_.getValue("windows"));
- 	  	double minmz = 10000;
-    	double maxmz = 0;
+	    //std::vector<double> max = std::vector<double>((unsigned int)param_.getValue("windows"));
+ 	  	//double minmz = 10000;
+    	//double maxmz = 0;
+			
+			////////////////////
+			// just to normalize s.th.!! (normalize to one)
+			double max(0);
+			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			{
+				if (max < it->getIntensity())
+				{
+					max = it->getIntensity();
+				}
+			}
+			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			{
+				it->setIntensity(it->getIntensity() / max);
+			}
+
+			//////////////////
+			
+			/**
+			@todo implement the promised variants (Andreas)
     	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
       	if ( it->getPosition()[0] < minmz ) minmz = it->getPosition()[0];
@@ -97,10 +128,12 @@ namespace OpenMS
      		uint pos = (uint)((it->getPosition()[0] - minmz) / (maxmz - minmz) * max.size());
       	if (pos == max.size()) --pos;
       	it->setIntensity(it->getIntensity()/max[pos]);
-    	}
+    	}*/
 		}
+		// @}
 
   };
+
 
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H

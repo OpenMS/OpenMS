@@ -21,63 +21,47 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PreprocessingFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $
+// $Id: $
 // $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-
-///////////////////////////
-
-#include <vector>
-#include <iostream>
-
-///////////////////////////
-START_TEST(PreprocessingFunctor, "$Id: PreprocessingFunctor_test.C,v 1.8 2006/04/05 11:18:25 marc_sturm Exp $")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
-PreprocessingFunctor* mfp;
+///////////////////////////
 
-ClusterFactory* factoryp = ClusterFactory::instance();
+START_TEST(PreprocessingFunctor, "$Id: $")
 
-DTAFile dtafile;
+/////////////////////////////////////////////////////////////
 
-MSSpectrum< DPeak<1> > spec;
-dtafile.load("data/spectrum.dta",spec);
+PreprocessingFunctor* e_ptr = 0;
+CHECK(PreprocessingFunctor())
+	e_ptr = new PreprocessingFunctor;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
 
-vector<String> catalogue = factoryp->catalogue("PreprocessingFunctor");
+CHECK(~PreprocessingFunctor())
+	delete e_ptr;
+RESULT
 
-// go through all registered PreprocessingFunctors and check if they accept a spectrum 
-for ( vector<String>::const_iterator cvit = catalogue.begin();
-    cvit != catalogue.end(); ++cvit )
-{
-  CHECK()
-    STATUS("ClusterFactory::create("+*cvit+")")
-    mfp = dynamic_cast<PreprocessingFunctor*>(factoryp->create(*cvit));
-    TEST_NOT_EQUAL(mfp, 0)
-  RESULT
+e_ptr = new PreprocessingFunctor();
 
-  CHECK(PreprocessingFunctor::operator())
-    STATUS(*cvit+"::operator()")
-    (*mfp)(spec);
-  RESULT
+CHECK(PreprocessingFunctor(const PreprocessingFunctor& source))
+	PreprocessingFunctor copy(*e_ptr);
+	TEST_EQUAL(*e_ptr == copy, true)
+RESULT
 
-  delete mfp;
-}
-
-factoryp->destroy();
+delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -32,13 +32,10 @@
 #include <iostream>
 #include <vector>
 
-	#include <OpenMS/DATASTRUCTURES/String.h>
-
-	#include <OpenMS/DATASTRUCTURES/HashMap.h>
-
-	#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
-	#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -104,7 +101,7 @@ namespace OpenMS
 				* are described in the doc to the IsotopeDistribution class.
 				*	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
 				*/
-			IsotopeDistribution getIsotopeDistribution(Size max_depth=20) const;
+			IsotopeDistribution getIsotopeDistribution(Size max_depth = 20) const;
 		
 			/// sets the element db, the elements are read from the given file
 			void setElementDB(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
@@ -215,8 +212,9 @@ namespace OpenMS
 
 			inline ConstIterator end() const { return formula_.end(); }
 			//@}
-			
+		
 		protected:
+		
 			HashMap<const Element*, Size> formula_;
 
 			SignedInt charge_;
@@ -229,6 +227,63 @@ namespace OpenMS
 	};
 
 	std::ostream& operator << (std::ostream&, const EmpiricalFormula::EmpiricalFormula&);
-}
 
+  /** 
+      @ingroup Chemistry
+  
+      @brief some often used empirical formulas (which ist faster than creating instances of EmpiricalFormula from strings)
+
+      To use i.e. an Hydrogen just use s.th. like Formulas::H
+  */
+	
+	namespace Formulas
+  {
+    static const EmpiricalFormula& getH()
+    {
+      static const EmpiricalFormula H_("H");
+      return H_;
+    }
+
+    static const EmpiricalFormula& getH2O()
+    {
+      static const EmpiricalFormula H2O_("H2O");
+      return H2O_;
+    }
+
+    static const EmpiricalFormula& getNH()
+    {
+      static const EmpiricalFormula NH_("NH");
+      return NH_;
+    }
+
+    static const EmpiricalFormula& getOH()
+    {
+      static const EmpiricalFormula OH_("OH");
+      return OH_;
+    }
+
+    static const EmpiricalFormula& getNH3()
+    {
+      static const EmpiricalFormula NH3_("NH3");
+      return NH3_;
+    }
+
+		const EmpiricalFormula H = getH();
+		
+		const EmpiricalFormula H2O = getH2O();
+		
+		const EmpiricalFormula NH = getNH();
+		
+		const EmpiricalFormula OH = getOH();
+		
+		const EmpiricalFormula NH3 = getNH3();
+		
+		const EmpiricalFormula Water = getH2O();
+
+		const EmpiricalFormula Ammonia = getNH3();
+
+		const EmpiricalFormula Hydrogen = getH();
+  } // namespace Formulas
+
+} // namespace OpenMS
 #endif

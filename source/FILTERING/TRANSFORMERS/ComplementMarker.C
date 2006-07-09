@@ -28,15 +28,10 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS
 {
-
-  const String ComplementMarker::info_ = "marks peak pairs which could represent y - b ion pairs";
-    
   ComplementMarker::ComplementMarker()
     : PeakMarker()
   {
@@ -60,6 +55,7 @@ namespace OpenMS
     return *this;
   }
 
+/*
   map<double,bool> ComplementMarker::operator()( MSSpectrum< DPeak<1> >& spec) const
   {
     // how often a peak needs to be marked to be returned
@@ -92,10 +88,5 @@ namespace OpenMS
     }
     return result;
   }
-
-  String ComplementMarker::info() const
-  {
-    return info_;
-  }
-
+*/
 }

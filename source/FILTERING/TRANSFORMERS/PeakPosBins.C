@@ -35,9 +35,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String PeakPosBins::info_ = "returns peak positions in bins";
-    
-
   PeakPosBins::PeakPosBins()
     :FilterFunctor() 
   {
@@ -60,11 +57,6 @@ namespace OpenMS
 
   PeakPosBins::~PeakPosBins()
   {
-  }
-
-  String PeakPosBins::info() const
-  {
-    return info_;
   }
 
   vector<double> PeakPosBins::operator() ( const ClusterSpectrum& cspec)

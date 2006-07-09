@@ -31,18 +31,26 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
 
+#include <map>
+#include <cmath>
+
 namespace OpenMS
 {
   /**
     @brief ComplementMarker marks peak pairs which could represent y - b ion pairs
   
-	  \param tolerance m/z tolerance
-	  \param marks times a peak needs to be marked to get marked in the result
+	  @param tolerance m/z tolerance
+	  @param marks times a peak needs to be marked to get marked in the result
+
+		@ingroup PeakMarker
   */
   class ComplementMarker
-    :public PeakMarker
+    : public PeakMarker
   {
   public:
+
+		// @name Constructors and Destructors
+		//@{
     /// standard constructor
     ComplementMarker();
 
@@ -51,21 +59,68 @@ namespace OpenMS
 
     /// destructor
     ~ComplementMarker();
+		//@}
 
+		// @name Operators
+		//@{
     /// assignment operator
-    ComplementMarker& operator=(const ComplementMarker& source);
+    ComplementMarker& operator = (const ComplementMarker& source);
+		//@}
 
+		// @name Accessors
+		//@{
+		///
     static FactoryProduct* create() { return new ComplementMarker();}
-    std::map<double,bool> operator()(MSSpectrum< DPeak<1> >&) const;
-    String info() const;
+		
+		///
+		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)
+		{
+			if (spectrum.size() < 2)
+			{
+				return;
+			}
+		
+			// how often a peak needs to be marked to be returned
+    	double marks = (double)param_.getValue("marks");
+    	double parentmass = spectrum.getPrecursorPeak().getPosition()[0];
+    	double tolerance = (double)param_.getValue("tolerance");
+    	std::map<double, int> matching_b_y_ions;
+			
+    	spectrum.getContainer().sortByPosition();
+			
+    	int j = spectrum.size() -1;
+    	for (uint i = 0; i < spectrum.size(); ++i)
+    	{
+      	while (j >= 0 && spectrum.getContainer()[j].getPosition()[0] > (parentmass - spectrum.getContainer()[i].getPosition()[0]) + tolerance)
+				{
+        	j--;
+      	}
+				
+      	// just takes the first matching ion; todo take all
+      	if (j >= 0 && std::fabs(spectrum.getContainer()[i].getPosition()[0] + spectrum.getContainer()[j].getPosition()[0] - parentmass) < tolerance)
+      	{
+        	matching_b_y_ions[spectrum.getContainer()[i].getPosition()[0]]++;
+        	matching_b_y_ions[spectrum.getContainer()[j].getPosition()[0]]++;
+        	j--;
+      	}
+    	}
 
+			for (std::map<double, int>::const_iterator cmit = matching_b_y_ions.begin(); cmit != matching_b_y_ions.end(); ++cmit)
+			{
+				if (cmit->second >= marks)
+				{
+					marked.insert(std::make_pair<double, bool>(cmit->first, true));
+				}
+			}
+		}
+	
+		/// returns the name to register at the factory
 		static const String getName()
 		{
 			return "ComplementMarker";
 		}
+		//@}
 		
-  private:
-    static const String info_;
   };
 
 }

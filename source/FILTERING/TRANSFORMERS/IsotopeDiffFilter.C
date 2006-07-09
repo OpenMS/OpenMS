@@ -35,8 +35,6 @@ using namespace std;
 namespace OpenMS
 {
   // Bern have a different one  
-  //const String IsotopeDiffFilter::info_ = "returns total intensity of peak pairs that could result from isotope peaks";
-    
 
   IsotopeDiffFilter::IsotopeDiffFilter()
     : FilterFunctor()
@@ -61,36 +59,4 @@ namespace OpenMS
   IsotopeDiffFilter::~IsotopeDiffFilter()
   {
   }
-
-/*
-  String IsotopeDiffFilter::info() const
-  {
-    return info_;
-  }
-
-  vector<double> IsotopeDiffFilter::operator() (const ClusterSpectrum& cspec)
-  {
-    double tolerance = (double)param_.getValue("tolerance");;
-    double isodiff = 0;
-    //iterate over all peaks
-    for (int i = 0; i < (int)cspec.getSpec().size(); ++i)
-    {
-      for (uint j = 1; i+j < cspec.getSpec().size() ; ++j)
-      {
-        if ( fabs( cspec.getSpec().getContainer()[i+j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0] + 1 ) < tolerance && cspec.getSpec().getContainer()[i-j].getIntensity() < cspec.getSpec().getContainer()[i].getIntensity())
-        {
-          isodiff+= cspec.getSpec().getContainer()[i].getIntensity() +
-	  cspec.getSpec().getContainer()[i+j].getIntensity();
-        }
-        else if ( fabs( cspec.getSpec().getContainer()[i+j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0] ) > 1 + tolerance )
-        {
-          break;
-        }
-      }
-    }
-    vector<double> result;
-    result.push_back(isodiff);
-    return result;
-  }
-	*/
 }

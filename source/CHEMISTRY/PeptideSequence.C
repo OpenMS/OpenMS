@@ -29,7 +29,6 @@
 
 #include <OpenMS/CHEMISTRY/PeptideSequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/Formulas.h>
 
 using namespace std;
 
@@ -89,7 +88,7 @@ namespace OpenMS
 		EmpiricalFormula ef;
 		for (SignedInt i=0; i<charge; ++i)
 		{
-			ef += Formulas::H();
+			ef += Formulas::H;
 		}
 	
 		if (peptide_.size() > 0)
@@ -113,21 +112,21 @@ namespace OpenMS
 					case Residue::Internal: 
 						return ef/* + add_protons*/;
 					case Residue::NTerminal:
-						return ef+Residue::getInternalToFull()-Residue::getNTerminalToFull();
+						return ef + Residue::getInternalToFull() - Residue::getNTerminalToFull();
 					case Residue::CTerminal:
-						return ef+Residue::getInternalToFull()-Residue::getCTerminalToFull();
+						return ef + Residue::getInternalToFull() - Residue::getCTerminalToFull();
 					case Residue::BIon:
-						return ef+Residue::getInternalToFull()-Residue::getBIonToFull() - Formulas::H();
+						return ef + Residue::getInternalToFull() - Residue::getBIonToFull() - Formulas::H;
 					case Residue::AIon:
-						return ef+Residue::getInternalToFull()-Residue::getAIonToFull() - Formulas::H();
+						return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - Formulas::H;
 					case Residue::CIon:
-						return ef+Residue::getInternalToFull()-Formulas::OH()+Formulas::NH() - Formulas::H();
+						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH - Formulas::H;
 					case Residue::XIon:
-						return ef+Residue::getInternalToFull()+Residue::getXIonToFull();
+						return ef + Residue::getInternalToFull() + Residue::getXIonToFull();
 					case Residue::YIon:
-						return ef+Residue::getInternalToFull()+Residue::getYIonToFull();
+						return ef + Residue::getInternalToFull() + Residue::getYIonToFull();
 					case Residue::ZIon:
-						return ef+Residue::getInternalToFull()-Residue::getZIonToFull();
+						return ef + Residue::getInternalToFull() - Residue::getZIonToFull();
 					default:
 						cerr << "PeptideSequence::getFormula: unknown ResidueType" << endl;
 				}

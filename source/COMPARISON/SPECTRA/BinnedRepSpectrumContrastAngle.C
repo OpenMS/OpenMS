@@ -34,8 +34,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String BinnedRepSpectrumContrastAngle::info_ = "simple Correlation for BinnedReps";
-  
   BinnedRepSpectrumContrastAngle::BinnedRepSpectrumContrastAngle()
   {
 		name_ = BinnedRepSpectrumContrastAngle::getName();
@@ -108,11 +106,6 @@ namespace OpenMS
     }
 		//similarity /= sqrt(sum_a * sum_b);
     return similarity * filterfactor;
-  }
-
-  String BinnedRepSpectrumContrastAngle::info() const
-  {
-    return info_;
   }
 
 }

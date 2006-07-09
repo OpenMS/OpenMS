@@ -41,6 +41,10 @@ namespace OpenMS
 		name_ = source.getName();
   }
 
+	PeakMarker::~PeakMarker()
+	{
+	}
+
   PeakMarker& PeakMarker::operator=(const PeakMarker& source)
   {
     FactoryProduct::operator=(source);

@@ -36,58 +36,58 @@ namespace OpenMS
   /**
   	@brief TICFilter calculates TIC and ratio of TIC in parent ion range (=parention m/z +- window )
   
-  	\param window half size of parent ion range
+  	@param window half size of parent ion range
+
+		@ingroup SpectraFilter
   */
   class TICFilter : public FilterFunctor
   {
   public:
+
+		// @name Constructors and Destructors
+		// @{
     /// standard constructor
     TICFilter();
 
     /// copy constructor
     TICFilter(const TICFilter& source);
 
+		/// destructor
+		virtual ~TICFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
     TICFilter& operator=(const TICFilter& source);
+		// @}
 
-    /// destructor
-    ~TICFilter();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new TICFilter(); }
 
-    static FactoryProduct* create() { return new TICFilter();}
-
-    //std::vector<double> operator()(const ClusterSpectrum& cspec);
-
-    //String info() const;
-
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::ConstIterator ConstIterator;
-			//vector<double> result;
     	double TIC = 0;
-    	//double PTIC = 0;
-    	double window = (double)param_.getValue("window");
-			// TODO
-    	//double parentpeak = cspec.getParentMass()/ cspec.getParentionCharge();
+    	//double window = (double)param_.getValue("window");
+			
     	for (ConstIterator it = spectrum.begin(); it != spectrum.end();++it )
     	{
       	TIC += it->getIntensity();
-      	//if ( fabs( it->getPosition()[0] - parentpeak )  <  window )
-      	//{
-        //	PTIC += it->getIntensity();
-      	//}
    		}
-    	//result.push_back(TIC);
-    	//result.push_back(PTIC);
     	return TIC;
 		}
 
+		///
 		static const String getName()
 		{
 			return "TICFilter";
 		}
+		// @}
 
-  private:
-    //static const String info_;
   };
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H

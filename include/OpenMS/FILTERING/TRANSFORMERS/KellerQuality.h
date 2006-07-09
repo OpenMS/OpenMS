@@ -61,15 +61,11 @@ namespace OpenMS{
 
     std::vector<double> operator()(const ClusterSpectrum& spec);
 
-    String info() const;
-
 		static const String getName()
 		{
 			return "KellerQuality";
 		}
 
-  private:
-    static const String info_;
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_KELLERQUALITY_H

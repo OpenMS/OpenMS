@@ -59,8 +59,6 @@ namespace OpenMS
     /** @brief create instance <br> */
     static FactoryProduct* create() {return new ClusterCompareFunctor();}
 
-    String info() const;
-
     std::map<String,double> operator()(const std::map<int,ClusterNode*>&);
 
 		static const String getName()
@@ -68,8 +66,6 @@ namespace OpenMS
 			return "ClusterCompareFunctor";
 		}
 	
-  private:
-    static const String info_;
   };
 }
 #endif  // OPENMS_COMPARISON_CLUSTERING_CLUSTERCOMPAREFUNCTOR_H

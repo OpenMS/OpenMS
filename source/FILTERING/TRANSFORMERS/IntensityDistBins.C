@@ -35,9 +35,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String IntensityDistBins::info_ = "returns Intensity Distribution in bins";
-    
-
   IntensityDistBins::IntensityDistBins()
     :FilterFunctor() 
   {
@@ -59,11 +56,6 @@ namespace OpenMS
   
   IntensityDistBins::~IntensityDistBins()
   {
-  }
-
-  String IntensityDistBins::info() const
-  {
-    return info_;
   }
 
   vector<double> IntensityDistBins::operator() ( const ClusterSpectrum& cspec)

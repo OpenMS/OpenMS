@@ -47,7 +47,11 @@ namespace OpenMS
     : FactoryProduct(), usebins_(source.usebins_)
   {
   }
-  
+ 
+	CompareFunctor::~CompareFunctor()
+	{
+	}
+ 
   CompareFunctor& CompareFunctor::operator=(const CompareFunctor& source)
   {
     FactoryProduct::operator=(source);
@@ -61,25 +65,25 @@ namespace OpenMS
   difference bigger than the <i>filterwindow</i>, spectra with different parent 
   charge states or bin-representation spectra with different binning parameters  
   */
-  double CompareFunctor::filter(const ClusterSpectrum& a, const ClusterSpectrum& b) const
+	double CompareFunctor::filter(const ClusterSpectrum& a, const ClusterSpectrum& b) const
   {
     double filterwindow = (double)param_.getValue("filterwindow");
     double factor = 1;
-    if ( a.getParentionCharge() != b.getParentionCharge() )
+    if (a.getParentionCharge() != b.getParentionCharge())
     {
       factor = 0;
     }
-    if ( usebins_ )
+    if (usebins_)
     {
       stringstream ss;
       ss << a.getBinSize() << ":" << a.getBinSpread() << " != " << b.getBinSize() << ":" << b.getBinSpread() << " ids: " << a.id() << " " << b.id();
       // its not very informative to compare spectra with different bin sizes and spread
-      if ( fabs(a.getBinSize() - b.getBinSize()) > 1e-8 || a.getBinSpread() != b.getBinSpread())
+      if (fabs(a.getBinSize() - b.getBinSize()) > 1e-8 || a.getBinSpread() != b.getBinSpread())
       {
-        throw ClusterSpectrum::WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,ss.str().c_str());
+        throw ClusterSpectrum::WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__, ss.str().c_str());
       }
     }
-    if ( fabs(a.getParentMass() - b.getParentMass()) > filterwindow) return 0;
+    if (fabs(a.getParentMass() - b.getParentMass()) > filterwindow) return 0;
     return factor;
   }
 

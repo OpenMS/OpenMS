@@ -53,7 +53,7 @@ namespace OpenMS
     CompareFunctor(const CompareFunctor& source);
 
     /** @brief destructor <br> */
-    virtual ~CompareFunctor() {}
+    virtual ~CompareFunctor();
 
     /** @brief assignment operator <br> */
     CompareFunctor& operator = ( const CompareFunctor& source );

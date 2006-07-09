@@ -28,19 +28,16 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS
 {
 
-  const String NeutralLossMarker::info_ = "marks peak pairs which could represent an ion an its neutral loss ( water, ammonia )";
-    
   NeutralLossMarker::NeutralLossMarker()
     : PeakMarker()
   {
 		name_ = NeutralLossMarker::getName();
+		defaults_.setValue("marks", 1);
     defaults_.setValue("tolerance", 0.2);
 		param_ = defaults_;
   }
@@ -61,6 +58,7 @@ namespace OpenMS
     return *this;
   }
 
+/*
   map<double,bool> NeutralLossMarker::operator()( MSSpectrum< DPeak<1> >& spec) const
   {
     // how often a peak needs to be marked to be returned
@@ -106,10 +104,5 @@ namespace OpenMS
     }
     return result;
   }
-
-  String NeutralLossMarker::info() const
-  {
-    return info_;
-  }
-
+*/
 }

@@ -34,9 +34,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //const String GoodDiffFilter::info_ = "counts the number of peakdifferences that amount to a amino acid mass (+-tolerance)";
-    
-
   GoodDiffFilter::GoodDiffFilter()
     :FilterFunctor()
   {
@@ -86,11 +83,6 @@ namespace OpenMS
   {
   }
 /*
-  String GoodDiffFilter::info() const
-  {
-    return info_;
-  }
-
   vector<double> GoodDiffFilter::operator() ( const ClusterSpectrum& cspec)
   {
     double tolerance = (double)param_.getValue("tolerance");

@@ -63,16 +63,11 @@ namespace OpenMS
 
     std::vector<double> operator()(const ClusterSpectrum& spec);
 
-    String info() const;
-
 		static const String getName()
 		{
 			return "IntensityDistBins";
 		}
-
-  private:
-    static const String info_;
-    //all (unique) aminoacid masses
+		
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_INTENSITYDISTBINS_H

@@ -40,29 +40,38 @@ namespace OpenMS
   /**
   	@brief GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss <br>
   
-  	\param tolerance m/z tolerance
+  	@param tolerance m/z tolerance
+
+		@ingroup SpectraFilter
   */
   class GoodDiffFilter : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     GoodDiffFilter();
 
     /// copy constructor
     GoodDiffFilter(const GoodDiffFilter& source);
 
+		/// destructor
+		virtual ~GoodDiffFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
     GoodDiffFilter& operator=(const GoodDiffFilter& source);
+		// @}
 
-    /// destructor
-    ~GoodDiffFilter();
-
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new GoodDiffFilter();}
 
-    //std::vector<double> operator()(const ClusterSpectrum& spec);
-
-    //String info() const;
-	
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 	    double tolerance = (double)param_.getValue("tolerance");
@@ -76,8 +85,11 @@ namespace OpenMS
       	{
         	double diff =  spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0];
         	if (diff < 56)
-        	{}
-        	else if (diff > 187)
+        	{
+						continue;
+					}
+					
+					if (diff > 187)
         	{
           	j = spectrum.size();
         	}
@@ -88,35 +100,35 @@ namespace OpenMS
           	//look for aamasses that fit diff
           	if (fabs(aait->first - diff ) <= tolerance)
           	{
-            	gooddiff += spectrum.getContainer()[i+j].getIntensity()  + spectrum.getContainer()[i].getIntensity();
+           		gooddiff += spectrum.getContainer()[i+j].getIntensity()  + spectrum.getContainer()[i].getIntensity();
           	}
           	else
           	{
-            	++aait;
-            	if ((aait) != aamass_.end() && fabs ((aait)->first - diff) <= tolerance)
-            	{
-              	gooddiff += spectrum.getContainer()[i+j].getIntensity() + spectrum.getContainer()[i].getIntensity();
-            	}
-          	}
-        	}
+           		++aait;
+           		if ((aait) != aamass_.end() && fabs ((aait)->first - diff) <= tolerance)
+           		{
+             		gooddiff += spectrum.getContainer()[i+j].getIntensity() + spectrum.getContainer()[i].getIntensity();
+           		}
+						}
+          }
       	}
     	}
-    	//vector<double> result;
-    	//result.push_back(gooddiff/totaldiff);
+
     	return gooddiff/totaldiff;
 		}
 
-
+		///
 		static const String getName()
 		{
 			return "GoodDiffFilter";
 		}
+		// @}
 
-  private:
-    //static const String info_;
 
-    /// list of unique amino acid masses
-    std::map<double, char> aamass_;
+		private: 
+		
+    	/// list of unique amino acid masses
+    	std::map<double, char> aamass_;
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_GOODDIFFFILTER_H

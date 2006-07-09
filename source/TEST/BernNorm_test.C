@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,66 +21,66 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Formulas.h,v 1.1 2006/06/09 14:08:43 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
+// $Id: $
+// $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_CHEMISTRY_FORMULAS_H
-#define OPENMS_CHEMISTRY_FORMULAS_H
 
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-// TODO oder array in EmpiricalFormula?
+///////////////////////////
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/DTAFile.h>
 
-namespace OpenMS
-{
-	/** 
-			@ingroup Chemistry
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(BernNorm, "$Id: $")
+
+/////////////////////////////////////////////////////////////
+
+BernNorm* e_ptr = 0;
+CHECK(BernNorm())
+	e_ptr = new BernNorm;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
+
+CHECK(~BernNorm())
+	delete e_ptr;
+RESULT
+
+e_ptr = new BernNorm();
+
+CHECK(BernNorm(const BernNorm& source))
+	BernNorm copy(*e_ptr);
+	TEST_EQUAL(*e_ptr == copy, true)
+RESULT
+
+CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+	DTAFile dta_file;
+	PeakSpectrum spec;
+	dta_file.load("data/spectrum.dta", spec);
+
+	TEST_EQUAL(spec.size(), 121)
+
+	e_ptr->apply(spec);
 	
-			@brief some often used empirical formulas
-	*/
-	
-	namespace Formulas
-	{	
-		static const EmpiricalFormula& H()
-		{
-			static const EmpiricalFormula H("H");
-			return H;
-		}
+	TEST_EQUAL(spec.size(), 121)
 
-		static const EmpiricalFormula& H2O()
-		{
-			static const EmpiricalFormula H2O("H2O");
-			return H2O;
-		}
+	e_ptr->getParam().setValue("C2", 2000.0);
+	e_ptr->apply(spec);
 
-		static const EmpiricalFormula& Water()
-		{
-			return H2O();
-		}
-		
-		static const EmpiricalFormula& NH()
-		{
-			static const EmpiricalFormula NH("NH");
-			return NH;
-		}
+	TEST_EQUAL(spec.size(), 28)
 
-		static const EmpiricalFormula& OH()
-		{
-			static const EmpiricalFormula OH("OH");
-			return OH;
-		}
+RESULT
 
-		static const EmpiricalFormula& NH3()
-		{
-			static const EmpiricalFormula NH3("NH3");
-			return NH3;
-		}
+delete e_ptr;
 
-	}
-
-}
-
-#endif
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

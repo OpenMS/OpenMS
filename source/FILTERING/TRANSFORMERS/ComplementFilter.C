@@ -34,10 +34,9 @@ using namespace std;
 namespace OpenMS
 {
   // todo charge state 2?
-  //const String ComplementFilter::info_ = "total intensity of peak pairs that could result from complementing fragments of charge state 1";
-    
 
   ComplementFilter::ComplementFilter()
+		:	FilterFunctor()
   { 
 		name_ = ComplementFilter::getName();
     //value from Bioinformatics, Bern 2004
@@ -45,14 +44,22 @@ namespace OpenMS
 		param_ = defaults_;
   }
 
+	ComplementFilter::ComplementFilter(const ComplementFilter& source)
+		:	FilterFunctor(source)
+	{
+
+	}
+
+	ComplementFilter& ComplementFilter::operator = (const ComplementFilter& source)
+	{
+		FilterFunctor::operator = (source);
+		return *this;
+	}
+
   ComplementFilter::~ComplementFilter()
   {
   }
 
-/*  String ComplementFilter::info() const
-  {
-    return info_;
-  }*/
 /*
   vector<double> ComplementFilter::operator() (const ClusterSpectrum& cspec)
   {

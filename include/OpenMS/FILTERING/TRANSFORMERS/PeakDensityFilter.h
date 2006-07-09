@@ -35,46 +35,51 @@ namespace OpenMS
 {
   /**
   	@brief PeakDensityfilter calculates peak density
+
+		@ingroup SpectraFilter
   */
   class PeakDensityFilter : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     PeakDensityFilter();
 
     /// copy constructor
     PeakDensityFilter(const PeakDensityFilter& source );
 
+		/// destructor
+		virtual ~PeakDensityFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
     PeakDensityFilter& operator=(const PeakDensityFilter& source);
+		// @}
 
-    /// destructor
-    ~PeakDensityFilter();
-
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new PeakDensityFilter();}
-
-    //std::vector<double> operator()(const ClusterSpectrum& cspec);
-
-    //String info() const;
 
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
 	    int nrpeaks = spectrum.getContainer().size();
 			double size = spectrum.getPrecursorPeak().getPosition()[0];
 	    double density = nrpeaks/size;
-	    //vector<double> result;
-	    //result.push_back(density);
 	    return density;
 		}
 
+		///
 		static const String getName()
 		{
 			return "PeakDensityFilter";
 		}
+		// @}
 
-  private:
-    double gaussfit_(double x);
-    static const String info_;
   };
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_PEAKDENSITYFILTER_H

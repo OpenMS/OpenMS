@@ -92,7 +92,7 @@ namespace OpenMS
 			double getTrimRightCutoff()  { return trim_right_cutoff_; }
 			
 			/// Set threshold for isotope probabilities
-			void setTrimRightCutoff( double const cutoff ) { trim_right_cutoff_ = cutoff; }
+			void setTrimRightCutoff(double const cutoff) { trim_right_cutoff_ = cutoff; }
 
 			/// overwrites the container which holds the distribution using @p distribution
 			void set(const ContainerType& distribution);

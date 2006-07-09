@@ -36,8 +36,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String ClusterCompareFunctor::info_ = "compares two clusterings";
-
   ClusterCompareFunctor::ClusterCompareFunctor()
     : AnalysisFunctor()
   {
@@ -135,10 +133,5 @@ namespace OpenMS
     result["rand_statistics"] = (double)(a+d)/(a+b+c+d);
     result["hubert"] = (double)(a*d-b*c)/(sqrt((double)((a+b)*(c+d)*(a+c)*(b+d))));
     return result;
-  }
-
-  String ClusterCompareFunctor::info() const
-  {
-    return info_;
   }
 }

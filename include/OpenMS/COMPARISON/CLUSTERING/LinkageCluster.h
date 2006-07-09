@@ -89,9 +89,6 @@ namespace OpenMS
 			return "LinkageCluster";
 		}
 
-  private:
-    /** @brief additional information <br> */
-    static const String info_;
   };
 
 }

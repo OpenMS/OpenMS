@@ -39,9 +39,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  
-  const String SequestCompareFunctor::info_ = "dummy so ClusterExperiment has something to put in its SequestRun";
-
   SequestCompareFunctor::SequestCompareFunctor()
     : CompareFunctor()
   {
@@ -236,10 +233,4 @@ namespace OpenMS
     }
     return (double) matches/(matches+mismatches);
   }
-
-  String SequestCompareFunctor::info() const
-  {
-    return info_;
-  }
-
 }

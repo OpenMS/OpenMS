@@ -61,8 +61,6 @@ namespace OpenMS
 
     static FactoryProduct* create() {return new DistanceAnalyzer();}
 
-    String info() const;
-
     std::map<String,double> operator()(const std::map<int,ClusterNode*>&);
 
 		static const String getName()
@@ -70,8 +68,6 @@ namespace OpenMS
 			return "DistanceAnalyzer";
 		}
 
-  private:
-    static const String info_;
   };
 }
 #endif  // OPENMS_COMPARISON_CLUSTERING_CLUSTERCOMPAREFUNCTOR_H

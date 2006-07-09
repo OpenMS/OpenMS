@@ -36,8 +36,6 @@ using namespace std;
 
 namespace OpenMS{
 
-  const String TradSeqQuality::info_ = "> 0 if XCorr and deltaCN > given values ";
-
   TradSeqQuality::TradSeqQuality()
     :FilterFunctor()
   {
@@ -67,16 +65,11 @@ namespace OpenMS{
   {
   }
 
-  String TradSeqQuality::info() const
-  {
-    return info_;
-  }
-
   /**
    \return a Quality measure based on the often used limits for sequest scores (XCorr and deltaCn) <br>
     if a Identification is not fit ( no PeptideHit etc) -1000 is returned
    */
-  vector<double> TradSeqQuality::operator() ( const ClusterSpectrum& cspec)
+  vector<double> TradSeqQuality::operator() (const ClusterSpectrum& cspec)
   {
     //todo really necessary?
     cspec.getSpec();

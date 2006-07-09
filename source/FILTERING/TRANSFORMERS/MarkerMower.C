@@ -36,8 +36,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  const String MarkerMower::info_ = "Removes all peaks that are not marked by inserted PeakMarkers";
-  
   /**
   IsotopeMarker, ComplementMarker, NeutralLossMarker are used per default<br>
   */
@@ -46,9 +44,9 @@ namespace OpenMS
   {
 		name_ = MarkerMower::getName();
     //todo remove
-    insertmarker(new IsotopeMarker());
-    insertmarker(new ComplementMarker());
-    insertmarker(new NeutralLossMarker());
+    //insertmarker(new IsotopeMarker());
+    //insertmarker(new ComplementMarker());
+    //insertmarker(new NeutralLossMarker());
   }
 
   MarkerMower::MarkerMower(const MarkerMower& source)
@@ -67,11 +65,7 @@ namespace OpenMS
     return *this;
   }
 
-  String MarkerMower::info() const
-  {
-    return info_;
-  }
-
+/*
   void MarkerMower::operator()(MSSpectrum< DPeak<1> >& spec) const
   {
     map<double,int> marks;
@@ -96,7 +90,7 @@ namespace OpenMS
     }
     
   }
-  
+ */ 
   /**
   violates FactoryProduct interface
   */

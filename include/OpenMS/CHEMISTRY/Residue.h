@@ -30,11 +30,9 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUE_H
 #define OPENMS_CHEMISTRY_RESIDUE_H
 
-	#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-
-	#include <OpenMS/CONCEPT/Types.h>
-
-	#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
 #include <set>
@@ -52,9 +50,6 @@ namespace OpenMS
 		public:
 		
 		/** @brief Representation of a modification
-		
-			@todo add detailed constructor ? (Andreas)
-		
 		*/
 		class Modification
 		{

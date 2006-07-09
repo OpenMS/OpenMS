@@ -36,27 +36,38 @@ namespace OpenMS
 {
   /**
   	@brief Scaler scales the peak by ranking the peaks and assigning intensity according to rank<br>
+
+		@ingroup SpectraPreprocessing
   */
   class Scaler
-    :public PreprocessingFunctor
+    : public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     Scaler();
 
     /// copy constructor
     Scaler(const Scaler& source);
 
     /// destructor
-    ~Scaler();
+    virtual ~Scaler();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
-    Scaler& operator=(const Scaler& source);
+    Scaler& operator = (const Scaler& source);
+		// @}
 
-    static FactoryProduct* create() { return new Scaler();}
-    //void operator()(MSSpectrum< DPeak<1> >&) const;
-    //String info() const;
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new Scaler(); }
 
+		///
 		static const String getName()
 		{
 			return "Scaler";
@@ -75,13 +86,16 @@ namespace OpenMS
 			
     	for(std::map<double, int>::reverse_iterator rmit = peakssorted.rbegin(); rmit != peakssorted.rend(); ++rmit)
     	{
-      	if (--count > 0) peakssorted[rmit->first] = count;
+      	if (--count > 0) 
+				{
+					peakssorted[rmit->first] = count;
+				}
     	}
 			
     	for (MSSpectrum< DPeak<1> >::iterator it = spectrum.begin(); it != spectrum.end(); )
     	{
       	double new_intensity = peakssorted[it->getIntensity()];
-      	if (new_intensity > 0 )
+      	if (new_intensity > 0)
       	{
         	it->getIntensity() = peakssorted[it->getIntensity()];
         	++it;
@@ -92,6 +106,7 @@ namespace OpenMS
       	}
     	}
 		}
+		// @}
 
   };
 

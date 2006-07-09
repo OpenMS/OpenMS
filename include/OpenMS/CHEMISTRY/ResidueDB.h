@@ -29,9 +29,8 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
 
-	#include <OpenMS/CHEMISTRY/Residue.h>
-
-	#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/DATASTRUCTURES/HashMap.h>
 
 #include <set>
 #include <vector>
@@ -44,8 +43,6 @@ namespace OpenMS
 			
 			The residues stored in this DB are defined in a
 			XML file under data/CHEMISTRY/residues.xml
-			
-			@todo data structures for neutral losses (Andreas)
 	*/
 	class ResidueDB
 	{					

@@ -34,16 +34,21 @@
 
 namespace OpenMS
 {
-  /**
+
+	/**	
   	@brief NLargest removes all but the n largest peaks<br>
   
   	\param n number of peaks to keep
+
+		@ingroup SpectraPreprocessing
   */
   class NLargest
     :public PreprocessingFunctor
   {
   public:
-	
+
+		// @name Constructors and Destructors
+		// @{
     /// default constructor
     NLargest();
 
@@ -55,10 +60,16 @@ namespace OpenMS
 
     /// destructor
     ~NLargest();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     NLargest& operator=(const NLargest& source);
+		// @}
 
+		// @name Accessors
+		// @{
 		// static create function for factory
     static FactoryProduct* create() 
 		{ 
@@ -90,8 +101,9 @@ namespace OpenMS
 			}
 	
 		}
+		// @}
 	
   };
-
+	
 }
 #endif //OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H

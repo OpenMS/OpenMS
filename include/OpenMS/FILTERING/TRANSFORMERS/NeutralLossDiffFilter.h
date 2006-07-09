@@ -33,33 +33,47 @@
 
 #include <map>
 #include <string>
+#include <cmath>
+
+#include <iostream>
 
 namespace OpenMS
 {
   /**
   	@brief NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss
   
-  	\param tolerance m/z tolerance
+  	@param tolerance m/z tolerance
+
+		@ingroup SpectraFilter
   */
   class NeutralLossDiffFilter : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     NeutralLossDiffFilter();
 
     /// copy constructor
     NeutralLossDiffFilter(const NeutralLossDiffFilter& source );
 
+		/// destructor
+		virtual ~NeutralLossDiffFilter();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
     NeutralLossDiffFilter& operator=(const NeutralLossDiffFilter& source);
+		// @}
 
-    /// destructor
-    ~NeutralLossDiffFilter();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new NeutralLossDiffFilter(); }
 
-    static FactoryProduct* create() { return new NeutralLossDiffFilter();}
-
-    //std::vector<double> operator()(const ClusterSpectrum& spec);
-
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
     	double tolerance = (double)param_.getValue("tolerance");
@@ -67,33 +81,33 @@ namespace OpenMS
     	//iterate over all peaks
     	for (int i = 0; i < (int)spectrum.size(); ++i)
     	{
-      	for (int j = 1; i-j >= 0; ++j)
+      	for (int j = 1; i - j >= 0; ++j)
       	{
-        	if (fabs(spectrum.getContainer()[i-j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] - 18) < tolerance || // water
-						  fabs(spectrum.getContainer()[i-j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] - 17) < tolerance) //ammoniom
+					double pos_diff = std::fabs(spectrum.getContainer()[i-j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]);
+        	if (std::fabs(pos_diff - 18) < tolerance || std::fabs(pos_diff - 17) < tolerance) // water and ammonium
         	{
           	isodiff += spectrum.getContainer()[i-j].getIntensity() + spectrum.getContainer()[i].getIntensity();
         	}
-        	else if (fabs(spectrum.getContainer()[i-j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]  ) > 18 + tolerance)
-        	{
-          	break;
-        	}
+        	else 
+					{
+						if (pos_diff > 18 + tolerance)
+        		{
+          		break;
+        		}
+					}
       	}
     	}
-    	//vector<double> result;
-    	//result.push_back(isodiff);
+
     	return isodiff;
 		}
 
-    //String info() const;
-
+		///
 		static const String getName()
 		{
 			return "NeutralLossDiffFilter";
 		}
+		// @}
 
-  private:
-    //static const String info_;
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_NEUTRALLOSSDIFFFILTER_H

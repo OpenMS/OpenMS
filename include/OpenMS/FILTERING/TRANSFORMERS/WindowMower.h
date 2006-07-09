@@ -30,7 +30,9 @@
 #define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <map>
+#include <vector>
+#include <algorithm>
+#include <set>
 
 namespace OpenMS
 {
@@ -38,36 +40,88 @@ namespace OpenMS
   /**
   	@brief WindowMower augments the highest peaks in a sliding window <br>
   
-	  \param peakcount: nr of peaks that are augmented in each step
-	  \param windowsize: size of sliding window
+	  @param peakcount: nr of peaks that are augmented in each step
+	  @param windowsize: size of sliding window
+
+		@ingroup SpectraPreprocessing
   */
   class WindowMower
   	 : public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     WindowMower();
 
     /// copy constructor
     WindowMower(const WindowMower& source);
 
     /// destructor
-    ~WindowMower();
+    virtual ~WindowMower();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
-    WindowMower& operator=(const WindowMower& source);
+    WindowMower& operator = (const WindowMower& source);
+		// @}
 
-    static FactoryProduct* create() { return new WindowMower();}
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new WindowMower(); }
 		
-    //void operator()(Spectrum< DPeak<1> >&) const;
-	
+		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
+			typedef typename SpectrumType::ConstReverseIterator ConstReverseIterator;
+			typedef typename SpectrumType::ContainerType ContainerType;
 			
 			double windowsize = (double)param_.getValue("windowsize");
-    	uint peakcount = (int)param_.getValue("peakcount");
+    	Size peakcount = (int)param_.getValue("peakcount");
+
+			std::set<double> positions; // store the indices that are the most intense ones in an interval
+			
+			spectrum.getContainer().sortByPosition();
+			
+			// slide the window over spectrum and store peakcount most intense peaks (if available) of every window position
+			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			{
+				ContainerType container;
+				for (Iterator it2 = it; (it2->getPosition()[0] - it->getPosition()[0] < windowsize) && it2 != spectrum.end(); ++it2)
+				{
+					container.push_back(*it2);
+				}
+
+				container.sortByIntensity();
+
+				for (Size i = 0; i != peakcount; ++i)
+				{
+					if (container.size() > i)
+					{
+						positions.insert(container[i].getPosition()[0]);
+					}
+				}
+			}
+
+			// add the found peaks to a new container
+			ContainerType container;
+			for (ConstReverseIterator it = spectrum.rbegin(); it != spectrum.rend(); ++it)
+			{
+				if (positions.find(it->getPosition()[0]) != positions.end())
+				{
+					container.push_back(*it);
+				}
+			}
+			
+			// overwrite the spectrum with the new container
+			spectrum.setContainer(container);
+
+			/* old implementation ?!?
     	std::map<double, double> peaksinwindow; // peakheight,pos
     	std::map<double, int> marks; // peaks get marked if they belong to the <peakcount> highest in the window
 			
@@ -90,18 +144,16 @@ namespace OpenMS
        	{
          	spectrum.getContainer()[i].setIntensity(spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i].getIntensity()*marks[spectrum.getContainer()[i].getPosition()[0]]);
        	}
-      }    
+      }*/
     }
 	
-    //String info() const;
-    void operator()(MSSpectrum< DPeak<1> >&) const;
-    String info() const;
-
+		///
 		static const String getName()
 		{
 			return "WindowMower";
 		}
-  private:
+		// @}
+		
   };
 
 }

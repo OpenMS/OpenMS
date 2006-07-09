@@ -189,24 +189,42 @@ EXECUTABLES_FILTERING = \
 	IDFilter_test\
 	LinearResampler_test\
 	DTopHatFilter_test\
-	DSignalToNoiseEstimatorWindowing_test
+	DSignalToNoiseEstimatorWindowing_test\
+	PreprocessingFunctor_test\
+	NLargest_test\
+	Scaler_test\
+	BernNorm_test\
+	Normalizer_test\
+	ParentPeakMower_test\
+	SqrtMower_test\
+	ThresholdMower_test\
+	WindowMower_test\
+	FilterFunctor_test\
+	ComplementFilter_test\
+	GoodDiffFilter_test\
+	IntensityBalanceFilter_test\
+	IsotopeDiffFilter_test\
+	NeutralLossDiffFilter_test\
+	PeakDensityFilter_test\
+	TICFilter_test\
+	PeakMarker_test\
+	ComplementMarker_test\
+	IsotopeMarker_test\
+	NeutralLossMarker_test\
+	MarkerMower_test
+	
 
 #COMPARISON
 
-ifeq ($(ENABLE_GUI),true)
-	EXECUTABLES_COMPARISON = \
-		BinnedRep_test\
-		CompareFunctor_test \
-		PreprocessingFunctor_test\
-		FilterFunctor_test\
-		ClNode_test\
-		Cluster_test\
-		ClusterSpectrum_test\
-		ClusterFunctor_test\
-		PeakMarker_test\
-	  	ClusterExperiment_test\
-		AnalysisFunctor_test
-endif
+EXECUTABLES_COMPARISON = \
+	BinnedRep_test\
+	CompareFunctor_test \
+	ClNode_test\
+	Cluster_test\
+	ClusterSpectrum_test\
+	ClusterFunctor_test\
+  ClusterExperiment_test\
+	AnalysisFunctor_test
 
 EXECUTABLES_CHEMISTRY = \
 		IsotopeDistribution_test\

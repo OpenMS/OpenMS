@@ -36,8 +36,6 @@ using namespace std;
 
 namespace OpenMS{
 
-  const String KellerQuality::info_ = "Linear regression of 4 Sequest scores against the Quality";
-    
   KellerQuality::KellerQuality(const KellerQuality& source)
     : FilterFunctor(source)
   {
@@ -83,11 +81,6 @@ namespace OpenMS{
 
   KellerQuality::~KellerQuality()
   {
-  }
-
-  String KellerQuality::info() const
-  {
-    return info_;
   }
 
   vector<double> KellerQuality::operator() ( const ClusterSpectrum& cspec)

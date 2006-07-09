@@ -136,16 +136,22 @@ namespace OpenMS
 
 		protected:
 
+			/// name of the element
 			String name_;
 
+			/// symbol of the element
 			String symbol_;
 
+			/// atomic number of the element
 			Size atomic_number_;
 
+			/// average weight over all isotopes
 			Real average_weight_;
 	
+			/// mono isotopic weight of the most frequent isotope
 			Real mono_weight_;
 
+			/// distribution of the isotopes
 			IsotopeDistribution isotopes_;
 	};
 

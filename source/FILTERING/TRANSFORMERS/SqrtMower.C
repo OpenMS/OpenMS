@@ -34,9 +34,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  
-  const String SqrtMower::info_ = "scales the peaks to sqrt(height)";
-  
   SqrtMower::SqrtMower()
     : PreprocessingFunctor()
   {
@@ -56,19 +53,6 @@ namespace OpenMS
   
   SqrtMower::~SqrtMower()
   {
-  }
-
-  void SqrtMower::operator()(MSSpectrum< DPeak<1> >& spec) const
-  {
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); ++it )
-    {
-      it->setIntensity(sqrt(it->getIntensity()));
-    }
-  }
-
-  String SqrtMower::info() const
-  {
-    return info_;
   }
 
 }

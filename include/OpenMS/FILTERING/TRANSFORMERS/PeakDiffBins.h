@@ -60,8 +60,6 @@ namespace OpenMS
 
     std::vector<double> operator()(const ClusterSpectrum& spec);
 
-    String info() const;
-
 		static const String getName()
 		{
 			return "PeakDiffBins";
@@ -71,8 +69,7 @@ namespace OpenMS
     void setmask(std::vector<double>& newmask);
 
   private:
-    static const String info_;
-
+	
     /**
     current layout of bins/regions <br>
     standard is 1-187, size 1 <br>

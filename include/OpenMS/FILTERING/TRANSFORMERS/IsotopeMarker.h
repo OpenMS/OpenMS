@@ -30,6 +30,12 @@
 #define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
+
+#include <map>
+#include <vector>
+#include <cmath>
+#include <utility>
 
 namespace OpenMS
 {
@@ -37,37 +43,93 @@ namespace OpenMS
   /**
 	  @brief IsotopeMarker marks peak pairs which could represent an ion and its isotope
 	  
-	  \param marks times a peak needs to be marked to get marked in the result
-	  \param mz_variation m/z tolerance
-	  \param in_variation intensity variation in fraction of the theoretical isotope peak
+	  @param marks times a peak needs to be marked to get marked in the result
+	  @param mz_variation m/z tolerance
+	  @param in_variation intensity variation in fraction of the theoretical isotope peak
+
+		@ingroup PeakMarker
   */
   class IsotopeMarker
-    :public PeakMarker
+    : public PeakMarker
   {
   public:
-     /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     IsotopeMarker();
 
     /// copy constructor
     IsotopeMarker(const IsotopeMarker& source);
 
     /// destructor
-    ~IsotopeMarker();
+    virtual ~IsotopeMarker();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     IsotopeMarker& operator=(const IsotopeMarker& source);
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new IsotopeMarker();}
-    std::map<double,bool> operator()( MSSpectrum< DPeak<1> >&) const;
-    String info() const;
 
+		///
+		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)
+		{
+			double mzvariation = (double)param_.getValue("mz_variation");
+    	double invariation = (double)param_.getValue("in_variation");
+    	uint marks = (unsigned int)param_.getValue("marks");
+			
+    	spectrum.getContainer().sortByPosition();
+			
+    	std::map<double, uint> isotopemarks ; // possible isotopes
+			
+    	for (uint i = 0; i < spectrum.size(); ++i)
+    	{
+      	double mz = spectrum.getContainer()[i].getPosition()[0];
+      	double intensity = spectrum.getContainer()[i].getIntensity();
+      	uint j = i+1;
+      	std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
+      	while (j < spectrum.getContainer().size() && spectrum.getContainer()[j].getPosition()[0] <= mz + 3 + mzvariation)
+      	{
+        	double curmz = spectrum.getContainer()[j].getPosition()[0];
+        	double curIntensity = spectrum.getContainer()[j].getIntensity();
+        	uint iso = (uint)(curmz - mz + 0.499999);
+        	if (iso > 0 && curmz - mz - iso > mzvariation)
+        	{
+          	++j;
+          	continue;
+        	}
+        	if (std::fabs(isotopes[iso].second-curIntensity) < invariation * isotopes[iso].second)
+        	{
+          	isotopemarks[mz]++;
+        	  isotopemarks[curmz]++;
+        	}
+        	++j;
+      	}
+    	}
+			
+    	for (std::map<double, uint>::const_iterator cmit = isotopemarks.begin(); cmit != isotopemarks.end(); ++cmit)
+    	{
+      	if (cmit->second >= marks)
+      	{
+        	marked.insert(std::make_pair<double, bool>(cmit->first, true));
+      	}
+    	}
+    	return;
+		}
+
+		///
 		static const String getName()
 		{
 			return "IsotopeMarker";
 		}
+		// @}
 		
-  private:
-    static const String info_;
   };
 
 }

@@ -35,8 +35,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //const String ParentFilter::info_ = "information about the parent ion, charge  and mass";
-  
   ParentFilter::ParentFilter()
     : FilterFunctor()
   {
@@ -59,12 +57,6 @@ namespace OpenMS
   {
   }
 
-/*
-  String ParentFilter::info() const
-  {
-    return info_;
-  }
-*/
 /*
   vector<double> ParentFilter::operator()(const ClusterSpectrum& cspec)
   {

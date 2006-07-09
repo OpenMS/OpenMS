@@ -34,13 +34,14 @@
 
 namespace OpenMS
 {
-  /**
-  sparse Vector for internal use in Similarity Matrices from ordered Spectra 
-  Comparison<br>
-  since only Spectra with similar parent_mass get similarity > 0 all other 
-  similarities dont need to be saved<br>
-  the resulting matrix is a banded matrix with varying bandwith <br> <br>
-  **/
+  /** @brief sparse vector implementation which does noch save zero-elements
+	
+  	sparse Vector for internal use in Similarity Matrices from ordered Spectra 
+  	Comparison<br>
+  	since only Spectra with similar parent_mass get similarity > 0 all other 
+  	similarities dont need to be saved<br>
+  	the resulting matrix is a banded matrix with varying bandwith <br> <br>
+  */
   class SparseVector 
   {
     friend class DoubleProxy;

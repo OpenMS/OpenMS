@@ -64,15 +64,11 @@ namespace OpenMS
 
     std::vector<double> operator()(const ClusterSpectrum& spec);
 
-    String info() const;
-
 		static const String getName()
 		{
 			return "TradSeqQuality";
 		}
 
-  private:
-    static const String info_;
   };
 }
 #endif // OPENMS_FILTERING_TRANSFORMERS_TRADSEQQUALITY_H

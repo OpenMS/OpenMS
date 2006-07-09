@@ -35,8 +35,6 @@ using namespace std;
 namespace OpenMS
 {
   // Bern have a different one  
-  //const String NeutralLossDiffFilter::info_ = "total intensity of peak paris that could result from neutral Losses";
-    
 
   NeutralLossDiffFilter::NeutralLossDiffFilter()
     : FilterFunctor()
@@ -63,11 +61,6 @@ namespace OpenMS
   {
   }
 /*
-  String NeutralLossDiffFilter::info() const
-  {
-    return info_;
-  }
-
   vector<double> NeutralLossDiffFilter::operator() (const ClusterSpectrum& cspec)
   {
     double tolerance = (double)param_.getValue("tolerance");

@@ -32,9 +32,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String PeakDiffBins::info_ = "returns peak differences in bins";
-    
-
   PeakDiffBins::PeakDiffBins()
     :FilterFunctor(),mask_() 
   {
@@ -87,11 +84,6 @@ namespace OpenMS
     //cerr << "\n";
   }
   
-  String PeakDiffBins::info() const
-  {
-    return info_;
-  }
-
   vector<double> PeakDiffBins::operator() ( const ClusterSpectrum& cspec)
   {
     vector<double> result = vector<double>( mask_.size() );

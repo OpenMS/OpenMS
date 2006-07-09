@@ -39,8 +39,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String DistanceAnalyzer::info_ = "returns the distances in and between clusters";
-
   DistanceAnalyzer::DistanceAnalyzer()
     : AnalysisFunctor()
   {
@@ -184,10 +182,5 @@ namespace OpenMS
       result.insert(make_pair(ss.str(),intercluster[i]));
     }
     return result;
-  }
-
-  String DistanceAnalyzer::info() const
-  {
-    return info_;
   }
 }

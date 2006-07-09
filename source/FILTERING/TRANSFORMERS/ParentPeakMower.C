@@ -33,8 +33,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  //const String ParentPeakMower::info_ = "scales down large ( greater [x]*mean(Peaks) ) Peaks which have the same (+-[windowsize] m/z as the precursorpeak";
-  
   ParentPeakMower::ParentPeakMower()
     : PreprocessingFunctor()
   {
@@ -60,11 +58,6 @@ namespace OpenMS
   }
 
 /*
-  String ParentPeakMower::info() const
-  {
-    return info_;
-  }
-
   void ParentPeakMower::operator()(MSSpectrum< DPeak<1> >& spec) const
   {
     double window = (double)param_.getValue("windowsize");

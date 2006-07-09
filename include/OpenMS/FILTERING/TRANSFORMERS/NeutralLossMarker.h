@@ -31,39 +31,104 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
 
+#include <map>
+#include <cmath>
+
 namespace OpenMS
 {
   /**
-  	@brief NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss ( water, ammonia )<br>
-  
-  	\param tolerance m/z tolerance
+  	@brief NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss (water, ammonia)
+ 
+ 		@param marks frequency until it is marked
+  	@param tolerance m/z tolerance
+
+		@ingroup PeakMarker
   */
   class NeutralLossMarker
-    :public PeakMarker
+    : public PeakMarker
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     NeutralLossMarker();
 
     /// copy constructor
     NeutralLossMarker(const NeutralLossMarker& source);
 
     /// destructor
-    ~NeutralLossMarker();
+    virtual ~NeutralLossMarker();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
-    NeutralLossMarker& operator=(const NeutralLossMarker& source);
+    NeutralLossMarker& operator = (const NeutralLossMarker& source);
+		// @}
 
-    static FactoryProduct* create() { return new NeutralLossMarker();}
-    std::map<double,bool> operator()( MSSpectrum< DPeak<1> >&) const;
-    String info() const;
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new NeutralLossMarker(); }
 
+		///
+		template <typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)
+		{
+			// how often a peak needs to be marked to be returned
+    	double marks = (double)param_.getValue("marks");
+    	double tolerance = (double)param_.getValue("tolerance");
+    	std::map<double, int> ions_w_neutrallosses;
+    	spectrum.getContainer().sortByPosition();
+    	for (uint i = 0; i < spectrum.size(); ++i)
+    	{
+      	double mz = spectrum.getContainer()[i].getPosition()[0];
+      	double intensity = spectrum.getContainer()[i].getIntensity();
+      	int j = i - 1;
+      	while (j >= 0)
+      	{
+        	double curmz = spectrum.getContainer()[j].getPosition()[0];
+        	double curIntensity = spectrum.getContainer()[j].getIntensity();
+
+        	// check for peak thats a a water or ammonia away
+        	if (std::fabs(mz - curmz - 17) < tolerance || std::fabs(mz - curmz - 18) < tolerance)
+        	{
+          	// neutral loss peak should be smaller
+          	if (curIntensity < intensity)
+          	{
+            	ions_w_neutrallosses[mz]++;
+            	// neutral loss peak not marked
+            	//ions_w_neutrallosses[curmz]++;
+          	}
+        	}
+        	else 
+					{
+						if (mz - curmz > 18.3)
+		        {
+    		      break;
+        		}
+					}
+        	--j;
+      	}
+    	}
+			
+    	for (std::map<double, int>::const_iterator cmit = ions_w_neutrallosses.begin(); cmit != ions_w_neutrallosses.end(); ++cmit)
+    	{
+      	if (cmit->second >= marks)
+      	{
+        	marked.insert(std::make_pair<double, bool>(cmit->first, true));
+      	}
+    	}
+    	return;
+		}
+
+		///
 		static const String getName()
 		{
 			return "NeutralLossMarker";
 		}
-  private:
-    static const String info_;
+		// @}
+
   };
 
 }

@@ -38,8 +38,6 @@ using namespace std;
 namespace OpenMS
 {
   
-  const String LinkageCluster::info_ = "complete,average and single Linkage";
-  
   LinkageCluster::LinkageCluster()
     :ClusterFunctor()
   {
@@ -308,11 +306,6 @@ namespace OpenMS
       }
     }
     return result;
-  }
-
-  String LinkageCluster::info() const
-  {
-    return info_;
   }
 
 }

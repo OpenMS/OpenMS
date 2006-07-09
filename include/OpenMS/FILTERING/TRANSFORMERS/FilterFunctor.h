@@ -35,26 +35,44 @@
 
 namespace OpenMS
 {
+	/** 
+		@defgroup SpectraFilter Spectra Filters
+
+		@ingroup Filtering
+	*/
+
   /**
+		@ingroup SpectraFilter
+	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   */
   class FilterFunctor : public FactoryProduct
   {
   public:
+
+		// @name Constructors and Destructors
+		//@{
     /// standard constructor
     FilterFunctor();
 
     /// copy constructor
     FilterFunctor(const FilterFunctor& source);
 
+		/// destructor
+		virtual ~FilterFunctor();
+		//@}
+
+		// @name Operators
+		// @{
     /// assignment operator
     FilterFunctor& operator=(const FilterFunctor& source);
+		//@}
 
-    /// destructor
-    virtual ~FilterFunctor();
-
+		// @name Accessors
+		//@{
     /// function call operator
     template <typename SpectrumType> double apply(SpectrumType& spectrum) = 0;
+		//@}
 
   };
 }

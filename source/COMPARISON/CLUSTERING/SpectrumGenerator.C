@@ -404,7 +404,7 @@ namespace OpenMS
   std::vector<std::pair<double,double> > SpectrumGenerator::isotopepeaks(double mz, double intensity) const
   {
     // how many median AAs 'u' fit into the fragment?
-    double nru = mz/residuemasses_.find('u')->second;;
+    double nru = mz/residuemasses_.find('u')->second;
 
     map<char,double> nrelements;
     nrelements['H'] = elements_per_residue_.find('u')->second.find('H')->second * nru;

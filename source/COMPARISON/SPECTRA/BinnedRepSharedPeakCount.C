@@ -35,8 +35,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  const String BinnedRepSharedPeakCount::info_ = "shared Peak Count for BinnedReps";
-  
   BinnedRepSharedPeakCount::BinnedRepSharedPeakCount()
   {
 		name_ = BinnedRepSharedPeakCount::getName();
@@ -92,11 +90,6 @@ namespace OpenMS
       } 
     }
     return similarity * filterfactor;
-  }
-
-  String BinnedRepSharedPeakCount::info() const
-  {
-    return info_;
   }
 
 }

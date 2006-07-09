@@ -35,15 +35,20 @@ namespace OpenMS
 {
 
   /**
-  	@brief ParentPEakMower gets rid of high peaks that could stem from unfragmented parent ions<br>
+  	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented parent ions<br>
   
 	  \param windowsize consider all peaks inside parent ion m/z +- windowsize
 	  \param x what is considered high: intensity > x*mean(peakintensity)
+
+		@ingroup SpectraPreprocessing
   */
   class ParentPeakMower : public PreprocessingFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     ParentPeakMower();
 
     /// copy constructor
@@ -51,15 +56,21 @@ namespace OpenMS
 
     /// destructor
     ~ParentPeakMower();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator
     ParentPeakMower& operator=(const ParentPeakMower& source);
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new ParentPeakMower();}
-    //void operator()(MSSpectrum< DPeak<1> >&) const;
-    //String info() const;
 
-		template <typename SpectrumType> double apply(SpectrumType& spectrum)
+		///
+		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 		
@@ -73,18 +84,24 @@ namespace OpenMS
     	{
       	mean += it->getIntensity();
     	}
-    		mean /= spectrum.size();
+    	mean /= spectrum.size();
 
     	// assumed position of precursorpeak
-    	double pppos = spectrum.getPrecursorPeak().getPosition()[0] / spectrum.getPrecursorPeak().getCharge();
+    	double pppos = spectrum.getPrecursorPeak().getPosition()[0];
+			if (spectrum.getPrecursorPeak().getCharge() != 0)
+			{
+				pppos /= spectrum.getPrecursorPeak().getCharge();
+			}
+
     	Iterator it = spectrum.end();
-    	if ( it == spectrum.begin() ) return;
+			
+    	if (it == spectrum.begin()) return;
     	do
     	{
       	--it;
       	if (it->getPosition()[0] <= pppos + window && it->getPosition()[0] >= pppos - window)
       	{
-        	if( it->getIntensity() > mean ) it->setIntensity(mean);
+        	if (it->getIntensity() > mean) it->setIntensity(mean);
       	}
       	else if (it->getPosition()[0] < pppos - window)
       	{
@@ -93,12 +110,13 @@ namespace OpenMS
     	}	while (it != spectrum.begin());
 		}
 
+		///
 		static const String getName()
 		{
 			return "ParentPeakMower";
 		}
-  private:
-    //static const String info_;
+		//@}
   };
+
 }
 #endif // OPENMS_FILTERING/TRANSFORMERS_PARENTPEAKMOWER_H
