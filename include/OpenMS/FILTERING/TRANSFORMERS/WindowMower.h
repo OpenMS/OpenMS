@@ -78,7 +78,6 @@ namespace OpenMS
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
-			typedef typename SpectrumType::ConstReverseIterator ConstReverseIterator;
 			typedef typename SpectrumType::ContainerType ContainerType;
 			
 			double windowsize = (double)param_.getValue("windowsize");
@@ -110,7 +109,7 @@ namespace OpenMS
 
 			// add the found peaks to a new container
 			ContainerType container;
-			for (ConstReverseIterator it = spectrum.rbegin(); it != spectrum.rend(); ++it)
+			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
 				if (positions.find(it->getPosition()[0]) != positions.end())
 				{
