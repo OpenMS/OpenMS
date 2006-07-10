@@ -51,7 +51,7 @@ namespace OpenMS
 		
 		@note For range operations, see \ref RangeUtils "RangeUtils module"!
 		
-		@note To iterate over the peaks in all spactra use PeakIterator
+		@note To iterate over the peaks in all spectra use PeakIterator
 		
 		@ingroup Kernel
 	*/
@@ -63,16 +63,27 @@ namespace OpenMS
   		public PersistentObject
   {
     public:
+    
+    /// Spectrum Type
 		typedef MSSpectrum<PeakT> SpectrumType;
+    /// STL base class type
     typedef std::vector<SpectrumType> Base;
+		/// Mutable iterator
 		typedef typename std::vector<SpectrumType>::iterator Iterator;
+    /// Non-mutable iterator
     typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
     
+    /// Peak type
     typedef PeakT PeakType;
+    /// Traits types
     typedef typename PeakType::TraitsType TraitsType;
+    /// Area type
     typedef DRange<2, TraitsType> AreaType;
+		/// Coordinate type of peak positions
 		typedef typename TraitsType::CoordinateType CoordinateType;  	
+    /// Intenstiy type of peaks
     typedef typename TraitsType::IntensityType IntensityType; 
+		/// RangeManager type
 		typedef RangeManager<2, TraitsType> RangeManagerType;
 			
   	/// Constructor
@@ -660,7 +671,7 @@ namespace OpenMS
 			
 		protected:
 		
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO Persistence	

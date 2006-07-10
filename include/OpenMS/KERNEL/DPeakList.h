@@ -308,16 +308,20 @@ namespace OpenMS
 
 		
 
-		/** @name Type definitions
-		*/
-		//@{
+		/// Peak type
 		typedef PeakT PeakType;
+		/// Mutable iterator
 		typedef DPeakListIterator<PeakType> Iterator;
+		/// Non-mutable iterator
 		typedef DPeakListConstIterator<PeakType> ConstIterator;
+		/// Mutable reverse iterator
 		typedef std::reverse_iterator<Iterator> ReverseIterator;
+		/// Non-mutable reverse iterator
 		typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 		
-		// STL compliance definitions 
+		/** @name  STL compliance type definitions 
+		*/
+		//@{
 		typedef typename std::list<PeakType>::value_type value_type;
 		typedef typename std::list<PeakType>::size_type size_type;
 		typedef typename std::list<PeakType>::difference_type difference_type;
@@ -890,7 +894,7 @@ namespace OpenMS
 		}
 		//@}
 	
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 		{
 			pm.writeObjectHeader(this,name);
@@ -898,7 +902,7 @@ namespace OpenMS
 			pm.writeObjectTrailer(name);
 		}
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 		{
 			//TODO Persistence
@@ -907,7 +911,7 @@ namespace OpenMS
 		}
 
 		protected:
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO	

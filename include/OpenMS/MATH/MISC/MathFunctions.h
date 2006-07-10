@@ -84,56 +84,35 @@ namespace OpenMS
 		*/
 		inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2) 
 		{ 
-			return left2+(x-left1) * (right2-left2)/(right1-left1);
+			return left2 + (x - left1) * (right2 - left2) / (right1 - left1);
 		}
 	
 		/**
-			@brief Transforms a number from linear to log10 scale
+			@brief Transforms a number from linear to log10 scale. Avoids negative logarithms by adding 1.
 			
 			@param x The number to transform
-			@param is_percent Flag for percentage mode
-			@param max 100% value (for percentage mode)
 			
 			@ingroup Math
 		*/
-		inline double linear2log(double x, bool is_percent=false, double max=0)
+		inline double linear2log(double x)
 		{
-			//std::cout << "linear2log: "<<x << " "<<is_percent<<" "<<max<<std::endl;
-			if (is_percent)
-			{
-				return log10(x/max*100+1); //+1 to avoid negative logarithms
-			}
-			else
-			{ 
-				return log10(x+1); //+1 to avoid negative logarithms
-			}
+			return log10(x+1); //+1 to avoid negative logarithms
 		}
 		
 		/**
-			@brief Transforms a number from log10 to to linear scale
+			@brief Transforms a number from log10 to to linear scale. Subtracts the 1 added by linear2log(double)
 			
 			@param x The number to transform
-			@param is_percent Flag for percentage mode
-			@param max 100% value (for percentage mode)
-			
 			
 			@ingroup Math
 		*/
-		inline double log2linear(double x, bool is_percent=false, double max=0)
+		inline double log2linear(double x)
 		{
-			//std::cout << "log2linear: "<<x << " "<<is_percent<<" "<<max<<std::endl;
-			if (is_percent)
-			{
-				return (pow(10,x)-1)*max/100.0;
-			}
-			else
-			{
-				return pow(10,x)-1;
-			}
+			return pow(10,x)-1;
 		}
 		
 		/**
-			@brief Returns if the given interger is odd
+			@brief Returns true if the given interger is odd
 		
 			@ingroup Math
 		*/

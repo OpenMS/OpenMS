@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: UniqueIdGenerator.h,v 1.5 2006/03/03 17:55:35 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Marc Sturm $
+// $Maintainer: Knut Reinert $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_UNIQUEIDGENERATOR_H

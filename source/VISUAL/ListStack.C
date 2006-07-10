@@ -39,97 +39,97 @@
 #include <iostream>
 
 using namespace std;
-using namespace OpenMS;
 
-ListStack::ListStack( QWidget * parent, const char * name ): 
-QWidget(parent,name), 
-last_(0)
+namespace OpenMS
 {
-		//layout
-		QGridLayout* layout = new QGridLayout(this,1,2);
-		layout->setSpacing(4);
-		layout->setMargin(6);
-		
-		//listview (left)
-		list_ =  new QListView(this);
-		list_->setSizePolicy(QSizePolicy::QSizePolicy::Preferred,QSizePolicy::Minimum);
-		list_->addColumn("Name");
-		list_->setSorting(-1);
-		list_->setHScrollBarMode(QScrollView::AlwaysOff);
-		list_->header()->hide();
-		layout->addWidget(list_,0,0);
-			
-		
-		//widget stack (right)
-		stack_ = new EnhancedWidgetStack(this);
-		layout->addWidget(stack_,0,1);
-		layout->setColStretch(1,1);
-		
-		connect(list_,SIGNAL( selectionChanged(QListViewItem*) ),stack_,SLOT( raiseWidget(QListViewItem*) ));
-}
 
-ListStack::~ListStack()
-{
-	
-}
-
-void ListStack::addWidget(std::string name, QWidget* widget, void* creator, void* parent)
-{
-	QListViewItem* i;
-	if (parent==0 || w_to_item_[parent]==0)
+	ListStack::ListStack( QWidget * parent, const char * name ): 
+	QWidget(parent,name), 
+	last_(0)
 	{
-		if (last_==0)
+			//layout
+			QGridLayout* layout = new QGridLayout(this,1,2);
+			layout->setSpacing(4);
+			layout->setMargin(6);
+			
+			//listview (left)
+			list_ =  new QListView(this);
+			list_->setSizePolicy(QSizePolicy::QSizePolicy::Preferred,QSizePolicy::Minimum);
+			list_->addColumn("Name");
+			list_->setSorting(-1);
+			list_->setHScrollBarMode(QScrollView::AlwaysOff);
+			list_->header()->hide();
+			layout->addWidget(list_,0,0);
+				
+			
+			//widget stack (right)
+			stack_ = new QWidgetStack(this);
+			layout->addWidget(stack_,0,1);
+			layout->setColStretch(1,1);
+			
+			connect(list_,SIGNAL( selectionChanged(QListViewItem*) ),this,SLOT( raiseWidget_(QListViewItem*) ));
+	}
+	
+	ListStack::~ListStack()
+	{
+		
+	}
+	
+	void ListStack::addWidget(std::string name, QWidget* widget, void* creator, void* parent)
+	{
+		QListViewItem* i;
+		if (parent==0 || w_to_item_[parent]==0)
 		{
-			i = new QListViewItem(list_,name.c_str());
+			if (last_==0)
+			{
+				i = new QListViewItem(list_,name.c_str());
+			}
+			else
+			{
+				i = new QListViewItem(list_,last_,name.c_str());
+			}
+			last_ = i;
 		}
 		else
 		{
-			i = new QListViewItem(list_,last_,name.c_str());
+			i = new QListViewItem(w_to_item_[parent],name.c_str());
 		}
-		last_ = i;
+		if (parent != creator)
+		{
+			w_to_item_[creator] = i;	
+		}
+		//cout << "c:" << creator <<" i:" << w_to_item_[creator] << " p:" <<parent<< " i[p]:" <<w_to_item_[parent]<<endl;
+	
+		stack_->addWidget(widget,reinterpret_cast<PointerSizeInt>(i));
+	
+		if ( ((PreferencesManager*)creator)->isActive())
+		{
+			list_->clearSelection();
+			list_->setSelected(i,true);
+			((PreferencesManager*)creator)->setActive(false);
+		}
 	}
-	else
+	
+	void ListStack::expand()
 	{
-		i = new QListViewItem(w_to_item_[parent],name.c_str());
+		QListViewItemIterator it( list_ );
+		while ( it.current() ) 
+		{
+		  QListViewItem *item = it.current();
+		  list_->setOpen(item,true);
+		  ++it;
+		}	
 	}
-	if (parent != creator)
+	
+	
+	QWidget* ListStack::activeWidget()
 	{
-		w_to_item_[creator] = i;	
+		return stack_->visibleWidget();
 	}
-	//cout << "c:" << creator <<" i:" << w_to_item_[creator] << " p:" <<parent<< " i[p]:" <<w_to_item_[parent]<<endl;
-
-	stack_->addWidget(widget,i);
-
-	if ( ((PreferencesManager*)creator)->isActive())  //TODO: This is ugly! creator always PreferenceManager* ?
+	
+	void ListStack::raiseWidget_(QListViewItem* ptr)
 	{
-		list_->clearSelection();
-		list_->setSelected(i,true);
-		((PreferencesManager*)creator)->setActive(false);
+		stack_->raiseWidget(reinterpret_cast<PointerSizeInt>(ptr));
 	}
-}
 
-void ListStack::expand()
-{
-	QListViewItemIterator it( list_ );
-	while ( it.current() ) 
-	{
-	  QListViewItem *item = it.current();
-	  list_->setOpen(item,true);
-	  ++it;
-	}	
-}
-
-
-QWidget* ListStack::activeWidget()
-{
-	return stack_->visibleWidget();
-}
-
-
-
-
-
-
-
-
-
+} //namespace

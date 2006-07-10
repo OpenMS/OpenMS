@@ -78,7 +78,7 @@ namespace OpenMS
 		/** @name Constants
 		*/
 		//@{	
-		///
+		/// Handle that is used for an undefined position
 		static const SignedInt NPOS;
 		//@}	
 		
@@ -109,8 +109,9 @@ namespace OpenMS
 		/// Constructor from double (precision is 10)
 		String(double d);
 		/**
-			Constructor from double, that is converted to string of maximum length @p size.
-			If @p d is larger, scientific notation is used.
+			@brief  Constructor from double, that is converted to string of maximum length @p size. 
+		
+		 If @p d is larger, scientific notation is used.
 		*/
 		String(double d, UnsignedInt size);
 		/// Constructor from DataValue (casted to String)

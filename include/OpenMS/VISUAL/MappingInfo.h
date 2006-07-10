@@ -38,6 +38,7 @@ namespace OpenMS
 		
 		A class that describes the mapping (which dimension is x/y) and orientation (ascending/descending) 
 		of the two dimensions x and y on the screen. Orientations are always seen from the lower left corner.
+		
 		Default is: m/z to x axis , orientation for x axis ascending, orientation for y axis ascending
 	
 		@ingroup Visual
@@ -45,6 +46,7 @@ namespace OpenMS
   class MappingInfo
 	{
 		public:
+			/// Default constructor
 			inline MappingInfo():
 				x_ascending_(true), 
 				y_ascending_(true), 

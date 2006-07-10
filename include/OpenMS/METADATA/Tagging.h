@@ -34,7 +34,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Meta information about tagging of a sample
+		@brief Meta information about tagging of a sample e.g. ICAT labeling.
 		
 		Holds information about the mass difference between light and heavy tag.
 		All other relevant information is provided by Modification.

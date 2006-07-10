@@ -53,20 +53,26 @@ namespace OpenMS
 	{
 		Q_OBJECT
 	public:
+		/// Constructor
 		Spectrum2DWindow(QWidget* parent=0, const char* name="Spectrum2DWindow", WFlags f=0);
+		/// Destructor
 		~Spectrum2DWindow();
 		
+		// Docu in base class
 		Spectrum2DWidget* widget();
 
 		/// returns the mode for 2D dots   
 		SignedInt getDotMode();
     
-		///PreferencesManager
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 	public slots:
+		/// Shows or hides the projects
 		void show1DProjections(bool on);
+		/// Changes the visibilty of the projections
 		void changeShow1DProjections();
+		// Docu in base class
     virtual void showGoToDialog();    
 
 	protected slots:

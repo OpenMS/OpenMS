@@ -37,7 +37,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Tab bar wich is aware of double clicking.
+		@brief Tab bar which is aware of double clicking.
 		
 		It emits a signal, when a tab is double clicked.
 		
@@ -48,10 +48,13 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		public:
+		/// Constructor
 		EnhancedTabBar( QWidget * parent = 0, const char * name = 0 );
+		/// Destructor
 		~EnhancedTabBar();
 	
 		signals:
+		/// Signal emited when double clicked
 		void doubleClicked(OpenMS::SignedInt);
 	
 		protected:

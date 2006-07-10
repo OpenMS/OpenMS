@@ -34,7 +34,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Description of the origin of (meta) data
+		@brief Description of a file location, used to store the origin of (meta) data.
 		
 		
 		

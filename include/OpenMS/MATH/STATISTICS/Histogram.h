@@ -43,12 +43,11 @@ namespace OpenMS
 	{
 	
 		/**
-			@brief Representation of a Histogram
+			@brief Representation of a histogram
 			
 			The first template argument gives the Type of the
 			values that are stored in the bins. The second argument
-			gives the type of the binsize. This type is also used for
-			the range of the stored values.
+			gives the type for the bin size and range.
 			
 			@ingroup Math
 		*/
@@ -56,13 +55,9 @@ namespace OpenMS
 		class Histogram
 		{
 		 public:
-	
-			/** @name Typedefs
-			 */
-			//@{
-			typedef BinSizeType BinType;
+
+			/// Non-mutable iterator of the bins
 			typedef typename std::vector<ValueType>::const_iterator ConstIterator;
-			//@}
 	
 			/** @name Constructors and Destructors
 			 */
@@ -175,7 +170,7 @@ namespace OpenMS
 			  bins_[valToBin_(val)]+=increment;
 			}
 	
-			///resets the histogram to the given values (can be used with the default constructur)
+			///resets the histogram with the given range and bin size
 			void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)
 			{
 				if (bin_size <= 0)
@@ -231,10 +226,10 @@ namespace OpenMS
 			/** @name Iterators
 			 */
 			//@{
-			/// constant iterator pointing to the min value of the histogram
+			/// Non-mutable iterator pointing to the first bin
 			inline ConstIterator begin() const { return bins_.begin(); }
 	
-			/// constant iterator pointing to one position behind the max value of the histogram
+			/// Non-mutable iterator pointing after the last bin
 			inline ConstIterator end() const { return bins_.end(); }
 			//@}
 	

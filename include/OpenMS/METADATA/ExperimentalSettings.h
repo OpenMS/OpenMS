@@ -57,7 +57,15 @@ namespace OpenMS
   {
     public:
     	///Type of the experiment
-    	enum ExperimentType {UNKNOWN,MS,MS_MS,HPLC_MS,HPLC_MS_MS,SIZE_OF_EXPERIMENTTYPE};
+    	enum ExperimentType 
+    	{
+    		UNKNOWN, ///< Unknown experiment type
+    		MS, ///< MS experiment
+    		MS_MS, ///< Tandem MS experiment
+    		HPLC_MS, ///< HPLC-MS experiment
+    		HPLC_MS_MS, ///< HPLC-MS experiment with tandem MS information
+    		SIZE_OF_EXPERIMENTTYPE ///< Number of experiment types (can be used to iterate over the names)
+    	};
     	///Names of experiment types                                 
     	static const std::string NamesOfExperimentType[SIZE_OF_EXPERIMENTTYPE];
 			
@@ -76,7 +84,7 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const ExperimentalSettings& rhs) const;
 
-	  /// returns a const reference to the sample description
+	    /// returns a const reference to the sample description
       const Sample& getSample() const;
       /// returns a mutable reference to the sample description
       Sample& getSample();

@@ -52,10 +52,15 @@ namespace OpenMS
 		/** @name Type definitions
 		 */
 		//@{
+		/// Number of dimenstions
 		enum { DIMENSION = D };
+		/// Traits types
 		typedef Traits TraitsType;
+		/// Intensity type
 		typedef typename Traits::IntensityType IntensityType;
+		/// Coordinate type (of the position)
 		typedef typename Traits::CoordinateType CoordinateType;
+		/// Position type
 		typedef DPosition<D, Traits> PositionType;
 		//@}
 
@@ -98,7 +103,8 @@ namespace OpenMS
 			return tmp;
 		}
 		
-		/**	Accessors
+		/**	
+			@name Accessors
 		 */
 		//@{
 		/// Non-mutable access to the data point intensity (height)

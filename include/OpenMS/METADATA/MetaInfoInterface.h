@@ -40,7 +40,7 @@ namespace OpenMS
 {
 
 	/**
-		@brief Interface for classes that can store arbitrary meta information (ype-Name-Value tupels).
+		@brief Interface for classes that can store arbitrary meta information (Type-Name-Value tupels).
 		
 		MetaInfoInterface is a base class for all classes that use one MetaInfo object as member.
 		If you want to add meta information to a class, let it publically inherit the MetaInfoInterface.

@@ -35,7 +35,8 @@
 namespace OpenMS 
 {
 	/**
-		@brief Representation of a raw data spectrum that was combined with several other spectra to form this Spectrum
+		@brief Information about one raw data spectrum that was combined with several
+		other raw data spectra.
 		
 		Although this class is basically an integer value, it is needed to store important meta info
 		for each raw data scan. 

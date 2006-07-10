@@ -49,21 +49,25 @@ namespace OpenMS
 	{
 	 public:
 
-		/**	Type definitions */	
-		//@{
+		/// Traits type
 		typedef Traits																	TraitsType;
+		/// Coordinate type
 		typedef typename TraitsType::CoordinateType			CoordinateType;
-		typedef typename TraitsType::CoordinateType			ValueType;
+		/// Mutable iterator
 		typedef typename TraitsType::CoordinateType*		Iterator;
+		/// Non-mutable iterator
 		typedef const typename Traits::CoordinateType*	ConstIterator;
-
-		// STL compatibility typedefs
+		/// Dimensions
+		enum { DIMENSION = D };
+		/**	
+			@name STL compatibility type definitions
+		*/	
+		//@{
 		typedef	CoordinateType value_type;
 		typedef CoordinateType& reference;
 		typedef CoordinateType* pointer;
 		typedef CoordinateType* iterator;
 		typedef const CoordinateType* const_iterator;
-		enum { DIMENSION = D };
 		//@}
 		
 		/**	
@@ -80,6 +84,7 @@ namespace OpenMS
 		/// Destructor
 		~DPosition() {}
 
+		/// Constructor that fills all dimensions with the value @p x
 		DPosition(const CoordinateType& x)
 		{
 			std::fill(&(coordinate_[0]), &(coordinate_[D]), x);
@@ -300,9 +305,13 @@ namespace OpenMS
 
 		/**	@name Iteration */
 		//@{
+		/// Non-mutable begin iterator 
 		ConstIterator begin() const throw() { return &(coordinate_[0]); }
-		Iterator begin() throw() { return &(coordinate_[0]); }
+		/// Non-mutable end iterator 
 		ConstIterator end() const throw() { return &(coordinate_[0]) + D; }
+		/// Mutable begin iterator 
+		Iterator begin() throw() { return &(coordinate_[0]); }
+		/// Mutable end iterator 
 		Iterator end() throw() { return &(coordinate_[0]) + D; }
 		//@}
 

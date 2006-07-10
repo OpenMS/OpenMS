@@ -57,7 +57,7 @@ namespace OpenMS
 	???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
 	Please use it carefully.
 	
-    @ingroup PeakPickingCWT
+    @ingroup PeakPicking
   */
   template <Size D, typename  ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
   class DSignalToNoiseEstimatorWindowing : public DSignalToNoiseEstimator<D, ContainerType>

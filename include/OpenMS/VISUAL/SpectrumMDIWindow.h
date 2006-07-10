@@ -93,7 +93,6 @@ namespace OpenMS
 				@param maps_as_2d If maps are displayed 2D or 3D
 				@param maximize If the window the new file was added to should be displayed maximized
 				@param use_mower If a mower should be used to suppress noise in the data
-				@param force_type File type to force
 			*/
 			void addDBSpectrum(UnsignedInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
 

@@ -50,7 +50,7 @@ namespace OpenMS
 
      The convolution of the signal and the wavelet is computed by numerical integration.
 
-     @ingroup PeakPickingCWT
+     @ingroup PeakPicking
 
      @todo write test (Eva)
   */

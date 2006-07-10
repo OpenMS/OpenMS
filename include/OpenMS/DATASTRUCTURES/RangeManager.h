@@ -34,7 +34,7 @@ namespace OpenMS
 	/**	
 		@brief Handles the managment of a position and intensity range.
 		
-		This is needed for all peak and feature container like DSpectrum, MSExperiment, DFeeatureMap.
+		This is needed for all peak and feature container like DSpectrum, MSExperiment and DFeatureMap.
 	*/
 	template <Size D, typename TraitsT = KernelTraits>
 	class RangeManager

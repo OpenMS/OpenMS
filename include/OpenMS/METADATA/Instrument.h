@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief Description of a MS instrument
 		
-		It contains info like vendor, model, ion source, mass analyzer(s), and ion detector.
+		It contains information like vendor, model, ion source, mass analyzer(s), and ion detector.
 		
 		@ingroup Metadata
 	*/

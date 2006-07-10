@@ -220,7 +220,7 @@ namespace OpenMS
 				@param	name the name of the primitive
 				@return	true if type and name of the primitive match
 			*/
-			virtual bool checkPrimitiveHeader(const char* stream_name, const char* name) = 0;
+			virtual bool checkPrimitiveHeader(const char* type_name, const char* name) = 0;
 
 			/**	
 				@brief Check for header for a reference to a PersistentObject.

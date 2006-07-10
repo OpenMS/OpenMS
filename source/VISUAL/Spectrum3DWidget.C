@@ -74,10 +74,6 @@ namespace OpenMS
 	void Spectrum3DWidget::recalculateAxes_()
 	{
 	}
-
-	void Spectrum3DWidget::invalidate_()
-	{
-	}
 	
 	Histogram<UnsignedInt,float> Spectrum3DWidget::createIntensityDistribution_()
 	{
@@ -97,7 +93,7 @@ namespace OpenMS
 		
 		return tmp;
 	}
-	Spectrum3DCanvas * Spectrum3DWidget::canvas() const
+	Spectrum3DCanvas * Spectrum3DWidget::canvas()
 	{
 	  return static_cast<Spectrum3DCanvas*>(canvas_);
 	}

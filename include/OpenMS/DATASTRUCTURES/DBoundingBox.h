@@ -48,7 +48,9 @@ namespace OpenMS
 		
 	 public:
 
-		/**	Type definitions */	
+		/**	
+			@name Type definitions 
+		*/	
 		//@{
 		/// Dimensions
 		enum { DIMENSION = D };

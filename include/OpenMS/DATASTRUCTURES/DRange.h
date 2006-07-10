@@ -55,7 +55,9 @@ namespace OpenMS
 	{
 	 public:
 
-		/**	Type definitions */	
+		/**	
+			@name Type definitions 
+		*/	
 		//@{
 		/// Dimensions
 		enum { DIMENSION = D };
@@ -144,12 +146,12 @@ namespace OpenMS
 
 		/**	@name Predicates */
 		//@{
-		
+		///Equality operator
 		bool operator == (const DRange& rhs) const throw()
 		{
 			return Base::operator==(rhs);
 		}
-
+		/// Equality operator
 		bool operator == (const Base& rhs) const throw()
 		{
 			return Base::operator==(rhs);

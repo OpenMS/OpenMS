@@ -48,7 +48,10 @@ namespace OpenMS
 		provides a more convenient interface to manipulate these vectors,
 		sort with respect to specific dimensions and intensity, and a
 		convenient interface to the other OpenMS classes.
-
+		
+		If you do only use one type of peaks it it more efficient to use
+		DPeakArrayNonPolymorphic instead of this class!
+		
 		<i><b>ATTENTION:</b> DPeakArray can be used with DPeak and instances of
 		classes derived from DPeak at a time, but do not use mutating STL
 		algorithms on an inhomogenous DPeakArray! These algorithms may affect
@@ -365,15 +368,20 @@ namespace OpenMS
 			protected:
 			
 		};	
+		/// Peak type
+		typedef PeakT PeakType;
+		/// Mutable iterator
+		typedef DPeakArrayIterator<PeakType> Iterator;
+		/// Non-mutable iterator
+		typedef DPeakArrayConstIterator<PeakType> ConstIterator;
+		/// Mutable reverse iterator
+		typedef std::reverse_iterator<Iterator> ReverseIterator;
+		/// Non-mutable reverse iterator
+		typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 
 		/** @name STL-compliance type definitions
 		*/
 		//@{		
-		typedef PeakT PeakType;
-		typedef DPeakArrayIterator<PeakType> Iterator;
-		typedef DPeakArrayConstIterator<PeakType> ConstIterator;
-		typedef std::reverse_iterator<Iterator> ReverseIterator;
-		typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 		typedef typename std::vector<PeakType>::value_type value_type;
 		typedef typename std::vector<PeakType>::size_type size_type;
 		typedef typename std::vector<PeakType>::difference_type difference_type;
@@ -765,7 +773,7 @@ namespace OpenMS
 		}
 
 		/**	
-			@brief Sorting.
+			@name Sorting.
 			
 			These simplified sorting methods are supported in addition to	the standard sorting methods of std::vector.
 		*/
@@ -817,7 +825,7 @@ namespace OpenMS
 		}
 		//@}
 
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 		{
 			pm.writeObjectHeader(this,name);
@@ -825,7 +833,7 @@ namespace OpenMS
 			pm.writeObjectTrailer(name);
 		}
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 		{
 			//TODO Persistence
@@ -837,7 +845,7 @@ namespace OpenMS
 		
 	protected:
 
-		///PersistentObject interface
+		// Docu in base class
     virtual void clearChildIds_()
     {
     	//TODO Persistence	

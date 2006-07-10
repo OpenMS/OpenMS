@@ -53,14 +53,9 @@ namespace OpenMS
 		addClient(canvas(),"Canvas",true);
 	}
 	
-	Spectrum1DCanvas* Spectrum1DWidget::canvas() const
+	Spectrum1DCanvas* Spectrum1DWidget::canvas()
 	{
 		return static_cast<Spectrum1DCanvas*>(canvas_);
-	}
-	
-	void Spectrum1DWidget::mouseMoveEvent( QMouseEvent* /*e*/)
-	{
-		
 	}
 	
 	void Spectrum1DWidget::recalculateAxes_()

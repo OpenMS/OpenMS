@@ -82,22 +82,10 @@ namespace OpenMS
 		*/
 		virtual ~Spectrum2DWidget();
 		
-		/**
-			@brief Returns the canvas widget
-			
-			Returns the canvas widget which provides the data view.
-			
-			@return the canvas widget
-		*/
-		Spectrum2DCanvas* canvas() const;
+		// Docu in base class
+		Spectrum2DCanvas* canvas();
 		
-		/**
-			@brief Creates a preferences dialog page
-			
-			Creates a preferences dialog page for configuring this view.
-			
-			@param parent the parent widget for the dialog page
-		*/
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 	public slots:	

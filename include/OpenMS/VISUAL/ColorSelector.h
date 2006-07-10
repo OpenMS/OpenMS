@@ -42,22 +42,31 @@ namespace OpenMS
 		
 		It represents a color (displayed as background color) and allows changing the color.
 		
+		\image html ColorSelector.png
+		
+		The above example image shows four ColorSelector instances on the right side.
+		
 		@ingroup Visual
 	*/
 	class ColorSelector: public QWidget
 	{
 		Q_OBJECT
+		
 		public:
-		ColorSelector( QWidget * parent = 0, const char * name = 0 );
-		~ColorSelector();
-	
-		const QColor& getColor();
-		void setColor(const QColor&);
-	
+			/// Constructor
+			ColorSelector( QWidget * parent = 0, const char * name = 0 );
+			/// Destructor
+			~ColorSelector();
+			
+			/// Returns the selected color
+			const QColor& getColor();
+			/// Sets the selected color
+			void setColor(const QColor&);
+		
 		protected:
-		void paintEvent(QPaintEvent * e);
-		void mousePressEvent(QMouseEvent* e);
-		QColor color_;
+			void paintEvent(QPaintEvent * e);
+			void mousePressEvent(QMouseEvent* e);
+			QColor color_;
 	};
 
 }

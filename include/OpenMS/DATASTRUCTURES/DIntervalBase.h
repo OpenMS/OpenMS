@@ -42,15 +42,17 @@ namespace OpenMS
 
 			See DIntervalBase for a closed interval and DRange for a half-open interval class.
 
-			@note All methods maintain the invariant that min() is geometrically less or equal max() 
-			      i.e. min()[x] <= max()[x].
+			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
+			           i.e. min()[x] <= max()[x].
 		*/
 		template <Size D, typename Traits = KernelTraits>
 		class DIntervalBase
 		{
 			public:
 			
-				/**	Type definitions */	
+				/**	
+					@name Type definitions 
+				*/	
 				//@{
 				/// Dimensions
 				enum { DIMENSION = D };

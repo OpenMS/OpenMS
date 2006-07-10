@@ -39,7 +39,13 @@ namespace OpenMS
 	/**
 		@brief Facilitates file handling by file type recognition.
 		
-		@ingoup FileIO
+		This class provides file type recognition from the file name and
+		from the file content.
+		
+		It also offer a common interface to load MSExperiment data
+		and allows querying for supported file types.
+		
+		@ingroup FileIO
 	*/
 	class FileHandler
 	{
@@ -57,10 +63,11 @@ namespace OpenMS
 				MZDATA,         ///< MzData file (.MzData)
 				MZXML,          ///< MzXML file (.MzXML)
 				FEATURE,        ///< OpenMS feature file (.feat)
-				ANDIMS,         ///< ANDI\MS file (.cdf)
+				ANDIMS,         ///< ANDI\\MS file (.cdf)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 			
+			/// String representations of the file types
 			static const std::string NamesOfTypes[SIZE_OF_TYPE];
 			
 			/// Determines the file type from a file name
@@ -81,7 +88,7 @@ namespace OpenMS
 			/**
 				@brief Loads a file into an MSExperiment
 				
-				@param the Filename of the file to load.
+				@param filename the Filename of the file to load.
 				@param exp The MSExperiment to load the data into.
 				@param force_type Forces to load the file with that file type.<BR>
 				                  If no type is forced, it is determined from the extention ( or from the content if that fails).

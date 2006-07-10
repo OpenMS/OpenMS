@@ -43,7 +43,7 @@ namespace OpenMS
 		aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
 		
 		Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
-		a vector of spectras with additional information about the experiment. 
+		a vector of spectra with additional information about the experiment. 
 		
 		Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS spectrum.
 		The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than
@@ -172,7 +172,7 @@ namespace OpenMS
 				return upper_bound(BaseSpectrum::begin(), BaseSpectrum::end(), p, typename PeakType::PositionLess());
 			}			
 			
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 			{
 				//std::cout << "--  MSSpectrum Header --" << std::endl;
@@ -189,7 +189,7 @@ namespace OpenMS
 				pm.writeObjectTrailer(name);
 			}
 			
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 			{
 				pm.readPrimitive(getPersistenceId(),"id");
@@ -218,7 +218,7 @@ namespace OpenMS
 			}
 			
 		protected:
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO Persistence

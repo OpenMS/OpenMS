@@ -39,6 +39,8 @@ namespace OpenMS
 		
 		Virtual base class for all sample treatments.
 		
+		The type of the tratment can be determined through the getType() method.
+		
 		@ingroup Metadata
 	*/
   class SampleTreatment: public MetaInfoInterface

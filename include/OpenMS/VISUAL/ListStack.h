@@ -31,10 +31,10 @@
 #define OPENMS_VISUAL_LISTSTACK_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/VISUAL/EnhancedWidgetStack.h>
 
 //QT
 #include <qlistview.h>
+#include <qwidgetstack.h>
 
 //STL
 #include <string>
@@ -44,9 +44,15 @@
 namespace OpenMS 
 {
 	/**
-		@brief Displays and manages an tree view of items.
+		@brief Tree view combined with a widget stack.
 		
-		Similar to the Microsoft Explorer in Windows. 
+		Displays and manages a tree view of itemsand a stack of widgets.
+		The shown stack item is determined by the activated entry in the tree view.
+		
+		\image html ListStack.png
+		
+		In the above example image a ListStack is shown that consists of the tree view (left red rectangle)
+		and the widget stack (right red triangle).
 		
 		@ingroup Visual
 	*/
@@ -63,8 +69,11 @@ namespace OpenMS
 			///Expands all nodes (subnodes are inserted unexpanded by default).
 			void expand();
 
-			///adds a widget with a certain name to the stack.
-			///Creator and parent are needed to locate the position where to insert the widget.
+			/**
+				@brief Adds a widget with a certain name to the stack.
+			
+				Creator and parent are needed to locate the position where to insert the widget.
+			*/
 			void addWidget(std::string name, QWidget* widget, void* creator, void* parent=0);
 
 			///returns a pointer to the active widget
@@ -72,11 +81,13 @@ namespace OpenMS
 
 
 		protected:
-			EnhancedWidgetStack* stack_;
+			QWidgetStack* stack_;
 			QListView* list_;
 			QListViewItem* last_;
-
 			std::map<void*,QListViewItem*> w_to_item_;
+			
+		protected slots:
+			void raiseWidget_( QListViewItem* ptr );
 
 	};
 

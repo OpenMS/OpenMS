@@ -60,18 +60,18 @@ namespace OpenMS
 	{
 		public:
 		
-		/** @name Type definitions
-		*/
-		//@{
+		/// Peak type
 		typedef PeakT PeakType;
+		/// Base class type
 		typedef std::vector<PeakType> Base;
-		
-		// STL compliance typedefs
+		/// Mutable iterator		
 		typedef typename std::vector<PeakType>::iterator Iterator;
+		/// Non-mutable iterator
 		typedef typename std::vector<PeakType>::const_iterator ConstIterator;
+		/// Mutable reverse iterator
 		typedef typename std::vector<PeakType>::reverse_iterator ReverseIterator;
+		/// Non-mutable reverse iterator
 		typedef typename std::vector<PeakType>::const_reverse_iterator ConstReverseIterator;
-		//@}
 
 		/**	@name Constructors and Destructor
 		*/
@@ -197,7 +197,7 @@ namespace OpenMS
 			return operator>(array) || operator==(array);
 		}
 
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 		{
 			pm.writeObjectHeader(this,name);
@@ -205,7 +205,7 @@ namespace OpenMS
 			pm.writeObjectTrailer(name);
 		}
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 		{
 			//TODO Persistence
@@ -214,7 +214,7 @@ namespace OpenMS
 		}
 
 		protected:
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO Persistence

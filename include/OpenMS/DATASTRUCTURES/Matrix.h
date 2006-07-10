@@ -56,7 +56,7 @@ namespace OpenMS
 		
 	 public:
 
-		///@brief STL compliance type definitions
+		///@name STL compliance type definitions
 		//@{
 		typedef Base container_type;
 
@@ -76,7 +76,7 @@ namespace OpenMS
 		typedef typename Base::allocator_type allocator_type;
 		//@}
 
-		///@brief OpenMS compliance type definitions
+		///@name OpenMS compliance type definitions
 		//@{
 		typedef Base ContainerType;
 		typedef difference_type DifferenceType;

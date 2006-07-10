@@ -26,6 +26,24 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+/**
+  @defgroup TOPPView TOPPView - A MS data viewer
+  
+  @brief TOPPView documentation
+  
+  Specview is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
+  and several other text-based file formats. It also supports viewing data from an OpenMS database.
+  The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
+ 	
+ 	\image html TOPPView.png
+ 	
+  Specview can be found in the <tt>OpenMS/source/APPLICATIONS/TOPP/</tt> directory.
+  
+  Use the command <tt>'make TOPPView'</tt> to build it after you built OpenMS.
+  
+  @ingroup Applications
+*/
+
 //QT
 #include <qapplication.h>
 #include <qwindowsstyle.h>

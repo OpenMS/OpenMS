@@ -53,7 +53,7 @@ namespace OpenMS
   	We have to use function pointers for the gsl and can't put them into
   	a class, so we provide an extra namespace.
 
-  	@ingroup PeakPickingCWT
+  	@ingroup PeakPicking
   	
   	@todo write a test (Eva)
    */

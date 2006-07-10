@@ -73,18 +73,27 @@ namespace OpenMS
 			/// changes the name of a child PreferencesManager
 			void setClientName(PreferencesManager* client, const std::string& name, bool isIncluded=false);
 
-			/// creates and shows the preferences dialog
-			/// <br> For return values see QDialog::exec() return values
+			/**
+				@brief Creates and shows the preferences dialog.
+				
+				For return values see QDialog::exec() return values.
+			*/
 			SignedInt showPreferencesDialog();
 
-			/// creates a PreferencesDialogPage with the preferences settings on it.
-			/// @param parent parent widget to be used for the background widget
+			/**
+				@brief Creates a PreferencesDialogPage with the preferences settings on it.
+				
+			 @param parent parent widget to be used for the background widget
+			*/
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent) = 0;
 
 			/**
-				looks up a client with name @p name form incl_clients_. Then creates its PreferencesDialogPage page
-				with @p parent as parent and returns a pointer to it.
-				If there is no client with this name, 0 is returned.
+				@brief Return the preferences dialog page of a client.
+				
+				It looks up a client with name @p name form incl_clients_. 
+				Then creates its PreferencesDialogPage page with @p parent as parent.
+				
+				@return a pointer to the PreferencesDialogPage, or 0 if there is no client with this name.
 			*/
 			PreferencesDialogPage* client(std::string name,QWidget* parent);
 			
@@ -94,12 +103,14 @@ namespace OpenMS
 			void setActive(bool);
 
 			/**
-				sets the preference @p name to @p value.
+			  @brief Sets the preference @p name to @p value.
+				
 				This method is mainly used to set preferences from the preferences dialog.
 			*/
 			void setPref(const String& name, const String& value);
 			/**
-				sets the preference @p name to @p value.
+				@brief Sets the preference @p name to @p value.
+				
 				This method is mainly used to set preferences from the preferences dialog.
 			*/
 			void setPref(const String& name, SignedInt value);

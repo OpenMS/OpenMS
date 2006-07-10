@@ -138,7 +138,8 @@ namespace OpenMS
 			return tmp;
 		}
 		
-		/**	Accessors
+		/**	
+			@name Accessors
 		 */
 		//@{
 		/// Non-mutable access to the correlation coefficient between raw data and the peak model
@@ -238,7 +239,7 @@ namespace OpenMS
 			return !(operator == (rhs));
 		}
 
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 		{
 			//std::cout << "--  DPickedPeak Header --" << std::endl;
@@ -253,7 +254,7 @@ namespace OpenMS
 			pm.writeObjectTrailer(name);
 		}
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 		{
 			pm.readPrimitive(this->getPersistenceId(),"id");
@@ -406,7 +407,7 @@ namespace OpenMS
 		/// The signal to noise value of the peak
 		SignalToNoiseType signal_to_noise_;
 
-		///PersistentObject interface
+		// Docu in base class
     virtual void clearChildIds_()
     {
     	//TODO Persistence

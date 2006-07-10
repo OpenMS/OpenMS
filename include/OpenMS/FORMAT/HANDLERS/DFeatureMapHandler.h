@@ -354,7 +354,7 @@ namespace OpenMS
 			ModelDescription<D> desc = dfeat.getModelDescription();
 			os << "\t\t\t<model name=\"" << desc.getName() << "\">" << std:: endl;
 			Param modelp = desc.getParam();
-			Param::const_iterator piter = modelp.begin();
+			Param::ConstIterator piter = modelp.begin();
 			while (piter != modelp.end())
 			{
 				os << "\t\t\t\t<param name=\"" << piter->first << "\" value=\"" << piter->second << "\">";

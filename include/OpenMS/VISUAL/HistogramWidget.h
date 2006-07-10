@@ -50,51 +50,56 @@ namespace OpenMS
 		
 		It can also be used to define a left and right boundary inside the values.
 		
-		@todo splitters disappear sometimes (Marc)
+		@todo splitters disappear sometimes! Only with Cygwin X-Server? (Marc)
 		
 		@ingroup Visual
 	*/
 	class HistogramWidget : public QWidget
 	{
 		Q_OBJECT
+		
 		public:
-
-		HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0, const char* name = "HistogramWidget");
-		virtual ~HistogramWidget();
-
-		double getLeftSplitter();
-		double getRightSplitter();
-
-		/// set x-axis legend; default is 'x'
-		void setLegend(const std::string& legend);
+			/// Constructor
+			HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0, const char* name = "HistogramWidget");
+			/// Destructor
+			virtual ~HistogramWidget();
+			
+			/// Returns the value f the lower splitter
+			double getLeftSplitter();
+			/// Returns the value of the upper splitter
+			double getRightSplitter();
+			/// set x-axis legend; default is 'x'
+			void setLegend(const std::string& legend);
 
 		public slots:
-		void showSplitters(bool on);
-		void setRightSplitter(double pos);
-		void setLeftSplitter(double pos);
+			/// Shows the splitters if @p on is true. Hides them otherwise.
+			void showSplitters(bool on);
+			/// Sets the value of the right splitter
+			void setRightSplitter(double pos);
+			/// Sets the value of the left splitter
+			void setLeftSplitter(double pos);
 
 		protected:
-		Histogram<UnsignedInt,float> dist_;
-		bool show_splitters_;
-		double left_splitter_;
-		double right_splitter_;
-		/// the splitter that is currently dragged (0=none, 1=left, 2=right)
-		UnsignedInt moving_splitter_;
-		AxisWidget *bottom_axis_;
-		UnsignedInt margin_;
-		/// internal buffer for the double buffering
-		QPixmap* buffer_;
-		/// repaints the contents to the buffer and calls update()
-		void invalidate_();
-
-		void paintEvent( QPaintEvent * );
-		void mousePressEvent( QMouseEvent *);
-		void mouseReleaseEvent( QMouseEvent *);
-		void mouseMoveEvent( QMouseEvent *);
-		void resizeEvent( QResizeEvent *);
+			Histogram<UnsignedInt,float> dist_;
+			bool show_splitters_;
+			double left_splitter_;
+			double right_splitter_;
+			/// the splitter that is currently dragged (0=none, 1=left, 2=right)
+			UnsignedInt moving_splitter_;
+			AxisWidget *bottom_axis_;
+			UnsignedInt margin_;
+			/// internal buffer for the double buffering
+			QPixmap* buffer_;
+			/// repaints the contents to the buffer and calls update()
+			void invalidate_();
+	
+			void paintEvent( QPaintEvent * );
+			void mousePressEvent( QMouseEvent *);
+			void mouseReleaseEvent( QMouseEvent *);
+			void mouseMoveEvent( QMouseEvent *);
+			void resizeEvent( QResizeEvent *);
 	};
 } // namespace OpenMS
 
 
 #endif
-

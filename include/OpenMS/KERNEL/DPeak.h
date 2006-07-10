@@ -134,7 +134,7 @@ namespace OpenMS
 			return !(operator == (rhs));
 		}
 
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
 		{
 			//std::cout << "--  Peak Header --" << std::endl;
@@ -147,7 +147,7 @@ namespace OpenMS
 			pm.writeObjectTrailer(name);
 		}
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
 		{
 			pm.readPrimitive(getPersistenceId(),"id");
@@ -157,7 +157,7 @@ namespace OpenMS
 		
 	protected:
 	
-		///PersistentObject interface
+		// Docu in base class
     virtual void clearChildIds_()
     {
     	//TODO Persistence	

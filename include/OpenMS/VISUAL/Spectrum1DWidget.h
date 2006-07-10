@@ -62,17 +62,16 @@ namespace OpenMS
 		
 		///Destructor
 		virtual ~Spectrum1DWidget();
-	
-		Spectrum1DCanvas* canvas() const;
 		
-		///PreferencesManager
+		// Docu in base class
+		Spectrum1DCanvas* canvas();
+		
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
-	public slots:
-		void mouseMoveEvent( QMouseEvent *e);
 	
 	signals:
-		void visibleAreaChanged(double, double); //< Gets emitted whenever the visible area changes.		
+		/// Is emitted whenever the visible area changes.		
+		void visibleAreaChanged(double, double); 
 
 	protected:
 		// Docu in base class

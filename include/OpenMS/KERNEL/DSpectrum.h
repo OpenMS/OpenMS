@@ -51,16 +51,16 @@ namespace OpenMS
 		
 		The peak data itself is stored in a container class, which can be a DPeakArray, a 
 		DPeakArrayNonpolymorphic, a DPeakList or a STL container like std::list or std::vector.
-		<BR>
+		
 		Some meta information about the spectrum (ms-level, precursor peak, ...) is 
 		also stored. If you want to store more meta information 
 		see the MSSpectrum and MSExperiment classes.
-		<BR>
+		
 		The interface to the container is wrapped for convenience. Of cause only the 
-		members and type that are containes in  both std::list and std::vector are present.
-		<BR>
+		members and type that are containes in  both std::list and std::vector are available.
+		
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
-		intensity of the peaks is contained.
+		intensity of the peaks is provided by RangeManager.
 
 		@ingroup Kernel
 	*/
@@ -73,21 +73,23 @@ namespace OpenMS
 
 			/**	@name	Type definitions */
 			//@{
+			/// Peak container type
 			typedef ContainerT ContainerType;
+			/// Peak type
 			typedef typename ContainerType::PeakType PeakType;
+			/// Precursor peak type
 			typedef DPickedPeak<D> PrecursorPeakType;
+			/// Rangemanger type
 			typedef RangeManager<D, typename ContainerT::PeakType::TraitsType> RangeManagerType;
 			//@}
+
+
 			
-			/**	@name	Type definitions for container interface*/
+			/**	@name	STL-compliance type definitions of the container interface*/
 			//@{						
-			typedef typename ContainerType::iterator Iterator;
 			typedef typename ContainerType::iterator iterator;
-			typedef typename ContainerType::const_iterator ConstIterator;
 			typedef typename ContainerType::const_iterator const_iterator;
-			typedef typename ContainerType::reverse_iterator ReverseIterator;
 			typedef typename ContainerType::reverse_iterator reverse_iterator;
-			typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
 			typedef typename ContainerType::const_reverse_iterator const_reverse_iterator;
 			typedef typename ContainerType::value_type value_type;
 			typedef typename ContainerType::reference reference;
@@ -95,6 +97,18 @@ namespace OpenMS
 			typedef typename ContainerType::pointer pointer;
 			typedef typename ContainerType::difference_type difference_type;
 			typedef typename ContainerType::size_type size_type;
+			//@}
+
+			/**	@name	Type definitions of the container interface*/
+			//@{	
+			/// Mutable iterator
+			typedef typename ContainerType::iterator Iterator;
+			/// Non-mutable iterator
+			typedef typename ContainerType::const_iterator ConstIterator;
+			/// Mutable reverse iterator
+			typedef typename ContainerType::reverse_iterator ReverseIterator;
+			/// Non-mutable reverse iterator
+			typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
 			//@}
 			
 			/**	@name Constructors and Destructor */

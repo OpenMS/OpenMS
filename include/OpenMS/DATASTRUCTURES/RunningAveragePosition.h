@@ -40,7 +40,7 @@ namespace OpenMS
 
 		Template parameter Position_ will usually be an instance of
 		OpenMS::DPosition, but any type that has begin(), end(), clear(),
-		iterators, a typedef ValueType and an enum DIMENSION should work (maybe
+		iterators, a typedef CoordinateType and an enum DIMENSION should work (maybe
 		I forgot a few concept requirements here).
 
 		@todo A lot of convenience methods could be added.  For
@@ -54,8 +54,7 @@ namespace OpenMS
    public:
 
     typedef Position_ PositionType;
-    typedef typename PositionType::ValueType CoordinateType;
-
+    typedef typename PositionType::CoordinateType CoordinateType;
 		enum { DIMENSION = PositionType::DIMENSION };
 
   public:

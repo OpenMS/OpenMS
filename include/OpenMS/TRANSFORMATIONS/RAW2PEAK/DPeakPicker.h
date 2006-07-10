@@ -55,19 +55,9 @@ namespace OpenMS
   */
 
   /**
-    @defgroup Raw2Peak Raw2Peak
-
-    @brief Classes for the transformation of raw ms data into peak data.
-
-    This module contains all classes that are involved in raw to peak transformations.
-
-    @ingroup Transformations
-  */
-
-  /**
      @brief This class is the base class for every peak picker.
 
-     @defgroup Raw2Peak
+     @ingroup PeakPicking
      
      @todo Make it work on all classes derived from DRawDataPoint (Eva)
 

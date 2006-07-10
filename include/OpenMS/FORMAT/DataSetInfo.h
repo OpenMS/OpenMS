@@ -65,14 +65,14 @@ namespace OpenMS
     std::string info() const {return info_;}
     std::string name() const {return name_;}
 
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
 		
-		///PersistentObject interface
+		// Docu in base class
 		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
 
 	protected:
-		///PersistentObject interface
+		// Docu in base class
     virtual void clearChildIds_()
     {
     	//TODO Persistence	

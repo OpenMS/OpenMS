@@ -81,7 +81,7 @@ namespace OpenMS
 		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
 		
 		/**
-			@brief Returns pointer to canvas object
+			@brief Returns a pointer to canvas object
 			
 			Returns a pointer to the canvas object. The canvas object
 			is set with the setCanvas() method. This is usually done
@@ -91,7 +91,10 @@ namespace OpenMS
 			
 			@return the canvas widget
 		*/
-		inline SpectrumCanvas* canvas() { return canvas_; }
+		SpectrumCanvas* canvas()
+		{ 
+			return canvas_; 
+		}
 		
 		/**
 			@brief Returns pointer to x-axis widget
@@ -156,7 +159,7 @@ namespace OpenMS
 		///Set the main Param object
 		void setMainPreferences(const Param& prefs);
 
-		///PreferencesManager
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
 		
 		/// Returns if the axis labels are shown

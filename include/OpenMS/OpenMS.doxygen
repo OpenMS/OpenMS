@@ -55,4 +55,12 @@
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
 	- Rohdaten-Erkenner schreiben
+	
+	-Doku:
+	  - $id und $author entfernen
+	  - XMLHandler: error, fatalError, warning??
+	  - ProcessingMethod: Warum type?
+	  
+	  - Klassen Jens!?!?!
+
 */

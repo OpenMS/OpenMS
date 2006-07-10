@@ -105,7 +105,7 @@ namespace OpenMS
 			//reading
 			virtual bool getObjectHeader(String& stream_name);
 			virtual bool objectsToDeserialize();
-			virtual bool checkPrimitiveHeader(const char* stream_name, const char* name);
+			virtual bool checkPrimitiveHeader(const char* type_name, const char* name);
 			virtual bool checkPrimitiveTrailer();
 			virtual void get(double& d);
 			virtual void get(UnsignedInt& i);
@@ -146,7 +146,7 @@ namespace OpenMS
       /**
       	@brief Generates a unique DB ID
       	
-      	@param table_id the id of table the new object is stored in 
+      	@param id the id of table the new object is stored in 
       */
       UID generateID_(UnsignedInt id) throw(DBConnection::InvalidQuery, DBConnection::NotConnected);
   

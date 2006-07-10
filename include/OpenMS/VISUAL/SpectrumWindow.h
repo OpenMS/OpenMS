@@ -73,7 +73,7 @@ namespace OpenMS
 			///connect the signals/slots of window and widget (status messages, mode changes)
 			void connectWidgetSignals(SpectrumWidget* sw);
 
-			///PreferencesManager
+			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent)=0;
 			
 			/// Returns a pointer to the child widget

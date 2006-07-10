@@ -42,15 +42,13 @@
 namespace OpenMS 
 {
 	/**
-		@brief The representation of a 1D spectrum settings. 
+		@brief Representation of 1D spectrum settings. 
 		
 		It contains the metadata about spectrum specific instrument settings,
 		acquisition settings, description of the meta values used in the peaks and precursor info.
-		<BR>
-		SpectrumSettings are used in Spectrum.
-		<BR>
+		
 		Precursor info should only be used if this spectrum is a tandem-MS spectrum.
-		The precursor spectrum is the first spectrum in an MSExperiment, that has a lower MS-level than
+		The precursor spectrum is the first spectrum before this spectrum, that has a lower MS-level than
 		the current spectrum.
 		
 		@ingroup Metadata

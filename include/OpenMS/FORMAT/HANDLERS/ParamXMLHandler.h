@@ -47,8 +47,9 @@ namespace OpenMS
   	: public XMLHandler
   {
     public:
+    	/// Default constructor
       ParamXMLHandler(std::map<std::string, DataValue>& values);
-
+			/// Destructor
       virtual ~ParamXMLHandler();
 
       virtual bool startElement(const QString & namespaceURI, const QString & localName, 

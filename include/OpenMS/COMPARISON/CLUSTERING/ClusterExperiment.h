@@ -149,16 +149,16 @@ namespace OpenMS
         /** @brief for internal use <br> */
         void setDataSet(uint);
 
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
 			
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
 
 			Analysis() {} //TODO Persistence : make private again
 				
 		protected:
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO Persistence	
@@ -265,14 +265,14 @@ namespace OpenMS
       //temp todo
       void resetnr()const {nr_ = 0;}
 			
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
 			
-			///PersistentObject interface
+			// Docu in base class
 			virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
 	
 		protected:
-			///PersistentObject interface
+			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
 	    	//TODO Persistence	

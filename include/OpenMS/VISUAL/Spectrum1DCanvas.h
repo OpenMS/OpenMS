@@ -113,7 +113,7 @@ namespace OpenMS
 		// Docu in base class
 		virtual void setMainPreferences(const Param& prefs);
 		
-		///PreferencesManager
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
 	public slots:

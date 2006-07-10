@@ -36,7 +36,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief description of the settings a MS Instrument was run with.
+		@brief Description of the settings a MS Instrument was run with.
 		
 		
 		

@@ -38,10 +38,11 @@ namespace OpenMS
 	/**
 		@brief Class to hold a string or numeric value (integer, double, float, short integer, long integer)
 		
-		- To choose one of these types, just use the apropriate constructor.
-		- Automatic conversion is supported and throws Exceptions in case of invalid ones.
-		-	An empty objects is created with the default constructor.
-		
+		<UL>
+		<LI> To choose one of these types, just use the apropriate constructor.
+		<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
+		<LI> An empty objects is created with the default constructor.
+		</UL>
 		@ingroup Datastructures, Serialization
 	*/
 	class DataValue

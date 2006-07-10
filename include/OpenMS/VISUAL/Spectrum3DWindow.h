@@ -53,13 +53,13 @@ namespace OpenMS
 			Spectrum3DWindow(QWidget* parent=0, const char* name="Spectrum3DWindow", WFlags f=0);
 			/// Destructor
 			virtual ~Spectrum3DWindow();
-			///
+			// Docu in base class
 			Spectrum3DWidget* widget();
 		
-			///
+			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
-			///
+			// Docu in base class
 		  virtual void showGoToDialog();
 
 	protected:

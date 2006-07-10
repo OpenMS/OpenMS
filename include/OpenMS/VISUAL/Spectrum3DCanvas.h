@@ -94,12 +94,7 @@ namespace OpenMS
       };
     //@}
     
-    /**
-       @brief Creates a preferences dialog page
-	       
-       
-       @param parent the parent widget for the dialog page
-    */
+    // Docu in base class
     virtual PreferencesDialogPage* createPreferences(QWidget* parent);
     
     ///returns the Spectrum3DOpenGLcanvas     

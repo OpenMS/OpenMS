@@ -52,7 +52,7 @@ namespace OpenMS
 	
 	}
 	
-	Spectrum2DCanvas* Spectrum2DWidget::canvas() const
+	Spectrum2DCanvas* Spectrum2DWidget::canvas()
 	{
 		return static_cast<Spectrum2DCanvas*>(canvas_);
 	}

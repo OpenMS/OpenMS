@@ -45,7 +45,7 @@ namespace OpenMS
 		
 		This class provides a means to associate string names to int/double/string values.
 		
-		It is similar to a map<sting,DataValue> but it also supports storing hierarchical 
+		It is similar to a map<string,DataValue> but it also supports storing hierarchical 
 		data and to save/load the contained data as XML.
 		
 		Hierachy levels are separated from each other and from the name by colons.
@@ -57,14 +57,9 @@ namespace OpenMS
   class Param
   {
     public:
-
-			/** @name Typedefs
-			*/
-			//@{
-			typedef std::map<std::string, DataValue>::const_iterator const_iterator;
+			/// Const iterator
 			typedef std::map<std::string, DataValue>::const_iterator ConstIterator;
-			//@}
-
+			
 			/** @name Constructors and Destructors
 			*/
 			//@{

@@ -43,8 +43,10 @@ namespace OpenMS
 		@brief Meta information about the sample
 		
 		It contains basic descriptions like name, number (i.e. order number), mass, 
-		volume, concentration, state and a comment.<BR>
-		Additionally sample treatments like Digestion, Modification or Tagging can be added.<BR>
+		volume, concentration, state and a comment.
+		
+		Additionally sample treatments like Digestion, Modification or Tagging can be added.
+		
 		A Sample can be composed of other samples.
 		
 		@ingroup Metadata

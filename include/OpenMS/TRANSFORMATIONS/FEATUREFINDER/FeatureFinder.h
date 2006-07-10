@@ -164,7 +164,7 @@ namespace OpenMS
 			Param mod_param = param_.copy(module+":",true);
 			if (mod_param.empty())
 				return false;
-			Param::const_iterator it;
+			Param::ConstIterator it;
 			for (it=mod_param.begin(); it!=mod_param.end(); it++) 
 			{
 				if (it->first.substr(it->first.size()-2,2) == "ID")

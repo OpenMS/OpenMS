@@ -58,13 +58,13 @@
 namespace OpenMS
 {
   /**
-     @defgroup PeakPickingCWT PeakPickingCWT
+     @defgroup PeakPicking PeakPicking
 
-     @brief Classes for the peak picking method as described by Lange et al. (2006) Proc. PSB-06.
+     @brief Classes for the transformation of raw ms data into peak data.
 
-     This module contains all important classes that are involved in the peak picking method.
+     This module contains all important classes that are involved in the peak picking as described by Lange et al. (2006) Proc. PSB-06.
 
-     @ingroup Raw2Peak
+     @ingroup Transformations
   */
 
   /**
@@ -75,7 +75,7 @@ namespace OpenMS
      are extracted.
      In an optional step these parameters can be optimized using a non-linear opimization method.
 
-     @ingroup PeakPickingCWT
+     @ingroup PeakPicking
 
      @todo write test (Eva)
 

@@ -43,7 +43,6 @@ THISLIB=$(LIBNAME)
 # These depend on QT:
 GUI_CPP_SOURCES=\
 	BinnedRepWidget.C\
-	IgnoringCombo.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
 	SpectrumWindow.C\
@@ -65,7 +64,6 @@ GUI_CPP_SOURCES=\
 	MultiGradient.C\
 	HistogramWidget.C\
 	PreferencesManager.C\
-	EnhancedWidgetStack.C\
 	ListStack.C\
 	PeakIcon.C\
 	MappingInfo.C\
@@ -101,7 +99,6 @@ GUI_MOC_SOURCES=\
 	ColorSelector_moc.C\
 	MultiGradientSelector_moc.C\
 	HistogramWidget_moc.C\
-	EnhancedWidgetStack_moc.C\
 	ListStack_moc.C\
 	FactoryProductView_moc.C\
 	SimMatrixWidget_moc.C\
@@ -255,9 +252,6 @@ MultiGradientSelector_moc.C:  $(HEADER_DIR)/MultiGradientSelector.h
 
 HistogramWidget_moc.C:  $(HEADER_DIR)/HistogramWidget.h
 	$(MOC) $(HEADER_DIR)/HistogramWidget.h -o HistogramWidget_moc.C
-
-EnhancedWidgetStack_moc.C:  $(HEADER_DIR)/EnhancedWidgetStack.h
-	$(MOC) $(HEADER_DIR)/EnhancedWidgetStack.h -o EnhancedWidgetStack_moc.C	
 
 ListStack_moc.C:  $(HEADER_DIR)/ListStack.h
 	$(MOC) $(HEADER_DIR)/ListStack.h -o ListStack_moc.C	

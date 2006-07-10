@@ -46,27 +46,29 @@ namespace OpenMS
   	: public QXmlDefaultHandler
   {
     public:
+    	/// Default constructor
       XMLHandler();
-
+			/// Destructor
       virtual ~XMLHandler();
-
+			
       bool error(const QXmlParseException& exception);
 
       bool fatalError(const QXmlParseException& exception);
 
       bool warning(const QXmlParseException& exception);
-
+			/// Returns the last error description
   		QString errorString();
-
+			/// Parsing method for character data
 		  virtual bool characters( const QString & chars );
-
+			/// Parsing method for opening tags
       virtual bool startElement(const QString & uri, const QString & local_name, 
 																const QString & qname, const QXmlAttributes & attributes );
-
+			/// Parsing method for closing tags
       virtual bool endElement( const QString & uri, const QString & local_name,
 															 const QString & qname ); 
-
+			/// Sets whether warnings should be printed to std::cout 
 			void setUseWarnings(bool doUse);
+			/// Returns whether warnings are printed to std::cout 
 			bool useWarnings();
 
   	protected:
@@ -75,9 +77,10 @@ namespace OpenMS
 			QString file_;
 			bool no_error_;
 	
-			/** @brief use QXml-warnings to show unhandled tags or values */
+			/// use QXml-warnings to show unhandled tags or values
 			bool use_warnings_;
-	
+			
+			/// Conversion of a QString to an integer value
 			inline SignedInt asSignedInt_(const QString& in)
 			{
 				bool ok = true;
@@ -88,7 +91,7 @@ namespace OpenMS
 				}
 				return res;
 			}
-	
+			/// Conversion of a QString to an unsigned integer value
 			inline UnsignedInt asUnsignedInt_(const QString& in)
 			{
 				bool ok = true;
@@ -99,7 +102,7 @@ namespace OpenMS
 				}
 				return res;
 			}
-	
+			/// Conversion of a QString to a double value
 	 		inline double asDouble_(const QString& in)
 			{
 				bool ok = true;
@@ -111,7 +114,7 @@ namespace OpenMS
 				return res;
 			}
 	
-	
+			/// Conversion of a QString to a float value
 	 		inline float asFloat_(const QString& in)
 			{
 				bool ok = true;
@@ -122,7 +125,8 @@ namespace OpenMS
 				}
 				return res;
 			}
-	
+			
+			/// Conversion of a QString to a bool value
 	 		inline bool asBool_(const QString& in)
 			{
 				if (in == "true" || in == "1") return true;

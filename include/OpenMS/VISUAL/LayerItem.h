@@ -42,6 +42,9 @@ namespace OpenMS
 	/**
 		@brief An item displayed in the LayerManager
 		
+		Visually it consists of a checkbox and a label.
+		
+		When the item is selected, the background color is blue.
 	  
 	  @ingroup Visual
 	*/
@@ -50,17 +53,27 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// Constructor
 			LayerItem( QWidget * parent = 0, const char * name = 0, WFlags fl = 0);
+			/// Destructor
 			~LayerItem();
+			/// Sets the index associated with this item
 			void setIndex(UnsignedInt index);
+			/// Returns if this item of the LayerManager is activated
 			bool isActivated();
+			/// Returns the index associated with this item
 			UnsignedInt getIndex() const;
+			/// Return the label of this item
 			String getLabel() const;
 		
 		public slots:
+			/// Sets wether the checkbox is checked
 	    virtual void changeState(bool state);
+	    /// Changes the label
 	    virtual void changeLabel(std::string l);
+	    /// Activates the item
 	  	void activate();
+	  	/// Deactivates the item
 	  	void deactivate();
 	
 	  protected slots:

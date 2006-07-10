@@ -75,8 +75,7 @@ namespace OpenMS
 		 Iterator x_end,
 		 Iterator y_begin);
 
-		/**	Accessors
-		 */
+		/**	@name Accessors */
 		//@{
 		inline const double& getIntercept() const { return intercept_; }
 		///

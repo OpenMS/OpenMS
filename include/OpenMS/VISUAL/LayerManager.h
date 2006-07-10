@@ -42,9 +42,13 @@ namespace OpenMS
 	class LayerItem;
 	
 	/**
-		@brief Used to display and remove LayerItems.
+		@brief Displays a vertical list of LayerItem instances.
 		
-		  
+		The items consist of a checkbox, a label and can change the background color
+		to show if they are activated (see example image).
+
+		\image html LayerManager.png
+		
 		@ingroup Visual
 	*/
 	class LayerManager: public LayerManagerTemplate
@@ -52,13 +56,19 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// Constructor
 			LayerManager( QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
+			/// Destructor
 			~LayerManager();
+			/// Sets the checkbox of item @p i to @p b
 			void setVisible(UnsignedInt i, bool b);
+			/// Activates item @p index
 			void activate(int index);
 		
 		public slots:
+			/// Adds a layer with label @p label
 	  	virtual int addLayer( std::string label );
+	  	/// Removes all layers
 	  	virtual void reset();
 	  
 		protected slots:

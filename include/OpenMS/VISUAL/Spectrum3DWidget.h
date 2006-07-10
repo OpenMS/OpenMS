@@ -36,8 +36,6 @@ namespace OpenMS
 	/**
 		@brief Widget for 3D-visualization of map data
 		
-		
-		
 		@ingroup spectrum_widgets
 	*/
 	class Spectrum3DWidget:public SpectrumWidget
@@ -46,42 +44,24 @@ namespace OpenMS
 
 	public:	
 		/**
-		 *@brief Constructor
-		 *
-		 *Spectrum3DWidget Constructor
-		 *@param parent The parent Widget
-		 *@param name The Widget's name
-		 *@param f Widget flags
-		 *
-		 */
+			@brief Constructor
+
+			@param parent The parent Widget
+			@param name The Widget's name
+			@param f Widget flags
+		*/
 		Spectrum3DWidget(QWidget* parent = 0, const char* name = "Spectrum3DWidget", WFlags f = 0);
-		/**
-		 *
-		 *@brief Destructor
-		 *
-		 *Destroys the Widget and all assosiated data
-		 */
+		
+		/// Destructor
 		virtual ~Spectrum3DWidget();
 		
-		/**
-		 *@brief returns the Canvas Widget
-		 *Returns the Canvas Widget
-		 *@return the Canvas Widget
-		 */
-		Spectrum3DCanvas* canvas() const;
+		// Docu in base class
+		Spectrum3DCanvas* canvas();
 		
-		/**
-		 *@brief Creates a preferences dialog Page
-		 *
-		 *Creates a preferences dialog page
-		 *
-		 *@param parent the parent widget for the dialog page
-		 */
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);  
 		// Docu in base class
 		virtual void recalculateAxes_();
-		// Docu in base class
-		virtual void invalidate_();
 		// Docu in base class
 		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
 		// Docu in base class

@@ -158,15 +158,7 @@ namespace OpenMS
 		*/
 		void setSurfaceGradient(const std::string& gradient);
 		
-		/**
-			@brief Creates a preferences dialog page
-		
-			Creates a preferences dialog page for configuring this view.
-			This is used by the PreferencesManager. Reimplement to provide
-			an own preferences dialog page.
-		
-			@param parent the parent widget for the dialog page
-		*/
+		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 		
 		// Docu in base class
@@ -207,7 +199,7 @@ namespace OpenMS
 		virtual void verticalScrollBarChange(int value);
 	
 	protected:
-		//* @name Mouse events */
+		/** @name Mouse events */
 		//@{	
 		virtual void mousePressEvent(QMouseEvent* e);
 		virtual void mouseReleaseEvent(QMouseEvent* e);

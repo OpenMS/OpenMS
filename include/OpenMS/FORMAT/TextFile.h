@@ -51,9 +51,13 @@ namespace OpenMS
 	 		/** @name Type definitions
 			*/
 			//@{
+			/// Mutable iterator
 			typedef iterator	Iterator;
+			/// Non-mutable iterator
 			typedef const_iterator	ConstIterator;
+			/// Mutable reverse iterator
 			typedef reverse_iterator	ReverseIterator;
+			/// Non-mutable reverse iterator
 			typedef const_reverse_iterator	ConstReverseIterator;
 			//@}
 

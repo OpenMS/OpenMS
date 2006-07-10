@@ -289,7 +289,7 @@ namespace OpenMS
 		return (!read_ids_.empty());
 	}
 
-	bool DBAdapter::checkPrimitiveHeader(const char* /*stream_name*/, const char* /*name*/)
+	bool DBAdapter::checkPrimitiveHeader(const char* /*type_name*/, const char* /*name*/)
 	{
 		//cout << "PRIMITIVE HEDER: "<<name<<endl;
 		return true;

@@ -42,14 +42,15 @@ namespace OpenMS
   /** 
 	  @brief DTA2D File adapter.
 	  
-	  File adapter for files with three tab/space-separated columns.<br>
+	  File adapter for files with three tab/space-separated columns.
+	  
 	  The default format is: RETENTION_TIME , MASS-TO-CHARGE , INTENSITY.
-		(See also DimensionDescription<DimensionDescriptionTagLCMS>).<br>
-	  If the first line starts with '#', it defines a different order. 
-	  Then the keywords 'RETENTION_TIME', 'MASS-TO-CHARGE', 'INTENSITY'
-		must follow in any order.  The keywords can be abbreviated as
-		'RT', 'MZ' and 'IT' <br>
-	  Example: '#MZ INTENSITY RETENTION_TIME'
+		
+	  If the first line starts with '#', a different order is defined by the 
+	  the order of the keywords 'RETENTION_TIME', 'MASS-TO-CHARGE', 'INTENSITY'. 
+	  The keywords can be abbreviated as 'RT', 'MZ' and 'IT'.
+	  <BR>
+	  Example: '\#MZ INTENSITY RETENTION_TIME'
   
   	@ingroup FileIO
   */
@@ -59,9 +60,9 @@ namespace OpenMS
 
 			/** @name Type definitions */
 			//@{
-			///
+			/// Dimension description
 			typedef OpenMS::DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
-			///
+			/// Enum that defines MZ and RT dimension index
 			enum DimensionId { MZ = DimensionDescription::MZ, RT = DimensionDescription::RT };
 			//@}
 

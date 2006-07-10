@@ -36,7 +36,8 @@ namespace OpenMS
 	/**
 		@brief Precursor meta information.
 		
-		This class covers precursor meta information, that is not already covered by DSpectrum.
+		This class stores precursor meta information, that is not already 
+		covered by DSpectrum::getPrecursorPeak().
 		
 		@ingroup Metadata
 	*/  

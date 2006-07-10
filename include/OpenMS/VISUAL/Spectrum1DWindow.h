@@ -45,15 +45,19 @@ namespace OpenMS
 	{
 		Q_OBJECT
 		public:
+			/// Constructor
 			Spectrum1DWindow(QWidget* parent=0, const char* name="Spectrum1DWindow", WFlags f=0);
+			/// Destructor
 			~Spectrum1DWindow();
 			
+			// Docu in base class
 			Spectrum1DWidget* widget();
 
-			///PreferencesManager
+			// Docu in base class
 			virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 			
 		public slots:
+			// Docu in base class
       virtual void showGoToDialog();
 
 	};
