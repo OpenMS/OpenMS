@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: FactoryProductDialog.h,v 1.3 2006/03/28 10:07:17 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_VISUAL_DIALOGS_FACTORYPRODUCTDIALOG_H
@@ -50,12 +48,12 @@ namespace OpenMS
     Q_OBJECT
   public:
     FactoryProductDialog(QWidget* = 0, const char* = 0);
-    void setFactoryProduct(OpenMS::FactoryProduct*);
+    void setFactoryProduct(FactoryProduct*);
     uint size() const { return paramwidgets_.size();}
   public slots:
     void ok();
   private:
-    OpenMS::FactoryProduct* configurable_;
+    FactoryProduct* configurable_;
     QGridLayout* gridlayout_;
     std::map<std::string,std::pair<QLabel*,QLineEdit*> > paramwidgets_;
     QPushButton* ok_;

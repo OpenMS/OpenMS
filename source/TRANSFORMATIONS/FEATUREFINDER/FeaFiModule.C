@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: FeaFiModule.C,v 1.8 2006/04/08 18:24:13 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
@@ -57,7 +55,7 @@ namespace OpenMS
 		:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
 	{
 		what_ = "there is no successor/predecessor for the given Index: " + String(index_);
-		OpenMS::Exception::globalHandler.setMessage(what_);
+		Exception::globalHandler.setMessage(what_);
 	}
 
 	FeaFiModule::NoSuccessor::~NoSuccessor() throw(){}

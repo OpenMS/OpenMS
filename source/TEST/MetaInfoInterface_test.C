@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MetaInfoInterface_test.C,v 1.3 2006/05/30 15:46:43 marc_sturm Exp $
-// $Author $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 

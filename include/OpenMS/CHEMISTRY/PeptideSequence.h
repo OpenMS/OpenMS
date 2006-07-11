@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PeptideSequence.h,v 1.9 2006/06/09 13:31:05 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //

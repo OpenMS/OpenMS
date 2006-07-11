@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: TOPPView.C,v 1.3 2006/06/08 10:46:52 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -109,7 +107,7 @@ int main( int argc, char ** argv )
 	try
 	{
 	  QApplication a( argc, argv );
-	  OpenMS::SpectrumMDIWindow* mw = OpenMS::SpectrumMDIWindow::instance();
+	  SpectrumMDIWindow* mw = SpectrumMDIWindow::instance();
 	  a.setMainWidget(mw);
 	  if (!param.getValue("ini").isEmpty())
 	  {

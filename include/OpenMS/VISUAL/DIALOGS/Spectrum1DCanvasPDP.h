@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum1DCanvasPDP.h,v 1.4 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -46,9 +44,13 @@ namespace OpenMS
 			Q_OBJECT
 			
 			public:
+				/// Constructor
 				Spectrum1DCanvasPDP( Spectrum1DCanvas* manager, QWidget* parent = 0, const char* name = "Spectrum1DWidgetPDP", WFlags f = 0);
+				/// Destructor
 				virtual ~Spectrum1DCanvasPDP();
+				// Docu in base class
 				virtual void load();
+				// Docu in base class
 				virtual void save();
 			
 			protected:

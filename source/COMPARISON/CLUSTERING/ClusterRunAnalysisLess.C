@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterRunAnalysisLess.C,v 1.4 2006/03/28 10:07:05 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //

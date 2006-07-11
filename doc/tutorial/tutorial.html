@@ -74,7 +74,7 @@ intersection and center.
   pre-processing steps e.g. width or full width at half max, is
   available.
   <br>
-  <b>DFeature</b> is also derived from <tt>DRange</tt> but
+  <b>DFeature</b> is also derived from <tt>DPeak</tt> but
   represents a collection of peaks. In general, it summarizes all
   peaks related to a specific peptide or some other chemical
   entity.
@@ -512,91 +512,6 @@ the polynom which is used.
 
   <h2>Visual</h2>
   The <tt>VISUAL</tt> folder contains classes of the GUI.
-
-  <h3>Preferences Manager</h3>
-  <img src="PreferencesManager.png"
-        align="left"> <b>General Description</b>
-  <br>
-  GUI classes that store preferences and create a preferences
-  dialog for them, are derived from PreferencesManager (abbreviated
-  PM for the rest of the text). The preferences have to be stored
-  in the private member PM::prefs_, an object of type Param (see
-  FORMAT/Param.h). PM classes are arranged in a tree structure,
-  where one PM (the parent) can have several clients. Clients are
-  added to a parent along with a name, which is used later on in
-  the visualization of the preferences dialog. See getParent(),
-  setParent(parent), addClient(client, name), removeClient(client)
-  and setClientName(client, name). When the showPreferencesDialog()
-  method of any object in the tree is called, the root object
-  creates a PreferencesDialog and shows it. On the left of the
-  dialog a tree view that corresponds to the object tree is shown
-  and on the right the preferences of the selected entry of the
-  tree view are shown (see figure). All preferences pages on the
-  right side are objects of classes derived from
-  PreferencesDialogPage (abbreviated PDP). <i>Note:</i>
-  <br>
-  Preferences that are used very often or are time-consuming to
-  construct from prefs_ can be stored in a second member for faster
-  access. But they should nevertheless be stored in prefs_, as
-  prefs_ is used to persistently store the current state of
-  TOPPView.
-  <br>
-  <br>
-  <b>Using the default mechanism for adding new Widgets</b>
-  <br>
-  In order to store Preferences of a GUI class and a create
-  preferences dialog for them, derive your class from PM. If you
-  want to use the default preferences mechanism, just add the
-  object as client to a parent. Now your object will have its own
-  dialog page in the preferences dialog. However this page is still
-  empty! Next, you have to derive a class from PDP in order to fill
-  your object's preferences page with life (This new class may be a
-  private class of your PM object, which is defined in the same
-  header/source). In the constructor of the new PDP class you
-  create all the widgets you want to show on the preferences page.
-  In oder to see the new PDP in the preferences dialog, you have to
-  reimplement the createPreferences(parent) method of you PM class.
-  By default this method creates a PDP object and returns a pointer
-  to it. Now you have to create and return a pointer to a object of
-  your class derived from PDP. Now you can see the preferences page
-  but it does not interact with your object at all... The PDP
-  object has a pointer to its creator(or manager) which is an
-  argument to its constructor. Through this pointer, the load()
-  method reads the current settings from the manager and save()
-  writes the preferences back to the manager. Finally, you have to
-  reimplement the load() and save() methods of the PDP. Important:
-  This mechanism works only when there are public set/get methods
-  for all preferences, but they should be there anyway.
-  <br>
-  <br>
-  <b>Parents managing clients themselves</b>
-  <br>
-  In cases where you do not want a client to be shown as a child in
-  the tree structure, you can just integrate the client's
-  preferences page into the preferences page of the parent. To do
-  that you have to modify the instructions above in the following
-  manner:
-
-  <ul>
-    <li>Set the the parent property of the client, but do not add
-    the client as child to the parent = &gt; The preference page is
-    not shown in the dialog anymore.</li>
-
-
-    <li>Integrate the child PDP into the client PDP by calling
-    createPreferences() of the child in the createPreferences()
-    method of the client.</li>
-
-
-    <li>Call the load()/save() method of the client in the
-    load()/save() method of the parent</li>
-  </ul>
-  <!-- ........ Content ends here ........ -->
-
-  <br>
-  <br>
-  <br>
-  <br>
 
 
   <h2>Analysis</h2>

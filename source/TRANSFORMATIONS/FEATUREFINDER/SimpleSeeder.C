@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SimpleSeeder.C,v 1.28 2006/04/20 06:23:25 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 

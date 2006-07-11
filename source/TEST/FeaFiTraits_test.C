@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: FeaFiTraits_test.C,v 1.1 2006/06/07 09:35:25 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff  $
 // --------------------------------------------------------------------------
 //
@@ -44,7 +42,6 @@ START_TEST(BaseFeaFiTraits, "$Id: FeaFiTraits_test.C,v 1.1 2006/06/07 09:35:25 o
 
 using namespace OpenMS;
 using std::stringstream;
-using OpenMS::FeaFiTraits;
 
 
 // default ctor

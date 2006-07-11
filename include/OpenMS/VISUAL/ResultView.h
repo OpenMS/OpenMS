@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ResultView.h,v 1.2 2006/03/28 08:03:26 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_VISUAL_RESULTVIEW_H  
@@ -44,7 +42,7 @@ namespace OpenMS
     ResultView(QWidget* parent = 0, const char* name = 0);
     ~ResultView();
   public slots:
-    void displayResults(const std::map<std::string,double>& results);
+    void displayResults(const std::map< std::string,double>& result);
   };
 }
 #endif //OPENMS_VISUAL_RESULTVIEW_H 

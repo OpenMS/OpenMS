@@ -296,7 +296,7 @@ namespace OpenMS
 		:	Base(file, line, function, "Invalid Query", "an SQL query failed")
 	{
 		what_ = String("Query '")+sql_query +"' failed: '"+sql_error+"'";
-		OpenMS::Exception::globalHandler.setMessage(what_);
+		Exception::globalHandler.setMessage(what_);
 	}
 	
 	DBConnection::InvalidQuery::~InvalidQuery() throw()

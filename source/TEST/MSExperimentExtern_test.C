@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSExperimentExtern_test.C,v 1.1 2006/06/07 17:42:07 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 

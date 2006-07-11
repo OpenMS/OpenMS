@@ -90,60 +90,6 @@ namespace OpenMS
 		return SpectrumCanvas::dataToWidget_(peak.getPosition()[0], snap_factor_*percentage_factor_*peak.getIntensity());
 	}
 	
-	void Spectrum1DCanvas::zoomIn(double position)
-	{
-		double delta, newLo, newHi;
-	
-		delta = (visible_area_.maxX()-visible_area_.minX())/4.0;
-		newLo = position - delta;
-		newHi = position + delta;
-		
-		changeVisibleArea_(newLo, newHi, true);
-	}
-	
-	
-	void Spectrum1DCanvas::zoomOut(double position)
-	{
-		double delta;
-		double newLo;
-		double newHi;
-	
-		delta = (visible_area_.maxX()-visible_area_.minX());
-		newLo = position-delta;
-		newHi = position+delta;
-	
-		// fit too data set bounds
-		if (newLo < overall_data_range_.minX()) newLo = overall_data_range_.minX();
-		if (newHi > overall_data_range_.maxX()) newHi = overall_data_range_.maxX();
-	
-		changeVisibleArea_(newLo, newHi);
-	}
-	
-	void Spectrum1DCanvas::translate(double position,int /*steps*/)
-	{
-		double delta;
-		double newLo;
-		double newHi;
-	
-		delta = (visible_area_.maxX()-visible_area_.minX())/2;
-		newLo = position-delta;
-		newHi = position+delta;
-	
-		if (newLo < overall_data_range_.minX())
-		{
-			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.minX() + 2 * delta);
-			return;
-		}
-	
-		if (newHi >overall_data_range_.maxX())
-		{
-			changeVisibleArea_(overall_data_range_.maxX() - 2 * delta, overall_data_range_.maxX());
-			return;
-		}
-	
-		changeVisibleArea_(newLo, newHi);
-	}
-	
 	//////////////////////////////////////////////////////////////////////////////////
 	// Qt events
 	
@@ -267,7 +213,9 @@ namespace OpenMS
 					}
 					else                                        // position axis only zoom
 					{
-						zoomIn(widgetToData_(rect.topLeft()).X());
+						double position = widgetToData_(rect.topLeft()).X();
+						double delta = (visible_area_.maxX()-visible_area_.minX())/4.0;
+						changeVisibleArea_(position - delta, position + delta, true);
 					}
 				}
 	
@@ -811,7 +759,7 @@ namespace OpenMS
 		repaint(false);
 	}
 	
-	void Spectrum1DCanvas::changeVisibleArea_(const Spectrum1DCanvas::AreaType& new_area, bool add_to_stack)
+	void Spectrum1DCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
 	{
 		//prevent deadlock
 		if (new_area==visible_area_)

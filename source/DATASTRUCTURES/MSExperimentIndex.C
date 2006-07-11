@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSExperimentIndex.C,v 1.1 2006/05/15 16:53:53 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 

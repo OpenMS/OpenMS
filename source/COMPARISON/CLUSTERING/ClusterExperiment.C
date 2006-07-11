@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterExperiment.C,v 1.12 2006/03/29 12:30:29 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //

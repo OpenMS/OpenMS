@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: OptimizePick.C,v 1.12 2006/05/26 11:37:10 elange Exp $
-// $Author: elange $
 // $Maintainer: Andreas Hildebrandt $
 // --------------------------------------------------------------------------
 //
@@ -294,7 +292,7 @@ namespace OpenMS
   }
 
 
-  OptimizePick::OptimizePick(const struct OpenMS::OptimizationFunctions::PenaltyFactors& penalties,
+  OptimizePick::OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties,
                              const int max_iteration,
                              const double eps_abs,
                              const double eps_rel )

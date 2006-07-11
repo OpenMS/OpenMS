@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterExperiment.h,v 1.17 2006/05/30 15:46:38 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
@@ -79,7 +77,7 @@ namespace OpenMS
     CompareFunctor, ClusterFunctor or Data
     */
     class CanNotRun
-      :public OpenMS::Exception::Base
+      :public Exception::Base
     {
     public:
       /** @name constructors and destructors */
@@ -97,7 +95,7 @@ namespace OpenMS
     use ClusterExperiment::createrun() to create runs
     */
     class NoClusterRun
-      :public OpenMS::Exception::Base
+      :public Exception::Base
     {
       public:
         /** @brief constructor <br> */

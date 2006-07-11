@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.19 2006/06/01 16:51:16 groepl Exp $
-# $Author: groepl $
 # $Maintainer: Ole Schulz-Trieglaff $
 # --------------------------------------------------------------------------
 

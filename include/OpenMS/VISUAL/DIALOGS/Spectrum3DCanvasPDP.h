@@ -22,8 +22,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum3DCanvasPDP.h,v 1.7 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:Cornelia Friedle $
 // --------------------------------------------------------------------------
 

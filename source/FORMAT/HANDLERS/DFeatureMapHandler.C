@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DFeatureMapHandler.C,v 1.3 2006/02/16 15:29:39 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 

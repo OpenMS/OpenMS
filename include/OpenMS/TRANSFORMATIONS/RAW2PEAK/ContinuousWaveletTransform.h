@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ContinuousWaveletTransform.h,v 1.13 2006/05/29 15:52:15 elange Exp $
-// $Author: elange $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 

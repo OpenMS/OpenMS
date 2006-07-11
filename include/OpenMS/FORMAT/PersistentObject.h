@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PersistentObject.h,v 1.6 2006/03/12 14:33:00 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 

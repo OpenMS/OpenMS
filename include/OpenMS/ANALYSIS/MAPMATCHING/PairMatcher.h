@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PairMatcher.h,v 1.5 2006/06/09 08:19:41 j-joachim Exp $
-// $Author: j-joachim $
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 

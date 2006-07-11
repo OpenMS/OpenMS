@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: BinnedRepWidget.C,v 1.2 2006/04/05 11:18:26 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #include <OpenMS/VISUAL/BinnedRepWidget.h>

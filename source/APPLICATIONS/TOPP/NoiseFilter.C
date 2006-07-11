@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: NoiseFilter.C,v 1.13 2006/06/06 11:17:02 elange Exp $
-// $Author: elange $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>

@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSExperimentAnnotator.C,v 1.5 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 

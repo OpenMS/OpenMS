@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PeakPicker.C,v 1.10 2006/06/06 13:38:40 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>

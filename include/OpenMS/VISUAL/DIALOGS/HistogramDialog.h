@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: HistogramDialog.h,v 1.5 2006/03/28 08:03:27 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -47,13 +45,19 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// Constructor
 			HistogramDialog(const Histogram<UnsignedInt,float>& distribution, QWidget* parent=0, const char* name="HistogramDialog");
+			/// Destructor
 			~HistogramDialog();
-
+			
+			/// Returns the value of the left splitter
 			double getLeftSplitter();
+			/// Returns the value of the right splitter
 			double getRightSplitter();
-
+			
+			/// Sets the value of the left splitter
 			void setLeftSplitter(double position);
+			/// Sets the value of the right splitter
 			void setRightSplitter(double position);
 
 		protected:

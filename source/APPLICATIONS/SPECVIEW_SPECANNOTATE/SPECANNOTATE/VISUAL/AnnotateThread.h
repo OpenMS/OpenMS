@@ -23,8 +23,6 @@
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-// $Id: AnnotateThread.h,v 1.3 2006/03/28 08:03:27 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 
@@ -58,7 +56,7 @@ namespace OpenMS
     private:
       __gnu_cxx::hash_map<std::string, std::string> sample_data_;
       std::vector<std::string> ov_mods_;
-      std::vector<OpenMS::Spectrum1DWidget::Spectrum1D::iterator> peaklist_;
+      std::vector<Spectrum1DWidget::Spectrum1D::iterator> peaklist_;
       std::string db_username_;
       std::string db_password_;
       std::string db_host_;

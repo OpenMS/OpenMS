@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum2DWidgetPDP.C,v 1.4 2006/05/30 13:48:19 cfriedle Exp $
-// $Author: cfriedle $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 

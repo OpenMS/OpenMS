@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ScanIndex.h,v 1.15 2006/05/01 12:24:57 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -87,7 +85,7 @@ namespace OpenMS
        :	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
 			{
 				what_ = "there is no successor/predecessor for the given Index: " + String(index_);
-				OpenMS::Exception::globalHandler.setMessage(what_);
+				Exception::globalHandler.setMessage(what_);
 			}
        
        virtual ~NoSuccessor() throw(){}

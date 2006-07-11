@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DSignalToNoiseEstimator.h,v 1.7 2006/04/24 12:12:16 elange Exp $
-// $Author: elange $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 //
@@ -53,7 +51,7 @@ namespace OpenMS
     /** @name Type definitions
     */
     //@{
-    typedef OpenMS::DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+    typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
     ///
     typedef typename ContainerType::PeakType PeakType;
     ///

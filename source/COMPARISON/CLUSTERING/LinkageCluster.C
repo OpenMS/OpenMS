@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: LinkageCluster.C,v 1.5 2006/03/29 12:30:29 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
@@ -61,7 +59,7 @@ namespace OpenMS
     return *this;
   }
  
-  map<int,OpenMS::ClusterNode*> LinkageCluster::operator()(const ClusterExperiment::ClusterRun* clusterrunp)
+  map<int,ClusterNode*> LinkageCluster::operator()(const ClusterExperiment::ClusterRun* clusterrunp)
   {
     double massdiff = (double)param_.getValue("massdiff");
     double cutoff = (double)param_.getValue("cutoff");

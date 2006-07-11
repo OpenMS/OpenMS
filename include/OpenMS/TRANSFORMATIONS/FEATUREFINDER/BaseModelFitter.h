@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: BaseModelFitter.h,v 1.10 2006/04/25 12:41:44 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
@@ -56,7 +54,7 @@ namespace OpenMS
 				i.e. data set with standard deviation of zero 
 		*/
    	class UnableToFit
-     : public OpenMS::Exception::Base
+     : public Exception::Base
      {
      public:
        UnableToFit(const char* file, int line, const char* function,

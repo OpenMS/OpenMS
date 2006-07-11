@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DMorphFilter.h,v 1.29 2006/05/30 15:46:38 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
@@ -69,7 +67,7 @@ namespace OpenMS
       */
     //@{
     ///
-    typedef OpenMS::DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+    typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
     ///
     typedef DPeakArrayNonPolymorphic< D,DRawDataPoint<D> > RawData;
     ///

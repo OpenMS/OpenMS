@@ -1,8 +1,6 @@
 # -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
-# $Id: Makefile,v 1.1.1.1 2005/04/04 13:03:05 marc_sturm Exp $
-# $Author: marc_sturm $
 
 
 SOURCES = coding_style

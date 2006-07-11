@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SimpleModelFitter_test.C,v 1.14 2006/04/08 18:24:13 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Jens Joachim, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 //

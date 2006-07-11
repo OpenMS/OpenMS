@@ -21,11 +21,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.13 2006/06/07 06:13:36 marc_sturm Exp $
-# $Author: marc_sturm $
 # $Maintainer:  $
 # --------------------------------------------------------------------------
-#
 
 include ../config.mak
 -include .Dependencies

@@ -76,6 +76,8 @@ namespace OpenMS
 			@param f Qt::WidgetFlags that are passed on.
 		*/
 		Spectrum1DCanvas(QWidget* parent = 0, const char* name = "Spectrum1DCanvas", WFlags f = 0);	
+		
+		/// Destructor
 		virtual ~Spectrum1DCanvas();
 	
 		///Enumerate all avaiable paint styles
@@ -84,14 +86,8 @@ namespace OpenMS
 			DM_PEAKS,						//< draw data as peak
 			DM_CONNECTEDLINES		//< draw as connected lines
 		};
-	
-		// some high level functions that use low level widget functions
-		// zoom and translate operations (with animation, visualisation)
-		void zoomOut(double x);
-		void zoomIn(double x);
-		void translate(double x, int animatedSteps=1);
 
-		// function to mark a peak with an icon
+		/// Function to mark a peak with an icon
 		inline void setPeakIcon(unsigned int index, unsigned int icon) 
 		{ 
 			currentDataSet_()[0].getContainer()[index].setMetaValue(UnsignedInt(4),SignedInt(icon)); 
@@ -123,7 +119,13 @@ namespace OpenMS
 		void removeDataSet(int data_set);
 		// Docu in base class
 		SignedInt finishAdding(float low_intensity_cutoff = 0);
-		// Docu in base class
+		
+		/**
+			@brief Sets the visible area.
+			
+			Sets the visible area to a new value. Note that it does not emit visibleAreaChanged()
+			@param range the new visible area
+		*/
 		void setVisibleArea(DRange<2> range); //Do not change this to AreaType the signal needs QT needs the exact type...
 		// Docu in base class
 		virtual void horizontalScrollBarChange(int value);
@@ -131,7 +133,7 @@ namespace OpenMS
 		virtual void verticalScrollBarChange(int value);
 	
 	protected:
-		// Draws the icon defined in the meta info of @peak peak at the position @p
+		/// Draws the icon defined in the meta info of @p peak at the position @p p
 		void drawIcon(const PeakType& peak, const QPoint& p);
 		
 		/**
@@ -149,7 +151,16 @@ namespace OpenMS
 
 		// Docu in base class
 		virtual void invalidate_();
-		// Docu in base class
+		
+		/**
+			@brief Sets the visible area
+			
+			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
+			If parts of the area are outside of the data area, the new area will be adjusted.
+			
+			@param new_area The new visible area.
+			@param add_to_stack If the new area is to add to the zoom_stack_
+		*/
 		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 		// Docu in base class
 		virtual void recalculateSnapFactor_();

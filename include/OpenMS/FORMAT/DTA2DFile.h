@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DTA2DFile.h,v 1.12 2006/05/30 15:46:38 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
@@ -61,7 +59,7 @@ namespace OpenMS
 			/** @name Type definitions */
 			//@{
 			/// Dimension description
-			typedef OpenMS::DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+			typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
 			/// Enum that defines MZ and RT dimension index
 			enum DimensionId { MZ = DimensionDescription::MZ, RT = DimensionDescription::RT };
 			//@}

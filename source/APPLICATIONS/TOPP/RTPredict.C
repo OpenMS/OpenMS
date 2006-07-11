@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: RTPredict.C,v 1.12 2006/06/10 10:08:08 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 

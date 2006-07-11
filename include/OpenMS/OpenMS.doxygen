@@ -49,18 +49,36 @@
 /*
 	ToDo-Liste Marc:
 	- TV: Features wieder einbauen (Prozent-Mode)
-	- TV: Projektionen
-	
+	- TV: Projektionen + Docu der Methoden
+	- DB: Lauffähig machen mit altem Schema
+	- Tutorial
+	- Tests
+
+	-Doku:
+	  - XMLHandler: error, fatalError, warning??
+	  - ProcessingMethod: Warum type?
+
+	- Klassen Jens:
+	  - ANALYSIS\MAPMATCHING\PairMatcher.h
+	  - DATASTRUCTURES\IndexSet.h
+	  - FORMAT\ANDIFile.h
+	  - FORMAT\Base64.h
+	  - FORMAT\MzDataFile.h
+	  - FORMAT\MzXMLFile.h
+	  - FORMAT\HANDLERS\ANDIHandler.h
+	  - FORMAT\HANDLERS\MzDataExpSettHandler.h
+	  - FORMAT\HANDLERS\MzDataHandler.h
+	  - FORMAT\HANDLERS\MzXMLHandler.h
+	  - FORMAT\HANDLERS\SchemaHandler.h
+	  - FORMAT\HANDLERS\XMLSchemes.h
+	  - VISUAL\AxisWidget.h
+	  - VISUAL\DIALOGS\FeaFiDialog.h
+
+	Nach dem Release:
+	- DB-Zeugs neu machen
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
 	- Rohdaten-Erkenner schreiben
-	
-	-Doku:
-	  - $id und $author entfernen
-	  - XMLHandler: error, fatalError, warning??
-	  - ProcessingMethod: Warum type?
-	  
-	  - Klassen Jens!?!?!
 
 */

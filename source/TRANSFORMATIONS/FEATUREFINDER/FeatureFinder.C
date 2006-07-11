@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: FeatureFinder.C,v 1.18 2006/06/09 14:46:55 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 

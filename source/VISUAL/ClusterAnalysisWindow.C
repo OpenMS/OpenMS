@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterAnalysisWindow.C,v 1.16 2006/06/08 10:46:52 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #include <OpenMS/VISUAL/ClusterAnalysisWindow.h>

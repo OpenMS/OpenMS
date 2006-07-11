@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Exception.h,v 1.15 2006/03/14 14:52:42 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -72,7 +70,7 @@ namespace OpenMS
 		  preprocessor macros that hold the desired information.
 
 			OpenMS provides its own
-			OpenMS::Exception::GlobalExceptionHandler::terminate() handler. This
+			Exception::GlobalExceptionHandler::terminate() handler. This
 			handler extracts as much information as possible from the exception,
 			prints it to <tt>cerr</tt>, and finally calls exits the program
 			cleanly (with exit code 1).  This can be rather inconvenient for

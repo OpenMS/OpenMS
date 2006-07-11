@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: FactoryProduct_test.C,v 1.6 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 //

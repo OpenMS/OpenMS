@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.3 2006/03/26 12:27:17 andreas_bertsch Exp $
-# $Author: andreas_bertsch $
 # $Maintainer:  $
 # --------------------------------------------------------------------------
 #

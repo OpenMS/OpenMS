@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: StandardTypes.C,v 1.3 2006/04/05 10:22:39 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Oliver Kohlbacher $
 // --------------------------------------------------------------------------
 //

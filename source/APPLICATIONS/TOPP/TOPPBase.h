@@ -80,8 +80,10 @@ namespace OpenMS
 			Param param_;
 			/// Log file stream
 			std::ofstream log_;
-			/// Command line options with argument (options) and without argument (flags)
-			std::map<std::string,std::string> options_, flags_;
+			/// Command line options with argument (options)
+			std::map<std::string,std::string> options_;
+			/// Command line options without argument (flags)
+			std::map<std::string,std::string> flags_;
 			/// Current Instance number
 			SignedInt instance_number_;
 

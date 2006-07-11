@@ -344,18 +344,18 @@ namespace OpenMS
 		/// Flags whether or not to show individual peaks for each dataset
 		std::vector<bool> show_dots_;
 		
-		// the nearest peak to the mouse cursor.
+		/// the nearest peak to the mouse cursor.
 		DPeak<2>* nearest_peak_;
 		/// start peak of measuring mode
 		DPeak<2>* measurement_start_;
 		/// end peak of measuring mode
 		DPeak<2>* measurement_stop_;
-		// temporary peak that is constructed out of the 1D Peak and the RT (for findNearestPeak_)
+		/// temporary peak that is constructed out of the 1D Peak and the RT (for findNearestPeak_)
 		DPeak<2> tmp_peak_;
 		
-		// Gradient for dots
+		/// Gradient for dots
 		MultiGradient dot_gradient_;
-		// Gradient for surface
+		/// Gradient for surface
 		MultiGradient surface_gradient_;
 		
 	};

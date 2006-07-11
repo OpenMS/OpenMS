@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MzDataExpSettHandler.C,v 1.1 2006/04/07 15:17:50 j-joachim Exp $
-// $Author: j-joachim $
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 

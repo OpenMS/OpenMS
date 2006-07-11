@@ -219,7 +219,7 @@ namespace OpenMS
 			return atts_->value(enum2str_(ATTMAP,attribute).c_str());
 		}
 
-		/// return value of attribute as OpenMS::String
+		/// return value of attribute as String
 		inline String getAttribute(UnsignedInt attribute)
 		{
 			return atts_->value(enum2str_(ATTMAP,attribute).c_str()).ascii();

@@ -122,7 +122,8 @@ namespace OpenMS
 		//@}
 
 		/**
-			brief Constructor.
+			@brief Constructor.
+			
 			@param parent the parent QWidget
 			@param name the widget's name
 			@param f Window flags

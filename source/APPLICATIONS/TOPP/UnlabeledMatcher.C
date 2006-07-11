@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: UnlabeledMatcher.C,v 1.5 2006/05/02 09:39:07 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 

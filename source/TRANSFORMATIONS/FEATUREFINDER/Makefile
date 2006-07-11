@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.22 2006/05/03 07:28:38 ole_st Exp $
-# $Author: ole_st $
 # $Maintainer: Ole Schulz-Trieglaff $
 # --------------------------------------------------------------------------
 

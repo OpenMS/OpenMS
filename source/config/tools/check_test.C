@@ -1318,8 +1318,7 @@ char *yytext;
 #line 1 "check_test.l"
 #define INITIAL 0
 #line 2 "check_test.l"
-	// $Id: check_test.l,v 1.2 2006/02/02 18:58:23 marc_sturm Exp $
-	// C++ scanner
+		// C++ scanner
 
 	#define YY_NO_UNPUT 
 

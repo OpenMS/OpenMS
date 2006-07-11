@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SpectrumMDIWindowPDP.h,v 1.11 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -52,12 +50,17 @@ namespace OpenMS
 			Q_OBJECT
 			
 		public:
+			/// Constructor
 			SpectrumMDIWindowPDP( SpectrumMDIWindow* manager, QWidget* parent = 0, const char* name = "SpectrumMDIWindowPDP", WFlags f = 0);
+			///  Destructor
 			virtual ~SpectrumMDIWindowPDP();
+			// Docu in base class
 			virtual void load();
+			// Docu in base class
 			virtual void save();
 		
-		public slots:
+		protected slots:
+			/// Opens a dialog for brousing through the filesystem
 			void browseDefaultPath_();
 		
 		protected:

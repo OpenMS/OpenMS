@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: QuadTree_test.C,v 1.7 2006/06/08 14:29:18 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Thomas Kadauke $
 // --------------------------------------------------------------------------
 //
@@ -72,7 +70,7 @@ START_TEST(QuadTree<>, "$Id: QuadTree_test.C,v 1.7 2006/06/08 14:29:18 marc_stur
 
 using namespace OpenMS;
 
-typedef QuadTree<OpenMS::FloatKernelTraits, int> Tree;
+typedef QuadTree<FloatKernelTraits, int> Tree;
 typedef Tree::AreaType Area;
 typedef Tree::PointType Point;
 Tree* quadtree_ptr;

@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Spectrum2DWidgetPDP.h,v 1.4 2006/03/28 12:53:13 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -47,9 +45,13 @@ namespace OpenMS
 			Q_OBJECT
 			
 			public:
+				/// Constructor
 				Spectrum2DWidgetPDP( Spectrum2DWidget* manager, QWidget* parent = 0, const char* name = "Spectrum2DWidgetPDP", WFlags f = 0);
+				///  Destructor
 				virtual ~Spectrum2DWidgetPDP();
+				// Docu in base class
 				virtual void load();
+				// Docu in base class
 				virtual void save();
 			protected:
 				PreferencesDialogPage* canvas_;

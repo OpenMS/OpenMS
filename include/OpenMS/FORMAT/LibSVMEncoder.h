@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: LibSVMEncoder.h,v 1.3 2006/05/03 15:40:12 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 

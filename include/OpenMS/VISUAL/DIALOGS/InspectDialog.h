@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: InspectDialog.h,v 1.3 2006/03/28 08:03:27 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_VISUAL_DIALOGS_INSPECTDIALOG_H

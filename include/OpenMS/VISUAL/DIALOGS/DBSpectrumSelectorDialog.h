@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DBSpectrumSelectorDialog.h,v 1.5 2006/03/21 18:12:51 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -57,7 +55,7 @@ namespace OpenMS
 				
 				An external DB connection is used by handing over @p adapter.
 			*/
-			DBSpectrumSelectorDialog(OpenMS::DBConnection& adapter, std::vector<OpenMS::UnsignedInt>& result,QWidget* parent=0, const char* name="DBSpectrumSelectorDialog");
+			DBSpectrumSelectorDialog(DBConnection& adapter, std::vector<UnsignedInt>& result,QWidget* parent=0, const char* name="DBSpectrumSelectorDialog");
 			/// Destructor
 			~DBSpectrumSelectorDialog();
 
@@ -71,7 +69,7 @@ namespace OpenMS
 			/// DB connection
 			DBConnection& adapter_;
 			/// reference to the result vector
-			std::vector<OpenMS::UnsignedInt>& result_;
+			std::vector<UnsignedInt>& result_;
 			/// pointer to the search string lineedit
 			QLineEdit* search_string_;
 			/// pointer to the table for displaying the overview

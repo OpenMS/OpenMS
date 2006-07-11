@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterFunctor.h,v 1.8 2006/03/29 12:30:29 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
@@ -67,7 +65,7 @@ namespace OpenMS
     \param clusterrunp the parent ClusterRun, it computes the similarity score and provides the ClusterSpectrum objects
     \return the finished clusters ( the int is just a side-effect of the clustering-process )
     */
-    virtual std::map<int,OpenMS::ClusterNode*> operator()(const ClusterExperiment::ClusterRun* clusterrunp) = 0;
+    virtual std::map<int,ClusterNode*> operator()(const ClusterExperiment::ClusterRun* clusterrunp) = 0;
   };
 
 }

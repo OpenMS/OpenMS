@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DSignalToNoiseEstimatorMedian.h,v 1.7 2006/04/21 14:54:31 elange Exp $
-// $Author: elange $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 //

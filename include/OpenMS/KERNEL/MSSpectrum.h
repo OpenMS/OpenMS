@@ -75,7 +75,7 @@ namespace OpenMS
 			typedef PeakT PeakType;
 			
 			/// Spectrum base type
-			typedef DSpectrum<1, OpenMS::DPeakArrayNonPolymorphic<1, PeakT> > BaseSpectrum;
+			typedef DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> > BaseSpectrum;
     	
     	/// Constructor
       MSSpectrum():

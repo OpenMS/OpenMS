@@ -74,7 +74,7 @@ namespace OpenMS
 		enum DimensionId { MZ = DimDesc::MZ, RT = DimDesc::RT };
 		
 		typedef DPeak<1> PeakT;
-		typedef DSpectrum< 1, OpenMS::DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
+		typedef DSpectrum< 1, DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
 		//@}
 
  public:

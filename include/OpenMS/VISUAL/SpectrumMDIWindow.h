@@ -62,8 +62,6 @@ namespace OpenMS
 		@brief MDI window for several SpectrumWindow instances
 		
 		@todo Add PeakPicker dialog (Eva)
-		@todo Fix Feature Convex hull display (Marc)
-		@todo How to display MS-MS/MS Scans (Marc)
 		
 		@ingroup spectrum_widgets
 	*/	
@@ -72,6 +70,7 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// Access is possible only through this method as SpectrumMDIWindow is a singleton
 			static SpectrumMDIWindow* instance();
 			
 			/**
@@ -151,7 +150,7 @@ namespace OpenMS
 			void tileVertical();
 			/// tile the open windows horizontally
 			void tileHorizontal();
-			//links or unlinks two spectra (for zooming)
+			/// Links or unlinks two spectra (for zooming)
 			void linkActiveTo(const QString&);
 			/**
 				@brief Shows a status message in the status bar.
@@ -165,9 +164,9 @@ namespace OpenMS
 		
 			/// Shows a list all selected peaks
 			void showPeaklistActiveSpectrum();
-			//picks peaks in the active spectrum
+			/// Picks peaks in the active spectrum
 			void pickActiveSpectrum();
-			//finds features in the active spectrum
+			/// Finds features in the active spectrum
 			void findFeaturesActiveSpectrum();
 		
 		protected slots:

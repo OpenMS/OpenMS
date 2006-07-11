@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: KernelTraits.h,v 1.10 2006/03/01 12:55:29 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 //

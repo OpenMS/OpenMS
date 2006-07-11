@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: LinkageCluster.h,v 1.8 2006/03/29 12:30:29 andreas_bertsch Exp $
-// $Author: andreas_bertsch $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
@@ -80,7 +78,7 @@ namespace OpenMS
     static FactoryProduct* create() {return new LinkageCluster();}
 
     /** @brief function call operator <br> */
-    std::map<int,OpenMS::ClusterNode*> operator()(const ClusterExperiment::ClusterRun* );
+    std::map<int,ClusterNode*> operator()(const ClusterExperiment::ClusterRun* );
 
     String info() const;
 

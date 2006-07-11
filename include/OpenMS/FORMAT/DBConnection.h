@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DBConnection.h,v 1.11 2006/06/09 22:32:48 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -69,10 +67,10 @@ namespace OpenMS
         @ingroup Exceptions
       */
       class InvalidQuery
-            : public OpenMS::Exception::Base
+            : public Exception::Base
       {
         public:
-          InvalidQuery(const char* file, OpenMS::SignedInt line, const char*  function, std::string sql_query, std::string sql_error) throw();
+          InvalidQuery(const char* file, SignedInt line, const char*  function, std::string sql_query, std::string sql_error) throw();
           ~InvalidQuery() throw();
       };
 
@@ -84,10 +82,10 @@ namespace OpenMS
         @ingroup Exceptions
       */
       class NotConnected
-            : public OpenMS::Exception::Base
+            : public Exception::Base
       {
         public:
-          NotConnected(const char* file, OpenMS::SignedInt line, const char*  function) throw();
+          NotConnected(const char* file, SignedInt line, const char*  function) throw();
           ~NotConnected() throw();
       };
       

@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Id: Makefile,v 1.2 2006/03/15 16:21:15 nicopfeifer Exp $
-# $Author: nicopfeifer $
 # $Maintainer: Nico Pfeifer  $
 # --------------------------------------------------------------------------
 #

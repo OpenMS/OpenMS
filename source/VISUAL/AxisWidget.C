@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: AxisWidget.C,v 1.17 2006/06/06 12:53:32 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Jens Joachim $
 // --------------------------------------------------------------------------
 

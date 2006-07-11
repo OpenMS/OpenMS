@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DPeakPicker.h,v 1.31 2006/06/09 14:46:55 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 //
@@ -72,7 +70,7 @@ namespace OpenMS
     /** @name Type definitions
      */
     //@{
-    typedef OpenMS::DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+    typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
     ///
     typedef DPeakArrayNonPolymorphic<D, DRawDataPoint<D> > RawData;
     ///

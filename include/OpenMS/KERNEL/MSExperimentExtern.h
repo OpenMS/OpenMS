@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: MSExperimentExtern.h,v 1.6 2006/06/09 14:15:09 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
@@ -610,7 +608,7 @@ namespace OpenMS
 	  
 	  void clear() const  { exp_.clear(); }
 	   
-	   /// See OpenMS::MSExperiment documentation.
+	  /// See MSExperiment documentation.
 	  UnsignedInt getSize() const { return exp_.getSize(); }
 	    
 	  /// See std::vector documentation.

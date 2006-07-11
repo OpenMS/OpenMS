@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: EvaluationFunctions.h,v 1.7 2006/04/12 08:21:18 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 

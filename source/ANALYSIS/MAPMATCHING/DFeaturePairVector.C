@@ -22,8 +22,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DFeaturePairVector.C,v 1.1 2006/02/21 09:44:57 ole_st Exp $
-// $Author: ole_st $
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 

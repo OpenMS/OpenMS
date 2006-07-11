@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ComparatorUtils.h,v 1.6 2006/02/02 14:03:48 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 

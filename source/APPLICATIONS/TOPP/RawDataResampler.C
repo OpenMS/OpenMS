@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: RawDataResampler.C,v 1.3 2006/05/30 15:46:40 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/Param.h>

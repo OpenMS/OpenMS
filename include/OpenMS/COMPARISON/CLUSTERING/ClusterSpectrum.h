@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterSpectrum.h,v 1.15 2006/06/09 23:47:35 nicopfeifer Exp $
-// $Author: nicopfeifer $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
@@ -59,7 +57,7 @@ namespace OpenMS
     /**
     this Exception indicates that a the BinnedRep and the DSpectrum in the Constructor dont represent the same Spectrum
     */
-    class DifferentSpectra : public OpenMS::Exception::Base
+    class DifferentSpectra : public Exception::Base
     {
     public:
       DifferentSpectra(const char* file, int line, const char* function) throw();
@@ -69,7 +67,7 @@ namespace OpenMS
     /**
     the requested Representation is not available
     */
-    class WrongRepresentation : public OpenMS::Exception::Base
+    class WrongRepresentation : public Exception::Base
     {
     public:
       WrongRepresentation(const char* file, int line, const char* function, const char* message
@@ -81,7 +79,7 @@ namespace OpenMS
     some Argument contains illegal values
     for example an id thats not a PeakList
     */
-    class IllegalArgument : public OpenMS::Exception::Base
+    class IllegalArgument : public Exception::Base
     {
     public:
       IllegalArgument(const char* file, int line, const char* function, const char* argument = "unknown") throw();

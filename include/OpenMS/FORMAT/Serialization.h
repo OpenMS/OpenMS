@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Serialization.h,v 1.3 2006/06/01 16:54:19 groepl Exp $
-// $Author: groepl $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 

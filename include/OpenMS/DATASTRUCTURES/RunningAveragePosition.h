@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: RunningAveragePosition.h,v 1.5 2006/03/28 08:03:26 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -39,7 +37,7 @@ namespace OpenMS
            Positions have weights.
 
 		Template parameter Position_ will usually be an instance of
-		OpenMS::DPosition, but any type that has begin(), end(), clear(),
+		DPosition, but any type that has begin(), end(), clear(),
 		iterators, a typedef CoordinateType and an enum DIMENSION should work (maybe
 		I forgot a few concept requirements here).
 

@@ -722,7 +722,7 @@ namespace OpenMS
 		}
 	}
 	
-	void SpectrumMDIWindow::closeFileByTab(SignedInt tab_identifier_)
+	void SpectrumMDIWindow::closeFileByTab(OpenMS::SignedInt tab_identifier_)
 	{
 		SpectrumWindow* window = id_map_[tab_identifier_];
 		window->close();
@@ -866,7 +866,7 @@ namespace OpenMS
 		}
 	}
 	
-	void SpectrumMDIWindow::showStatusMessage(string msg,UnsignedInt time)
+	void SpectrumMDIWindow::showStatusMessage(string msg, OpenMS::UnsignedInt time)
 	{
 		if (time==0)
 		{

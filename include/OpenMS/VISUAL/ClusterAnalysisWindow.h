@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ClusterAnalysisWindow.h,v 1.10 2006/06/06 12:53:32 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_VISUAL_CLUSTERANALYSISWINDOW_H
@@ -122,7 +120,7 @@ namespace OpenMS
 
     //data
     std::vector<std::vector<double > >* current_matrix_;
-    std::vector<OpenMS::ClusterSpectrum> current_cspectra_;
+    std::vector<ClusterSpectrum> current_cspectra_;
     std::vector<int> current_ids_;
 
     const std::map<int,ClusterNode*>* clusterp_;
@@ -135,11 +133,11 @@ namespace OpenMS
     ClusterExperimentView* clev_;
     FactoryProductView* cfigview_;
     ResultView* resview_;
-    OpenMS::BinnedRepWidget* topbin_;
-    OpenMS::BinnedRepWidget* bottombin_;
-    OpenMS::Spectrum1DWidget* topspec_;
-    OpenMS::Spectrum1DWidget* bottomspec_;
-    OpenMS::DBAdapter* adapter_;
+    BinnedRepWidget* topbin_;
+    BinnedRepWidget* bottombin_;
+    Spectrum1DWidget* topspec_;
+    Spectrum1DWidget* bottomspec_;
+    DBAdapter* adapter_;
   };
 }
 #endif // OPENMS_VISUAL_CLUSTERANALYSISWINDOW_H

@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: PreferencesDialog.h,v 1.5 2006/03/28 08:03:27 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -45,9 +43,7 @@
 namespace OpenMS
 {
 	/**
-		@brief Main dialog for the PreferencesManager classes.
-		
-		
+		@brief Main dialog for the PreferencesManager classes.	
 		
 		@ingroup Dialogs
 	*/
@@ -76,7 +72,7 @@ namespace OpenMS
 			void help_();
 		
 		protected:
-			/// the Liststack in which the PreferencesDialogPages are displayed
+			/// the ListStack in which the PreferencesDialogPages are displayed
 			ListStack* stack_;
 			/// a vector with pointers to all pages
 			std::vector<PreferencesDialogPage*> pages_;

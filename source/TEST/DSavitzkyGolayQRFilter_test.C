@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DSavitzkyGolayQRFilter_test.C,v 1.10 2006/04/13 08:40:46 elange Exp $
-// $Author: elange $
 // $Maintainer: Eva Lange  $
 // --------------------------------------------------------------------------
 //

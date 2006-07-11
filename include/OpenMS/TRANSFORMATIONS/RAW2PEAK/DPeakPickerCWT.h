@@ -22,8 +22,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: DPeakPickerCWT.h,v 1.49 2006/06/02 14:42:37 elange Exp $
-// $Author: elange $
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
@@ -474,7 +472,7 @@ namespace OpenMS
 		  
 		  if (optimization_)
 		    {
-		      struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
+		      struct OptimizationFunctions::PenaltyFactors penalties;
 		      
 		      DataValue dv = param_.getValue("Optimization:Penalties:Position");
 		      if (dv.isEmpty() || dv.toString() == "") penalties.pos = 0.;

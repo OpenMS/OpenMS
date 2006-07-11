@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: ResultView.C,v 1.3 2006/03/28 08:03:39 marc_sturm Exp $
-// $Author: marc_sturm $
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #include <OpenMS/VISUAL/ResultView.h>
@@ -44,7 +42,7 @@ namespace OpenMS
   {
   }
 
-  void ResultView::displayResults(const map<string,double>& result)
+  void ResultView::displayResults(const std::map<std::string,double>& result)
   {
     ostringstream ss;
     ss << "<qt> <font color=\"#ff0000\">";
