@@ -137,10 +137,6 @@ namespace OpenMS
 		 */	
 		virtual GLuint makeGridLines();
 		/// method to make the font
-		void	makeFont();
-		/// method to make the font		
-		GLuint fontOffset;
-		/// method to make the font
 		void paintAxesScale();
 
 		///reimplementation if the mouseMoveEvent
