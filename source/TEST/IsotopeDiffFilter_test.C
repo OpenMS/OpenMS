@@ -69,7 +69,7 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 
 	e_ptr->getParam().setValue("tolerance", 10);
 	filter = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 1376)
+	TEST_REAL_EQUAL(filter, 2162)
 RESULT
 
 delete e_ptr;
