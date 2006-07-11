@@ -135,6 +135,7 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 
 void Spectrum3DCanvas::invalidate_()
 {
+	openglwidget()->updateGL();
 	openglwidget()->initializeGL();
  	openglwidget()->updateGL();
 }

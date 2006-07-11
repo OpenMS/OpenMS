@@ -137,7 +137,7 @@ namespace OpenMS
 		 */	
 		virtual GLuint makeGridLines();
 		/// method to make the font
-		void paintAxesScale();
+		virtual GLuint makeLegend();
 
 		///reimplementation if the mouseMoveEvent
     void mouseMoveEvent(QMouseEvent *e);
@@ -205,6 +205,8 @@ namespace OpenMS
 		GLuint zoomdata_;
 		/// displaylist
 		GLuint ground_;
+		/// displaylist
+		GLuint axeslegend_;
 		//preferences
 		MultiGradient gradient_;
 
