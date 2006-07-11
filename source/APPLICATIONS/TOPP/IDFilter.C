@@ -130,20 +130,51 @@ class TOPPIDFilter
 					 << " " << tool_name_ << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
-					 << "  -in <file>   		input file in mzData " 
+					 << "  -in <file>   		          input file in mzData " 
 					 << "(default read from INI file)" << endl
-					 << "  -out <file>  		output file in analysisXML/Mascot generic format "
+					 << "  -out <file>  		          output file in analysisXML/Mascot generic format "
 					 << "(default read from INI file)" << endl
-					 << "  -strict      		flag indicating strict filtering (default read from INI file)" << endl
-					 << "  -sequences_file	Filename of a fasta file containing protein sequences. "
-					 << "All peptides that are not a substring of" << endl 
-					 << "			a sequence in this file are "
+					 << "  -strict      		          flag indicating strict filtering (default read from INI file)" << endl
+					 << "  -sequences_file	          Filename of a fasta file containing protein sequences. "
+					 << "All peptides that are not a substring of" 
+					 << " a sequence in this file are "
 					 << "filtered out (default read from INI file)." << endl
+					 << "  -pepfr                          the fraction of the peptide significance threshold that should be"
+					 << " reached by a peptide hit" << endl
+					 << "  -protfr                         the fraction of the protein significance threshold that should be"
+					 << " reached by a protein hit" << endl
+					 << "  -exclusion_peptides_file        if this AnalysisXML file is given all peptides having the same"
+					 << " sequence as any in the AnalysisXML file will be dropped" << endl
 					 << endl ;
 		}
 		
 		void printToolHelpOpt_()
 		{
+			cerr << endl
+		       << tool_name_ << endl
+		       << endl
+		       << "INI options:" << endl
+					 << "  in                                         input file" << endl
+					 << "  out                                        output file" << endl
+					 << "  strict                                     flag indicating strict filtering" << endl
+					 << "  sequences_file                             Filename of a fasta file containing protein sequences. "
+					 << "All peptides that are not a substring of" 
+					 << " a sequence in this file are filtered out." << endl
+					 << "  peptide_significance_threshold_fraction    the fraction of the peptide significance threshold that should be"
+					 << " reached by a peptide hit" << endl
+					 << "  protein_significance_threshold_fraction    the fraction of the protein significance threshold that should be"
+					 << " reached by a protein hit" << endl
+					 << "  exclusion_peptides_file                    if this AnalysisXML file is given all peptides having the same"
+					 << " sequence as any in the AnalysisXML file will be dropped" << endl
+					 << endl
+					 << "INI File example section:" << endl
+					 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"strict\" value=\"false\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"proteinSignificanceThresholdFraction\" value=\"1\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"peptideSignificanceThresholdFraction\" value=\"1\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"sequences_file\" value=\"sequences.fasta\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"exclusion_peptides_file\" value=\"peptides.analysisXML\" type=\"string\"/>" << endl; 					 
 		}		
 
 		void setOptionsAndFlags_()
@@ -155,11 +186,6 @@ class TOPPIDFilter
 			options_["-strict"] = "strict";
 			options_["-sequences_file"] = "sequences_file";
 			options_["-exclusion_peptides_file"] = "exclusion_peptides_file";
-			options_["-ini"] = "ini";
-			options_["-log"] = "log";
-			options_["-n"] = "instance";
-			options_["-d"] = "debug";
-			options_["--help"] = "help";
 		}
 
 		ExitCodes main_(int , char**)

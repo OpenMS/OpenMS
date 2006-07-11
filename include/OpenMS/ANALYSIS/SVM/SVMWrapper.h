@@ -151,7 +151,7 @@ namespace OpenMS
 		    @brief You can get the actual double- parameters of the svm
 		    
 		    C:            the C parameter of the svm
-		    P:			  the P parameter of the svm (sets the epsilon in
+		    P:			      the P parameter of the svm (sets the epsilon in
 	     											  epsilon-svr)
 	   		NU:           the nu parameter in nu-SVR		    
 		  */
@@ -211,10 +211,3 @@ namespace OpenMS
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
-
-
-
-
-
-
-

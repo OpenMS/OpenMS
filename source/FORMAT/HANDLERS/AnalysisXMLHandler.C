@@ -330,7 +330,6 @@ namespace OpenMS
   	vector<PeptideHit>* 									non_referencing_peptide_hits;
   	vector<PeptideHit>  									all_peptide_hits;
   	vector<UnsignedInt> 									indices;
-  	vector<String>												date_time_strings;
   	multimap< String, ProteinHit > 				all_protein_hits;
   	
   	bool 																	protein_hits_present = false;
@@ -577,11 +576,6 @@ namespace OpenMS
 			{
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
 			}
-			// if the date time is new add it to the date times vector
-			if (find(date_time_strings.begin(), date_time_strings.end(), date_time_string) == date_time_strings.end())
-			{
-				date_time_strings.push_back(date_time_string);
-			}
 		}
 		for(UnsignedInt i = 0; i < const_protein_identifications_.size(); i++)
 		{
@@ -592,17 +586,11 @@ namespace OpenMS
 			{
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
 			}
-			// if the date time is new add it to the date times vector
-			if (find(date_time_strings.begin(), date_time_strings.end(), date_time_string) == date_time_strings.end())
-			{
-				date_time_strings.push_back(date_time_string);
-			}
 		}
 		for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
 		{
 			non_referencing_peptide_hits = 
-				const_identifications_[i].getNonReferencingHits(all_protein_hits, 
-				 								  														  date_time_strings);
+				const_identifications_[i].getNonReferencingHits(all_protein_hits);
 				 								  														  
 																  														 
 			for(vector<PeptideHit>::const_iterator peptide_hits_it = non_referencing_peptide_hits->begin();

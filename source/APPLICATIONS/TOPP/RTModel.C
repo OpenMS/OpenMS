@@ -162,8 +162,15 @@ class TOPPRTModel
 					 << " " << tool_name_ << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
-					 << "  -in <file>   input file in analysisXML format (default read from INI file)" << endl
-					 << "  -out <file>  output file: the model in libsvm format (default read from INI file)" << endl
+					 << "  -in <file>              input file in analysisXML format (default read from INI file)" << endl
+					 << "  -out <file>             output file: the model in libsvm format (default read from INI file)" << endl
+					 << "  -total_gradient_time    the time (in seconds) of the gradient (default read from INI file)" << endl
+					 << "  -c                      the penalty parameter of the svm (default read from INI file)" << endl
+					 << "  -nu                     the nu parameter of the svm (for nu-SVR) (default read from INI file)" << endl
+					 << "  -degree                 the degree parameter of the kernel function of the svm (default read from INI file)" << endl
+					 << "  -p                      the epsilon parameter of the svm (for epsilon-SVR) (default read from INI file)" << endl
+					 << "  -kernel_type            the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID) (default read from INI file)" << endl
+					 << "  -svm_type               the type of the svm (nu-SVR or epsilon-SVR) (default read from INI file)" << endl
 					 << endl ;
 		}
 	
@@ -171,10 +178,6 @@ class TOPPRTModel
 		{
 			options_["-out"] = "out";
 			options_["-in"] = "in";
-			options_["-ini"] = "ini";
-			options_["-log"] = "log";
-			options_["-n"] = "instance";
-			options_["-d"] = "debug";
 			options_["-total_gradient_time"] = "total_gradient_time";
 			options_["-c"] = "c";
 			options_["-nu"] = "nu";
@@ -188,17 +191,44 @@ class TOPPRTModel
 		void printToolHelpOpt_()
 		{
 			cerr << endl
-		       << tool_name_ << " -- Builds a model for retention time" 
-		       << " prediction of peptides. Peptides with the associated"
-		       << " retention times are used to train the model."
+		       << tool_name_ << endl
 		       << endl
-		       << "Usage:" << endl
-					 << " " << tool_name_ << " [options]" << endl
-					 << endl
-					 << "Options are:" << endl
-					 << "  -in <file>   input file in analysisXML format (default read from INI file)" << endl
-					 << "  -out <file>  output file: the model in libsvm format (default read from INI file)" << endl
-					 << endl ;
+		       << "INI options:" << endl
+					 << "  in                        input file" << endl
+					 << "  out                       output file" << endl
+					 << "  total_gradient_time       the time (in seconds) of the gradient" << endl
+					 << "  c                         the penalty parameter of the svm" << endl
+					 << "  nu                        the nu parameter of the svm (for nu-SVR)" << endl
+					 << "  degree                    the degree parameter of the kernel function of the svm" << endl
+					 << "  p                         the epsilon parameter of the svm (for epsilon-SVR)" << endl
+					 << "  kernel_type               the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID)" << endl
+					 << "  svm_type                  the type of the svm (nu-SVR or epsilon-SVR)" << endl
+					 << endl << endl
+					 << "INI File example section:" << endl
+					 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"out\" value=\"svm.model\" type=\"string\"/>" << endl
+					 << "  <!-- The penalty parameter for generalisation. -->" << endl
+  		     << "  <ITEM name=\"c\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"c_start\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"c_step_size\" value=\"0.3\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"c_stop\" value=\"2\" type=\"float\"/>" << endl
+  		     << "  <!-- The nu parameter in NU_SVR. -->" << endl
+  		     << "  <ITEM name=\"nu\" value=\"0.5\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"nu_start\" value=\"0.4\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"nu_step_size\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"nu_stop\" value=\"0.6\" type=\"float\"/>" << endl
+  		     << "  <!-- The degree of the polynomial kernel. -->" << endl
+  		     << "  <ITEM name=\"degree\" value=\"1\" type=\"int\"/>" << endl
+  		     << "  <ITEM name=\"degree_start\" value=\"1\" type=\"int\"/>" << endl
+  		     << "  <ITEM name=\"degree_step_size\" value=\"1\" type=\"int\"/>" << endl
+  		     << "  <ITEM name=\"degree_stop\" value=\"3\" type=\"int\"/>" << endl
+  		     << "  <!-- The epsilon parameter in EPSILON_SVR (not used in this example)-->" << endl
+  		     << "  <ITEM name=\"p\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"p_start\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"p_step_size\" value=\"0.1\" type=\"float\"/>" << endl
+  		     << "  <ITEM name=\"p_stop\" value=\"0.2\" type=\"float\"/>" << endl;
+ 
+ 					 
 		}
 
 		ExitCodes main_(int , char**)

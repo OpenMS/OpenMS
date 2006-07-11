@@ -138,7 +138,7 @@ using namespace std;
 	You can specify the Mascot parameters <b>precursor_mass_tolerance</b> 
 	(the peptide mass tolerance), <b>peak_mass_tolerance</b> (the MS/MS tolerance), 
 	<b>taxonomy</b> (restriction to a certain subset of the database), <b>modifications</b>, 
-	<b>charges</b> (the possible charge variants), 
+	<b>variable_modifications</b>, <b>charges</b> (the possible charge variants), 
 	<b>db</b> (database where the peptides are searched in), <b>hits</b> (number of hits), 
 	<b>cleavage</b> (the cleavage enzyme), <b>missed_cleavages</b> (number of missed cleavages) 
 	and <b>mass_type</b> (Monoisotopic or Average) via the ini file.
@@ -224,6 +224,43 @@ class TOPPMascotAdapter
 
 		void printToolHelpOpt_()
 		{
+			cerr << endl
+		       << tool_name_ << endl
+		       << endl
+		       << "INI options:" << endl
+					 << "  in                        input file" << endl
+					 << "  out                       output file" << endl
+					 << "  mascot_in                 if this flag is set the MascotAdapter will read in "
+					 << "mzData and write Mascot generic format" << endl
+					 << "  mascot_out                if this flag is set the MascotAdapter will read in "
+					 << "a Mascot resultsfile and write analysisXML." << endl
+					 << "  instrument                the instrument that was used to measure the spectra" << endl
+					 <<	"  precursor_mass_tolerance  the precursor mass tolerance" << endl
+					 << "  peak_mass_tolerance       the peak mass tolerance" << endl
+					 << "  taxonomy                  the taxonomy" << endl
+					 << "  modifications             the modifications i.e. Carboxymethyl (C)" << endl
+					 << "  variable_modifications    the variable modifications i.e. Carboxymethyl (C)" << endl
+					 << "  charges                   the different charge states separated by comma" << endl
+					 << "  mascot_directory          the directory in which mascot is located" << endl
+					 << "  temp_data_directory       a directory in which some temporary files can be stored" << endl
+					 << endl
+					 << "INI File example section:" << endl
+					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"instrument\" value=\"ESI-TRAP\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"precursor_mass_tolerance\" value=\"1.3\" type=\"float\"/>" << endl
+           << "  <ITEM name=\"peak_mass_tolerance\" value=\"0.3\" type=\"float\"/>" << endl
+           << "  <ITEM name=\"taxonomy\" value=\". . . . . . Chordata (vertebrates and relatives)\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"modifications\" value=\"Carboxymethyl (C)\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"charges\" value=\"1+,2+,3+\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"db\" value=\"MSDB\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"hits\" value=\"AUTO\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"cleavage\" value=\"Trypsin\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"missed_cleavages\" value=\"1\" type=\"UnsignedInt\"/>" << endl
+           << "  <ITEM name=\"mass_type\" value=\"Monoisotopic\" type=\"string\"/>" << endl
+		       << "  <ITEM name=\"mascot_directory\" value=\"/local/mascot/\" type=\"string\"/>" << endl
+		       << "  <ITEM name=\"temp_data_directory\" value=\"/local/mascot/tmp/\" type=\"string\"/>" << endl;
+ 
 		}		
 
 		void setOptionsAndFlags_()
@@ -231,9 +268,6 @@ class TOPPMascotAdapter
 			options_["-out"] = "out";
 			options_["-in"] = "in";
 			options_["-additional_in"] = "additional_in";
-			options_["-ini"] = "ini";
-			options_["-log"] = "log";
-			options_["-n"] = "instance";
 			options_["-instr"] = "instrument";
 			options_["-prcr_m_tol"] = "precursor_mass_tolerance";
 			options_["-pk_m_tol"] = "peak_mass_tolerance";
@@ -246,7 +280,6 @@ class TOPPMascotAdapter
 			options_["-mascot_out"] = "mascot_out";
 			options_["-mascot_directory"] = "mascot_directory";
 			options_["-temp_data_directory"] = "temp_data_directory";
-			options_["--help"] = "help";
 		}
 
 		ExitCodes main_(int , char**)

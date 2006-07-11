@@ -99,15 +99,19 @@ namespace OpenMS
       /// Equality operator
       bool operator != (const AnalysisXMLHandler& source) const;
       
+      /// Writes the xml file to the ostream 'os'
       void writeTo(std::ostream& os);
       	
+      /// The method which is invoked when an opening tag is parsed
       virtual bool startElement(const QString & uri, const QString & local_name,
 												const QString & qname, const QXmlAttributes & attributes );
-			///
+			/// The method which is invoked when an closing tag is parsed
       virtual bool endElement( const QString & uri, const QString & local_name,
 											 const QString & qname ); 
-						
+			
+			/// The method which is invoked when the information enclosed by a tag is parsed			
 		  bool characters( const QString & chars );
+
     protected:
       std::vector<ProteinIdentification>* protein_identifications_;
       std::vector<Identification>* identifications_;
@@ -139,8 +143,11 @@ namespace OpenMS
 			UnsignedInt date_times_counter_;
 			
 		private:
+				/// determines the date group index
 		    UnsignedInt getDateGroupIndex(DateTime 												date_time,
 			  															std::map< String , UnsignedInt> date_times);
+			  																
+				/// writes a peptide to the ostream 'os'			  																
 				void writePeptideHit(std::ostream& os, 
 		 													String shift,
 		 													PeptideHit hit,

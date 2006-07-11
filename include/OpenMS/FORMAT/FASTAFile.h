@@ -52,12 +52,20 @@ namespace OpenMS
       ~FASTAFile();
 
       /**
- 				@brief 
+ 				@brief loads a FASTA file given by 'filename' and stores the information in 'data'
+ 				
+ 				The first String in the pair corresponds to the identifier that is 
+ 				written after the > in the FASTA file and the second String in the 
+ 				pair corresponds to the sequence
       */
       void load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError);
 
       /**
-      	@brief 
+      	@brief stores the data given by 'data' at the file 'filename'
+ 				
+ 				The first String in the pair corresponds to the identifier that is 
+ 				written after the > in the FASTA file and the second String in the 
+ 				pair corresponds to the sequence
       */
       void store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile);
 

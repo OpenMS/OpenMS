@@ -56,25 +56,47 @@ namespace OpenMS
       /// Assignment operator
       LibSVMEncoder& operator = (const LibSVMEncoder& source);
       
+      /**
+ 				@brief returns a composition vector of 'sequence'
+ 				
+ 				The allowed characters given by 'allowed_characters' are counted in the sequence 'sequence'
+ 				and the relative frequency of the letters are sored in the composition vector. 
+ 				The first entry of the vector (<UnsignedInt, DoubleReal>) corresponds to the first letter of 
+ 				'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding 
+ 				relative frequency...
+			*/ 				
       std::vector< std::pair<UnsignedInt, DoubleReal> >* encodeCompositionVector(const String& sequence, 
 																												 								 			   const String& allowed_characters);      
 																																		  
+      /**
+ 				@brief returns composition vector of the sequences given by 'sequence'
+ 				
+ 				The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
+ 				and the relative frequency of the letters are sored in the composition vectors. 
+ 				The first entry of the first vector (<UnsignedInt, DoubleReal>) corresponds to the first letter of 
+ 				'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding 
+ 				relative frequency...
+			*/ 				
       std::vector< std::vector< std::pair<UnsignedInt, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
 																												 								 			   						const String& allowed_characters);      
-																																		  
+			/// encodes the feature vector in LIBSVM compliant format																																		  
       svm_node* encodeLIBSVMVector(
       	const std::vector< std::pair<UnsignedInt, DoubleReal> >& feature_vector);
       
+			/// encodes the feature vectors in LIBSVM compliant format																																		  
       std::vector<svm_node*>* encodeLIBSVMVectors(
       	const std::vector< std::vector< std::pair<UnsignedInt, DoubleReal> > >& feature_vectors);
       
+			/// encodes the LIBSVM compliant vectors into a LIBSVM compliant structure																																		  
       svm_problem* encodeLIBSVMProblem(const std::vector<svm_node*>&  vectors, 
       																 std::vector<DoubleReal>* 		  labels);
       
+      /// creates composition vectors for 'sequences' and stores them in LIBSVM compliant format
 			svm_problem* encodeLIBSVMProblemWithCompositionVectors(const std::vector<String>& sequences,
 																														 std::vector<DoubleReal>*   labels,
 																														 const String&              allowed_characters);      
     
+      /// creates composition vectors with additional length information for 'sequences' and stores them in LIBSVM compliant format
 			svm_problem* encodeLIBSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences,
 																																			std::vector<DoubleReal>*   labels,
 																																			const String&              allowed_characters,

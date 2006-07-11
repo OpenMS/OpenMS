@@ -99,15 +99,30 @@ namespace OpenMS
 		/// clears all information of this instance
     void clear();
 
+		/// sorts the peptide and protein hits according to their score
 		void sort();
 
+		/// tests whether there is no information stored
 		bool empty() const;
 
+		/// assigns ranks to the peptide and protein hits according to the sorting created by sort()
     void assignRanks();
     
+		/**
+			@brief returns all referencing hits
+    	
+			Returns a vector of peptide hits that reference a protein hit with @code date_time @endcode
+			@endcode and @code accession @endcode.
+    */
     std::vector<PeptideHit>* getReferencingHits(String 	date_time, 
     																						String 	accession) const;
 
+		/**
+			@brief returns all non referencing peptide hits
+    	
+			Returns a vector of peptide hits that do not reference a protein hit in [protein_hits_begin, protein_hits_end)
+			together with the date given by @code date_time @endcode
+    */
     template <class iteratorT>
   	std::vector<PeptideHit>* getNonReferencingHits(iteratorT 			protein_hits_begin, 
   																								 iteratorT 			protein_hits_end,
@@ -147,9 +162,15 @@ namespace OpenMS
 	  	return found_hits;  			  		
   	}
 
+		/**
+			@brief returns all non referencing peptide hits
+    	
+			Returns a vector of peptide hits that do not reference a protein hit in @code protein_hits @endcode.
+			The String argument in the map stands for the String representation of the date_time object of
+			the ProteinIdentification the particular protein hit belongs to.
+    */
   	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, 
-																																				ProteinHit >& protein_hits,
-																									 const std::vector<String>& keys) const;
+																																				ProteinHit >& protein_hits) const;
 
   protected:
 

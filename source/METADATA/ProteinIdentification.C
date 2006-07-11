@@ -136,12 +136,18 @@ namespace OpenMS {
 
   void ProteinIdentification::assignRanks()
   {
-    sort();
+  	UnsignedInt rank = 1;
+  	
+  	sort();
+    for ( vector<ProteinHit>::iterator lit = protein_hits_.begin(); lit != protein_hits_.end(); ++lit )
+    {
+      lit->setRank(rank++);
+    }
   }
     
   void ProteinIdentification::sort()
   {		
-		std::sort(protein_hits_.begin(), protein_hits_.end(), RankLess());
+		std::sort(protein_hits_.begin(), protein_hits_.end(), ScoreLess());
   }
   
 	bool ProteinIdentification::empty() const

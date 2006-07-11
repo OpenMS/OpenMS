@@ -131,12 +131,7 @@ namespace OpenMS {
 	/// Inequality operator
 	bool Identification::operator != (const Identification& rhs) const
 	{
-		return date_ != rhs.getDateTime() 
-						|| charge_ != rhs.getCharge()
-						|| peptide_hits_ != rhs.getPeptideHits()
-						|| protein_hits_ != rhs.getProteinHits()
-						|| peptide_significance_threshold_ != rhs.getPeptideSignificanceThreshold()
-						|| protein_significance_threshold_ != rhs.getProteinSignificanceThreshold();						 
+		return !(operator==(rhs));						 
 	}
 	
 	/// inserts a peptide hit if the peptide hit has the same score type as the existing hits
@@ -169,18 +164,23 @@ namespace OpenMS {
   
   void Identification::assignRanks()
   {
+    UnsignedInt rank = 1;
     sort();
-    uint rank = 1;
     for ( vector<PeptideHit>::iterator lit = peptide_hits_.begin(); lit != peptide_hits_.end(); ++lit )
+    {
+      lit->setRank(rank++);
+    }
+    rank = 1;
+    for ( vector<ProteinHit>::iterator lit = protein_hits_.begin(); lit != protein_hits_.end(); ++lit )
     {
       lit->setRank(rank++);
     }
   }
     
   void Identification::sort()
-  {		
-		std::sort(peptide_hits_.begin(), peptide_hits_.end(), RankLess());
-		std::sort(protein_hits_.begin(), protein_hits_.end(), RankLess());
+  {
+  	ProteinIdentification::sort();		
+		std::sort(peptide_hits_.begin(), peptide_hits_.end(), ScoreLess());
   }
   
 	bool Identification::empty() const
@@ -216,30 +216,46 @@ namespace OpenMS {
   	
   }
 
-	vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< String, ProteinHit >& protein_hits,
-																														const vector<String>& keys) const
+	vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< String, ProteinHit >& protein_hits) const
   {
   	vector<PeptideHit>* 								found_hits;
   	vector<PeptideHit>* 								all_found_hits 		= new vector<PeptideHit>();
+  	String 															temp_key 					= "";
+		vector<ProteinHit> 									temp_hits;
 
-		for(vector<String>::const_iterator it = keys.begin(); it != keys.end(); it++)
+		for(multimap< String, ProteinHit >::const_iterator hits_it = protein_hits.begin();
+				hits_it != protein_hits.end();
+				hits_it++)
 		{
-			vector<ProteinHit> temp_hits;
-			
-			for(multimap< String, ProteinHit >::const_iterator hits_it = protein_hits.lower_bound(*it);
-					hits_it != protein_hits.upper_bound(*it);
-					hits_it++)
+			if (temp_key == "")
 			{
+				temp_key = hits_it->first;
+			}
+			if (temp_key == hits_it->first)
+			{ 
 				temp_hits.push_back(hits_it->second);
 			}
-			found_hits = getNonReferencingHits(temp_hits.begin(), 
-																				 temp_hits.end(), 
-																				 *it);
-  		all_found_hits->insert(all_found_hits->end(), found_hits->begin(), found_hits->end());
-  		
-			delete found_hits;  							
+			else
+			{
+				found_hits = getNonReferencingHits(temp_hits.begin(), 
+																					 temp_hits.end(), 
+																					 temp_key);
+	  		all_found_hits->insert(all_found_hits->end(), found_hits->begin(), found_hits->end());
+				delete found_hits;  							
+	
+				temp_hits.clear();
+				temp_hits.push_back(hits_it->second);
+				temp_key = hits_it->first;																					 				
+			}
 		}
+		found_hits = getNonReferencingHits(temp_hits.begin(), 
+																			 temp_hits.end(), 
+																			 temp_key);
+		all_found_hits->insert(all_found_hits->end(), found_hits->begin(), found_hits->end());
+		delete found_hits;  							
+
   	return all_found_hits;
-  }
+	}
+
 
 }// namespace OpenMS

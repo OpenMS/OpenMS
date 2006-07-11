@@ -65,19 +65,23 @@ namespace OpenMS
       /// Equality operator
       bool operator != (const MascotXMLHandler& source) const;
       
+      /// The method which is invoked when an opening tag is parsed
       virtual bool startElement(const QString & uri, const QString & local_name,
 												const QString & qname, const QXmlAttributes & attributes );
-			///
+			/// The method which is invoked when an closing tag is parsed
       virtual bool endElement( const QString & uri, const QString & local_name,
 											 const QString & qname ); 
-						
+			
+			/// The method which is invoked when the information enclosed by a tag is parsed			
 		  bool characters( const QString & chars );
-    protected:
-    	ProteinIdentification* protein_identification_;
-      std::vector<Identification>* identifications_;
-      std::vector<float>* precursor_retention_times_;
-      std::vector<float>* precursor_mz_values_;
-      ProteinHit actual_protein_hit_;
+		  
+    private:
+    	
+    	ProteinIdentification* protein_identification_;				///< the protein identifications
+      std::vector<Identification>* identifications_;				///< the identifications (storing the peptide hits)
+      std::vector<float>* precursor_retention_times_;				///< the corresponding retention times
+      std::vector<float>* precursor_mz_values_;							///< the corresponding mz values
+      ProteinHit actual_protein_hit_;												
       std::vector<ProteinHit> actual_protein_hits_;
       PeptideHit actual_peptide_hit_;
       std::vector<PeptideHit> actual_peptide_hits_;

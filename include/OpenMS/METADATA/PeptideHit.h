@@ -120,10 +120,10 @@ namespace OpenMS
 
     //@}
 
-
+		/// clears all information of the peptide hit
     void clear();
   protected:
-    float score_;								///< the score of the peptide hit
+    float score_;									///< the score of the peptide hit
     std::string score_type_;    	///< the score type of the peptide hit 
 		UnsignedInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list

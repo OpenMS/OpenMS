@@ -58,6 +58,12 @@ namespace OpenMS
       /// Destructor
       ~AnalysisXMLFile();
       
+			/**
+      	@brief Loads the identifications of an AnalysisXML file
+
+				The information is read in and the information is stored in the
+				corresponding variables
+      */
       void load(const String& filename,
       					std::vector<ProteinIdentification>* protein_identifications, 
       					std::vector<Identification>* identifications, 
@@ -68,6 +74,14 @@ namespace OpenMS
   							 																							 Exception::FileEmpty,
   							 																							 Exception::ParseError);
       					 
+			/**
+      	@brief Loads the identifications of an AnalysisXML file
+
+				The information is read in and the information is stored in the
+				corresponding variables. This function offers the possibility to load 
+				the predicted retention times and the predicted sigma that can be
+				used to filter the peptides via the TOPP tool RTPredict.
+      */
       void load(const String& filename, 
       					std::vector<ProteinIdentification>* protein_identifications, 
       					std::vector<Identification>* identifications, 
@@ -80,12 +94,22 @@ namespace OpenMS
   							 																						 Exception::FileEmpty,
   							 																						 Exception::ParseError);
       					 
+			/**
+      	@brief Stores the data in an AnalysisXML file
+
+				The data is read in and stored in the file 'filename'.
+      */
       void store(String filename, 
 	      				 const std::vector<ProteinIdentification>& protein_identifications, 
       					 const std::vector<Identification>& identifications, 
       					 const std::vector<float>& precursor_retention_times,
       					 const std::vector<float>& precursor_mz_values) const throw (Exception::UnableToCreateFile); 
 			
+			/**
+      	@brief Stores the data in an AnalysisXML file
+
+				The data is read in and stored in the file 'filename'.
+      */
       void store(String filename, 
 	      				 const std::vector<ProteinIdentification>& protein_identifications, 
       					 const std::vector<Identification>& identifications, 
@@ -93,6 +117,11 @@ namespace OpenMS
       					 const std::vector<float>& precursor_mz_values,
       					 const ContactPerson& contact_person) const throw (Exception::UnableToCreateFile); 
 
+			/**
+      	@brief Stores the data in an AnalysisXML file
+
+				The data is read in and stored in the file 'filename'.
+      */
       void store(String filename, 
 	      				 const std::vector<ProteinIdentification>& protein_identifications, 
       					 const std::vector<Identification>& identifications, 

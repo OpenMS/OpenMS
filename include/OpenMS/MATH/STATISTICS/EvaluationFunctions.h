@@ -46,6 +46,7 @@ namespace OpenMS
   {
     public:
       
+			/// calculates the mean square error
       template <class iteratorT>
       static DoubleReal meanSquareError(iteratorT begin_a, 
       																 iteratorT end_a, 
@@ -69,6 +70,7 @@ namespace OpenMS
       	
       }
 
+			/// calculates the pearson correlation coefficient
       template <class iteratorT>
       static DoubleReal pearsonCorrelationCoefficient(iteratorT begin_a, 
       													 										 iteratorT end_a, 

@@ -321,7 +321,7 @@ CHECK(bool empty())
 	ptr1->clear();
 RESULT
 
-CHECK(const std::vector<PeptideHit>* getReferencingHits(String date_time, String accession))
+CHECK(std::vector<PeptideHit>* getReferencingHits(String date_time, String accession))
 	
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
@@ -338,7 +338,7 @@ CHECK(const std::vector<PeptideHit>* getReferencingHits(String date_time, String
 	TEST_EQUAL(hits->size(), 0)	
 RESULT
 
-CHECK(const std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iteratorT h_end, String date_time))
+CHECK(std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iteratorT h_end, String date_time))
 							
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
@@ -354,13 +354,45 @@ CHECK(const std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, it
 	TEST_EQUAL((*hits)[1].getSequence(), "MYSTVGPA")
 	TEST_REAL_EQUAL((*hits)[0].getScore(), 5.41)
 	TEST_REAL_EQUAL((*hits)[1].getScore(), 7.87)
+	delete hits;
 	hits = identifications[0].getNonReferencingHits(protein_identification.getProteinHits().begin(),
 																									protein_identification.getProteinHits().end(),
 																									String("2006-03-09 11:31:52"));
 	TEST_EQUAL(hits->size(), 0)	
-
+	delete hits;
+	
 RESULT
 
+CHECK(vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< String, ProteinHit >& protein_hits))
+	multimap< String, ProteinHit > map;
+	String date_time;
+																																
+	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
+							&protein_identification, 
+				   		&identifications, 
+							&precursor_retention_times, 
+							&precursor_mz_values);
+	vector<ProteinHit> protein_hits = protein_identification.getProteinHits();
+
+	protein_identification.getDateTime().get(date_time);														
+	for(vector<ProteinHit>::iterator it = protein_hits.begin();
+			it != protein_hits.end();
+			it++)
+	{
+		map.insert(make_pair(date_time, *it));
+	}																													
+	hits = identifications[2].getNonReferencingHits(map);
+	TEST_EQUAL(hits->size(), 2)
+	TEST_EQUAL((*hits)[0].getSequence(), "RASNSPQDPQSATAHSFR")
+	TEST_EQUAL((*hits)[1].getSequence(), "MYSTVGPA")
+	TEST_REAL_EQUAL((*hits)[0].getScore(), 5.41)
+	TEST_REAL_EQUAL((*hits)[1].getScore(), 7.87)
+	delete hits;
+	hits = identifications[0].getNonReferencingHits(map);
+	TEST_EQUAL(hits->size(), 0)	
+	delete hits;
+
+RESULT
 
 
 /////////////////////////////////////////////////////////////

@@ -111,14 +111,13 @@ namespace OpenMS
 		/// clears all information of the protein hit
     void clear();
   protected:
-    float score_;								///< the score of the protein hit
+    float score_;									///< the score of the protein hit
     std::string score_type_;    	///< the score type of the protein hit 
 		UnsignedInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list
     String accession_;						///< the protein identifier
     std::string accession_type_;	///< the type of the accession
-    String sequence_;							///< the amino acid sequence of the 
-    															///< protein hit
+    String sequence_;							///< the amino acid sequence of the protein hit
 
   };
 

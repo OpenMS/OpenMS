@@ -38,10 +38,10 @@
 namespace OpenMS 
 {
   /**
-    @brief Used to load and store analysisXML files
+    @brief Used to load MascotXML files
     
-    This class is used to load and store documents that implement 
-    the schema of analysisXML files.
+    This class is used to load documents that implement 
+    the schema of MascotXML files.
   
   	@ingroup FileIO
   */
@@ -55,6 +55,7 @@ namespace OpenMS
       /// Destructor
       ~MascotXMLFile();
       
+      /// loads the data of the MascotXML file
       void load(const String& 								filename,
       					ProteinIdentification*				protein_identification, 
       					std::vector<Identification>* 	identifications, 

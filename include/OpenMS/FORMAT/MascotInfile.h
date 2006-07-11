@@ -74,7 +74,7 @@ namespace OpenMS
 									 std::string search_title,									 
 									 std::vector<SignedInt> charge);
 
-			/// writes a file that can be used as input for nph-mascot.exe
+			/// writes a file that can be used as input for the MASCOT executable nph-mascot.exe
 			void write(const std::string& fname);
 
 			/// returns the boundary used for the MIME format

@@ -84,6 +84,7 @@ namespace OpenMS
 		/// setting of the protein significance threshold value
 		void setProteinSignificanceThreshold(float value);
 
+		/// assigns ranks to the stored protein hits according to their score
     void assignRanks();
 
 		/// retrival of the date of the identification
@@ -98,8 +99,10 @@ namespace OpenMS
 		/// clears all information of this instance
     void clear();
 
+		/// sorts the protein hits according to their score
 		void sort();
 
+		/// tests wether there is no information stored
 		bool empty() const;
 
   protected:
@@ -112,6 +115,17 @@ namespace OpenMS
       bool operator()(const Arg& a, const Arg& b)
       {
         return a.getRank() < b.getRank();
+      }
+    };
+    
+    /// predicate for sorting the peptide and protein hits     
+    class ScoreLess
+    {
+    public:
+    	template<typename Arg>
+      bool operator()(const Arg& a, const Arg& b)
+      {
+        return a.getScore() < b.getScore();
       }
     };
    

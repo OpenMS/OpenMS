@@ -99,11 +99,11 @@ class TOPPRTPredict
 			 << " " << tool_name_ << " [options]" << endl
 			 << endl
 			 << "Options are:" << endl
-			 << "  -in <file>   			 input file in analysisXML format (default read from INI file)" << endl
-			 << "  -svm_model <file>   		 svm model in libsvm format (can be produced by RTModel) "
-			 << "  -total_gradient_time <file> the time (in seconds) of the gradient "
+			 << "  -in <file>              input file in analysisXML format (default read from INI file)" << endl
+			 << "  -svm_model <file>       svm model in libsvm format (can be produced by RTModel) " << endl
+			 << "  -total_gradient_time    the time (in seconds) of the gradient "
 			 << "(default read from INI file)" << endl
-			 << "  -out <file>  			 output file in analysisXML format (default read from INI file)" << endl
+			 << "  -out <file>             output file in analysisXML format (default read from INI file)" << endl
 			 << endl ;
 		}
 
@@ -114,37 +114,25 @@ class TOPPRTPredict
 			options_["-in"] = "in";
 			options_["-svm_model"] = "svm_model";
 			options_["-total_gradient_time"] = "total_gradient_time";
-			options_["-ini"] = "ini";
-			options_["-log"] = "log";
-			options_["-n"] = "instance";
-			options_["-d"] = "debug";
-			options_["--help"] = "help";
 		}
 
 		void printToolHelpOpt_()
 		{
 			cerr << endl
-       << tool_name_ << " -- Predicts retention times for peptides"
-       << " via the svm_model that is trained by RTModel."
-       << endl
-       << "Usage:" << endl
-			 << " " << tool_name_ << " [options]" << endl
-			 << endl
-			 << "Options are:" << endl
-			 << "  -in <file>   			 input file in analysisXML format (default read from INI file)" << endl
-			 << "  -svm_model <file>   		 svm model in libsvm format (can be produced by RTModel) "
-			 << "  -total_gradient_time <file> the time (in seconds) of the gradient "
-			 << "(default read from INI file)" << endl
-			 << "  -out <file>  			 output file in analysisXML format (default read from INI file)" << endl
-			 << endl
-			 << "Common TOPP options are:" << endl
-			 << "  -ini <file>       TOPP INI file (default: TOPP.ini)" << endl
-			 << "  -log <file>       log file (default: TOPP.log)" << endl
-			 << "  -n <int>          instance number (default: 1)" << endl
-			 << "  -d <level>        sets debug level (default: 0)" << endl
-			 << "  --help            shows this help" << endl
-       << "  --help-opt        shows help on the INI options accepted" << endl
-			 << endl ;
+		       << tool_name_ << endl
+		       << endl
+		       << "INI options:" << endl
+					 << "  in                        input file" << endl
+					 << "  out                       output file" << endl
+					 << "  svm_model                 svm model in libsvm format (can be produced by RTModel) " << endl
+					 << "  total_gradient_time       the time (in seconds) of the gradient "
+					 << endl << endl
+					 << "INI File example section:" << endl
+					 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"svm_model\" value=\"model.svm\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"total_gradient_time\" value=\"3000\" type=\"float\"/>" << endl;
+ 					 
 		}	
 
 		ExitCodes main_(int , char**)
