@@ -75,20 +75,26 @@ namespace OpenMS
 		{
    		double tolerance = (double)param_.getValue("tolerance");
     	double isodiff = 0;
+			
     	//iterate over all peaks
     	for (int i = 0; i < (int)spectrum.size(); ++i)
     	{
-      	for (uint j = 1; i+j < spectrum.size(); ++j)
+      	for (uint j = 1; i + j < spectrum.size(); ++j)
       	{
-        	if (std::abs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0] + 1) < tolerance && 
-							spectrum.getContainer()[i-j].getIntensity() < spectrum.getContainer()[i].getIntensity())
+					double pos_ij = spectrum.getContainer()[i+j].getPosition()[0];
+					double pos_i = spectrum.getContainer()[i].getPosition()[0];
+        	if (std::fabs(pos_ij - pos_i + 1) < tolerance /* &&
+							spectrum.getContainer()[i-j].getIntensity() < spectrum.getContainer()[i].getIntensity() */) /// @todo what does this cond. do? (andreas)
         	{
-          	isodiff+= spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i+j].getIntensity();
+          	isodiff += spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i+j].getIntensity();
         	}
-        	else if (fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]) > 1 + tolerance)
-        	{
-         		break;
-        	}
+        	else 
+					{
+						if (std::fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]) > 1 + tolerance)
+        		{
+         			break;
+        		}
+					}
       	}
     	}
     	return isodiff;
