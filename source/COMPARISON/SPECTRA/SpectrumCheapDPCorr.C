@@ -30,6 +30,9 @@
 
 #include <cmath>
 
+#define SPECTRUMCHEAPDPCORR_DEBUG
+#undef  SPECTRUMCHEAPDPCORR_DEBUG
+
 using namespace std;
 
 namespace OpenMS
@@ -196,7 +199,9 @@ namespace OpenMS
 
   double SpectrumCheapDPCorr::dynprog_(const MSSpectrum< DPeak<1> >& x, const MSSpectrum< DPeak<1> >& y, int xstart, int xend, int ystart, int yend) const
   {
+		#ifdef SPECTRUMCHEAPDPCORR_DEBUG
 		cerr << "SpectrumCheapDPCorr::dynprog_(const DDiscreteSpectrum<1>& x, const DDiscreteSpectrum<1>& y, " << xstart << ", "<< xend << ", " <<  ystart << ", " << yend << ")" <<  endl;
+		#endif
     double var = (double)param_.getValue("variation");
     vector< vector<double> > dparray(xend-xstart+2, vector<double>(yend-ystart+2));
     vector< vector<int> > trace(xend-xstart+2, vector<int>(yend-ystart+2));

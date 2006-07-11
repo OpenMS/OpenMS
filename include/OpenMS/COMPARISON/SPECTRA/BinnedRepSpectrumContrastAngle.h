@@ -34,40 +34,50 @@ namespace OpenMS
 {
 
   /**
-  BinnedRepSpectrumContrastAngle calculates the spectral contrast angle between two spectra in bin representation<br>
-  the functor does not cover the whole function, the normalization is done by the ClusterRun to allow for more flexibility<br>
+  	@brief calculates the spectral contrast angle between two spectra in bin representation
+
+		the functor does not cover the whole function, the normalization is done by the ClusterRun to allow for more flexibility.
+		The SCA was defined by ???? in ????
+
+		@ingroup SpectraComparison
   */
   class BinnedRepSpectrumContrastAngle
     : public CompareFunctor
   {
   public:
 
-    /** @brief standard constructor <br> */
+		// @name Constructors and Destructors
+		// @{
+    /// standard constructor
     BinnedRepSpectrumContrastAngle();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     BinnedRepSpectrumContrastAngle(const BinnedRepSpectrumContrastAngle& source);
 
-    /** @brief destructor <br> */
-    ~BinnedRepSpectrumContrastAngle();
+    /// destructor
+    virtual ~BinnedRepSpectrumContrastAngle();
+		// @}
 
-    /** @brief assignment operator <br> */
-    BinnedRepSpectrumContrastAngle& operator=(const BinnedRepSpectrumContrastAngle& source);
+		// @name Operators
+		// @{
+		/// assignment operator
+    BinnedRepSpectrumContrastAngle& operator = (const BinnedRepSpectrumContrastAngle& source);
 
+		///
+		double operator () (const ClusterSpectrum& a, const ClusterSpectrum& b) const;
+		// @}
+
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create(){return new BinnedRepSpectrumContrastAngle();}
 
-    double operator()(const ClusterSpectrum& a ,const ClusterSpectrum& b ) const;
-
+		///
 		static const String getName()
 		{
 			return "BinnedRepSpectrumContrastAngle";
 		}
-
-    String info() const;
-
-  private:
-		
-    static const String info_;
+		// @}
   };
 
 }

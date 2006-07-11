@@ -21,6 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
+// $Id: $
+// $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -29,7 +31,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSharedPeakCount.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -38,36 +40,50 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(MarkerMower, "$Id: $")
+START_TEST(BinnedRepSharedPeakCount, "$Id: $")
 
 /////////////////////////////////////////////////////////////
 
-MarkerMower* e_ptr = 0;
-CHECK(MarkerMower())
-	e_ptr = new MarkerMower;
+BinnedRepSharedPeakCount* e_ptr = 0;
+CHECK(BinnedRepSharedPeakCount())
+	e_ptr = new BinnedRepSharedPeakCount;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~MarkerMower())
+CHECK(~BinnedRepSharedPeakCount())
 	delete e_ptr;
 RESULT
 
-e_ptr = new MarkerMower();
+e_ptr = new BinnedRepSharedPeakCount();
 
-CHECK(MarkerMower(const MarkerMower& source))
-	MarkerMower copy(*e_ptr);
+CHECK(BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source))
+	BinnedRepSharedPeakCount copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
-	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->getParam().setValue("n", 10);
-	e_ptr->apply(spec);
-	TEST_EQUAL(spec.size(), 0)
+	ClusterSpectrum csa(spec, 0, 1, 1);
+
+	DTAFile dta_file2;
+	PeakSpectrum spec2;
+	dta_file2.load("data/spectrum2.dta", spec2);
+
+	ClusterSpectrum csb(spec2, 0, 1, 1);
+
+	double score = (*e_ptr)(csa, csb);
+	TEST_REAL_EQUAL(score, 54)
+
+	score = (*e_ptr)(csa, csa);
+
+	TEST_REAL_EQUAL(score, 242)
+RESULT
+
+CHECK(bool usebins() const)
+	TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

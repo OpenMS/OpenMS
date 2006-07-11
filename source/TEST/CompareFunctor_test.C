@@ -26,84 +26,62 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/METADATA/Identification.h>
+
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-
-///////////////////////////
-
-#include <vector>
-#include <iostream>
-
-///////////////////////////
-START_TEST(CompareFunctor, "$Id: CompareFunctor_test.C,v 1.12 2006/06/09 23:47:35 nicopfeifer Exp $")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
-CompareFunctor* cfp;
+///////////////////////////
 
-ClusterFactory* factoryp = ClusterFactory::instance();
+START_TEST(CompareFunctor, "$Id: $")
 
-DTAFile dtafile;
+/////////////////////////////////////////////////////////////
 
-MSSpectrum< DPeak<1> >* spec = new MSSpectrum< DPeak<1> >();
-MSSpectrum< DPeak<1> >* spec2 = new MSSpectrum< DPeak<1> >();
-MSSpectrum< DPeak<1> >* spec3 = new MSSpectrum< DPeak<1> >();
-dtafile.load("data/spectrum.dta",*spec);
-dtafile.load("data/spectrum2.dta",*spec2);
-dtafile.load("data/spectrum2.dta",*spec3);
+CompareFunctor* e_ptr = 0;
+CHECK(CompareFunctor())
+	e_ptr = new CompareFunctor;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
 
-Identification dbs;
-dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1,"RRYA"));
-spec->getIdentification().push_back(dbs);
-spec2->getIdentification().push_back(dbs);
-ClusterSpectrum cspec(spec,0,0.5,2);
-ClusterSpectrum cspec2(spec2,0,0.5,2);
-ClusterSpectrum cspec3(spec3,0,1,1);
+CHECK(~CompareFunctor())
+	delete e_ptr;
+RESULT
 
-vector<String> catalogue = factoryp->catalogue("CompareFunctor");
+e_ptr = new CompareFunctor();
 
-// go through all registered FilterFunctors and check if they accept a spectrum 
-// and return something
+CHECK(CompareFunctor(const CompareFunctor& source))
+	CompareFunctor copy(*e_ptr);
+	TEST_EQUAL(*e_ptr == copy, true)
+RESULT
 
-for ( vector<String>::const_iterator cvit = catalogue.begin();
-    cvit != catalogue.end(); ++cvit )
-{
-  CHECK()
-    STATUS("ClusterFactory::create("+*cvit+")")
-    cfp = dynamic_cast<CompareFunctor*>(factoryp->create(*cvit));
-    TEST_NOT_EQUAL(cfp, 0)
-  RESULT
+CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
+	DTAFile dta_file;
+	PeakSpectrum spec;
+	dta_file.load("data/spectrum.dta", spec);
 
+	DTAFile dta_file2;
+	PeakSpectrum spec2;
+	dta_file2.load("data/spectrum2.dta", spec2);
 
-  CHECK(CompareFunctor::operator())
-    STATUS(*cvit+"::operator()")
-    double result = (*cfp)(cspec,cspec2);
-    bool ispositive = result >= 0;
-    TEST_EQUAL(ispositive, true)
-  RESULT
+	double filter = e_ptr->filter(spec, spec);
+	
+	TEST_REAL_EQUAL(filter, 1.0)
 
+	filter = e_ptr->filter(spec, spec2);
 
-  CHECK(CompareFunctor::WrongRepresentation)
-    if ( cfp->usebins() )
-    {
-      TEST_EXCEPTION(ClusterSpectrum::WrongRepresentation,(*cfp)(cspec,cspec3))
-    }
-  RESULT
-  
-  delete cfp;
+	TEST_REAL_EQUAL(filter, 1.0)
+RESULT
 
-}
+CHECK(bool usebins() const)
+	TEST_EQUAL(e_ptr->usebins(), false)
+RESULT
 
-factoryp->destroy();
+delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

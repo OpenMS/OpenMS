@@ -212,19 +212,25 @@ EXECUTABLES_FILTERING = \
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
 	MarkerMower_test
-	
 
 #COMPARISON
 
 EXECUTABLES_COMPARISON = \
 	BinnedRep_test\
-	CompareFunctor_test \
 	ClNode_test\
 	Cluster_test\
 	ClusterSpectrum_test\
 	ClusterFunctor_test\
   ClusterExperiment_test\
-	AnalysisFunctor_test
+	AnalysisFunctor_test\
+	CompareFunctor_test\
+	BinnedRepMutualInformation_test\
+	BinnedRepSpectrumContrastAngle_test\
+	SpectrumCheapDPCorr_test\
+	BinnedRepSharedPeakCount_test\
+	BinnedRepSumAgreeingIntensities_test\
+	SequestCompareFunctor_test\
+	SpectrumPrecursorComparator_test
 
 EXECUTABLES_CHEMISTRY = \
 		IsotopeDistribution_test\

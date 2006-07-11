@@ -34,41 +34,69 @@ namespace OpenMS
 {
 
   /**
-  CompareFunctor classes return a value for a pair of ClusterSpectrum objects<br>
-  ideally the value should reflect the similarity of the pair<br>
-  similarities of spectra should be > 0<br>
-  \param filterwindow
+		@defgroup Comparison Comparison
+	*/
+
+	/**
+		@defgroup SpectraComparison Spectra Comparison
+
+		@ingroup Comparison
+	*/
+
+	/**
+	
+		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
+	
+  	CompareFunctor classes return a value for a pair of ClusterSpectrum objects<br>
+  	ideally the value should reflect the similarity of the pair<br>
+  	similarities of spectra should be > 0<br>
+		
+  	@param filterwindow
+		
     maximum mass difference for spectra that get similarity > 0
+
+		@ingroup SpectraComparison
   */
   class CompareFunctor : public FactoryProduct
   {
+
   public:
 
-    /** @brief standard constructor <br> */
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     CompareFunctor();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     CompareFunctor(const CompareFunctor& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~CompareFunctor();
+		// @}
 
-    /** @brief assignment operator <br> */
+		// @name Operators
+		// @{
+    /// assignment operator
     CompareFunctor& operator = ( const CompareFunctor& source );
 
-		static void registerChildren();
+		/// @todo needed for factory ?
+		/// static void registerChildren();
 
-    /** @brief function call operator, calculates the similarity <br> */
-    virtual double operator()(const ClusterSpectrum&, const ClusterSpectrum&) const = 0;
+    /// function call operator, calculates the similarity
+    virtual double operator () (const ClusterSpectrum&, const ClusterSpectrum&) const { return 0; }
 
-    /** @brief function call operator, calculates the self similarity <br> */
-    virtual double operator()(const ClusterSpectrum& a) const {return (*this)(a,a);}
+    /// function call operator, calculates the self similarity
+    double operator()(const ClusterSpectrum& a) const { return (*this)(a, a); }
+		// @}
 
-    /** @brief preliminary check for similarity <br>*/
-    virtual double filter(const ClusterSpectrum&,const ClusterSpectrum&) const;
+		// @name Accessors
+		// @{
+    /// preliminary check for similarity
+    double filter(const ClusterSpectrum&,const ClusterSpectrum&) const;
 
-    /** @brief returns type of compared spectrum representation <br>*/
-    bool usebins() const {return usebins_;}
+    /// returns type of compared spectrum representation
+    bool usebins() const { return usebins_; }
+		// @}
 
   protected:
 

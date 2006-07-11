@@ -35,38 +35,50 @@ namespace OpenMS
 {
 
   /**
-  BinnedRepSumAgreeingIntensities calculates the sum of agreeing intensities for two spectra in bin representation<br>
+  		@brief calculates the sum of agreeing intensities for two spectra in binned representation
+
+			the sum of aggreing intensities was defined in ????
+
+			@ingroup SpectraComparison
   */
   class BinnedRepSumAgreeingIntensities
     : public CompareFunctor
   {
   public:
 
-    /** @brief standard constructor <br> */
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     BinnedRepSumAgreeingIntensities();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& source);
 
-    /** @brief destructor <br> */
-    ~BinnedRepSumAgreeingIntensities();
+    /// destructor
+    virtual ~BinnedRepSumAgreeingIntensities();
+		// @}
 
-    /** @brief assignment operator <br> */
-    BinnedRepSumAgreeingIntensities& operator=(const BinnedRepSumAgreeingIntensities& source);
+		// @name Operators
+		// @{
+    /// assignment operator
+    BinnedRepSumAgreeingIntensities& operator = (const BinnedRepSumAgreeingIntensities& source);
 
-    static FactoryProduct* create() { return new BinnedRepSumAgreeingIntensities();}
+		///
+		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+		// @}
 
-    double operator()(const ClusterSpectrum& csa ,const ClusterSpectrum& csb )const;
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new BinnedRepSumAgreeingIntensities(); }
 
+		///
 		static const String getName()
 		{
 			return "BinnedRepSumAgreeingIntensities";
 		}
+		// @}
 
-    String info() const;
-
-  private:
-    static const String info_;
   };
 
 }

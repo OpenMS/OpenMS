@@ -35,43 +35,53 @@ namespace OpenMS
 {
 
   /**
-  BinnedRepMutualInformation calculates the Mutual Information inherent in two spectra in bin representation <br>
+		@brief Mutual Information content which is calculated from binned stick spectra
+
+		Binned spectra mutual information content was defined in ????
   
-  \param intervals peak intensity is discretized into intervals
+  	@param intervals peak intensity is discretized into intervals
+
+		@ingroup SpectraComparison
   */
   class BinnedRepMutualInformation
     : public CompareFunctor
   {
   public:
 
-    /** @brief standard constructor <br> */
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     BinnedRepMutualInformation();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     BinnedRepMutualInformation(const BinnedRepMutualInformation& source);
 
-    /** @brief destructor <br> */
-    ~BinnedRepMutualInformation();
+    /// destructor
+    virtual ~BinnedRepMutualInformation();
+		// @}
+		
+		// @name Operators
+		// @{
+    /// assignment operator
+    BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source);
 
-    /** @brief assignment operator */
-    BinnedRepMutualInformation& operator=(const BinnedRepMutualInformation& source);
+		///
+		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+		// @}
 
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() {return new BinnedRepMutualInformation();}
 
-    double operator()(const ClusterSpectrum& csa,const ClusterSpectrum& csb)const;
-
+		///
 		static const String getName()
 		{
 			return "BinnedRepMutualInformation";
 		}
+		// @}
 
-    String info() const ;
-
-  private:
-    static const String info_;
   };
-
-
 }
 
 #endif //OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H

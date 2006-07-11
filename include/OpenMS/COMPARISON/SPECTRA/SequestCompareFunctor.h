@@ -33,45 +33,55 @@ namespace OpenMS
 {
 
   /**
-  SequestCompareFunctor compares the peptide annotations from sequest, based on sequence and deltaCn
+  	@brief SequestCompareFunctor compares the peptide annotations from sequest, based on sequence and deltaCn
   
-  \param isobaric
-    if isobaric is one, not the sequences, but the fragment sizes are compared<br>
-    if isobaric is zero, only the sequences are compared <br>
-  \param maxdeltaCN compare sequences with at most that deltaCn <br>
-  \param tolerance mass tolerance for fragment masses <br>
+  	@param isobaric
+    	if isobaric is one, not the sequences, but the fragment sizes are compared<br>
+    	if isobaric is zero, only the sequences are compared <br>
+  	@param maxdeltaCN compare sequences with at most that deltaCn <br>
+  	@param tolerance mass tolerance for fragment masses <br>
+
+		@ingroup SpectraComparison
   */
   class SequestCompareFunctor : public CompareFunctor
   {
   public:
-    /** @brief standard constructor <br> */
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     SequestCompareFunctor();
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     SequestCompareFunctor(const SequestCompareFunctor& source);
 
-    /** @brief destructor <br> */
-    ~SequestCompareFunctor();
+    /// destructor
+    virtual ~SequestCompareFunctor();
+		// @}
 
-    /** @brief assignment operator <br> */
+		// @name Operators
+    /// assignment operator
     SequestCompareFunctor& operator=(const SequestCompareFunctor& source);
 
+		///
+		double operator () (const ClusterSpectrum& a, const ClusterSpectrum& b) const;
+		// @}
+
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new SequestCompareFunctor();}
 
-    double operator()(const ClusterSpectrum& a, const ClusterSpectrum& b)const;
-
+		///
 		static const String getName()
 		{
 			return "SequestCompareFunctor";
 		}
 
-    String info() const;
-
-    /** @brief similarity based on fragment sizes <br> */
+    /// similarity based on fragment sizes
     double matchIsobaric(const String& seq1, const String& seq2) const;
-  private:
-
-    static const String info_;
+		// @}
+		
   };
 }
 #endif // OPENMS_COMPARISON_SPECTRA_SEQUESTCOMPAREFUNCTOR_H

@@ -33,16 +33,17 @@ using namespace std;
 namespace OpenMS
 {
   CompareFunctor::CompareFunctor()
-    : FactoryProduct()
+		: FactoryProduct(),
+			usebins_(false)
   {
 		name_ = CompareFunctor::getName();
     defaults_.setValue("filterwindow", 2.3);
-    usebins_ = 0;
 		param_ = defaults_;
   }
   
   CompareFunctor::CompareFunctor(const CompareFunctor& source)
-    : FactoryProduct(), usebins_(source.usebins_)
+		:	FactoryProduct(source),
+			usebins_(source.usebins_)
   {
   }
  

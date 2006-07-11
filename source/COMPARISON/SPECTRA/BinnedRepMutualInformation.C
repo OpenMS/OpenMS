@@ -42,7 +42,7 @@ namespace OpenMS
   }
 
   BinnedRepMutualInformation::BinnedRepMutualInformation(const BinnedRepMutualInformation& source)
-    :CompareFunctor(source)
+    : CompareFunctor(source)
   {
   }
 

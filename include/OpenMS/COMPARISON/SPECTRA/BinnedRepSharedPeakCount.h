@@ -34,24 +34,51 @@
 namespace OpenMS
 {
 
-  //calculates the Shared Peak Count for 2 BinnedReps
+	/** 
+		@brief calculates the Shared Peak Count for two binned spectra
+
+		the shared peak count was defined in ????
+
+		@ingroup SpectraComparison
+	*/
+
   class BinnedRepSharedPeakCount
     : public CompareFunctor
   {
-  public:
-    BinnedRepSharedPeakCount();
-    BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source);
-    ~BinnedRepSharedPeakCount();
-    BinnedRepSharedPeakCount& operator=(const BinnedRepSharedPeakCount& source);
-    static FactoryProduct* create() {return new BinnedRepSharedPeakCount();}
-    double operator()(const ClusterSpectrum& csa,const ClusterSpectrum& csb)const;
-		static const String getName()
-		{
-			return "BinnedRepSharedPeakCount";
-		}
-    String info() const ;
-  private:
-    static const String info_;
+  	public:
+
+			// @name Constructors and Destructors
+			// @{
+			/// default constructor
+    	BinnedRepSharedPeakCount();
+			
+			/// copy constructor
+    	BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source);
+
+			/// destructor
+    	virtual ~BinnedRepSharedPeakCount();
+			// @}
+
+			// @name Operators
+			// @{
+			/// assignment operator
+    	BinnedRepSharedPeakCount& operator=(const BinnedRepSharedPeakCount& source);
+		
+			/// 
+			double operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+			// @}
+			
+			// @name Accessors
+			// @{
+			///
+    	static FactoryProduct* create() {return new BinnedRepSharedPeakCount();}
+
+			///
+			static const String getName()
+			{
+				return "BinnedRepSharedPeakCount";
+			}
+			// @}
   };
 
 }

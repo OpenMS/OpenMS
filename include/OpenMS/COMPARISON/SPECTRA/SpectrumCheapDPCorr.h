@@ -45,71 +45,87 @@ namespace OpenMS
 	  Peaks get a score depending on the difference in position and the heights of the peaks <br>
 	  pairs with positions that differ more than some limit get score 0
 	  
-	  \param variation maximum difference in position (in percent of the current m/z)
+	  @param variation maximum difference in position (in percent of the current m/z)
 	      note that big values of variation ( 1 being the maximum ) result in consideration
 	      of all possible pairings which has a running time of O(n²)
-    \param int_cnt: how the peak heights are used in the score<br>
+    @param int_cnt: how the peak heights are used in the score<br>
       0 = product<br>
       1 = sqrt(product)<br>
       2 = sum <br>
       3 = agreeing intensity<br>
-    \param keeppeaks
+    @param keeppeaks
       keep peaks without alignment partner in the consensus spectrum<br>
   	
   	@todo correct int_cnt sum (is that really normalizing? it is not!) (Andreas)
+
+		@ingroup SpectraComparison
   */
   class SpectrumCheapDPCorr : public CompareFunctor
   {
   public:
-    /** @brief standard constructor <br>*/
+	
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     SpectrumCheapDPCorr();
 
-    /** @brief copy constructor <br>*/
+    /// copy constructor
     SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source);
 
-    /** @brief destructor <br>*/
-    ~SpectrumCheapDPCorr();
+    /// destructor
+    virtual ~SpectrumCheapDPCorr();
+		// @}
 
-    /** @brief assignment operator <br> */
-    SpectrumCheapDPCorr& operator=(const SpectrumCheapDPCorr& source);
+		// @name Operators
+		// @{
+    /// assignment operator
+    SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source);
+	
+		/// 
+		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+		// @}
 
-    static FactoryProduct* create() { return new SpectrumCheapDPCorr();}
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new SpectrumCheapDPCorr(); }
 
+		///
 		static const String getName()
 		{
 			return "SpectrumCheapDPCorr";
 		}
 
-    String info() const;
-
-    double operator()(const ClusterSpectrum& csa ,const ClusterSpectrum& csb)const;
-
-    /** @brief return consensus spectrum from last funtion call operator<br> */
+    /// return consensus spectrum from last funtion call operator
     const MSSpectrum< DPeak<1> >& lastconsensus() const;
 
+		///
 		HashMap<Size, Size> getPeakMap() const;
 
-    /** @brief set weighting of <i>csb</i> for consensus from next function call operator<br> */
+    /// set weighting of <i>csb</i> for consensus from next function call operator
     void setFactor(double f);
+		// @}
+
   private:
 
-    /** @brief O(n^2) dynamical programming <br> */
-    double dynprog_(const MSSpectrum< DPeak<1> >& , const MSSpectrum< DPeak<1> >& , int, int, int, int ) const;
+    /// O(n^2) dynamical programming
+    double dynprog_(const MSSpectrum<DPeak<1> >&, const MSSpectrum< DPeak<1> >&, int, int, int, int) const;
 
-    /** @brief similarity of two peaks <br> */
-    double comparepeaks_(double posa, double posb, double inta, double intb) const ;
+    /// similarity of two peaks
+    double comparepeaks_(double posa, double posb, double inta, double intb) const;
 
     static const String info_;
 
-    /** @brief consensus spectrum of the last comparison <br> */
+    /// consensus spectrum of the last comparison
     mutable MSSpectrum< DPeak<1> > lastconsensus_;
 
-    /** @brief should peaks with no alignment partner be kept in the consensus? <br> */
+    /// should peaks with no alignment partner be kept in the consensus?
     bool keeppeaks_;
 
-    /** @brief weighting factor for the next consensus spectrum <br> */
+    /// weighting factor for the next consensus spectrum
     mutable double factor_;
 
+		/// last peak map
 		mutable HashMap<Size, Size> peak_map_;
   };
 

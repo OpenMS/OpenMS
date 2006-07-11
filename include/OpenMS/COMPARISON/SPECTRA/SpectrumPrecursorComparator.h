@@ -32,13 +32,18 @@
 namespace OpenMS
 {
 
-  /**
+  /**	
   	@brief SpectrumPrecursorComparator compares just the parent mass of two spectra
+
+		@ingroup SpectraComparison
   */
   class SpectrumPrecursorComparator : public CompareFunctor
   {
   public:
-    /// standard constructor 
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor 
     SpectrumPrecursorComparator();
 
     /// copy constructor 
@@ -46,23 +51,29 @@ namespace OpenMS
 
     /// destructor 
     ~SpectrumPrecursorComparator();
+		// @}
 
+		// @name Operators
+		// @{
     /// assignment operator 
     SpectrumPrecursorComparator& operator=(const SpectrumPrecursorComparator& source);
 
+		///
+		double operator()(const ClusterSpectrum& csa,const ClusterSpectrum& csb)const;
+		// @}
+		
+		// @name Accessors
+		// @{
+		///
     static FactoryProduct* create() { return new SpectrumPrecursorComparator();}
 
+		///
 		static const String getName()
 		{
 			return "SpectrumPrecursorComparator";
 		}
+		// @}
 
-    String info() const;
-
-    double operator()(const ClusterSpectrum& csa,const ClusterSpectrum& csb)const;
-
-  private:
-    static const String info_;
   };
 
 }
