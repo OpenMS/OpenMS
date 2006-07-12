@@ -29,6 +29,7 @@
 
 // QT
 #include <qpoint.h>
+#include <qpixmap.h>
 #include <qgl.h>
 
 // STL
@@ -263,6 +264,7 @@ namespace OpenMS
 		double trans_x_;
 		/// y_translation
 		double trans_y_;
+		QPixmap pixmap_;
 public slots:
     /// first normalize the angel and then set xRot_ 
     void setRotationX(int angle);

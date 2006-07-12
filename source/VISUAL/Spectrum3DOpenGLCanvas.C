@@ -63,6 +63,7 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	translation_on_ = false;
 	trans_x_ =0.0;
 	trans_y_ = 0.0;
+	show_zoom_selection_=false;
 	setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 }
 	
@@ -129,24 +130,29 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 		switch(canvas_3d_.action_mode_)
 			{
 			case SpectrumCanvas::AM_ZOOM:
-
-				calculateGridLines_();
-				coord_ = makeCoordinates();
-				if(canvas_3d_.show_grid_)
-				{
-					gridlines_ = makeGridLines();
-				}
-				xrot_ = 90*16;
-				yrot_ = 0;
-				zrot_ = 0;		
-				stickdata_ = makeDataAsTopView();
-				axeslabel_ = makeAxesLabel();	
+				if(!show_zoom_selection_)
+					{
+						calculateGridLines_();
+						coord_ = makeCoordinates();
+						if(canvas_3d_.show_grid_)
+							{
+								gridlines_ = makeGridLines();
+							}
+						xrot_ = 90*16;
+						yrot_ = 0;
+						zrot_ = 0;		
+						stickdata_ = makeDataAsTopView();
+						axeslabel_ = makeAxesLabel();	
+						
+						axeslegend_ = makeLegend();	
+					}
+						else
+							{
 				if(show_zoom_selection_)
 				{
 					zoomselection_ = makeZoomSelection();
-				}
-  			axeslegend_ = makeLegend();	
-				break;
+				}}
+  			break;
 			case SpectrumCanvas::AM_TRANSLATE:
 				calculateGridLines_();
 				if(canvas_3d_.show_grid_)
@@ -221,6 +227,7 @@ void Spectrum3DOpenGLCanvas::paintGL()
 		{
 	
 		case SpectrumCanvas::AM_ZOOM:
+	
 			glCallList(stickdata_);	
 			if(show_zoom_selection_)
 			{
