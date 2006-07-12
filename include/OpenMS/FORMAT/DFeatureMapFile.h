@@ -33,8 +33,8 @@
 
 #include <qxml.h>
 
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdio.h>
 
@@ -96,7 +96,7 @@ namespace OpenMS
 			if (feature_map.empty()) return;
       
 			// open file
-			ofstream os(filename.c_str(), fstream::out);
+			std::ofstream os(filename.c_str(), std::fstream::out);
 			if (!os.is_open())
 			{
 				os.close();

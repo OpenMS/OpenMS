@@ -36,8 +36,8 @@
 
 #include <qxml.h>
 
-#include <iostream.h>  
-#include <fstream.h>   
+#include <iostream>  
+#include <fstream>   
 #include <sstream>
 #include <stdio.h>
 #include <vector>
@@ -90,7 +90,7 @@ namespace OpenMS
       {
 			  if (pairs.empty()) return;
 
-				ofstream os(filename.c_str(),fstream::out);
+				std::ofstream os(filename.c_str(),std::fstream::out);
 				if (!os.is_open())
 				{
 					os.close();
