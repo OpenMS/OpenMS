@@ -33,7 +33,7 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapMatcher.h>
 
-#include<iostream.h>  
+#include<iostream>  
 #include <utility>
 
 #include<gsl/gsl_fit.h>

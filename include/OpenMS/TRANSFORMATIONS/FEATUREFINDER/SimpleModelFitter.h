@@ -36,8 +36,8 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
-#include<iostream.h>  
-#include<fstream.h>   
+#include<iostream>  
+#include<fstream>   
 #include<sstream>
 #include<string>
 

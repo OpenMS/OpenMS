@@ -50,7 +50,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <fstream.h>   
+#include <fstream>   
 #include <sstream>
 #include <string>
 #include <limits>

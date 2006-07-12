@@ -36,7 +36,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <stdio.h>
 
 namespace OpenMS
 {

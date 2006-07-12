@@ -38,6 +38,8 @@
 #include <numeric>
 
 
+using namespace std;
+
 namespace OpenMS
 {
 	using namespace Internal;
