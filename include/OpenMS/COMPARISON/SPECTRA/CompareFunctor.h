@@ -27,7 +27,6 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H
 #define OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 namespace OpenMS
@@ -57,6 +56,8 @@ namespace OpenMS
 
 		@ingroup SpectraComparison
   */
+	class ClusterSpectrum;
+	
   class CompareFunctor : public FactoryProduct
   {
 
@@ -77,7 +78,7 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator
-    CompareFunctor& operator = ( const CompareFunctor& source );
+    CompareFunctor& operator = (const CompareFunctor& source);
 
 		/// @todo needed for factory ?
 		/// static void registerChildren();
@@ -92,7 +93,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
     /// preliminary check for similarity
-    double filter(const ClusterSpectrum&,const ClusterSpectrum&) const;
+    double filter(const ClusterSpectrum&, const ClusterSpectrum&) const;
 
     /// returns type of compared spectrum representation
     bool usebins() const { return usebins_; }

@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath> 
 #include <exception>

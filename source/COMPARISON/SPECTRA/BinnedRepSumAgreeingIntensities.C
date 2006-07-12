@@ -25,6 +25,8 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 

@@ -28,43 +28,56 @@
 #define OPENMS_FILTERING_TRANSFORMERS_INTENSITYDISTBINS_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
-#include <map>
 #include <vector>
-#include <string>
 
 namespace OpenMS
 {
   /**
-	  @brief IntensityDistBins divides the intensity range into <i>bins</i> regions and counts
-	         the peaks that fall into each bin
+	  @brief IntensityDistBins divides the intensity range into <i>bins</i> regions and counts the peaks that fall into each bin
 	  
-	  \param bins number of regions
+	  @param bins number of regions
+
+		@ingroup SpectraFilters
   */
+	class ClusterSpectrum;
+	
   class IntensityDistBins : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     IntensityDistBins();
 
     /// copy constructor
     IntensityDistBins(const IntensityDistBins& source);
 
+		// destructor
+		virtual ~IntensityDistBins();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
-    IntensityDistBins& operator=(const IntensityDistBins& source);
+    IntensityDistBins& operator = (const IntensityDistBins& source);
+		// @}
 
-    /// destructor
-    ~IntensityDistBins();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new IntensityDistBins(); }
 
-    static FactoryProduct* create() { return new IntensityDistBins();}
+		///
+    std::vector<double> operator () (const ClusterSpectrum& spec);
 
-    std::vector<double> operator()(const ClusterSpectrum& spec);
-
+		///
 		static const String getName()
 		{
 			return "IntensityDistBins";
 		}
+		// @}
 		
   };
 }

@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/KellerQuality.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <cmath>
 
 //debug
@@ -40,7 +41,7 @@ namespace OpenMS{
 		name_ = source.getName();
   }
     
-  KellerQuality& KellerQuality::operator=(const KellerQuality& source )
+  KellerQuality& KellerQuality::operator = (const KellerQuality& source)
   {
     FilterFunctor::operator=(source);
     return *this;
@@ -81,7 +82,7 @@ namespace OpenMS{
   {
   }
 
-  vector<double> KellerQuality::operator() ( const ClusterSpectrum& cspec)
+  double KellerQuality::operator () (const ClusterSpectrum& cspec)
   {
     //todo really necessary?
     cspec.getSpec();
@@ -118,19 +119,19 @@ namespace OpenMS{
 
     uint charge = cspec.getParentionCharge();
 
-    vector<double> result;
+    //vector<double> result;
     
     // no identification, filter out
     if (cspec.getIdentification().size() == 0) 
     {
-      result.push_back(-1000);
-      return result; 
+      //result.push_back(-1000);
+      return -1000; 
     }
    
-    if (cspec.getIdentification().begin()->getPeptideHits().size() == 0 )
+    if (cspec.getIdentification().begin()->getPeptideHits().size() == 0)
     {
-      result.push_back(-1000);
-      return result;
+      //result.push_back(-1000);
+      return -1000; //result;
     }
     
     // sort PeptideHits
@@ -143,19 +144,19 @@ namespace OpenMS{
 
     ++peph;
     
-    double deltaCn;
-    if ( peph != cspec.getIdentification().begin()->getPeptideHits().end() )
+    double deltaCn(0);
+    if (peph != cspec.getIdentification().begin()->getPeptideHits().end())
     {
-      deltaCn = ( xcorr - peph->getScore() ) / xcorr;
+      deltaCn = (xcorr - peph->getScore()) / xcorr;
     }
     else 
     {
       deltaCn = 0;
     }
     
-    result.push_back(constant[charge] + 
-      xcorr_c[charge]* (log(xcorr)/log(min(peplen * peplen_fac[charge],n_c[charge])) * n_l[charge]) +
-      dCn_c[charge] * deltaCn);
+    double result = constant[charge] + 
+										xcorr_c[charge]* (log(xcorr)/log(min(peplen * peplen_fac[charge],n_c[charge])) * n_l[charge]) +
+      							dCn_c[charge] * deltaCn;
     return result;
     
     // sprank omitted since it is not in the DB and has a very low coefficient

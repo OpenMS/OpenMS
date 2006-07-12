@@ -48,7 +48,7 @@ namespace OpenMS
 		@ingroup SpectraPreprocessing
   */
   class Normalizer
-    :public PreprocessingFunctor
+    : public PreprocessingFunctor
   {
   public:
 
@@ -61,13 +61,13 @@ namespace OpenMS
     Normalizer(const Normalizer& source);
 
     /// desctructor
-    ~Normalizer();
+    virtual ~Normalizer();
 		// @}
 
 		// @name Operators
 		// @{
     /// assignment operator
-    Normalizer& operator=(const Normalizer& source);
+    Normalizer& operator = (const Normalizer& source);
 		// @}
 
 		// @name Accessors

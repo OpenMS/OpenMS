@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: $
-// $Author: marc_sturm $
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -31,7 +29,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
@@ -41,51 +39,38 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SequestCompareFunctor, "$Id: $")
+START_TEST(IntensityDistBins, "$Id: $")
 
 /////////////////////////////////////////////////////////////
 
-SequestCompareFunctor* e_ptr = 0;
-CHECK(SequestCompareFunctor())
-	e_ptr = new SequestCompareFunctor;
+IntensityDistBins* e_ptr = 0;
+CHECK(IntensityDistBins())
+	e_ptr = new IntensityDistBins;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~SequestCompareFunctor())
+CHECK(~IntensityDistBins())
 	delete e_ptr;
 RESULT
 
-e_ptr = new SequestCompareFunctor();
+e_ptr = new IntensityDistBins();
 
-CHECK(SequestCompareFunctor(const SequestCompareFunctor& source))
-	SequestCompareFunctor copy(*e_ptr);
+CHECK(IntensityDistBins(const IntensityDistBins& source))
+	IntensityDistBins copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
+CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
-
-	ClusterSpectrum csa(spec, 0, 1, 1);
-
-	DTAFile dta_file2;
-	PeakSpectrum spec2;
-	dta_file.load("data/spectrum2.dta", spec2);
-
-	ClusterSpectrum csb(spec2, 0, 1, 1);
 	
-	double score = (*e_ptr)(csa, csb);
+	vector<double> filter = (*e_ptr)(spec);
 
-	TEST_REAL_EQUAL(score, 0.0)
+	TEST_EQUAL(filter.size(), 10)
 
-	score = (*e_ptr)(csa, csa);
+	TEST_REAL_EQUAL(filter[0], 0.595041)
 
-	TEST_REAL_EQUAL(score, 0.0)
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), false)
 RESULT
 
 delete e_ptr;

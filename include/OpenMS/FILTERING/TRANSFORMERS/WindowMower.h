@@ -28,8 +28,6 @@
 #define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <vector>
-#include <algorithm>
 #include <set>
 
 namespace OpenMS

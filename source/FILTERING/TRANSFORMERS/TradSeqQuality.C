@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 //debug
@@ -49,7 +50,7 @@ namespace OpenMS{
   }
 
   TradSeqQuality::TradSeqQuality(const TradSeqQuality& source)
-    :FilterFunctor(source)
+    :	FilterFunctor(source)
   {
   }
     
@@ -67,7 +68,7 @@ namespace OpenMS{
    \return a Quality measure based on the often used limits for sequest scores (XCorr and deltaCn) <br>
     if a Identification is not fit ( no PeptideHit etc) -1000 is returned
    */
-  vector<double> TradSeqQuality::operator() (const ClusterSpectrum& cspec)
+  double TradSeqQuality::operator() (const ClusterSpectrum& cspec)
   {
     //todo really necessary?
     cspec.getSpec();
@@ -84,12 +85,12 @@ namespace OpenMS{
     
     uint charge = cspec.getParentionCharge();
 
-    vector<double> result;
+    //vector<double> result;
     
-    if (cspec.getIdentification().size() == 0 || cspec.getIdentification().begin()->getPeptideHits().size() == 0 )
+    if (cspec.getIdentification().size() == 0 || cspec.getIdentification().begin()->getPeptideHits().size() == 0)
     {
-      result.push_back(-1000);
-      return result;
+      //result.push_back(-1000);
+      return -1000; //result;
     }
     
     // sort PeptideHits
@@ -104,16 +105,16 @@ namespace OpenMS{
     double deltaCn;
     if ( peph != cspec.getIdentification().begin()->getPeptideHits().end() ) 
     {
-      deltaCn = ( xcorr - peph->getScore() ) / xcorr;
+      deltaCn = (xcorr - peph->getScore()) / xcorr;
     }
     else 
     {
       deltaCn = 0;
     }
     
-    if ( xcorr > xcorr_c[charge] && deltaCn > dCn_c[charge] )
+    if (xcorr > xcorr_c[charge] && deltaCn > dCn_c[charge])
     {
-      result.push_back(xcorr-xcorr_c[charge] + deltaCn - dCn_c[charge] );
+      return (xcorr-xcorr_c[charge] + deltaCn - dCn_c[charge]);
     }
     else
     {
@@ -122,9 +123,10 @@ namespace OpenMS{
       double res = 0;
       if ( xc < 0 ) res += xc;
       if ( dc < 0 ) res += dc;
-      result.push_back(res);
+      //result.push_back(res);
+			return res;
     }
     
-    return result;
+    return 0;
   }
 }

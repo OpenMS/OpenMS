@@ -28,11 +28,9 @@
 #ifndef OPENMS_CHEMISTRY_ELEMENT_H
 #define OPENMS_CHEMISTRY_ELEMENT_H
 
-	#include <OpenMS/CONCEPT/Types.h>
-
-	#include <OpenMS/DATASTRUCTURES/String.h>
-
-	#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
@@ -69,7 +67,7 @@ namespace OpenMS
 							const IsotopeDistribution& isotopes);
 
 			/// destructor
-			~Element();
+			virtual ~Element();
 			//@}
 
 			/** @name Accessors
@@ -122,7 +120,7 @@ namespace OpenMS
 			/** @name Predicates
 			*/
 			//@{
-			/// equility operator
+			/// equality operator
 			bool operator == (const Element& element) const;
 
 			/// inequality operator

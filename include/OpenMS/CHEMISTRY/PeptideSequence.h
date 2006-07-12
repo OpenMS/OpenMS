@@ -76,7 +76,7 @@ namespace OpenMS
 			PeptideSequence(ResidueDB* res_db);
 
 			/// destructor
-			~PeptideSequence();
+			virtual ~PeptideSequence();
 			//@}
 
 			/** @name Accessors

@@ -28,10 +28,8 @@
 #define OPENMS_FILTERING_TRANSFORMERS_KELLERQUALITY_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
-#include <string>
 
 namespace OpenMS{
   /**
@@ -39,30 +37,48 @@ namespace OpenMS{
   	
   	It is based on the linear regression formula from their 2003 Paper
   	http://www.systemsbiology.org/PDFs/Keller.Emperical%20statistical%20model.Anal%20Chem.02.pdf
+
+		@ingroup SpectraFilters
   */
+
+	class ClusterSpectrum;
+	
   class KellerQuality : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     KellerQuality();
 
     /// copy constructor
     KellerQuality(const KellerQuality& source);
 
+		/// destructor
+		virtual ~KellerQuality();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
-    KellerQuality& operator=(const KellerQuality& source );
+    KellerQuality& operator = (const KellerQuality& source);
+		// @}
 
-    /// destructor
-    ~KellerQuality();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new KellerQuality(); }
 
-    static FactoryProduct* create() { return new KellerQuality();}
+		///
+    double operator () (const ClusterSpectrum& spec);
 
-    std::vector<double> operator()(const ClusterSpectrum& spec);
-
+		///
 		static const String getName()
 		{
 			return "KellerQuality";
 		}
+		// @}
 
   };
 }

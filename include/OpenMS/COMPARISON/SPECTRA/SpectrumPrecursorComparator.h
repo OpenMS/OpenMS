@@ -56,16 +56,16 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator 
-    SpectrumPrecursorComparator& operator=(const SpectrumPrecursorComparator& source);
+    SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source);
 
 		///
-		double operator()(const ClusterSpectrum& csa,const ClusterSpectrum& csb)const;
+		double operator () (const ClusterSpectrum& csa,const ClusterSpectrum& csb) const;
 		// @}
 		
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SpectrumPrecursorComparator();}
+    static FactoryProduct* create() { return new SpectrumPrecursorComparator(); }
 
 		///
 		static const String getName()

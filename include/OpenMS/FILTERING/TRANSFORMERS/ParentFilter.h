@@ -33,28 +33,40 @@ namespace OpenMS
 {
   /**
   	@brief Parentfilter returns parention charge and mass<br>
+
+		@ingroup SpectraFilter
   */
   class ParentFilter : public FilterFunctor
   {
   public:
-    /// standard constructor
+
+		// @name Constructors and Destructors
+		// @{
+    ///  constructor
     ParentFilter();
 
     /// copy constructor
     ParentFilter(const ParentFilter& source);
 
-    /// assignment operator
-    ParentFilter& operator=(const ParentFilter& source);
-
     /// destructor
-    ~ParentFilter();
+    virtual ~ParentFilter();
+		// @}
+		
+		// @name Operators
+		// @{
+		// assignment operator
+		ParentFilter& operator = (const ParentFilter& source);
+		// @}
+		
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new ParentFilter(); }
 
-    static FactoryProduct* create() { return new ParentFilter();}
-
-    //std::vector<double> operator()(const ClusterSpectrum& cspec);
-
+		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
+			/// @todo class needed any more? What exactly does this class? (andreas)
 	    //vector<double> result;
     	//result.push_back(0);
     	//result.push_back(0);
@@ -70,13 +82,15 @@ namespace OpenMS
     	result.push_back(cspec.getParentMass());
     	return result;
 */
-			return 0;
+			return spectrum.getPrecursorPeak().getCharge();
 		}
 
+		///
 		static const String getName()
 		{
 			return "ParentFilter";
 		}
+		// @}
 
   };
 }

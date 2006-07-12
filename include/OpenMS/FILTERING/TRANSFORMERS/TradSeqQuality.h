@@ -28,44 +28,60 @@
 #define OPENMS_FILTERING_TRANSFORMERS_TRADSEQQUALITY_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 namespace OpenMS
 {
   /**
 	  @brief TradSeqQuality returns a number > 0 if the sequest score are above a certain XCorr and above a certain deltaCN
 	  
-	  \param xcorr_1+ min XCorr for charge state 1
-	  \param xcorr_2+ min XCorr for charge state 2
-	  \param xcorr_3+ min XCorr for charge state 3
-	  \param dCn_1+ min deltaCN for charge state 1
-	  \param dCn_2+ min deltaCN for charge state 2
-	  \param dCn_3+ min deltaCN for charge state 3
+	  @param xcorr_1+ min XCorr for charge state 1
+	  @param xcorr_2+ min XCorr for charge state 2
+	  @param xcorr_3+ min XCorr for charge state 3
+	  @param dCn_1+ min deltaCN for charge state 1
+	  @param dCn_2+ min deltaCN for charge state 2
+	  @param dCn_3+ min deltaCN for charge state 3
+
+		@ingroup SpectraFiltering
   */
+
+	class ClusterSpectrum;
+	
   class TradSeqQuality : public FilterFunctor
   {
   public:
   	
-    /// standard constructor
+		// @name Constructors and Destructors
+		// @{
+    /// default constructor
     TradSeqQuality();
 
     /// copy constructor
     TradSeqQuality(const TradSeqQuality& source);
 
+		/// destructor
+		virtual ~TradSeqQuality();
+		// @}
+
+		// @name Operators
+		// @{
     /// assignment operator
-    TradSeqQuality& operator=(const TradSeqQuality& source );
+    TradSeqQuality& operator = (const TradSeqQuality& source);
+		// @}
 
-    /// destructor
-    ~TradSeqQuality();
+		// @name Accessors
+		// @{
+		///
+    static FactoryProduct* create() { return new TradSeqQuality(); }
 
-    static FactoryProduct* create() { return new TradSeqQuality();}
+		///
+    double operator () (const ClusterSpectrum& spec);
 
-    std::vector<double> operator()(const ClusterSpectrum& spec);
-
+		///
 		static const String getName()
 		{
 			return "TradSeqQuality";
 		}
+		// @}
 
   };
 }

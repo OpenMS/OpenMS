@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -24,61 +24,53 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
-#define OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <vector>
+///////////////////////////
 
-namespace OpenMS
-{
-  /**
-  	@brief PeakPosBins sums the intensity in <i>bins</i> regions<br>
-  
-  	@param bins number of regions
+#include <OpenMS/FILTERING/TRANSFORMERS/ParentFilter.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/DTAFile.h>
 
-		@ingroup SpectraFilters
-  */
-	class ClusterSpectrum;
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(ParentFilter, "$Id: $")
+
+/////////////////////////////////////////////////////////////
+
+ParentFilter* e_ptr = 0;
+CHECK(ParentFilter())
+	e_ptr = new ParentFilter;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
+
+CHECK(~ParentFilter())
+	delete e_ptr;
+RESULT
+
+e_ptr = new ParentFilter();
+
+CHECK(ParentFilter(const ParentFilter& source))
+	ParentFilter copy(*e_ptr);
+	TEST_EQUAL(*e_ptr == copy, true)
+RESULT
+
+CHECK(template <typename SpectrumType> double apply(SpectrumType& spec))
+	DTAFile dta_file;
+	PeakSpectrum spec;
+	dta_file.load("data/spectrum.dta", spec);
 	
-  class PeakPosBins : public FilterFunctor
-  {
-  public:
+	double filter = e_ptr->apply(spec);
 
-		// @name Constructors and Destructors
-		// @{
-	  /// default constructor
-    PeakPosBins();
+	TEST_REAL_EQUAL(filter, 2)
+RESULT
 
-    /// copy constructor
-    PeakPosBins(const PeakPosBins& source);
+delete e_ptr;
 
-		/// destructor
-		virtual ~PeakPosBins();
-		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
-    PeakPosBins& operator=(const PeakPosBins& source);
-		// @}
-
-		// @name Accessors
-		// @{
-		///
-    static FactoryProduct* create() { return new PeakPosBins(); }
-
-		///
-    std::vector<double> operator () (const ClusterSpectrum& spec);
-
-		///
-		static const String getName()
-		{
-			return "PeakPosBins";
-		}
-		// @}
-
-  };
-}
-#endif // OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

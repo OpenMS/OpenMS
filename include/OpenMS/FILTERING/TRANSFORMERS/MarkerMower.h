@@ -29,7 +29,6 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <vector>
 #include <map>
@@ -54,13 +53,13 @@ namespace OpenMS
     MarkerMower(const MarkerMower& source);
 
     /// destructor
-    ~MarkerMower();
+    virtual ~MarkerMower();
 		// @}
 
 		// @name Operators
 		// @{
     /// assignment operator
-    MarkerMower& operator=(const MarkerMower& source);
+    MarkerMower& operator = (const MarkerMower& source);
 		// @}
 
 		// @name Accessors

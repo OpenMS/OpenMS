@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSHAREDPEAKCOUNT_H
 
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
 namespace OpenMS
 {
@@ -65,7 +64,7 @@ namespace OpenMS
     	BinnedRepSharedPeakCount& operator=(const BinnedRepSharedPeakCount& source);
 		
 			/// 
-			double operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+			double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
 			// @}
 			
 			// @name Accessors

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -24,61 +24,57 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
-#define OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
 
-#include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <vector>
+///////////////////////////
 
-namespace OpenMS
-{
-  /**
-  	@brief PeakPosBins sums the intensity in <i>bins</i> regions<br>
-  
-  	@param bins number of regions
+#include <OpenMS/FILTERING/TRANSFORMERS/KellerQuality.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/DTAFile.h>
 
-		@ingroup SpectraFilters
-  */
-	class ClusterSpectrum;
-	
-  class PeakPosBins : public FilterFunctor
-  {
-  public:
+using namespace OpenMS;
+using namespace std;
 
-		// @name Constructors and Destructors
-		// @{
-	  /// default constructor
-    PeakPosBins();
+///////////////////////////
 
-    /// copy constructor
-    PeakPosBins(const PeakPosBins& source);
+START_TEST(KellerQuality, "$Id: $")
 
-		/// destructor
-		virtual ~PeakPosBins();
-		// @}
+/////////////////////////////////////////////////////////////
 
-		// @name Operators
-		// @{
-    /// assignment operator
-    PeakPosBins& operator=(const PeakPosBins& source);
-		// @}
+KellerQuality* e_ptr = 0;
+CHECK(KellerQuality())
+	e_ptr = new KellerQuality;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
 
-		// @name Accessors
-		// @{
-		///
-    static FactoryProduct* create() { return new PeakPosBins(); }
+CHECK(~KellerQuality())
+	delete e_ptr;
+RESULT
 
-		///
-    std::vector<double> operator () (const ClusterSpectrum& spec);
+e_ptr = new KellerQuality();
 
-		///
-		static const String getName()
-		{
-			return "PeakPosBins";
-		}
-		// @}
+CHECK(KellerQuality(const KellerQuality& source))
+	KellerQuality copy(*e_ptr);
+	TEST_EQUAL(*e_ptr == copy, true)
+RESULT
 
-  };
-}
-#endif // OPENMS_FILTERING_TRANSFORMERS_PEAKPOSBINS_H
+CHECK(double operator () (const ClusterSpectrum& spec))
+	DTAFile dta_file;
+	PeakSpectrum spec;
+	dta_file.load("data/spectrum.dta", spec);
+
+	ClusterSpectrum cs(spec, 0, 1, 1);
+
+	double filter = (*e_ptr)(cs);
+
+	TEST_REAL_EQUAL(filter, -1000)
+
+RESULT
+
+delete e_ptr;
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

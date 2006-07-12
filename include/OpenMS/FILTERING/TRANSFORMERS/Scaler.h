@@ -72,11 +72,13 @@ namespace OpenMS
 		}
 
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
-		{
+		{	
+			typedef typename SpectrumType::ConstIterator ConstIterator;
+			typedef typename SpectrumType::Iterator Iterator;
 			std::map<double, int> peakssorted;
 	    int count(0);
 			
- 	  	for (MSSpectrum<DPeak<1> >::iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+ 	  	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
  	   	{
  	    	peakssorted[it->getIntensity()] = 0;
  	    	++count;
@@ -90,12 +92,12 @@ namespace OpenMS
 				}
     	}
 			
-    	for (MSSpectrum< DPeak<1> >::iterator it = spectrum.begin(); it != spectrum.end(); )
+    	for (Iterator it = spectrum.begin(); it != spectrum.end(); )
     	{
       	double new_intensity = peakssorted[it->getIntensity()];
       	if (new_intensity > 0)
       	{
-        	it->getIntensity() = peakssorted[it->getIntensity()];
+        	it->setIntensity(peakssorted[it->getIntensity()]);
         	++it;
       	}
       	else

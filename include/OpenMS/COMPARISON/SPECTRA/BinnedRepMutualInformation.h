@@ -29,7 +29,6 @@
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H
 
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
 namespace OpenMS
 {

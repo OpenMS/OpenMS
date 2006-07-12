@@ -46,7 +46,7 @@ namespace OpenMS
     PeakDensityFilter();
 
     /// copy constructor
-    PeakDensityFilter(const PeakDensityFilter& source );
+    PeakDensityFilter(const PeakDensityFilter& source);
 
 		/// destructor
 		virtual ~PeakDensityFilter();
@@ -55,7 +55,7 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator
-    PeakDensityFilter& operator=(const PeakDensityFilter& source);
+    PeakDensityFilter& operator = (const PeakDensityFilter& source);
 		// @}
 
 		// @name Accessors

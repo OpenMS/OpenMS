@@ -51,16 +51,16 @@ namespace OpenMS
     ComplementFilter();
 
     /// copy constructor
-    ComplementFilter(const ComplementFilter& source );
+    ComplementFilter(const ComplementFilter& source);
 
     /// destructor
-    ~ComplementFilter();
+    virtual ~ComplementFilter();
 		//@}
 
 		// @name Operators
 		//@{
 		/// assignment operator
-		ComplementFilter& operator = (const ComplementFilter& source );
+		ComplementFilter& operator = (const ComplementFilter& source);
 		//@}
 
 		// @name Accessors

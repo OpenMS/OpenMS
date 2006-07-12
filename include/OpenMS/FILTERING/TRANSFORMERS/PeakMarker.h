@@ -27,11 +27,8 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PEAKMARKER_H
 #define OPENMS_FILTERING_TRANSFORMERS_PEAKMARKER_H
 
-#include <vector>
 #include <map>
-#include <string>
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 namespace OpenMS

@@ -54,9 +54,8 @@ namespace OpenMS
     typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
     typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
   #endif
-    /**
-    predicate for sort()
-    */
+
+    /// predicate for sort()
     class simsortdec
     {
     public:
@@ -66,31 +65,49 @@ namespace OpenMS
       }
     };
   public:
-    /** @name constructors, destructor, assignment operator <br> */
-    //@{
+	
+    // @name Cosntructors and Destructors
+    // @{
+		/// default constructor
     ROCCurve();
-    ~ROCCurve();
-    ROCCurve( const ROCCurve& source );
 
-    ROCCurve& operator=(const ROCCurve& source);
-    //@}
+		/// destructor
+    virtual ~ROCCurve();
 
-    /** @brief insert score,type pair <br> */
+		/// copy constructor
+    ROCCurve(const ROCCurve& source);
+		// @}
+
+		// @name Operators
+		// @{
+		/// assignment operators
+    ROCCurve& operator = (const ROCCurve& source);
+    // @}
+
+		// @name Accessors
+		// @{
+    /// insert score, type pair 
     void insertPair(double score, bool clas);
 
-    /** @brief Area Under Curve <br> */
+    /// returns Area Under Curve
     double AUC();
 
-    /** @brief some points in the ROC Curve <br> */
+    /// some points in the ROC Curve
     std::vector<std::pair<double,double> > curve(uint resolution = 10);
 
+		///
     double cutoffPos(double fraction = 0.95);
 
+		///
     double cutoffNeg(double fraction = 0.95);
+		// @}
 
   private:
+	
     std::list<std::pair<double,bool> > score_clas_pairs_;
+		
     uint pos_;
+		
     uint neg_;
   };
 }

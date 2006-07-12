@@ -56,7 +56,7 @@ namespace OpenMS
     ComplementMarker(const ComplementMarker& source);
 
     /// destructor
-    ~ComplementMarker();
+    virtual ~ComplementMarker();
 		//@}
 
 		// @name Operators
@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		//@{
 		///
-    static FactoryProduct* create() { return new ComplementMarker();}
+    static FactoryProduct* create() { return new ComplementMarker(); }
 		
 		///
 		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)

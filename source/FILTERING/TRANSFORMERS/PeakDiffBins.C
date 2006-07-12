@@ -31,7 +31,8 @@ using namespace std;
 namespace OpenMS
 {
   PeakDiffBins::PeakDiffBins()
-    :FilterFunctor(),mask_() 
+    : FilterFunctor(),
+			mask_() 
   {
 		name_ = PeakDiffBins::getName();
     // value from Bioinformatics, Bern 2004
@@ -47,14 +48,15 @@ namespace OpenMS
   }
 
   PeakDiffBins::PeakDiffBins(const PeakDiffBins& source)
-    :FilterFunctor(source),mask_(source.mask_) 
+    : FilterFunctor(source),
+			mask_(source.mask_) 
   {
 		name_ = source.getName();
   }
   
-  PeakDiffBins& PeakDiffBins::operator=(const PeakDiffBins& source)
+  PeakDiffBins& PeakDiffBins::operator = (const PeakDiffBins& source)
   {
-    FilterFunctor::operator=(source);
+    FilterFunctor::operator = (source);
     mask_ = source.mask_;
     return *this;
   }
@@ -70,7 +72,7 @@ namespace OpenMS
   void PeakDiffBins::setmask(std::vector<double>& newmask)
   {
     mask_.clear();
-    for (uint i = 0; i < newmask.size(); ++i )
+    for (uint i = 0; i < newmask.size(); ++i)
     {
       mask_.insert(make_pair(newmask[i],i-1));
     }
@@ -84,7 +86,7 @@ namespace OpenMS
   
   vector<double> PeakDiffBins::operator() ( const ClusterSpectrum& cspec)
   {
-    vector<double> result = vector<double>( mask_.size() );
+    vector<double> result = vector<double>(mask_.size());
     double total = 0;
     //iterate over all peaks
     for (uint i = 0; i < cspec.getSpec().size(); ++i)
@@ -95,7 +97,7 @@ namespace OpenMS
         double diff =  cspec.getSpec().getContainer()[i+j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0];
         total += cspec.getSpec().getContainer()[i+j].getIntensity() + cspec.getSpec().getContainer()[i].getIntensity();
         map<double,int>::const_iterator cmit = mask_.upper_bound(diff);
-        if ( cmit == mask_.begin() || cmit == mask_.end() )
+        if (cmit == mask_.begin() || cmit == mask_.end())
         {
           // nop
         }
@@ -106,7 +108,7 @@ namespace OpenMS
       }
     }
 
-    for ( uint i = 0; i < result.size(); ++i )
+    for (uint i = 0; i < result.size(); ++i)
     {
       result[i] /= total;
     }

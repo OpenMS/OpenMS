@@ -79,7 +79,7 @@ CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb
 RESULT
 
 CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), true)
+	//TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

@@ -70,7 +70,7 @@ namespace OpenMS
 			IsotopeDistribution(const IsotopeDistribution& isotope_distribution);
 
 			/// Destructor
-			~IsotopeDistribution();
+			virtual ~IsotopeDistribution();
 			//@}
 	
 			/// @name Accessors

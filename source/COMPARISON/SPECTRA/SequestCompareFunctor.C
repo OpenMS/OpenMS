@@ -28,6 +28,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+
 
 #include <sstream>
 #include <cmath>

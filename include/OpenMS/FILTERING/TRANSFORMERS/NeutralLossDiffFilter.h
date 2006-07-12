@@ -30,10 +30,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
 #include <map>
-#include <string>
 #include <cmath>
-
-#include <iostream>
 
 namespace OpenMS
 {
@@ -63,7 +60,7 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator
-    NeutralLossDiffFilter& operator=(const NeutralLossDiffFilter& source);
+    NeutralLossDiffFilter& operator = (const NeutralLossDiffFilter& source);
 		// @}
 
 		// @name Accessors

@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <cstdlib>
@@ -34,21 +35,21 @@ using namespace std;
 namespace OpenMS
 {
   IntensityDistBins::IntensityDistBins()
-    :FilterFunctor() 
+    : FilterFunctor()
   {
 		name_ = IntensityDistBins::getName();
     defaults_.setValue("bins", 10);
 		param_ = defaults_;
   }
   
-  IntensityDistBins::IntensityDistBins( const IntensityDistBins& source )
+  IntensityDistBins::IntensityDistBins(const IntensityDistBins& source)
     : FilterFunctor(source)
   {
   }
 
-  IntensityDistBins& IntensityDistBins::operator=(const IntensityDistBins& source)
+  IntensityDistBins& IntensityDistBins::operator = (const IntensityDistBins& source)
   {
-    FilterFunctor::operator=(source);
+    FilterFunctor::operator = (source);
     return *this;
   }
   
@@ -62,7 +63,7 @@ namespace OpenMS
     double min = 1e258;
     double max = 0;
     uint count = 0;
-    for ( MSSpectrum< DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
+    for (MSSpectrum<DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
       //min = std::min(min,log(dit->getIntensity()));
       //max = std::max(max,log(dit->getIntensity()));
@@ -73,12 +74,15 @@ namespace OpenMS
 
     vector<double> result = vector<double>(bins);
     
-    for ( MSSpectrum< DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
+    for (MSSpectrum<DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
       //uint bin = ( ( max - log(dit->getIntensity()) )/ (max-min) )  * bins ;
-      uint bin = (uint)( ( max - dit->getIntensity() )/ (max-min) )  * bins ;
-      if ( bin == result.size() ) --bin ;
-      result.at( bin )++;
+      uint bin = (uint)((max - dit->getIntensity()) / (max-min)) * bins ;
+      if (bin == result.size())
+			{
+				--bin;
+			}
+      result.at(bin)++;
     }
 
     for (vector<double>::iterator vit = result.begin(); vit != result.end(); ++vit )

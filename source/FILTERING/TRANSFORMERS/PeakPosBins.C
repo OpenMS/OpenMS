@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <algorithm>
@@ -64,14 +65,14 @@ namespace OpenMS
     double max = 0.0;
     for ( MSSpectrum< DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
     {
-      min = std::min(min,dit->getPosition()[0]);
-      max = std::max(max,dit->getPosition()[0]);
+      min = std::min(min, dit->getPosition()[0]);
+      max = std::max(max, dit->getPosition()[0]);
     }
-    for ( MSSpectrum< DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
+    for (MSSpectrum< DPeak<1> >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
-      uint pos = (uint)(( (dit->getPosition()[0]-min)/(max-min) ) * result.size());
+      uint pos = (uint)(((dit->getPosition()[0]-min)/(max-min)) * result.size());
       // todo: is this necessary?
-      if ( pos == result.size() ) --pos;
+      if (pos == result.size()) --pos;
       result[pos] += dit->getIntensity();
     } 
     return result;

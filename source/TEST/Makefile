@@ -211,7 +211,14 @@ EXECUTABLES_FILTERING = \
 	ComplementMarker_test\
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
-	MarkerMower_test
+	MarkerMower_test\
+	ParentFilter_test\
+	TradSeqQuality_test\
+	PeakPosBins_test\
+	PeakDiffBins_test\
+	IntensityDistBins_test\
+	KellerQuality_test
+	
 
 #COMPARISON
 

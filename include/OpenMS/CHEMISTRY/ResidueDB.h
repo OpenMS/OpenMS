@@ -69,7 +69,7 @@ namespace OpenMS
 				throw(Exception::FileNotFound, Exception::ParseError);
 			
 			/// destructor
-			~ResidueDB();
+			virtual ~ResidueDB();
 			//@}
 			
 			/** @name Assignment

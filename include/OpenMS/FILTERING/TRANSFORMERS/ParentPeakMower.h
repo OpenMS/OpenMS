@@ -53,23 +53,24 @@ namespace OpenMS
     ParentPeakMower(const ParentPeakMower& source);
 
     /// destructor
-    ~ParentPeakMower();
+    virtual ~ParentPeakMower();
 		// @}
 
 		// @name Operators
 		// @{
     /// assignment operator
-    ParentPeakMower& operator=(const ParentPeakMower& source);
+    ParentPeakMower& operator = (const ParentPeakMower& source);
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new ParentPeakMower();}
+    static FactoryProduct* create() { return new ParentPeakMower(); }
 
 		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)
 		{
+			typedef typename SpectrumType::ConstIterator ConstIterator;
 			typedef typename SpectrumType::Iterator Iterator;
 		
     	double window = (double)param_.getValue("windowsize");
@@ -77,8 +78,8 @@ namespace OpenMS
 
     	spectrum.getContainer().sortByPosition();
 
-    	//calculate mean
-    	for (MSSpectrum< DPeak<1> >::iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+    	// calculate mean
+    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
       	mean += it->getIntensity();
     	}

@@ -28,11 +28,8 @@
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
 
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
-#ifndef OPENMS_DATASTRUCTURES_HASHMAP_H
-	#include <OpenMS/DATASTRUCTURES/HashMap.h>
-#endif
 
 namespace OpenMS
 {
@@ -60,6 +57,7 @@ namespace OpenMS
 
 		@ingroup SpectraComparison
   */
+	
   class SpectrumCheapDPCorr : public CompareFunctor
   {
   public:

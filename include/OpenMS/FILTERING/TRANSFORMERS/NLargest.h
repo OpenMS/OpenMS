@@ -28,7 +28,6 @@
 #define OPENMS_FILTERING_TRANSFORMERS_NLARGEST_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -41,7 +40,7 @@ namespace OpenMS
 		@ingroup SpectraPreprocessing
   */
   class NLargest
-    :public PreprocessingFunctor
+    : public PreprocessingFunctor
   {
   public:
 
@@ -57,7 +56,7 @@ namespace OpenMS
     NLargest(const NLargest& source);
 
     /// destructor
-    ~NLargest();
+    virtual ~NLargest();
 		// @}
 
 		// @name Operators

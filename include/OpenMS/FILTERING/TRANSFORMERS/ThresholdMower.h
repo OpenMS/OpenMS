@@ -54,7 +54,7 @@ namespace OpenMS
     ThresholdMower(const ThresholdMower& source);
 
     /// destructor
-    ~ThresholdMower();
+    virtual ~ThresholdMower();
 		// @}
 
 		// @name Operators

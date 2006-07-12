@@ -63,7 +63,7 @@ namespace OpenMS
 				Modification(const Modification& modification);
 
 				/// destructor				
-				~Modification();
+				virtual ~Modification();
 				//@}
 
 				/** @name Assignment

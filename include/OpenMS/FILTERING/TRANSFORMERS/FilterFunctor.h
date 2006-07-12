@@ -63,7 +63,7 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator
-    FilterFunctor& operator=(const FilterFunctor& source);
+    FilterFunctor& operator = (const FilterFunctor& source);
 		//@}
 
 		// @name Accessors

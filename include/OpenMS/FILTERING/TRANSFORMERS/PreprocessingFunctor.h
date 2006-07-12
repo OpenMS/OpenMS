@@ -27,11 +27,6 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 #define OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 
-#include <vector>
-#include <map>
-#include <string>
-
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 namespace OpenMS
@@ -68,7 +63,7 @@ namespace OpenMS
 		// @name Operators
 		// @{
     /// assignment operator
-    PreprocessingFunctor& operator=(const PreprocessingFunctor& source);
+    PreprocessingFunctor& operator = (const PreprocessingFunctor& source);
 		// @}
 
 		// @name Accessors

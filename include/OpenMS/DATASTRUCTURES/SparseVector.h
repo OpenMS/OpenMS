@@ -39,58 +39,111 @@ namespace OpenMS
   	since only Spectra with similar parent_mass get similarity > 0 all other 
   	similarities dont need to be saved<br>
   	the resulting matrix is a banded matrix with varying bandwith <br> <br>
+
+		@ingroup DataStructures 
+
+		@todo fully interface? (andreas)
   */
   class SparseVector 
   {
+		// @name Friends
+		// @{
     friend class DoubleProxy;
-      
+		// @}
+		
+    // @name Typedefs
+		// @{
     typedef float valuetype;
+		// @}
 
     /**
-    proxy class that relays everything but zeroes to the vector <br>
+		   @brief proxy class that relays everything but zeroes to the vector <br>
     */
     class DoubleProxy
     {
     public:
-      /** @name constructor, assignment operator <br> */
-      //@{
-      DoubleProxy(SparseVector& vec,uint index);
+      // @name Constructors and Destructors
+      // @{
+			/// detailed constructor
+      DoubleProxy(SparseVector& vec, uint index);
+			// @}
+			
+			// @name Operators
+			// @{
+			/// assignment operator
       DoubleProxy& operator=(const DoubleProxy& rhs);
+
+			/// assignment operator
       DoubleProxy& operator=(SparseVector::valuetype val);
-      //@}
+      
+			/// return valuetype (see vector stl docs)
       operator SparseVector::valuetype() const;
+			// @}
+			
     private:
+			
+			///
       SparseVector& vec_;
+
+			///
       uint index_;
     };
 
   public:
     
-    /** @name constructors, destructor, assignment operator <br> */
-    //@{
+    // @name Constructors and Destructors
+		// @{
+		/// detailed constructor
     SparseVector(uint,uint);
+
+		/// default constructor
     SparseVector();
+
+		/// copy constructor
     SparseVector(const SparseVector& source);
-    ~SparseVector();
+
+		/// destructor
+    virtual ~SparseVector();
+		// @}
+
+		// @name Operators
+		// @{
+		/// assignment operator
     SparseVector& operator=(const SparseVector& source);
+
+		///
+		const DoubleProxy operator[] (uint pos) const;
+
+		///
+		DoubleProxy operator[](uint);
     //@}
+
+		// @name Accessors
+		// @{
     //return type is distance of inserted double from the next existing value (to monitor the growth of the SparseVector
-    /** \deprecated */
-    uint insert(uint,valuetype);
+    uint insert(uint, valuetype);
+		// @}
   
-    const DoubleProxy operator[] (uint pos) const;
-    DoubleProxy operator[](uint);
-    
-    /** @name internal/debug stuff <br> */
-    //@{
+    // @name Internal
+    // @{
+		///
     void growfront(uint);
+
+		///
     void growback(uint);
-    uint firstentry() { return firstentry_;}
-    uint nonzero_size() { return leftarray_.size() + rightarray_.size();}
-    // fraction of saved nonzeroes
+
+		///
+    uint firstentry() { return firstentry_; }
+		
+		///
+    uint nonzero_size() { return leftarray_.size() + rightarray_.size(); }
+		
+    /// fraction of saved nonzeroes
     double used() const;
-    //@}
+    // @}
+		
   private:
+
     uint firstentry_;
     uint middle_;
     std::vector<valuetype> rightarray_;

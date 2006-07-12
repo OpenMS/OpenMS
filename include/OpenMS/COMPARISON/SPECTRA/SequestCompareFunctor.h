@@ -61,7 +61,7 @@ namespace OpenMS
 
 		// @name Operators
     /// assignment operator
-    SequestCompareFunctor& operator=(const SequestCompareFunctor& source);
+    SequestCompareFunctor& operator = (const SequestCompareFunctor& source);
 
 		///
 		double operator () (const ClusterSpectrum& a, const ClusterSpectrum& b) const;
@@ -70,7 +70,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SequestCompareFunctor();}
+    static FactoryProduct* create() { return new SequestCompareFunctor(); }
 
 		///
 		static const String getName()

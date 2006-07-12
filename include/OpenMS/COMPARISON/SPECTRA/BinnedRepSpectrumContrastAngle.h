@@ -28,7 +28,6 @@
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSPECTRUMCONTRASTANGLE_H
 
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 namespace OpenMS
 {

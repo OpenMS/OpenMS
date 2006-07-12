@@ -82,7 +82,7 @@ namespace OpenMS
 			EmpiricalFormula(Size number, const Element* element, SignedInt charge=0);
 			
 			/// destructor
-			~EmpiricalFormula();
+			virtual ~EmpiricalFormula();
 			//@}
 
 			/** @name Accessors
