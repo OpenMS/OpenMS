@@ -119,9 +119,6 @@ namespace OpenMS
       ///
       virtual ~DFeatureMapHandler() { }
       //@}
-			
-			/// Show warnings of the QT parser or not.
-			inline void showWarnings(bool w) { use_warnings_ = w; }
 
       /// This function is called for each closing tag in the XML file.
       virtual bool endElement( const QString & uri, const QString & local_name,
@@ -280,7 +277,7 @@ namespace OpenMS
 		  		param_->setValue(attributes.value("name").ascii(),attributes.value("value").ascii());
 		  	break;
 		}
-		return no_error_;
+		return true;
 	}
 
 	template <Size D, typename TraitsT, typename FeatureT>

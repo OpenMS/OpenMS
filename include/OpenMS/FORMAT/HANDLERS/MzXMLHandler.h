@@ -207,9 +207,7 @@ namespace OpenMS
 			if (value=="") return;
 			if (value!=required && value!=required_alt)
 			{
-				no_error_ = false;
-				error_message_ = QString("Unable to process data with %3 \"%1\" parsed by %2")
-												 .arg(value).arg(file_).arg(enum2str_(ATTMAP,attribute));
+				error(QXmlParseException(QString("Unable to process data with %3 \"%1\" parsed by %2").arg(value).arg(file_).arg(enum2str_(ATTMAP,attribute))));
 			}
 		}
 
@@ -241,7 +239,6 @@ namespace OpenMS
   {
 		if(is_parser_in_tag_[PEAKS])
 		{
-
 			if (precision_==DOUBLE)		//precision 64
 			{
 				double* data = decoder_.decodeDoubleCorrected(chars.ascii(), chars.length());
@@ -253,7 +250,8 @@ namespace OpenMS
 					peak_->setIntensity(data[n+1]);
  					++peak_;
  				}
-			}else											//precision 32
+			}
+			else											//precision 32
 			{
 				float* data = decoder_.decodeFloatCorrected(chars.ascii(), chars.length());
 				//push_back the peaks into the container
@@ -268,7 +266,9 @@ namespace OpenMS
 		else if (	is_parser_in_tag_[OFFSET] ||
 							is_parser_in_tag_[INDEXOFFSET] ||
 							is_parser_in_tag_[SHA1])
-			;// do nothing
+		{
+			
+		}
 		else if (	is_parser_in_tag_[PRECURSORMZ])
 		{
 			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(chars);
@@ -278,18 +278,24 @@ namespace OpenMS
 			if (is_parser_in_tag_[INSTRUMENT])
 			{
 				 setAddInfo(exp_->getInstrument(),"#Comment" , chars, "Instrument.Comment");
-			}else if (is_parser_in_tag_[DATAPROCESSING])
+			}
+			else if (is_parser_in_tag_[DATAPROCESSING])
 			{
 				setAddInfo(exp_->getProcessingMethod(),"#Comment", chars,"DataProcessing.Comment");
-			}else if (is_parser_in_tag_[SCAN])
+			}
+			else if (is_parser_in_tag_[SCAN])
 			{
 				spec_->setComment( chars.ascii() );
-			}else if (useWarnings() && chars.stripWhiteSpace()!="")
+			}
+			else if (chars.stripWhiteSpace()!="")
+			{
 				warning(QXmlParseException(QString("Unhandled characters: \"%1\"\n").arg(chars)));
+			}
 		}
-		else if (useWarnings() && chars.stripWhiteSpace()!="")
+		else if (chars.stripWhiteSpace()!="")
+		{
 			warning(QXmlParseException(QString("Unhandled characters: \"%1\"\n").arg(chars)));
-
+		}
 		return true;
   }
 
@@ -304,7 +310,7 @@ namespace OpenMS
 		atts_ = &attributes;
 
 		switch(tag)
-			{
+		{
 			case MSRUN: case MZXML:
 				if (tag==MSRUN && !getQAttribute(SCANCOUNT).isEmpty()) // optional attribute
 				{  
@@ -522,15 +528,16 @@ namespace OpenMS
 			case NAMEVALUE:
 				if (is_parser_in_tag_[INSTRUMENT])
 				{
-					setAddInfo(	exp_->getInstrument(), getQAttribute(NAME),
-											getQAttribute(VALUE), "Instrument.Comment");
-				}else if (is_parser_in_tag_[SCAN])
+					setAddInfo(	exp_->getInstrument(), getQAttribute(NAME), getQAttribute(VALUE), "Instrument.Comment");
+				}
+				else if (is_parser_in_tag_[SCAN])
 				{
-					setAddInfo(	*spec_, getQAttribute(NAME),
-											getQAttribute(VALUE), "Instrument.Comment");
-				}else if (useWarnings())
-					warning(QXmlParseException(QString("Unhandled tag %2.\n")
-																			.arg(enum2str_(TAGMAP,NAMEVALUE).c_str())));
+					setAddInfo(	*spec_, getQAttribute(NAME), getQAttribute(VALUE), "Instrument.Comment");
+				}
+				else
+				{
+					warning(QXmlParseException(QString("Unhandled tag %2.\n").arg(enum2str_(TAGMAP,NAMEVALUE).c_str())));
+				}
 				break;
 			case PROCESSING:
 				setAddInfo(exp_->getProcessingMethod(),
@@ -539,7 +546,7 @@ namespace OpenMS
 
 		}
 
-		return no_error_;
+		return true;
 	}
 
 
@@ -596,11 +603,10 @@ namespace OpenMS
 				os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\""
 					 << enum2str_(ANALYZERTYPEMAP,analyzers[0].getType())  << "\"/>\n";
 			}
-			else if (useWarnings())
-				std::cerr << "Warning: mzXML supports only one analyzer! "
-									<< "Skipping the other " << analyzers.size()
-									<< " mass analyzers.\n";
-
+			else
+			{
+				warning(QXmlParseException(QString("Warning: mzXML supports only one analyzer! Skipping the other %1 mass analyzers.\n").arg(analyzers.size()-1)));
+			}
 			os << "\t\t\t<msDetector category=\"msDetector\" value=\""
 				 << enum2str_(TYPEMAP,inst.getIonDetector().getType()) << "\"/>\n";
 			try
@@ -625,11 +631,11 @@ namespace OpenMS
 					os << "\t\t\t<msResolution category=\"msResolution\" value=\""
 				 		 << enum2str_(RESMETHODMAP,analyzers[0].getResolutionMethod()) << "\"/>\n";
 			}
-			else if (useWarnings())
-				std::cerr << "Warning: mzXML supports only one analyzer! "
-									<< "Skipping the other " << analyzers.size()
-									<< " mass analyzers.\n";
-
+			else
+			{
+				warning(QXmlParseException(QString("Warning: mzXML supports only one analyzer! Skipping the other %1 mass analyzers.\n").arg(analyzers.size()-1)));
+			}
+			
 			if ( cexp_->getContacts().size()>0 )
 			{
 				const ContactPerson& cont = cexp_->getContacts()[0];

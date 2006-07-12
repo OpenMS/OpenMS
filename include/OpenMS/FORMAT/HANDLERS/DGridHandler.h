@@ -79,8 +79,12 @@ namespace OpenMS
       //@{
       ///
       DGridHandler(DGrid<D>& grid) 
-      : grid_(&grid), cgrid_(0), use_warnings_(true),
-				cell_(), mapping_(), param_()
+      : XMLHandler(),
+      	grid_(&grid), 
+      	cgrid_(0), 
+				cell_(), 
+				mapping_(), 
+				param_()
   		{
 				file_ = __FILE__;
 				for (Index i=0; i<TAG_NUM; i++)	in_tag_[i] = false;
@@ -92,8 +96,12 @@ namespace OpenMS
       
       ///
       DGridHandler(const DGrid<D>& grid)
-      : grid_(0), cgrid_(&grid),	use_warnings_(true),
-				cell_(), mapping_(), param_()
+      : XMLHandler(),
+      	grid_(0), 
+      	cgrid_(&grid),
+				cell_(), 
+				mapping_(), 
+				param_()
   		{
   			file_ = __FILE__;
 				setConstants_();
@@ -103,9 +111,6 @@ namespace OpenMS
       ///
       virtual ~DGridHandler()  { }     
       //@}
-			
-			/// Show warnings of the QT parser or not.
-			inline void showWarnings(bool w) { use_warnings_ = w; }
       
       /// This function is called for each opening XML tag in the file.
       virtual bool startElement(const QString & /*uri*/, const QString & /*local_name*/,
@@ -132,8 +137,7 @@ namespace OpenMS
 		  				typename std::map<String,DBaseMapping<1>* >::const_iterator cit = mapping_instances.find(name);
 		  				if (cit == mapping_instances.end())
 		  				{
-								no_error_ = false;
-								error_message_  = QString("Erorr! This mapping type has not been registred with the XML Handler: %1").arg(name.c_str());
+								error(QXmlParseException(QString("Error! This mapping type has not been registred with the XML Handler: %1").arg(name.c_str())));
 							}	
 							else
 							{
@@ -144,7 +148,7 @@ namespace OpenMS
 		  			break;
 		  		}
 		  		
-					return no_error_;
+					return true;
 			}
 			
 		  /// This function is called by the parser for each chunk of
@@ -274,8 +278,6 @@ namespace OpenMS
 		DGrid<D>* grid_;
 		/// Vector of pairs to be written
 		const DGrid<D>* cgrid_;
-		/// use QXml-warnings to show unhandled tags or values
-		bool use_warnings_;  
 		
 		/// The tags we expect to encounter
 		enum Tags { CELLLIST, CELL, FIRSTPOSITION, SECONDPOSITION, 
@@ -313,14 +315,21 @@ namespace OpenMS
 		inline int useMap_(MapType type, QString value, bool fatal=true, const char* message="")
 		{
 			Map::const_iterator it =  maps[type].find(value.ascii());
-			if (it == maps[type].end()){
-				if (fatal){
-					no_error_ = false;
-					error_message_  = QString("Error in enumerated value \"%1\" parsed by %2 ").arg(value).arg(file_);
-				}else if (message != "" && use_warnings_)
+			if (it == maps[type].end())
+			{
+				if (fatal)
+				{
+					error(QXmlParseException(QString("Error in enumerated value \"%1\" parsed by %2 ").arg(value).arg(file_)));
+				}
+				else if (message != "")
+				{
 					warning(QXmlParseException(QString("Unhandled %3 \"%1\" parsed by %2 \n").arg(value).arg(file_).arg(message)));
-			}	else 
+				}
+			}	
+			else 
+			{
 				return it->second;
+			}
 			return 0;
 		}
 

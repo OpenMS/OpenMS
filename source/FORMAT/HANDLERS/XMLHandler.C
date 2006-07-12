@@ -41,71 +41,78 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	XMLHandler::XMLHandler()
-	: error_message_("error triggered by consumer"),
-		no_error_(true),
-		use_warnings_(true)
-	{
-	}
+		XMLHandler::XMLHandler()
+		: error_message_(""),
+			abort_on_warning_(false)
+		{
+		}
+		
+		XMLHandler::~XMLHandler()
+		{
+		}
 	
-	XMLHandler::~XMLHandler()
-	{
-	}
-
-	bool XMLHandler::error(const QXmlParseException& exception)
-	{
-		cerr << "Error: " << exception.message();
-		if (exception.lineNumber()!=-1)	cerr << " at line " << exception.lineNumber();
-		cerr << endl;
-		return false;
-	}
+		bool XMLHandler::fatalError(const QXmlParseException& exception)
+		{
+			error_message_ = "Error: ";
+			error_message_.append(exception.message());
+			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_.ascii(),error_message_.ascii());
+			return false;
+		}
 	
-	bool XMLHandler::fatalError(const QXmlParseException& exception)
-	{
-		QString error = exception.message();
-		if (exception.lineNumber()!=-1)	error.append( QString(" at line %1").arg(exception.lineNumber()));
-		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_.ascii(),error.ascii());
-		return false;
-	}
+		bool XMLHandler::error(const QXmlParseException& exception)
+		{
+			error_message_ = "Fatal Error: ";
+			error_message_.append(exception.message());
+			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
+			return false;
+		}
+		
+		bool XMLHandler::warning(const QXmlParseException& exception)
+		{
+			error_message_ = "Error: ";
+			error_message_.append(exception.message());
+			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
+			if (abort_on_warning_)
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		
+		bool XMLHandler::characters( const QString & /*chars*/ )
+		{
+			return true;
+		}
+		
+		bool XMLHandler::startElement(const QString & /*uri*/, const QString & /*local_name*/, 
+																	const QString & /*qname*/, const QXmlAttributes & /*attributes*/ ) 
+		{
+			return true;
+		}
 	
-	bool XMLHandler::warning(const QXmlParseException& exception)
-	{
-		cout << "Warning: "<< exception.message();
-		if (exception.lineNumber()!=-1)	cerr << " at line " << exception.lineNumber();
-		cout << endl;
-		return false;
-	}
+		bool XMLHandler::endElement( const QString & /*uri*/, const QString & /*local_name*/, const QString & /*qname*/ ) 
+		{
+			return true;
+		}
 	
-	bool XMLHandler::characters( const QString & /*chars*/ )
-	{
-		return true;
-	}
+		QString XMLHandler::errorString()
+		{
+			return error_message_;
+		}
 	
-	bool XMLHandler::startElement(const QString & /*uri*/, const QString & /*local_name*/, 
-																const QString & /*qname*/, const QXmlAttributes & /*attributes*/ ) 
-	{
-		return true;
-	}
-
-	bool XMLHandler::endElement( const QString & /*uri*/, const QString & /*local_name*/, const QString & /*qname*/ ) 
-	{
-		return true;
-	}
-
-	QString XMLHandler::errorString()
-	{
-		return error_message_;
-	}
-
-	void XMLHandler::setUseWarnings(bool doUse)
-	{
-		use_warnings_ = doUse;
-	}
-
-	bool XMLHandler::useWarnings()
-	{
-		return use_warnings_;
-	}
+		void XMLHandler::abortOnWarning(bool do_abort)
+		{
+			abort_on_warning_ = do_abort;
+		}
+	
+		bool XMLHandler::abortOnWarning()
+		{
+			return abort_on_warning_;
+		}
 
 	} // namespace Internal
 } // namespace OpenMS

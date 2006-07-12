@@ -58,14 +58,14 @@ RESULT
 CHECK(void setAcquisitionInfo(const AcquisitionInfo& acquisition_info))
 	SpectrumSettings tmp;
 	AcquisitionInfo ai;
-	ai.setSpectrumType("test");
+	ai.setMethodOfCombination("test");
 	tmp.setAcquisitionInfo(ai);
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
 RESULT
 
 CHECK(const AcquisitionInfo& getAcquisitionInfo() const)
 	SpectrumSettings tmp;
-	tmp.getAcquisitionInfo().setSpectrumType("test");
+	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
 RESULT
 
@@ -187,7 +187,7 @@ RESULT
 
 CHECK(SpectrumSettings& operator= (const SpectrumSettings& source))
   SpectrumSettings tmp;
-	tmp.getAcquisitionInfo().setSpectrumType("test");
+	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.getIdentification().resize(1);
@@ -205,7 +205,7 @@ RESULT
 
 CHECK(SpectrumSettings(const SpectrumSettings& source))
   SpectrumSettings tmp;
-	tmp.getAcquisitionInfo().setSpectrumType("test");
+	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.setType(SpectrumSettings::PEAKS);
@@ -236,7 +236,7 @@ CHECK(bool operator== (const SpectrumSettings& rhs) const)
   
   TEST_EQUAL(edit==empty, true);
   
-	edit.getAcquisitionInfo().setSpectrumType("test");
+	edit.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
@@ -265,7 +265,7 @@ CHECK(bool operator!= (const SpectrumSettings& rhs) const)
   
   TEST_EQUAL(edit!=empty, false);
   
-	edit.getAcquisitionInfo().setSpectrumType("test");
+	edit.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;

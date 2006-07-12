@@ -245,7 +245,8 @@ namespace OpenMS
       }
       (*crun_.runps_[clusterrun])[ananr].anafuncp_->setClusterRun(crun_.runps_[reference]);
     }
-		return no_error_;
+    
+		return true;
   }
 
   bool ClusterExperimentXMLHandler::endElement
@@ -324,7 +325,8 @@ namespace OpenMS
         forwardconfigurablep_ = 0;
       }
     }
-		return no_error_;
+    
+		return true;
   }
 
   bool ClusterExperimentXMLHandler::characters(const QString & chars )
@@ -345,7 +347,8 @@ namespace OpenMS
       crun_.info_comment_ = chars.ascii();
       iscomment_ = 0;
     }
-		return no_error_;
+    
+		return true;
   }
 
 }

@@ -59,29 +59,16 @@ CHECK(void setMethodOfCombination(const String& method_of_combination))
   TEST_EQUAL(tmp.getMethodOfCombination(),"TEST");
 RESULT
 
-CHECK(const String& getSpectrumType() const)
-  AcquisitionInfo tmp;
-  TEST_EQUAL(tmp.getSpectrumType(),"");
-RESULT
-
-CHECK(void setSpectrumType(const String& spectrum_type))
-  AcquisitionInfo tmp;
-  tmp.setSpectrumType("TEST2");
-  TEST_EQUAL(tmp.getSpectrumType(),"TEST2");
-RESULT
-
 CHECK(AcquisitionInfo(const AcquisitionInfo& source))
 	AcquisitionInfo tmp;
 	Acquisition a;
 	a.setNumber(4711);
 	tmp.push_back(a);
-	tmp.setSpectrumType("Type");
 	tmp.setMethodOfCombination("Combo");
 
 	AcquisitionInfo tmp2(tmp);
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
-	TEST_EQUAL(tmp2.getSpectrumType(), "Type");
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
 RESULT
 
@@ -90,7 +77,6 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	Acquisition a;
 	a.setNumber(4711);
 	tmp.push_back(a);
-	tmp.setSpectrumType("Type");
 	tmp.setMethodOfCombination("Combo");
 
 	//normal assignment
@@ -98,13 +84,11 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
-	TEST_EQUAL(tmp2.getSpectrumType(), "Type");
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
 	
 	//assignment of a empty value
 	tmp2 = AcquisitionInfo();
 	TEST_EQUAL(tmp2.size(), 0);
-	TEST_EQUAL(tmp2.getSpectrumType(), "");
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "");
 RESULT
 
@@ -114,10 +98,6 @@ CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
 	
 	Acquisition a;
 	edit.push_back(a);
-	TEST_EQUAL(empty==edit,false);
-	
-	edit = empty;
-	edit.setSpectrumType("Type");
 	TEST_EQUAL(empty==edit,false);
 	
 	edit = empty;
@@ -131,10 +111,6 @@ CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
 	
 	Acquisition a;
 	edit.push_back(a);
-	TEST_EQUAL(empty!=edit,true);
-	
-	edit = empty;
-	edit.setSpectrumType("Type");
 	TEST_EQUAL(empty!=edit,true);
 	
 	edit = empty;

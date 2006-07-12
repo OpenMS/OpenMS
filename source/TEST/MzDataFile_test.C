@@ -122,7 +122,8 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 	TEST_REAL_EQUAL(e[0].getRetentionTime(), 60)
 	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
 	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
-
+	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
+	
 	TEST_EQUAL(e[0].getPrecursorPeak().getPosition()[0], 1.2f)
 	TEST_EQUAL(e[0].getPrecursorPeak().getCharge(), 2)
 	TEST_EQUAL(e[0].getPrecursorPeak().getIntensity(), 2.3f)
@@ -161,7 +162,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 	TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size()!=2);
-	TEST_EQUAL(e[1].getAcquisitionInfo().getSpectrumType(), "continuous")
+	TEST_EQUAL(e[1].getType(), SpectrumSettings::RAWDATA)
 	TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getNumber(), 501)
 	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getNumber(), 502)
@@ -172,7 +173,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 
 	TEST_EQUAL(e[2].getAcquisitionInfo().size(), 1)
   ABORT_IF(e[2].getAcquisitionInfo().size()!=1);
-	TEST_EQUAL(e[2].getAcquisitionInfo().getSpectrumType(), "discrete")
+	TEST_EQUAL(e[2].getType(), SpectrumSettings::PEAKS)
 	TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
 	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getNumber(), 601)
 

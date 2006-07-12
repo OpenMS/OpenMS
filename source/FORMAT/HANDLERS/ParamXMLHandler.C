@@ -99,7 +99,7 @@ namespace OpenMS
 			path_ += tmp.ascii();
 		}
 
-		return no_error_;
+		return true;
 	}
 
 	bool ParamXMLHandler::endElement( const QString & /*uri*/, const QString & /*local_name*/, const QString & qname )

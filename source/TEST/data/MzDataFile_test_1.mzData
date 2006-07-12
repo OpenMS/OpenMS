@@ -184,7 +184,7 @@
 		<spectrum id="2">
 			<spectrumDesc>
 				<spectrumSettings>
-					<acqSpecification spectrumType="continuous" methodOfCombination="sum" count="2">
+					<acqSpecification spectrumType="ContinuumMassSpectrum" methodOfCombination="sum" count="2">
 						<acquisition acqNumber="501">
 							<userParam name="URL" value="www.open-ms.de"/>
 							<userParam name="AcqComment" value="Acquisition 1"/>
@@ -245,7 +245,7 @@
 		<spectrum id="3">
 			<spectrumDesc>
 				<spectrumSettings>
-					<acqSpecification spectrumType="discrete" methodOfCombination="average" count="1">
+					<acqSpecification spectrumType="CentroidMassSpectrum" methodOfCombination="average" count="1">
 						<acquisition acqNumber="601">
 						</acquisition>
 					</acqSpecification>

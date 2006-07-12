@@ -258,51 +258,62 @@ namespace OpenMS
 
 			// find the tag that the parser is in right now
  			for (Size i=0; i<is_parser_in_tag_.size(); i++)
-				if (is_parser_in_tag_[i]){
-					switch(i) {
-					// Do something with the characters depending on the tag
-  				case COMMENTS:		// <comment> is child of more than one other tags
-						if (is_parser_in_tag_[ACQDESC])
-							spec_->setComment( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-																				 QString("Unhandled tag \"comments\" with content: %1\n").arg(chars))
-										 );
-						break;
-					case DATA:
-						data_.push_back(chars);		// store characters for later
-						if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
-						if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
-						break;
-				  case ARRAYNAME:
-						array_name_.push_back(chars);
-						break;
-					case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
-						if (is_parser_in_tag_[SUPSRCFILE])
-							meta_->getSourceFile().setNameOfFile( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-																				 QString("Unhandled tag \"nameOfFile\" with content: %1\n").arg(chars))
-										 );
-						break;
-					case PATHTOFILE: // <pathOfFile> is child of more than one other tags
-						if (is_parser_in_tag_[SUPSRCFILE])
-							meta_->getSourceFile().setPathToFile( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-																				 QString("Unhandled tag \"pathToFile\" with content: %1\n").arg(chars))
-										 );
-						break;
-					case FILETYPE: // <fileType> is child of more than one other tags
-						if (is_parser_in_tag_[SUPSRCFILE])
-							meta_->getSourceFile().setFileType( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-																				 QString("Unhandled tag \"fileType\" with content: %1\n").arg(chars))
-										 );
-						break;	
+ 			{
+				if (is_parser_in_tag_[i])
+				{
+					switch(i) 
+					{
+	  				case COMMENTS:		// <comment> is child of more than one other tags
+							if (is_parser_in_tag_[ACQDESC])
+							{
+								spec_->setComment( chars.ascii() );
+							}
+							else
+							{
+								warning(QXmlParseException( QString("Unhandled tag \"comments\" with content: %1\n").arg(chars)) );
+							}
+							break;
+						case DATA:
+							data_.push_back(chars);		// store characters for later
+							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
+							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
+							break;
+					  case ARRAYNAME:
+							array_name_.push_back(chars);
+							break;
+						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
+							if (is_parser_in_tag_[SUPSRCFILE])
+							{
+								meta_->getSourceFile().setNameOfFile( chars.ascii() );
+							}
+							else
+							{
+								warning(QXmlParseException(QString("Unhandled tag \"nameOfFile\" with content: %1\n").arg(chars)));
+							}
+							break;
+						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
+							if (is_parser_in_tag_[SUPSRCFILE])
+							{
+								meta_->getSourceFile().setPathToFile( chars.ascii() );
+							}
+							else
+							{
+								warning(QXmlParseException( QString("Unhandled tag \"pathToFile\" with content: %1\n").arg(chars)) );
+							}
+							break;
+						case FILETYPE: // <fileType> is child of more than one other tags
+							if (is_parser_in_tag_[SUPSRCFILE])
+							{
+								meta_->getSourceFile().setFileType( chars.ascii() );
+							}
+							else
+							{
+								warning(QXmlParseException(QString("Unhandled tag \"fileType\" with content: %1\n").arg(chars)));							 
+							}				 
+							break;	
 					}
 				}
+			}
 			return true;
 		}
 
@@ -339,10 +350,20 @@ namespace OpenMS
 		  	//std::cout << Date::now() << " done" << std::endl;
 		  	break;
 			case ACQSPEC:
-				spec_->getAcquisitionInfo().setSpectrumType(attributes.value("spectrumType").ascii());
-				spec_->getAcquisitionInfo().setMethodOfCombination(
-																													 attributes.value("methodOfCombination").ascii()
-																													);
+				if  (attributes.value("spectrumType") == "CentroidMassSpectrum")
+				{
+					spec_->setType(SpectrumSettings::PEAKS);	
+				}
+				else if (attributes.value("spectrumType") == "ContinuumMassSpectrum")
+				{
+					spec_->setType(SpectrumSettings::RAWDATA);
+				}
+				else
+				{
+					spec_->setType(SpectrumSettings::UNKNOWN);
+				}
+				
+				spec_->getAcquisitionInfo().setMethodOfCombination( attributes.value("methodOfCombination").ascii() );
 				break;
 			case ACQUISITION:
 				{
@@ -398,7 +419,7 @@ namespace OpenMS
 				}
 				break;
 			}
-			return no_error_;
+			return true;
 		}
 
 
@@ -461,9 +482,10 @@ namespace OpenMS
 									 "PrecursorList.Precursor.IonSelection.UserParam");
 			else if (is_parser_in_tag_[ACTIVATION])
 				setAddInfo(*prec_,name,value,"PrecursorList.Precursor.Activation.UserParam");
-			else if (useWarnings())
-				warning(QXmlParseException(
-																	 QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+			else
+			{
+				warning(QXmlParseException(QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+			}													 
 		}
 
 		template <typename MapType>
@@ -509,29 +531,32 @@ namespace OpenMS
 				default:          error = "PrecursorList.Precursor.IonSelection.UserParam";
 				}
 			}
-			else if (is_parser_in_tag_[ACTIVATION]) {
-				switch (ont){
-				case METHOD:
-					prec_->setActivationMethod(
-																		 (Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,value));
-					break;
-				case ENERGY: prec_->setActivationEnergy( asFloat_(value) ); break;
-				case EUNITS:
-					prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,value));
-					break;
-				default:     error = "PrecursorList.Precursor.Activation.UserParam";
+			else if (is_parser_in_tag_[ACTIVATION]) 
+			{
+				switch (ont)
+				{
+					case METHOD:
+						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,value));
+						break;
+					case ENERGY: 
+						prec_->setActivationEnergy( asFloat_(value) ); 
+						break;
+					case EUNITS:
+						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,value));
+						break;
+					default:     
+						error = "PrecursorList.Precursor.Activation.UserParam";
 				}
 			}
-			else if (useWarnings())
-				warning(QXmlParseException(
-																	 QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value))
-							 );
-
-			if (useWarnings() && error != "")
-				warning(QXmlParseException(
-																	 QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n")
-																	 .arg(name).arg(value).arg(error.c_str()))
-							 );
+			else
+			{
+			  warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)) );
+			}
+			
+			if (error != "")
+			{
+				warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n") .arg(name).arg(value).arg(error.c_str())) );
+			}
 		}
 
 		template <typename MapType>
@@ -612,8 +637,17 @@ namespace OpenMS
 
 				if (!spec.getAcquisitionInfo().empty())
 				{
-					os << "\t\t\t\t\t<acqSpecification spectrumType=\""
-						 << spec.getAcquisitionInfo().getSpectrumType() << "\" methodOfCombination=\""
+					os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
+					if (spec.getType()==SpectrumSettings::PEAKS)
+					{
+						os << "CentroidMassSpectrum";
+					}
+					else if (spec.getType()==SpectrumSettings::RAWDATA)
+					{
+						os << "ContinuumMassSpectrum";
+					}
+					 
+					os << "\" methodOfCombination=\""
 						 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
 						 << spec.getAcquisitionInfo().size() << "\">\n";
 					for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)

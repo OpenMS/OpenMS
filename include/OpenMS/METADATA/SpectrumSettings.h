@@ -78,9 +78,17 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const SpectrumSettings& rhs) const;
 
-			/// returns the spectrum type
+			/**
+				@brief returns the spectrum type
+				
+				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the ProcessingMethod instance of an ExperimentalSettings .
+			*/
       SpectrumType getType() const;
-      /// sets the spectrum type
+      /**
+				@brief sets the spectrum type
+				
+				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the ProcessingMethod instance of an ExperimentalSettings .
+			*/
       void setType(SpectrumType type);
 
 			/// returns the free-text comment

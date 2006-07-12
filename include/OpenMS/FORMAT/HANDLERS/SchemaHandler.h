@@ -94,12 +94,14 @@ namespace OpenMS
 			inline UnsignedInt str2enum_(UnsignedInt index, QString value, const char* message="")
 			{
 				String2EnumMap::const_iterator it =  str2enum_array_[index].find(value.ascii());
-				if (it == str2enum_array_[index].end()){  // no enum-value for string defined
-					if (useWarnings())
-						warning(QXmlParseException(QString("Unhandled %3 \"%1\" parsed by %2")
-																				.arg(value).arg(file_).arg(message)));
-				}	else
+				if (it == str2enum_array_[index].end()) // no enum-value for string defined
+				{  
+						warning(QXmlParseException(QString("Unhandled %3 \"%1\" parsed by %2").arg(value).arg(file_).arg(message)));
+				}	
+				else
+				{
 					return it->second;
+				}
 				return 0;
 			}
 

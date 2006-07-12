@@ -196,7 +196,7 @@ namespace OpenMS
 					param_->setValue(attributes.value("name").ascii(),attributes.value("value").ascii());
 		  	break;
 		 }
-		return no_error_;
+		return true;
 	}
 
   template <Size D, typename FeatureT>

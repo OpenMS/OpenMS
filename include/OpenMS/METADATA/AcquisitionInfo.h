@@ -61,18 +61,12 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const AcquisitionInfo& rhs) const;
 			
-			/// returns the spectrum type
-      const String& getSpectrumType() const;
-      /// sets the spectrum type
-      void setSpectrumType(const String& spectrum_type);
-			
 			/// returns the method of combination
       const String& getMethodOfCombination() const;
       /// sets the method of combination
       void setMethodOfCombination(const String& method_of_combination);
 			
     protected:
-      String spectrum_type_;
       String method_of_combination_;
       
   };

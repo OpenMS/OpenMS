@@ -35,7 +35,8 @@ namespace OpenMS
 	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown"," PEAKS"," RAWDATA"};
 
 	SpectrumSettings::SpectrumSettings():
-		type_(UNKNOWN), identification_()
+		type_(UNKNOWN), 
+		identification_()
 	{
 	  
 	}

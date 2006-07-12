@@ -68,21 +68,27 @@ namespace OpenMS
 					case FILETYPE:		exp_->getSourceFile().setFileType( chars.ascii() );	break;
 					case COMMENTS:		// <comment> is child of more than one other tags
 						if (is_parser_in_tag_[SOFTWARE])
+						{
 							exp_->getSoftware().setComment( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-								QString("Unhandled tag \"comments\" with content: %1\n").arg(chars))
-							);
+						}
+						else
+						{
+							warning(QXmlParseException(QString("Unhandled tag \"comments\" with content: %1\n").arg(chars)));
+						}
 						break;
 					case NAME: 	// <name> is child of more than one other tags
 						if (is_parser_in_tag_[CONTACT])
+						{
 							contact_->setName( chars.ascii() );
+						}
 						else if (is_parser_in_tag_[SOFTWARE])
+						{
 							exp_->getSoftware().setName( chars.ascii() );
-						else if (useWarnings())
-							warning(QXmlParseException(
-								QString("Unhandled tag \"name\" with content: %1\n").arg(chars))
-							);
+						}
+						else
+						{
+							warning(QXmlParseException(QString("Unhandled tag \"name\" with content: %1\n").arg(chars)));
+						}
 						break;
 				}
 			}
@@ -97,7 +103,8 @@ namespace OpenMS
 		is_parser_in_tag_[tag] = true;
 
 		// Do something depending on the tag
-		switch(tag) {
+		switch(tag) 
+		{
 			case CVPARAM:	cvParam_(attributes.value("name"),attributes.value("value")); break;
 		  case USERPARAM:	userParam_(attributes.value("name"),attributes.value("value")); break;
 			case CONTACT:  contact_ = new ContactPerson(); break;
@@ -107,7 +114,8 @@ namespace OpenMS
 					exp_->getSoftware().setCompletionTime(asFloat_(attributes.value("completionTime")));
 				break;
 		}
-		return no_error_;
+		
+		return true;
 	}
 
 
@@ -150,9 +158,10 @@ namespace OpenMS
 		else if (is_parser_in_tag_[PROCMETHOD])
 			setAddInfo(exp_->getProcessingMethod(),
 								 name,value,"DataProcessing.ProcessingMethod.UserParam");
-		else if (useWarnings())
-			warning(QXmlParseException(
-				QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+		else
+		{
+			warning(QXmlParseException(QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+		}
 	}
 
 
@@ -252,16 +261,15 @@ namespace OpenMS
 			default:          error = "DataProcessing.ProcessingMethod.UserParam";
 			}
 		}
-		else if (useWarnings())
-			warning(QXmlParseException(
-				QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value))
-			);
-
-		if (useWarnings() && error != "")
-			warning(QXmlParseException(
-				QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n")
-				.arg(name).arg(value).arg(error.c_str()))
-			);
+		else
+		{
+			warning(QXmlParseException(QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+		}
+		
+		if (error != "")
+		{
+			warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n") .arg(name).arg(value).arg(error.c_str())) );
+		}
 	}
 
 	void MzDataExpSettHandler::writeTo(std::ostream& os)

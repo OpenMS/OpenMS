@@ -34,20 +34,19 @@ namespace OpenMS
 	AcquisitionInfo::AcquisitionInfo() 
 		: vector<Acquisition>()
 	{
-	  //????
+	  
 	}
 	
 	AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo& source):
 		vector<Acquisition>(source),
-	  spectrum_type_(source.spectrum_type_),
 	  method_of_combination_(source.method_of_combination_)
 	{
-	  //????
+	  
 	}
 	
 	AcquisitionInfo::~AcquisitionInfo()
 	{
-	  //????
+	  
 	}
 	
 	AcquisitionInfo& AcquisitionInfo::operator = (const AcquisitionInfo& source)
@@ -55,7 +54,6 @@ namespace OpenMS
 	  if (&source == this) return *this;
 	  
 	  vector<Acquisition>::operator=(source);
-	  spectrum_type_ = source.spectrum_type_;
 	  method_of_combination_ = source.method_of_combination_;
 	  
 	  return *this;
@@ -64,7 +62,6 @@ namespace OpenMS
   bool AcquisitionInfo::operator== (const AcquisitionInfo& rhs) const
   {
   	return 
-		  spectrum_type_ == rhs.spectrum_type_ &&
 		  method_of_combination_ == rhs.method_of_combination_ &&
 		  std::operator==(*this,rhs);
 		  ;
@@ -74,16 +71,6 @@ namespace OpenMS
   {
   	return !(operator==(rhs));
  	}
-	
-	const String& AcquisitionInfo::getSpectrumType() const 
-	{
-	  return spectrum_type_; 
-	}
-	
-	void AcquisitionInfo::setSpectrumType(const String& spectrum_type)
-	{
-	  spectrum_type_ = spectrum_type; 
-	}
 	
 	const String& AcquisitionInfo::getMethodOfCombination() const 
 	{
