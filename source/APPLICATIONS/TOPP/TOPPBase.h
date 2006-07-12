@@ -150,13 +150,13 @@ namespace OpenMS
 			DataValue getParam_(const String& key);
 						
 			 /**
-      			@brief Returns a new Param object containing all entries that start with @p prefix.
-      	
-      			@param prefix should contain a ':' at the end if you want to extract a subtree.
-      			Otherwise not only nodes, but as well values with that prefix are copied.
-      			@param remove_prefix indicates if the prefix is removed before adding entries to the new Param
-      			@param new_prefix is added to the front of all keys
-      		*/
+  			@brief Returns a new Param object containing all entries that start with @p prefix.
+  	
+  			@param prefix should contain a ':' at the end if you want to extract a subtree.
+  			Otherwise not only nodes, but as well values with that prefix are copied.
+  			@param remove_prefix indicates if the prefix is removed before adding entries to the new Param
+  			@param new_prefix is added to the front of all keys
+  		*/
 			Param getParamCopy_(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="");
 
   };

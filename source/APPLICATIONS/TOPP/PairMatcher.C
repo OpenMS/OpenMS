@@ -139,15 +139,6 @@ protected:
     options_["-in"] = "in";
     options_["-vis_best"] = "vis_best";
     options_["-vis_all"] = "vis_all";
-    options_["-ini"] = "ini";
-    options_["-log"] = "log";
-    options_["-n"] = "instance";
-    options_["-d"] = "debug";
-    options_["--help"] = "help";
-    options_["--help-opt"] = "helpopt";
-    //for debugging
-    options_["unknown"] = "unknown";
-    options_["misc"] = "misc";
   }
 
   ExitCodes main_(int , char**)
@@ -196,7 +187,7 @@ protected:
 
     PairMatcher pm(features);
 
-    String ini_location = String(tool_name_) + ":" + getParamAsString_("instance") + ":";
+    String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
     pm.setParam(getParamCopy_(ini_location+"algorithm:"));
 
     //pm.setDebugLevel(debug_level);

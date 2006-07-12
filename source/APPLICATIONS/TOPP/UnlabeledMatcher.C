@@ -93,10 +93,10 @@ protected:
     << endl
     << "Options are: " << endl
     << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n"
-    "  -in1 <file>   input file 1 in xml format\n"
-    "  -in2 <file>   input file 2 in xml format\n"
-    "  -pairs <file> XML formatted list of feature pairs\n"
-    "  -grid <file>  grid covering the feature map\n"
+    "  -in1 <file>   input feature file 1\n"
+    "  -in2 <file>   input feature file 2\n"
+    "  -pairs <file> output file: XML formatted list of feature pairs\n"
+    "  -grid <file>  output file: grid covering the feature map\n"
     << endl;
   }
 
@@ -106,10 +106,10 @@ protected:
     << tool_name_ << endl
     << endl
     << "INI options:" << endl
-    << "  in1    input file 1 in xml format" << endl
-    << "  in2 	 input file 2 in xml format" << endl
-    << "  pairs	 XML formatted list of feature pairs)" << endl
-    << "  grid   grid covering the feature map" << endl
+    << "  in1    input feature file 1" << endl
+    << "  in2 	 input feature file 2" << endl
+    << "  pairs	 output file: XML formatted list of feature pairs" << endl
+    << "  grid   output file: grid covering the feature map" << endl
     << endl
     << "INI File example section:" << endl
     << "  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>" << endl
@@ -120,19 +120,10 @@ protected:
 
   void setOptionsAndFlags_()
   {
-    options_["--help"] = "help";
-    options_["-d"] = "debug";
     options_["-in1"] = "in1";
     options_["-in2"] = "in2";
-    options_["-ini"] = "ini";
-    options_["-log"] = "log";
-    options_["-n"] = "instance";
     options_["-grid"] = "grid";
     options_["-pairs"] = "pairs";
-    //for debugging the parameters
-    options_["unknown"] = "unknown";
-    options_["misc"] = "misc";
-
   }
 
   ExitCodes main_(int , char**)
@@ -175,7 +166,7 @@ protected:
     // and now ... do the job!
 
     FeatureMatcher feature_matcher;
-    String ini_location = String(tool_name_) + ":" + getParamAsString_("instance") + ":";
+    String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
     feature_matcher.setParam(getParamCopy_(ini_location));
 
     for ( Size index = 0; index < 2; ++index )

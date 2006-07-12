@@ -113,8 +113,8 @@ class TOPPFeatureFinder
        		 << endl
        		 << "Usage:" << endl
 			 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
-			 << "  -in <file>   input file in mzData format (default read from INI file)" << endl
-			 << "  -out <file>  output file in XML format (default read from INI file)" << endl
+			 << "  -in <file>   input file in mzData format" << endl
+			 << "  -out <file>  output file in feature format" << endl
 			 << endl;
 		}
 	
@@ -156,10 +156,8 @@ class TOPPFeatureFinder
 			MzDataFile mzdata_file;
 			MSExperiment<DPeak<1> > exp;
 			mzdata_file.load(in,exp);
-	
-			exp.updateRanges();
 
-			String ini_location = String(tool_name_) + ":" + getParamAsString_("instance","1") + ":";
+			String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
 			
 			FeatureFinder ff;
 			Param feafi_param = getParamCopy_(ini_location,true);

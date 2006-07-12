@@ -275,7 +275,6 @@ class TOPPMascotAdapter
 			options_["-mods"] = "modifications";
 			options_["-vmods"] = "variable_modifications";
 			options_["-charges"] = "charges";
-			options_["-d"] = "debug";
 			options_["-mascot_in"] = "mascot_in";
 			options_["-mascot_out"] = "mascot_out";
 			options_["-mascot_directory"] = "mascot_directory";

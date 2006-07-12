@@ -105,14 +105,6 @@ protected:
     options_["-out"] = "out";
     options_["-grid"] = "grid";
     options_["-feat"] = "feat";
-    options_["-ini"] = "ini";
-    options_["-log"] = "log";
-    options_["-n"] = "instance";
-    options_["-d"] = "debug";
-    options_["--help"] = "help";
-    //for debugging
-    options_["unknown"] = "unknown";
-    options_["misc"] = "misc";
   }
 
   ExitCodes main_(int , char**)

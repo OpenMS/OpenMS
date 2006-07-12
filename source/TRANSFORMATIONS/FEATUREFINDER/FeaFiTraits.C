@@ -28,6 +28,8 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -289,12 +291,19 @@ namespace OpenMS
 	{
 		double it_u = std::numeric_limits<double>::max();
 		double it_l = min_intensity_;
+
+		// remove spectra with MS level other than 1
+		vector<UnsignedInt> level;
+		level.push_back(1);
+		exp.erase( remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(level,true)), exp.end());
 						
 		// remove data points with intensity < it_l 
 		for (MSExperiment< >::iterator it = exp.begin(); it!= exp.end(); ++it)
 		{
 			it->getContainer().erase(remove_if(it->begin(), it->end(), IntensityRange<MSExperiment< >::PeakType>(it_l, it_u, true)), it->end());
 		}
+		
+		exp.updateRanges();
 		
 		// resize internal data structures
 		flags_.reserve(exp.getSize());

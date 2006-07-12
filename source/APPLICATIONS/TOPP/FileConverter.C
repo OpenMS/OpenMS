@@ -154,6 +154,8 @@ class TOPPFileConverter
 			//-------------------------------------------------------------
 			MSExperiment< DPeak<1> > exp;
 			
+			writeDebug_(String("Loading input file"), 1);
+			
 			if (in_type == FileHandler::FEATURE)
 			{
 				// This works because DFeature<DIM> is derived from DPeak<DIM>.
@@ -179,6 +181,8 @@ class TOPPFileConverter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
+			
+			writeDebug_(String("Writing output file"), 1);
 			
 			if (out_type == FileHandler::MZDATA)
 			{

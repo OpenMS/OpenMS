@@ -139,7 +139,7 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    String ini_location = String(tool_name_) + ":" + getParamAsString_("instance") + ":";
+    String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
     Param pepi_param = getParamCopy_(ini_location);
 
     if (optimize_peaks != "")
