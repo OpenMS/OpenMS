@@ -50,6 +50,7 @@ namespace OpenMS
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
 		@todo write tests for sortBy... methods (Ole)
+		@todo implement sorting by dimensions in sortByPosition (Ole)
 		
 		@ingroup Kernel, Serialization
 	*/

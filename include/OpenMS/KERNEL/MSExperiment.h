@@ -180,7 +180,7 @@ namespace OpenMS
 		*/				
 	  template <class Container> void set2DData(const Container& cont) throw (Exception::Precondition)
 		{
-			SpectrumType* spectrum;
+			SpectrumType* spectrum = 0;
 		 	/// If the container is emptry, nothing will happen
 			if (cont.size() == 0)  return;
 		  
@@ -192,7 +192,7 @@ namespace OpenMS
 	  	for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); iter++)
 	  	{
 	  		// check if the retentime time has changed
-	  		if (current_rt != iter->getPosition()[RT])
+	  		if (current_rt != iter->getPosition()[RT] || spectrum == 0)
 	  		{
 	  			if (current_rt > iter->getPosition()[RT])
 	  			{
