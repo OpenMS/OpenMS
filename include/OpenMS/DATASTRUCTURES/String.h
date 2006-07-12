@@ -97,7 +97,11 @@ namespace OpenMS
 		String(size_t len, char c);
 		/// Constructor from a char range
 		template <class InputIterator>
-		String(InputIterator first, InputIterator last);
+		String(InputIterator first, InputIterator last)
+		: string(first,last)
+		{
+			
+		}
 		/// Constructor from an integer
 		String(SignedInt i);
 		/// Constructor from an unsigned integer

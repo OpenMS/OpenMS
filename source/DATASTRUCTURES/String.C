@@ -65,12 +65,6 @@ namespace OpenMS
 	{
 	}
 
-	template <class InputIterator>
-	String::String(InputIterator first, InputIterator last)
-		: string(first,last)
-	{	
-	}
-
 	String::String(SignedInt i)
 		: string()
 	{
