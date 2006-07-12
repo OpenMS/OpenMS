@@ -1001,7 +1001,7 @@ double Spectrum3DOpenGLCanvas::scaledInversMZ(double mz)
 
 double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity)
 {
-	double scaledintensity;
+	double scaledintensity = 0;
 	switch(canvas_3d_.intensity_mode_)
 	{
 	case  SpectrumCanvas::IM_SNAP:
