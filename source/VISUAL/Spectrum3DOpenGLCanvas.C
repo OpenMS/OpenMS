@@ -267,42 +267,27 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 	glNewList(list,GL_COMPILE);
 	qglColor(black);			
 	QFont font("TypeWriter");
-	if(width_/zoom_>1000 && heigth_/zoom_>1000)
+	font.setPixelSize(14);
+	QString result("rt");
+	renderText (0.0, 
+							-corner_-20.0, 
+							-near_-2*corner_+20.0,
+							result,
+							font);
+	if(zoom_<2 && grid_rt_.size()>=2)
+	{
+		for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
 		{
-			font.setPointSize(12);
-		}
-	else
-		{
-			int size = (int)width_/(zoom_*1000)*12;
-			if(size<6)
-				{
-					font.setPointSize(6);
-				}
-			else{
-				
-				font.setPointSize(size);
-			}		
-		}
-			QString result("rt");
-			renderText (0.0, 
-									-corner_-20.0, 
-									-near_-2*corner_+20.0,
+			result = QString("%1").arg(grid_rt_[0][i]);
+			renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
+									-corner_-9.0,
+									-near_-2*corner_+10.0,
 									result,
 									font);
-			if(zoom_<2 && grid_rt_.size()>=2)
-			{
-				for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
-				{
-					result = QString("%1").arg(grid_rt_[0][i]);
-					renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
-											-corner_-9.0,
-											-near_-2*corner_+10.0,
-											result,
-											font);
-				}
+		}
 				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
-				{
-					result = QString("%1").arg(grid_rt_[1][i]);
+					{
+						result = QString("%1").arg(grid_rt_[1][i]);
 					renderText (-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
 											-corner_-9.0,
 											-near_-2*corner_+10.0,
