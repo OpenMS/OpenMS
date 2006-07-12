@@ -98,7 +98,7 @@ namespace OpenMS
 		/// Constructor from a char range
 		template <class InputIterator>
 		String(InputIterator first, InputIterator last)
-		: string(first,last)
+		: std::string(first,last)
 		{
 			
 		}
