@@ -253,7 +253,7 @@ namespace OpenMS
 	
 		SpectrumWindow* w;
 		
-		SpectrumCanvas::ExperimentType* exp;
+		SpectrumCanvas::ExperimentType* exp = 0;
 		MSExperiment<>* exp2; //temporary data
 
 		if (activeWindow_()==0)
@@ -277,6 +277,7 @@ namespace OpenMS
 				
 				//load data
 				exp = &(w->widget()->canvas()->addEmptyDataSet());
+				exp2 = new MSExperiment<>();
 				exp2->push_back(* (dba.loadSpectrum(spectrum_id)));
 			}
 			//create 2D/3D view

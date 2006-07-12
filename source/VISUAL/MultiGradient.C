@@ -206,7 +206,7 @@ using namespace OpenMS::Exception;
 
 		string g(gradient);
 		string::iterator tmp(g.begin());
-		UnsignedInt tmp_pos;
+		UnsignedInt tmp_pos=0;
 		for (string::iterator it = g.begin(); it!=(g.end()+1);++it)
 		{
 			if (*it == '|')

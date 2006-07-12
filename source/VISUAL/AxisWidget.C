@@ -195,7 +195,8 @@ namespace OpenMS
 	
 			for (std::vector<double>::const_iterator it = grid_line_[j].begin(); it != grid_line_[j].end(); it++) 
 			{
-	      if (inverse_orientation_){
+	      if (inverse_orientation_)
+	      {
 					x = static_cast<int>(intervalTransformation(*it, min_, max_, i_end, i_beg)) + ((alignment_==LEFT || alignment_==RIGHT)?-1:1)*margin_;
 				}else{
 					x = static_cast<int>(intervalTransformation(*it, min_, max_, i_beg, i_end));
@@ -203,7 +204,8 @@ namespace OpenMS
 	
 				// small axis lines
 				painter_.setPen(QPen(QPainter::black, pen_width_));
-				switch (alignment_)	{
+				switch (alignment_)	
+				{
 					case BOTTOM: painter_.drawLine(x, 0, x, tick_size); break;
 					case TOP: painter_.drawLine(x, h, x,  h-tick_size); break;
 					case LEFT: painter_.drawLine(w-tick_size, x+margin_, w, x+margin_); break;
@@ -218,14 +220,16 @@ namespace OpenMS
 				QRect textbound = QFontMetrics(painter_.font()).boundingRect(text);
 	
 				// Calculate text position
-				UnsignedInt posx, posy;
-				switch (alignment_)	{
+				UnsignedInt posx = 0, posy = 0;
+				switch (alignment_)	
+				{
 				  case BOTTOM: case TOP:	posx = x - static_cast<UnsignedInt>( textbound.width()/2 ); break;  // Center text around tick
 			  	case LEFT: posx = w - static_cast<UnsignedInt>(1.5*grid_scaling) - textbound.width(); break;
 				  case RIGHT: posx = static_cast<UnsignedInt>(1.5*grid_scaling); break; // Leave space for tick (longest one = grid_scaling)
 				}	
 	
-				switch (alignment_)	{
+				switch (alignment_)	
+				{
 				  case BOTTOM: posy = static_cast<UnsignedInt>(1.5*grid_scaling) + textbound.height() ; break;
 				  case TOP:	posy = h-static_cast<UnsignedInt>(1.5*grid_scaling); break;
 				  case LEFT: case RIGHT: posy = x+margin_ + static_cast<UnsignedInt>(textbound.height()/ 2);  break;
@@ -245,7 +249,8 @@ namespace OpenMS
 			painter_.setFont(QFont("courier", legend_font_size));//static_cast<UnsignedInt>(2.4*grid_scaling)));
 			painter_.setPen(QPen(QPainter::black,pen_width_));
 	
-			switch (alignment_)	{
+			switch (alignment_)	
+			{
 	    		case BOTTOM:
 						painter_.drawText(0, 0 ,  w, h, Qt::AlignBottom|Qt::AlignHCenter, legend_.c_str());	
 						break;
@@ -275,12 +280,14 @@ namespace OpenMS
 	  }
 	  
 		bool change=true;
-		if (is_log_) {
+		if (is_log_)
+		{
 			if (min_== linear2log(min) && max_ == linear2log(max)) change=false;
 			min_ = linear2log(min);
 			max_ = linear2log(max);
 		}
-		else{
+		else
+		{
 			if (min_==min && max_==max) change=false;
 			min_ = min; 
 			max_ = max;
