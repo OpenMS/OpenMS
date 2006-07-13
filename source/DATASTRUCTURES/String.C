@@ -70,7 +70,7 @@ namespace OpenMS
 	{
 		stringstream s;
 		s << i;
-		*this = s.str();
+		string::operator=(s.str());
 	}
 
 	String::String(UnsignedInt i)
@@ -78,7 +78,7 @@ namespace OpenMS
 	{
 		stringstream s;
 		s << i;
-		*this = s.str();
+		string::operator=(s.str());
 	}
 
 	String::String(float f)
@@ -87,7 +87,7 @@ namespace OpenMS
 		stringstream s;
 		s.precision(7);
 		s << f;
-		*this = s.str();
+		string::operator=(s.str());
 	}
 
 	String::String(double d)
@@ -96,7 +96,7 @@ namespace OpenMS
 		stringstream s;
 		s.precision(10);
 		s << d;
-		*this = s.str();
+		string::operator=(s.str());
 	}
 	
 	String::String(double d, UnsignedInt size)
@@ -129,14 +129,14 @@ namespace OpenMS
 			if (exp<10) s << "0";
 			s <<exp; 
 		}
-		*this = s.str().substr(0,size);		
+		string::operator=(s.str().substr(0,size));		
 	}
 
 	String& String::fillLeft(char c, UnsignedInt size)
 	{
 		if (string::size()<size)
 		{
-			*this = string(size-string::size(),c)+*this;
+			string::operator=(string(size-string::size(),c)+*this);
 		}
 		return *this;
 	}
@@ -145,7 +145,7 @@ namespace OpenMS
 	{
 		if (string::size()<size)
 		{
-			*this = *this+string(size-string::size(),c);
+			string::operator=(*this+string(size-string::size(),c));
 		}		
 		return *this;
 	}
@@ -153,7 +153,7 @@ namespace OpenMS
 	String::String(DataValue d)
 		: string()
 	{
-		*this = (string)d;
+		string::operator=((string)d);
 	}
 
 	bool String::hasPrefix(const String& string) const
@@ -347,7 +347,7 @@ namespace OpenMS
 		//all characters are whitespaces
 		if (begin==end())
 		{
-			*this = String();
+			string::clear();
 			return *this;
 		}
 		
@@ -366,7 +366,7 @@ namespace OpenMS
 			return *this;
 		}
 		
-		*this = String(begin,end);
+		string::operator=(string(begin,end));
 		return *this;
 	}
 
@@ -441,14 +441,14 @@ namespace OpenMS
 		//empty container
 		if (first==last)
 		{
-			*this = "";
+			string::clear();
 			return;
 		}
 		
-		*this = *first;
+		string::operator=(*first);
 		for (vector<String>::iterator it = ++first; it != last; ++it)
 		{
-			*this += glue + (*it);
+			string::operator+=( glue + (*it));
 		}
 	}
 
