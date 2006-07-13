@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -26,9 +26,11 @@
 //
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
+#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+
 
 namespace OpenMS
- {
-	 DSignalToNoiseEstimatorMedian<1> default_sn_median1;
-	 DSignalToNoiseEstimatorMedian<2> default_sn_median22;
- }
+{
+  DSignalToNoiseEstimatorMedian<> default_sn_median1;
+  DSignalToNoiseEstimatorMedian<2,DPeakArrayNonPolymorphic<2,DRawDataPoint<2> > > default_sn_median22;
+}
