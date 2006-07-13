@@ -29,9 +29,9 @@ include "common_functions.php";
 
 function addBody(&$array)
 {
-	$array[] = "{";
-	$array[] = "  //????";
-	$array[] = "}";
+	$array[] = "	{";
+	$array[] = "	  //????";
+	$array[] = "	}";
 	$array[] = "";
 }
 
@@ -113,9 +113,10 @@ options:
 	$s_out[] = "";
 	$s_out[] = "#include <OpenMS/$class_path>";
 	$s_out[] = "";
-	$s_out[] = "using namespace OpenMS;";
   $s_out[] = "using namespace std;";
   $s_out[] = "";
+  $s_out[] = "namespace OpenMS";
+  $s_out[] = "{";
   
 	for (;$i<count($file);$i++)
 	{
@@ -149,7 +150,7 @@ options:
 		}
 				
 		###member definitions
-		if(ereg("^(.*)[ 	]+([a-zA-Z_]+);$",$line,$parts))
+		if(ereg("^(.*)[ 	]+([a-zA-Z0-9_]+);$",$line,$parts))
 		{
 			
 			//extract type and name
@@ -184,33 +185,53 @@ options:
   $i_out[] = "      $class();";
   $i_out[] = "      $class(const $class& source);";
   $i_out[] = "      ~$class();";
-  $i_out[] = "      $class& operator= (const $class& source);";
+  $i_out[] = "      $class& operator = (const $class& source);";
+  $i_out[] = "      bool operator == (const $class& source) const;";
+  $i_out[] = "      bool operator != (const $class& source) const;";
   $i_out[] = "";	
   
   ### add constructors, destroctor and assignment operator to source
-  $s_out[] = "$class::$class() //????:";
+  $s_out[] = "	$class::$class() //????:";
   addBody($s_out);
-  $s_out[] = "$class::$class(const $class& source):";
+  $s_out[] = "	$class::$class(const $class& source):";
   foreach ($vars as $v)
 	{
-		$s_out[] = "  ".$v["n"]."(source.".$v["n"]."),";  
+		$s_out[] = "	  ".$v["n"]."(source.".$v["n"]."),";  
 	}
 	$s_out[count($s_out)-1] = substr($s_out[count($s_out)-1],0,-1);
   addBody($s_out);
-  $s_out[] = "$class::~$class()";
+  $s_out[] = "	$class::~$class()";
   addBody($s_out);
-  $s_out[] = "$class& $class::operator = (const $class& source)";  
-	$s_out[] = "{";
-	$s_out[] = "  if (&source != this)";
-	$s_out[] = "  {";
+  $s_out[] = "	$class& $class::operator = (const $class& source)";  
+	$s_out[] = "	{";
+	$s_out[] = "	  if (&source != this)";
+	$s_out[] = " 	 {";
 	foreach ($vars as $v)
 	{
-		$s_out[] = "    ".$v["n"]." = source.".$v["n"].";";  
+		$s_out[] = " 	   ".$v["n"]." = source.".$v["n"].";";  
 	}
-	$s_out[] = "  }";
-	$s_out[] = "  return *this;";
-	$s_out[] = "}";
-	$s_out[] = "";
+	$s_out[] = "	  }";
+	$s_out[] = "	  return *this;";
+	$s_out[] = "	}";
+	$s_out[] = "	";
+
+  $s_out[] = "	bool $class::operator == (const $class& source) const";  
+	$s_out[] = "	{";
+	$s_out[] = "	  return";
+	for ($i=0; $i< count($vars)-1; ++$i)
+	{
+		$s_out[] = " 	   ".$vars[$i]["n"]." == source.".$vars[$i]["n"]." &&";  
+	}
+	$s_out[] = " 	   ".$vars[count($vars)-1]["n"]." == source.".$vars[count($vars)-1]["n"]."";  
+	$s_out[] = "	  ;";
+	$s_out[] = "	}";
+	$s_out[] = "	";
+
+  $s_out[] = "	bool $class::operator != (const $class& source) const";  
+	$s_out[] = "	{";
+	$s_out[] = "	  return ! operator==(source);";
+	$s_out[] = "	}";
+	$s_out[] = "	";
  
  	$simple_types = array_merge($base_simple_types, $enums);
  	
@@ -260,7 +281,7 @@ options:
 		
 		if (in_array($type,$enums))
 		{
-			$real_type = "$class::$type";
+			$real_type = "	$class::$type";
 		}
 		else
 		{
@@ -270,45 +291,47 @@ options:
 		//get method
 		if (in_array($type,$simple_types))
 		{
-			$s_out[] = "$real_type $class::get$method() const ";
+			$s_out[] = "	$real_type $class::get$method() const ";
 		}
 		else
 		{
-			$s_out[] = "const $real_type& $class::get$method() const ";
+			$s_out[] = "	const $real_type& $class::get$method() const ";
 			// add non-const get method of complex type
 			if (! in_array($type,$normal_types))
 			{
-				$s_out[] = "{";
-				$s_out[] = "  return $name; ";
-				$s_out[] = "}";
-				$s_out[] = "";
-				$s_out[] = "$real_type&  $class::get$method()";
+				$s_out[] = "	{";
+				$s_out[] = "	  return $name; ";
+				$s_out[] = "	}";
+				$s_out[] = "	";
+				$s_out[] = "	$real_type&  $class::get$method()";
 			}
 		}
 		
-		$s_out[] = "{";
-		$s_out[] = "  return $name; ";
-		$s_out[] = "}";
+		$s_out[] = "	{";
+		$s_out[] = "	  return $name; ";
+		$s_out[] = "	}";
 		
-		$s_out[] = "";
+		$s_out[] = "	";
 		
 		//set method
 		if (in_array($type,$simple_types))
 		{
-			$s_out[] = "void $class::set$method($real_type ".substr($name,0,-1).")";
+			$s_out[] = "	void $class::set$method($real_type ".substr($name,0,-1).")";
 		}
 		else
 		{
-			$s_out[] = "void $class::set$method(const $real_type& ".substr($name,0,-1).")";
+			$s_out[] = "	void $class::set$method(const $real_type& ".substr($name,0,-1).")";
 		}
 	
-		$s_out[] = "{";
-		$s_out[] = "  $name = ".substr($name,0,-1)."; ";
-		$s_out[] = "}";
+		$s_out[] = "	{";
+		$s_out[] = "	  $name = ".substr($name,0,-1)."; ";
+		$s_out[] = "	}";
 		
-		$s_out[] = "";		
+		$s_out[] = "	";		
 	}
 	
+	$s_out[] = "} //namespace";
+	$s_out[] = "";
 	
 	### write files
 	array_splice($file,$public_line+1,0,$i_out);

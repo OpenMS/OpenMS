@@ -127,7 +127,7 @@ foreach($test_names as $name)
 
 //----------------------------------------Which tests do nothing -------------------------------------------
 
-print "\n\n-- TESTS THAT PROBABLY DO NOT TEST ALL METHODS --\n\n";
+print "\n\n-- TESTS THAT ARE PROBABLY NOT COMPLETE --\n\n";
 print "Name CHECKs TESTS\n";
 
 foreach($test_names as $name)

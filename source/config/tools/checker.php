@@ -37,7 +37,6 @@ If no option is given, all tests are executed. Otherwise only the given specfic 
 
 check options:
   -g  check if header guards present and correct
-  -i  check if include guards correct (if present)
   -h  check headers (tab settings for editors, cvs headers, maintainer)
   -m  check headers for empty maintainer field
   -u  check for unneeded includes (does not check references or pointers yet)
@@ -58,7 +57,7 @@ other options:
 	}
 	
 	$do_all = false;
-	if (!isset($argv[2]) OR ($argv[2]!="-g" AND $argv[2]!="-i" AND $argv[2]!="-h" AND $argv[2]!="-u" AND $argv[2]!="-m"))
+	if (!isset($argv[2]) OR ($argv[2]!="-g" AND $argv[2]!="-h" AND $argv[2]!="-u" AND $argv[2]!="-m"))
 	{
 		$do_all = true;
 	}
@@ -113,45 +112,6 @@ other options:
 		}
 	}
 
-	#################include guards###############################
-	if ($do_all OR $argv[2]=="-i")
-	{
-		$files=array();
-		exec("find $path/include/ -name \"*.h\"", $files);
-		foreach ($files as $header)
-		{
-			$file = file($header);
-			$out = ">>WRONG INCLUDE GUARD in $header\n";
-			$ok = true;
-			for ($i=0;$i<count($file);$i++)
-			{
-				$line = trim($file[$i]);
-				if (beginsWith($line,"#ifndef"))
-				{
-					$guard = trim(substr($line,8));
-					$nextline = trim($file[$i+1]);
-					$nextnextline = trim($file[$i+2]);
-					//header guards
-					if (isIncludeLine($nextline,$include) AND beginsWith($nextnextline,"#endif"))
-					{
-						$right_guard = includeToGuard($include);
-						if ($guard!=$right_guard)
-						{
-							$out .= "  line    : $i\n";
-							$out .= "  guard   : $guard\n";
-							$out .= "  inlcude : $include\n";
-							$ok = false;
-						}
-					}
-				}
-			}
-			if (!$ok)
-			{
-				print $out;
-			}	
-		}
-	}
-
 	#################headers###############################
 	if ($do_all OR $argv[2]=="-h")
 	{
@@ -167,8 +127,6 @@ other options:
 			$ok = true;
 			$maintainer_count = 0;
 			$tab_count = 0;
-			$cvs_id = 0;
-			$cvs_author = 0;
 			for ($i=0;$i<min(30,count($file));$i++)
 			{
 				$line = trim($file[$i]);
@@ -179,14 +137,6 @@ other options:
 				if (strpos($line,"vi: set ts=2:")!==false )
 				{
 					$tab_count++;
-				}
-				if (strpos($line,"\$Id")!==false )
-				{
-					$cvs_id++;
-				}
-				if (strpos($line,"\$Author")!==false )
-				{
-					$cvs_author++;
 				}
 			}
 			if ($maintainer_count!=1)
@@ -199,22 +149,10 @@ other options:
 				$out .="  Editor tab settings lines: $tab_count\n";
 				$ok=false;
 			}
-			if ($cvs_id!=1)
-			{
-				$out .="  CVS id lines: $cvs_id\n";
-				$ok=false;
-			}
-			if ($cvs_author!=1)
-			{
-				$out .="  CVS author lines: $cvs_author\n";
-				$ok=false;
-			}
 			if ($verbose)
 			{ 
 				print "  Maintainer lines: $maintainer_count\n";	
 				print "  Editor tab settings lines: $tab_count\n";	
-				print "  CVS id: $cvs_id\n";	
-				print "  CVS author: $cvs_author\n";
 			}		
 			if (!$ok)
 			{

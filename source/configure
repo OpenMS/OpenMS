@@ -24813,7 +24813,7 @@ BINFMT_PATH=""
 
 
 
-                                        ac_config_files="$ac_config_files config_defs.mak.tmp:config/config_defs.mak.in config.mak.tmp:config/config.mak.in common.mak.tmp:config/common.mak.in Makefile.tmp:config/Makefile.in"
+                                                  ac_config_files="$ac_config_files config_defs.mak.tmp:config/config_defs.mak.in config.mak.tmp:config/config.mak.in common.mak.tmp:config/common.mak.in Makefile.tmp:config/Makefile.in Doxyfile.tmp:config/Doxyfile.in"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -25342,6 +25342,7 @@ do
   "config.mak.tmp" ) CONFIG_FILES="$CONFIG_FILES config.mak.tmp:config/config.mak.in" ;;
   "common.mak.tmp" ) CONFIG_FILES="$CONFIG_FILES common.mak.tmp:config/common.mak.in" ;;
   "Makefile.tmp" ) CONFIG_FILES="$CONFIG_FILES Makefile.tmp:config/Makefile.in" ;;
+  "Doxyfile.tmp" ) CONFIG_FILES="$CONFIG_FILES Doxyfile.tmp:config/Doxyfile.in" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h:config/config.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -26035,6 +26036,7 @@ fi
 		${MV} common.mak.tmp common.mak
 		${MV} config.mak.tmp config.mak
 		${MV} config_defs.mak.tmp config_defs.mak
+		${MV} Doxyfile.tmp ../doc/Doxyfile
 										if test -f $OPENMS_PATH/include/OpenMS/config.h ; then
 			if test "`${DIFF} config.h $OPENMS_PATH/include/OpenMS/config.h`" != "" ; then
 				${MV} -f config.h $OPENMS_PATH/include/OpenMS/config.h

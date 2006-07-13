@@ -169,16 +169,10 @@ bench:	dummy
 
 # creates the documentation
 doc:
-	@$(MAKE) OPENMS_INCLUDE_DIR=$(OPENMS_PATH)/include/ doc_dummy
-
-doc_dummy:
 	@cd ../doc/ && doxygen ../doc/Doxyfile
 
 # creates the internal documentation
 idoc:
-	@$(MAKE) OPENMS_INCLUDE_DIR=$(OPENMS_PATH)/include/ idoc_dummy
-
-idoc_dummy: 
 	@cd ../doc/ && doxygen ../doc/Doxyfile_internal
 
 # creates the coding conventions

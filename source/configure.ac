@@ -815,6 +815,7 @@ AC_OUTPUT([
  	config.mak.tmp:config/config.mak.in 
 	common.mak.tmp:config/common.mak.in 
 	Makefile.tmp:config/Makefile.in
+	Doxyfile.tmp:config/Doxyfile.in
 ])
 CF_MOVE_CONFIG_FILES
 
