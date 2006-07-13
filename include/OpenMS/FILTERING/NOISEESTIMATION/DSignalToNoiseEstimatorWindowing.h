@@ -48,45 +48,43 @@ namespace OpenMS
     This class provides the estimation of the signal to noise ratios in a given raw data
     points intervall using the method of Roegnvaldsson et al. described in "Modular, Scriptable, and Automated
     Analysis Tools for High-Throughput Peptide Mass Fingerprinting".
-	
+
     NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
     for each scan, and not for the whole map.
 
-	???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
-	Please use it carefully.
-	
+  ???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
+  Please use it carefully.
+
     @ingroup PeakPicking
   */
-  template <Size D, typename  ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
-  class DSignalToNoiseEstimatorWindowing : public DSignalToNoiseEstimator<D, ContainerType>
+  template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
+  class DSignalToNoiseEstimatorWindowing : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
   public:
     /** @name Type definitions
      */
     //@{
-    ///
-    typedef typename ContainerType::const_iterator ConstIterator;
     //@}
 
-    using DSignalToNoiseEstimator<D, ContainerType>::mz_dim_;
-    using DSignalToNoiseEstimator<D, ContainerType>::rt_dim_;
-    using DSignalToNoiseEstimator<D, ContainerType>::param_;
-    using DSignalToNoiseEstimator<D, ContainerType>::first_;
-    using DSignalToNoiseEstimator<D, ContainerType>::last_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::param_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::first_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::last_;
 
 
     /** @name Constructors and Destructor
      */
     //@{
     inline DSignalToNoiseEstimatorWindowing()
-        : DSignalToNoiseEstimator<D,ContainerType>(),
+        : DSignalToNoiseEstimator<D,PeakIterator>(),
         bucket_size_(10),
         window_size_(700)
     {}
     ///
     inline DSignalToNoiseEstimatorWindowing(const Param& parameters)
-        : DSignalToNoiseEstimator<D,ContainerType>(parameters)
+        : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
     {
       // if a parameter is missing in the param object, the value is substituted by a default value
       DataValue dv = param_.getValue("SignalToNoiseEstimationParameter:Bucket");
@@ -100,7 +98,7 @@ namespace OpenMS
 
     ///
     inline DSignalToNoiseEstimatorWindowing(const DSignalToNoiseEstimatorWindowing&  ne)
-        : DSignalToNoiseEstimator<D,ContainerType>(ne),
+        : DSignalToNoiseEstimator<D,PeakIterator>(ne),
         bucket_size_(ne.bucket_size_),
         window_size_(ne.window_size_)
     {
@@ -152,7 +150,7 @@ namespace OpenMS
     /** @name Initialisation of the raw data intervall and estimation of noise and baseline levels
      */
     //@{
-    void init(ConstIterator it_begin, ConstIterator it_end)
+    void init(PeakIterator it_begin, PeakIterator it_end)
     {
       first_=it_begin;
       last_=it_end;
@@ -171,7 +169,7 @@ namespace OpenMS
       y_base_.resize(number_of_buckets, 0);
       y_noise_.resize(number_of_buckets, 0);
 
-      ConstIterator it_help = first_;
+      PeakIterator it_help = first_;
 
       for (int i = 0; i < length; i++)
       {
@@ -233,7 +231,7 @@ namespace OpenMS
      */
     //@{
     ///
-    double getSignalToNoise(ConstIterator data_point) throw (Exception::OutOfRange)
+    double getSignalToNoise(PeakIterator data_point) throw (Exception::OutOfRange)
     {
       if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) && (data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
       {

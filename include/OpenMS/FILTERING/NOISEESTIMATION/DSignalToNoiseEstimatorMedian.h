@@ -48,8 +48,8 @@ namespace OpenMS
     We estimate the s/n ratio as the median of the intensities of the points in this range.
     The width of this range is give by window_size_ .
   */
-  template <Size D, typename  ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
-  class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, ContainerType>
+   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> > >
+  class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
   public:
@@ -57,16 +57,14 @@ namespace OpenMS
      */
     //@{
     ///
-    typedef typename ContainerType::const_iterator ConstIterator;
+    typedef typename PeakIterator::value_type PeakType;
     ///
-    typedef typename ContainerType::PeakType PeakType;
+    typedef typename PeakType::CoordinateType CoordinateType;
     ///
-    typedef typename ContainerType::PeakType::CoordinateType CoordinateType;
-    ///
-    typedef typename ContainerType::PeakType::IntensityType IntensityType;
+    typedef typename PeakType::IntensityType IntensityType;
     //@}
 
-    using DSignalToNoiseEstimator<D, ContainerType>::param_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::param_;
 
     enum DimensionID
     {
@@ -78,11 +76,11 @@ namespace OpenMS
      */
     //@{
     inline DSignalToNoiseEstimatorMedian()
-      : DSignalToNoiseEstimator<D,ContainerType>(),
+      : DSignalToNoiseEstimator<D,PeakIterator>(),
         window_size_(100) {}
     ///
     inline DSignalToNoiseEstimatorMedian(const Param& parameters)
-      : DSignalToNoiseEstimator<D,ContainerType>(parameters)
+      : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
     {
       // set params
       DataValue dv = param_.getValue("SignalToNoiseEstimationParameter:Window");
@@ -95,7 +93,7 @@ namespace OpenMS
     }
     ///
     inline DSignalToNoiseEstimatorMedian(const DSignalToNoiseEstimatorMedian&  ne)
-      : DSignalToNoiseEstimator<D,ContainerType>(ne),
+      : DSignalToNoiseEstimator<D,PeakIterator>(ne),
         window_size_(ne.window_size_),
         median_perc_(ne.median_perc_) {}
     ///
@@ -136,11 +134,11 @@ namespace OpenMS
 
 
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
-    void init(ConstIterator it_begin, ConstIterator it_end)
+    void init(PeakIterator it_begin, PeakIterator it_end)
     {
       CoordinateType current_rt = it_begin->getPosition()[RT];
       std::vector<IntensityType> intensities(window_size_);
-      ContainerType scan;
+      PeakIterator scan;
       while (it_begin != it_end)
       {
         CoordinateType next_rt = it_begin->getPosition()[RT];
@@ -155,7 +153,7 @@ namespace OpenMS
     }
 
     /// Return to signal/noise estimate for data point @p data_point
-    double getSignalToNoise(ConstIterator data_point)
+    double getSignalToNoise(PeakIterator data_point)
     {
       double noise = noise_estimates_[*data_point];
 
@@ -169,13 +167,13 @@ namespace OpenMS
 
   protected:
 
-    void shiftWindow_(ContainerType current_scan)
+    void shiftWindow_(PeakIterator current_scan)
     {
       unsigned int left  = (int) floor(window_size_ / 2);
 
       for (unsigned int i=0; i<current_scan.size(); i++)
       {
-        ContainerType window(window_size_);
+        PeakIterator window(window_size_);
         // walk to the left and collect
         // and most (window_size_ / 2) peaks
         for (int j=i; j >= 0 && window.size() <= left; j--)

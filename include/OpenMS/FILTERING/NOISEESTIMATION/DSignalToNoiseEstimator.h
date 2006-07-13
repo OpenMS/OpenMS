@@ -29,7 +29,7 @@
 #define OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATOR_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
@@ -44,7 +44,7 @@ namespace OpenMS
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
     in a given intervall [first_,last_).
   */
-  template <Size D, typename ContainerType = DPeakArrayNonPolymorphic<D,DRawDataPoint<D> > >
+  template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> > >
   class DSignalToNoiseEstimator
   {
   public:
@@ -53,9 +53,6 @@ namespace OpenMS
     //@{
     typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
     ///
-    typedef typename ContainerType::PeakType PeakType;
-    ///
-    typedef typename ContainerType::const_iterator ConstIterator;
     //@}
 
     /** @name Constructors and Destructor
@@ -127,7 +124,7 @@ namespace OpenMS
     */
     //@{
     /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios should be estimated
-    virtual void init(ConstIterator it_begin, ConstIterator it_end)
+    virtual void init(PeakIterator it_begin, PeakIterator it_end)
     {
       first_=it_begin;
       last_=it_end;
@@ -152,18 +149,18 @@ namespace OpenMS
     inline void setRTdim(const int rt_dim) { rt_dim_ = rt_dim; }
 
     /// Non-mutable access to the first raw data point
-    inline const ConstIterator getFirstDataPoint() const { return first_; }
+    inline const PeakIterator getFirstDataPoint() const { return first_; }
     /// Mutable access to the first raw data point
-    inline ConstIterator getFirstDataPoint() { return first_; }
+    inline PeakIterator getFirstDataPoint() { return first_; }
     /// Mutable access to the first raw data point
-    inline void setFirstDataPoint(const ConstIterator first) { first_ = first; }
+    inline void setFirstDataPoint(const PeakIterator first) { first_ = first; }
 
     /// Non-mutable access to the last raw data point
-    inline const ConstIterator getLastDataPoint() const { return last_; }
+    inline const PeakIterator getLastDataPoint() const { return last_; }
     /// Mutable access to the last raw data point
-    inline ConstIterator getLastDataPoint() { return last_; }
+    inline PeakIterator getLastDataPoint() { return last_; }
     /// Mutable access to the last raw data point
-    inline void setLastDataPoint(const ConstIterator last) { last_ = last; }
+    inline void setLastDataPoint(const PeakIterator last) { last_ = last; }
 
     /// Non-mutable access to the parameter object
     inline const Param& getParam() const { return param_; }
@@ -174,7 +171,7 @@ namespace OpenMS
     /** @name Signal To Noise Estimation
      */
     //@
-    virtual double getSignalToNoise(ConstIterator data_point) = 0;
+    virtual double getSignalToNoise(PeakIterator data_point) = 0;
     //@}
 
   protected:
@@ -183,9 +180,9 @@ namespace OpenMS
     /// retention time dimension
     int rt_dim_;
     /// points to the first raw data point in the intervall
-    ConstIterator first_;
+    PeakIterator first_;
     /// points to the right position next to the last raw data point in the intervall
-    ConstIterator last_;
+    PeakIterator last_;
     /// parameter object
     Param param_;
   };
