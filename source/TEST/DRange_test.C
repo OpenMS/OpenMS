@@ -88,7 +88,7 @@ CHECK(DRange(const DRange& range))
 	TEST_REAL_EQUAL(r2.max()[1],4.0f);
 RESULT
 
-CHECK(DRange(const CoordinateType& minx,const CoordinateType& miny, const CoordinateType& maxx,const CoordinateType& maxy))
+CHECK(DRange(const CoordinateType& minx, const CoordinateType& miny, const CoordinateType& maxx, const CoordinateType& maxy))
 	DRange<2> r2(1.0f,2.0f,3.0f,4.0f);
 	TEST_REAL_EQUAL(r2.min()[0],1.0f);
 	TEST_REAL_EQUAL(r2.min()[1],2.0f);
@@ -96,7 +96,7 @@ CHECK(DRange(const CoordinateType& minx,const CoordinateType& miny, const Coordi
 	TEST_REAL_EQUAL(r2.max()[1],4.0f);
 RESULT
 
-CHECK(bool operator == (const DRange& range))
+CHECK(bool operator == (const DRange& rhs) const throw())
 	DRange<2> r2(r);
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
@@ -122,7 +122,7 @@ CHECK(bool operator != (const DRange& range))
 	TEST_EQUAL(r!=r2,false);
 RESULT
 
-CHECK(bool encloses(const PositionType& position))
+CHECK(bool encloses(const PositionType& position) const)
 	DRange<2> r2(p1,p2);
 	DPosition<2> p;
 	p[0]=0.0f;
@@ -154,7 +154,7 @@ CHECK(bool encloses(const PositionType& position))
 	TEST_EQUAL(r2.encloses(p),false);
 RESULT
 
-CHECK(DRangeIntersection intersects(const DRange &query))	
+CHECK(DRangeIntersection intersects(const DRange& range) const)
 	DRange<2> r2(p1,p2);
 	DRange<2> r3(r2);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Inside)
@@ -249,7 +249,7 @@ CHECK(DRangeIntersection intersects(const DRange &query))
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Intersects)		
 RESULT
 
-CHECK(bool isIntersected(const DRange &query))
+CHECK(bool isIntersected(const DRange& range) const)
 	DRange<2> r2(p1,p2);
 	DRange<2> r3(r2);
 	TEST_EQUAL(r2.isIntersected(r3),true)
@@ -344,7 +344,7 @@ CHECK(bool isIntersected(const DRange &query))
 	TEST_EQUAL(r2.isIntersected(r3),true)		
 RESULT
 
-CHECK(bool encloses(const CoordinateType& x, const CoordinateType& y))
+CHECK(bool encloses(const CoordinateType& x, const CoordinateType& y) const)
 	DRange<2> r2(p1,p2);
 	TEST_EQUAL(r2.encloses(0.0f,0.0f),true);
 	TEST_EQUAL(r2.encloses(-3.0f,-3.0f),false);

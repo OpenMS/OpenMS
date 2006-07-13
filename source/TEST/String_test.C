@@ -66,7 +66,7 @@ CHECK(String(size_t len, char c))
 	TEST_EQUAL(s,"bbbbbbbbbbbbbbbbb")
 RESULT
 
-CHECK(String(char c))
+CHECK(String(const char c))
 	String s('v');
 	TEST_EQUAL(s,"v")
 RESULT
@@ -109,7 +109,7 @@ CHECK(String(double d))
 	TEST_EQUAL(s,"-123.4e05")
 RESULT
 
-CHECK(String(InputIterator first,InputIterator last))
+CHECK(template<class InputIterator> String(InputIterator first, InputIterator last))
 	String s("ABCDEFGHIJKLMNOP");
 	String::Iterator i = s.begin();
 	String::Iterator j = s.end();
@@ -122,7 +122,7 @@ CHECK(String(InputIterator first,InputIterator last))
 RESULT
 
 String s("ACDEFGHIKLMNPQRSTVWY");
-CHECK( hasPrefix(String) )
+CHECK(bool hasPrefix(const String& string) const)
 	TEST_EQUAL(s.hasPrefix(""), true);
 	TEST_EQUAL(s.hasPrefix("ACDEF"), true);
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -130,7 +130,7 @@ CHECK( hasPrefix(String) )
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
 RESULT
 
-CHECK ( hasSuffix(String) )
+CHECK(bool hasSuffix(const String& string) const)
 	TEST_EQUAL(s.hasSuffix(""), true);
 	TEST_EQUAL(s.hasSuffix("TVWY"), true);
 	TEST_EQUAL(s.hasSuffix("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -138,7 +138,7 @@ CHECK ( hasSuffix(String) )
 	TEST_EQUAL(s.hasSuffix("ACDEFACDEFGHIKLMNPQRSTVWY"), false);
 RESULT
 
-CHECK ( hasSubstring(String) )
+CHECK(bool hasSubstring(const String& string) const)
 	TEST_EQUAL(s.hasSubstring(""), true);
 	TEST_EQUAL(s.hasSubstring("GHIKLM"), true);
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -146,36 +146,36 @@ CHECK ( hasSubstring(String) )
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
 RESULT
 
-CHECK ( has(Byte) )
+CHECK(bool has(Byte byte) const)
 	TEST_EQUAL(s.has('A'), true);
 	TEST_EQUAL(s.has('O'), false);
 RESULT
 
-CHECK ( prefix(Index) )
+CHECK(String prefix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
 	TEST_EQUAL(s.prefix(4), "ACDE");
 	TEST_EQUAL(s.prefix(0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 RESULT
 
-CHECK ( suffix(Index) )
+CHECK(String suffix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
 	TEST_EQUAL(s.suffix(4), "TVWY");
 	TEST_EQUAL(s.suffix(0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 
-CHECK ( prefix(char) )
+CHECK(String prefix(char delim) const throw(Exception::ElementNotFound<char>))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK ( suffix(char) )
+CHECK(String suffix(char delim) const throw(Exception::ElementNotFound<char>))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK ( String substr(start, n) )
+CHECK(String substr(SignedInt start = 0, SignedInt n = NPOS) const)
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0),"abcdef");
@@ -206,7 +206,7 @@ CHECK ( String substr(start, n) )
 	TEST_EQUAL(s.substr(-3,-1),"de")
 RESULT
 
-CHECK ( reverse() )
+CHECK(String& reverse())
 	s.reverse();
 	TEST_EQUAL(s, "YWVTSRQPNMLKIHGFEDCA");
 	s = "";
@@ -214,7 +214,7 @@ CHECK ( reverse() )
 	TEST_EQUAL(s, "");
 RESULT
 
-CHECK ( trim() )
+CHECK(String& trim())
 	String s("\n\r\t test \n\r\t");
 	s.trim();	
 	TEST_EQUAL(s,"test");
@@ -254,7 +254,7 @@ CHECK(String& fillRight(char c, UnsignedInt size))
 	TEST_EQUAL(s,"TESTyzz")	
 RESULT
 
-CHECK ( toInt() )
+CHECK(int toInt() const throw(Exception::ConversionError))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -270,7 +270,7 @@ CHECK ( toInt() )
 	TEST_REAL_EQUAL(s.toInt(),73629);
 RESULT
 
-CHECK ( toFloat() )
+CHECK(float toFloat() const throw(Exception::ConversionError))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toFloat(),123.456);
@@ -284,7 +284,7 @@ CHECK ( toFloat() )
 	TEST_EQUAL(String(s.toFloat()),"47218.89");
 RESULT
 
-CHECK ( toDouble() )
+CHECK(double toDouble() const throw(Exception::ConversionError))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);
@@ -298,13 +298,13 @@ CHECK ( toDouble() )
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK( random(int) )
+CHECK(static String random(Size length))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);
 RESULT
 
-CHECK( vector<String> split() )
+CHECK(bool split(char splitter, std::vector<String>& substrings) const)
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);
@@ -334,7 +334,7 @@ CHECK( vector<String> split() )
 	TEST_EQUAL(split.size(),0);
 RESULT
 
-CHECK( void implode(InputIterator, InputIterator, glue))
+CHECK(void implode(std::vector<String>::iterator first, std::vector<String>::iterator last, const std::string& glue = ""))
 	vector<String> split;
 	String("1;2;3;4;5").split(';',split);
 	String s;
@@ -353,14 +353,14 @@ CHECK( void implode(InputIterator, InputIterator, glue))
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK( void toUpper())
+CHECK(void toUpper())
 	String s;
 	s = "test45%#.,";
 	s.toUpper();
 	TEST_EQUAL(s,"TEST45%#.,");
 RESULT
 
-CHECK( void toLower())
+CHECK(void toLower())
 	String s;
 	s = "TEST45%#.,";
 	s.toLower();

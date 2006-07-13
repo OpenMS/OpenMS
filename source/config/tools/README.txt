@@ -13,3 +13,5 @@ In this folder there are some useful tools for developers:
   checker.php        -  Checks if header guards are correct
                         Checks if tab settings for editors and maintainer is in each file
                         Checks for unneeded includes
+
+  correct_test.php   -  Helps the user to correct check headers
