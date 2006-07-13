@@ -373,6 +373,7 @@ namespace OpenMS
 			if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
 			{
 			  cutoff = estimateNoise_(*exp);
+			  cout << "Estimated noise level: " << cutoff << endl;
 			}
 			
 			exp->setName(caption);
@@ -407,9 +408,10 @@ namespace OpenMS
 		float noise = 0.0;
 		UnsignedInt count = 0;
 		srand(time(0));
+		//cout << "size: " << exp.size() << endl;
 		while (count<10)
 		{	
-			UnsignedInt scan = (UnsignedInt)( (double)rand() / (double)(RAND_MAX+1) * (exp.size()-1) );
+			UnsignedInt scan = (UnsignedInt)( (double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size()-1) );
 			 
 			if (scan < exp.size() && exp[scan].getMSLevel()==1)
 			{
@@ -422,12 +424,13 @@ namespace OpenMS
 					tmp.push_back(it->getIntensity());
 				}
 				std::sort(tmp.begin(),tmp.end());
-				noise += tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25)];
+				//cout << "scan: "<< scan <<" Groesse: " << tmp.size() << " Index: " << (UnsignedInt)ceil((float)(tmp.size()-1)/1.25f) << " Wert: "<< tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25f)] << endl;
+				noise += tmp[(UnsignedInt)ceil((float)(tmp.size()-1)/1.25f)];
 				
 				++count;
 			}
 		}
-		noise /= 10.0;
+		noise = noise / 10.0f;
 		return noise;
 	}
 	
@@ -568,6 +571,7 @@ namespace OpenMS
 			if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
 			{
 			  cutoff = estimateNoise_(*exp);
+			  cout << "Estimated noise level: " << cutoff << endl;
 			}
 			exp->setName(caption);  // set layername
 			w->widget()->canvas()->finishAdding(cutoff);
