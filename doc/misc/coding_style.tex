@@ -1,9 +1,6 @@
 % -*- Mode: C++; tab-width: 2; -*-
 % vi: set ts=2:
-%
-% $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
-% $Author: elange $
-%
+
 \documentclass[a4]{article}
 \usepackage{a4wide}
 \usepackage{times}
@@ -75,8 +72,6 @@ is performed to enforce this rule.
 ... copyright header, not shown ...
 //
 // --------------------------------------------------------------------------
-// $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
-// $Author: elange $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -107,8 +102,6 @@ namespace OpenMS
 ... copyright header, not shown ...
 //
 // --------------------------------------------------------------------------
-// $Id: coding_style.tex,v 1.12 2006/04/07 08:21:34 elange Exp $
-// $Author: elange $
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -352,7 +345,7 @@ Each OpenMS class has to be documented using Doxygen. The documentation is
 inserted in Doxygen format \textbf{in the header file} where the class is
 defined.  Documentation includes the description of the class, of each method,
 type declaration, enum declaration, each constant, and each member variable.\\
-Longer pieces of documentation should start with a brief description, followed
+Longer pieces of documentation start with a brief description, followed
 by an empty line and a detailed description. The empty line is needed to separate 
 the brief from the detailed description.\\
 Descriptions of classes always have a \@brief section!\\
@@ -461,13 +454,10 @@ Instructive programming examples can be provided in the
 
 \subsection{Revision control}
 
-\textbf{OpenMS uses the Concurrent Version System (CVS)} to manage different
-versions of the source files. For easier identification, each OpenMS source
-file contains the \texttt{\$Id{}:\$} and the \texttt{\$Author{}:\$} string in the
-preamble.  The information contained in these tags is updated by CVS during
-the \texttt{commit} process.  To provide a pointer to the ``real author'' (as
-opposed to the one who e.\,g.\ recently fixed a typo in the documentation),
-he/she should add a comment at the end of the preamble.
+\textbf{OpenMS uses the Subversion} to manage different
+versions of the source files. For easier identification of the responsible person
+each OpenMS file contains the \texttt{\$Maintainer{}:\$} string in the
+preamble.
 
 Examples of \texttt{.h} and \texttt{.C} files have been given above.  In
 non-C++ files (Makefiles, (La)TeX-Files, etc.) the C++ comments are replaced

@@ -53,7 +53,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPFileInfo
 	: public TOPPBase
@@ -237,7 +237,7 @@ class TOPPFileInfo
 		}
 };
 
-///@endcond
+/// @endcond
 
 int main( int argc, char ** argv )
 {

@@ -138,7 +138,7 @@ using namespace std;
 
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPRTModel
 	: public TOPPBase
@@ -595,7 +595,7 @@ class TOPPRTModel
 		}
 };
 
-///@endcond
+/// @endcond
 
 
 int main( int argc, char ** argv )

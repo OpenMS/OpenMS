@@ -46,7 +46,7 @@ using namespace std;
 
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPFileFilter
 	: public TOPPBase
@@ -259,7 +259,7 @@ class TOPPFileFilter
 		}
 };
 
-///@endcond
+/// @endcond
 
 
 int main( int argc, char ** argv )

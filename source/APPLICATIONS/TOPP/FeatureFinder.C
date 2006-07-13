@@ -91,7 +91,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES
 
 class TOPPFeatureFinder
 	: public TOPPBase
@@ -188,7 +188,7 @@ class TOPPFeatureFinder
 		}
 };
 
-///@endcond
+/// @endcond
 
 int main( int argc, char ** argv )
 {

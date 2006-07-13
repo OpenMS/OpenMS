@@ -50,7 +50,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPDBExporter
 	: public TOPPBase
@@ -236,7 +236,7 @@ class TOPPDBExporter
 		}
 };
 
-///@endcond
+/// @endcond
 
 int main( int argc, char ** argv )
 {

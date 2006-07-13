@@ -76,7 +76,7 @@ using namespace std;
 
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPRTPredict
 	: public TOPPBase
@@ -303,7 +303,7 @@ class TOPPRTPredict
 		}
 };
 
-///@endcond
+/// @endcond
 
 
 int main( int argc, char ** argv )

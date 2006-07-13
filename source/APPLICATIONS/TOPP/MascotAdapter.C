@@ -180,7 +180,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPMascotAdapter
 	: public TOPPBase
@@ -713,7 +713,7 @@ class TOPPMascotAdapter
 		}
 };
 
-///@endcond
+/// @endcond
 
 
 int main( int argc, char ** argv )

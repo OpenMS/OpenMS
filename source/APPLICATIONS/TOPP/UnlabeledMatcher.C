@@ -72,7 +72,7 @@ typedef DGrid<2> GridType;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPUnlabeledMatcher
       : public TOPPBase
@@ -215,7 +215,7 @@ protected:
   }
 };
 
-///@endcond
+/// @endcond
 
 int main( int argc, char ** argv )
 {

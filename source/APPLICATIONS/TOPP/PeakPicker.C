@@ -58,7 +58,7 @@ using namespace std;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond 
+/// @cond TOPPCLASSES 
 
 class TOPPPeakPicker
       : public TOPPBase
@@ -188,7 +188,7 @@ protected:
   }
 };
 
-///@endcond
+/// @endcond
 
 
 int main( int argc, char ** argv )
