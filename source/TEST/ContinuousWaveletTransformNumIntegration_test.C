@@ -126,7 +126,7 @@ CHECK(void init(double scale, double spacing, unsigned int mz_dim_))
   TEST_EQUAL(mz_dim_ == 0, true)
 RESULT
 
-CHECK(void transform(RawDataPointIterator begin_input, RawDataPointIterator end_input, float resolution))
+CHECK(void transform(RawDataPointConstIterator begin_input, RawDataPointConstIterator end_input, float resolution))
   ContinuousWaveletTransformNumIntegration<1> transformer;
   float scale = 0.5;
   float spacing = 0.1;

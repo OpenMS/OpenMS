@@ -89,7 +89,7 @@ CHECK(PeakShape(const PeakShape& peakshape))
     TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
-CHECK((PeakShape(double height_, double mz_position_, double rt_position, double left_width_, double right_width_, double area_, int type_)))
+CHECK(PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakShapeType::Enum type_))
     double height = 100.0;
     double mz_position = 0.0;
     double left_width = 3.0;
