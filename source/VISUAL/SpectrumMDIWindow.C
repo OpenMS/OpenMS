@@ -47,7 +47,7 @@
 #include <OpenMS/VISUAL/LayerManager.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DPeakPickerCWT.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -1312,21 +1312,15 @@ namespace OpenMS
 		Spectrum1DWindow* w = active1DWindow_();
 		if (w!=0)
 		{
-			//pick data
-			DPeakPickerCWT<1> peak_picker;
-			MSExperiment<DPickedPeak<1> > picked;
-			peak_picker(picked);
-			MSExperiment<DRawDataPoint<1> > raw;
-			raw.resize(1);
-			raw[0].insert(raw[0].begin(), w->widget()->canvas()->currentDataSet()[0].begin(), w->widget()->canvas()->currentDataSet()[0].end());
-			peak_picker.pick(raw);
-	
 			//add new spectrum
 			String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
 			Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
 			exp.setName(new_name); // set layername
-			exp.resize(1);
-			exp[0].insert(exp[0].begin(), picked[0].begin(), picked[0].end());
+
+			//pick data
+      PeakPickerCWT peak_picker;
+      peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
+
 			//color picked peaks
 			for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
 			{
