@@ -27,7 +27,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DPeakPickerCWT.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include "TOPPBase.h"
 
 using namespace OpenMS;
@@ -167,15 +167,11 @@ protected:
 
     std::cout << pepi_param << std::endl;
 
-    DPeakPickerCWT<1> peak_picker(pepi_param);
+    PeakPickerCWT peak_picker(pepi_param);
+    
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
-    ms_exp_raw >> peak_picker(ms_exp_peaks);
-    //
-    //    peak_picker(ms_exp_peaks);
-    //    peak_picker.pick(ms_exp_raw);
-    //
-    //    ms_exp_peaks = peak_picker.getMSExperimentPeakData();
-
+    peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
+   
 
     //-------------------------------------------------------------
     // writing output
