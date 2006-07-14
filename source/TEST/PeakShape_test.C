@@ -57,63 +57,56 @@ CHECK(PeakShape& operator = (const PeakShape& peakshape))
     peakshape.left_width = 2.998;
     peakshape.right_width = 2.776;
     peakshape.area = 8329832.141;
-    peakshape.r_value = 0.999;
     peakshape.type = PeakShapeType::LORENTZ_PEAK;
     
     PeakShape peakshape_copy;
     peakshape_copy = peakshape;
 
     TEST_REAL_EQUAL(peakshape_copy.height, 10003.232) 
-	  TEST_REAL_EQUAL(peakshape_copy.mz_position, 0.323)
+    TEST_REAL_EQUAL(peakshape_copy.mz_position, 0.323)
     TEST_REAL_EQUAL(peakshape_copy.left_width, 2.998)
     TEST_REAL_EQUAL(peakshape_copy.right_width, 2.776)
     TEST_REAL_EQUAL(peakshape_copy.area, 8329832.141)
-    TEST_REAL_EQUAL(peakshape_copy.r_value, 0.999)
-		TEST_EQUAL(peakshape_copy.type, PeakShapeType::LORENTZ_PEAK)
+    TEST_EQUAL(peakshape_copy.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
 CHECK(PeakShape(const PeakShape& peakshape))
-  	PeakShape peakshape;
+    PeakShape peakshape;
     peakshape.height = 10003.232;
     peakshape.mz_position = 0.323;
     peakshape.left_width = 2.998;
     peakshape.right_width = 2.776;
     peakshape.area = 8329832.141;
-    peakshape.r_value = 0.999;
     peakshape.type = PeakShapeType::LORENTZ_PEAK;
     
     PeakShape peakshape_copy(peakshape);
    
     TEST_REAL_EQUAL(peakshape.height,10003.232) 
-	  TEST_REAL_EQUAL(peakshape.mz_position, 0.323)
+    TEST_REAL_EQUAL(peakshape.mz_position, 0.323)
     TEST_REAL_EQUAL(peakshape.left_width, 2.998)
     TEST_REAL_EQUAL(peakshape.right_width,2.776)
     TEST_REAL_EQUAL(peakshape.area, 8329832.141)
-    TEST_REAL_EQUAL(peakshape.r_value, 0.999)
-  	TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
+    TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
 CHECK((PeakShape(double height_, double mz_position_, double rt_position, double left_width_, double right_width_, double area_, int type_)))
-		double height = 100.0;
+    double height = 100.0;
     double mz_position = 0.0;
-    double rt_position = 1.0;
     double left_width = 3.0;
     double right_width = 3.0;
     double area = 309.23292;
     PeakShapeType::Enum type = PeakShapeType::LORENTZ_PEAK;
 
     PeakShape peakshape(height,
-												mz_position,
-												rt_position,
-												left_width,
-												right_width,
-												area,
-												type);
+    mz_position,
+    left_width,
+    right_width,
+		area,
+		type);
 
     TEST_REAL_EQUAL(peakshape.height,height) 
 	  TEST_REAL_EQUAL(peakshape.mz_position, mz_position)
-		TEST_REAL_EQUAL(peakshape.rt_position, rt_position)
-    TEST_REAL_EQUAL(peakshape.left_width, left_width)
+		TEST_REAL_EQUAL(peakshape.left_width, left_width)
     TEST_REAL_EQUAL(peakshape.right_width, right_width)
     TEST_REAL_EQUAL(peakshape.area, area)
     TEST_REAL_EQUAL(peakshape.r_value, 0.0)
@@ -123,7 +116,6 @@ RESULT
 CHECK(double getSymmetricMeasure() const)
 		double height = 100.0;
     double mz_position = 0.0;
-    double rt_position = 1.0;
     double left_width = 3.0;
     double right_width = 9.0;
     double area = 309.23292;
@@ -131,7 +123,6 @@ CHECK(double getSymmetricMeasure() const)
 
     PeakShape peakshape(height,
 												mz_position,
-												rt_position,
 												left_width,
 												right_width,
 												area,
@@ -144,7 +135,6 @@ RESULT
 CHECK(double operator() (const double x) const)
     double height = 100.0;
     double mz_position = 0.0;
-    double rt_position = 1.0;
     double left_width = 4.0;
     double right_width = 4.0;
     double area = 100;
@@ -152,7 +142,6 @@ CHECK(double operator() (const double x) const)
     
     PeakShape peakshape(height,
 												mz_position,
-												rt_position,
 												left_width,
 												right_width,
 												area,
