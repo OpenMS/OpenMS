@@ -51,19 +51,24 @@ CHECK(~Param())
 	delete d10_ptr;
 RESULT
 
-CHECK(set(string,string) / get(string))
+CHECK(const DataValue& getValue(const std::string& key) const)
+	Param p;
+	TEST_REAL_EQUAL(p.getValue("key")==DataValue::EMPTY, true)
+RESULT
+
+CHECK(void setValue(const std::string& key, const std::string& value))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
 RESULT
 
-CHECK(set(string,int) / get(string))
+CHECK(void setValue(const std::string& key, SignedInt value))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(SignedInt(p.getValue("key")), 17)
 RESULT
 
-CHECK(set(string,float) / get(string))
+CHECK(void setValue(const std::string& key, float value))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
@@ -103,7 +108,7 @@ CHECK(Param(const Param& rhs))
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK(Param& Param::operator = (const Param& rhs))
+CHECK(Param& operator = (const Param& rhs))
 	Param p2;
 	p2=p;
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
@@ -145,7 +150,7 @@ CHECK(void remove(const std::string& prefix))
 RESULT
 
 
-CHECK(bool Param::operator == (const Param& rhs))
+CHECK(bool operator == (const Param& rhs) const)
 	Param p2(p);
 	TEST_EQUAL(p==p2, true)
 	p2.setValue("test:float",17.5f);
@@ -158,12 +163,12 @@ CHECK(bool Param::operator == (const Param& rhs))
 	TEST_EQUAL(p==p2, false)
 RESULT
 
-CHECK(load(filename))
+CHECK(void load(const std::string& filename) throw(Exception::FileNotFound))
 	Param p2;
 	TEST_EXCEPTION(Exception::FileNotFound, p2.load("FileDoesNotExist.xml"))	
 RESULT
 
-CHECK( store(filename) / load(filename))
+CHECK(void store(const std::string& filename) const throw(Exception::UnableToCreateFile))
 	Param p2(p);
 	
 	//exception
@@ -183,7 +188,7 @@ CHECK( store(filename) / load(filename))
 	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))	
 RESULT
 
-CHECK( insert(prefix, para) )
+CHECK(void insert(const std::string& prefix, const Param& para))
 	Param p2;
 	p2.insert("test3",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
@@ -201,7 +206,7 @@ CHECK( insert(prefix, para) )
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)	
 RESULT
 
-CHECK( Param copy(prefix, remove_prefix, new_prefix) )
+CHECK(Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const)
 	Param p2;
 
 	p2 = p.copy("notthere:");
@@ -236,7 +241,7 @@ CHECK( Param copy(prefix, remove_prefix, new_prefix) )
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK( setDefaults(prefix, para) )
+CHECK(void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=true))
 	Param defaults;
 	defaults.setValue("float",1.0f);	
 	defaults.setValue("float2",2.0f);
@@ -304,7 +309,7 @@ command_line3[4] = a7;
 command_line3[5] = a8;
 
 
-CHECK( parseCommandLine(argc , argv, prefix) )
+CHECK(void parseCommandLine(const int argc, char** argv, const std::string& prefix = ""))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -321,42 +326,7 @@ CHECK( parseCommandLine(argc , argv, prefix) )
 	TEST_EQUAL(p20==p30,true)
 RESULT
 
-//CHECK( parseCommandLine(argc , argv, params_to_keys) )
-//	Param p4,p5;
-//	map<string,string> mapping;
-//	mapping["-a"]="a";
-//	mapping["-b"]="b";
-//	mapping["-c"]="c";
-//	mapping["misc"]="_nil_";
-//	p4.parseCommandLine(9,command_line,mapping);
-//	p5.setValue("a","av");
-//	p5.setValue("b","bv");
-//	p5.setValue("c","cv");
-//	p5.setValue("_nil_","rv1 rv2");
-//	TEST_EQUAL(p4==p5,true)
-//	
-//	Param p6,p7;
-//	map<string,string> mapping2;
-//	mapping2["-b"]="b";
-//	mapping2["misc"]="_nil_";
-//	mapping2["unknown"]="_uk_";
-//	
-//	p6.parseCommandLine(9,command_line,mapping2);
-//	p7.setValue("b","bv");
-//	p7.setValue("_nil_","av cv rv1 rv2");
-//	p7.setValue("_uk_","-a -c");
-//	TEST_EQUAL(p6==p7,true)
-//
-//	Param p8,p9;
-//	p8.parseCommandLine(6,command_line2,mapping);
-//	p9.setValue("a","av");
-//	p9.setValue("b","");
-//	p9.setValue("c","cv");
-//	TEST_EQUAL(p8==p9,true)
-//RESULT
-
-
-CHECK( void parseCommandLine(const int argc , char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc, const std::string& unknown) )
+CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown"))
 	map<string,string> with,without;
 	with["-a"]="a";
 	with["-b"]="b";
@@ -402,12 +372,12 @@ CHECK( void parseCommandLine(const int argc , char** argv, const std::map<std::s
 RESULT
 
 
-CHECK ([EXTRA] ConstIterator begin() const)
+CHECK([EXTRA] ConstIterator begin() const)
 	TEST_EQUAL("test2:float", p.begin()->first)
 	TEST_REAL_EQUAL(p.getValue("test2:float"), p.begin()->second)
 RESULT
 
-CHECK ([EXTRA] ConstIterator end() const)
+CHECK([EXTRA] ConstIterator end() const)
 	Param::ConstIterator it = p.end();
 	it--;
 	TEST_EQUAL("test:string", it->first)

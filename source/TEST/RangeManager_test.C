@@ -128,7 +128,7 @@ CHECK(RangeManager())
 	ptr = new RM();
 RESULT
 
-CHECK(virtual ~RangeManager())
+CHECK(~RangeManager())
 	delete ptr;
 RESULT
 
@@ -148,7 +148,7 @@ CHECK(const IntensityType getMaxInt() const)
 	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<RM::IntensityType>::max())
 RESULT
 
-CHECK(void updateRanges_())
+CHECK(void updateRanges())
 	RM rm;
 	
 	rm.updateRanges();
@@ -172,7 +172,7 @@ CHECK(void updateRanges_())
 	TEST_REAL_EQUAL(rm.getMaxInt(), 1.0)	
 RESULT
 
-CHECK(void clear_())
+CHECK([EXTRA] void clear_())
 	RM rm;
 	rm.updateRanges();
 	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)

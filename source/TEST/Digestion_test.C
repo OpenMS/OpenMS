@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -57,22 +56,60 @@ CHECK(~Digestion())
 RESULT
 
 //basic accessors
-CHECK(basic accessors)
+CHECK(const String& getEnzyme() const)
+	Digestion s;
+	TEST_EQUAL(s.getEnzyme(),"")
+RESULT
+
+//basic accessors
+CHECK(float getDigestionTime() const)
+	Digestion s;
+	TEST_REAL_EQUAL(s.getDigestionTime(),0.0)
+RESULT
+
+//basic accessors
+CHECK(float getTemperature() const)
+	Digestion s;
+	TEST_REAL_EQUAL(s.getTemperature(),0.0)
+RESULT
+
+//basic accessors
+CHECK(float getPh() const)
+	Digestion s;
+	TEST_REAL_EQUAL(s.getPh(),0.0)
+RESULT
+
+//basic accessors
+CHECK(const String& getEnzyme() const)
+	Digestion s;
+	s.setEnzyme("TTEST");
+	TEST_EQUAL(s.getEnzyme(),"TTEST")
+RESULT
+
+//basic accessors
+CHECK(float getDigestionTime() const)
 	Digestion s;
 	//set
-	s.setEnzyme("TTEST");
 	s.setDigestionTime(4711.2);
-	s.setTemperature(4711.3);
-	s.setPh(4711.4);
-	//get
-	TEST_EQUAL(s.getEnzyme(),"TTEST")
 	TEST_REAL_EQUAL(s.getDigestionTime(),4711.2)
+RESULT
+
+//basic accessors
+CHECK(float getTemperature() const)
+	Digestion s;
+	s.setTemperature(4711.3);
 	TEST_REAL_EQUAL(s.getTemperature(),4711.3)
+RESULT
+
+//basic accessors
+CHECK(void setPh(float ph))
+	Digestion s;
+	s.setPh(4711.4);
 	TEST_REAL_EQUAL(s.getPh(),4711.4)
 RESULT
 
 //getType
-CHECK(getType)
+CHECK([EXTRA] getType)
 	Digestion s;
 	TEST_EQUAL(s.getType(),"Digestion")
 RESULT
@@ -99,7 +136,7 @@ CHECK(Digestion(const Digestion&))
 RESULT
 
 //assignment operator
-CHECK(operator=(const Digestion&))
+CHECK(Digestion& operator=(const Digestion&))
 	Digestion s,s2;
 	//set
 	s.setEnzyme("TTEST");
@@ -120,7 +157,7 @@ CHECK(operator=(const Digestion&))
 RESULT
 
 //clone
-CHECK(operator=(const Digestion&))
+CHECK(Digestion& operator=(const Digestion&))
 	Digestion s;
 	SampleTreatment* st1;
 	SampleTreatment* st;

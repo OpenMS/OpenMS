@@ -55,19 +55,30 @@ CHECK(~Tagging())
 	delete dv_ptr;
 RESULT
 
-//basic accessors
-CHECK(basic accessors)
+CHECK(const IsotopeVariant& getVariant() const)
 	Tagging s;
-	//set
-	s.setMassShift(4711.2);
-	s.setVariant(Tagging::LIGHT);
-	//get
-	TEST_REAL_EQUAL(s.getMassShift(),4711.2)
 	TEST_EQUAL(s.getVariant(),Tagging::LIGHT)
 RESULT
 
+CHECK(float getMassShift() const)
+	Tagging s;
+	TEST_REAL_EQUAL(s.getMassShift(),0.0)
+RESULT
+
+CHECK(void setMassShift(float mass_shift))
+	Tagging s;
+	s.setMassShift(4711.2);
+	TEST_REAL_EQUAL(s.getMassShift(),4711.2)
+RESULT
+
+CHECK(const IsotopeVariant& getVariant() const)
+	Tagging s;
+	s.setVariant(Tagging::HEAVY);
+	TEST_EQUAL(s.getVariant(),Tagging::HEAVY)
+RESULT
+
 //getType
-CHECK(getType)
+CHECK([EXTRA] getType)
 	Tagging s;
 	TEST_EQUAL(s.getType(),"Tagging")
 RESULT
@@ -90,7 +101,7 @@ CHECK(Tagging(const Tagging&))
 RESULT
 
 //assignment operator
-CHECK(operator=(const Tagging&))
+CHECK(Tagging& operator=(const Tagging&))
 	Tagging s,s2;
 	//set
 	s.setMassShift(4711.2);
@@ -107,7 +118,7 @@ CHECK(operator=(const Tagging&))
 RESULT
 
 //clone
-CHECK(operator=(const Tagging&))
+CHECK(Tagging& operator=(const Tagging&))
 	Tagging s;
 	SampleTreatment* st1;
 	SampleTreatment* st;

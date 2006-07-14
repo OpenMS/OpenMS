@@ -58,22 +58,22 @@ namespace OpenMS
 			/// clone method. See SampleTreatment
 			virtual SampleTreatment* clone() const;
 			
-			/// returns the enzyme name
+			/// returns the enzyme name (default is "")
 		  const String& getEnzyme() const;
 		  /// sets the enzyme name
 		  void setEnzyme(const String& enzyme);
 		
-			/// returns the digestion time in minutes
+			/// returns the digestion time in minutes (default is 0.0)
 		  float getDigestionTime() const;
 		  /// sets the digestion time in minutes
 		  void setDigestionTime(float digestion_time);
 		
-			/// return the temperature during digestion in °C
+			/// return the temperature during digestion in °C (default is 0.0)
 		  float getTemperature() const;
 		  /// sets the temperature during digestion in °C
 		  void setTemperature(float temperature);
 		
-			/// returns the pH value
+			/// returns the pH value (default is 0.0)
 		  float getPh() const;
 		  /// sets the pH value
 		  void setPh(float ph);			

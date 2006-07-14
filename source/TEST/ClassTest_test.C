@@ -33,25 +33,25 @@ START_TEST(ClassTest, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 	
-CHECK("CHECK(string)")
+CHECK()
 RESULT
 
-CHECK("RESULT")
+CHECK()
 RESULT
 
-CHECK("NEW_TMP_FILE(filename)")
+CHECK()
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	TEST::this_test = (tmp_filename != "");
 RESULT
 
 
-CHECK("PRECISION(a)")
+CHECK()
 	PRECISION(0.5)
 	TEST_EQUAL(TEST::precision, 0.5)
 RESULT
 
-CHECK("TEST_REAL_EQUAL(a, b)")
+CHECK()
 	PRECISION(0.011)
 	TEST_REAL_EQUAL(1.0, 1.01)
 	TEST_REAL_EQUAL(1.0, 1.0)
@@ -59,29 +59,29 @@ CHECK("TEST_REAL_EQUAL(a, b)")
 	TEST_REAL_EQUAL(-1.01, -1.0)
 RESULT
 
-CHECK("TEST_EQUAL(a, b)")
+CHECK()
 	TEST_EQUAL(1.0, 1.0)
 	TEST_EQUAL('A', 'A')
 RESULT
 
-CHECK("TEST_NOT_EQUAL(a, b)")
+CHECK()
 	TEST_NOT_EQUAL(0, 1)
 	TEST_NOT_EQUAL('A', 'B')
 RESULT
 
-CHECK("TEST_EXCEPTION(a, b)")
+CHECK()
 	TEST_EXCEPTION(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__))
 RESULT
 
-CHECK("STATUS(a)")
+CHECK()
 	STATUS("status message")
 RESULT
 
-CHECK("TEST_FILE(filename, templatename)")
+CHECK()
 	TEST_FILE("data/class_test_infile.txt", "data/class_test_template.txt")
 RESULT
 
-CHECK("ABORT_IF(condition)")
+CHECK()
 	ABORT_IF(true)
 	TEST_EQUAL(1, 0)
 RESULT

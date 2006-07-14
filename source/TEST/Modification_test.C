@@ -55,23 +55,52 @@ CHECK(~Modification())
 	delete dv_ptr;
 RESULT
 
-//basic accessors
-CHECK(basic accessors)
+CHECK(const String& getReagentName() const)
 	Modification s;
-	//set
-	s.setReagentName("TTEST");
-	s.setMass(11.9);
-	s.setSpecificityType(Modification::AA);
-	s.setAffectedAminoAcids("ABCDE");
-	//get
-	TEST_EQUAL(s.getReagentName(),"TTEST")
-	TEST_REAL_EQUAL(s.getMass(),11.9)
+	TEST_EQUAL(s.getReagentName(),"")
+RESULT
+
+CHECK(float getMass() const)
+	Modification s;
+	TEST_REAL_EQUAL(s.getMass(),0.0)
+RESULT
+
+CHECK(const SpecificityType& getSpecificityType() const)
+	Modification s;
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
+RESULT
+
+CHECK(const String& getAffectedAminoAcids() const)
+	Modification s;
+	TEST_EQUAL(s.getAffectedAminoAcids(),"")
+RESULT
+
+CHECK(void setReagentName(const String& reagent_name))
+	Modification s;
+	s.setReagentName("TTEST");
+	TEST_EQUAL(s.getReagentName(),"TTEST")
+RESULT
+
+CHECK(void setMass(float mass))
+	Modification s;
+	s.setMass(11.9);
+	TEST_REAL_EQUAL(s.getMass(),11.9)
+RESULT
+
+CHECK(void setSpecificityType(const SpecificityType& specificity_type))
+	Modification s;
+	s.setSpecificityType(Modification::CTERM);
+	TEST_EQUAL(s.getSpecificityType(),Modification::CTERM)
+RESULT
+
+CHECK(void setAffectedAminoAcids(const String& affected_amino_acids))
+	Modification s;
+	s.setAffectedAminoAcids("ABCDE");
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
 RESULT
 
 //getType
-CHECK(getType)
+CHECK([EXTRA] getType)
 	Modification s;
 	TEST_EQUAL(s.getType(),"Modification")
 RESULT
@@ -99,7 +128,7 @@ CHECK(Modification(const Modification&))
 RESULT
 
 //assignment operator
-CHECK(operator=(const Modification&))
+CHECK(Modification& operator=(const Modification&))
 	Modification s,s2;
 	//set
 	s.setReagentName("TTEST");
@@ -120,7 +149,7 @@ CHECK(operator=(const Modification&))
 RESULT
 
 //clone
-CHECK(operator=(const Modification&))
+CHECK(Modification& operator=(const Modification&))
 	Modification s;
 	SampleTreatment* st1;
 	SampleTreatment* st;

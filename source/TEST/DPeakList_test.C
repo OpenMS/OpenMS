@@ -150,7 +150,7 @@ RESULT
 
 DPeakList<2, DPickedPeak<2> > pl;
 
-CHECK( empty() const)
+CHECK(bool empty() const)
 	TEST_EQUAL(pl.empty(), true)
 RESULT
 
@@ -169,7 +169,7 @@ peak3.getPosition()[0] = 10.5;
 peak3.getPosition()[1] = 0.0;
 peak3.getIntensity() = 0.01;
 
-CHECK( size() const)
+CHECK(size_type size() const)
 	TEST_EQUAL(pl.size(), 0)
 	
 	pl.push_back(peak1);
@@ -182,7 +182,7 @@ CHECK( size() const)
 	TEST_EQUAL(pl.size(), 3)
 RESULT
 
-CHECK( empty() const)
+CHECK(bool empty() const)
 	TEST_EQUAL(pl.empty(), false)
 RESULT
 
@@ -266,7 +266,7 @@ CHECK(void sortByIntensity())
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
+CHECK(void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented))
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByNthPosition(0);
 	TEST_EQUAL(pl2.size(), 3)
@@ -307,7 +307,7 @@ CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(DPeakListIterator begin())
+CHECK(Iterator begin())
 	DPeakList<2, DPickedPeak<2> >::Iterator it = pl.begin();
 	(*it).getIntensity()=1.4;
 	TEST_REAL_EQUAL(it->getIntensity(), 1.4)
@@ -315,7 +315,7 @@ CHECK(DPeakListIterator begin())
 	TEST_REAL_EQUAL(it->getPosition()[1], 3.0)
 RESULT
 
-CHECK(DPeakListIterator end())
+CHECK(Iterator end())
 	DPeakList<2, DPickedPeak<2> >::Iterator it = pl.end();
 	--it;
 	(*it).getIntensity()=4.1;
@@ -324,14 +324,14 @@ CHECK(DPeakListIterator end())
 	TEST_REAL_EQUAL(it->getPosition()[1], 0.0)
 RESULT
 
-CHECK(ConstIterator begin())
+CHECK(ConstIterator begin() const)
 	DPeakList<2, DPickedPeak<2> >::ConstIterator it = pl.begin();
 	TEST_REAL_EQUAL(it->getIntensity(), 1.4)
 	TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
 	TEST_REAL_EQUAL(it->getPosition()[1], 3.0)
 RESULT
 
-CHECK(ConstIterator end())
+CHECK(ConstIterator end() const)
 	DPeakList<2, DPickedPeak<2> >::ConstIterator it = pl.end();
 	--it;
 	TEST_REAL_EQUAL(it->getIntensity(), 4.1)
@@ -396,14 +396,14 @@ CHECK(DPeakList(size_type n, const PeakType& peak))
 	++it;
 RESULT
 
-CHECK(reference front() const)
+CHECK(const_reference front() const)
 	 DPickedPeak<2> peak6(pl.front());
 	TEST_REAL_EQUAL(peak6.getIntensity(), 4.2)
 	TEST_REAL_EQUAL(peak6.getPosition()[0], 2.0)
 	TEST_REAL_EQUAL(peak6.getPosition()[1], 3.0)
 RESULT
 
-CHECK(reference back() const)
+CHECK(const_reference back() const)
 	TEST_REAL_EQUAL(pl.back().getIntensity(), 1.5)
 	TEST_REAL_EQUAL(pl.back().getPosition()[0], 10.5)
 	TEST_REAL_EQUAL(pl.back().getPosition()[1], 0.0)
@@ -444,7 +444,7 @@ CHECK(void pop_front())
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK( push_front(PeakType) )
+CHECK(void push_front(const PeakType& x))
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl2.size(), 3)
 	
@@ -459,7 +459,7 @@ CHECK( push_front(PeakType) )
 	TEST_REAL_EQUAL(pl2.front().getIntensity(), 0.01)
 RESULT
 
-CHECK(void swap(DPeakList))
+CHECK(void swap(DPeakList& list))
 	DPeakList<2, DPickedPeak<2> > pl2;
 	
 	 DPickedPeak<2> peak1;
@@ -499,7 +499,7 @@ CHECK(void swap(DPeakList))
 	TEST_REAL_EQUAL(pl2.back().getIntensity(), 2.5)
 RESULT
 
-CHECK(iterator insert(iterator pos, const  DPickedPeakD>&))
+CHECK(Iterator insert(Iterator pos, const PeakType& peak))
 	 DPickedPeak<2> peak1;
 	peak1.getIntensity() = 4712.0;
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -515,7 +515,7 @@ CHECK(iterator insert(iterator pos, const  DPickedPeakD>&))
 	TEST_REAL_EQUAL(it->getIntensity(), 4712.0)
 RESULT
 
-CHECK(iterator erase(iterator pos))
+CHECK(Iterator erase(Iterator pos))
 	TEST_REAL_EQUAL(pl.size(), 4)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.end();
 	--it;
@@ -529,7 +529,7 @@ CHECK(iterator erase(iterator pos))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(iterator insert(iterator pos, size_type n, const  DPickedPeakD>&))
+CHECK(void insert(Iterator pos, size_type n, const PeakType& peak))
 	DPickedPeak<2> peak1;
 	peak1.getIntensity() = 4711.0;
 	pl.clear();
@@ -556,7 +556,7 @@ CHECK(iterator insert(iterator pos, size_type n, const  DPickedPeakD>&))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(iterator erase(iterator pos))
+CHECK(Iterator erase(Iterator pos))
 	TEST_REAL_EQUAL(pl.size(), 6)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
 	++it; ++it; ++it;
@@ -570,7 +570,7 @@ CHECK(iterator erase(iterator pos))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> void insert(Iterator pos, InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl.size(), 3)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
 	++it;
@@ -588,7 +588,7 @@ CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(DPeaKList(InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> DPeakList(InputIterator f, InputIterator l))
 	DPeakList<2, DPickedPeak<2> > pl2(pl.begin(),pl.end());
 	TEST_REAL_EQUAL(pl2.size(), 5)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
@@ -603,7 +603,7 @@ CHECK(DPeaKList(InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(operator == (const DPeakList&))
+CHECK(bool operator == (const DPeakList& rhs) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl == pl2 , true)
@@ -611,7 +611,7 @@ CHECK(operator == (const DPeakList&))
 	TEST_EQUAL(pl == pl2 , false)
 RESULT
 
-CHECK(operator != (const DPeakList&))
+CHECK(bool operator !=(const DPeakList& list) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl != pl2 , false)
@@ -619,21 +619,21 @@ CHECK(operator != (const DPeakList&))
 	TEST_EQUAL(pl != pl2 , true)
 RESULT
 
-CHECK(operator < (const DPeakList&))
+CHECK(bool operator < (const DPeakList& list) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl < pl2, false)
 	pl2.push_back( DPickedPeak<2>());
 	TEST_EQUAL(pl < pl2 , true)
 RESULT
 
-CHECK(operator > (const DPeakList&))
+CHECK(bool operator > (const DPeakList& list) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl > pl2, false)
 	pl2.erase(pl2.begin());
 	TEST_EQUAL(pl > pl2 , true)
 RESULT
 
-CHECK(operator <= (const DPeakList&))
+CHECK(bool operator <= (const DPeakList& list) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl <= pl2, true)
 	pl2.push_back( DPickedPeak<2>());
@@ -643,7 +643,7 @@ CHECK(operator <= (const DPeakList&))
 	TEST_EQUAL(pl <= pl2 , false)
 RESULT
 
-CHECK(operator >= (const DPeakList&))
+CHECK(bool operator >= (const DPeakList& list) const)
 	DPeakList<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl >= pl2, true)
 	pl2.erase(pl2.begin());
@@ -652,7 +652,7 @@ CHECK(operator >= (const DPeakList&))
 	TEST_EQUAL(pl >= pl2 , false)
 RESULT
 
-CHECK(resize() (shrink))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 5)
 	pl.resize(2);
 	TEST_REAL_EQUAL(pl.size(), 2)
@@ -662,13 +662,13 @@ CHECK(resize() (shrink))
 	TEST_REAL_EQUAL(it->getIntensity(), 4711.1)
 RESULT
 
-CHECK(clear() )
+CHECK(void clear())
 	TEST_REAL_EQUAL(pl.size(), 2)
 	pl.clear();
 	TEST_REAL_EQUAL(pl.size(), 0)
 RESULT
 
-CHECK(resize() (expand))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 0)
 	pl.resize(2);
 	TEST_REAL_EQUAL(pl.size(), 2)
@@ -678,7 +678,7 @@ CHECK(resize() (expand))
 	TEST_REAL_EQUAL(it->getIntensity(), 0.0)
 RESULT
 
-CHECK(resize() (expand))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 2)
 	 DPickedPeak<2> peak;
 	peak.getIntensity()=4713.0;
@@ -694,7 +694,7 @@ CHECK(resize() (expand))
 	TEST_REAL_EQUAL(it->getIntensity(), 4713.0)
 RESULT
 
-CHECK(void splice (iterator position, DPeakList& x))
+CHECK(void splice(iterator position, DPeakList& x))
 	DPeakList<2, DPickedPeak<2> > dpl2;
 	dpl2.push_back(peak1);
 	dpl2.push_back(peak2);
@@ -719,7 +719,7 @@ CHECK(void splice (iterator position, DPeakList& x))
 	TEST_REAL_EQUAL(it->getIntensity(), 4713.0)
 RESULT
 
-CHECK(void splice (iterator position, DPeakList& x,iterator i))
+CHECK(void splice(iterator position, DPeakList& x, iterator i))
 	DPeakList<2, DPickedPeak<2> > dpl2;
 	dpl2.push_back(peak1);
 	dpl2.push_back(peak2);
@@ -756,7 +756,7 @@ CHECK(void splice (iterator position, DPeakList& x,iterator i))
 	TEST_REAL_EQUAL(it->getIntensity(), 4713.0)
 RESULT
 
-CHECK(void splice (iterator position, DPeakList& x,iterator f,iterator l))
+CHECK(void splice(iterator position, DPeakList& x, iterator f, iterator l))
 	DPeakList<2, DPickedPeak<2> > dpl2;
 	dpl2.push_back(peak1);
 	dpl2.push_back(peak2);
@@ -798,7 +798,7 @@ CHECK(void splice (iterator position, DPeakList& x,iterator f,iterator l))
 	TEST_REAL_EQUAL(it->getIntensity(), 0.01)
 RESULT
 
-CHECK(void remove(const PeakType& peak))
+CHECK(void remove(const PeakType& p))
 	pl.remove(peak1);
 	TEST_EQUAL(pl.size(), 9)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
@@ -837,7 +837,7 @@ CHECK(void remove(const PeakType& peak))
 RESULT
 
 
-CHECK(template <class Predicate> void remove_if(Predicate p))
+CHECK(template<class Predicate> void remove_if(Predicate p))
 	pl.remove_if(bind2nd(equal_to<  DPickedPeak<2> >() , peak3));
 	TEST_EQUAL(pl.size(), 4)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
@@ -859,7 +859,7 @@ CHECK(void unique())
 	TEST_REAL_EQUAL(it->getIntensity(), 4713.0)
 RESULT
 
-CHECK(template <class BinaryPredicate> void unique(BinaryPredicate p))
+CHECK(template<class BinaryPredicate> void unique(BinaryPredicate p))
 	pl.insert(pl.begin(),1,peak1);
 	pl.insert(pl.begin(),2,peak2);
 	pl.insert(pl.begin(),3,peak3);
@@ -907,7 +907,7 @@ CHECK(void sort())
 	TEST_REAL_EQUAL(it->getIntensity(), 0.01)
 RESULT
 
-CHECK(void merge(DPeakList&))
+CHECK(void merge(DPeakList& list))
 	DPeakList<2, DPickedPeak<2> > dpl2;
 	dpl2.push_back(peak2);
 	dpl2.push_back(peak1);
@@ -933,7 +933,7 @@ CHECK(void merge(DPeakList&))
 	TEST_REAL_EQUAL(it->getIntensity(), 0.01)
 RESULT
 
-CHECK(template <class BinaryPredicate> void sort(BinaryPredicate p))
+CHECK(template<class BinaryPredicate> void sort(BinaryPredicate p))
 	pl.sort( DPickedPeak<2>::IntensityLess());
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
 	TEST_REAL_EQUAL(it->getIntensity(), 0.0)
@@ -953,7 +953,7 @@ CHECK(template <class BinaryPredicate> void sort(BinaryPredicate p))
 	TEST_REAL_EQUAL(it->getIntensity(), 4713.0)
 RESULT
 
-CHECK(template <class BinaryPredicate> void merge(DPeakList& , BinaryPredicate p))
+CHECK(template<class BinaryPredicate> void merge(DPeakList& list, BinaryPredicate p))
 	DPeakList<2, DPickedPeak<2> > dpl2;
 	dpl2.push_back(peak3);
 	dpl2.push_back(peak2);
@@ -1011,7 +1011,7 @@ CHECK(void reverse())
 	TEST_REAL_EQUAL(it->getIntensity(), 0.0)
 RESULT
 
-CHECK( template <class InputIterator> void assign(InputIterator f , InputIterator l) )
+CHECK(template<class InputIterator> void assign(InputIterator f, InputIterator l))
 	DPeakList<2, DPickedPeak<2> > dpa2;
 	dpa2.push_back(peak1);
 	dpa2.push_back(peak2);
@@ -1027,7 +1027,7 @@ CHECK( template <class InputIterator> void assign(InputIterator f , InputIterato
 	TEST_REAL_EQUAL(it->getIntensity(), 0.01)
 RESULT
 
-CHECK( void assign(size_type n , const PeakType& x) )
+CHECK(void assign(size_type n, const PeakType& x))
 	pl.assign(5,peak3);
 	TEST_EQUAL(pl.size(), 5)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl.begin();
@@ -1076,7 +1076,7 @@ TEST_REAL_EQUAL(it->getIntensity(), 3.0)
 TEST_REAL_EQUAL(it->getIntensity(), 6.0)
 RESULT
 
-CHECK(sortByPosition() without argument)
+CHECK(void sortByPosition())
 DPeakList<2, DPickedPeak<2> > dpa2;
  DPickedPeak<2> p1(peak1);
 p1.getIntensity()=1;
@@ -1114,7 +1114,7 @@ TEST_REAL_EQUAL(it->getIntensity(), 3.0)
 TEST_REAL_EQUAL(it->getIntensity(), 6.0)
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator ())
+CHECK(template< typename ComparatorType > void sortByComparator())
 	DPeakList<2, DPickedPeak<2> > pl2;
 	pl2.push_back(peak1);
 	pl2.push_back(peak2);
@@ -1160,7 +1160,7 @@ CHECK(template < typename ComparatorType > void sortByComparator ())
 	
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator (comparator))
+CHECK(template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator ))
 	DPeakList<2, DPickedPeak<2> > pl2;
 	pl2.push_back(peak1);
 	pl2.push_back(peak2);
@@ -1217,7 +1217,7 @@ p2.setLabel("L2");
 p4.getIntensity()=4;
 p4.setLabel("L4");
 
-CHECK( push_back(const PeakType&) (inhomogenous list))
+CHECK(push_back(const PeakType&) (inhomogenous list))
 	TEST_EQUAL(dpa.size(), 0)
 	dpa.push_back(p3);
 	dpa.push_back(p4);
@@ -1238,15 +1238,15 @@ CHECK( push_back(const PeakType&) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( back() (inhomogenous list))
+CHECK(back() (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa.back()).getLabel(), "L4")
 RESULT
 
-CHECK( front() (inhomogenous list))
+CHECK(front() (inhomogenous list))
 	TEST_EQUAL(typeid(dpa.front()) == typeid(Labeled1DPeak),false)
 RESULT
 
-CHECK( DPeakList(size_type n, const PrakType& p) (inhomogenous list))
+CHECK(DPeakList(size_type n, const PrakType& p) (inhomogenous list))
 	DPeakList<1> dpa2(4,dpa.back());
 	DPeakList<1>::iterator it = dpa2.begin();
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
@@ -1258,7 +1258,7 @@ CHECK( DPeakList(size_type n, const PrakType& p) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( DPeakList( const PeakType& p) (inhomogenous list))
+CHECK(DPeakList( const PeakType& p) (inhomogenous list))
 	DPeakList<1> dpa2(dpa);
 	DPeakList<1>::iterator it = dpa2.begin();
 	TEST_REAL_EQUAL(it->getIntensity(), 1)
@@ -1274,7 +1274,7 @@ CHECK( DPeakList( const PeakType& p) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( DPeakList(InputIterator f, InputIterator l) (inhomogenous list))
+CHECK(DPeakList(InputIterator f, InputIterator l) (inhomogenous list))
 	DPeakList<1> dpa2(dpa.begin(),dpa.end());
 	DPeakList<1>::iterator it = dpa2.begin();
 	TEST_REAL_EQUAL(it->getIntensity(), 1)
@@ -1290,7 +1290,7 @@ CHECK( DPeakList(InputIterator f, InputIterator l) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( operator = (inhomogenous list))
+CHECK(operator = (inhomogenous list))
 	DPeakList<1> dpa2;
 	dpa2 = dpa;
 	DPeakList<1>::iterator it = dpa2.begin();
@@ -1307,7 +1307,7 @@ CHECK( operator = (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( swap(DPeakList&) (inhomogenous list))
+CHECK(swap(DPeakList&) (inhomogenous list))
 	DPeakList<1> dpa2(2,dpa.back());
 	dynamic_cast<Labeled1DPeak&>(dpa2.front()).setLabel("dpa2L1");
 	dynamic_cast<Labeled1DPeak&>(dpa2.back()).setLabel("dpa2L2");
@@ -1339,7 +1339,7 @@ CHECK( swap(DPeakList&) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "dpa2L2")
 RESULT
 
-CHECK( resize(size_type n, DPeakList& p) (inhomogenous list))
+CHECK(resize(size_type n, DPeakList& p) (inhomogenous list))
 	TEST_EQUAL(dpa.size(), 4)
 	dpa.resize(2);
 	TEST_EQUAL(dpa.size(), 2)
@@ -1356,7 +1356,7 @@ CHECK( resize(size_type n, DPeakList& p) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( insert(Iterator pos, DPeakList& p) (inhomogenous list))
+CHECK(insert(Iterator pos, DPeakList& p) (inhomogenous list))
 	dpa.insert(dpa.begin(),p4);
 	DPeakList<1>::iterator it = dpa.begin();
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
@@ -1371,7 +1371,7 @@ CHECK( insert(Iterator pos, DPeakList& p) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( insert(Iterator pos, size_type n, DPeakList& p) (inhomogenous list))
+CHECK(insert(Iterator pos, size_type n, DPeakList& p) (inhomogenous list))
 	DPeakList<1>::iterator it = dpa.begin();
 	++it;
 	dpa.insert(it,2,p2);
@@ -1392,7 +1392,7 @@ CHECK( insert(Iterator pos, size_type n, DPeakList& p) (inhomogenous list))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous list))
+CHECK(insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous list))
 	dpa.insert(dpa.end(),dpa.begin(),dpa.end());
 	DPeakList<1>::iterator it = dpa.begin();
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
@@ -1426,7 +1426,7 @@ CHECK( insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous list
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(*it).getLabel(), "L4")
 RESULT
 
-CHECK( operator == (inhomogenous list))
+CHECK(operator == (inhomogenous list))
 	DPeakList<1> dpa2(dpa);
 	TEST_EQUAL( dpa == dpa2 ,true)
 	dynamic_cast<Labeled1DPeak&>(dpa2.front()).getIntensity()=1.234234;
@@ -1437,7 +1437,7 @@ CHECK( operator == (inhomogenous list))
 	TEST_EQUAL( dpa == dpa2 ,false)
 RESULT
 
-CHECK( operator != (inhomogenous list))
+CHECK(operator != (inhomogenous list))
 	DPeakList<1> dpa2(dpa);
 	TEST_EQUAL( dpa != dpa2 ,false)
 	dpa2.front().getIntensity()=1.234234;
@@ -1477,7 +1477,7 @@ pl2.push_back(p2_2);
 pl2.push_back(p3_2);
 pl2.push_back(p4_2);
 
-CHECK( sort() / sorting by intensity/width/position (inhomogenous list))
+CHECK(sort() / sorting by intensity/width/position (inhomogenous list))
 	DPeakList<2, DPickedPeak<2> >::iterator it;
 	DPeakList<2, DPickedPeak<2> > dpa3(pl2);
 	it = dpa3.begin();
@@ -1553,7 +1553,7 @@ RESULT
 DPeakList<2, DPickedPeak<2> > pl3=pl2;
 
 
-CHECK( splice(interator pos, DPeakList list) (inhomogenous) )
+CHECK(splice(interator pos, DPeakList list) (inhomogenous))
 	TEST_EQUAL(pl2.size(), 4)
 	TEST_EQUAL(pl3.size(), 4)
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl2.begin();
@@ -1597,7 +1597,7 @@ CHECK( splice(interator pos, DPeakList list) (inhomogenous) )
 	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(*it).label(), "L4")
 RESULT
 
-CHECK( splice(interator pos, DPeakList list, iterator i) (inhomogenous) )
+CHECK(splice(interator pos, DPeakList list, iterator i) (inhomogenous))
 	pl3.splice(pl3.begin(),pl2,pl2.begin());
 	pl3.splice(pl3.begin(),pl2,pl2.begin());
 	TEST_EQUAL(pl2.size(), 6)
@@ -1628,7 +1628,7 @@ CHECK( splice(interator pos, DPeakList list, iterator i) (inhomogenous) )
 	TEST_EQUAL(typeid(*it) == typeid(Labeled2DPeak),false)
 RESULT
 
-CHECK( splice(interator pos, DPeakList list, iterator f, iterator l) (inhomogenous)  )
+CHECK(splice(interator pos, DPeakList list, iterator f, iterator l) (inhomogenous))
 	DPeakList<2, DPickedPeak<2> >::iterator it = pl2.begin();
 	++it; 
 	++it;
@@ -1661,7 +1661,7 @@ CHECK( splice(interator pos, DPeakList list, iterator f, iterator l) (inhomogeno
 	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(*it).label(), "L4")
 RESULT
 
-CHECK( remove(DPeak p) (inhomogenous) )
+CHECK(remove(DPeak p) (inhomogenous))
 	pl3.push_front(p2_2_mutant);
 	pl3.push_front(p2_2_mutant2);
 	TEST_EQUAL(pl3.size(), 6)
@@ -1673,7 +1673,7 @@ CHECK( remove(DPeak p) (inhomogenous) )
 	TEST_EQUAL(pl3.size(), 3)	
 RESULT
 
-CHECK( merge(DPeakList l) (inhomogenous) )
+CHECK(merge(DPeakList l) (inhomogenous))
 	pl3=pl2;
 	TEST_EQUAL(pl3.size(), 4)
 	TEST_EQUAL(pl2.size(), 4)
@@ -1708,7 +1708,7 @@ CHECK( merge(DPeakList l) (inhomogenous) )
 	TEST_EQUAL(typeid(*it) == typeid(Labeled2DPeak),false)
 RESULT
 
-CHECK( unique() (inhomogenous) )
+CHECK(unique() (inhomogenous))
 	pl3.unique();
 	TEST_EQUAL(pl3.size(), 4)
 
@@ -1726,7 +1726,7 @@ CHECK( unique() (inhomogenous) )
 	TEST_EQUAL(typeid(*it) == typeid(Labeled2DPeak),false)
 RESULT
 
-CHECK( merge(DPeakList l, BinaryPredicate comp) (inhomogenous) )
+CHECK(merge(DPeakList l, BinaryPredicate comp) (inhomogenous))
 	pl2=pl3;
 	TEST_EQUAL(pl3.size(), 4)
 	TEST_EQUAL(pl2.size(), 4)
@@ -1761,7 +1761,7 @@ CHECK( merge(DPeakList l, BinaryPredicate comp) (inhomogenous) )
 	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(*it).label(), "L4")
 RESULT
 
-CHECK( unique(BinaryPredicate b) (inhomogenous) )	
+CHECK(unique(BinaryPredicate b) (inhomogenous))
 	pl3.unique(SameType());
 	TEST_EQUAL(pl3.size(), 4)
 

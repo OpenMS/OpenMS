@@ -144,7 +144,7 @@ CHECK(void persistentRead(PersistenceManager& pm) throw(Exception::Base))
 RESULT
 
 // This method ist tested in PersistenceManger_test
-CHECK((void persistentWrite(PersistenceManager& pm, const char* name=0) const throw(Exception::Base)))
+CHECK(void persistentWrite(PersistenceManager& pm, const char* name=0) const throw(Exception::Base))
   
 RESULT
 

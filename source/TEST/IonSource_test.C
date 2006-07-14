@@ -84,7 +84,7 @@ CHECK(Polarity getPolarity() const)
   TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
 RESULT
 
-CHECK(void setPolarity(Polarity polarity))
+CHECK(void setPolarity(Polarity ploarity))
 	IonSource tmp;
   tmp.setPolarity(IonSource::POSITIVE);
   TEST_EQUAL(tmp.getPolarity(),IonSource::POSITIVE);

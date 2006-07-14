@@ -87,27 +87,27 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 
 if (do_tests)
 {
-	CHECK((void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UnsignedInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery)))
+CHECK(void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UnsignedInt port=3306, const std::string& QTDBDriver = DB_PLUGIN ) throw(InvalidQuery))
 	  DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EXCEPTION(DBConnection::InvalidQuery,con.connect("doesnotexist",user,password,host, port.toInt()))
 	RESULT
 
-	CHECK(std::string DBName() const)
+CHECK(std::string DBName() const)
 		DBConnection con;
 	  TEST_EQUAL(con.DBName(),"");
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.DBName(),db);
 	RESULT
 
-	CHECK(bool isConnected() const)
+CHECK(bool isConnected() const)
 		DBConnection con;
 	  TEST_EQUAL(con.isConnected(),false);
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.isConnected(),true);
 	RESULT
 
-	CHECK(void disconnect())
+CHECK(void disconnect())
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.disconnect();
@@ -115,14 +115,14 @@ if (do_tests)
 	  TEST_EQUAL(con.isConnected(),false);
 	RESULT
 
-	CHECK((void executeQuery(const std::string& query) throw(InvalidQuery, NotConnected)))
+CHECK(void executeQuery(const std::string& query) throw(InvalidQuery, NotConnected))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy");
 	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5))");
 	RESULT
 	
-	CHECK(const std::string& lastQuery() const)
+CHECK(std::string lastQuery() const)
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.lastQuery(),"");
@@ -130,7 +130,7 @@ if (do_tests)
 	  TEST_EQUAL(con.lastQuery(),"INSERT INTO Dummy values (5,'bla'),(4711,'bluff')");
 	RESULT
 
-	CHECK(std::string lastError() const)
+CHECK(std::string lastError() const)
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.lastError(),"");
@@ -145,7 +145,7 @@ if (do_tests)
 	  TEST_EQUAL(con.lastError()=="",false);
 	RESULT
 
-	CHECK(QSqlQuery& lastResult())
+CHECK(QSqlQuery& lastResult())
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		con.executeQuery("SELECT * FROM Dummy");
@@ -158,7 +158,7 @@ if (do_tests)
  		TEST_EQUAL(con.lastResult().value(1).toString(),"bluff");
 	RESULT
 
-	CHECK(String getStringValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError))
+CHECK(String getStringValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL("bla",con.getStringValue("Dummy","text","5"));
@@ -167,7 +167,7 @@ if (do_tests)
 		//TODO test ConversionError 
 	RESULT
 
-	CHECK(SignedInt getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError))
+CHECK(SignedInt getIntValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getIntValue("Dummy","id","5"));
@@ -176,7 +176,7 @@ if (do_tests)
 		//TODO test ConversionError 
 	RESULT
 
-	CHECK(double getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError))
+CHECK(double getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_REAL_EQUAL(5.0,con.getIntValue("Dummy","id","5"));
@@ -185,7 +185,7 @@ if (do_tests)
 		//TODO test ConversionError 
 	RESULT
 
-	CHECK(UnsignedInt getId(const std::string& table, const std::string& column, const std::string& value) throw (InvalidQuery,NotConnected))
+CHECK(UnsignedInt getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery, NotConnected))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getId("Dummy","text","bla"));
@@ -193,7 +193,7 @@ if (do_tests)
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getId("Dummy2","text56","4711"))		
 	RESULT
 
-	CHECK((void render( std::ostream& out=std::cout, const std::string& separator=" | ", const std::string& line_begin="", const std::string& line_end="\n")))
+CHECK(void render( std::ostream& out=std::cout, const std::string& separator=" | ", const std::string& line_begin="", const std::string& line_end="\n"))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		con.executeQuery("SELECT * FROM Dummy");
@@ -205,7 +205,7 @@ if (do_tests)
 		TEST_EQUAL(s2.str(),"idxtext; 5xbla; 4711xbluff; ")
 	RESULT
 
-	CHECK((template<class StringListType> void executeQueries(const StringListType& queries) throw(InvalidQuery, NotConnected)))
+CHECK(template<class StringListType> void executeQueries(const StringListType& queries) throw(InvalidQuery, NotConnected))
 	  vector<String> qs;
 	  qs.push_back("DROP TABLE IF EXISTS Dummy");
 	  qs.push_back("CREATE TABLE Dummy (id int,text varchar(5))");
@@ -223,7 +223,7 @@ if (do_tests)
 		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")	  	  
 	RESULT
 
-	CHECK(Deleting table 'Dummy')
+CHECK([EXTRA] Deleting table 'Dummy')
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy");

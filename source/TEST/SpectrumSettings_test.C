@@ -41,21 +41,21 @@ START_TEST(SpectrumSettings, "$Id$")
 
 SpectrumSettings* ptr = 0;
 
-CHECK(SpectrumSettings())
+CHECK((SpectrumSettings()))
 	ptr = new SpectrumSettings();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SpectrumSettings())
+CHECK((~SpectrumSettings()))
 	delete ptr;
 RESULT
 
-CHECK(AcquisitionInfo& getAcquisitionInfo())
+CHECK((AcquisitionInfo& getAcquisitionInfo()))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
 RESULT
 
-CHECK(void setAcquisitionInfo(const AcquisitionInfo& acquisition_info))
+CHECK((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info)))
 	SpectrumSettings tmp;
 	AcquisitionInfo ai;
 	ai.setMethodOfCombination("test");
@@ -63,18 +63,18 @@ CHECK(void setAcquisitionInfo(const AcquisitionInfo& acquisition_info))
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
 RESULT
 
-CHECK(const AcquisitionInfo& getAcquisitionInfo() const)
+CHECK((const AcquisitionInfo& getAcquisitionInfo() const))
 	SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
 RESULT
 
-CHECK(const InstrumentSettings& getInstrumentSettings() const)
+CHECK((const InstrumentSettings& getInstrumentSettings() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), true);	  
 RESULT
 
-CHECK(void setInstrumentSettings(const InstrumentSettings& instrument_settings))
+CHECK((void setInstrumentSettings(const InstrumentSettings& instrument_settings)))
 	SpectrumSettings tmp;
 	InstrumentSettings is;
 	is.setMzRangeStart(47.11);
@@ -82,18 +82,18 @@ CHECK(void setInstrumentSettings(const InstrumentSettings& instrument_settings))
 	TEST_REAL_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);
 RESULT
 
-CHECK(InstrumentSettings& getInstrumentSettings())
+CHECK((InstrumentSettings& getInstrumentSettings()))
 	SpectrumSettings tmp;
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
 	TEST_REAL_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);	
 RESULT
 
-CHECK(const Precursor& getPrecursor() const)
+CHECK((const Precursor& getPrecursor() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getPrecursor()==Precursor(), true);	  
 RESULT
 
-CHECK(void setPrecursor(const Precursor& instrument_settings))
+CHECK((void setPrecursor(const Precursor& precursor)))
 	SpectrumSettings tmp;
 	Precursor is;
 	is.setActivationEnergy(47.11);
@@ -101,41 +101,41 @@ CHECK(void setPrecursor(const Precursor& instrument_settings))
 	TEST_REAL_EQUAL(tmp.getPrecursor()==Precursor(), false);
 RESULT
 
-CHECK(Precursor& getPrecursor())
+CHECK((Precursor& getPrecursor()))
 	SpectrumSettings tmp;
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	TEST_REAL_EQUAL(tmp.getPrecursor()==Precursor(), false);	
 RESULT
 
-CHECK(SpectrumType getType() const)
+CHECK((SpectrumType getType() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getType(), SpectrumSettings::UNKNOWN);	  
 RESULT
 
-CHECK(void setType(SpectrumType type))
+CHECK((void setType(SpectrumType type)))
 	SpectrumSettings tmp;
 	tmp.setType(SpectrumSettings::PEAKS);
 	TEST_EQUAL(tmp.getType(), SpectrumSettings::PEAKS);
 RESULT
 
-CHECK(const String& getComment() const)
+CHECK((const String& getComment() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getComment(), "");
 RESULT
 
-CHECK(void setComment(const String& comment))
+CHECK((void setComment(const String& comment)))
 	SpectrumSettings tmp;
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");
 RESULT
 
-CHECK(const std::vector<Identification>& getIdentification() const)
+CHECK((const std::vector<Identification>& getIdentification() const))
 	SpectrumSettings tmp;
 	vector<Identification> vec(tmp.getIdentification());
 	TEST_EQUAL(vec.size(),0);
 RESULT
 
-CHECK(void setIdentification(const std::vector<Identification>& identification))
+CHECK((void setIdentification(const std::vector<Identification>& identification)))
 	SpectrumSettings tmp;
 	vector<Identification> vec;
 	
@@ -150,7 +150,7 @@ CHECK(void setIdentification(const std::vector<Identification>& identification))
 	TEST_EQUAL(tmp.getIdentification()[0].getCharge(),5);
 RESULT
 
-CHECK( std::vector<Identification>& getIdentification())
+CHECK((std::vector<Identification>& getIdentification()))
 	SpectrumSettings tmp;
 	vector<Identification> vec;
 	
@@ -185,7 +185,7 @@ CHECK((std::map<String,MetaInfoDescription>& getMetaInfoDescriptions()))
 	TEST_EQUAL(tmp.getMetaInfoDescriptions()["key2"].getComment(),"comment");
 RESULT
 
-CHECK(SpectrumSettings& operator= (const SpectrumSettings& source))
+CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
@@ -203,7 +203,7 @@ CHECK(SpectrumSettings& operator= (const SpectrumSettings& source))
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
 RESULT
 
-CHECK(SpectrumSettings(const SpectrumSettings& source))
+CHECK((SpectrumSettings(const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
@@ -231,7 +231,7 @@ CHECK(SpectrumSettings(const SpectrumSettings& source))
 
 RESULT
 
-CHECK(bool operator== (const SpectrumSettings& rhs) const)
+CHECK((bool operator== (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
   TEST_EQUAL(edit==empty, true);
@@ -260,7 +260,7 @@ CHECK(bool operator== (const SpectrumSettings& rhs) const)
 	TEST_EQUAL(edit==empty, false);
 RESULT
 
-CHECK(bool operator!= (const SpectrumSettings& rhs) const)
+CHECK((bool operator!= (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
   TEST_EQUAL(edit!=empty, false);

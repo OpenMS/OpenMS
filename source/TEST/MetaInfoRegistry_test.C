@@ -41,13 +41,13 @@ using namespace OpenMS;
 using namespace std;
 
 MetaInfoRegistry* test;
-CHECK(MetaInfoRegistry::MetaInfoRegistry())
+CHECK(MetaInfoRegistry())
 	test = new MetaInfoRegistry;
 	TEST_NOT_EQUAL(test, 0)
 RESULT
 
 
-CHECK(MetaInfoRegistry::~MetaInfoRegistry())
+CHECK(~MetaInfoRegistry())
 	delete test;
 RESULT
 
@@ -60,7 +60,7 @@ CHECK(UnsignedInt registerName(const std::string& name, const std::string& descr
 	TEST_EQUAL(1025,retention_time)
 RESULT
 
-CHECK(UnsignedInt getIndex(const std::string& name) const)
+CHECK(UnsignedInt getIndex(const std::string& name) const throw(Exception::InvalidValue))
 	UnsignedInt tmp;
 	tmp = mir.getIndex ("testname");
 	TEST_EQUAL(1024,tmp)
@@ -72,7 +72,7 @@ CHECK(UnsignedInt getIndex(const std::string& name) const)
 	TEST_EQUAL(2,tmp)
 RESULT
 
-CHECK(std::string getName(UnsignedInt index) const)
+CHECK(std::string getName(UnsignedInt index) const throw(Exception::InvalidValue))
 	string tmp;
 	tmp = mir.getName (1);
 	TEST_EQUAL("isotopic_range",tmp)
@@ -88,7 +88,7 @@ CHECK(std::string getName(UnsignedInt index) const)
 	TEST_EQUAL("retention time",tmp)
 RESULT
 
-CHECK(std::string getDescprition(UnsignedInt index) const)
+CHECK(std::string getDescription(UnsignedInt index) const throw(Exception::InvalidValue))
 	string tmp;
 	tmp = mir.getDescription(1024);
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -100,7 +100,7 @@ CHECK(std::string getDescprition(UnsignedInt index) const)
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))
 RESULT
 
-CHECK(std::string getDescprition(const std::string& name) const)
+CHECK(std::string getDescription(const std::string& name) const throw(Exception::InvalidValue))
 	string tmp;
 	tmp = mir.getDescription("testname");
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -112,7 +112,7 @@ CHECK(std::string getDescprition(const std::string& name) const)
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))	
 RESULT
 
-CHECK(std::string getUnit(UnsignedInt index) const)
+CHECK(std::string getUnit(UnsignedInt index) const throw(Exception::InvalidValue))
 	string tmp;
 	tmp = mir.getUnit(1024);
 	TEST_EQUAL(tmp,string(""))
@@ -124,7 +124,7 @@ CHECK(std::string getUnit(UnsignedInt index) const)
 	TEST_EQUAL(tmp,string(""))
 RESULT
 
-CHECK(std::string getUnit(const std::string& name) const)
+CHECK(std::string getUnit(const std::string& name) const throw(Exception::InvalidValue))
 	string tmp;
 	tmp = mir.getUnit("testname");
 	TEST_EQUAL(tmp,string(""))

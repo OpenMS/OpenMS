@@ -135,7 +135,7 @@ RESULT
 
 DPeakArray<2 ,DPickedPeak<2> > pl;
 
-CHECK( empty() const)
+CHECK(bool empty() const)
 	TEST_EQUAL(pl.empty(), true)
 RESULT
 
@@ -154,7 +154,7 @@ peak3.getPosition()[0] = 10.5;
 peak3.getPosition()[1] = 0.0;
 peak3.getIntensity() = 0.01;
 
-CHECK( size() const)
+CHECK(size_type size() const)
 	TEST_EQUAL(pl.size(), 0)
 	
 	pl.push_back(peak1);
@@ -167,7 +167,7 @@ CHECK( size() const)
 	TEST_EQUAL(pl.size(), 3)
 RESULT
 
-CHECK( empty() const)
+CHECK(bool empty() const)
 	TEST_EQUAL(pl.empty(), false)
 RESULT
 
@@ -255,7 +255,7 @@ CHECK(void sortByIntensity())
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
+CHECK(void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented))
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByNthPosition(0);
 	TEST_EQUAL(pl2.size(), 3)
@@ -295,7 +295,7 @@ CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator ())
+CHECK(template< typename ComparatorType > void sortByComparator())
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByComparator<DPickedPeak<2>::PositionLess>();
 	TEST_EQUAL(pl2.size(), 3)
@@ -328,7 +328,7 @@ CHECK(template < typename ComparatorType > void sortByComparator ())
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator (comparator))
+CHECK(template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator ))
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByComparator<DPickedPeak<2>::NthPositionLess<1> >(DPickedPeak<2>::NthPositionLess<1>());
 	TEST_EQUAL(pl2.size(), 3)
@@ -400,14 +400,14 @@ CHECK(Iterator end())
 	TEST_REAL_EQUAL(it->getPosition()[1], 0.0)
 RESULT
 
-CHECK(ConstIterator begin())
+CHECK(ConstIterator begin() const)
 	DPeakArray<2, DPickedPeak<2> >::ConstIterator it = pl.begin();
 	TEST_REAL_EQUAL(it->getIntensity(), 1.4)
 	TEST_REAL_EQUAL(it->getPosition()[0], 2.0)
 	TEST_REAL_EQUAL(it->getPosition()[1], 3.0)
 RESULT
 
-CHECK(ConstIterator end())
+CHECK(ConstIterator end() const)
 	DPeakArray<2, DPickedPeak<2> >::ConstIterator it = pl.end();
 	--it;
 	TEST_REAL_EQUAL(it->getIntensity(), 4.1)
@@ -450,7 +450,7 @@ CHECK(size_type capacity() const)
 	TEST_EQUAL(pl.size(), 3)
 RESULT
 
-CHECK(void reserve(size_type))
+CHECK(void reserve(size_type n))
 	pl.reserve(4);
 	TEST_EQUAL(pl.size(), 3)
 	TEST_EQUAL(pl.capacity(), 4)
@@ -464,7 +464,7 @@ CHECK(void reserve(size_type))
 	TEST_EQUAL(pl.capacity(), 4)
 RESULT
 
-CHECK(DPeakArray& operator[] const)
+CHECK(const_reference operator [](size_type n) const)
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 1.5)
 	TEST_REAL_EQUAL(pl[2].getPosition()[0], 10.5)
 	TEST_REAL_EQUAL(pl[2].getPosition()[1], 0.0)
@@ -474,7 +474,7 @@ CHECK(DPeakArray& operator[] const)
 	TEST_REAL_EQUAL(pl[3].getPosition()[1], 1.1)
 RESULT
 
-CHECK(DPeakArray& operator[])
+CHECK(reference operator [](size_type n))
 	pl[3].getIntensity() = 1.2;
 	pl[3].getPosition()[0] = 1.5;
 	pl[3].getPosition()[1] = 1.6;
@@ -502,14 +502,14 @@ CHECK(DPeakArray(size_type n, const PeakType& peak))
 	TEST_REAL_EQUAL(pl2[2].getIntensity(), 5.1)
 RESULT
 
-CHECK(reference front() const)
+CHECK(const_reference front() const)
 	DPickedPeak<2> peak6(pl.front());
 	TEST_REAL_EQUAL(peak6.getIntensity(), 4.2)
 	TEST_REAL_EQUAL(peak6.getPosition()[0], 2.0)
 	TEST_REAL_EQUAL(peak6.getPosition()[1], 3.0)
 RESULT
 
-CHECK(reference back() const)
+CHECK(const_reference back() const)
 	TEST_REAL_EQUAL(pl.back().getIntensity(), 1.2)
 	TEST_REAL_EQUAL(pl.back().getPosition()[0], 1.5)
 	TEST_REAL_EQUAL(pl.back().getPosition()[1], 1.6)
@@ -534,7 +534,7 @@ CHECK(void pop_back())
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 1.5)
 RESULT
 
-CHECK(void swap(DPeakArray))
+CHECK(void swap(DPeakArray& array))
 	DPeakArray<2, DPickedPeak<2> > pl2;
 	
 	DPickedPeak<2> peak1;
@@ -576,7 +576,7 @@ CHECK(void swap(DPeakArray))
 	TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.5)
 RESULT
 
-CHECK(iterator insert(iterator pos, const DPickedPeak<D>&))
+CHECK(Iterator insert(Iterator pos, const PeakType& peak))
 	DPickedPeak<2> peak1;
 	peak1.getIntensity() = 4712.0;
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -588,7 +588,7 @@ CHECK(iterator insert(iterator pos, const DPickedPeak<D>&))
 	TEST_REAL_EQUAL(pl[3].getIntensity(), 4712.0)
 RESULT
 
-CHECK(iterator erase(iterator pos))
+CHECK(Iterator erase(Iterator pos))
 	TEST_REAL_EQUAL(pl.size(), 4)
 	pl.erase(pl.end()-1);
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -597,7 +597,7 @@ CHECK(iterator erase(iterator pos))
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 1.5)
 RESULT
 
-CHECK(iterator insert(iterator pos, size_type n, const DPickedPeak<D>&))
+CHECK(void insert(Iterator pos, size_type n, const PeakType& peak))
 	DPickedPeak<2> peak1;
 	peak1.getIntensity() = 4714.0;
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -611,7 +611,7 @@ CHECK(iterator insert(iterator pos, size_type n, const DPickedPeak<D>&))
 	TEST_REAL_EQUAL(pl[5].getIntensity(), 1.5)
 RESULT
 
-CHECK(iterator erase(iterator pos))
+CHECK(Iterator erase(Iterator pos))
 	TEST_REAL_EQUAL(pl.size(), 6)
 	pl.erase(pl.begin(),pl.begin()+3);
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -620,7 +620,7 @@ CHECK(iterator erase(iterator pos))
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 1.5)
 RESULT
 
-CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> void insert(Iterator pos, InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl.size(), 3)
 	pl.insert(pl.begin(),pl.begin()+1,pl.end());
 	TEST_REAL_EQUAL(pl.size(), 5)
@@ -631,7 +631,7 @@ CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl[4].getIntensity(), 1.5)
 RESULT
 
-CHECK(DPeaKArray(InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> DPeakArray(InputIterator f, InputIterator l))
 	DPeakArray<2, DPickedPeak<2> > pl2(pl.begin()+1,pl.end()-1);
 	TEST_REAL_EQUAL(pl2.size(), 3)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.5)
@@ -639,7 +639,7 @@ CHECK(DPeaKArray(InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl2[2].getIntensity(), 0.5)
 RESULT
 
-CHECK(operator == (const DPeakArray&))
+CHECK(bool operator == (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl == pl2 , true)
@@ -647,7 +647,7 @@ CHECK(operator == (const DPeakArray&))
 	TEST_EQUAL(pl == pl2 , false)
 RESULT
 
-CHECK(operator != (const DPeakArray&))
+CHECK(bool operator !=(const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl != pl2 , false)
@@ -655,21 +655,21 @@ CHECK(operator != (const DPeakArray&))
 	TEST_EQUAL(pl != pl2 , true)
 RESULT
 
-CHECK(operator < (const DPeakArray&))
+CHECK(bool operator < (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl < pl2, false)
 	pl2.push_back(DPickedPeak<2>());
 	TEST_EQUAL(pl < pl2 , true)
 RESULT
 
-CHECK(operator > (const DPeakArray&))
+CHECK(bool operator > (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl > pl2, false)
 	pl2.erase(pl2.end()-1);
 	TEST_EQUAL(pl > pl2 , true)
 RESULT
 
-CHECK(operator <= (const DPeakArray&))
+CHECK(bool operator <= (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl <= pl2, true)
 	pl2.push_back(DPickedPeak<2>());
@@ -678,7 +678,7 @@ CHECK(operator <= (const DPeakArray&))
 	TEST_EQUAL(pl <= pl2 , false)
 RESULT
 
-CHECK(operator >= (const DPeakArray&))
+CHECK(bool operator >= (const DPeakArray& array) const)
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl >= pl2, true)
 	pl2.erase(pl2.end()-1);
@@ -687,7 +687,7 @@ CHECK(operator >= (const DPeakArray&))
 	TEST_EQUAL(pl >= pl2 , false)
 RESULT
 
-CHECK(resize() (shrink))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 5)
 	TEST_REAL_EQUAL(pl[0].getIntensity(), 0.5)
 	TEST_REAL_EQUAL(pl[1].getIntensity(), 1.5)
@@ -697,19 +697,19 @@ CHECK(resize() (shrink))
 	TEST_REAL_EQUAL(pl[1].getIntensity(), 1.5)
 RESULT
 
-CHECK(clear() )
+CHECK(void clear())
 	TEST_REAL_EQUAL(pl.size(), 2)
 	pl.clear();
 	TEST_REAL_EQUAL(pl.size(), 0)
 RESULT
 
-CHECK(resize() (expand))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 0)
 	pl.resize(2);
 	TEST_REAL_EQUAL(pl.size(), 2)
 RESULT
 
-CHECK(resize() (expand))
+CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 2)
 	DPickedPeak<2> peak;
 	peak.getIntensity()=4713.0;
@@ -721,7 +721,7 @@ CHECK(resize() (expand))
 	TEST_REAL_EQUAL(pl[3].getIntensity(), 4713.0)
 RESULT
 
-CHECK( template <class InputIterator> void assign(InputIterator f , InputIterator l) )
+CHECK(template<class InputIterator> void assign(InputIterator f, InputIterator l))
 	DPeakArray<2, DPickedPeak<2> > dpa2;
 	dpa2.push_back(peak1);
 	dpa2.push_back(peak2);
@@ -734,7 +734,7 @@ CHECK( template <class InputIterator> void assign(InputIterator f , InputIterato
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK( void assign(size_type n , const PeakType& x) )
+CHECK(void assign(size_type n, const PeakType& x))
 	pl.assign(5,peak3);
 	TEST_EQUAL(pl.size(), 5)
 	TEST_REAL_EQUAL(pl[0].getIntensity(), 0.01)
@@ -789,7 +789,7 @@ p2.setLabel("L2");
 p4.getIntensity()=4;
 p4.setLabel("L4");
 
-CHECK( push_back(const PeakType&) / operator[](size_type n) (inhomogenous array))
+CHECK(push_back(const PeakType&) / operator[](size_type n) (inhomogenous array))
 	TEST_EQUAL(dpa.size(), 0)
 	dpa.push_back(p1);
 	dpa.push_back(p2);
@@ -804,11 +804,11 @@ CHECK( push_back(const PeakType&) / operator[](size_type n) (inhomogenous array)
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[3]).getLabel(), "L4")
 RESULT
 
-CHECK( back() (inhomogenous array))
+CHECK(back() (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa.back()).getLabel(), "L4")
 RESULT
 
-CHECK( DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
+CHECK(DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
 	DPeakArray<1> dpa2(4,dpa.back());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L4")
@@ -816,26 +816,26 @@ CHECK( DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK( DPeakArray( const PeakType& p) (inhomogenous array))
+CHECK(DPeakArray( const PeakType& p) (inhomogenous array))
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK( DPeakArray(InputIterator f, InputIterator l) (inhomogenous array))
+CHECK(DPeakArray(InputIterator f, InputIterator l) (inhomogenous array))
 	DPeakArray<1> dpa2(dpa.begin(),dpa.end());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK( operator = (inhomogenous array))
+CHECK(operator = (inhomogenous array))
 	DPeakArray<1> dpa2;
 	dpa2 = dpa;
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK( swap(DPeakArray&) (inhomogenous array))
+CHECK(swap(DPeakArray&) (inhomogenous array))
 	DPeakArray<1> dpa2(2,dpa.back());
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).setLabel("dpa2L1");
 	dynamic_cast<Labeled1DPeak&>(dpa2[1]).setLabel("dpa2L2");
@@ -855,7 +855,7 @@ CHECK( swap(DPeakArray&) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "dpa2L2")
 RESULT
 
-CHECK( resize(size_type n, DPeakArray& p) (inhomogenous array))
+CHECK(resize(size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dpa.size(), 4)
 	dpa.resize(2);
 	TEST_EQUAL(dpa.size(), 2)
@@ -868,7 +868,7 @@ CHECK( resize(size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[3]).getLabel(), "L4")
 RESULT
 
-CHECK( insert(Iterator pos, DPeakArray& p) (inhomogenous array))
+CHECK(insert(Iterator pos, DPeakArray& p) (inhomogenous array))
 	dpa.insert(dpa.begin(),p4);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(typeid(dpa[1]) == typeid(Labeled1DPeak),false)
@@ -877,7 +877,7 @@ CHECK( insert(Iterator pos, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[4]).getLabel(), "L4")	
 RESULT
 
-CHECK( insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
+CHECK(insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
 	dpa.insert(dpa.begin()+1,2,p2);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[1]).getLabel(), "L2")
@@ -888,7 +888,7 @@ CHECK( insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[6]).getLabel(), "L4")	
 RESULT
 
-CHECK( insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous array))
+CHECK(insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous array))
 	dpa.insert(dpa.end(),dpa.begin(),dpa.end());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[1]).getLabel(), "L2")
@@ -906,7 +906,7 @@ CHECK( insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous arra
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[13]).getLabel(), "L4")	
 RESULT
 
-CHECK( operator == (inhomogenous array))
+CHECK(bool operator == (const DPeakArray& array) const)
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL( dpa == dpa2 ,true)
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).getIntensity()=1.234234;
@@ -917,7 +917,7 @@ CHECK( operator == (inhomogenous array))
 	TEST_EQUAL( dpa == dpa2 ,false)
 RESULT
 
-CHECK( operator != (inhomogenous array))
+CHECK(bool operator !=(const DPeakArray& array) const)
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL( dpa != dpa2 ,false)
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).getIntensity()=1.234234;
@@ -928,7 +928,7 @@ CHECK( operator != (inhomogenous array))
 	TEST_EQUAL( dpa != dpa2 ,true)
 RESULT
 
-CHECK( sorting by intensity/width/position (inhomogenous array))
+CHECK(sorting by intensity/width/position (inhomogenous array))
 	DPeakArray<2, DPickedPeak<2> > dpa2;
 	DPickedPeak<2> p1,p3;
 	p1.getIntensity()=1;

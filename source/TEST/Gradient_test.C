@@ -106,7 +106,7 @@ CHECK(void clearTimepoints())
   TEST_EQUAL(tmp.getTimepoints().size(),0);
 RESULT
 
-CHECK(const std::vector< std::vector< SignedInt >& getPercentages() const)
+CHECK(const std::vector< std::vector< UnsignedInt >& getPercentages() const)
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -125,7 +125,7 @@ CHECK(const std::vector< std::vector< SignedInt >& getPercentages() const)
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
 RESULT
 
-CHECK(void setPercentage(const String& eluent, SignedInt timepoint, SignedInt percentage) throw(Exception::InvalidValue))
+CHECK(void setPercentage(const String& eluent, SignedInt timepoint, UnsignedInt percentage) throw(Exception::InvalidValue))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -156,7 +156,7 @@ CHECK(void setPercentage(const String& eluent, SignedInt timepoint, SignedInt pe
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
 RESULT
 
-CHECK(UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const throw (Exception::InvalidValue))
+CHECK(UnsignedInt getPercentage(const String& eluent, SignedInt timepoint) const throw(Exception::InvalidValue))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);

@@ -92,31 +92,31 @@ class Test: public SampleTreatment
 
 // default ctor
 Test* dv_ptr = 0;
-CHECK(Test())
+CHECK([EXTRA] Test())
 	dv_ptr = new Test;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
 
 // destructor
-CHECK(~Test())
+CHECK(~SampleTreatment())
 	delete dv_ptr;
 RESULT
 
 //basic accessors
-CHECK(dummy member)
+CHECK([EXTRA] dummy member)
 	Test s;
 	s.dummy = "TTEST";
 	TEST_EQUAL(s.dummy,"TTEST")
 RESULT
 
 //getType
-CHECK(getType)
+CHECK(const String& getType() const)
 	Test s;
 	TEST_EQUAL(s.getType(),"Test")
 RESULT
 
 //meta info
-CHECK(metainfo)
+CHECK([EXTRA] MetaInfo)
 	Test s;
 	//empty
 	TEST_EQUAL(s.isMetaEmpty(),true)
@@ -131,7 +131,7 @@ CHECK(metainfo)
 RESULT
 
 //copy ctr
-CHECK(Test(const Test&))
+CHECK(SampleTreatment(const SampleTreatment&))
 	Test s;
 	//set
 	s.dummy= "TTEST";
@@ -145,7 +145,7 @@ RESULT
 
 //assignment operator
 //copy ctr
-CHECK(Test(const Test&))
+CHECK(SampleTreatment(const SampleTreatment&))
 	Test s,s2;
 	//set
 	s.dummy= "TTEST";
@@ -158,7 +158,7 @@ CHECK(Test(const Test&))
 RESULT
 
 //clone
-CHECK(operator=(const Test&))
+CHECK(SampleTreatment& operator=(const SampleTreatment&))
 	Test s;
 	SampleTreatment* st1;
 	SampleTreatment* st;

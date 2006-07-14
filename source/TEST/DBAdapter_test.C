@@ -83,13 +83,14 @@ if (do_tests)
 	con.connect(db, user, password, host, port.toInt());
 	
 	DBAdapter* ptr = 0;
-	CHECK(DBAdapter(con))
+
+CHECK(DBAdapter(DBConnection& db_con))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 	RESULT
-	
-	CHECK(~DBAdapter())
-		delete ptr;
+		
+CHECK(~DBAdapter())
+			delete ptr;
 	RESULT
 	
 	//create test data
@@ -131,7 +132,7 @@ if (do_tests)
 	// to store the id of reading and writing
 	UID tmp_id,tmp_id2,spec_tmp_id;
 	
-	CHECK(operator<<)
+CHECK([EXTRA] operator<<)
 	  DBAdapter a(con);
 	  a << exp_original;
 		tmp_id = exp_original.getPersistenceId();
@@ -140,8 +141,8 @@ if (do_tests)
 		tmp_id2 = exp_original.getPersistenceId();
 		spec_tmp_id = exp_original.begin()->getPersistenceId();
 	RESULT
-
-	CHECK(operator>>)
+	
+CHECK([EXTRA] operator>>)
 	  DBAdapter a(con);
 	  PersistentObject* exp_new(0);
 		
@@ -158,7 +159,7 @@ if (do_tests)
 		MSExperiment<>::const_iterator itn((dynamic_cast< MSExperiment<>* >(exp_new))->begin());
 		MSExperiment<>::const_iterator ito(exp_original.begin());
 			
-    TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 		TEST_EQUAL( itn->size() , ito->size() )
 		for (UnsignedInt i=0; i<3; ++i)
@@ -166,12 +167,12 @@ if (do_tests)
 			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 		}
-
+	
 		//SPECTRUM 2
 		++itn;
 		++ito;
 			
-    TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 		TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
@@ -197,7 +198,7 @@ if (do_tests)
 		itn = (dynamic_cast< MSExperiment<>* >(exp_new))->begin();
 		ito = exp_original.begin();
 			
-    TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 		TEST_EQUAL( itn->size() , ito->size() )
 		for (UnsignedInt i=0; i<3; ++i)
@@ -205,12 +206,12 @@ if (do_tests)
 			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 		}
-
+	
 		//SPECTRUM 2
 		++itn;
 		++ito;
 			
-    TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
 		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 		TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
@@ -223,7 +224,7 @@ if (do_tests)
 		}
 	RESULT
 	
-	CHECK(MSExperiment<>* DBAdapter::loadMSExperiment(UID id))
+CHECK(MSExperiment<>* loadMSExperiment(UID id))
 		DBAdapter a(con);
 	  
 		MSExperiment<>* ptr;
@@ -233,14 +234,14 @@ if (do_tests)
 		TEST_EQUAL(ptr->begin()->getMSLevel(),1)
 		TEST_EQUAL((++(ptr->begin()))->getMSLevel(),2)
 	RESULT
-
-	CHECK(MSSpectrum<>* DBAdapter::loadSpectrum(UID id))
+	
+CHECK(MSSpectrum<>* loadSpectrum(UID id))
 		DBAdapter a(con);
 	  
 		MSSpectrum<>* ptr;
 		ptr = a.loadSpectrum(spec_tmp_id);
 					
-    TEST_EQUAL( ptr->getRetentionTime() , exp_original.begin()->getRetentionTime() )
+	  TEST_EQUAL( ptr->getRetentionTime() , exp_original.begin()->getRetentionTime() )
 		TEST_EQUAL( ptr->getMSLevel() , exp_original.begin()->getMSLevel() )
 		TEST_EQUAL( ptr->size() , exp_original.begin()->size() )
 		for (UnsignedInt i=0; i<3; ++i)
@@ -249,6 +250,7 @@ if (do_tests)
 			TEST_REAL_EQUAL( ptr->getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
 		}
 	RESULT
+
 }
 
 /////////////////////////////////////////////////////////////

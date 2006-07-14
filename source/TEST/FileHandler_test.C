@@ -40,7 +40,7 @@ START_TEST(FileHandler, "FileHandler")
 using namespace OpenMS;
 using namespace std;
 
-CHECK(String typeToName(Type type);)
+CHECK(String typeToName(Type type))
 	FileHandler tmp;
 	TEST_EQUAL("Unknown", tmp.typeToName(FileHandler::UNKNOWN));
 	TEST_EQUAL("DTA", tmp.typeToName(FileHandler::DTA));
@@ -63,7 +63,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
 RESULT
 
-CHECK(Type getTypeByName(const String& filename))
+CHECK(Type getTypeByFileName(const String& filename))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileHandler::DTA)
@@ -74,7 +74,7 @@ CHECK(Type getTypeByName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
 RESULT
 
-CHECK(Type getTypeByContent(const String& filename) throws (Exception::FileNotFound))
+CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFound))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DFeatureMapFile.xml"), FileHandler::FEATURE)
@@ -82,7 +82,7 @@ CHECK(Type getTypeByContent(const String& filename) throws (Exception::FileNotFo
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::UNKNOWN)
 RESULT
 
-CHECK(template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN))
+CHECK(template<class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN))
 	FileHandler tmp;
 	MSExperiment<> exp;
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
@@ -98,7 +98,7 @@ CHECK(template <class PeakType> bool loadExperiment(const String& filename, MSEx
 	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment("data/DTAFile_test.dta",exp, FileHandler::DTA2D))
 RESULT
 
-CHECK(bool isSupported(Type type);)
+CHECK(bool isSupported(Type type))
 	FileHandler tmp;
 	TEST_EQUAL(false, tmp.isSupported(FileHandler::UNKNOWN));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA));

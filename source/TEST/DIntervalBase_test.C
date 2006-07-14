@@ -44,24 +44,24 @@ using namespace std;
 //1D check
 DIntervalBase<1,FloatKernelTraits>* ptr1 = 0;
 
-CHECK(DIntervalBase<1;FloatKernelTraits>())
+CHECK(DIntervalBase())
 	ptr1 = new DIntervalBase<1,FloatKernelTraits>;
 	TEST_NOT_EQUAL(ptr1, 0)
 RESULT
 
-CHECK(~DIntervalBase<1;FloatKernelTraits>())
+CHECK(~DIntervalBase())
 	delete ptr1;
 RESULT
 
 //2D check
 DIntervalBase<2>* ptr2 = 0;
 
-CHECK(DIntervalBase<2>())
+CHECK(DIntervalBase())
 	ptr2 = new DIntervalBase<2>;
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(~DIntervalBase<2>())
+CHECK(~DIntervalBase())
 	delete ptr2;
 RESULT
 
@@ -84,12 +84,12 @@ CHECK(PositionType const& min() const)
   TEST_EQUAL(empty.min(),I2Pos::max);
 RESULT
 
-CHECK(empty)
+CHECK([EXTRA] empty)
   TEST_EQUAL(empty.max(),I2Pos::min_negative);
   TEST_EQUAL(empty.min(),I2Pos::max);
 RESULT
 
-CHECK(zero)
+CHECK([EXTRA] zero)
   TEST_EQUAL(I2::zero.max(),I2Pos::zero);
   TEST_EQUAL(I2::zero.min(),I2Pos::zero);
 RESULT
@@ -127,7 +127,7 @@ CHECK(void setMin(PositionType const & position))
   TEST_REAL_EQUAL(tmp.max()[1],-57.5);
 RESULT
 
-CHECK(bool operator == (const DIntervalBase& bounding_box) const throw())
+CHECK(bool operator == (const DIntervalBase& rhs) const throw())
 	I2 tmp;
 	TEST_EQUAL(tmp==tmp,true);
 	TEST_EQUAL(tmp==empty,true);
@@ -136,7 +136,7 @@ CHECK(bool operator == (const DIntervalBase& bounding_box) const throw())
 	TEST_EQUAL(tmp==empty,false);
 RESULT
 
-CHECK(bool operator != (const DIntervalBase& bounding_box) const throw())
+CHECK(bool operator != (const DIntervalBase& rhs) const throw())
 	I2 tmp;
 	TEST_EQUAL(tmp!=tmp,false);
 	TEST_EQUAL(tmp!=empty,false);
@@ -151,7 +151,7 @@ CHECK(DIntervalBase(const DIntervalBase& rhs))
 	TEST_EQUAL(tmp==tmp2,true);
 RESULT
 
-CHECK(DIntervalBase& operator=(DIntervalBase bounding_box))
+CHECK(DIntervalBase& operator=(const DIntervalBase & rhs))
 	I2 tmp(p1,p2);
 	I2 tmp2;
 	TEST_EQUAL(tmp==tmp2,false);
@@ -241,7 +241,7 @@ RESULT
 
 
 
-CHECK(template <Size D2> void assign(const DIntervalBase<D2> rhs))
+CHECK(template<Size D2> void assign(const DIntervalBase<D2> rhs))
 DIntervalBase<2>::PositionType p1;
 p1[0]=5.0;
 p1[1]=17.5;

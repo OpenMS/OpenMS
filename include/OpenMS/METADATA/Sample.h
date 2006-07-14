@@ -72,42 +72,42 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const Sample& rhs) const;
 			
-			///retuns the sample name
+			///retuns the sample name (default: "")
       const String& getName() const;
       ///sets the sample name
       void setName(const String& name);
 
-			///retuns the sample name
+			///retuns the sample name (default: "")
       const String& getOrganism() const;
       ///sets the sample name
       void setOrganism(const String& organism);
 
-			/// returns the sample number
+			/// returns the sample number (default: "")
       const String& getNumber() const;
       /// sets the sample number (e.g. sample ID)
       void setNumber(const String& number);
 
-			/// returns the comment
+			/// returns the comment (default: "")
       const String& getComment() const;
       /// sets the comment (may contain newline characters)
       void setComment(const String& comment);
 
-			/// returns the state of aggregation
+			/// returns the state of aggregation (default: SAMPLENULL)
       SampleState getState() const;
       /// sets the state of aggregation
       void setState(SampleState state);
 
-			/// returns the mass (in mg)
+			/// returns the mass (in mg) (default: 0.0)
       float getMass() const;
       /// sets the mass (in mg)
       void setMass(float mass);
 
-			/// returns the volume (in ml)
+			/// returns the volume (in ml) (default: 0.0)
       float getVolume() const;
       /// sets the volume (in ml)
       void setVolume(float volume);
 
-			/// returns the concentration (in mg/ml)
+			/// returns the concentration (in mg/ml) (default: 0.0)
       float getConcentration() const;
       /// sets the concentration (in mg/ml)
       void setConcentration(float concentration);

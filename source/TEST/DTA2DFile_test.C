@@ -53,7 +53,7 @@ CHECK(~DTA2DFile())
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
+CHECK(template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError))
 	PRECISION(0.01)
 
 	MSExperiment<> e;
@@ -218,7 +218,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 73629.98)
 RESULT
 
-CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw (Exception::UnableToCreateFile))
+CHECK(template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile))
 	PRECISION(0.1)
 	std::string tmp_filename;
   MSExperiment<> e;

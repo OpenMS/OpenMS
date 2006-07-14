@@ -96,60 +96,6 @@ CHECK(DataValue(std::string))
 	TEST_EQUAL((std::string)d, "test string")
 RESULT
 
-CHECK((int/unsigned int/float/double/short/long)DataValue("-123.0354"))
-	std::string s = "-123.0354";
-	DataValue d(s);
-	TEST_EQUAL((int)d,-123)
-	TEST_EQUAL((unsigned int)d,123)
-	TEST_REAL_EQUAL((float)d,float(-123.0354))
-	TEST_REAL_EQUAL((double)d,double(-123.0354))
-	TEST_EQUAL((short)d,-123)
-	TEST_EQUAL((long)d,-123)
-RESULT
-
-CHECK((int/unsigned int/float/double/short/long)DataValue("-123.0354 Km"))
-	std::string s = "-123.0354 Km";
-	DataValue d(s);
-	TEST_EQUAL((int)d,-123)
-	TEST_EQUAL((unsigned int)d,123)
-	TEST_REAL_EQUAL((float)d,float(-123.0354))
-	TEST_REAL_EQUAL((double)d,double(-123.0354))
-	TEST_EQUAL((short)d,-123)
-	TEST_EQUAL((long)d,-123)
-RESULT
-
-CHECK((int/unsigned int/float/double/short/long)DataValue(double(-222.234)))
-	DataValue d((double)(-222.234));
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,float(-222.234))
-	TEST_REAL_EQUAL((double)d,double(-222.234))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
-RESULT
-
-CHECK((int/unsigned int/float/double/short/long)DataValue(float(-222.234)))
-	float val = -222.234;
-	DataValue d(val);
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,(float)(-222.234))
-	TEST_REAL_EQUAL((double)d,(double)(-222.234))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
-RESULT
-
-CHECK((int/unsigned int/float/double/short/long)DataValue(int(-222)))
-	int val = -222;
-	DataValue d(val);
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,(float)(-222.0))
-	TEST_REAL_EQUAL((double)d,(double)(-222.0))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
-RESULT
-
 // copy ctor
 
 CHECK(DataValue(const DataValue&))
@@ -231,43 +177,103 @@ RESULT
 
 // conversion operators
 
-CHECK(operator std::string())
+CHECK(operator std::string() const throw(Exception::ConversionError))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK(operator double())
+CHECK(operator double() const throw(Exception::ConversionError))
 	DataValue d((double) 5.5);
 	double k = d;
 	TEST_REAL_EQUAL(k,5.5)
 RESULT
 
-CHECK(operator float())
+CHECK(operator float() const throw(Exception::ConversionError))
 	DataValue d((float) 5.45);
 	float k = d;
 	TEST_REAL_EQUAL(k,5.45)
 RESULT
 
-CHECK(operator int())
+CHECK(operator int() const throw(Exception::ConversionError))
 	DataValue d((int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
 RESULT
 
-CHECK(operator short())
+CHECK(operator unsigned int() const throw(Exception::ConversionError))
+	DataValue d((int) 55);
+	unsigned int k = d;
+	TEST_EQUAL(k,55)
+RESULT
+
+CHECK(operator short() const throw(Exception::ConversionError))
 	DataValue d((short) 5);
 	short k = d;
 	TEST_EQUAL(k,5)
 RESULT
 
-CHECK(operator long())
+CHECK(operator long() const throw(Exception::ConversionError))
 	DataValue d((long) 555);
 	long k = d;
 	TEST_EQUAL(k,555)
 RESULT
 
-CHECK(bool operator==(const DataValue&, const DataValue&))
+CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354"))
+	std::string s = "-123.0354";
+	DataValue d(s);
+	TEST_EQUAL((int)d,-123)
+	TEST_EQUAL((unsigned int)d,123)
+	TEST_REAL_EQUAL((float)d,float(-123.0354))
+	TEST_REAL_EQUAL((double)d,double(-123.0354))
+	TEST_EQUAL((short)d,-123)
+	TEST_EQUAL((long)d,-123)
+RESULT
+
+CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354 Km"))
+	std::string s = "-123.0354 Km";
+	DataValue d(s);
+	TEST_EQUAL((int)d,-123)
+	TEST_EQUAL((unsigned int)d,123)
+	TEST_REAL_EQUAL((float)d,float(-123.0354))
+	TEST_REAL_EQUAL((double)d,double(-123.0354))
+	TEST_EQUAL((short)d,-123)
+	TEST_EQUAL((long)d,-123)
+RESULT
+
+CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(double(-222.234)))
+	DataValue d((double)(-222.234));
+	TEST_EQUAL((int)d,-222)
+	TEST_EQUAL((unsigned int)d,222)
+	TEST_REAL_EQUAL((float)d,float(-222.234))
+	TEST_REAL_EQUAL((double)d,double(-222.234))
+	TEST_EQUAL((short)d,-222)
+	TEST_EQUAL((long)d,-222)
+RESULT
+
+CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(float(-222.234)))
+	float val = -222.234;
+	DataValue d(val);
+	TEST_EQUAL((int)d,-222)
+	TEST_EQUAL((unsigned int)d,222)
+	TEST_REAL_EQUAL((float)d,(float)(-222.234))
+	TEST_REAL_EQUAL((double)d,(double)(-222.234))
+	TEST_EQUAL((short)d,-222)
+	TEST_EQUAL((long)d,-222)
+RESULT
+
+CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222)))
+	int val = -222;
+	DataValue d(val);
+	TEST_EQUAL((int)d,-222)
+	TEST_EQUAL((unsigned int)d,222)
+	TEST_REAL_EQUAL((float)d,(float)(-222.0))
+	TEST_REAL_EQUAL((double)d,(double)(-222.0))
+	TEST_EQUAL((short)d,-222)
+	TEST_EQUAL((long)d,-222)
+RESULT
+
+CHECK(friend bool operator==(const DataValue&, const DataValue&))
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
@@ -291,7 +297,7 @@ CHECK(bool operator==(const DataValue&, const DataValue&))
   TEST_EQUAL(a==b,false);
 RESULT
 
-CHECK(bool operator!=(const DataValue&, const DataValue&))
+CHECK(friend bool operator!=(const DataValue&, const DataValue&))
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
@@ -301,7 +307,7 @@ CHECK(bool operator!=(const DataValue&, const DataValue&))
 
 RESULT
 
-CHECK(char* toChar())
+CHECK(char* toChar() throw(Exception::ConversionError))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");
@@ -310,7 +316,7 @@ CHECK(char* toChar())
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
 RESULT
 
-CHECK(string toString() const)
+CHECK(std::string toString() const)
 	DataValue a;
   TEST_EQUAL(a.toString(), "")  
   a = DataValue("hello");
@@ -324,7 +330,7 @@ CHECK(string toString() const)
   
 RESULT
 
-CHECK(std::ostream& operator<<(std::ostream&, const DataValue&))
+CHECK(friend std::ostream& operator<<(std::ostream&, const DataValue&))
 	DataValue a((int)5), b((long)100), c((double)1.111), d((float)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;

@@ -71,7 +71,7 @@ CHECK(void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const)
   TEST_EQUAL(y,0);
 RESULT
 
-CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError)))
+CHECK(void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError))
   Date date;
   UnsignedInt d,m,y;
   date.set(12,1,1977);
@@ -88,7 +88,7 @@ CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exce
 	TEST_EXCEPTION(Exception::ParseError,date.set(02,29,2100));
 RESULT
 
-CHECK(bool operator== (const Date& rhs))
+CHECK(bool operator == (const Date& rhs) const)
   Date date, date2;
   TEST_EQUAL(date==date2,true);
   date.set(12,1,1977);
@@ -97,7 +97,7 @@ CHECK(bool operator== (const Date& rhs))
   TEST_EQUAL(date==date2,true);
 RESULT
 
-CHECK(bool operator!= (const Date& rhs))
+CHECK(bool operator != (const Date& rhs) const)
   Date date, date2;
   TEST_EQUAL(date!=date2,false);
   date.set(12,1,1977);

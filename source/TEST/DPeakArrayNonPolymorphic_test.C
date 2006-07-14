@@ -85,7 +85,7 @@ CHECK(DPeakArrayNonPolymorphic(typename std::vector<PeakType>::size_type n, cons
 	TEST_EQUAL(dpanp[2] == peak, true)
 RESULT
 
-CHECK(DPeakArrayNonPolymorphic(InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> DPeakArrayNonPolymorphic(InputIterator f, InputIterator l))
 	DPickedPeak<1> peak;
 	peak.getPosition()[0] = 1.0;
 	peak.setIntensity(1.01);
@@ -110,7 +110,7 @@ RESULT
 
 DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl;
 
-CHECK( empty() const)
+CHECK(empty() const)
 	TEST_EQUAL(pl.empty(), true)
 RESULT
 
@@ -129,7 +129,7 @@ peak3.getPosition()[0] = 10.5;
 peak3.getPosition()[1] = 0.0;
 peak3.getIntensity() = 0.01;
 
-CHECK( size() const)
+CHECK(size() const)
 	TEST_EQUAL(pl.size(), 0)
 	
 	pl.push_back(peak1);
@@ -142,7 +142,7 @@ CHECK( size() const)
 	TEST_EQUAL(pl.size(), 3)
 RESULT
 
-CHECK( empty() const)
+CHECK(empty() const)
 	TEST_EQUAL(pl.empty(), false)
 RESULT
 
@@ -230,7 +230,7 @@ CHECK(void sortByIntensity())
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
+CHECK(void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented))
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByNthPosition(0);
 	TEST_EQUAL(pl2.size(), 3)
@@ -285,7 +285,7 @@ CHECK(void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented))
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator ())
+CHECK(template< typename ComparatorType > void sortByComparator())
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByComparator<DPickedPeak<2>::PositionLess>();
 	TEST_EQUAL(pl2.size(), 3)
@@ -318,7 +318,7 @@ CHECK(template < typename ComparatorType > void sortByComparator ())
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template < typename ComparatorType > void sortByComparator (comparator))
+CHECK(template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator ))
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByComparator<DPickedPeak<2>::NthPositionLess<1> >(DPickedPeak<2>::NthPositionLess<1>());
 	TEST_EQUAL(pl2.size(), 3)
@@ -444,14 +444,14 @@ CHECK(DPeakArrayNonPolymorphic& operator[])
 	TEST_REAL_EQUAL(pl[3].getPosition()[1], 1.6)
 RESULT
 
-CHECK(DPeakArrayNonPolymorphic(size_type n))
+CHECK(DPeakArrayNonPolymorphic(typename std::vector<PeakType>::size_type n))
 	DPeakArrayNonPolymorphic<1> pl2(2);
 	TEST_REAL_EQUAL(pl2.size(), 2)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 0)
 	TEST_REAL_EQUAL(pl2[1].getIntensity(), 0)
 RESULT
 
-CHECK(DPeakArrayNonPolymorphic(size_type n, const PeakType& peak))
+CHECK(DPeakArrayNonPolymorphic(typename std::vector<PeakType>::size_type n, const PeakType& peak))
 	DPickedPeak<2> peak5;
 	peak5.getPosition()[0] = 1.1;
 	peak5.getIntensity() = 5.1;
@@ -593,7 +593,7 @@ CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl[4].getIntensity(), 1.5)
 RESULT
 
-CHECK(DPeaKArray(InputIterator f, InputIterator l))
+CHECK(template<class InputIterator> DPeakArrayNonPolymorphic(InputIterator f, InputIterator l))
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl.begin()+1,pl.end()-1);
 	TEST_REAL_EQUAL(pl2.size(), 3)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.5)
@@ -601,7 +601,7 @@ CHECK(DPeaKArray(InputIterator f, InputIterator l))
 	TEST_REAL_EQUAL(pl2[2].getIntensity(), 0.5)
 RESULT
 
-CHECK(operator == (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator == (const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl == pl2 , true)
@@ -609,7 +609,7 @@ CHECK(operator == (const DPeakArrayNonPolymorphic&))
 	TEST_EQUAL(pl == pl2 , false)
 RESULT
 
-CHECK(operator != (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator !=(const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl != pl2 , false)
@@ -617,21 +617,21 @@ CHECK(operator != (const DPeakArrayNonPolymorphic&))
 	TEST_EQUAL(pl != pl2 , true)
 RESULT
 
-CHECK(operator < (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator < (const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl < pl2, false)
 	pl2.push_back(DPickedPeak<2>());
 	TEST_EQUAL(pl < pl2 , true)
 RESULT
 
-CHECK(operator > (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator > (const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl > pl2, false)
 	pl2.erase(pl2.end()-1);
 	TEST_EQUAL(pl > pl2 , true)
 RESULT
 
-CHECK(operator <= (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator <= (const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl <= pl2, true)
 	pl2.push_back(DPickedPeak<2>());
@@ -640,7 +640,7 @@ CHECK(operator <= (const DPeakArrayNonPolymorphic&))
 	TEST_EQUAL(pl <= pl2 , false)
 RESULT
 
-CHECK(operator >= (const DPeakArrayNonPolymorphic&))
+CHECK(bool operator >= (const DPeakArrayNonPolymorphic& array) const)
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > pl2(pl);
 	TEST_EQUAL(pl >= pl2, true)
 	pl2.erase(pl2.end()-1);
@@ -659,7 +659,7 @@ CHECK(resize() (shrink))
 	TEST_REAL_EQUAL(pl[1].getIntensity(), 1.5)
 RESULT
 
-CHECK(clear() )
+CHECK(clear())
 	TEST_REAL_EQUAL(pl.size(), 2)
 	pl.clear();
 	TEST_REAL_EQUAL(pl.size(), 0)
@@ -683,7 +683,7 @@ CHECK(resize() (expand))
 	TEST_REAL_EQUAL(pl[3].getIntensity(), 4713.0)
 RESULT
 
-CHECK( template <class InputIterator> void assign(InputIterator f , InputIterator l) )
+CHECK(template <class InputIterator> void assign(InputIterator f , InputIterator l))
 	DPeakArrayNonPolymorphic<2, DPickedPeak<2> > dpa2;
 	dpa2.push_back(peak1);
 	dpa2.push_back(peak2);
@@ -696,7 +696,7 @@ CHECK( template <class InputIterator> void assign(InputIterator f , InputIterato
 	TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK( void assign(size_type n , const PeakType& x) )
+CHECK(void assign(size_type n , const PeakType& x))
 	pl.assign(5,peak3);
 	TEST_EQUAL(pl.size(), 5)
 	TEST_REAL_EQUAL(pl[0].getIntensity(), 0.01)

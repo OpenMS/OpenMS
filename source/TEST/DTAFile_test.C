@@ -51,7 +51,7 @@ CHECK(~DTAFile())
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, SpectrumType& spec) throw (Exception::FileNotFound))
+CHECK(template<typename SpectrumType> void load(const String& filename, SpectrumType& spectrum) throw(Exception::FileNotFound, Exception::ParseError))
 	PRECISION(0.01)
 	DSpectrum<1> s;
 	DTAFile f1;
@@ -281,7 +281,7 @@ CHECK(void load(const String& filename, SpectrumType& spec) throw (Exception::Fi
 
 RESULT
 
-CHECK(void store(const String& filename, const SpectrumType& spec) const throw (Exception::UnableToCreateFile))
+CHECK(template<typename SpectrumType> void store(const String& filename, const SpectrumType& spectrum) const throw(Exception::UnableToCreateFile))
 	String filename;
 	NEW_TMP_FILE(filename);
 	

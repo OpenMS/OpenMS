@@ -48,12 +48,12 @@ CHECK(~InstrumentSettings())
 	delete ptr;
 RESULT
 
-CHECK(Polarity getPolarity() const)
+CHECK(IonSource::Polarity getPolarity() const)
 	InstrumentSettings tmp;
 	TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
 RESULT
 
-CHECK(void setPolarity(Polarity polarity))
+CHECK(void setPolarity(IonSource::Polarity polarity))
 	InstrumentSettings tmp;
 	tmp.setPolarity(IonSource::NEGATIVE);
 	TEST_EQUAL(tmp.getPolarity(),IonSource::NEGATIVE);

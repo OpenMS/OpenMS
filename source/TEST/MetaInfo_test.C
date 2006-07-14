@@ -42,7 +42,7 @@ using namespace OpenMS;
 
 MetaInfo* test;
 
-CHECK(MetaInfo::MetaInfo())
+CHECK(MetaInfo())
 	test = new MetaInfo;
 	TEST_NOT_EQUAL(test, 0)
 RESULT
@@ -53,56 +53,66 @@ RESULT
 
 MetaInfo mi;
 
-CHECK(MetaInfoRegistry& registry())
+CHECK(static MetaInfoRegistry& registry())
 	MetaInfo mi2;
 	mi2.registry().registerName("testname","testdesc","testunit");
 	TEST_EQUAL (mi2.registry().getIndex("testname"),1024);
 	TEST_EQUAL (mi.registry().getIndex("testname"),1024);
 RESULT
 
-CHECK (setValue(UnsignedInt index, const std::string& value) / DataValue getValue(UnsignedInt index) const)
+CHECK(void setValue(UnsignedInt index, const std::string& value))
+	string tmp;
+	mi.setValue(1024,string("testtesttest"));
+RESULT
+
+CHECK(DataValue getValue(UnsignedInt index) const)
 	string tmp;
 	mi.setValue(1024,string("testtesttest"));
 	tmp = string(mi.getValue(1024));
 	TEST_EQUAL("testtesttest",tmp)
 RESULT
 
-CHECK (setValue(const std::string& name, const std::string& value) / DataValue getValue(const std::string& name) const)
+CHECK(void setValue(const std::string& name, const std::string& value))
+	string tmp;
+	mi.setValue("testname",string("testtesttest2"));
+RESULT
+
+CHECK(DataValue getValue(const std::string& name) const)
 	string tmp;
 	mi.setValue("testname",string("testtesttest2"));
 	tmp = string(mi.getValue("testname"));
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK (void setValue(const std::string& name, SignedInt))
+CHECK(void setValue(const std::string& name, SignedInt value))
 	SignedInt tmp;
 	mi.setValue("cluster_id",4711);
 	tmp = SignedInt(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
-CHECK (void setValue(const std::string& name, double))
+CHECK(void setValue(const std::string& name, double value))
 	double tmp;
 	mi.setValue("cluster_id",4711.1234);
 	tmp = double(mi.getValue("cluster_id"));
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK (void setValue(const std::string& name, SignedInt))
+CHECK(void setValue(const std::string& name, SignedInt value))
 	SignedInt tmp;
 	mi.setValue(2,4712);
 	tmp = SignedInt(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK (void setValue(const std::string& name, double))
+CHECK(void setValue(const std::string& name, double value))
 	double tmp;
 	mi.setValue(2,4712.1234);
 	tmp = double(mi.getValue("cluster_id"));
 	TEST_REAL_EQUAL(tmp,4712.1234)
 RESULT
 
-CHECK (bool empty())
+CHECK(bool empty() const)
 	MetaInfo tmp;
 	TEST_EQUAL(tmp.empty(),true)
 	tmp.setValue(1024,string("testtesttest"));
@@ -122,14 +132,14 @@ CHECK(MetaInfo(const MetaInfo& rhs))
 	TEST_EQUAL("testtesttest2",string(mi4.getValue("testname")))
 RESULT
 
-CHECK (setValue(const std::string& name, const DataValue& value) / DataValue getValue(const std::string& name) const)
+CHECK(void setValue(const std::string& name, const DataValue& value))
 	DataValue tmp("testtesttest3");
 	mi.setValue("testname",tmp);
 	tmp = string(mi.getValue("testname"));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK (void getKeys(std::vector<std::string>& keys) const)
+CHECK(void getKeys(std::vector<std::string>& keys) const)
 	vector<string> tmp,tmp2;
 	tmp.push_back("cluster_id");
 	tmp.push_back("testname");
@@ -166,21 +176,21 @@ CHECK (void getKeys(std::vector<std::string>& keys) const)
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK (bool exists(const std::string& name))
+CHECK(bool exists(const std::string& name) const)
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists("cluster_id"),false)
 	mi4.setValue("cluster_id",4712.1234);
 	TEST_EQUAL(mi4.exists("cluster_id"),true)
 RESULT
 
-CHECK (bool exists(UnsignedInt index))
+CHECK(bool exists(UnsignedInt index) const)
 	MetaInfo mi4;
 	TEST_EQUAL(mi4.exists(2),false)
 	mi4.setValue("cluster_id",4712.1234);
 	TEST_EQUAL(mi4.exists(2),true)
 RESULT
 
-CHECK (void clear())
+CHECK(void clear())
 	MetaInfo i;
 	TEST_EQUAL(i.empty(),true)
 	i.setValue("label",String("test"));
@@ -189,7 +199,7 @@ CHECK (void clear())
 	TEST_EQUAL(i.empty(),true)
 RESULT
 
-CHECK (bool operator== (const MetaInfo& rhs) const)
+CHECK(bool operator== (const MetaInfo& rhs) const)
 	MetaInfo i,i2;
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
@@ -201,7 +211,7 @@ CHECK (bool operator== (const MetaInfo& rhs) const)
 	TEST_EQUAL(i2==i,true)
 RESULT
 
-CHECK (bool operator!= (const MetaInfo& rhs) const)
+CHECK(bool operator!= (const MetaInfo& rhs) const)
 	MetaInfo i,i2;
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)

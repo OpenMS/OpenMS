@@ -89,9 +89,17 @@ foreach($test as $line)
 	$line = trim($line);
 	if (substr($line,0,5)=="CHECK")
 	{
-		$tests[] = trim(substr($line,strpos($line,"(")+1,-1));
+		//extract method
+		$tmp = trim(substr($line,strpos($line,"(")+1,-1));
+		while ($tmp[0]=="(" && $tmp[strlen($tmp)-1]==")")
+		{
+			$tmp = trim(substr($tmp,1,-1));
+		}
+		$tests[] = $tmp;
 	}
 }
+
+print_r($tests);
 
 //calculate diff
 $replace_whitespaces = array("\t"=>""," "=>"");
@@ -136,8 +144,9 @@ for($i=0; $i<count($tests); ++$i)
 			break;
 		}
 	}
-	print "\n[enter] = 0\n";
-	print   "[x]     = do not change\n";
+	print "\n[enter]  => 0\n";
+	print   "[x]      => do not change\n";
+	print   "[CTRL+C] => abort\n";
 	
 	//read in choise
 	do
@@ -173,7 +182,7 @@ foreach($test as $line)
 {
 	if (substr(trim($line),0,5)=="CHECK")
 	{
-		fwrite($fp,"CHECK(".$replace[$i].")\n");
+		fwrite($fp,"CHECK((".$replace[$i]."))\n");
 		++$i;
 	}
 	else

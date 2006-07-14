@@ -37,7 +37,7 @@ namespace OpenMS
 		enzyme_(""), 
 		digestion_time_(0.0), 
 		temperature_(0.0), 
-		ph_(7.0)
+		ph_(0.0)
 	{
 
 	}

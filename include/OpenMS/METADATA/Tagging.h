@@ -63,14 +63,14 @@ namespace OpenMS
 			/// clone method. See SampleTreatment
 			virtual SampleTreatment* clone() const;
 			
-			/// returns the mass difference between light and heavy variant
+			/// returns the mass difference between light and heavy variant (default is 0.0)
 		  float getMassShift() const;
 		  /// sets the mass difference between light and heavy variant
 		  void setMassShift(float mass_shift);
 		
-			/// returns the isotope variant of the tag (light or heavy)
+			/// returns the isotope variant of the tag (default is LIGHT)
 		  const IsotopeVariant& getVariant() const;
-		  /// sets the isotope variant of the tag (light or heavy)
+		  /// sets the isotope variant of the tag
 		  void setVariant(const IsotopeVariant& variant);
 			
     protected:

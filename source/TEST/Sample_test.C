@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -59,33 +58,97 @@ CHECK(~Sample())
 	delete dv_ptr;
 RESULT
 
-//basic accessors
-CHECK(basic accessors)
+CHECK(const String& getName() const)
 	Sample s;
-	//set
+	TEST_EQUAL(s.getName(),"")
+RESULT
+
+CHECK(const String& getNumber() const)
+	Sample s;
+	TEST_EQUAL(s.getNumber(),"")
+RESULT
+
+CHECK(const String& getComment() const)
+	Sample s;
+	TEST_EQUAL(s.getComment(),"")
+RESULT
+
+CHECK(SampleState getState() const)
+	Sample s;
+	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
+RESULT
+
+CHECK(float getMass() const)
+	Sample s;
+	TEST_REAL_EQUAL(s.getMass(),0.0)
+RESULT
+
+CHECK(float getVolume() const)
+	Sample s;
+	TEST_REAL_EQUAL(s.getVolume(),0.0)
+RESULT
+
+CHECK(float getConcentration() const)
+	Sample s;
+	TEST_REAL_EQUAL(s.getConcentration(),0.0)
+RESULT
+
+CHECK(void setName(const String& name))
+	Sample s;
 	s.setName("TTEST");
-	s.setNumber("Sample4711");
-	s.setComment("Sample Description");
-	s.setState(Sample::LIQUID);
-	s.setMass(4711.2);
-	s.setVolume(4711.3);
-	s.setConcentration(4711.4);
-	//get
 	TEST_EQUAL(s.getName(),"TTEST")
+RESULT
+
+CHECK(void setNumber(const String& number))
+	Sample s;
+	s.setNumber("Sample4711");
 	TEST_EQUAL(s.getNumber(),"Sample4711")
+RESULT
+
+CHECK(void setComment(const String& comment))
+	Sample s;
+	s.setComment("Sample Description");
 	TEST_EQUAL(s.getComment(),"Sample Description")
+RESULT
+
+CHECK(void setState(SampleState state))
+	Sample s;
+	s.setState(Sample::LIQUID);
 	TEST_EQUAL(s.getState(),Sample::LIQUID)
+RESULT
+
+CHECK(void setMass(float mass))
+	Sample s;
+	s.setMass(4711.2);
 	TEST_REAL_EQUAL(s.getMass(),4711.2)
+RESULT
+
+CHECK(void setVolume(float volume))
+	Sample s;
+	s.setVolume(4711.3);
 	TEST_REAL_EQUAL(s.getVolume(),4711.3)
+RESULT
+
+CHECK(void setConcentration(float concentration))
+	Sample s;
+	s.setConcentration(4711.4);
 	TEST_REAL_EQUAL(s.getConcentration(),4711.4)
 RESULT
 
-//subsamples
-CHECK(subsamples)
+CHECK(const std::vector<Sample>& getSubsamples() const)
+	Sample s;
+	TEST_EQUAL(s.getSubsamples().size(),0)
+RESULT
+
+CHECK(std::vector<Sample>& getSubsamples())
+	Sample s,s2;
+	s.getSubsamples().push_back(s2);
+	TEST_EQUAL(s.getSubsamples().size(),1)
+RESULT
+
+CHECK(std::vector<Sample>& getSubsamples())
 	Sample s,s2,s3;
 	vector<Sample> v;
-	//empty
-	TEST_EQUAL(s.getSubsamples().size(),0)
 	
 	//size=2
 	s2.setName("2");
@@ -99,14 +162,20 @@ CHECK(subsamples)
 RESULT
 
 //treatments
-CHECK(treatments)
+
+CHECK(SignedInt countTreatments())
+	Sample s;
+	TEST_EQUAL(s.countTreatments(),0)
+	Digestion d;
+	s.addTreatment(d);
+	TEST_EQUAL(s.countTreatments(),1)
+RESULT
+
+CHECK(void addTreatment(const SampleTreatment& treatment, SignedInt before_position=-1) throw(Exception::IndexOverflow))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
 	Tagging t;
-	
-	//size=0
-	TEST_EQUAL(s.countTreatments(),0)
 	
 	//different treatments
 	d.setEnzyme("D");
@@ -123,6 +192,21 @@ CHECK(treatments)
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(1))).getReagentName(),"m")
 	TEST_REAL_EQUAL((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
+RESULT
+
+CHECK(void removeTreatment(UnsignedInt position) throw(Exception::IndexOverflow))
+	Sample s;
+	Digestion d;
+	Modification m,m2,m3;
+	Tagging t;
+	
+	//different treatments
+	d.setEnzyme("D");
+	m.setReagentName("m");
+	t.setMassShift(5.0);
+	s.addTreatment(d);
+	s.addTreatment(m);
+	s.addTreatment(t);
 	
 	//removeTreatment
 	m2.setReagentName("m2");
@@ -161,7 +245,7 @@ CHECK(treatments)
 RESULT
 
 //copy ctr
-CHECK(Sample(const Sample&))
+CHECK(Sample(const Sample& source))
 	Sample s;
 
 	//basic stuff
@@ -211,7 +295,7 @@ CHECK(Sample(const Sample&))
 RESULT
 
 //assignment operator
-CHECK(operator=(const Sample&))
+CHECK(Sample& operator= (const Sample& source))
 	Sample s;
 
 	//basic stuff

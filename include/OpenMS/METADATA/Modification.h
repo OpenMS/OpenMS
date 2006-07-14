@@ -72,22 +72,22 @@ namespace OpenMS
 			/// clone method. See SampleTreatment
 			virtual SampleTreatment* clone() const;
 			
-			/// returns the name of the reagent that was used
+			/// returns the name of the reagent that was used (default: "")
 			const String& getReagentName() const;
 		  /// sets the name of the reagent that was used
 		  void setReagentName(const String& reagent_name);
 			
-			/// returns the mass change
+			/// returns the mass change (default: 0.0)
 		  float getMass() const;
 		  /// sets the mass change
 		  void setMass(float mass);
 		
-			/// returns the specificity of the the reagent
+			/// returns the specificity of the the reagent (default: AA)
 		  const SpecificityType& getSpecificityType() const;
 		  /// sets the specificity of the the reagent
 		  void setSpecificityType(const SpecificityType& specificity_type);
 			
-			/// returns a string containing the one letter code of the amino acids that are affected by the reagent. 
+			/// returns a string containing the one letter code of the amino acids that are affected by the reagent. (default: "")
 		  const String& getAffectedAminoAcids() const;
 		  /// returns a string containing the one letter code of the amino acids that are affected by the reagent. Do not separate them by space, tab or comma!
 		  void setAffectedAminoAcids(const String& affected_amino_acids);

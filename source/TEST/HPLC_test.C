@@ -80,12 +80,12 @@ CHECK(void setFlux(UnsignedInt flux))
   TEST_EQUAL(tmp.getFlux(),5);  
 RESULT
 
-CHECK(SignedInt getPressure() const)
+CHECK(UnsignedInt getPressure() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getPressure(),0);  
 RESULT
 
-CHECK(void setPressure(SignedInt pressure))
+CHECK(void setPressure(UnsignedInt pressure))
   HPLC tmp;
   tmp.setPressure(5);
   TEST_EQUAL(tmp.getPressure(),5);  
@@ -113,23 +113,23 @@ CHECK(void setComment(String comment))
   TEST_EQUAL(tmp.getComment(),"comment");  
 RESULT
 
-CHECK(String getInstrument() const)
+CHECK(const String& getInstrument() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getInstrument(),"");  
 RESULT
 
-CHECK(void setInstrument(String instrument))
+CHECK(void setInstrument(const String& instrument))
   HPLC tmp;
   tmp.setInstrument("instrument");
   TEST_EQUAL(tmp.getInstrument(),"instrument");  
 RESULT
 
-CHECK(String getColumn() const)
+CHECK(const String& getColumn() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getColumn(),"");  
 RESULT
 
-CHECK(void setColumn(String column))
+CHECK(void setColumn(const String& column))
   HPLC tmp;
   tmp.setColumn("column");
   TEST_EQUAL(tmp.getColumn(),"column");  

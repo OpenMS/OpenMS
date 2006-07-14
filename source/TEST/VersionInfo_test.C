@@ -44,7 +44,7 @@ CHECK(static const char* getVersion() throw())
 	TEST_EQUAL(std::string(VersionInfo::getVersion(), strlen(OPENMS_RELEASE_STRING)), OPENMS_RELEASE_STRING)
 RESULT
 
-CHECK(static int getMajorRevision() throw(Exception::ConversionError))
+CHECK(static int getMajorRevision())
 	// just to call the method
 	TEST_NOT_EQUAL(VersionInfo::getMajorRevision(), -1)
 RESULT
