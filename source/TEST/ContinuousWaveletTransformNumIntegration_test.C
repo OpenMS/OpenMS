@@ -1,0 +1,151 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Eva Lange $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ContinuousWaveletTransformNumIntegration, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ContinuousWaveletTransformNumIntegration<1>* ptr = 0;
+CHECK(ContinuousWaveletTransformNumIntegration())
+	ptr = new ContinuousWaveletTransformNumIntegration<1>();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(~ContinuousWaveletTransformNumIntegration())
+	delete ptr;
+RESULT
+
+CHECK(ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt))
+  ContinuousWaveletTransformNumIntegration<2> transformer;
+  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
+  vector<double> wavelet(0);
+  transformer.getSignal() = transform;
+  transformer.getWavelet() = wavelet;
+  transformer.getScale() = 0.12;
+  transformer.getSpacing() = 0.2;
+  transformer.getLeftPaddingIndex() = 10;
+  transformer.getRightPaddingIndex() = 2;
+  transformer.getSignalLength() = 8;
+  transformer.getMzDim() = 0;
+  
+ 	ContinuousWaveletTransformNumIntegration<2> transformer_copy;
+ 	transformer_copy = transformer;
+ 	DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+ 	vector<double> wavelet_copy = transformer_copy.getWavelet();
+  double scale = transformer_copy.getScale();
+  double spacing = transformer_copy.getSpacing();
+  int l_padding = transformer_copy.getLeftPaddingIndex();
+  int r_padding = transformer_copy.getRightPaddingIndex();
+  int length = transformer_copy.getSignalLength();
+  unsigned int mz = transformer_copy.getMzDim();
+  TEST_EQUAL(transform_copy == transform, true)
+  TEST_EQUAL(wavelet_copy == wavelet, true)
+  TEST_REAL_EQUAL(scale,0.12)
+ 	TEST_REAL_EQUAL(spacing, 0.2)
+ 	TEST_REAL_EQUAL(l_padding, 10)
+ 	TEST_REAL_EQUAL(r_padding, 2)
+ 	TEST_REAL_EQUAL(length, 8)
+ 	TEST_REAL_EQUAL(mz,0)
+RESULT
+
+CHECK(ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt))
+  ContinuousWaveletTransformNumIntegration<2> transformer;
+  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
+  vector<double> wavelet(0);
+  transformer.getSignal() = transform;
+  transformer.getWavelet() = wavelet;
+  transformer.getScale() = 0.12;
+  transformer.getSpacing() = 0.2;
+  transformer.getLeftPaddingIndex() = 10;
+  transformer.getRightPaddingIndex() = 2;
+  transformer.getSignalLength() = 8;
+  transformer.getMzDim() = 0;
+  
+ 	ContinuousWaveletTransformNumIntegration<2> transformer_copy(transformer);
+ 	DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+ 	vector<double> wavelet_copy = transformer_copy.getWavelet();
+  double scale = transformer_copy.getScale();
+  double spacing = transformer_copy.getSpacing();
+  int l_padding = transformer_copy.getLeftPaddingIndex();
+  int r_padding = transformer_copy.getRightPaddingIndex();
+  int length = transformer_copy.getSignalLength();
+  unsigned int mz = transformer_copy.getMzDim();
+  TEST_EQUAL(transform_copy == transform, true)
+  TEST_EQUAL(wavelet_copy == wavelet, true)
+  TEST_REAL_EQUAL(scale,0.12)
+ 	TEST_REAL_EQUAL(spacing, 0.2)
+ 	TEST_REAL_EQUAL(l_padding, 10)
+ 	TEST_REAL_EQUAL(r_padding, 2)
+ 	TEST_REAL_EQUAL(length, 8)
+ 	TEST_REAL_EQUAL(mz,0)
+RESULT
+
+CHECK(void init(double scale, double spacing, unsigned int mz_dim_))
+  ContinuousWaveletTransformNumIntegration<1> transformer;
+  float scale = 0.5;
+  float spacing = 0.1;
+  unsigned int mz_dim_ = 0;
+  
+  transformer.init(scale,spacing,mz_dim_);
+  TEST_REAL_EQUAL(transformer.getWavelet()[0],1.)
+  TEST_REAL_EQUAL(transformer.getScale(),scale)
+  TEST_REAL_EQUAL(transformer.getSpacing(),spacing)
+  TEST_EQUAL(mz_dim_ == 0, true)
+RESULT
+
+CHECK(void transform(RawDataPointIterator begin_input, RawDataPointIterator end_input, float resolution))
+  ContinuousWaveletTransformNumIntegration<1> transformer;
+  float scale = 0.5;
+  float spacing = 0.1;
+  unsigned int mz_dim_ = 0;
+  
+  transformer.init(scale,spacing,mz_dim_);
+  std::vector<DRawDataPoint<1> > raw_data(9);
+  raw_data[4].getIntensity() = 1;
+  transformer.transform(raw_data.begin(),raw_data.end(),1.);
+  TEST_REAL_EQUAL(transformer[4],0)
+  TEST_REAL_EQUAL(transformer.getWavelet()[0],1.)
+  TEST_REAL_EQUAL(transformer.getScale(),scale)
+  TEST_REAL_EQUAL(transformer.getSpacing(),spacing)
+  TEST_EQUAL(mz_dim_ == 0, true)
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+
