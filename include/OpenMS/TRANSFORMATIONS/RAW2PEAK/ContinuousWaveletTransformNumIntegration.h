@@ -47,24 +47,15 @@ namespace OpenMS
      @brief This class computes the continuous wavelet transformation using a marr wavelet.
 
      The convolution of the signal and the wavelet is computed by numerical integration.
-
+     
      @ingroup PeakPicking
-
-     @todo write test (Eva)
   */
   template <Size D>
   class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform<D>
   {
-    /** @name Type definitions
-     */
-    //@{
-    typedef std::vector<DRawDataPoint<D> > RawDataVector;
-    ///
-    typedef typename RawDataVector::iterator RawDataPointIterator;
-    ///
-    typedef typename RawDataVector::const_iterator RawDataPointConstIterator;
-    //@}
-
+    /// Raw data const iterator type
+    typedef typename std::vector<DRawDataPoint<D> >::const_iterator RawDataPointConstIterator;
+   
     using ContinuousWaveletTransform<D>::signal_;
     using ContinuousWaveletTransform<D>::wavelet_;
     using ContinuousWaveletTransform<D>::scale_;
@@ -75,27 +66,20 @@ namespace OpenMS
     using ContinuousWaveletTransform<D>::mz_dim_;
 
   public:
-    /** @name Constructors and Destructor
-     */
-    //@{
-    /// Default constructor.
+   
+   /// Constructor
     ContinuousWaveletTransformNumIntegration();
 
     /// Copy constructor
     ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt) 
     : ContinuousWaveletTransform<D>(cwt)
-    {
-    	
-    }
+    {}
     /// Destructor.
     virtual ~ContinuousWaveletTransformNumIntegration();
     //@}
 
 
-    /** @name Assignement
-     */
-    //@{
-    ///
+   /// Assignment operator
     inline ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)
     {
       signal_=cwt.signal_;
@@ -109,26 +93,60 @@ namespace OpenMS
       
       return *this;
     }
-    //@}
-
-
-    // convolution with the marr wavelet (resolution = 1)
-    double integrate(RawDataPointConstIterator x, RawDataPointConstIterator first, RawDataPointConstIterator last);
-
-    // convolution with the marr wavelet (resolution > 1)
-    double integrate(const std::vector<double>& processed_input, double spacing_data, int index);
-
-    double marr(double x);
-
-    /** Compute the continuous wavelet transformation (use a marr wavelet)
-     * of the signal intervall [it_begin, it_end).
-     * Using the numerical integration (trapezian rule) to compute the convolution of the
-     * signal and the marr wavelet.
+     /**
+    	 @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
      */
-    virtual
-    void transform(RawDataPointIterator begin_input,
-                   RawDataPointIterator end_input,
-                   float resolution)
+    /// resolution = 1: the wavelet transform will be computed at every position of the raw data, 
+    /// resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
+    /// 								(the raw data are interpolated to get the intensity for missing positions) 
+    /// ...
+    /// @note before starting the transformation you have to call the init function
+    virtual void transform(RawDataPointConstIterator begin_input,
+                  				 RawDataPointConstIterator end_input,
+                  				 float resolution);
+
+     /**
+    	 @brief Perform necessary preprocessing steps like tabulating the Wavelet.
+    	 
+    	  Build a Marr-Wavelet for the current spacing and scale.
+       	We store the wavelet in the vector<double> wavelet_;
+     
+       	We only need a finite amount of points since the Marr function
+       	decays fast. We take 5*scale, since at that point the wavelet
+       	has dropped to ~ -10^-4
+     */
+    virtual void init(double scale, double spacing, unsigned int mz_dim_);
+    
+    protected:
+    	
+    /// Computes the convolution of the wavelet and the raw data at position x with resolution = 1
+    double integrate_(RawDataPointConstIterator x, RawDataPointConstIterator first, RawDataPointConstIterator last);
+
+    /// Computes the convolution of the wavelet and the raw data at position x with resolution > 1
+    double integrate_(const std::vector<double>& processed_input, double spacing_data, int index);
+
+		/// Computes the marr wavelet at position x 
+    double marr_(double x);
+      };
+
+  template <Size D>
+  ContinuousWaveletTransformNumIntegration<D>::ContinuousWaveletTransformNumIntegration()
+      : ContinuousWaveletTransform<D>()
+  {
+#ifdef DEBUG_PEAK_PICKING
+    std::cout << "ContinuousWaveletTransformNumIntegration constructor." << std::endl;
+#endif
+
+  }
+
+  template <Size D>
+  ContinuousWaveletTransformNumIntegration<D>::~ContinuousWaveletTransformNumIntegration()
+  {}
+
+	template <Size D>
+  void ContinuousWaveletTransformNumIntegration<D>::transform(typename ContinuousWaveletTransformNumIntegration<D>::RawDataPointConstIterator begin_input,
+                   																						typename ContinuousWaveletTransformNumIntegration<D>::RawDataPointConstIterator end_input,
+                   																						float resolution)
     {
     
 #ifdef DEBUG_PEAK_PICKING
@@ -146,18 +164,19 @@ namespace OpenMS
         signal_.resize(n);
 
         // TODO avoid to compute the cwt for the zeros in signal
-
-        //std::cout << "---------START TRANSFORM---------- \n";
-        RawDataPointIterator help = begin_input;
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "---------START TRANSFORM---------- \n";
+#endif
+        RawDataPointConstIterator help = begin_input;
         for (i=0; i < n; ++i)
         {
           signal_[i].getPos() = help->getPos();
-          signal_[i].getIntensity()=integrate(help,begin_input,end_input);
-          //std::cout << signal_[i].getPos() << ' ' << signal_[i].getIntensity() << '\n';
+          signal_[i].getIntensity()=integrate_(help,begin_input,end_input);
           ++help;
         }
-        //std::cout << "---------END TRANSFORM----------" << std::endl;
-
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "---------END TRANSFORM----------" << std::endl;
+#endif
         // no zeropadding
         begin_right_padding_=n;
         end_left_padding_=-1;
@@ -172,7 +191,7 @@ namespace OpenMS
         signal_.clear();
         signal_.resize(n);
 
-        RawDataPointIterator it_help = begin_input;
+        RawDataPointConstIterator it_help = begin_input;
         processed_input[0]=it_help->getPosition()[mz_dim_];
 
         double x;
@@ -184,15 +203,14 @@ namespace OpenMS
           {
             ++it_help;
           }
-          processed_input[k]=getInterpolatedValue(x,it_help);
+          processed_input[k] = getInterpolatedValue_(x,it_help);
         }
 
         // TODO avoid to compute the cwt for the zeros in signal
         for (unsigned int i=0; i < n; ++i)
         {
           signal_[i].getPos() = origin + i*spacing;
-          signal_[i].getIntensity() = integrate(processed_input,spacing,i);
-          //  std::cout << origin + i*spacing << " " << signal_[i].getIntensity() << std::endl;
+          signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
         }
 
         // no zeropadding
@@ -201,34 +219,12 @@ namespace OpenMS
       }
     }
 
-    /// Initialize the Wavelet
-    virtual void init(double scale, double spacing, unsigned int mz_dim_);
 
-  protected:
-  };
-
-  /// Default constructor.
   template <Size D>
-  ContinuousWaveletTransformNumIntegration<D>::ContinuousWaveletTransformNumIntegration()
-      : ContinuousWaveletTransform<D>()
+  double ContinuousWaveletTransformNumIntegration<D>::integrate_(RawDataPointConstIterator x, RawDataPointConstIterator first, RawDataPointConstIterator last)
   {
 #ifdef DEBUG_PEAK_PICKING
-    std::cout << "ContinuousWaveletTransformNumIntegration constructor." << std::endl;
-#endif
-
-  }
-
-  /** Destructor. */
-  template <Size D>
-  ContinuousWaveletTransformNumIntegration<D>::~ContinuousWaveletTransformNumIntegration()
-  {}
-
-
-  template <Size D>
-  double ContinuousWaveletTransformNumIntegration<D>::integrate(RawDataPointConstIterator x, RawDataPointConstIterator first, RawDataPointConstIterator last)
-  {
-#ifdef DEBUG_PEAK_PICKING
-    std::cout << "integrate" << std::endl;
+    std::cout << "integrate_" << std::endl;
 #endif
 
     double v=0.;
@@ -321,35 +317,29 @@ namespace OpenMS
   }
 
   template <Size D>
-  double ContinuousWaveletTransformNumIntegration<D>::marr(double x)
+  double ContinuousWaveletTransformNumIntegration<D>::marr_(double x)
   {
     return (1-x*x)*exp(-x*x/2);
   }
 
 
   template <Size D>
-  double ContinuousWaveletTransformNumIntegration<D>::integrate(const std::vector<double>& processed_input,
+  double ContinuousWaveletTransformNumIntegration<D>::integrate_(const std::vector<double>& processed_input,
       double spacing_data,
       int index)
   {
     double v = 0.;
     int half_width = wavelet_.size();
     int index_in_data = (int)floor((half_width*spacing_) / spacing_data);
-    //   std::cout << "wavelet breite " << half_width*spacing_ << " spacing data " << spacing_data  << "index_in_data " << index_in_data << std::endl;
-
     int offset_data_left = ((index - index_in_data) < 0) ? 0 : (index-index_in_data);
     int offset_data_right = ((index + index_in_data) > (int)processed_input.size()) ? processed_input.size()-1 : (index+index_in_data);
-
-    //   std::cout << "offset left " << offset_data_left << " " << offset_data_left*spacing_data << std::endl;
-    //   std::cout << "offset right " << offset_data_right << " " << offset_data_right*spacing_data << std::endl;
 
     // integrate from i until offset_data_left
     for (int i = index; i > offset_data_left; --i)
     {
       int index_w_r = (int)round(((index-i)*spacing_data)/spacing_);
       int index_w_l = (int)round(((index-(i-1))*spacing_data)/spacing_);
-      //  std::cout << "abstand in daten i " << (index-i)*spacing_data << " und im wavelet " << index_w_r*spacing_ << std::endl;
-      //  std::cout << "abstand in daten i-1 " << (index-(i-1))*spacing_data << " und im wavelet " << (index_w_l)*spacing_ << std::endl;
+      
       v += spacing_data / 2.*( processed_input[i]*wavelet_[index_w_r] + processed_input[i-1]*wavelet_[index_w_l] );
     }
 
@@ -358,8 +348,7 @@ namespace OpenMS
     {
       int index_w_r = (int)round((((i+1)-index)*spacing_data)/spacing_);
       int index_w_l = (int)round(((i-index)*spacing_data)/spacing_);
-      //  std::cout << "abstand in daten i " << (i-index)*spacing_data << " und im wavelet " << index_w_l*spacing_ << std::endl;
-      //  std::cout << "abstand in daten i+1 " << ((i+1)-index)*spacing_data << " und im wavelet " << (index_w_r)*spacing_ << std::endl;
+      
       v += spacing_data / 2.*( processed_input[i+1]*wavelet_[index_w_r] + processed_input[i]*wavelet_[index_w_l]);
     }
 
@@ -371,14 +360,6 @@ namespace OpenMS
   void ContinuousWaveletTransformNumIntegration<D>::init(double scale, double spacing, unsigned int mz_dim)
   {
     ContinuousWaveletTransform<D>::init(scale, spacing, mz_dim);
-
-    /** Build a Marr-Wavelet for the current spacing and scale.
-     *  We store the wavelet in the vector<double> wavelet_;
-     *
-     *  We only need a finite amount of points since the Marr function
-     *  decays fast. We take 5*scale, since at that point the wavelet
-     *  has dropped to ~ -10^-4
-     */
     int number_of_points_right = (int)(ceil(5*scale_/spacing_));
     int number_of_points = number_of_points_right + 1;
     wavelet_.resize(number_of_points);
@@ -386,7 +367,7 @@ namespace OpenMS
 
     for (int i=1; i<number_of_points; i++)
     {
-      wavelet_[i] = marr(i*spacing_/scale_ );
+      wavelet_[i] = marr_(i*spacing_/scale_ );
     }
 
 #ifdef DEBUG_PEAK_PICKING
