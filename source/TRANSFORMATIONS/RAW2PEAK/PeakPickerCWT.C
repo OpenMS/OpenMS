@@ -57,15 +57,15 @@ namespace OpenMS
 
   PeakPickerCWT::PeakPickerCWT(const String& filename) : PeakPicker(filename)
   {
-    init();
+    init_();
   }
 
   PeakPickerCWT::PeakPickerCWT(const Param& parameters) : PeakPicker(parameters)
   {
-    init();
+    init_();
   }
 
-  void PeakPickerCWT::init()
+  void PeakPickerCWT::init_()
   {
     //std::cout << param_ << std::endl;
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
@@ -210,26 +210,6 @@ namespace OpenMS
     {
       return false;
     }
-
-    /*  The algorithm does the following:
-     *    - let x_m be the position of the maximum in the data and let (x_l, x_r) be
-     *      the left and right neighbours
-     *
-     *
-     *  (1) starting from x_l', walk left until one of the following happens
-     *         - the new point is lower than the original bound
-     *              => we found our left endpoint
-     *
-     *         - the new point is larger than the last, but the point left from
-     *           the new point is smaller. In that case, we either ran into another
-     *           peak, or we encounter some noise. Therefore we now look in the cwt
-     *           at the position corresponding to this value. If the cwt here is
-     *           monotonous, we consider the point as noise and continue further to the
-     *           left. Otherwise, we probably found the beginning of a new peak and
-     *           therefore stop here.
-     *
-     *  (2) analogous procedure to the right of x_r
-     */
 
     RawDataPointIterator it_help=area.max-1;
     PositionType vec_pos;
@@ -487,43 +467,6 @@ namespace OpenMS
 
     delete lorentz_cwt;
     delete lorentz_ms2_cwt;
-  }
-
-  PeakPickerCWT::RawDataPointIterator
-  PeakPickerCWT::getIteratorLeftDataPoint_(RawDataPointIterator first,
-      RawDataPointIterator last,
-      double value)
-  {
-    int length = distance(first,last);
-    double origin = first->getPos();
-
-    OPENMS_PRECONDITION(((origin < value) && (value < (last-1)->getPos())),
-                        "The position can't be found in this peak array.");
-
-    double spacing = ((last-1)->getPos()-origin)/(length-1);
-    double distance=value-origin;
-
-    int value_index=(int)(distance/spacing);
-
-    RawDataPointIterator it_pos=first+value_index;
-    while (true)
-    {
-      if (it_pos->getPos() < value)
-      {
-        if ((it_pos+1)->getPos() < value)
-        {
-          ++it_pos;
-        }
-        else
-        {
-          return it_pos;
-        }
-      }
-      else
-      {
-        --it_pos;
-      }
-    }
   }
 
   void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
