@@ -81,6 +81,12 @@ namespace OpenMS
     /// Default constructor.
     ContinuousWaveletTransformNumIntegration();
 
+    /// Copy constructor
+    ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt) 
+    : ContinuousWaveletTransform<D>(cwt)
+    {
+    	
+    }
     /// Destructor.
     virtual ~ContinuousWaveletTransformNumIntegration();
     //@}
@@ -100,6 +106,8 @@ namespace OpenMS
       end_left_padding_=cwt.end_left_padding_;
       begin_right_padding_=cwt.begin_right_padding_;
       mz_dim_=cwt.mz_dim_;
+      
+      return *this;
     }
     //@}
 
@@ -122,6 +130,7 @@ namespace OpenMS
                    RawDataPointIterator end_input,
                    float resolution)
     {
+    
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "ContinuousWaveletTransformNumIntegration::transform in dimension " << mz_dim_ << " from " << begin_input->getPosition()[mz_dim_] << " until " << (end_input-1)->getPosition()[mz_dim_] << std::endl;
 #endif
@@ -138,16 +147,16 @@ namespace OpenMS
 
         // TODO avoid to compute the cwt for the zeros in signal
 
-	//std::cout << "---------START TRANSFORM---------- \n";
+        //std::cout << "---------START TRANSFORM---------- \n";
         RawDataPointIterator help = begin_input;
         for (i=0; i < n; ++i)
         {
           signal_[i].getPos() = help->getPos();
           signal_[i].getIntensity()=integrate(help,begin_input,end_input);
-	  //std::cout << signal_[i].getPos() << ' ' << signal_[i].getIntensity() << '\n';
+          //std::cout << signal_[i].getPos() << ' ' << signal_[i].getIntensity() << '\n';
           ++help;
         }
-	//std::cout << "---------END TRANSFORM----------" << std::endl;
+        //std::cout << "---------END TRANSFORM----------" << std::endl;
 
         // no zeropadding
         begin_right_padding_=n;
@@ -183,7 +192,7 @@ namespace OpenMS
         {
           signal_[i].getPos() = origin + i*spacing;
           signal_[i].getIntensity() = integrate(processed_input,spacing,i);
-					//  std::cout << origin + i*spacing << " " << signal_[i].getIntensity() << std::endl;
+          //  std::cout << origin + i*spacing << " " << signal_[i].getIntensity() << std::endl;
         }
 
         // no zeropadding
