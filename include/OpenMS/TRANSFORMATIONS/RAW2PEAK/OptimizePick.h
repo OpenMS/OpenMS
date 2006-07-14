@@ -52,8 +52,6 @@ namespace OpenMS
   	a class, so we provide an extra namespace.
 
   	@ingroup PeakPicking
-  	
-  	@todo write a test (Eva)
    */
   namespace OptimizationFunctions
   {
@@ -119,7 +117,7 @@ namespace OpenMS
     OptimizePick( )
         : max_iteration_(0),
         eps_abs_(0),
-    eps_rel_(0) {}
+    		eps_rel_(0) {}
     ///
     OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_,
                  const int max_iteration_,
@@ -129,7 +127,7 @@ namespace OpenMS
     OptimizePick(const OptimizePick& opt)
         : penalties_(opt.penalties_),
         max_iteration_(opt.max_iteration_),
-    eps_rel_(opt.eps_rel_){}
+    		eps_rel_(opt.eps_rel_){}
     ///
     ~OptimizePick();
     //@}
@@ -142,6 +140,7 @@ namespace OpenMS
       penalties_=opt.penalties_;
       max_iteration_=opt.max_iteration_;
       eps_rel_=opt.eps_rel_;
+      eps_abs_=opt.eps_abs_;
 
       return *this;
     }
@@ -159,23 +158,23 @@ namespace OpenMS
     inline void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties) { penalties_ = penalties; }
 
     /// Non-mutable access to the number of iterations
-    inline const int getNumberIterations() const { return max_iteration_; }
+    inline const unsigned int& getNumberIterations() const { return max_iteration_; }
     /// Mutable access to the number of iterations
-    inline int getNumberIterations() { return max_iteration_; }
+    inline unsigned int& getNumberIterations() { return max_iteration_; }
     /// Mutable access to the number of iterations
     inline void setNumberIterations(const int max_iteration) { max_iteration_ = max_iteration; }
 
     /// Non-mutable access to the maximum absolute error
-    inline const double getMaxAbsError() const { return eps_abs_; }
+    inline const double& getMaxAbsError() const { return eps_abs_; }
     /// Mutable access to the maximum absolute error
-    inline double getMaxAbsError() { return eps_abs_; }
+    inline double& getMaxAbsError() { return eps_abs_; }
     /// Mutable access to the maximum absolute error
     inline void setMaxAbsError(const double eps_abs) { eps_abs_ = eps_abs; }
 
     /// Non-mutable access to the maximum relative error
-    inline const double getMaxRelError() const { return eps_rel_; }
+    inline const double& getMaxRelError() const { return eps_rel_; }
     /// Mutable access to the maximum relative error
-    inline double getMaxRelError() { return eps_rel_; }
+    inline double& getMaxRelError() { return eps_rel_; }
     /// Mutable access to the maximum relative error
     inline void setMaxRelError(const double eps_rel) { eps_rel_ = eps_rel; }
     //@}
@@ -188,7 +187,7 @@ namespace OpenMS
 
     double correlate(const PeakShape& peak,
                      double left_endpoint,
-                     double right_endpoint) ;
+                     double right_endpoint);
 
   protected:
     // Penalty factors for some paramter in the optimization

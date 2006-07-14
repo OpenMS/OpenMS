@@ -39,8 +39,6 @@ namespace OpenMS
   /** @brief This class is a internal representation (used by the DPeakPickerCWT) of a peak shape.
 
   		It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
-
-  		@todo write test (Eva)
   */
   //@{
 
