@@ -33,11 +33,11 @@ include ../../config_defs.mak
 
 CPP_SOURCES= \
 	DExtractSignalRegions.C\
-	DPeakPicker.C\
+	PeakPicker.C\
+	PeakPickerCWT.C\
 	ContinuousWaveletTransform.C\
 	ContinuousWaveletTransformNumIntegration.C\
-	PeakShape.C\
-	DPeakPickerCWT.C
+	PeakShape.C
 
 
 ifeq ($(GSL_SUPPORT),true)
