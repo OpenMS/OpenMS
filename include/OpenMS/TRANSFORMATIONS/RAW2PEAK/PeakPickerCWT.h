@@ -205,7 +205,17 @@ namespace OpenMS
     //@}
 
 
-    template <typename InputPeakIterator, typename OutputPeakContainer>
+		/** @brief Applies the peak picking algorithm to an given iterator range.
+				
+				Picks the peaks in the given iterator intervall [first,last) and writes the
+				resulting peaks to the picked_peak_container.
+				
+				@note This method assumes that the InputPeakIterator points to a data point of type 
+							DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+							
+							The resulting peaks can be of type DPeak<1>.h or any other class derived from DPeak.
+		*/
+    template <typename InputPeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator, typename OutputPeakContainer = MSSpectrum<DPickedPeak<1> > >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
     {
       //DSignalToNoiseEstimatorWindowing<InputPeakType> sne;
@@ -415,13 +425,34 @@ namespace OpenMS
       } // if (peak_shapes_.size() > 0)
     }
 
-    template <typename InputPeakContainer, typename OutputPeakContainer>
+		/** @brief Applies the peak picking algorithm to a raw data point container.
+				
+				Picks the peaks in the input container and writes the resulting peaks to the picked_peak_container.
+				
+				@note This method assumes that the input_peak_container contains data points of type 
+							DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+		
+							The resulting peaks can be of type DPeak<1>.h or any other class derived from DPeak.
+		*/
+    template <typename InputPeakContainer = MSSpectrum<DRawDataPoint<1> >, typename OutputPeakContainer = MSSpectrum<DPickedPeak<1> > >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container)
     {
       pick(input_peak_container.begin(), input_peak_container.end(), picked_peaks_container);
     }
 
-    template <typename InputSpectrumIterator, typename OutputSpectrumContainer>
+
+		/** @brief Applies the peak picking algorithm to each raw data point container in an iterator range.
+				
+				Picks the peaks successive in every raw data point container defined by the iterator intervall [first,last).
+				The detected peaks of every raw data point container are stored in a peak container and added to the
+				spectrum_container.
+							
+				@note This method assumes that the InputSpectrumIterator points to a raw data container with elements of 
+							type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+		
+							The resulting peaks can be of type DPeak<1>.h or any other class derived from DPeak.
+		*/
+    template <typename InputSpectrumIterator = MSExperiment<DRawDataPoint<1> >::const_iterator, typename OutputSpectrumContainer = MSExperiment<DPickedPeak<1> > >
     void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, OutputSpectrumContainer& spectrum_container)
     {
       typedef typename OutputSpectrumContainer::value_type SpectrumType;
@@ -430,12 +461,27 @@ namespace OpenMS
       while (help != last)
       {
         SpectrumType spectrum;
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "PICK RT: " << help->getRetentionTime() << std::endl;
+#endif
         pick(*help,spectrum);
         spectrum_container.push_back(spectrum);
+        ++help;	
       }
     }
 
-    template <typename InputSpectrumContainer, typename OutputSpectrumContainer>
+		/** @brief Applies the peak picking algorithm to a container of raw data point containers.	
+		
+				Picks the peaks successive in every raw data point container.
+				The detected peaks of every raw data point container are stored in a peak container which is added to the
+				spectrum_container.
+							
+				@note This method assumes that the InputSpectrumIterator points to a container containing raw data points of type 
+							DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+		
+							The resulting peaks can be of type DPeak<1>.h or any other class derived from DPeak.
+		*/
+    template <typename InputSpectrumContainer = MSExperiment<DRawDataPoint<1> >, typename OutputSpectrumContainer = MSExperiment<DPickedPeak<1> > >
     void pickExperiment(const InputSpectrumContainer& input_peak_container, OutputSpectrumContainer& spectrum_container)
     {
       pickExperiment(input_peak_container.begin(),input_peak_container.end(),spectrum_container);
