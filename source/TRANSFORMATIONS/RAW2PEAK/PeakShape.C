@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -29,123 +29,116 @@
 
 namespace OpenMS
 {
-	PeakShape::PeakShape(double height_,
-											 double mz_position_, 
-											 double rt_position_,
-											 double left_width_, 
-											 double right_width_, 
-											 double area_, 
-											 PeakShapeType::Enum type_)
-		: height(height_),
-			mz_position(mz_position_),
-			rt_position(rt_position_),
-			left_width(left_width_),
-			right_width(right_width_),
-			area(area_),
-			r_value(0),
-			type(type_)
-	{
-	
-	}
+  PeakShape::PeakShape(double height_,
+                       double mz_position_,
+                       double left_width_,
+                       double right_width_,
+                       double area_,
+                       PeakShapeType::Enum type_)
+      : height(height_),
+      mz_position(mz_position_),
+      left_width(left_width_),
+      right_width(right_width_),
+      area(area_),
+      r_value(0),
+      type(type_)
+  {}
 
-	PeakShape::PeakShape(const PeakShape& peakshape)
-		: height(peakshape.height),
-			mz_position(peakshape.mz_position),
-			rt_position(peakshape.rt_position),
-			left_width(peakshape.left_width),
-			right_width(peakshape.right_width),
-			area(peakshape.area),
-			r_value(peakshape.r_value),
-			signal_to_noise(peakshape.signal_to_noise),
-			type(peakshape.type)
-	{
-	}
-	
-	PeakShape& PeakShape::operator = (const PeakShape& pf)
-	{
-		// handle self assignment
-		if (this == &pf) return *this;
+  PeakShape::PeakShape(const PeakShape& peakshape)
+      : height(peakshape.height),
+      mz_position(peakshape.mz_position),
+      left_width(peakshape.left_width),
+      right_width(peakshape.right_width),
+      area(peakshape.area),
+      r_value(peakshape.r_value),
+      signal_to_noise(peakshape.signal_to_noise),
+      type(peakshape.type)
+  {}
 
-		height=pf.height;
-		mz_position=pf.mz_position;
-		rt_position=pf.rt_position;
-		left_width=pf.left_width;
-		right_width=pf.right_width;
-		area=pf.area;
-		type=pf.type;
-		signal_to_noise=pf.signal_to_noise,
-		r_value=pf.r_value;
-	
-		return *this;
-	}
+  PeakShape& PeakShape::operator = (const PeakShape& pf)
+  {
+    // handle self assignment
+    if (this == &pf) return *this;
 
-	double PeakShape::operator () (const double x) const
-	{
-		double value;
+    height=pf.height;
+    mz_position=pf.mz_position;
+    left_width=pf.left_width;
+    right_width=pf.right_width;
+    area=pf.area;
+    type=pf.type;
+    signal_to_noise = pf.signal_to_noise;
+    r_value=pf.r_value;
 
-		switch (type)
-			{
-			case PeakShapeType::LORENTZ_PEAK:
-				if (x<=mz_position)
-					value = height/(1.+pow(left_width*(x - mz_position), 2));
-				else
-					value = height/(1.+pow(right_width*(x - mz_position), 2));
-				break;
+    return *this;
+  }
 
-			case PeakShapeType::SECH_PEAK:
-				if (x<=mz_position)
-					value = height/pow(cosh(left_width*(x-mz_position)), 2);
-				else
-					value = height/pow(cosh(right_width*(x-mz_position)), 2);
-				break;
+  double PeakShape::operator () (const double x) const
+  {
+    double value;
 
-			default:
-				value = -1.;
-				break;
-			}
+    switch (type)
+    {
+    case PeakShapeType::LORENTZ_PEAK:
+      if (x<=mz_position)
+        value = height/(1.+pow(left_width*(x - mz_position), 2));
+      else
+        value = height/(1.+pow(right_width*(x - mz_position), 2));
+      break;
 
-		return value;
-	}
+    case PeakShapeType::SECH_PEAK:
+      if (x<=mz_position)
+        value = height/pow(cosh(left_width*(x-mz_position)), 2);
+      else
+        value = height/pow(cosh(right_width*(x-mz_position)), 2);
+      break;
 
-	double PeakShape::getFWHM() const
-	{
-		double fwhm=0;
+    default:
+      value = -1.;
+      break;
+    }
 
-		switch (type)
-			{
-			case PeakShapeType::LORENTZ_PEAK:
-				{
-					fwhm = 1/right_width;
-					fwhm += 1/left_width;
-				}
-				break;
+    return value;
+  }
 
-			case PeakShapeType::SECH_PEAK:
-				{
-					double m = log(sqrt(2.0)+1);	
-					fwhm = m/left_width;
-					fwhm += m/right_width;	
-				}
-				break;
-				
-			default:
-				{
-					fwhm = -1.;
-				}
-				break; 
-			}
-		return fwhm;
-	}
-	
-	double PeakShape::getSymmetricMeasure() const
-	{
-		double value;
+  double PeakShape::getFWHM() const
+  {
+    double fwhm=0;
 
-		if (left_width < right_width) 
-			value = left_width/right_width; 
-		else
-		 	value =	right_width/left_width;
+    switch (type)
+    {
+    case PeakShapeType::LORENTZ_PEAK:
+      {
+        fwhm = 1/right_width;
+        fwhm += 1/left_width;
+      }
+      break;
 
-		return value;
-	}  
+    case PeakShapeType::SECH_PEAK:
+      {
+        double m = log(sqrt(2.0)+1);
+        fwhm = m/left_width;
+        fwhm += m/right_width;
+      }
+      break;
+
+    default:
+      {
+        fwhm = -1.;
+      }
+      break;
+    }
+    return fwhm;
+  }
+
+  double PeakShape::getSymmetricMeasure() const
+  {
+    double value;
+
+    if (left_width < right_width)
+      value = left_width/right_width;
+    else
+      value =	right_width/left_width;
+
+    return value;
+  }
 }
