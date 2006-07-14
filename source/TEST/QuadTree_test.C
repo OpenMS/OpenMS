@@ -63,7 +63,7 @@ bool is_sorted(ForwardIterator first, ForwardIterator last)
 // 	return true;
 // }
 
-START_TEST(QuadTree<>, "$Id: QuadTree_test.C,v 1.7 2006/06/08 14:29:18 marc_sturm Exp $")
+START_TEST(QuadTree<>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

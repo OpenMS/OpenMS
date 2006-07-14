@@ -50,28 +50,56 @@ namespace OpenMS
 				y_ascending_(true), 
 				mz_to_x_(true) 
 			{
-			};
+				
+			}
 	
 			/// set mapping of m/z to X-Axis
-			inline void setMzToXAxis()  {	mz_to_x_ = true;	};
+			inline void setMzToXAxis()  
+			{	
+				mz_to_x_ = true;
+			}
 			/// set mapping of m/z to Y-Axis
-			inline void setMzToYAxis()	{	mz_to_x_ = false;};
+			inline void setMzToYAxis()	
+			{	
+				mz_to_x_ = false;
+			}
 	
 			/// set orientation of X Axis (left -> right)
-			inline void setXAxisAsc() {	x_ascending_ = true;}
+			inline void setXAxisAsc() 
+			{	
+				x_ascending_ = true;
+			}
 			/// set orientation of X Axis (left <- right)
-			inline void setXAxisDesc()	{	x_ascending_ = false;}
+			inline void setXAxisDesc()	
+			{
+				x_ascending_ = false;
+			}
 			/// set orientation of Y Axis (top <- bottom)
-			inline void setYAxisAsc()	{	y_ascending_ = true;}
+			inline void setYAxisAsc()	
+			{	
+				y_ascending_ = true;
+			}
 			/// set orientation of Y Axis (top -> bottom)
-			inline void setYAxisDesc()	{	y_ascending_ = false;}
+			inline void setYAxisDesc()	
+			{	
+				y_ascending_ = false;
+			}
 			
 			/// mapping predicate
-			inline bool isMzToXAxis() const  {  return mz_to_x_; }
+			inline bool isMzToXAxis() const  
+			{  
+				return mz_to_x_; 
+			}
 			/// orientation X axis predicate
-			inline bool isXAxisAsc() const {  return x_ascending_; }
+			inline bool isXAxisAsc() const 
+			{ 
+				return x_ascending_; 
+			}
 			/// orientation Y axis predicate
-			inline bool isYAxisAsc() const {  return y_ascending_; }
+			inline bool isYAxisAsc() const 
+			{  
+				return y_ascending_;
+			}
 			
 			///returns the current settings 
 			Param getParam();

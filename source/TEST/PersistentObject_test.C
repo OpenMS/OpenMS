@@ -84,7 +84,7 @@ namespace OpenMS
 	};
 }
 
-START_TEST(PersistentObject, "$Id: PersistentObject_test.C,v 1.2 2006/02/21 13:46:35 marc_sturm Exp $")
+START_TEST(PersistentObject, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

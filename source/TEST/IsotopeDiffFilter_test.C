@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(IsotopeDiffFilter, "$Id: $")
+START_TEST(IsotopeDiffFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

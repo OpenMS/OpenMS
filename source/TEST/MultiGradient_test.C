@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DPeak<D>, "$Id: MultiGradient_test.C,v 1.6 2006/03/28 08:03:34 marc_sturm Exp $")
+START_TEST(DPeak<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -50,16 +50,24 @@ CHECK(~MultiGradient())
 	delete d10_ptr;
 RESULT
 
-CHECK(MultiGradient() / size() /position(...) / color(...) )
+CHECK(UnsignedInt size() const)
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
+RESULT
+
+CHECK(UnsignedInt position(UnsignedInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+	MultiGradient mg;
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);
+RESULT
+
+CHECK(const QColor& color(UnsignedInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 RESULT
 
-CHECK(insert / size() /position(...) / color(...) )
+CHECK(void insert(SignedInt position, const QColor& color))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.size(),3);
@@ -106,7 +114,7 @@ CHECK(insert / size() /position(...) / color(...) )
 	TEST_EQUAL(mg.color(5)==Qt::black,true);
 RESULT
 
-CHECK(remove / size() /position(...) / color(...) )
+CHECK(bool remove(SignedInt position))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -137,7 +145,7 @@ CHECK(remove / size() /position(...) / color(...) )
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 RESULT
 
-CHECK(bool exists (SignedInt position))
+CHECK(bool exists(SignedInt position))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -153,7 +161,7 @@ CHECK(bool exists (SignedInt position))
 	TEST_EQUAL(mg.exists(100),true);
 RESULT
 
-CHECK(interpolateColorAt(position) )
+CHECK(QColor interpolatedColorAt(double position) const)
 	MultiGradient mg;
 	TEST_EQUAL(mg.interpolatedColorAt(0)==Qt::white,true);
 	TEST_EQUAL(mg.interpolatedColorAt(25)==QColor(191,191,191),true);
@@ -180,7 +188,7 @@ CHECK(interpolateColorAt(position) )
 	TEST_EQUAL(mg.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK(interpolateColorAt(position,min,max) )
+CHECK(QColor interpolatedColorAt(double position, double min, double max) const)
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.interpolatedColorAt(0,0,100)==Qt::white,true);
@@ -190,7 +198,7 @@ CHECK(interpolateColorAt(position,min,max) )
 	TEST_EQUAL(mg.interpolatedColorAt(100,0,100)==Qt::black,true);	
 RESULT
 
-CHECK(interpolateColorAt(position) (stairs mode) )
+CHECK(QColor interpolatedColorAt(double position) const)
 	MultiGradient mg;
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	TEST_EQUAL(mg.interpolatedColorAt(0)==Qt::white,true);
@@ -205,7 +213,7 @@ CHECK(interpolateColorAt(position) (stairs mode) )
 	TEST_EQUAL(mg.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK(interpolateColorAt(position,min,max) (stairs mode) )
+CHECK(QColor interpolatedColorAt(double position, double min, double max) const)
 	MultiGradient mg;
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	mg.insert(50,Qt::red);
@@ -217,7 +225,12 @@ CHECK(interpolateColorAt(position,min,max) (stairs mode) )
 	TEST_EQUAL(mg.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK(general precalcluation mode test)
+CHECK(void activatePrecalculationMode(double min, double max, UnsignedInt steps))
+	MultiGradient mg;
+	mg.activatePrecalculationMode(-50,50,100);
+RESULT
+
+CHECK(const QColor& precalculatedColorAt(double position) const throw(Exception::OutOfSpecifiedRange))
 	MultiGradient mg;
 	mg.insert(0,Qt::white);
 	mg.insert(100,Qt::blue);
@@ -251,8 +264,11 @@ CHECK(general precalcluation mode test)
 	TEST_EQUAL(mg.precalculatedColorAt(570).red(),0);
 	TEST_EQUAL(mg.precalculatedColorAt(570).green(),0);
 	TEST_EQUAL(mg.precalculatedColorAt(570).blue(),255);
-	
-	//Test exceptions
+RESULT
+
+CHECK(void deactivatePrecalculationMode())
+	MultiGradient mg;
+	mg.activatePrecalculationMode(-50,50,100);
 	mg.deactivatePrecalculationMode();
 	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(-51) );
 	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(0) );

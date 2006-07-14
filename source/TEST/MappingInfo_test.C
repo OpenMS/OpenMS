@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DPeak<D>, "$Id: MappingInfo_test.C,v 1.2 2006/03/28 08:03:34 marc_sturm Exp $")
+START_TEST(DPeak<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ CHECK(MappingInfo())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MappingInfo())
+CHECK(MappingInfo())
 	delete ptr;
 RESULT
 

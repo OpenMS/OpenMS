@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(Gradient, "$Id: Gradient_test.C,v 1.3 2006/05/30 15:46:43 marc_sturm Exp $")
+START_TEST(Gradient, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

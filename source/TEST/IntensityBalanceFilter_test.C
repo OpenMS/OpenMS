@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(IntensityBalanceFilter, "$Id: $")
+START_TEST(IntensityBalanceFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

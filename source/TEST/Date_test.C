@@ -37,7 +37,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Date, "$Id: Date_test.C,v 1.4 2006/03/28 16:19:59 marc_sturm Exp $")
+START_TEST(Date, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

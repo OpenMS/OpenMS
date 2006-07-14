@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(NeutralLossDiffFilter, "$Id: $")
+START_TEST(NeutralLossDiffFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

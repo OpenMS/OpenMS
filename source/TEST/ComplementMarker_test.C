@@ -40,7 +40,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(ComplementMarker, "$Id: $")
+START_TEST(ComplementMarker, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

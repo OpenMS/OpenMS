@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(ComplementFilter, "$Id: $")
+START_TEST(ComplementFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

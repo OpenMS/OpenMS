@@ -32,7 +32,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 ///////////////////////////
 
-START_TEST(DFeaturePairsFile, "$Id: DFeaturePairsFile_test.C,v 1.2 2006/02/25 17:05:00 ole_st Exp $")
+START_TEST(DFeaturePairsFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

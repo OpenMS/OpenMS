@@ -34,7 +34,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(SpectrumSettings, "$Id: SpectrumSettings_test.C,v 1.10 2006/06/10 06:40:18 marc_sturm Exp $")
+START_TEST(SpectrumSettings, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

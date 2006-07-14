@@ -43,7 +43,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 
 ///////////////////////////
-START_TEST(ClusterExperiment, "$Id: ClusterExperiment_test.C,v 1.9 2006/04/05 11:18:25 marc_sturm Exp $")
+START_TEST(ClusterExperiment, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

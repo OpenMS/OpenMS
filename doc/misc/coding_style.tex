@@ -6,7 +6,7 @@
 \usepackage{times}
 \title{OpenMS coding conventions}
 \author{}
-\date{$ $Revision: 1.12 $ $}
+\date{$ $Revision$ $}
 
 \newtheorem{example}{Example}
 
@@ -440,8 +440,8 @@ C style comments ({\tt /* */}) is recommended to avoid problems arising from
 nested comments. Comments should be written in plain \textbf{english} and
 describe the functionality of the next few lines.
 
-To check whether a header or source file fulfils this requirement, use the
-script {\tt OpenMS/doc/tools/check\_coding}. Invoke {\tt check\_coding} with the
+{\tt OpenMS/doc/tools/check\_coding} can be used to check whether a header or 
+source file fulfils this requirement. Invoke {\tt check\_coding} with the
 filename to check (or a list of files) and it will print the percentage of
 comments (including Doxygen comments) for each file.
 
@@ -515,12 +515,12 @@ after the test.
         \item {\tt NEW\_TMP\_FILE(string)}
 \end{itemize}
 
-\subsection{Generating test skeletons from header files}
+\subsection{Tools for testing and checking your code.}
 The tool {\tt check\_test} in the {\tt source/config/tools/} folder can be used to
 create test skeletons for classes. It has to be built using {\tt make}.\\
 \\
-There is also a PHP wrapper script for the above tool. Call {\tt 'php create\_test.php <header>'}
-to create a test file for the given header.
+There are also some PHP tools for testing and more in that directory.\\
+See {\tt source/config/tools/README.txt} for details!
 
 \subsection{Is this really necessary?}
 

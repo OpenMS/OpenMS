@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(PreprocessingFunctor, "$Id: $")
+START_TEST(PreprocessingFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

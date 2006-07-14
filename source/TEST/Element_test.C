@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(Element, "$Id: Element_test.C,v 1.4 2006/03/28 12:53:13 marc_sturm Exp $")
+START_TEST(Element, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

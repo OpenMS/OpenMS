@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DBConnection, "$Id: DBConnection_test.C,v 1.4 2006/03/09 13:01:19 marc_sturm Exp $")
+START_TEST(DBConnection, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -37,7 +37,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(String, "$Id: TextFile_test.C,v 1.4 2006/03/28 08:03:34 marc_sturm Exp $")
+START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

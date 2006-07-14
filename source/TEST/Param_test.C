@@ -36,7 +36,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DPeak<D>, "$Id: Param_test.C,v 1.11 2006/05/31 16:24:19 marc_sturm Exp $")
+START_TEST(DPeak<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

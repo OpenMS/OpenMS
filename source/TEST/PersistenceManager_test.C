@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(PersistenceManager, "$Id: PersistenceManager_test.C,v 1.1 2006/03/08 12:02:42 marc_sturm Exp $")
+START_TEST(PersistenceManager, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

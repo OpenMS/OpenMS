@@ -39,7 +39,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(String, "$Id: MascotOutfile_test.C,v 1.16 2006/06/10 06:40:18 marc_sturm Exp $")
+START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

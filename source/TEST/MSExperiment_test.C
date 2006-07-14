@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(MSExperiment, "$Id: MSExperiment_test.C,v 1.18 2006/06/09 14:46:55 marc_sturm Exp $")
+START_TEST(MSExperiment, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	TEST_REAL_EQUAL(it->getPosition()[MZ],25);
 RESULT
 
-CHECK(template<class Container> void set2DData(Container& cont))
+CHECK(template<class Container> void set2DData(const Container& cont) throw(Exception::Precondition))
 	MSExperiment<> exp;
 	
 	// create sample data
@@ -246,7 +246,7 @@ CHECK(template<class Container> void set2DData(Container& cont))
 	
 RESULT
 
-CHECK(MSExperiment<DRawDataPoint<1> >())
+CHECK([EXTRA] MSExperiment<DRawDataPoint<1> >())
 	MSExperiment<DRawDataPoint<1> > tmp;
 	tmp.resize(1);
 	tmp[0].getContainer().resize(1);
@@ -254,22 +254,17 @@ CHECK(MSExperiment<DRawDataPoint<1> >())
 	TEST_REAL_EQUAL(tmp[0].getContainer()[0].getPosition()[0],47.11)
 RESULT
 
-CHECK(typename SpectrumType::PeakType::CoordinateType getMinMZ() const)
+CHECK(CoordinateType getMinMZ() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(double getMaxInt() const)
-	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
-
-CHECK(double getMinRT() const)
+CHECK(CoordinateType getMinRT() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(double getMaxRT() const)
+CHECK(CoordinateType getMaxRT() const)
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
@@ -432,7 +427,7 @@ CHECK(void updateRanges())
 	
 RESULT
 
-CHECK(getPeak())
+CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
 	DPeakList<2> plist;
 	
 	DPeak<2> p1;
@@ -550,7 +545,7 @@ CHECK(Iterator RTEnd(double rt))
 	TEST_EQUAL(tmp.RTEnd(55.0)==tmp.end(), true);
 RESULT
 
-CHECK(sortSpectra())
+CHECK(void sortSpectra(bool sort_mz))
 	DPeakList<2> plist;
 	
 	DPeak<2> p1;

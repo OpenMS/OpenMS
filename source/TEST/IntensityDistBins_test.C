@@ -39,7 +39,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(IntensityDistBins, "$Id: $")
+START_TEST(IntensityDistBins, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

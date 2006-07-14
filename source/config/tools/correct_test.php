@@ -25,10 +25,16 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
-if ($argc<3 OR $argc>3)
+if ( $argc<3 || $argc>4 || ( $argc==4 &&  $argv[$argc-1]!="-verbose") )
 {
-	print "\n\nUsage: correct_test.php <Path to OpenMS> <Path to header>\n\n";
+	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-verbose]\n\n";
 	exit;	
+}
+
+$verbose = false;
+if ($argc==4 && $argv[$argc-1]=="-verbose")
+{
+	$verbose = true;
 }
 
 function penalize_name($f1, $f2)
@@ -48,14 +54,35 @@ function penalize_name($f1, $f2)
 }
 
 //determine methods
-exec("check_test $argv[2] -a",$out);
+$check_test = $argv[1]."/source/config/tools/check_test";
+exec("$check_test $argv[2] -a",$out, $return);
+if (!file_exists($check_test))
+{
+	print "Tool $check_test not present => Aborting!";
+	exit(1);
+}
+
 for ($i=1; $i< count($out); ++$i)
 {
 	$methods[] = substr(trim($out[$i]),1,-1);
 }
 
+// print methods in verbose mode
+if ($verbose)
+{
+	print "\n\nDecalared methods:\n";
+	foreach ($methods as $m) print "  $m\n";
+}
+
 //parse test
 $test_name = $argv[1]."/source/TEST/".substr($argv[2], strrpos($argv[2],"/")+1,-2)."_test.C";
+
+if (!file_exists($test_name))
+{
+	print "Test $test_name not present => Aborting!";
+	exit(1);
+}
+
 $test = file($test_name);
 foreach($test as $line)
 {
@@ -88,6 +115,12 @@ for($i=0; $i<count($tests); ++$i)
 	{
 		$replace[] = $methods[key($array)];
 		continue;
+	}
+	
+	if (strtoupper(substr($tests[$i],0,7))=="[EXTRA]")
+	{
+	  $replace[] = $tests[$i];
+	  continue;
 	}
 	
 	print "\n\nTest:     ".$tests[$i]."\n\n";

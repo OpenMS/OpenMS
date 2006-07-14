@@ -32,7 +32,7 @@
 
 ///////////////////////////
 
-START_TEST(DRawDataPoint<D>, "$Id: DRawDataPoint_test.C,v 1.5 2006/04/05 10:22:39 marc_sturm Exp $")
+START_TEST(DRawDataPoint<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ CHECK(bool operator != (const DRawDataPoint& rhs) const)
 	TEST_REAL_EQUAL(p1!=p2, false)
 RESULT
 
-CHECK(class PositionLess)
+CHECK([EXTRA] class PositionLess)
 	std::vector<DRawDataPoint<2> > v;
 	DRawDataPoint<2> p;
 	
@@ -268,7 +268,7 @@ CHECK(class PositionLess)
 	TEST_REAL_EQUAL(v[2].getPosition()[0], 2.0)
 RESULT
 
-CHECK(struct NthPositionLess)
+CHECK([EXTRA] struct NthPositionLess)
 
 	std::vector<DRawDataPoint<2> > v;
 	DRawDataPoint<2> p;
@@ -294,11 +294,11 @@ CHECK(struct NthPositionLess)
 	TEST_REAL_EQUAL(v[2].getPosition()[0], 2.0)
 RESULT
 
-CHECK(struct NthPositionLess<i>::DIMENSION)
+CHECK([EXTRA] struct NthPositionLess<i>::DIMENSION)
 	TEST_EQUAL(DRawDataPoint<7>::NthPositionLess<5>::DIMENSION, 5)
 RESULT
 
-CHECK(struct IntensityLess)
+CHECK([EXTRA] struct IntensityLess)
 	std::vector<DRawDataPoint<2> > v;
 	DRawDataPoint<2> p;
 	

@@ -38,7 +38,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(PeakDensityFilter, "$Id: $")
+START_TEST(PeakDensityFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

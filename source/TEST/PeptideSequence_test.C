@@ -37,7 +37,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(ResidueDB, "$Id: PeptideSequence_test.C,v 1.3 2006/03/28 12:53:13 marc_sturm Exp $")
+START_TEST(ResidueDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: Identification_test.C,v 1.1 2006/06/09 23:47:35 nicopfeifer Exp $
+// $Id$
 // $Author: nicopfeifer $
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@
 
 ///////////////////////////
 
-START_TEST(Identification, "$Id: Identification_test.C,v 1.1 2006/06/09 23:47:35 nicopfeifer Exp $")
+START_TEST(Identification, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

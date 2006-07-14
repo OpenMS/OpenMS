@@ -36,7 +36,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DBAdapter, "$Id: DBAdapter_test.C,v 1.13 2006/05/30 15:46:43 marc_sturm Exp $")
+START_TEST(DBAdapter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

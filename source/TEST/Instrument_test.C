@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(Instrument, "$Id: Instrument_test.C,v 1.4 2006/05/30 15:46:43 marc_sturm Exp $")
+START_TEST(Instrument, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

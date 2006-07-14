@@ -40,7 +40,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(NeutralLossMarker, "$Id: $")
+START_TEST(NeutralLossMarker, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
