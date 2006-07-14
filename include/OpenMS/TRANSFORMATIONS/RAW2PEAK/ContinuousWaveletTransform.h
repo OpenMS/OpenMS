@@ -33,15 +33,13 @@
 #include <vector>
 #include <iostream>
 
-//#define DEBUG_PEAK_PICKING
-
 namespace OpenMS
 {
   /**
   	@brief This class is the base class of the continuous wavelet transformation.
    
-		@todo move the typenames into their corresponding header files! (Eva)
-		@todo remove depencies on DPeakPicker (Eva)
+  @todo move the typenames into their corresponding header files! (Eva)
+  @todo remove depencies on DPeakPicker (Eva)
   */
   template <Size D>
   class ContinuousWaveletTransform
@@ -51,9 +49,7 @@ namespace OpenMS
     */
     //@{
     typedef std::vector<DRawDataPoint<D> > RawDataVector;
-    ///
     typedef typename RawDataVector::iterator RawDataPointIterator;
-    ///
     typedef typename RawDataVector::const_iterator RawDataPointConstIterator;
     //@}
 
@@ -83,6 +79,8 @@ namespace OpenMS
       signal_length_=cwt.signal_length_;
       end_left_padding_=cwt.end_left_padding_;
       begin_right_padding_=cwt.begin_right_padding_;
+      
+      return *this;
     }
     //@}
 
