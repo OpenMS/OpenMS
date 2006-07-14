@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -33,100 +33,89 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
 
-namespace OpenMS 
+namespace OpenMS
 {
 
-		/** @brief This class is a internal representation (used by the DPeakPickerCWT) of a peak shape.
+  /** @brief This class is a internal representation (used by the DPeakPickerCWT) of a peak shape.
 
-				It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
+  		It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
 
-				@todo write test (Eva)
-		*/
-		//@{
-	
-	class PeakShape
-		{
-		public:
+  		@todo write test (Eva)
+  */
+  //@{
 
-			PeakShape() 
-				: height(0),
-					mz_position(0),
-					rt_position(0),
-					left_width(0),
-					right_width(0),
-					area(0),
-					r_value(0),
-					signal_to_noise(0.),
-					type(PeakShapeType::UNDEFINED)
-			{}
-			///
-			PeakShape(double height_, 
-								double mz_position_, 
-								double rt_position_,
-								double left_width_, 
-								double right_width_,
-								double area_,
-							  PeakShapeType::Enum type_);
-			///	
-			PeakShape(const PeakShape& peakshape);
-			///
-			virtual ~PeakShape(){}
-			///
-			PeakShape& operator = (const PeakShape& peakshape);
-			
-			/// compute the real value of the fitted Peak at position x
-			double operator() (const double x) const;
-			///
-			double getSymmetricMeasure() const;
-			///
-			double getFWHM() const;
-			///
-			double height;
-			/// 
-			double mz_position;
-			///
-			double rt_position;
-			///
-			double left_width;
-			///
-			double right_width;
-			///
-			double area;
-			///
-			double r_value;
-			///
-			double signal_to_noise;
-			///
-			PeakShapeType::Enum type;
+  class PeakShape
+  {
+  public:
 
-			class PositionLess
-			{
-			public:
-				
-				PositionLess(Index i) : dimension_(i) {}
-				PositionLess() : dimension_(-1) {}
-				~PositionLess() {}
-				
-				bool operator () (const PeakShape& a, const PeakShape& b)
-				{
-					if (dimension_==2)
-						{
-							return ((a.rt_position < b.rt_position) || (!(a.rt_position > b.rt_position) && (a.mz_position < b.mz_position)));
-						}
-					else
-						{
-							return (a.mz_position < b.mz_position);
-						}
-				}
-				
-			protected:
-				Index dimension_;
-			};
+    PeakShape()
+        : height(0),
+        mz_position(0),
+        left_width(0),
+        right_width(0),
+        area(0),
+        r_value(0),
+        signal_to_noise(0.),
+        type(PeakShapeType::UNDEFINED)
+    {}
+    ///
+    PeakShape(double height_,
+              double mz_position_,
+              double left_width_,
+              double right_width_,
+              double area_,
+              PeakShapeType::Enum type_);
+    ///
+    PeakShape(const PeakShape& peakshape);
+    ///
+    virtual ~PeakShape(){}
+    ///
+    PeakShape& operator = (const PeakShape& peakshape);
 
-	};
-	
-	
+    /// compute the real value of the fitted Peak at position x
+    double operator() (const double x) const;
+    ///
+    double getSymmetricMeasure() const;
+    ///
+    double getFWHM() const;
+    ///
+    double height;
+    ///
+    double mz_position;
+    ///
+    double left_width;
+    ///
+    double right_width;
+    ///
+    double area;
+    ///
+    double r_value;
+    ///
+    double signal_to_noise;
+    ///
+    PeakShapeType::Enum type;
+
+    class PositionLess
+    {
+    public:
+
+      PositionLess(Index i) : dimension_(i) {}
+      PositionLess() : dimension_(-1) {}
+      ~PositionLess() {}
+
+      bool operator () (const PeakShape& a, const PeakShape& b)
+      {
+          return (a.mz_position < b.mz_position);
+      }
+
+    protected:
+      Index dimension_;
+    };
+
+  };
+
+
 
 } // namespace OpenMS
 
-#endif 
+#endif
