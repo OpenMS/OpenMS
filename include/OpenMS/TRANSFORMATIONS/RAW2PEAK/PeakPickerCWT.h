@@ -72,31 +72,32 @@ namespace OpenMS
   class PeakPickerCWT : public PeakPicker
   {
   public:
-    /** @name Type definitions
-      */
-    //@{
-    typedef PeakPicker BaseType;
+   
+    /// Raw data point type
     typedef DRawDataPoint<1> RawDataPointType;
+    /// Raw data container type using for the temporary storage of the input data
     typedef DPeakArrayNonPolymorphic<1, RawDataPointType > RawDataArrayType;
+    /// Raw data iterator type
     typedef RawDataArrayType::iterator RawDataPointIterator;
-    typedef DPosition<1> PositionType;
-    ///
-    //@}
-
+   	/// Position type
+   	typedef DPosition<1> PositionType;
+   
+   
     using PeakPicker::param_;
     using PeakPicker::peak_bound_;
     using PeakPicker::peak_bound_ms2_level_;
     using PeakPicker::signal_to_noise_;
 
-    /** @name Constructors and Destructor
-        */
-    //@{
+   	/// Constructor
     PeakPickerCWT();
-    ///
+    
+    /// Constructor given a param object
     PeakPickerCWT(const Param& parameters);
-    ///
+    
+    /// Constructor given the name of a param file
     PeakPickerCWT(const String& filename);
-    ///
+    
+    /// Copy constructor
     PeakPickerCWT(const PeakPickerCWT& pp)
         : PeakPicker(pp),
         radius_(pp.radius_),
@@ -107,15 +108,11 @@ namespace OpenMS
         noise_level_(pp.noise_level_),
         optimization_(pp.optimization_)
     {}
-    ///
+    
+    /// Destructor
     virtual ~PeakPickerCWT();
-    ///
-    void init();
-    //@}
-
-    /** @name Assignment
-     */
-    //@{
+    
+   	/// Assignment operator
     inline PeakPickerCWT& operator=(const PeakPickerCWT& pp)
     {
       param_ = pp.param_;
@@ -131,19 +128,12 @@ namespace OpenMS
 
       return *this;
     }
-    //@}
-
-
-    /** Accessors
-     */
-    //@{
-
-
-    /// Non-mutable access to the vector with peak shapes
+    
+    /// Non-mutable access to the vector of peak shapes
     inline const std::vector<PeakShape>& getPeakShapes() const { return peak_shapes_; }
-    /// Mutable access to the vector with peak shapes
+    /// Mutable access to the vector of peak shapes
     inline std::vector<PeakShape>& getPeakShapes() { return peak_shapes_;  }
-    /// Mutable access to the vector with peak shapes
+    /// Mutable access to the vector of peak shapes
     inline void setPeakShapes(const std::vector<PeakShape>&  peak_shapes) { peak_shapes_ = peak_shapes; }
 
     /// Non-mutable access to the wavelet transform
@@ -165,51 +155,53 @@ namespace OpenMS
     }
 
     /// Non-mutable access to the search radius for the peak maximum
-    inline const int getSearchRadius() const { return radius_; }
+    inline const unsigned int& getSearchRadius() const { return radius_; }
     /// Mutable access to the search radius for the peak maximum
-    inline int getSearchRadius() { return radius_;  }
+    inline unsigned int& getSearchRadius() { return radius_;  }
     /// Mutable access to the search radius for the peak maximum
-    inline void setSearchRadius(const int radius) { radius_ = radius; }
+    inline void setSearchRadius(const unsigned int& radius) { radius_ = radius; }
 
     /// Non-mutable access to the scale of the wavelet transform
-    inline const float getWaveletScale() const { return scale_; }
+    inline const float& getWaveletScale() const { return scale_; }
     /// Mutable access to the scale of the wavelet transform
-    inline float getWaveletScale() { return scale_; }
+    inline float& getWaveletScale() { return scale_; }
     /// Mutable access to the scale of the wavelet transform
-    inline void setWaveletScale(const float scale) { scale_ = scale; }
+    inline void setWaveletScale(const float& scale) { scale_ = scale; }
 
-    /// Non-mutable access to the peak bound in the wavelet transform
-    inline const float getPeakBoundCWT() const { return peak_bound_cwt_; }
-    /// Mutable access to the peak bound in the wavelet transform
+    /// Non-mutable access to the peak bound in the wavelet transform for the MS 1 level
+    inline const float& getPeakBoundCWT() const { return peak_bound_cwt_; }
+    /// Mutable access to the peak bound in the wavelet transform for the MS 1 level
+    inline float& getPeakBoundCWT() { return peak_bound_cwt_; }
+    /// Mutable access to the peak bound in the wavelet transform for the MS 1 level
     inline void setPeakBoundCWT(const float peak_bound_cwt) { peak_bound_cwt_ = peak_bound_cwt; }
 
-    /// Non-mutable access to the peak bound in the wavelet transform
-    inline const float getPeakBoundMs2LevelCWT() const { return peak_bound_ms2_level_cwt_; }
-    /// Mutable access to the peak bound in the wavelet transform
-    inline float getPeakBoundMs2LevelCWT() { return peak_bound_ms2_level_cwt_; }
-    /// Mutable access to the peak bound in the wavelet transform
-    inline void setPeakBoundMs2LevelCWT(const float peak_bound_ms2_level_cwt) { peak_bound_ms2_level_cwt_ = peak_bound_ms2_level_cwt; }
+    /// Non-mutable access to the peak bound in the wavelet transform for the MS 2 level
+    inline const float& getPeakBoundMs2LevelCWT() const { return peak_bound_ms2_level_cwt_; }
+    /// Mutable access to the peak bound in the wavelet transform for the MS 2 level
+    inline float& getPeakBoundMs2LevelCWT() { return peak_bound_ms2_level_cwt_; }
+    /// Mutable access to the peak bound in the wavelet transform for the MS 2 level
+    inline void setPeakBoundMs2LevelCWT(const float& peak_bound_ms2_level_cwt) { peak_bound_ms2_level_cwt_ = peak_bound_ms2_level_cwt; }
 
     /// Non-mutable access to the minimum peak correlation coefficient
-    inline const float getPeakCorrBound() const { return peak_corr_bound_; }
+    inline const float& getPeakCorrBound() const { return peak_corr_bound_; }
     /// Mutable access to the minimum peak correlation coefficient
-    inline float getPeakCorrBound() { return peak_corr_bound_; }
+    inline float& getPeakCorrBound() { return peak_corr_bound_; }
     /// Mutable access to the minimum peak correlation coefficient
-    inline void setPeakCorrBound(const float peak_corr_bound) { peak_corr_bound_ = peak_corr_bound; }
+    inline void setPeakCorrBound(const float& peak_corr_bound) { peak_corr_bound_ = peak_corr_bound; }
 
     /// Non-mutable access to the noise level
-    inline const float getNoiseLevel() const { return noise_level_; }
+    inline const float& getNoiseLevel() const { return noise_level_; }
     /// Mutable access to the noise level
-    inline float getNoiseLevel() { return noise_level_; }
+    inline float& getNoiseLevel() { return noise_level_; }
     /// Mutable access to the noise level
-    inline void setNoiseLevel(const float noise_level) { noise_level_ = noise_level; }
+    inline void setNoiseLevel(const float& noise_level) { noise_level_ = noise_level; }
 
     /// Non-mutable access to the optimization switch
-    inline const bool getOptimizationValue() const { return optimization_; }
+    inline const bool& getOptimizationValue() const { return optimization_; }
     /// Mutable access to the optimization switch
-    inline float getOptimizationValue() { return optimization_; }
+    inline bool& getOptimizationValue() { return optimization_; }
     /// Mutable access to the optimization switch
-    inline void setOptimizationValue(const bool optimization) { optimization_ = optimization; }
+    inline void setOptimizationValue(const bool& optimization) { optimization_ = optimization; }
     //@}
 
 
@@ -454,42 +446,40 @@ namespace OpenMS
     {}
 
   protected:
-    /** @name Attributes
-     */
-    //@{
-    // Vector of the detected peak shapes
+    /// Container the determined peak shapes
     std::vector<PeakShape> peak_shapes_;
-    ///
-    // This member perfomrs the continuous wavelet transform
+    
+    /// The continuous wavelet "transformer"
     ContinuousWaveletTransform<1>* wt_;
-    ///
-    // The search radius for the determination of a peak's maximum position
+ 
+    /// The search radius for the determination of a peak's maximum position
     unsigned int radius_;
-    ///
-    // The dilation of the wavelet
+ 
+    /// The dilation of the wavelet
     float scale_;
-    ///
-    // the minimal height which defines a peak in the CWT
+    
+    /// The minimal height which defines a peak in the CWT (MS 1 level)
     float peak_bound_cwt_;
-    ///
-    // the minimal height which defines a peak in the CWT
+    
+    /// The minimal height which defines a peak in the CWT (MS 2 level)
     float peak_bound_ms2_level_cwt_;
-    ///
-    // The threshold for correlation
+    
+    /// The threshold for correlation
     float peak_corr_bound_;
-    ///
-    // The threshold for the noise level (TODO: Use the information of the signal to noise estimator)
+    
+    /// The threshold for the noise level (TODO: Use the information of the signal to noise estimator)
     float noise_level_;
-    ///
-    // Use the optimization of peak parameters
+    
+    /// Switch for the optimization of peak parameters
     bool optimization_;
-    //@}
+    
+    
+ 		/// Initializes the members and parses the parameter object
+    void init_();
+    
 
-
-
-    /** A regularData-Object which contents some additional useful informations
-       for analysing peaks and their properties
-       */
+    /// A regularData-Object which contents some additional useful informations
+    /// for analysing peaks and their properties
     class PeakArea_
     {
       typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
@@ -501,33 +491,23 @@ namespace OpenMS
       DPosition<1> centroid_position;
     };
 
-    /** @name Functions for Stick Conversion
-     */
-    //@{
+   	/// Computes the peak's left and right area 
     void getPeakArea_(const PeakArea_& area, double &area_left, double &area_right);
 
-    /** Fit a peak form.
-     */
+    /// Returns the best fitting peakshape
     PeakShape fitPeakShape_(const PeakArea_& area, bool enable_centroid_fit);
 
-    /** Returns a measure for the similarity of s and phi. For that, the increase of the
-    linear regression of the points (s(i),phi(i)) for each grid-point i in s is computed
-    If the value is near 1, s and phi are expected to be very similar.
-    */
+    /// Returns the squared pearson coefficient.
+    /// If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
     double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
     //@}
 
-    /** @name Functions for Peak Detection
-     */
-    //@{
-    /** Finds the next peak-position in f, using the cwt Wf. Only peaks with values greater
-    than max are relvant. If direction is +1, the method starts at the left end and runs
-    to the right, if direction is -1, from right to the left.
-    Either take the position out of the CWT (when the resolution of the CWT is bigger than
-    one) or assign it in the signal.
-    The return value is a pair of an iterator which either points to the maximum in the signal
-    (resolution of the CWT == 1) or to the point in the signal which corresponds the
-    maximum position in the CWT.
+    /** Finds the next maximum position in the wavelet transform wt. If the maximum is greater 
+    		than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+    		given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
+    		are relvant. If no peak is detected the method return false.
+    		For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
+    		
     */
     bool getMaxPosition_(RawDataPointIterator first,
                          RawDataPointIterator last,
@@ -538,42 +518,49 @@ namespace OpenMS
                          int direction=1);
 
 
-    /** This method extracts the Endpoints of the Peak given the position of a local maximum.
-    'Walk' simultaniously left and right down of the maximum until a value is smaller than
-    the peak bound. With the difference of this value to the maximum position jump to the
-    other side of the maximum. If the signal next to this points left and right beside the maximum
-    are still falling extend the intervall until real minima on both sides of the maximum are found.
-    */
+   /*  The algorithm does the following:
+     *    - let x_m be the position of the maximum in the data and let (x_l, x_r) be
+     *      the left and right neighbours
+     *
+     *
+     *  (1) starting from x_l', walk left until one of the following happens
+     *         - the new point is lower than the original bound
+     *              => we found our left endpoint
+     *
+     *         - the new point is larger than the last, but the point left from
+     *           the new point is smaller. In that case, we either ran into another
+     *           peak, or we encounter some noise. Therefore we now look in the cwt
+     *           at the position corresponding to this value. If the cwt here is
+     *           monotonous, we consider the point as noise and continue further to the
+     *           left. Otherwise, we probably found the beginning of a new peak and
+     *           therefore stop here.
+     *
+     *  (2) analogous procedure to the right of x_r
+     */
     bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,
                            PeakArea_ &area, int& peak_left_index, int& peak_right_index);
 
 
     /**
-     *  Compute the transformation of a peak area with a higher resolution (more supporting points) and define the maximum of
-     *  the transformed peak as the centroid.
-     *  If the calculated centroid lies between two data point positions the function returns true otherwise return false.
+     *  Computes the centroid position of the peak using all raw data points which are greater than 
+     *  60% of the most intensive raw data point.
      */
     void getPeakCentroid_(PeakArea_& area);
-    //@}
-
-
-    /** @name Auxiliary Functions
-     */
-    //@{
-    /// Compute a theroretical lorentz peak with height peak_bound
+   
+   
+   
+    /// Computes the value of a theroretical lorentz peak at position x
     double lorentz_(double height, double lambda, double pos, double x);
 
-    /// Compute the minimal Intensity in the cwt for a data point to be considered as a peak
-    void calculatePeakBoundCWT_();
-
-    /** Yields a peak iterator which points to peak[i], whereby: peak[i] < value < peak[i+1]
-     */
-    RawDataPointIterator getIteratorLeftDataPoint_(RawDataPointIterator first,
-        RawDataPointIterator last,
-        double value);
-    //@}
-  }
-  ; // end PeakPickerCWT
+    /** Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed 
+    	* for the continious wavelet transform. 
+    	* Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
+    	*	is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
+    	* lorentzian peak we have a peak bound in the wavelet transform. 
+    	*/
+    	void calculatePeakBoundCWT_();
+ 
+  }; // end PeakPickerCWT
 
 
   template <>

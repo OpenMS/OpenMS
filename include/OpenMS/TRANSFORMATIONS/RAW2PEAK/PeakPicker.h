@@ -59,55 +59,49 @@ namespace OpenMS
   {
 
   public:
-    /** @name Constructors and Destructor
-     */
-    //@{
+   /// Constructor
     PeakPicker()
         : peak_bound_(200),
         peak_bound_ms2_level_(50),
         signal_to_noise_(3) {}
-    ///
+        
+    /// Constructor given the name of a param file
     PeakPicker(const String& param_filename);
-    ///
+    
+    /// Constructor given a param object
     PeakPicker(const Param& parameters);
-    ///
+    
+    /// Copy constructor
     PeakPicker(const PeakPicker& pp);
-    ///
+    
+    /// Destructor
     virtual ~PeakPicker()
     {   }
-    //@}
-
-
-    /** @name Assignment
-     */
-    //@{
+   
+     /// Assignment operator
     PeakPicker& operator=(const PeakPicker& pp);
-    //@}
+    
+    
+    /// Non-mutable access to the threshold of the height
+    inline const float& getPeakBound() const { return peak_bound_; }
+    /// Mutable access to the threshold of the height
+    inline float& getPeakBound()  { return peak_bound_; }
+    /// Mutable access to the threshold of the height
+    virtual void setPeakBound(const float& peak_bound) { peak_bound_ = peak_bound;  }
 
-    /** Accessors
-     */
-    //@{
-    /// Non-mutable access to the noise level
-    inline const float getPeakBound() const { return peak_bound_; }
-    /// Mutable access to the noise level
-    virtual void setPeakBound(const float peak_bound)
-    {
-      peak_bound_ = peak_bound;
-    }
+    /// Non-mutable access to the threshold of the peak height in the MS 2 level
+    inline const float& getPeakBoundMs2Level() const { return peak_bound_ms2_level_; }
+    /// Mutable access to the threshold of the peak height in the MS 2 level
+    inline float& getPeakBoundMs2Level() { return peak_bound_ms2_level_; }
+    /// Mutable access to the threshold of the peak height in the MS 2 level
+    inline void setPeakBoundMs2Level(const float& peak_bound_ms2_level) { peak_bound_ms2_level_ = peak_bound_ms2_level; }
 
-    /// Non-mutable access to the noise level
-    inline const float getPeakBoundMs2Level() const { return peak_bound_ms2_level_; }
-    /// Mutable access to the noise level
-    inline float getPeakBoundMs2Level() { return peak_bound_ms2_level_; }
-    /// Mutable access to the noise level
-    inline void setPeakBoundMs2Level(const float peak_bound_ms2_level) { peak_bound_ms2_level_ = peak_bound_ms2_level; }
-
-    /// Non-mutable access to the signal to noise level
-    inline const float getSignalToNoiseLevel() const { return signal_to_noise_; }
-    /// Mutable access to the signal to noise level
-    inline float getSignalToNoiseLevel() { return signal_to_noise_; }
-    /// Mutable access to the signal to noise value
-    inline void setSignalToNoiseLevel(const float signal_to_noise) { signal_to_noise_ = signal_to_noise; }
+    /// Non-mutable access to the signal to noise threshold
+    inline const float& getSignalToNoiseLevel() const { return signal_to_noise_; }
+    /// Mutable access to the signal to noise threshold
+    inline float& getSignalToNoiseLevel() { return signal_to_noise_; }
+    /// Mutable access to the signal to noise threshold
+    inline void setSignalToNoiseLevel(const float& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
 
     /// Non-mutable access to the parameter object
     inline const Param& getParam() const { return param_; }
@@ -118,13 +112,13 @@ namespace OpenMS
     //@}
 
   protected:
-    // Parameter object
+    /// Parameter object
     Param param_;
-    ///	
-    // The noise level (threshold for peaks in the MS 1 level)
+   
+    /// Threshold for the peak height in the MS 1 level
     float peak_bound_;
 
-    // The noise level (threshold for peaks in the MS 2 level)
+    /// Threshold for the peak height in the MS 2 level
     float peak_bound_ms2_level_;
     ///
     // Signal to noise threshold
