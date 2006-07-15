@@ -175,12 +175,14 @@ protected:
     for (unsigned int i = 0; i < ms_exp_raw.size(); ++i)
     {
     	MSSpectrum<DPickedPeak<1> > spectrum;
-    	 
+    	writeLog_("RT: " + String(ms_exp_raw[i].getRetentionTime()));
+    	
     	peak_picker.pick(ms_exp_raw[i],spectrum);
     	
     	// if any peaks are found copy the spectrum settings
     	if (spectrum.size() > 0)
     		{
+    			writeLog_("Number of picked peaks: " + String(spectrum.size()));
     			// copy the spectrum settings
     			static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];  
     			spectrum.setType(SpectrumSettings::PEAKS);
