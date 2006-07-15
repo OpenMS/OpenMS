@@ -213,16 +213,18 @@ namespace OpenMS
 				@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
 							points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
 							
-							The resulting peaks in the picked_peak_container (e.g. of type can be of type MSSpectrum<DPickedPeak<1> >)
-							DPeak<1>.h or any other class derived from DPeak.
+							The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+							We recommend to use the DPickedPeak<1> because it stores important information gained during
+							the peak picking algorithm.
 							
+							If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
 		*/
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
     {
-      //DSignalToNoiseEstimatorWindowing<InputPeakType> sne;
-      typedef typename OutputPeakContainer::value_type OutputPeakType;
-
+    	typedef typename OutputPeakContainer::value_type OutputPeakType;
+      
       /// Initialize the wavelet transform
       double wavelet_spacing;
       DataValue dv = param_.getValue("WaveletTransform:Spacing");
@@ -248,6 +250,9 @@ namespace OpenMS
 
       // copy the raw data into a DPeakArrayNonPolymorphic<DRawDataPoint<D> >
       RawDataArrayType raw_peak_array;
+      // signal to noise estimator 
+      DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
+            
       unsigned int n = distance(first, last);
       raw_peak_array.resize(n);
 
@@ -261,6 +266,7 @@ namespace OpenMS
 
       RawDataPointIterator it_pick_begin = raw_peak_array.begin();
       RawDataPointIterator it_pick_end   = raw_peak_array.end();
+      sne.init(it_pick_begin,it_pick_end);
 
 #ifdef GSL_DEF
       if (optimization_)
@@ -327,10 +333,10 @@ namespace OpenMS
             shape.mz_position=area.centroid_position[0];
 
             // TEST!!!!!
-            if ( (shape.r_value > peak_corr_bound_) )//&& ((sne.getSignalToNoise(area.max)) >= signal_to_noise_))
+            if ( (shape.r_value > peak_corr_bound_) && ((sne.getSignalToNoise(area.max)) >= signal_to_noise_))
             {
               //  shape.getSymmetricMeasure();
-              // shape.signal_to_noise = sne.getSignalToNoise(area.max);
+              shape.signal_to_noise = sne.getSignalToNoise(area.max);
               peak_shapes_.push_back(shape);
               peak_endpoints.push_back(area.left->getPos());
               peak_endpoints.push_back(area.right->getPos());
@@ -435,7 +441,12 @@ namespace OpenMS
 				@note This method assumes that the input_peak_container contains data points of type 
 							DRawDataPoint<1> or any other class derived from DRawDataPoint. 
 		
-							The resulting peaks can be of type DPeak<1>.h or any other class derived from DPeak.
+							The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+							We recommend to use the DPickedPeak<1> because it stores important information gained during
+							the peak picking algorithm.
+							
+							If you use MSSpectrum you have to set the SpectrumSettings by your own.
 		*/
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container)
@@ -454,23 +465,28 @@ namespace OpenMS
 							points to a raw data container with elements of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
 		
 							The resulting peaks in the spectrum_container (e.g. of type MSExperiment<DPickedPeak<1> >) 
-							can be of type DPeak<1>.h or any other class derived from DPeak.
+							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+							We recommend to use the DPickedPeak<1> because it stores important information gained during
+							the peak picking algorithm.
+							
+							If you use MSExperiment iterators you have to set the ExperimentalSettings and the SpectrumSettings by your own.
+							
 		*/
     template <typename InputSpectrumIterator , typename OutputSpectrumContainer >
     void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, OutputSpectrumContainer& spectrum_container)
     {
       typedef typename OutputSpectrumContainer::value_type SpectrumType;
 
-      InputSpectrumIterator help = first;
-      while (help != last)
+      unsigned int spec_number = distance(first,last);
+      spectrum_container.resize(spec_number);
+      for (unsigned int i = 0; i < spec_number; ++i)
       {
         SpectrumType spectrum;
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << "PICK RT: " << help->getRetentionTime() << std::endl;
+        std::cout << "PICK RT: " << (first+i)->getRetentionTime() << std::endl;
 #endif
-        pick(*help,spectrum);
-        spectrum_container.push_back(spectrum);
-        ++help;	
+        pick(*(first+i),spectrum);
+        spectrum_container[i] = spectrum;
       }
     }
 
@@ -481,15 +497,32 @@ namespace OpenMS
 				spectrum_container.
 							
 				@note This method assumes that the InputSpectrumContainer's (e.g. of type MSExperiment<DRawDataPoint<1> >) 
-							elements are raw data point containers.
+							elements are raw data point containers. Each raw data point container should contain 
+							elemenst of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
 		
 							The resulting peaks in the spectrum_container (e.g. of type MSExperiment<DPickedPeak<1> >) 
-							can be of type DPeak<1>.h or any other class derived from DPeak.
+							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+							We recommend to use the DPickedPeak<1> because it stores important information gained during
+							the peak picking algorithm.
+							
+							If you use MSExperiment you have to set the ExperimentalSettings and the SpectrumSettings by your own.
 		*/
     template <typename InputSpectrumContainer, typename OutputSpectrumContainer >
-    void pickExperiment(const InputSpectrumContainer& input_peak_container, OutputSpectrumContainer& spectrum_container)
+    void pickExperiment(const InputSpectrumContainer& input_spectrum_container, OutputSpectrumContainer& spectrum_container)
     {
-      pickExperiment(input_peak_container.begin(),input_peak_container.end(),spectrum_container);
+    	typedef typename OutputSpectrumContainer::value_type SpectrumType;
+
+      unsigned int spec_number = input_spectrum_container.size();
+      spectrum_container.resize(spec_number);
+      for (unsigned int i = 0; i < spec_number; ++i)
+      {
+        SpectrumType spectrum;
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "PICK RT: " << input_spectrum_container[i].getRetentionTime() << std::endl;
+#endif
+        pick(input_spectrum_container[i],spectrum);
+        spectrum_container[i] = spectrum;
+      }
     }
 
     template <typename OutputPeakType>
