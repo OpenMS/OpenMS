@@ -224,6 +224,9 @@ namespace OpenMS
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
     {
     	typedef typename OutputPeakContainer::value_type OutputPeakType;
+    		
+    	//clear the peak shapes vector
+    	peak_shapes_.clear();
       
       /// Initialize the wavelet transform
       double wavelet_spacing;
