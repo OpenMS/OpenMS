@@ -420,7 +420,9 @@ namespace OpenMS
           }
         } // if optimization
 #endif
-
+				
+				// resize the output container
+				picked_peak_container.resize(peak_shapes_.size());
         // write the picked peaks to the outputcontainer
         for (unsigned int i = 0; i < peak_shapes_.size(); ++i)
         {
@@ -430,7 +432,7 @@ namespace OpenMS
           picked_peak.getPos() = peak_shapes_[i].mz_position;
 
           fillPeak_(peak_shapes_[i],picked_peak);
-	  picked_peak_container.push_back(picked_peak);
+	  			picked_peak_container[i] = picked_peak;
         }
 
       } // if (peak_shapes_.size() > 0)
