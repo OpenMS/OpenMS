@@ -170,7 +170,32 @@ protected:
     PeakPickerCWT peak_picker(pepi_param);
     
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
-    peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
+    // copy the experimental settings
+    static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;    
+
+		// pick peaks on each scan
+    for (unsigned int i = 0; i < ms_exp_raw.size(); ++i)
+    {
+    	MSSpectrum<DPickedPeak<1> > spectrum;
+    	 
+    	peak_picker.pick(ms_exp_raw[i],spectrum);
+    	
+    	// if any peaks are found copy the spectrum settings
+    	if (spectrum.size() > 0)
+    		{
+    			// copy the spectrum settings
+    			static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];  
+    			spectrum.setType(SpectrumSettings::PEAKS);
+    				
+    			// copy the spectrum information
+    			spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
+					spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+					spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
+					spectrum.getName() = ms_exp_raw[i].getName();
+				
+    			ms_exp_peaks.push_back(spectrum);
+    	}
+    }
    
 
     //-------------------------------------------------------------
