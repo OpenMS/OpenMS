@@ -165,8 +165,6 @@ protected:
       pepi_param.setValue("Optimization:SkipOptimization","yes");
     }
 
-    std::cout << pepi_param << std::endl;
-
     PeakPickerCWT peak_picker(pepi_param);
     
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
