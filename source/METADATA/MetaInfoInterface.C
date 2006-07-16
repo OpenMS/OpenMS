@@ -221,4 +221,20 @@ namespace OpenMS
 		meta_ = 0;
   }
 
+	void MetaInfoInterface::removeMetaValue(const std::string& name)
+	{
+		if (meta_!=0)
+		{
+			meta_->removeValue(name);
+		}
+	}
+
+	void MetaInfoInterface::removeMetaValue(UnsignedInt index)
+	{
+		if (meta_!=0)
+		{
+			meta_->removeValue(index);
+		}	
+	}
+
 } //namespace

@@ -76,5 +76,61 @@
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
 	- Rohdaten-Erkenner schreiben
+	
+	Tests:
+	- KERNEL/MSSpectrum.h
+	- KERNEL/MSExperiment.h
+	- KERNEL/DSpectrum.h
+	- KERNEL/DPeakList.h
+	- KERNEL/RangeUtils.h
+	- KERNEL/DPeakArray.h
+	- KERNEL/DPeakArrayNonPolymorphic.h
+	- KERNEL/DRawDataPoint.h
+	- VISUAL/MultiGradient.h
+	- VISUAL/MappingInfo.h
+	- METADATA/Acquisition.h
+	- METADATA/Tagging.h
+	- METADATA/ExperimentalSettings.h
+	- METADATA/InstrumentSettings.h
+	- METADATA/SourceFile.h
+	- METADATA/AcquisitionInfo.h
+	- METADATA/SpectrumSettings.h
+	- METADATA/Modification.h
+	- METADATA/Software.h
+	- METADATA/MetaInfoRegistry.h
+	- METADATA/Gradient.h
+	- METADATA/MassAnalyzer.h
+	- METADATA/HPLC.h
+	- METADATA/MetaInfoInterface.h
+	- METADATA/IonSource.h
+	- METADATA/Instrument.h
+	- METADATA/IonDetector.h
+	- METADATA/Digestion.h
+	- METADATA/ContactPerson.h
+	- METADATA/SampleTreatment.h
+	- METADATA/Precursor.h
+	- METADATA/MetaInfo.h
+	- METADATA/ProcessingMethod.h
+	- METADATA/MetaInfoDescription.h
+	- METADATA/Sample.h
+	- MATH/STATISTICS/Histogram.h
+	- FORMAT/DTAFile.h
+	- FORMAT/DBConnection.h
+	- FORMAT/TextFile.h
+	- FORMAT/PersistentObject.h
+	- FORMAT/HANDLERS/ParamXMLHandler.h
+	- FORMAT/HANDLERS/XMLHandler.h
+	- FORMAT/DTA2DFile.h
+	- FORMAT/Param.h
+	- FORMAT/DBAdapter.h
+	- FORMAT/PersistenceManager.h
+	- FORMAT/FileHandler.h
+	- DATASTRUCTURES/Date.h
+	- DATASTRUCTURES/DataValue.h
+	- DATASTRUCTURES/RangeManager.h
+	- DATASTRUCTURES/String.h
+	- DATASTRUCTURES/DIntervalBase.h
+	- DATASTRUCTURES/DRange.h
+	- CONCEPT/VersionInfo.h
 
 */

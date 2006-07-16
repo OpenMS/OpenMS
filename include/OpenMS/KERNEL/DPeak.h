@@ -121,14 +121,15 @@ namespace OpenMS
 		/// Equality operator
 		virtual bool operator == (const DPeak& rhs) const
 		{
-			//std::cout<<"DP::operator==(DP)"<<std::endl;
-			return DRawDataPoint<D,Traits>::operator == (rhs);
+			return 
+				DRawDataPoint<D,Traits>::operator == (rhs) &&
+				MetaInfoInterface::operator == (rhs)
+			;
 		}
 
 		/// Equality operator
 		virtual bool operator != (const DPeak& rhs) const
 		{
-			//std::cout<<"DP::operator!=(DP) =>"<<std::endl;
 			return !(operator == (rhs));
 		}
 

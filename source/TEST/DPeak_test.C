@@ -50,86 +50,69 @@ CHECK(~DPeak())
 RESULT
 
 CHECK(DPeak(DPeak const& p))
-	DPeak<3>::PositionType pos;
-	pos[0] = 21.21;
-	pos[1] = 22.22;
-	pos[2] = 23.23;
 	DPeak<3> p;
 	p.getIntensity() = 123.456;
-	p.getPosition() = pos;
 	p.setMetaValue("cluster_id",4711);
 	
-	DPeak<3>::PositionType pos2;
-	DPeak<3>::IntensityType i2;
-
 	DPeak<3> copy_of_p(p);
-	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPosition();
 
-	TEST_REAL_EQUAL(i2, 123.456)
-
-	TEST_REAL_EQUAL(pos2[0], 21.21)
-	TEST_REAL_EQUAL(pos2[1], 22.22)
-	TEST_REAL_EQUAL(pos2[2], 23.23)	
-	
-	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
+	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
+	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
 CHECK(DPeak& operator = (const DPeak& rhs))
-DPeak<3>::PositionType pos;
-	pos[0] = 21.21;
-	pos[1] = 22.22;
-	pos[2] = 23.23;
 	DPeak<3> p;
 	p.getIntensity() = 123.456;
-	p.getPosition() = pos;
-	p.setMetaValue("cluster_id",4712);
+	p.setMetaValue("cluster_id",4711);
 	
-	DPeak<3>::PositionType pos2;
-	DPeak<3>::IntensityType i2;
-
 	DPeak<3> copy_of_p;
 	copy_of_p = p;
-		
-	i2 = copy_of_p.getIntensity();
-	pos2 = copy_of_p.getPosition();
 
-	TEST_REAL_EQUAL(i2, 123.456)
-	TEST_REAL_EQUAL(pos2[0], 21.21)
-	TEST_REAL_EQUAL(pos2[1], 22.22)
-	TEST_REAL_EQUAL(pos2[2], 23.23)	
+	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
+	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
 CHECK(bool operator == (const DPeak& rhs) const)
-	DPeak<1> p1;
-	DPeak<1> p2(p1);
+	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.getIntensity()=5;
 	TEST_REAL_EQUAL(p1==p2, false)
 	p2.getIntensity()=5;
 	TEST_REAL_EQUAL(p1==p2, true)
-		
-	p1.getPosition()[0]=5;
+
+	p1.setMetaValue("cluster_id",4711);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1==p2, true)	
+	p1.removeMetaValue("cluster_id");
+	TEST_REAL_EQUAL(p1==p2, true)		
 RESULT
 
 CHECK(bool operator != (const DPeak& rhs) const)
-	DPeak<1> p1;
-	DPeak<1> p2(p1);
+	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.getIntensity()=5;
 	TEST_REAL_EQUAL(p1!=p2, true)
 	p2.getIntensity()=5;
 	TEST_REAL_EQUAL(p1!=p2, false)
-		
-	p1.getPosition()[0]=5;
+
+	p1.setMetaValue("cluster_id",4711);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.getPosition()[0]=5;
+	p1.removeMetaValue("cluster_id");
 	TEST_REAL_EQUAL(p1!=p2, false)	
+RESULT
+
+CHECK(DPeak* clone() const)
+	DPeak<3> p;
+	p.getIntensity() = 123.456;
+	p.setMetaValue("cluster_id",4711);
+
+	DPeak<3>* copy_of_p;
+	copy_of_p = p.clone();
+
+	TEST_REAL_EQUAL(copy_of_p->getIntensity(), 123.456)
+	TEST_EQUAL(copy_of_p->getMetaValue("cluster_id"),DataValue(4711));
+	delete(copy_of_p);
 RESULT
 
 CHECK([EXTRA] meta info with copy constructor)

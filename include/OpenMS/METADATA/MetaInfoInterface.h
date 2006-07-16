@@ -92,7 +92,12 @@ namespace OpenMS
 			void setMetaValue(const std::string& name, const DataValue& value);
 			///  sets the DataValue corresponding to an index
 			void setMetaValue(UnsignedInt index, const DataValue& value);
-	
+			
+			/// Removes the DataValue corresponding to @p name if it exists
+			void removeMetaValue(const std::string& name);
+			/// Removes the DataValue corresponding to @p index if it exists
+			void removeMetaValue(UnsignedInt index);		
+			
 			/// retuns a reference to the MetaInfoRegistry
 			MetaInfoRegistry& metaRegistry();
 	

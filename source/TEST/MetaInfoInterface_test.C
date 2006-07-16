@@ -249,6 +249,30 @@ CHECK(bool operator!= (const MetaInfoInterface& rhs) const)
 	TEST_EQUAL(i2!=i,false)
 RESULT
 
+CHECK(void removeMetaValue(UnsignedInt index))
+	MetaInfoInterface i,i2;
+	
+	i.setMetaValue(1,String("bla"));
+	TEST_EQUAL(i==i2,false)
+	i.removeMetaValue(1);
+	TEST_EQUAL(i==i2,true)
+	
+	//try if removing a non-existing value works as well
+	i.removeMetaValue(1234);
+RESULT
+
+CHECK(void removeMetaValue(const std::string& name))
+	MetaInfoInterface i,i2;
+	
+	i.setMetaValue("label",String("bla"));
+	TEST_EQUAL(i==i2,false)
+	i.removeMetaValue("label");
+	TEST_EQUAL(i==i2,true)
+
+	//try if removing a non-existing value works as well
+	i.removeMetaValue("icon");
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -223,6 +223,30 @@ CHECK(bool operator!= (const MetaInfo& rhs) const)
 	TEST_EQUAL(i2!=i,false)
 RESULT
 
+CHECK(void removeValue(UnsignedInt index))
+	MetaInfo i,i2;
+	
+	i.setValue(1,String("bla"));
+	TEST_EQUAL(i==i2,false)
+	i.removeValue(1);
+	TEST_EQUAL(i==i2,true)
+	
+	//try if removing a non-existing value works as well
+	i.removeValue(1234);
+RESULT
+
+CHECK(void removeValue(const std::string& name))
+	MetaInfo i,i2;
+	
+	i.setValue("label",String("bla"));
+	TEST_EQUAL(i==i2,false)
+	i.removeValue("label");
+	TEST_EQUAL(i==i2,true)
+
+	//try if removing a non-existing value works as well
+	i.removeValue("icon");
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

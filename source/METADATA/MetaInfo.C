@@ -151,6 +151,24 @@ namespace OpenMS
 		return true;
 	}
 
+	void MetaInfo::removeValue(const std::string& name)
+	{
+		map<UnsignedInt,DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
+		if (it != index_to_value_.end())
+		{
+			index_to_value_.erase(it);
+		}
+	}
+
+	void MetaInfo::removeValue(UnsignedInt index)
+	{
+		map<UnsignedInt,DataValue>::iterator it = index_to_value_.find(index);
+		if (it != index_to_value_.end())
+		{
+			index_to_value_.erase(it);
+		}
+	}
+
   void MetaInfo::getKeys(vector<string>& keys) const
   {
     keys.resize(index_to_value_.size());

@@ -101,7 +101,12 @@ namespace OpenMS
 		void setValue(const std::string& name, const DataValue& value);
 		///  sets the DataValue corresponding to an index
 		void setValue(UnsignedInt index, const DataValue& value);
-
+		
+		/// Removes the DataValue corresponding to @p name if it exists
+		void removeValue(const std::string& name);
+		/// Removes the DataValue corresponding to @p index if it exists
+		void removeValue(UnsignedInt index);		
+		
 		/// retuns a reference to the MetaInfoRegistry
 		static MetaInfoRegistry& registry();
     
