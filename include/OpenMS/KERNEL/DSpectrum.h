@@ -474,7 +474,7 @@ namespace OpenMS
 			}
 			
 			///Sets the name
-			void setName(std::string name)
+			void setName(const std::string& name)
 			{
 				name_ = name;
 			}

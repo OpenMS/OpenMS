@@ -78,16 +78,6 @@
 	- Rohdaten-Erkenner schreiben
 	
 	Tests:
-	- KERNEL/MSSpectrum.h
-	- KERNEL/MSExperiment.h
-	- KERNEL/DSpectrum.h
-	- KERNEL/DPeakList.h
-	- KERNEL/RangeUtils.h
-	- KERNEL/DPeakArray.h
-	- KERNEL/DPeakArrayNonPolymorphic.h
-	- KERNEL/DRawDataPoint.h
-	- VISUAL/MultiGradient.h
-	- VISUAL/MappingInfo.h
 	- METADATA/Acquisition.h
 	- METADATA/Tagging.h
 	- METADATA/ExperimentalSettings.h

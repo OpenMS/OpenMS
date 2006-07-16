@@ -99,8 +99,6 @@ foreach($test as $line)
 	}
 }
 
-print_r($tests);
-
 //calculate diff
 $replace_whitespaces = array("\t"=>""," "=>"");
 

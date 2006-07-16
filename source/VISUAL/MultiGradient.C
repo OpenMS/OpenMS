@@ -36,7 +36,9 @@ using namespace std;
 using namespace OpenMS;
 using namespace OpenMS::Exception;
 
-	MultiGradient::MultiGradient():pos_col_(), interpolation_mode_(IM_LINEAR)
+	MultiGradient::MultiGradient()
+		: pos_col_(), 
+			interpolation_mode_(IM_LINEAR)
 	{
 		pos_col_[0] = Qt::white;
 		pos_col_[100] = Qt::black;		

@@ -49,7 +49,7 @@ CHECK(RTRange(double min, double max, bool reverse = false))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~RangeUtils())
+CHECK(~RTRange())
 	delete ptr;
 RESULT
 

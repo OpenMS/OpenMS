@@ -53,6 +53,8 @@ namespace OpenMS
 		
 		@note To iterate over the peaks in all spectra use PeakIterator
 		
+		@todo Add tests for PeakIterator, RTBegin and MZEnd
+		
 		@ingroup Kernel
 	*/
 	template <typename PeakT = DPeak<1> >

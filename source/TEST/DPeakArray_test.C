@@ -119,7 +119,8 @@ CHECK(~DPeakArray())
 	delete pl_ptr;
 RESULT
 
-CHECK(DPeakArray(const DPeakArray& p))
+
+CHECK(void push_back(const PeakType& x))
 	DPeakArray<4 ,DPickedPeak<4> > pl;
 	DPickedPeak<4> peak;
 	peak.getIntensity() = 1.0;
@@ -167,7 +168,7 @@ CHECK(size_type size() const)
 	TEST_EQUAL(pl.size(), 3)
 RESULT
 
-CHECK(bool empty() const)
+CHECK([EXTRA] bool empty() const)
 	TEST_EQUAL(pl.empty(), false)
 RESULT
 
@@ -232,6 +233,26 @@ CHECK(DPeakArray& operator = (const DPeakArray& rhs))
 	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
+CHECK(DPeakArray(const DPeakArray& p))
+	DPeakArray<2 ,DPickedPeak<2> > copy_of_pl(pl);
+	TEST_EQUAL(copy_of_pl.size(), 3)
+		
+	std::vector<DPickedPeak<2> > v(copy_of_pl.size());
+	std::copy(copy_of_pl.begin(), copy_of_pl.end(), v.begin());
+	TEST_EQUAL(v.size(), 3)
+	ABORT_IF(v.size() != 3)
+	TEST_REAL_EQUAL(v[0].getIntensity(), peak1.getIntensity())
+	TEST_REAL_EQUAL(v[0].getPosition()[0], peak1.getPosition()[0])
+	TEST_REAL_EQUAL(v[0].getPosition()[1], peak1.getPosition()[1])
+
+	TEST_REAL_EQUAL(v[1].getIntensity(), peak2.getIntensity())
+	TEST_REAL_EQUAL(v[1].getPosition()[0], peak2.getPosition()[0])
+	TEST_REAL_EQUAL(v[1].getPosition()[1], peak2.getPosition()[1])
+
+	TEST_REAL_EQUAL(v[2].getIntensity(), peak3.getIntensity())
+	TEST_REAL_EQUAL(v[2].getPosition()[0], peak3.getPosition()[0])
+	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
+RESULT
 
 CHECK(void sortByIntensity())
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
@@ -556,7 +577,7 @@ CHECK(void swap(DPeakArray& array))
 	TEST_REAL_EQUAL(pl.size(), 3)
 	
 	pl.swap(pl2);
-	
+
 	TEST_REAL_EQUAL(pl2.size(), 3)
 	TEST_REAL_EQUAL(pl.size(), 2)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 4711.0)
@@ -565,15 +586,30 @@ CHECK(void swap(DPeakArray& array))
 	TEST_REAL_EQUAL(pl[0].getIntensity(), 1.0)
 	TEST_REAL_EQUAL(pl[1].getIntensity(), 2.5)
 	
-	swap(pl,pl2);
+	pl.swap(pl2);
 	
-	TEST_REAL_EQUAL(pl.size(), 3)
-	TEST_REAL_EQUAL(pl2.size(), 2)
-	TEST_REAL_EQUAL(pl[0].getIntensity(), 4711.0)
-	TEST_REAL_EQUAL(pl[1].getIntensity(), 0.5)
-	TEST_REAL_EQUAL(pl[2].getIntensity(), 1.5)
-	TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.0)
-	TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.5)
+RESULT
+
+CHECK(friend void swap(DPeakArray& a1, DPeakArray& a2))
+	DPeakArray<2, DPickedPeak<2> > pkl, pkl2;
+	
+	DPickedPeak<2> peak1;
+	peak1.getIntensity() = 1.0;
+	
+	DPickedPeak<2> peak2;
+	peak2.getIntensity() = 2.5;
+	
+	pkl.push_back(peak1);
+	pkl.push_back(peak2);
+	pkl2.push_back(peak2);
+	
+	swap(pkl,pkl2);
+	
+	TEST_REAL_EQUAL(pkl.size(), 1)
+	TEST_REAL_EQUAL(pkl2.size(), 2)
+	TEST_REAL_EQUAL(pkl.front().getIntensity(), 2.5)
+	TEST_REAL_EQUAL(pkl2.front().getIntensity(), 1.0)
+	TEST_REAL_EQUAL(pkl2.back().getIntensity(), 2.5)
 RESULT
 
 CHECK(Iterator insert(Iterator pos, const PeakType& peak))
@@ -611,7 +647,7 @@ CHECK(void insert(Iterator pos, size_type n, const PeakType& peak))
 	TEST_REAL_EQUAL(pl[5].getIntensity(), 1.5)
 RESULT
 
-CHECK(Iterator erase(Iterator pos))
+CHECK(Iterator erase(Iterator first, Iterator last))
 	TEST_REAL_EQUAL(pl.size(), 6)
 	pl.erase(pl.begin(),pl.begin()+3);
 	TEST_REAL_EQUAL(pl.size(), 3)
@@ -703,13 +739,11 @@ CHECK(void clear())
 	TEST_REAL_EQUAL(pl.size(), 0)
 RESULT
 
-CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
+CHECK([EXTRA] void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 0)
 	pl.resize(2);
 	TEST_REAL_EQUAL(pl.size(), 2)
-RESULT
 
-CHECK(void resize(size_type new_size, const PeakType& t=PeakType()))
 	TEST_REAL_EQUAL(pl.size(), 2)
 	DPickedPeak<2> peak;
 	peak.getIntensity()=4713.0;
@@ -789,7 +823,7 @@ p2.setLabel("L2");
 p4.getIntensity()=4;
 p4.setLabel("L4");
 
-CHECK(push_back(const PeakType&) / operator[](size_type n) (inhomogenous array))
+CHECK([EXTRA] push_back(const PeakType&) / operator[](size_type n) (inhomogenous array))
 	TEST_EQUAL(dpa.size(), 0)
 	dpa.push_back(p1);
 	dpa.push_back(p2);
@@ -804,11 +838,11 @@ CHECK(push_back(const PeakType&) / operator[](size_type n) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[3]).getLabel(), "L4")
 RESULT
 
-CHECK(back() (inhomogenous array))
+CHECK([EXTRA] back() (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa.back()).getLabel(), "L4")
 RESULT
 
-CHECK(DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
+CHECK([EXTRA] DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
 	DPeakArray<1> dpa2(4,dpa.back());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L4")
@@ -816,26 +850,26 @@ CHECK(DPeakArray(size_type n, const PrakType& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK(DPeakArray( const PeakType& p) (inhomogenous array))
+CHECK([EXTRA] DPeakArray( const PeakType& p) (inhomogenous array))
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK(DPeakArray(InputIterator f, InputIterator l) (inhomogenous array))
+CHECK([EXTRA] DPeakArray(InputIterator f, InputIterator l) (inhomogenous array))
 	DPeakArray<1> dpa2(dpa.begin(),dpa.end());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK(operator = (inhomogenous array))
+CHECK([EXTRA] operator = (inhomogenous array))
 	DPeakArray<1> dpa2;
 	dpa2 = dpa;
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "L2")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[3]).getLabel(), "L4")
 RESULT
 
-CHECK(swap(DPeakArray&) (inhomogenous array))
+CHECK([EXTRA] swap(DPeakArray&) (inhomogenous array))
 	DPeakArray<1> dpa2(2,dpa.back());
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).setLabel("dpa2L1");
 	dynamic_cast<Labeled1DPeak&>(dpa2[1]).setLabel("dpa2L2");
@@ -855,7 +889,7 @@ CHECK(swap(DPeakArray&) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa2[1]).getLabel(), "dpa2L2")
 RESULT
 
-CHECK(resize(size_type n, DPeakArray& p) (inhomogenous array))
+CHECK([EXTRA] resize(size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dpa.size(), 4)
 	dpa.resize(2);
 	TEST_EQUAL(dpa.size(), 2)
@@ -868,7 +902,7 @@ CHECK(resize(size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[3]).getLabel(), "L4")
 RESULT
 
-CHECK(insert(Iterator pos, DPeakArray& p) (inhomogenous array))
+CHECK([EXTRA] insert(Iterator pos, DPeakArray& p) (inhomogenous array))
 	dpa.insert(dpa.begin(),p4);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(typeid(dpa[1]) == typeid(Labeled1DPeak),false)
@@ -877,7 +911,7 @@ CHECK(insert(Iterator pos, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[4]).getLabel(), "L4")	
 RESULT
 
-CHECK(insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
+CHECK([EXTRA] insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
 	dpa.insert(dpa.begin()+1,2,p2);
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[1]).getLabel(), "L2")
@@ -888,7 +922,7 @@ CHECK(insert(Iterator pos, size_type n, DPeakArray& p) (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[6]).getLabel(), "L4")	
 RESULT
 
-CHECK(insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous array))
+CHECK([EXTRA] insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous array))
 	dpa.insert(dpa.end(),dpa.begin(),dpa.end());
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[0]).getLabel(), "L4")
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[1]).getLabel(), "L2")
@@ -906,7 +940,7 @@ CHECK(insert(Iterator pos, InputIterator f, InputIterator l) (inhomogenous array
 	TEST_EQUAL(dynamic_cast<Labeled1DPeak&>(dpa[13]).getLabel(), "L4")	
 RESULT
 
-CHECK(bool operator == (const DPeakArray& array) const)
+CHECK([EXTRA] bool operator == (const DPeakArray& array) const)
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL( dpa == dpa2 ,true)
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).getIntensity()=1.234234;
@@ -917,7 +951,7 @@ CHECK(bool operator == (const DPeakArray& array) const)
 	TEST_EQUAL( dpa == dpa2 ,false)
 RESULT
 
-CHECK(bool operator !=(const DPeakArray& array) const)
+CHECK([EXTRA] bool operator !=(const DPeakArray& array) const)
 	DPeakArray<1> dpa2(dpa);
 	TEST_EQUAL( dpa != dpa2 ,false)
 	dynamic_cast<Labeled1DPeak&>(dpa2[0]).getIntensity()=1.234234;
@@ -928,7 +962,7 @@ CHECK(bool operator !=(const DPeakArray& array) const)
 	TEST_EQUAL( dpa != dpa2 ,true)
 RESULT
 
-CHECK(sorting by intensity/width/position (inhomogenous array))
+CHECK([EXTRA] sorting by intensity/width/position (inhomogenous array))
 	DPeakArray<2, DPickedPeak<2> > dpa2;
 	DPickedPeak<2> p1,p3;
 	p1.getIntensity()=1;
@@ -991,26 +1025,6 @@ CHECK(sorting by intensity/width/position (inhomogenous array))
 	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[1]).label(), "L2")
 	TEST_EQUAL(typeid(dpa2[2]) == typeid(Labeled2DPeak),false)
 	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[3]).label(), "L4")
-
-//	dpa2.sortByWidth(0);
-//	TEST_REAL_EQUAL(dpa2[0].getIntensity(), 4.0)
-//	TEST_REAL_EQUAL(dpa2[1].getIntensity(), 3.0)
-//	TEST_REAL_EQUAL(dpa2[2].getIntensity(), 2.0)
-//	TEST_REAL_EQUAL(dpa2[3].getIntensity(), 1.0)	
-//	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[0]).label(), "L4")
-//	TEST_EQUAL(typeid(dpa2[1]) == typeid(Labeled2DPeak),false)
-//	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[2]).label(), "L2")	
-//	TEST_EQUAL(typeid(dpa2[3]) == typeid(Labeled2DPeak),false)
-//	
-//	dpa2.sortByWidth(1);
-//	TEST_REAL_EQUAL(dpa2[0].getIntensity(), 2.0)
-//	TEST_REAL_EQUAL(dpa2[1].getIntensity(), 1.0)
-//	TEST_REAL_EQUAL(dpa2[2].getIntensity(), 4.0)
-//	TEST_REAL_EQUAL(dpa2[3].getIntensity(), 3.0)	
-//	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[0]).label(), "L2")
-//	TEST_EQUAL(typeid(dpa2[1]) == typeid(Labeled2DPeak),false)
-//	TEST_EQUAL(dynamic_cast<Labeled2DPeak&>(dpa2[2]).label(), "L4")	
-//	TEST_EQUAL(typeid(dpa2[3]) == typeid(Labeled2DPeak),false)	
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -171,8 +171,6 @@ CHECK(MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs))
 	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
 RESULT
 
-// ???
-// Missing: tests for UnregisterdName, UnregisteredIndex (nested exceptions of MetaInfoRegistry!)
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

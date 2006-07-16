@@ -50,6 +50,16 @@ CHECK(~MultiGradient())
 	delete d10_ptr;
 RESULT
 
+CHECK(UnsignedInt getInterpolationMode() const)
+	TEST_EQUAL(MultiGradient().getInterpolationMode(),MultiGradient::IM_LINEAR)
+RESULT
+
+CHECK(void setInterpolationMode(UnsignedInt mode))
+	MultiGradient mg;
+	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
+	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
+RESULT
+
 CHECK(UnsignedInt size() const)
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
@@ -275,6 +285,36 @@ CHECK(void deactivatePrecalculationMode())
 	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(51) );	
 	//TESTS exeption
 RESULT
+
+CHECK(std::string toString() const)
+	MultiGradient mg;
+	TEST_EQUAL(mg.toString(),"Linear|0,#ffffff;100,#000000")
+	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
+	mg.insert(50,Qt::red);
+	TEST_EQUAL(mg.toString(),"Stairs|0,#ffffff;50,#ff0000;100,#000000")
+RESULT
+
+CHECK(void fromString(const std::string& gradient))
+	MultiGradient mg;
+	mg.fromString("Linear|0,#ff0000;100,#000000");
+	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_LINEAR)
+	TEST_EQUAL(mg.size(),2)
+	TEST_EQUAL(mg.color(0)==Qt::red, true);
+	TEST_EQUAL(mg.color(1)==Qt::black, true);
+	TEST_EQUAL(mg.position(0), 0);
+	TEST_EQUAL(mg.position(1), 100);
+	mg.fromString("Stairs|0,#ffffff;50,#ff0000;100,#000000");
+	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
+	TEST_EQUAL(mg.size(),3)
+	TEST_EQUAL(mg.color(0)==Qt::white, true);
+	TEST_EQUAL(mg.color(1)==Qt::red, true);
+	TEST_EQUAL(mg.color(2)==Qt::black, true);
+	TEST_EQUAL(mg.position(0), 0);
+	TEST_EQUAL(mg.position(1), 50);
+	TEST_EQUAL(mg.position(2), 100);
+RESULT
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

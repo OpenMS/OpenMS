@@ -39,16 +39,16 @@ START_TEST(MSSpectrum, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MSSpectrum<>* ptr = 0;
-CHECK(MSSpectrum())
+CHECK((MSSpectrum()))
 	ptr = new MSSpectrum<>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MSSpectrum())
+CHECK((~MSSpectrum()))
 	delete ptr;
 RESULT
 
-CHECK(MSSpectrum(const MSSpectrum& source))
+CHECK((MSSpectrum(const MSSpectrum& source)))
   MSSpectrum<> tmp;
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
@@ -61,7 +61,7 @@ CHECK(MSSpectrum(const MSSpectrum& source))
 	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPosition()[0],47.11);
 RESULT
 
-CHECK(MSSpectrum& operator= (const MSSpectrum& source))
+CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
   MSSpectrum<> tmp;
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
@@ -82,7 +82,7 @@ CHECK(MSSpectrum& operator= (const MSSpectrum& source))
 	TEST_EQUAL(tmp2.size(),0);
 RESULT
 
-CHECK(bool operator== (const MSSpectrum& rhs) const)
+CHECK((bool operator== (const MSSpectrum& rhs) const))
   MSSpectrum<> edit, empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -97,7 +97,7 @@ CHECK(bool operator== (const MSSpectrum& rhs) const)
 	TEST_EQUAL(edit==empty,false);
 RESULT
 
-CHECK(bool operator!= (const MSSpectrum& rhs) const)
+CHECK((bool operator!= (const MSSpectrum& rhs) const))
   MSSpectrum<> edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
@@ -112,7 +112,7 @@ CHECK(bool operator!= (const MSSpectrum& rhs) const)
 	TEST_EQUAL(edit!=empty,true);
 RESULT
 
-CHECK([Extra] MSSpectrum<DRawDataPoint<1> >)
+CHECK(([EXTRA] MSSpectrum<DRawDataPoint<1> >))
 	MSSpectrum<DRawDataPoint<1> > tmp;
 	MSSpectrum<DRawDataPoint<1> >::PeakType rdp;
 	rdp.getPosition()[0] = 47.11;
@@ -121,7 +121,7 @@ CHECK([Extra] MSSpectrum<DRawDataPoint<1> >)
 	TEST_REAL_EQUAL(tmp.getContainer()[0].getPosition()[0],47.11);	
 RESULT
 
-CHECK(typename BaseSpectrum::Iterator MZEnd(double mz))
+CHECK((typename BaseSpectrum::Iterator MZEnd(double mz)))
 	MSSpectrum<DRawDataPoint<1> > tmp;
 	MSSpectrum<DRawDataPoint<1> >::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -139,12 +139,17 @@ CHECK(typename BaseSpectrum::Iterator MZEnd(double mz))
 	rdp.getPosition()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
-	TEST_EQUAL(tmp.MZBegin(4.5)->getPosition()[0],5.0)
-	TEST_EQUAL(tmp.MZBegin(5.0)->getPosition()[0],5.0)
-	TEST_EQUAL(tmp.MZBegin(5.5)->getPosition()[0],6.0)
+	MSSpectrum<DRawDataPoint<1> >::Iterator it;
+	
+	it = tmp.MZBegin(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.0);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK(typename BaseSpectrum::Iterator MZBegin(double mz))
+CHECK((typename BaseSpectrum::Iterator MZBegin(double mz)))
 	MSSpectrum<DRawDataPoint<1> > tmp;
 	MSSpectrum<DRawDataPoint<1> >::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -162,9 +167,70 @@ CHECK(typename BaseSpectrum::Iterator MZBegin(double mz))
 	rdp.getPosition()[0] = 7.0;
 	tmp.getContainer().push_back(rdp);
 	
-	TEST_EQUAL(tmp.MZEnd(4.5)->getPosition()[0],5.0)
-	TEST_EQUAL(tmp.MZEnd(5.0)->getPosition()[0],6.0)
-	TEST_EQUAL(tmp.MZEnd(5.5)->getPosition()[0],6.0)
+	MSSpectrum<DRawDataPoint<1> >::Iterator it;
+	
+	it = tmp.MZEnd(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(5.0);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
+CHECK((const typename BaseSpectrum::ConstIterator MZEnd(double mz) const))
+	MSSpectrum<DRawDataPoint<1> > tmp;
+	MSSpectrum<DRawDataPoint<1> >::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	MSSpectrum<DRawDataPoint<1> >::ConstIterator it;
+	
+	it = tmp.MZBegin(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.0);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
+CHECK((const typename BaseSpectrum::ConstIterator MZBegin(double mz) const))
+	MSSpectrum<DRawDataPoint<1> > tmp;
+	MSSpectrum<DRawDataPoint<1> >::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	MSSpectrum<DRawDataPoint<1> >::ConstIterator it;
+	
+	it = tmp.MZEnd(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(5.0);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -46,7 +46,7 @@ CHECK(MappingInfo())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(MappingInfo())
+CHECK([EXTRA] ~MappingInfo())
 	delete ptr;
 RESULT
 

@@ -78,6 +78,17 @@ CHECK([EXTRA] Instantiation w/ DPeakList)
 	TEST_EQUAL(ds.getContainer().size(), 0)
 RESULT
 
+CHECK(UnsignedInt getMSLevel() const)
+	DSpectrum<2> ds;
+	TEST_EQUAL(ds.getMSLevel(),1)
+RESULT
+
+CHECK(void setMSLevel(UnsignedInt ms_level))
+	DSpectrum<2> ds;
+	ds.setMSLevel(17);
+	TEST_EQUAL(ds.getMSLevel(),17)
+RESULT
+
 CHECK(void updateRanges())
   DSpectrum<2> s;
   s.push_back(dp2_1);
@@ -183,6 +194,25 @@ CHECK(bool operator == (const DSpectrum& rhs) const)
 	edit.getPrecursorPeak().setIntensity(5.5);
 	TEST_EQUAL(empty==edit, false);
 	
+	edit.setRetentionTime(5,0,0);
+	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.setRetentionTime(-1,5,0);
+	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.setRetentionTime(-1,0,5);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.setMSLevel(5);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.getPrecursorPeak().getPosition()[0] = 1.5;
+	TEST_EQUAL(empty==edit, false);
+	
 	edit = empty;
 	edit.push_back(p);
 	edit.push_back(p2);
@@ -195,6 +225,25 @@ CHECK(bool operator != (const DSpectrum& rhs) const)
 	DSpectrum<1> empty,edit;
 	
 	TEST_EQUAL(empty!=edit, false);
+	
+	edit.setRetentionTime(5,0,0);
+	TEST_EQUAL(empty!=edit, true);
+	
+	edit = empty;
+	edit.setRetentionTime(-1,5,0);
+	TEST_EQUAL(empty!=edit, true);
+	
+	edit = empty;
+	edit.setRetentionTime(-1,0,5);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.setMSLevel(5);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.getPrecursorPeak().getPosition()[0] = 1.5;
+	TEST_EQUAL(empty!=edit, true);
 	
 	edit.setMetaValue("label",String("DSpectrum"));
 	TEST_EQUAL(empty!=edit, true);
@@ -371,7 +420,7 @@ CHECK(ConstReverseIterator rend() const)
 	TEST_REAL_EQUAL((--(s.rend()))->getIntensity(),1)
 RESULT
 
-CHECK(ConstReverseIterator rend() const)
+CHECK(ReverseIterator rbegin())
   DSpectrum<2> s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
@@ -379,12 +428,22 @@ CHECK(ConstReverseIterator rend() const)
 	TEST_REAL_EQUAL(s.rbegin()->getIntensity(),4711)
 RESULT
 
-CHECK(Iterator insert( Iterator loc, const value_type& val ))
+CHECK(ReverseIterator rend())
   DSpectrum<2> s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
 	(--(s.rend()))->setIntensity(4711);
 	TEST_REAL_EQUAL((--(s.rend()))->getIntensity(),4711)
+RESULT
+
+CHECK(Iterator insert( Iterator loc, const value_type& val ))
+  DSpectrum<2> s;
+  s.push_back(dp2_1);
+  s.push_back(dp2_2);
+	s.insert(++(s.begin()),dp2_3);
+	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
+	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),3)
+	TEST_REAL_EQUAL((++(++(s.begin())))->getIntensity(),2)
 RESULT
 
 CHECK(void insert( iterator loc, size_type num, const value_type& val ))
@@ -414,7 +473,7 @@ CHECK(template<class InputIterator> void insert( iterator loc, InputIterator sta
 	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2)  
 RESULT
 
-CHECK(const value_type& front() const)
+CHECK(value_type& front())
   DSpectrum<2> s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
@@ -430,7 +489,7 @@ CHECK(const value_type& front() const)
   TEST_REAL_EQUAL(s.front().getIntensity(),1)
 RESULT
 
-CHECK(const value_type& back() const)
+CHECK(value_type& back())
   DSpectrum<2> s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
@@ -583,13 +642,6 @@ CHECK([EXTRA] setMetaValue(index,string)/getMetaValue(index))
 	TEST_EQUAL(std::string(ds.getMetaValue("type")),std::string("theoretical"))
 RESULT
 
-CHECK([EXTRA] setMetaValue(index,string)/getMetaValue(index))
-	DSpectrum<1> ds;
-	ds.metaRegistry().registerName("type","","");
-	ds.setMetaValue("type",std::string("theoretical"));
-	TEST_EQUAL(std::string(ds.getMetaValue("type")),std::string("theoretical"))
-RESULT
-
 CHECK([EXTRA] setMetaValue(index,float)/getMetaValue(index))
 	DSpectrum<1> ds;
 	ds.metaRegistry().registerName("score","","");
@@ -652,6 +704,16 @@ CHECK(void setPrecursorPeak(const PrecursorPeakType& peak))
   TEST_REAL_EQUAL(sdi.getPrecursorPeak().getIntensity(),47.11)
 RESULT
 
+CHECK(double getRetentionTimeStart() const)
+  DSpectrum<1> sdi;
+  TEST_REAL_EQUAL(sdi.getRetentionTimeStart(),0.0)
+RESULT
+
+CHECK(double getRetentionTimeStop() const)
+  DSpectrum<1> sdi;
+  TEST_REAL_EQUAL(sdi.getRetentionTimeStop(),0.0)
+RESULT
+
 CHECK(double getRetentionTime() const)
   DSpectrum<1> sdi;
   TEST_REAL_EQUAL(sdi.getRetentionTime(),-1)
@@ -664,74 +726,21 @@ RESULT
 
 CHECK(void setRetentionTime(double rt, double start=0, double stop=0))
   DSpectrum<1> sdi;
-  sdi.setRetentionTime(0.451);
-  TEST_REAL_EQUAL(sdi.getRetentionTime(),0.451)
-RESULT
-
-CHECK(double getRetentionTime() const)
-  DSpectrum<1> sdi;
-  sdi.setRetentionTime(0.451,0.0,2.0);
-  TEST_REAL_EQUAL(sdi.getRetentionTime(),0.451)
-RESULT
-
-CHECK(double getNormalizedRetentionTime() const)
-  DSpectrum<1> sdi;
   sdi.setRetentionTime(0.451,0.0,2.0);
   TEST_REAL_EQUAL(sdi.getRetentionTime(),0.451)
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),0.2255)
 RESULT
 
-CHECK(bool operator == (const DSpectrum& rhs) const)
-	DSpectrum<1> empty,edit;
-	
-	TEST_EQUAL(empty==edit, true);
-	
-	edit.setRetentionTime(5,0,0);
-	TEST_EQUAL(empty==edit, false);
-	
-	edit = empty;
-	edit.setRetentionTime(-1,5,0);
-	TEST_EQUAL(empty==edit, false);
-	
-	edit = empty;
-	edit.setRetentionTime(-1,0,5);
-	TEST_EQUAL(empty==edit, false);
-
-	edit = empty;
-	edit.setMSLevel(5);
-	TEST_EQUAL(empty==edit, false);
-
-	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
-	TEST_EQUAL(empty==edit, false);
+CHECK(std::string getName() const)
+	DSpectrum<1> s;
+	TEST_EQUAL(s.getName(),"")
 RESULT
 
-CHECK(bool operator != (const DSpectrum& rhs) const)
-	DSpectrum<1> empty,edit;
-	
-	TEST_EQUAL(empty!=edit, false);
-	
-	edit.setRetentionTime(5,0,0);
-	TEST_EQUAL(empty!=edit, true);
-	
-	edit = empty;
-	edit.setRetentionTime(-1,5,0);
-	TEST_EQUAL(empty!=edit, true);
-	
-	edit = empty;
-	edit.setRetentionTime(-1,0,5);
-	TEST_EQUAL(empty!=edit, true);
-
-	edit = empty;
-	edit.setMSLevel(5);
-	TEST_EQUAL(empty!=edit, true);
-
-	edit = empty;
-	edit.getPrecursorPeak().getPosition()[0] = 1.5;
-	TEST_EQUAL(empty!=edit, true);
+CHECK(void setName(const std::string& name))
+	DSpectrum<1> s;
+	s.setName("bla");
+	TEST_EQUAL(s.getName(),"bla")
 RESULT
-
-
 
 
 /////////////////////////////////////////////////////////////
