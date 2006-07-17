@@ -29,6 +29,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/DExtractSignalRegions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
@@ -72,31 +73,31 @@ namespace OpenMS
   class PeakPickerCWT : public PeakPicker
   {
   public:
-   
+
     /// Raw data point type
     typedef DRawDataPoint<1> RawDataPointType;
     /// Raw data container type using for the temporary storage of the input data
     typedef DPeakArrayNonPolymorphic<1, RawDataPointType > RawDataArrayType;
     /// Raw data iterator type
     typedef RawDataArrayType::iterator RawDataPointIterator;
-   	/// Position type
-   	typedef DPosition<1> PositionType;
-   
-   
+    /// Position type
+    typedef DPosition<1> PositionType;
+
+
     using PeakPicker::param_;
     using PeakPicker::peak_bound_;
     using PeakPicker::peak_bound_ms2_level_;
     using PeakPicker::signal_to_noise_;
 
-   	/// Constructor
+    /// Constructor
     PeakPickerCWT();
-    
+
     /// Constructor given a param object
     PeakPickerCWT(const Param& parameters);
-    
+
     /// Constructor given the name of a param file
     PeakPickerCWT(const String& filename);
-    
+
     /// Copy constructor
     PeakPickerCWT(const PeakPickerCWT& pp)
         : PeakPicker(pp),
@@ -108,11 +109,11 @@ namespace OpenMS
         noise_level_(pp.noise_level_),
         optimization_(pp.optimization_)
     {}
-    
+
     /// Destructor
     virtual ~PeakPickerCWT();
-    
-   	/// Assignment operator
+
+    /// Assignment operator
     inline PeakPickerCWT& operator=(const PeakPickerCWT& pp)
     {
       param_ = pp.param_;
@@ -128,7 +129,7 @@ namespace OpenMS
 
       return *this;
     }
-    
+
     /// Non-mutable access to the vector of peak shapes
     inline const std::vector<PeakShape>& getPeakShapes() const { return peak_shapes_; }
     /// Mutable access to the vector of peak shapes
@@ -205,29 +206,30 @@ namespace OpenMS
     //@}
 
 
-		/** @brief Applies the peak picking algorithm to an given iterator range.
-				
-				Picks the peaks in the given iterator intervall [first,last) and writes the
-				resulting peaks to the picked_peak_container.
-				
-				@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-							points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
-							
-							The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-							We recommend to use the DPickedPeak<1> because it stores important information gained during
-							the peak picking algorithm.
-							
-							If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
-		*/
+    /** @brief Applies the peak picking algorithm to an given iterator range.
+    		
+    		Picks the peaks in the given iterator intervall [first,last) and writes the
+    		resulting peaks to the picked_peak_container.
+		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+    		
+    		@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+    			points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+    		
+    			The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+    			can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    			We recommend to use the DPickedPeak<1> because it stores important information gained during
+    			the peak picking algorithm.
+    					
+    			If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
+    */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
     {
-    	typedef typename OutputPeakContainer::value_type OutputPeakType;
-    		
-    	//clear the peak shapes vector
-    	peak_shapes_.clear();
-      
+      typedef typename OutputPeakContainer::value_type OutputPeakType;
+
+      //clear the peak shapes vector
+      peak_shapes_.clear();
+
       /// Initialize the wavelet transform
       double wavelet_spacing;
       DataValue dv = param_.getValue("WaveletTransform:Spacing");
@@ -253,9 +255,9 @@ namespace OpenMS
 
       // copy the raw data into a DPeakArrayNonPolymorphic<DRawDataPoint<D> >
       RawDataArrayType raw_peak_array;
-      // signal to noise estimator 
+      // signal to noise estimator
       DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
-            
+
       unsigned int n = distance(first, last);
       raw_peak_array.resize(n);
 
@@ -430,102 +432,99 @@ namespace OpenMS
           picked_peak.getPos() = peak_shapes_[i].mz_position;
 
           fillPeak_(peak_shapes_[i],picked_peak);
-	  picked_peak_container.push_back(picked_peak);
+          picked_peak_container.push_back(picked_peak);
         }
 
       } // if (peak_shapes_.size() > 0)
     }
 
-		/** @brief Applies the peak picking algorithm to a raw data point container.
-				
-				Picks the peaks in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) 
-				and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
-				
-				@note This method assumes that the input_peak_container contains data points of type 
-							DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    /** @brief Applies the peak picking algorithm to a raw data point container.
+    		
+    		Picks the peaks in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) 
+    		and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
 		
-							The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-							We recommend to use the DPickedPeak<1> because it stores important information gained during
-							the peak picking algorithm.
-							
-							If you use MSSpectrum you have to set the SpectrumSettings by your own.
-		*/
+		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+    		
+    		@note This method assumes that the input_peak_container contains data points of type 
+    			DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    					
+    			The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+    			can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    			We recommend to use the DPickedPeak<1> because it stores important information gained during
+    			the peak picking algorithm.
+    				
+    			If you use MSSpectrum you have to set the SpectrumSettings by your own.
+    */
     template <typename InputPeakContainer, typename OutputPeakContainer >
-    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container)
+    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level)
     {
-      pick(input_peak_container.begin(), input_peak_container.end(), picked_peaks_container);
+      pick(input_peak_container.begin(), input_peak_container.end(), picked_peaks_container, ms_level);
     }
 
 
-		/** @brief Applies the peak picking algorithm to each raw data point container in an iterator range.
-				
-				Picks the peaks successive in every raw data point container defined by the iterator intervall [first,last).
-				The detected peaks of every raw data point container are stored in a peak container and added to the
-				spectrum_container.
-							
-				@note This method assumes that the InputSpectrumIterator (e.g. of type MSExperiment<DRawDataPoint<1> >::const_iterator)
-							points to a raw data container with elements of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-		
-							The resulting peaks in the spectrum_container (e.g. of type MSExperiment<DPickedPeak<1> >) 
-							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-							We recommend to use the DPickedPeak<1> because it stores important information gained during
-							the peak picking algorithm.
-							
-							If you use MSExperiment iterators you have to set the ExperimentalSettings and the SpectrumSettings by your own.
-							
-		*/
-    template <typename InputSpectrumIterator , typename OutputSpectrumContainer >
-    void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, OutputSpectrumContainer& spectrum_container)
-    {
-      typedef typename OutputSpectrumContainer::value_type SpectrumType;
+    /** @brief Picks the peaks in a range of MSSpectren.
+    		
+    	Picks the peaks successive in every scan in the intervall [first,last).
+    	The detected peaks of are stored in a MSExperiment.
+    					
+    	@note 	The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+		or any other derived class of DRawDataPoint.
+    		For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    		the peak picking algorithm.  
 
-      unsigned int spec_number = distance(first,last);
-      spectrum_container.resize(spec_number);
-      for (unsigned int i = 0; i < spec_number; ++i)
+    		You have to copy the ExperimentalSettings of the raw data by your own. 	
+    */
+    template <typename InputSpectrumIterator, typename OutputPeakType >
+    void pickExperiment(InputSpectrumIterator first,
+     			InputSpectrumIterator last,
+     			MSExperiment<OutputPeakType>& ms_exp_peaks)
+    {
+      unsigned int n = distance(first,last);
+      // pick peaks on each scan
+      for (unsigned int i = 0; i < n; ++i)
       {
-        SpectrumType spectrum;
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "PICK RT: " << (first+i)->getRetentionTime() << std::endl;
-#endif
-        pick(*(first+i),spectrum);
-        spectrum_container[i] = spectrum;
+        MSSpectrum< OutputPeakType > spectrum;
+	InputSpectrumIterator input_it(first+i);
+	
+	// pick the peaks in scan i
+        pick(*input_it,spectrum,input_it->getMSLevel());
+
+        // if any peaks are found copy the spectrum settings
+        if (spectrum.size() > 0)
+        {
+          // copy the spectrum settings
+          static_cast<SpectrumSettings&>(spectrum) = *(input_it + i);
+          spectrum.setType(SpectrumSettings::PEAKS);
+
+          // copy the spectrum information
+          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setRetentionTime(input_it->getRetentionTime());
+          spectrum.setMSLevel(input_it->getMSLevel());
+          spectrum.getName() = input_it->getName();
+
+          ms_exp_peaks.push_back(spectrum);
+        }
       }
     }
 
-		/** @brief Applies the peak picking algorithm to a container of raw data point containers.	
-		
-				Picks the peaks successive in every raw data point container.
-				The detected peaks of every raw data point container are stored in a peak container which is added to the
-				spectrum_container.
-							
-				@note This method assumes that the InputSpectrumContainer's (e.g. of type MSExperiment<DRawDataPoint<1> >) 
-							elements are raw data point containers. Each raw data point container should contain 
-							elemenst of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-		
-							The resulting peaks in the spectrum_container (e.g. of type MSExperiment<DPickedPeak<1> >) 
-							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-							We recommend to use the DPickedPeak<1> because it stores important information gained during
-							the peak picking algorithm.
-							
-							If you use MSExperiment you have to set the ExperimentalSettings and the SpectrumSettings by your own.
-		*/
-    template <typename InputSpectrumContainer, typename OutputSpectrumContainer >
-    void pickExperiment(const InputSpectrumContainer& input_spectrum_container, OutputSpectrumContainer& spectrum_container)
-    {
-    	typedef typename OutputSpectrumContainer::value_type SpectrumType;
 
-      unsigned int spec_number = input_spectrum_container.size();
-      spectrum_container.resize(spec_number);
-      for (unsigned int i = 0; i < spec_number; ++i)
-      {
-        SpectrumType spectrum;
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "PICK RT: " << input_spectrum_container[i].getRetentionTime() << std::endl;
-#endif
-        pick(input_spectrum_container[i],spectrum);
-        spectrum_container[i] = spectrum;
-      }
+
+    /** @brief Picks the peaks in a MSExperiment.
+    		
+    	Picks the peaks on every every scan in the MSExperiment.
+    	The detected peaks of are stored in a MSExperiment.
+    					
+    	@note 	The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
+    		For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    		the peak picking algorithm.    					
+    */
+    template <typename InputPeakType, typename OutputPeakType >
+    void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
+    {
+      // copy the experimental settings
+      static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;
+
+      pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
     }
 
     template <typename OutputPeakType>
@@ -535,35 +534,35 @@ namespace OpenMS
   protected:
     /// Container the determined peak shapes
     std::vector<PeakShape> peak_shapes_;
-    
+
     /// The continuous wavelet "transformer"
     ContinuousWaveletTransform<1>* wt_;
- 
+
     /// The search radius for the determination of a peak's maximum position
     unsigned int radius_;
- 
+
     /// The dilation of the wavelet
     float scale_;
-    
+
     /// The minimal height which defines a peak in the CWT (MS 1 level)
     float peak_bound_cwt_;
-    
+
     /// The minimal height which defines a peak in the CWT (MS 2 level)
     float peak_bound_ms2_level_cwt_;
-    
+
     /// The threshold for correlation
     float peak_corr_bound_;
-    
+
     /// The threshold for the noise level (TODO: Use the information of the signal to noise estimator)
     float noise_level_;
-    
+
     /// Switch for the optimization of peak parameters
     bool optimization_;
-    
-    
- 		/// Initializes the members and parses the parameter object
+
+
+    /// Initializes the members and parses the parameter object
     void init_();
-    
+
 
     /// A regularData-Object which contents some additional useful informations
     /// for analysing peaks and their properties
@@ -578,7 +577,7 @@ namespace OpenMS
       DPosition<1> centroid_position;
     };
 
-   	/// Computes the peak's left and right area 
+    /// Computes the peak's left and right area
     void getPeakArea_(const PeakArea_& area, double &area_left, double &area_right);
 
     /// Returns the best fitting peakshape
@@ -589,7 +588,7 @@ namespace OpenMS
     double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
     //@}
 
-    /** Finds the next maximum position in the wavelet transform wt. If the maximum is greater 
+    /** Finds the next maximum position in the wavelet transform wt. If the maximum is greater
     		than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
     		given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
     		are relvant. If no peak is detected the method return false.
@@ -605,25 +604,25 @@ namespace OpenMS
                          int direction=1);
 
 
-   /*  The algorithm does the following:
-     *    - let x_m be the position of the maximum in the data and let (x_l, x_r) be
-     *      the left and right neighbours
-     *
-     *
-     *  (1) starting from x_l', walk left until one of the following happens
-     *         - the new point is lower than the original bound
-     *              => we found our left endpoint
-     *
-     *         - the new point is larger than the last, but the point left from
-     *           the new point is smaller. In that case, we either ran into another
-     *           peak, or we encounter some noise. Therefore we now look in the cwt
-     *           at the position corresponding to this value. If the cwt here is
-     *           monotonous, we consider the point as noise and continue further to the
-     *           left. Otherwise, we probably found the beginning of a new peak and
-     *           therefore stop here.
-     *
-     *  (2) analogous procedure to the right of x_r
-     */
+    /**  The algorithm does the following:
+      *    - let x_m be the position of the maximum in the data and let (x_l, x_r) be
+      *      the left and right neighbours
+      *
+      *
+      *  (1) starting from x_l', walk left until one of the following happens
+      *         - the new point is lower than the original bound
+      *              => we found our left endpoint
+      *
+      *         - the new point is larger than the last, but the point left from
+      *           the new point is smaller. In that case, we either ran into another
+      *           peak, or we encounter some noise. Therefore we now look in the cwt
+      *           at the position corresponding to this value. If the cwt here is
+      *           monotonous, we consider the point as noise and continue further to the
+      *           left. Otherwise, we probably found the beginning of a new peak and
+      *           therefore stop here.
+      *
+      *  (2) analogous procedure to the right of x_r
+      */
     bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,
                            PeakArea_ &area, int& peak_left_index, int& peak_right_index);
 
@@ -633,21 +632,22 @@ namespace OpenMS
      *  60% of the most intensive raw data point.
      */
     void getPeakCentroid_(PeakArea_& area);
-   
-   
-   
+
+
+
     /// Computes the value of a theroretical lorentz peak at position x
     double lorentz_(double height, double lambda, double pos, double x);
 
-    /** Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed 
+    /** Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
     	* for the continious wavelet transform. 
     	* Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
     	*	is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
     	* lorentzian peak we have a peak bound in the wavelet transform. 
     	*/
-    	void calculatePeakBoundCWT_();
- 
-  }; // end PeakPickerCWT
+    void calculatePeakBoundCWT_();
+
+  }
+  ; // end PeakPickerCWT
 
 
   template <>

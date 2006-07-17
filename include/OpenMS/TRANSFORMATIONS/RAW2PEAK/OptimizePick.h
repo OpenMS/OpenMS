@@ -44,15 +44,6 @@
 
 namespace OpenMS
 {
-  /**
-  	@brief This class contains the non-linear optimization of peak parameters.
-
-  	For non-linear optimization we use the Levenberg-Marquardt of the gsl.
-  	We have to use function pointers for the gsl and can't put them into
-  	a class, so we provide an extra namespace.
-
-  	@ingroup PeakPicking
-   */
   namespace OptimizationFunctions
   {
     /** @name Type definitions
@@ -100,6 +91,16 @@ namespace OpenMS
 
   }
 
+  
+  /**
+  	@brief This class contains the non-linear optimization of peak parameters.
+
+  	For non-linear optimization we use the Levenberg-Marquardt of the gsl.
+  	We have to use function pointers for the gsl and can't put them into
+  	a class, so we provide an extra namespace.
+
+  	@ingroup PeakPicking
+   */
   class OptimizePick
   {
   public:
@@ -190,7 +191,11 @@ namespace OpenMS
                      double right_endpoint);
 
   protected:
-    // Penalty factors for some paramter in the optimization
+    /**
+    	 @brief 
+
+    	 
+    */
     struct OptimizationFunctions::PenaltyFactors penalties_;
 
     /** Maximum number of iterations **/

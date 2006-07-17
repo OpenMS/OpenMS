@@ -38,7 +38,7 @@ namespace OpenMS
 
   /** @brief This class is a internal representation (used by the PeakPickerCWT) of a peak shape.
 
-  		It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
+  It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
   */
   //@{
 
@@ -93,6 +93,12 @@ namespace OpenMS
     ///
     PeakShapeType::Enum type;
 
+
+    /**
+    	 @brief Comparator for the width.
+
+    	 Lexicographical comparison from dimension 0 to dimension D is done.
+    */
     class PositionLess
     {
     public:
@@ -103,7 +109,7 @@ namespace OpenMS
 
       bool operator () (const PeakShape& a, const PeakShape& b)
       {
-          return (a.mz_position < b.mz_position);
+        return (a.mz_position < b.mz_position);
       }
 
     protected:
