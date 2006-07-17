@@ -493,7 +493,7 @@ namespace OpenMS
         if (spectrum.size() > 0)
         {
           // copy the spectrum settings
-          static_cast<SpectrumSettings&>(spectrum) = *(input_it + i);
+          static_cast<SpectrumSettings&>(spectrum) = *input_it;
           spectrum.setType(SpectrumSettings::PEAKS);
 
           // copy the spectrum information
