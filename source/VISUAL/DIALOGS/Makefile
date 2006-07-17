@@ -57,7 +57,9 @@ GUI_CPP_SOURCES=\
 	FeaFiDialog.C\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
-	OpenDialog.C
+	OpenDialog.C\
+	PeakPickingDialog.C
+
 
 GUI_MOC_SOURCES=\
 	PreferencesDialog_moc.C\
@@ -83,13 +85,16 @@ GUI_MOC_SOURCES=\
 	Spectrum2DGoToDialogTemplate_moc.C\
 	Spectrum2DGoToDialog_moc.C\
 	OpenDialogTemplate_moc.C\
-	OpenDialog_moc.C
+	OpenDialog_moc.C\
+	PeakPickingDialogTemplate_moc.C\
+	PeakPickingDialog_moc.C
 
 	UIC_SOURCES=\
 	FeaFiDialogTemplate.C\
 	Spectrum1DGoToDialogTemplate.C\
 	Spectrum2DGoToDialogTemplate.C\
-	OpenDialogTemplate.C
+	OpenDialogTemplate.C\
+	PeakPickingDialogTemplate.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -193,6 +198,9 @@ Spectrum2DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum2DGoToDialog.h
 
 OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 	$(MOC) $(HEADER_DIR)/OpenDialog.h -o OpenDialog_moc.C
+
+PeakPickingDialog_moc.C:  $(HEADER_DIR)/PeakPickingDialog.h
+	$(MOC) $(HEADER_DIR)/PeakPickingDialog.h -o PeakPickingDialog_moc.C
 
 
 

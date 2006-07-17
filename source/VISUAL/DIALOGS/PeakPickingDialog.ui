@@ -1,0 +1,175 @@
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<class>PeakPickingDialogTemplate</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>PeakPickingDialogTemplate</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>379</width>
+            <height>277</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Pick Peaks</string>
+    </property>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>startButton</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>300</x>
+                <y>240</y>
+                <width>72</width>
+                <height>32</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Start</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>resetButton</cstring>
+        </property>
+        <property name="enabled">
+            <bool>true</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>240</y>
+                <width>80</width>
+                <height>32</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Reset</string>
+        </property>
+    </widget>
+    <widget class="QGroupBox">
+        <property name="name">
+            <cstring>groupBox11</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>170</y>
+                <width>340</width>
+                <height>60</height>
+            </rect>
+        </property>
+        <property name="title">
+            <string>Peak fitting</string>
+        </property>
+        <grid>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <widget class="QRadioButton" row="0" column="0">
+                <property name="name">
+                    <cstring>optimizationRadioButton</cstring>
+                </property>
+                <property name="text">
+                    <string>Optimize estimated peak parameters</string>
+                </property>
+            </widget>
+        </grid>
+    </widget>
+    <widget class="QGroupBox">
+        <property name="name">
+            <cstring>groupBox10</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>340</width>
+                <height>150</height>
+            </rect>
+        </property>
+        <property name="title">
+            <string>Peak detection thresholds</string>
+        </property>
+        <grid>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <widget class="QLabel" row="0" column="0">
+                <property name="name">
+                    <cstring>textLabel1</cstring>
+                </property>
+                <property name="text">
+                    <string>Minimal peak heigth:</string>
+                </property>
+            </widget>
+            <widget class="QLabel" row="1" column="0">
+                <property name="name">
+                    <cstring>textLabel1_3</cstring>
+                </property>
+                <property name="text">
+                    <string>Minimal peak height (tandem ms):</string>
+                </property>
+            </widget>
+            <widget class="QLabel" row="2" column="0">
+                <property name="name">
+                    <cstring>textLabel1_2</cstring>
+                </property>
+                <property name="text">
+                    <string>Minimal signal to noise value:</string>
+                </property>
+            </widget>
+            <widget class="QLabel" row="3" column="0">
+                <property name="name">
+                    <cstring>textLabel1_2_2</cstring>
+                </property>
+                <property name="text">
+                    <string>Minimal full width at half maximum:</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="0" column="1">
+                <property name="name">
+                    <cstring>heightLineEdit</cstring>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="1" column="1">
+                <property name="name">
+                    <cstring>heightMs2LineEdit</cstring>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="2" column="1">
+                <property name="name">
+                    <cstring>signalToNoiseLineEdit</cstring>
+                </property>
+            </widget>
+            <widget class="QLineEdit" row="3" column="1">
+                <property name="name">
+                    <cstring>fwhmLineEdit</cstring>
+                </property>
+            </widget>
+        </grid>
+    </widget>
+</widget>
+<connections>
+    <connection>
+        <sender>resetButton</sender>
+        <signal>pressed()</signal>
+        <receiver>PeakPickingDialogTemplate</receiver>
+        <slot>resetButton_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>startButton</sender>
+        <signal>pressed()</signal>
+        <receiver>PeakPickingDialogTemplate</receiver>
+        <slot>startButton_clicked()</slot>
+    </connection>
+</connections>
+<slots>
+    <slot access="protected">resetButton_clicked()</slot>
+    <slot access="protected">startButton_clicked()</slot>
+</slots>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
