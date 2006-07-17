@@ -63,7 +63,8 @@ namespace OpenMS
     PeakPicker()
         : peak_bound_(200),
         peak_bound_ms2_level_(50),
-        signal_to_noise_(3) {}
+        signal_to_noise_(3),
+        fwhm_bound_(0.25) {}
         
     /// Constructor given the name of a param file
     PeakPicker(const String& param_filename);
@@ -102,6 +103,13 @@ namespace OpenMS
     inline float& getSignalToNoiseLevel() { return signal_to_noise_; }
     /// Mutable access to the signal to noise threshold
     inline void setSignalToNoiseLevel(const float& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
+    
+    /// Non-mutable access to the fwhm threshold
+    inline const float& getFwhmBound() const { return fwhm_bound_; }
+    /// Mutable access to the fwhm threshold
+    inline float& getFwhmBound() { return fwhm_bound_; }
+    /// Mutable access to the fwhm threshold
+    inline void setFwhmBound(const float& fwhm) { fwhm_bound_ = fwhm; }
 
     /// Non-mutable access to the parameter object
     inline const Param& getParam() const { return param_; }
@@ -120,10 +128,12 @@ namespace OpenMS
 
     /// Threshold for the peak height in the MS 2 level
     float peak_bound_ms2_level_;
-    ///
-    // Signal to noise threshold
+    
+    /// Signal to noise threshold
     float signal_to_noise_;
-    ///
+    
+    /// The minimal full width at half maximum
+    float fwhm_bound_;
 
   };
 

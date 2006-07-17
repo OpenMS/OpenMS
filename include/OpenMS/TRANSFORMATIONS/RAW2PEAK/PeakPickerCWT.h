@@ -88,6 +88,7 @@ namespace OpenMS
     using PeakPicker::peak_bound_;
     using PeakPicker::peak_bound_ms2_level_;
     using PeakPicker::signal_to_noise_;
+    using PeakPicker::fwhm_bound_;
 
     /// Constructor
     PeakPickerCWT();
@@ -338,7 +339,9 @@ namespace OpenMS
             shape.mz_position=area.centroid_position[0];
 
             // TEST!!!!!
-            if ( (shape.r_value > peak_corr_bound_) && ((sne.getSignalToNoise(area.max)) >= signal_to_noise_))
+            if ( (shape.r_value > peak_corr_bound_) 
+            	&& ((sne.getSignalToNoise(area.max)) >= signal_to_noise_) 
+            	&& (shape.getFWHM() >= fwhm_bound_))
             {
               //  shape.getSymmetricMeasure();
               shape.signal_to_noise = sne.getSignalToNoise(area.max);
@@ -555,7 +558,7 @@ namespace OpenMS
 
     /// The threshold for the noise level (TODO: Use the information of the signal to noise estimator)
     float noise_level_;
-
+   
     /// Switch for the optimization of peak parameters
     bool optimization_;
 
