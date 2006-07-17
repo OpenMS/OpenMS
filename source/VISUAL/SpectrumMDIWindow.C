@@ -48,6 +48,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -190,6 +191,7 @@ namespace OpenMS
     menuBar()->insertItem("&Tools", tools_menu_);
     tools_menu_->insertItem("&Show Selected Peaks (1D)", this, SLOT(showPeaklistActiveSpectrum()));
     tools_menu_->insertItem("&Pick Peaks (1D)", this, SLOT(pickActiveSpectrum()));
+    tools_menu_->insertItem("&Pick Peaks (2D)", this, SLOT(pickActiveSpectra()));
     tools_menu_->insertItem("&Find Features (2D)", this, SLOT(findFeaturesActiveSpectrum()));
 
     //create status bar
@@ -1311,28 +1313,82 @@ namespace OpenMS
 
   void SpectrumMDIWindow::pickActiveSpectrum()
   {
-    Spectrum1DWindow* w = active1DWindow_();
-    if (w!=0)
+    PeakPickingDialog dialog(this,"Open Peak Picking Dialog");
+    if (dialog.exec())
     {
-      //add new spectrum
-      String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
-      Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
-      exp.setName(new_name); // set layername
-      exp.resize(1);
-
-      //pick data
-      PeakPickerCWT peak_picker;
-      peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
-
-      //color picked peaks
-      for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
+      Spectrum1DWindow* w = active1DWindow_();
+      if (w!=0)
       {
-        it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+        //add new spectrum
+        String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
+        Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
+        exp.setName(new_name); // set layername
+        exp.resize(1);
+
+        //pick data
+        PeakPickerCWT peak_picker;
+
+        //estimate the scale a given the fwhm f
+        //the fwhm of a marr wavelet is f ~ 1.252*a
+        peak_picker.setWaveletScale(dialog.getFwhm() / 1.252);
+	peak_picker.setPeakBound(dialog.getPeakHeight());
+	peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
+	peak_picker.setOptimizationValue(dialog.getOptimization());
+	peak_picker.setSignalToNoiseLevel(dialog.getSignalToNoise());
+
+        peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
+
+        //color picked peaks
+        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
+        {
+          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+        }
+
+        w->widget()->canvas()->finishAdding();
+
+        updateLayerbar();
       }
+    }
+  }
+  
+  
+   void SpectrumMDIWindow::pickActiveSpectra()
+  {
+    PeakPickingDialog dialog(this,"Open Peak Picking Dialog");
+    if (dialog.exec())
+    {
+      Spectrum1DWindow* w = active1DWindow_();
+      if (w!=0)
+      {
+        //add new spectrum
+        String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
+        Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
+        exp.setName(new_name); // set layername
+        exp.resize(1);
 
-      w->widget()->canvas()->finishAdding();
+        //pick data
+        PeakPickerCWT peak_picker;
 
-      updateLayerbar();
+        //estimate the scale a given the fwhm f
+        //the fwhm of a marr wavelet is f ~ 1.252*a
+        peak_picker.setWaveletScale(dialog.getFwhm() / 1.252);
+	peak_picker.setPeakBound(dialog.getPeakHeight());
+	peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
+	peak_picker.setOptimizationValue(dialog.getOptimization());
+	peak_picker.setSignalToNoiseLevel(dialog.getSignalToNoise());
+
+        peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
+
+        //color picked peaks
+        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
+        {
+          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+        }
+
+        w->widget()->canvas()->finishAdding();
+
+        updateLayerbar();
+      }
     }
   }
 
