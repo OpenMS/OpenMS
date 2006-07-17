@@ -60,16 +60,7 @@ CHECK(AnalysisXMLFile(const AnalysisXMLFile& source))
   // ???
 RESULT
 
-CHECK((void load(const String& filename, 
-								 vector<ProteinIdentification>* protein_identifications, 
-								 vector<Identification>* identifications, 
-								 vector<float>* precursor_retention_times, 
-								 vector<float>* precursor_mz_values, 
-								 ContactPerson* contact_person) 
-								 		const throw(Exception::FileNotFound, 
-								 								Exception::FileNotReadable, 
-								 								Exception::FileEmpty, 
-								 								Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>* protein_identifications, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values, ContactPerson* contact_person) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -110,6 +101,11 @@ CHECK((void load(const String& filename,
 	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[0].getScore(), 5.41)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
@@ -118,22 +114,16 @@ CHECK((void load(const String& filename,
 	TEST_EQUAL(protein_identifications.size(), 1)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
 	
 RESULT
 
-CHECK((void load(const String& filename, 
-								 vector<Identification>* identifications, 
-								 vector<float>* precursor_retention_times, 
-								 vector<float>* precursor_mz_values, 
-								 ContactPerson* contact_person, 
-								 map<String, double>* predicted_retention_times, 
-								 DoubleReal* predicted_sigma) 
-								 		const throw(Exception::FileNotFound, 
-								 								Exception::FileNotReadable, 
-								 								Exception::FileEmpty, 
-								 								Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>* protein_identifications, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values, ContactPerson* contact_person, std::map<String, double>* predicted_retention_times, DoubleReal* predicted_sigma) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -178,6 +168,11 @@ CHECK((void load(const String& filename,
 	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[0].getScore(), 5.41)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
@@ -186,6 +181,10 @@ CHECK((void load(const String& filename,
 	TEST_EQUAL(protein_identifications.size(), 1)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
 	TEST_REAL_EQUAL(predicted_sigma, 0.0852201)
@@ -199,12 +198,7 @@ CHECK((void load(const String& filename,
 
 RESULT
 
-CHECK((void store(String filename, 
-									const vector<Identification>& identifications, 
-									const vector<float>& precursor_retention_times, 
-									const vector<float>& precursor_mz_values) 
-											const throw(Exception::UnableToCreateFile)))
-
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values) const throw(Exception::UnableToCreateFile)))
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
 	vector<float> precursor_retention_times;
@@ -271,6 +265,11 @@ CHECK((void store(String filename,
 	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[0].getScore(), 5.41)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
@@ -279,17 +278,16 @@ CHECK((void store(String filename,
 	TEST_EQUAL(protein_identifications.size(), 1)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
 									
 RESULT
 
-CHECK((void store(String filename, 
-									const vector<Identification>& identifications, 
-									const vector<float>& precursor_retention_times, 
-									const vector<float>& precursor_mz_values, 
-									const ContactPerson& contact_person) 
-											const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, const ContactPerson& contact_person) const throw(Exception::UnableToCreateFile)))
 												
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -345,6 +343,11 @@ CHECK((void store(String filename,
 	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[0].getScore(), 5.41)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
@@ -353,12 +356,16 @@ CHECK((void store(String filename,
 	TEST_EQUAL(protein_identifications.size(), 1)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
 									
 RESULT
 
-CHECK((void store(String filename, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, const ContactPerson& contact_person, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, const ContactPerson& contact_person, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) const throw(Exception::UnableToCreateFile)))
 												
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -424,6 +431,11 @@ CHECK((void store(String filename, const std::vector<Identification>& identifica
 	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[0].getScore(), 5.41)
 	TEST_REAL_EQUAL(identifications[2].getPeptideHits()[1].getScore(), 7.87)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[2].getPeptideHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
@@ -433,6 +445,10 @@ CHECK((void store(String filename, const std::vector<Identification>& identifica
 	TEST_EQUAL(protein_identifications[0].getProteinHits().size(), 2)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
+	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
 	TEST_REAL_EQUAL(predicted_sigma, 0.0852201)

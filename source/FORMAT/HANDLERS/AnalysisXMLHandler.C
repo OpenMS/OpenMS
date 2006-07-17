@@ -488,6 +488,8 @@ namespace OpenMS
 					   << getDateGroupIndex(date_time, date_times) << "\"/>\n"
 					   << "\t\t\t\t<userParam name=\"score\" value=\"" 
 					   << protein_hits_it->getScore() << "\"/>\n"
+					   << "\t\t\t\t<userParam name=\"score_type\" value=\"" 
+					   << protein_hits_it->getScoreType() << "\"/>\n"
 					    << "\t\t\t</protein>\n";
 				} // protein hits
 				os << "\t\t\t<userParam name=\"proteins\" value=\"all\"/>\n"
@@ -551,12 +553,14 @@ namespace OpenMS
 						} // peptide_hits_it
 						delete referencing_peptide_hits;
 					} // identifications
-					os  << "\t\t\t<userParam name=\"identification_index\" value=\""
+					os  << "\t\t\t\t<userParam name=\"identification_index\" value=\""
 							<< j << "\"/>\n"
-					   << "\t\t\t<userParam name=\"date_group_index\" value=\"" 
+					   << "\t\t\t\t<userParam name=\"date_group_index\" value=\"" 
 					   << getDateGroupIndex(date_time, date_times) << "\"/>\n"
 					   << "\t\t\t\t<userParam name=\"score\" value=\"" 
 					   << protein_hits_it->getScore() << "\"/>\n"
+					   << "\t\t\t\t<userParam name=\"score_type\" value=\"" 
+					   << protein_hits_it->getScoreType() << "\"/>\n"
 					   << "\t\t\t</protein>\n";
 				} // protein hits
 			} // identifications
@@ -687,7 +691,18 @@ namespace OpenMS
 				}
 				else
 				{
-					actual_protein_hit_.setScore(((String) attributes.value(1).ascii()).toFloat());					
+					actual_protein_hit_.setScore(((String) attributes.value(1).ascii()).toFloat());
+				}
+			}
+			else if (attribute_value == "score_type")
+			{
+				if (inside_peptide_)
+				{
+					actual_peptide_hit_.setScoreType(((String) attributes.value(1).ascii()));										
+				}
+				else
+				{
+					actual_protein_hit_.setScoreType(((String) attributes.value(1).ascii()));					
 				}
 			}
 			else if (attribute_value == "identification_index")
@@ -937,6 +952,8 @@ namespace OpenMS
 				<< precursor_mz << "\" />\n"
 				<< shift << "\t<userParam name=\"score\" value=\""
 				<< hit.getScore() << "\" />\n"
+				<< shift << "\t<userParam name=\"score_type\" value=\""
+				<< hit.getScoreType() << "\" />\n"
 				<< shift << "\t<userParam name=\"date_group_index\" value=\""
 				<< date_group_index << "\"/>\n"
 				<<  shift << "</peptide>\n";

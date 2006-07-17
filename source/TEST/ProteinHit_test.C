@@ -44,9 +44,9 @@ using namespace OpenMS;
 using namespace std;
 
 ProteinHit* ptr1 = 0;
-float score = 4.4;
+Real score = 4.4;
 std::string score_type = "XCorr";
-uint rank = 3;
+UnsignedInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";
 std::string accession_type = "SWISSPROT";
@@ -85,7 +85,7 @@ CHECK(ProteinHit(const ProteinHit& source))
 	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
 RESULT
 
-CHECK((ProteinHit(double score, std::string score_type, uint rank, String accession, std::string accession_type, String sequence)))
+CHECK((ProteinHit(DoubleReal score, std::string score_type, UnsignedInt rank, String accession, std::string accession_type, String sequence)))
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
@@ -165,17 +165,17 @@ CHECK(bool operator == (const ProteinHit& rhs) const)
 	TEST_EQUAL(hit==hit2,true);
 RESULT
 
-CHECK(String getAccession() const)
+CHECK(const String& getAccession() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getAccession(), accession)
 RESULT
 
-CHECK(String getSequence() const)
+CHECK(const String& getSequence() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getSequence(), sequence)
 RESULT
 
-CHECK(const double& getScore() const)
+CHECK(Real getScore() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 RESULT
@@ -185,12 +185,12 @@ CHECK(const std::string& getScoreType() const)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
-CHECK(const uint& getRank() const)
+CHECK(UnsignedInt getRank() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
 
-CHECK(std::string getAccessionType() const)
+CHECK(const std::string& getAccessionType() const)
 	ptr1 = new ProteinHit(score, score_type, rank, accession, accession_type, sequence);
 	TEST_EQUAL(ptr1->getAccessionType(), accession_type)
 RESULT
@@ -202,17 +202,13 @@ CHECK(void clear())
   TEST_EQUAL(hit==*ptr1,true);
 RESULT
 
-CHECK(void serialize(PersistenceManager& pm))
-  // ???
-RESULT
-
-CHECK(void setRank(uint newrank))
+CHECK(void setRank(UnsignedInt newrank))
 	ptr1 = new ProteinHit();
 	ptr1->setRank(rank);
 	TEST_EQUAL(ptr1->getRank(), rank)	
 RESULT
 
-CHECK(void setScore(const double& score))
+CHECK(void setScore(const DoubleReal& score))
 	ptr1->setScore(score);
 	TEST_EQUAL(ptr1->getScore(), score);
 RESULT

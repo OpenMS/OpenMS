@@ -103,7 +103,7 @@ namespace OpenMS
 		/// tests whether there is no information stored
 		bool empty() const;
 
-		/// assigns ranks to the peptide and protein hits according to the sorting created by sort()
+		/// sorts the peptide hits by sort() and assigns ranks according to the sorting
     void assignRanks();
     
 		/**
@@ -169,6 +169,8 @@ namespace OpenMS
     */
   	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, 
 																																				ProteinHit >& protein_hits) const;
+		/// Inserts a protein hit into a container
+	  void insertProteinHit(const ProteinHit& input);
 
   protected:
 

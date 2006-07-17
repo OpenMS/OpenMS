@@ -126,6 +126,7 @@ namespace OpenMS
 		{
 			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(hour),"Invalid second");
 		}
+		setTime(hour, minute, second);
 	}
 
 	void DateTime::now()
@@ -233,6 +234,31 @@ namespace OpenMS
 		hour_ = hour;
 		minute_ = minute;
 		second_ = second;
+	}
+	
+	void DateTime::getDate(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const
+	{
+		month = month_;
+		day = day_;
+		year = year_;
+	}
+
+	void DateTime::getDate(String& date) const
+	{
+		Date::get(date);
+	}
+
+	void DateTime::getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const
+	{
+		hour = hour_;
+		minute = minute_;
+		second = second_;
+	}
+
+	void DateTime::getTime(String& time) const
+	{
+		time.clear();
+		time = time + String(hour_) + ":" + String(minute_) + ":" + String(second_);		
 	}
 			
 } // namespace OpenMS

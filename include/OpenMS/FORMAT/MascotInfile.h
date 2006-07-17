@@ -40,43 +40,29 @@ namespace OpenMS
 	/**
 		@brief Mascot input file adapter.
 		
-		Creates a file that can be used for Mascot search from a peak list.
-  	
-  	@todo adapt to common interface: load/store (Nico)
-  	
+		Creates a file that can be used for Mascot search from a peak list or a whole experiment.
+  	  	
   	@ingroup FileIO
 	*/
   class MascotInfile
   {
     public:
 
-    	/**
-    	Constructor
-    	@param spec the line spectrum used for the search
-    	@param mass the singly protonated peptide mass of the precorsor ion (independent of the charge)
-    	@param charge the possible charges of the precursor ion
-    	@param search_title the search title for the MASCOT search
-    	@param retention_time the retention time of the precursor
-    	*/
-			MascotInfile(const DPeakArrayNonPolymorphic<1>& spec, 
-									 double mass,
-									 std::vector<SignedInt> charge, 
-									 std::string search_title,
-									 double retention_time);
+			/// constructor
+			MascotInfile();
 
-    	/**
-    	Constructor
-    	@param experiment a MS/MS experiment
-    	@param search_title the search title
-    	@param charge the possible charges of the precursor ions
-    	*/
-			MascotInfile(const MSExperiment< DPeak<1> >& experiment,
-									 std::string search_title,									 
-									 std::vector<SignedInt> charge);
+			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
+			void store(const std::string& filename,
+								 const DPeakArrayNonPolymorphic<1>& spec, 
+								 double mz ,
+								 double retention_time, 
+								 std::string search_title);		
 
-			/// writes a file that can be used as input for the MASCOT executable nph-mascot.exe
-			void write(const std::string& fname);
-
+			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
+			void store(const std::string& filename,
+								 const MSExperiment< DPeak<1> >& experiment, 
+								 std::string search_title);
+														
 			/// returns the boundary used for the MIME format
 			const std::string& getBoundary();
 		  /// sets the boundary used for the MIME format.<br>By default a 22 character random string is used
@@ -142,17 +128,17 @@ namespace OpenMS
 		  /// sets the taxonomy (default: All entries). <BR>See &lt;mascot path&gt;/config/taxonomy for possible settings.
 		  void setTaxonomy(const std::string& taxonomy);
 
-		  /// returns the Mascot form version.
+		  /// returns the Mascot form version
 			const std::string& getFormVersion();
 		  /// sets the Mascot form version (default: 1.01)
 		  void setFormVersion(const std::string& form_version);
 
+		  /// returns the charges
+			const std::string& getCharges();
+		  /// sets the charges (default: 1+, 2+ and 3+)
+		  void setCharges(std::vector<SignedInt>& charges);
+
     protected:
-    	std::string filename_;
-
-			// peak data
-			DPeakArrayNonPolymorphic<1> peaks_;
-
 			// parent mass
 			double mz_;
 
@@ -207,12 +193,6 @@ namespace OpenMS
 			/// the retention time
 			double retention_time_;
 
-			/// the experiment
-			const MSExperiment< DPeak<1> >& experiment_;
-
-			/// indicates whetether a spectrum or a whole MSExperiment is loaded
-			bool spectrum_;
-
 			/// writes a parameter header
 			void writeParameterHeader_(const std::string& name, FILE* fp, bool line_break = true);
 
@@ -220,11 +200,14 @@ namespace OpenMS
 			void writeHeader_(FILE* fp);
 			
 			/// writes the spectrum
-			void writeSpectrum_(FILE* fp,const std::string& filename);
+			void writeSpectrum_(FILE* fp,
+													const std::string& filename,
+													const DPeakArrayNonPolymorphic<1>& peaks);
 						
 			/// writes the MSExperiment
-			void writeMSExperiment_(FILE* fp, const std::string& filename);
-
+			void writeMSExperiment_(FILE* fp, 
+															const std::string& filename, 
+															const MSExperiment< DPeak<1> >& experiment);
 
   };
 

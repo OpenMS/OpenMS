@@ -290,16 +290,6 @@ namespace OpenMS
 		filtered_identification = new Identification();
 		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
 		{
-			/*
-			for(UnsignedInt i = 0; i < filtered_peptide_hits.size(); i++)
-			{
-				filtered_peptide_hits[i].updateProteinIndices(new_protein_indices);
-			}
-			for(UnsignedInt i = 0; i < filtered_protein_hits.size(); i++)
-			{
-				filtered_protein_hits[i].updatePeptideIndices(new_peptide_indices);
-			}
-			*/					
   		filtered_identification->setPeptideAndProteinHits(filtered_peptide_hits, 
   																								filtered_protein_hits);
 			filtered_identification->setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
@@ -375,9 +365,6 @@ namespace OpenMS
 		vector< UnsignedInt > new_protein_indices;
 		vector<PeptideHit> temp_peptide_hits;
 		vector<PeptideHit> filtered_peptide_hits;
-		vector<ProteinHit> temp_protein_hits;
-		vector<ProteinHit> filtered_protein_hits;
-		ProteinHit temp_protein_hit;
 		PeptideHit temp_peptide_hit;
 		Identification* filtered_identification = 0;
 		DateTime date;		
@@ -394,37 +381,17 @@ namespace OpenMS
 	  		new_peptide_indices.push_back(i);
 	  	}
 		}
-		for(UnsignedInt i = 0; i < temp_protein_hits.size(); i++)
-		{
-	  		new_protein_indices.push_back(i);
-		}
 		for(UnsignedInt i = 0; i < new_peptide_indices.size(); i++)
 		{
 			temp_peptide_hit = PeptideHit(temp_peptide_hits[new_peptide_indices[i]]);
 			temp_peptide_hit.setRank((i + 1));
 			filtered_peptide_hits.push_back(temp_peptide_hit);
 		}
-		for(UnsignedInt i = 0; i < new_protein_indices.size(); i++)
-		{
-			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
-			temp_protein_hit.setRank((i + 1));
-			filtered_protein_hits.push_back(temp_protein_hit);
-		}
 		filtered_identification = new Identification();
-		if (filtered_peptide_hits.size() > 0 || filtered_protein_hits.size() > 0)
+		if (filtered_peptide_hits.size() > 0 || identification.getProteinHits().size() > 0)
 		{
-			/*
-			for(UnsignedInt i = 0; i < filtered_peptide_hits.size(); i++)
-			{
-				filtered_peptide_hits[i].updateProteinIndices(new_protein_indices);
-			}
-			for(UnsignedInt i = 0; i < filtered_protein_hits.size(); i++)
-			{
-				filtered_protein_hits[i].updatePeptideIndices(new_peptide_indices);
-			}
-			*/					
   		filtered_identification->setPeptideAndProteinHits(filtered_peptide_hits, 
-  																								filtered_protein_hits);
+  																											identification.getProteinHits());
 			filtered_identification->setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification->setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
 			filtered_identification->setCharge(identification.getCharge());

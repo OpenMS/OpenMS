@@ -73,6 +73,7 @@ EXECUTABLES_METADATA = \
 	Sample_test\
 	Acquisition_test\
 	Identification_test\
+	ProteinIdentification_test\
 	AcquisitionInfo_test\
 	Precursor_test\
 	ContactPerson_test\

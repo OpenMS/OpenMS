@@ -207,6 +207,40 @@ CHECK( normalApproximation )
 	
 }
 RESULT
+
+CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleReal meanSquareError( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )))
+  std::list<DoubleReal> numbers1(20, 1.5);
+  std::list<DoubleReal> numbers2(20, 1.3);
+  DoubleReal result = 0;
+
+  PRECISION(0.000001);  
+  result = BasicStatistics<UnsignedInt, DoubleReal>::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  TEST_REAL_EQUAL(result, 0.04);
+
+
+RESULT
+
+CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleReal pearsonCorrelationCoefficient( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )))
+  std::vector<DoubleReal> numbers1(20, 1.5);
+  std::vector<DoubleReal> numbers2(20, 1.3);
+  DoubleReal result = 0;
+  
+  numbers1[0] = 0.1;
+  numbers2[0] = 0.5;
+  numbers1[1] = 0.2;
+  numbers2[1] = 0.7;
+  numbers1[2] = 0.01;
+  numbers2[2] = 0.03;
+  numbers1[3] = 1.7;
+  numbers2[3] = 1.0;
+  numbers1[4] = 3.2;
+  numbers2[4] = 4.0;
+  result = BasicStatistics<UnsignedInt, DoubleReal>::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  TEST_REAL_EQUAL(result, 0.897811);
+
+RESULT
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

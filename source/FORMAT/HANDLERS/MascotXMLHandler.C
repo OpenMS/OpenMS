@@ -159,6 +159,7 @@ namespace OpenMS
  		{	
  			/// since Mascot uses SwissProt IDs we set this type here
 			actual_protein_hit_.setAccessionType("SwissProt");
+			actual_protein_hit_.setScoreType("Mascot");
  			protein_identification_->insertProteinHit(actual_protein_hit_);
  			actual_protein_hit_.clear();
  		}
@@ -181,6 +182,7 @@ namespace OpenMS
 			}
 			if (!already_stored)
 			{
+				actual_peptide_hit_.setScoreType("Mascot");
 				actual_peptide_hit_.addProteinIndex(make_pair(date_time_string_, actual_protein_hit_.getAccession()));
 	 			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
 			}

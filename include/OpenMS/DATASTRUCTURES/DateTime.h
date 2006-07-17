@@ -122,6 +122,14 @@ namespace OpenMS
 			 	
 			 	Give the numbers in the following order: hour, minute and second.
 			*/
+
+			/**
+				@brief Fills the arguments with the date
+			 	
+				The format of the string will be yyyy-mm-dd
+			*/
+			void getDate(String& date) const;
+			
 			void getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
 			
 			/**

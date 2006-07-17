@@ -36,20 +36,11 @@ using namespace std;
 namespace OpenMS 
 {
 
-	MascotInfile::MascotInfile(const DPeakArrayNonPolymorphic<1>& spec, 
-														 double mz ,
-														 vector<SignedInt> charges, 
-														 std::string search_title,
-														 double retention_time):
-		peaks_(spec), 
-		mz_(mz), 
-		search_title_(search_title),
-		retention_time_(retention_time),
-		experiment_(MSExperiment< DPeak<1> >()),
-		spectrum_(true)
+	MascotInfile::MascotInfile():
+		mz_(0), 
+		search_title_(""),
+		retention_time_(0)
 	{
-		stringstream ss;
-		
 		boundary_ = String::random(22);
 		db_ = "MSDB";
 		search_type_ = "MIS";
@@ -62,106 +53,54 @@ namespace OpenMS
 		ion_mass_tolerance_ = 1.0;
 		taxonomy_ = "All entries";
 		form_version_ = "1.01";
-		for(UnsignedInt i = 0; i < charges.size(); i++)
-		{
-			if (i == 0)
-			{				
-				if (charges[i] > 0)
-				{
-					ss << charges[i] << "+";
-				}
-				else
-				{
-					ss << (-1 * charges[i]) << "-";
-				}
-			}
-			else if (i < (charges.size() - 1))
-			{
-				if (charges[i] > 0)
-				{
-					ss << ", " << charges[i] << "+";
-				}
-				else
-				{
-					ss << ", " << (-1 * charges[i]) << "-";
-				}
-			}
-			else
-			{
-				if (charges[i] > 0)
-				{
-					ss << " and " << charges[i] << "+";
-				}
-				else
-				{
-					ss << " and " << (-1 * charges[i]) << "-";
-				}
-			}								
-		}
-		charges_ = ss.str();
-		
+		charges_ = "1+, 2+ and 3+";		
 	}
 	
-	MascotInfile::MascotInfile(const MSExperiment< DPeak<1> >& experiment, 
-														 std::string search_title,
-														 vector<SignedInt> charges):
-		search_title_(search_title),
-		experiment_(experiment),
-		spectrum_(false)
+	void MascotInfile::store(const std::string& filename,
+													const DPeakArrayNonPolymorphic<1>& spec, 
+													double mz ,
+													double retention_time, 
+													std::string search_title)		
 	{
-		stringstream ss;
+		FILE* fp = fopen (filename.c_str(),"wt");
+
+		mz_ = mz;
+		retention_time_ = retention_time;
+		search_title_ = search_title;
 		
-		boundary_ = String::random(22);
-		db_ = "MSDB";
-		search_type_ = "MIS";
-		hits_ = "20";
-		cleavage_ = "Trypsin";
-		mass_type_ = "Monoisotopic";
-		instrument_ = "Default";			
-		missed_cleavages_ = 1;
-		precursor_mass_tolerance_ = 2.0;			
-		ion_mass_tolerance_ = 1.0;
-		taxonomy_ = "All entries";
-		form_version_ = "1.01";
-		for(UnsignedInt i = 0; i < charges.size(); i++)
-		{
-			if (i == 0)
-			{				
-				if (charges[i] > 0)
-				{
-					ss << charges[i] << "+";
-				}
-				else
-				{
-					ss << (-1 * charges[i]) << "-";
-				}
-			}
-			else if (i < (charges.size() - 1))
-			{
-				if (charges[i] > 0)
-				{
-					ss << ", " << charges[i] << "+";
-				}
-				else
-				{
-					ss << ", " << (-1 * charges[i]) << "-";
-				}
-			}
-			else
-			{
-				if (charges[i] > 0)
-				{
-					ss << " and " << charges[i] << "+";
-				}
-				else
-				{
-					ss << " and " << (-1 * charges[i]) << "-";
-				}
-			}								
-		}
-		charges_ = ss.str();
+		writeHeader_(fp);
+		writeSpectrum_(fp, filename, spec);
+		
+		//close file		
+		fputs ("\n",fp);	
+		fputs ("\n--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("--",fp);
+		
+		fclose(fp);
+
 	}
 	
+	void MascotInfile::store(const std::string& filename,
+													const MSExperiment< DPeak<1> >& experiment, 
+													std::string search_title)
+	{
+		FILE* fp = fopen (filename.c_str(),"wt");
+		
+		search_title_ = search_title;
+
+		writeHeader_(fp);
+		writeMSExperiment_(fp, filename, experiment);			
+		
+		//close file		
+		fputs ("\n",fp);	
+		fputs ("\n--",fp);
+		fputs (boundary_.c_str(),fp);
+		fputs ("--",fp);
+		
+		fclose(fp);
+	}	
+				
 	void MascotInfile::writeParameterHeader_(const std::string& name, FILE* fp, bool line_break)
 	{
 		if (line_break)
@@ -174,32 +113,7 @@ namespace OpenMS
 		fputs (name.c_str(),fp);
 		fputs ("\"\n\n",fp);
 	}
-	
-	void MascotInfile::write(const std::string& filename)
-	{
-		FILE* fp = fopen (filename.c_str(),"wt");
 		
-		if (spectrum_)
-		{
-			writeHeader_(fp);
-			writeSpectrum_(fp, filename);
-		}
-		else
-		{
-			writeHeader_(fp);
-			writeMSExperiment_(fp, filename);			
-		}
-		
-		//close file		
-		fputs ("\n",fp);	
-		fputs ("\n--",fp);
-		fputs (boundary_.c_str(),fp);
-		fputs ("--",fp);
-		
-		fclose(fp);
-
-	}
-	
 	void MascotInfile::writeHeader_(FILE* fp)
 	{
 		stringstream ss;
@@ -306,7 +220,9 @@ namespace OpenMS
 		fputs (charges_.c_str(),fp);
 	}
 	
-	void MascotInfile::writeSpectrum_(FILE* fp, const std::string& filename)
+	void MascotInfile::writeSpectrum_(FILE* fp, 
+																		const std::string& filename,
+																		const DPeakArrayNonPolymorphic<1>& peaks)
 	{
 		stringstream ss;
 
@@ -338,7 +254,7 @@ namespace OpenMS
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 			
-			for (DPeakArrayNonPolymorphic<1>::iterator it = peaks_.begin() ; it != peaks_.end();++it)
+			for (DPeakArrayNonPolymorphic<1>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
@@ -355,7 +271,9 @@ namespace OpenMS
 		}
 	}
 
-	void MascotInfile::writeMSExperiment_(FILE* fp, const std::string& filename)
+	void MascotInfile::writeMSExperiment_(FILE* fp, 
+																				const std::string& filename, 
+																				const MSExperiment< DPeak<1> >& experiment)
 	{
 		String temp_string;
 		stringstream ss;
@@ -369,22 +287,22 @@ namespace OpenMS
 		fputs (filename.c_str(),fp);
 		fputs ("\"\n\n",fp);
 
-		for(unsigned int i = 0; i < experiment_.size(); i++)
+		for(unsigned int i = 0; i < experiment.size(); i++)
 		{		
 
-			peaks = experiment_[i].getContainer();
+			peaks = experiment[i].getContainer();
 			precursor_peak = 
-				experiment_[i].getPrecursorPeak();
+				experiment[i].getPrecursorPeak();
 			precursor_position = 
-				experiment_[i].getPrecursorPeak().getPosition()[0];
+				experiment[i].getPrecursorPeak().getPosition()[0];
 			
-			if (experiment_[i].getMSLevel() == 2)
+			if (experiment[i].getMSLevel() == 2)
 			{
 				if (precursor_position == 0)
 				{
 					//retention time
 					ss.str("");
-					ss << experiment_[i].getRetentionTime();
+					ss << experiment[i].getRetentionTime();
 					cout << "No precursor m/z information for spectrum with rt: " 
 						<< ss.str() << " present" << endl;
 				}
@@ -399,7 +317,7 @@ namespace OpenMS
 			
 					//retention time
 					ss.str("");
-					ss << experiment_[i].getRetentionTime();
+					ss << experiment[i].getRetentionTime();
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
 					fputs("\n",fp);
 							
@@ -575,6 +493,55 @@ namespace OpenMS
     form_version_ = form_version;
   }
 
+	const std::string& MascotInfile::getCharges()
+	{
+		return charges_;
+	}
+
+  void MascotInfile::setCharges(std::vector<SignedInt>& charges)
+  {
+		stringstream ss;
+		
+		sort(charges.begin(), charges.end());
+		  	
+		for(UnsignedInt i = 0; i < charges.size(); i++)
+		{
+			if (i == 0)
+			{				
+				if (charges[i] > 0)
+				{
+					ss << charges[i] << "+";
+				}
+				else
+				{
+					ss << (-1 * charges[i]) << "-";
+				}
+			}
+			else if (i < (charges.size() - 1))
+			{
+				if (charges[i] > 0)
+				{
+					ss << ", " << charges[i] << "+";
+				}
+				else
+				{
+					ss << ", " << (-1 * charges[i]) << "-";
+				}
+			}
+			else
+			{
+				if (charges[i] > 0)
+				{
+					ss << " and " << charges[i] << "+";
+				}
+				else
+				{
+					ss << " and " << (-1 * charges[i]) << "-";
+				}
+			}								
+		}
+		charges_ = ss.str();  	
+  }
 
 } // namespace OpenMS
 

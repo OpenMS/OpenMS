@@ -117,13 +117,13 @@ namespace OpenMS
     };
     
     /// predicate for sorting the peptide and protein hits     
-    class ScoreLess
+    class ScoreMore
     {
     public:
     	template<typename Arg>
       bool operator()(const Arg& a, const Arg& b)
       {
-        return a.getScore() < b.getScore();
+        return a.getScore() > b.getScore();
       }
     };
    

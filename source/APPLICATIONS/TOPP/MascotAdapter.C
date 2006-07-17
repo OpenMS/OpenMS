@@ -591,7 +591,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 			
 			
-				mascot_infile = new MascotInfile(experiment, "OpenMS search", charges);
+				mascot_infile = new MascotInfile();
 			
 				mascot_infile->setInstrument(instrument);
 				mascot_infile->setPrecursorMassTolerance(precursor_mass_tolerance);
@@ -610,9 +610,12 @@ class TOPPMascotAdapter
 				mascot_infile->setCleavage(cleavage);
 				mascot_infile->setMissedCleavages(missed_cleavages);
 				mascot_infile->setMassType(mass_type);
+				mascot_infile->setCharges(charges);
 				if (!mascot_in)
 				{
-					mascot_infile->write(mascot_data_dir + "/" + mascot_infile_name);
+					mascot_infile->store(mascot_data_dir + "/" + mascot_infile_name, 
+															 experiment, 
+															 "OpenMS search");
 					file_info.setFile(logfile.c_str());
 					writeDebug_("The Mascot process created the following output:", 0);
 					/// calling the Mascot process
@@ -639,7 +642,9 @@ class TOPPMascotAdapter
 				} // from if(!mascot_in)
 				else
 				{
-					mascot_infile->write(mascot_infile_name);		
+					mascot_infile->store(mascot_infile_name, 
+															 experiment, 
+															 "OpenMS search");		
 				}
 		
 			} // from if(!mascot_out)

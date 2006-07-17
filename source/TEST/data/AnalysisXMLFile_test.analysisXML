@@ -34,6 +34,7 @@
 					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="789.83" />
 					<userParam name="score" value="33.85" />
+					<userParam name="score_type" value="Mascot" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
 				<peptide>
@@ -45,9 +46,12 @@
 					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="789.83" />
 					<userParam name="score" value="33.12" />
+					<userParam name="score_type" value="Mascot" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
 				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="score" value="103.55" />
+				<userParam name="score_type" value="Mascot" />
 				<userParam name="date_group_index" value="0"/>
 			</protein>
 			<protein>
@@ -62,6 +66,7 @@
 					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="789.83" />
 					<userParam name="score" value="33.85" />
+					<userParam name="score_type" value="Mascot" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
 				<peptide>
@@ -73,10 +78,13 @@
 					<userParam name="predicted_precursor_retention_time" value="151.5" />
 					<userParam name="precursor_mz" value="135.29" />
 					<userParam name="score" value="43.9" />
+					<userParam name="score_type" value="Mascot" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
 				<userParam name="protein_identification_index" value="0"/>
 				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="67.85" />
+				<userParam name="score_type" value="Mascot" />
 			</protein>
 			<userParam name="proteins" value="all"/>
 		</proteinGroup>
@@ -86,9 +94,10 @@
 			<userParam name="peptide_significance_threshold" value="19"/>
 			<userParam name="precursor_charge" value="2" />
 			<userParam name="precursor_retention_time" value="160" />
-					<userParam name="predicted_precursor_retention_time" value="159.5" />
+			<userParam name="predicted_precursor_retention_time" value="159.5" />
 			<userParam name="precursor_mz" value="982.58" />
 			<userParam name="score" value="5.41" />
+			<userParam name="score_type" value="Mascot" />
 			<userParam name="date_group_index" value="0"/>
 		</peptide>
 		<peptide>
@@ -97,9 +106,10 @@
 			<userParam name="peptide_significance_threshold" value="19"/>
 			<userParam name="precursor_charge" value="2" />
 			<userParam name="precursor_retention_time" value="160" />
-					<userParam name="predicted_precursor_retention_time" value="159.5" />
+			<userParam name="predicted_precursor_retention_time" value="159.5" />
 			<userParam name="precursor_mz" value="982.58" />
 			<userParam name="score" value="7.87" />
+			<userParam name="score_type" value="Mascot" />
 			<userParam name="date_group_index" value="0"/>
 		</peptide>
 	</ident>

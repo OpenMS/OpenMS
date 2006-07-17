@@ -202,7 +202,60 @@ CHECK(~PeptideHit())
   delete ptr1;
 RESULT
 
+CHECK(void addProteinIndex(const std::pair<String, String>& index))
+	String date;
+	vector< pair<String, String> > indices;
+
+	date = "2006-12-12 11:59:59";
+	ptr1 = new PeptideHit();
+
+	ptr1->addProteinIndex(make_pair(date, String("ACC392")));
+	ptr1->addProteinIndex(make_pair(date, String("ACC392")));
+	ptr1->addProteinIndex(make_pair(date, String("ACD392")));
+	indices = ptr1->getProteinIndices();
+	TEST_EQUAL(indices.size(), 2)
+	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[0].second == String("ACC392"), true)
+	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[1].second == String("ACD392"), true)
+
+RESULT
+
 CHECK(void addProteinIndex(const DateTime& date, const String& accession))
+	DateTime date;
+	vector< pair<String, String> > indices;
+
+	date.set("2006-12-12 11:59:59");
+	ptr1 = new PeptideHit();
+
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACD392");
+	indices = ptr1->getProteinIndices();
+	TEST_EQUAL(indices.size(), 2)
+	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[0].second == String("ACC392"), true)
+	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[1].second == String("ACD392"), true)
+
+RESULT
+
+CHECK(void setProteinIndex())
+	vector< pair<String, String> > indices1;
+	vector< pair<String, String> > indices2;
+
+	ptr1 = new PeptideHit();
+
+	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACC392"));
+	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACC392"));
+	indices1.push_back(make_pair("2006-12-12 11:59:59", "ACD392"));
+	ptr1->setProteinIndices(indices1);
+	indices2 = ptr1->getProteinIndices();
+	TEST_EQUAL(indices1 == indices2, true)
+
+RESULT
+
+CHECK( getProteinIndices() )
 	DateTime date;
 	vector< pair<String, String> > indices;
 

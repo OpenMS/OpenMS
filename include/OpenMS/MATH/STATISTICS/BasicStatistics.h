@@ -27,6 +27,7 @@
 #ifndef OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
 #define OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <vector>
 #include <ostream>
 #include <cmath>
@@ -246,6 +247,95 @@ namespace OpenMS
     {
       os << "BasicStatistics:  mean=" << arg.mean() << "  variance=" << arg.variance() << "  sum=" << arg.sum();
       return os;
+    }
+
+    /**@brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
+
+			Calculates the mean square error for the data given by the two iterator ranges. If
+			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
+    */
+    template < typename IteratorType1, typename IteratorType2 >
+    static DoubleReal meanSquareError ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
+    {
+    	SignedInt count = 0;
+    	DoubleReal error = 0;
+    	IteratorType1 it_a = begin_a;
+    	IteratorType2 it_b = begin_b;
+    	      	
+    	while(it_a != end_a && it_b != end_b)
+    	{
+    		error += ((*it_a - *it_b) * (*it_a - *it_b));
+    		count++;
+    		it_a++;
+    		it_b++;      		
+    	}
+    	
+    	return error / count;
+    	
+    }
+
+    /**@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+
+			Calculates the linear correlation coefficient for the data given by the two iterator ranges. If
+			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
+			If one of the ranges is empty or for both ranges all values are equal the function returns -1,
+    */
+    template < typename IteratorType1, typename IteratorType2 >
+    static DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
+    {
+    	SignedInt count = 0;
+    	DoubleReal sum_a = 0;
+    	DoubleReal sum_b = 0;
+    	DoubleReal mean_a = 0;
+    	DoubleReal mean_b = 0;      	
+    	IteratorType1 it_a = begin_a;
+    	IteratorType2 it_b = begin_b;      	
+    	DoubleReal numerator = 0;
+    	DoubleReal denominator_a = 0;
+    	DoubleReal denominator_b = 0;
+    	DoubleReal temp_a;
+    	DoubleReal temp_b;
+    	      	
+    	while(it_a != end_a && it_b != end_b)
+    	{
+				sum_a += *it_a;
+				sum_b += *it_b;
+    		count++;
+    		it_a++;
+    		it_b++;      		
+    	}
+    	if (count > 0)
+    	{
+    		mean_a = sum_a / count;
+    		mean_b = sum_b / count;
+    	}
+    	else
+    	{
+    		return -1;
+    	}
+    	
+    	it_a = begin_a;
+    	it_b = begin_b;
+    	while(it_a != end_a && it_b != end_b)
+    	{
+    		temp_a = *it_a - mean_a;
+    		temp_b = *it_b - mean_b;
+    		
+    		numerator += (temp_a * temp_b);
+    		denominator_a += (temp_a * temp_a);
+    		denominator_b += (temp_b * temp_b);
+    		it_a++;
+    		it_b++;      		
+			}      	
+    	temp_a = sqrt(denominator_a * denominator_b);
+    	if (temp_a > 0)
+    	{
+    		return numerator / temp_a;      	
+    	}
+    	else
+    	{
+    		return -1;
+    	}
     }
 
    protected:

@@ -178,14 +178,6 @@ CHECK(bool operator == (const Identification& rhs) const)
 	TEST_EQUAL(search1 == search2, true)	
 RESULT
 
-CHECK((bool operator()(const PeptideHit& a, const PeptideHit& b)))
-  // ???
-RESULT
-
-CHECK((bool operator()(const ProteinHit& a, const ProteinHit& b)))
-  // ???
-RESULT
-
 CHECK(Date& getDateTime())
 	ptr1 = new Identification();
 	ptr1->setDateTime(date);
@@ -391,6 +383,37 @@ CHECK(vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< 
 	hits = identifications[0].getNonReferencingHits(map);
 	TEST_EQUAL(hits->size(), 0)	
 	delete hits;
+
+RESULT
+
+CHECK(void sort())
+	vector<ProteinIdentification> protein_identifications; 
+	vector<Identification> identifications; 
+	vector<float> precursor_retention_times;
+	vector<float> precursor_mz_values;
+	ContactPerson contact_person;
+	PeptideHit hit;
+	AnalysisXMLFile analysis_xml_file;
+	
+	hit.setSequence("TESTPEPTIDE");
+	hit.setScore(33.4);
+	hit.setScoreType("Mascot");
+
+	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
+							&protein_identifications, 
+				   		&identifications, 
+							&precursor_retention_times, 
+							&precursor_mz_values, 
+							&contact_person);
+	TEST_EQUAL(contact_person.getName(), "TestName")
+	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
+	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
+	TEST_EQUAL(identifications.size(), 3)
+
+	identifications[0].insertPeptideHit(hit);
+	identifications[0].sort();
+	TEST_EQUAL(identifications[0].getPeptideHits().size(), 3)
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "TESTPEPTIDE")
 
 RESULT
 

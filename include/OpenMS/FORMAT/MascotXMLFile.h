@@ -50,8 +50,6 @@ namespace OpenMS
     public:
       /// Constructor
       MascotXMLFile();
-      /// Copy constructor
-      MascotXMLFile(const MascotXMLFile& source);
       /// Destructor
       ~MascotXMLFile();
       

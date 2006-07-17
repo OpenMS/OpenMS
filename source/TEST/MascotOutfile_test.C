@@ -46,9 +46,29 @@ START_TEST(String, "$Id$")
 DateTime date;
 date.set("27.01.2005 17:47:41");
 MascotOutfile* ptr = 0;
-CHECK(MascotOutfile(filename))
+CHECK(MascotOutfile(const std::string& filename, Real p = 0.05) throw(Exception::ParseError))
+
+/*
 	ptr = new MascotOutfile("data/MascotOutfile.txt");
 	TEST_NOT_EQUAL(ptr, 0)
+	Identification db_search;
+	std::vector<PeptideHit> peptide_hits;
+	std::vector<ProteinHit> protein_hits;
+	std::vector<uint> temp_peptide_indices;
+	std::vector<uint> temp_protein_indices;
+	PeptideHit temp_peptide_hit;
+	ProteinHit temp_protein_hit;
+		
+	file >> db_search;
+
+	protein_hits = db_search.getProteinHits();
+	peptide_hits  = db_search.getPeptideHits();
+
+	TEST_REAL_EQUAL(db_search.getPeptideSignificanceThreshold(), 31.862070)
+	TEST_EQUAL(db_search.getDateTime() == date, true)
+	TEST_REAL_EQUAL(db_search.getProteinSignificanceThreshold(), 0)
+	TEST_REAL_EQUAL(file.getPrecursorRetentionTimes()[0], 25.379)	
+*/
 RESULT
 
 CHECK(~MascotOutfile())
@@ -57,15 +77,12 @@ RESULT
 
 MascotOutfile file("data/MascotOutfile.txt");
 
-CHECK( ok )
+CHECK(bool ok() const)
 	TEST_EQUAL(file.ok(),true)
-RESULT
-
-CHECK( ok )
 	TEST_EXCEPTION(Exception::ParseError,MascotOutfile file("data/TextFile_test_empty_infile.txt"))
 RESULT
 
-CHECK( operator >> PeptideHit )
+CHECK(MascotOutfile& operator>>(PeptideHit& peptide_hit))
 	PeptideHit hit;
 
 	file >> hit;
@@ -95,7 +112,7 @@ CHECK( operator >> PeptideHit )
 	TEST_EQUAL(hit.getRank() , 5)
 RESULT
 
-CHECK( operator >> Identification )
+CHECK(MascotOutfile& operator>>(Identification& identification))
 	Identification search;
 	file >> search;
 	
@@ -167,32 +184,7 @@ CHECK(MascotOutfile(const MascotOutfile& mascotoutfile))
 	TEST_REAL_EQUAL(file2.getPrecursorRetentionTimes()[0], 25.379)	
 RESULT
 
-CHECK(MascotOutfile(const std::string& filename) throw(Exception::ParseError))
-	
-	Identification db_search;
-	std::vector<PeptideHit> peptide_hits;
-	std::vector<ProteinHit> protein_hits;
-	std::vector<uint> temp_peptide_indices;
-	std::vector<uint> temp_protein_indices;
-	PeptideHit temp_peptide_hit;
-	ProteinHit temp_protein_hit;
-		
-	file >> db_search;
-
-	protein_hits = db_search.getProteinHits();
-	peptide_hits  = db_search.getPeptideHits();
-
-	TEST_REAL_EQUAL(db_search.getPeptideSignificanceThreshold(), 31.862070)
-	TEST_EQUAL(db_search.getDateTime() == date, true)
-	TEST_REAL_EQUAL(db_search.getProteinSignificanceThreshold(), 0)
-	TEST_REAL_EQUAL(file.getPrecursorRetentionTimes()[0], 25.379)	
-RESULT
-
-CHECK(bool ok() const)
-  TEST_EQUAL(file.ok(), true)
-RESULT
-
-CHECK(const vector<float>& getPrecursorRetentionTimes() const)
+CHECK(const std::vector<float>& getPrecursorRetentionTimes() const)
 	TEST_REAL_EQUAL(file.getPrecursorRetentionTimes()[0], 25.379)	
 	ptr = new MascotOutfile("data/MascotOutfile2.txt");
   TEST_REAL_EQUAL(ptr->getPrecursorRetentionTimes().size(), 4)	
@@ -202,14 +194,14 @@ CHECK(const vector<float>& getPrecursorRetentionTimes() const)
   TEST_REAL_EQUAL(ptr->getPrecursorRetentionTimes()[3], 105.615f)
 RESULT
 
-CHECK(void setPrecursorRetentionTimes(const float& retention_time))
+CHECK(void setPrecursorRetentionTimes(const std::vector<float>& precursor_retention_times))
 	vector<float> tmp;
 	tmp.push_back(4.3f);
 	file.setPrecursorRetentionTimes(tmp);
 	TEST_REAL_EQUAL(file.getPrecursorRetentionTimes()[0], 4.3)	
 RESULT
 
-CHECK(const double& getPrecursorMZValues() const)
+CHECK(const std::vector<float>& getPrecursorMZValues() const)
   TEST_REAL_EQUAL(file.getPrecursorMZValues()[0], 999.503912)
 	ptr = new MascotOutfile("data/MascotOutfile2.txt");
 	TEST_REAL_EQUAL(ptr->getPrecursorMZValues()[0], 508.119f)	
@@ -218,19 +210,19 @@ CHECK(const double& getPrecursorMZValues() const)
 	TEST_REAL_EQUAL(ptr->getPrecursorMZValues()[3], 517.324f)	
 RESULT
 
-CHECK(void setPrecursorMZValues(const float& mz))
+CHECK(void setPrecursorMZValues(const std::vector<float>& mz))
 	vector<float> tmp;
 	tmp.push_back(354.2f);
 	file.setPrecursorMZValues(tmp);
   TEST_REAL_EQUAL(file.getPrecursorMZValues()[0], 354.2f)
 RESULT
 
-CHECK(void setIdentificationes(const std::vector<Identification>& db_searches))
+CHECK(void setIdentifications(const std::vector<Identification>& identifications))
 	ptr = new MascotOutfile("data/MascotOutfile2.txt");
 	vector<Identification> db_searches = ptr->getIdentifications();	
 RESULT
 
-CHECK(const std::vector<Identification>& getIdentificationes() const)
+CHECK(const std::vector<Identification>& getIdentifications() const)
 	ptr = new MascotOutfile("data/MascotOutfile2.txt");
 	vector<Identification> db_searches = ptr->getIdentifications();
 	TEST_EQUAL(db_searches.size(), 4)	

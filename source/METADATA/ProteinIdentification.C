@@ -118,20 +118,7 @@ namespace OpenMS {
 	
   void ProteinIdentification::insertProteinHit(const ProteinHit& input)
   {
-    if ( !protein_hits_.size() )
-    {  
-      protein_hits_.push_back(input);
-    }
-    else if ( protein_hits_.begin()->getScoreType() == input.getScoreType() )
-    {
-      protein_hits_.push_back(input);
-    }
-    else
-    {
-      stringstream ss;
-      ss << protein_hits_.begin()->getScoreType() << " != " <<  input.getScoreType();
-      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Incompatible ProteinHit.score_type",ss.str().c_str());
-    }
+    protein_hits_.push_back(input);
   }
 
   void ProteinIdentification::assignRanks()
@@ -147,7 +134,7 @@ namespace OpenMS {
     
   void ProteinIdentification::sort()
   {		
-		std::sort(protein_hits_.begin(), protein_hits_.end(), ScoreLess());
+		std::sort(protein_hits_.begin(), protein_hits_.end(), ScoreMore());
   }
   
 	bool ProteinIdentification::empty() const

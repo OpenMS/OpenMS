@@ -57,7 +57,7 @@ for (UnsignedInt i=1;i<10;i+=1)
 
 MascotInfile* ptr = 0;
 CHECK(MascotInfile())
-	ptr = new MascotInfile(spec,1998.0f,charges,"TestTitle", 25.379);
+	ptr = new MascotInfile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -65,17 +65,23 @@ CHECK(~MascotInfile())
 	delete ptr;
 RESULT
 
-MascotInfile file(spec,1998.0f,charges,"TestTitle", 25.379);
+MascotInfile file;
+file.setCharges(charges);
 
 CHECK(setBoundary() / getBoundary())
 	file.setBoundary("ABCDEFGHIJKMNOPQRSTUVWXYZ");
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK( write( filename) (defaults) )
-	// here a fixed name has to be used as it has to be in the tamplate
-	file.write("MascotInfile_test.txt");
+CHECK( store(const std::string& filename,
+					 const DPeakArrayNonPolymorphic<1>& spec, 
+					 double mz ,
+					 double retention_time, 
+					 std::string search_title) (defaults) )
+	// here a fixed name has to be used as it has to be in the template
+	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
+	remove("MascotInfile_test.txt");
 RESULT
 
 CHECK(setDB(...) / getDB())
@@ -141,12 +147,24 @@ CHECK(setModifications(...) / getModifications())
 	TEST_EQUAL(file.getModifications() == mods, true)
 RESULT
 
-CHECK( write( filename) (settings) )
+CHECK(store(const std::string& filename,
+					 const DPeakArrayNonPolymorphic<1>& spec, 
+					 double mz ,
+					 double retention_time, 
+					 std::string search_title) (settings) )
 	// here a fixed name has to be used as it has to be in the tamplate
-	file.write("MascotInfile_test.txt");
+	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
 	remove("MascotInfile_test.txt");
 RESULT
+
+CHECK(setCharges(...) / getCharges())
+	charges.push_back(3);
+	charges.push_back(1);
+	file.setCharges(charges);
+	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
+RESULT
+
 
 
 /////////////////////////////////////////////////////////////

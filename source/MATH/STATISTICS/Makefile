@@ -32,8 +32,7 @@ THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
 	BasicStatistics.C\
-	Histogram.C\
-	EvaluationFunctions.C
+	Histogram.C
 
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)

@@ -80,23 +80,23 @@ namespace OpenMS
       void setProteins(const std::vector< std::pair<String, String> >& proteins);
 
       /// filters a identification corresponding to the threshold_fractions
-			const Identification& filterIdentificationsByThresholds(const Identification& db_search,
+			const Identification& filterIdentificationsByThresholds(const Identification& identification,
 																												const double& peptide_threshold_fraction,
 																												const double& protein_threshold_fraction, 
 																												bool strict = false);
 
       /// filters a identification corresponding to the threshold_fractions
-			const Identification& filterIdentificationsByThresholds(const Identification& db_search, bool strict = false);
+			const Identification& filterIdentificationsByThresholds(const Identification& identification, bool strict = false);
 			
       /// filters a identification corresponding to the given proteins
-			const Identification& filterIdentificationsByProteins(const Identification& db_search, 
+			const Identification& filterIdentificationsByProteins(const Identification& identification, 
 																											std::vector< std::pair<String, String> > proteins);
 
       /// filters a identification corresponding to the given proteins
-			const Identification& filterIdentificationsByProteins(const Identification& db_search);
+			const Identification& filterIdentificationsByProteins(const Identification& identification);
 
       /// filters the peptides of a identification corresponding to the retention times
-			const Identification& filterIdentificationsByRetentionTimes(const Identification& db_search,
+			const Identification& filterIdentificationsByRetentionTimes(const Identification& identification,
 																														const std::map<String, double>& predicted_retention_times,
 																														double measured_retention_time,
 																														double predicted_sigma,
@@ -104,7 +104,7 @@ namespace OpenMS
 																														double total_gradient_time);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
-			const Identification& filterIdentificationsByExclusionPeptides(const Identification& db_search,
+			const Identification& filterIdentificationsByExclusionPeptides(const Identification& identification,
 																																				 std::vector<String> peptides);
 																														
 
@@ -115,9 +115,9 @@ namespace OpenMS
 																						 double protein_threshold_fraction, 
 																						 bool strict = false)
 			{
-				std::vector<Identification> temp_db_searches;
-				std::vector<Identification> filtered_db_searches;
-				Identification temp_db_search;
+				std::vector<Identification> temp_identifications;
+				std::vector<Identification> filtered_identifications;
+				Identification temp_identification;
 				
 				peptide_threshold_fraction_ = peptide_threshold_fraction;
 				protein_threshold_fraction_ = protein_threshold_fraction;		
@@ -127,19 +127,19 @@ namespace OpenMS
 					
 					if (experiment[i].getMSLevel() == 2)
 					{
-						temp_db_searches = experiment[i].getIdentification();
-						if (temp_db_searches.size() > 0)
+						temp_identifications = experiment[i].getIdentification();
+						if (temp_identifications.size() > 0)
 						{
-							for(UnsignedInt j = 0; j < temp_db_searches.size(); j++)
+							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 							{
-								temp_db_search = filterIdentificationsByThresholds(temp_db_searches[j], strict);
-								if (!temp_db_search.empty())
+								temp_identification = filterIdentificationsByThresholds(temp_identifications[j], strict);
+								if (!temp_identification.empty())
 								{
-									filtered_db_searches.push_back(temp_db_search);
+									filtered_identifications.push_back(temp_identification);
 								}
 							}
-							experiment[i].setIdentification(filtered_db_searches);
-							filtered_db_searches.clear();					
+							experiment[i].setIdentification(filtered_identifications);
+							filtered_identifications.clear();					
 						}
 					}
 				}				
@@ -150,9 +150,9 @@ namespace OpenMS
 			void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, 
 																					 std::vector< std::pair<String, String> >proteins)
 			{
-				std::vector<Identification> temp_db_searches;
-				std::vector<Identification> filtered_db_searches;
-				Identification temp_db_search;
+				std::vector<Identification> temp_identifications;
+				std::vector<Identification> filtered_identifications;
+				Identification temp_identification;
 				
 				proteins_ = proteins;
 		
@@ -161,19 +161,19 @@ namespace OpenMS
 					
 					if (experiment[i].getMSLevel() == 2)
 					{
-						temp_db_searches = experiment[i].getIdentification();
-						if (temp_db_searches.size() > 0)
+						temp_identifications = experiment[i].getIdentification();
+						if (temp_identifications.size() > 0)
 						{
-							for(UnsignedInt j = 0; j < temp_db_searches.size(); j++)
+							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 							{
-								temp_db_search = filterIdentificationsByProteins(temp_db_searches[j]);
-								if (!temp_db_search.empty())
+								temp_identification = filterIdentificationsByProteins(temp_identifications[j]);
+								if (!temp_identification.empty())
 								{
-									filtered_db_searches.push_back(temp_db_search);
+									filtered_identifications.push_back(temp_identification);
 								}
 							}
-							experiment[i].setIdentification(filtered_db_searches);					
-							filtered_db_searches.clear();					
+							experiment[i].setIdentification(filtered_identifications);					
+							filtered_identifications.clear();					
 						}
 					}
 				}				

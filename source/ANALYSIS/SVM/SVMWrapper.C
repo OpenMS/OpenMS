@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <OpenMS/MATH/STATISTICS/EvaluationFunctions.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <iostream>
 #include <fstream>
@@ -475,7 +475,7 @@ namespace OpenMS
 					{
 						predicted_labels = predict((*partitions)[j]);
 						real_labels = getLabels((*partitions)[j]);
-						temp_performance += EvaluationFunctions::pearsonCorrelationCoefficient(
+						temp_performance += BasicStatistics<UnsignedInt, DoubleReal>::pearsonCorrelationCoefficient(
 							predicted_labels->begin(), predicted_labels->end(),
 							real_labels->begin(), real_labels->end());
 						
