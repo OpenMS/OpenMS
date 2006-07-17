@@ -81,6 +81,11 @@ namespace OpenMS
 
 	}
 	
+	MascotInfile::~MascotInfile()
+	{
+		
+	}
+	
 	void MascotInfile::store(const std::string& filename,
 													const MSExperiment< DPeak<1> >& experiment, 
 													std::string search_title)
