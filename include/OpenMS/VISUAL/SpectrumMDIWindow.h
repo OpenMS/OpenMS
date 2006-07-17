@@ -166,6 +166,8 @@ namespace OpenMS
 			void showPeaklistActiveSpectrum();
 			/// Picks peaks in the active spectrum
 			void pickActiveSpectrum();
+			/// Picks peaks in the active spectra (2D)
+			void pickActiveSpectra();
 			/// Finds features in the active spectrum
 			void findFeaturesActiveSpectrum();
 		
