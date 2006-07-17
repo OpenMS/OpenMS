@@ -39,10 +39,10 @@ using namespace std;
 
 /**
    @page PeakPicker PeakPicker
-
+ 
    @brief Executes the peak picking algorithm
    as described by Lange et al. (2006) Proc. PSB-06.
-
+ 
    The conversion of the ''raw'' ion count data acquired
    by the machine into peak lists for further processing
    is usually called peak picking. Our algorithm is independent
@@ -53,12 +53,12 @@ using namespace std;
    before a given asymmetric peak function is fitted to the raw data.
    In an optional third stage, the resulting fit can be further improved using
    techniques from nonlinear optimization.
-
+ 
    @ingroup TOPP
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES 
+/// @cond TOPPCLASSES
 
 class TOPPPeakPicker
       : public TOPPBase
@@ -166,47 +166,20 @@ protected:
     }
 
     PeakPickerCWT peak_picker(pepi_param);
-    
+
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
-    // copy the experimental settings
-    static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;    
-
-		// pick peaks on each scan
-    for (unsigned int i = 0; i < ms_exp_raw.size(); ++i)
-    {
-    	MSSpectrum<DPickedPeak<1> > spectrum;
-    	writeLog_("RT: " + String(ms_exp_raw[i].getRetentionTime()));
-    	
-    	peak_picker.pick(ms_exp_raw[i],spectrum);
-    	
-    	// if any peaks are found copy the spectrum settings
-    	if (spectrum.size() > 0)
-    		{
-    			writeLog_("Number of picked peaks: " + String(spectrum.size()));
-    			// copy the spectrum settings
-    			static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];  
-    			spectrum.setType(SpectrumSettings::PEAKS);
-    				
-    			// copy the spectrum information
-    			spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-					spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
-					spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
-					spectrum.getName() = ms_exp_raw[i].getName();
-				
-    			ms_exp_peaks.push_back(spectrum);
-    	}
-    }
-   
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
+    peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
+    
+  
+  //-------------------------------------------------------------
+  // writing output
+  //-------------------------------------------------------------
 
 
-    mz_data_file.store(out,ms_exp_peaks);
+  mz_data_file.store(out,ms_exp_peaks);
 
-    return OK;
-  }
+  return OK;
+}
 };
 
 /// @endcond
