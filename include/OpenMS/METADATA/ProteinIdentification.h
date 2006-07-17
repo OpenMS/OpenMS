@@ -105,7 +105,7 @@ namespace OpenMS
 
   protected:
 
-    /// predicate for sorting the peptide and protein hits     
+    /// predicate for sorting the hits     
     class RankLess
     {
     public:
@@ -116,7 +116,7 @@ namespace OpenMS
       }
     };
     
-    /// predicate for sorting the peptide and protein hits     
+    /// predicate for sorting the hits     
     class ScoreMore
     {
     public:

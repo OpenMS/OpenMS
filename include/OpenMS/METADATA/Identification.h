@@ -112,8 +112,7 @@ namespace OpenMS
 			Returns a vector of peptide hits that reference a protein hit with @code date_time @endcode
 			@endcode and @code accession @endcode.
     */
-    std::vector<PeptideHit>* getReferencingHits(String 	date_time, 
-    																						String 	accession) const;
+    std::vector<PeptideHit>* getReferencingHits(String date_time, String accession) const;
 
 		/**
 			@brief returns all non referencing peptide hits
@@ -122,9 +121,7 @@ namespace OpenMS
 			together with the date given by @code date_time @endcode
     */
     template <class iteratorT>
-  	std::vector<PeptideHit>* getNonReferencingHits(iteratorT 			protein_hits_begin, 
-  																								 iteratorT 			protein_hits_end,
-  																								 const String&	date_time) const
+  	std::vector<PeptideHit>* getNonReferencingHits(iteratorT protein_hits_begin, iteratorT protein_hits_end, const String&	date_time) const
   	{
 	  	std::vector<PeptideHit>* 	found_hits 	= new std::vector<PeptideHit>();
 	  	bool 											referenced 	= false;
@@ -167,8 +164,7 @@ namespace OpenMS
 			The String argument in the map stands for the String representation of the date_time object of
 			the ProteinIdentification the particular protein hit belongs to.
     */
-  	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, 
-																																				ProteinHit >& protein_hits) const;
+  	std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, ProteinHit >& protein_hits) const;
 		/// Inserts a protein hit into a container
 	  void insertProteinHit(const ProteinHit& input);
 

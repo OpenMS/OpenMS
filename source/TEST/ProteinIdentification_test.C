@@ -133,6 +133,33 @@ CHECK(bool operator == (const ProteinIdentification& rhs) const)
 RESULT
 
 CHECK((template<typename Arg> bool operator()(const Arg& a, const Arg& b)))
+	ProteinHit hit_1;
+	ProteinHit hit_2;
+	ProteinHit hit_3;
+	vector<ProteinHit> hits;
+	ProteinIdentification id;
+	
+	hit_1.setScore(23);
+	hit_2.setScore(11);
+	hit_3.setScore(45);
+
+	hit_1.setScoreType("Mascot");
+	hit_2.setScoreType("Mascot");
+	hit_3.setScoreType("Mascot");
+	hit_1.setAccession("SECONDPROTEIN");
+	hit_2.setAccession("THIRDPROTEIN");
+	hit_3.setAccession("FIRSTPROTEIN");
+	hits.push_back(hit_1);
+	hits.push_back(hit_2);
+	hits.push_back(hit_3);
+	id.setProteinHits(hits);
+	id.assignRanks();
+	TEST_EQUAL(id.getProteinHits()[0].getAccession(), "FIRSTPROTEIN")
+	TEST_EQUAL(id.getProteinHits()[1].getAccession(), "SECONDPROTEIN")
+	TEST_EQUAL(id.getProteinHits()[2].getAccession(), "THIRDPROTEIN")
+	TEST_EQUAL(id.getProteinHits()[0].getRank(), 1)	
+	TEST_EQUAL(id.getProteinHits()[1].getRank(), 2)
+	TEST_EQUAL(id.getProteinHits()[2].getRank(), 3)
 
 RESULT
 

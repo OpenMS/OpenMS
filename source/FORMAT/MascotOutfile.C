@@ -39,23 +39,26 @@ using namespace std;
 namespace OpenMS 
 {
 
-  MascotOutfile::MascotOutfile(const string& filename, Real p)  
-  	throw (Exception::ParseError)
-    : db_searches_(), 
-    	peptide_hits_(), 
-    	protein_hits_(),
-    	precursor_retention_times_(),
-    	precursor_mz_values_(), 
-    	ok_(false)
+  MascotOutfile::MascotOutfile()  
   {
+  }
+
+	void MascotOutfile::load(String 												filename,
+													std::vector<Identification>& 	identifications, 
+													std::vector<Real>& 						precursor_retention_times, 
+													std::vector<Real>& 						precursor_mz_values,
+													Real                          p) throw (Exception::ParseError)
+	{
   	TextFile f(filename);
   	vector<PeptideHit>::iterator peptide_hit_iterator;
+  	vector<PeptideHit> peptide_hits;
+  	vector<ProteinHit> protein_hits;
 		vector<String> parts;
 		UnsignedInt number_of_queries = 0;
 		map<UnsignedInt, UnsignedInt> indices;
 		map<UnsignedInt, UnsignedInt>::iterator indices_iterator;
 		int temp_int;
-		Identification temp_db_search;
+		Identification temp_identification;
 		SignedInt temp_charge = 0;
 		String temp_identifier = "";
 		vector<Real> temp_scores;
@@ -66,6 +69,10 @@ namespace OpenMS
 		UnsignedInt index = 0;
 		String::SizeType tag_start;
 		String::SizeType tag_end;
+
+		identifications.clear();
+		precursor_retention_times.clear();
+		precursor_mz_values.clear();
 	
 		if (f.size() == 0)
 		{
@@ -86,7 +93,7 @@ namespace OpenMS
   	}
   	else
   	{
- 			precursor_retention_times_.push_back(it->suffix('=').trim().toFloat());
+ 			precursor_retention_times.push_back(it->suffix('=').trim().toFloat());
   	}
   	/// (1.0) parse for date
 
@@ -111,7 +118,7 @@ namespace OpenMS
 		
 		date.set(ss.str().substr(6,2) + "." + ss.str().substr(4,2) + "." + 
 			ss.str().substr(0,4) + " " + it->suffix('=').trim());
-		temp_db_search.setDateTime(date);
+		temp_identification.setDateTime(date);
 		
   	/// (1.0.1) parse for number of queries
   	it = f.search(it, "queries=");
@@ -160,18 +167,18 @@ namespace OpenMS
  				+ " not found!" ,filename);			
  			}
 			it->suffix('=').split(',',parts);
-			precursor_mz_values_.push_back(parts[0].toFloat());
+			precursor_mz_values.push_back(parts[0].toFloat());
 			temp_charge = String(parts[1].trim()[0]).toInt();
 			if (String(parts[1].trim()[1]) == "+")
 			{
-				temp_db_search.setCharge(temp_charge);
+				temp_identification.setCharge(temp_charge);
 			}
 			else
 			{
-				temp_db_search.setCharge((-1 * temp_charge));				
+				temp_identification.setCharge((-1 * temp_charge));				
 			}
 			parts.clear();
-			db_searches_.push_back(temp_db_search);
+			identifications.push_back(temp_identification);
 		}
 		
 		/// (1.2) parse for peptide significance threshold
@@ -186,7 +193,7 @@ namespace OpenMS
 	  			"significance threshold for query " + String(indices_iterator->first)
  				+ " in summary section not found!" ,filename);			
 			}
-			db_searches_[indices_iterator->second].setPeptideSignificanceThreshold(
+			identifications[indices_iterator->second].setPeptideSignificanceThreshold(
 				it->suffix('=').trim().toFloat());
 		}
 		for(indices_iterator = indices.begin(); 
@@ -204,9 +211,9 @@ namespace OpenMS
 			temp_value = it->suffix('=').trim().toFloat();
 			temp_value = 10 * log10(temp_value / p / 20);
 			if (temp_value 
-						< db_searches_[indices_iterator->second].getPeptideSignificanceThreshold())
+						< identifications[indices_iterator->second].getPeptideSignificanceThreshold())
 			{
-				db_searches_[indices_iterator->second].setPeptideSignificanceThreshold(temp_value);
+				identifications[indices_iterator->second].setPeptideSignificanceThreshold(temp_value);
 			}
 		}
 		
@@ -286,14 +293,14 @@ namespace OpenMS
 	   		///(2.3) insert into hits vector
 	  		if (temp_score > 0)
 	  		{
-	  			db_searches_[indices_iterator->second].insertPeptideHit(hit);
+	  			identifications[indices_iterator->second].insertPeptideHit(hit);
 					counter++;
 	  		}
 	  		
 	  		if (number_of_queries > 1000)
 	  		{
 	  			temp_significance_threshold = 
-	  				db_searches_[indices_iterator->second].getPeptideSignificanceThreshold();
+	  				identifications[indices_iterator->second].getPeptideSignificanceThreshold();
 	
 		  		if (temp_score > temp_significance_threshold)
 		  		{
@@ -331,7 +338,7 @@ namespace OpenMS
  		if (number_of_queries == 1)
  		{  	
 	  	it = f.search(String("h")+String(i) + "=");
-	  	peptide_hits_ = db_searches_[0].getPeptideHits();
+	  	peptide_hits = identifications[0].getPeptideHits();
 	  	while(it != f.end())
 	  	{
 				ProteinHit protein_hit;
@@ -358,9 +365,9 @@ namespace OpenMS
 					it->suffix('=').split(',',parts);
 					temp_peptide_sequence = parts[6];
 					
-					for(uint index = 0; index < peptide_hits_.size(); index++)
+					for(uint index = 0; index < peptide_hits.size(); index++)
 					{
-						if (peptide_hits_[index].getSequence() == temp_peptide_sequence)
+						if (peptide_hits[index].getSequence() == temp_peptide_sequence)
 						{
 							peptide_index = index;
 						}
@@ -368,7 +375,7 @@ namespace OpenMS
 					/// setting of the indices to store the relational information 
 					if (peptide_index != -1)
 					{
-//						peptide_hits_[peptide_index].addProteinIndex(i - 1);
+//						peptide_hits[peptide_index].addProteinIndex(i - 1);
 //						protein_hit.addPeptideIndex(peptide_index);
 						peptide_index = -1;
 					}
@@ -376,14 +383,12 @@ namespace OpenMS
 					j++;
 		  		it = f.search(it,String("h")+String(i)+"_q" + String(j) + "=");	
 				}
-				protein_hits_.push_back(protein_hit);
+				protein_hits.push_back(protein_hit);
 				i++;
 				j = 1;
 		  	it = f.search(String("h")+String(i) + "=");
 			}						  	
-			curr_peptide_hit_ = peptide_hits_.begin();
-			curr_protein_hit_ = protein_hits_.begin();
-			db_searches_[0].setPeptideAndProteinHits(peptide_hits_, protein_hits_);
+			identifications[0].setPeptideAndProteinHits(peptide_hits, protein_hits);
 		}
 		
 		for(indices_iterator = indices.begin(); 
@@ -393,7 +398,7 @@ namespace OpenMS
   		it = f.searchSuffix(String("\"query")+String(indices_iterator->first) + String("\""), true);	
 			if (it==f.end())
 	  	{
-				precursor_retention_times_.push_back(0.f);
+				precursor_retention_times.push_back(0.f);
 	  	}
 			else
 			{
@@ -404,7 +409,7 @@ namespace OpenMS
 				}
 				else
 				{
-					precursor_retention_times_.push_back(it->suffix('=').trim().toFloat());
+					precursor_retention_times.push_back(it->suffix('=').trim().toFloat());
 				}
 			}				
 		}
@@ -427,123 +432,9 @@ namespace OpenMS
 				protein_hit.setAccessionType("SwissProt");
 				protein_hit.setScoreType("Mascot");
 	
-				db_searches_[0].insertProteinHit(protein_hit);
+				identifications[0].insertProteinHit(protein_hit);
 			}
 		}
-
- 		ok_ = true;
-  }
-
-  MascotOutfile::MascotOutfile(const MascotOutfile& source)
-    : db_searches_(source.db_searches_), 
-    	peptide_hits_(source.peptide_hits_), 
-    	protein_hits_(source.protein_hits_), 
-    	precursor_retention_times_(source.precursor_retention_times_), 
-    	precursor_mz_values_(source.precursor_mz_values_), 
-    	ok_(source.ok_)
-  {
-  }
-
-  MascotOutfile::~MascotOutfile()
-  {
-  	peptide_hits_.clear();
-  	protein_hits_.clear();
-  }
-
-  bool MascotOutfile::ok() const
-  {
-  	return ok_;
-  }
-  
-  MascotOutfile& MascotOutfile::operator>>(Identification& db_search)
-  {
-  	
-  	db_search.clear();
-		db_search = Identification(db_searches_[0]);
-    
-    return *this;
-  }
-  
-
-  MascotOutfile& MascotOutfile::operator>>(PeptideHit& peptide_hit)
-  {
-    peptide_hit.clear();
-		
-		if (curr_peptide_hit_ == peptide_hits_.end())
-		{
-      return *this;			
-		}
-		
-		/// copy values from current hit
-		peptide_hit = PeptideHit(*curr_peptide_hit_);
-    ++curr_peptide_hit_;
-    
-    return *this;
-  }
-
-  MascotOutfile& MascotOutfile::operator>>(ProteinHit& protein_hit)
-  {
-    protein_hit.clear();
-		
-		if (curr_protein_hit_ == protein_hits_.end())
-		{
-      return *this;			
-		}
-		/// copy values from current hit
-		protein_hit = ProteinHit(*curr_protein_hit_);
-    ++curr_protein_hit_;
-    
-    return *this;
-  }
-
-	/// Assignment operator
-  MascotOutfile& MascotOutfile::operator=(const MascotOutfile& source)
-  {
-  	if (this == &source)
-  	{
-  		return *this;
-  	}
-  	precursor_retention_times_ = source.precursor_retention_times_;  			
-  	precursor_mz_values_ = source.precursor_mz_values_;  			
-  	db_searches_ = source.db_searches_;
-  	peptide_hits_ = source.peptide_hits_;
-  	protein_hits_ = source.protein_hits_;
-
-		return *this;
-  }
-  
-  /// returns the retention time of the Mascot search
-  const vector<float>& MascotOutfile::getPrecursorRetentionTimes() const
-  {
-  	return precursor_retention_times_;
-  }
-
-  /// sets the retention time of the Mascot search
-  void MascotOutfile::setPrecursorRetentionTimes(const vector<float>& precursor_retention_times)
-	{
-		precursor_retention_times_ = precursor_retention_times;
 	}
-	
-  /// returns the m/z of the precursor peak of the Mascot search
-  const vector<float>& MascotOutfile::getPrecursorMZValues() const
-  {
-  	return precursor_mz_values_;
-  }
-
-  /// sets the m/z of the precursor peak of the Mascot search
-  void MascotOutfile::setPrecursorMZValues(const vector<float>& precursor_mz_values)
-  {
-  	precursor_mz_values_ = precursor_mz_values;
-  } 
-  
-  const vector<Identification>& MascotOutfile::getIdentifications() const
-	{
-		return db_searches_; 
-	}
-	
-  void MascotOutfile::setIdentifications(const vector<Identification>& db_searches)
-  {
-  	db_searches_ = db_searches;
-  }
 
 } ///namespace OpenMS

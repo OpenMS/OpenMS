@@ -85,10 +85,10 @@ namespace OpenMS
 		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
 
 
-		*protein_identification = ProteinIdentification();
-		*identifications = vector<Identification>();  					 // clear information
-		*precursor_retention_times = vector<float>();  // clear information
-		*precursor_mz_values = vector<float>();  			 // clear information
+		protein_identification->clear();
+		identifications->clear();  					 // clear information
+		precursor_retention_times->clear();  // clear information
+		precursor_mz_values->clear();  			 // clear information
 
 		Internal::MascotXMLHandler handler(protein_identification, 
 																			 identifications,

@@ -31,7 +31,6 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/MATH/STATISTICS/EvaluationFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>

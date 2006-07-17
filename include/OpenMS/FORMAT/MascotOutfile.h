@@ -27,6 +27,7 @@
 #ifndef OPENMS_FORMAT_MASCOTOUTFILE_H
 #define OPENMS_FORMAT_MASCOTOUTFILE_H
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -43,9 +44,7 @@ namespace OpenMS
     @brief Representation of a Mascot outfile
     
     This class serves to read in a Mascot outfile. The information can be 
-    retrieved via the >> operator. 
-  	
-  	@todo adapt to common interface: load/store (Nico)
+    retrieved via the load function.
   	
   	@ingroup FileIO
   */
@@ -54,74 +53,12 @@ namespace OpenMS
     public:
       
       /// Constructor
-      MascotOutfile(const std::string& filename, Real p = 0.05) 
-      	throw (Exception::ParseError);
+      MascotOutfile();
 
-      /// Copy constructor
-      MascotOutfile(const MascotOutfile& mascotoutfile);
-
-      /// Destructor
-      ~MascotOutfile();
-
-      /// true if the search was successfull, false otherwise
-      bool ok() const;
-
-      /// fills a Identification object
-      MascotOutfile& operator>>(Identification& identification);
-
-      /// fills a PeptideHit object
-      MascotOutfile& operator>>(PeptideHit& peptide_hit);
-
-      /// fills a ProteinHit object
-      MascotOutfile& operator>>(ProteinHit& protein_hit);
-
-			/// Assignment operator
-	    MascotOutfile& operator=(const MascotOutfile& source);
-		
-      /// returns the retention time of the Mascot search
-      const std::vector<float>& getPrecursorRetentionTimes() const;
-
-      /// sets the retention time of the Mascot search
-      void setPrecursorRetentionTimes(const std::vector<float>& precursor_retention_times);      
-
-      /// returns the m/z of the precursor peak of the Mascot search
-      const std::vector<float>& getPrecursorMZValues() const;
-
-      /// sets the m/z of the precursor peak of the Mascot search
-      void setPrecursorMZValues(const std::vector<float>& mz);      
-
-      /// returns the Identification instances of the Mascot search
-      const std::vector<Identification>& getIdentifications() const;
-
-      /// sets the Identification instances of the Mascot search
-      void setIdentifications(const std::vector<Identification>& identifications);      
+			void load(String filename, std::vector<Identification>& identifications, std::vector<Real>& rt, std::vector<Real>& mz, Real p = 0.05) throw (Exception::ParseError);
 
     protected:
 
-			/// the identification information
-			std::vector<Identification> db_searches_;
-
-			/// list of the peptide hits (sorted by score)
-			std::vector<PeptideHit> peptide_hits_;
-
-			/// list of the protein hits (sorted by score)
-			std::vector<ProteinHit> protein_hits_;
-
-			/// the retention time
-			std::vector<float> precursor_retention_times_;
-
-			/// iterator pointing to the current hit
-			std::vector<PeptideHit>::iterator curr_peptide_hit_;
-				
-			/// iterator pointing to the current hit
-			std::vector<ProteinHit>::iterator curr_protein_hit_;
-				
-      /// the mass of the precursor
-      std::vector<float> precursor_mz_values_;
-      
-      /// flag that states if the search worked
-      bool ok_;
-      
    };
 
 } //namespace OpenMS

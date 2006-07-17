@@ -655,42 +655,39 @@ class TOPPMascotAdapter
 				/// Since Mascot does not store the retention times in the mascot xml format
 				/// we need also the old out-file to retrieve them. All other data is loaded 
 				/// from the mascot xml file (if possible).
-				if (!mascot_out)
-				{			
-					mascot_outfile = new MascotOutfile(mascot_data_dir + "/" + mascot_outfile_name);
-				}
-				else
-				{
-					mascot_outfile = new MascotOutfile(mascot_outfile_name);
-				}
-				
+				mascot_outfile = new MascotOutfile();
+
+				vector<Real> wrong_retention_times;				
 				if (!mascot_out)
 				{
+					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML",
+															identifications,
+															precursor_retention_times,
+															precursor_mz_values);
 					mascotXML_file.load(mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML",
 															&protein_identification,
 															&identifications,
-															&precursor_retention_times,
+															&wrong_retention_times,
 															&precursor_mz_values);			
 				}
 				else
 				{
-					if (mascotXML_file_name == "")
-					{
-						precursor_mz_values = mascot_outfile->getPrecursorMZValues();
-						identifications = mascot_outfile->getIdentifications();						
-					}
-					else
+					mascot_outfile->load(mascot_outfile_name,
+															identifications,
+															precursor_retention_times,
+															precursor_mz_values);
+					if (mascotXML_file_name != "")
 					{
 						mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
-															&precursor_retention_times,
+															&wrong_retention_times,
 															&precursor_mz_values);			
 						
 					}
 							
 				}
-				precursor_retention_times = mascot_outfile->getPrecursorRetentionTimes();
+				wrong_retention_times.clear();
 			
 			//-------------------------------------------------------------
 			// writing output

@@ -72,7 +72,7 @@ date.now();
 peptide_hits.push_back(peptide_hit);
 protein_hits.push_back(protein_hit);
 
-CHECK(Identification())
+CHECK((Identification()))
 	ptr1 = new Identification();
 	TEST_NOT_EQUAL(ptr1, 0)
 	TEST_NOT_EQUAL(&(ptr1->getDateTime()), 0)
@@ -83,7 +83,7 @@ CHECK(Identification())
 	TEST_NOT_EQUAL(&(ptr1->getPeptideHits()), 0)
 RESULT
 
-CHECK(Identification(const Identification& source))
+CHECK((Identification(const Identification& source)))
 	ptr1 = new Identification();
 	ptr1->setCharge(charge);
 	ptr1->setDateTime(date);
@@ -101,12 +101,12 @@ CHECK(Identification(const Identification& source))
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)	
 RESULT
 
-CHECK(~Identification())
+CHECK((~Identification()))
 	ptr1 = new Identification();
 	delete ptr1;
 RESULT
 
-CHECK(Identification& operator=(const Identification& source))
+CHECK((Identification& operator=(const Identification& source)))
 	ptr1 = new Identification();
 	ptr1->setCharge(charge);
 	ptr1->setDateTime(date);
@@ -124,7 +124,7 @@ CHECK(Identification& operator=(const Identification& source))
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)	
 RESULT
 
-CHECK(bool operator != (const Identification& rhs) const)
+CHECK((bool operator != (const Identification& rhs) const))
 	Identification search1;
 	Identification search2;
 	
@@ -151,7 +151,7 @@ CHECK(bool operator != (const Identification& rhs) const)
 	TEST_EQUAL(search1 != search2, false)	
 RESULT
 
-CHECK(bool operator == (const Identification& rhs) const)
+CHECK((bool operator == (const Identification& rhs) const))
 	Identification search1;
 	Identification search2;
 	
@@ -178,51 +178,34 @@ CHECK(bool operator == (const Identification& rhs) const)
 	TEST_EQUAL(search1 == search2, true)	
 RESULT
 
-CHECK(Date& getDateTime())
-	ptr1 = new Identification();
-	ptr1->setDateTime(date);
-	TEST_EQUAL(ptr1->getDateTime() == date, true)  
-RESULT
-
-CHECK(const Date& getDateTime() const)
-	ptr1 = new Identification();
-	ptr1->setDateTime(date);
-	TEST_EQUAL(ptr1->getDateTime() == date, true)  
-RESULT
-
-CHECK(const float& getPeptideSignificanceThreshold() const)
+CHECK((float getPeptideSignificanceThreshold() const))
 	ptr1 = new Identification();
 	ptr1->setPeptideSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), peptide_significance_threshold)
 RESULT
 
-CHECK(const float& getProteinSignificanceThreshold() const)
-	ptr1 = new Identification();
-	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
-	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), protein_significance_threshold)	
-RESULT
-
-CHECK(const std::list<PeptideHit>& getPeptideHits() const)
+CHECK(std::vector<PeptideHit>& getPeptideHits())
 	ptr1 = new Identification();
 	ptr1->insertPeptideHit(peptide_hit);
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getPeptideHits().begin()) == peptide_hit, true)	
 RESULT
 
-CHECK(const std::list<ProteinHit>& getProteinHits() const)
+CHECK(const std::vector<PeptideHit>& getPeptideHits() const)
 	ptr1 = new Identification();
-	ptr1->insertProteinHit(protein_hit);
-	TEST_EQUAL(ptr1->getProteinHits().size() == 1, true)
-	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)	
+	ptr1->insertPeptideHit(peptide_hit);
+	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
+	PeptideHit& temp_hit = *(ptr1->getPeptideHits().begin());
+	TEST_EQUAL(temp_hit == peptide_hit, true)	
 RESULT
 
-CHECK(const uint& getCharge() const)
+CHECK((SignedInt getCharge() const))
 	ptr1 = new Identification();
 	ptr1->setCharge(charge);
 	TEST_EQUAL(ptr1->getCharge(), charge)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	DateTime test_date;
 	ptr1 = new Identification();
 	ptr1->setCharge(charge);
@@ -239,58 +222,38 @@ CHECK(void clear())
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 0, true)
 RESULT
 
-CHECK((void deserialize_(const std::string& attribute_name, const std::string& value)))
-  // ???
-RESULT
-
-CHECK(void insertPeptideHit(const PeptideHit& input))
+CHECK((void insertPeptideHit(const PeptideHit& input)))
 	ptr1 = new Identification();
 	ptr1->insertPeptideHit(peptide_hit);
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getPeptideHits().begin()) == peptide_hit, true)	
 RESULT
 
-CHECK(void insertProteinHit(const ProteinHit& input))
+CHECK((void insertProteinHit(const ProteinHit& input)))
 	ptr1 = new Identification();
 	ptr1->insertProteinHit(protein_hit);
 	TEST_EQUAL(ptr1->getProteinHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)
 RESULT
 
-CHECK(void serialize(PersistenceManager& pm))
-  // ???
-RESULT
-
-CHECK(void setCharge(const uint& value))
+CHECK((void setCharge(SignedInt value)))
 	ptr1 = new Identification();
 	ptr1->setCharge(charge);
 	TEST_EQUAL(ptr1->getCharge(), charge)
 RESULT
 
-CHECK(void setDateTime(const Date& date))
-	ptr1 = new Identification();
-	ptr1->setDateTime(date);
-	TEST_EQUAL(ptr1->getDateTime() == date, true)
-RESULT
-
-CHECK((void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits, const std::vector<ProteinHit>& protein_hits)))
+CHECK((void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits,  const std::vector<ProteinHit>& protein_hits)))
 	ptr1 = new Identification();
 	ptr1->setPeptideAndProteinHits(peptide_hits, protein_hits);
 RESULT
 
-CHECK(void setPeptideSignificanceThreshold(const float& value))
+CHECK((void setPeptideSignificanceThreshold(float value)))
 	ptr1 = new Identification();
 	ptr1->setPeptideSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), peptide_significance_threshold)
 RESULT
 
-CHECK(void setProteinSignificanceThreshold(const float& value))
-	ptr1 = new Identification();
-	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
-	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), protein_significance_threshold)
-RESULT
-
-CHECK(bool empty())
+CHECK((bool empty() const))
 	ptr1 = new Identification();
 	TEST_EQUAL(ptr1->empty(), true)
 	ptr1->setPeptideSignificanceThreshold(1);
@@ -313,7 +276,7 @@ CHECK(bool empty())
 	ptr1->clear();
 RESULT
 
-CHECK(std::vector<PeptideHit>* getReferencingHits(String date_time, String accession))
+CHECK((std::vector<PeptideHit>* getReferencingHits(String date_time, String accession) const))
 	
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
@@ -330,7 +293,7 @@ CHECK(std::vector<PeptideHit>* getReferencingHits(String date_time, String acces
 	TEST_EQUAL(hits->size(), 0)	
 RESULT
 
-CHECK(std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iteratorT h_end, String date_time))
+CHECK((template<class iteratorT> std::vector<PeptideHit>* getNonReferencingHits(iteratorT protein_hits_begin, iteratorT protein_hits_end, const String& date_time) const))
 							
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							&protein_identification, 
@@ -355,7 +318,7 @@ CHECK(std::vector<PeptideHit>* getNonReferencingHits(iteratorT h_begin, iterator
 	
 RESULT
 
-CHECK(vector<PeptideHit>* Identification::getNonReferencingHits(const multimap< String, ProteinHit >& protein_hits))
+CHECK((std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< String, ProteinHit >& protein_hits) const))
 	multimap< String, ProteinHit > map;
 	String date_time;
 																																
@@ -396,7 +359,7 @@ CHECK(void sort())
 	AnalysisXMLFile analysis_xml_file;
 	
 	hit.setSequence("TESTPEPTIDE");
-	hit.setScore(33.4);
+	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
 	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
@@ -413,7 +376,41 @@ CHECK(void sort())
 	identifications[0].insertPeptideHit(hit);
 	identifications[0].sort();
 	TEST_EQUAL(identifications[0].getPeptideHits().size(), 3)
-	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "TESTPEPTIDE")
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
+
+RESULT
+
+CHECK(void assignRanks())
+	vector<ProteinIdentification> protein_identifications; 
+	vector<Identification> identifications; 
+	vector<float> precursor_retention_times;
+	vector<float> precursor_mz_values;
+	ContactPerson contact_person;
+	PeptideHit hit;
+	AnalysisXMLFile analysis_xml_file;
+	
+	hit.setSequence("TESTPEPTIDE");
+	hit.setScore(33.9);
+	hit.setScoreType("Mascot");
+
+	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
+							&protein_identifications, 
+				   		&identifications, 
+							&precursor_retention_times, 
+							&precursor_mz_values, 
+							&contact_person);
+	TEST_EQUAL(contact_person.getName(), "TestName")
+	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
+	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
+	TEST_EQUAL(identifications.size(), 3)
+
+	identifications[0].insertPeptideHit(hit);
+	identifications[0].assignRanks();
+	TEST_EQUAL(identifications[0].getPeptideHits().size(), 3)
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
+	TEST_EQUAL(identifications[0].getPeptideHits()[0].getRank(), 1)
+	TEST_EQUAL(identifications[0].getPeptideHits()[1].getRank(), 2)
+	TEST_EQUAL(identifications[0].getPeptideHits()[2].getRank(), 3)
 
 RESULT
 
