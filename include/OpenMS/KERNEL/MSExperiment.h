@@ -53,7 +53,7 @@ namespace OpenMS
 		
 		@note To iterate over the peaks in all spectra use PeakIterator
 		
-		@todo Add tests for PeakIterator, RTBegin and MZEnd
+		@todo Add tests for PeakIterator, RTBegin and MZEnd (Ole)
 		
 		@ingroup Kernel
 	*/

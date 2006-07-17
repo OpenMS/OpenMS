@@ -115,7 +115,21 @@ class MultiGradient
 
 	///convert to string representation
 	std::string toString() const;
-	///set the gradient by string representation
+	/**
+		@brief Sets the gradient by string representation.
+		
+		The string represenation of a gradient starts with the interpolation mode: "Linear" or "Stairs" and the separator "|".
+		It is followed by an arbitrary number of integer-color-pairs. 
+		
+		Such a pair consists of an integer (0-100) followed by a comma and
+		a "#". Then follows a color in RGB notation "#RRGGBB" and finally a semicolon.
+		
+		Examples are:
+		<UL>
+			<LI> "Linear|0,#ffff00;100,#000000"
+			<LI> "Stairs|0,#ffff00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000"
+		</UL>
+	*/
 	void fromString(const std::string& gradient);
 
 	protected:
