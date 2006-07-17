@@ -49,6 +49,7 @@ using namespace OpenMS;
 using namespace std;
 
 MSExperimentAnnotator annotator;
+MSExperimentAnnotator* ptr;
 MzXMLFile file;
 MSExperiment< DPeak<1> > experiment;
 vector<Identification> identifications; 
@@ -68,19 +69,12 @@ xml_file.load("data/MSExperimentAnnotatorFile_test.analysisXML",
 							&precursor_mz_values, 
 							&contact_person);								
 
-CHECK(MSExperimentAnnotator& operator = (const v& source))
-  // ???
-RESULT
-
 CHECK(MSExperimentAnnotator())
-  // ???
+	ptr = new MSExperimentAnnotator();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(MSExperimentAnnotator(const MSExperimentAnnotator& source))
-  // ???
-RESULT
-
-CHECK((void annotate(MSExperiment< DPeak<1> >& experiment, const vector<Identification>& identifications, const vector<double>& precursor_retention_times, const vector<double>& precursor_mz_values)))
+CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, float precision = 0.01f)))
 	vector<Identification> identifications2; 
 	vector<float> precursor_retention_times2;
 	vector<float> precursor_mz_values2;
@@ -100,7 +94,7 @@ CHECK((void annotate(MSExperiment< DPeak<1> >& experiment, const vector<Identifi
   TEST_REAL_EQUAL(precursor_mz_values[0], precursor_mz_values2[0])
 RESULT
 
-CHECK((void getAnnotations(const MSExperiment< DPeak<1> >& experiment, vector<Identification>* identifications, vector<double>* precursor_retention_times, vector<double>* precursor_mz_values)))
+CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values)))
 	vector<Identification> identifications3; 
 	vector<float> precursor_retention_times3;
 	vector<float> precursor_mz_values3;
@@ -115,10 +109,6 @@ CHECK((void getAnnotations(const MSExperiment< DPeak<1> >& experiment, vector<Id
   TEST_REAL_EQUAL(precursor_mz_values[0], precursor_mz_values3[0])
   TEST_REAL_EQUAL(60, precursor_retention_times3[0])
   TEST_REAL_EQUAL(precursor_mz_values[0], 0)
-RESULT
-
-CHECK(~MSExperimentAnnotator())
-  // ???
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -53,12 +53,7 @@ namespace OpenMS
     ProteinHit();
     
 		/// values constructor
-    ProteinHit(DoubleReal score, 
-    					 std::string score_type, 
-    					 UnsignedInt rank, 
-    					 String accession, 
-    					 std::string accession_type, 
-    					 String sequence);
+    ProteinHit(DoubleReal score, std::string score_type, UnsignedInt rank, String accession, std::string accession_type, String sequence);
 
 		/// copy constructor
     ProteinHit(const ProteinHit& source);

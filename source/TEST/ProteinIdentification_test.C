@@ -64,7 +64,7 @@ date.now();
 
 protein_hits.push_back(protein_hit);
 
-CHECK(ProteinIdentification())
+CHECK((ProteinIdentification()))
 	ptr1 = new ProteinIdentification();
 	TEST_NOT_EQUAL(ptr1, 0)
 	TEST_NOT_EQUAL(&(ptr1->getDateTime()), 0)
@@ -72,7 +72,7 @@ CHECK(ProteinIdentification())
 	TEST_NOT_EQUAL(&(ptr1->getProteinHits()), 0)
 RESULT
 
-CHECK(ProteinIdentification(const ProteinIdentification& source))
+CHECK((ProteinIdentification(const ProteinIdentification& source)))
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
@@ -85,12 +85,12 @@ CHECK(ProteinIdentification(const ProteinIdentification& source))
 	TEST_EQUAL(ptr1->getProteinHits()[0] == protein_hit, true)	
 RESULT
 
-CHECK(~ProteinIdentification())
+CHECK((~ProteinIdentification()))
 	ptr1 = new ProteinIdentification();
 	delete ptr1;
 RESULT
 
-CHECK(ProteinIdentification& operator=(const ProteinIdentification& source))
+CHECK((ProteinIdentification& operator=(const ProteinIdentification& source)))
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
@@ -102,7 +102,7 @@ CHECK(ProteinIdentification& operator=(const ProteinIdentification& source))
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)	
 RESULT
 
-CHECK(bool operator != (const ProteinIdentification& rhs) const)
+CHECK((bool operator != (const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	
@@ -117,7 +117,7 @@ CHECK(bool operator != (const ProteinIdentification& rhs) const)
 	TEST_EQUAL(search1 != search2, false)	
 RESULT
 
-CHECK(bool operator == (const ProteinIdentification& rhs) const)
+CHECK((bool operator == (const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	
@@ -163,33 +163,33 @@ CHECK((template<typename Arg> bool operator()(const Arg& a, const Arg& b)))
 
 RESULT
 
-CHECK(DateTime& getDateTime())
+CHECK((DateTime& getDateTime()))
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
 	TEST_EQUAL(ptr1->getDateTime() == date, true)  
 RESULT
 
-CHECK(const DateTime& getDateTime() const)
+CHECK((const DateTime& getDateTime() const))
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
 	const DateTime& date_time = ptr1->getDateTime();
 	TEST_EQUAL(date_time == date, true)  
 RESULT
 
-CHECK(float getProteinSignificanceThreshold() const)
+CHECK((float getProteinSignificanceThreshold() const))
 	ptr1 = new ProteinIdentification();
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), protein_significance_threshold)	
 RESULT
 
-CHECK(const std::vector<ProteinHit>& getProteinHits() const)
+CHECK((const std::vector<ProteinHit>& getProteinHits() const))
 	ptr1 = new ProteinIdentification();
 	ptr1->insertProteinHit(protein_hit);
 	TEST_EQUAL(ptr1->getProteinHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)	
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	DateTime test_date;
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
@@ -200,26 +200,26 @@ CHECK(void clear())
 	TEST_EQUAL(ptr1->getProteinHits().size() == 0, true)
 RESULT
 
-CHECK(void insertProteinHit(const ProteinHit& input))
+CHECK((void insertProteinHit(const ProteinHit& input)))
 	ptr1 = new ProteinIdentification();
 	ptr1->insertProteinHit(protein_hit);
 	TEST_EQUAL(ptr1->getProteinHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)
 RESULT
 
-CHECK(void setDateTime(const DateTime& date))
+CHECK((void setDateTime(const DateTime& date)))
 	ptr1 = new ProteinIdentification();
 	ptr1->setDateTime(date);
 	TEST_EQUAL(ptr1->getDateTime() == date, true)
 RESULT
 
-CHECK(void setProteinSignificanceThreshold(float value))
+CHECK((void setProteinSignificanceThreshold(float value)))
 	ptr1 = new ProteinIdentification();
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), protein_significance_threshold)
 RESULT
 
-CHECK(bool empty() const)
+CHECK((bool empty() const))
 	ptr1 = new ProteinIdentification();
 	TEST_EQUAL(ptr1->empty(), true)
 	ptr1->setProteinSignificanceThreshold(1);
@@ -235,7 +235,7 @@ CHECK(bool empty() const)
 	ptr1->clear();
 RESULT
 
-CHECK(void sort())
+CHECK((void sort()))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -267,7 +267,7 @@ CHECK(void sort())
 	
 RESULT
 
-CHECK(void assignRanks())
+CHECK((void assignRanks()))
 	ProteinHit hit_1;
 	ProteinHit hit_2;
 	ProteinHit hit_3;
@@ -297,7 +297,7 @@ CHECK(void assignRanks())
 	
 RESULT
 
-CHECK(void setProteinHits(const std::vector<ProteinHit>& protein_hits))
+CHECK((void setProteinHits(const std::vector<ProteinHit>& protein_hits)))
 	ProteinHit hit_1;
 	ProteinHit hit_2;
 	ProteinHit hit_3;

@@ -56,112 +56,174 @@ for (UnsignedInt i=1;i<10;i+=1)
 }
 
 MascotInfile* ptr = 0;
-CHECK(MascotInfile())
+CHECK((MascotInfile()))
 	ptr = new MascotInfile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MascotInfile())
+CHECK((~MascotInfile()))
 	delete ptr;
 RESULT
 
 MascotInfile file;
 file.setCharges(charges);
 
-CHECK(setBoundary() / getBoundary())
+CHECK((void setBoundary(const std::string& boundary)))
 	file.setBoundary("ABCDEFGHIJKMNOPQRSTUVWXYZ");
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK( store(const std::string& filename,
-					 const DPeakArrayNonPolymorphic<1>& spec, 
-					 double mz ,
-					 double retention_time, 
-					 std::string search_title) (defaults) )
+CHECK((const std::string& getBoundary()))
+	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
+RESULT
+
+CHECK((void store(const std::string& filename, const DPeakArrayNonPolymorphic<1>& spec, double mz, double retention_time, std::string search_title)))
+
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
 	remove("MascotInfile_test.txt");
 RESULT
 
-CHECK(setDB(...) / getDB())
+CHECK((void setDB(const std::string& db)))
 	file.setDB("DB_TEST");
 	TEST_EQUAL(file.getDB() , "DB_TEST")
 RESULT
 
-CHECK(setSearchType(...) / getSearchType())
+CHECK((const std::string& getDB()))
+	TEST_EQUAL(file.getDB() , "DB_TEST")
+RESULT
+
+CHECK((void setSearchType(const std::string& search_type)))
 	file.setSearchType("SearchType_TEST");
 	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
 RESULT
 
-CHECK(setHits(...) / getHits())
+CHECK((const std::string& getSearchType()))
+	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
+RESULT
+
+CHECK((void setHits(const std::string& hits)))
 	file.setHits("Hits_TEST");
 	TEST_EQUAL(file.getHits() , "Hits_TEST")
 RESULT
 
-CHECK(setCleavage(...) / getCleavage())
+CHECK((const std::string& getHits()))
+	TEST_EQUAL(file.getHits() , "Hits_TEST")
+RESULT
+
+CHECK((void setCleavage(const std::string& cleavage)))
 	file.setCleavage("Cleavage_TEST");
 	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
 RESULT
 
-CHECK(setMassType(...) / getMassType())
+CHECK((const std::string& getCleavage()))
+	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
+RESULT
+
+CHECK((void setMassType(const std::string& mass_type)))
 	file.setMassType("MassType_TEST");
 	TEST_EQUAL(file.getMassType() , "MassType_TEST")
 RESULT
 
-CHECK(setInstrument(...) / getInstrument())
+CHECK((const std::string& getMassType()))
+	TEST_EQUAL(file.getMassType() , "MassType_TEST")
+RESULT
+
+CHECK((void setInstrument(const std::string& instrument)))
 	file.setInstrument("Instrument_TEST");
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
 RESULT
 
-CHECK(setMissedCleavages(...) / getMissedCleavages())
+CHECK((const std::string& getInstrument()))
+	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
+RESULT
+
+CHECK((void setMissedCleavages(UnsignedInt missed_cleavages)))
 	file.setMissedCleavages(4711);
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
 RESULT
 
-CHECK(setPrecursorMassTolerance(...) / getPrecursorMassTolerance())
+CHECK((UnsignedInt getMissedCleavages()))
+	TEST_EQUAL(file.getMissedCleavages() , 4711)
+RESULT
+
+CHECK((void setPrecursorMassTolerance(float precursor_mass_tolerance)))
 	file.setPrecursorMassTolerance(4711.1f);
 	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
 RESULT
 
-CHECK(setPeakMassTolerance(...) / getPeakMassTolerance())
+CHECK((float getPrecursorMassTolerance()))
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
+RESULT
+
+CHECK((void setPeakMassTolerance(float ion_mass_tolerance)))
 	file.setPeakMassTolerance(4711.2f);
 	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
 RESULT
 
-CHECK(setTaxonomy(...) / getTaxonomy())
+CHECK((float getPeakMassTolerance()))
+	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
+RESULT
+
+CHECK((void setTaxonomy(const std::string& taxonomy)))
 	file.setTaxonomy("Taxonomy_TEST");
 	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
 RESULT
 
-CHECK(setFormVersion(...) / getFormVersion())
+CHECK((const std::string& getTaxonomy()))
+	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
+RESULT
+
+CHECK((void setFormVersion(const std::string& form_version)))
 	file.setFormVersion("FormVersion_TEST");
 	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
 RESULT
 
-CHECK(setModifications(...) / getModifications())
-	vector<String> mods;
-	mods.push_back("Modifiactions_TEST_1");
-	mods.push_back("Modifiactions_TEST_2");
+CHECK((const std::string& getFormVersion()))
+	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
+RESULT
+
+vector<String> mods;
+mods.push_back("Modifiactions_TEST_1");
+mods.push_back("Modifiactions_TEST_2");
+vector<String> vmods;
+vmods.push_back("Variable_Modifiactions_TEST_1");
+vmods.push_back("Variable_Modifiactions_TEST_2");
+
+CHECK((void setModifications(const std::vector<String>& mods)))
 	file.setModifications(mods);
 	TEST_EQUAL(file.getModifications() == mods, true)
 RESULT
 
-CHECK(store(const std::string& filename,
-					 const DPeakArrayNonPolymorphic<1>& spec, 
-					 double mz ,
-					 double retention_time, 
-					 std::string search_title) (settings) )
+CHECK((const std::vector<String>& getModifications()))
+	TEST_EQUAL(file.getModifications() == mods, true)
+RESULT
+
+CHECK((void setVariableModifications(const std::vector<String>& mods)))
+	file.setVariableModifications(vmods);
+	TEST_EQUAL(file.getVariableModifications() == vmods, true)
+RESULT
+
+CHECK((const std::vector<String>& getVariableModifications()))
+	TEST_EQUAL(file.getVariableModifications() == vmods, true)
+RESULT
+
+CHECK((void store(const std::string& filename, const DPeakArrayNonPolymorphic<1>& spec, double mz, double retention_time, std::string search_title)))
 	// here a fixed name has to be used as it has to be in the tamplate
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
 	remove("MascotInfile_test.txt");
 RESULT
 
-CHECK(setCharges(...) / getCharges())
+CHECK((void setCharges(std::vector<SignedInt>& charges)))
 	charges.push_back(3);
 	charges.push_back(1);
 	file.setCharges(charges);
+	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
+RESULT
+
+CHECK((const std::string& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 

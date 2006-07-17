@@ -51,7 +51,7 @@ std::string sequence2 = "  ARRAY  ";
 
 PeptideHit* ptr1 = 0;
 
-CHECK(PeptideHit())
+CHECK((PeptideHit()))
 	ptr1 = new PeptideHit();
 	TEST_NOT_EQUAL(ptr1, 0)
 	TEST_EQUAL(ptr1->getScore(), 0)
@@ -60,11 +60,11 @@ CHECK(PeptideHit())
 	TEST_EQUAL(ptr1->getSequence(), "")
 RESULT
 
-CHECK(~PeptideHit())
+CHECK((~PeptideHit()))
 	delete ptr1;
 RESULT
 
-CHECK(PeptideHit(score, score_type, rank, sequence))
+CHECK((PeptideHit(double score, std::string score_type, uint rank, String sequence)))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
@@ -72,7 +72,7 @@ CHECK(PeptideHit(score, score_type, rank, sequence))
 	TEST_EQUAL(ptr1->getSequence(), sequence)
 RESULT
 
-CHECK(PeptideHit& operator=(const PeptideHit& source))
+CHECK((PeptideHit& operator=(const PeptideHit& source)))
 	PeptideHit hit;
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	hit = *ptr1;
@@ -82,7 +82,7 @@ CHECK(PeptideHit& operator=(const PeptideHit& source))
 	TEST_EQUAL(hit.getSequence(), ptr1->getSequence())		
 RESULT
 
-CHECK(PeptideHit(const PeptideHit& source))
+CHECK((PeptideHit(const PeptideHit& source)))
 	PeptideHit source;
 	source.setScore(score);
 	source.setScoreType(score_type);
@@ -96,7 +96,7 @@ CHECK(PeptideHit(const PeptideHit& source))
 	TEST_EQUAL(ptr1->getSequence(), source.getSequence())		  
 RESULT
 
-CHECK(bool operator== (const PeptideHit& rhs))
+CHECK((bool operator == (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);
   hit.setScore(score);
@@ -117,7 +117,7 @@ CHECK(bool operator== (const PeptideHit& rhs))
 	TEST_EQUAL(hit==hit2,true);
 RESULT
 
-CHECK(bool operator!= (const Date& rhs))
+CHECK((bool operator != (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit!=hit2,false);
   hit.setScore(score);
@@ -138,27 +138,27 @@ CHECK(bool operator!= (const Date& rhs))
 	TEST_EQUAL(hit!=hit2,false);
 RESULT
 
-CHECK(const double& getScore() const)
+CHECK((float getScore() const))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 RESULT
 
-CHECK(const std::string& getScoreType() const)
+CHECK((const std::string& getScoreType() const))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
-CHECK(const uint& getRank() const)
+CHECK((UnsignedInt getRank() const))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
 
-CHECK(std::string getSequence() const)
+CHECK((String getSequence() const))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	TEST_EQUAL(ptr1->getSequence(), sequence)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	ptr1 = new PeptideHit(score, score_type, rank, sequence);
 	ptr1->clear();
 	TEST_EQUAL(ptr1->getScore(), 0)
@@ -167,29 +167,25 @@ CHECK(void clear())
 	TEST_EQUAL(ptr1->getSequence(), "")
 RESULT
 
-CHECK(void serialize(PersistenceManager& pm))
-  // ???
-RESULT
-
-CHECK(void setRank(uint newrank))
+CHECK((void setRank(UnsignedInt newrank)))
 	ptr1 = new PeptideHit();
 	ptr1->setRank(rank);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
 
-CHECK(void setScore(const double& score))
+CHECK((void setScore(const double& score)))
 	ptr1 = new PeptideHit();
 	ptr1->setScore(score);
 	TEST_EQUAL(ptr1->getScore(), score)
 RESULT
 
-CHECK(void setScoreType(const std::string& score_type))
+CHECK((void setScoreType(const std::string& score_type)))
 	ptr1 = new PeptideHit();
 	ptr1->setScoreType(score_type);
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
-CHECK(void setSequence(const std::string& sequence))
+CHECK((void setSequence(const String& sequence)))
 	ptr1 = new PeptideHit();
 	ptr1->setSequence(sequence);
 	TEST_EQUAL(ptr1->getSequence(), sequence)
@@ -197,12 +193,7 @@ CHECK(void setSequence(const std::string& sequence))
 	TEST_EQUAL(ptr1->getSequence(), sequence)	
 RESULT
 
-CHECK(~PeptideHit())
-	ptr1 = new PeptideHit();
-  delete ptr1;
-RESULT
-
-CHECK(void addProteinIndex(const std::pair<String, String>& index))
+CHECK((void addProteinIndex(const std::pair<String, String>& index)))
 	String date;
 	vector< pair<String, String> > indices;
 
@@ -221,7 +212,7 @@ CHECK(void addProteinIndex(const std::pair<String, String>& index))
 
 RESULT
 
-CHECK(void addProteinIndex(const DateTime& date, const String& accession))
+CHECK((void addProteinIndex(const DateTime& date, const String& accession)))
 	DateTime date;
 	vector< pair<String, String> > indices;
 
@@ -240,7 +231,7 @@ CHECK(void addProteinIndex(const DateTime& date, const String& accession))
 
 RESULT
 
-CHECK(void setProteinIndex())
+CHECK((void setProteinIndices(const std::vector< std::pair<String, String> >& indices)))
 	vector< pair<String, String> > indices1;
 	vector< pair<String, String> > indices2;
 
@@ -255,7 +246,7 @@ CHECK(void setProteinIndex())
 
 RESULT
 
-CHECK( getProteinIndices() )
+CHECK((std::vector< std::pair<String, String>& getProteinIndices()))
 	DateTime date;
 	vector< pair<String, String> > indices;
 
@@ -266,6 +257,24 @@ CHECK( getProteinIndices() )
 	ptr1->addProteinIndex(date, "ACC392");
 	ptr1->addProteinIndex(date, "ACD392");
 	indices = ptr1->getProteinIndices();
+	TEST_EQUAL(indices.size(), 2)
+	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[0].second == String("ACC392"), true)
+	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
+	TEST_EQUAL(indices[1].second == String("ACD392"), true)
+
+RESULT
+
+CHECK((const std::vector< std::pair<String, String>& getProteinIndices() const))
+	DateTime date;
+
+	date.set("2006-12-12 11:59:59");
+	ptr1 = new PeptideHit();
+
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACC392");
+	ptr1->addProteinIndex(date, "ACD392");
+	const vector< pair<String, String> >& indices = ptr1->getProteinIndices();
 	TEST_EQUAL(indices.size(), 2)
 	TEST_EQUAL(indices[0].first == String("2006-12-12 11:59:59"), true)
 	TEST_EQUAL(indices[0].second == String("ACC392"), true)

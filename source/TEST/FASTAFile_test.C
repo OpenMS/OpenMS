@@ -46,12 +46,12 @@ using namespace OpenMS;
 using namespace std;
 
 FASTAFile* ptr;
-CHECK(FASTAFile())
+CHECK((FASTAFile()))
 	ptr = new FASTAFile();
 	TEST_EQUAL(ptr == 0, false)
 RESULT
 
-CHECK(~FASTAFile())
+CHECK((~FASTAFile()))
   delete(ptr);
 RESULT
 
@@ -67,7 +67,7 @@ sequences.push_back(make_pair(String("P68509|1433F_BOVIN"),
 		String("LRDNLTLWTSDQQDEEAGEGN")));	
 
 
-CHECK(void load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError))
+CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileNotFound, Exception::ParseError)))
 	FASTAFile::FASTAType data;
 	FASTAFile file;
 	
@@ -91,7 +91,7 @@ CHECK(void load(const String& filename, FASTAType& data) throw (Exception::FileN
 		String("LWTSENQGDEGDAGEGEN"))
 RESULT
 
-CHECK(void store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile))
+CHECK((void store(const String& filename, const FASTAType& data) const throw(Exception::UnableToCreateFile)))
 	FASTAFile::FASTAType data, data2;
 	String tmp_filename;
 	NEW_TMP_FILE(tmp_filename);

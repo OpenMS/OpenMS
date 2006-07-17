@@ -51,6 +51,14 @@ Content-Disposition: form-data; name="MODS"
 
 Modifiactions_TEST_2
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="IT_MODS"
+
+Variable_Modifiactions_TEST_1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="IT_MODS"
+
+Variable_Modifiactions_TEST_2
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="INSTRUMENT"
 
 Instrument_TEST

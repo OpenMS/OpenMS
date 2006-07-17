@@ -184,14 +184,14 @@ CHECK((float getPeptideSignificanceThreshold() const))
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), peptide_significance_threshold)
 RESULT
 
-CHECK(std::vector<PeptideHit>& getPeptideHits())
+CHECK((std::vector<PeptideHit>& getPeptideHits()))
 	ptr1 = new Identification();
 	ptr1->insertPeptideHit(peptide_hit);
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getPeptideHits().begin()) == peptide_hit, true)	
 RESULT
 
-CHECK(const std::vector<PeptideHit>& getPeptideHits() const)
+CHECK((const std::vector<PeptideHit>& getPeptideHits() const))
 	ptr1 = new Identification();
 	ptr1->insertPeptideHit(peptide_hit);
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
@@ -349,7 +349,7 @@ CHECK((std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< Strin
 
 RESULT
 
-CHECK(void sort())
+CHECK((void sort()))
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
 	vector<float> precursor_retention_times;
@@ -380,7 +380,7 @@ CHECK(void sort())
 
 RESULT
 
-CHECK(void assignRanks())
+CHECK((void assignRanks()))
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
 	vector<float> precursor_retention_times;

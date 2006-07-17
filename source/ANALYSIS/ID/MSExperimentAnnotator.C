@@ -35,15 +35,4 @@ namespace OpenMS
   {
     
   }
-  
-  MSExperimentAnnotator::MSExperimentAnnotator(const MSExperimentAnnotator& /* source */)
-  {
-    
-  }
-   
-  MSExperimentAnnotator::~MSExperimentAnnotator()
-  {
-    
-  }
-
 } // namespace OpenMS

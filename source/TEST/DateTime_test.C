@@ -42,16 +42,16 @@ START_TEST(DateTime, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DateTime* ptr = 0;
-CHECK(DateTime& operator= (const DateTime& source))
+CHECK((DateTime& operator= (const DateTime& source)))
   // ???
 RESULT
 
-CHECK(DateTime())
+CHECK((DateTime()))
 	ptr = new DateTime();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(DateTime(const DateTime& date))
+CHECK((DateTime(const DateTime& date)))
 	DateTime date1;
 	DateTime date2;
 	date1.set("2006-12-12 11:59:59");
@@ -59,7 +59,7 @@ CHECK(DateTime(const DateTime& date))
 	TEST_EQUAL(date1 == date2, true)
 RESULT
 
-CHECK(bool operator != (const DateTime& rhs) const)
+CHECK((bool operator != (const DateTime& rhs) const))
 	DateTime date1;
 	DateTime date2;
 	date1.set("2006-12-12 11:59:59");
@@ -67,7 +67,7 @@ CHECK(bool operator != (const DateTime& rhs) const)
 	
 RESULT
 
-CHECK(bool operator == (const DateTime& rhs) const)
+CHECK((bool operator == (const DateTime& rhs) const))
 	DateTime date1;
 	DateTime date2;
 	date1.set("2006-12-12 11:59:59");
@@ -75,7 +75,7 @@ CHECK(bool operator == (const DateTime& rhs) const)
 	TEST_EQUAL(date1 == date2, true)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	DateTime date1;
 	DateTime date2;
 	date1.set("2006-12-12 11:59:59");
@@ -83,7 +83,7 @@ CHECK(void clear())
 	TEST_EQUAL(date1 == date2, true)
 RESULT
 
-CHECK(void get(String& date) const)
+CHECK((void get(String& date) const))
 	DateTime date_time;
 	String date_time_string("1999-11-24 14:24:31");
 	String output;
@@ -184,7 +184,7 @@ CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year, UnsignedIn
 	TEST_EQUAL(second, 58)		
 RESULT
 
-CHECK(void set(const String& date) throw(Exception::ParseError))
+CHECK((void set(const String& date) throw(Exception::ParseError)))
 	DateTime date_time;
 	String date_time_string("1999-11-24 14:24:31");
 	String output;
@@ -210,7 +210,7 @@ CHECK((void setDate(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(
 
 RESULT
 
-CHECK(void setDate(const String& date) throw(Exception::ParseError))
+CHECK((void setDate(const String& date) throw(Exception::ParseError)))
 	DateTime date;
 	UnsignedInt month;
 	UnsignedInt day;
@@ -240,7 +240,7 @@ CHECK((void setTime(UnsignedInt hour, UnsignedInt minute, UnsignedInt second) th
 
 RESULT
 
-CHECK(void setTime(const String& date) throw(Exception::ParseError))
+CHECK((void setTime(const String& date) throw(Exception::ParseError)))
 	DateTime date;
 	UnsignedInt hour; 
 	UnsignedInt minute; 
@@ -255,7 +255,7 @@ CHECK(void setTime(const String& date) throw(Exception::ParseError))
 
 RESULT
 
-CHECK(void now())
+CHECK((void now()))
 	DateTime date1;
 	DateTime date2;
 	
@@ -264,7 +264,7 @@ CHECK(void now())
 
 RESULT
 
-CHECK(~DateTime())
+CHECK((~DateTime()))
 	ptr = new DateTime();
 	delete ptr;
 RESULT

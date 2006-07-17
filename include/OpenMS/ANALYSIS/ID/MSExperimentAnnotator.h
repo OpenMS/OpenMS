@@ -47,14 +47,7 @@ namespace OpenMS
 
       /// Constructor
       MSExperimentAnnotator();
-      /// Copy constructor
-      MSExperimentAnnotator(const MSExperimentAnnotator& source);
-      /// Destructor
-      ~MSExperimentAnnotator();
       
-      /// Assignment operator
-      MSExperimentAnnotator& operator = (const MSExperimentAnnotator& source);
-
 			/**
 				@brief Annotates the spectra belonging to the experiment
 				
