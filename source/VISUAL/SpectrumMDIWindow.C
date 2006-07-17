@@ -1320,6 +1320,7 @@ namespace OpenMS
       //estimate the scale a given the fwhm f
       //the fwhm of a marr wavelet is f ~ 1.252*a
       peak_picker.setWaveletScale(dialog.getFwhm() / 1.252);
+      peak_picker.setFwhmBound(dialog.getFwhm());
       peak_picker.setPeakBound(dialog.getPeakHeight());
       peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
       peak_picker.setOptimizationValue(dialog.getOptimization());
