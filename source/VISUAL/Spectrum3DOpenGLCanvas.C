@@ -442,7 +442,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 						{
 							for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
 								{ 
-									result = QString("%1").arg(grid_intensity_[0][i]);
+									result = QString("%1").arg(grid_intensity_[0][i],0,'E',1);
 									renderText (-corner_-result.length()-width_/200.0-5.0, 
 															-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_data_),
 															-near_-2*corner_,
@@ -451,7 +451,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 								}
 							for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
 								{
-								result = QString("%1").arg(grid_intensity_[1][i]);
+								result = QString("%1").arg(grid_intensity_[1][i],0,'E',1);
 								renderText (-corner_-result.length()-width_/200.0-5.0, 
 														-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
 																	-near_-2*corner_,
@@ -463,7 +463,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 					{
 						for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
 							{
-								result = QString("%1").arg(grid_intensity_[2][i]);
+								result = QString("%1").arg(grid_intensity_[2][i],0,'E',1);
 								renderText (-corner_-result.length()-width_/200.0-5.0, 
 														-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
 														-near_-2*corner_,
