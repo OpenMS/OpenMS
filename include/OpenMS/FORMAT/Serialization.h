@@ -32,10 +32,10 @@
   @addtogroup Serialization
 
 	OpenMS provides (partial) support for the Boost serialization library.
-	Classes which can be serialized should include #Serialization.h.  If you need
+	Classes which can be serialized include #Serialization.h.  If you need
 	more header files, add them to #Serialization.h.  Currently not all classes
 	in OpenMS can be serialized, but those in KERNEL can.  Serialization support
-	is enabled if you "\#define OPENMS_HAVE_SERIALIZATION 1" before
+	is enabled if you "#define OPENMS_HAVE_SERIALIZATION 1" before
 	Serialization.h is included.  See the documentation of
   #OPENMS_HAVE_SERIALIZATION about that.
 */

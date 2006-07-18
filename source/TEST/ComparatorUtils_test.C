@@ -109,6 +109,13 @@ CHECK(PointerComparator < ReverseComparator < less<int> > >)
 	TEST_EQUAL(PointerComparator < ReverseComparator < less<int> > >().operator()(&i,&j),true)
 RESULT
 
+CHECK(pointerComparator(std::less<int>()))
+	int i = 88, j = 99;
+  TEST_EQUAL(pointerComparator(std::less<int>())(&i,&j),true)
+  TEST_EQUAL(pointerComparator(std::less<int>())(&i,&i),false)
+  TEST_EQUAL(pointerComparator(std::less<int>())(&j,&i),false)
+RESULT
+
 CHECK(ReverseComparator < PointerComparator < less<int> > >)
 	int i = 1000, j = 1000000;
 	TEST_EQUAL(ReverseComparator < PointerComparator < less<int> > >().operator()(&i,&j),false)
@@ -152,6 +159,27 @@ CHECK(typedefs in ReverseComparator<> and PointerComparator<>)
   TEST_EQUAL(typeid(PointerComparator<ReverseComparator<StrangeMixedLessOfIntAndString> >::second_argument_type)==typeid(int*),true)
 RESULT
 
+CHECK(reverseComparator(std::less<int>()))
+	int i = 88, j = 99;
+  TEST_EQUAL(reverseComparator(std::less<int>())(i,j),false)
+  TEST_EQUAL(reverseComparator(std::less<int>())(i,i),false)
+  TEST_EQUAL(reverseComparator(std::less<int>())(j,i),true)
+RESULT
+
+CHECK(reverseComparator(pointerComparator(std::less<int>())))
+	int i = 88, j = 99;
+  TEST_EQUAL(reverseComparator(pointerComparator(std::less<int>()))(&i,&j),false)
+  TEST_EQUAL(reverseComparator(pointerComparator(std::less<int>()))(&i,&i),false)
+  TEST_EQUAL(reverseComparator(pointerComparator(std::less<int>()))(&j,&i),true)
+RESULT
+
+CHECK(pointerComparator(reverseComparator(std::less<int>())))
+	int i = 88, j = 99;
+  TEST_EQUAL(pointerComparator(reverseComparator(std::less<int>()))(&i,&j),false)
+  TEST_EQUAL(pointerComparator(reverseComparator(std::less<int>()))(&i,&i),false)
+  TEST_EQUAL(pointerComparator(reverseComparator(std::less<int>()))(&j,&i),true)
+RESULT
+
 CHECK(LexicographicComparator<>)
   vector < IntStringPair > seq; 
   seq.push_back( IntStringPair ( 1, "a", 1 ) );
@@ -179,9 +207,9 @@ CHECK(LexicographicComparator<>)
   for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
   OK;
   
-  for ( unsigned loops = 1; loops; --loops )
+  for ( unsigned loops = 3; loops; --loops )
   {
-  	STATUS("remaining loops: " << loops);
+  	STATUS("\n\nremaining loops: " << loops<<"\n");
   	
   	random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<IntStringPairLessFirst,IntStringPairLessSecond>() );
@@ -282,6 +310,55 @@ CHECK(LexicographicComparator<>)
   	}
   	OK;
   
+  }
+  
+RESULT
+
+CHECK(lexicographicComparator())
+
+	// Note: the correctness has been extensively in the preceding test, see
+	// CHECK(LexicographicComparator<>)
+	// Here we only check if the template instantiation works.
+	// The different line is commented below.
+
+  vector < IntStringPair > seq; 
+  seq.push_back( IntStringPair ( 1, "a", 1 ) );
+  seq.push_back( IntStringPair ( 1, "b", 2 ) );
+  seq.push_back( IntStringPair ( 1, "c", 3 ) );
+  seq.push_back( IntStringPair ( 2, "a", 4 ) );
+  seq.push_back( IntStringPair ( 2, "b", 5 ) );
+  seq.push_back( IntStringPair ( 2, "c", 6 ) );
+  seq.push_back( IntStringPair ( 3, "a", 7 ) );
+  seq.push_back( IntStringPair ( 3, "b", 8 ) );
+  seq.push_back( IntStringPair ( 3, "c", 9 ) );
+  for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
+
+  vector < IntStringPair * > seqp;
+  for ( vector < IntStringPair >::iterator pos = seq.begin(); pos != seq.end(); seqp.push_back(&(*pos++)) );
+  for ( vector < IntStringPair * >::iterator p = seqp.begin(); p != seqp.end(); ++p ) STATUS( (*p)->id << ":  " << (*p)->first << ' ' << (*p)->second );
+  
+  sort ( seq.begin(), seq.end(), IntStringPairLessSecond() );
+  sort ( seq.begin(), seq.end(), IntStringPairLessFirst() );
+  sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessSecond>() );
+  sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessFirst>() );
+  
+  random_shuffle(seq.begin(),seq.end());
+  STATUS("after random_shuffle:");
+  for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
+  OK;
+  
+  for ( unsigned loops = 1; loops; --loops )
+  {
+  	STATUS("remaining loops: " << loops);
+  	
+  	random_shuffle(seq.begin(),seq.end());
+		// Note how the next line differs from the preceding test...
+  	sort ( seq.begin(), seq.end(), lexicographicComparator(IntStringPairLessFirst(),IntStringPairLessSecond()) );
+  	{
+  		int order [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  		for ( unsigned i = 0; i < 9; ++i )
+  			TEST_EQUAL(seq[i].id,order[i]);
+  	}
   }
   
 RESULT

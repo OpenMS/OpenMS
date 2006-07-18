@@ -35,6 +35,8 @@ namespace OpenMS
   
   /**
   	@brief 	Wrapper that adapts comparators to pointer datastructures
+		Normally you should use the make-function pointerComparator()
+		because then you do not need to specify the template arguments.
   	
   	A wrapper class that wraps a comparator  @p Cmp  that compares
   	objects of type  @p Arg  to a comparator that compares
@@ -64,15 +66,34 @@ namespace OpenMS
 		Cmp const & cmp_;
 	};
 
+	/**@brief  Make-function to create a PointerComparator from another comparator without the need to specify the template arguments.
+
+	For example,
+  <pre>
+  int i = 88, j = 99;
+  if ( pointerComparator(std::less<int>())(&i,&j) )
+  {
+    //     yes, 88 < 99.
+  }
+  </pre>
+	*/
   template < class Cmp >
 	PointerComparator < Cmp> pointerComparator ( Cmp const & cmp )
 	{ return PointerComparator < Cmp > ( cmp ); }
 
+
+
+	//======================================================================
+
+
+
   /**
-  	@brief Wrapper that exchanges the two arguments of a comparator
-  	
-    A wrapper class that reverses the two arguments of a comparator.
-    E.g.  @p ReverseComparator< less<T> >  works like  greater<T> .
+  	@brief Wrapper that reverses (exchanges) the two arguments of a comparator.
+		Normally you should use the make-function reverseComparator()
+		because then you do not need to specify the template arguments.
+
+
+		For example, <code>ReverseComparator< less<T> ></code>  works like  <code>greater<T></code> .
   */
   template < class Cmp >
   struct ReverseComparator
@@ -94,16 +115,35 @@ namespace OpenMS
 		Cmp const & cmp_;
 	};
 
+	/**@brief  Make-function to create a ReverseComparator from another comparator without the need to specify the template arguments.
+
+	For example,
+  <pre>
+  int i = 88, j = 99;
+  if ( reverseComparator(std::less<int>())(j,i) )
+  {
+    //     yes, 99 > 88.
+  }
+  </pre>
+	*/
   template < class Cmp >
 	ReverseComparator < Cmp> reverseComparator ( Cmp const & cmp )
 	{ return ReverseComparator < Cmp > ( cmp ); }
 
 
+
+	//======================================================================
+
+
+
 	/**
 		@brief A wrapper class that combines two comparators lexicographically.
+		Normally you should use the make-function lexicographicComparator()
+		because then you do not need to specify the template arguments.
 		
-		Both comparators should have the same argument types.  The result_type
-		must be bool  (i.e., two-way comparison, which is the case for less<>  etc.).
+		Both comparators should of course have the same argument types.  The
+		result_type is bool, that is, we perform a two-way comparison like
+		<code>less<></code> and its relatives.
 	*/
 	template < typename Cmp1, typename Cmp2 >
 	struct LexicographicComparator
@@ -137,6 +177,11 @@ namespace OpenMS
 		Cmp2 const & cmp2_;
 	};
 	
+	/**@brief  Make-function to create a LexicographicComparator from two other comparators without the need to specify the template arguments.
+
+	The usage is similar to pointerComparator() or reverseComparator(), which
+	see.
+	*/
 	template < typename Cmp1, typename Cmp2 >
 	LexicographicComparator < Cmp1, Cmp2 > lexicographicComparator ( Cmp1 const & cmp1, Cmp2 const & cmp2 )
 	{ return LexicographicComparator < Cmp1, Cmp2 > ( cmp1, cmp2 ); }
