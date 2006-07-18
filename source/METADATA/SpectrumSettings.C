@@ -178,44 +178,20 @@ namespace OpenMS
 		return os;
 	}
 	
-  const std::vector<Identification>& SpectrumSettings::getIdentification() const 
+  const std::vector<Identification>& SpectrumSettings::getIdentifications() const 
   {
   	return identification_;
   }
 
-  std::vector<Identification>& SpectrumSettings::getIdentification() 
+  std::vector<Identification>& SpectrumSettings::getIdentifications() 
   {
   	return identification_;
   }
 
-	void SpectrumSettings::setIdentification(const std::vector<Identification>& identification)
+	void SpectrumSettings::setIdentifications(const std::vector<Identification>& identification)
 	{
 		identification_ = identification;
 	}	
-
-/*
-  void SpectrumSettings::loadIdentification(DBAdapter* dbadapter)
-  {
-    if ( dbadapter )
-    {
-      char query_string[255];
-      std::stringstream ss;
-      ss << id_;
-      strcpy(query_string,"SELECT id from Identification where peak_list ='");
-      strcat(query_string,ss.str().c_str());
-      strcat(query_string,"'");
-      dbadapter->executeQuery(query_string,false);
-      PersistentObject* temp_obj;
-      while(dbadapter->lastResult().next())
-      {
-        temp_obj = dbadapter->createObject(dbadapter->lastResult().value(0).toInt());
-        identification_.push_back(*reinterpret_cast<Identification*>(temp_obj));
-        delete temp_obj;
-      }
-    }
-  }  
-*/
-
 }
 
 

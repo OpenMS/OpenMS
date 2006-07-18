@@ -389,7 +389,7 @@ namespace OpenMS
   
     Identification dbs;
     dbs.insertPeptideHit(PeptideHit(0.5,"probability", 1, seq));
-    specp->getIdentification().push_back(dbs);
+    specp->getIdentifications().push_back(dbs);
     
     return specp;
   }

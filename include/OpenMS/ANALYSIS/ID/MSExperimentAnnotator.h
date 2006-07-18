@@ -106,9 +106,9 @@ namespace OpenMS
 						{
 							if (!identifications[identifications_iterator->second].empty())
 							{
-								temp_identifications = experiment[experiment_iterator->second].getIdentification();
+								temp_identifications = experiment[experiment_iterator->second].getIdentifications();
 								temp_identifications.push_back(identifications[identifications_iterator->second]);
-								experiment[experiment_iterator->second].setIdentification(temp_identifications);
+								experiment[experiment_iterator->second].setIdentifications(temp_identifications);
 								counter++;
 							}
 						}
@@ -149,7 +149,7 @@ namespace OpenMS
 				
 				for(UnsignedInt i = 0; i < experiment.size(); i++)
 				{
-					temp_identifications = experiment[i].getIdentification();
+					temp_identifications = experiment[i].getIdentifications();
 					if (temp_identifications.size() > 0)
 					{
 						temp_precursor_retention_time = experiment[i].getRetentionTime();				

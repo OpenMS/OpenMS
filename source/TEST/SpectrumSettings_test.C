@@ -129,35 +129,35 @@ CHECK((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 RESULT
 
-CHECK((const std::vector<Identification>& getIdentification() const))
+CHECK((const std::vector<Identification>& getIdentifications() const))
 	SpectrumSettings tmp;
-	vector<Identification> vec(tmp.getIdentification());
+	vector<Identification> vec(tmp.getIdentifications());
 	TEST_EQUAL(vec.size(),0);
 RESULT
 
-CHECK((void setIdentification(const std::vector<Identification>& identification)))
+CHECK((void setIdentifications(const std::vector<Identification>& identifications)))
 	SpectrumSettings tmp;
 	vector<Identification> vec;
 	
-	tmp.setIdentification(vec);
-	TEST_EQUAL(tmp.getIdentification().size(),0);
+	tmp.setIdentifications(vec);
+	TEST_EQUAL(tmp.getIdentifications().size(),0);
 	
 	Identification dbs;
 	dbs.setCharge(5);
 	vec.push_back(dbs);
-	tmp.setIdentification(vec);
-	TEST_EQUAL(tmp.getIdentification().size(),1);
-	TEST_EQUAL(tmp.getIdentification()[0].getCharge(),5);
+	tmp.setIdentifications(vec);
+	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),5);
 RESULT
 
-CHECK((std::vector<Identification>& getIdentification()))
+CHECK((std::vector<Identification>& getIdentifications()))
 	SpectrumSettings tmp;
 	vector<Identification> vec;
 	
-	tmp.getIdentification().resize(1);
-	tmp.getIdentification()[0].setCharge(6);
-	TEST_EQUAL(tmp.getIdentification().size(),1);
-	TEST_EQUAL(tmp.getIdentification()[0].getCharge(),6);
+	tmp.getIdentifications().resize(1);
+	tmp.getIdentifications()[0].setCharge(6);
+	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),6);
 RESULT
 
 CHECK((const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const))
@@ -190,14 +190,14 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().setMzRangeStart(47.11);
 	tmp.getPrecursor().setActivationEnergy(47.11);
-	tmp.getIdentification().resize(1);
+	tmp.getIdentifications().resize(1);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
-	TEST_EQUAL(tmp2.getIdentification().size(), 1);	
+	TEST_EQUAL(tmp2.getIdentifications().size(), 1);	
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
@@ -210,7 +210,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
-	tmp.getIdentification().resize(1);
+	tmp.getIdentifications().resize(1);
 	
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
@@ -219,7 +219,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
-	TEST_EQUAL(tmp2.getIdentification().size(), 1);	
+	TEST_EQUAL(tmp2.getIdentifications().size(), 1);	
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
@@ -227,7 +227,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), true);	
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
-	TEST_EQUAL(tmp2.getIdentification().size(), 0);	
+	TEST_EQUAL(tmp2.getIdentifications().size(), 0);	
 
 RESULT
 
@@ -256,7 +256,7 @@ CHECK((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-	edit.getIdentification().resize(1);
+	edit.getIdentifications().resize(1);
 	TEST_EQUAL(edit==empty, false);
 RESULT
 
@@ -285,7 +285,7 @@ CHECK((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
-	edit.getIdentification().resize(1);
+	edit.getIdentifications().resize(1);
 	TEST_EQUAL(edit!=empty, true);
 RESULT
 

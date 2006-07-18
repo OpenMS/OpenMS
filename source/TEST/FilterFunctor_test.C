@@ -58,7 +58,7 @@ MSSpectrum<DPeak<1> >* spec = new MSSpectrum<DPeak<1> >();
 dtafile.load("data/spectrum.dta",*spec);
 Identification dbs;
 dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1,"RRYA"));
-spec->getIdentification().push_back(dbs);
+spec->getIdentifications().push_back(dbs);
 //ClusterSpectrum cspec(spec);
 //const ClusterSpectrum& ccspec = cspec;
 

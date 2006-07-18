@@ -290,7 +290,7 @@ namespace OpenMS
       }
     }
 */
-    return specp_->getIdentification();
+    return specp_->getIdentifications();
   }
   
   //todo not usable without prior spec() or binrep if created from id

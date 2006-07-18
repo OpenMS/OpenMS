@@ -55,7 +55,7 @@ dtafile.load("data/spectrum.dta",*spec2);
 
 Identification dbs;
 dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1,"RRYA"));
-spec->getIdentification().push_back(dbs);
+spec->getIdentifications().push_back(dbs);
 
 CHECK(ClusterSpectrum::ClusterSpectrum())
   cspec = new ClusterSpectrum();

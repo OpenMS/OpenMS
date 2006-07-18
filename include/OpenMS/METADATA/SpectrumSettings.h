@@ -124,12 +124,12 @@ namespace OpenMS
       /// sets the precursor
       void setPrecursor(const Precursor& precursor);
 			
-      /// returns a const reference to the Identification array
-	    const std::vector<Identification>& getIdentification() const;	    	
-      /// returns a mutable reference to the Identification array
-	    std::vector<Identification>& getIdentification();
-	    /// sets the Identification array
-	    void setIdentification(const std::vector<Identification>& identification);	
+      /// returns a const reference to the Identification vector
+	    const std::vector<Identification>& getIdentifications() const;	    	
+      /// returns a mutable reference to the Identification vector
+	    std::vector<Identification>& getIdentifications();
+	    /// sets the Identification vector
+	    void setIdentifications(const std::vector<Identification>& identifications);	
 
     protected:
     	SpectrumType type_;
