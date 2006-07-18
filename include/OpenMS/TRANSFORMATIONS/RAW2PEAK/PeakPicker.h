@@ -64,7 +64,7 @@ namespace OpenMS
         : peak_bound_(200),
         peak_bound_ms2_level_(50),
         signal_to_noise_(3),
-        fwhm_bound_(0.25) {}
+        fwhm_bound_(0.2) {}
         
     /// Constructor given the name of a param file
     PeakPicker(const String& param_filename);

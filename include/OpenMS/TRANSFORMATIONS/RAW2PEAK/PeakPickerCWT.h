@@ -209,19 +209,19 @@ namespace OpenMS
 
     /** @brief Applies the peak picking algorithm to an given iterator range.
     		
-    		Picks the peaks in the given iterator intervall [first,last) and writes the
-    		resulting peaks to the picked_peak_container.
-		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+    	Picks the peaks in the given iterator intervall [first,last) and writes the
+    	resulting peaks to the picked_peak_container.
+        The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
     		
-    		@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-    			points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+    	@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+    	      points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
     		
-    			The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-    			can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-    			We recommend to use the DPickedPeak<1> because it stores important information gained during
-    			the peak picking algorithm.
+    	     The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+    	     can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    	     We recommend to use the DPickedPeak<1> because it stores important information gained during
+    	     the peak picking algorithm.
     					
-    			If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
+    	     If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
@@ -339,9 +339,9 @@ namespace OpenMS
             shape.mz_position=area.centroid_position[0];
 
             // TEST!!!!!
-            if ( (shape.r_value > peak_corr_bound_) 
-            	&& ((sne.getSignalToNoise(area.max)) >= signal_to_noise_) 
-            	&& (shape.getFWHM() >= fwhm_bound_))
+            if ( (shape.r_value > peak_corr_bound_)
+                 && ((sne.getSignalToNoise(area.max)) >= signal_to_noise_)
+                 && (shape.getFWHM() >= fwhm_bound_))
             {
               //  shape.getSymmetricMeasure();
               shape.signal_to_noise = sne.getSignalToNoise(area.max);
@@ -354,6 +354,7 @@ namespace OpenMS
             else
             {
 #ifdef DEBUG_PEAK_PICKING
+              std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
               std::cout << "Bad fitting peak "<< std::endl;
 #endif
 
@@ -443,23 +444,23 @@ namespace OpenMS
 
     /** @brief Applies the peak picking algorithm to a raw data point container.
     		
-    		Picks the peaks in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) 
-    		and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
-		
-		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+    	Picks the peaks in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) 
+    	and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<DPickedPeak<1> >).
+
+        The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
     		
-    		@note This method assumes that the input_peak_container contains data points of type 
-    			DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    	@note This method assumes that the input_peak_container contains data points of type 
+    	     DRawDataPoint<1> or any other class derived from DRawDataPoint. 
     					
-    			The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
-    			can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-    			We recommend to use the DPickedPeak<1> because it stores important information gained during
-    			the peak picking algorithm.
+    	     The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<DPickedPeak<1> >)
+    	     can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+    	     We recommend to use the DPickedPeak<1> because it stores important information gained during
+    	     the peak picking algorithm.
     				
-    			If you use MSSpectrum you have to set the SpectrumSettings by your own.
+    	     If you use MSSpectrum you have to set the SpectrumSettings by your own.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
-    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level)
+    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
     {
       pick(input_peak_container.begin(), input_peak_container.end(), picked_peaks_container, ms_level);
     }
@@ -470,26 +471,26 @@ namespace OpenMS
     	Picks the peaks successive in every scan in the intervall [first,last).
     	The detected peaks of are stored in a MSExperiment.
     					
-    	@note 	The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
-		or any other derived class of DRawDataPoint.
-    		For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
-    		the peak picking algorithm.  
+    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+              or any other derived class of DRawDataPoint.
+    	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    	      the peak picking algorithm.  
 
-    		You have to copy the ExperimentalSettings of the raw data by your own. 	
+    	      You have to copy the ExperimentalSettings of the raw data by your own. 	
     */
     template <typename InputSpectrumIterator, typename OutputPeakType >
     void pickExperiment(InputSpectrumIterator first,
-     			InputSpectrumIterator last,
-     			MSExperiment<OutputPeakType>& ms_exp_peaks)
+                        InputSpectrumIterator last,
+                        MSExperiment<OutputPeakType>& ms_exp_peaks)
     {
       unsigned int n = distance(first,last);
       // pick peaks on each scan
       for (unsigned int i = 0; i < n; ++i)
       {
         MSSpectrum< OutputPeakType > spectrum;
-	InputSpectrumIterator input_it(first+i);
-	
-	// pick the peaks in scan i
+        InputSpectrumIterator input_it(first+i);
+
+        // pick the peaks in scan i
         pick(*input_it,spectrum,input_it->getMSLevel());
 
         // if any peaks are found copy the spectrum settings
@@ -517,9 +518,9 @@ namespace OpenMS
     	Picks the peaks on every every scan in the MSExperiment.
     	The detected peaks of are stored in a MSExperiment.
     					
-    	@note 	The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
-    		For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
-    		the peak picking algorithm.    					
+    	@note The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
+    	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    	      the peak picking algorithm.   
     */
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -558,7 +559,7 @@ namespace OpenMS
 
     /// The threshold for the noise level (TODO: Use the information of the signal to noise estimator)
     float noise_level_;
-   
+
     /// Switch for the optimization of peak parameters
     bool optimization_;
 
@@ -592,11 +593,10 @@ namespace OpenMS
     //@}
 
     /** Finds the next maximum position in the wavelet transform wt. If the maximum is greater
-    		than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
-    		given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
-    		are relvant. If no peak is detected the method return false.
-    		For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
-    		
+    	than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+    	given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
+    	are relvant. If no peak is detected the method return false.
+    	For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
     bool getMaxPosition_(RawDataPointIterator first,
                          RawDataPointIterator last,
@@ -644,7 +644,7 @@ namespace OpenMS
     /** Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
     	* for the continious wavelet transform. 
     	* Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
-    	*	is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
+    	* is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
     	* lorentzian peak we have a peak bound in the wavelet transform. 
     	*/
     void calculatePeakBoundCWT_();
