@@ -92,7 +92,7 @@ namespace OpenMS
 		/// sets the value (integer) corresponding to a name
 		void setValue(const std::string& name, SignedInt value);
 		/// sets the value (integer) corresponding to an index
-		void setValue(UnsignedInt index, const SignedInt value);
+		void setValue(UnsignedInt index, SignedInt value);
 		/// sets the value (double) corresponding to a name
 		void setValue(const std::string& name, double value);
 		/// sets the value (double) corresponding to an index

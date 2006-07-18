@@ -88,6 +88,34 @@ CHECK(DRange(const DRange& range))
 	TEST_REAL_EQUAL(r2.max()[1],4.0f);
 RESULT
 
+CHECK(DRange(const Base& range))
+	Internal::DIntervalBase<2> ib(r);
+	DRange<2> r2(ib);
+	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
+	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
+	TEST_REAL_EQUAL(r2.max()[0],3.0f);
+	TEST_REAL_EQUAL(r2.max()[1],4.0f);
+RESULT
+
+CHECK(DRange& operator=(const Base& rhs))
+	Internal::DIntervalBase<2> ib(r);
+	DRange<2> r2;
+	r2 = ib;
+	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
+	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
+	TEST_REAL_EQUAL(r2.max()[0],3.0f);
+	TEST_REAL_EQUAL(r2.max()[1],4.0f);
+RESULT
+
+CHECK(DRange& operator=(const DRange& rhs))
+	DRange<2> r2;
+	r2 = r;
+	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
+	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
+	TEST_REAL_EQUAL(r2.max()[0],3.0f);
+	TEST_REAL_EQUAL(r2.max()[1],4.0f);
+RESULT
+
 CHECK(DRange(const CoordinateType& minx, const CoordinateType& miny, const CoordinateType& maxx, const CoordinateType& maxy))
 	DRange<2> r2(1.0f,2.0f,3.0f,4.0f);
 	TEST_REAL_EQUAL(r2.min()[0],1.0f);
@@ -109,17 +137,17 @@ CHECK(bool operator == (const DRange& rhs) const throw())
 	TEST_EQUAL(r==r2,true);
 RESULT
 
-CHECK(bool operator != (const DRange& range))
-	DRange<2> r2(r);
-	TEST_EQUAL(r!=r2,false);
+CHECK(bool operator == (const Base& rhs) const throw())
+	Internal::DIntervalBase<2> r2(r);
+	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
-	TEST_EQUAL(r!=r2,true);
+	TEST_EQUAL(r==r2,false);
 	r2.setMinX(r.min()[0]);
-	TEST_EQUAL(r!=r2,false);
+	TEST_EQUAL(r==r2,true);
 	r2.setMaxY(0.0f);
-	TEST_EQUAL(r!=r2,true);
+	TEST_EQUAL(r==r2,false);
 	r2.setMaxY(r.max()[1]);
-	TEST_EQUAL(r!=r2,false);
+	TEST_EQUAL(r==r2,true);
 RESULT
 
 CHECK(bool encloses(const PositionType& position) const)

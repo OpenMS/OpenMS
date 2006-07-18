@@ -122,16 +122,20 @@ namespace OpenMS
 			pattern.trim();
 		}		
 		
+		String tmp;
+		
 		Iterator it = start;
+
 		while(it!=end())
 		{
+			tmp = *it;
 			if (trim)
 			{
-				if (it->trim().hasPrefix(pattern)) return it;	
+				if (tmp.trim().hasPrefix(pattern)) return it;	
 			}
 			else
 			{
-				if (it->hasPrefix(pattern)) return it;
+				if (tmp.hasPrefix(pattern)) return it;
 			}
 			++it;
 		}
@@ -148,16 +152,20 @@ namespace OpenMS
 			pattern.trim();
 		}		
 		
+		String tmp;
+		
 		Iterator it = start;
+		
 		while(it!=end())
 		{
+			tmp = *it;
 			if (trim)
 			{
-				if (it->trim().hasSuffix(pattern)) return it;	
+				if (tmp.trim().hasSuffix(pattern)) return it;	
 			}
 			else
 			{
-				if (it->hasSuffix(pattern)) return it;
+				if (tmp.hasSuffix(pattern)) return it;
 			}
 			++it;
 		}

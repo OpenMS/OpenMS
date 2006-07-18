@@ -63,6 +63,11 @@ CHECK(const String& getName() const)
 	TEST_EQUAL(s.getName(),"")
 RESULT
 
+CHECK(const String& getOrganism() const)
+	Sample s;
+	TEST_EQUAL(s.getOrganism(),"")
+RESULT
+
 CHECK(const String& getNumber() const)
 	Sample s;
 	TEST_EQUAL(s.getNumber(),"")
@@ -97,6 +102,12 @@ CHECK(void setName(const String& name))
 	Sample s;
 	s.setName("TTEST");
 	TEST_EQUAL(s.getName(),"TTEST")
+RESULT
+
+CHECK(void setOrganism(const String& organism))
+	Sample s;
+	s.setOrganism("TTEST");
+	TEST_EQUAL(s.getOrganism(),"TTEST")
 RESULT
 
 CHECK(void setNumber(const String& number))
@@ -146,7 +157,7 @@ CHECK(std::vector<Sample>& getSubsamples())
 	TEST_EQUAL(s.getSubsamples().size(),1)
 RESULT
 
-CHECK(std::vector<Sample>& getSubsamples())
+CHECK(void setSubsamples(const std::vector<Sample>& subsamples))
 	Sample s,s2,s3;
 	vector<Sample> v;
 	
@@ -169,6 +180,11 @@ CHECK(SignedInt countTreatments())
 	Digestion d;
 	s.addTreatment(d);
 	TEST_EQUAL(s.countTreatments(),1)
+RESULT
+
+CHECK(const SampleTreatment& getTreatment(UnsignedInt position) throw(Exception::IndexOverflow))
+	Sample s;
+	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 RESULT
 
 CHECK(void addTreatment(const SampleTreatment& treatment, SignedInt before_position=-1) throw(Exception::IndexOverflow))
@@ -249,6 +265,7 @@ CHECK(Sample(const Sample& source))
 	Sample s;
 
 	//basic stuff
+	s.setOrganism("TTEST2");
 	s.setName("TTEST");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
@@ -283,7 +300,8 @@ CHECK(Sample(const Sample& source))
 	TEST_REAL_EQUAL(s2.getMass(),4711.2)
 	TEST_REAL_EQUAL(s2.getVolume(),4711.3)
 	TEST_REAL_EQUAL(s2.getConcentration(),4711.4)	
-
+	TEST_EQUAL(s2.getOrganism(),"TTEST2")
+	
 	//meta
 	TEST_EQUAL("horse",s.getMetaValue("label"))
 	
@@ -300,6 +318,7 @@ CHECK(Sample& operator= (const Sample& source))
 
 	//basic stuff
 	s.setName("TTEST");
+	s.setOrganism("TTEST2");
 	s.setNumber("Sample4711");
 	s.setComment("Sample Description");
 	s.setState(Sample::LIQUID);
@@ -330,6 +349,7 @@ CHECK(Sample& operator= (const Sample& source))
 	TEST_EQUAL(s2.getName(),"TTEST")
 	TEST_EQUAL(s2.getNumber(),"Sample4711")
 	TEST_EQUAL(s2.getComment(),"Sample Description")
+	TEST_EQUAL(s2.getOrganism(),"TTEST2")
 	TEST_EQUAL(s2.getState(),Sample::LIQUID)
 	TEST_REAL_EQUAL(s2.getMass(),4711.2)
 	TEST_REAL_EQUAL(s2.getVolume(),4711.3)
@@ -343,6 +363,68 @@ CHECK(Sample& operator= (const Sample& source))
 	
 	//treatments
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
+RESULT
+
+CHECK(bool operator== (const Sample& rhs) const)
+	const Sample empty;
+	Sample edit;
+	
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setName("TTEST");
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setOrganism("TTEST2");
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setNumber("Sample4711");
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setComment("Sample Description");
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setState(Sample::LIQUID);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setMass(4711.2);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setVolume(4711.3);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+	
+	edit.setConcentration(4711.4);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+
+	edit.getSubsamples().push_back(empty);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+
+	edit.setMetaValue("color",45);
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
+
+	edit.addTreatment(Modification());
+	TEST_EQUAL(edit==empty,false)
+	edit = empty;
+	TEST_EQUAL(edit==empty,true)
 RESULT
 
 /////////////////////////////////////////////////////////////

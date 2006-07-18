@@ -82,6 +82,7 @@ namespace OpenMS
   	
   	const Digestion* tmp = dynamic_cast<const Digestion*>(&rhs);
   	return
+  		SampleTreatment::operator==(*tmp) &&
 	 		enzyme_ == tmp->enzyme_ &&
 			digestion_time_ == tmp->digestion_time_ &&
 			temperature_ == tmp->temperature_ &&

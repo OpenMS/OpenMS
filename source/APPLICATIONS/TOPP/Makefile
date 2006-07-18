@@ -57,13 +57,10 @@ EXECUTABLES=\
 	MascotAdapter\
 	PeakPicker\
 	UnlabeledMatcher\
-	PairMatcher\
+	LabeledMatcher\
 	Dewarper\
 	$(LIBSVM_EXEC)
 
-#	SpectrumComparator\
-#	SpectrumLibBuilder\
-#	SpectrumLibMatcher\
 #	FeaturePairSplitter\
 #	RawDataResampler\
 
@@ -155,7 +152,7 @@ DBExporter: DBExporter.o TOPPBase.o
 DBImporter: DBImporter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
-PairMatcher: PairMatcher.o TOPPBase.o
+LabeledMatcher: LabeledMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
 MascotAdapter: MascotAdapter.o TOPPBase.o

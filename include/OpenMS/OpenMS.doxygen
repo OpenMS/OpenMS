@@ -42,86 +42,44 @@
 	
 	OpenMS comes with several example applications ready to use. See the \ref Applications modules for details.
 	
-	@todo Release: update installation notes on website, SpecView -> TOPPView (Marc)
+	@todo Release: update installation notes on website, SpecView -> TOPPView, TOPP docu -> Website (Marc)
 	
 */
 
 /*
 	ToDo-Liste Marc:
-	- PairMathcer -> LabeledMatcher; SpectrumLibBuilder, ...
+	- Tutorial
+	- DB: Lauffähig machen mit altem Schema
 	- TV: Features wieder einbauen (Prozent-Mode, IntensityDistribution hoch/runter)
 	- TV: Projektionen + Docu der Methoden
-	- DB: Lauffähig machen mit altem Schema
-	- Tutorial
-	- Tests
 
-	- Klassen Jens:
-	  - ANALYSIS\MAPMATCHING\PairMatcher.h
-	  - DATASTRUCTURES\IndexSet.h
-	  - FORMAT\ANDIFile.h
-	  - FORMAT\Base64.h
-	  - FORMAT\MzDataFile.h
-	  - FORMAT\MzXMLFile.h
-	  - FORMAT\HANDLERS\ANDIHandler.h
-	  - FORMAT\HANDLERS\MzDataExpSettHandler.h
-	  - FORMAT\HANDLERS\MzDataHandler.h
-	  - FORMAT\HANDLERS\MzXMLHandler.h
-	  - FORMAT\HANDLERS\SchemaHandler.h
-	  - FORMAT\HANDLERS\XMLSchemes.h
-	  - VISUAL\AxisWidget.h
-	  - VISUAL\DIALOGS\FeaFiDialog.h
+	Klassen Jens:
+  - ANALYSIS\MAPMATCHING\LabeledMather.h
+  - DATASTRUCTURES\IndexSet.h
+  - FORMAT\ANDIFile.h
+  - FORMAT\Base64.h
+  - FORMAT\MzDataFile.h
+  - FORMAT\MzXMLFile.h
+  - FORMAT\HANDLERS\ANDIHandler.h
+  - FORMAT\HANDLERS\MzDataExpSettHandler.h
+  - FORMAT\HANDLERS\MzDataHandler.h
+  - FORMAT\HANDLERS\MzXMLHandler.h
+  - FORMAT\HANDLERS\SchemaHandler.h
+  - FORMAT\HANDLERS\XMLSchemes.h
+  - VISUAL\AxisWidget.h
+  - VISUAL\DIALOGS\FeaFiDialog.h
 
 	Nach dem Release:
+	- Umstieg auf XERCES oder so
+	- AdaptiveSeeder (Gradient)
+	- Deisotoping / Decharging
 	- DB-Zeugs neu machen
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
 	- Rohdaten-Erkenner schreiben
 	
-	Tests:
-	- METADATA/Acquisition.h
-	- METADATA/Tagging.h
-	- METADATA/ExperimentalSettings.h
-	- METADATA/InstrumentSettings.h
-	- METADATA/SourceFile.h
-	- METADATA/AcquisitionInfo.h
-	- METADATA/SpectrumSettings.h
-	- METADATA/Modification.h
-	- METADATA/Software.h
-	- METADATA/MetaInfoRegistry.h
-	- METADATA/Gradient.h
-	- METADATA/MassAnalyzer.h
-	- METADATA/HPLC.h
-	- METADATA/MetaInfoInterface.h
-	- METADATA/IonSource.h
-	- METADATA/Instrument.h
-	- METADATA/IonDetector.h
-	- METADATA/Digestion.h
-	- METADATA/ContactPerson.h
-	- METADATA/SampleTreatment.h
-	- METADATA/Precursor.h
-	- METADATA/MetaInfo.h
-	- METADATA/ProcessingMethod.h
-	- METADATA/MetaInfoDescription.h
-	- METADATA/Sample.h
-	- MATH/STATISTICS/Histogram.h
-	- FORMAT/DTAFile.h
-	- FORMAT/DBConnection.h
-	- FORMAT/TextFile.h
-	- FORMAT/PersistentObject.h
-	- FORMAT/HANDLERS/ParamXMLHandler.h
-	- FORMAT/HANDLERS/XMLHandler.h
-	- FORMAT/DTA2DFile.h
-	- FORMAT/Param.h
-	- FORMAT/DBAdapter.h
-	- FORMAT/PersistenceManager.h
-	- FORMAT/FileHandler.h
-	- DATASTRUCTURES/Date.h
-	- DATASTRUCTURES/DataValue.h
-	- DATASTRUCTURES/RangeManager.h
-	- DATASTRUCTURES/String.h
-	- DATASTRUCTURES/DIntervalBase.h
-	- DATASTRUCTURES/DRange.h
-	- CONCEPT/VersionInfo.h
+	- Clustering
+	- SpecAnnotate
 
 */

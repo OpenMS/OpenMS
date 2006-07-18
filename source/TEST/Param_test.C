@@ -74,11 +74,24 @@ CHECK(void setValue(const std::string& key, float value))
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
 RESULT
 
+CHECK(void setValue(const std::string& key, double value))
+	Param p;
+	p.setValue("key",17.4);
+	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
+RESULT
+
 CHECK(bool empty() const)
 	Param p;
 	TEST_EQUAL(p.empty(), true)
 	p.setValue("key",17.4f);
 	TEST_EQUAL(p.empty(), false)
+RESULT
+
+CHECK(void clear())
+	Param p;
+	p.setValue("key",17.4);
+	p.clear();
+	TEST_EQUAL(p.empty(), true)
 RESULT
 
 CHECK(UnsignedInt size() const)
@@ -382,6 +395,28 @@ CHECK([EXTRA] ConstIterator end() const)
 	it--;
 	TEST_EQUAL("test:string", it->first)
 	TEST_EQUAL(p.getValue("test:string"), it->second)
+RESULT
+
+CHECK(friend std::ostream& operator << (std::ostream& os, const Param& param))
+	Param p;
+	p.setValue("key",17.4);
+	stringstream ss;
+	ss << p;
+	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\"\n")
+RESULT
+
+CHECK(ConstIterator begin() const)
+	Param p;
+	p.setValue("key",17.4);
+	TEST_EQUAL(p.begin()->first, "key")
+	TEST_EQUAL(double(p.begin()->second), 17.4)
+RESULT
+
+CHECK(ConstIterator end() const)
+	Param p;
+	TEST_EQUAL(p.end()==p.begin(),true)
+	p.setValue("key",17.4);
+	TEST_EQUAL((--p.end())==p.begin(),true)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -51,7 +51,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
 RESULT
 
-CHECK(String typeToName(Type type))
+CHECK(Type nameToType(const String& name))
 	FileHandler tmp;
 	TEST_EQUAL(FileHandler::UNKNOWN, tmp.nameToType("Unknown"));
 	TEST_EQUAL(FileHandler::DTA, tmp.nameToType("DTA"));

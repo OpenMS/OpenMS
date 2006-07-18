@@ -98,14 +98,14 @@ CHECK(void setValue(const std::string& name, double value))
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK(void setValue(const std::string& name, SignedInt value))
+CHECK(void setValue(UnsignedInt index, SignedInt value))
 	SignedInt tmp;
 	mi.setValue(2,4712);
 	tmp = SignedInt(mi.getValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK(void setValue(const std::string& name, double value))
+CHECK(void setValue(UnsignedInt index, double value))
 	double tmp;
 	mi.setValue(2,4712.1234);
 	tmp = double(mi.getValue("cluster_id"));
@@ -125,17 +125,24 @@ CHECK(MetaInfo(const MetaInfo& rhs))
 	TEST_EQUAL("testtesttest2",string(mi3.getValue("testname")))
 RESULT
 
-CHECK(MetaInfo(const MetaInfo& rhs))
-	MetaInfo mi4;
-	mi4 = mi;
-	TEST_REAL_EQUAL(double(mi4.getValue("cluster_id")),4712.1234)
-	TEST_EQUAL("testtesttest2",string(mi4.getValue("testname")))
+CHECK(MetaInfo& operator = (const MetaInfo& rhs))
+	MetaInfo mi3;
+	mi3 = mi;
+	TEST_REAL_EQUAL(double(mi3.getValue("cluster_id")),4712.1234)
+	TEST_EQUAL("testtesttest2",string(mi3.getValue("testname")))
 RESULT
 
 CHECK(void setValue(const std::string& name, const DataValue& value))
 	DataValue tmp("testtesttest3");
 	mi.setValue("testname",tmp);
 	tmp = string(mi.getValue("testname"));
+	TEST_EQUAL("testtesttest3",tmp)
+RESULT
+
+CHECK(void setValue(UnsignedInt index, const DataValue& value))
+	DataValue tmp("testtesttest3");
+	mi.setValue(2,tmp);
+	tmp = string(mi.getValue(2));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 

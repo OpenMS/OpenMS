@@ -98,14 +98,14 @@ CHECK(void setMetaValue(const std::string& name, double value))
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, SignedInt value))
+CHECK(void setMetaValue(UnsignedInt index, SignedInt value))
 	SignedInt tmp;
 	mi.setMetaValue(2,4712);
 	tmp = SignedInt(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, double value))
+CHECK(void setMetaValue(UnsignedInt index, double value))
 	double tmp;
 	mi.setMetaValue(2,4712.1234);
 	tmp = double(mi.getMetaValue("cluster_id"));
@@ -154,6 +154,13 @@ CHECK(void setMetaValue(const std::string& name, const DataValue& value))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue("testname",tmp);
 	tmp = string(mi.getMetaValue("testname"));
+	TEST_EQUAL("testtesttest3",tmp)
+RESULT
+
+CHECK(void setMetaValue(UnsignedInt index, const DataValue& value))
+	DataValue tmp("testtesttest3");
+	mi.setMetaValue(2,tmp);
+	tmp = string(mi.getMetaValue(2));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
@@ -208,7 +215,7 @@ CHECK(bool metaValueExists(UnsignedInt index) const)
 	TEST_EQUAL(mi4.metaValueExists(2),true)
 RESULT
 
-CHECK(void getKeys(std::vector<std::string>& keys) const)
+CHECK([EXTRA] void getKeys(std::vector<std::string>& keys) const)
 	std::vector<std::string> keys;
 	mi.getKeys(keys);	
 	TEST_EQUAL(keys.size(),2)

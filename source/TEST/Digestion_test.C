@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Digestion.h>
+#include <OpenMS/METADATA/Modification.h>
 #include <sstream>
 
 ///////////////////////////
@@ -80,14 +81,14 @@ CHECK(float getPh() const)
 RESULT
 
 //basic accessors
-CHECK(const String& getEnzyme() const)
+CHECK(void setEnzyme(const String& enzyme))
 	Digestion s;
 	s.setEnzyme("TTEST");
 	TEST_EQUAL(s.getEnzyme(),"TTEST")
 RESULT
 
 //basic accessors
-CHECK(float getDigestionTime() const)
+CHECK(void setDigestionTime(float digestion_time))
 	Digestion s;
 	//set
 	s.setDigestionTime(4711.2);
@@ -95,7 +96,7 @@ CHECK(float getDigestionTime() const)
 RESULT
 
 //basic accessors
-CHECK(float getTemperature() const)
+CHECK(void setTemperature(float temperature))
 	Digestion s;
 	s.setTemperature(4711.3);
 	TEST_REAL_EQUAL(s.getTemperature(),4711.3)
@@ -135,7 +136,6 @@ CHECK(Digestion(const Digestion&))
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
 RESULT
 
-//assignment operator
 CHECK(Digestion& operator=(const Digestion&))
 	Digestion s,s2;
 	//set
@@ -156,8 +156,7 @@ CHECK(Digestion& operator=(const Digestion&))
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
 RESULT
 
-//clone
-CHECK(Digestion& operator=(const Digestion&))
+CHECK(SampleTreatment* clone() const)
 	Digestion s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -181,6 +180,40 @@ CHECK(Digestion& operator=(const Digestion&))
 	TEST_REAL_EQUAL(dp->getTemperature(),4711.3)
 	TEST_REAL_EQUAL(dp->getPh(),4711.4)
 	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
+RESULT
+
+CHECK(bool operator== (const SampleTreatment& rhs) const)
+	Digestion empty,edit;
+	
+	TEST_EQUAL(edit==empty, true);
+	
+	edit.setEnzyme("TTEST");
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);
+
+	edit.setDigestionTime(4711.2);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);		
+
+	edit.setTemperature(4711.3);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);			
+
+	edit.setPh(4711.4);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);		
+
+	edit.setMetaValue("color",string("red"));
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);	
+	
+	Modification m;
+	TEST_EQUAL(m==empty, false);
 RESULT
 
 /////////////////////////////////////////////////////////////

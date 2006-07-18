@@ -117,8 +117,9 @@ namespace OpenMS
 			/**
 				@brief Searches for the first line that ends with @p text
 				
-				This is an overloaded member function, provided for convenience.<br>
-				It behaves essentially like the above function but the search is start at the beginning of the file
+				This is an overloaded member function, provided for convenience.
+				
+				It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
     	*/
 			Iterator searchSuffix(const String& text, bool trim=false);
   };

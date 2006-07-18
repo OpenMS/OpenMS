@@ -37,7 +37,7 @@ namespace OpenMS
 		
 		Virtual base class for all sample treatments.
 		
-		The type of the tratment can be determined through the getType() method.
+		The type of the treatment can be determined through the getType() method.
 		
 		@ingroup Metadata
 	*/
@@ -53,7 +53,7 @@ namespace OpenMS
     	/**
     		@brief Copy constructor
     		
-    		Do not forget to call it when you derive a class from SampleTreatment!
+    		@note Do not forget to call it when you derive a class from SampleTreatment!
     	*/
     	SampleTreatment(const SampleTreatment&);
     	/// destructor
@@ -62,14 +62,19 @@ namespace OpenMS
     	/**
     		@brief Assignment operator
     		
-    		Do not forget to call it when you derive a class from SampleTreatment!
+    		@note Do not forget to call it when you derive a class from SampleTreatment!
     	*/
     	SampleTreatment& operator=(const SampleTreatment&);
 
-    	/// Equality operator
-      virtual bool operator== (const SampleTreatment& rhs) const =0;
-      /// Equality operator
-      bool operator!= (const SampleTreatment& rhs) const;
+    	/**
+    		@brief Equality operator
+    		
+    		The equality operators of derived classes also take a SampleTreatment reference as argument.
+    		They check the type and cast the reference to the right type if the type matches.
+    		
+      	@note Do not forget to call it when you derive a class from SampleTreatment!
+      */
+      virtual bool operator== (const SampleTreatment& rhs) const;
     	
     	/**
     		@brief return the treatment type

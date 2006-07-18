@@ -57,7 +57,12 @@ namespace OpenMS
 			/// assignment operator
     	Tagging& operator=(const Tagging&);
 
-    	/// Equality operator
+    	/**
+    		@brief Equality operator
+      	
+      	Although this operator takes a reference to a SampleTreatment as argument
+      	it tests for the equality of Tagging instances!
+      */
       virtual bool operator== (const SampleTreatment& rhs) const;
       			
 			/// clone method. See SampleTreatment

@@ -92,7 +92,7 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "");
 RESULT
 
-CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
+CHECK(bool operator== (const AcquisitionInfo& rhs) const)
   AcquisitionInfo empty,edit;
 	TEST_EQUAL(empty==edit,true);
 	

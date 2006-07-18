@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Tagging.h>
+#include <OpenMS/METADATA/Modification.h>
 #include <sstream>
 
 ///////////////////////////
@@ -71,7 +72,7 @@ CHECK(void setMassShift(float mass_shift))
 	TEST_REAL_EQUAL(s.getMassShift(),4711.2)
 RESULT
 
-CHECK(const IsotopeVariant& getVariant() const)
+CHECK(void setVariant(const IsotopeVariant& variant))
 	Tagging s;
 	s.setVariant(Tagging::HEAVY);
 	TEST_EQUAL(s.getVariant(),Tagging::HEAVY)
@@ -118,7 +119,7 @@ CHECK(Tagging& operator=(const Tagging&))
 RESULT
 
 //clone
-CHECK(Tagging& operator=(const Tagging&))
+CHECK(SampleTreatment* clone() const)
 	Tagging s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -138,6 +139,35 @@ CHECK(Tagging& operator=(const Tagging&))
 	TEST_REAL_EQUAL(dp->getMassShift(),4711.2)
 	TEST_EQUAL(dp->getVariant(),Tagging::LIGHT)
 	TEST_REAL_EQUAL(dp->getMass(),23.4)
+RESULT
+
+CHECK(bool operator== (const SampleTreatment& rhs) const)
+	Tagging empty,edit;
+	
+	TEST_EQUAL(edit==empty, true);
+	
+	edit.setMassShift(4711.2);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);
+
+	edit.setVariant(Tagging::HEAVY);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);		
+
+	edit.setMass(23.4);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);			
+
+	edit.setMetaValue("color",string("red"));
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);	
+	
+	Modification m;
+	TEST_EQUAL(m==empty, false);
 RESULT
 
 /////////////////////////////////////////////////////////////

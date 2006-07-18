@@ -76,6 +76,13 @@ CHECK(Size size() const)
 	TEST_EQUAL(d.size(), 10)
 RESULT
 
+CHECK(Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange))
+	Histogram<float, float> d3(5.5, 7.7, 0.2);
+	TEST_REAL_EQUAL(d3.min(), 5.5)
+	TEST_REAL_EQUAL(d3.max(), 7.7)
+	TEST_REAL_EQUAL(d3.binSize(), 0.2)
+RESULT
+
 CHECK(ValueType minValue() const)
 	TEST_REAL_EQUAL(d.minValue(), 0.0)
 RESULT

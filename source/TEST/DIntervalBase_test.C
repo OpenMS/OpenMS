@@ -56,12 +56,12 @@ RESULT
 //2D check
 DIntervalBase<2>* ptr2 = 0;
 
-CHECK(DIntervalBase())
+CHECK([EXTRA] DIntervalBase())
 	ptr2 = new DIntervalBase<2>;
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(~DIntervalBase())
+CHECK([EXTRA] ~DIntervalBase())
 	delete ptr2;
 RESULT
 
@@ -115,7 +115,7 @@ CHECK(void setMin(PositionType const & position))
   TEST_REAL_EQUAL(tmp.max()[1],17.5);
 RESULT
 
-CHECK(void setMin(PositionType const & position))
+CHECK(void setMax(PositionType const & position))
   I2 tmp(empty);
   tmp.setMax(p1);
   TEST_EQUAL(tmp.min(),p1);
@@ -148,6 +148,12 @@ RESULT
 CHECK(DIntervalBase(const DIntervalBase& rhs))
 	I2 tmp(p1,p2);
 	I2 tmp2(tmp);
+	TEST_EQUAL(tmp==tmp2,true);
+RESULT
+
+CHECK(DIntervalBase( PositionType const & minimum, PositionType const & maximum ))
+	I2 tmp(p1,p2);
+	I2 tmp2(tmp.min(), tmp.max());
 	TEST_EQUAL(tmp==tmp2,true);
 RESULT
 

@@ -337,7 +337,28 @@ CHECK(friend std::ostream& operator<<(std::ostream&, const DataValue&))
   TEST_EQUAL(os.str(),"51001.1111.1hello world")
 RESULT
 
+CHECK(DataType valueType() const)
+	DataValue a;
+	TEST_EQUAL(a.valueType(), DataValue::EMPTYVALUE);
 
+	DataValue a1(1.45);
+	TEST_EQUAL(a1.valueType(), DataValue::DOUVALUE);
+
+	DataValue a2(1.34f);
+	TEST_EQUAL(a2.valueType(), DataValue::FLOVALUE);
+
+	DataValue a3(123);
+	TEST_EQUAL(a3.valueType(), DataValue::INTVALUE);
+
+	DataValue a4("bla");
+	TEST_EQUAL(a4.valueType(), DataValue::STRVALUE);
+
+	DataValue a5(short(2));
+	TEST_EQUAL(a5.valueType(), DataValue::SHOVALUE);
+
+	DataValue a6(long(2));
+	TEST_EQUAL(a6.valueType(), DataValue::LONVALUE);	
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

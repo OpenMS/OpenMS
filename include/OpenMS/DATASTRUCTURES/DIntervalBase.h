@@ -190,6 +190,7 @@ namespace OpenMS
 				{
 					return (min_ == rhs.min_) && (max_ == rhs.max_);
 				}
+				
 				/// Equality operator
 				bool operator != (const DIntervalBase& rhs) const throw()
 				{

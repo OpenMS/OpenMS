@@ -29,7 +29,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/SampleTreatment.h>
+#include <OpenMS/METADATA/Tagging.h>
 #include <sstream>
 
 ///////////////////////////
@@ -83,16 +83,21 @@ class Test: public SampleTreatment
 
 		virtual bool operator== (const SampleTreatment& rhs) const
 		{
-			return type_==rhs.getType();
+	  	if (type_!=rhs.getType()) return false;
+	  	
+	  	const Test* tmp = dynamic_cast<const Test*>(&rhs);
+			return 
+				SampleTreatment::operator==(*tmp) &&
+				dummy == tmp->dummy
+				;
 		};
-	
-	public:
+		
 		String dummy;
 };
 
 // default ctor
 Test* dv_ptr = 0;
-CHECK([EXTRA] Test())
+CHECK(SampleTreatment(const String& type))
 	dv_ptr = new Test;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
@@ -145,7 +150,7 @@ RESULT
 
 //assignment operator
 //copy ctr
-CHECK(SampleTreatment(const SampleTreatment&))
+CHECK(SampleTreatment& operator=(const SampleTreatment&))
 	Test s,s2;
 	//set
 	s.dummy= "TTEST";
@@ -158,7 +163,7 @@ CHECK(SampleTreatment(const SampleTreatment&))
 RESULT
 
 //clone
-CHECK(SampleTreatment& operator=(const SampleTreatment&))
+CHECK(SampleTreatment* clone() const)
 	Test s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -176,6 +181,23 @@ CHECK(SampleTreatment& operator=(const SampleTreatment&))
 	//get
 	TEST_EQUAL(dp->dummy,"TTEST")
 	TEST_EQUAL("horse",dp->getMetaValue("origin"))
+RESULT
+
+CHECK(bool operator== (const SampleTreatment& rhs) const)
+	Test edit,empty;
+	
+	edit.dummy = "bla";
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);		
+
+	edit.setMetaValue("color",string("red"));
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);	
+	
+	Tagging t;
+	TEST_EQUAL(t==empty, false);	
 RESULT
 
 /////////////////////////////////////////////////////////////

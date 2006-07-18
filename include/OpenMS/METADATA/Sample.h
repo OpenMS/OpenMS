@@ -69,8 +69,6 @@ namespace OpenMS
 
     	/// Equality operator
       bool operator== (const Sample& rhs) const;
-      /// Equality operator
-      bool operator!= (const Sample& rhs) const;
 			
 			///retuns the sample name (default: "")
       const String& getName() const;

@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Modification.h>
+#include <OpenMS/METADATA/Tagging.h>
 #include <sstream>
 
 ///////////////////////////
@@ -149,7 +150,7 @@ CHECK(Modification& operator=(const Modification&))
 RESULT
 
 //clone
-CHECK(Modification& operator=(const Modification&))
+CHECK(SampleTreatment* clone() const)
 	Modification s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -173,6 +174,35 @@ CHECK(Modification& operator=(const Modification&))
 	TEST_EQUAL(dp->getSpecificityType(),Modification::AA)
 	TEST_EQUAL(dp->getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
+RESULT
+
+CHECK(bool operator== (const SampleTreatment& rhs) const)
+	Modification empty,edit;
+	
+	TEST_EQUAL(edit==empty, true);
+
+	edit.setMass(11.9);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);
+
+	edit.setSpecificityType(Modification::CTERM);
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);		
+
+	edit.setAffectedAminoAcids("ABCDE");
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);			
+
+	edit.setMetaValue("color",string("red"));
+	TEST_EQUAL(edit==empty, false);
+	edit = empty;
+	TEST_EQUAL(edit==empty, true);	
+	
+	Tagging m;
+	TEST_EQUAL(m==empty, false);
 RESULT
 
 /////////////////////////////////////////////////////////////

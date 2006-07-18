@@ -56,6 +56,12 @@ namespace OpenMS
 	  concentration_(source.concentration_),
 	  subsamples_(source.subsamples_)
 	{
+		//delete old treatments
+		for (list<SampleTreatment*>::iterator it = treatments_.begin(); it!=treatments_.end(); ++it)
+		{
+			delete(*it);
+		}
+		treatments_.clear();
 		//copy treatments
 		for (list<SampleTreatment*>::const_iterator it = source.treatments_.begin(); it!=source.treatments_.end(); ++it)
 		{
@@ -85,6 +91,12 @@ namespace OpenMS
     concentration_ = source.concentration_;
     subsamples_ = source.subsamples_;
     MetaInfoInterface::operator=(source);
+		//delete old treatments
+		for (list<SampleTreatment*>::iterator it = treatments_.begin(); it!=treatments_.end(); ++it)
+		{
+			delete(*it);
+		}
+		treatments_.clear();
 		//copy treatments
 		for (list<SampleTreatment*>::const_iterator it = source.treatments_.begin(); it!=source.treatments_.end(); ++it)
 		{
@@ -120,11 +132,6 @@ namespace OpenMS
 			if (*it != *it2) return false;
 		}
 		return true;	
-	}
-	
-	bool Sample::operator!= (const Sample& rhs) const
-	{
-		return !(operator==(rhs));
 	}
 	
 	const String& Sample::getName() const 

@@ -117,7 +117,7 @@ namespace OpenMS
 		*/
 		String(double d, UnsignedInt size);
 		/// Constructor from DataValue (casted to String)
-		String(DataValue d);
+		String(const DataValue& d);
 
 		//@}
 

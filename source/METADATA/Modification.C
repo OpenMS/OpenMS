@@ -77,6 +77,7 @@ namespace OpenMS
   	
   	const Modification* tmp = dynamic_cast<const Modification*>(&rhs);
   	return
+  		SampleTreatment::operator==(*tmp) &&
 			reagent_name_ == tmp->reagent_name_ &&
 			mass_ == tmp->mass_ &&
 			specificity_type_ == tmp->specificity_type_ &&

@@ -55,6 +55,16 @@ namespace OpenMS
 	{
 	}
 
+	String::String(const char* s, SizeType length)
+	{
+		SizeType count = 0;
+		while(count < length && *(s+count)!=0)
+		{
+			*this += *(s+count);
+			++count;
+		}
+	}
+
 	String::String(const char c)
 		:	string(1,c)
 	{
@@ -150,10 +160,10 @@ namespace OpenMS
 		return *this;
 	}
 	
-	String::String(DataValue d)
+	String::String(const DataValue& d)
 		: string()
 	{
-		string::operator=((string)d);
+		string::operator=(d.toString());
 	}
 
 	bool String::hasPrefix(const String& string) const

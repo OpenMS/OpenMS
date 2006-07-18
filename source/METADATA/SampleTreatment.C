@@ -70,10 +70,11 @@ namespace OpenMS
 		return type_;
 	}
 	
-	bool SampleTreatment::operator!= (const SampleTreatment& rhs) const
+	bool SampleTreatment::operator== (const SampleTreatment& rhs) const
 	{
-		return !(this->operator==(rhs));
+		return
+			MetaInfoInterface::operator==(rhs)
+			;
 	}
-	
 }
 

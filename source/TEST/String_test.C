@@ -47,8 +47,28 @@ CHECK(String())
 	TEST_NOT_EQUAL(s_ptr, 0)
 RESULT
 
-CHECK(~String())
+CHECK([EXTRA] ~String())
 	delete s_ptr;
+RESULT
+
+CHECK(String(const char* s, SizeType length))
+	String s("abcdedfg",5);
+	TEST_EQUAL(s,"abcde")
+
+	String s2("abcdedfg",0);
+	TEST_EQUAL(s2,"")
+
+	String s3("abcdedfg",8);
+	TEST_EQUAL(s3,"abcdedfg")
+
+	String s4("abcdedfg",15);
+	TEST_EQUAL(s4,"abcdedfg")
+RESULT
+
+CHECK(String(const DataValue& d))
+	TEST_EQUAL(String(DataValue(1.4f)),"1.4")
+	TEST_EQUAL(String(DataValue("bla")),"bla")
+	TEST_EQUAL(String(DataValue(4711)),"4711")
 RESULT
 
 CHECK(String(const std::string& s))
@@ -91,7 +111,7 @@ CHECK(String(double d))
 	TEST_EQUAL(s,"17.012345")
 RESULT
 
-CHECK(String(double d))
+CHECK(String(double d, UnsignedInt size))
 	String s;
 	s = String(12345678.9123,11);
 	TEST_EQUAL(s,"12345678.91")
@@ -152,14 +172,28 @@ CHECK(bool has(Byte byte) const)
 RESULT
 
 CHECK(String prefix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
-	TEST_EQUAL(s.prefix(4), "ACDE");
-	TEST_EQUAL(s.prefix(0), "");
+	TEST_EQUAL(s.prefix((SignedInt)4), "ACDE");
+	TEST_EQUAL(s.prefix((SignedInt)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
+	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 RESULT
 
 CHECK(String suffix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
-	TEST_EQUAL(s.suffix(4), "TVWY");
-	TEST_EQUAL(s.suffix(0), "");
+	TEST_EQUAL(s.suffix((SignedInt)4), "TVWY");
+	TEST_EQUAL(s.suffix((SignedInt)0), "");
+	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
+	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
+RESULT
+
+CHECK(String prefix(SizeType length) const throw(Exception::IndexOverflow))
+	TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
+	TEST_EQUAL(s.prefix((String::SizeType)0), "");
+	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
+RESULT
+
+CHECK(String suffix(SizeType length) const throw(Exception::IndexOverflow))
+	TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
+	TEST_EQUAL(s.suffix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 

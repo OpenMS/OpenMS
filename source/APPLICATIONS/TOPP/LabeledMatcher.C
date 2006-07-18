@@ -45,7 +45,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page PairMatcher PairMatcher
+	@page LabeledMatcher LabeledMatcher
  
 	@brief Executes the pair matching algorithm
 	for labeled peptides.
@@ -76,12 +76,12 @@ using namespace std;
 // We do not want this class to show up in the docu -> @cond
 /// @cond TOPPCLASSES 
 
-class TOPPPairMatcher
+class TOPPLabeledMatcher
       : public TOPPBase
 {
 public:
-  TOPPPairMatcher()
-      : TOPPBase("PairMatcher")
+  TOPPLabeledMatcher()
+      : TOPPBase("LabeledMatcher")
   {}
 
 protected:
@@ -194,7 +194,7 @@ protected:
     //pm.setDebugStream(&log);
     //pm.setInstanceId(ini_location);
 
-    writeLog_(" Running PairMatcher...");
+    writeLog_(" Running LabeledMatcher...");
 
     const DFeaturePairVector<2>* pairs = &pm.run();
 
@@ -236,7 +236,7 @@ protected:
 
 int main( int argc, char ** argv )
 {
-  TOPPPairMatcher tool;
+  TOPPLabeledMatcher tool;
   return tool.main(argc,argv);
 }
 
