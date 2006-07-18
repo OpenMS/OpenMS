@@ -1,7 +1,7 @@
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="COM"
 
-TestTitle
+Experiment
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="USERNAME"
 
@@ -21,66 +21,86 @@ Da
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="FORMVER"
 
-1.01
+FormVersion_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="DB"
 
-MSDB
+DB_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="SEARCH"
 
-MIS
+SearchType_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="REPORT"
 
-AUTO
+Hits_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="CLE"
 
-Trypsin
+Cleavage_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="MASS"
 
-Monoisotopic
+MassType_TEST
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="MODS"
+
+Modifiactions_TEST_1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="MODS"
+
+Modifiactions_TEST_2
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="IT_MODS"
+
+Variable_Modifiactions_TEST_1
+--ABCDEFGHIJKMNOPQRSTUVWXYZ
+Content-Disposition: form-data; name="IT_MODS"
+
+Variable_Modifiactions_TEST_2
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="INSTRUMENT"
 
-Default
+Instrument_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="PFA"
 
-1
+4711
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="TOL"
 
-2
+4711.1
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="ITOL"
 
-1
+4711.2
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="TAXONOMY"
 
-All entries
+Taxonomy_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="CHARGE"
 
-2+
+1+, 2+ and 3+
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="FILE"; filename="MascotInfile_test.txt"
 
+
 BEGIN IONS
-PEPMASS=1998
-RTINSECONDS=25.379
-1 1
-2 4
-3 9
-4 16
-5 25
-6 36
-7 49
-8 64
-9 81
+PEPMASS=11.4
+RTINSECONDS=11.5
+
+6 48.11
+11 48.11
+END IONS
+
+BEGIN IONS
+PEPMASS=21.4
+RTINSECONDS=12.5
+
+21 48.11
+26 48.11
+31 48.11
 END IONS
 
 

@@ -44,7 +44,7 @@ namespace OpenMS
 		boundary_ = String::random(22);
 		db_ = "MSDB";
 		search_type_ = "MIS";
-		hits_ = "20";
+		hits_ = "AUTO";
 		cleavage_ = "Trypsin";
 		mass_type_ = "Monoisotopic";
 		instrument_ = "Default";			

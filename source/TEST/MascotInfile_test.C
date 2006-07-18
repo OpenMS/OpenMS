@@ -227,7 +227,62 @@ CHECK((const std::string& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 
+CHECK((void store(const std::string& filename, const MSExperiment< DPeak<1> >& experiment, std::string search_title)))
+	MSExperiment<> exp;
+	MSExperiment<>::SpectrumType spec;
+	MSExperiment<>::PeakType peak;
 
+	// first spectrum (MS)
+	spec.setRetentionTime(11.1);
+	spec.setMSLevel(1);
+	peak.getPosition()[0] = 5;
+	peak.setIntensity(47.11);
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 10;
+	peak.setIntensity(48.11);
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 15;
+	spec.getContainer().push_back(peak);
+	exp.push_back(spec);
+
+	// second spectrum (MS/MS)
+	spec.getContainer().clear();
+	spec.setRetentionTime(11.5);
+	spec.getPrecursorPeak().getPosition()[0] = 11.4;
+	spec.setMSLevel(2);
+	peak.getPosition()[0] = 6;
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 11;
+	spec.getContainer().push_back(peak);
+	exp.push_back(spec);	
+
+	// third spectrum (MS)
+	spec.getContainer().clear();
+	spec.setRetentionTime(12.2);
+	spec.setMSLevel(1);
+	peak.getPosition()[0] = 20;
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 25;
+	spec.getContainer().push_back(peak);
+	exp.push_back(spec);	
+
+	// forth spectrum (MS/MS)
+	spec.getContainer().clear();
+	spec.setRetentionTime(12.5);
+	spec.getPrecursorPeak().getPosition()[0] = 21.4;
+	spec.setMSLevel(2);
+	peak.getPosition()[0] = 21;
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 26;
+	spec.getContainer().push_back(peak);
+	peak.getPosition()[0] = 31;
+	spec.getContainer().push_back(peak);
+	exp.push_back(spec);	
+
+	file.store("MascotInfile_test.txt", exp, "Experiment");
+	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template3.txt");
+	remove("MascotInfile_test.txt");
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
