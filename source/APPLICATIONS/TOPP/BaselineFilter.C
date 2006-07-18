@@ -72,15 +72,17 @@ protected:
   {
     cerr << endl
     << tool_name_ << " -- remove the baseline in a LC/MS experiment" << endl
+    << endl
     << "This application implements a morpholgical approach called top-hat filter." << endl
+    << endl
     << "Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling flag!)." << endl
     << endl
     << "Usage:" << endl
     << " " << tool_name_ << " [options]" << endl
-    << "  -in <file>           input mzData file name" << endl
-    << "  -out <file>          output mzData file name" << endl
-    << "  -struc_elem_length   length of the structuring element (default is 2.5Th)" << endl
-    << "  -resampling spacing  spacing for the resampling process (default: this flag is not set)"<< endl
+    << "  -in <file>                input mzData file name" << endl
+    << "  -out <file>               output mzData file name" << endl
+    << "  -struc_elem_length <size> length of the structuring element (default is 2.5Th)" << endl
+    << "  -resampling <spacing>     spacing for the resampling process (default: deactivated)"<< endl
     << endl;
   }
 
@@ -90,10 +92,10 @@ protected:
     << tool_name_ << endl
     << endl
     << "INI options:" << endl
-    << "  in                  input mzData file name" << endl
-    << "  out                 output mzData file name" << endl
-    << "  struc_elem_length   length of the structuring element (given in Th)" << endl
-    << "  resampling          spacing for the resampling process (default: this flag is not set)" << endl
+    << "  in <file>                input mzData file name" << endl
+    << "  out <file>               output mzData file name" << endl
+    << "  struc_elem_length <size> length of the structuring element (given in Th)" << endl
+    << "  resampling <spacing>     spacing for the resampling process (default: this flag is not set)" << endl
     << endl
     << "INI File example section:" << endl
     << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl

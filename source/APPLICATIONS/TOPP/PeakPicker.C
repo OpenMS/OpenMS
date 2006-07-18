@@ -79,8 +79,9 @@ protected:
     << endl
     << "Usage:" << endl
     << " " << tool_name_ << " [options]" << endl
+    << endl
     << "Options are:" << endl
-    << "  -optimize_peaks   switch for the optimization of peak parameters. Valid options are 'on' or 'off' (default: 'off')" << endl
+    << "  -optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
     << "  -in <file>        input mzData file name" << endl
     << "  -out <file>       output mzData file name" << endl
     << endl;
@@ -92,21 +93,21 @@ protected:
     << tool_name_ << endl
     << endl
     << "INI options:" << endl
-    << "  optimize_peaks   switch for the optimization of peak parameters. Valid options are 'on' or 'off' (default: 'off')" << endl
-    << "  in               input mzData file name" << endl
-    << "  out              output mzData file name" << endl
+    << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
+    << "  in <file>        input mzData file name" << endl
+    << "  out <file>       output mzData file name" << endl
     << endl
     << "INI File example section:" << endl
     << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
     << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"optimize_peaks\" value=\"on\" type=\"string\"/>" << endl;
+    << "  <ITEM name=\"optimize_peaks\" value=\"\" type=\"string\"/>" << endl;
   }
 
   void setOptionsAndFlags_()
   {
     options_["-out"] = "out";
     options_["-in"] = "in";
-    options_["-optimize_peaks"] = "optimize_peaks";
+    flags_["-optimize_peaks"] = "optimize_peaks";
   }
 
   ExitCodes main_(int , char**)
@@ -125,9 +126,15 @@ protected:
     writeDebug_(String("Output file: ") + out, 1);
 
     //optimze flag
-    String optimize_peaks = getParamAsString_("optimize_peaks");
-    writeDebug_(String("Optimization of peaks: ") + optimize_peaks, 1);
-
+    bool optimize_peaks = getParam_("optimize_peaks")!=DataValue::EMPTY;
+    if (optimize_peaks)
+    {
+    	writeDebug_(String("Optimization of peaks: ON"), 1);
+		}
+		else
+		{
+			writeDebug_(String("Optimization of peaks: OFF"), 1);
+		}
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -142,23 +149,10 @@ protected:
     String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
     Param pepi_param = getParamCopy_(ini_location);
 
-    if (optimize_peaks != "")
+    //optimization
+    if (optimize_peaks)
     {
-      //optimization
-      if (optimize_peaks == "on")
-      {
-        pepi_param.setValue("Optimization:SkipOptimization","no");
-      }
-      else if (optimize_peaks == "off")
-      {
-        pepi_param.setValue("Optimization:SkipOptimization","yes");
-      }
-      else
-      {
-        writeLog_(String("Invalid option '") + optimize_peaks + "' given. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
+      pepi_param.setValue("Optimization:SkipOptimization","no");
     }
     else
     {

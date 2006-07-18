@@ -73,18 +73,20 @@ protected:
   {
     cerr << endl
     << tool_name_ << " -- remove the noise in a LC/MS experiment" << endl
+    << endl
     << "This application implements a smoothing filter. It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
+    << endl
     << "Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option)." << endl
     << "      The Gaussian filter works for uniform as well as for non-uniform data." << endl
     << endl
-    << endl
     << "Usage:" << endl
     << " " << tool_name_ << " [options]" << endl
+    << endl
     << "Options are:" << endl
-    << "  -filter_type smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
-    << "  -resampling  spacing for the resampling process (default: this flag is not set)" << endl
-    << "  -in <file>   input mzData file name" << endl
-    << "  -out <file>  output mzData file name" << endl
+    << "  -filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
+    << "  -resampling <spacing> spacing for the resampling process (default: this flag is not set)" << endl
+    << "  -in <file>            input mzData file name" << endl
+    << "  -out <file>           output mzData file name" << endl
     << endl;
   }
 
@@ -94,15 +96,16 @@ protected:
     << tool_name_ << endl
     << endl
     << "INI options:" << endl
-    << "  in          input mzData file name" << endl
-    << "  out         output mzData file name" << endl
-    << "  filter_type smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
-    << "  resampling  spacing for the resampling process (default: this flag is not set)"
+    << "  in <file>            input mzData file name" << endl
+    << "  out <file>           output mzData file name" << endl
+    << "  filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
+    << "  resampling <spacing> spacing for the resampling process (default: deactivated)" << endl
     << endl
     << "INI File example section:" << endl
     << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
     << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"filter_type\" value=\"gaussian\" type=\"string\"/>" << endl;
+    << "  <ITEM name=\"filter_type\" value=\"gaussian\" type=\"string\"/>" << endl
+    << "  <ITEM name=\"resampling\" value=\"0.05\" type=\"float\"/>" << endl;
   }
 
   void setOptionsAndFlags_()
