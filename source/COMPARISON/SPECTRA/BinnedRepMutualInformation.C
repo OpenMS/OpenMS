@@ -28,7 +28,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath> 
-#include <exception>
 
 using namespace std;
 
@@ -58,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  double BinnedRepMutualInformation::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
+  double BinnedRepMutualInformation::operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const
   {
     uint intervals = (unsigned int)param_.getValue("intervals");
    
@@ -66,13 +65,13 @@ namespace OpenMS
     const BinnedRep& a = csa.getBinrep();
     
     double filterfactor = filter(csa,csb);
-    if ( filterfactor < 1e-12) return 0;
+    if (filterfactor < 1e-12) return 0;
     //number of pairs where a falls into interval i and b falls into interval j
-    vector<vector<double> > n = vector<vector<double> >(intervals,vector<double>(intervals));
+    vector<vector<double> > n = vector<vector<double> >(intervals, vector<double>(intervals, 0.0));
     //marginal frequencies for x and y
     double result = 0;
-    vector<double> na = vector<double>(intervals); 
-    vector<double> nb = vector<double>(intervals);
+    vector<double> na = vector<double>(intervals, 0.0);
+    vector<double> nb = vector<double>(intervals, 0.0);
     int nab = 0; //number of pairs where signals are present in both binreps
      
     BinnedRep::const_iterator bit = b.begin(); 
@@ -80,35 +79,36 @@ namespace OpenMS
     while (ait != a.end() && bit != b.end())
     {
       //we are at the same position (+- precision)
-      if ( fabs( ( ait.position()*a.getBinSize() + a.min() ) - ( bit.position()*b.getBinSize() + b.min() ) )  < 1e-8)
+      if (fabs((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) < 1e-8)
       {
-        uint int_a = (uint)(*ait * intervals);
-        if ( int_a == intervals ) int_a--;
-        uint int_b = (uint)(*bit * intervals);
-        if ( int_b == intervals ) int_b--;
-        if( ( *ait > 1e-8 || *bit > 1e-8 ) )
+        uint int_a = (uint)(*ait * intervals + 0.5);
+        if (int_a == intervals) int_a--;
+        uint int_b = (uint)(*bit * intervals + 0.5);
+        if (int_b == intervals) int_b--;
+        if (*ait > 1e-8 || *bit > 1e-8)
         {
-          n.at(int_a).at(int_b)++;
+          n.at(int_a).at(int_b) += 1;
           nab++;
         }
         ait.hop();
         bit.hop();
+
       }
       //ait lags
-      else if ( ( ( ait.position()*a.getBinSize() + a.min() ) - ( bit.position()*b.getBinSize() + b.min() ) )  < 0 )
+      else if (((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) < 0)
       {
-        uint int_a = (uint)(*ait * intervals);
-        if ( int_a == intervals ) int_a--;
-        n.at(int_a).at(0)++;
+        uint int_a = (uint)(*ait * intervals + 0.5);
+        if (int_a == intervals) int_a--;
+        n.at(int_a).at(0) += 1;
         nab++;
         ait.hop();
       }
       //bit lags
-      else if ( ( ( ait.position()*a.getBinSize() + a.min() ) - ( bit.position()*b.getBinSize() + b.min() ) )  > 0 )
+      else if (((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) > 0)
       {
-        uint int_b = (uint)(*bit * intervals);
-        if ( int_b == intervals ) int_b--;
-        n.at(0).at(int_b)++;
+        uint int_b = (uint)(*bit * intervals + 0.5);
+        if (int_b == intervals) int_b--;
+        n.at(0).at(int_b) += 1;
         nab++;
         bit.hop();
       }
@@ -121,52 +121,56 @@ namespace OpenMS
           << " is neither < 0 nor > 0 , but it is not between 1e-8 and -1e-8\n"; 
       }
     }
-    while ( bit != b.end() ) 
+
+    while (bit != b.end()) 
     {
-      uint int_b = (uint)(*bit * intervals);
-      if ( int_b == intervals ) int_b--;
-      n.at(0).at(int_b)++;
+      uint int_b = (uint)(*bit * intervals + 0.5);
+      if (int_b == intervals) int_b--;
+
+      n.at(0).at(int_b) += 1;
       nab++;
       bit.hop();
     }
-    while ( ait != a.end() )
+		
+    while (ait != a.end())
     {
-      uint int_a = (uint)(*ait * intervals);
-      if ( int_a == intervals ) int_a--;
-      n.at(int_a).at(0)++;
+      uint int_a = (uint)(*ait * intervals + 0.5);
+      if (int_a == intervals) int_a--;
+			
+      n.at(int_a).at(0) += 1;
       nab++;
       ait.hop();
     }
-    // if they have no matching pairs, they are uncorrelated
-    if ( nab == 0 ) 
-    {
-      return 0;
-    }
-    
+	
     for (uint i = 0; i < intervals; ++i)
     {
       double marg_freq_a = 0;
-      for (uint j = 0; j < intervals ; ++j)
+      for (uint j = 0; j < intervals; ++j)
       {
         marg_freq_a += n[i][j];
       }
-      na[i] = marg_freq_a/nab;
+      na[i] = marg_freq_a/(double)nab;
     }
+		
     for (uint j = 0; j < intervals; ++j)
     {
       double marg_freq_b = 0;
-      for ( uint i = 0; i < intervals; ++i)
+      for (uint i = 0; i < intervals; ++i)
       {
         marg_freq_b += n[i][j];
       }
-      nb[j] = marg_freq_b/nab;
+      nb[j] = marg_freq_b/(double)nab;
     }
+		
     for (uint i  = 0; i < intervals; ++i)
     {
       for (uint j = 0; j < intervals; ++j)
       {
-        double tempresult = ( n[i][j]/nab ) * log( ( n[i][j]/nab ) / (na[i]*nb[j]) ) / log(2.0f);
-        if ( fabs(n[i][j]) > 1e-8 ) result += tempresult;
+        double tempresult = (n[i][j]/(double)nab) * log((n[i][j]/(double)nab) / (na[i] * nb[j])) / log(2.0f);
+        if (fabs(n[i][j]) > 1e-8) 
+				{
+					result += tempresult;
+				}
       }
     }
     return result * filterfactor;

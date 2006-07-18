@@ -27,12 +27,14 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
-#include <iostream>
-
 #include <cmath>
 
 #define SPECTRUMCHEAPDPCORR_DEBUG
 #undef  SPECTRUMCHEAPDPCORR_DEBUG
+
+#ifdef SPECTRUMCHEAPDPCORR_DEBUG
+	#include <iostream>
+#endif
 
 using namespace std;
 
@@ -62,9 +64,9 @@ namespace OpenMS
   {
   }
 
-  SpectrumCheapDPCorr& SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr& source)
+  SpectrumCheapDPCorr& SpectrumCheapDPCorr::operator = (const SpectrumCheapDPCorr& source)
   {
-    CompareFunctor::operator=(source);
+    CompareFunctor::operator = (source);
     lastconsensus_ = source.lastconsensus_;
 		factor_ = source.factor_;
     return *this;
@@ -85,9 +87,9 @@ namespace OpenMS
   
   /**
   looks for peak pairs where there is just one or none possibility for alignment
-  and aligns them ( if possible ). The rest is aligned using dynprog_<br>
+  and aligns them (if possible). The rest is aligned using dynprog_
   */
-  double SpectrumCheapDPCorr::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
+  double SpectrumCheapDPCorr::operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
   { 
     double var = (double)param_.getValue("variation");
     double score = 0;
@@ -97,7 +99,7 @@ namespace OpenMS
     bool keeppeaks_ = (int)param_.getValue("keeppeaks");
     
     lastconsensus_ = MSSpectrum< DPeak<1> >();
-    lastconsensus_.getPrecursorPeak().getPosition()[0] = ( x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0] )/2;
+    lastconsensus_.getPrecursorPeak().getPosition()[0] = (x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0]) / 2;
     lastconsensus_.getPrecursorPeak().getCharge() = x.getPrecursorPeak().getCharge();
 		peak_map_.clear();
     
@@ -106,19 +108,19 @@ namespace OpenMS
     int ypos = 0;
     MSSpectrum< DPeak<1> >::const_iterator xit = x.getContainer().begin();
     MSSpectrum< DPeak<1> >::const_iterator yit = y.getContainer().begin();
-    while ( xit != x.getContainer().end() && yit != y.getContainer().end())
+    while (xit != x.getContainer().end() && yit != y.getContainer().end())
     {
-      double variation = (xit->getPosition()[0] + yit->getPosition()[0])/2 * var; 
+      double variation = (xit->getPosition()[0] + yit->getPosition()[0]) / 2 * var; 
 
       //ignore pairs that cannot be paired
-      if ( fabs(xit->getPosition()[0] - yit->getPosition()[0]) > variation )
+      if (fabs(xit->getPosition()[0] - yit->getPosition()[0]) > variation)
       {
-        if ( xit->getPosition()[0] < yit->getPosition()[0] ) // while effizienter?
+        if (xit->getPosition()[0] < yit->getPosition()[0]) // while effizienter?
         {
           DPeak<1> consensuspeak;
-          consensuspeak.getPosition()[0] = xit->getPosition()[0] ;
-          consensuspeak.getIntensity()  = (xit->getIntensity())*(1-factor_);
-          if ( keeppeaks_ ) lastconsensus_.getContainer().push_back(consensuspeak);
+          consensuspeak.getPosition()[0] = xit->getPosition()[0];
+          consensuspeak.getIntensity() = (xit->getIntensity()) * (1 - factor_);
+          if (keeppeaks_) lastconsensus_.getContainer().push_back(consensuspeak);
           ++xit;
           ++xpos;
         }
@@ -126,8 +128,8 @@ namespace OpenMS
         {
           DPeak<1> consensuspeak;
           consensuspeak.getPosition()[0] = yit->getPosition()[0] ;
-          consensuspeak.getIntensity()  = (yit->getIntensity())*(factor_);
-          if ( keeppeaks_ ) lastconsensus_.getContainer().push_back(consensuspeak);
+          consensuspeak.getIntensity()  = (yit->getIntensity()) * (factor_);
+          if (keeppeaks_) lastconsensus_.getContainer().push_back(consensuspeak);
           ++yit;
           ++ypos;
         }
@@ -137,15 +139,15 @@ namespace OpenMS
         //x/yrun represents the number of peaks in both spectra that could be paired
         int xrun = 1;
         int yrun = 1;
-        while ( xit+xrun != x.getContainer().end() && yit+yrun != y.getContainer().end() && 
-            (!((xit+xrun-1)->getPosition()[0] + variation < (yit+yrun)->getPosition()[0]) || 
-             !((yit+yrun-1)->getPosition()[0] + variation < (xit+xrun)->getPosition()[0]))  )
+        while (xit + xrun != x.getContainer().end() && yit + yrun != y.getContainer().end() && 
+            (!((xit + xrun - 1)->getPosition()[0] + variation < (yit + yrun)->getPosition()[0]) || 
+             !((yit + yrun - 1)->getPosition()[0] + variation < (xit + xrun)->getPosition()[0])))
         {
-          if ( (yit+yrun-1)->getPosition()[0] + variation >  (xit+xrun)->getPosition()[0])
+          if ((yit + yrun - 1)->getPosition()[0] + variation > (xit + xrun)->getPosition()[0])
           {
             xrun++;
           }
-          else if ( (xit+xrun-1)->getPosition()[0] + variation > (yit+yrun)->getPosition()[0] )
+          else if ((xit + xrun - 1)->getPosition()[0] + variation > (yit + yrun)->getPosition()[0])
           {
             yrun++;
           }
@@ -154,14 +156,14 @@ namespace OpenMS
             xrun++;
             yrun++;
           }
-          if ( xit+xrun == x.getContainer().end() ) break;
-          if ( yit+yrun == y.getContainer().end() ) break;
+          if (xit + xrun == x.getContainer().end()) break;
+          if (yit + yrun == y.getContainer().end()) break;
         }
         
         //dynamic programming necessary to calculate optimal pairing
-        if ( xrun > 1 && yrun > 1 )
+        if (xrun > 1 && yrun > 1)
         {
-          score += dynprog_(x,y,xpos,xpos+xrun-1,ypos,ypos+yrun-1);
+          score += dynprog_(x, y, xpos, xpos + xrun - 1, ypos, ypos + yrun - 1);
           xit = xit + xrun;
           yit = yit + yrun;
           xpos += xrun;
@@ -172,21 +174,21 @@ namespace OpenMS
         {
           // calculate consensus peak 
           DPeak<1> consensuspeak;
-          consensuspeak.getPosition()[0] = ( xit->getPosition()[0]*(1-factor_) + yit->getPosition()[0]*(factor_) );
-          consensuspeak.getIntensity()  = (xit->getIntensity()*(1-factor_) + yit->getIntensity()*factor_);
+          consensuspeak.getPosition()[0] = (xit->getPosition()[0] * (1 - factor_) + yit->getPosition()[0] * (factor_));
+          consensuspeak.getIntensity()  = (xit->getIntensity() * (1 - factor_) + yit->getIntensity() * factor_);
           lastconsensus_.getContainer().push_back(consensuspeak);
 					
-					if (!peak_map_.has(xit-x.getContainer().begin()))
+					if (!peak_map_.has(xit - x.getContainer().begin()))
 					{
-						peak_map_[xit-x.getContainer().begin()] = yit-y.getContainer().begin();
+						peak_map_[xit - x.getContainer().begin()] = yit - y.getContainer().begin();
 					}
 					else
 					{
-						peak_map_[xit-x.getContainer().begin()] = yit-y.getContainer().begin() > xit-x.getContainer().begin() ? xit-x.getContainer().begin() : yit-y.getContainer().begin();
+						peak_map_[xit - x.getContainer().begin()] = yit - y.getContainer().begin() > xit - x.getContainer().begin() ? xit - x.getContainer().begin() : yit - y.getContainer().begin();
 					}
           
-          variation = (xit->getPosition()[0] + yit->getPosition()[0])/2 * var;
-          score += comparepeaks_(xit->getPosition()[0],yit->getPosition()[0],xit->getIntensity(),yit->getIntensity());
+          variation = (xit->getPosition()[0] + yit->getPosition()[0]) / 2 * var;
+          score += comparepeaks_(xit->getPosition()[0], yit->getPosition()[0], xit->getIntensity(), yit->getIntensity());
           ++xit;
           ++yit;
           ++xpos;
@@ -204,24 +206,26 @@ namespace OpenMS
 		cerr << "SpectrumCheapDPCorr::dynprog_(const DDiscreteSpectrum<1>& x, const DDiscreteSpectrum<1>& y, " << xstart << ", "<< xend << ", " <<  ystart << ", " << yend << ")" <<  endl;
 		#endif
     double var = (double)param_.getValue("variation");
-    vector< vector<double> > dparray(xend-xstart+2, vector<double>(yend-ystart+2));
-    vector< vector<int> > trace(xend-xstart+2, vector<int>(yend-ystart+2));
+    vector<vector<double> > dparray(xend - xstart + 2, vector<double>(yend - ystart + 2));
+    vector<vector<int> > trace(xend - xstart + 2, vector<int>(yend - ystart + 2));
     double align;
-    for ( int i = 1; i < xend - xstart+2 ; ++i)
+    for (int i = 1; i < xend - xstart+2 ; ++i)
     {
-      for ( int j = 1; j < yend - ystart+2; ++j)
+      for (int j = 1; j < yend - ystart+2; ++j)
       {
-        double variation = (y.getContainer()[ystart + j-1].getPosition()[0]
-                  + x.getContainer()[xstart + i-1].getPosition()[0])/2 * var;
+        double variation = (y.getContainer()[ystart + j - 1].getPosition()[0] + x.getContainer()[xstart + i - 1].getPosition()[0]) / 2 * var;
         //positions too different
-        if ( fabs( x.getContainer()[xstart + i-1].getPosition()[0]-y.getContainer()[ystart + j-1].getPosition()[0]) > variation ) align = 0;
+        if (fabs( x.getContainer()[xstart + i - 1].getPosition()[0] - y.getContainer()[ystart + j - 1].getPosition()[0]) > variation ) align = 0;
 
         //calculate score of alignment
-        else  align = comparepeaks_(x.getContainer()[xstart + i-1].getPosition()[0], y.getContainer()[ystart + j-1].getPosition()[0], x.getContainer()[xstart+i-1].getIntensity(), y.getContainer()[ystart+j-1].getIntensity());
+        else  align = comparepeaks_(x.getContainer()[xstart + i - 1].getPosition()[0], 
+																		y.getContainer()[ystart + j - 1].getPosition()[0], 
+																		x.getContainer()[xstart + i - 1].getIntensity(), 
+																		y.getContainer()[ystart + j - 1].getIntensity());
         //dynaminc programming step
-        if ( (((dparray[i][j-1])>(dparray[i-1][j-1]+align))?(dparray[i][j-1]):(dparray[i-1][j-1]+align)) /*== max*/ > dparray[i-1][j] ) 
+        if ((((dparray[i][j-1])>(dparray[i-1][j-1]+align))?(dparray[i][j-1]):(dparray[i-1][j-1]+align)) /*== max*/ > dparray[i-1][j])
         {
-          if ( dparray[i-1][j-1] + align > dparray[i][j-1] )
+          if (dparray[i-1][j-1] + align > dparray[i][j-1] )
           {
             dparray[i][j] = dparray[i-1][j-1] + align;
             trace[i][j] = 5;
@@ -292,30 +296,30 @@ namespace OpenMS
 	}
 
   /**
-   \param posa position of peak a
-   \param posb position of peak b
-   \param inta intensity of peak a
-   \param intb intensity of peak b
-   \return score
+   @param posa position of peak a
+   @param posb position of peak b
+   @param inta intensity of peak a
+   @param intb intensity of peak b
+   @return score
    */
   double SpectrumCheapDPCorr::comparepeaks_(double posa, double posb, double inta, double intb) const
   {
     double variation = ( posa + posb ) / 2 * (double)param_.getValue("variation");
-    if ( fabs((double)param_.getValue("int_cnt")) < 1e-8 )
+    if (fabs((double)param_.getValue("int_cnt")) < 1e-8)
     {
-      return gsl_ran_gaussian_pdf(posa-posb,variation) * inta * intb;
+      return gsl_ran_gaussian_pdf(posa - posb, variation) * inta * intb;
     }
-    else if ( fabs((double)param_.getValue("int_cnt") - 1) < 1e-8 )
+    else if (fabs((double)param_.getValue("int_cnt") - 1) < 1e-8)
     {
-      return gsl_ran_gaussian_pdf(posa-posb,variation) * sqrt(inta * intb);
+      return gsl_ran_gaussian_pdf(posa - posb, variation) * sqrt(inta * intb);
     }
-    else if ( fabs((double)param_.getValue("int_cnt") - 2) < 1e-8 )
+    else if (fabs((double)param_.getValue("int_cnt") - 2) < 1e-8)
     {
-      return gsl_ran_gaussian_pdf(posa-posb,variation) * ( inta + intb );
+      return gsl_ran_gaussian_pdf(posa - posb, variation) * ( inta + intb );
     }
-    else if ( fabs((double)param_.getValue("int_cnt") - 3) < 1e-8 )
+    else if (fabs((double)param_.getValue("int_cnt") - 3) < 1e-8)
     {
-      return max(0.0,gsl_ran_gaussian_pdf(posa-posb,variation) * ( ( inta + intb )/2 - fabs(inta-intb) ));
+      return max(0.0,gsl_ran_gaussian_pdf(posa - posb, variation) * ((inta + intb) / 2 - fabs(inta - intb)));
     }
     else
     {

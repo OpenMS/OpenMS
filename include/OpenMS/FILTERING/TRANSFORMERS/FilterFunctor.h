@@ -37,14 +37,10 @@ namespace OpenMS
 		@defgroup SpectraFilter Spectra Filters
 		
 		The base class of all classes in this module is FilterFunctor. It defindes the interface to all the filters.
-		
-		@ingroup Filtering
 	*/
 
   /**	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
-  
-  	@ingroup SpectraFilter
   */
   class FilterFunctor : public FactoryProduct
   {

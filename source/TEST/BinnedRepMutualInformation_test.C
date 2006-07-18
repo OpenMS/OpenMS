@@ -74,12 +74,13 @@ CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb
 	ClusterSpectrum cs2(spec2, 0, 1, 1);	
 
 	double score = (*e_ptr)(cs1, cs2);
-	TEST_REAL_EQUAL(score, 0.0311429);
+	PRECISION(0.01)
+	TEST_REAL_EQUAL(score, 0.0322523)
 
 RESULT
 
 CHECK(bool usebins() const)
-	//TEST_EQUAL(e_ptr->usebins(), true)
+	TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

@@ -32,9 +32,10 @@
 namespace OpenMS
 {
   /**
-  	@brief Parentfilter returns parention charge and mass<br>
+  	@brief Parentfilter returns parent-ion charge and mass
 
-		@ingroup SpectraFilter
+		// will be readded when functionality is implemented
+		// ingroup SpectraFilter
   */
   class ParentFilter : public FilterFunctor
   {

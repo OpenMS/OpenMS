@@ -37,8 +37,9 @@ namespace OpenMS
   
   For exact formula look in  Bioinformatics, Aug 2004; 20: i49 - i54
   
-  \param C1
-  \param C2
+  @param C1
+  @param C2
+	@param threshold
 
 	@ingroup SpectraPreprocessing
   */
@@ -85,10 +86,10 @@ namespace OpenMS
     	// find highest peak and ranking
     	double maxint = 0;
     	std::map<double, uint> peakranks;
-    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it )
+    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
       	peakranks[it->getIntensity()] = 0;
-      	if ( it->getIntensity() > maxint )
+      	if (it->getIntensity() > maxint)
       	{
        		maxint = it->getIntensity();
       	}
@@ -99,7 +100,7 @@ namespace OpenMS
      		mit->second = ++rank;
     	}
 
-    	// find maxmz i.e. significant ( > threshold * maxpeak ) peak with highest m/z
+    	// find maxmz i.e. significant (> threshold * maxpeak) peak with highest m/z
     	double maxmz = 0;
     	for (int i = spectrum.size() -1 ; i >= 0 ; --i)
     	{
@@ -113,14 +114,14 @@ namespace OpenMS
     	// rank
     	for (Iterator it = spectrum.begin() ; it != spectrum.end(); )
     	{
-      	double newint = c1-(c2/maxmz)*peakranks[it->getIntensity()];
-      	if ( newint < 0 )
+      	double newint = c1 - (c2 / maxmz) * peakranks[it->getIntensity()];
+      	if (newint < 0)
       	{
         	it = spectrum.getContainer().erase(it);
       	}
       	else
       	{
-        	it->getIntensity() = newint;
+        	it->setIntensity(newint);
         	++it;
       	}
     	}
