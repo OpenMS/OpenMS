@@ -255,7 +255,7 @@ ifeq ($(GSL_SUPPORT),true)
 		DMapMatcherRegression_test\
 		DMapDewarper_test
 endif
-		
+
 
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DFeaturePair_test\
@@ -265,7 +265,17 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DLinearMapping_test\
 	$(GSL_EXECUTABLES_ANALYSIS_MAPMATCHING)
 
+# TRANSFORMATIONS
+
+ifeq ($(GSL_SUPPORT),true)
+	GSL_EXECUTABLES_TRANSFORMATIONS = \
+		ContinuousWaveletTransformNumIntegration_test\
+		OptimizePick_test
+
+endif
+
 EXECUTABLES_TRANSFORMATIONS = \
+	${GSL_EXECUTABLES_TRANSFORMATIONS}\
 	PeakShape_test\
 	BaseModel_test\
 	GaussModel_test\
@@ -275,8 +285,10 @@ EXECUTABLES_TRANSFORMATIONS = \
 	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\
-	FeaFiTraits_test
-#	DExtractSignalRegions_test
+	FeaFiTraits_test\
+	PeakPicker_test\
+	PeakPickerCWT_test
+
 
 EXECUTABLES_ANALYSIS_ID =\
 	MSExperimentAnnotator_test
