@@ -118,7 +118,7 @@ namespace OpenMS
     
     //resizeEvent
     void resizeEvent(QResizeEvent * e);
-    void connectMouseEvents();
+	  void connectMouseEvents();
     
     Spectrum3DOpenGLCanvas* openglcanvas_;
     int current_zoom_;

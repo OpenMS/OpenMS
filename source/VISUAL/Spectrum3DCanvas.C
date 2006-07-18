@@ -28,6 +28,7 @@
 #include <math.h>
 #include<iostream.h>
 
+#include<qimage.h>
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -141,6 +142,10 @@ void Spectrum3DCanvas::invalidate_()
 
 void Spectrum3DCanvas::intensityModeChange_()
 {
+	if(intensity_mode_ == SpectrumCanvas::IM_SNAP)
+		{
+			openglwidget()->updateIntensityScale();
+		}
 	openglwidget()->recalculateDotGradient_();
 	recalculate_ = true;
 	invalidate_();

@@ -32,6 +32,7 @@
 #include <qpixmap.h>
 #include <qgl.h>
 
+#include<qpainter.h>
 // STL
 #include <vector>
 
@@ -171,7 +172,7 @@ namespace OpenMS
 		///  returns the mz-value : BB-coordinates  --> value
 		double scaledInversMZ(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-		double scaledIntensity(double intensity);
+		double scaledIntensity(double intensity,int dataset);
 
 		/// recalculates the dot gradient inerpolation values.
 		void recalculateDotGradient_();
@@ -264,7 +265,9 @@ namespace OpenMS
 		double trans_x_;
 		/// y_translation
 		double trans_y_;
-		QPixmap pixmap_;
+	// 	QPixmap *pix_;
+		QPainter paint_;
+		bool zoom_paint_;
 public slots:
     /// first normalize the angel and then set xRot_ 
     void setRotationX(int angle);

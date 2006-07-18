@@ -952,7 +952,7 @@ namespace OpenMS
 
   void SpectrumMDIWindow::setIntensityMode(QAction* a)
   {
-    SpectrumWindow* w = activeWindow_();
+	  SpectrumWindow* w = activeWindow_();
     if (w)
     {
       string name = a->name();
