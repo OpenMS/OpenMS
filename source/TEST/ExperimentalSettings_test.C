@@ -223,17 +223,16 @@ RESULT
 
 CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   ExperimentalSettings tmp;
-  ProteinIdentification* id;
+  ProteinIdentification id;
   DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
 	date.now();
 
-	id = new ProteinIdentification();
-	id->setDateTime(date);
-	id->setProteinSignificanceThreshold(protein_significance_threshold);
-	id->insertProteinHit(protein_hit);
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
   
   tmp.getHPLC().setFlux(5);
   tmp.getInstrument().setName("bla");
@@ -242,7 +241,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
-  tmp.addProteinIdentification(*id);
+  tmp.addProteinIdentification(id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2(tmp);
@@ -253,23 +252,22 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
-  TEST_EQUAL(*id == tmp2.getProteinIdentifications()[0], true);
+  TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 RESULT
 
 CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   ExperimentalSettings tmp;
-  ProteinIdentification* id;
+  ProteinIdentification id;
   DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
 	date.now();
 
-	id = new ProteinIdentification();
-	id->setDateTime(date);
-	id->setProteinSignificanceThreshold(protein_significance_threshold);
-	id->insertProteinHit(protein_hit);
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
 
   tmp.getHPLC().setFlux(5);
   tmp.getInstrument().setName("bla");
@@ -278,7 +276,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
-	tmp.addProteinIdentification(*id);
+	tmp.addProteinIdentification(id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2;
@@ -291,7 +289,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(*id == tmp2.getProteinIdentifications()[0], true);
+  TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 
   tmp2 = ExperimentalSettings();
@@ -308,17 +306,16 @@ RESULT
 
 CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
-  ProteinIdentification* id;
+  ProteinIdentification id;
   DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
 	date.now();
 
-	id = new ProteinIdentification();
-	id->setDateTime(date);
-	id->setProteinSignificanceThreshold(protein_significance_threshold);
-	id->insertProteinHit(protein_hit);
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
   
   TEST_EQUAL(edit==empty,true);
   
@@ -350,7 +347,7 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit==empty,false);
 
   edit = empty;
-	edit.addProteinIdentification(*id);
+	edit.addProteinIdentification(id);
   TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
@@ -360,6 +357,16 @@ RESULT
 
 CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
+  ProteinIdentification id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
   
   TEST_EQUAL(edit!=empty,false);
   
@@ -390,10 +397,89 @@ CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
   edit.getContacts().resize(1);
   TEST_EQUAL(edit!=empty,true);
 
+  edit = empty;
+	edit.addProteinIdentification(id);
+  TEST_EQUAL(edit!=empty, true);
+
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);
 RESULT
+
+CHECK(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+  ExperimentalSettings settings;
+  ProteinIdentification id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
+	
+	settings.addProteinIdentification(id);
+	const ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
+	TEST_EQUAL(id == test_id, true)
+RESULT
+
+CHECK(std::vector<ProteinIdentification>& getProteinIdentifications())
+  ExperimentalSettings settings;
+  ProteinIdentification id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
+	
+	settings.addProteinIdentification(id);
+	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
+	TEST_EQUAL(id == test_id, true)
+RESULT
+
+CHECK(void addProteinIdentification(ProteinIdentification& protein_identification))
+  ExperimentalSettings settings;
+  ProteinIdentification id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
+	
+	settings.addProteinIdentification(id);
+	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
+	TEST_EQUAL(id == test_id, true)
+RESULT
+
+CHECK(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+  ExperimentalSettings settings;
+  ProteinIdentification id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+	vector<ProteinIdentification> ids;
+
+	date.now();
+
+	id.setDateTime(date);
+	id.setProteinSignificanceThreshold(protein_significance_threshold);
+	id.insertProteinHit(protein_hit);
+	ids.push_back(id);
+	id.setProteinSignificanceThreshold(21.f);
+	ids.push_back(id);
+	settings.setProteinIdentifications(ids);
+	TEST_EQUAL(ids == settings.getProteinIdentifications(), true)
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
