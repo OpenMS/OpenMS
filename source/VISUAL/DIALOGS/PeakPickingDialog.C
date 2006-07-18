@@ -39,7 +39,7 @@ PeakPickingDialog::PeakPickingDialog(QWidget* parent, const char* name , WFlags 
     height_(200),
     height_ms2_(50),
     signal_to_noise_(5),
-    fwhm_(0.25)
+    fwhm_(0.2)
 {
   heightLineEdit->setText(QString().setNum(height_));
   heightMs2LineEdit->setText(QString().setNum(height_ms2_));
@@ -132,7 +132,7 @@ void PeakPickingDialog::resetButton_clicked()
   height_ = 200;
   height_ms2_ = 50;
   signal_to_noise_ = 5;
-  fwhm_ = 0.25;
+  fwhm_ = 0.2;
   optimization_ = false;
 
   heightLineEdit->setText(QString().setNum(height_));
