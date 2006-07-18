@@ -1315,7 +1315,7 @@ namespace OpenMS
     PeakPickingDialog dialog(this,"Open Peak Picking Dialog");
     if (dialog.exec())
     {
-    	//pick data
+      //pick data
       PeakPickerCWT peak_picker;
       //estimate the scale a given the fwhm f
       //the fwhm of a marr wavelet is f ~ 1.252*a
@@ -1325,17 +1325,19 @@ namespace OpenMS
       peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
       peak_picker.setOptimizationValue(dialog.getOptimization());
       peak_picker.setSignalToNoiseLevel(dialog.getSignalToNoise());
-      
+
       Spectrum1DWindow* w = active1DWindow_();
       if (w!=0)
       {
-        //add new spectrum
+        //add new layer
         String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
         Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
         exp.setName(new_name); // set layername
-        exp.resize(1);
 
-       	peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
+        // add one spectrum
+        exp.resize(1);
+        // pick peaks
+        peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
 
         //color picked peaks
         for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
@@ -1346,28 +1348,42 @@ namespace OpenMS
         w->widget()->canvas()->finishAdding();
       }
       else
-      	{
-      		Spectrum2DWindow* w2 = active2DWindow_();
-      		if (w2!=0)
-      			{
-      				//add new spectrum
-      				String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (picked)";
-        			Spectrum2DCanvas::ExperimentType& exp2 = w2->widget()->canvas()->addEmptyDataSet();
-        			exp2.setName(new_name); // set layername		
+      {
 
-        			peak_picker.pickExperiment(w2->widget()->canvas()->currentDataSet(),exp2);
-        			
-        			String gradient_peaks("Linear|40,40");
-        			        			
-        			w2->widget()->canvas()->setDotGradient(gradient_peaks);
-        			w2->widget()->canvas()->finishAdding();
-        		}
-        	}
-    	updateLayerbar();
+        Spectrum2DWindow* w2 = active2DWindow_();
+        if (w2!=0)
+        {
+          //add new window for picked peaks
+          Spectrum2DWindow* w_picked = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
+          //set main preferences
+          w_picked->widget()->setMainPreferences(prefs_);
+          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (picked)";
+
+          Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyDataSet();
+          exp2.setName(new_name); // set layername
+
+          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_picked";
+
+          peak_picker.pickExperiment(w2->widget()->canvas()->currentDataSet(),exp2);
+
+          w_picked->widget()->canvas()->finishAdding();
+
+          connectWindowSignals_(w_picked);
+          w_picked->setCaption(new_name);
+          addClient(w_picked,filename);
+          addTab_(w_picked,new_name);
+
+          w_picked->showMaximized();
+
+//           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
+//           w_picked->widget()->canvas()->setDotGradient(gradient_peaks);
+        }
+      }
+      updateLayerbar();
     }
   }
 
- 	SpectrumWindow*  SpectrumMDIWindow::activeWindow_() const
+  SpectrumWindow*  SpectrumMDIWindow::activeWindow_() const
   {
     return dynamic_cast<SpectrumWindow*>(ws_->activeWindow());
   }
