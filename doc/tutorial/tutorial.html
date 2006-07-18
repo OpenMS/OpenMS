@@ -22,14 +22,44 @@
 
 
   <h1>Tutorial</h1>
+	
+	Subsections of this tutorial are:
+	<a href="#kernel">Kernel</a> | 
+	<a href="#datastructures">Datastructures</a> | 
+	<a href="#format">Format</a> | 
+	<a href="#metadata">Metadata</a> | 
+	<a href="#transformations">Transformations</a> | 
+	<a href="#filtering">Filtering</a> | 
+	<a href="#visual">Visual</a> |
+	<a href="#analysis">Analysis</a>
 
 
-  <h2>Kernel</h2>
+  <h2>Kernel<a name="kernel"></h2>
+  
   The <tt>KERNEL</tt> folder contains classes that represent the
-  actual MS data: Peaks, Spectra, Features, Maps, ... <img src=
-  "Kernel.png">
+  actual MS data: Peaks, Spectra, Features, Maps, ...
 
-  <h3>Traits</h3>
+  <h3>Main datastructures</h3>
+  <TABLE border=0>
+  <TR>
+  <TD valign=top>
+	  <b>MSSpectrum</b> is a 1-dimensional spectrum of an
+	  arbitrary peak type that holds meta information as well
+	  (SpectrumSettings).
+	  <br>
+	  <b>MSExperiment</b> is a two dimensional MS
+	  experiment. It is implemented as a vector of MSSpectrum and is
+	  derived from ExperimentalSettings for meta information.
+		<BR>
+		Those two main classes consist of several other classes that are explained now.
+	</TD>
+	<TD>
+		<img src="Kernel_main.png">
+	</TD>
+	</TR>
+	</TABLE>
+
+ <h3>Traits</h3>
   The traits class used as template argument of many Kernel classes
   determines the type that e.g. position, intensity and charge
   have. By default most of these types are doubles.
@@ -58,6 +88,9 @@ coordiante[DimDesc::RT] = 0.1;
 </pre><b>DRange</b> is a pair of <tt>DPositions</tt> that spans a
 D-dimensions hypercube and offers some convenient methods e.g. for
 intersection and center.
+</pre>
+
+	<img src="Kernel.png">
 
   <h3>Raw data, peaks and features</h3>
   <b>DRawDataPoint</b> is rawdata point with a D-dimensional
@@ -79,7 +112,7 @@ intersection and center.
   peaks related to a specific peptide or some other chemical
   entity.
 
-  <h3>Spectra</h3>
+  <h3>DSpectrum and peak container</h3>
   <b>DSpectrum</b> represents a D-dimensional spectrum i.e. a
   container of D-dimensional data points (any class derived from
   DRawDataPoint).
@@ -131,20 +164,11 @@ for (Spectrum2D::Iterator it = spectrum.getContainer().begin(); it!=spectrum.get
 }
 </pre>
 
-  <h3>Main datastructures</h3>
-  <b>MSSpectrum</b> represents a 1-dimensional spectrum of an
-  arbitrary peak type that holds meta information as well
-  (SpectrumSettings).
-  <br>
-  <b>MSExperiment</b> represents some two dimensional MS
-  experiment. It is implemented as a vector of MSSpectrum and is
-  derived from ExperimentalSettings for meta information.
-
-  <h2>Datastructures</h2>
+  <h2>Datastructures<a name="datastructures"></h2> 
   The <tt>DATASTRUCTURES</tt> folder contains shared datastructure
   classes, e.g. a convenient string implementation.
 
-  <h2>Format</h2>
+  <h2>Format<a name="format"></h2> 
   The <tt>FORMAT</tt> folder contains classes for both database and
   file I/O.
 
@@ -207,7 +231,7 @@ andi.load(map,"dummy.cdf");
 mzdata.store(map,"dummy.mzData");
 </pre>
 
-  <h2>Metadata</h2>
+  <h2>Metadata<a name="metadata"></h2> 
   The <tt>METADATA</tt> folder contains classes for storage of MS
   metadata, e.g. instrument settings and sample description.
   <br>
@@ -249,7 +273,7 @@ mzdata.store(map,"dummy.mzData");
   <br clear="all">
 
 
-  <h2>Transformations</h2>
+  <h2>Transformations<a name="transformations"></h2> 
   The TRANSFORMATIONS folder contains classes for the
   transformations of raw and peak data.
 
@@ -413,7 +437,7 @@ features = ff.run();
   that outlined here. For details please have a look at the class
   diagram given below. <img src="FeatureFinder.png">
 
-  <h2>Filtering</h2>
+  <h2>Filtering<a name="filtering"></h2> 
   The FILTERING folder contains classes for calibration, smoothing
   and the baseline-filtering of raw data.
 
@@ -510,11 +534,11 @@ the polynom which is used.
   </ul>
 
 
-  <h2>Visual</h2>
+  <h2>Visual<a name="visual"></h2> 
   The <tt>VISUAL</tt> folder contains classes of the GUI.
 
 
-  <h2>Analysis</h2>
+  <h2>Analysis<a name="analysis"></h2> 
   This folder contains algorithms and modules for the high-level
   processing and analysis of LC/MS data.
 
