@@ -148,7 +148,7 @@ namespace OpenMS
 		  /// sets the protein identification vector
 		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 		  /// adds an identification to the identification vector
-		  void addProteinIdentifications(ProteinIdentification& protein_identification);
+		  void addProteinIdentification(ProteinIdentification& protein_identification);
 
     protected:
 			Sample sample_;

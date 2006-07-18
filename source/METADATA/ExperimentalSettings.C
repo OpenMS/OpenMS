@@ -43,7 +43,8 @@ namespace OpenMS
 		processing_method_(),
 		hplc_(),
 		type_(UNKNOWN),
-		date_()
+		date_(),
+		protein_identifications_()
 	{
 	  
 	}
@@ -58,7 +59,8 @@ namespace OpenMS
 	  processing_method_(source.processing_method_),
 	  hplc_(source.hplc_),
 	  type_(source.type_),
-	  date_(source.date_)
+	  date_(source.date_),
+		protein_identifications_(source.protein_identifications_)
 	{
 	  
 	}
@@ -81,6 +83,7 @@ namespace OpenMS
     hplc_ = source.hplc_;
     type_ = source.type_;
     date_ = source.date_;
+    protein_identifications_ = source.protein_identifications_;
     MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -98,6 +101,7 @@ namespace OpenMS
 	    hplc_ == rhs.hplc_ &&
 	    type_ == rhs.type_ &&
 	    date_ == rhs.date_ &&
+    	protein_identifications_ == rhs.protein_identifications_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -255,7 +259,7 @@ namespace OpenMS
   	protein_identifications_ = protein_identifications;
   }
   
-  void ExperimentalSettings::addProteinIdentifications(ProteinIdentification& protein_identification)
+  void ExperimentalSettings::addProteinIdentification(ProteinIdentification& protein_identification)
   {
   	protein_identifications_.push_back(protein_identification);
   }

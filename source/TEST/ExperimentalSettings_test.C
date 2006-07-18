@@ -223,6 +223,18 @@ RESULT
 
 CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   ExperimentalSettings tmp;
+  ProteinIdentification* id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id = new ProteinIdentification();
+	id->setDateTime(date);
+	id->setProteinSignificanceThreshold(protein_significance_threshold);
+	id->insertProteinHit(protein_hit);
+  
   tmp.getHPLC().setFlux(5);
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
@@ -230,6 +242,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
+  tmp.addProteinIdentification(*id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2(tmp);
@@ -240,11 +253,24 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
+  TEST_EQUAL(*id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 RESULT
 
 CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   ExperimentalSettings tmp;
+  ProteinIdentification* id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id = new ProteinIdentification();
+	id->setDateTime(date);
+	id->setProteinSignificanceThreshold(protein_significance_threshold);
+	id->insertProteinHit(protein_hit);
+
   tmp.getHPLC().setFlux(5);
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
@@ -252,6 +278,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
+	tmp.addProteinIdentification(*id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2;
@@ -263,6 +290,8 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
+  TEST_EQUAL(tmp2.getProteinIdentifications().size(), 1);
+  TEST_EQUAL(*id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 
   tmp2 = ExperimentalSettings();
@@ -273,11 +302,23 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getSoftware().getName(),"");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"");
   TEST_EQUAL(tmp2.getContacts().size(),0);
+  TEST_EQUAL(tmp2.getProteinIdentifications().size(), 0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 RESULT
 
 CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
+  ProteinIdentification* id;
+  DateTime date;
+	ProteinHit protein_hit;
+	Real protein_significance_threshold = 63.2f;
+
+	date.now();
+
+	id = new ProteinIdentification();
+	id->setDateTime(date);
+	id->setProteinSignificanceThreshold(protein_significance_threshold);
+	id->insertProteinHit(protein_hit);
   
   TEST_EQUAL(edit==empty,true);
   
@@ -307,6 +348,10 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   edit = empty;
   edit.getContacts().resize(1);
   TEST_EQUAL(edit==empty,false);
+
+  edit = empty;
+	edit.addProteinIdentification(*id);
+  TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
