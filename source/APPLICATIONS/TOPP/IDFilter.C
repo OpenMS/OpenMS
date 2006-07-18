@@ -171,8 +171,8 @@ class TOPPIDFilter
 					 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
 					 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
            << "  <ITEM name=\"strict\" value=\"false\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"proteinSignificanceThresholdFraction\" value=\"1\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"peptideSignificanceThresholdFraction\" value=\"1\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"protein_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
+           << "  <ITEM name=\"peptide_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
 					 << "  <ITEM name=\"sequences_file\" value=\"sequences.fasta\" type=\"string\"/>" << endl
 					 << "  <ITEM name=\"exclusion_peptides_file\" value=\"peptides.analysisXML\" type=\"string\"/>" << endl; 					 
 		}		
@@ -262,11 +262,11 @@ class TOPPIDFilter
 				writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
 			}
 
-			peptide_significance_threshold_fraction = getParamAsString_("pepfr", String("0.f")).toFloat();
+			peptide_significance_threshold_fraction = getParamAsString_("peptide_significance_threshold_fraction", String("0.f")).toFloat();
 			writeDebug_(String("Peptide significance threshold fraction: ") + 
 									String(peptide_significance_threshold_fraction), 1);
 
-			protein_significance_threshold_fraction = getParamAsString_("protfr", String("0.f")).toFloat();
+			protein_significance_threshold_fraction = getParamAsString_("protein_significance_threshold_fraction", String("0.f")).toFloat();
 			writeDebug_(String("Protein significance threshold fraction: ") + 
 									String(protein_significance_threshold_fraction), 1);
 
@@ -407,34 +407,34 @@ class TOPPIDFilter
 			for(UnsignedInt i = 0; i < identifications.size(); i++)
 			{	
 																 
-				filtered_identification = 
-					filter.filterIdentificationsByThresholds(identifications[i], 
+				filter.filterIdentificationsByThresholds(identifications[i], 
 					 																				 peptide_significance_threshold_fraction, 
-																									 protein_significance_threshold_fraction, 
+																									 protein_significance_threshold_fraction,
+																									 filtered_identification, 
 																									 strict);
 				if (sequences_file_name != "")
 				{
-					filtered_identification = 
-						filter.filterIdentificationsByProteins(filtered_identification, 
-					 																				 sequences);
+					filter.filterIdentificationsByProteins(filtered_identification, 
+																								sequences,
+																								filtered_identification);
 				}
 				
 				if (total_gradient_time != 0.f)
 				{
-					filtered_identification = 
-						filter.filterIdentificationsByRetentionTimes(filtered_identification, 
-					 																				 predicted_retention_times,
-					 																				 precursor_retention_times[i],
-					 																				 predicted_sigma,
-					 																				 allowed_deviation,
-					 																				 total_gradient_time);
+					filter.filterIdentificationsByRetentionTimes(filtered_identification, 
+							 																				 predicted_retention_times,
+							 																				 precursor_retention_times[i],
+							 																				 predicted_sigma,
+							 																				 allowed_deviation,
+							 																				 total_gradient_time,
+							 																				 filtered_identification);
 				}
 				
 				if (exclusion_peptides_file_name != "")
 				{
-					filtered_identification = 
-						filter.filterIdentificationsByExclusionPeptides(filtered_identification,
-																														exclusion_peptides); 				
+					filter.filterIdentificationsByExclusionPeptides(filtered_identification,
+																													exclusion_peptides,
+																													filtered_identification); 				
 				}
 	
 				if(!filtered_identification.empty())

@@ -275,6 +275,11 @@ class TOPPMascotAdapter
 			options_["-mods"] = "modifications";
 			options_["-vmods"] = "variable_modifications";
 			options_["-charges"] = "charges";
+			options_["-db"] = "db";
+			options_["-hits"] = "hits";
+			options_["-cleavage"] = "cleavage";
+			options_["-missed_cleavages"] = "missed_cleavages";
+			options_["-mass_type"] = "mass_type";
 			options_["-mascot_in"] = "mascot_in";
 			options_["-mascot_out"] = "mascot_out";
 			options_["-mascot_directory"] = "mascot_directory";
@@ -394,21 +399,21 @@ class TOPPMascotAdapter
 			}
 			else
 			{		
-				instrument = getParamAsString_("instr", "Default");
+				instrument = getParamAsString_("instrument", "Default");
 				writeDebug_(String("Instrument: ") + instrument, 1);
-				precursor_mass_tolerance = getParamAsString_("prcr_m_tol", "2.0f").toDouble();
+				precursor_mass_tolerance = getParamAsString_("precursor_mass_tolerance", "2.0f").toDouble();
 				writeDebug_(String("Precursor mass tolerance: ") + 
 					String(precursor_mass_tolerance), 1);
 
 
-				peak_mass_tolerance = getParamAsString_("pk_m_tol", "1.0f").toDouble();
+				peak_mass_tolerance = getParamAsString_("peak_mass_tolerance", "1.0f").toDouble();
 				writeDebug_(String("Peak mass tolerance: ") + String(peak_mass_tolerance), 1);
 
-				taxonomy = getParamAsString_("tax", "All entries");
+				taxonomy = getParamAsString_("taxonomy", "All entries");
 				writeDebug_(String("Taxonomy: ") + taxonomy, 1);
 
 				/// fixed modifications
-				temp_string = getParamAsString_("mods");
+				temp_string = getParamAsString_("modifications");
 				temp_string.split(',', mods);
 				if (mods.size() == 0 && temp_string != "")
 				{
@@ -417,7 +422,7 @@ class TOPPMascotAdapter
 				writeDebug_(String("Modifications: ") + temp_string, 1);
 
 				/// variable modifications
-				temp_string = getParamAsString_("vmods");
+				temp_string = getParamAsString_("variable_modifications");
 				temp_string.split(',', variable_mods);
 				if (variable_mods.size() == 0 && temp_string != "")
 				{
@@ -476,7 +481,7 @@ class TOPPMascotAdapter
 				cleavage = getParamAsString_("cleavage", "Trypsin");
 				writeDebug_(String("Cleavage: ") + cleavage, 1);
 				
-				missed_cleavages = (UnsignedInt) getParamAsString_("missed_cleavages", 0).toInt();
+				missed_cleavages = (UnsignedInt) getParamAsString_("missed_cleavages", "0").toInt();
 				writeDebug_(String("Number of allowed missed cleavages: ") + String(missed_cleavages), 1);
 				
 				mass_type = getParamAsString_("mass_type", "Monoisotopic");

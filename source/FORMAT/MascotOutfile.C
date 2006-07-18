@@ -43,7 +43,7 @@ namespace OpenMS
   {
   }
 
-	void MascotOutfile::load(String 												filename,
+	void MascotOutfile::load(String 											filename,
 													std::vector<Identification>& 	identifications, 
 													std::vector<Real>& 						precursor_retention_times, 
 													std::vector<Real>& 						precursor_mz_values,

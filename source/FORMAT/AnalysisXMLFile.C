@@ -81,11 +81,11 @@ namespace OpenMS
 		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
 
 
-		*protein_identifications = vector<ProteinIdentification>(); // clear information
-		*identifications = vector<Identification>();  					 		// clear information
-		*precursor_retention_times = vector<float>();  							// clear information
-		*precursor_mz_values = vector<float>();  			 							// clear information
-		*contact_person = ContactPerson();  					 							// clear information
+		protein_identifications->clear();
+		identifications->clear();
+		precursor_retention_times->clear();
+		precursor_mz_values->clear();
+		*contact_person = ContactPerson();
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
 															 identifications,
@@ -147,12 +147,12 @@ namespace OpenMS
 		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
 
 		/// clear information
-		*protein_identifications = vector<ProteinIdentification>();
-		*identifications = vector<Identification>();  					 
-		*precursor_retention_times = vector<float>();  
-		*precursor_mz_values = vector<float>();  			 
-		*contact_person = ContactPerson();  					
-		*predicted_retention_times = std::map<String, double>();
+		protein_identifications->clear();
+		identifications->clear();
+		precursor_retention_times->clear();
+		precursor_mz_values->clear();
+		*contact_person = ContactPerson();
+		predicted_retention_times->clear();
 		*predicted_sigma = 0;
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,

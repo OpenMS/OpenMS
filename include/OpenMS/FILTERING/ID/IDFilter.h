@@ -80,32 +80,22 @@ namespace OpenMS
       void setProteins(const std::vector< std::pair<String, String> >& proteins);
 
       /// filters a identification corresponding to the threshold_fractions
-			const Identification& filterIdentificationsByThresholds(const Identification& identification,
-																												const double& peptide_threshold_fraction,
-																												const double& protein_threshold_fraction, 
-																												bool strict = false);
+			void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification, bool strict = false);
 
       /// filters a identification corresponding to the threshold_fractions
-			const Identification& filterIdentificationsByThresholds(const Identification& identification, bool strict = false);
+			void filterIdentificationsByThresholds(const Identification& identification, Identification& filtered_identification, bool strict = false);
 			
       /// filters a identification corresponding to the given proteins
-			const Identification& filterIdentificationsByProteins(const Identification& identification, 
-																											std::vector< std::pair<String, String> > proteins);
+			void filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins, Identification& filtered_identification);
 
       /// filters a identification corresponding to the given proteins
-			const Identification& filterIdentificationsByProteins(const Identification& identification);
+			void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification);
 
       /// filters the peptides of a identification corresponding to the retention times
-			const Identification& filterIdentificationsByRetentionTimes(const Identification& identification,
-																														const std::map<String, double>& predicted_retention_times,
-																														double measured_retention_time,
-																														double predicted_sigma,
-																														double allowed_deviation,
-																														double total_gradient_time);
+			void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, double>& predicted_retention_times, double measured_retention_time, double predicted_sigma, double allowed_deviation, double total_gradient_time, Identification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
-			const Identification& filterIdentificationsByExclusionPeptides(const Identification& identification,
-																																				 std::vector<String> peptides);
+			void filterIdentificationsByExclusionPeptides(const Identification& identification, std::vector<String> peptides, Identification& filtered_identification);
 																														
 
       /// filters an MS/MS experiment corresponding to the threshold_fractions
@@ -132,7 +122,7 @@ namespace OpenMS
 						{
 							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 							{
-								temp_identification = filterIdentificationsByThresholds(temp_identifications[j], strict);
+								filterIdentificationsByThresholds(temp_identifications[j], temp_identification, strict);
 								if (!temp_identification.empty())
 								{
 									filtered_identifications.push_back(temp_identification);
@@ -166,7 +156,7 @@ namespace OpenMS
 						{
 							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 							{
-								temp_identification = filterIdentificationsByProteins(temp_identifications[j]);
+								filterIdentificationsByProteins(temp_identifications[j], temp_identification);
 								if (!temp_identification.empty())
 								{
 									filtered_identifications.push_back(temp_identification);

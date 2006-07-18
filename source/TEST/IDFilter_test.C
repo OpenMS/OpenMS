@@ -114,7 +114,7 @@ CHECK(const Identification& filterIdentificationsByProteins(const Identification
 	ptr1 = new IDFilter();
 
 	ptr1->setProteins(proteins);
-	identification2 = ptr1->filterIdentificationsByProteins(identification);
+	ptr1->filterIdentificationsByProteins(identification, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -141,7 +141,7 @@ CHECK((const Identification& filterIdentificationsByProteins(const Identificatio
   proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
 	ptr1 = new IDFilter();
 
-	identification2 = ptr1->filterIdentificationsByProteins(identification, proteins);
+	ptr1->filterIdentificationsByProteins(identification, proteins, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -165,7 +165,7 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	vector<ProteinHit> protein_hits;
 
 	ptr1 = new IDFilter();
-	identification2 = ptr1->filterIdentificationsByThresholds(identification);
+	ptr1->filterIdentificationsByThresholds(identification, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -188,10 +188,11 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	vector<ProteinHit> protein_hits;
 
 	ptr1 = new IDFilter();
-	identification2 = ptr1->filterIdentificationsByThresholds(identification, 1.3, 1);
+	TEST_EQUAL(identification.getPeptideHits().size(), 10)	
+	ptr1->filterIdentificationsByThresholds(identification, 1.3, 1, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 0)
-	identification2 = ptr1->filterIdentificationsByThresholds(identification, 1, 1);
+	ptr1->filterIdentificationsByThresholds(identification, 1, 1, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -227,7 +228,7 @@ CHECK((const Identification& filterIdentificationsByExclusionPeptides(const Iden
 // TLCHHDATFDNLVWTPK
 
 	ptr1 = new IDFilter();
-	identification2 = ptr1->filterIdentificationsByExclusionPeptides(identification, peptides);
+	ptr1->filterIdentificationsByExclusionPeptides(identification, peptides, identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "TGCDTWGQGTLVTVSSASTK")
