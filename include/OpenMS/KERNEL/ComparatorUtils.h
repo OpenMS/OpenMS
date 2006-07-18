@@ -34,19 +34,17 @@ namespace OpenMS
 {
   
   /**
-  	@brief 	Wrapper that adapts comparators to pointer datastructures
-		Normally you should use the make-function pointerComparator()
-		because then you do not need to specify the template arguments.
+  	@brief Wrapper that takes a comparator for `something' and makes a
+		comparator for <i>pointers</i> to `something' out of it.  Normally you should use
+		the make-function pointerComparator() because then you do not need to
+		specify the template arguments.
   	
-  	A wrapper class that wraps a comparator  @p Cmp  that compares
-  	objects of type  @p Arg  to a comparator that compares
-    @p Arg*  after dereferencing them.
-   	<br>
-   	E.g. you can use  @p PointerComparator<DPeak<1>::IntensityLess> 
-   	to compare  DPeak<1>* , the same way as
-    DPeak<1>::IntensityLess works for DPeak<1> .
-    
-    @todo write tests for the "make-functions", and document them (Clemens)
+		This works by dereferencing the arguments (unary operator*) before
+   	comparing them.
+		<br> E.g. you can use
+   	<code>PointerComparator<DPeak<1>::IntensityLess></code> to compare
+   	<code>DPeak<1>*</code> in the same way as
+   	<code>DPeak<1>::IntensityLess</code> works for <code>DPeak<1></code> .
   */
   template < class Cmp >
 	struct PointerComparator
@@ -67,13 +65,14 @@ namespace OpenMS
 	};
 
 	/**@brief  Make-function to create a PointerComparator from another comparator without the need to specify the template arguments.
+		 \relatesalso PointerComparator
 
 	For example,
   <pre>
   int i = 88, j = 99;
   if ( pointerComparator(std::less<int>())(&i,&j) )
   {
-    //     yes, 88 < 99.
+    //&nbsp;   // yes, 88 < 99.
   }
   </pre>
 	*/
@@ -93,7 +92,7 @@ namespace OpenMS
 		because then you do not need to specify the template arguments.
 
 
-		For example, <code>ReverseComparator< less<T> ></code>  works like  <code>greater<T></code> .
+		For example, <code>ReverseComparator<less<T> ></code>  works like  <code>greater<T></code> .
   */
   template < class Cmp >
   struct ReverseComparator
@@ -116,13 +115,14 @@ namespace OpenMS
 	};
 
 	/**@brief  Make-function to create a ReverseComparator from another comparator without the need to specify the template arguments.
+		 \relatesalso ReverseComparator
 
 	For example,
   <pre>
   int i = 88, j = 99;
   if ( reverseComparator(std::less<int>())(j,i) )
   {
-    //     yes, 99 > 88.
+    //&nbsp;   // yes, 99 > 88.
   }
   </pre>
 	*/
@@ -178,6 +178,7 @@ namespace OpenMS
 	};
 	
 	/**@brief  Make-function to create a LexicographicComparator from two other comparators without the need to specify the template arguments.
+		 \relatesalso LexicographicComparator
 
 	The usage is similar to pointerComparator() or reverseComparator(), which
 	see.
