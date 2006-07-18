@@ -48,9 +48,8 @@ namespace OpenMS
     else peak_bound_ms2_level_ = (float)dv;
     	
     dv = param_.getValue("Thresholds:FwhmBound");
-    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.25;
+    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
     else fwhm_bound_ = (float)dv;
-
   }
 
   PeakPicker::PeakPicker(const Param& parameters)
@@ -72,7 +71,7 @@ namespace OpenMS
     else peak_bound_ms2_level_ = (float)dv;
     	
     dv = param_.getValue("Thresholds:FwhmBound");
-    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.25;
+    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
     else fwhm_bound_ = (float)dv;
   }
 
@@ -80,7 +79,8 @@ namespace OpenMS
       : peak_bound_(pp.peak_bound_),
       peak_bound_ms2_level_(pp.peak_bound_ms2_level_),
       signal_to_noise_(pp.signal_to_noise_),
-      fwhm_bound_(pp.fwhm_bound_)
+      fwhm_bound_(pp.fwhm_bound_),
+      param_(pp.param_)
 {}
 
   PeakPicker& PeakPicker::operator= (const PeakPicker& pp)
@@ -94,6 +94,7 @@ namespace OpenMS
     peak_bound_ms2_level_=pp.peak_bound_ms2_level_;
     signal_to_noise_=pp.signal_to_noise_;
     fwhm_bound_ = pp.fwhm_bound_;
+    param_ = pp.param_;
 
     return *this;
   }

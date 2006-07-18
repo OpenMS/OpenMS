@@ -33,7 +33,7 @@ namespace OpenMS
       : PeakPicker(),
       radius_(3),
       scale_(0.15),
-      peak_corr_bound_(0),
+      peak_corr_bound_(0.5),
       noise_level_(10),
       optimization_(false)
   {
@@ -70,7 +70,7 @@ namespace OpenMS
     //std::cout << param_ << std::endl;
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
     DataValue dv =  param_.getValue("Thresholds:Correlation");
-    if (dv.isEmpty() || dv.toString() == "") peak_corr_bound_ = 0;
+    if (dv.isEmpty() || dv.toString() == "") peak_corr_bound_ = 0.5;
     else peak_corr_bound_ = (float)dv;
 
     dv = (param_.getValue("Optimization:SkipOptimization"));
