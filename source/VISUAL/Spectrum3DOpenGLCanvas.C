@@ -108,11 +108,13 @@ void Spectrum3DOpenGLCanvas::resizeGL(int w,int h)
 {
 			width_ = (float)w;
 			heigth_ = (float)h;
-			glViewport(0,0,(GLsizei) w, (GLsizei) h); 
+			glViewport(0,0,(GLsizei) w, (GLsizei) h); 	
+
+			
 }
 
 void Spectrum3DOpenGLCanvas::initializeGL()
-{	
+{		
 	switch(canvas_3d_.action_mode_)
 		{
 		case SpectrumCanvas::AM_ZOOM:
@@ -153,7 +155,8 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 			break;
 			
 		case SpectrumCanvas::AM_TRANSLATE:	
-			glMatrixMode(GL_PROJECTION);
+	
+		glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(-corner_*zoom_,
 							corner_*zoom_, 
@@ -228,14 +231,13 @@ void Spectrum3DOpenGLCanvas::paintGL()
 				{
 				case SpectrumCanvas::AM_ZOOM:
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-						glLoadIdentity();
-						glTranslated(0.0, 0.0,-3.0*corner_);
-						glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
-						glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
-						glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
-						glTranslated(0.0, 0.0,3.0*corner_);
-						
-						if(translation_on_)
+					glLoadIdentity();
+					glTranslated(0.0, 0.0,-3.0*corner_);
+					glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
+					glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
+					glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
+					glTranslated(0.0, 0.0,3.0*corner_);
+					if(translation_on_)
 							{
 								glTranslated(trans_x_, trans_y_,0.0);
 							}
@@ -258,12 +260,12 @@ void Spectrum3DOpenGLCanvas::paintGL()
 						{
 							glCallList(zoomselection_);
 						}
+					
 						break;
 					
 				case SpectrumCanvas::AM_TRANSLATE:	
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					glLoadIdentity();
-					
 					glTranslated(0.0, 0.0,-3.0*corner_);
 					glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
 					glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
@@ -1145,7 +1147,7 @@ void Spectrum3DOpenGLCanvas::normalizeAngle(int *angle)
 
 void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom)
 {
-	zoom_ = zoom;
+ 	zoom_ = zoom;
 	initializeGL();
 	updateGL();
 }

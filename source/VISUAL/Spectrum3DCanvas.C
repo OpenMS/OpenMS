@@ -84,7 +84,7 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	openglwidget()->recalculateDotGradient_();
-	repaintAll();
+ 	repaintAll();
 	return current_data_;
 }
 	
@@ -134,10 +134,12 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 }
 
 void Spectrum3DCanvas::invalidate_()
-{	
+{			
+	openglwidget()->recalculateDotGradient_();
+	openglwidget()->initializeGL();
 	openglwidget()->updateGL();
 	openglwidget()->initializeGL();
- 	 openglwidget()->updateGL();
+
 }
 
 void Spectrum3DCanvas::intensityModeChange_()
