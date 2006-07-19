@@ -259,7 +259,7 @@ CHECK((void init(double scale, double spacing, unsigned int MZ)))
   Test cwt;
   double scale = 0.2;
   double spacing = 2.3;
-  double mz = 2;
+  unsigned int mz = 2;
   cwt.init(scale,spacing,mz);
   
   TEST_EQUAL(cwt.getMzDim(), mz)
