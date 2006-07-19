@@ -39,6 +39,7 @@ START_TEST(GaussModel, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor

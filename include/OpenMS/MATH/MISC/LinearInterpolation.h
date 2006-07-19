@@ -1,8 +1,9 @@
+///@cond
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -20,6 +21,7 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
+///@endcond
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
@@ -27,210 +29,267 @@
 #ifndef OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 #define OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 
-#ifndef STD_VECTOR
-#define STD_VECTOR
 #include <vector>
-#endif
 
 namespace OpenMS
-{  
-  /**
-  	@brief Smooth (interpolate) an isotope distribution or peak shape.
-  	
-  	You may ask for value() and derivative().
-  	Interpolation is simply linear.  Original values beyond the boundaries are implicitly taken as zero.
+{
 
-  	@todo add to Math namespace (Clemens)
-  	
-  	@ingroup Math
-  */
-  template < typename Key = double, typename Value = Key >
-  class LinearInterpolation
-  {
+	namespace Math
+	{
+ 
+		/**
+			 @brief Linear interpolation.
 
-  public:
+			 The input consists of a vector of values ("Data").  These values are
+			 considered to be the y-coordinates at the x-coordinate positions
+			 0,...,data_.size-1.  The interpolation is done linearly.  Values beyond
+			 the x-coordinate boundaries are implicitly taken as zero.
 
-		///\name Typedefs
-		//@{
-    typedef Value value_type;
-    typedef Key key_type;
-    typedef std::vector < value_type > container_type;
+			 The interpolated data can be <i>scaled</i> and <i>shifted</i> in the
+			 x-dimension by an affine mapping.  That is, we have "inside" and
+			 "outside" x-coordinates.  The affine mapping can be specified in two ways:
+			 -# using setScale() and setOffset(),
+			 -# using setMapping().
 
-		typedef value_type      ValueType;
-		typedef key_type        KeyType;
-		typedef container_type  ContainerType;
-		//@}
+			 By the value() and derivative() methods you can sample linearly
+			 interpolated values for a given x-coordinate position of the data and
+			 the derivative of the data.
 
-	 public:
-
-    /**@brief Constructor. The first argument specifies the random access
-			 container (valid keys are 0,1,...,size()-1) from which interpolated
-			 values will be sampled.  The second argument is the scale which is
-			 applied to the arguments of value() and derivative() before looking up
-			 the interpolated values in the container.  The third arguments is the
-			 offset, which is subtracted before everything else.
-		 */
-    LinearInterpolation ( key_type _scale = 1., key_type _offset = 0. )
-      : scale_  ( _scale ),
-				offset_ ( _offset ),
-        data_   ( )
-    {}
-
-		/// Copy constructor.
-		LinearInterpolation ( LinearInterpolation const & _arg )
-      : scale_  ( _arg.scale_ ),
-				offset_ ( _arg.offset_ ),
-        data_   ( _arg.data_ )
-    {}
-
-		/// Destructor.
-		~LinearInterpolation () {}
-
-		
-		/// The transformation from "outside" to "inside" coordinates.
-		inline key_type key2index ( key_type pos ) const throw()
+			 @ingroup Math
+		*/
+		template < typename Key = double, typename Value = Key >
+		class LinearInterpolation
 		{
-			pos -= offset_;
-			pos /= scale_;
-			return pos;
-		}
 
-		/// The transformation from "inside" to "outside" coordinates.
-		inline key_type index2key ( key_type pos ) const throw()
-		{
-			pos *= scale_;
-			pos += offset_;
-			return pos;
-		}
+		 public:
 
+			///\name Typedefs
+			//@{
+			typedef Value value_type;
 
-    /// Returns the interpolated value.
-    value_type
-    value ( key_type _pos ) const throw()
-    {
+			typedef Key key_type;
+			typedef std::vector < value_type > container_type;
 
-			// apply the key transformation
-			key_type const pos = key2index(_pos);
+			typedef value_type      ValueType;
+			typedef key_type        KeyType;
+			typedef container_type  ContainerType;
+			//@}
 
-			int const size_ = data_.size();
-      int const left = int(pos); // this rounds towards zero
+		 public:
 
-      if ( pos <= 0 )
-        if ( left != 0 )
-          return 0;
-        else  // that is: -1 < pos <= 0
-          return data_[ 0 ] * ( 1. + pos ) ;
-      
-      if ( left >= size_ - 1 )
-        if ( left != size_ - 1 )
-          return 0;
-        else
-          return data_[ left ] * ( size_ - pos );
+			/**@brief Constructor.
 
-      key_type factor = pos - key_type(left);
+			The first argument is the scale which is applied to the arguments of
+			value() and derivative() before looking up the interpolated values in
+			the container.  The second argument is the offset, which is
+			subtracted before everything else.
+			*/
+			LinearInterpolation ( KeyType scale = 1., KeyType offset = 0. )
+				: scale_  ( scale ),
+					offset_ ( offset ),
+					data_   ( )
+			{}
 
-      return // weighted average
-        data_[ left + 1 ] * factor +
-        data_[ left ] * ( 1. - factor );
-    }
+			/// Copy constructor.
+			LinearInterpolation ( LinearInterpolation const & arg )
+				: scale_  ( arg.scale_ ),
+					offset_ ( arg.offset_ ),
+					data_   ( arg.data_ )
+			{}
+
+			/// Destructor.
+			~LinearInterpolation () {}
 
 
-    /// Returns the interpolated derivative.
-    value_type
-    derivative ( key_type _pos ) const throw()
-    {
+			/// The transformation from "outside" to "inside" coordinates.
+			KeyType key2index ( KeyType pos ) const throw()
+			{
+				pos -= offset_;
+				pos /= scale_;
+				return pos;
+			}
 
-			// apply the key transformation
-			key_type const pos = key2index(_pos);
-			
-			int const size_ = data_.size();
-      int const left = int(pos+0.5); // rounds towards zero
-      
-      if ( left < 0 ) // quite small
-        return 0;
-      else 
-        if ( left == 0 ) // at the border
-          if ( pos >= -0.5 ) // that is: -0.5 <= pos < +0.5
-            return 
-              ( data_[1] - data_[0] ) * ( pos + 0.5 ) +
-              ( data_[0] ) * ( 0.5 - pos );
-          else // that is: -1.5 <= pos < -0.5
-            return
-              ( data_[0] ) * ( pos + 1.5 );
-
-      // "else" case: to the right of the left margin
+			/// The transformation from "inside" to "outside" coordinates.
+			KeyType index2key ( KeyType pos ) const throw()
+			{
+				pos *= scale_;
+				pos += offset_;
+				return pos;
+			}
 
 
-      key_type factor = key_type(left) - pos + 0.5;
+			/// Returns the interpolated value.
+			ValueType value ( KeyType arg_pos ) const throw()
+			{
 
-      if ( left > size_ ) // quite large
-        return 0;
-      else
-        if ( left < size_ - 1 ) // to the left of the right margin
-          return // weighted average of derivatives for adjacent intervals
-            ( data_[left] - data_[left-1] ) * factor +
-            ( data_[left+1] - data_[left] ) * ( 1. - factor );
-        else // somewhat at the border
-          if ( left == size_ - 1 ) // at the border, first case
-            return 
-              ( data_[left] - data_[left-1] ) * factor +
-              ( - data_[left] ) * ( 1. - factor );
-      // else // that is: left == size_
+				// apply the key transformation
+				KeyType const pos = key2index(arg_pos);
 
-      // We pull the last remaining case out of the "if" tree to avoid a
-      // compiler warning ...
+				int const size_ = data_.size();
+				int const left = int(pos); // this rounds towards zero
 
-      return // at the border, second case
-        ( - data_[left-1] ) * factor;
-      
-    }
-		
+				if ( pos <= 0 )
+					if ( left != 0 )
+						return 0;
+					else  // that is: -1 < pos <= 0
+						return data_[ 0 ] * ( 1. + pos ) ;
 
-		///\name Accessors
-		//@{
-		/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
-		inline key_type & getScale () throw() { return scale_; }
-		/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
-		inline key_type const & getScale () const throw(){ return scale_; }
-		/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
-		inline void setScale ( key_type const & _scale ) throw() { getScale() = _scale; }
+				if ( left >= size_ - 1 )
+					if ( left != size_ - 1 )
+						return 0;
+					else
+						return data_[ left ] * ( size_ - pos );
 
-		/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
-		inline key_type & getOffset () throw() { return offset_; }
-		/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
-		inline key_type const & getOffset () const throw() { return offset_; }
-		/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
-		inline void setOffset ( key_type const & _offset ) throw() { getOffset() = _offset; }
+				KeyType factor = pos - KeyType(left);
 
-		/// Accessor.
-		inline container_type & getData () throw() { return data_; }
-		/// Accessor.
-		inline container_type const & getData () const throw() { return data_; }
-		/// Accessor.
-		inline void setData ( container_type const & _data ) throw() { getData() = _data; }
-		//@}
+				return // weighted average
+					data_[ left + 1 ] * factor +
+					data_[ left ] * ( 1. - factor );
+			}
 
 
-		/// Returns \c true if getData() is empty.
-		inline bool empty () const throw() { return data_.empty(); }
+			/// Returns the interpolated derivative.
+			ValueType derivative ( KeyType arg_pos ) const throw()
+			{
+
+				// apply the key transformation
+				KeyType const pos = key2index(arg_pos);
+
+				int const size_ = data_.size();
+				int const left = int(pos+0.5); // rounds towards zero
+
+				if ( left < 0 ) // quite small
+					return 0;
+				else
+					if ( left == 0 ) // at the border
+						if ( pos >= -0.5 ) // that is: -0.5 <= pos < +0.5
+							return
+								( data_[1] - data_[0] ) * ( pos + 0.5 ) +
+								( data_[0] ) * ( 0.5 - pos );
+						else // that is: -1.5 <= pos < -0.5
+							return
+								( data_[0] ) * ( pos + 1.5 );
+
+				// "else" case: to the right of the left margin
 
 
-		/// Lower boundary of the support, in "outside" coordinates.
-		inline key_type supportMin() const throw()
-		{ return index2key ( empty() ? 0 : -1 ); }
+				KeyType factor = KeyType(left) - pos + 0.5;
 
-		/// Upper boundary of the support, in "outside" coordinates.
-		inline key_type supportMax() const throw()
-		{ return index2key ( data_.size() ); }
+				if ( left > size_ ) // quite large
+					return 0;
+				else
+					if ( left < size_ - 1 ) // to the left of the right margin
+						return // weighted average of derivatives for adjacent intervals
+							( data_[left] - data_[left-1] ) * factor +
+							( data_[left+1] - data_[left] ) * ( 1. - factor );
+					else // somewhat at the border
+						if ( left == size_ - 1 ) // at the border, first case
+							return
+								( data_[left] - data_[left-1] ) * factor +
+								( - data_[left] ) * ( 1. - factor );
+				// else // that is: left == size_
 
-  private:
-    
-		key_type scale_;
-		key_type offset_;
-    container_type data_;
-    
-  };
-  
+				// We pull the last remaining case out of the "if" tree to avoid a
+				// compiler warning ...
+
+				return // at the border, second case
+					( - data_[left-1] ) * factor;
+
+			}
+
+
+			///\name Accessors
+			//@{
+
+			/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
+			KeyType const & getScale () const throw(){ return scale_; }
+
+			/**@brief Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
+
+				 <b>Note:</b> Using this invalidates the inside and outside reference
+				 points.
+			*/
+			void setScale ( KeyType const & scale ) throw() { scale_ = scale; }
+
+			/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
+			KeyType const & getOffset () const throw() { return offset_; }
+
+			/**@brief Accessor.  "Offset" is the point (in "outside" units) which 
+				 corresponds to "Data[0]".
+
+				 <b>Note:</b> Using this invalidates the inside and outside reference
+				 points.
+			*/
+			void setOffset ( KeyType const & offset ) throw() { offset_ = offset; }
+
+			/// Accessor.  "Data" is the random access container from which interpolated values will be sampled.
+			ContainerType & getData () throw() { return data_; }
+
+			/// Accessor.  "Data" is the random access container from which interpolated values will be sampled.
+			ContainerType const & getData () const throw() { return data_; }
+
+			/**@brief Accessor.  "Data" is the random access container from which interpolated values will be sampled.
+
+			  The data is copied (deep).
+			*/
+			void setData ( ContainerType const & data ) throw() { data_ = data; }
+
+			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
+				 - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
+				 - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other. 
+
+				For example, when you have a complicated probability distribution
+				which is in fact centered around zero (but you cannot have negative
+				indices in the data vector), then you can arrange things such that
+				inside is the mean of the pre-computed, shifted density values of that
+				distribution and outside is the centroid position of, say, a peak in
+				the real world which you want to model by a scaled and shifted version
+				of the probability distribution.
+
+			*/
+			void setMapping ( KeyType const & scale, KeyType const & inside, KeyType const & outside )
+			{
+				scale_   = scale;
+				inside_  = inside;
+				outside_ = outside;
+				offset_  = outside - scale * inside;
+			}
+
+			/// Accessor.  See setMapping().
+			KeyType const & getInsideReferencePoint () const throw() { return inside_; }
+
+			/// Accessor.  See setMapping().
+			KeyType const & getOutsideReferencePoint () const throw() { return outside_; }
+
+
+			//@}
+
+
+			/// Returns \c true if getData() is empty.
+			bool empty () const throw() { return data_.empty(); }
+
+
+			/// Lower boundary of the support, in "outside" coordinates.
+			KeyType supportMin() const throw()
+			{ return index2key ( empty() ? 0 : -1 ); }
+
+			/// Upper boundary of the support, in "outside" coordinates.
+			KeyType supportMax() const throw()
+			{ return index2key ( data_.size() ); }
+
+		 protected:
+
+			KeyType scale_;
+			KeyType offset_;
+			KeyType inside_;
+			KeyType outside_;
+
+			ContainerType data_;
+
+		};
+
+	} // namespace Math
+
 } // namespace OpenMS
 
 #endif // OPENMS_MATH_MISC_LINEARINTERPOLATION_H

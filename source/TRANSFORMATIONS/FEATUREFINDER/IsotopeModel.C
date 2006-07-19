@@ -135,7 +135,7 @@ namespace OpenMS
 			}
 
 			// compute the normal distribution (to be added for widening the averagine isotope distribution)
-			BasicStatistics<> normal_widening_model;
+			Math::BasicStatistics<> normal_widening_model;
 			normal_widening_model.setSum  (1);
 			normal_widening_model.setMean (0);
 			normal_widening_model.setVariance(isotope_stdev_*isotope_stdev_);

@@ -100,7 +100,7 @@ namespace OpenMS
 	     return "BiGaussModel";
   	}
 
-		/* @brief set the offset of the model
+		/** @brief set the offset of the model
 
 			The whole model will be shifted to the new offset without being computing all over.
 			and without any discrepancy.
@@ -116,8 +116,8 @@ namespace OpenMS
 		protected:
 			CoordinateType min_;
 			CoordinateType max_;
-			BasicStatistics<> statistics1_;
-			BasicStatistics<> statistics2_;
+			Math::BasicStatistics<> statistics1_;
+			Math::BasicStatistics<> statistics2_;
   };
 }
 

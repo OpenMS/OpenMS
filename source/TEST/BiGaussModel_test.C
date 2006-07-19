@@ -40,6 +40,7 @@ START_TEST(BiGaussModel, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor

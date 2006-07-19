@@ -60,7 +60,7 @@ namespace OpenMS
 
 		public:
 		typedef InterpolationModel<>::CoordinateType CoordinateType;
-		typedef BasicStatistics<CoordinateType > BasicStatistics;
+		typedef Math::BasicStatistics<CoordinateType > BasicStatistics;
 		typedef InterpolationModel<> InterpolationModel;
 
     /// standard constructor
@@ -98,7 +98,7 @@ namespace OpenMS
 	     return "GaussModel";
   	}
 
-		/* @brief set the offset of the model
+		/** @brief set the offset of the model
 
 			The whole model will be shifted to the new offset without being computing all over.
 			and without any discrepancy.

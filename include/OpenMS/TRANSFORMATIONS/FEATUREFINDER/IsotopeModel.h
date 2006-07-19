@@ -110,7 +110,7 @@ namespace OpenMS
 	     return "IsotopeModel";
   	}
 
-		/* @brief set the offset of the model
+		/** @brief set the offset of the model
 
 			The whole model will be shifted to the new offset without being computing all over.
 			This leaves a discrepancy which is minor in small shifts (i.e. shifting by one or two
@@ -124,7 +124,7 @@ namespace OpenMS
 		/// set sample/supporting points of interpolation
 		void setSamples();
 
-		/* @brief get the center of the Isotope model i.e. the position of the monoisotopic peak
+		/** @brief get the center of the Isotope model i.e. the position of the monoisotopic peak
 
 			 This is a m/z-value not necessarily the monoisotopic mass.
 		*/

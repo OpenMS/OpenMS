@@ -236,9 +236,9 @@ namespace OpenMS
   	                    IndexWithPriority::PriorityLess,
   	                    IndexMap > boundary_; */ 	            
   	             			
-  	LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
+  	Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
-		LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
+		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
 		
 		UnsignedInt nr_peaks_seen_;
 		

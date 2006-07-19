@@ -86,6 +86,7 @@ namespace OpenMS
 } // namespace OpenMS
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 
 /////////////////////////////////////////////////////////////
 
@@ -109,7 +110,7 @@ CHECK( BasicStatistics )
 
   for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
 
-  BasicStatistics < float, double > stats2 ( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
+  BasicStatistics < double > stats2 ( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
   STATUS( stats );
   TEST_REAL_EQUAL( stats2.sum(), stats.sum() );
@@ -214,7 +215,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleR
   DoubleReal result = 0;
 
   PRECISION(0.000001);  
-  result = BasicStatistics<UnsignedInt, DoubleReal>::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  result = BasicStatistics<DoubleReal>::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
   TEST_REAL_EQUAL(result, 0.04);
 
 
@@ -235,7 +236,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleR
   numbers2[3] = 1.0;
   numbers1[4] = 3.2;
   numbers2[4] = 4.0;
-  result = BasicStatistics<UnsignedInt, DoubleReal>::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
+  result = BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end()); 	
   TEST_REAL_EQUAL(result, 0.897811);
 
 RESULT

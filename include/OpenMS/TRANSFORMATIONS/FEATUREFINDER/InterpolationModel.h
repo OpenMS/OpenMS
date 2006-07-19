@@ -62,7 +62,7 @@ namespace OpenMS
 			typedef typename DPeak<1,Traits>::IntensityType IntensityType;
       typedef DPosition<1,Traits> PositionType;
 			typedef typename PositionType::CoordinateType CoordinateType;
-			typedef LinearInterpolation<CoordinateType,IntensityType> LinearInterpolation;
+			typedef Math::LinearInterpolation<CoordinateType,IntensityType> LinearInterpolation;
 			typedef typename LinearInterpolation::container_type ContainerType;
 			typedef DPeakArray<1, DPeak<1,Traits> > SamplesType;
 
@@ -112,7 +112,7 @@ namespace OpenMS
 				return interpolation_.value(coord);
 			}
 
-			/* @brief set the interpolation step for the linear interpolation of the model
+			/** @brief set the interpolation step for the linear interpolation of the model
 
 				For setting to take affect, call setSamples() or setParm.
 			*/
@@ -131,7 +131,7 @@ namespace OpenMS
 				return interpolation_;
 			}
 
-			/* @brief set the scaling for the model
+			/** @brief set the scaling for the model
 
 				A scaling factor of @p scaling means that the area under the model equals
 				@p scaling. Default is 1.
@@ -142,7 +142,7 @@ namespace OpenMS
 				scaling_ = scaling;
 			}
 
-			/* @brief get the scaling for the model
+			/** @brief get the scaling for the model
 
 				A scaling factor of @p scaling means that the area under the model equals
 				@p scaling. Default is 1.
@@ -174,7 +174,7 @@ namespace OpenMS
 			}
 
 
-			/* @brief set the offset of the model
+			/** @brief set the offset of the model
 
 				The whole model will be shifted to the new offset without being computing all over.
 				Setting takes affect immediately.

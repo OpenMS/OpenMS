@@ -44,38 +44,38 @@ namespace OpenMS
 {
 
 	/**
-	  @brief Experimental Extender ! Do not use this one !
+		 @brief Experimental Extender ! Do not use this one !
 	  
-	  				Parameters:
-			<table>
-			<tr><td>tolerance_rt</td>
-					<td>Scale for the interpolation of the rt distribution (default 2.0)</td></tr>
-			<tr><td>tolerance_mz</td>
-					<td>Scale for the interpolation of the mz distribution (default 0.5)</td></tr>
-			<tr><td>dist_mz_up</td>
-					<td>Maximum distance in positive mz direction for data points in the feature region (default 6.0)</td></tr>
-			<tr><td>dist_mz_down</td>
-					<td>Maximum distance in negative mz direction for data points in the feature region (default 2.0)</td></tr>
-			<tr><td>dist_rt_up</td>
-					<td>Maximum distance in postive rt direction for data points in the feature region (default 5.0)</td></tr>
-			<tr><td>dist_rt_down</td>
-					<td>Maximum distance in negative rt direction for data points in the feature region (default 5.0)</td></tr>
-			<tr><td>priority_thr</td>
-					<td>Minimum priority for data points to be included into the boundary of the feature (default 0.01)</td></tr>
-			<tr><td>intensity_factor</td>
-					<td>Influences for intensity (ion count) threshold in the feature extension. We include only raw data
-					points into this region if their intensity is larger than [intensity_factor * (intensity of the 5th largest peak in the region)].
-					We use the 5th largest peak for robustness reasons (default 0.03) .</td></tr>
-			</table>
+		 Parameters:
+		 <table>
+		 <tr><td>tolerance_rt</td>
+		 <td>Scale for the interpolation of the rt distribution (default 2.0)</td></tr>
+		 <tr><td>tolerance_mz</td>
+		 <td>Scale for the interpolation of the mz distribution (default 0.5)</td></tr>
+		 <tr><td>dist_mz_up</td>
+		 <td>Maximum distance in positive mz direction for data points in the feature region (default 6.0)</td></tr>
+		 <tr><td>dist_mz_down</td>
+		 <td>Maximum distance in negative mz direction for data points in the feature region (default 2.0)</td></tr>
+		 <tr><td>dist_rt_up</td>
+		 <td>Maximum distance in postive rt direction for data points in the feature region (default 5.0)</td></tr>
+		 <tr><td>dist_rt_down</td>
+		 <td>Maximum distance in negative rt direction for data points in the feature region (default 5.0)</td></tr>
+		 <tr><td>priority_thr</td>
+		 <td>Minimum priority for data points to be included into the boundary of the feature (default 0.01)</td></tr>
+		 <tr><td>intensity_factor</td>
+		 <td>Influences for intensity (ion count) threshold in the feature extension. We include only raw data
+		 points into this region if their intensity is larger than [intensity_factor * (intensity of the 5th largest peak in the region)].
+		 We use the 5th largest peak for robustness reasons (default 0.03) .</td></tr>
+		 </table>
 			
-			@ingroup FeatureFinder
+		 @ingroup FeatureFinder
 				   
-	 */
+	*/
   class FastExtender 
     : public BaseExtender
   {
 
-  public:
+	 public:
   
   	typedef FeaFiTraits::IntensityType IntensityType;
   	typedef FeaFiTraits::CoordinateType CoordinateType;
@@ -109,16 +109,16 @@ namespace OpenMS
     }
     
     /**
-     *  @brief A helper structure to sort indizes by their priority.
-     * 
-     *  This structure is used to keep track of the boundary of a 
-     *  feature. After a peak is found during the extension phase,
-     *  we compute its priority (which is dependant on its distance from
-     *  the point that was the last to be extracted from the boundary
-     *  and its intensity). If this priority is large enough, we include
-     *  the point into the boundary. The boundary (which is implemented
-     *  as mutable priority queue) sorts the peaks by this priority.
-     * 
+      @brief A helper structure to sort indizes by their priority.
+     
+      This structure is used to keep track of the boundary of a feature. After
+      a peak is found during the extension phase, we compute its priority
+      (which is dependant on its distance from the point that was the last to
+      be extracted from the boundary and its intensity). If this priority is
+      large enough, we include the point into the boundary. The boundary
+      (which is implemented as mutable priority queue) sorts the peaks by this
+      priority.
+			
      * */ 	
   	struct IndexWithPriority
   	{
@@ -146,7 +146,7 @@ namespace OpenMS
   	  
   	   Only needed for the priority queue implementing the feature
   	   boundary.
-  	 **/
+		**/
   	struct IndexMap
   	{
   		typedef int value_type;
@@ -166,7 +166,7 @@ namespace OpenMS
   		  		
   	};
           
-  protected:
+	 protected:
   	 	
   	/// Checks whether the current peak is too far from the centroid
   	bool isTooFarFromCentroid_(UnsignedInt current_index);
@@ -192,7 +192,7 @@ namespace OpenMS
   	/// This flag indicates whether the first seed has already been processed. 
   	bool first_seed_seen_;
     
-	/// Tolerance of the sum of intensities in the feature regions	
+		/// Tolerance of the sum of intensities in the feature regions	
   	double intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
@@ -209,37 +209,37 @@ namespace OpenMS
   	            				std::vector<IndexWithPriority>, 
   	           					IndexWithPriority::PriorityLess> boundary_;    
   	
-	/// Interpolates the priority of a peak in rt	             			
-  	LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
+		/// Interpolates the priority of a peak in rt	             			
+  	Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
-	/// Interpolates the priority of a peak in mz
-	LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
+		/// Interpolates the priority of a peak in mz
+		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
 		
-	/// Counts the number of peak we encountered so far
-	UnsignedInt nr_peaks_seen_;
+		/// Counts the number of peak we encountered so far
+		UnsignedInt nr_peaks_seen_;
 	
-	/// The sum of the peaks in the feature region
-	IntensityType intensity_sum_;
+		/// The sum of the peaks in the feature region
+		IntensityType intensity_sum_;
   	
-	/// A moving average of the intensities collected so far
+		/// A moving average of the intensities collected so far
   	std::vector<IntensityType> moving_avg_;
   	
-	/// The last moving average we computed 
+		/// The last moving average we computed 
   	IntensityType last_avg_;
   	
-	/// The tolerance of the average intensities
+		/// The tolerance of the average intensities
   	IntensityType intensity_avg_tol_;  	
   	
   	float dist_mz_up_; 
-	float dist_mz_down_; 
-	float dist_rt_up_; 
-	float dist_rt_down_;   	
+		float dist_mz_down_; 
+		float dist_rt_up_; 
+		float dist_rt_down_;   	
 	
-	/// Peaks with intensity below this baseline are ignored		
-	float extension_baseline_;
+		/// Peaks with intensity below this baseline are ignored		
+		float extension_baseline_;
 	
-	/// Initializes the extender class.
-	void init_();
+		/// Initializes the extender class.
+		void init_();
 		
   };
 }

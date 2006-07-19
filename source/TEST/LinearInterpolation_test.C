@@ -48,6 +48,7 @@ namespace OpenMS
 }
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 
 /////////////////////////////////////////////////////////////
 
@@ -247,6 +248,40 @@ CHECK( derivative()  )
 		STATUS( "key:" << key << "  index:" << index << '\n')
 		TEST_REAL_EQUAL ( smdfd0.derivative ( key ), inter_values[index] );
 	}
+
+}
+RESULT
+//-----------------------------------------------------------
+CHECK( setMapping() and getInsideReferencePoint() and getOutsideReferencePoint() )
+{
+	LinearInterpolation < float, double > lininterpol;
+
+	lininterpol.setMapping( 1, 23, 53 );
+	TEST_REAL_EQUAL(lininterpol.getScale(), 1)
+	TEST_REAL_EQUAL(lininterpol.getInsideReferencePoint(), 23)
+	TEST_REAL_EQUAL(lininterpol.getOutsideReferencePoint(), 53)
+		
+	lininterpol.setMapping( 1, 0, 53 );
+	TEST_REAL_EQUAL(lininterpol.supportMin(), 53)
+	TEST_REAL_EQUAL(lininterpol.supportMax(), 53)
+
+	lininterpol.setMapping( 1, 500, 53 );
+	TEST_REAL_EQUAL(lininterpol.supportMin(), 53-500)
+	TEST_REAL_EQUAL(lininterpol.supportMax(), 53-500)
+
+	lininterpol.getData().resize(300);
+
+	lininterpol.setMapping( 10, 0, 1000 );
+	TEST_REAL_EQUAL(lininterpol.supportMin(), 990)
+	TEST_REAL_EQUAL(lininterpol.supportMax(), 4000)
+
+	lininterpol.setMapping( 10, 200, 1000 );
+	TEST_REAL_EQUAL(lininterpol.getScale(), 10)
+	TEST_REAL_EQUAL(lininterpol.getInsideReferencePoint(), 200)
+	TEST_REAL_EQUAL(lininterpol.getOutsideReferencePoint(), 1000)
+	TEST_REAL_EQUAL(lininterpol.getOffset(), -1000)
+	TEST_REAL_EQUAL(lininterpol.supportMin(), -1010)
+	TEST_REAL_EQUAL(lininterpol.supportMax(), 2000)
 
 }
 RESULT
