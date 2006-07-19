@@ -31,7 +31,6 @@
 #include <math.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/DPickedPeak.h>
 
 namespace OpenMS
 {
