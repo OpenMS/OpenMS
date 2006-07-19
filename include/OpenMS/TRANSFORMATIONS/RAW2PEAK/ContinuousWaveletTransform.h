@@ -142,8 +142,7 @@ namespace OpenMS
     /// resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
     /// 		(the raw data are interpolated to get the intensity for missing positions)
     /// ...
-    virtual void transform(RawDataPointConstIterator /* begin_input */, RawDataPointConstIterator /* end_input */, float /* resolution*/) = 0;
-
+    virtual void transform(RawDataPointConstIterator begin_input, RawDataPointConstIterator end_input, float resolution) = 0;
     /**
      @brief Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
     */
