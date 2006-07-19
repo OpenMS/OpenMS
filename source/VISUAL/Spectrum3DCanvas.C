@@ -84,8 +84,7 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	openglwidget()->recalculateDotGradient_();
-	recalculate_ = true;
-	invalidate_();
+	repaintAll();
 	return current_data_;
 }
 	
@@ -105,14 +104,14 @@ void Spectrum3DCanvas::actionModeChange_()
 	switch(action_mode_)
 	{
 	case AM_TRANSLATE:
-		openglwidget()->setZoomFactor(1.25);
+		openglwidget()->setZoomFactor(2.0);
 		openglwidget()->resetAngels();
-		invalidate_();
+		repaintAll();
 		break;
 	case AM_ZOOM:
 		openglwidget()->setZoomFactor(1.25);
 		openglwidget()->resetTranslation();
-		invalidate_();
+		repaintAll();
 		break;
 	case AM_MEASURE:
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -135,9 +134,10 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 }
 
 void Spectrum3DCanvas::invalidate_()
-{
+{	
+	openglwidget()->updateGL();
 	openglwidget()->initializeGL();
- 	openglwidget()->updateGL();
+ 	 openglwidget()->updateGL();
 }
 
 void Spectrum3DCanvas::intensityModeChange_()
