@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_PeakPickingDialog_H
-#define OPENMS_VISUAL_DIALOGS_PeakPickingDialog_H
+#ifndef OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/PeakPickingDialogTemplate.h>
 #include <OpenMS/FORMAT/Param.h>
