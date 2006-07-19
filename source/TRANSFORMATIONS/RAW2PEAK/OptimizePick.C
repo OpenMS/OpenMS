@@ -32,34 +32,34 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
 
-    /** positions and signal values **/
+    // positions and signal values 
     std::vector<PeakShape> peaks_;
     std::vector<double> positions_;
     std::vector<double> signal_;
 
 
-    /** Print the computed signal **/
-    void printSignal(const gsl_vector* x, float resolution = 0.25)
+    // Print the computed signal 
+    void printSignal(const gsl_vector* x, float resolution)
     {
       std::cout << "Printing Signal" << std::endl;
       if (resolution == 1.)
       {
-        /** iterate over all points of the signal **/
+        // iterate over all points of the signal 
         for (size_t current_point = 0; current_point < positions_.size(); current_point++)
         {
           double computed_signal     = 0.;
           double current_position    = positions_[current_point];
 
-          /** iterate over all peaks **/
+          // iterate over all peaks 
           for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
           {
-            /** Store the current parameters for this peak **/
+            // Store the current parameters for this peak 
             double p_height 		 = gsl_vector_get(x, 4*current_peak);
             double p_position    = gsl_vector_get(x, 4*current_peak + 3);
             double p_width  		 = (current_position <= p_position) ? gsl_vector_get(x, 4*current_peak + 1)
                                  : gsl_vector_get(x, 4*current_peak + 2);
 
-            /** is it a Lorentz or a Sech - Peak? **/
+            // is it a Lorentz or a Sech - Peak? 
             if (peaks_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
             {
               computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
@@ -74,23 +74,23 @@ namespace OpenMS
       }
       else
       {
-        /** Compute step width **/
+        // Compute step width 
         float sw = (positions_[1] - positions_[0])/resolution;
         for (int i=0; i<positions_.size() * resolution; i++)
         {
           double computed_signal     = 0.;
           double current_position    = positions_[0] + i*sw;
 
-          /** iterate over all peaks **/
+          // iterate over all peaks 
           for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
           {
-            /** Store the current parameters for this peak **/
+            // Store the current parameters for this peak 
             double p_height 		 = gsl_vector_get(x, 4*current_peak);
             double p_position    = gsl_vector_get(x, 4*current_peak + 3);
             double p_width  		 = (current_position <= p_position) ? gsl_vector_get(x, 4*current_peak + 1)
                                  : gsl_vector_get(x, 4*current_peak + 2);
 
-            /** is it a Lorentz or a Sech - Peak? **/
+            // is it a Lorentz or a Sech - Peak? 
             if (peaks_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
             {
               computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
@@ -109,7 +109,7 @@ namespace OpenMS
     }
 
 
-    /** Evaluation of the target function for nonlinear optimization. **/
+    // Evaluation of the target function for nonlinear optimization. 
     int residual(const gsl_vector* x, void* params , gsl_vector* f)
     {
       // According to the gsl conventions, x contains the parameters to be optimized.
@@ -124,23 +124,23 @@ namespace OpenMS
       // The vector f is supposed to contain the result when we return from this function.
       // Note: GSL wants the values for each data point i as one component of the results vector
 
-      /** iterate over all points of the signal **/
+      // iterate over all points of the signal 
       for (size_t current_point = 0; current_point < positions_.size(); current_point++)
       {
         double computed_signal     = 0.;
         double current_position    = positions_[current_point];
         double experimental_signal = signal_[current_point];
 
-        /** iterate over all peaks **/
+        // iterate over all peaks 
         for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
         {
-          /** Store the current parameters for this peak **/
+          // Store the current parameters for this peak 
           double p_height 		 = gsl_vector_get(x, 4*current_peak);
           double p_position    = gsl_vector_get(x, 4*current_peak + 3);
           double p_width  		 = (current_position <= p_position) ? gsl_vector_get(x, 4*current_peak + 1)
                                : gsl_vector_get(x, 4*current_peak + 2);
 
-          /** is it a Lorentz or a Sech - Peak? **/
+          // is it a Lorentz or a Sech - Peak? 
           if (peaks_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
           {
             computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
@@ -159,7 +159,7 @@ namespace OpenMS
       double penalty_lwidth = penalties->lWidth;
       double penalty_rwidth = penalties->rWidth;
 
-      /** iterate over all peaks again to compute the penalties **/
+      // iterate over all peaks again to compute the penalties 
       for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
       {
         double old_position = peaks_[current_peak].mz_position;
@@ -189,24 +189,24 @@ namespace OpenMS
       //
       // The matrix J is supposed to contain the result when we return from this function.
       // Note: GSL expects the Jacobian as follows:
-      // 					- each row corresponds to one data point
-      // 					- each column corresponds to one parameter
+      // 	- each row corresponds to one data point
+      // 	- each column corresponds to one parameter
 
-      /** iterate over all points of the signal **/
+      // iterate over all points of the signal 
       for (size_t current_point = 0; current_point < positions_.size(); current_point++)
       {
         double current_position    = positions_[current_point];
 
-        /** iterate over all peaks **/
+        // iterate over all peaks 
         for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
         {
-          /** Store the current parameters for this peak **/
+          // Store the current parameters for this peak 
           double p_height 		 = gsl_vector_get(x, 4*current_peak);
           double p_position    = gsl_vector_get(x, 4*current_peak + 3);
           double p_width  		 = (current_position <= p_position) ? gsl_vector_get(x, 4*current_peak + 1)
                                : gsl_vector_get(x, 4*current_peak + 2);
 
-          /** is it a Lorentz or a Sech - Peak? **/
+          // is it a Lorentz or a Sech - Peak? 
           if (peaks_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
           {
             double diff      = current_position - p_position;
@@ -249,9 +249,7 @@ namespace OpenMS
         }
       }
 
-      /** Now iterate over all peaks again to compute the
-       *  penalties.
-       */
+      // Now iterate over all peaks again to compute the penalties.
       struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
       for (size_t current_peak = 0; current_peak < peaks_.size(); current_peak++)
       {
@@ -319,12 +317,6 @@ namespace OpenMS
   OptimizePick::~OptimizePick()
   {}
 
-  /** Perform a nonlinear optimization of the peaks that have been determined for the
-   *  current split array.
-   *  TODO: a lot! 
-   *  			- try different algorithms
-   *  			- real integration into the workflow
-   */
   void OptimizePick::optimize(std::vector<PeakShape>& peaks)
   {
     if (peaks.size() == 0)
@@ -376,10 +368,10 @@ namespace OpenMS
 
     gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
 
-    /** initial norm **/
-    //			std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+    // initial norm 
+    // std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 
-    /** Iteration **/
+    // Iteration 
     unsigned int iteration = 0;
     int status;
 
@@ -395,7 +387,9 @@ namespace OpenMS
 #endif
       if (isnan(gsl_blas_dnrm2(fit->dx)))
         break;
-
+ 
+      // We use the gsl function gsl_multifit_test_delta to decide if we can finish the iteration.
+      // We only finish if all new parameters deviates only by a small amount from the parameters of the last iteration
       status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
       if (status != GSL_CONTINUE)
         break;
@@ -412,18 +406,17 @@ namespace OpenMS
 
     //		OptimizationFunctions::printSignal(fit->x, 5.);
 
-    /** iterate over all peaks and store the optimized values in peaks **/
-    // UNDO
-    for (size_t current_peak = 0; current_peak < OptimizationFunctions::peaks_.size(); current_peak++)
+    // iterate over all peaks and store the optimized values in peaks 
+   for (size_t current_peak = 0; current_peak < OptimizationFunctions::peaks_.size(); current_peak++)
     {
-      /** Store the current parameters for this peak **/
+      // Store the current parameters for this peak 
       peaks[global_peak_number+current_peak].height 		 = gsl_vector_get(fit->x, 4*current_peak);
       peaks[global_peak_number+current_peak].mz_position = gsl_vector_get(fit->x, 4*current_peak + 3);
       peaks[global_peak_number+current_peak].left_width  = gsl_vector_get(fit->x, 4*current_peak + 1);
       peaks[global_peak_number+current_peak].right_width = gsl_vector_get(fit->x, 4*current_peak + 2);
 
       //	compute the area
-      /** is it a Lorentz or a Sech - Peak? **/
+      // is it a Lorentz or a Sech - Peak? 
       if (peaks[global_peak_number+current_peak].type == PeakShapeType::LORENTZ_PEAK)
       {
         PeakShape p = peaks[global_peak_number+current_peak];
