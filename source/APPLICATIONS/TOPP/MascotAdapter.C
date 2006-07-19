@@ -665,11 +665,11 @@ class TOPPMascotAdapter
 				vector<Real> wrong_retention_times;				
 				if (!mascot_out)
 				{
-					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML",
+					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name,
 															identifications,
 															precursor_retention_times,
 															precursor_mz_values);
-					mascotXML_file.load(mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML",
+					mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
 															&wrong_retention_times,
