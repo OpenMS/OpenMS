@@ -143,7 +143,7 @@ MzDataFile mz_data_file;
 MSExperiment<DRawDataPoint<1> > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);
 
-CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& peaks[0]s_container, int ms_level)))
+CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
   MSSpectrum<DPeak<1> > peaks;
   PeakPickerCWT pp;
     
@@ -154,7 +154,7 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
 RESULT
 
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& peaks[0]_container, int ms_level = 1)))
+CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
   MSSpectrum<DPickedPeak<1> > peaks;
   PeakPickerCWT pp;
   
@@ -173,7 +173,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   TEST_REAL_EQUAL(it->getSN(),pp.getPeakShapes()[0].signal_to_noise)
 RESULT
 
-CHECK((template<typename InputPeakType, typename OutputPeakType> void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
+CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
   MSExperiment<DPickedPeak<1> > peaks;
   PeakPickerCWT pp;
    

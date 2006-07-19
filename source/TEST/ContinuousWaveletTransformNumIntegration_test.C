@@ -39,16 +39,16 @@ START_TEST(ContinuousWaveletTransformNumIntegration, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContinuousWaveletTransformNumIntegration<1>* ptr = 0;
-CHECK(ContinuousWaveletTransformNumIntegration())
-	ptr = new ContinuousWaveletTransformNumIntegration<1>();
-	TEST_NOT_EQUAL(ptr, 0)
+CHECK((ContinuousWaveletTransformNumIntegration()))
+  ptr = new ContinuousWaveletTransformNumIntegration<1>();
+  TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~ContinuousWaveletTransformNumIntegration())
-	delete ptr;
+CHECK((~ContinuousWaveletTransformNumIntegration()))
+  delete ptr;
 RESULT
 
-CHECK(ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt))
+CHECK((ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)))
   ContinuousWaveletTransformNumIntegration<2> transformer;
   DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
   vector<double> wavelet(0);
@@ -61,10 +61,10 @@ CHECK(ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWavele
   transformer.getSignalLength() = 8;
   transformer.getMzDim() = 0;
   
- 	ContinuousWaveletTransformNumIntegration<2> transformer_copy;
- 	transformer_copy = transformer;
- 	DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
- 	vector<double> wavelet_copy = transformer_copy.getWavelet();
+  ContinuousWaveletTransformNumIntegration<2> transformer_copy;
+  transformer_copy = transformer;
+  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+  vector<double> wavelet_copy = transformer_copy.getWavelet();
   double scale = transformer_copy.getScale();
   double spacing = transformer_copy.getSpacing();
   int l_padding = transformer_copy.getLeftPaddingIndex();
@@ -74,14 +74,14 @@ CHECK(ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWavele
   TEST_EQUAL(transform_copy == transform, true)
   TEST_EQUAL(wavelet_copy == wavelet, true)
   TEST_REAL_EQUAL(scale,0.12)
- 	TEST_REAL_EQUAL(spacing, 0.2)
- 	TEST_REAL_EQUAL(l_padding, 10)
- 	TEST_REAL_EQUAL(r_padding, 2)
- 	TEST_REAL_EQUAL(length, 8)
- 	TEST_REAL_EQUAL(mz,0)
+  TEST_REAL_EQUAL(spacing, 0.2)
+  TEST_REAL_EQUAL(l_padding, 10)
+  TEST_REAL_EQUAL(r_padding, 2)
+  TEST_REAL_EQUAL(length, 8)
+  TEST_REAL_EQUAL(mz,0)
 RESULT
 
-CHECK(ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt))
+CHECK((ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt)))
   ContinuousWaveletTransformNumIntegration<2> transformer;
   DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
   vector<double> wavelet(0);
@@ -94,9 +94,9 @@ CHECK(ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformN
   transformer.getSignalLength() = 8;
   transformer.getMzDim() = 0;
   
- 	ContinuousWaveletTransformNumIntegration<2> transformer_copy(transformer);
- 	DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
- 	vector<double> wavelet_copy = transformer_copy.getWavelet();
+  ContinuousWaveletTransformNumIntegration<2> transformer_copy(transformer);
+  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+  vector<double> wavelet_copy = transformer_copy.getWavelet();
   double scale = transformer_copy.getScale();
   double spacing = transformer_copy.getSpacing();
   int l_padding = transformer_copy.getLeftPaddingIndex();
@@ -106,14 +106,14 @@ CHECK(ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformN
   TEST_EQUAL(transform_copy == transform, true)
   TEST_EQUAL(wavelet_copy == wavelet, true)
   TEST_REAL_EQUAL(scale,0.12)
- 	TEST_REAL_EQUAL(spacing, 0.2)
- 	TEST_REAL_EQUAL(l_padding, 10)
- 	TEST_REAL_EQUAL(r_padding, 2)
- 	TEST_REAL_EQUAL(length, 8)
- 	TEST_REAL_EQUAL(mz,0)
+  TEST_REAL_EQUAL(spacing, 0.2)
+  TEST_REAL_EQUAL(l_padding, 10)
+  TEST_REAL_EQUAL(r_padding, 2)
+  TEST_REAL_EQUAL(length, 8)
+  TEST_REAL_EQUAL(mz,0)
 RESULT
 
-CHECK(void init(double scale, double spacing, unsigned int mz_dim_))
+CHECK((void init(double scale, double spacing, unsigned int mz_dim_)))
   ContinuousWaveletTransformNumIntegration<1> transformer;
   float scale = 0.5;
   float spacing = 0.1;
@@ -126,7 +126,7 @@ CHECK(void init(double scale, double spacing, unsigned int mz_dim_))
   TEST_EQUAL(mz_dim_ == 0, true)
 RESULT
 
-CHECK(void transform(RawDataPointConstIterator begin_input, RawDataPointConstIterator end_input, float resolution))
+CHECK((void transform(RawDataPointConstIterator begin_input, RawDataPointConstIterator end_input, float resolution)))
   ContinuousWaveletTransformNumIntegration<1> transformer;
   float scale = 0.5;
   float spacing = 0.1;

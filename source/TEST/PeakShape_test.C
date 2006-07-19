@@ -41,16 +41,16 @@ START_TEST(PeakShape, "$Id$")
 using namespace OpenMS;
 
 PeakShape* peakshape_ptr=0;
-CHECK(PeakShape())
+CHECK((PeakShape()))
   peakshape_ptr = new PeakShape;
   TEST_NOT_EQUAL(peakshape_ptr, 0)
 RESULT
 
-CHECK(~PeakShape())
+CHECK((~PeakShape()))
 		delete peakshape_ptr;
 RESULT
 	
-CHECK(PeakShape& operator = (const PeakShape& peakshape))
+CHECK((PeakShape& operator = (const PeakShape& peakshape)))
 		PeakShape peakshape;
     peakshape.height = 10003.232;
     peakshape.mz_position = 0.323;
@@ -70,7 +70,7 @@ CHECK(PeakShape& operator = (const PeakShape& peakshape))
     TEST_EQUAL(peakshape_copy.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
-CHECK(PeakShape(const PeakShape& peakshape))
+CHECK((PeakShape(const PeakShape& peakshape)))
     PeakShape peakshape;
     peakshape.height = 10003.232;
     peakshape.mz_position = 0.323;
@@ -89,7 +89,7 @@ CHECK(PeakShape(const PeakShape& peakshape))
     TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
-CHECK(PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakShapeType::Enum type_))
+CHECK((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakShapeType::Enum type_)))
     double height = 100.0;
     double mz_position = 0.0;
     double left_width = 3.0;
@@ -113,7 +113,7 @@ CHECK(PeakShape(double height_, double mz_position_, double left_width_, double 
 		TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
-CHECK(double getSymmetricMeasure() const)
+CHECK((double getSymmetricMeasure() const))
 		double height = 100.0;
     double mz_position = 0.0;
     double left_width = 3.0;
@@ -132,7 +132,7 @@ CHECK(double getSymmetricMeasure() const)
     TEST_REAL_EQUAL(sym_value,3.0/9.0)
 RESULT
 
-CHECK(double operator() (const double x) const)
+CHECK((double operator() (const double x) const))
     double height = 100.0;
     double mz_position = 0.0;
     double left_width = 4.0;

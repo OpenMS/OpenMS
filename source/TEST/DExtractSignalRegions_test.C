@@ -42,16 +42,16 @@ START_TEST("DExtractSignalRegions<D,Container>", "$Id$")
 /////////////////////////////////////////////////////////////
 
 DExtractSignalRegions<1>* esr_ptr;
-CHECK(DExtractSignalRegions())
+CHECK((DExtractSignalRegions()))
   esr_ptr = new DExtractSignalRegions<1>;
   TEST_NOT_EQUAL(esr_ptr, 0)
 RESULT
 
-CHECK(~DExtractSignalRegions())
+CHECK((~DExtractSignalRegions()))
     delete esr_ptr;
 RESULT
 
-CHECK(DExtractSignalRegions(const Param& parameters))
+CHECK((DExtractSignalRegions(const Param& parameters)))
   Param param;
   param.setValue("PeakPickingParameter:Split:DaltonPerSplit",4);
   DExtractSignalRegions<1,DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > esr(param);
@@ -59,7 +59,7 @@ CHECK(DExtractSignalRegions(const Param& parameters))
   TEST_EQUAL(esr.getDaltonPerSplit(),4)
 RESULT
 
-CHECK(DExtractSignalRegions(const DExtractSignalRegions& e))
+CHECK((DExtractSignalRegions(const DExtractSignalRegions& e)))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   esr.getMZdim()=1;
   esr.getRTdim()=0;
@@ -71,7 +71,7 @@ CHECK(DExtractSignalRegions(const DExtractSignalRegions& e))
   TEST_EQUAL(esr_copy.getDaltonPerSplit(),10)
 RESULT
 
-CHECK(DExtractSignalRegions& operator=(const DExtractSignalRegions& e))
+CHECK((DExtractSignalRegions& operator=(const DExtractSignalRegions& e)))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   esr.getMZdim()=1;
   esr.getRTdim()=0;
@@ -84,7 +84,7 @@ CHECK(DExtractSignalRegions& operator=(const DExtractSignalRegions& e))
   TEST_EQUAL(esr_copy.getDaltonPerSplit(),10)
 RESULT
 
-CHECK(Param& getParam())
+CHECK((Param& getParam()))
   Param param;
   param.setValue("PeakPickingParameter:Split:DaltonPerSplit",4);
 
@@ -92,7 +92,7 @@ CHECK(Param& getParam())
   TEST_REAL_EQUAL((esr.getParam()) == param, true)
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   Param param;
   param.setValue("PeakPickingParameter:Split:DaltonPerSplit",4);
   const DExtractSignalRegions<1,DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > esr(param);
@@ -100,22 +100,22 @@ CHECK(const Param& getParam() const)
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK(const int getDaltonPerSplit() const)
+CHECK((const float& getDaltonPerSplit() const))
   const DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
 RESULT
 
-CHECK(const int getMZdim() const)
+CHECK((const int& getMZdim() const))
   const DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getMZdim(), 1)
 RESULT
 
-CHECK(const int getRTdim() const)
+CHECK((const int& getRTdim() const))
   const DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getRTdim(), 0)
 RESULT
 
-CHECK(Param& getParam())
+CHECK((Param& getParam()))
   Param param;
   param.setValue("PeakPickingParameter:Split:DaltonPerSplit",4);
   const DExtractSignalRegions<1,DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > esr(param);
@@ -123,7 +123,7 @@ CHECK(Param& getParam())
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK(int getDaltonPerSplit())
+CHECK((const float& getDaltonPerSplit() const))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
   esr.getDaltonPerSplit() = 123;
@@ -132,7 +132,7 @@ CHECK(int getDaltonPerSplit())
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 0)
 RESULT
 
-CHECK(int getMZdim())
+CHECK((int& getMZdim()))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getMZdim(), 1)
   esr.getMZdim() = 0;
@@ -141,7 +141,7 @@ CHECK(int getMZdim())
   TEST_REAL_EQUAL(esr.getMZdim(), 1)
 RESULT
 
-CHECK(int getRTdim())
+CHECK((int& getRTdim()))
    DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getRTdim(), 0)
   esr.getRTdim() = 1;
@@ -150,7 +150,7 @@ CHECK(int getRTdim())
   TEST_REAL_EQUAL(esr.getRTdim(), 0)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   Param param;
   param.setValue("PeakPickingParameter:Split:DaltonPerSplit",4);
   DExtractSignalRegions<1,DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > esr;
@@ -159,7 +159,7 @@ CHECK(void setParam(const Param& param))
   TEST_REAL_EQUAL(esr.getParam() == param, true)
 RESULT
 
-CHECK(void setDaltonPerSplit(const int dalton_per_split))
+CHECK((void setDaltonPerSplit(const float& dalton_per_split)))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 10)
   esr.setDaltonPerSplit(123);
@@ -168,7 +168,7 @@ CHECK(void setDaltonPerSplit(const int dalton_per_split))
   TEST_REAL_EQUAL(esr.getDaltonPerSplit(), 0)
 RESULT
 
-CHECK(void setMZdim(const int mz_dim))
+CHECK((void setMZdim(const int& mz_dim)))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getMZdim(), 1)
   esr.setMZdim(0);
@@ -177,7 +177,7 @@ CHECK(void setMZdim(const int mz_dim))
   TEST_REAL_EQUAL(esr.getMZdim(), 1)
 RESULT
 
-CHECK(void setRTdim(const int rt_dim))
+CHECK((void setRTdim(const int& rt_dim)))
   DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2> > esr;
   TEST_REAL_EQUAL(esr.getRTdim(), 0)
   esr.setRTdim(1);

@@ -152,13 +152,13 @@ EXECUTABLES_FORMAT = \
 	PersistenceManager_test\
 	DFeatureMapFile_test\
 	DFeaturePairsFile_test\
-	DGridFile_test\
 	FASTAFile_test\
 	MzDataExpSettHandler_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
 	FileHandler_test
 
+#	DGridFile_test\
 
 #MATH
 
@@ -287,7 +287,8 @@ EXECUTABLES_TRANSFORMATIONS = \
 	SimpleModelFitter_test\
 	FeaFiTraits_test\
 	PeakPicker_test\
-	PeakPickerCWT_test
+	PeakPickerCWT_test\
+	ContinuousWaveletTransform_test
 
 
 EXECUTABLES_ANALYSIS_ID =\

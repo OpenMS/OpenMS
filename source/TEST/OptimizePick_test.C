@@ -39,16 +39,16 @@ START_TEST(OptimizePick, "$Id$")
 /////////////////////////////////////////////////////////////
 
 OptimizePick* ptr = 0;
-CHECK(OptimizePick( ))
+CHECK((OptimizePick( )))
 	ptr = new OptimizePick();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~OptimizePick())
+CHECK((~OptimizePick()))
 	delete ptr;
 RESULT
 
-CHECK(OptimizePick& operator=(const OptimizePick& opt))
+CHECK((OptimizePick& operator=(const OptimizePick& opt)))
 	PRECISION(0.0001)
   OptimizePick opt_pick;
   struct OptimizationFunctions::PenaltyFactors penalties;
@@ -71,11 +71,11 @@ CHECK(OptimizePick& operator=(const OptimizePick& opt))
  	TEST_REAL_EQUAL(rel_err, 0.001)
 RESULT
 
-CHECK(OptimizePick( ))
+CHECK((OptimizePick( )))
   // ???
 RESULT
 
-CHECK(OptimizePick(const OptimizePick& opt))
+CHECK((OptimizePick(const OptimizePick& opt)))
   PRECISION(0.0001)
   OptimizePick opt_pick;
   struct OptimizationFunctions::PenaltyFactors penalties;
@@ -97,7 +97,7 @@ CHECK(OptimizePick(const OptimizePick& opt))
  	TEST_REAL_EQUAL(rel_err, 0.001)
 RESULT
 
-CHECK(OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_, const int max_iteration_, const double eps_abs_, const double eps_rel_ ))
+CHECK((OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_, const int max_iteration_, const double eps_abs_, const double eps_rel_ )))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactors penalties;
   penalties.pos = 0;
@@ -116,7 +116,7 @@ CHECK(OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties
  	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
 RESULT
 
-CHECK(void optimize(std::vector<PeakShape>& peaks))
+CHECK((void optimize(std::vector<PeakShape>& peaks)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;
@@ -146,7 +146,7 @@ CHECK(void optimize(std::vector<PeakShape>& peaks))
  	TEST_REAL_EQUAL(peak_shape.height,400)
 RESULT
 
-CHECK(void setMaxAbsError(const double eps_abs))
+CHECK((void setMaxAbsError(const double eps_abs)))
   PRECISION(0.0001)
   double abs_err = 0.01;
    
@@ -156,7 +156,7 @@ CHECK(void setMaxAbsError(const double eps_abs))
  	TEST_REAL_EQUAL(abs_err, opt_pick.getMaxAbsError())
 RESULT
 
-CHECK(void setMaxRelError(const double eps_rel))
+CHECK((void setMaxRelError(const double eps_rel)))
   PRECISION(0.0001)
   double rel_err = 0.01;
    
@@ -166,7 +166,7 @@ CHECK(void setMaxRelError(const double eps_rel))
  	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
 RESULT
 
-CHECK(void setNumberIterations(const int max_iteration))
+CHECK((void setNumberIterations(const int max_iteration)))
   unsigned int number = 20;
    
   OptimizePick opt_pick;
@@ -175,7 +175,7 @@ CHECK(void setNumberIterations(const int max_iteration))
  	TEST_EQUAL(number == opt_pick.getNumberIterations(), true)
 RESULT
 
-CHECK(void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties))
+CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties)))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactors penalties;
   penalties.pos = 0;
