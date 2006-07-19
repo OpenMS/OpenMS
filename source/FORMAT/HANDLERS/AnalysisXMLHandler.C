@@ -661,7 +661,8 @@ namespace OpenMS
 						((String) attributes.value(1).ascii()).toFloat()));
 				}
 			}
-			else if (attribute_value == "number_of_identifications")
+			else if (attribute_value == "number_of_identifications" 
+							|| attribute_value == "number_of_db_searches")
 			{
 				for(int i = 0; i < ((String) attributes.value(1).ascii()).toInt(); i++)
 				{
