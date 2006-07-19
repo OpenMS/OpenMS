@@ -77,33 +77,30 @@ namespace OpenMS
     /** @name Type definitions
      */
     //@{
-    ///
+    /// Dimension description
     enum { DIMENSION = D };
-    ///
+    /// Traits type
     typedef Traits TraitsType;
-    ///
+    /// Position type
     typedef DPosition<D, TraitsType>				      PositionType;
-    ///
+    /// Coordinate type
     typedef typename Traits::CoordinateType       CoordinateType;
-    ///
+    /// Intensity type 
     typedef typename Traits::IntensityType        IntensityType;
-    ///
+    /// Type of correlation coefficient
     typedef typename Traits::RValueType           RValueType;
-    ///
+    /// Area type
     typedef typename Traits::AreaType             AreaType;
-    ///
+    /// Full width at half maximum type
     typedef typename Traits::FullWidthHalfMaxType FullWidthHalfMaxType;
-    ///
+    /// Width parameter type
     typedef typename Traits::WidthType            WidthType;
-    ///
-    typedef	typename Traits::ChargeType           ChargeType;
-    ///
+    /// Charge type
+    typedef typename Traits::ChargeType           ChargeType;
+    /// Signal to noise value type
     typedef typename Traits::SignalToNoiseType    SignalToNoiseType;
     //@}
 
-    /** @name Constructors and Destructor
-     */
-    //@{
     /// Default constructor
     DPickedPeak():
         DPeak<D,Traits>(),
@@ -133,8 +130,7 @@ namespace OpenMS
     /// Desctructor
     virtual ~DPickedPeak()
     {}
-    //@}
-
+    
     /**
     	 @brief Clone function for polymorphism.
     	
@@ -147,10 +143,7 @@ namespace OpenMS
       return tmp;
     }
 
-    /**
-    	@name Accessors
-     */
-    //@{
+    
     /// Non-mutable access to the correlation coefficient between raw data and the peak model
     inline const RValueType& getRValue() const { return r_value_; }
     /// Mutable access to the peak correlation coefficient between raw data and the peak model
@@ -206,8 +199,7 @@ namespace OpenMS
     inline SignalToNoiseType& getSN() { return signal_to_noise_; }
     /// Mutable access to the the signal to noise value
     inline void setSN(const SignalToNoiseType& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
-    //@}
-
+    
     /// Assignment operator
     DPickedPeak& operator = (const DPickedPeak& rhs)
     {
