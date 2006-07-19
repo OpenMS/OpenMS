@@ -44,16 +44,26 @@
 
 namespace OpenMS
 {
+  /** @brief Namespace for all functions and classes needed for the gsl levenberg-marquard algorithm.
+      
+      We have to use function pointers for the gsl and can't put them into
+      a class, so we provide an extra namespace.
+  */
   namespace OptimizationFunctions
   {
-    /** @name Type definitions
-     */
-    //@{
+    /// Raw data vector type
     typedef std::vector<DRawDataPoint<1> > RawDataVector;
+    /// Raw data iterator type
     typedef RawDataVector::iterator RawDataPointIterator;
-    ///
-    //@}
-    ///
+
+    /** @brief Class for the penalty factors used during the optimization.
+        
+        A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
+        In each iteration the penalty (for each peak shape) is computed by:
+                penalty = penalty_pos * pow(p_position - old_position, 2)
+                        + penalty_lwidth * pow(p_width_l - old_width_l, 2)
+                        + penalty_rwidth * pow(p_width_r - old_width_r, 2);
+    */
     struct PenaltyFactors
     {
       PenaltyFactors() : pos(0), lWidth(0), rWidth(0) {}
@@ -68,76 +78,82 @@ namespace OpenMS
       }
       ~PenaltyFactors(){}
 
+      /// Penalty factor for the peak shape's position
       double pos;
+      /// Penalty factor for the peak shape's left width parameter
       double lWidth;
+      /// Penalty factor for the peak shape's right width parameter
       double rWidth;
     };
 
-    /** positions and signal values **/
+    /// Positions and intensity values of the raw data
     extern std::vector<double> positions_;
     extern std::vector<double> signal_;
+    /// This container contains the peak shapes to be optimized
     extern std::vector<PeakShape> peaks_;
 
-    /** Evaluation of the target function for nonlinear optimization. **/
+    /// Evaluation of the target function for nonlinear optimization.
     int residual(const gsl_vector* x, void* /* params */, gsl_vector* f);
 
-    /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
-     *  point in the data.
-     */
+    /// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
     int jacobian(const gsl_vector* x, void* /* params */, gsl_matrix* J);
 
-    /** Driver function for the evaluation of function and jacobian. **/
+    /// Driver function for the evaluation of function and jacobian.
     int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
-
+    
+    /// Print all peak shapes 
+    void printSignal(const gsl_vector* x, float resolution = 0.25);
   }
 
-  
+
   /**
-  	@brief This class contains the non-linear optimization of peak parameters.
+  	@brief This class provides the non-linear optimization of the peak paramters.
 
-  	For non-linear optimization we use the Levenberg-Marquardt of the gsl.
-  	We have to use function pointers for the gsl and can't put them into
-  	a class, so we provide an extra namespace.
-
-  	@ingroup PeakPicking
+        Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
+  	For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the gsl.
+   	
+        @ingroup PeakPicking
    */
   class OptimizePick
   {
   public:
-    /** @name Type definitions
-     */
-    //@{
+    /// Raw data vector type
     typedef std::vector<DRawDataPoint<1> > RawDataVector;
+    /// Raw data iterator type
     typedef RawDataVector::iterator RawDataPointIterator;
     //@}
 
 
-    /** @name Constructors and Destructor
-     */
-    //@{
+    /// Constructor
     OptimizePick( )
         : max_iteration_(0),
         eps_abs_(0),
-    		eps_rel_(0) {}
-    ///
+    eps_rel_(0) {}
+    
+    /// Constructor to set the penalty factors, the number of optimization iterations as well as the threshold for the absolute and the relative error.
     OptimizePick(const struct OptimizationFunctions::PenaltyFactors& penalties_,
                  const int max_iteration_,
                  const double eps_abs_,
                  const double eps_rel_ );
-    ///
+    
+    /// Copy constructor
     OptimizePick(const OptimizePick& opt)
         : penalties_(opt.penalties_),
         max_iteration_(opt.max_iteration_),
-    		eps_rel_(opt.eps_rel_){}
-    ///
+    eps_rel_(opt.eps_rel_){}
+    
+    /// Destructor
     ~OptimizePick();
-    //@}
+    
 
-    /**	@name Assignment
-     */
-    //@{
+    /// Assignment operator
     inline OptimizePick& operator=(const OptimizePick& opt)
     {
+     // take care of self assignments
+      if (this == &opt)
+      {
+        return *this;
+      }
       penalties_=opt.penalties_;
       max_iteration_=opt.max_iteration_;
       eps_rel_=opt.eps_rel_;
@@ -145,17 +161,12 @@ namespace OpenMS
 
       return *this;
     }
-    //@}
-
-
-    /**	Accessors
-     */
-    //@{
-    /// Non-mutable access to the penalty parameter
+    
+    /// Non-mutable access to the penalty factors
     inline const struct OptimizationFunctions::PenaltyFactors& getPenalties() const { return penalties_; }
-    /// Mutable access to the penalty parameter
+    /// Mutable access to the penalty factors
     inline struct OptimizationFunctions::PenaltyFactors& getPenalties() { return penalties_; }
-    /// Mutable access to the penalty parameter
+    /// Mutable access to the penalty factors
     inline void setPenalties(const struct OptimizationFunctions::PenaltyFactors& penalties) { penalties_ = penalties; }
 
     /// Non-mutable access to the number of iterations
@@ -181,28 +192,26 @@ namespace OpenMS
     //@}
 
 
-    /** Perform a nonlinear optimization of the peaks that have been determined for the
-       *  current split array.
-       */
+    /// Start the optimization of the peak shapes peaks. The original peak shapes will be subsituted by the optimized peak shapes.
     void optimize(std::vector<PeakShape>& peaks);
 
+   /** @brief Returns the squared pearson coefficient.
+
+        Computes the correlation of the peak and the original data given by the peak enpoints.
+        If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+    */
     double correlate(const PeakShape& peak,
                      double left_endpoint,
                      double right_endpoint);
 
   protected:
-    /**
-    	 @brief 
-
-    	 
-    */
+    /// Penalty factors
     struct OptimizationFunctions::PenaltyFactors penalties_;
 
-    /** Maximum number of iterations **/
+    /// Maximum number of iterations during optimization
     unsigned int max_iteration_;
 
-    /** Test for the convergence of the sequence by comparing the last iteration step dx
-    		with the absolute error epsabs and relative error epsrel to the current position x **/
+    /// Maximum absolute and relative error used in the optimization.  
     double eps_abs_;
     double eps_rel_;
   };

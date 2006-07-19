@@ -56,7 +56,7 @@ namespace OpenMS
   */
 
   /**
-     @brief This class implements a peak picking algorithm using wavelet techniques.
+     @brief This class implements a peak picking algorithm using wavelet techniques (as described by Lange et al. (2006) Proc. PSB-06).
 
      This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
      Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
@@ -64,9 +64,6 @@ namespace OpenMS
      In an optional step these parameters can be optimized using a non-linear opimization method.
 
      @ingroup PeakPicking
-
-     @todo write test (Eva)
-
   */
 
   class PeakPickerCWT : public PeakPicker
@@ -116,6 +113,12 @@ namespace OpenMS
     /// Assignment operator
     inline PeakPickerCWT& operator=(const PeakPickerCWT& pp)
     {
+      // take care of self assignments
+      if (this == &pp)
+      {
+        return *this;
+      }
+      
       param_ = pp.param_;
       peak_bound_ = pp.peak_bound_;
       signal_to_noise_ = pp.signal_to_noise_;
@@ -475,7 +478,7 @@ namespace OpenMS
     	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
     	      the peak picking algorithm.  
 
-    	      You have to copy the ExperimentalSettings of the raw data by your own. 	
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
     */
     template <typename InputSpectrumIterator, typename OutputPeakType >
     void pickExperiment(InputSpectrumIterator first,
@@ -530,6 +533,8 @@ namespace OpenMS
       pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
     }
 
+
+    /// This function fills the members of a picked peak of type OutputPeakType.
     template <typename OutputPeakType>
     void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
     {}
@@ -567,16 +572,28 @@ namespace OpenMS
     void init_();
 
 
-    /// A regularData-Object which contents some additional useful informations
-    /// for analysing peaks and their properties
+    /** @brief Class for the internal peak representation
+        
+        A regularData-Object which contents some additional useful informations
+        for analysing peaks and their properties
+    */
     class PeakArea_
     {
       typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
 
     public:
       PeakArea_(){}
-
-      RawDataPointIterator left, max, right, left_behind_centroid;
+      
+      /** @brief Iterator defining a raw data peak.
+         
+         The left and right iterators delimit a range in the raw data which represents a raw peak.
+         They define the raw peak endpoints. Max points to the raw data point in [left, right] with the heighest intensity, the 
+         maximum of the raw peak. 
+         
+         Left_behind_centroid points to the raw data point next to the estimates centroid position.
+      */
+         RawDataPointIterator left, max, right, left_behind_centroid;
+      /// The estimated centroid position.
       DPosition<1> centroid_position;
     };
 
@@ -586,13 +603,17 @@ namespace OpenMS
     /// Returns the best fitting peakshape
     PeakShape fitPeakShape_(const PeakArea_& area, bool enable_centroid_fit);
 
-    /// Returns the squared pearson coefficient.
-    /// If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
-    double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
-    //@}
+    /** @brief Returns the squared pearson coefficient.
 
-    /** Finds the next maximum position in the wavelet transform wt. If the maximum is greater
-    	than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+        Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
+        If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+    */
+    double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
+
+
+    /** @brief Finds the next maximum position in the wavelet transform wt.
+        
+        If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
     	given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
     	are relvant. If no peak is detected the method return false.
     	For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
@@ -606,33 +627,36 @@ namespace OpenMS
                          int direction=1);
 
 
-    /**  The algorithm does the following:
-      *    - let x_m be the position of the maximum in the data and let (x_l, x_r) be
-      *      the left and right neighbours
-      *
-      *
-      *  (1) starting from x_l', walk left until one of the following happens
-      *         - the new point is lower than the original bound
-      *              => we found our left endpoint
-      *
-      *         - the new point is larger than the last, but the point left from
-      *           the new point is smaller. In that case, we either ran into another
-      *           peak, or we encounter some noise. Therefore we now look in the cwt
-      *           at the position corresponding to this value. If the cwt here is
-      *           monotonous, we consider the point as noise and continue further to the
-      *           left. Otherwise, we probably found the beginning of a new peak and
-      *           therefore stop here.
-      *
-      *  (2) analogous procedure to the right of x_r
-      */
+    /** @brief Determines a peaks's endpoints.
+      
+      The algorithm does the following:
+          - let x_m be the position of the maximum in the data and let (x_l, x_r) be
+            the left and right neighbours
+      
+      
+        (1) starting from x_l', walk left until one of the following happens
+               - the new point is lower than the original bound
+                    => we found our left endpoint
+      
+               - the new point is larger than the last, but the point left from
+                 the new point is smaller. In that case, we either ran into another
+                 peak, or we encounter some noise. Therefore we now look in the cwt
+                 at the position corresponding to this value. If the cwt here is
+                 monotonous, we consider the point as noise and continue further to the
+                 left. Otherwise, we probably found the beginning of a new peak and
+                 therefore stop here.
+      
+        (2) analogous procedure to the right of x_r
+    */
     bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,
                            PeakArea_ &area, int& peak_left_index, int& peak_right_index);
 
 
-    /**
-     *  Computes the centroid position of the peak using all raw data points which are greater than 
-     *  60% of the most intensive raw data point.
-     */
+    /** @brief Estimates a peak's centroid position.
+
+       Computes the centroid position of the peak using all raw data points which are greater than 
+       60% of the most intensive raw data point.
+    */
     void getPeakCentroid_(PeakArea_& area);
 
 
@@ -640,18 +664,21 @@ namespace OpenMS
     /// Computes the value of a theroretical lorentz peak at position x
     double lorentz_(double height, double lambda, double pos, double x);
 
-    /** Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
-    	* for the continious wavelet transform. 
-    	* Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
-    	* is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
-    	* lorentzian peak we have a peak bound in the wavelet transform. 
-    	*/
+    /** @brief Computes the threshold for the peak height in the wavelet transform.
+
+        Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
+    	for the continious wavelet transform. 
+    	Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
+    	is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
+    	lorentzian peak we have a peak bound in the wavelet transform. 
+    */
     void calculatePeakBoundCWT_();
 
   }
   ; // end PeakPickerCWT
 
 
+  /// Fills the members of a DPickedPeak given an PeakShape
   template <>
   void PeakPickerCWT::fillPeak_< DPickedPeak<1> >(const PeakShape& peak_shape, DPickedPeak<1>& picked_peak);
 

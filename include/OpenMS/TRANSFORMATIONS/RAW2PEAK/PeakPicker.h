@@ -51,38 +51,49 @@ namespace OpenMS
      @brief This class is the base class for every peak picker.
 
      @ingroup PeakPicking
-     
-     @todo Make it work on all classes derived from DRawDataPoint (Eva)
-
   */
   class PeakPicker
   {
 
   public:
-   /// Constructor
+    /// Constructor
     PeakPicker()
         : peak_bound_(200),
         peak_bound_ms2_level_(50),
         signal_to_noise_(3),
-        fwhm_bound_(0.2) {}
-        
+    fwhm_bound_(0.2) {}
+
     /// Constructor given the name of a param file
     PeakPicker(const String& param_filename);
-    
+
     /// Constructor given a param object
     PeakPicker(const Param& parameters);
-    
+
     /// Copy constructor
     PeakPicker(const PeakPicker& pp);
-    
+
     /// Destructor
     virtual ~PeakPicker()
     {   }
-   
-     /// Assignment operator
-    PeakPicker& operator=(const PeakPicker& pp);
-    
-    
+
+    /// Assignment operator
+    inline PeakPicker& operator=(const PeakPicker& pp)
+    {
+      // take care of self assignments
+      if (this == &pp)
+      {
+        return *this;
+      }
+
+      param_ = pp.param_;
+      peak_bound_=pp.peak_bound_;
+      peak_bound_ms2_level_=pp.peak_bound_ms2_level_;
+      signal_to_noise_=pp.signal_to_noise_;
+      fwhm_bound_ = pp.fwhm_bound_;
+
+      return *this;
+    }
+
     /// Non-mutable access to the threshold of the height
     inline const float& getPeakBound() const { return peak_bound_; }
     /// Mutable access to the threshold of the height
@@ -103,7 +114,7 @@ namespace OpenMS
     inline float& getSignalToNoiseLevel() { return signal_to_noise_; }
     /// Mutable access to the signal to noise threshold
     inline void setSignalToNoiseLevel(const float& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
-    
+
     /// Non-mutable access to the fwhm threshold
     inline const float& getFwhmBound() const { return fwhm_bound_; }
     /// Mutable access to the fwhm threshold
@@ -117,21 +128,20 @@ namespace OpenMS
     inline Param& getParam() { return param_; }
     /// Mutable access to the parameter object
     inline void setParam(const Param& param) { param_ = param; }
-    //@}
 
   protected:
     /// Parameter object
     Param param_;
-   
+
     /// Threshold for the peak height in the MS 1 level
     float peak_bound_;
 
     /// Threshold for the peak height in the MS 2 level
     float peak_bound_ms2_level_;
-    
+
     /// Signal to noise threshold
     float signal_to_noise_;
-    
+
     /// The minimal full width at half maximum
     float fwhm_bound_;
 

@@ -53,9 +53,12 @@ namespace OpenMS
   template <Size D>
   class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform<D>
   {
+  public:
+    /// Base type
+    typedef ContinuousWaveletTransform<D> Base;
     /// Raw data const iterator type
-    typedef typename std::vector<DRawDataPoint<D> >::const_iterator RawDataPointConstIterator;
-   
+    typedef typename Base::RawDataPointConstIterator RawDataPointConstIterator;
+
     using ContinuousWaveletTransform<D>::signal_;
     using ContinuousWaveletTransform<D>::wavelet_;
     using ContinuousWaveletTransform<D>::scale_;
@@ -65,23 +68,27 @@ namespace OpenMS
     using ContinuousWaveletTransform<D>::signal_length_;
     using ContinuousWaveletTransform<D>::mz_dim_;
 
-  public:
-   
-   /// Constructor
+
+    /// Constructor
     ContinuousWaveletTransformNumIntegration();
 
     /// Copy constructor
-    ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt) 
-    : ContinuousWaveletTransform<D>(cwt)
+    ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt)
+        : ContinuousWaveletTransform<D>(cwt)
     {}
     /// Destructor.
     virtual ~ContinuousWaveletTransformNumIntegration();
     //@}
 
 
-   /// Assignment operator
+    /// Assignment operator
     inline ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)
     {
+      // take care of self assignments
+      if (this == &cwt)
+      {
+        return *this;
+      }
       signal_=cwt.signal_;
       wavelet_=cwt.wavelet_;
       spacing_=cwt.spacing_;
@@ -90,44 +97,44 @@ namespace OpenMS
       end_left_padding_=cwt.end_left_padding_;
       begin_right_padding_=cwt.begin_right_padding_;
       mz_dim_=cwt.mz_dim_;
-      
+
       return *this;
     }
-     /**
-    	 @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
-     */
-    /// resolution = 1: the wavelet transform will be computed at every position of the raw data, 
+    /**
+     @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
+    */
+    /// resolution = 1: the wavelet transform will be computed at every position of the raw data,
     /// resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
-    /// 								(the raw data are interpolated to get the intensity for missing positions) 
+    /// 								(the raw data are interpolated to get the intensity for missing positions)
     /// ...
     /// @note before starting the transformation you have to call the init function
     virtual void transform(RawDataPointConstIterator begin_input,
-                  				 RawDataPointConstIterator end_input,
-                  				 float resolution);
+                           RawDataPointConstIterator end_input,
+                           float resolution);
 
-     /**
-    	 @brief Perform necessary preprocessing steps like tabulating the Wavelet.
-    	 
-    	  Build a Marr-Wavelet for the current spacing and scale.
-       	We store the wavelet in the vector<double> wavelet_;
+    /**
+     @brief Perform necessary preprocessing steps like tabulating the Wavelet.
      
-       	We only need a finite amount of points since the Marr function
-       	decays fast. We take 5*scale, since at that point the wavelet
-       	has dropped to ~ -10^-4
-     */
+      Build a Marr-Wavelet for the current spacing and scale.
+      	We store the wavelet in the vector<double> wavelet_;
+
+      	We only need a finite amount of points since the Marr function
+      	decays fast. We take 5*scale, since at that point the wavelet
+      	has dropped to ~ -10^-4
+    */
     virtual void init(double scale, double spacing, unsigned int mz_dim_);
-    
-    protected:
-    	
+
+  protected:
+
     /// Computes the convolution of the wavelet and the raw data at position x with resolution = 1
     double integrate_(RawDataPointConstIterator x, RawDataPointConstIterator first, RawDataPointConstIterator last);
 
     /// Computes the convolution of the wavelet and the raw data at position x with resolution > 1
     double integrate_(const std::vector<double>& processed_input, double spacing_data, int index);
 
-		/// Computes the marr wavelet at position x 
+    /// Computes the marr wavelet at position x
     double marr_(double x);
-      };
+  };
 
   template <Size D>
   ContinuousWaveletTransformNumIntegration<D>::ContinuousWaveletTransformNumIntegration()
@@ -143,81 +150,81 @@ namespace OpenMS
   ContinuousWaveletTransformNumIntegration<D>::~ContinuousWaveletTransformNumIntegration()
   {}
 
-	template <Size D>
+  template <Size D>
   void ContinuousWaveletTransformNumIntegration<D>::transform(typename ContinuousWaveletTransformNumIntegration<D>::RawDataPointConstIterator begin_input,
-                   																						typename ContinuousWaveletTransformNumIntegration<D>::RawDataPointConstIterator end_input,
-                   																						float resolution)
+      typename ContinuousWaveletTransformNumIntegration<D>::RawDataPointConstIterator end_input,
+      float resolution)
+  {
+
+#ifdef DEBUG_PEAK_PICKING
+    std::cout << "ContinuousWaveletTransformNumIntegration::transform in dimension " << mz_dim_ << " from " << begin_input->getPosition()[mz_dim_] << " until " << (end_input-1)->getPosition()[mz_dim_] << std::endl;
+#endif
+    if (fabs(resolution-1) < 0.0001)
     {
-    
+      // resolution = 1 corresponds to the cwt at supporting points which have a distance corresponding to the minimal spacing in [begin_input,end_input)
+      unsigned int n = distance(begin_input,end_input);
+      signal_length_ = n;
+
+      unsigned int i;
+
+      signal_.clear();
+      signal_.resize(n);
+
+      // TODO avoid to compute the cwt for the zeros in signal
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "ContinuousWaveletTransformNumIntegration::transform in dimension " << mz_dim_ << " from " << begin_input->getPosition()[mz_dim_] << " until " << (end_input-1)->getPosition()[mz_dim_] << std::endl;
+      std::cout << "---------START TRANSFORM---------- \n";
 #endif
-      if (fabs(resolution-1) < 0.0001)
+      RawDataPointConstIterator help = begin_input;
+      for (i=0; i < n; ++i)
       {
-        // resolution = 1 corresponds to the cwt at supporting points which have a distance corresponding to the minimal spacing in [begin_input,end_input)
-        unsigned int n = distance(begin_input,end_input);
-        signal_length_ = n;
-
-        unsigned int i;
-
-        signal_.clear();
-        signal_.resize(n);
-
-        // TODO avoid to compute the cwt for the zeros in signal
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "---------START TRANSFORM---------- \n";
-#endif
-        RawDataPointConstIterator help = begin_input;
-        for (i=0; i < n; ++i)
-        {
-          signal_[i].getPos() = help->getPos();
-          signal_[i].getIntensity()=integrate_(help,begin_input,end_input);
-          ++help;
-        }
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "---------END TRANSFORM----------" << std::endl;
-#endif
-        // no zeropadding
-        begin_right_padding_=n;
-        end_left_padding_=-1;
+        signal_[i].getPos() = help->getPos();
+        signal_[i].getIntensity()=integrate_(help,begin_input,end_input);
+        ++help;
       }
-      else
-      {
-        unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
-        double origin  = begin_input->getPosition()[mz_dim_];
-        double spacing = ((end_input-1)->getPosition()[mz_dim_]-origin)/(n-1);
-
-        std::vector<double> processed_input(n);
-        signal_.clear();
-        signal_.resize(n);
-
-        RawDataPointConstIterator it_help = begin_input;
-        processed_input[0]=it_help->getPosition()[mz_dim_];
-
-        double x;
-        for (unsigned int k=1; k < n; ++k)
-        {
-          x = origin + k*spacing;
-          // go to the real data point next to x
-          while (((it_help+1) < end_input) && ((it_help+1)->getPosition()[mz_dim_] < x))
-          {
-            ++it_help;
-          }
-          processed_input[k] = getInterpolatedValue_(x,it_help);
-        }
-
-        // TODO avoid to compute the cwt for the zeros in signal
-        for (unsigned int i=0; i < n; ++i)
-        {
-          signal_[i].getPos() = origin + i*spacing;
-          signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
-        }
-
-        // no zeropadding
-        begin_right_padding_=n;
-        end_left_padding_=-1;
-      }
+#ifdef DEBUG_PEAK_PICKING
+      std::cout << "---------END TRANSFORM----------" << std::endl;
+#endif
+      // no zeropadding
+      begin_right_padding_=n;
+      end_left_padding_=-1;
     }
+    else
+    {
+      unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
+      double origin  = begin_input->getPosition()[mz_dim_];
+      double spacing = ((end_input-1)->getPosition()[mz_dim_]-origin)/(n-1);
+
+      std::vector<double> processed_input(n);
+      signal_.clear();
+      signal_.resize(n);
+
+      RawDataPointConstIterator it_help = begin_input;
+      processed_input[0]=it_help->getPosition()[mz_dim_];
+
+      double x;
+      for (unsigned int k=1; k < n; ++k)
+      {
+        x = origin + k*spacing;
+        // go to the real data point next to x
+        while (((it_help+1) < end_input) && ((it_help+1)->getPosition()[mz_dim_] < x))
+        {
+          ++it_help;
+        }
+        processed_input[k] = getInterpolatedValue_(x,it_help);
+      }
+
+      // TODO avoid to compute the cwt for the zeros in signal
+      for (unsigned int i=0; i < n; ++i)
+      {
+        signal_[i].getPos() = origin + i*spacing;
+        signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
+      }
+
+      // no zeropadding
+      begin_right_padding_=n;
+      end_left_padding_=-1;
+    }
+  }
 
 
   template <Size D>
@@ -339,7 +346,7 @@ namespace OpenMS
     {
       int index_w_r = (int)round(((index-i)*spacing_data)/spacing_);
       int index_w_l = (int)round(((index-(i-1))*spacing_data)/spacing_);
-      
+
       v += spacing_data / 2.*( processed_input[i]*wavelet_[index_w_r] + processed_input[i-1]*wavelet_[index_w_l] );
     }
 
@@ -348,7 +355,7 @@ namespace OpenMS
     {
       int index_w_r = (int)round((((i+1)-index)*spacing_data)/spacing_);
       int index_w_l = (int)round(((i-index)*spacing_data)/spacing_);
-      
+
       v += spacing_data / 2.*( processed_input[i+1]*wavelet_[index_w_r] + processed_input[i]*wavelet_[index_w_l]);
     }
 

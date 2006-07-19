@@ -41,11 +41,11 @@ namespace OpenMS
   template <Size D>
   class ContinuousWaveletTransform
   {
+  public:
     /// Raw data const iterator type
     typedef typename std::vector<DRawDataPoint<D> >::const_iterator RawDataPointConstIterator;
 
-  public:
-
+      
     /// Constructor
     ContinuousWaveletTransform();
 
@@ -58,6 +58,12 @@ namespace OpenMS
     /// Assignment operator
     inline ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)
     {
+       // take care of self assignments
+      if (this == &cwt)
+      {
+        return *this;
+      }
+      
       signal_=cwt.signal_;
       wavelet_=cwt.wavelet_;
       scale_=cwt.scale_;
