@@ -45,7 +45,7 @@ namespace OpenMS
     /// Raw data const iterator type
     typedef typename std::vector<DRawDataPoint<D> >::const_iterator RawDataPointConstIterator;
 
-      
+
     /// Constructor
     ContinuousWaveletTransform();
 
@@ -58,12 +58,12 @@ namespace OpenMS
     /// Assignment operator
     inline ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)
     {
-       // take care of self assignments
+      // take care of self assignments
       if (this == &cwt)
       {
         return *this;
       }
-      
+
       signal_=cwt.signal_;
       wavelet_=cwt.wavelet_;
       scale_=cwt.scale_;
@@ -133,7 +133,7 @@ namespace OpenMS
     inline void setMzDim(const unsigned int& mz_dim) { mz_dim_ = mz_dim; }
 
     /// Non-mutable access to signal length including padded zeros [0,end]
-    inline const int& getSize() const { return signal_.size(); }
+    inline int getSize() const { return signal_.size(); }
 
     /**
     @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
@@ -142,9 +142,7 @@ namespace OpenMS
     /// resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
     /// 		(the raw data are interpolated to get the intensity for missing positions)
     /// ...
-    virtual void transform(RawDataPointConstIterator begin_input,
-                           RawDataPointConstIterator end_input,
-                           float resolution) = 0;
+    virtual void transform(RawDataPointConstIterator /* begin_input */, RawDataPointConstIterator /* end_input */, float /* resolution*/) = 0;
 
     /**
      @brief Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
@@ -194,7 +192,9 @@ namespace OpenMS
 
   template <Size D>
   ContinuousWaveletTransform<D>::ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt)
-      : scale_(cwt.scale_),
+      : signal_(cwt.signal_),
+      wavelet_(cwt.wavelet_),
+      scale_(cwt.scale_),
       spacing_(cwt.spacing_),
       signal_length_(cwt.signal_length_),
       end_left_padding_(cwt.end_left_padding_),
