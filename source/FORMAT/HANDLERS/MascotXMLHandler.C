@@ -195,6 +195,7 @@ namespace OpenMS
  		}
  		else if (tag_ == "u_peptide")
  		{
+			actual_peptide_hit_.setScoreType("Mascot");
  			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
  			actual_peptide_hit_.clear();
  		}
