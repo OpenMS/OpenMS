@@ -380,6 +380,7 @@ class TOPPIDFilter
 			{
 				fasta_file.load(sequences_file_name,sequences);				
 			}
+			
 			if (exclusion_peptides_file_name  != "")
 			{
 				analysisXML_file.load(exclusion_peptides_file_name, 
@@ -414,14 +415,16 @@ class TOPPIDFilter
 																									 strict);
 				if (sequences_file_name != "")
 				{
-					filter.filterIdentificationsByProteins(filtered_identification, 
+					Identification temp_identification = filtered_identification;
+					filter.filterIdentificationsByProteins(temp_identification, 
 																								sequences,
 																								filtered_identification);
 				}
 				
 				if (total_gradient_time != 0.f)
 				{
-					filter.filterIdentificationsByRetentionTimes(filtered_identification, 
+					Identification temp_identification = filtered_identification;
+					filter.filterIdentificationsByRetentionTimes(temp_identification, 
 							 																				 predicted_retention_times,
 							 																				 precursor_retention_times[i],
 							 																				 predicted_sigma,
@@ -432,7 +435,8 @@ class TOPPIDFilter
 				
 				if (exclusion_peptides_file_name != "")
 				{
-					filter.filterIdentificationsByExclusionPeptides(filtered_identification,
+					Identification temp_identification = filtered_identification;
+					filter.filterIdentificationsByExclusionPeptides(temp_identification,
 																													exclusion_peptides,
 																													filtered_identification); 				
 				}
