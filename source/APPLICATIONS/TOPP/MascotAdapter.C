@@ -665,29 +665,33 @@ class TOPPMascotAdapter
 				vector<Real> wrong_retention_times;				
 				if (!mascot_out)
 				{
-					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name,
-															identifications,
-															precursor_retention_times,
-															precursor_mz_values);
+//					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name,
+//															identifications,
+//															precursor_retention_times,
+//															precursor_mz_values);
 					mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
-															&wrong_retention_times,
+															&precursor_retention_times,
 															&precursor_mz_values);			
 				}
 				else
 				{
-					mascot_outfile->load(mascot_outfile_name,
-															identifications,
-															precursor_retention_times,
-															precursor_mz_values);
 					if (mascotXML_file_name != "")
 					{
 						mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
-															&wrong_retention_times,
+															&precursor_retention_times,
 															&precursor_mz_values);			
+						
+					}
+					else
+					{
+						mascot_outfile->load(mascot_outfile_name,
+																identifications,
+																precursor_retention_times,
+																precursor_mz_values);
 						
 					}
 							
