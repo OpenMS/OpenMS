@@ -112,10 +112,10 @@ class TOPPFeatureFinder
        		 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
        		 << endl
        		 << "Usage:" << endl
-			 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
-			 << "  -in <file>   input file in mzData format" << endl
-			 << "  -out <file>  output file in feature format" << endl
-			 << endl;
+					 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
+					 << "  -in <file>   input file in mzData format" << endl
+					 << "  -out <file>  output file in feature format" << endl
+					 << endl;
 		}
 	
 		void printToolHelpOpt_()
@@ -126,14 +126,14 @@ class TOPPFeatureFinder
        		 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
        		 << endl
        		 << "INI options:" << endl
-			 << endl
-			 << " in / out          : input / output file" << endl 
-			 << " min_intensity : minimum intensity of a seed" << endl
-			 << " priority_thr     : minimum priority of a data point to be included into a feature" << endl
-			 << " min_quality   : minimum quality of a feature" << endl
-			 << endl
-			 << "For a detailled description, please have a look at the doxygen documentation." << endl
-			 << endl ;
+					 << endl
+					 << " in    input file" << endl 
+					 << " out   output file" << endl 
+					 << endl
+					 << "All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used." << endl
+					 << "For a detailled description, please have a look at the doxygen documentation." << endl
+					 << "How the docu can be built is explained in OpenMS/doc/index.html." << endl
+					 << endl ;
 		}
 	
 		void setOptionsAndFlags_()

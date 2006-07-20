@@ -548,6 +548,7 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
       try
       {
+      	//cout << "Loading data: "<<Date::now() << endl;
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
       catch(Exception::Base& e)
@@ -573,19 +574,22 @@ namespace OpenMS
       if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
       {
         cutoff = estimateNoise_(*exp);
-        cout << "Estimated noise level: " << cutoff << endl;
+        //cout << "Estimated noise level: " << cutoff << endl;
       }
       exp->setName(caption);  // set layername
+      //cout << "FinishAdding: "<<Date::now() << endl;
       w->widget()->canvas()->finishAdding(cutoff);
+      //cout << "Done FinishAdding: "<<Date::now() << endl;
     }
-
+		//cout << "updateLayerbar: "<<Date::now() << endl;
     updateLayerbar();
-
+    
+		//cout << "maximize: "<<Date::now() << endl;
     if(maximize)
     {
       w->showMaximized();
     }
-
+		//cout << "signals: "<<Date::now() << endl;
     if (as_new_window)
     {
       connectWindowSignals_(w);
@@ -593,6 +597,7 @@ namespace OpenMS
       addClient(w,filename);
       addTab_(w,caption);
     }
+  	//cout << "Done: "<<Date::now() << endl;
   }
 
   void SpectrumMDIWindow::addRecentFile_(const String& filename)

@@ -667,7 +667,14 @@ namespace OpenMS
 		
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
-			percentage_factor_ = overall_data_range_.max()[2]/getDataSet(data_set).getMaxInt();
+			if (type_[data_set] ==DT_PEAK)
+			{
+				percentage_factor_ = overall_data_range_.max()[2]/getDataSet(data_set).getMaxInt();
+			}
+			else
+			{
+				percentage_factor_ = overall_data_range_.max()[2]/features_[data_set].getMaxInt();
+			}
 		}
 		else 
 		{
@@ -1064,6 +1071,7 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::invalidate_()
 	{
+		//cout << "invalidate: "<<Date::now() << endl;
 		if (recalculate_)
 		{
 			//clear matrix
@@ -1182,11 +1190,13 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::intensityDistributionChange_()
 	{
-		reconstructQuadtree_(current_data_, visible_area_);
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		reconstructQuadtree_(current_data_, tmp);
 	
 		recalculate_ = true;
 		invalidate_();
-		emit visibleAreaChanged(visible_area_); //??????
+		//This is not necessary i think (MS): emit visibleAreaChanged(visible_area_); //??????
 	}
 	
 	void Spectrum2DCanvas::intensityModeChange_()
@@ -1368,7 +1378,8 @@ namespace OpenMS
 				
 		AreaType tmp_area;
 		tmp_area.assign(overall_data_range_);
-				
+		
+		//cout << "Recalculating Quadtree: "<<Date::now() << endl;
 		if (tmp_area != visible_area_)
 		{		
 			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
@@ -1376,20 +1387,24 @@ namespace OpenMS
 				reconstructQuadtree_(data_set, tmp_area, true);
 			}
 		}
-		else
-		{
-			intensityDistributionChange_(); //????
-		}
-				
+		//cout << "intensityModeChange_: "<<Date::now() << endl;
 		intensityModeChange_();
 		
 		emit sendStatusMessage("",0);
 		setCursor(Qt::ArrowCursor);
 		
 		emit layerActivated(this);
+		//cout << "resetZoom(): "<<Date::now() << endl;
 		
-		resetZoom();
-		
+		if (getDataSetCount()==1)
+		{
+			visible_area_ = tmp_area;
+			emit visibleAreaChanged(tmp_area);
+		}
+		else
+		{
+			resetZoom();
+		}
 		return current_data_;
 	}
 	
@@ -1570,10 +1585,12 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::reconstructQuadtree_(UnsignedInt data_set, const AreaType& new_area, bool warn_on_identical_position)
 	{
+		//cout << "New area:" << new_area << endl;
 		bool insertion_error = false;
 		
 		if (type_[data_set]==DT_PEAK)
 		{
+			//cout << "PEAK DATA" << endl;
 			QuadTreeType_* new_tree = new QuadTreeType_(new_area);
 					
 			for (ExperimentType::Iterator exp_it = getDataSet_(data_set).begin(); exp_it != getDataSet_(data_set).end(); ++exp_it)
@@ -1588,6 +1605,7 @@ namespace OpenMS
 					{
 						try
 						{
+							//cout << "Insert:" << i->getPosition()[0] << " "<< exp_it->getRetentionTime() << endl;
 							new_tree->insert(PointType(i->getPosition()[0],exp_it->getRetentionTime()), &(*i));      
 						}
 						catch (Exception::IllegalTreeOperation& e)
@@ -1603,6 +1621,7 @@ namespace OpenMS
 		}
 		else
 		{
+			//cout << "Feature DATA" << endl;
 			FeatureQuadTreeType_* new_tree = new FeatureQuadTreeType_(new_area);
 			
 			for (FeatureMapType::Iterator it = features_[data_set].begin(); it != features_[data_set].end(); ++it)
@@ -1611,6 +1630,7 @@ namespace OpenMS
 				{
 					try
 					{
+						//cout << "Insert:" << it->getPosition()[1] << " " << it->getPosition()[0] << endl;
 						new_tree->insert(PointType(it->getPosition()[1],it->getPosition()[0]), &(*it));      
 					}
 					catch (Exception::IllegalTreeOperation& e)

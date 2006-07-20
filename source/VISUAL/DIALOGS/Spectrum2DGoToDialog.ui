@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>Spectrum2DGoToDialogTemplate</class>
 <widget class="QDialog">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>359</width>
-            <height>184</height>
+            <width>396</width>
+            <height>187</height>
         </rect>
     </property>
     <property name="caption">
@@ -23,7 +23,7 @@
             <rect>
                 <x>15</x>
                 <y>10</y>
-                <width>335</width>
+                <width>370</width>
                 <height>165</height>
             </rect>
         </property>

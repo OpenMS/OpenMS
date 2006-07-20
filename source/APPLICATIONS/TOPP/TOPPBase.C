@@ -191,7 +191,7 @@ namespace OpenMS
 		
 		std::cerr << std::endl
 							<< "Common TOPP options are:" << std::endl
-							<< "  -ini <file>       TOPP INI file (default: TOPP.ini)" << std::endl
+							<< "  -ini <file>       Use the given TOPP INI file" << std::endl
 							<< "  -log <file>       log file (default: TOPP.log)" << std::endl
 							<< "  -n <int>          instance number (default: 1)" << std::endl
 							<< "  -d <level>        sets debug level (default: 0)" << std::endl
