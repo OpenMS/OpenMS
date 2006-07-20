@@ -127,8 +127,9 @@ class TOPPFeatureFinder
        		 << endl
        		 << "INI options:" << endl
 			 << endl
+			 << " in / out          : input / output file" << endl 
 			 << " min_intensity : minimum intensity of a seed" << endl
-			 << " priority_thr  : minimum priority of a data point to be included into a feature" << endl
+			 << " priority_thr     : minimum priority of a data point to be included into a feature" << endl
 			 << " min_quality   : minimum quality of a feature" << endl
 			 << endl
 			 << "For a detailled description, please have a look at the doxygen documentation." << endl
