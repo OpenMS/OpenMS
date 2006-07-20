@@ -288,7 +288,8 @@ EXECUTABLES_TRANSFORMATIONS = \
 	FeaFiTraits_test\
 	PeakPicker_test\
 	PeakPickerCWT_test\
-	ContinuousWaveletTransform_test
+	ContinuousWaveletTransform_test\
+	DExtractSignalRegions_test
 
 
 EXECUTABLES_ANALYSIS_ID =\
