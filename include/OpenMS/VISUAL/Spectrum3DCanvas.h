@@ -115,7 +115,7 @@ namespace OpenMS
     void setDotGradient(const std::string& gradient);
     SignedInt getShadeMode();
     UnsignedInt getDotInterpolationSteps();
-    
+    void repaintAll();
     //resizeEvent
     void resizeEvent(QResizeEvent * e);
 	  void connectMouseEvents();

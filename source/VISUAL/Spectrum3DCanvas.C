@@ -141,6 +141,12 @@ void Spectrum3DCanvas::invalidate_()
 	openglwidget()->initializeGL();
 
 }
+void Spectrum3DCanvas::repaintAll()
+{
+	recalculate_ = true;
+	invalidate_();
+
+}
 
 void Spectrum3DCanvas::intensityModeChange_()
 {

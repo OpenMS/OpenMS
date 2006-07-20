@@ -110,7 +110,6 @@ void Spectrum3DOpenGLCanvas::resizeGL(int w,int h)
 			heigth_ = (float)h;
 			glViewport(0,0,(GLsizei) w, (GLsizei) h); 	
 
-			
 }
 
 void Spectrum3DOpenGLCanvas::initializeGL()
