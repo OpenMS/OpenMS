@@ -222,26 +222,27 @@ void Spectrum3DOpenGLCanvas::resetTranslation()
 }
 
 void Spectrum3DOpenGLCanvas::paintGL()
-{
+{	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glTranslated(0.0, 0.0,-3.0*corner_);
+	glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
+	glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
+	glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
+	glTranslated(0.0, 0.0,3.0*corner_);
+	if(translation_on_)
+		{
+			glTranslated(trans_x_, trans_y_,0.0);
+		}
 	QColor color(canvas_3d_.getPrefAsString("Preferences:3D:BackgroundColor").c_str());
+	qglClearColor(color);
+	
 	if(canvas_3d_.getDataSetCount()!=0)
 		{
 			QPixmap pix((int)width_, (int)heigth_);
-				switch (canvas_3d_.action_mode_)
+			switch (canvas_3d_.action_mode_)
 				{
 				case SpectrumCanvas::AM_ZOOM:
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					glLoadIdentity();
-					glTranslated(0.0, 0.0,-3.0*corner_);
-					glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
-					glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
-					glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
-					glTranslated(0.0, 0.0,3.0*corner_);
-					if(translation_on_)
-							{
-								glTranslated(trans_x_, trans_y_,0.0);
-							}
-						qglClearColor(color);
 						glEnable(GL_DEPTH_TEST);
 						glEnable(GL_BLEND);
 						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -264,19 +265,6 @@ void Spectrum3DOpenGLCanvas::paintGL()
 						break;
 					
 				case SpectrumCanvas::AM_TRANSLATE:	
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					glLoadIdentity();
-					glTranslated(0.0, 0.0,-3.0*corner_);
-					glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
-					glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
-					glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
-					glTranslated(0.0, 0.0,3.0*corner_);
-					
-					if(translation_on_)
-						{
-							glTranslated(trans_x_, trans_y_,0.0);
-						}
-					qglClearColor(color);
 					glEnable(GL_DEPTH_TEST);
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1129,6 +1117,7 @@ void Spectrum3DOpenGLCanvas::setRotationZ(int angle)
 	if (angle != zrot_)
 	{
 		zrot_ = angle;
+		initializeGL();
 		updateGL();
 	}
 }	
