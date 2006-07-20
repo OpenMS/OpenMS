@@ -87,6 +87,7 @@ Content-Disposition: form-data; name="FILE"; filename="MascotInfile_test.txt"
 
 
 BEGIN IONS
+TITLE=11.4_11.5
 PEPMASS=11.4
 RTINSECONDS=11.5
 
@@ -95,6 +96,7 @@ RTINSECONDS=11.5
 END IONS
 
 BEGIN IONS
+TITLE=21.4_12.5
 PEPMASS=21.4
 RTINSECONDS=12.5
 

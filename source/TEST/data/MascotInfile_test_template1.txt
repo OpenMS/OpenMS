@@ -70,6 +70,7 @@ Content-Disposition: form-data; name="CHARGE"
 Content-Disposition: form-data; name="FILE"; filename="MascotInfile_test.txt"
 
 BEGIN IONS
+TITLE=1998_25.379
 PEPMASS=1998
 RTINSECONDS=25.379
 1 1

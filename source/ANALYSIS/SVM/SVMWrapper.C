@@ -475,6 +475,13 @@ namespace OpenMS
 					{
 						predicted_labels = predict((*partitions)[j]);
 						real_labels = getLabels((*partitions)[j]);
+
+						cout << "predicted, measured: " << endl;
+						for(UnsignedInt k = 0; k < predicted_labels->size(); k++)
+						{
+							cout << (*predicted_labels)[k] << ", " << (*real_labels)[k] << endl;
+						}
+
 						temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
 							predicted_labels->begin(), predicted_labels->end(),
 							real_labels->begin(), real_labels->end());

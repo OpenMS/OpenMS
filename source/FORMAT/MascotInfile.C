@@ -249,6 +249,11 @@ namespace OpenMS
 			fputs ("\"\n\n",fp);
 	
 			fputs ("BEGIN IONS\n",fp);
+
+			ss.str("");
+			ss << mz_ << "_" << retention_time_;
+			fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
+			
 			//precursor data (includes mz and retention time)
 			ss.str("");
 			ss << mz_;
@@ -314,7 +319,11 @@ namespace OpenMS
 				else
 				{
 					fputs ("\nBEGIN IONS\n",fp);
-			
+
+					ss.str("");
+					ss << precursor_position << "_" << experiment[i].getRetentionTime();
+					fputs (String("TITLE=" + ss.str() + "\n").c_str(),fp);
+
 					//precursor data (includes mz and retention time)
 					ss.str("");
 					ss << precursor_position;

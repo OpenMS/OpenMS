@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include "TOPPBase.h"
 
 #include <qfileinfo.h>
@@ -259,7 +260,7 @@ class TOPPRTModel
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 			String type = "";
 			String parameter = "";
-			Real total_gradient_time = 1;
+			Real total_gradient_time = 1.f;
 			map<SVM_parameter_type, DoubleReal> start_values;
 			map<SVM_parameter_type, DoubleReal> step_sizes;
 			map<SVM_parameter_type, DoubleReal> end_values;
@@ -284,6 +285,7 @@ class TOPPRTModel
 			String stop;
 			String step_size;
 			String debug_string;
+			UnsignedInt maximum_sequence_length = 50;
 	
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -396,9 +398,9 @@ class TOPPRTModel
 					&& stop != "" 
 					&& svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
 			{
-				p_start = start.toInt();
-				p_step_size = step_size.toInt();
-				p_stop = stop.toInt();
+				p_start = start.toFloat();
+				p_step_size = step_size.toFloat();
+				p_stop = stop.toFloat();
 				start_values.insert(make_pair(P, p_start));
 				step_sizes.insert(make_pair(P, p_step_size));
 				end_values.insert(make_pair(P, p_stop));
@@ -415,9 +417,9 @@ class TOPPRTModel
 
 			if (start != "" && step_size != "" && stop != "")
 			{
-				c_start = start.toInt();
-				c_step_size = step_size.toInt();
-				c_stop = stop.toInt();
+				c_start = start.toFloat();
+				c_step_size = step_size.toFloat();
+				c_stop = stop.toFloat();
 				start_values.insert(make_pair(C, c_start));
 				step_sizes.insert(make_pair(C, c_step_size));
 				end_values.insert(make_pair(C, c_stop));
@@ -437,9 +439,9 @@ class TOPPRTModel
 					&& stop != "" 
 					&& svm.getIntParameter(SVM_TYPE) == NU_SVR)
 			{
-				nu_start = start.toInt();
-				nu_step_size = step_size.toInt();
-				nu_stop = stop.toInt();
+				nu_start = start.toFloat();
+				nu_step_size = step_size.toFloat();
+				nu_stop = stop.toFloat();
 				start_values.insert(make_pair(NU, nu_start));
 				step_sizes.insert(make_pair(NU, nu_step_size));
 				end_values.insert(make_pair(NU, nu_stop));
@@ -452,11 +454,11 @@ class TOPPRTModel
 
 			if (start_values.size() > 0)
 			{
- 				number_of_runs = getParamAsString_("number_of_runs").toInt();
+ 				number_of_runs = getParamAsString_("number_of_runs", "50").toInt();
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
 
- 				number_of_partitions = getParamAsString_("number_of_partitions").toInt();
-				writeDebug_(String("Number of CV partitions: ") + String(number_of_runs), 1);
+ 				number_of_partitions = getParamAsString_("number_of_partitions", "10").toInt();
+				writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);
 			}
 						
 			//-------------------------------------------------------------
@@ -527,15 +529,16 @@ class TOPPRTModel
 					}
 				}				
 			}
-			
+
 			for(UnsignedInt i = 0; i < training_retention_times.size(); i++)
 			{
 				training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 			}
 			encoded_training_sample = 
-				encoder.encodeLIBSVMProblemWithCompositionVectors(training_peptides,
-																													&training_retention_times,
-																													allowed_amino_acid_characters);
+				encoder.encodeLIBSVMProblemWithCompositionAndLengthVectors(training_peptides,
+																																	&training_retention_times,
+																																	allowed_amino_acid_characters,
+																																	maximum_sequence_length);
 																													
 			if (start_values.size() > 0)
 			{	
@@ -576,7 +579,7 @@ class TOPPRTModel
 						
 					}
 				}
-				debug_string += "with performance " + String(cv_quality);
+				debug_string += " with performance " + String(cv_quality);
 				writeDebug_(debug_string, 1);
 			}			
 			/// enabling probability estimates of the svm
