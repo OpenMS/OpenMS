@@ -48,7 +48,7 @@ namespace OpenMS
     We estimate the s/n ratio as the median of the intensities of the points in this range.
     The width of this range is give by window_size_ .
   */
-   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> > >
+   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
   class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
@@ -65,6 +65,8 @@ namespace OpenMS
     //@}
 
     using DSignalToNoiseEstimator<D, PeakIterator>::param_;
+	using DSignalToNoiseEstimator<D, PeakIterator>::first_;
+    using DSignalToNoiseEstimator<D, PeakIterator>::last_;
 
     enum DimensionID
     {
@@ -77,7 +79,7 @@ namespace OpenMS
     //@{
     inline DSignalToNoiseEstimatorMedian()
       : DSignalToNoiseEstimator<D,PeakIterator>(),
-        window_size_(100) {}
+        window_size_(100), median_perc_(1) {}
     ///
     inline DSignalToNoiseEstimatorMedian(const Param& parameters)
       : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
@@ -119,15 +121,15 @@ namespace OpenMS
      */
     //@{
     /// Non-mutable access to the window size
-    inline const int getWindowSize() const { return window_size_; }
+    inline const unsigned int& getWindowSize() const { return window_size_; }
     /// Mutable access to the window size
-    inline int getWindowSize() { return window_size_; }
+    inline unsigned int& getWindowSize() { return window_size_; }
     /// Mutable access to the window size
     inline void setWindowSize(const int wsize) { window_size_ = wsize; }
     /// Non-mutable access to the factor
-    inline const float getFactor() const { return median_perc_; }
+    inline const float& getFactor() const { return median_perc_; }
     /// Mutable access to the factor
-    inline float getFactor() { return median_perc_; }
+    inline float& getFactor() { return median_perc_; }
     /// Mutable access to the factor
     inline void setFactor(const float factor) { median_perc_ = factor; }
     //@}
@@ -136,9 +138,12 @@ namespace OpenMS
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
+	  first_= it_begin;
+      last_= it_end;
+	  
       CoordinateType current_rt = it_begin->getPosition()[RT];
       std::vector<IntensityType> intensities(window_size_);
-      PeakIterator scan;
+      DPeakArrayNonPolymorphic<D,PeakType> scan;
       while (it_begin != it_end)
       {
         CoordinateType next_rt = it_begin->getPosition()[RT];
@@ -167,13 +172,13 @@ namespace OpenMS
 
   protected:
 
-    void shiftWindow_(PeakIterator current_scan)
+    void shiftWindow_(DPeakArrayNonPolymorphic<D,PeakType> current_scan)
     {
       unsigned int left  = (int) floor(window_size_ / 2);
 
       for (unsigned int i=0; i<current_scan.size(); i++)
       {
-        PeakIterator window(window_size_);
+        DPeakArrayNonPolymorphic<D,PeakType> window(window_size_);
         // walk to the left and collect
         // and most (window_size_ / 2) peaks
         for (int j=i; j >= 0 && window.size() <= left; j--)

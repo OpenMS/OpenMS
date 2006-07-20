@@ -29,19 +29,16 @@
 
 // all from BaseExtender derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FastExtender.h>
 
 namespace OpenMS
 {
 	void BaseExtender::registerChildren()
 	{
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(FastExtender::getName(), &FastExtender::create);
 	}	
 
 	BaseExtender::BaseExtender() : FeaFiModule() 
 	{
-		charge_estimate_ = 0;
 	}
 
 
@@ -53,7 +50,6 @@ namespace OpenMS
 	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
 	{
 		FeaFiModule::operator = (source);
-		charge_estimate_      = source.charge_estimate_;
 		return *this;
 	}
 }

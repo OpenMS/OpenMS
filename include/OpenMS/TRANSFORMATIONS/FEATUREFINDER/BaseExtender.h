@@ -73,17 +73,12 @@ namespace OpenMS
        \return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
     */
     virtual const IndexSet& extend(const UnsignedInt seed)=0;
-		
-		/// Gives the estimated charge of the last feature.
-		inline const ChargeType getChargeEstimate() { return charge_estimate_; }
-		
+			
   protected:
     
     /// Set of indizes representing the region that belongs to this feature.
     IndexSet region_;
     
-    /// Charge estimate of the feature.
-    ChargeType charge_estimate_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEEXTENDER_H

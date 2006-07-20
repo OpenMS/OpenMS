@@ -135,7 +135,7 @@ namespace OpenMS
     /// estimates the transformation for each grid cell
     virtual void estimateTransform() = 0;
 		
-		protected:		
+	protected:		
 		/// Vector of DRange instances defining a grid over the map
 		Grid grid_;
 		

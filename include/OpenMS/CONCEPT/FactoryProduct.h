@@ -78,12 +78,12 @@ namespace OpenMS
     const String& getName() const;
 
     bool operator == (const FactoryProduct& rhs) const;
-		bool operator != (const FactoryProduct& rhs) const;
+	bool operator != (const FactoryProduct& rhs) const;
 
   protected:
     mutable Param param_;
-		Param defaults_;
-		bool check_defaults_;
+	Param defaults_;
+	bool check_defaults_;
     String name_;
 
   };

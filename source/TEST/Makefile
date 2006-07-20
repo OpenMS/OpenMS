@@ -36,6 +36,7 @@ EXECUTABLES_CONCEPT = \
 	TimeStamp_test\
 	VersionInfo_test\
 	FactoryProduct_test\
+	Factory_test
 
 EXECUTABLES_DATASTRUCTURES = \
 	${CGAL_EXECUTABLES_DATASTRUCTURES}\
@@ -191,6 +192,7 @@ EXECUTABLES_FILTERING = \
 	LinearResampler_test\
 	DTopHatFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
+	DSignalToNoiseEstimatorMedian_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\

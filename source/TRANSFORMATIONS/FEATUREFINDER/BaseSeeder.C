@@ -28,17 +28,13 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 // all from BaseSeeder derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RobustSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LessSimplerSeeder.h>
 
 namespace OpenMS
 {
 	void BaseSeeder::registerChildren()
 	{
 		Factory<BaseSeeder>::registerProduct("SimpleSeeder", &SimpleSeeder::create);
-		Factory<BaseSeeder>::registerProduct("RobustSeeder", &RobustSeeder::create);
-		Factory<BaseSeeder>::registerProduct("LessSimplerSeeder", &LessSimplerSeeder::create);
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}

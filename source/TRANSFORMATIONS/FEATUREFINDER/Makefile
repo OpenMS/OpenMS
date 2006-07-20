@@ -40,13 +40,10 @@ CPP_SOURCES=\
 	ModelDescription.C\
 	SimpleExtender.C\
 	SimpleSeeder.C\
-	LessSimplerSeeder.C\
 	SimpleModelFitter.C\
 	GaussModel.C\
 	ProductModel.C\
 	FeatureFinder.C\
-	FastExtender.C\
-	RobustSeeder.C\
 	BaseQuality.C\
 	Correlation.C\
 	IsotopeModel.C\

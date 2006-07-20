@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+	// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -76,7 +76,7 @@ namespace OpenMS
     static FactoryProduct* create(const String& name)
     {
     	MapIterator it = instance()->inventory_.find(name);
-      if (it != instance()->inventory_.end())
+      	if (it != instance()->inventory_.end())
 				return ( *(it->second) )();
       else 
       	throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
