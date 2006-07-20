@@ -29,6 +29,6 @@
 
 namespace OpenMS
 {
-  DExtractSignalRegions<1> default_dex_sig_reg1;
-  DExtractSignalRegions<2> default_dex_sig_reg2;
+  DExtractSignalRegions<1, DPeakArrayNonPolymorphic<1, DRawDataPoint<1 > > > default_dex_sig_reg1;
+  DExtractSignalRegions<2, DPeakArrayNonPolymorphic<2, DRawDataPoint<2 > > > default_dex_sig_reg2;
 }
