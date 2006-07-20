@@ -95,6 +95,7 @@ namespace OpenMS
 			bool inside_protein_;
 			DateTime date_;
 			String date_time_string_;
+			UnsignedInt actual_query_;
   };
 
 	} // namespace Internal

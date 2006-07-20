@@ -119,30 +119,33 @@ namespace OpenMS
 		{
 			String attribute_value;
 			attribute_value = String(attributes.value(0).ascii()).trim();
-  		actual_protein_hit_.setAccession(attribute_value);
-		}		
+ 	 		actual_protein_hit_.setAccession(attribute_value);
+		}
+		else if (tag_ == "query")
+		{
+			actual_query_ = (String(attributes.value(0).ascii()).trim()).toInt();
+		}
 		else 
 		{
 			if (tag_ == "peptide")
 			{
 				String attribute_value;
 				attribute_value = String(attributes.value(0).ascii()).trim();
-	  		peptide_identification_index_ = attribute_value.toInt() - 1;
+		  		peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			else if (tag_ == "u_peptide")
 			{
 				String attribute_value;
 				attribute_value = String(attributes.value(0).ascii()).trim();
-	  		peptide_identification_index_ = attribute_value.toInt() - 1;
+	  			peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
-  		if (peptide_identification_index_ > identifications_->size())
-  		{
-				throw Exception::ParseError(__FILE__, __LINE__
-																		, __PRETTY_FUNCTION__, ".mascotXML", 
+  			if (peptide_identification_index_ > identifications_->size())
+  			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, ".mascotXML", 
 																		"No header information present: use "
 																		"the show_header=1 option in the "
 																		"./export_dat.pl script");  			
-  		}			
+	  		}			
 		}
 		
 		return true;
@@ -216,8 +219,8 @@ namespace OpenMS
 			for(int i = 0; i < ((String) chars.ascii()).trim().toInt(); i++)
 			{
 				identifications_->push_back(temp_identification);
-				(*precursor_retention_times_).push_back(0);
-				(*precursor_mz_values_).push_back(0);
+				precursor_retention_times_->push_back(0);
+				precursor_mz_values_->push_back(0);
 			}
 			tag_ = "";
 		}
@@ -280,6 +283,18 @@ namespace OpenMS
 			}
 			protein_identification_->setDateTime(date_);
 		}
+		else if (tag_ == "StringTitle")
+		{
+			String title = String(chars.ascii()).trim();
+			vector<String> parts;
+			
+			title.split('_', parts);
+			if (parts.size() == 2)
+			{
+				(*precursor_retention_times_)[actual_query_ - 1] = parts[1].toFloat();
+			}
+		}		
+		
 		return true;
   }
 

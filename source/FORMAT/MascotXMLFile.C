@@ -129,9 +129,9 @@ namespace OpenMS
 			}
 			else
 			{
-				id_it++;
-				rt_it++;
-				mz_it++;
+				++id_it;
+				++rt_it;
+				++mz_it;
 			}
 		}  
   }  					 
