@@ -51,6 +51,8 @@ namespace OpenMS
     
     @ingroup DatabaseIO
     
+    @note This class will be reimplemented in the next version of OpenMS. We do not recommend using it!
+    
     @todo speed up by implementing a not so generic version (Marc)
     @todo add setup and clear method for the DB (Marc)
     @todo do not create a new entry when the object has a DB id already (Marc)

@@ -47,8 +47,6 @@ EXECUTABLES=\
 	FileInfo\
 	FileFilter\
 	FileMerger\
-	DBExporter\
-	DBImporter\
 	TOPPView\
 	FeatureFinder\
 	$(GSL_EXEC)\
@@ -64,6 +62,8 @@ EXECUTABLES=\
 #	FeaturePairSplitter\
 #	RawDataResampler\
 
+#	DBExporter\
+#	DBImporter\
 
 
 default: all

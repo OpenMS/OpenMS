@@ -48,10 +48,10 @@
 
 /*
 	ToDo-Liste Marc:
-	- Tutorial
-	- DB: Lauffähig machen mit altem Schema
+	- SpecView docu
 	- TV: Features wieder einbauen (Prozent-Mode, IntensityDistribution hoch/runter)
 	- TV: Projektionen + Docu der Methoden
+	- Tests: SVN Tag an!
 
 	Klassen Jens:
   - ANALYSIS\MAPMATCHING\LabeledMather.h
@@ -70,10 +70,11 @@
   - VISUAL\DIALOGS\FeaFiDialog.h
 
 	Nach dem Release:
+	- Vereinfachung des Kernels: DPeakArray + DPeakList weg -> Peak nicht mehr virtuell
+	- DB-Zeugs neu machen
 	- Umstieg auf XERCES oder so
 	- AdaptiveSeeder (Gradient)
 	- Deisotoping / Decharging
-	- DB-Zeugs neu machen
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
