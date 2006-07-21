@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FILTERING/SMOOTHING/DSavitzkyGolaySVDFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/DGaussFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
 #include "TOPPBase.h"
@@ -42,9 +42,9 @@ using namespace std;
 
 /**
    @page NoiseFilter NoiseFilter
-
+ 
    @brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in a MS experiment.
-
+ 
    The idea of the Savitzky Golay filter is to find filter-coefficients
    that preserve higher moments, which means to approximate the underlying
    function within the moving window by a polynomial of higher order
@@ -52,190 +52,189 @@ using namespace std;
    ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
    The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
    sharp cutoffs, and low passband ripple.
-
+ 
    @note Use a Gaussian filter  which has approximately the same width as your mass peaks.
         (The default value is 0.8 Th.)
-
+ 
    @ingroup TOPP
 */
 class TOPPNoiseFilter
       : public TOPPBase
 {
-public:
-  TOPPNoiseFilter()
-      : TOPPBase("NoiseFilter")
-  {}
+  public:
+    TOPPNoiseFilter()
+        : TOPPBase("NoiseFilter")
+    {}
 
-protected:
-  void printToolUsage_()
-  {
-    cerr << endl
-    << tool_name_ << " -- remove the noise in a LC/MS experiment" << endl
-    << endl
-    << "This application implements a smoothing filter. It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
-    << endl
-    << "Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option)." << endl
-    << "      The Gaussian filter works for uniform as well as for non-uniform data." << endl
-    << endl
-    << "Usage:" << endl
-    << " " << tool_name_ << " [options]" << endl
-    << endl
-    << "Options are:" << endl
-    << "  -filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
-    << "  -resampling <spacing> spacing for the resampling process (default: this flag is not set)" << endl
-    << "  -in <file>            input mzData file name" << endl
-    << "  -out <file>           output mzData file name" << endl
-    << endl;
-  }
-
-  void printToolHelpOpt_()
-  {
-    cerr << endl
-    << tool_name_ << endl
-    << endl
-    << "INI options:" << endl
-    << "  in <file>            input mzData file name" << endl
-    << "  out <file>           output mzData file name" << endl
-    << "  filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
-    << "  resampling <spacing> spacing for the resampling process (default: deactivated)" << endl
-    << endl
-    << "INI File example section:" << endl
-    << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"filter_type\" value=\"gaussian\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"resampling\" value=\"0.05\" type=\"float\"/>" << endl;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    options_["-out"] = "out";
-    options_["-in"] = "in";
-    options_["-filter_type"] = "filter_type";
-    options_["-resampling"] = "resampling";
-  }
-
-  ExitCodes main_(int , char**)
-  {
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-    //input file names and types
-    String in = getParamAsString_("in");
-    writeDebug_(String("Input file: ") + in, 1);
-
-    //output file names and types
-    String out = getParamAsString_("out");
-    writeDebug_(String("Output file: ") + out, 1);
-
-    //filter type
-    String filter_type = getParamAsString_("filter_type");
-    writeDebug_(String("Filter type: ") + filter_type, 1);
-
-    //spacing for resampling process
-    String resampling = getParamAsString_("resampling");
-    writeDebug_(String("Resampling: ") + resampling, 1);
-
-    float spacing = 0.;
-    bool resampling_flag = false;
-
-    try
+  protected:
+    void printToolUsage_()
     {
-      //resampling
-      if (resampling != "")
-      {
-        spacing = resampling.toFloat();
-        resampling = true;
-      }
-    }
-    catch(Exception::ConversionError& e)
-    {
-      writeLog_(String("Invalid spacing '") + resampling + "' given. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
+      cerr << endl
+      << tool_name_ << " -- remove the noise in a LC/MS experiment" << endl
+      << endl
+      << "This application implements a smoothing filter. It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
+      << endl
+      << "Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option)." << endl
+      << "      The Gaussian filter works for uniform as well as for non-uniform data." << endl
+      << endl
+      << "Usage:" << endl
+      << " " << tool_name_ << " [options]" << endl
+      << endl
+      << "Options are:" << endl
+      << "  -filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
+      << "  -resampling <spacing> spacing for the resampling process (default: this flag is not set)" << endl
+      << "  -in <file>            input mzData file name" << endl
+      << "  -out <file>           output mzData file name" << endl
+      << endl;
     }
 
-    //-------------------------------------------------------------
-    // loading input
-    //-------------------------------------------------------------
-
-    MzDataFile mz_data_file;
-    MSExperiment<DRawDataPoint<1> > ms_exp_raw;
-    mz_data_file.load(in,ms_exp_raw);
-
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-    MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
-
-    if (filter_type == "sgolay")
+    void printToolHelpOpt_()
     {
-      DSavitzkyGolaySVDFilter<1> sgolay(param_);
+      cerr << endl
+      << tool_name_ << endl
+      << endl
+      << "INI options:" << endl
+      << "  in <file>            input mzData file name" << endl
+      << "  out <file>           output mzData file name" << endl
+      << "  filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
+      << "  resampling <spacing> spacing for the resampling process (default: deactivated)" << endl
+      << endl
+      << "INI File example section:" << endl
+      << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
+      << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
+      << "  <ITEM name=\"filter_type\" value=\"gaussian\" type=\"string\"/>" << endl
+      << "  <ITEM name=\"resampling\" value=\"0.05\" type=\"float\"/>" << endl;
+    }
 
-      if (!resampling_flag)
+    void setOptionsAndFlags_()
+    {
+      options_["-out"] = "out";
+      options_["-in"] = "in";
+      options_["-filter_type"] = "filter_type";
+      options_["-resampling"] = "resampling";
+    }
+
+    ExitCodes main_(int , char**)
+    {
+      //-------------------------------------------------------------
+      // parameter handling
+      //-------------------------------------------------------------
+      //input file names and types
+      String in = getParamAsString_("in");
+      writeDebug_(String("Input file: ") + in, 1);
+
+      //output file names and types
+      String out = getParamAsString_("out");
+      writeDebug_(String("Output file: ") + out, 1);
+
+      //filter type
+      String filter_type = getParamAsString_("filter_type");
+      writeDebug_(String("Filter type: ") + filter_type, 1);
+
+      //spacing for resampling process
+      String resampling = getParamAsString_("resampling");
+      writeDebug_(String("Resampling: ") + resampling, 1);
+
+      float spacing = 0.;
+      bool resampling_flag = false;
+
+      try
       {
-        ms_exp_raw >> sgolay(ms_exp_filtered);
-      }
-      else
-      {
-        LinearResampler<DRawDataPoint<1> > lin_resampler;
-        lin_resampler.setSpacing(spacing);
-
-        MSExperiment<DRawDataPoint<1> >::const_iterator first_scan = ms_exp_raw.begin();
-        MSExperiment<DRawDataPoint<1> >::const_iterator last_scan = ms_exp_raw.end();
-
-        // copy the experimental settings
-        static_cast<ExperimentalSettings>(ms_exp_filtered) = ms_exp_raw;
-
-        while (first_scan != last_scan)
+        //resampling
+        if (resampling != "")
         {
-          MSSpectrum<DRawDataPoint<1> >::const_iterator first_data_point = first_scan->begin();
-          MSSpectrum<DRawDataPoint<1> >::const_iterator last_data_point = first_scan->end();
-
-          // create the resampled spectrum
-          int number_resampled_points = (int)(ceil(((last_data_point-1)->getPos() - first_data_point->getPos()) / spacing + 1));
-          DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > resampled_data(number_resampled_points);
-
-          lin_resampler.start(first_data_point,last_data_point,resampled_data.begin());
-
-          // create the baseline filtered spectrum
-          DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > filtered_data(number_resampled_points);
-          sgolay.filter(resampled_data.begin(),resampled_data.end(),filtered_data.begin());
-
-          MSSpectrum<DRawDataPoint<1> > spectrum;
-          spectrum.setContainer(filtered_data);
-
-          spectrum.setRetentionTime(first_scan->getRetentionTime(), first_scan->getRetentionTimeStart(), first_scan->getRetentionTimeStop());
-          spectrum.setMSLevel(first_scan->getMSLevel());
-          spectrum.setName(first_scan->getName());
-
-          ms_exp_filtered.std::vector< MSSpectrum< DRawDataPoint<1> > >::push_back(spectrum);
-          ++first_scan;
+          spacing = resampling.toFloat();
+          resampling = true;
         }
       }
-    }
-    else
-      if (filter_type == "gaussian")
+      catch(Exception::ConversionError& e)
       {
-        DGaussFilter<1> gauss(param_);
-        ms_exp_raw >> gauss(ms_exp_filtered);
-      }
-      else
-      {
-        writeLog_(String("Unknown filter type '") + filter_type + "' given. Aborting!");
+        writeLog_(String("Invalid spacing '") + resampling + "' given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
 
+      //-------------------------------------------------------------
+      // loading input
+      //-------------------------------------------------------------
 
+      MzDataFile mz_data_file;
+      MSExperiment<DRawDataPoint<1> > ms_exp_raw;
+      mz_data_file.load(in,ms_exp_raw);
 
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
+      //-------------------------------------------------------------
+      // calculations
+      //-------------------------------------------------------------
+      MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
 
-    mz_data_file.store(out,ms_exp_filtered);
+      if (filter_type == "sgolay")
+      {
+        SavitzkyGolaySVDFilter sgolay(param_);
 
-    return OK;
-  }
+        LinearResampler lin_resampler;
+        lin_resampler.setSpacing(spacing);
+
+        // copy the experimental settings
+        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        // no resampling of the data
+        if (!resampling_flag)
+        {
+          sgolay.filterExperiment(ms_exp_raw,ms_exp_filtered);
+        }
+        else
+        {
+          unsigned int n = ms_exp_raw.size();
+          // resample and filter every scan
+          for (unsigned int i = 0; i < n; ++i)
+          {
+            // temporary container for the resampled data
+            MSSpectrum< DRawDataPoint<1> > resampled_data;
+            lin_resampler.raster(ms_exp_raw[i],resampled_data);
+
+            MSSpectrum< DRawDataPoint<1> > spectrum;
+            sgolay.filter(resampled_data, spectrum);
+
+            // if any peaks are found copy the spectrum settings
+            if (spectrum.size() > 0)
+            {
+              // copy the spectrum settings
+              static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];
+              spectrum.setType(SpectrumSettings::RAWDATA);
+
+              // copy the spectrum information
+              spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
+              spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+              spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
+              spectrum.getName() = ms_exp_raw[i].getName();
+
+              ms_exp_filtered.push_back(spectrum);
+            }
+          }
+        }
+
+      }
+      else
+        if (filter_type == "gaussian")
+        {
+          GaussFilter gauss(param_);
+          gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
+        }
+        else
+        {
+          writeLog_(String("Unknown filter type '") + filter_type + "' given. Aborting!");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+
+      mz_data_file.store(out,ms_exp_filtered);
+
+      return OK;
+    }
 };
 
 
