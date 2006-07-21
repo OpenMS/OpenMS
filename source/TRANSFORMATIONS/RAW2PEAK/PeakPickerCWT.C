@@ -37,8 +37,6 @@ namespace OpenMS
       noise_level_(10),
       optimization_(false)
   {
-
-    wt_= new ContinuousWaveletTransformNumIntegration<1>();
     double precision;
     DataValue dv = param_.getValue("Thresholds:Precision");
     if (dv.isEmpty() || dv.toString() == "") precision = 1e-5;
@@ -91,28 +89,18 @@ namespace OpenMS
     if (dv.isEmpty() || dv.toString() == "") radius_ = 3;
     else radius_ = (int)dv;
 
-    wt_= new ContinuousWaveletTransformNumIntegration<1>();
-
     // estimate the peak bound in the wavelet transform concerning the peak bound in the original signal
     calculatePeakBoundCWT_();
   }
 
   PeakPickerCWT::~PeakPickerCWT()
   {
-    if (wt_)
-    {
-      delete wt_;
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "delete wt" << std::endl;
-#endif
-      wt_=0;
-    }
   }
 
   bool PeakPickerCWT::getMaxPosition_
   ( RawDataPointIterator first,
     RawDataPointIterator last,
-    ContinuousWaveletTransform<1>* wt,
+    const ContinuousWaveletTransform& wt,
     PeakArea_& area,
     int distance_from_scan_border,
     int ms_level,
@@ -132,8 +120,8 @@ namespace OpenMS
       noise_level_cwt = peak_bound_ms2_level_cwt_;
     }
 
-    int zeros_left_index  = wt->getLeftPaddingIndex();
-    int zeros_right_index = wt->getRightPaddingIndex();
+    int zeros_left_index  = wt.getLeftPaddingIndex();
+    int zeros_right_index = wt.getRightPaddingIndex();
 
     // Points to most intensive data point in the signal
     RawDataPointIterator it_max_pos;
@@ -147,13 +135,13 @@ namespace OpenMS
     for(i=start, k=0; i!=end; i+=direction, ++k)
     {
       // Check for maximum in cwt at position i
-      if((((*wt)[i-1] - (*wt)[i]  ) < 0)
-          && (((*wt)[i]   - (*wt)[i+1]) > 0)
-          && ( (*wt)[i]   >  noise_level_cwt))
+      if(((wt[i-1] - wt[i]  ) < 0)
+          && ((wt[i]   - wt[i+1]) > 0)
+          && ( wt[i]   >  noise_level_cwt))
       {
         max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
 #ifdef DEBUG_PEAK_PICKING
-        std::cout << "MAX in CWT at " << (first + max_pos)->getPos()<< " with " << (*wt)[i]
+        std::cout << "MAX in CWT at " << (first + max_pos)->getPos()<< " with " << wt[i]
         << std::endl;
 #endif
         max_value=(first + max_pos)->getIntensity();
@@ -219,7 +207,7 @@ namespace OpenMS
     int stop;
     bool monoton;
 
-    int zeros_left_index  = wt_->getLeftPaddingIndex();
+    int zeros_left_index  = wt_.getLeftPaddingIndex();
 
     // search for the left endpoint
     while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
@@ -257,14 +245,14 @@ namespace OpenMS
         start   =   ((cwt_pos-ep_radius) < 0)
                     ? zeros_left_index+1
                     : cwt_pos-ep_radius+zeros_left_index+1;
-        stop    =   ((cwt_pos+ep_radius) > wt_->getSignalLength())
-                    ?  (wt_->getSignalLength() + zeros_left_index)
+        stop    =   ((cwt_pos+ep_radius) > wt_.getSignalLength())
+                    ?  (wt_.getSignalLength() + zeros_left_index)
                     : (cwt_pos+ep_radius+zeros_left_index);
 
         for (; start < stop; ++start)
         {
-          if (   ((*wt_)[start-1] - (*wt_)[start]  )
-                 * ((*wt_)[start]   - (*wt_)[start+1]) < 0 )
+          if (   (wt_[start-1] - wt_[start]  )
+                 * (wt_[start]   - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
             monoton=false;
@@ -318,14 +306,14 @@ namespace OpenMS
         start   =   ((cwt_pos-ep_radius) < 0)
                     ? zeros_left_index+1
                     : cwt_pos-ep_radius+zeros_left_index+1;
-        stop    =   ((cwt_pos+ep_radius) > wt_->getSignalLength())
-                    ?  (wt_->getSignalLength() + zeros_left_index)
+        stop    =   ((cwt_pos+ep_radius) > wt_.getSignalLength())
+                    ?  (wt_.getSignalLength() + zeros_left_index)
                     : (cwt_pos+ep_radius+zeros_left_index);
 
         for (; start < stop; ++start)
         {
-          if (   ((*wt_)[start-1] - (*wt_)[start])
-                 * ((*wt_)[start]   - (*wt_)[start+1]) < 0 )
+          if (   (wt_[start-1] - wt_[start])
+                 * (wt_[start]  - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
             monoton=false;
@@ -420,14 +408,11 @@ namespace OpenMS
 
     /** TODO: switch the type of the transform **/
 
-    ContinuousWaveletTransform<1>* lorentz_cwt;
-    ContinuousWaveletTransform<1>* lorentz_ms2_cwt;
+    ContinuousWaveletTransformNumIntegration lorentz_cwt;
+    ContinuousWaveletTransformNumIntegration lorentz_ms2_cwt;
 
-    lorentz_cwt = new ContinuousWaveletTransformNumIntegration<1>();
-    lorentz_ms2_cwt = new ContinuousWaveletTransformNumIntegration<1>();
-
-    lorentz_cwt->init(scale_, spacing, 0);
-    lorentz_ms2_cwt->init(scale_, spacing, 0);
+    lorentz_cwt.init(scale_, spacing);
+    lorentz_ms2_cwt.init(scale_, spacing);
     double start = -2*scale_;
     for (int i=0; i < n; ++i)
     {
@@ -440,21 +425,21 @@ namespace OpenMS
     }
 
     float resolution = 1.;
-    lorentz_cwt->transform(lorentz_peak.begin(), lorentz_peak.end(),resolution);
-    lorentz_ms2_cwt->transform(lorentz_peak2.begin(), lorentz_peak2.end(),resolution);
+    lorentz_cwt.transform(lorentz_peak.begin(), lorentz_peak.end(), resolution);
+    lorentz_ms2_cwt.transform(lorentz_peak2.begin(), lorentz_peak2.end(), resolution);
 
     float peak_max=0;
     float peak_max2=0;
 
-    for (int i=0; i<lorentz_cwt->getSignalLength(); i++)
+    for (int i=0; i < lorentz_cwt.getSignalLength(); i++)
     {
-      if ((*lorentz_cwt)[i] > peak_max)
+      if (lorentz_cwt[i] > peak_max)
       {
-        peak_max = (*lorentz_cwt)[i];
+        peak_max = lorentz_cwt[i];
       }
-      if ((*lorentz_ms2_cwt)[i] > peak_max2)
+      if (lorentz_ms2_cwt[i] > peak_max2)
       {
-        peak_max2 = (*lorentz_ms2_cwt)[i];
+        peak_max2 = lorentz_ms2_cwt[i];
       }
     }
 
@@ -464,9 +449,6 @@ namespace OpenMS
     std::cout << "PEAK BOUND IN CWT " << peak_bound_cwt_ << std::endl;
     std::cout << "PEAK BOUND IN CWT (MS 2 Level)" << peak_bound_ms2_level_cwt_ << std::endl;
 #endif
-
-    delete lorentz_cwt;
-    delete lorentz_ms2_cwt;
   }
 
   void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
