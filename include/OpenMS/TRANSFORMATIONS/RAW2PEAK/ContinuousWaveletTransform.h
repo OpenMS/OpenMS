@@ -38,22 +38,37 @@ namespace OpenMS
   /**
   	@brief This class is the base class of the continuous wavelet transformation. 
   */
-  template <Size D>
   class ContinuousWaveletTransform
   {
   public:
     /// Raw data const iterator type
-    typedef typename std::vector<DRawDataPoint<D> >::const_iterator RawDataPointConstIterator;
+    typedef std::vector<DRawDataPoint<1> >::const_iterator RawDataPointConstIterator;
 
 
     /// Constructor
-    ContinuousWaveletTransform();
+    ContinuousWaveletTransform()
+        : scale_(0),
+        spacing_(0),
+        signal_length_(0),
+        end_left_padding_(0),
+        begin_right_padding_(0),
+        mz_dim_(0)
+    {}
 
     /// Copy constructor
-    ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt);
+    ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt)
+        : signal_(cwt.signal_),
+        wavelet_(cwt.wavelet_),
+        scale_(cwt.scale_),
+        spacing_(cwt.spacing_),
+        signal_length_(cwt.signal_length_),
+        end_left_padding_(cwt.end_left_padding_),
+        begin_right_padding_(cwt.begin_right_padding_),
+        mz_dim_(cwt.mz_dim_)
+    {}
 
     /// Destructor.
-    virtual ~ContinuousWaveletTransform();
+    virtual ~ContinuousWaveletTransform() {}
 
     /// Assignment operator
     inline ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)
@@ -125,32 +140,27 @@ namespace OpenMS
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
     inline void setSignalLength(const int signal_length) { signal_length_ = signal_length; }
 
-    /// Non-mutable access to the mass to charge dimension
-    inline const unsigned int& getMzDim() const { return mz_dim_; }
-    /// Mutable access to the mass to charge dimension
-    inline unsigned int& getMzDim() { return mz_dim_; }
-    /// Mutable access to the mass to charge dimension
-    inline void setMzDim(const unsigned int& mz_dim) { mz_dim_ = mz_dim; }
-
     /// Non-mutable access to signal length including padded zeros [0,end]
     inline int getSize() const { return signal_.size(); }
 
-    /**
-    @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
-    */
-    /// resolution = 1: the wavelet transform will be computed at every position of the raw data,
-    /// resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
-    /// 		(the raw data are interpolated to get the intensity for missing positions)
-    /// ...
-    virtual void transform(RawDataPointConstIterator begin_input, RawDataPointConstIterator end_input, float resolution) = 0;
+
     /**
      @brief Perform possibly necessary preprocessing steps, like tabulating the Wavelet.
     */
-    virtual void init(double scale, double spacing, unsigned int MZ);
+    virtual void init(double scale, double spacing);
+
 
     /// Yields the signal (intensity) at position i
-    double& operator [] (const unsigned int i);
-    const double& operator [] (const unsigned int i) const;
+    inline double& operator [] (const unsigned int i)
+    {
+      return signal_[i].getIntensity();
+    }
+
+    inline const double& operator [] (const unsigned int i) const
+    {
+      return signal_[i].getIntensity();
+    }
+
 
   protected:
     /// The transformed signal
@@ -178,62 +188,6 @@ namespace OpenMS
     double getInterpolatedValue_(double x, RawDataPointConstIterator it_left);
   };
 
-  template <Size D>
-  ContinuousWaveletTransform<D>::ContinuousWaveletTransform()
-      : scale_(0),
-      spacing_(0),
-      signal_length_(0),
-      end_left_padding_(0),
-      begin_right_padding_(0),
-      mz_dim_(0)
-  {}
-
-
-  template <Size D>
-  ContinuousWaveletTransform<D>::ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt)
-      : signal_(cwt.signal_),
-      wavelet_(cwt.wavelet_),
-      scale_(cwt.scale_),
-      spacing_(cwt.spacing_),
-      signal_length_(cwt.signal_length_),
-      end_left_padding_(cwt.end_left_padding_),
-      begin_right_padding_(cwt.begin_right_padding_),
-      mz_dim_(cwt.mz_dim_)
-  {}
-
-  template <Size D>
-  ContinuousWaveletTransform<D>::~ContinuousWaveletTransform() {}
-
-  template <Size D>
-  double& ContinuousWaveletTransform<D>::operator [] (const unsigned int i)
-  {
-    return signal_[i].getIntensity();
-  }
-
-  template <Size D>
-  const double& ContinuousWaveletTransform<D>::operator [] (const unsigned int i) const
-  {
-    return signal_[i].getIntensity();
-  }
-
-  template <Size D>
-  double ContinuousWaveletTransform<D>::getInterpolatedValue_(double x, RawDataPointConstIterator it_left)
-  {
-    // Interpolate between the point to the left and the point to the right.
-    double left_position = it_left->getPosition()[mz_dim_];
-    double right_position = (it_left+1)->getPosition()[mz_dim_];
-    double d=(x-left_position)/(right_position-left_position);
-
-    return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
-  }
-
-  template <Size D>
-  void ContinuousWaveletTransform<D>::init(double scale, double spacing, unsigned int MZ)
-  {
-    scale_ = scale;
-    spacing_=spacing;
-    mz_dim_ = MZ;
-  }
 } //namespace OpenMS
 
 #endif

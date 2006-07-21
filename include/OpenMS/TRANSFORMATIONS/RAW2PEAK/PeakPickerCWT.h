@@ -118,7 +118,7 @@ namespace OpenMS
       {
         return *this;
       }
-      
+
       param_ = pp.param_;
       peak_bound_ = pp.peak_bound_;
       signal_to_noise_ = pp.signal_to_noise_;
@@ -141,21 +141,13 @@ namespace OpenMS
     inline void setPeakShapes(const std::vector<PeakShape>&  peak_shapes) { peak_shapes_ = peak_shapes; }
 
     /// Non-mutable access to the wavelet transform
-    inline const ContinuousWaveletTransform<1>& getWaveletTransform() const { return *wt_; }
+    inline const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const { return wt_; }
     /// Mutable access to the wavelet transform
-    inline ContinuousWaveletTransform<1>& getWaveletTransform() { return *wt_;  }
+    inline ContinuousWaveletTransformNumIntegration& getWaveletTransform() { return wt_;  }
     /// Mutable access to the wavelet transform
-    inline void setWaveletTransform(const ContinuousWaveletTransform<1>& wt)
+    inline void setWaveletTransform(const ContinuousWaveletTransformNumIntegration& wt)
     {
-      if (wt_)
-      {
-        *wt_ = wt;
-      }
-      else
-      {
-        wt_= new ContinuousWaveletTransformNumIntegration<1>();
-        *wt_ = wt;
-      }
+      wt_ = wt;
     }
 
     /// Non-mutable access to the search radius for the peak maximum
@@ -239,7 +231,7 @@ namespace OpenMS
       if (dv.isEmpty() || dv.toString() == "") wavelet_spacing= 0.001;
       else wavelet_spacing = (double)dv;
 
-      wt_->init(scale_, wavelet_spacing, 0);
+      wt_.init(scale_, wavelet_spacing);
 
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "****************** PICK ******************" << std::endl;
@@ -303,7 +295,7 @@ namespace OpenMS
         int peak_left_index, peak_right_index;
 
         // compute the continious wavelet transform with resolution 1
-        wt_->transform(it_pick_begin, it_pick_end,1.);
+        wt_.transform(it_pick_begin, it_pick_end,1.);
 
         PeakArea_ area;
         bool centroid_fit=false;
@@ -544,7 +536,7 @@ namespace OpenMS
     std::vector<PeakShape> peak_shapes_;
 
     /// The continuous wavelet "transformer"
-    ContinuousWaveletTransform<1>* wt_;
+    ContinuousWaveletTransformNumIntegration wt_;
 
     /// The search radius for the determination of a peak's maximum position
     unsigned int radius_;
@@ -583,7 +575,7 @@ namespace OpenMS
 
     public:
       PeakArea_(){}
-      
+
       /** @brief Iterator defining a raw data peak.
          
          The left and right iterators delimit a range in the raw data which represents a raw peak.
@@ -592,7 +584,7 @@ namespace OpenMS
          
          Left_behind_centroid points to the raw data point next to the estimates centroid position.
       */
-         RawDataPointIterator left, max, right, left_behind_centroid;
+      RawDataPointIterator left, max, right, left_behind_centroid;
       /// The estimated centroid position.
       DPosition<1> centroid_position;
     };
@@ -620,7 +612,7 @@ namespace OpenMS
     */
     bool getMaxPosition_(RawDataPointIterator first,
                          RawDataPointIterator last,
-                         ContinuousWaveletTransform<1>* wt,
+                         const ContinuousWaveletTransform& wt,
                          PeakArea_& area,
                          int distance_from_scan_border,
                          int ms_level,
