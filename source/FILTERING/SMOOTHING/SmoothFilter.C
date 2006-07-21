@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/SMOOTHING/DSmoothFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
  
 namespace OpenMS
 {

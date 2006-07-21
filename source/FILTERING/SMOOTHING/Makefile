@@ -35,10 +35,12 @@ CPP_SOURCES= \
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)
 	ADD_CPP_SOURCES=\
-	DSavitzkyGolayQRFilter.C\
-	DSavitzkyGolaySVDFilter.C\
-	DGaussFilter.C\
- 	DSmoothFilter.C
+	SmoothFilter.C\
+	GaussFilter.C\
+	SavitzkyGolayQRFilter.C\
+	SavitzkyGolaySVDFilter.C
+
+
 endif
 
 include ../../common.mak
