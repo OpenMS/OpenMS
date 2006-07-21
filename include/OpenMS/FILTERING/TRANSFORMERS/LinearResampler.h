@@ -199,7 +199,7 @@ public:
             InputSpectrumIterator input_it(first+i);
 
             // pick the peaks in scan i
-            filter(*input_it,spectrum);
+            raster(*input_it,spectrum);
 
             // if any peaks are found copy the spectrum settings
             if (spectrum.size() > 0)
