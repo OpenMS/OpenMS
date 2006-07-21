@@ -40,8 +40,7 @@ using namespace std;
 /**
    @page PeakPicker PeakPicker
  
-   @brief Executes the peak picking algorithm
-   as described by Lange et al. (2006) Proc. PSB-06.
+   @brief Executes the peak picking algorithm as described by Lange et al. (2006) Proc. PSB-06.
  
    The conversion of the ''raw'' ion count data acquired
    by the machine into peak lists for further processing
