@@ -35,8 +35,8 @@ EXECUTABLES_CONCEPT = \
 	PreciseTime_test\
 	TimeStamp_test\
 	VersionInfo_test\
-	FactoryProduct_test\
-	Factory_test
+	FactoryProduct_test
+#	Factory_test
 
 EXECUTABLES_DATASTRUCTURES = \
 	${CGAL_EXECUTABLES_DATASTRUCTURES}\
@@ -192,7 +192,6 @@ EXECUTABLES_FILTERING = \
 	LinearResampler_test\
 	DTopHatFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
-	DSignalToNoiseEstimatorMedian_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\
@@ -221,6 +220,8 @@ EXECUTABLES_FILTERING = \
 	PeakDiffBins_test\
 	IntensityDistBins_test\
 	KellerQuality_test
+
+#	DSignalToNoiseEstimatorMedian_test\
 	
 
 #COMPARISON
@@ -290,8 +291,9 @@ EXECUTABLES_TRANSFORMATIONS = \
 	FeaFiTraits_test\
 	PeakPicker_test\
 	PeakPickerCWT_test\
-	ContinuousWaveletTransform_test\
 	DExtractSignalRegions_test
+
+#	ContinuousWaveletTransform_test\
 
 
 EXECUTABLES_ANALYSIS_ID =\
