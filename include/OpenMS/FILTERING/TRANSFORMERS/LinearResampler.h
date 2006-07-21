@@ -35,73 +35,52 @@
 
 namespace OpenMS
 {
-  /**
-    @brief Linear Resampling of raw data.
+/**
+  @brief Linear Resampling of raw data.
+ 
+ This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
+ Therefore the intensity at every position x in the input raw data is spread to the two
+ adjacent resampling points.
+ This method preserves the area of the input signal and also the centroid position of a peak.
+ Therefore it is recommended for quantitation as well as for identification experiments.
+ 
+ @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
+       The resampling rate should be >= the accuracy.
+ 
+  @todo write tests (Eva)
+ 
+ */
 
-	  This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
-	  Therefore the intensity at every position x in the input raw data is spread to the two
-	  adjacent resampling points.
-	  This method preserves the area of the input signal and also the centroid position of a peak.
-	  Therefore it is recommended for quantitation as well as for identification experiments.
-	
-	  @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
-       		The resampling rate should be >= the accuracy.
 
-    @todo write tests (Eva)
+class LinearResampler
+{
 
-   */
-
-
-  template <typename PeakType>
-  class LinearResampler
-  {
-
-  public:
-
-    ///\name Typedefs
-    //@{
-    ///
-    typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
-    ///
-    typedef typename MSExperiment< PeakType >::iterator SpectrumIterator;
-    ///
-    typedef typename MSExperiment< PeakType >::const_iterator SpectrumConstIterator;
-    ///
-    typedef MSSpectrum< PeakType > Spectrum;
-    ///
-    typedef typename Spectrum::const_iterator ConstPeakIterator;
-    ///
-    typedef typename Spectrum::iterator PeakIterator;
-
-    //@}
+public:
 
     /**@brief
     */
     LinearResampler()
-        : spacing_(0.05)
-    {
-      ms_exp_resampled = 0;
-    }
+            : spacing_(0.05)
+    {}
 
     LinearResampler(const Param& parameters)
     {
-      param_ = parameters;
+        param_ = parameters;
 
-      // if a parameter is missed in the param object the value should be substituted by a dv value
-      DataValue dv = param_.getValue("ResamplingWidth");
-      if (dv.isEmpty() || dv.toString() == "") spacing_ = 0.05;
-      else spacing_ = (double)dv;
+        // if a parameter is missed in the param object the value should be substituted by a dv value
+        DataValue dv = param_.getValue("ResamplingWidth");
+        if (dv.isEmpty() || dv.toString() == "")
+            spacing_ = 0.05;
+        else
+            spacing_ = (double)dv;
 
-      ms_exp_resampled = 0;
     }
 
     /// Copy constructor.
     LinearResampler( LinearResampler const & lr )
-        : param_(lr.param_),
-        spacing_(lr.spacing_)
-    {
-      ms_exp_resampled = 0;
-    }
+            : param_(lr.param_),
+            spacing_(lr.spacing_)
+{}
 
     /// Destructor.
     ~LinearResampler()
@@ -110,140 +89,201 @@ namespace OpenMS
     /// Assignment operator
     LinearResampler& operator= (const LinearResampler& source)
     {
-      if (&source == this) return *this;
+        if (&source == this)
+            return *this;
 
-      // Note: you have to set the ms_exp_resampled by your own!
-      ms_exp_resampled = 0;
+        param_ = source.param_;
+        spacing_ = source.spacing_;
 
-      param_ = source.param_;
-      spacing_ = source.spacing_;
-      return *this;
+        return *this;
     }
 
 
-    /// Take the reference to the output data
-    LinearResampler& operator()(MSExperiment< PeakType >& ms_exp)
+    /** @brief Applies the resampling algorithm to to an given iterator range.
+
+      Creates uniform data from the raw data given iterator intervall [first,last) and writes the 
+      resulting data to the resampled_peak_container.
+      
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+      
+            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+       
+            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+       */
+    template < typename InputPeakIterator, typename OutputPeakContainer >
+    void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)
     {
-      ms_exp_resampled = &ms_exp;
+        double end_pos = (last-1)->getPos();
+        double start_pos = first->getPos();
+        int number_raw_points = distance(first,last);
+        int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
 
-      return *this;
+        resampled_peak_container.resize(number_resampled_points);
+
+        // generate the resampled peaks at positions origin+i*spacing_
+        typename OutputPeakContainer::iterator it = resampled_peak_container.begin();
+        for (int i=0; i < number_resampled_points; ++i)
+        {
+            it->getPos() = start_pos+ i*spacing_;
+            ++it;
+        }
+
+        // spread the intensity h of the data point at position x to the left and right
+        // adjacent resampled peaks
+        double distance_left = 0.;
+        double distance_right = 0.;
+        int left_index = 0;
+        int right_index = 0;
+
+        it = resampled_peak_container.begin();
+        for (int i=0; i < number_raw_points ; ++i)
+        {
+            left_index = (int)floor(((first+i)->getPos() - start_pos) / spacing_);
+            right_index = left_index + 1;
+
+            // compute the distance between x and the left adjacent resampled peak
+            distance_left = fabs((first+i)->getPos() - (it + left_index)->getPos()) / spacing_;
+            // compute the distance between x and the right adjacent resampled peak
+            distance_right = fabs((first+i)->getPos() - (it + right_index)->getPos());
+
+            // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
+            (it  + left_index)->getIntensity() += (first+i)->getIntensity()*distance_right / spacing_;
+            (it + right_index)->getIntensity() += (first+i)->getIntensity()*distance_left;
+        }
     }
 
 
-    // assumes that the resampled_first iterator points on a spectrum with proper size (containing peaks with zero intensity)
-    void start(ConstPeakIterator first, ConstPeakIterator last, PeakIterator resampled_first)
+    /** @brief Applies the resampling algorithm to a raw data point container.
+
+      Creates uniform data from the raw data in the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) and writes the 
+      resulting data to the resampled_peak_container.
+      
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+      
+            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+       
+            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+       */
+
+    template <typename InputPeakContainer, typename OutputPeakContainer >
+    void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
     {
-      double end_pos = (last-1)->getPos();
-      double start_pos = first->getPos();
-      int number_raw_points = distance(first,last);
-      int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
+        raster(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
+    }
 
-      // generate the resampled peaks at positions origin+i*spacing_
-      for (int i=0; i < number_resampled_points; ++i)
-      {
-        (resampled_first+i)->getPos() = start_pos+ i*spacing_;
-      }
 
-      // spread the intensity h of the data point at position x to the left and right
-      // adjacent resampled peaks
-      double distance_left = 0.;
-      double distance_right = 0.;
-      int left_index = 0;
-      int right_index = 0;
+    /** @brief Resamples the data in a range of MSSpectren.
 
-      for (int i=0; i < number_raw_points ; ++i)
-      {
-        left_index = (int)floor(((first+i)->getPos() - start_pos) / spacing_);
-        right_index = left_index + 1;
+    Rasters the raw data successive in every scan in the intervall [first,last).
+    The resampled data are stored in a MSExperiment.
+    		
+    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+           or any other derived class of DRawDataPoint.
 
-        // compute the distance between x and the left adjacent resampled peak
-        distance_left = fabs((first+i)->getPos() - (resampled_first + left_index)->getPos()) / spacing_;
-        // compute the distance between x and the right adjacent resampled peak
-        distance_right = fabs((first+i)->getPos() - (resampled_first + right_index)->getPos());
+     @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+    */
+    template <typename InputSpectrumIterator, typename OutputPeakType >
+    void rasterExperiment(InputSpectrumIterator first,
+                          InputSpectrumIterator last,
+                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+    {
+        unsigned int n = distance(first,last);
+        // pick peaks on each scan
+        for (unsigned int i = 0; i < n; ++i)
+        {
+            MSSpectrum< OutputPeakType > spectrum;
+            InputSpectrumIterator input_it(first+i);
 
-        // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        (resampled_first + left_index)->getIntensity() += (first+i)->getIntensity()*distance_right / spacing_;
-        (resampled_first + right_index)->getIntensity() += (first+i)->getIntensity()*distance_left;
-      }
+            // pick the peaks in scan i
+            filter(*input_it,spectrum);
+
+            // if any peaks are found copy the spectrum settings
+            if (spectrum.size() > 0)
+            {
+                // copy the spectrum settings
+                static_cast<SpectrumSettings&>(spectrum) = *input_it;
+                spectrum.setType(SpectrumSettings::RAWDATA);
+
+                // copy the spectrum information
+                spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+                spectrum.setRetentionTime(input_it->getRetentionTime());
+                spectrum.setMSLevel(input_it->getMSLevel());
+                spectrum.getName() = input_it->getName();
+
+                ms_exp_filtered.push_back(spectrum);
+            }
+        }
     }
 
 
 
-    ///\name Accessors
-    //@{
-    /// Non-mutable access to the resampled data
-    inline const MSExperiment<PeakType>* getResampledDataPointer() const { return ms_exp_resampled; }
-    /// Mutable access to the resampled data
-    inline MSExperiment<PeakType>* getResampledDataPointer() { return ms_exp_resampled; }
-    /// Mutable access to the resampled data
-    inline void setResampledDataPointer(MSExperiment<PeakType>& ms_exp) { ms_exp_resampled = &ms_exp; }
+    /** @brief Resamples the data in an MSExperiment.
+
+    Rasters the raw data of every scan in the MSExperiment.
+    The resampled data are stored in a MSExperiment.	
+    				
+    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+             or any other derived class of DRawDataPoint.
+    */
+    template <typename InputPeakType, typename OutputPeakType >
+    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
+                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+    {
+        // copy the experimental settings
+        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        rasterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+    }
 
     /// Non-mutable access to spacing
-    inline const double getSpacing() const { return spacing_; }
+    inline const double& getSpacing() const
+    {
+        return spacing_;
+    }
+
     /// Mutable access to the spacing
-    inline double& getSpacing() { return spacing_; }
+    inline double& getSpacing()
+    {
+        return spacing_;
+    }
+
     /// Mutable access to the spacing
-    inline void setSpacing(const double spacing) { spacing_ = spacing; }
+    inline void setSpacing(const double& spacing)
+    {
+        spacing_ = spacing;
+    }
 
     /// Non-mutable access to the parameter object
-    inline const Param& getParam() const { return param_; }
+    inline const Param& getParam() const
+    {
+        return param_;
+    }
+
     /// Mutable access to the parameter object
     inline void setParam(const Param& param)
     {
-      param_ = param;
+        param_ = param;
 
-      // set the new values
-      DataValue dv = param_.getValue("ResamplingWidth");
-      if (!(dv.isEmpty() || dv.toString() == "")) spacing_ = (double)dv;
+        // set the new values
+        DataValue dv = param_.getValue("ResamplingWidth");
+        if (!(dv.isEmpty() || dv.toString() == ""))
+            spacing_ = (double)dv;
     }
-    //@}
 
 
-  protected:
-    // ms_exp_resampled points to the resampled MSExperiment
-    MSExperiment<PeakType>* ms_exp_resampled;
 
-    // Parameter object
+protected:
+    /// Parameter object
     Param param_;
 
-    // spacing of the resampled data
+    /// Spacing of the resampled data
     double spacing_;
-  };
+};
 
-  template < typename PeakType >
-  const MSExperiment< PeakType >&
-  operator>>(const MSExperiment< PeakType >& ms_exp, LinearResampler< PeakType >& lr)
-  {
-    *static_cast<ExperimentalSettings*>(lr.getResampledDataPointer()) = ms_exp;
-
-    typename LinearResampler< PeakType >::SpectrumConstIterator first_scan = ms_exp.begin();
-    typename LinearResampler< PeakType >::SpectrumConstIterator last_scan = ms_exp.end();
-
-    while (first_scan != last_scan)
-    {
-      typename MSSpectrum< PeakType >::const_iterator first_data_point = first_scan->begin();
-      typename MSSpectrum< PeakType >::const_iterator last_data_point = first_scan->end();
-
-      double end_pos = (last_data_point-1)->getPos();
-      double start_pos = first_data_point->getPos();
-      int number_resampled_points = (int)ceil((end_pos -start_pos) / lr.getSpacing() + 1);
-
-      DPeakArrayNonPolymorphic<1,PeakType> data(number_resampled_points);
-
-      MSSpectrum< PeakType > resampled_spec;
-      resampled_spec.setContainer(data);
-
-	    resampled_spec.setRetentionTime(first_scan->getRetentionTime(), first_scan->getRetentionTimeStart(), first_scan->getRetentionTimeStop());
-	    resampled_spec.setMSLevel(first_scan->getMSLevel());
-	    resampled_spec.setName(first_scan->getName());
-
-      lr.start(first_data_point,last_data_point,resampled_spec.begin());
-
-      lr.getResampledDataPointer()->std::vector< MSSpectrum< PeakType > >::push_back(resampled_spec);
-      ++first_scan;
-    }
-    return *lr.getResampledDataPointer();
-  }
 
 } // namespace OpenMS
 
