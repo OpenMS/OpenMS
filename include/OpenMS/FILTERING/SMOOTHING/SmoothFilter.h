@@ -1,0 +1,245 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Eva Lange $
+// --------------------------------------------------------------------------
+//
+
+#ifndef OPENMS_FILTERING_SMOOTHING_SMOOTHFILTER_H
+#define OPENMS_FILTERING_SMOOTHING_SMOOTHFILTER_H
+
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+
+namespace OpenMS
+{
+class SmoothFilter
+{
+public:
+
+    /// Constructor
+    inline SmoothFilter()
+            : coeffs_(0)
+    {}
+
+    /// Copy constructor
+    inline SmoothFilter(const SmoothFilter& fir)
+    {
+        coeffs_ = fir.coeffs_;
+    }
+
+    /// Destructor
+    virtual ~SmoothFilter()
+    {}
+
+    /// Assignment operator
+    inline SmoothFilter& operator=(const SmoothFilter& fir)
+    {
+        // take care of self assignments
+        if (this == &fir)
+        {
+            return *this;
+        }
+
+        coeffs_=fir.coeffs_;
+
+        return *this;
+    }
+
+    /// Non-mutable access to the coefficients of the filter
+    inline const std::vector<double>& getCoeffs() const
+    {
+        return coeffs_;
+    }
+    /// Mutable access access to the coefficients of the filter
+    inline std::vector<double>& getCoeffs()
+    {
+        return coeffs_;
+    }
+    /// Mutable access to the coefficients of the filter
+    inline void setCoeffs(std::vector<double>& coeffs)
+    {
+        coeffs_ = coeffs;
+    }
+
+
+    /** @brief Applies the convolution with the filter coefficients to an given iterator range.
+
+    Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
+    resulting data to the smoothed_data_container.
+
+    @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+          points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+
+          The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+          can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+     
+          If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+     */
+    template <typename InputPeakIterator, typename OutputPeakContainer  >
+    void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
+    {
+        smoothed_data_container.resize(distance(first,last));
+
+        // needed for multiply the signal with the filter coefficients
+        InputPeakIterator it_back;
+        typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
+
+        int m,i,j;
+        float help;
+
+        int frame_size = coeffs_.size();
+        // compute the transient on
+        for (i=0; i<frame_size;++i)
+        {
+            it_back=first;
+            help=0;
+            m=0;
+
+            for (j=i; j>=0; --j)
+            {
+                help+=it_back->getIntensity()*coeffs_[m];
+                --it_back;
+                ++m;
+            }
+
+            out_it->setPosition(first->getPos()());
+            out_it->setIntensity(help);
+            ++out_it;
+            ++first;
+        }
+
+        // compute the steady state output
+        while (first!=last)
+        {
+            it_back=first;
+            help=0;
+
+            for (j=0; j<frame_size; ++j)
+            {
+                help+=it_back->getIntensity()*coeffs_[j];
+                --it_back;
+            }
+
+            out_it->setPosition(first->getPos()());
+            out_it->setIntensity(help);
+            ++out_it;
+            ++first;
+        }
+    }
+
+
+    /** @brief Applies the baseline removal algorithm to to a raw data point container.
+
+      Removes the baseline in the the input container (e.g. of type MSSpectrum<DRawDataPoint<1> >) and writes the 
+      resulting data to the baseline_filtered_container.
+      
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+      
+            The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+       
+            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+       */
+    template <typename InputPeakContainer, typename OutputPeakContainer >
+    void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
+    {
+        filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
+    }
+
+
+    /** @brief Removes the baseline in a range of MSSpectren.
+    		
+    	Filters the data successive in every scan in the intervall [first,last).
+    	The filtered data are stored in a MSExperiment.
+    					
+    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+              or any other derived class of DRawDataPoint.
+
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+    */
+    template <typename InputSpectrumIterator, typename OutputPeakType >
+    void filterExperiment(InputSpectrumIterator first,
+                          InputSpectrumIterator last,
+                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+    {
+        unsigned int n = distance(first,last);
+        // pick peaks on each scan
+        for (unsigned int i = 0; i < n; ++i)
+        {
+            MSSpectrum< OutputPeakType > spectrum;
+            InputSpectrumIterator input_it(first+i);
+
+            // pick the peaks in scan i
+            filter(*input_it,spectrum);
+
+            // if any peaks are found copy the spectrum settings
+            if (spectrum.size() > 0)
+            {
+                // copy the spectrum settings
+                static_cast<SpectrumSettings&>(spectrum) = *input_it;
+                spectrum.setType(SpectrumSettings::RAWDATA);
+
+                // copy the spectrum information
+                spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+                spectrum.setRetentionTime(input_it->getRetentionTime());
+                spectrum.setMSLevel(input_it->getMSLevel());
+                spectrum.getName() = input_it->getName();
+
+                ms_exp_filtered.push_back(spectrum);
+            }
+        }
+    }
+
+
+
+    /** @brief Removes the baseline in a MSExperiment.
+    	
+    Filters the data every scan in the MSExperiment.
+    The filtered data are stored in a MSExperiment.
+    				
+    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+             or any other derived class of DRawDataPoint.
+    */
+    template <typename InputPeakType, typename OutputPeakType >
+    void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
+                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+    {
+        // copy the experimental settings
+        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+    }
+
+protected:
+    /// The coefficient matrix.
+    std::vector<double> coeffs_;
+};
+
+}// namespace OpenMS
+
+
+#endif
