@@ -189,7 +189,7 @@ EXECUTABLES_FILTERING = \
 	DGaussFilter_test\
 	IDFilter_test\
 	LinearResampler_test\
-	DTopHatFilter_test\
+	TopHatFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
