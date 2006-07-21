@@ -35,8 +35,8 @@ CPP_SOURCES= \
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)
 	ADD_CPP_SOURCES=\
-	MorphFilter.C
-#	DTopHatFilter.C
+	MorphFilter.C\
+	TopHatFilter.C
 endif
 
 include ../../common.mak
