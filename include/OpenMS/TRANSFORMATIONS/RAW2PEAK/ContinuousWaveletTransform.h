@@ -35,113 +35,180 @@
 
 namespace OpenMS
 {
-  /**
-  	@brief This class is the base class of the continuous wavelet transformation. 
-  */
-  class ContinuousWaveletTransform
-  {
-  public:
+/**
+	@brief This class is the base class of the continuous wavelet transformation. 
+*/
+class ContinuousWaveletTransform
+{
+public:
     /// Raw data const iterator type
     typedef std::vector<DRawDataPoint<1> >::const_iterator RawDataPointConstIterator;
 
 
     /// Constructor
     ContinuousWaveletTransform()
-        : scale_(0),
-        spacing_(0),
-        signal_length_(0),
-        end_left_padding_(0),
-        begin_right_padding_(0),
-        mz_dim_(0)
+            : scale_(0),
+            spacing_(0),
+            signal_length_(0),
+            end_left_padding_(0),
+            begin_right_padding_(0),
+            mz_dim_(0)
     {}
 
     /// Copy constructor
     ContinuousWaveletTransform(const ContinuousWaveletTransform& cwt)
-        : signal_(cwt.signal_),
-        wavelet_(cwt.wavelet_),
-        scale_(cwt.scale_),
-        spacing_(cwt.spacing_),
-        signal_length_(cwt.signal_length_),
-        end_left_padding_(cwt.end_left_padding_),
-        begin_right_padding_(cwt.begin_right_padding_),
-        mz_dim_(cwt.mz_dim_)
+            : signal_(cwt.signal_),
+            wavelet_(cwt.wavelet_),
+            scale_(cwt.scale_),
+            spacing_(cwt.spacing_),
+            signal_length_(cwt.signal_length_),
+            end_left_padding_(cwt.end_left_padding_),
+            begin_right_padding_(cwt.begin_right_padding_),
+            mz_dim_(cwt.mz_dim_)
     {}
 
     /// Destructor.
-    virtual ~ContinuousWaveletTransform() {}
+    virtual ~ContinuousWaveletTransform()
+    {}
 
     /// Assignment operator
     inline ContinuousWaveletTransform& operator=(const ContinuousWaveletTransform& cwt)
     {
-      // take care of self assignments
-      if (this == &cwt)
-      {
+        // take care of self assignments
+        if (this == &cwt)
+        {
+            return *this;
+        }
+
+        signal_=cwt.signal_;
+        wavelet_=cwt.wavelet_;
+        scale_=cwt.scale_;
+        spacing_=cwt.spacing_;
+        signal_length_=cwt.signal_length_;
+        end_left_padding_=cwt.end_left_padding_;
+        begin_right_padding_=cwt.begin_right_padding_;
+        mz_dim_ = cwt.mz_dim_;
+
         return *this;
-      }
-
-      signal_=cwt.signal_;
-      wavelet_=cwt.wavelet_;
-      scale_=cwt.scale_;
-      spacing_=cwt.spacing_;
-      signal_length_=cwt.signal_length_;
-      end_left_padding_=cwt.end_left_padding_;
-      begin_right_padding_=cwt.begin_right_padding_;
-      mz_dim_ = cwt.mz_dim_;
-
-      return *this;
     }
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal() const { return signal_; }
+    inline const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal() const
+    {
+        return signal_;
+    }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal() { return signal_; }
+    inline DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal()
+    {
+        return signal_;
+    }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& signal) { signal_ = signal; }
+    inline void setSignal(const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& signal)
+    {
+        signal_ = signal;
+    }
 
     /// Non-mutable access to the wavelet
-    inline const std::vector<double>& getWavelet() const { return wavelet_; }
+    inline const std::vector<double>& getWavelet() const
+    {
+        return wavelet_;
+    }
     /// Mutable access to the wavelet
-    inline std::vector<double>& getWavelet() { return wavelet_; }
+    inline std::vector<double>& getWavelet()
+    {
+        return wavelet_;
+    }
     /// Mutable access to the signal
-    inline void setWavelet(const std::vector<double>& wavelet) { wavelet_ = wavelet; }
+    inline void setWavelet(const std::vector<double>& wavelet)
+    {
+        wavelet_ = wavelet;
+    }
 
     // Non-mutable access to the scale of the wavelet
-    inline const double& getScale() const { return scale_; }
+    inline const double& getScale() const
+    {
+        return scale_;
+    }
     /// Mutable access to the spacing of raw data
-    inline double& getScale() { return scale_; }
+    inline double& getScale()
+    {
+        return scale_;
+    }
     /// Mutable access to the spacing of raw data
-    inline void setScale(const double& scale) { scale_ = scale; }
+    inline void setScale(const double& scale)
+    {
+        scale_ = scale;
+    }
 
     // Non-mutable access to the spacing of raw data
-    inline const double& getSpacing() const { return spacing_; }
+    inline const double& getSpacing() const
+    {
+        return spacing_;
+    }
     /// Mutable access to the spacing of raw data
-    inline double& getSpacing() { return spacing_; }
+    inline double& getSpacing()
+    {
+        return spacing_;
+    }
     /// Mutable access to the spacing of raw data
-    inline void setSpacing(const double spacing) { spacing_ = spacing; }
+    inline void setSpacing(const double spacing)
+    {
+        spacing_ = spacing;
+    }
 
     /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
-    inline const int& getLeftPaddingIndex() const { return end_left_padding_; }
+    inline const int& getLeftPaddingIndex() const
+    {
+        return end_left_padding_;
+    }
     /// Mutable access to the position where the signal starts
-    inline int& getLeftPaddingIndex() { return end_left_padding_; }
+    inline int& getLeftPaddingIndex()
+    {
+        return end_left_padding_;
+    }
     /// Mutable access to position where the signal starts
-    inline void setLeftPaddingIndex(const int end_left_padding) { end_left_padding_ = end_left_padding; }
+    inline void setLeftPaddingIndex(const int end_left_padding)
+    {
+        end_left_padding_ = end_left_padding;
+    }
 
     /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
-    inline const int& getRightPaddingIndex() const { return begin_right_padding_; }
+    inline const int& getRightPaddingIndex() const
+    {
+        return begin_right_padding_;
+    }
     /// Mutable access to the position where the signal starts
-    inline int& getRightPaddingIndex() { return begin_right_padding_; }
+    inline int& getRightPaddingIndex()
+    {
+        return begin_right_padding_;
+    }
     /// Mutable access to position where the signal starts
-    inline void setRightPaddingIndex(const int begin_right_padding) { begin_right_padding_ = begin_right_padding; }
+    inline void setRightPaddingIndex(const int begin_right_padding)
+    {
+        begin_right_padding_ = begin_right_padding;
+    }
 
     /// Non-mutable access to signal length [end_left_padding,begin_right_padding]
-    inline const int& getSignalLength() const { return signal_length_; }
+    inline const int& getSignalLength() const
+    {
+        return signal_length_;
+    }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
-    inline int& getSignalLength() { return signal_length_; }
+    inline int& getSignalLength()
+    {
+        return signal_length_;
+    }
     /// Mutable access to signal length [end_left_padding,begin_right_padding]
-    inline void setSignalLength(const int signal_length) { signal_length_ = signal_length; }
+    inline void setSignalLength(const int signal_length)
+    {
+        signal_length_ = signal_length;
+    }
 
     /// Non-mutable access to signal length including padded zeros [0,end]
-    inline int getSize() const { return signal_.size(); }
+    inline int getSize() const
+    {
+        return signal_.size();
+    }
 
 
     /**
@@ -153,16 +220,16 @@ namespace OpenMS
     /// Yields the signal (intensity) at position i
     inline double& operator [] (const unsigned int i)
     {
-      return signal_[i].getIntensity();
+        return signal_[i].getIntensity();
     }
 
     inline const double& operator [] (const unsigned int i) const
     {
-      return signal_[i].getIntensity();
+        return signal_[i].getIntensity();
     }
 
 
-  protected:
+protected:
     /// The transformed signal
     DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > signal_;
 
@@ -186,7 +253,7 @@ namespace OpenMS
     /// Computes the interpolated value at position x (mz) given the iterator it_left, which points
     /// to the left neighbour raw data point of x in the original data
     double getInterpolatedValue_(double x, RawDataPointConstIterator it_left);
-  };
+};
 
 } //namespace OpenMS
 

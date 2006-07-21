@@ -463,7 +463,7 @@ namespace OpenMS
     /** @brief Picks the peaks in a range of MSSpectren.
     		
     	Picks the peaks successive in every scan in the intervall [first,last).
-    	The detected peaks of are stored in a MSExperiment.
+    	The detected peaks are stored in a MSExperiment.
     					
     	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
               or any other derived class of DRawDataPoint.
@@ -509,8 +509,8 @@ namespace OpenMS
 
     /** @brief Picks the peaks in a MSExperiment.
     		
-    	Picks the peaks on every every scan in the MSExperiment.
-    	The detected peaks of are stored in a MSExperiment.
+    	Picks the peaks on every scan in the MSExperiment.
+    	The detected peaks are stored in a MSExperiment.
     					
     	@note The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
     	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
