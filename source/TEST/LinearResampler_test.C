@@ -34,112 +34,149 @@
 
 ///////////////////////////
 
-START_TEST(LinearResampler< PeakType >, "$Id$")
+START_TEST(LinearResampler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 
-LinearResampler< DRawDataPoint<1> >* lr_ptr = 0;
-CHECK(LinearResampler())
-  lr_ptr = new LinearResampler< DRawDataPoint<1> >;
+LinearResampler* lr_ptr = 0;
+CHECK((LinearResampler()))
+  lr_ptr = new LinearResampler;
   TEST_NOT_EQUAL(lr_ptr,0);
 RESULT
 
-CHECK(~LinearResampler())
+CHECK((~LinearResampler()))
   delete lr_ptr;
 RESULT
 
-CHECK(LinearResampler( const Param& parameters))
+CHECK((LinearResampler(const Param& parameters)))
   Param p;
   p.setValue("ResamplingWidth",0.5);
-  LinearResampler< DRawDataPoint<1> > lr(p);
+  LinearResampler lr(p);
 
   TEST_REAL_EQUAL(lr.getSpacing(),0.5);
 RESULT
 
-CHECK(LinearResampler( LinearResampler const & lr ))
+CHECK((LinearResampler( LinearResampler const & lr )))
   Param p;
   p.setValue("ResamplingWidth",0.5);
-  LinearResampler< DRawDataPoint<1> > tmp(p);
+  LinearResampler tmp(p);
 
-  LinearResampler< DRawDataPoint<1> > tmp2(tmp);
+  LinearResampler tmp2(tmp);
   TEST_REAL_EQUAL(tmp2.getSpacing(),0.5);
   TEST_EQUAL(tmp2.getParam(),p);
 RESULT
 
-CHECK(LinearResampler& operator= (const LinearResampler& source))
+CHECK((LinearResampler& operator= (const LinearResampler& source)))
   Param p;
   p.setValue("ResamplingWidth",0.5);
-  LinearResampler< DRawDataPoint<1> > tmp(p);
+  LinearResampler tmp(p);
 
-  LinearResampler< DRawDataPoint<1> > tmp2;
+  LinearResampler tmp2;
   tmp2 = tmp;
   TEST_REAL_EQUAL(tmp2.getSpacing(),0.5);
   TEST_EQUAL(tmp2.getParam(),p);
 RESULT
 
-CHECK(LinearResampler& operator()(MSExperiment< PeakType >& ms_exp))
-  LinearResampler< DRawDataPoint<1> > lr;
-  MSExperiment< DRawDataPoint<1> > ms_exp;
-  lr(ms_exp);
+CHECK((template <typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first,InputSpectrumIterator last,  MSExperiment<OutputPeakType>& ms_exp_filtered)))
+  MSExperiment< DRawDataPoint <1> > raw;
+  raw.resize(1);
+  MSExperiment< DRawDataPoint <1> > resampled;
+  MSSpectrum< DRawDataPoint<1> > spec;
+  spec.getContainer().resize(5);
+  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getIntensity() = 3;
+  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getIntensity() = 6;
+  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getIntensity() = 8;
+  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getIntensity() = 2;
+  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getIntensity() = 1;
+  raw[0] = spec;
 
-  TEST_EQUAL(lr.getResampledDataPointer(), &ms_exp);
+  LinearResampler lr;
+  lr.setSpacing(0.5);
+  lr.rasterExperiment(raw.begin(),raw.end(),resampled);
+
+  double sum = 0.;
+  MSSpectrum< DRawDataPoint<1> >::const_iterator it = resampled[0].begin();
+  while(it != resampled[0].end())
+  {
+    sum += it->getIntensity();
+    ++it;
+  }
+
+  TEST_REAL_EQUAL(sum, 20);
 RESULT
 
-CHECK(const MSExperiment<PeakType>* getResampledDataPointer() const)
-  const LinearResampler< DRawDataPoint<1> > tmp;
+CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
+  MSExperiment< DRawDataPoint <1> > raw;
+  raw.resize(1);
+  MSExperiment< DRawDataPoint <1> > resampled;
+  MSSpectrum< DRawDataPoint<1> > spec;
+  spec.getContainer().resize(5);
+  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getIntensity() = 3;
+  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getIntensity() = 6;
+  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getIntensity() = 8;
+  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getIntensity() = 2;
+  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getIntensity() = 1;
+  raw[0] = spec;
 
-  TEST_EQUAL(tmp.getResampledDataPointer(), 0);
+  LinearResampler lr;
+  lr.setSpacing(0.5);
+  lr.rasterExperiment(raw,resampled);
+
+  double sum = 0.;
+  MSSpectrum< DRawDataPoint<1> >::const_iterator it = resampled[0].begin();
+  while(it != resampled[0].end())
+  {
+    sum += it->getIntensity();
+    ++it;
+  }
+
+  TEST_REAL_EQUAL(sum, 20);
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   Param p;
   p.setValue("ResamplingWidth",0.5);
-  const LinearResampler< DRawDataPoint<1> > tmp(p);
+  const LinearResampler tmp(p);
 
   TEST_EQUAL(tmp.getParam(),p);
 RESULT
 
-CHECK(const double getSpacing() const)
-  const LinearResampler< DRawDataPoint<1> > tmp;
+CHECK((const double& getSpacing() const))
+  const LinearResampler tmp;
 
   TEST_EQUAL(tmp.getSpacing(),0.05);
 RESULT
 
-CHECK(double getSpacing())
-  LinearResampler< DRawDataPoint<1> > tmp;
+CHECK((double& getSpacing()))
+  LinearResampler tmp;
   tmp.getSpacing() = 0.1;
 
   TEST_EQUAL(tmp.getSpacing(),0.1);
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   Param p;
   p.setValue("ResamplingWidth",0.5);
-  LinearResampler< DRawDataPoint<1> > tmp;
+  LinearResampler tmp;
   tmp.setParam(p);
 
   TEST_EQUAL(tmp.getParam(),p);
 RESULT
 
-CHECK(void setResampledDataPointer(const MSExperiment<PeakType>& ms_exp))
-  LinearResampler< DRawDataPoint<1> > lr;
-  MSExperiment< DRawDataPoint<1> > ms_exp;
-  lr.setResampledDataPointer(ms_exp);
-
-  TEST_EQUAL(lr.getResampledDataPointer(), &ms_exp);
-RESULT
-
-CHECK(void setSpacing(const double spacing))
-  LinearResampler< DRawDataPoint<1> > tmp;
-  tmp.setSpacing(0.1);
-
-  TEST_EQUAL(tmp.getSpacing(),0.1);
-RESULT
-
-CHECK((void start(ConstPeakIterator first, ConstPeakIterator last, PeakIterator resampled_first)))
+CHECK((template<typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
   MSSpectrum< DRawDataPoint<1> > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].getPos() = 0;
@@ -153,18 +190,56 @@ CHECK((void start(ConstPeakIterator first, ConstPeakIterator last, PeakIterator 
   spec.getContainer()[4].getPos() = 1.8;
   spec.getContainer()[4].getIntensity() = 1;
 
-  LinearResampler< DRawDataPoint<1> > lr;
+  LinearResampler lr;
   lr.setSpacing(0.5);
 
-  int number_resampled_points = (int)ceil(((spec.end()-1)->getPos() -spec.begin()->getPos()) / lr.getSpacing() + 1);
   MSSpectrum< DRawDataPoint<1> > spec_resampled;
-  spec_resampled.getContainer().resize(number_resampled_points);
-  lr.start(spec.begin(),spec.end(),spec_resampled.begin());
+  lr.raster(spec.begin(),spec.end(),spec_resampled);
 
   double sum = 0.;
-  for (int i=0; i < 5; ++i)
+  MSSpectrum< DRawDataPoint<1> >::const_iterator it = spec_resampled.begin();
+  while(it != spec_resampled.end())
   {
-    sum += spec_resampled.getContainer()[i].getIntensity();
+    sum += it->getIntensity();
+    ++it;
+  }
+
+  TEST_REAL_EQUAL(sum, 20);
+RESULT
+
+CHECK((void setSpacing(const double& spacing)))
+  LinearResampler tmp;
+  tmp.setSpacing(0.1);
+
+  TEST_EQUAL(tmp.getSpacing(),0.1);
+RESULT
+
+CHECK((template< typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
+  MSSpectrum< DRawDataPoint<1> > spec;
+  spec.getContainer().resize(5);
+  spec.getContainer()[0].getPos() = 0;
+  spec.getContainer()[0].getIntensity() = 3;
+  spec.getContainer()[1].getPos() = 0.5;
+  spec.getContainer()[1].getIntensity() = 6;
+  spec.getContainer()[2].getPos() = 1.;
+  spec.getContainer()[2].getIntensity() = 8;
+  spec.getContainer()[3].getPos() = 1.6;
+  spec.getContainer()[3].getIntensity() = 2;
+  spec.getContainer()[4].getPos() = 1.8;
+  spec.getContainer()[4].getIntensity() = 1;
+
+  LinearResampler lr;
+  lr.setSpacing(0.5);
+
+  MSSpectrum< DRawDataPoint<1> > spec_resampled;
+  lr.raster(spec,spec_resampled);
+
+  double sum = 0.;
+  MSSpectrum< DRawDataPoint<1> >::const_iterator it = spec_resampled.begin();
+  while(it != spec_resampled.end())
+  {
+    sum += it->getIntensity();
+    ++it;
   }
 
   TEST_REAL_EQUAL(sum, 20);
