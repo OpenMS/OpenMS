@@ -304,7 +304,7 @@ namespace OpenMS
           exp2 = dba.loadMSExperiment(db_id);
           exp = &(w->widget()->canvas()->addEmptyDataSet());
         }
-        w->widget()->setMainPreferences(prefs_);
+        w->setMainPreferences(prefs_);
       }
     }
     //open in active window
@@ -492,7 +492,7 @@ namespace OpenMS
       }
 
       //set main preferences
-      w->widget()->setMainPreferences(prefs_);
+      w->setMainPreferences(prefs_);
     }
     else //!as_new_window
     {
@@ -562,7 +562,7 @@ namespace OpenMS
       {
         delete(w);
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
-        w->widget()->setMainPreferences(prefs_);
+        w->setMainPreferences(prefs_);
         exp = &(w->widget()->canvas()->addEmptyDataSet());
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
@@ -1361,7 +1361,7 @@ namespace OpenMS
           //add new window for picked peaks
           Spectrum2DWindow* w_picked = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
-          w_picked->widget()->setMainPreferences(prefs_);
+          w_picked->setMainPreferences(prefs_);
           String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (picked)";
 
           Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyDataSet();

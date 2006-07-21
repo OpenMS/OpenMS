@@ -78,6 +78,9 @@ namespace OpenMS
 			
 			/// Returns a pointer to the child widget
 			SpectrumWidget* widget();
+
+			///Set the main Param object
+			void setMainPreferences(const Param& prefs);
 			
 		signals:
 			/// Display a status message. See SpectrumMDIWindow::showStatusMessage .

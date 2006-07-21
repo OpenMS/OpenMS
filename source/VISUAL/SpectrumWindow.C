@@ -123,4 +123,10 @@ namespace OpenMS
 		emit openPreferences();
 	}
 
+	void SpectrumWindow::setMainPreferences(const Param& prefs)
+	{
+		prefs_ = prefs;
+		widget()->setMainPreferences(prefs);
+	}
+
 }//namespace OpenMS

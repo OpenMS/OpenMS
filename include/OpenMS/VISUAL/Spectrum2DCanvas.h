@@ -168,8 +168,8 @@ namespace OpenMS
 		virtual void repaintAll();
 		
 	signals:
-		void selectedHorz(const DSpectrum<1>&);
-		void selectedVert(const DSpectrum<1>&);
+		void showProjectionHorizontal(const MSExperiment<>&);
+		void showProjectionVertical(const MSExperiment<>&);
 	
 	public slots:
 		
@@ -277,8 +277,7 @@ namespace OpenMS
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateDotGradient_();
 		
-		void createHorzScan_(float min, float max);
-		void createVertScan_(float min, float max);
+		void createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed);
 		
 		typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
 		
@@ -290,6 +289,12 @@ namespace OpenMS
 		void zoomIn_(const PointType& pos);
 		/// zooms out around position pos with a fixed factor.
 		void zoomOut_(const PointType& pos);
+		
+		/// m/z projection data
+		MSExperiment<> projection_mz_;
+		/// RT projection data
+		MSExperiment<> projection_rt_;
+		
 		
 		/// interpolation helper function
 		float betweenFactor_(float v1, float v2, float val);

@@ -60,7 +60,8 @@ namespace OpenMS
 		dot_gradient_(),
 		surface_gradient_()
 	{
-
+		projection_mz_.resize(1);
+		projection_rt_.resize(1);
 	}
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
@@ -164,23 +165,11 @@ namespace OpenMS
 			{
 				if (e->button() == Qt::LeftButton)
 				{
-					// clear rubber band
+					//determine data coordiantes
 					AreaType area(widgetToData_(last_mouse_pos_), widgetToData_(pos));
-					//area.normalize();
 					
-					if (e->state() & Qt::ShiftButton)
-					{
-						createHorzScan_(area.minY(), area.maxY());
-					}
-					else if (e->state() & Qt::ControlButton)
-					{
-						createVertScan_(area.minX(), area.maxX());
-					}
-					else
-					{
-						createHorzScan_(area.minY(), area.maxY());
-						createVertScan_(area.minX(), area.maxX());
-					}
+					createProjections_(area, e->state() & Qt::ShiftButton, e->state() & Qt::ControlButton);
+	
 					refresh_();
 				}
 				break;
@@ -1233,70 +1222,91 @@ namespace OpenMS
 		}	
 	}
 	
-	void Spectrum2DCanvas::createHorzScan_(float min, float max)
+	void Spectrum2DCanvas::createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed)
 	{
-		DSpectrum<1> spectrum;
-		DPeakArray<1>& array = spectrum.getContainer();
+		AreaType area2 = area;
 		
-		for (int x = 0; x != width(); x++)
+		if (shift_pressed)
 		{
-			// get chart coordinates for this pixel column
-			PointType px1 = widgetToData_(x, 0);
-			PointType px2 = widgetToData_(x + 1, 0);
-			
-			AreaType area(px1.X(), min, px2.X(), max);
-			
-			float sum = 0.0f;
-			for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area); i != trees_[current_data_]->end(); ++i)
+			if (isMzToXAxis())
 			{
-				sum += i->second->getIntensity();
+				area2.setMinX(visible_area_.min()[0]);
+				area2.setMaxX(visible_area_.max()[0]);	
 			}
-			
-			if (sum > 0.0f)
-	
+			else
 			{
-				DPeak<1> peak;
-				peak.getPosition()[0] = px1.X();
-				peak.setIntensity(sum);
-				
-				array.push_back(peak);
+				area2.setMinY(visible_area_.min()[1]);
+				area2.setMaxY(visible_area_.max()[1]);
+			}
+		}
+		else if (ctrl_pressed)
+		{
+			if (isMzToXAxis())
+			{
+				area2.setMinY(visible_area_.min()[1]);
+				area2.setMaxY(visible_area_.max()[1]);
+			}
+			else
+			{
+				area2.setMinX(visible_area_.min()[0]);
+				area2.setMaxX(visible_area_.max()[0]);	
 			}
 		}
 		
-		emit selectedHorz(spectrum);
-	}
-	
-	void Spectrum2DCanvas::createVertScan_(float min, float max)
-	{
-		DSpectrum<1> spectrum;
-		DPeakArray<1>& array = spectrum.getContainer();
+		//cout << area2 << endl;
 		
-		for (int y = 0; y != height(); y++)
+		//create projection data
+		map<float, float> mz, rt;
+		for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area2); i != trees_[current_data_]->end(); ++i)
 		{
-			// get chart coordinates for this pixel column
-			PointType py1 = widgetToData_(0, y);
-			PointType py2 = widgetToData_(0, y + 1);
-			
-			AreaType area(min, py1.Y(), max, py2.Y());
-			
-			float sum = 0.0f;
-			for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area); i != trees_[current_data_]->end(); ++i)
-			{
-				sum += i->second->getIntensity();
-			}
-			
-			if (sum > 0.0f)
-			{
-				DPeak<1> peak;
-				peak.getPosition()[0] = py1.Y();
-				peak.setIntensity(sum);
-				
-				array.push_back(peak);
-			}
+			mz[round(i->first[0]*100.0f) / 100.0f] += i->second->getIntensity();
+			rt[round(i->first[1]*100.0f) / 100.0f] += i->second->getIntensity();
 		}
 		
-		emit selectedVert(spectrum);
+		// write to spactra
+		MSExperiment<>::SpectrumType::ContainerType& cont_mz = projection_mz_[0].getContainer();
+		MSExperiment<>::SpectrumType::ContainerType& cont_rt = projection_rt_[0].getContainer();
+		
+		//resize and add boundary peaks		
+		cont_mz.resize(mz.size()+2);
+		cont_mz[0].setPos(area2.min()[0]);
+		cont_mz[0].setIntensity(0.0);
+		cont_mz[1].setPos(area2.max()[0]);
+		cont_mz[1].setIntensity(0.0);
+		cont_rt.resize(rt.size()+2);
+		cont_rt[0].setPos(area2.min()[1]);
+		cont_rt[0].setIntensity(0.0);
+		cont_rt[1].setPos(area2.max()[1]);
+		cont_rt[1].setIntensity(0.0);
+		
+		UnsignedInt i = 2;
+		for (map<float, float>::iterator it = mz.begin(); it != mz.end(); ++it)
+		{
+			cont_mz[i].setPos(it->first);
+			cont_mz[i].setIntensity(it->second);
+			++i;
+		}
+
+		i = 2;
+		for (map<float, float>::iterator it = rt.begin(); it != rt.end(); ++it)
+		{
+			cont_rt[i].setPos(it->first);
+			cont_rt[i].setIntensity(it->second);
+			++i;
+		}
+		
+		if (isMzToXAxis())
+		{
+			emit showProjectionHorizontal(projection_mz_);
+			emit showProjectionVertical(projection_rt_);	
+		}
+		else
+		{
+			emit showProjectionHorizontal(projection_rt_);
+			emit showProjectionVertical(projection_mz_);
+		}
 	}
+
 	
 	PreferencesDialogPage* Spectrum2DCanvas::createPreferences(QWidget* parent)
 	{

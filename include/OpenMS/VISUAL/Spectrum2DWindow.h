@@ -31,7 +31,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWindow.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 class QPopupMenu;
 class QGridLayout;
@@ -68,10 +68,8 @@ namespace OpenMS
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
 
 	public slots:
-		/// Shows or hides the projects
-		void show1DProjections(bool on);
-		/// Changes the visibilty of the projections
-		void changeShow1DProjections();
+		/// Hides the projections
+		void hideProjections();
 		// Docu in base class
     virtual void showGoToDialog();    
 
@@ -80,12 +78,12 @@ namespace OpenMS
 	protected:
 		QGridLayout* grid_;
 		// Widget Data is drawn on
-		Spectrum1DWidget* tic_;
-		Spectrum1DWidget* projection_;
+		Spectrum1DWidget* projection_vert_;
+		Spectrum1DWidget* projection_horz_;
 	
 	private slots:
-		void horizontalSpectrum(const DSpectrum<1>&);
-		void verticalSpectrum(const DSpectrum<1>&);
+		void horizontalProjection(const MSExperiment<>&);
+		void verticalProjection(const MSExperiment<>&);
 	};
 }
 

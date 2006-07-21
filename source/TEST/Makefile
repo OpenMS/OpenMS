@@ -35,8 +35,8 @@ EXECUTABLES_CONCEPT = \
 	PreciseTime_test\
 	TimeStamp_test\
 	VersionInfo_test\
-	FactoryProduct_test
-#	Factory_test
+	FactoryProduct_test\
+	Factory_test
 
 EXECUTABLES_DATASTRUCTURES = \
 	${CGAL_EXECUTABLES_DATASTRUCTURES}\
@@ -157,9 +157,8 @@ EXECUTABLES_FORMAT = \
 	MzDataExpSettHandler_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
+	DGridFile_test\
 	FileHandler_test
-
-#	DGridFile_test\
 
 #MATH
 
@@ -219,9 +218,8 @@ EXECUTABLES_FILTERING = \
 	PeakPosBins_test\
 	PeakDiffBins_test\
 	IntensityDistBins_test\
+	DSignalToNoiseEstimatorMedian_test\
 	KellerQuality_test
-
-#	DSignalToNoiseEstimatorMedian_test\
 	
 
 #COMPARISON
@@ -244,13 +242,13 @@ EXECUTABLES_COMPARISON = \
 	SpectrumPrecursorComparator_test
 
 EXECUTABLES_CHEMISTRY = \
-		IsotopeDistribution_test\
-		Element_test\
-		ElementDB_test\
-		EmpiricalFormula_test\
-		Residue_test\
-		ResidueDB_test\
-		PeptideSequence_test
+	IsotopeDistribution_test\
+	Element_test\
+	ElementDB_test\
+	EmpiricalFormula_test\
+	Residue_test\
+	ResidueDB_test\
+	PeptideSequence_test
 
 
 ifeq ($(GSL_SUPPORT),true)

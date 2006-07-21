@@ -29,6 +29,7 @@
 #include <qlayout.h>
 
 // STL
+#include <iostream>
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -36,6 +37,8 @@
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
+
+using namespace std;
 
 namespace OpenMS
 {
@@ -45,32 +48,28 @@ namespace OpenMS
 	{
 		QWidget* w = new QWidget(this,"centralWidget");
 		setCentralWidget(w);
+
 		grid_ = new QGridLayout(w, 2, 2, 0, 0, "Spectrum2DGridLayout");
 		grid_->setRowStretch(1, 3);
-		grid_->setColStretch(1, 3);
+		grid_->setColStretch(0, 3);
 		
-		tic_ = new 	Spectrum1DWidget(w);
-		tic_->hideAxes();
-		tic_->mzToXAxis(true);
-		tic_->hide();
+		projection_vert_ = new 	Spectrum1DWidget(w);
+		projection_vert_->hide();
 	
-		projection_ = new Spectrum1DWidget(w);
-		projection_->hideAxes();
-		projection_->hide();
+		projection_horz_ = new Spectrum1DWidget(w);
+		projection_horz_->hide();
 		
 		setWidget_(new Spectrum2DWidget(w));
 		
-		grid_->addWidget(projection_, 0, 1);
-		grid_->addWidget(tic_, 1, 0);
-		grid_->addWidget(widget(), 1, 1);
+		grid_->addWidget(projection_horz_, 0, 0);
+		grid_->addWidget(projection_vert_, 1, 1);
+		grid_->addWidget(widget(), 1, 0);
+		
 		connectWidgetSignals(widget());
 		
-		show1DProjections(false);
-		
 		connect(widget(), SIGNAL(contextMenu(QPoint)), this, SLOT(showContextMenu_(QPoint)));
-		
-		connect(widget()->canvas(), SIGNAL(selectedHorz(const DSpectrum<1>&)), this, SLOT(horizontalSpectrum(const DSpectrum<1>&)));
-		connect(widget()->canvas(), SIGNAL(selectedVert(const DSpectrum<1>&)), this, SLOT(horizontalSpectrum(const DSpectrum<1>&)));
+		connect(widget()->canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&)), this, SLOT(horizontalProjection(const MSExperiment<>&)));
+		connect(widget()->canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&)), this, SLOT(verticalProjection(const MSExperiment<>&)));
 	
 	}
 	
@@ -87,50 +86,35 @@ namespace OpenMS
 	void Spectrum2DWindow::createContextMenu_()
 	{
 		SpectrumWindow::createContextMenu_();
-		
-		SignedInt item;
-	 	
-		QPopupMenu* proj_menu = new QPopupMenu(context_menu_);
-		item = proj_menu->insertItem("on",this,SLOT(changeShow1DProjections()));
-		if (projection_->isVisible() || tic_->isVisible()) proj_menu->setItemEnabled(item,false);
-		item = proj_menu->insertItem("off",this,SLOT(changeShow1DProjections()));
-		if (!(projection_->isVisible() || tic_->isVisible())) proj_menu->setItemEnabled(item,false);
-		context_menu_->insertItem("1D projections",proj_menu);
+		context_menu_->insertItem("Hide Projections",this,SLOT(hideProjections()));
 	}
 	
-	void Spectrum2DWindow::show1DProjections(bool on)
+	void Spectrum2DWindow::hideProjections()
 	{
-	// 	show_1D_projections_ = on;
-		if (!on) {
-			projection_->hide();
-			tic_->hide();
-	/*		grid_->remove(projection_);
-			grid_->remove(tic_);
-			grid_->setRowStretch(0,0);
-			grid_->setColStretch(0,0);*/
-		} else {
-	/*		grid_->setRowStretch(0,1);
-			grid_->setColStretch(0,1);
-			grid_->addWidget(projection_,0,1);
-			grid_->addWidget(tic_,1,0);*/
-			projection_->show();
-			tic_->show();
-		}
+		projection_horz_->hide();
+		projection_vert_->hide();
 	}
 	
-	void Spectrum2DWindow::changeShow1DProjections()
+	void Spectrum2DWindow::horizontalProjection(const MSExperiment<>& exp)
 	{
-		show1DProjections(!(projection_->isVisible() || tic_->isVisible()));
+		projection_horz_->setMainPreferences(prefs_);
+		projection_horz_->mzToXAxis(true);
+		projection_horz_->showLegend(false);
+		projection_horz_->canvas()->removeDataSet(0);
+		projection_horz_->canvas()->addDataSet(exp);
+		//projection_horz_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
+		projection_horz_->show();
 	}
 	
-	void Spectrum2DWindow::horizontalSpectrum(const DSpectrum<1>&)
+	void Spectrum2DWindow::verticalProjection(const MSExperiment<>& exp)
 	{
-		projection_->show();
-	}
-	
-	void Spectrum2DWindow::verticalSpectrum(const DSpectrum<1>&)
-	{
-		tic_->show();
+		projection_vert_->setMainPreferences(prefs_);
+		projection_vert_->mzToXAxis(false);
+		projection_vert_->showLegend(false);
+		projection_vert_->canvas()->removeDataSet(0);
+		projection_vert_->canvas()->addDataSet(exp);
+		//projection_vert_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
+		projection_vert_->show();
 	}
 	
 	PreferencesDialogPage* Spectrum2DWindow::createPreferences(QWidget* parent)
