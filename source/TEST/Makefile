@@ -279,6 +279,7 @@ endif
 
 EXECUTABLES_TRANSFORMATIONS = \
 	${GSL_EXECUTABLES_TRANSFORMATIONS}\
+	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	BaseModel_test\
 	GaussModel_test\
@@ -292,8 +293,6 @@ EXECUTABLES_TRANSFORMATIONS = \
 	PeakPicker_test\
 	PeakPickerCWT_test\
 	DExtractSignalRegions_test
-
-#	ContinuousWaveletTransform_test\
 
 
 EXECUTABLES_ANALYSIS_ID =\

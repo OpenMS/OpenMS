@@ -219,7 +219,7 @@ RESULT
 CHECK((double& operator [] (const unsigned int i)))
   DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > signal;
   signal.resize(1);
-  signal[0].getPos() = 1;
+  signal[0].getIntensity() = 1;
   
   ContinuousWaveletTransform cwt;
   cwt.setSignal(signal);
