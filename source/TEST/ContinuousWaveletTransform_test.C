@@ -208,7 +208,7 @@ RESULT
 
 CHECK((std::vector<double>& getWavelet()))
   vector<double> w(1);
-  w[1] = 0.5;
+  w[0] = 0.5;
   
   ContinuousWaveletTransform cwt;
   cwt.getWavelet() = w;
