@@ -35,23 +35,12 @@ CPP_SOURCES= \
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)
 	ADD_CPP_SOURCES=\
-	DMorphFilter.C\
-	DTopHatFilter.C
+	MorphFilter.C
+#	DTopHatFilter.C
 endif
 
 include ../../common.mak
 -include .Dependencies
 
 filter: filter.C 
-	${CXX} -g $(LDFLAGS) $(OPENMS_INCLUDES) filter.C $(LIBS) -L/home/arabidopsis/software/Linux/OpenMS/qt/lib -lqt-mt -o filter
-
-filter_2D: filter_2D.C 
-	${CXX} -g $(LDFLAGS) $(OPENMS_INCLUDES) filter_2D.C $(LIBS) -L/home/arabidopsis2/software/Linux/OpenMS/qt/lib -lqt-mt -o filter_2D
-
-LIBS=$(GUI_LIBS)  
-
-filt: filt.C 
-	${CXX} -g $(LDFLAGS) $(OPENMS_INCLUDES) filt.C $(LIBS) -L/home/arabidopsis/software/Linux/OpenMS/qt/lib -lqt-mt -o filt
-
-TopHatFiltering: TopHatFiltering.C 
-	${CXX} -g $(LDFLAGS) $(OPENMS_INCLUDES) TopHatFiltering.C $(LIBS) -L/home/arabidopsis/software/Linux/OpenMS/qt/lib -lqt-mt -o TopHatFiltering
+	${CXX} -g $(LDFLAGS) $(GUI_INCLUDES) filter.C $(GUI_LIBS) -o filter

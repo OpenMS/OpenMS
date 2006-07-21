@@ -29,6 +29,6 @@
 
  namespace OpenMS
  {
-   LinearResampler<DRawDataPoint<1> > default_linear_resampler;
-   LinearResampler<DPeak<1> > default_linear_resampler2;
+   LinearResampler default_linear_resampler;
+   LinearResampler default_linear_resampler2;
  }
