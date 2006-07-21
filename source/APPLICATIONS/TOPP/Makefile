@@ -30,10 +30,11 @@ DIRECTORY=APPLICATIONS/TOPP
 
 ifeq ($(GSL_SUPPORT),true)
 GSL_EXEC=\
-	NoiseFilter\
 	MapStatistics\
 	AdditiveSeries\
-#	MapMatcher
+	MapMatcher\
+#	NoiseFilter\
+
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
