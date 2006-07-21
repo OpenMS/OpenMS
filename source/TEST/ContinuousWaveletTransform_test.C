@@ -292,6 +292,12 @@ CHECK((void setWavelet(const std::vector<double>& wavelet)))
 RESULT
 
 CHECK((void setSignal(const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& signal)))
+  ContinuousWaveletTransform cwt;
+  
+  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > signal(2);
+  cwt.setSignal(signal);
+  
+  TEST_EQUAL(cwt.getSignal() == signal, true)
 RESULT
 
 /////////////////////////////////////////////////////////////
