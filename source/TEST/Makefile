@@ -184,9 +184,6 @@ ifeq ($(GSL_SUPPORT),true)
 endif
 
 EXECUTABLES_FILTERING = \
-	DSmoothFilter_test\
-	${GSL_EXECUTABLES_FILTERING}\
-	DGaussFilter_test\
 	IDFilter_test\
 	LinearResampler_test\
 	TopHatFilter_test\
@@ -222,6 +219,9 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimatorMedian_test\
 	KellerQuality_test
 	
+#	DSmoothFilter_test\
+	#${GSL_EXECUTABLES_FILTERING}\
+	#DGaussFilter_test\
 
 #COMPARISON
 
