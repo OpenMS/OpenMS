@@ -37,6 +37,8 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
+// @cond TOPPCLASSES
+
 /**
    @page PeakPicker PeakPicker
  
@@ -55,51 +57,47 @@ using namespace std;
  
    @ingroup TOPP
 */
-
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES
-
 class TOPPPeakPicker
       : public TOPPBase
 {
-public:
+ public:
   TOPPPeakPicker()
-      : TOPPBase("PeakPicker")
+		: TOPPBase("PeakPicker")
   {}
 
-protected:
+ protected:
   void printToolUsage_()
   {
 
     cerr << endl
-    << tool_name_ << " -- find mass spectrometric peaks in LC/MC experiments." << endl
-    << "This application implements an algorithm for peak picking as " << endl
-    << "described in Lange et al. (2006) Proc. PSB-06. "<< endl
-    << endl
-    << "Usage:" << endl
-    << " " << tool_name_ << " [options]" << endl
-    << endl
-    << "Options are:" << endl
-    << "  -optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
-    << "  -in <file>        input mzData file name" << endl
-    << "  -out <file>       output mzData file name" << endl
-    << endl;
+				 << tool_name_ << " -- find mass spectrometric peaks in LC/MC experiments." << endl
+				 << "This application implements an algorithm for peak picking as " << endl
+				 << "described in Lange et al. (2006) Proc. PSB-06. "<< endl
+				 << endl
+				 << "Usage:" << endl
+				 << " " << tool_name_ << " [options]" << endl
+				 << endl
+				 << "Options are:" << endl
+				 << "  -optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
+				 << "  -in <file>        input mzData file name" << endl
+				 << "  -out <file>       output mzData file name" << endl
+				 << endl;
   }
 
   void printToolHelpOpt_()
   {
     cerr << endl
-    << tool_name_ << endl
-    << endl
-    << "INI options:" << endl
-    << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
-    << "  in <file>        input mzData file name" << endl
-    << "  out <file>       output mzData file name" << endl
-    << endl
-    << "INI File example section:" << endl
-    << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"optimize_peaks\" value=\"\" type=\"string\"/>" << endl;
+				 << tool_name_ << endl
+				 << endl
+				 << "INI options:" << endl
+				 << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
+				 << "  in <file>        input mzData file name" << endl
+				 << "  out <file>       output mzData file name" << endl
+				 << endl
+				 << "INI File example section:" << endl
+				 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
+				 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
+				 << "  <ITEM name=\"optimize_peaks\" value=\"\" type=\"string\"/>" << endl;
   }
 
   void setOptionsAndFlags_()
@@ -164,18 +162,16 @@ protected:
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
     
   
-  //-------------------------------------------------------------
-  // writing output
-  //-------------------------------------------------------------
+		//-------------------------------------------------------------
+		// writing output
+		//-------------------------------------------------------------
 
 
-  mz_data_file.store(out,ms_exp_peaks);
+		mz_data_file.store(out,ms_exp_peaks);
 
-  return OK;
-}
+		return OK;
+	}
 };
-
-/// @endcond
 
 
 int main( int argc, char ** argv )
@@ -184,3 +180,4 @@ int main( int argc, char ** argv )
   return tool.main(argc,argv);
 }
 
+// @endcond

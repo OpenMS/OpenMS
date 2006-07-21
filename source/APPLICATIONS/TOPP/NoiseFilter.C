@@ -38,6 +38,8 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
+// @cond TOPPCLASSES
+
 /**
    @page NoiseFilter NoiseFilter
 
@@ -56,10 +58,6 @@ using namespace std;
 
    @ingroup TOPP
 */
-
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES
-
 class TOPPNoiseFilter
       : public TOPPBase
 {
@@ -240,7 +238,6 @@ protected:
   }
 };
 
-/// @endcond
 
 int main( int argc, char ** argv )
 {
@@ -248,4 +245,4 @@ int main( int argc, char ** argv )
   return tool.main(argc,argv);
 }
 
-
+// @endcond

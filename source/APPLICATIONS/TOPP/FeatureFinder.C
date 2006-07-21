@@ -53,6 +53,8 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
+// @cond TOPPCLASSES 
+
 /**
 	@page FeatureFinder FeatureFinder
 	
@@ -89,107 +91,102 @@ using namespace std;
 		
 	@ingroup TOPP
 */
-
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES
-
 class TOPPFeatureFinder
 	: public TOPPBase
 {
-	public:
-		TOPPFeatureFinder()
-			: TOPPBase("FeatureFinder")
-		{
+ public:
+	TOPPFeatureFinder()
+		: TOPPBase("FeatureFinder")
+	{
 			
-		}
+	}
 	
-	protected:
-		void printToolUsage_()
-		{
-			 cerr << endl
-       		 << tool_name_ << " -- detects two-dimensional features in LC/MS data" << endl
-       		 << "This application implements an algorithm for peptide feature detection " << endl
-       		 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
-       		 << endl
-       		 << "Usage:" << endl
-					 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
-					 << "  -in <file>   input file in mzData format" << endl
-					 << "  -out <file>  output file in feature format" << endl
-					 << endl;
-		}
+ protected:
+	void printToolUsage_()
+	{
+		cerr << endl
+				 << tool_name_ << " -- detects two-dimensional features in LC/MS data" << endl
+				 << "This application implements an algorithm for peptide feature detection " << endl
+				 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
+				 << endl
+				 << "Usage:" << endl
+				 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
+				 << "  -in <file>   input file in mzData format" << endl
+				 << "  -out <file>  output file in feature format" << endl
+				 << endl;
+	}
 	
-		void printToolHelpOpt_()
-		{
-			cerr << endl
-       		 << tool_name_ << " -- find two-dimensional features in LC/MS data" << endl
-       		 << "This application implements an algorithm for peptide feature detection " << endl
-       		 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
-       		 << endl
-       		 << "INI options:" << endl
-					 << endl
-					 << " in    input file" << endl 
-					 << " out   output file" << endl 
-					 << endl
-					 << "All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used." << endl
-					 << "For a detailled description, please have a look at the doxygen documentation." << endl
-					 << "How the docu can be built is explained in OpenMS/doc/index.html." << endl
-					 << endl ;
-		}
+	void printToolHelpOpt_()
+	{
+		cerr << endl
+				 << tool_name_ << " -- find two-dimensional features in LC/MS data" << endl
+				 << "This application implements an algorithm for peptide feature detection " << endl
+				 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
+				 << endl
+				 << "INI options:" << endl
+				 << endl
+				 << " in    input file" << endl 
+				 << " out   output file" << endl 
+				 << endl
+				 << "All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used." << endl
+				 << "For a detailled description, please have a look at the doxygen documentation." << endl
+				 << "How the docu can be built is explained in OpenMS/doc/index.html." << endl
+				 << endl ;
+	}
 	
-		void setOptionsAndFlags_()
-		{
-			//list of all the valid options
-			options_["-out"] = "out";
-			options_["-in"] = "in";
-		}
+	void setOptionsAndFlags_()
+	{
+		//list of all the valid options
+		options_["-out"] = "out";
+		options_["-in"] = "in";
+	}
 	
-		ExitCodes main_(int , char**)
-		{
-			//input file names and types
-			String in = getParamAsString_("in");
-			writeDebug_(String("Input file: ") + in, 1);
+	ExitCodes main_(int , char**)
+	{
+		//input file names and types
+		String in = getParamAsString_("in");
+		writeDebug_(String("Input file: ") + in, 1);
 			
-			String out = getParamAsString_("out");
-			writeDebug_(String("Output file: ") + in, 1);
+		String out = getParamAsString_("out");
+		writeDebug_(String("Output file: ") + in, 1);
 									
-			writeLog_(String(" Reading input file ") + in);
+		writeLog_(String(" Reading input file ") + in);
 			
-			MzDataFile mzdata_file;
-			MSExperiment<DPeak<1> > exp;
-			mzdata_file.load(in,exp);
+		MzDataFile mzdata_file;
+		MSExperiment<DPeak<1> > exp;
+		mzdata_file.load(in,exp);
 
-			String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+		String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
 			
-			FeatureFinder ff;
-			Param feafi_param = getParamCopy_(ini_location,true);
+		FeatureFinder ff;
+		Param feafi_param = getParamCopy_(ini_location,true);
 				
-			if (feafi_param.empty())
-			{
-				writeLog_("No params given, aborting.");
-				return ILLEGAL_PARAMETERS;
-			}
-			
-			ff.setParam(feafi_param);
-			ff.setData(exp);
-	
-			writeLog_(" Running FeatureFinder...");
-		
-			DFeatureMap<2> features = ff.run();
-	
-			//-------------------------------------------------------------
-			// writing files
-			//-------------------------------------------------------------
-	
-			writeLog_(String(" Writing results to ") + out);
-			DFeatureMapFile map_file;
-			map_file.store(out,features);			
-			
-			return OK;
-
+		if (feafi_param.empty())
+		{
+			writeLog_("No params given, aborting.");
+			return ILLEGAL_PARAMETERS;
 		}
+			
+		ff.setParam(feafi_param);
+		ff.setData(exp);
+	
+		writeLog_(" Running FeatureFinder...");
+		
+		DFeatureMap<2> features = ff.run();
+	
+		//-------------------------------------------------------------
+		// writing files
+		//-------------------------------------------------------------
+	
+		writeLog_(String(" Writing results to ") + out);
+		DFeatureMapFile map_file;
+		map_file.store(out,features);			
+			
+		return OK;
+
+	}
 };
 
-/// @endcond
 
 int main( int argc, char ** argv )
 {
@@ -197,3 +194,4 @@ int main( int argc, char ** argv )
 	return tool.main(argc,argv);
 }
 
+// @endcond

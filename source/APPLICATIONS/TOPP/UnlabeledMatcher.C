@@ -69,10 +69,10 @@ typedef DGrid<2> GridType;
 	on this transform.	
 		
 	@ingroup TOPP
+
 */
 
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES 
+// @cond TOPPCLASSES // We do not want this class to show up in the documention.
 
 class TOPPUnlabeledMatcher
       : public TOPPBase
@@ -215,10 +215,11 @@ protected:
   }
 };
 
-/// @endcond
-
 int main( int argc, char ** argv )
 {
   TOPPUnlabeledMatcher tool;
   return tool.main(argc,argv);
 }
+
+// @endcond
+

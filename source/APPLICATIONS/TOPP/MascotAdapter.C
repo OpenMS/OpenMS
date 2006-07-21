@@ -54,6 +54,7 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
+// @cond TOPPCLASSES 
 
 /**
 	@page MascotAdapter MascotAdapter
@@ -178,10 +179,6 @@ using namespace std;
 	
 	@ingroup TOPP
 */
-
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES 
-
 class TOPPMascotAdapter
 	: public TOPPBase
 {
@@ -724,8 +721,6 @@ class TOPPMascotAdapter
 		}
 };
 
-/// @endcond
-
 
 int main( int argc, char ** argv )
 {
@@ -734,5 +729,4 @@ int main( int argc, char ** argv )
 	return tool.main(argc,argv);
 }
 
-
-
+// @endcond
