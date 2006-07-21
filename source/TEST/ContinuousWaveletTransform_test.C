@@ -219,7 +219,7 @@ RESULT
 CHECK((double& operator [] (const unsigned int i)))
   DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > signal;
   signal.resize(1);
-  signal[1].getPos() = 1;
+  signal[0].getPos() = 1;
   
   ContinuousWaveletTransform cwt;
   cwt.setSignal(signal);
@@ -283,7 +283,7 @@ RESULT
 
 CHECK((void setWavelet(const std::vector<double>& wavelet)))
   vector<double> w(1);
-  w[1] = 0.5;
+  w[0] = 0.5;
   
   ContinuousWaveletTransform cwt;
   cwt.getWavelet() = w;
