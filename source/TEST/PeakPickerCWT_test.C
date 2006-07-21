@@ -88,18 +88,14 @@ CHECK((PeakPickerCWT(const Param& parameters)))
   TEST_EQUAL(pp.getParam() == param, true)
 RESULT
 
-CHECK((ContinuousWaveletTransform<1>& getWaveletTransform()))
-  ContinuousWaveletTransformNumIntegration<1>* cwt = new ContinuousWaveletTransformNumIntegration<1>;
-  cwt->setSpacing(0.1);
+CHECK((ContinuousWaveletTransform& getWaveletTransform()))
+  ContinuousWaveletTransformNumIntegration cwt;
+  cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
-  pp.getWaveletTransform() = *cwt;
+  pp.getWaveletTransform() = cwt;
   
-  TEST_REAL_EQUAL(cwt->getSpacing(),pp.getWaveletTransform().getSpacing())
-RESULT
-
-CHECK((PeakArea_()))
-  // ???
+  TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
 RESULT
 
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
@@ -179,7 +175,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
    
   pp.pickExperiment(exp_raw,peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()) == 277, true)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 277)
   ExperimentalSettings e = peaks;
   TEST_EQUAL(e == exp_raw, true)
 RESULT
@@ -190,7 +186,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
    
   pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()) == 277, true)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()),277)
 RESULT
 
 CHECK((const ContinuousWaveletTransform<1>& getWaveletTransform() const))
@@ -364,14 +360,14 @@ CHECK((void setWaveletScale(const float& scale)))
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.1)
 RESULT
 
-CHECK((void setWaveletTransform(const ContinuousWaveletTransform<1>& wt)))
-  ContinuousWaveletTransformNumIntegration<1>* cwt = new ContinuousWaveletTransformNumIntegration<1>;
-  cwt->setSpacing(0.1);
+CHECK((void setWaveletTransform(const ContinuousWaveletTransform& wt)))
+  ContinuousWaveletTransformNumIntegration cwt;
+  cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
-  pp.setWaveletTransform(*cwt);
+  pp.setWaveletTransform(cwt);
   
-  TEST_REAL_EQUAL(cwt->getSpacing(),pp.getWaveletTransform().getSpacing())
+  TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
 RESULT
 
 /////////////////////////////////////////////////////////////
