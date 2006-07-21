@@ -190,6 +190,7 @@ EXECUTABLES_FILTERING = \
 	IDFilter_test\
 	LinearResampler_test\
 	TopHatFilter_test\
+	MorphFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
