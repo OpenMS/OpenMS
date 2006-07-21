@@ -136,13 +136,13 @@ protected:
         float spacing = 0.;
         bool resampling_flag = false;
         try
-        {
+      {
             //resampling
             if (struc_elem != "")
             {
                 struc_elem_length = struc_elem.toFloat();
             }
-        }
+      }
         catch(Exception::ConversionError& e)
         {
             writeLog_(String("Invalid length for the structuring element '") + struc_elem  + "' given. Aborting!");

@@ -172,14 +172,16 @@ CHECK(void load(const String& filename, DFeatureMap& map) throw (Exception::File
 RESULT
 
 CHECK(void store(const String& filename, const DFeatureMap& map) const throw (Exception::UnableToCreateFile))
-	std::string tmp_filename;
+  
+  std::string tmp_filename;
   DFeatureMap<2> e;
   DFeatureMapFile f;
   
   NEW_TMP_FILE(tmp_filename);
   f.load("data/DFeatureMapFile.xml",e);
-	f.store(tmp_filename,e);
-	TEST_FILE(tmp_filename.c_str(),"data/DFeatureMapFile.xml");
+  f.store(tmp_filename,e);
+  TEST_FILE(tmp_filename.c_str(),"data/DFeatureMapFile.xml");
+
 RESULT
 
 /////////////////////////////////////////////////////////////

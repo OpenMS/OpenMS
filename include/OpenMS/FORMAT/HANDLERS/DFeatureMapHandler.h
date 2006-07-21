@@ -99,7 +99,7 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      DFeatureMapHandler(DFeatureMap<D,TraitsType,FeatureType>& map) 
+      DFeatureMapHandler(DFeatureMap<D,FeatureType>& map) 
       : SchemaHandler(TAG_NUM,MAP_NUM),
 			 	map_(&map), cmap_(0),	feature_(), exp_sett_(exp_sett_str_, IO_ReadWrite)
   		{
@@ -108,7 +108,7 @@ namespace OpenMS
 			}
       
       ///
-      DFeatureMapHandler(const DFeatureMap<D,TraitsType,FeatureType>& map)
+      DFeatureMapHandler(const DFeatureMap<D,FeatureType>& map)
       : SchemaHandler(TAG_NUM,MAP_NUM),
 				map_(0), cmap_(&map),	feature_(), exp_sett_(exp_sett_str_, IO_ReadWrite)
   		{
@@ -137,9 +137,9 @@ namespace OpenMS
 
     protected:
 		// Feature map pointer for reading
-		DFeatureMap<D,TraitsType, FeatureType>* map_;
+		DFeatureMap<D, FeatureType>* map_;
 		// Feature map pointer for writing
-		const DFeatureMap<D,TraitsType, FeatureType>* cmap_;
+		const DFeatureMap<D, FeatureType>* cmap_;
 
 		/** @brief indices for tags used by DFeatureMapFile
 

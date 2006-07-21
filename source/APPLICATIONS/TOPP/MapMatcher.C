@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
@@ -38,7 +38,7 @@
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 
-#include <TOPPCommon.h>
+#include <TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -99,7 +99,7 @@ void print_usage()
 			 << "  -n <int>          instance number (default: 1)" << endl
 			 << "  -d <level>        sets debug level (default: 0)" << endl
 			 << "  --help            shows this help" << endl
-       << "  --help-opt        shows help on the INI options accepted" << endl
+       		 << "  --help-opt        shows help on the INI options accepted" << endl
 			 << endl ;
 }
 

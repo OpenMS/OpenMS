@@ -38,7 +38,7 @@ using namespace OpenMS;
 using namespace std;
 
 typedef DFeature<2,KernelTraits> Feature;
-typedef DFeatureMap<2,KernelTraits,Feature> FeatureMap;
+typedef DFeatureMap<2,Feature> FeatureMap;
 typedef DFeatureMapFile FeatureMapFile;
 typedef DFeaturePair<2,Feature> FeaturePair;
 typedef DFeaturePairVector<2,Feature> FeaturePairVector;

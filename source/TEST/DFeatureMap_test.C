@@ -135,11 +135,11 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
 	
 	TEST_EQUAL(map2.size(),3);
 	TEST_EQUAL(map2.getName(),"test");
-  TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
-  TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
+    TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
+    TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
   	
-  //assignment of empty object
-  map2 = DFeatureMap<2>();
+    //assignment of empty object
+     map2 = DFeatureMap<2>();
 	
 	TEST_EQUAL(map2.size(),0);
 	TEST_EQUAL(map2.getName(),"");
@@ -195,6 +195,89 @@ CHECK(bool operator != (const DFeatureMap& rhs) const)
 	edit.clear();
 	TEST_EQUAL(empty!=edit, true);
 RESULT
+
+
+CHECK(void sortByIntensity() )
+	
+	DFeatureMap<2> to_be_sorted;
+	
+	DFeature<2> f1;
+	f1.setIntensity(10);
+	to_be_sorted.push_back(f1);
+	
+	DFeature<2> f2;
+	f2.setIntensity(5);
+	to_be_sorted.push_back(f2);
+	
+	DFeature<2> f3;
+	f3.setIntensity(3);
+	to_be_sorted.push_back(f3);
+	
+	to_be_sorted.sortByIntensity();
+	
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),3);
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),10);
+	
+RESULT
+
+CHECK(void sortByPosition() )
+	
+	DFeatureMap<2> to_be_sorted;
+	
+	DFeature<2> f1;
+	f1.getPosition()[0] = 10;
+	to_be_sorted.push_back(f1);
+	
+	DFeature<2> f2;
+	f2.getPosition()[0] = 5;
+	to_be_sorted.push_back(f2);
+	
+	DFeature<2> f3;
+	f3.getPosition()[0] = 3;
+	to_be_sorted.push_back(f3);
+	
+	to_be_sorted.sortByPosition();
+	
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
+	
+RESULT
+
+CHECK(void sortByNthPosition(UnsignedInt i) )
+	
+	DFeatureMap<2> to_be_sorted;
+	
+	DFeature<2> f1;
+	f1.getPosition()[0] = 10;
+	f1.getPosition()[1] = 25;
+	to_be_sorted.push_back(f1);
+	
+	DFeature<2> f2;
+	f2.getPosition()[0] = 5;
+	f2.getPosition()[1] = 15;
+	to_be_sorted.push_back(f2);
+	
+	DFeature<2> f3;
+	f3.getPosition()[0] = 3;
+	f3.getPosition()[1] = 10;
+	to_be_sorted.push_back(f3);
+	
+	to_be_sorted.sortByNthPosition(0);
+	
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
+	
+	to_be_sorted.sortByNthPosition(1);
+	
+	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
+	
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

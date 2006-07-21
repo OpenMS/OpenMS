@@ -419,7 +419,7 @@ namespace OpenMS
 			}
 
 			/**
-				@brief Fast search for spectrum range end (returns the path-the-end iterator)
+				@brief Fast search for spectrum range end (returns the past-the-end iterator)
 				
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
@@ -443,7 +443,7 @@ namespace OpenMS
 			}
 
 			/**
-				@brief Fast search for spectrum range end (returns the path-the-end iterator)
+				@brief Fast search for spectrum range end (returns the past-the-end iterator)
 				
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/

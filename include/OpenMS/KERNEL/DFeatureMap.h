@@ -54,18 +54,18 @@ namespace OpenMS
 		
 		@ingroup Kernel, Serialization
 	*/
-	template <Size D, typename TraitsT = KernelTraits, typename FeatureT = DFeature<D,TraitsT> >
+	template <Size D, typename FeatureT = DFeature<D> >
 	class DFeatureMap
 		: public std::vector<FeatureT>,
 			public ExperimentalSettings,
-			public RangeManager<D, TraitsT>
+			public RangeManager<D>
 	{
 	 public:
 			/**	
 				 @name Type definitions
 			*/
 			//@{
-			typedef TraitsT TraitsType;
+			typedef typename FeatureT::TraitsType TraitsType;
 			typedef FeatureT FeatureType;
 			typedef RangeManager<D, TraitsType> RangeManagerType;
 			typedef std::vector<FeatureType> Base;
@@ -141,7 +141,7 @@ namespace OpenMS
 				return !(operator==(rhs));
 			}
 				
-			/** @brief Sorting features by intensity. */
+			/** @brief Sort features by intensity. */
 			void sortByIntensity() 
 			{ 
 				typename DFeatureMap<D>::iterator beg = this->begin();
@@ -149,18 +149,20 @@ namespace OpenMS
 				std::sort(beg, ed, typename FeatureType::IntensityLess() ); 
 			}
 				
-			/** @brief Sorting features by position.
+			/** @brief Sort features by position.
 				
-				Lexicographical sorting from dimention 0 to dimension D is performed.
-			
+				Lexicographical sorting from dimention 0 to dimension D is performed.			
 			*/
-			void sortByPosition(Index i = -1) 
+			void sortByPosition() 
 			{ 
-				OPENMS_PRECONDITION(i < Index(D), "illegal dimension");
-				OPENMS_PRECONDITION(-2 < i, "illegal dimension");
-				
 				std::sort(this->begin(), this->end(), typename FeatureType::PositionLess() );
 			}
+			
+			/** @brief Sort features by position @p i.
+				
+			   Features are only sorted by position @p i.		
+			*/
+			void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
 				
 			void sortByOverallQuality()
 			{
@@ -204,9 +206,9 @@ namespace OpenMS
 			String name_;
 	};
 	
-	/// Print the contents to a stream.
-	template <Size D>
-	std::ostream& operator << (std::ostream& os, const DFeatureMap<D>& map)
+	/// Print content of a feature map to a stream.
+	template <Size D, typename FeatureType >
+	std::ostream& operator << (std::ostream& os, const DFeatureMap<D, FeatureType>& map)
 	{
 		os << "# -- DFEATUREMAP BEGIN --"<< std::endl;
 		os << "# POSITION \tINTENSITY\tOVERALLQUALITY\tCHARGE" << std::endl; 
@@ -220,6 +222,28 @@ namespace OpenMS
 		}
 		os << "# -- DFEATUREMAP END --"<< std::endl;
 		return os;
+	}
+	
+	template <Size D, typename FeatureType > 
+	void DFeatureMap<D,FeatureType>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
+	{ 
+		OPENMS_PRECONDITION(i < Index(D), "illegal dimension")
+		if (i==0)
+		{
+			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<0>() );
+		}
+		else if (i==1)
+		{
+			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<1>() );
+		}
+		else if (i==2)
+		{
+			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<2>() );
+		}
+		else
+		{
+			throw Exception::NotImplemented(__FILE__,__LINE__,__FUNCTION__);
+		}
 	}
 	
 } // namespace OpenMS
