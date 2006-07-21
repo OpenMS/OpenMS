@@ -29,19 +29,19 @@
 
 namespace OpenMS
 {
-  double ContinuousWaveletTransform::getInterpolatedValue_(double x, RawDataPointConstIterator it_left)
-  {
+double ContinuousWaveletTransform::getInterpolatedValue_(double x, RawDataPointConstIterator it_left)
+{
     // Interpolate between the point to the left and the point to the right.
     double left_position = it_left->getPosition()[mz_dim_];
     double right_position = (it_left+1)->getPosition()[mz_dim_];
     double d=(x-left_position)/(right_position-left_position);
 
     return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
-  }
+}
 
-  void ContinuousWaveletTransform::init(double scale, double spacing)
-  {
+void ContinuousWaveletTransform::init(double scale, double spacing)
+{
     scale_ = scale;
     spacing_=spacing;
-  }
+}
 }

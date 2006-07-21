@@ -32,7 +32,7 @@ THISLIB=$(LIBNAME)
 include ../../config_defs.mak
 
 CPP_SOURCES= \
-	DExtractSignalRegions.C\
+	ExtractSignalRegions.C\
 	PeakPicker.C\
 	PeakPickerCWT.C\
 	ContinuousWaveletTransform.C\
