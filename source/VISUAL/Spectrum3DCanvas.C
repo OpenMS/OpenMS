@@ -137,12 +137,11 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 void Spectrum3DCanvas::invalidate_()
 {				
 	if(recalculate_)
-		{
-			openglwidget()->glInit (); 
-		}	
+	{
+		openglwidget()->glInit (); 
+	}	
 	openglwidget()->resizeGL(width(),height());
-	openglwidget()->glDraw (); 	
-
+	openglwidget()->glDraw (); 
 }
 
 void Spectrum3DCanvas::repaintAll()
