@@ -94,12 +94,12 @@ CHECK(GaussModel(const GaussModel& source))
 	gm1.setParam(stat, 678.9, 789.0);
 
 	GaussModel gm2(gm1);
-  GaussModel gm3;
+  	GaussModel gm3;
 	gm3.setScalingFactor(10.0);
 	gm3.setInterpolationStep(0.3);
 	gm3.setParam(stat, 678.9, 789.0);
 
-  gm1 = GaussModel();
+  	gm1 = GaussModel();
 	TEST_EQUAL(gm3.getParam(), gm2.getParam())
 RESULT
 

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -63,101 +63,101 @@ p2.setValue("statistics:variance",0.3f);
 // default ctor
 ProductModel* ptr = 0;
 CHECK(ProductModel())
-	ptr = new ProductModel();
-  TEST_EQUAL(ptr->getName(), "ProductModel2D")
-	TEST_NOT_EQUAL(ptr, 0)
+ptr = new ProductModel();
+TEST_EQUAL(ptr->getName(), "ProductModel2D")
+TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
 CHECK(~ProductModel())
-	delete ptr;
+delete ptr;
 RESULT
 
 
 // assignment operator
 CHECK(ProductModel& operator = (const ProductModel& source))
-	GaussModel* gm1 = new GaussModel();
-	gm1->setParam(p1);
-	GaussModel* gm2 = new GaussModel();
-	gm2->setParam(p2);
-	GaussModel* gm3 = new GaussModel();
-	gm3->setParam(p1);
-	GaussModel* gm4 = new GaussModel();
-	gm4->setParam(p2);
+GaussModel* gm1 = new GaussModel();
+gm1->setParam(p1);
+GaussModel* gm2 = new GaussModel();
+gm2->setParam(p2);
+GaussModel* gm3 = new GaussModel();
+gm3->setParam(p1);
+GaussModel* gm4 = new GaussModel();
+gm4->setParam(p2);
 
-	ProductModel pm1;
-	pm1.setModel(0,gm1);
-	pm1.setModel(1,gm2);
+ProductModel pm1;
+pm1.setModel(0,gm1);
+pm1.setModel(1,gm2);
 
-  ProductModel pm2;
-  pm2 = pm1;
+ProductModel pm2;
+pm2 = pm1;
 
-  ProductModel pm3;
-	pm3.setModel(0,gm3);
-	pm3.setModel(1,gm4);
+ProductModel pm3;
+pm3.setModel(0,gm3);
+pm3.setModel(1,gm4);
 
-  pm1 = ProductModel();
-    
-	TEST_EQUAL(pm2.getParam(), pm3.getParam())
+pm1 = ProductModel();
+
+TEST_EQUAL(pm2.getParam(), pm3.getParam())
 RESULT
 
 
 // copy ctor
 CHECK(ProductModel(const ProductModel& source))
-	GaussModel* gm1 = new GaussModel();
-	gm1->setParam(p1);
-	GaussModel* gm2 = new GaussModel();
-	gm2->setParam(p2);
-	GaussModel* gm3 = new GaussModel();
-	gm3->setParam(p1);
-	GaussModel* gm4 = new GaussModel();
-	gm4->setParam(p2);
+GaussModel* gm1 = new GaussModel();
+gm1->setParam(p1);
+GaussModel* gm2 = new GaussModel();
+gm2->setParam(p2);
+GaussModel* gm3 = new GaussModel();
+gm3->setParam(p1);
+GaussModel* gm4 = new GaussModel();
+gm4->setParam(p2);
 
-	ProductModel pm1;
-	pm1.setModel(0,gm1);
-	pm1.setModel(1,gm2);
-	ProductModel pm2(pm1);
+ProductModel pm1;
+pm1.setModel(0,gm1);
+pm1.setModel(1,gm2);
+ProductModel pm2(pm1);
 
-  ProductModel pm3;
-	pm3.setModel(0,gm3);
-	pm3.setModel(1,gm4);
+ProductModel pm3;
+pm3.setModel(0,gm3);
+pm3.setModel(1,gm4);
 
-  pm1 = ProductModel();
-	TEST_EQUAL(pm3.getParam(), pm2.getParam())
+pm1 = ProductModel();
+TEST_EQUAL(pm3.getParam(), pm2.getParam())
 RESULT
 
 // ModelDescription
 CHECK( ModelDescription::createModel)
-	GaussModel* gm1 = new GaussModel();
-	GaussModel* gm2 = new GaussModel();
-	GaussModel* gm3 = new GaussModel();
-	gm3->setParam(p1);
-	GaussModel* gm4 = new GaussModel();
-	gm4->setParam(p2);
+GaussModel* gm1 = new GaussModel();
+GaussModel* gm2 = new GaussModel();
+GaussModel* gm3 = new GaussModel();
+gm3->setParam(p1);
+GaussModel* gm4 = new GaussModel();
+gm4->setParam(p2);
 
-	ProductModel pm1;
-	pm1.setModel(0,gm1);
-	pm1.setModel(1,gm2);
-	pm1.setScale(4.0);
-	pm1.setCutOff(0.5);
-	gm1->setParam(p1);
-	gm2->setParam(p2);
+ProductModel pm1;
+pm1.setModel(0,gm1);
+pm1.setModel(1,gm2);
+pm1.setScale(4.0);
+pm1.setCutOff(0.5);
+gm1->setParam(p1);
+gm2->setParam(p2);
 
-	ModelDescription<2> md(&pm1);
-  ProductModel* pm2 = static_cast< ProductModel* >(md.createModel());
+ModelDescription<2> md(&pm1);
+ProductModel* pm2 = static_cast< ProductModel* >(md.createModel());
 
-  ProductModel pm3;
-	pm3.setModel(0,gm3);
-	pm3.setModel(1,gm4);
-	pm3.setScale(4.0);
-	pm3.setCutOff(0.5);
+ProductModel pm3;
+pm3.setModel(0,gm3);
+pm3.setModel(1,gm4);
+pm3.setScale(4.0);
+pm3.setCutOff(0.5);
 
-	pm1 = ProductModel();
-	TEST_EQUAL(pm3.getParam(), pm2->getParam())
-	DPosition<2> pos;
-	pos[0] = 3.5;
-	pos[1] = 7.5;
-	TEST_REAL_EQUAL(pm3.getIntensity(pos), pm2->getIntensity(pos))
+pm1 = ProductModel();
+TEST_EQUAL(pm3.getParam(), pm2->getParam())
+DPosition<2> pos;
+pos[0] = 3.5;
+pos[1] = 7.5;
+TEST_REAL_EQUAL(pm3.getIntensity(pos), pm2->getIntensity(pos))
 RESULT
 
 /////////////////////////////////////////////////////////////

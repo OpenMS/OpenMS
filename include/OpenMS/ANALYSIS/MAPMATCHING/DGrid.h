@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Eva Lange$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DGRID_H
@@ -34,7 +34,8 @@
 namespace OpenMS
 {
 	/**
-		@todo comment (Ole)
+		This class represents a D-dimensional grid over a LC/MS map.	
+	
 	*/
 	template<Size D> 
 	class DGrid : public std::vector<DGridCell<D> >

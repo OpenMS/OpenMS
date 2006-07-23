@@ -69,7 +69,7 @@ CHECK(~<? print $class; ?>())
 RESULT
 
 <?
-passthru('check_test '.$argv[1].' '.$argv[2].' -c');
+passthru('./check_test '.$argv[1].' '.$argv[2].' -c');
 ?>
 
 /////////////////////////////////////////////////////////////

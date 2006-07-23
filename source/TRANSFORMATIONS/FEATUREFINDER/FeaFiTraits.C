@@ -34,7 +34,6 @@ namespace OpenMS
 {
 
   FeaFiTraits::FeaFiTraits()
-      : min_intensity_(0)
   {}
 
   FeaFiTraits::~FeaFiTraits() {}
@@ -43,8 +42,7 @@ namespace OpenMS
       : peaks_(source.peaks_),
       flags_(source.flags_),
       scan_index_(source.scan_index_),
-      features_(source.features_),
-      min_intensity_(source.min_intensity_)
+      features_(source.features_)
   {}
 
 
@@ -56,8 +54,7 @@ namespace OpenMS
     flags_              = source.flags_;
     scan_index_    = source.scan_index_;
     features_          = source.features_;
-    min_intensity_ = source.min_intensity_;
-
+   
     return *this;
   }
 
@@ -294,19 +291,11 @@ namespace OpenMS
 
   void FeaFiTraits::setData(MSExperiment<DPeak<1> >& exp)
   {
-    double it_u = std::numeric_limits<double>::max();
-    double it_l = min_intensity_;
-
+    
     // remove spectra with MS level other than 1
     vector<UnsignedInt> level;
     level.push_back(1);
     exp.erase( remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(level,true)), exp.end());
-
-    // remove data points with intensity < it_l
-    for (MSExperiment< >::iterator it = exp.begin(); it!= exp.end(); ++it)
-    {
-      it->getContainer().erase(remove_if(it->begin(), it->end(), IntensityRange<MSExperiment< >::PeakType>(it_l, it_u, true)), it->end());
-    }
 
     exp.updateRanges();
 

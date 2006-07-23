@@ -36,7 +36,7 @@ namespace OpenMS
 {
 	/** @brief Base class for a model (e.g. isotope distributions, rt model) in the FeatureFinder.
 	
-			@ingroup FeatureFinder
+		@ingroup FeatureFinder
 				
 	*/  
   template <UnsignedInt D, typename Traits = KernelTraits>

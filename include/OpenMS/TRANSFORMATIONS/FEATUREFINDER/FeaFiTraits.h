@@ -50,7 +50,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <fstream>   
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <limits>
@@ -58,28 +58,26 @@
 
 namespace OpenMS
 {
-	/**
-			@brief Traits class for the feature finding algorithm.
-			
-			@todo Remove sn_ratios.txt after test (Ole)
-			
-			@ingroup FeatureFinder 	
-	 **/
-  class FeaFiTraits 
-  {
+/**
+		@brief Traits class for the feature finding algorithm.
+		
+		@ingroup FeatureFinder 	
+ **/
+class FeaFiTraits
+{
 
-  public:  
-  
-  	/// Defines the coordinates of peaks / features.
-	enum DimensionId
-		{
-			RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-			MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-		};
+public:
 
-  	/// Flag for each data point
-  	enum Flag { UNUSED, SEED, INSIDE_FEATURE };
-  
+    /// Defines the coordinates of peaks / features.
+    enum DimensionId
+    {
+        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+    };
+
+    /// Flag for each data point
+    enum Flag { UNUSED, SEED, INSIDE_FEATURE };
+
     typedef std::vector<Flag> FlagVector;
 
     typedef DRawDataPoint<2> PeakType;
@@ -90,12 +88,12 @@ namespace OpenMS
 
     typedef PeakType::NthPositionLess< RT > RTless;
     typedef PeakType::NthPositionLess< MZ > MZless;
-    
+
     typedef DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > PeakVector;
     typedef DFeatureMap<2> FeatureVector;
-	typedef DFeature<2>::ConvexHullType ConvexHullType;
+    typedef DFeature<2>::ConvexHullType ConvexHullType;
     typedef FeaFiModule::NoSuccessor NoSuccessor;
-  	
+
     /// standard constructor
     FeaFiTraits();
 
@@ -110,65 +108,85 @@ namespace OpenMS
 
     /// fill the internal data structure using an instance of MSExperiment
     void setData(MSExperiment<DPeak<1> >& exp);
-    
+
     /// set iterator range as data for FeatureFinder
     template <class ConstPeakIterator>
-    void setData(ConstPeakIterator begin, ConstPeakIterator end) 
-    {    	  	
-    	for (ConstPeakIterator it=begin; it!=end;++it)
-   		{
-      	addSinglePeak(*it);
-   		}    		
-   		// sorts the peak data
-   		sortData_();
+    void setData(ConstPeakIterator begin, ConstPeakIterator end)
+    {
+        for (ConstPeakIterator it=begin; it!=end;++it)
+        {
+            addSinglePeak(*it);
+        }
+        // sorts the peak data
+        sortData_();
     }
-    
-    void addSinglePeak(const DRawDataPoint<2>& peak)
-    { 
-		
-		if (peak.getIntensity() >= min_intensity_ )
-    	{
-    		peaks_.push_back(peak); 
-    		flags_.push_back(UNUSED);
-		}	
-    }
-       
-	  /// non-mutable acess flag with index @p index . 
-    const Flag& getPeakFlag(const UnsignedInt index) const throw (Exception::IndexOverflow) { return flags_.at(index); }
-    /// mutable acess flag with index @p index.
-    Flag& getPeakFlag(const UnsignedInt index) throw (Exception::IndexOverflow) { return flags_.at(index); }
- 
-    /// acess peak with index @p index. 
-    const PeakType& getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index); }
-    /// retrieve the number of peaks.
-    const UnsignedInt getNumberOfPeaks() { return peaks_.size(); }
 
-	/// acess intensity of peak with index @p index.
-    const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getIntensity(); }
+    void addSinglePeak(const DRawDataPoint<2>& peak)
+    {
+        peaks_.push_back(peak);
+        flags_.push_back(UNUSED);
+    }
+
+    /// non-mutable acess flag with index @p index .
+    const Flag& getPeakFlag(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return flags_.at(index);
+    }
+    /// mutable acess flag with index @p index.
+    Flag& getPeakFlag(const UnsignedInt index) throw (Exception::IndexOverflow)
+    {
+        return flags_.at(index);
+    }
+
+    /// acess peak with index @p index.
+    const PeakType& getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return peaks_.at(index);
+    }
+    /// retrieve the number of peaks.
+    const UnsignedInt getNumberOfPeaks()
+    {
+        return peaks_.size();
+    }
+
+    /// acess intensity of peak with index @p index.
+    const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return peaks_.at(index).getIntensity();
+    }
     /// acess m/z of peak with index @p index .
-    const CoordinateType& getPeakMz(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getPosition()[MZ]; }
+    const CoordinateType& getPeakMz(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return peaks_.at(index).getPosition()[MZ];
+    }
     /// acess retention time of peak with index @p index.
-    const CoordinateType& getPeakRt(const UnsignedInt index) const throw (Exception::IndexOverflow) { return peaks_.at(index).getPosition()[RT]; }
-	/// returns signal/noise ration of peak with index @p index
-	const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)  { return sn_ratios_.at(index); }
-    /// acess scan number of peak with index @p index 
+    const CoordinateType& getPeakRt(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return peaks_.at(index).getPosition()[RT];
+    }
+    /// returns signal/noise ration of peak with index @p index
+    const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)
+    {
+        return sn_ratios_.at(index);
+    }
+    /// acess scan number of peak with index @p index
     const UnsignedInt getPeakScanNr(const UnsignedInt index) const throw (Exception::IndexOverflow);
-   
+
     /** @brief get index of next peak in m/z dimensio.
-    
+
        \param index of the peak whose successor is requested
        \return index of the next peak 
     */
     UnsignedInt getNextMz(const UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor);
 
     /** @brief get index of previous peak in m/z dimension.
-  
+
        \param index of the peak whose predecessor is requested
        \return index of the previous peak
     */
     UnsignedInt getPrevMz(const UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor);
 
-    /** @brief get index of next peak in retention time dimension. 
+    /** @brief get index of next peak in retention time dimension.
      
        \param index of the peak whose successor is requested
        \return index of the next peak
@@ -176,7 +194,7 @@ namespace OpenMS
     UnsignedInt getNextRt(const UnsignedInt index) const throw (Exception::IndexOverflow, NoSuccessor);
 
     /** @brief get index of next peak in retiontion time dimension.
-    
+
        \param index of the peak whose predecessor is requested
        \return index of the previous peak
     */
@@ -184,65 +202,55 @@ namespace OpenMS
 
     /// run main loop
     const FeatureVector& run(const std::vector<BaseSeeder*>& seeders,
-    	    							  const std::vector<BaseExtender*>& extenders,
-			                              const std::vector<BaseModelFitter*>& fitters);
+                             const std::vector<BaseExtender*>& extenders,
+                             const std::vector<BaseModelFitter*>& fitters);
 
-       /** @brief Calculate the convex hull of the peaks contained in @p set
-		  
-			Uses the gift wrap algorithm 
-		*/
-		const ConvexHullType calculateConvexHull(const IndexSet& set);
-		
-		/** @name Accessors for the minimum intensity
-		 */
-		//@{
-		IntensityType& getMinIntensity() { return min_intensity_; }
-		const IntensityType& getMinIntensity() const { return min_intensity_; }
-		void setMinIntensity(IntensityType intens) { min_intensity_ = intens; }
-		//@}
-        
-  protected:
-  
-  	/** @brief We sort the peaks according to their position.
-	 
-	       In 1D m/z, in the 2D case m/z and rt. That is,
-	 	   the peaks are first sorted by their rt value
-	 	   and peaks with equal rt (i.e. scan index) are 
-	 	   then sorted by m/z. In addition,
-	       we initialise the vector of scan indizes
-	 		in order to retrieve quickly the scan number of a peak.
-	 	*/
-  	void sortData_();
-  	
-  	/// @todo Remove. Only for debugging purposes
+    /** @brief Calculate the convex hull of the peaks contained in @p set
+
+    Uses the gift wrap algorithm 
+    */
+    const ConvexHullType calculateConvexHull(const IndexSet& set);
+
+
+protected:
+
+    /** @brief We sort the peaks according to their position.
+
+         In 1D m/z, in the 2D case m/z and rt. That is,
+       the peaks are first sorted by their rt value
+       and peaks with equal rt (i.e. scan index) are 
+       then sorted by m/z. In addition,
+         we initialise the vector of scan indizes
+    	in order to retrieve quickly the scan number of a peak.
+    */
+    void sortData_();
+
+    /// @todo Remove. Only for debugging purposes
     void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat);
-    
+
     /// Calculate area of a triangle (needed for gift wrap algorithm)
-	inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
-	{
-		// triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
-		return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
-			   - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
-	}
-   	    
+    inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
+    {
+        // triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
+        return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
+               - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
+    }
+
     /// vector of peaks
     PeakVector peaks_;
-  
-  	/// Flags indicating whether a peak is unused, a seed or inside a feature region
+
+    /// Flags indicating whether a peak is unused, a seed or inside a feature region
     FlagVector flags_;
-  
+
     /// stores reference to the scan numbers for each peak.
     ScanIndex<PeakVector> scan_index_;
-        
-    /// The (hopefully) found features in the LC/MS map
-    FeatureVector features_;    
 
-	/// Minium intensity of a data point that we accept
-	IntensityType min_intensity_;
-	
-	/// Stores a the signal / noise ratio for each peak
-	std::vector<double> sn_ratios_;
-	      
-  };
+    /// The (hopefully) found features in the LC/MS map
+    FeatureVector features_;
+
+    /// Stores a the signal / noise ratio for each peak
+    std::vector<double> sn_ratios_;
+
+};
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFITRAITS_H

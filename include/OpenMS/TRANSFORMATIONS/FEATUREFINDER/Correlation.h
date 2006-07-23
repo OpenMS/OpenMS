@@ -55,7 +55,7 @@ namespace OpenMS
     /// evaluates the quality of the fit of @p model to @p set along dimension @p dim
     double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
 
-		/// creates instance of this class (function is called by factory).
+	/// creates instance of this class (function is called by factory).
     static BaseQuality* create()
     {
       return new Correlation();

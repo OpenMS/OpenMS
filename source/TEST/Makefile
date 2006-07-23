@@ -296,7 +296,9 @@ EXECUTABLES_TRANSFORMATIONS = \
 	FeaFiTraits_test\
 	PeakPicker_test\
 	PeakPickerCWT_test\
-	ExtractSignalRegions_test
+	ExtractSignalRegions_test\
+	Correlation_test\
+	FeatureFinder_test
 
 
 EXECUTABLES_ANALYSIS_ID =\

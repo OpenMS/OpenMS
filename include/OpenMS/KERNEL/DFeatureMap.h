@@ -48,10 +48,7 @@ namespace OpenMS
 		Maps are implemented as vectors of features and have basically the same interface
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
-		
-		@todo write tests for sortBy... methods (Ole)
-		@todo implement sorting by dimensions in sortByPosition (Ole)
-		
+				
 		@ingroup Kernel, Serialization
 	*/
 	template <Size D, typename FeatureT = DFeature<D> >

@@ -1,6 +1,3 @@
-X-Powered-By: PHP/5.1.4
-Content-type: text/html
-
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
@@ -24,19 +21,30 @@ Content-type: text/html
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Early Pearly$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/Correlation.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+
+#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 ///////////////////////////
+
+START_TEST(Correlation, "$Id Correlation_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 using namespace OpenMS;
 using namespace std;
+using namespace OpenMS::Math;
 
-START_TEST(Correlation, "$Id$")
+typedef ProductModel<2> ProductModel;
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,28 +59,134 @@ CHECK((~Correlation()))
 	delete ptr;
 RESULT
 
-CHECK((Correlation()))
-  // ???
-RESULT
-
 CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)))
-  // ???
+	
+	Correlation corr;
+	GaussModel gm1;
+	BasicStatistics<>  stat;
+	stat.setMean(2.5);
+	stat.setVariance(3.0);
+	gm1.setScalingFactor(5.0);
+	gm1.setInterpolationStep(0.3);
+	gm1.setParam(stat,1,5);
+	
+	FeaFiTraits traits;
+		
+	DPeak<2> p1;
+	p1.getPosition()[0] = 1;
+	p1.getPosition()[1] = 1;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p1);
+	
+	DPeak<2> p2;
+	p2.getPosition()[0] = 2;
+	p2.getPosition()[1] = 2;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p2);
+	
+	DPeak<2> p3;
+	p3.getPosition()[0] = 3;
+	p3.getPosition()[1] = 3;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p3);
+	
+	DPeak<2> p4;
+	p4.getPosition()[0] = 4;
+	p4.getPosition()[1] = 4;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p4);
+	
+	DPeak<2> p5;
+	p5.getPosition()[0] = 5;
+	p5.getPosition()[1] = 5;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p5);
+		
+	corr.setTraits(&traits);
+	
+	IndexSet set;
+	set.add(0,4);
+	
+	// evaluate rt dimension
+	double result = corr.evaluate(set, gm1,0);
+	TEST_REAL_EQUAL(result,0.162949)
+	// evaluate mz dimension
+	result = corr.evaluate(set, gm1,1);
+	TEST_REAL_EQUAL(result,0.162949)
+	
 RESULT
 
 CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
-  // ???
+
+	Correlation corr;
+	GaussModel * gm1 = new GaussModel();
+	GaussModel * gm2 = new GaussModel();
+		
+	BasicStatistics<>  stat;
+	stat.setMean(2.5);
+	stat.setVariance(3.0);
+	
+	gm1->setScalingFactor(5.0);
+	gm1->setInterpolationStep(0.3);
+	gm1->setParam(stat,1,5);
+	
+	gm2->setScalingFactor(5.0);
+	gm2->setInterpolationStep(0.3);
+	gm2->setParam(stat,1,5);
+	
+	ProductModel pm1;
+	pm1.setModel(0,gm1);
+	pm1.setModel(1,gm2);
+	
+	FeaFiTraits traits;
+	
+	DPeak<2> p1;
+	p1.getPosition()[0] = 1;
+	p1.getPosition()[1] = 1;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p1);
+	
+	DPeak<2> p2;
+	p2.getPosition()[0] = 2;
+	p2.getPosition()[1] = 2;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p2);
+	
+	DPeak<2> p3;
+	p3.getPosition()[0] = 3;
+	p3.getPosition()[1] = 3;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p3);
+	
+	DPeak<2> p4;
+	p4.getPosition()[0] = 4;
+	p4.getPosition()[1] = 4;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p4);
+	
+	DPeak<2> p5;
+	p5.getPosition()[0] = 5;
+	p5.getPosition()[1] = 5;
+	p1.getIntensity()    = 5;
+	traits.addSinglePeak(p5);
+	
+	corr.setTraits(&traits);
+	
+	IndexSet set;
+	set.add(0,4);
+	
+	double result = corr.evaluate(set, pm1);
+	TEST_REAL_EQUAL(result,0.104557);
+	
 RESULT
 
-CHECK((static BaseQuality* create()))
-  // ???
+CHECK(const String getName())
+	TEST_EQUAL(Correlation::getName(),"Correlation")
+	TEST_EQUAL(Correlation().getName(),"Correlation")
 RESULT
 
-CHECK((static const String getName()))
-  // ???
-RESULT
-
-CHECK((~Correlation()))
-  // ???
+CHECK(static BaseQuality* create())
+	TEST_NOT_EQUAL(Correlation::create(),0)
 RESULT
 
 
