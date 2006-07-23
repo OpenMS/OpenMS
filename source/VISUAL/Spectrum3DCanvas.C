@@ -84,6 +84,7 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
 	openglwidget()->recalculateDotGradient_();
+	invalidate_();
  	repaintAll();
 	return current_data_;
 }
@@ -104,7 +105,7 @@ void Spectrum3DCanvas::actionModeChange_()
 	switch(action_mode_)
 	{
 	case AM_TRANSLATE:
-		openglwidget()->setZoomFactor(2.0);
+		openglwidget()->setZoomFactor(1.5);
 		openglwidget()->resetAngels();
 		repaintAll();
 		break;
@@ -134,13 +135,16 @@ void Spectrum3DCanvas::activateDataSet(int data_set)
 }
 
 void Spectrum3DCanvas::invalidate_()
-{			
-	openglwidget()->recalculateDotGradient_();
-	openglwidget()->initializeGL();
-	openglwidget()->updateGL();
-	openglwidget()->initializeGL();
+{				
+	if(recalculate_)
+		{
+			openglwidget()->glInit (); 
+		}	
+	openglwidget()->resizeGL(width(),height());
+	openglwidget()->glDraw (); 	
 
 }
+
 void Spectrum3DCanvas::repaintAll()
 {
 	recalculate_ = true;
@@ -155,8 +159,7 @@ void Spectrum3DCanvas::intensityModeChange_()
 			openglwidget()->updateIntensityScale();
 		}
 	openglwidget()->recalculateDotGradient_();
-	recalculate_ = true;
-	invalidate_();
+	repaintAll();
 }
 
 void Spectrum3DCanvas::removeDataSet(int data_set)
@@ -172,7 +175,7 @@ void Spectrum3DCanvas::removeDataSet(int data_set)
 	disp_ints_.erase(disp_ints_.begin()+data_set);
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
-	invalidate_();
+	repaintAll();
 }
 
 Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
