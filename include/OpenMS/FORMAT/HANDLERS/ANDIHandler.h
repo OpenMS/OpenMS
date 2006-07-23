@@ -45,9 +45,7 @@ namespace OpenMS
 
 		MapType has to be a MSExperiment or have the same interface.
   	Do not use this class. It is only needed in ANDIFile.
-  	
-  	@todo Optimize + Test with RawDataPoint (Jens)
-  	
+  	  	
   */
 	template <typename MapType>
   class ANDIHandler
@@ -87,7 +85,7 @@ namespace OpenMS
 		void getInstrumentData_(MS_Instrument_Data* inst_data);
 
 		/// fill scan data with @p scan_data and @p global_data
-		void getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
+		void getRawPerScan_(long index, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
     //@}
 
 		/// map pointer for reading
@@ -195,7 +193,7 @@ namespace OpenMS
 
 		long index;
 		long num_scans = ms_raw_global.nscans;
-		exp_.reserve(num_scans);
+		exp_.resize(num_scans);
 		long num_inst = ms_admin.number_instrument_components;
 		ms_admin_expt_t expt_type = ms_admin.experiment_type;
 		bool is_library = (expt_library == expt_type );
@@ -233,7 +231,7 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"ms_read_per_scan() failed");
 
 			// Raw Data
-			getRawPerScan_(&ms_raw,&ms_raw_global);
+			getRawPerScan_(index,&ms_raw,&ms_raw_global);
 			ms_init_per_scan( 1, &ms_raw, &ms_lib);
 		}
 
@@ -401,7 +399,7 @@ namespace OpenMS
 	}
 
 	template <typename MapType>
-	void ANDIHandler<MapType>::getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
+	void ANDIHandler<MapType>::getRawPerScan_(long index, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
 	{
 		float mass_factor = float_(global_data->mass_factor, 1.0f);
 		float intens_factor = float_(global_data->intensity_factor, 1.0f);
@@ -411,17 +409,6 @@ namespace OpenMS
 		if (mass_factor==0.0f) mass_factor = 1.0f;
 		if (intens_factor==0.0f) intens_factor = 1.0f;
 
-		spec_ = new typename MapType::SpectrumType();
-
-		spec_->setRetentionTime( float_(scan_data->scan_acq_time), 
-																			 float_(global_data->delay_time), 
-																			 float_(global_data->run_time));
-		spec_->setMSLevel(1);
-		spec_->getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
-		spec_->getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
-		spec_->getInstrumentSettings().setPolarity(pol_);
-
-
 		// Length of raw data array
 		const long n = scan_data->points;
 
@@ -429,7 +416,21 @@ namespace OpenMS
 		bool has_masses	=	(global_data->has_masses == 1);
 		bool has_times = 	(global_data->has_times == 1);
 
-		if (has_masses && !has_times) for (int i=0; i < n; i++)
+		if (!has_masses || has_times) return;
+
+		exp_[index].resize(n);
+		spec_ = &exp_[index];
+
+		spec_->setRetentionTime( float_(scan_data->scan_acq_time),
+																			 float_(global_data->delay_time),
+																			 float_(global_data->run_time));
+		spec_->setMSLevel(1);
+		spec_->getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
+		spec_->getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
+		spec_->getInstrumentSettings().setPolarity(pol_);
+
+
+		for (int i=0; i < n; i++)
 		{
 			std::string format = ms_enum_to_string(global_data->intensity_format);
 
@@ -454,13 +455,9 @@ namespace OpenMS
 			masses *= mass_factor;
 
 			// Build 1D peak
-			peak_.getIntensity() = intensity;
-			peak_.getPosition()[0] = masses;
-			spec_->getContainer().push_back(peak_);
+			spec_->getContainer()[i].getIntensity() = intensity;
+			spec_->getContainer()[i].getPosition()[0] = masses;
 		}
-
-		exp_.push_back(*spec_);
-		delete spec_;
 
 		// unused MS_Raw_Data_Global fields:	mass_axis_global_min, mass_axis_global_max, time_axis_global_min,
 		// time_axis_global_max, intensity_axis_global_min, intensity_axis_global_max, calibrated_mass_min);

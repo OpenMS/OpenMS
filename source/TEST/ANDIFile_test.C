@@ -52,7 +52,7 @@ RESULT
 CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
 	PRECISION(0.01)
 
-	MSExperiment<> e;
+	MSExperiment< DRawDataPoint<1> > e;
 	ANDIFile andi;
 
 	//test exception
