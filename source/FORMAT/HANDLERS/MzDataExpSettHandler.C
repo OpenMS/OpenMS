@@ -110,8 +110,7 @@ namespace OpenMS
 			case CONTACT:  contact_ = new ContactPerson(); break;
 			case ANALYZER: analyzer_ = new MassAnalyzer(); break;
  			case SOFTWARE:
-				if  (!attributes.value("completionTime").isEmpty())
-					exp_->getSoftware().setCompletionTime(asFloat_(attributes.value("completionTime")));
+				exp_->getSoftware().setCompletionTime( asDateTime_(attributes.value("completionTime")) );
 				break;
 		}
 		
@@ -373,8 +372,14 @@ namespace OpenMS
 			os << "\t\t</instrument>\n"
 				 << "\t\t<dataProcessing>\n"
 				 << "\t\t\t<software";
-			if (cexp_->getSoftware().getCompletionTime()!=0)
-				os << " completionTime=\"" << cexp_->getSoftware().getCompletionTime() << "\"";
+			if (cexp_->getSoftware().getCompletionTime()!=DateTime())
+			{
+				String tmp;
+				cexp_->getSoftware().getCompletionTime().get(tmp);
+				QString time(tmp);
+				time.replace(" ","T");
+				os << " completionTime=\"" << time << "\"";
+			}
 			os << ">\n"
 				 << "\t\t\t\t<name>" << cexp_->getSoftware().getName() << "</name>\n"
 				 << "\t\t\t\t<version>" << cexp_->getSoftware().getVersion() << "</version>\n";

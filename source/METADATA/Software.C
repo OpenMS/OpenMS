@@ -35,7 +35,7 @@ namespace OpenMS
 	  name_(),
 	  version_(),
 	  comment_(),
-		completion_time_(0.0)
+		completion_time_()
 	{
 	  
 	}
@@ -111,14 +111,19 @@ namespace OpenMS
 	  comment_ = comment; 
 	}
 	
-	float Software::getCompletionTime() const 
+	const DateTime& Software::getCompletionTime() const
 	{
-	  return completion_time_; 
+	  return completion_time_;
 	}
-	
-	void Software::setCompletionTime(float completion_time)
+
+	void Software::setCompletionTime(const DateTime& completion_time)
 	{
-	  completion_time_ = completion_time; 
+	  completion_time_ = completion_time;
+	}
+
+	void Software::setCompletionTime(const String& completion_time)
+	{
+		completion_time_.set(completion_time);
 	}
 
 }

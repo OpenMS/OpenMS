@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <qxml.h>
 
@@ -55,7 +56,7 @@ namespace OpenMS
       bool error(const QXmlParseException& exception);
 			/// Warning handler. Stopts parsing depending on abort_on_warning_
       bool warning(const QXmlParseException& exception);
-			
+
 			/// Parsing method for character data
 		  virtual bool characters( const QString & chars );
 			/// Parsing method for opening tags
@@ -146,6 +147,23 @@ namespace OpenMS
 					error(QXmlParseException(QString("Boolean conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
 				}
 				return false;
+			}
+
+			/// Conversion of a QString to a DataTime value
+	 		inline const DateTime asDateTime_(const QString& in)
+			{
+				DateTime res;
+				if (!in.isEmpty()) try{
+					// xs::DateTime to OpenMS::DateTime
+					QString tmp(in);
+					tmp.replace("T"," ",true);
+					tmp = tmp.left(19);
+					res.set(tmp.ascii());
+				}catch(Exception::ParseError err)
+				{
+					warning(QXmlParseException(QString("Unable to parse DateTime \'%1\'!\n").arg(in)));
+				}
+				return res;
 			}
 
 	};

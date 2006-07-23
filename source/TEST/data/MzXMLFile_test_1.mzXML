@@ -8,7 +8,7 @@
 			<msIonisation category="msIonisation" value="ESI"/>
 			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
 			<msDetector category="msDetector" value="Faraday Cup"/>
-			<software type="acquisition" name="MS-Y" version="2.0" completionTime="1147"/>
+			<software type="acquisition" name="MS-Y" version="2.0" completionTime="2001-02-03T04:05:06"/>
 			<msResolution category="msResolution" value="FWHM"/>
 			<operator first="FirstName" last="LastName" phone="+49-7071-123456" email="admin@foo.de" URI="http://www.OpenMS.de"/>
 			<nameValue name="URL1" value="www.open-ms.de"/>
@@ -16,7 +16,7 @@
 			<comment>Instrument Comment</comment>
 		</msInstrument>
 		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1">
-			<software type="conversion" name="MS-X" version="1.0" completionTime="4711"/>
+			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 			<processingOperation name="processing 1" type="type 1" value="done 1"/>
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>Software Comment</comment>

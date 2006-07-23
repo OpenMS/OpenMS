@@ -28,6 +28,7 @@
 #define OPENMS_METADATA_SOFTWARE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 namespace OpenMS 
 {
@@ -70,22 +71,21 @@ namespace OpenMS
       const String& getComment() const;
       /// sets the free-text comment
       void setComment(const String& comment);
-			
-			/**
-				@brief returns the duration of time used for processing
-				
-				The unit is minutes (default is 0).
-			*/
-      float getCompletionTime() const;
-      /// sets the duration of time used for processing (in minutes)
-      void setCompletionTime(float completion_time);
+
+			/// returns the time of completition of the processing
+	    const DateTime& getCompletionTime() const;
+      /// sets the time of completition taking a DateTime object
+      void setCompletionTime(const DateTime& completion_time);
+      /// sets the time of completition taking a String object
+			/// provided for convenience
+      void setCompletionTime(const String& completion_time);
 
 
     protected:
       String name_;
       String version_;
       String comment_;
-      float completion_time_;
+      DateTime completion_time_;
   };
 } // namespace OpenMS
 

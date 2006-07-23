@@ -305,7 +305,9 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
   TEST_EQUAL(e.getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
   TEST_EQUAL(e.getSoftware().getComment(), "none");
-  TEST_EQUAL(e.getSoftware().getCompletionTime(), 4711);
+	String tmp;
+	e.getSoftware().getCompletionTime().get(tmp);
+  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
 
   //---------------------------------------------------------------------------
   // const ProcessingMethod& getProcessingMethod() const;

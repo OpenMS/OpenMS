@@ -365,8 +365,7 @@ namespace OpenMS
 					exp_->getSoftware().setVersion( getAttribute(SOFTWAREVERSION) );
 					exp_->getSoftware().setName( getAttribute(NAME) );
 					exp_->getSoftware().setComment( getAttribute(TYPE) );
-					if  (!getQAttribute(COMPLETION_TIME).isEmpty())
-						exp_->getSoftware().setCompletionTime(asFloat_(getQAttribute(COMPLETION_TIME)));
+					exp_->getSoftware().setCompletionTime( asDateTime_(getQAttribute(COMPLETION_TIME)) );
 				}else if (is_parser_in_tag_[INSTRUMENT]){
 					// not part of METADATA -> putting it into MetaInfo
 					std::string swn = "#InstSoftware", swn_d = "Instrument software name",
@@ -382,7 +381,12 @@ namespace OpenMS
 					exp_->getInstrument().setMetaValue(swv,getAttribute(SOFTWAREVERSION));
 					exp_->getInstrument().setMetaValue(swt,getAttribute(TYPE));
 					if  (!getQAttribute(COMPLETION_TIME).isEmpty())
-						exp_->getInstrument().setMetaValue(cmpl,asFloat_(getQAttribute(COMPLETION_TIME)));
+					{
+						DateTime time = asDateTime_(getQAttribute(COMPLETION_TIME));
+						String str;
+						time.get(str);
+						exp_->getInstrument().setMetaValue(cmpl,str);
+					}
 				}
 				break;
 			case PEAKS:
@@ -614,7 +618,9 @@ namespace OpenMS
 				std::string type = inst.getMetaValue("#InstSoftwareType").toString(),
 				 	name = inst.getMetaValue("#InstSoftware"),
 					version = inst.getMetaValue("#InstSoftwareVersion");
-				float time = inst.getMetaValue("#InstSoftwareTime");
+				String str = inst.getMetaValue("#InstSoftwareTime");
+				QString time(str);
+				time.replace(" ","T");
 				os << "\t\t\t<software type=\"" << type
 					 << "\" name=\"" << name
 					 << "\" version=\"" << version
@@ -694,8 +700,14 @@ namespace OpenMS
 			 << "\" name=\"" << software.getName()
 			 << "\" version=\"" << software.getVersion();
 
-		if (software.getCompletionTime() != float())
-			os << "\" completionTime=\"" << software.getCompletionTime();
+		if (software.getCompletionTime() != DateTime())
+		{
+			String tmp;
+			software.getCompletionTime().get(tmp);
+			QString qtmp(tmp);
+			qtmp.replace(" ","T");
+			os << "\" completionTime=\"" << qtmp;
+		}
 		os << "\"/>\n";
 		writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
 

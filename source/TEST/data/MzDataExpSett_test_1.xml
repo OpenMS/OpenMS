@@ -94,7 +94,7 @@
 			</additional>
 		</instrument>
 		<dataProcessing>
-			<software completionTime="4711">
+			<software completionTime="2001-02-03T04:05:06">
 				<name>MS-X</name>
 				<version>1.0</version>
 				<comments>none</comments>

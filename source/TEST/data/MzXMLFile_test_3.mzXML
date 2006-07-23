@@ -3,13 +3,13 @@
  		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="0000000000000000000000000000000000000000"/>
 		<instrument manufacturer="ABI" model="Neptune" ionisation="ESI" msType="Ion Trap">
 			<operator first="" last="Administrator" phone="" email="admin@foo.de" URI=""/>
-			<software type="acquisition" name="MS-Y" version="2.0" completionTime="1147"/>
+			<software type="acquisition" name="MS-Y" version="2.0" completionTime="2001-02-03T04:05:06"/>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Instrument Comment</comment>
 		</instrument>
 		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1">
-			<software type="conversion" name="MS-X" version="1.0" completionTime="4711"/>
+			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="full" retentionTime="PT60S">
 			<peaks precision="32">QvAAAELIAA==</peaks>
