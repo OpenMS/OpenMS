@@ -34,101 +34,132 @@
 
 #include <utility> // std::pair
 
-namespace OpenMS  
+namespace OpenMS
 {
-	
-	/**
-		 @brief A pair of features in two different maps.
-	
-	   The purpose of the mapmatching stage is two identify pairs of features in
-	   different map, to estimate a transformation that maps features in a
-	   specified range onto each other and to execute this transform
-	   (dewarping).
-	*/
-	template <Size D, typename FeatureT = DFeature<D> >
-	class DFeaturePair : public std::pair<FeatureT,FeatureT>
-	{
-	 public:
-		
-		enum { DIMENSION = D };
-		typedef FeatureT FeatureType;
-		typedef std::pair<FeatureType,FeatureType> Base;
-		typedef	typename FeatureType::QualityType QualityType;
-		
-		/** @name Constructors and Destructor
-		 */
-		//@{
-		/// Default constructor		
-		DFeaturePair() : Base(), quality_(0)  {}
 
-		/// Copy constructor
-		DFeaturePair(const DFeaturePair& fp) 
-			: Base(fp), quality_(fp.quality_)
-		{}
+/**
+	 @brief A pair of features in two different maps.
 
-		DFeaturePair(FeatureType const & first, FeatureType const & second, QualityType const & quality = QualityType(0))
-			: Base(first,second), quality_(quality)
-		{}
+   The purpose of the mapmatching stage is two identify pairs of features in
+   different map, to estimate a transformation that maps features in a
+   specified range onto each other and to execute this transform
+   (dewarping).
+*/
+template <Size D, typename FeatureT = DFeature<D> >
+class DFeaturePair : public std::pair<FeatureT,FeatureT>
+{
+public:
 
-		/// Destructor
-		virtual ~DFeaturePair() {}
-		//@}
-		
-		/// assignment operator
+    enum { DIMENSION = D };
+    typedef FeatureT FeatureType;
+    typedef std::pair<FeatureType,FeatureType> Base;
+    typedef	typename FeatureType::QualityType QualityType;
+
+    /** @name Constructors and Destructor
+     */
+    //@{
+    /// Default constructor
+    DFeaturePair() : Base(), quality_(0)
+    {}
+
+    /// Copy constructor
+    DFeaturePair(const DFeaturePair& fp)
+            : Base(fp), quality_(fp.quality_)
+    {}
+
+    DFeaturePair(FeatureType const & first, FeatureType const & second, QualityType const & quality = QualityType(0))
+            : Base(first,second), quality_(quality)
+    {}
+
+    /// Destructor
+    virtual ~DFeaturePair()
+    {}
+    //@}
+
+    /// assignment operator
     DFeaturePair& operator = (const DFeaturePair& rhs)
-		{
-			if (&rhs==this) return *this;
-			
-			Base::operator = (rhs);
-			quality_       = rhs.quality_;	
-			
-			return *this;
-		}
+    {
+        if (&rhs==this)
+            return *this;
 
-		bool operator == (const DFeaturePair& rhs) const 
-		{
-			return ( this->getFirst()   == rhs.getFirst() &&
-			         this->getSecond()  == rhs.getSecond() && 			
-				       this->getQuality() == rhs.getQuality() );				
-		}
-		
-		bool operator != (const DFeaturePair& rhs) const 
-		{
-			return  !(*this == rhs);				
-		}
-		
-		/**@name Accessors
-		 */
-		//@{
-		/// Non-mutable access to the first feature
-		const FeatureType& getFirst() const { return this->first; }
-		/// Mutable access to the first feature
-		FeatureType& getFirst() { return this->first; }
-		/// Non-mutable access to the first feature
-		void setFirst(const FeatureType& frt) { this->first = frt; }
+        Base::operator = (rhs);
+        quality_       = rhs.quality_;
 
-		/// Non-mutable access to the second feature
-		const FeatureType& getSecond() const { return this->second; }
-		/// Mutable access to the second feature
-		FeatureType& getSecond() { return this->second; }
-		/// Non-mutable access to the second feature
-		void setSecond(const FeatureType& sec) { this->second = sec; }
-		
-		/// Non-mutable access to the quality of the pair
-		const QualityType& getQuality() const { return quality_; }
-		/// Mutable access to the quality of the pair
-		QualityType& getQuality() { return quality_; }
-		/// Mutable access to the quality of the pair
-		void setQuality(const QualityType& ql) { quality_ = ql; }
-		//@}
-		
-	 protected:
-				
-		/// quality of the pair (not individual features)
-		QualityType quality_;
-			
-	}; // end of class DFeaturePair
-		
+        return *this;
+    }
+
+    bool operator == (const DFeaturePair& rhs) const
+    {
+        return ( this->getFirst()   == rhs.getFirst() &&
+                 this->getSecond()  == rhs.getSecond() &&
+                 this->getQuality() == rhs.getQuality() );
+    }
+
+    bool operator != (const DFeaturePair& rhs) const
+    {
+        return  !(*this == rhs);
+    }
+
+    /**@name Accessors
+     */
+    //@{
+    /// Non-mutable access to the first feature
+    const FeatureType& getFirst() const
+    {
+        return this->first;
+    }
+    /// Mutable access to the first feature
+    FeatureType& getFirst()
+    {
+        return this->first;
+    }
+    /// Non-mutable access to the first feature
+    void setFirst(const FeatureType& frt)
+    {
+        this->first = frt;
+    }
+
+    /// Non-mutable access to the second feature
+    const FeatureType& getSecond() const
+    {
+        return this->second;
+    }
+    /// Mutable access to the second feature
+    FeatureType& getSecond()
+    {
+        return this->second;
+    }
+    /// Non-mutable access to the second feature
+    void setSecond(const FeatureType& sec)
+    {
+        this->second = sec;
+    }
+
+    /// Non-mutable access to the quality of the pair
+    const QualityType& getQuality() const
+    {
+        return quality_;
+    }
+    /// Mutable access to the quality of the pair
+    QualityType& getQuality()
+    {
+        return quality_;
+    }
+    /// Mutable access to the quality of the pair
+    void setQuality(const QualityType& ql)
+    {
+        quality_ = ql;
+    }
+    //@}
+
+protected:
+
+    /// quality of the pair (not individual features)
+    QualityType quality_;
+
+}
+; // end of class DFeaturePair
+
 } // end of namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHER_DFEATUREPAIR_H

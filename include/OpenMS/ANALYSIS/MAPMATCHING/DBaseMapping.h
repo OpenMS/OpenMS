@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Clemens Groepl$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
@@ -46,12 +46,7 @@ namespace OpenMS
 	class DBaseMapping
 	{
 	 public:
-		/*enum DimensionId 
-			{
-				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-			};	*/
-						
+		
 		/// Constructor
 		DBaseMapping() {}
 		
@@ -69,7 +64,7 @@ namespace OpenMS
 		{
 			if (this==&rhs) return *this;
 			
-			param_ = rhs.param;
+			param_ = rhs.param_;
 			return *this;
 		}		
 		
