@@ -80,7 +80,8 @@ namespace OpenMS
     }
     else
     {
-      cerr << "factor should be between 0 and 1, ignored\n";
+			// TODO exception
+      // cerr << "factor should be between 0 and 1, ignored\n";
     }
   }
   
@@ -223,9 +224,9 @@ namespace OpenMS
 																		x.getContainer()[xstart + i - 1].getIntensity(), 
 																		y.getContainer()[ystart + j - 1].getIntensity());
         //dynaminc programming step
-        if ((((dparray[i][j-1])>(dparray[i-1][j-1]+align))?(dparray[i][j-1]):(dparray[i-1][j-1]+align)) /*== max*/ > dparray[i-1][j])
+        if ((((dparray[i][j-1]) > (dparray[i-1][j-1]+align)) ? (dparray[i][j-1]) : (dparray[i-1][j-1]+align)) /*== max*/ > dparray[i-1][j])
         {
-          if (dparray[i-1][j-1] + align > dparray[i][j-1] )
+          if (dparray[i-1][j-1] + align > dparray[i][j-1])
           {
             dparray[i][j] = dparray[i-1][j-1] + align;
             trace[i][j] = 5;
@@ -243,6 +244,7 @@ namespace OpenMS
         }
       }
     }
+
     unsigned int i = xend-xstart+1;
     unsigned int j = yend-ystart+1;
     for (;;) 
@@ -282,6 +284,7 @@ namespace OpenMS
       }
       if ( !i || !j ) break;
     }
+
     return dparray[xend-xstart+1][yend-ystart+1]; 
   }
  
@@ -304,27 +307,38 @@ namespace OpenMS
    */
   double SpectrumCheapDPCorr::comparepeaks_(double posa, double posb, double inta, double intb) const
   {
-    double variation = ( posa + posb ) / 2 * (double)param_.getValue("variation");
-    if (fabs((double)param_.getValue("int_cnt")) < 1e-8)
-    {
+    double variation = (posa + posb) / 2 * (double)param_.getValue("variation");
+		unsigned int int_cnt = (unsigned int)param_.getValue("int_cnt");
+    if (int_cnt == 0)
+   	{
       return gsl_ran_gaussian_pdf(posa - posb, variation) * inta * intb;
     }
-    else if (fabs((double)param_.getValue("int_cnt") - 1) < 1e-8)
-    {
-      return gsl_ran_gaussian_pdf(posa - posb, variation) * sqrt(inta * intb);
-    }
-    else if (fabs((double)param_.getValue("int_cnt") - 2) < 1e-8)
-    {
-      return gsl_ran_gaussian_pdf(posa - posb, variation) * ( inta + intb );
-    }
-    else if (fabs((double)param_.getValue("int_cnt") - 3) < 1e-8)
-    {
-      return max(0.0,gsl_ran_gaussian_pdf(posa - posb, variation) * ((inta + intb) / 2 - fabs(inta - intb)));
-    }
     else
-    {
-      cerr << "int_cnt is not in [0,1,2,3]\n";
-      return -1;
-    }
+		{
+			if (int_cnt == 1)
+    	{
+      	return gsl_ran_gaussian_pdf(posa - posb, variation) * sqrt(inta * intb);
+   		}
+    	else 
+			{
+				if (int_cnt == 2)
+    		{
+      		return gsl_ran_gaussian_pdf(posa - posb, variation) * (inta + intb);
+    		}
+    		else 
+				{
+					if (int_cnt == 3)
+    			{
+      			return max(0.0, gsl_ran_gaussian_pdf(posa - posb, variation) * ((inta + intb) / 2 - fabs(inta - intb)));
+    			}
+    			else
+    			{
+						// TODO exception
+      			// cerr << "int_cnt is not in [0,1,2,3]\n";
+      			return -1;
+    			}
+				}
+			}
+		}
   }
 }

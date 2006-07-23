@@ -31,13 +31,18 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
+ifeq ($(GSL_SUPPORT),true)
+	GSL_CPP_SOURCES = \
+	SpectrumCheapDPCorr.C
+endif
+
 CPP_SOURCES=\
+	$(GSL_CPP_SOURCES)\
 	BinnedRepSpectrumContrastAngle.C\
 	BinnedRepMutualInformation.C\
 	BinnedRepSumAgreeingIntensities.C\
 	BinnedRepSharedPeakCount.C\
 	SequestCompareFunctor.C\
-	SpectrumCheapDPCorr.C\
 	SpectrumPrecursorComparator.C\
 	CompareFunctor.C
 

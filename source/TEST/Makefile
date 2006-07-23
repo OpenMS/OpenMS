@@ -225,7 +225,13 @@ EXECUTABLES_FILTERING = \
 
 #COMPARISON
 
+ifeq ($(GSL_SUPPORT),true)
+	GSL_EXECUTABLES_COMPARISON = \
+	SpectrumCheapDPCorr_test
+endif
+
 EXECUTABLES_COMPARISON = \
+	$(GSL_EXECUTABLES_COMPARISON)\
 	BinnedRep_test\
 	ClNode_test\
 	Cluster_test\
@@ -236,7 +242,6 @@ EXECUTABLES_COMPARISON = \
 	CompareFunctor_test\
 	BinnedRepMutualInformation_test\
 	BinnedRepSpectrumContrastAngle_test\
-	SpectrumCheapDPCorr_test\
 	BinnedRepSharedPeakCount_test\
 	BinnedRepSumAgreeingIntensities_test\
 	SequestCompareFunctor_test\
