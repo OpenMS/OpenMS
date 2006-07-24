@@ -38,11 +38,11 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>*/
 #include <OpenMS/FORMAT/Outfile.h>
 
-/*#include <sstream>
+#include <sstream>
 #include <string>
 #include <map>
 #include <set>
-#include <cstring>*/
+#include <cstring>
 
 namespace OpenMS
 {
@@ -70,7 +70,7 @@ namespace OpenMS
 		protected:
 			bool split_(const String& s, const String& splitter, std::vector<String>& substrings);
 			
-			void getColumns_(std::ifstream& result_file, std::vector< String >& substrings, String& result_filename)
+			void getColumns_(std::ifstream& result_file, std::vector< String >& substrings, String& result_filename);
 			
 			std::set< String > getSequences_(const String& database_path, const String& database_filename, std::set< String > acdt_set, std::vector< String >& sequences);
    };

@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer:  Early Pearly$
 # --------------------------------------------------------------------------
 
 all:	default
@@ -59,8 +59,6 @@ CPP_SOURCES= \
 	FASTAFile.C\
 	MascotXMLFile.C\
 	FileHandler.C
-
-# 	SequestOutfile.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)
