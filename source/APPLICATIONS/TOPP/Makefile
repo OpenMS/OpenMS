@@ -54,6 +54,7 @@ EXECUTABLES=\
 	BaselineFilter\
 	IDFilter\
 	MascotAdapter\
+	InspectAdapter\
 	PeakPicker\
 	UnlabeledMatcher\
 	LabeledMatcher\
@@ -157,6 +158,9 @@ LabeledMatcher: LabeledMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
 MascotAdapter: MascotAdapter.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+
+InspectAdapter: InspectAdapter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
 RawDataResampler: RawDataResampler.o TOPPBase.o
