@@ -165,9 +165,9 @@ namespace OpenMS
       /// Picks peaks in the active spectrum
       void pickActiveSpectrum();
       /// Filter baseline
-//      void baselineFilteringActiveSpectrum();
+      void baselineFilteringActiveSpectrum();
       /// Smooth data in the active spectrum
-//      void smoothActiveSpectrum();
+      void smoothActiveSpectrum();
       /// Finds features in the active spectrum
       void findFeaturesActiveSpectrum();
 
