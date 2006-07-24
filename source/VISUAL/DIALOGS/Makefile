@@ -57,7 +57,9 @@ GUI_CPP_SOURCES=\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
 	OpenDialog.C\
-	PeakPickingDialog.C
+	PeakPickingDialog.C\
+	SmoothingDialog.C\
+	BaselineFilteringDialog.C
 
 
 GUI_MOC_SOURCES=\
@@ -85,14 +87,20 @@ GUI_MOC_SOURCES=\
 	OpenDialogTemplate_moc.C\
 	OpenDialog_moc.C\
 	PeakPickingDialogTemplate_moc.C\
-	PeakPickingDialog_moc.C
+	PeakPickingDialog_moc.C\
+	SmoothingDialogTemplate_moc.C\
+	SmoothingDialog_moc.C\
+	BaselineFilteringDialogTemplate_moc.C\
+	BaselineFilteringDialog_moc.C
 
 UIC_SOURCES=\
 	FeaFiDialogTemplate.C\
 	Spectrum1DGoToDialogTemplate.C\
 	Spectrum2DGoToDialogTemplate.C\
 	OpenDialogTemplate.C\
-	PeakPickingDialogTemplate.C
+	PeakPickingDialogTemplate.C\
+	SmoothingDialogTemplate.C\
+	BaselineFilteringDialogTemplate.C
 
 ifeq ($(GSL_SUPPORT),true)
 GSL_GUI_CPP_SOURCES = \
@@ -207,6 +215,11 @@ OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 PeakPickingDialog_moc.C:  $(HEADER_DIR)/PeakPickingDialog.h
 	$(MOC) $(HEADER_DIR)/PeakPickingDialog.h -o PeakPickingDialog_moc.C
 
+SmoothingDialog_moc.C:  $(HEADER_DIR)/SmoothingDialog.h
+	$(MOC) $(HEADER_DIR)/SmoothingDialog.h -o SmoothingDialog_moc.C
+
+BaselineFilteringDialog_moc.C:  $(HEADER_DIR)/BaselineFilteringDialog.h
+	$(MOC) $(HEADER_DIR)/BaselineFilteringDialog.h -o BaselineFilteringDialog_moc.C
 
 
 
