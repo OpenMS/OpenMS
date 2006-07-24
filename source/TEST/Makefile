@@ -219,7 +219,8 @@ EXECUTABLES_FILTERING = \
 	TopHatFilter_test\
 	MorphFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
-	DSignalToNoiseEstimatorMedian_test
+	DSignalToNoiseEstimatorMedian_test\
+	SmoothFilter_test
 	
 #	DSmoothFilter_test\
 	#${GSL_EXECUTABLES_FILTERING}\
