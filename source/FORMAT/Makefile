@@ -41,7 +41,6 @@ CPP_SOURCES= \
 	PersistenceManager.C\
 	PersistentObject.C\
 	Outfile.C\
-	SequestOutfile.C\
 	Param.C\
 	MascotInfile.C\
 	MascotOutfile.C\
@@ -60,6 +59,8 @@ CPP_SOURCES= \
 	FASTAFile.C\
 	MascotXMLFile.C\
 	FileHandler.C
+
+# 	SequestOutfile.C\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

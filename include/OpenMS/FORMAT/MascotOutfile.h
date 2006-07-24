@@ -39,7 +39,7 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of a Mascot outfile
+    @brief Representation of a Mascot output file
     
     This class serves to read in a Mascot outfile. The information can be 
     retrieved via the load function.
