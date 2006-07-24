@@ -21,13 +21,13 @@
 ///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ///
 /// --------------------------------------------------------------------------
-/// $Id: SequestOutfile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
+/// $Id: InspectOutfile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
 /// $Author: martinlangwisch $
 /// $Maintainer: Martin Langwisch $
 /// --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
-#define OPENMS_FORMAT_SEQUESTOUTFILE_H
+#ifndef OPENMS_FORMAT_INSPECTOUTFILE_H
+#define OPENMS_FORMAT_INSPECTOUTFILE_H
 
 
 /*#include <OpenMS/KERNEL/KernelTraits.h>
@@ -37,6 +37,8 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>*/
 #include <OpenMS/FORMAT/Outfile.h>
+#include <OpenMS/FORMAT/InspectFile.h>
+
 
 /*#include <sstream>
 #include <string>
@@ -47,34 +49,29 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of an Sequest outfile
+    @brief Representation of an Inspect outfile
     
-    This class serves to read in an Sequest outfile. The information can be 
+    This class serves to read in an Inspect outfile. The information can be 
     retrieved via the >> operator. 
   
   	@ingroup FileIO
   */
-  class SequestOutfile:
-		public Outfile
+  class InspectOutfile:
+		public Outfile, 
+		InspectFile
   {
     public:
 			/// empty constructor
-			SequestOutfile();
+			InspectOutfile();
 			
 			/// copy constructor
-			SequestOutfile(const SequestOutfile& source);
-			
+			InspectOutfile(const InspectOutfile& source);
+		
       /// Constructor
-      SequestOutfile(const std::string& result_filename) throw (Exception::FileNotFound, Exception::ParseError);
-			
-		protected:
-			bool split_(const String& s, const String& splitter, std::vector<String>& substrings);
-			
-			void getColumns_(std::ifstream& result_file, std::vector< String >& substrings, String& result_filename)
-			
-			std::set< String > getSequences_(const String& database_path, const String& database_filename, std::set< String > acdt_set, std::vector< String >& sequences);
+      InspectOutfile(const std::string& result_filename, const std::string& database_filename, const std::string& database_path, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError);
+      
    };
 	
 } //namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEQUESTOUTFILE_H
+#endif // OPENMS_FORMAT_INSPECTOUTFILE_H
