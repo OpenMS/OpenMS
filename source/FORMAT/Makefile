@@ -40,10 +40,14 @@ CPP_SOURCES= \
 	DTA2DFile.C\
 	PersistenceManager.C\
 	PersistentObject.C\
+	Outfile.C\
 	SequestOutfile.C\
 	Param.C\
 	MascotInfile.C\
 	MascotOutfile.C\
+	InspectFile.C\
+	InspectInfile.C\
+	InspectOutfile.C\
 	TextFile.C\
 	MzXMLFile.C\
 	MzDataFile.C\
