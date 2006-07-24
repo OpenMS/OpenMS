@@ -48,10 +48,11 @@
 
 /*
 	ToDo-Liste Marc:
+	- Projecktionen: Intensity->Prozent, StatusBar -> Coords
 	- Tests: SVN Tag an!
 
 	Klassen Jens:
-  - ANALYSIS\MAPMATCHING\LabeledMather.h
+  - ANALYSIS\MAPMATCHING\LabeledMatcher.h
   - DATASTRUCTURES\IndexSet.h
   - FORMAT\ANDIFile.h
   - FORMAT\Base64.h

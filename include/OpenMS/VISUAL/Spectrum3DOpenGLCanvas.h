@@ -41,7 +41,9 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include<OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+
 namespace OpenMS
 {
 

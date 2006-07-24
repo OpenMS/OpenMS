@@ -29,8 +29,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <fstream>

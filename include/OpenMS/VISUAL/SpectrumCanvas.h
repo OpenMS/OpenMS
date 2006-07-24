@@ -33,7 +33,7 @@
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/KERNEL/DFeatureMap.h>
 
 //STL
 #include <stack>

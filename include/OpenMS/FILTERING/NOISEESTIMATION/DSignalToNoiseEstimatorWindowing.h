@@ -29,7 +29,6 @@
 #define OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORWINDOWING_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimator.h>

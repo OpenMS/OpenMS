@@ -30,7 +30,6 @@
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/QuadTree.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/VISUAL/MultiGradient.h>

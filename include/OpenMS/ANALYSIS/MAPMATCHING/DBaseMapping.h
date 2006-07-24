@@ -29,7 +29,6 @@
 
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPosition.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 

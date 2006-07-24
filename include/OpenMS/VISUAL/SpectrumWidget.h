@@ -32,7 +32,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 

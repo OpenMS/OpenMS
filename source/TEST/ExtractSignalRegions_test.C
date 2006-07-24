@@ -26,6 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ExtractSignalRegions.h>
+#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 
 ///////////////////////////
 

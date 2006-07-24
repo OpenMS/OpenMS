@@ -28,11 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_EXTRACTSIGNALREGIONS_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/Param.h>
-
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <iostream>
 #include <vector>

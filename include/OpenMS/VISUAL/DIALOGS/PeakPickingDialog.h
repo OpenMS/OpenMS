@@ -29,7 +29,6 @@
 #define OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/PeakPickingDialogTemplate.h>
-#include <OpenMS/FORMAT/Param.h>
 
 namespace OpenMS
 {

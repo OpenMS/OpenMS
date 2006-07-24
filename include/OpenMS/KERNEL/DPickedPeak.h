@@ -34,20 +34,21 @@
 namespace OpenMS
 {
 
-  /** @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
+  /** 
+  	@brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
 
-     *    The peak shape can represent an asymmetric lorentzian function, given by 
-     
-     *    l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position) 
-     
-     *    l(x) = height/(1.+pow(right_width*(x - mz_position), 2)) (x>mz_position)
-         
-     *    or an asymmetric hyperbolic secans squared function 
-     
-     *   s(x) = height/pow(cosh(left_width*(x-mz_position)), 2) (x<=mz_position)
-     
-     *   s(x) = height/pow(cosh(right_width*(x-mz_position)), 2) (x>mz_position)
-     */
+		The peak shape can represent an asymmetric lorentzian function, given by 
+									
+		l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position) 
+									
+		l(x) = height/(1.+pow(right_width*(x - mz_position), 2)) (x>mz_position)
+									
+		or an asymmetric hyperbolic secans squared function 
+									
+		s(x) = height/pow(cosh(left_width*(x-mz_position)), 2) (x<=mz_position)
+									
+		s(x) = height/pow(cosh(right_width*(x-mz_position)), 2) (x>mz_position)
+  */
   struct PeakShapeType
   {
     enum Enum

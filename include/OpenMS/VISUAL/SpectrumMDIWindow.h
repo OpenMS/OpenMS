@@ -31,7 +31,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 //STL
