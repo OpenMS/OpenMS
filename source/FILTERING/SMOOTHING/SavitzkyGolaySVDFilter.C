@@ -101,14 +101,14 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setWindowSize(const unsigned int frame_size)
+  void SavitzkyGolaySVDFilter::setWindowSize(const unsigned int& frame_size)
   {
     frame_size_=frame_size;
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setOrder(const unsigned int order)
+  void SavitzkyGolaySVDFilter::setOrder(const unsigned int& order)
   {
     order_=order;
     computeCoeffs_();
