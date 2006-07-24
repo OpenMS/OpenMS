@@ -1170,7 +1170,7 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 		lastMousePos_ = e->pos();
 		trans_x_= lastMousePos_.x()-firstMousePos_.x();
 		trans_y_ = (heigth_-lastMousePos_.y())-(heigth_ -firstMousePos_.y());
-		canvas_3d_.recalculate_ = true;
+		canvas_3d_.recalculate_ = false;
 		canvas_3d_.invalidate_();
 	}
 
@@ -1271,8 +1271,7 @@ void Spectrum3DOpenGLCanvas::updateIntensityScale()
 void Spectrum3DOpenGLCanvas::setDotGradient(const std::string& gradient)
 {	
 	gradient_.fromString(gradient);
-// 	initializeGL();
-// 	updateGL();
+
 
 }
 // recalculates the gradient of dataset number i 
@@ -1291,9 +1290,6 @@ void Spectrum3DOpenGLCanvas::recalculateDotGradient_()
 																				 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 		break;
 	case SpectrumCanvas::IM_LOG:
-		// gradient_.activatePrecalculationMode(log10(canvas_3d_.visible_area_.min_[2]),
-// 																						log10(canvas_3d_.visible_area_.max_[2]), 
-// 																						UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 		gradient_.activatePrecalculationMode(log10(canvas_3d_.overall_data_range_.min_[2]),
 																						log10(canvas_3d_.overall_data_range_.max_[2]), 
 																						UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
