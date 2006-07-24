@@ -50,6 +50,12 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
+#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
+#include <OpenMS/VISUAL/DIALOGS/BaselineFilteringDialog.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -192,6 +198,8 @@ namespace OpenMS
     menuBar()->insertItem("&Tools", tools_menu_);
     tools_menu_->insertItem("&Show Selected Peaks (1D)", this, SLOT(showPeaklistActiveSpectrum()));
     tools_menu_->insertItem("&Pick Peaks", this, SLOT(pickActiveSpectrum()));
+    tools_menu_->insertItem("&Smooth data", this, SLOT(smoothActiveSpectrum()));
+    tools_menu_->insertItem("&Filter baseline in data", this, SLOT(baselineFilteringActiveSpectrum()));
     tools_menu_->insertItem("&Find Features (2D)", this, SLOT(findFeaturesActiveSpectrum()));
 
     //create status bar
@@ -549,7 +557,7 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
       try
       {
-      	//cout << "Loading data: "<<Date::now() << endl;
+        //cout << "Loading data: "<<Date::now() << endl;
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
       catch(Exception::Base& e)
@@ -582,15 +590,15 @@ namespace OpenMS
       w->widget()->canvas()->finishAdding(cutoff);
       //cout << "Done FinishAdding: "<<Date::now() << endl;
     }
-		//cout << "updateLayerbar: "<<Date::now() << endl;
+    //cout << "updateLayerbar: "<<Date::now() << endl;
     updateLayerbar();
-    
-		//cout << "maximize: "<<Date::now() << endl;
+
+    //cout << "maximize: "<<Date::now() << endl;
     if(maximize)
     {
       w->showMaximized();
     }
-		//cout << "signals: "<<Date::now() << endl;
+    //cout << "signals: "<<Date::now() << endl;
     if (as_new_window)
     {
       connectWindowSignals_(w);
@@ -598,7 +606,7 @@ namespace OpenMS
       addClient(w,filename);
       addTab_(w,caption);
     }
-  	//cout << "Done: "<<Date::now() << endl;
+    //cout << "Done: "<<Date::now() << endl;
   }
 
   void SpectrumMDIWindow::addRecentFile_(const String& filename)
@@ -614,7 +622,8 @@ namespace OpenMS
     }
 
     //check if the file is already in the vector. if so remove it
-    recent_files_.erase(remove(recent_files_.begin(),recent_files_.end(),tmp),recent_files_.end());
+    recent_files_.erase(remove
+                        (recent_files_.begin(),recent_files_.end(),tmp),recent_files_.end());
 
     //add the file to the front
     recent_files_.insert(recent_files_.begin(),tmp);
@@ -711,7 +720,8 @@ namespace OpenMS
       if (printer->setup(this))
       {
         QPainter p;
-        if (!p.begin(printer)) return;
+        if (!p.begin(printer))
+          return;
         QPaintDeviceMetrics metrics(p.device());
         unsigned int dpix = metrics.logicalDpiX();
         unsigned int dpiy = metrics.logicalDpiY();
@@ -818,7 +828,8 @@ namespace OpenMS
     tool_bar_1d_->addSeparator();
 
     link_box_ = new QComboBox(tool_bar_1d_);
-    QToolTip::add(link_box_,"Use this combobox to link two spectra.\nLinked spectra zoom in/out together");
+    QToolTip::add
+      (link_box_,"Use this combobox to link two spectra.\nLinked spectra zoom in/out together");
     connect(link_box_,SIGNAL(activated(const QString&)),this,SLOT(linkActiveTo(const QString&)));
 
     // 2d toolbar
@@ -948,25 +959,35 @@ namespace OpenMS
     if (w)
     {
       string name = a->name();
-      if(name=="AM_SELECT") w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_SELECT);
-      else if (name=="AM_ZOOM") w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
-      else if(name=="AM_TRANSLATE") w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_TRANSLATE);
-      else if(name=="AM_MEASURE") w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_MEASURE);
-      else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      if(name=="AM_SELECT")
+        w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_SELECT);
+      else if (name=="AM_ZOOM")
+        w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
+      else if(name=="AM_TRANSLATE")
+        w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_TRANSLATE);
+      else if(name=="AM_MEASURE")
+        w->widget()->setActionMode(SpectrumCanvas::SpectrumCanvas::AM_MEASURE);
+      else
+        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     };
   }
 
   void SpectrumMDIWindow::setIntensityMode(QAction* a)
   {
-	  SpectrumWindow* w = activeWindow_();
+    SpectrumWindow* w = activeWindow_();
     if (w)
     {
       string name = a->name();
-      if(name=="IM_NONE") w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_NONE);
-      else if (name=="IM_LOG") w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_LOG);
-      else if(name=="IM_PERCENTAGE") w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_PERCENTAGE);
-      else if(name=="IM_SNAP") w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_SNAP);
-      else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      if(name=="IM_NONE")
+        w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_NONE);
+      else if (name=="IM_LOG")
+        w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_LOG);
+      else if(name=="IM_PERCENTAGE")
+        w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_PERCENTAGE);
+      else if(name=="IM_SNAP")
+        w->widget()->setIntensityMode(SpectrumCanvas::SpectrumCanvas::IM_SNAP);
+      else
+        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     };
   }
 
@@ -976,9 +997,12 @@ namespace OpenMS
     if (w)
     {
       string name = a->name();
-      if (name == "DM_PEAKS") w->widget()->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
-      else if (name == "DM_CONNECTEDLINES") w->widget()->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      else throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      if (name == "DM_PEAKS")
+        w->widget()->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      else if (name == "DM_CONNECTEDLINES")
+        w->widget()->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      else
+        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
   }
 
@@ -1015,39 +1039,39 @@ namespace OpenMS
       //set action mode
       switch (w->widget()->getActionMode())
       {
-      case SpectrumCanvas::AM_SELECT:
-        am_select_->setOn(true);
-        break;
-      case SpectrumCanvas::AM_ZOOM:
-        am_zoom_->setOn(true);
-        break;
-      case SpectrumCanvas::AM_TRANSLATE:
-        am_translate_->setOn(true);
-        break;
-      case SpectrumCanvas::AM_MEASURE:
-        am_measure_->setOn(true);
-        break;
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          case SpectrumCanvas::AM_SELECT:
+          am_select_->setOn(true);
+          break;
+          case SpectrumCanvas::AM_ZOOM:
+          am_zoom_->setOn(true);
+          break;
+          case SpectrumCanvas::AM_TRANSLATE:
+          am_translate_->setOn(true);
+          break;
+          case SpectrumCanvas::AM_MEASURE:
+          am_measure_->setOn(true);
+          break;
+          default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
       //set intensity mode
       switch (w->widget()->canvas()->getIntensityMode())
       {
-      case SpectrumCanvas::IM_NONE:
-        im_none_->setOn(true);
-        break;
-      case SpectrumCanvas::IM_LOG:
-        im_log_->setOn(true);
-        break;
-      case SpectrumCanvas::IM_PERCENTAGE:
-        im_percentage_->setOn(true);
-        break;
-      case SpectrumCanvas::IM_SNAP:
-        im_snap_->setOn(true);
-        break;
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          case SpectrumCanvas::IM_NONE:
+          im_none_->setOn(true);
+          break;
+          case SpectrumCanvas::IM_LOG:
+          im_log_->setOn(true);
+          break;
+          case SpectrumCanvas::IM_PERCENTAGE:
+          im_percentage_->setOn(true);
+          break;
+          case SpectrumCanvas::IM_SNAP:
+          im_snap_->setOn(true);
+          break;
+          default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
       //grid lines
@@ -1061,14 +1085,14 @@ namespace OpenMS
       //draw mode
       switch (w1->widget()->canvas()->getDrawMode())
       {
-      case Spectrum1DCanvas::DM_PEAKS:
-        dm_peaks_1d_->setOn(true);
-        break;
-      case Spectrum1DCanvas::DM_CONNECTEDLINES:
-        dm_rawdata_1d_->setOn(true);
-        break;
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          case Spectrum1DCanvas::DM_PEAKS:
+          dm_peaks_1d_->setOn(true);
+          break;
+          case Spectrum1DCanvas::DM_CONNECTEDLINES:
+          dm_rawdata_1d_->setOn(true);
+          break;
+          default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       };
 
       //update link selector
@@ -1323,6 +1347,348 @@ namespace OpenMS
 
   }
 
+  void SpectrumMDIWindow::smoothActiveSpectrum()
+  {
+    SmoothingDialog dialog(this,"Open Smoothing Dialog");
+    if (dialog.exec())
+    {
+      // 1D smoothing
+      Spectrum1DWindow* w = active1DWindow_();
+      if (w!=0)
+      {
+        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+
+        SavitzkyGolaySVDFilter sgolay;
+        GaussFilter gauss;
+
+        float kernel_width = dialog.getKernelWidth();
+        float spacing = dialog.getSpacing();
+        bool sgolay_flag = dialog.getSGolay();
+        bool resampling_flag = dialog.getResampling();
+
+        // Savitzky golay or gaussian smoothing?
+        if (sgolay_flag)
+        {
+          sgolay.setOrder(dialog.getSGolayOrder());
+
+          float s;
+          // if resampling take the resampling spacing
+          if (resampling_flag)
+          {
+            s = spacing;
+          }
+          // else compute the spacing of data
+          else
+          {
+            s =  ((exp_raw[0].end()-1)->getPos() - exp_raw[0].begin()->getPos()) / (exp_raw[0].size() + 1);
+          }
+          // and determine the number of kernel coefficients
+          int frame_size = (int) ceil(kernel_width / s + 1);
+
+          // the number has to be odd
+          if (!isOdd(frame_size))
+          {
+            frame_size += 1;
+          }
+
+          sgolay.setWindowSize(frame_size);
+        }
+        else
+        {
+          gauss.setKernelWidth(kernel_width);
+        }
+
+        //add new layer
+        String new_name = exp_raw.getName()+" (smoothed)";
+        Spectrum1DCanvas::ExperimentType& exp_smoothed = w->widget()->canvas()->addEmptyDataSet();
+        exp_smoothed.setName(new_name); // set layername
+
+        // add one spectrum
+        exp_smoothed.resize(1);
+
+        // Resampling before savitzky golay filtering?
+        if (resampling_flag)
+        {
+          Spectrum1DCanvas::ExperimentType::SpectrumType resampled_spectrum;
+          LinearResampler resampler;
+          resampler.setSpacing(spacing);
+          resampler.raster(exp_raw[0],resampled_spectrum);
+          
+//           std::cout << "Resampled data " << std::endl;
+//           for (int i = 0; i < resampled_spectrum.size(); ++i)
+//           {
+//             std::cout << (resampled_spectrum.begin() + i)->getPos() << " " << (resampled_spectrum.begin() + i)->getIntensity() << std::endl;
+//           }
+          sgolay.filter(resampled_spectrum,exp_smoothed[0]);
+        }
+        else
+        {
+          if (sgolay_flag)
+          {
+            sgolay.filter(exp_raw[0],exp_smoothed[0]);
+          }
+          else
+          {
+            gauss.filter(exp_raw[0],exp_smoothed[0]);
+          }
+        }
+        //color smoothed data
+        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_smoothed[0].begin(); it!= exp_smoothed[0].end(); ++it)
+        {
+          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+        }
+
+        w->widget()->canvas()->finishAdding();
+      }
+      else
+      {
+        Spectrum2DWindow* w2 = active2DWindow_();
+        if (w2!=0)
+        {
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+
+          SavitzkyGolaySVDFilter sgolay;
+          GaussFilter gauss;
+
+          float spacing = dialog.getSpacing();
+          float kernel_width = dialog.getKernelWidth();
+          bool sgolay_flag = dialog.getSGolay();
+          bool resampling_flag = dialog.getResampling();
+
+          // Savitzky golay or gaussian smoothing?
+          // Savitzky golay or gaussian smoothing?
+          if (sgolay_flag)
+          {
+            sgolay.setOrder(dialog.getSGolayOrder());
+            float s;
+            // if resampling take the resampling spacing
+            if (resampling_flag)
+            {
+              s = spacing;
+            }
+            // else compute the spacing of data
+            else
+            {
+              const Spectrum2DCanvas::ExperimentType::SpectrumType& spec = exp_raw[0];
+              s =  ((spec.end()-1)->getPos() - spec.begin()->getPos()) / (spec.size() + 1);
+            }
+            // and determine the number of kernel coefficients
+            int frame_size = (int) ceil(kernel_width / s + 1);
+
+            // the number has to be odd
+            if (!isOdd(frame_size))
+            {
+              frame_size += 1;
+            }
+            sgolay.setWindowSize(frame_size);
+          }
+          else
+          {
+            gauss.setKernelWidth(kernel_width);
+          }
+          //add new window for picked peaks
+          Spectrum2DWindow* w_smoothed = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
+          //set main preferences
+          w_smoothed->setMainPreferences(prefs_);
+          String new_name = exp_raw.getName()+" (smoothed)";
+
+          Spectrum2DCanvas::ExperimentType& exp2 = w_smoothed->widget()->canvas()->addEmptyDataSet();
+          exp2.setName(new_name); // set layername
+
+          String filename = exp_raw.getName()+"_smoothed";
+
+          // Resampling before savitzky golay filtering?
+          if (resampling_flag)
+          {
+            Spectrum2DCanvas::ExperimentType resampled_experiment;
+            LinearResampler lin_resampler;
+            lin_resampler.setSpacing(spacing);
+
+            unsigned int n = exp_raw.size();
+            // resample and filter every scan
+            for (unsigned int i = 0; i < n; ++i)
+            {
+              // temporary container for the resampled data
+              Spectrum2DCanvas::ExperimentType::SpectrumType resampled_data;
+              lin_resampler.raster(exp_raw[i],resampled_data);
+
+              Spectrum2DCanvas::ExperimentType::SpectrumType spectrum;
+              sgolay.filter(resampled_data, spectrum);
+
+              // if any peaks are found copy the spectrum settings
+              if (spectrum.size() > 0)
+              {
+                // copy the spectrum settings
+                //  static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];
+                // spectrum.setType(SpectrumSettings::RAWDATA);
+
+                // copy the spectrum information
+                //                 spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
+                //                 spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+                //                 spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
+                //                 spectrum.getName() = ms_exp_raw[i].getName();
+
+                exp2.push_back(spectrum);
+              }
+            }
+          }
+          else
+          {
+            if (sgolay_flag)
+            {
+              sgolay.filterExperiment(exp_raw,exp2);
+            }
+            else
+            {
+              gauss.filterExperiment(exp_raw,exp2);
+            }
+          }
+
+          w_smoothed->widget()->canvas()->finishAdding();
+
+          connectWindowSignals_(w_smoothed);
+          w_smoothed->setCaption(new_name);
+          addClient(w_smoothed,filename);
+          addTab_(w_smoothed,new_name);
+
+          w_smoothed->showMaximized();
+
+          //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
+          //           w_smoothed->widget()->canvas()->setDotGradient(gradient_peaks);
+        }
+      }
+      updateLayerbar();
+    }
+  }
+
+
+
+  void SpectrumMDIWindow::baselineFilteringActiveSpectrum()
+  {
+    BaselineFilteringDialog dialog(this,"Open Smoothing Dialog");
+    if (dialog.exec())
+    {
+      // 1D smoothing
+      Spectrum1DWindow* w = active1DWindow_();
+      if (w!=0)
+      {
+        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+        TopHatFilter tophat;
+        tophat.setStrucElemSize(dialog.getStrucElemWidth());
+
+        bool resampling_flag = dialog.getResampling();
+
+        //add new layer
+        String new_name = exp_raw.getName()+" (smoothed)";
+        Spectrum1DCanvas::ExperimentType& exp_filtered = w->widget()->canvas()->addEmptyDataSet();
+        exp_filtered.setName(new_name); // set layername
+
+        // add one spectrum
+        exp_filtered.resize(1);
+
+        // Resampling before savitzky golay filtering?
+        if (resampling_flag)
+        {
+          Spectrum1DCanvas::ExperimentType::SpectrumType resampled_spectrum;
+          LinearResampler resampler;
+          resampler.setSpacing(dialog.getSpacing());
+          resampler.raster(exp_raw[0],resampled_spectrum);
+          tophat.filter(resampled_spectrum,exp_filtered[0]);
+        }
+        else
+        {
+          tophat.filter(exp_raw[0],exp_filtered[0]);
+        }
+        //color smoothed data
+        for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp_filtered[0].begin(); it!= exp_filtered[0].end(); ++it)
+        {
+          it->setMetaValue(UnsignedInt(5),string("#FF00FF"));
+        }
+
+        w->widget()->canvas()->finishAdding();
+      }
+      else
+      {
+        Spectrum2DWindow* w2 = active2DWindow_();
+        if (w2!=0)
+        {
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+          TopHatFilter tophat;
+          tophat.setStrucElemSize(dialog.getStrucElemWidth());
+
+          bool resampling_flag = dialog.getResampling();
+
+          //add new window for picked peaks
+          Spectrum2DWindow* w_tophat = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
+          //set main preferences
+          w_tophat->setMainPreferences(prefs_);
+          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (smoothed)";
+
+          Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyDataSet();
+          exp_filtered.setName(new_name); // set layername
+
+          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_smoothed";
+
+          // Resampling before savitzky golay filtering?
+          if (resampling_flag)
+          {
+            Spectrum2DCanvas::ExperimentType resampled_experiment;
+            LinearResampler lin_resampler;
+            lin_resampler.setSpacing(dialog.getSpacing());
+
+            unsigned int n = exp_raw.size();
+            // resample and filter every scan
+            for (unsigned int i = 0; i < n; ++i)
+            {
+              // temporary container for the resampled data
+              Spectrum2DCanvas::ExperimentType::SpectrumType resampled_data;
+              lin_resampler.raster(exp_raw[i],resampled_data);
+
+              Spectrum2DCanvas::ExperimentType::SpectrumType spectrum;
+              tophat.filter(resampled_data, spectrum);
+
+              // if any peaks are found copy the spectrum settings
+              if (spectrum.size() > 0)
+              {
+                // copy the spectrum settings
+                //  static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];
+                // spectrum.setType(SpectrumSettings::RAWDATA);
+
+                // copy the spectrum information
+                //                 spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
+                //                 spectrum.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+                //                 spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
+                //                 spectrum.getName() = ms_exp_raw[i].getName();
+
+                exp_filtered.push_back(spectrum);
+              }
+            }
+          }
+          else
+          {
+              tophat.filterExperiment(exp_raw,exp_filtered);
+          }
+
+          w_tophat->widget()->canvas()->finishAdding();
+
+          connectWindowSignals_(w_tophat);
+          w_tophat->setCaption(new_name);
+          addClient(w_tophat,filename);
+          addTab_(w_tophat,new_name);
+
+          w_tophat->showMaximized();
+
+          //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
+          //           w_smoothed->widget()->canvas()->setDotGradient(gradient_peaks);
+        }
+      }
+      updateLayerbar();
+    }
+  }
+
+
+
+
   void SpectrumMDIWindow::pickActiveSpectrum()
   {
     PeakPickingDialog dialog(this,"Open Peak Picking Dialog");
@@ -1388,8 +1754,8 @@ namespace OpenMS
 
           w_picked->showMaximized();
 
-//           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
-//           w_picked->widget()->canvas()->setDotGradient(gradient_peaks);
+          //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
+          //           w_picked->widget()->canvas()->setDotGradient(gradient_peaks);
         }
       }
       updateLayerbar();
@@ -1404,7 +1770,8 @@ namespace OpenMS
   Spectrum1DWindow* SpectrumMDIWindow::active1DWindow_() const
   {
     Spectrum1DWindow* s1;
-    if ((s1 = dynamic_cast<Spectrum1DWindow*>(ws_->activeWindow())))
+    if ((s1 = dynamic_cast<Spectrum1DWindow*>(ws_->activeWindow()))
+       )
     {
       return s1;
     }
@@ -1414,7 +1781,8 @@ namespace OpenMS
   Spectrum2DWindow* SpectrumMDIWindow::active2DWindow_() const
   {
     Spectrum2DWindow* s2;
-    if ((s2 = dynamic_cast<Spectrum2DWindow*>(ws_->activeWindow())))
+    if ((s2 = dynamic_cast<Spectrum2DWindow*>(ws_->activeWindow()))
+       )
     {
       return s2;
     }
@@ -1424,7 +1792,8 @@ namespace OpenMS
   Spectrum3DWindow* SpectrumMDIWindow::active3DWindow_() const
   {
     Spectrum3DWindow* s3;
-    if ((s3 = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow())))
+    if ((s3 = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
+       )
     {
       return s3;
     }
