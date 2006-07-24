@@ -1,4 +1,3 @@
-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -208,10 +207,10 @@ ifeq ($(GSL_SUPPORT),true)
   	PeakDiffBins_test\
   	IntensityDistBins_test\
   	KellerQuality_test
-
+endif
 #		DSavitzkyGolaySVDFilter_test\
 #		DSavitzkyGolayQRFilter_test\
-endif
+
 
 EXECUTABLES_FILTERING = \
 	$(GSL_EXECUTABLES_FILTERING)\
