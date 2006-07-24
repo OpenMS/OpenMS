@@ -25,10 +25,10 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_BASELINEFITLERINGDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_BASELINEFITLERINGDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/PeakPickingDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/BaselineFilteringDialogTemplate.h>
 
 namespace OpenMS
 {
@@ -38,28 +38,24 @@ namespace OpenMS
   	
   	@ingroup Dialogs
   */
-  class PeakPickingDialog: public PeakPickingDialogTemplate
+  class BaselineFilteringDialog: public BaselineFilteringDialogTemplate
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    PeakPickingDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
-    ~PeakPickingDialog();
-    void setPeakHeight(float h);
-    float getPeakHeight();
-    void setPeakHeightMs2(float h2);
-    float getPeakHeightMs2();
-    void setSignalToNoise(float sn);
-    float getSignalToNoise();
-    void setFwhm(float fwhm);
-    float getFwhm();
-    void setOptimization(bool opt);
-    bool getOptimization();
-  protected slots:
-    virtual void resetButton_clicked();
-    virtual void startButton_clicked();
+    public:
+      BaselineFilteringDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
+      ~BaselineFilteringDialog();
+      void setStrucElemWidth(float kw);
+      float getStrucElemWidth();
+      void setResampling(bool r);
+      bool getResampling();
+      void setSpacing(float sp);
+      float getSpacing();
+    protected slots:
+      virtual void resetButton_clicked();
+      virtual void startButton_clicked();
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_PeakPickingDialog_H
+#endif // OPENMS_VISUAL_DIALOGS_BaselineFilteringDialog_H
 

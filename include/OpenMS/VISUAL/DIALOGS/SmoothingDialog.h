@@ -25,10 +25,10 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_PEAKPICKINGDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_SMOOTHINGDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_SMOOTHINGDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/PeakPickingDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/SmoothingDialogTemplate.h>
 
 namespace OpenMS
 {
@@ -38,28 +38,30 @@ namespace OpenMS
   	
   	@ingroup Dialogs
   */
-  class PeakPickingDialog: public PeakPickingDialogTemplate
+  class SmoothingDialog: public SmoothingDialogTemplate
   {
-    Q_OBJECT
+      Q_OBJECT
 
-  public:
-    PeakPickingDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
-    ~PeakPickingDialog();
-    void setPeakHeight(float h);
-    float getPeakHeight();
-    void setPeakHeightMs2(float h2);
-    float getPeakHeightMs2();
-    void setSignalToNoise(float sn);
-    float getSignalToNoise();
-    void setFwhm(float fwhm);
-    float getFwhm();
-    void setOptimization(bool opt);
-    bool getOptimization();
-  protected slots:
-    virtual void resetButton_clicked();
-    virtual void startButton_clicked();
+    public:
+      SmoothingDialog(QWidget* parent = 0, const char* name = 0, WFlags fl = 0);
+      ~SmoothingDialog();
+      void setKernelWidth(float kw);
+      float getKernelWidth();
+      void setResampling(bool r);
+      bool getResampling();
+      void setGaussian(bool r);
+      bool getGaussian();
+      void setSGolay(bool r);
+      bool getSGolay();
+      void setSGolayOrder(unsigned int o);
+      unsigned int getSGolayOrder();
+      void setSpacing(float sp);
+      float getSpacing();
+    protected slots:
+      virtual void resetButton_clicked();
+      virtual void startButton_clicked();
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_PeakPickingDialog_H
+#endif // OPENMS_VISUAL_DIALOGS_SmoothingDialog_H
 
