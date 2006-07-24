@@ -266,8 +266,6 @@ namespace OpenMS
 
       delete [] g;
       delete [] h;
-
-      std::cout << "end of erosion " << result.size() << std::endl;
     }
 
 

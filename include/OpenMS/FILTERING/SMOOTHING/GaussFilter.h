@@ -53,6 +53,8 @@ namespace OpenMS
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
   */
+//#define DEBUG_FILTERING
+
   class GaussFilter : public SmoothFilter
   {
     public:

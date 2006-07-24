@@ -145,7 +145,7 @@ namespace OpenMS
         return order_;
       }
       /// Mutable access to the order
-      void setOrder(const unsigned int order);
+      void setOrder(const unsigned int& order);
 
       /// Non-mutable access to length of the smoothing window
       inline const unsigned int& getWindowSize() const
@@ -153,7 +153,7 @@ namespace OpenMS
         return frame_size_;
       }
       /// Mutable access to the length of the window
-      void setWindowSize(const unsigned int frame_size);
+      void setWindowSize(const unsigned int& frame_size);
 
       /// Non-mutable access to the parameter object
       inline const Param& getParam() const
