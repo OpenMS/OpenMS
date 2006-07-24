@@ -282,48 +282,85 @@ mzdata.store(map,"dummy.mzData");
   so-called "peak picking", can be found.
   <br>
   <br>
-  <b>DPeakPickerCWT</b>
+  <b>PeakPickerCWT</b>
   <br>
   This is the main class which you need for peak picking.
   <br>
-  Using the following code fragment, peak picking on 2 dimensional
-  raw data is performed:
+  It offers you four different mehtods for peak picking. Two of them work on 
+  a container of one-dimensional data points. The following code shows for example how to search for peaks in
+  a single MS spectrum:
 
   <pre>
-typedef DPeakArrayNonPolymorphic&lt; 2, DRawDataPoint&lt;2&gt; &gt; RawData2D;
-
-RawData2D raw_data; 
+// A container for the raw data 
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; raw_spectrum;
+// Instantiate a file reader for dta files.
+DTAFile dta_file;
+// Load the raw data stored in "MSSpectrum.dta" into the raw data container.
+dta_file.load("MSSpectrum.dta", raw_spectrum);
 
 // instantiate a peak picker object
-DPeakPickerCWT&lt;2&gt; p(xml_file);
+PeakPickerCWT peak_picker;
+// Set the threshold for a minimal peak intensity (height)
+peak_picker.setPeakBound(200);
+// Set the wavelet scale
+peak_picker.setWaveletScale(0.2);
 
-//pick the peaks
-raw_data &gt;&gt; p(peaks); 
-</pre>The constructor of the peak picker needs either the peak
+// Container for the resulting peaks
+MSSpectrum &lt;DPickedPeak &lt;1&gt; &gt; peak_spectrum;
+
+// First possibility: pick the peaks on a well defined iterator range
+peak_picker.pick(raw_spectrum.begin(), raw_spectrum.end(), peak_spectrum); 
+
+// Second possibility: pick the peaks on the whole raw data container
+peak_picker.pick(raw_spectrum, peak_spectrum);
+</pre>
+
+The other two methods work on container of one-dimensional data point containers. The following
+code example should explain the usage:
+
+ <pre>
+// Instantiate a MSExperiment (a container for raw data container) for the raw data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; raw_experiment;
+// Instantiate a file reader for mzData files.
+MzDataFile mzdata_file;
+// Load the raw data stored in "MSExperiment.mzData" into the MSExperiment
+mzdata_file.load("MSExperiment.mzData", raw_experiment);
+
+// instantiate a peak picker object
+PeakPickerCWT peak_picker;
+// Set the threshold for a minimal peak intensity (height)
+peak_picker.setPeakBound(200);
+// Set the threshold for a minimal peak intensity (height) of a tandem mass spectrum
+peak_picker.setPeakBoundMs2Level(50);
+// Set the wavelet scale
+peak_picker.setWaveletScale(0.2);
+
+// Container for the resulting peaks
+MSExperiment &lt;DPickedPeak &lt;1&gt; &gt; peak_experiment;
+
+// First possibility: pick the peaks on a well defined iterator range 
+// (note: this method does not copy the experimental settings of the raw data)
+peak_picker.pickExperiment(raw_experiment.begin(), raw_experiment.end(), peak_experiment); 
+
+// Second possibility: pick the peaks on the whole raw MSExperiment
+peak_picker.pickExperiment(raw_experiment, peak_experiment);
+</pre>
+
+Instead of setting the peak picking parameter manually you can also use a parameter file.
+The constructor of the peak picker needs either the peak
 picking parameter stored in a xml file or in a Param object (when
 the Param object or the file are empty the default peak picking
 paramter are used). Some sample xml files can be found in
 OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
   <br>
-  To perform the peak picking on a well defined range of the raw
-  data, the method pick can be directly used:
+  <br>
 
-  <pre>
-typedef DPeakArrayNonPolymorphic&lt;D,DRawDataPoint&lt;D&gt; &gt; RawData;
-typedef typename RawData::const_iterator RawConstIterator;
-
-pick(RawConstIterator first, RawConstIterator last, std::back_insert_iterator&lt; PeakShape &gt;&amp; output);
-</pre><b>Note:</b>
+  <b>Note:</b>
 
   <ul>
-    <li>Prefer ContinuousWaveletTransformNumIntegration for peak
-    picking!</li>
-
-
-    <li>The Optimization of the peak parameter turned out to be
+    The Optimization of the peak parameter turned out to be
     particularly useful for poorly resolved data with strongly
-    overlapping, convoluted peak patterns!</li>
-  </ul>
+    overlapping, convoluted peak patterns!</ul>
 
   <br>
   <br>
@@ -339,14 +376,8 @@ pick(RawConstIterator first, RawConstIterator last, std::back_insert_iterator&lt
   numerical integration.
   <br>
   <br>
-  <b>ContinuousWaveletTransformFFT</b>
-  <br>
-  This class computes the convolution happens in the CWT by fourier
-  transformation (only efficient convoluting two signals of
-  approximately the same length).
-  <br>
-  <br>
-  <b>DExtractSignalRegions</b>
+  
+  <b>ExtractSignalRegions</b>
   <br>
   This class improves the run time of the peak picker by
   decomposing the raw mass spectra into smaller parts with a
