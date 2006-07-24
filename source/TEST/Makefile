@@ -180,8 +180,6 @@ EXECUTABLES_MATH = \
 
 ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_FILTERING = \
-		DSavitzkyGolaySVDFilter_test\
-		DSavitzkyGolayQRFilter_test\
   	PreprocessingFunctor_test\
   	NLargest_test\
   	Scaler_test\
@@ -211,6 +209,8 @@ ifeq ($(GSL_SUPPORT),true)
   	IntensityDistBins_test\
   	KellerQuality_test
 
+#		DSavitzkyGolaySVDFilter_test\
+#		DSavitzkyGolayQRFilter_test\
 endif
 
 EXECUTABLES_FILTERING = \
