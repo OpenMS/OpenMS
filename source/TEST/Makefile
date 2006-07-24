@@ -116,7 +116,8 @@ EXECUTABLES_KERNEL =\
 ifeq ($(ENABLE_GUI),true)
 	EXECUTABLES_VISUAL =\
 		MultiGradient_test\
-		MappingInfo_test
+		MappingInfo_test\
+   	        AxisTickCalculator_test	
 endif
 
 #FORMAT

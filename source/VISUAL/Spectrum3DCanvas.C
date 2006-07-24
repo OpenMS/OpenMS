@@ -138,6 +138,7 @@ void Spectrum3DCanvas::invalidate_()
 {				
 	if(recalculate_)
 	{
+		openglwidget()->recalculateDotGradient_();
 		openglwidget()->glInit (); 
 	}	
 	openglwidget()->resizeGL(width(),height());
@@ -157,7 +158,6 @@ void Spectrum3DCanvas::intensityModeChange_()
 		{
 			openglwidget()->updateIntensityScale();
 		}
-	openglwidget()->recalculateDotGradient_();
 	repaintAll();
 }
 

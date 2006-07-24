@@ -79,6 +79,15 @@ Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()
 
 void Spectrum3DOpenGLCanvas::calculateGridLines_()
 {
+	grid_rt_ =  AxisTickCalculator::calcLogGridLines_(log10(10.0) , log10(100.0));
+	for (int i = 0;i<grid_rt_.size();i++)
+		{
+			for(int j = 0;j<grid_rt_[i].size();j++)
+				{
+					cout<<"wert"<<i<<"  "<<j<<"  "<<grid_rt_[i][j]<<endl;
+				}
+		}
+	grid_rt_.erase(	grid_rt_.begin(),	grid_rt_.end());
 	switch(canvas_3d_.intensity_mode_)
 	{
 	case SpectrumCanvas::IM_SNAP:
