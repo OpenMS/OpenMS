@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHTRANSLATIONFEATUREMATCHER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHTRANSLATIONFEATUREMATCHER_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHSHIFTFEATUREMATCHER_H
+#define OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHSHIFTFEATUREMATCHER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseFeatureMatcher.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -35,23 +35,23 @@
 
 #include <fstream>
 
-#if defined OPENMS_DEBUG && ! defined V_DGeomHashTranslationFeatureMatcher
-#define V_DGeomHashTranslationFeatureMatcher(bla) std::cout << bla << std::endl;
+#if defined OPENMS_DEBUG && ! defined V_DGeomHashShiftFeatureMatcher
+#define V_DGeomHashShiftFeatureMatcher(bla) std::cout << bla << std::endl;
 #else
-#define V_DGeomHashTranslationFeatureMatcher(bla)
+#define V_DGeomHashShiftFeatureMatcher(bla)
 #endif
 
 namespace OpenMS
 {
 	
 	/**
-		 @brief Feature matcher that uses geometric hashing to find a good translation
+		 @brief Feature matcher that uses geometric hashing to find a good shift
 
 		 While the feature positions can have D dimensions, only the first two are
-		 used to find a translation.
+		 used to find a shift.
 	**/
 	template <Size D, typename TraitsT = KernelTraits, typename FeatureT = DFeature<D,TraitsT> >
-	class DGeomHashTranslationFeatureMatcher
+	class DGeomHashShiftFeatureMatcher
 		: public DBaseFeatureMatcher < D, TraitsT, FeatureT >
 	{
 	 protected:
@@ -66,33 +66,33 @@ namespace OpenMS
 
 	 public:
 		
-		/** @brief Nested class to represent a translation.
+		/** @brief Nested class to represent a shift.
 
-		    The translation itself is stored as a DPosition.  Also provided is a
+		    The shift itself is stored as a DPosition.  Also provided is a
 		    quality value, with an acompanying comparator.
 		*/
-		class Translation
+		class Shift
 		{
 		 public:
 
-			Translation()
+			Shift()
 				: position_(0),
 					quality_(0)
 			{}
 
-			Translation(Translation const & source)
+			Shift(Shift const & source)
 				: position_(source.position_),
 					quality_(source.quality_)
 			{}
 
-			Translation & operator= (Translation const & source)
+			Shift & operator= (Shift const & source)
 			{
 				position_ = source.position_;
 				quality_ = source.quality_;
 				return *this;
 			}
 			
-			~Translation() {}
+			~Shift() {}
 			
 			typedef TraitsT TraitsType;
 			typedef DPosition<D,TraitsType> PositionType;
@@ -117,11 +117,11 @@ namespace OpenMS
 			not used currently
 
 			/// Compare by getQuality()
-			struct QualityLess : std::binary_function < Translation, Translation, bool >
+			struct QualityLess : std::binary_function < Shift, Shift, bool >
 			{
-				bool operator () ( Translation const & left, Translation const & right ) const {return ( left.getQuality() < right.getQuality() );}
-				bool operator () ( Translation const & left, QualityType const & right ) const {return ( left.getQuality() < right );}
-				bool operator () ( QualityType const & left, Translation const & right ) const {return ( left< right.getQuality() );}
+				bool operator () ( Shift const & left, Shift const & right ) const {return ( left.getQuality() < right.getQuality() );}
+				bool operator () ( Shift const & left, QualityType const & right ) const {return ( left.getQuality() < right );}
+				bool operator () ( QualityType const & left, Shift const & right ) const {return ( left< right.getQuality() );}
 				bool operator () ( QualityType const & left, QualityType const & right ) const {return ( left < right );}
 			};
 			*/
@@ -155,9 +155,9 @@ namespace OpenMS
 		typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
 		typedef std::vector <Size> FeatureBucketType;
 		typedef Matrix < FeatureBucketType > FeatureBucketMatrixType;
-		typedef Translation TranslationType;
-		typedef Matrix < typename TranslationType::QualityType > TranslationQualityMatrixType;
-		typedef Matrix < TranslationType > TranslationMatrixType;
+		typedef Shift ShiftType;
+		typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
+		typedef Matrix < ShiftType > ShiftMatrixType;
 		//@}
 
 		using Base::setParam;
@@ -174,24 +174,24 @@ namespace OpenMS
 		///@name Constructors, destructor and assignment
 		//@{
 		/// Constructor
-		DGeomHashTranslationFeatureMatcher()
+		DGeomHashShiftFeatureMatcher()
 			: Base()
 		{}
 		
 		/// Copy constructor
-		DGeomHashTranslationFeatureMatcher(const DGeomHashTranslationFeatureMatcher& source)
+		DGeomHashShiftFeatureMatcher(const DGeomHashShiftFeatureMatcher& source)
 			: Base(source)
 		{}
 		
 		///	 Assignment operator
-		DGeomHashTranslationFeatureMatcher& operator = (DGeomHashTranslationFeatureMatcher source)
+		DGeomHashShiftFeatureMatcher& operator = (DGeomHashShiftFeatureMatcher source)
 		{
 			Base::operator=(source);
 			return *this;
 		} 
 		
 		/// Destructor
-		~DGeomHashTranslationFeatureMatcher() {}
+		~DGeomHashShiftFeatureMatcher() {}
 		//@}
 		
 		//------------------------------------------------------------
@@ -209,9 +209,9 @@ namespace OpenMS
 		{
 			parseParam_();
 			computeFeatureBuckets_();
-			computeTranslationBuckets_();
-			// computeTranslation_();
-			computeFinalTranslation_();
+			computeShiftBuckets_();
+			// computeShift_();
+			computeFinalShift_();
 
 			this->getFeaturePairs().resize(1);
 		}
@@ -227,7 +227,7 @@ namespace OpenMS
 
 		void parseParam_()
 		{
-#define V_parseParam_(bla) V_DGeomHashTranslationFeatureMatcher(bla)
+#define V_parseParam_(bla) V_DGeomHashShiftFeatureMatcher(bla)
 			V_parseParam_("@@@ parseParam_()");
 
 			// Initialize feature_bucket_size_ with values from param_.
@@ -248,8 +248,8 @@ namespace OpenMS
 				}
 			}
 
-			// Initialize translation_bucket_size_ with values from param_.
-			std::string tm_bs  = "translation_map:bucket_size:";
+			// Initialize shift_bucket_size_ with values from param_.
+			std::string tm_bs  = "shift_map:bucket_size:";
 			for ( Size dimension = 0; dimension < 2; ++dimension)
 			{
 				String tm_bs_dn
@@ -263,13 +263,13 @@ namespace OpenMS
 				}
 				else
 				{
-					translation_bucket_size_[dimension] = data_value;
-					V_parseParam_(tm_bs_dn<< ": "<<translation_bucket_size_[dimension]);
+					shift_bucket_size_[dimension] = data_value;
+					V_parseParam_(tm_bs_dn<< ": "<<shift_bucket_size_[dimension]);
 				}
 			}
 
 			// Initialize feature_bucket_window_ with values from param_.
-			std::string tm_fbw = "translation_map:feature_bucket_window:";
+			std::string tm_fbw = "shift_map:feature_bucket_window:";
 			for ( Size dimension = 0; dimension < 2; ++dimension)
 			{
 				std::string tm_fbw_dn
@@ -288,8 +288,8 @@ namespace OpenMS
 				}
 			}
 
-			// Initialize translation_bucket_window_ with values from param_.
-			std::string const tm_tbw = "translation_map:translation_bucket_window:";
+			// Initialize shift_bucket_window_ with values from param_.
+			std::string const tm_tbw = "shift_map:shift_bucket_window:";
 			for ( Size dimension = 0; dimension < 2; ++dimension)
 			{
 				std::string tm_tbw_dn
@@ -303,8 +303,8 @@ namespace OpenMS
 				}
 				else
 				{
-					translation_bucket_window_[dimension] = data_value;
-					V_parseParam_(tm_tbw_dn<< ": "<<translation_bucket_window_[dimension]);
+					shift_bucket_window_[dimension] = data_value;
+					V_parseParam_(tm_tbw_dn<< ": "<<shift_bucket_window_[dimension]);
 				}
 			}
 
@@ -316,7 +316,7 @@ namespace OpenMS
 		 */
 		void computeFeatureBuckets_()
 		{
-#define V_computeFeatureBuckets_(bla) V_DGeomHashTranslationFeatureMatcher(bla)
+#define V_computeFeatureBuckets_(bla) V_DGeomHashShiftFeatureMatcher(bla)
 			V_computeFeatureBuckets_("@@@ computeFeatureBuckets_()");
 
 			// Shorthands ...
@@ -426,25 +426,25 @@ namespace OpenMS
 
 		//----------------------------------------------------------------------
 
-		/**@brief Fill the buckets of translations.
+		/**@brief Fill the buckets of shifts.
 
 		   Note that computeFeatureBuckets_() must have been called before to make
 			 this work properly.
 		*/
-		void computeTranslationBuckets_()
+		void computeShiftBuckets_()
 		{
-#define V_computeTranslationBuckets_(bla) V_DGeomHashTranslationFeatureMatcher(bla)
-			V_computeTranslationBuckets_("@@@ computeTranslationBuckets_()");
+#define V_computeShiftBuckets_(bla) V_DGeomHashShiftFeatureMatcher(bla)
+			V_computeShiftBuckets_("@@@ computeShiftBuckets_()");
 
 			// Shorthands ...
-			TranslationQualityMatrixType & tb      = translation_bucket_;
-			PositionType                 & tbs     = translation_bucket_size_;
-			PositionBoundingBoxType      & tbb     = translation_bounding_box_ ;
-			PositionBoundingBoxType      & tbbe    = translation_bounding_box_enlarged_ ;
+			ShiftQualityMatrixType & tb      = shift_bucket_;
+			PositionType                 & tbs     = shift_bucket_size_;
+			PositionBoundingBoxType      & tbb     = shift_bounding_box_ ;
+			PositionBoundingBoxType      & tbbe    = shift_bounding_box_enlarged_ ;
 			Size                   const (&fbw)[2] = feature_bucket_window_;
-			TranslationMatrixType        & tm      = translation_matrix_;
+			ShiftMatrixType        & tm      = shift_matrix_;
 			
-			// Compute the bounding box for the translation map
+			// Compute the bounding box for the shift map
 			{
 				tbb.clear();
 				PositionType fmpbbmindiff =
@@ -456,55 +456,55 @@ namespace OpenMS
 				tbb.enlarge( fmpbbmindiff + windowdiff );
 				tbb.enlarge( fmpbbmindiff - windowdiff );
 			}
-			V_computeTranslationBuckets_("tbb: "<<tbb);
+			V_computeShiftBuckets_("tbb: "<<tbb);
 
 			// Next we will enlarge each bucket_size_ such that all buckets will
 			// have the same diagonal.  To provide against rounding errors, we
 			// allocate one bucket more than needed (in each dimension) and shift
 			// the grid by one-half.
 
-			PositionType half_of_translation_bucket_size_(tbs);
-			half_of_translation_bucket_size_ /= 2;
-			V_computeTranslationBuckets_("hotbs: " << half_of_translation_bucket_size_);
+			PositionType half_of_shift_bucket_size_(tbs);
+			half_of_shift_bucket_size_ /= 2;
+			V_computeShiftBuckets_("hotbs: " << half_of_shift_bucket_size_);
 
-			// Adjust the enlarged translation map bounding box accordingly.
-			tbbe.enlarge( tbb.min() - half_of_translation_bucket_size_ );
-			tbbe.enlarge( tbb.max() + half_of_translation_bucket_size_ );
-			V_computeTranslationBuckets_("tbbe: "<<tbbe);
+			// Adjust the enlarged shift map bounding box accordingly.
+			tbbe.enlarge( tbb.min() - half_of_shift_bucket_size_ );
+			tbbe.enlarge( tbb.max() + half_of_shift_bucket_size_ );
+			V_computeShiftBuckets_("tbbe: "<<tbbe);
 
-			// Compute translation_bucket_size_ and num_buckets.
+			// Compute shift_bucket_size_ and num_buckets.
 			PositionType diagonal = tbbe.diagonal();
-			V_computeTranslationBuckets_("diagonal: " << diagonal);
+			V_computeShiftBuckets_("diagonal: " << diagonal);
 			int num_buckets[2];
 			for ( Size dimension = 0; dimension < DIMENSION; ++dimension)
 			{
 				num_buckets[dimension] = int(diagonal[dimension]/tbs[dimension]);
 				tbs[dimension] = diagonal[dimension] / num_buckets[dimension];
 			}
-			V_computeTranslationBuckets_("tbs: "<<tbs);
+			V_computeShiftBuckets_("tbs: "<<tbs);
 
-			// Resize translation_bucket_ accordingly.
+			// Resize shift_bucket_ accordingly.
 			tb.resize(num_buckets[0]+1,num_buckets[1]+1);
-			V_computeTranslationBuckets_("rows: "<<tb.rows()<<"  cols: "<<tb.cols());
+			V_computeShiftBuckets_("rows: "<<tb.rows()<<"  cols: "<<tb.cols());
 
-			// Resize translation_matrix_ according to feature_bucket_[1]
+			// Resize shift_matrix_ according to feature_bucket_[1]
 			tm.resize(feature_bucket_[1].sizePair());
 
-			// Now we store the translations for all relevant feature pairs in their
-			// corresponding buckets.  Each translation is distributed among its
+			// Now we store the shifts for all relevant feature pairs in their
+			// corresponding buckets.  Each shift is distributed among its
 			// four neighboring "buckets", with weights according to the distances
 			// from these corner points.  Note that the outer two loops (over i and
 			// j) enumerate the "image" (feature_bucket_[1]), then we search for
 			// "pre-images" (feature_bucket_[0}) in the two inner loops (over k and
 			// l).  (And of course, finally, we enumerate all feature pairs.)  This
-			// way we can associate the translations vectors to buckets of the
+			// way we can associate the shifts vectors to buckets of the
 			// image, and when we will later apply it, we will not change the
 			// pre-image, which might be a consensus or so.
-#define V_computeTranslationBuckets_enumeration(bla) V_computeTranslationBuckets_(bla)
+#define V_computeShiftBuckets_enumeration(bla) V_computeShiftBuckets_(bla)
 			PositionType const & tbbe_min = tbbe.min();
 			for ( Size j = 0; j < feature_bucket_[1].cols(); ++j )
 			{
-				// Clear the translation buckets.
+				// Clear the shift buckets.
 				std::fill(tb.begin(),tb.end(),QualityType(0));
 				
 				for ( Size i = 0; i < feature_bucket_[1].rows(); ++i )
@@ -517,7 +517,7 @@ namespace OpenMS
 									l     <= std::min ( j + fbw[1], feature_bucket_[0].cols()-1 );
 									++l )
 						{
-							// V_computeTranslationBuckets_enumeration("ijkl: "<<i<<' '<<j<<' '<<k<<' '<<l);
+							// V_computeShiftBuckets_enumeration("ijkl: "<<i<<' '<<j<<' '<<k<<' '<<l);
 							for ( FeatureBucketType::const_iterator fb0_iter = feature_bucket_[0](i,j).begin();
 										fb0_iter != feature_bucket_[0](i,j).end();
 										++fb0_iter
@@ -528,19 +528,19 @@ namespace OpenMS
 											++fb1_iter
 										)
 								{
-									// Compute the translation corresponding to a pair of features.
-									TranslationType translation = translation_( getFeatureMap(0)[*fb0_iter],
+									// Compute the shift corresponding to a pair of features.
+									ShiftType shift = shift_( getFeatureMap(0)[*fb0_iter],
 																															getFeatureMap(1)[*fb1_iter] );
-									V_computeTranslationBuckets_enumeration("translation: "<<translation.getPosition());
+									V_computeShiftBuckets_enumeration("shift: "<<shift.getPosition());
 
-									PositionType tpwm = translation.getPosition();
+									PositionType tpwm = shift.getPosition();
 									tpwm -= tbbe_min;
-									V_computeTranslationBuckets_enumeration("trans.pos wrt tbbe_min: "<<translation.getPosition());
+									V_computeShiftBuckets_enumeration("trans.pos wrt tbbe_min: "<<shift.getPosition());
 
-									QualityType  const & tq = translation.getQuality();
+									QualityType  const & tq = shift.getQuality();
 
 									// Compute the bucket index (the lowest of the four) for
-									// this translation.  Also compute the fractional part of
+									// this shift.  Also compute the fractional part of
 									// the position within the bucket.
 									Size bucket_index[2];
 									PositionType bucket_fraction;
@@ -553,7 +553,7 @@ namespace OpenMS
 									PositionType bucket_fraction_complement(1,1);
 									bucket_fraction_complement -= bucket_fraction;
 
-									// Distribute the quality of the translation among the four neighboring buckets.
+									// Distribute the quality of the shift among the four neighboring buckets.
 									QualityType factor;
 
 									factor = bucket_fraction_complement[0] * bucket_fraction_complement[1];
@@ -574,26 +574,26 @@ namespace OpenMS
 					} // for k
 				} // for i
 				
-				// Compute translation for this columns of image buckets.
-				TranslationType result = computeTranslation_();
-				translation_matrix_(0,j) = result; // oh, a weird HACK at the moment!
+				// Compute shift for this columns of image buckets.
+				ShiftType result = computeShift_();
+				shift_matrix_(0,j) = result; // oh, a weird HACK at the moment!
 				
-				V_computeTranslationBuckets_enumeration(/*i<<' '<<*/j<<' '<<result.getPosition()<<' '<<result.getQuality()<< " #result");
+				V_computeShiftBuckets_enumeration(/*i<<' '<<*/j<<' '<<result.getPosition()<<' '<<result.getQuality()<< " #result");
 					
 			} // for j
-#undef V_computeTranslationBuckets_enumeration
+#undef V_computeShiftBuckets_enumeration
 			
 			// Optionally, write debug output as specified in param.
-			DataValue data_value_dump_translation_buckets = getParam().getValue("debug:dump_translation_buckets");
-			if ( data_value_dump_translation_buckets != DataValue::EMPTY )
+			DataValue data_value_dump_shift_buckets = getParam().getValue("debug:dump_shift_buckets");
+			if ( data_value_dump_shift_buckets != DataValue::EMPTY )
 			{
-				std::string   dump_filename = data_value_dump_translation_buckets;
+				std::string   dump_filename = data_value_dump_shift_buckets;
 				std::ofstream dump_file(dump_filename.c_str());
-				V_computeTranslationBuckets_("### Writing "<<dump_filename);
+				V_computeShiftBuckets_("### Writing "<<dump_filename);
 				dump_file << "# " << dump_filename << " generated " << Date::now() << std::endl;
-				dump_file << "# Translation buckets: xcoord ycoord quality xindex yindex" << std::endl;
+				dump_file << "# Shift buckets: xcoord ycoord quality xindex yindex" << std::endl;
 
-				for ( typename TranslationQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
+				for ( typename ShiftQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
 				{
 					std::pair<Size,Size> row_col = tb.indexPair(iter-tb.begin());
 					dump_file << tbbe_min[0] + tbs[0] * row_col.first << ' '
@@ -606,93 +606,93 @@ namespace OpenMS
 				dump_file << "# " << dump_filename << " EOF " << Date::now() << std::endl;
 			}
 			
-#undef V_computeTranslationBuckets_
-		} // computeTranslationBuckets_
+#undef V_computeShiftBuckets_
+		} // computeShiftBuckets_
 
 
 		//----------------------------------------------------------------------
 
-		/**@brief Compute the final translation.
+		/**@brief Compute the final shift.
 		 */
-		void computeFinalTranslation_()
+		void computeFinalShift_()
 		{
-#define V_computeFinalTranslation_(bla) V_DGeomHashTranslationFeatureMatcher(bla)
-			V_computeFinalTranslation_("@@@ computeFinalTranslation_()");
+#define V_computeFinalShift_(bla) V_DGeomHashShiftFeatureMatcher(bla)
+			V_computeFinalShift_("@@@ computeFinalShift_()");
 
-			TranslationType final_translation_;
-			for ( typename TranslationMatrixType::ConstIterator iter = translation_matrix_.begin();
-						iter != translation_matrix_.end();
+			ShiftType final_shift_;
+			for ( typename ShiftMatrixType::ConstIterator iter = shift_matrix_.begin();
+						iter != shift_matrix_.end();
 						++iter
 					)
 			{
-				typename TranslationType::QualityType quality = iter->getQuality();
-				final_translation_.getPosition() += iter->getPosition() * quality;
-				final_translation_.getQuality()  += quality;
+				typename ShiftType::QualityType quality = iter->getQuality();
+				final_shift_.getPosition() += iter->getPosition() * quality;
+				final_shift_.getQuality()  += quality;
 			}
-			final_translation_.getPosition() /= final_translation_.getQuality();
+			final_shift_.getPosition() /= final_shift_.getQuality();
 	
-			V_computeFinalTranslation_("final_translation_: "<<final_translation_.getPosition()<<' '<<final_translation_.getQuality());
+			V_computeFinalShift_("final_shift_: "<<final_shift_.getPosition()<<' '<<final_shift_.getQuality());
 
-			Size const & tm_rows = translation_matrix_.rows();
-			Size const & tm_cols = translation_matrix_.cols();
+			Size const & tm_rows = shift_matrix_.rows();
+			Size const & tm_cols = shift_matrix_.cols();
 			
-			std::vector< TranslationType > translation_by_row(tm_rows);
-			std::vector< TranslationType > translation_by_col(tm_cols);
+			std::vector< ShiftType > shift_by_row(tm_rows);
+			std::vector< ShiftType > shift_by_col(tm_cols);
 			for ( Size row = 0; row < tm_rows; ++row )
 			{
 				for ( Size col = 0; col < tm_cols; ++col )
 				{
-					TranslationType const & translation = translation_matrix_(row,col);
-					translation_by_row[row].getPosition() += translation.getPosition() * translation.getQuality();
-					translation_by_row[row].getQuality() += translation.getQuality();
-					translation_by_col[col].getPosition() += translation.getPosition() * translation.getQuality();
-					translation_by_col[col].getQuality() += translation.getQuality();
+					ShiftType const & shift = shift_matrix_(row,col);
+					shift_by_row[row].getPosition() += shift.getPosition() * shift.getQuality();
+					shift_by_row[row].getQuality() += shift.getQuality();
+					shift_by_col[col].getPosition() += shift.getPosition() * shift.getQuality();
+					shift_by_col[col].getQuality() += shift.getQuality();
 				}
 			}
 
 			for ( Size row = 0; row < tm_rows; ++row )
 			{
-				if ( translation_by_row[row].getQuality() )
-					translation_by_row[row].getPosition() /= translation_by_row[row].getQuality();
-				V_computeFinalTranslation_(row<<' '<<translation_by_row[row].getPosition()<<' '<<translation_by_row[row].getQuality()<<" #tr_by_row");
+				if ( shift_by_row[row].getQuality() )
+					shift_by_row[row].getPosition() /= shift_by_row[row].getQuality();
+				V_computeFinalShift_(row<<' '<<shift_by_row[row].getPosition()<<' '<<shift_by_row[row].getQuality()<<" #tr_by_row");
 			}
 
 			for ( Size col = 0; col < tm_cols; ++col )
 			{
-				if ( translation_by_col[col].getQuality() )
-					translation_by_col[col].getPosition() /= translation_by_col[col].getQuality();
-				V_computeFinalTranslation_(col<<' '<<translation_by_col[col].getPosition()<<' '<<translation_by_col[col].getQuality()<<" #tr_by_col");
+				if ( shift_by_col[col].getQuality() )
+					shift_by_col[col].getPosition() /= shift_by_col[col].getQuality();
+				V_computeFinalShift_(col<<' '<<shift_by_col[col].getPosition()<<' '<<shift_by_col[col].getQuality()<<" #tr_by_col");
 			}
 
-#undef V_computeFinalTranslation_
+#undef V_computeFinalShift_
 		}
 
 		//----------------------------------------------------------------------
 
-		/**@brief Compute the translation.
+		/**@brief Compute the shift.
 
-		    Note that translation_buckets_ must have been calculated before.
+		    Note that shift_buckets_ must have been calculated before.
 		*/
-		TranslationType computeTranslation_()
+		ShiftType computeShift_()
 		{
-#define V_computeTranslation_(bla) // V_DGeomHashTranslationFeatureMatcher(bla)
-			V_computeTranslation_("@@@ computeTranslation_()");
+#define V_computeShift_(bla) // V_DGeomHashShiftFeatureMatcher(bla)
+			V_computeShift_("@@@ computeShift_()");
 
 			// Shorthands ...
-			TranslationQualityMatrixType const & tb = translation_bucket_;
-			PositionType const & tbs = translation_bucket_size_;
-			Size const (&tbw)[2] = translation_bucket_window_;
+			ShiftQualityMatrixType const & tb = shift_bucket_;
+			PositionType const & tbs = shift_bucket_size_;
+			Size const (&tbw)[2] = shift_bucket_window_;
 
 			// Find the transformation bucket with highest impact (quality).
 			Size tb_max_element_index = std::max_element(tb.begin(),tb.end()) - tb.begin();
 			Size tb_max_indices[2];
 			tb_max_indices[0] = tb.rowIndex(tb_max_element_index);
 			tb_max_indices[1] = tb.colIndex(tb_max_element_index);
-			V_computeTranslation_("tb_max: "<<tb_max_indices[0]<<' '<<tb_max_indices[1]<<" quality="<<tb(tb_max_indices[0],tb_max_indices[1]));
+			V_computeShift_("tb_max: "<<tb_max_indices[0]<<' '<<tb_max_indices[1]<<" quality="<<tb(tb_max_indices[0],tb_max_indices[1]));
 
-			// Compute a weighted average of the translations nearby the tb_max_element.
-			TranslationType result; // initially zero
-			PositionType const & tbbe_min = translation_bounding_box_enlarged_.min();
+			// Compute a weighted average of the shifts nearby the tb_max_element.
+			ShiftType result; // initially zero
+			PositionType const & tbbe_min = shift_bounding_box_enlarged_.min();
 			int tb_run_indices[2];
 			for ( tb_run_indices[0]  = std::max ( int (tb_max_indices[0] - tbw[0]), 0 );
 						tb_run_indices[0] <= std::min ( int (tb_max_indices[0] + tbw[0]), int (tb.rows()) - 1 );
@@ -722,12 +722,12 @@ namespace OpenMS
 			}
 			
 			return result;
-#undef V_computeTranslation_
-		} // computeTranslation_
+#undef V_computeShift_
+		} // computeShift_
 
 		//----------------------------------------------------------------------
 
-		/**@brief Compute the translation and similarity for a pair of features;
+		/**@brief Compute the shift and similarity for a pair of features;
 			 larger quality values are better.
 			 
 			 The returned value should express our confidence that one feature might
@@ -739,14 +739,14 @@ namespace OpenMS
 
 			 @todo Take the quality of the features themselves into account, i.e. how good they fit to their model.
 		*/
-		TranslationType translation_ ( FeatureType const & left, FeatureType const & right ) const 
+		ShiftType shift_ ( FeatureType const & left, FeatureType const & right ) const 
 		{
-			TranslationType translation;
-			translation.setPosition(right.getPosition() - left.getPosition());
-			if ( right.getIntensity() == 0 ) translation.setQuality(0);
+			ShiftType shift;
+			shift.setPosition(right.getPosition() - left.getPosition());
+			if ( right.getIntensity() == 0 ) shift.setQuality(0);
 			QualityType result = left.getIntensity() / right.getIntensity();
-			translation.setQuality( result <= 1. ? result : 1. / result );
-			return translation;
+			shift.setQuality( result <= 1. ? result : 1. / result );
+			return shift;
 		}
 
 		//@} // Methods
@@ -773,34 +773,34 @@ namespace OpenMS
 		/// Diagonal size of each bucket in feature_index_bucket_.
 		PositionType feature_bucket_size_;
 
-		/// Translations are stored (summed up) in these buckets.
-		TranslationQualityMatrixType translation_bucket_;
+		/// Shifts are stored (summed up) in these buckets.
+		ShiftQualityMatrixType shift_bucket_;
 
-		/// Holds a bounding box for all possible translation vectors.
-		PositionBoundingBoxType translation_bounding_box_;
+		/// Holds a bounding box for all possible shift vectors.
+		PositionBoundingBoxType shift_bounding_box_;
 
-		/// Holds an enlarged bounding box for all translation vectors.  It is
+		/// Holds an enlarged bounding box for all shift vectors.  It is
 		/// larger by about half of a bucket in all directions.
-		PositionBoundingBoxType translation_bounding_box_enlarged_;
+		PositionBoundingBoxType shift_bounding_box_enlarged_;
 
-		/// Diagonal size of each bucket in translation_bucket_.
-		PositionType translation_bucket_size_;
+		/// Diagonal size of each bucket in shift_bucket_.
+		PositionType shift_bucket_size_;
 
 		/// Number of surrounding buckets of feature indices to be considered when
-		/// computing translations.
+		/// computing shifts.
 		Size feature_bucket_window_[2];
 
-		/// Number of surrounding buckets of translation indices to be considered when
-		/// computing translations.
-		Size translation_bucket_window_[2];
+		/// Number of surrounding buckets of shift indices to be considered when
+		/// computing shifts.
+		Size shift_bucket_window_[2];
 
-		/// Matrix of translations associated with buckets of feature_map_[1].
-		TranslationMatrixType translation_matrix_;
+		/// Matrix of shifts associated with buckets of feature_map_[1].
+		ShiftMatrixType shift_matrix_;
 
 		//@}
 		
-	}; // DGeomHashTranslationFeatureMatcher
+	}; // DGeomHashShiftFeatureMatcher
 	
 } // namespace OpenMS
 
-#endif	// OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHTRANSLATIONFEATUREMATCHER_H
+#endif	// OPENMS_ANALYSIS_MAPMATCHING_DGEOMHASHSHIFTFEATUREMATCHER_H
