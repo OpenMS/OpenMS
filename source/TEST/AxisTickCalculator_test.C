@@ -67,11 +67,8 @@ RESULT
 
 
 CHECK((static void calcLogGridLines(double x1, double x2, GridVector& grid)))
-	vector.push_back(vec2);
 	std::vector<std::vector<double> > vector1;
 	AxisTickCalculator::calcLogGridLines(log10(10.0),log10(100.0),vector1);
-	
-	TEST_REAL_EQUAL(vector.size(),vector1.size());
 
 	TEST_REAL_EQUAL(1,vector1[0].size());
 	TEST_REAL_EQUAL(8,vector1[1].size());

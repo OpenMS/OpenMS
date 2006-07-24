@@ -182,33 +182,33 @@ ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_FILTERING = \
 		DSavitzkyGolaySVDFilter_test\
 		DSavitzkyGolayQRFilter_test\
-  	reprocessingFunctor_test\
-  	Largest_test\
-  	caler_test\
-  	ernNorm_test\
-  	ormalizer_test\
-  	arentPeakMower_test\
-  	qrtMower_test\
-  	hresholdMower_test\
-  	indowMower_test\
-  	ilterFunctor_test\
-  	omplementFilter_test\
-  	oodDiffFilter_test\
-  	ntensityBalanceFilter_test\
-  	sotopeDiffFilter_test\
-  	eutralLossDiffFilter_test\
-  	eakDensityFilter_test\
-  	ICFilter_test\
-  	eakMarker_test\
-  	omplementMarker_test\
-  	sotopeMarker_test\
-  	eutralLossMarker_test\
-  	arkerMower_test\
-  	arentFilter_test\
-  	radSeqQuality_test\
-  	eakPosBins_test\
-  	eakDiffBins_test\
-  	ntensityDistBins_test\
+  	PreprocessingFunctor_test\
+  	NLargest_test\
+  	Scaler_test\
+  	BernNorm_test\
+  	Normalizer_test\
+  	ParentPeakMower_test\
+  	SqrtMower_test\
+  	ThresholdMower_test\
+  	WindowMower_test\
+  	FilterFunctor_test\
+  	ComplementFilter_test\
+  	GoodDiffFilter_test\
+  	IntensityBalanceFilter_test\
+  	IsotopeDiffFilter_test\
+  	NeutralLossDiffFilter_test\
+  	PeakDensityFilter_test\
+  	TICFilter_test\
+  	PeakMarker_test\
+  	ComplementMarker_test\
+  	IsotopeMarker_test\
+  	NeutralLossMarker_test\
+  	MarkerMower_test\
+  	ParentFilter_test\
+  	TradSeqQuality_test\
+  	PeakPosBins_test\
+  	PeakDiffBins_test\
+  	IntensityDistBins_test\
   	KellerQuality_test
 
 endif

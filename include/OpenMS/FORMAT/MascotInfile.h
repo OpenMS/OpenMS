@@ -138,7 +138,7 @@ namespace OpenMS
 		  void setCharges(std::vector<SignedInt>& charges);
 
     protected:
-			// parent mass
+			/// parent mass
 			double mz_;
 
 			/// charge states to use
