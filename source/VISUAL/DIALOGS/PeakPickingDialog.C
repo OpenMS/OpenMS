@@ -21,31 +21,26 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <qlineedit.h>
-#include <qradiobutton.h>
+#include <qcheckbox.h>
 #include <qpushbutton.h>
 
 using namespace std;
 using namespace OpenMS;
 
 PeakPickingDialog::PeakPickingDialog(QWidget* parent, const char* name , WFlags fl )
-    : PeakPickingDialogTemplate(parent,name,fl),
-    optimization_(false),
-    height_(200),
-    height_ms2_(50),
-    signal_to_noise_(5),
-    fwhm_(0.2)
+    : PeakPickingDialogTemplate(parent,name,fl)
 {
-  heightLineEdit->setText(QString().setNum(height_));
-  heightMs2LineEdit->setText(QString().setNum(height_ms2_));
-  signalToNoiseLineEdit->setText(QString().setNum(signal_to_noise_));
-  fwhmLineEdit->setText(QString().setNum(fwhm_));
-  optimizationRadioButton->setChecked(optimization_);
+  height_line_edit->setText(QString().setNum(200));
+  height_ms2_line_edit->setText(QString().setNum(50));
+  signal_to_noise_line_edit->setText(QString().setNum(5));
+  fwhm_line_edit->setText(QString().setNum(0.2));
+  opt_check_box->setChecked(false);
 }
 
 PeakPickingDialog::~PeakPickingDialog()
@@ -54,70 +49,60 @@ PeakPickingDialog::~PeakPickingDialog()
 
 void PeakPickingDialog::setPeakHeight(float height)
 {
-  // update model
-  height_ = height;
   // update view
-  heightLineEdit->setText(QString().setNum(height_));
+  height_line_edit->setText(QString().setNum(height));
 }
 
 void PeakPickingDialog::setPeakHeightMs2(float height)
 {
-  // update model
-  height_ms2_ = height;
   // update view
-  heightLineEdit->setText(QString().setNum(height_ms2_));
+  height_ms2_line_edit->setText(QString().setNum(height));
 }
 
 
 void PeakPickingDialog::setSignalToNoise(float sn)
 {
-  // update model
-  signal_to_noise_ = sn;
   // update view
-  signalToNoiseLineEdit->setText(QString().setNum(signal_to_noise_));
+  signal_to_noise_line_edit->setText(QString().setNum(sn));
 }
 
 void PeakPickingDialog::setFwhm(float fwhm)
 {
-  // update model
-  fwhm_ = fwhm;
   // update view
-  fwhmLineEdit->setText(QString().setNum(fwhm_));
+  fwhm_line_edit->setText(QString().setNum(fwhm));
 }
 
 void PeakPickingDialog::setOptimization(bool opt)
 {
-  // update model
-  optimization_ = opt;
   // update view
-  optimizationRadioButton->setChecked(optimization_);
+  opt_check_box->setChecked(opt);
 }
 
 
 float PeakPickingDialog::getPeakHeight()
 {
-  return height_;
+  return  QString(height_line_edit->text()).toFloat();
 }
 
 float PeakPickingDialog::getPeakHeightMs2()
 {
-  return height_ms2_;
+  return QString(height_ms2_line_edit->text()).toFloat();
 }
 
 
 float PeakPickingDialog::getSignalToNoise()
 {
-  return signal_to_noise_;
+  return QString(signal_to_noise_line_edit->text()).toFloat();
 }
 
 float PeakPickingDialog::getFwhm()
 {
-  return fwhm_;
+  return QString(fwhm_line_edit->text()).toFloat();
 }
 
 bool PeakPickingDialog::getOptimization()
 {
-  return optimization_;
+  return opt_check_box->isChecked();
 }
 
 
@@ -129,16 +114,10 @@ void PeakPickingDialog::startButton_clicked()
 
 void PeakPickingDialog::resetButton_clicked()
 {
-  height_ = 200;
-  height_ms2_ = 50;
-  signal_to_noise_ = 5;
-  fwhm_ = 0.2;
-  optimization_ = false;
-
-  heightLineEdit->setText(QString().setNum(height_));
-  heightMs2LineEdit->setText(QString().setNum(height_ms2_));
-  signalToNoiseLineEdit->setText(QString().setNum(signal_to_noise_));
-  fwhmLineEdit->setText(QString().setNum(fwhm_));
-  optimizationRadioButton->setChecked(optimization_);
+  height_line_edit->setText(QString().setNum(200));
+  height_ms2_line_edit->setText(QString().setNum(50));
+  signal_to_noise_line_edit->setText(QString().setNum(5));
+  fwhm_line_edit->setText(QString().setNum(0.2));
+  opt_check_box->setChecked(false);
 }
 

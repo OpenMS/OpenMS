@@ -8,75 +8,65 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>379</width>
-            <height>277</height>
+            <width>367</width>
+            <height>273</height>
         </rect>
     </property>
     <property name="caption">
         <string>Pick Peaks</string>
     </property>
-    <widget class="QPushButton">
+    <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>startButton</cstring>
+            <cstring>layout6</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>300</x>
-                <y>240</y>
-                <width>72</width>
-                <height>32</height>
+                <x>12</x>
+                <y>234</y>
+                <width>350</width>
+                <height>34</height>
             </rect>
-        </property>
-        <property name="text">
-            <string>Start</string>
-        </property>
-    </widget>
-    <widget class="QPushButton">
-        <property name="name">
-            <cstring>resetButton</cstring>
-        </property>
-        <property name="enabled">
-            <bool>true</bool>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>240</y>
-                <width>80</width>
-                <height>32</height>
-            </rect>
-        </property>
-        <property name="text">
-            <string>Reset</string>
-        </property>
-    </widget>
-    <widget class="QGroupBox">
-        <property name="name">
-            <cstring>groupBox11</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>170</y>
-                <width>340</width>
-                <height>60</height>
-            </rect>
-        </property>
-        <property name="title">
-            <string>Peak fitting</string>
         </property>
         <grid>
             <property name="name">
                 <cstring>unnamed</cstring>
             </property>
-            <widget class="QRadioButton" row="0" column="0">
+            <widget class="QPushButton" row="0" column="2">
                 <property name="name">
-                    <cstring>optimizationRadioButton</cstring>
+                    <cstring>start_button</cstring>
                 </property>
                 <property name="text">
-                    <string>Optimize estimated peak parameters</string>
+                    <string>Start</string>
                 </property>
             </widget>
+            <widget class="QPushButton" row="0" column="1">
+                <property name="name">
+                    <cstring>reset_button</cstring>
+                </property>
+                <property name="enabled">
+                    <bool>true</bool>
+                </property>
+                <property name="text">
+                    <string>Reset</string>
+                </property>
+            </widget>
+            <spacer row="0" column="0">
+                <property name="name">
+                    <cstring>spacer2</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>184</width>
+                        <height>20</height>
+                    </size>
+                </property>
+            </spacer>
         </grid>
     </widget>
     <widget class="QGroupBox">
@@ -87,7 +77,7 @@
             <rect>
                 <x>10</x>
                 <y>10</y>
-                <width>340</width>
+                <width>350</width>
                 <height>150</height>
             </rect>
         </property>
@@ -132,22 +122,51 @@
             </widget>
             <widget class="QLineEdit" row="0" column="1">
                 <property name="name">
-                    <cstring>heightLineEdit</cstring>
+                    <cstring>height_line_edit</cstring>
                 </property>
             </widget>
             <widget class="QLineEdit" row="1" column="1">
                 <property name="name">
-                    <cstring>heightMs2LineEdit</cstring>
+                    <cstring>height_ms2_line_edit</cstring>
                 </property>
             </widget>
             <widget class="QLineEdit" row="2" column="1">
                 <property name="name">
-                    <cstring>signalToNoiseLineEdit</cstring>
+                    <cstring>signal_to_noise_line_edit</cstring>
                 </property>
             </widget>
             <widget class="QLineEdit" row="3" column="1">
                 <property name="name">
-                    <cstring>fwhmLineEdit</cstring>
+                    <cstring>fwhm_line_edit</cstring>
+                </property>
+            </widget>
+        </grid>
+    </widget>
+    <widget class="QGroupBox">
+        <property name="name">
+            <cstring>groupBox11</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>160</y>
+                <width>350</width>
+                <height>60</height>
+            </rect>
+        </property>
+        <property name="title">
+            <string>Peak fitting</string>
+        </property>
+        <grid>
+            <property name="name">
+                <cstring>unnamed</cstring>
+            </property>
+            <widget class="QCheckBox" row="0" column="0">
+                <property name="name">
+                    <cstring>opt_check_box</cstring>
+                </property>
+                <property name="text">
+                    <string>Optimize estimated peak parameters</string>
                 </property>
             </widget>
         </grid>
@@ -155,13 +174,13 @@
 </widget>
 <connections>
     <connection>
-        <sender>resetButton</sender>
+        <sender>reset_button</sender>
         <signal>pressed()</signal>
         <receiver>PeakPickingDialogTemplate</receiver>
         <slot>resetButton_clicked()</slot>
     </connection>
     <connection>
-        <sender>startButton</sender>
+        <sender>start_button</sender>
         <signal>pressed()</signal>
         <receiver>PeakPickingDialogTemplate</receiver>
         <slot>startButton_clicked()</slot>
