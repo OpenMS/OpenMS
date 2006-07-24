@@ -34,32 +34,33 @@ include ../../config_defs.mak
 
 #conditional compiles
 ifeq ($(ENABLE_GUI),true)
-  DB_SOURCES=\
-  ClusterIdentificator.C\
-  Cluster.C\
-  BinnedRep.C \
-  ClusterFactory.C\
-  ClusterExperiment.C\
-  ClusterRun.C\
-  Analysis.C\
-  ClusterRunAnalysisLess.C\
-	AnalysisFunctor.C\
-  ClusterSpectrum.C\
-	ClusterCompareFunctor.C\
-  ClusterFunctor.C\
-  LinkageCluster.C\
-  DistanceAnalyzer.C
+	ifeq ($(GSL_SUPPORT),true)
 
-  
-  CPP_SOURCES=\
-    ClusterNode.C\
-    helper.C\
-    SpectrumGenerator.C\
+  DB_SOURCES=\
+  	ClusterIdentificator.C\
+	  Cluster.C\
+ 		BinnedRep.C \
+  	ClusterFactory.C\
+  	ClusterExperiment.C\
+  	ClusterRun.C\
+  	Analysis.C\
+  	ClusterRunAnalysisLess.C\
+		AnalysisFunctor.C\
+  	ClusterSpectrum.C\
+		ClusterCompareFunctor.C\
+  	ClusterFunctor.C\
+  	LinkageCluster.C\
+  	DistanceAnalyzer.C\
+  	ClusterNode.C\
+  	helper.C\
+  	SpectrumGenerator.C\
 		ClusterExperimentXMLHandler.C\
-    $(DB_SOURCES)
- 
+
+	endif
 endif
 
+CPP_SOURCES = \
+	$(DB_SOURCES)
   
 include ../../common.mak
 -include .Dependencies

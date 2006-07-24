@@ -53,7 +53,6 @@ GUI_CPP_SOURCES=\
 	HistogramDialog.C\
 	FactoryProductDialog.C\
 	InspectDialog.C\
-	SortDialog.C\
 	FeaFiDialog.C\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
@@ -77,7 +76,6 @@ GUI_MOC_SOURCES=\
 	HistogramDialog_moc.C\
 	FactoryProductDialog_moc.C\
 	InspectDialog_moc.C\
-	SortDialog_moc.C\
 	FeaFiDialogTemplate_moc.C\
 	FeaFiDialog_moc.C\
 	Spectrum1DGoToDialogTemplate_moc.C\
@@ -89,17 +87,24 @@ GUI_MOC_SOURCES=\
 	PeakPickingDialogTemplate_moc.C\
 	PeakPickingDialog_moc.C
 
-	UIC_SOURCES=\
+UIC_SOURCES=\
 	FeaFiDialogTemplate.C\
 	Spectrum1DGoToDialogTemplate.C\
 	Spectrum2DGoToDialogTemplate.C\
 	OpenDialogTemplate.C\
 	PeakPickingDialogTemplate.C
 
+ifeq ($(GSL_SUPPORT),true)
+GSL_GUI_CPP_SOURCES = \
+	SortDialog.C
+GSL_GUI_MOC_SOURCES = \
+	SortDialog_moc.C
+endif
+
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=$(GUI_CPP_SOURCES) $(ANDI_GUI_CPP_SOURCES)
-	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES) $(ANDI_GUI_MOC_SOURCES)
+	ADD_CPP_SOURCES=$(GUI_CPP_SOURCES) $(ANDI_GUI_CPP_SOURCES) $(GSL_GUI_CPP_SOURCES)
+	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES) $(ANDI_GUI_MOC_SOURCES) $(GSL_GUI_MOC_SOURCES)
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)

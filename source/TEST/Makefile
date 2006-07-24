@@ -181,44 +181,46 @@ EXECUTABLES_MATH = \
 ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_FILTERING = \
 		DSavitzkyGolaySVDFilter_test\
-		DSavitzkyGolayQRFilter_test
+		DSavitzkyGolayQRFilter_test\
+  	reprocessingFunctor_test\
+  	Largest_test\
+  	caler_test\
+  	ernNorm_test\
+  	ormalizer_test\
+  	arentPeakMower_test\
+  	qrtMower_test\
+  	hresholdMower_test\
+  	indowMower_test\
+  	ilterFunctor_test\
+  	omplementFilter_test\
+  	oodDiffFilter_test\
+  	ntensityBalanceFilter_test\
+  	sotopeDiffFilter_test\
+  	eutralLossDiffFilter_test\
+  	eakDensityFilter_test\
+  	ICFilter_test\
+  	eakMarker_test\
+  	omplementMarker_test\
+  	sotopeMarker_test\
+  	eutralLossMarker_test\
+  	arkerMower_test\
+  	arentFilter_test\
+  	radSeqQuality_test\
+  	eakPosBins_test\
+  	eakDiffBins_test\
+  	ntensityDistBins_test\
+  	KellerQuality_test
+
 endif
 
 EXECUTABLES_FILTERING = \
+	$(GSL_EXECUTABLES_FILTERING)\
 	IDFilter_test\
 	LinearResampler_test\
 	TopHatFilter_test\
 	MorphFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
-	PreprocessingFunctor_test\
-	NLargest_test\
-	Scaler_test\
-	BernNorm_test\
-	Normalizer_test\
-	ParentPeakMower_test\
-	SqrtMower_test\
-	ThresholdMower_test\
-	WindowMower_test\
-	FilterFunctor_test\
-	ComplementFilter_test\
-	GoodDiffFilter_test\
-	IntensityBalanceFilter_test\
-	IsotopeDiffFilter_test\
-	NeutralLossDiffFilter_test\
-	PeakDensityFilter_test\
-	TICFilter_test\
-	PeakMarker_test\
-	ComplementMarker_test\
-	IsotopeMarker_test\
-	NeutralLossMarker_test\
-	MarkerMower_test\
-	ParentFilter_test\
-	TradSeqQuality_test\
-	PeakPosBins_test\
-	PeakDiffBins_test\
-	IntensityDistBins_test\
-	DSignalToNoiseEstimatorMedian_test\
-	KellerQuality_test
+	DSignalToNoiseEstimatorMedian_test
 	
 #	DSmoothFilter_test\
 	#${GSL_EXECUTABLES_FILTERING}\
@@ -228,25 +230,24 @@ EXECUTABLES_FILTERING = \
 
 ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_COMPARISON = \
-	SpectrumCheapDPCorr_test
-endif
-
-EXECUTABLES_COMPARISON = \
-	$(GSL_EXECUTABLES_COMPARISON)\
+	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
 	ClNode_test\
 	Cluster_test\
 	ClusterSpectrum_test\
 	ClusterFunctor_test\
-  ClusterExperiment_test\
 	AnalysisFunctor_test\
 	CompareFunctor_test\
-	BinnedRepMutualInformation_test\
-	BinnedRepSpectrumContrastAngle_test\
-	BinnedRepSharedPeakCount_test\
-	BinnedRepSumAgreeingIntensities_test\
-	SequestCompareFunctor_test\
-	SpectrumPrecursorComparator_test
+  BinnedRepMutualInformation_test\
+  BinnedRepSpectrumContrastAngle_test\
+  BinnedRepSharedPeakCount_test\
+  BinnedRepSumAgreeingIntensities_test\
+  SequestCompareFunctor_test\
+  SpectrumPrecursorComparator_test
+endif
+
+EXECUTABLES_COMPARISON = \
+	$(GSL_EXECUTABLES_COMPARISON)
 
 EXECUTABLES_CHEMISTRY = \
 	IsotopeDistribution_test\

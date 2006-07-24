@@ -173,7 +173,9 @@ namespace OpenMS
     registerfp(BinnedRepMutualInformation::getName(),&BinnedRepMutualInformation::create);
     registerfp(BinnedRepSumAgreeingIntensities::getName(),&BinnedRepSumAgreeingIntensities::create);
     registerfp(BinnedRepSharedPeakCount::getName(),&BinnedRepSharedPeakCount::create);
+		#ifdef GSL_DEF
     registerfp(SpectrumCheapDPCorr::getName(),&SpectrumCheapDPCorr::create);
+		#endif
     registerfp(SpectrumPrecursorComparator::getName(),&SpectrumPrecursorComparator::create);
     registerfp(SequestCompareFunctor::getName(),&SequestCompareFunctor::create);
     
@@ -194,7 +196,7 @@ namespace OpenMS
   {
 	
     vector<String> result;
-    for ( map<String, FactoryProduct*(*)()>::const_iterator cmit = inventory_.begin(); cmit != inventory_.end(); ++cmit )
+    for (map<String, FactoryProduct*(*)()>::const_iterator cmit = inventory_.begin(); cmit != inventory_.end(); ++cmit)
     {
       FactoryProduct* tmp = create(cmit->first);
       if ( type == "CompareFunctor") 

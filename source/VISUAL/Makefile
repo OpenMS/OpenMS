@@ -40,7 +40,6 @@ THISLIB=$(LIBNAME)
 
 # These depend on QT:
 GUI_CPP_SOURCES=\
-	BinnedRepWidget.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
 	SpectrumWindow.C\
@@ -69,15 +68,11 @@ GUI_CPP_SOURCES=\
 	SimMatrixWidget.C\
 	ScaleWidget.C\
 	ResultView.C\
-	ClusterExperimentView.C\
-	ClusterAnalysisWindow.C\
-	ClusterRunWidget.C\
 	LayerItem.C\
 	LayerManager.C\
 	AxisTickCalculator.C		
 
 GUI_MOC_SOURCES=\
-	BinnedRepWidget_moc.C\
 	SpectrumCanvas_moc.C\
 	SpectrumWindow_moc.C\
 	SpectrumWidget_moc.C\
@@ -102,9 +97,6 @@ GUI_MOC_SOURCES=\
 	SimMatrixWidget_moc.C\
 	ScaleWidget_moc.C\
 	ResultView_moc.C\
-	ClusterExperimentView_moc.C\
-	ClusterAnalysisWindow_moc.C\
-	ClusterRunWidget_moc.C\
 	LayerItemTemplate_moc.C\
 	LayerItem_moc.C\
 	LayerManagerTemplate_moc.C\
@@ -114,10 +106,28 @@ UIC_SOURCES=\
 	LayerItemTemplate.C\
 	LayerManagerTemplate.C
 
+ifeq ($(GSL_SUPPORT),true)
+
+GSL_GUI_CPP_SOURCES=\
+		BinnedRepWidget.C\
+		ClusterExperimentView.C\
+		ClusterAnalysisWindow.C\
+		ClusterRunWidget.C
+
+GSL_MOC_SOURCES=\
+		BinnedRepWidget_moc.C\
+		ClusterExperimentView_moc.C\
+		ClusterAnalysisWindow_moc.C\
+		ClusterRunWidget_moc.C
+
+endif
+
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
-	ADD_CPP_SOURCES=$(GUI_CPP_SOURCES)
-	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES)
+	ADD_CPP_SOURCES=$(GUI_CPP_SOURCES)\
+									$(GSL_GUI_CPP_SOURCES)
+	ADD_MOC_SOURCES=$(GUI_MOC_SOURCES)\
+									$(GSL_MOC_SOURCES)
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)
