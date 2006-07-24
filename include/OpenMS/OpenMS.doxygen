@@ -48,8 +48,8 @@
 
 /*
 	ToDo-Liste Marc:
-	- Projecktionen: Intensity->Prozent, StatusBar -> Coords
-	- Tests: SVN Tag an!
+	- Projecktionen: Action -> Select
+	- Mit Eva: Layout der Dialoge
 
 	Klassen Jens:
   - ANALYSIS\MAPMATCHING\LabeledMatcher.h

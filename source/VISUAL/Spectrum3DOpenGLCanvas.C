@@ -84,25 +84,24 @@ void Spectrum3DOpenGLCanvas::calculateGridLines_()
 	{
 	case SpectrumCanvas::IM_SNAP:
 		updateIntensityScale();
-		grid_intensity_=  AxisTickCalculator::calcGridLines_(int_scale_.min_[0],int_scale_.max_[0],3); 
+		AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],3,grid_intensity_); 
 	
 		break;
 		
 	case SpectrumCanvas::IM_NONE:
-		grid_intensity_=  AxisTickCalculator::calcGridLines_(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3); 
+		AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_); 
 		break;
 		
 	case SpectrumCanvas::IM_LOG:
-		grid_intensity_log_=  AxisTickCalculator::calcLogGridLines_(log10(canvas_3d_.overall_data_range_.min_[2]),log10(canvas_3d_.overall_data_range_.max_[2]));	
+		AxisTickCalculator::calcLogGridLines(log10(canvas_3d_.overall_data_range_.min_[2]),log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_);	
  		break;
 		
 	case SpectrumCanvas::IM_PERCENTAGE:
-	grid_intensity_=  AxisTickCalculator::calcGridLines_(0.0,100.0,3); 
-	
-			break;
+		AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_); 
+		break;
 	}
-	grid_rt_=  AxisTickCalculator::calcGridLines_(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3);
-	grid_mz_=  AxisTickCalculator::calcGridLines_(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3);
+	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_);
+	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_);
 }
 
 void Spectrum3DOpenGLCanvas::resizeGL(int w,int h)

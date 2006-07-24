@@ -66,7 +66,12 @@ namespace OpenMS
     
 		// Docu in base class
 		virtual PreferencesDialogPage* createPreferences(QWidget* parent);
-
+		
+		/// const reference to the horizontal projection
+		const Spectrum1DWidget* getHorizontalProjection() const;
+		/// const reference to the vertical projection
+		const Spectrum1DWidget* getVerticalProjection() const;
+		
 	public slots:
 		/// Hides the projections
 		void hideProjections();
@@ -75,9 +80,9 @@ namespace OpenMS
 
 	protected slots:
 		virtual void createContextMenu_();
+
 	protected:
 		QGridLayout* grid_;
-		// Widget Data is drawn on
 		Spectrum1DWidget* projection_vert_;
 		Spectrum1DWidget* projection_horz_;
 	

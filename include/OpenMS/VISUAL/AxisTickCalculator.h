@@ -29,8 +29,7 @@
 
 // STL
 #include <vector>
-#include <math.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 namespace OpenMS
 {
 	/**
@@ -39,16 +38,12 @@ namespace OpenMS
 		It has only static methods, that's by the constructor is private.
 	
 		@ingroup Visual
-		
-		@todo write tests (Cornelia)
 	*/
   class AxisTickCalculator 
 	{
 		
 		public:
-	    ///
-	    enum {TOP, BOTTOM, LEFT, RIGHT} ALIGNMENT_ENUM;
-	    ///
+	    /// Typedef for the grid vector
 			typedef std::vector<std::vector<double> > GridVector;
 			
 			/**
@@ -58,21 +53,18 @@ namespace OpenMS
 				@param x2 maximum value
 				@param level numbers of different tick levels (maximum is 3)
 			*/
-			static GridVector calcGridLines_(double x1, double x2, int level);
+			static void calcGridLines(double x1, double x2, int levels, GridVector& grid);
 			/**
 				@brief Returns a GridVector with ticks for logarithmic scales.
 				
 				@param x1 minimum value
 				@param x2 maximum value
 			*/
-			static GridVector calcLogGridLines_(double x1, double x2);
+			static void calcLogGridLines(double x1, double x2, GridVector& grid);
 			
 		private: 
 			///Constructor: only static methods
 			AxisTickCalculator();
-
-			///Destructor
-			~AxisTickCalculator();
 	};
 }
 #endif

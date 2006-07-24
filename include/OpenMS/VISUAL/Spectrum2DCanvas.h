@@ -167,7 +167,9 @@ namespace OpenMS
 		virtual void repaintAll();
 		
 	signals:
+		/// Sets the data for the horizontal projection
 		void showProjectionHorizontal(const MSExperiment<>&);
+		/// Sets the data for the vertical projection
 		void showProjectionVertical(const MSExperiment<>&);
 	
 	public slots:
@@ -276,10 +278,20 @@ namespace OpenMS
 		/// recalculates the dot gradient inerpolation values. Use after Intensites or gradient changed
 		void recalculateDotGradient_();
 		
+		/**
+			@brief Updates the projection data and emits some related signals.
+			
+			Emitted signals are showProjectionHorizontal(const MSExperiment<>&) and 
+			showProjectionVertical(const MSExperiment<>&).
+			
+			@see projection_mz_
+			@see projection_rt_
+		*/
 		void createProjections_(const AreaType& area, bool shift_pressed, bool ctrl_pressed);
 		
+		/// Quadtree type for peak data
 		typedef QuadTree<KernelTraits, PeakType > QuadTreeType_;
-		
+		/// Quadtree type for feature data
 		typedef QuadTree<KernelTraits, FeatureType > FeatureQuadTreeType_;
 		
 		/// zooms around position pos with factor.

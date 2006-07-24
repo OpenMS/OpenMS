@@ -46,12 +46,6 @@ namespace OpenMS
   
   /**
      @brief Canvas for 3D-visualization of map data
-   
-     @todo Fix taking of images (Cornelia)
-     
-     @todo Axis labels (Cornelia)
-     
-     @todo Add translation
 
      @ingroup spectrum_widgets
   */	

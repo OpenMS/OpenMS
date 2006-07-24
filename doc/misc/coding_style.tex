@@ -465,9 +465,9 @@ by the respective comment characters (e.g.\ ``\#'' for Makefiles, ``\%'' for
 (La)TeX).  TeX will switch to math mode after a \texttt{\$}, but you can work
 around this by writing something like
 % (avoid line break here)
-\mbox{\texttt{Latest CVS \$ \$Date{}:\$ \$}}
+\mbox{\texttt{Latest SVN \$ \$Date{}:\$ \$}}
 % (/avoid line break here)
-if you want to use it in texts; the one here expands to ``Latest CVS $
+if you want to use it in texts; the one here expands to ``Latest SVN $
 $Date: 2006/04/07 08:21:34 $ $''.
 
 \section{Testing} 
@@ -482,6 +482,9 @@ each method of the class. The test programs reside in the directory
 macros as described in the OpenMS online reference. Special care should be taken
 to cover all special cases (e.g. what happens, if a method is called with
 empty strings, negative values, zero, null pointers etc.).
+
+Please activate the keyword substitution of '\$Id\$' for all tests with the following command:\\
+{\tt svn propset svn:keywords Id <file>}.
 
 
 \subsection{Structure of a test program}

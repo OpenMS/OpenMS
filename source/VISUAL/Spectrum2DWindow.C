@@ -97,9 +97,15 @@ namespace OpenMS
 	
 	void Spectrum2DWindow::horizontalProjection(const MSExperiment<>& exp)
 	{
+		if (exp[0].size()<3)
+		{
+			projection_horz_->hide();
+			return;
+		}
 		projection_horz_->setMainPreferences(prefs_);
 		projection_horz_->mzToXAxis(true);
 		projection_horz_->showLegend(false);
+		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_horz_->canvas()->removeDataSet(0);
 		projection_horz_->canvas()->addDataSet(exp);
 		//projection_horz_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
@@ -108,9 +114,15 @@ namespace OpenMS
 	
 	void Spectrum2DWindow::verticalProjection(const MSExperiment<>& exp)
 	{
+		if (exp[0].size()<3)
+		{
+			projection_vert_->hide();
+			return;
+		}
 		projection_vert_->setMainPreferences(prefs_);
 		projection_vert_->mzToXAxis(false);
 		projection_vert_->showLegend(false);
+		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_vert_->canvas()->removeDataSet(0);
 		projection_vert_->canvas()->addDataSet(exp);
 		//projection_vert_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
@@ -137,6 +149,16 @@ namespace OpenMS
 	  goToDialog.setMaxY(area.maxY());  
 	  goToDialog.exec();
 	  widget()->canvas()->setVisibleArea(SpectrumCanvas::AreaType( goToDialog.getMinX(), goToDialog.getMinY(), goToDialog.getMaxX(), goToDialog.getMaxY()));
+	}
+
+	const Spectrum1DWidget* Spectrum2DWindow::getHorizontalProjection() const
+	{
+		return projection_horz_;
+	}
+
+	const Spectrum1DWidget* Spectrum2DWindow::getVerticalProjection() const
+	{
+		return projection_vert_;
 	}
 
 }//namespace OpenMS

@@ -1260,6 +1260,13 @@ namespace OpenMS
     connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolbar(QWidget*)));
     connect(sw,SIGNAL(openPreferences()),this,SLOT(preferencesDialog()));
     connect(sw,SIGNAL(destroyed()),this,SLOT(windowClosed()));
+  
+  	Spectrum2DWindow* sw2 = dynamic_cast<Spectrum2DWindow*>(sw);
+  	if (sw2 != 0)
+  	{
+  		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+  		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
+  	}
   }
 
   //! returns selected peaks of active spectrum framed by \c data_set_.begin() and the last peak BEFORE \c data_set_.end();
