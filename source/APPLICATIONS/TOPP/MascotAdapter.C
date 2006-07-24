@@ -277,8 +277,8 @@ class TOPPMascotAdapter
 			options_["-cleavage"] = "cleavage";
 			options_["-missed_cleavages"] = "missed_cleavages";
 			options_["-mass_type"] = "mass_type";
-			options_["-mascot_in"] = "mascot_in";
-			options_["-mascot_out"] = "mascot_out";
+			flags_["-mascot_in"] = "mascot_in";
+			flags_["-mascot_out"] = "mascot_out";
 			options_["-mascot_directory"] = "mascot_directory";
 			options_["-temp_data_directory"] = "temp_data_directory";
 		}

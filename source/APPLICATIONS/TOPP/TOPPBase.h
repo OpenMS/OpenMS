@@ -100,7 +100,7 @@ namespace OpenMS
 			*/
 			virtual void printToolHelpOpt_()=0;			
 
-			/// Prints the tool-specific INI options and appends the common options.
+			/// Prints the tool-specific INI options and flags and appends the common options and flags.
 			void printHelpOpt_();
 
 			/**
