@@ -1,73 +1,73 @@
-/// -*- Mode: C++; tab-width: 2; -*-
-/// vi: set ts=2:
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
 //
-/// --------------------------------------------------------------------------
-///                   OpenMS Mass Spectrometry Framework
-/// --------------------------------------------------------------------------
-///  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
-///  This library is free software; you can redistribute it and/or
-///  modify it under the terms of the GNU Lesser General Public
-///  License as published by the Free Software Foundation; either
-///  version 2.1 of the License, or (at your option) any later version.
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
 //
-///  This library is distributed in the hope that it will be useful,
-///  but WITHOUT ANY WARRANTY; without even the implied warranty of
-///  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-///  Lesser General Public License for more details.
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
 //
-///  You should have received a copy of the GNU Lesser General Public
-///  License along with this library; if not, write to the Free Software
-///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-/// --------------------------------------------------------------------------
-/// $Id: InspectFile.C,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-/// $Author: martinlangwisch $
-/// $Maintainer: Martin Langwisch $
-/// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// $Id: InspectFile.C,v 1.0 2006/07/25 13:46:15 martinlangwisch Exp $
+// $Author: martinlangwisch $
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectFile.h>
 
 namespace OpenMS
 {
-	void InspectFile::erase(std::string& s, const std::string& unwanted_characters)
+	void InspectFile::remove(std::string& s, const std::string& unwanted_characters)
 	{
 		std::string::iterator start = s.begin();
 		std::string::iterator end = s.begin();
 		while ( (end != s.end()) && (start != s.end()) )
 		{
-			/// find the next unwanted character
+			// find the next unwanted character
 			while ( (start != s.end()) && (unwanted_characters.find(*start, 0) == std::string::npos ) )
 			{
 				++start;
 			}
 			end = start;
 		
-			/// find the next symbol that is not an unwanted character
+			// find the next symbol that is not an unwanted character
 			while ( (end != s.end()) && (unwanted_characters.find(*end, 0) != std::string::npos ) )
 			{
 				++end;
 			}
-			/// remove the unwanted characters
+			// remove the unwanted characters
 			start = s.erase(start, end);
-			/// find the next unwanted character
+			// find the next unwanted character
 		}
 	}
 	
-	void InspectFile::erase_whitespaces(std::string& s)
+	void InspectFile::removeWhitespaces(std::string& s)
 	{
 		std::string::iterator start = s.begin();
 		std::string::iterator end = s.begin();
 		while ( (end != s.end()) && (start != s.end()) )
 		{
-			/// find the next symbol that is not a whitespace or an asterisk
+			// find the next symbol that is not a whitespace or an asterisk
 			while ( (end != s.end()) && (*end < 33) )
 			{
 				++end;
 			}
-			/// remove the whitespaces or asterisks
+			// remove the whitespaces or asterisks
 			start = s.erase(start, end);
-			/// find the next whitespace
+			// find the next whitespace
 			while ( (start != s.end()) && (*start > 32) )
 			{
 				++start;
@@ -82,7 +82,7 @@ namespace OpenMS
 		std::string path_and_file = database_path + database_filename;
 		std::ifstream database_file( path_and_file.c_str(), std::ios::in | std::ios::binary );
 		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
-		/// if no index filename was given, assume that it is the same as database_filename but with ending ".index"
+		// if no index filename was given, assume that it is the same as database_filename but with ending ".index"
 		if ( index_filename.empty() ) index_filename = database_filename.substr(0, database_filename.length()-4) + "index";
 		
 		path_and_file = database_path+index_filename;
@@ -91,7 +91,7 @@ namespace OpenMS
 		
 		String second_database_filename(second_database_filename_);
 		
-		/// if no name for the second database is given, the name of the database with ending "snd.trie" is used
+		// if no name for the second database is given, the name of the database with ending "snd.trie" is used
 		if ( second_database_filename.empty() )
 		{
 			if ( getUseTempFiles() ) second_database_filename = getSecondTempDatabaseFilename();
@@ -102,7 +102,7 @@ namespace OpenMS
 				else second_database_filename.append(".snd.trie");
 			}
 		}
-		/// if no name for the index is given, the name of the second database with ending ".index" is used
+		// if no name for the index is given, the name of the second database with ending ".index" is used
 		if ( second_index_filename.empty() )
 		{
 			if ( getUseTempFiles() ) second_index_filename = getSecondTempIndexFilename();
@@ -118,6 +118,13 @@ namespace OpenMS
 		}
 		else ensurePathChar(second_database_path);
 		
+		if ( (database_filename == second_database_filename) && (database_path == second_database_path) && (index_filename == second_index_filename) )
+		{
+			database_file.close();
+			index_file.close();
+			return;
+		}
+		
 		char openmode[3] = "wb";
 		openmode[2] = 0;
 		if ( append ) openmode[1] = 'a';
@@ -125,7 +132,7 @@ namespace OpenMS
 		FILE* second_database_file = fopen( path_and_file.c_str(), openmode);
 		if ( second_database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, second_database_filename);
 		
-		/// if in append mode, check whether the file is empty and if so, change to write mode
+		// if in append mode, check whether the file is empty and if so, change to write mode
 		if ( append )
 		{
 			fseek(second_database_file, 0, SEEK_END);
@@ -144,12 +151,12 @@ namespace OpenMS
 		FILE* second_index_file = fopen( path_and_file.c_str(), openmode);
 		if ( second_index_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, second_index_filename);
 		
-		/// determine the length of the index file
+		// determine the length of the index file
 		index_file.seekg(0, std::ios::end);
 		unsigned int file_length = index_file.tellg();
 		index_file.seekg(0, std::ios::beg);
 		
-		/// if all records are selected, just copy the files
+		// if all records are selected, just copy the files
 		if ( wanted_records.empty() )
 		{
 			database_file.seekg(0, std::ios::end);
@@ -158,17 +165,23 @@ namespace OpenMS
 			
 			void* buffer = malloc( std::max(db_file_length, file_length) );
 			database_file.readsome((char*) buffer, db_file_length );
+			database_file.close();
+			
 			fwrite(buffer, db_file_length, 1, second_database_file);
+			fclose(second_database_file);
 			
 			index_file.readsome((char*) buffer, file_length);
+			index_file.close();
+			
 			fwrite(buffer, file_length, 1, second_index_file);
+			fclose(second_index_file);
 			
 			free(buffer);
 			
 			return;
 		}
 		
-		/// write the protein sequences to the new database
+		// write the protein sequences to the new database
 		char* protein_name = new char[index_peptide_name_length_+1];
 		protein_name[index_peptide_name_length_] = 0;
 		char* file_pos_from_index_file = new char[index_db_record_length_];
@@ -177,34 +190,34 @@ namespace OpenMS
 		
 		for ( unsigned int i = 0; i < wanted_records.size(); ++i)
 		{
-			/// get the according record in the index file (a record has length 8+4+80 and the database position is stored after 8 bytes in a record and is 4 bytes long)
+			// get the according record in the index file (a record has length 8+4+80 and the database position is stored after 8 bytes in a record and is 4 bytes long)
 			index_pos = wanted_records[i] * (index_record_length_);
 			index_file.seekg(index_pos);
-			/// if the file is too short
+			// if the file is too short
 			if ( file_length < (index_pos+index_trie_record_length_+index_db_record_length_+index_peptide_name_length_) )
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "index file is too short!", index_filename);
 			}
 			
-			/// read the index of the original file and write it to the new database
+			// read the index of the original file and write it to the new database
 			index_file.readsome(file_pos_from_index_file, index_db_record_length_);
 			fwrite(file_pos_from_index_file, index_db_record_length_, 1, second_index_file);
 			
-			/// all but the first sequence are preceded by an asterisk
+			// all but the first sequence are preceded by an asterisk
 			if ( i || append ) fputc('*', second_database_file);
 			
-			/// write the actual position in the new database
+			// write the actual position in the new database
 			second_database_file_pos = ftell(second_database_file);
 			fwrite(&second_database_file_pos, index_trie_record_length_, 1, second_index_file);
 			
-			/// read the sequence;
+			// read the sequence;
 			index_file.readsome((char*) &database_pos, index_trie_record_length_);
 			database_file.seekg(database_pos);
 			database_file.get(sequence, trie_delimiter_);
 			fputs(sequence.str().c_str(), second_database_file);
 			sequence.str("");
 			
-			/// read the protein name and write it to the new database
+			// read the protein name and write it to the new database
 			index_file.readsome(protein_name, 80);
 			fwrite(protein_name, 80, 1, second_index_file);
 		}
@@ -218,15 +231,15 @@ namespace OpenMS
 		fclose(second_index_file);
 	}
 	
-	void InspectFile::compressor_(const std::string& source_filename, const std::string& source_path, const std::string& database_path, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label, std::string species, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::generateTrieDB_(const std::string& source_filename, const std::string& source_path, const std::string& database_path, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label, std::string species, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append) throw (Exception::FileNotFound, Exception::ParseError)
 	{
-		/// if no database name is given, the name of the source file plus ending ".trie" is used
+		// if no database name is given, the name of the source file plus ending ".trie" is used
 		if ( database_filename.empty() )
 		{
 			if ( getUseTempFiles() ) database_filename = getTempDatabaseFilename();
 			else database_filename = source_filename+".trie";
 		}
-		/// if no index name is given, the name of the source file plus ending ".index" is used
+		// if no index name is given, the name of the source file plus ending ".index" is used
 		if ( index_filename.empty() )
 		{
 			if ( getUseTempFiles() ) index_filename = getTempIndexFilename();
@@ -248,19 +261,20 @@ namespace OpenMS
 		FILE* database_file = fopen(path_and_file.c_str(), openmode);
 		if ( database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		
-		/// if in append mode, check whether the file is empty and if so, change to write mode
+		// if in append mode, check whether the file is empty and if so set append to false
 		if ( append )
 		{
-			fseek(database_file, 0, SEEK_END);
-			if ( ftell(database_file) )	fseek(database_file, 0, SEEK_SET);
-			else
+			//fseek(database_file, 0, SEEK_END);
+			if ( !ftell(database_file) )	append = false;
+			//if ( ftell(database_file) )	fseek(database_file, 0, SEEK_SET);
+			/*else
 			{
 				fclose(database_file);
 				append = false;
 				openmode[0] = 'w';
 				database_file = fopen(path_and_file.c_str(), openmode);
 				if ( database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
-			}
+			}*/
 		}
 		
 		path_and_file = database_path;
@@ -268,7 +282,6 @@ namespace OpenMS
 		path_and_file.append(index_filename);
 		FILE* index_file = fopen(path_and_file.c_str(), openmode);
 		if ( index_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
-		
 		unsigned char ac_flag = 1;
 		unsigned char species_flag = 2;
 		unsigned char sequence_flag = 4;
@@ -290,26 +303,26 @@ namespace OpenMS
 			if ( !line.empty() ) line.resize(line.length()-1);
 			line.trim();
 			
-			/// empty and comment lines are skipped
+			// empty and comment lines are skipped
 			if ( line.empty() || line.hasPrefix(comment_label) ) continue;
 			
-			/// read the sequence
+			// read the sequence
 			if ( record_flags==(ac_flag|species_flag|sequence_flag) )
 			{
 				if ( line.hasPrefix(sequence_end_label) )
 				{
-					/// if the sequence is not empty, the record has the correct form
+					// if the sequence is not empty, the record has the correct form
 					if ( !sequence.empty() )
 					{
-						/// write the index and the database (for the wanted entries only)
+						// write the index and the database (for the wanted entries only)
 						if ( wanted_records.empty() || (*i == seen_records) )
 						{
 							if ( !wanted_records.empty() ) ++i;
-							/// all but the first record in the database are preceded by an asterisk
+							// all but the first record in the database are preceded by an asterisk (if in append mode an asterisk has to be put at any time)
 							if ( written_records || append ) fputc('*', database_file);
 							
 							database_file_pos = ftell(database_file);
-							/// a record in the index file consists of eight bytes for the record position in the source file, four bytes for the record position in the database file and 80 bytes for the record name (so one record is 92 bytes long, there are no separators in the index file!
+							// a record in the index file consists of eight bytes for the record position in the source file, four bytes for the record position in the database file and 80 bytes for the record name (so one record is 92 bytes long, there are no separators in the index file!
 							fwrite(&source_file_pos, sizeof(unsigned long long int), 1, index_file);
 							fwrite(&database_file_pos, sizeof(unsigned int), 1, index_file);
 							fwrite(ac, 1, index_peptide_name_length_, index_file);
@@ -317,23 +330,23 @@ namespace OpenMS
 							++written_records;
 						}
 						
-						/// stop when the all wanted records are found
+						// stop when the all wanted records are found
 						if ( !wanted_records.empty() && (i == wanted_records.end()) ) break;
 					}
-					/// if the sequence is empty
+					// if the sequence is empty
 					else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "emtpy sequence!" , source_filename);
 					
 					sequence.clear();
-					/// set back the record flags for a new record
+					// set back the record flags for a new record
 					record_flags = (species == "None") ? species_flag : 0;
 					++seen_records;
 				}
 				else
 				{
-					/// erase all whitespaces from the sequence
-					erase_whitespaces(line);
-					erase(line, "*");
-					/// save this part of the sequence
+					// erase all whitespaces from the sequence
+					removeWhitespaces(line);
+					remove(line, "*");
+					// save this part of the sequence
 					sequence.append(line);
 				}
 			}
@@ -341,18 +354,18 @@ namespace OpenMS
 			{
 				if ( line.hasPrefix(ac_label) )
 				{
-					/// find the beginning of the accession
+					// find the beginning of the accession
 					pos = ac_label.length();
-					/// discard the whitespaces after the label
+					// discard the whitespaces after the label
 					while ( (line.length() > pos) && (line[pos] < 33) )
 					{
 						++pos;
 					}
 					if ( pos != line.length() )
 					{
-						/// clear the ac-string
+						// clear the ac-string
 						memset(ac, 0, index_peptide_name_length_);
-						/// read at most 80 characters from the record name
+						// read at most 80 characters from the record name
 						memcpy(ac, line.substr(pos, std::min((size_t) index_peptide_name_length_, line.length()-pos)).c_str(), std::min((size_t) index_peptide_name_length_, line.length()-pos));
 						source_file_pos = source_file_pos_buffer;
 					}
@@ -362,45 +375,45 @@ namespace OpenMS
 					}
 					record_flags |= ac_flag; // set the ac flag
 				}
-				/// if a species line is found and a species (other than "None") is given, check whether this record is from the wanted species ### None auch global setzten
-				/// (if no species is given, the species label ("") is always found, but the compare will always give zero as the species then will be "None")
+				// if a species line is found and a species (other than "None") is given, check whether this record is from the wanted species ### None auch global setzten
+				// (if no species is given, the species label ("") is always found, but the compare will always give zero as the species then will be "None")
 				if ( line.hasPrefix(species_label) && (record_flags==ac_flag) )
 				{
 					pos = species_label.length();
 					if ( line.find(species, pos) != std::string::npos ) record_flags |= species_flag;
 					
-					/// if it's not from the wanted species, skip the record
+					// if it's not from the wanted species, skip the record
 					if ( !(record_flags&species_flag) ) record_flags = 0;
 				}
-				/// if the beginning of the sequence is found
+				// if the beginning of the sequence is found
 				if ( line.hasPrefix(sequence_start_label) && (record_flags&ac_flag) && (record_flags&species_flag) ) record_flags |= sequence_flag;
 			}
 			source_file_pos_buffer = source_file.tellg();
-		} /// source file read
+		} // source file read
 		
-		/// if the last record has no sequence end label, the sequence has to be appended nevertheless
+		// if the last record has no sequence end label, the sequence has to be appended nevertheless
 		if ( record_flags==(ac_flag|species_flag|sequence_flag) )
 		{
-			/// if the sequence is not empty, the record has the correct form
+			// if the sequence is not empty, the record has the correct form
 			if ( !sequence.empty() )
 			{
-				/// write the index and the database
+				// write the index and the database
 				if ( wanted_records.empty() || (*i == seen_records) )
 				{
 					++i;
-					/// all but the first record in the database are preceded by an asterisk
+					// all but the first record in the database are preceded by an asterisk
 					if ( written_records ) fputc('*', database_file);
 					
 					database_file_pos = ftell(database_file);
-					/// a record in the index file consists of eight bytes for the record position in the source file, four bytes for the record position in the database file and 80 bytes for the record name (so one record is 92 bytes long, there are no separators in the index file!
+					// a record in the index file consists of eight bytes for the record position in the source file, four bytes for the record position in the database file and 80 bytes for the record name (so one record is 92 bytes long, there are no separators in the index file!
 					fwrite(&source_file_pos, sizeof(unsigned long long int), 1, index_file);
 					fwrite(&database_file_pos, sizeof(unsigned int), 1, index_file);
 					fwrite(ac, 1, index_peptide_name_length_, index_file);
-					erase(sequence, "*");
+					remove(sequence, "*");
 					fputs(sequence.c_str(), database_file);
 				}
 			}
-			/// if the sequence is empty
+			// if the sequence is empty
 			else
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "emtpy sequence!" , source_filename);
@@ -409,27 +422,27 @@ namespace OpenMS
 		
 		delete(ac);
 		
-		/// close the filestreams
+		// close the filestreams
 		source_file.close();
 		source_file.clear();
 		fclose(database_file);
 		fclose(index_file);
 	}
 	
-	void InspectFile::compressor(const std::string& source_filename, const std::string& source_path, const std::string& database_path, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::generateTrieDB(const std::string& source_filename, const std::string& source_path, const std::string& database_path, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		std::string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 		
 		std::string path_and_file = source_path;
 		ensurePathChar(path_and_file);
 		path_and_file.append(source_filename);
-		getSeparators(path_and_file, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
+		getLabels(path_and_file, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 		
 		if ( sequence_start_label == std::string(1, trie_delimiter_) ) compressTrieDB(source_filename, "", source_path, wanted_records, database_filename, index_filename, database_path, append);
-		else compressor_(source_filename, source_path, database_path, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label, species, wanted_records, database_filename, index_filename, append);
+		else generateTrieDB_(source_filename, source_path, database_path, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label, species, wanted_records, database_filename, index_filename, append);
 	}
 	
-	void InspectFile::getSeparators(const std::string& source_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::getLabels(const std::string& source_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		std::ifstream source_file(source_filename.c_str());
 		if ( !source_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_filename);
@@ -456,7 +469,7 @@ namespace OpenMS
 				comment_label = "CC";
 				species_label = "OS";
 			}
-			/// a trie database file consists but of one line
+			// a trie database file consists but of one line
 			else if ( source_file.eof() )
 			{
 				ac_label = "*";
@@ -468,7 +481,7 @@ namespace OpenMS
 		source_file.close();
 		source_file.clear();
 		
-		/// if no known start seperator is found
+		// if no known start seperator is found
 		if ( sequence_start_label.empty() )
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "database has unknown file format (neither trie nor FASTA nor swissprot)" , source_filename);
@@ -482,7 +495,7 @@ namespace OpenMS
 		std::string path_and_file = database_path+database_filename;
 		std::ifstream database_file( path_and_file.c_str(), std::ios::in | std::ios::binary );
 		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
-		/// if no index file is given and a trie database is used, check whether threre's a corresponding index file
+		// if no index file is given and a trie database is used, check whether threre's a corresponding index file
 		if ( index_filename.empty() && database_filename.hasSuffix(".trie") )
 		{
 			index_filename = database_filename.substr(0, database_filename.length()-4);
@@ -492,8 +505,8 @@ namespace OpenMS
 		std::ifstream index_file(path_and_file.c_str(), std::ios::in | std::ios::binary);
 		if ( !index_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
 		
-		/// go through the trie database and extract the sequences according to the record numbers in the record vector
-		/// determine the length of the index file
+		// go through the trie database and extract the sequences according to the record numbers in the record vector
+		// determine the length of the index file
 		index_file.seekg (0, std::ios::end);
 		unsigned int file_length = index_file.tellg();
 		index_file.seekg (0, std::ios::beg);
@@ -503,15 +516,15 @@ namespace OpenMS
 		char buffer[11];
 		std::stringbuf sequence;
 		
-		/// with index file
+		// with index file
 		if ( index_file )
 		{
 			for ( unsigned int i = 0; i < wanted_records.size(); ++i)
 			{
-				/// get the according record in the index file (a record has length 8+4+80 and the database position is stored after 8 bytes in a record and is 4 bytes long)
+				// get the according record in the index file (a record has length 8+4+80 and the database position is stored after 8 bytes in a record and is 4 bytes long)
 				index_pos = wanted_records[i] * (index_record_length_) + index_db_record_length_;
 				
-				/// if the file is too short
+				// if the file is too short
 				if ( file_length < (index_pos+index_trie_record_length_) )
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "index file is too short!", index_filename);
@@ -520,27 +533,27 @@ namespace OpenMS
 				index_file.readsome(buffer, index_trie_record_length_);
 				memcpy(&database_pos, buffer, index_trie_record_length_);
 				
-				/// read the sequence;
+				// read the sequence;
 				database_file.seekg(database_pos);
 				database_file.get(sequence, trie_delimiter_);
 				
-				/// save it in the corresponding protein hit
+				// save it in the corresponding protein hit
 				sequences.push_back(sequence.str());
-				/// read out the delimiter
+				// read out the delimiter
 				database_file.get();
-				/// clear the streambuffer
+				// clear the streambuffer
 				sequence.str("");
 			}
 			
 			index_file.close();
 		}
-		/// without index file
+		// without index file
 		else
 		{
 			unsigned int i = 0;
 			for ( std::vector< unsigned int >::const_iterator it = wanted_records.begin(); it != wanted_records.end(); ++it)
 			{
-				/// skip the unwanted proteins
+				// skip the unwanted proteins
 				while ( i < *it )
 				{
 					database_file.get(sequence, trie_delimiter_);
@@ -548,13 +561,13 @@ namespace OpenMS
 					sequence.str("");
 					++i;
 				}
-				/// read the sequence;
+				// read the sequence;
 				database_file.get(sequence, trie_delimiter_);
-				/// save it in the corresponding protein hit
+				// save it in the corresponding protein hit
 				sequences.push_back(sequence.str());
-				/// read out the delimiter
+				// read out the delimiter
 				database_file.get();
-				/// clear the streambuffer
+				// clear the streambuffer
 				sequence.str("");
 				++i;
 			}
