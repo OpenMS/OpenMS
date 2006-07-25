@@ -278,13 +278,16 @@ mzdata.store(map,"dummy.mzData");
   transformations of raw and peak data.
 
   <h3>RAW2PEAK</h3>
-  In this folder transformations from raw to peak data, the
-  so-called "peak picking", can be found.
+  This folder contains classes for the transformation from raw to peak data.
+  During this so called "peak picking" process we converte the raw ion count data, aquired by the machine, into peak lists
+  for the further processing.
   <br>
   <br>
   <b>PeakPickerCWT</b>
   <br>
-  This is the main class which you need for peak picking.
+  This is the main class which you need for peak picking. It uses the multiscale nature of spectrometric data by first detecting the mass peaks in
+  the wavelet-transformed signal before a given asymmetric peak function is fitted to  the raw data. 
+  In an optional third stage, the resulting fit can be further improved using techniques from nonlinear optimization.
   <br>
   It offers you four different mehtods for peak picking. Two of them work on 
   a container of one-dimensional data points. The following code shows for example how to search for peaks in
@@ -304,6 +307,8 @@ PeakPickerCWT peak_picker;
 peak_picker.setPeakBound(200);
 // Set the wavelet scale
 peak_picker.setWaveletScale(0.2);
+// Enable the optimization of the peak parameters
+peak_picker.setOptimizationFlag(true);
 
 // Container for the resulting peaks
 MSSpectrum &lt;DPickedPeak &lt;1&gt; &gt; peak_spectrum;
@@ -315,25 +320,27 @@ peak_picker.pick(raw_spectrum.begin(), raw_spectrum.end(), peak_spectrum);
 peak_picker.pick(raw_spectrum, peak_spectrum);
 </pre>
 
-The other two methods work on container of one-dimensional data point containers. The following
-code example should explain the usage:
+The other two methods work on containers of MSSpectra (e.g. vector<MSSpectrum<DRawDataPoint<1> > >). 
+The following code example should explain the usage:
 
  <pre>
-// Instantiate a MSExperiment (a container for raw data container) for the raw data
+// Instantiate a MSExperiment for the raw data
 MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; raw_experiment;
 // Instantiate a file reader for mzData files.
 MzDataFile mzdata_file;
-// Load the raw data stored in "MSExperiment.mzData" into the MSExperiment
+// Load the raw data stored in "MSExperiment.mzData" into the raw_experiment
 mzdata_file.load("MSExperiment.mzData", raw_experiment);
 
 // instantiate a peak picker object
 PeakPickerCWT peak_picker;
 // Set the threshold for a minimal peak intensity (height)
 peak_picker.setPeakBound(200);
-// Set the threshold for a minimal peak intensity (height) of a tandem mass spectrum
+// Set the threshold for a minimal peak intensity (height) in tandem mass spectra
 peak_picker.setPeakBoundMs2Level(50);
 // Set the wavelet scale
 peak_picker.setWaveletScale(0.2);
+// Enable the optimization of the peak parameters
+peak_picker.setOptimizationFlag(true);
 
 // Container for the resulting peaks
 MSExperiment &lt;DPickedPeak &lt;1&gt; &gt; peak_experiment;
@@ -342,7 +349,7 @@ MSExperiment &lt;DPickedPeak &lt;1&gt; &gt; peak_experiment;
 // (note: this method does not copy the experimental settings of the raw data)
 peak_picker.pickExperiment(raw_experiment.begin(), raw_experiment.end(), peak_experiment); 
 
-// Second possibility: pick the peaks on the whole raw MSExperiment
+// Second possibility: pick the peaks on the whole raw_experiment
 peak_picker.pickExperiment(raw_experiment, peak_experiment);
 </pre>
 
@@ -380,14 +387,13 @@ OpenMS/source/TRANSFORMATIONS/RAW2PEAK.
   <b>ExtractSignalRegions</b>
   <br>
   This class improves the run time of the peak picker by
-  decomposing the raw mass spectra into smaller parts with a
-  typical length of 10 Da..
+  decomposing the raw mass spectra into smaller parts on which the peaks are picked.
   <br>
   <br>
   <b>DSignalToNoiseEstimator</b>
   <br>
   This class provides the estimation of the signal to noise ratios
-  in a given raw data points intervall
+  in a given raw data points intervall.
   <br>
   <br>
   <b>DSignalToNoiseEstimatorWindowing</b>
@@ -480,89 +486,210 @@ features = ff.run();
   data.
   <br>
   <br>
-  <b>DTopHatFilter</b>
+  <b>TopHatFilter</b>
   <br>
-  This class implements a morphological baseline filter. Using the
-  following code fragment, the baseline of 2 dimensional raw data
-  is subtracted:
+  This class implements a morphological baseline filter. The filter will remove all structures 
+  in the signal which are broader than a given the structuring element.
+ <br>
+  It offers you four different mehtods to invoke the baseline filtering algorithm. Two of them work on 
+  a container of one-dimensional data points. The following code shows for example how to filter 
+  a single MS spectrum:
 
   <pre>
-typedef DPeakArrayNonPolymorphic&lt;2, DRawDataPoint&lt;2&gt; &gt; RawData2D; 
-
-RawData2D raw_data, top_hat_filtered; 
+// A container for the raw data 
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; raw_spectrum;
+// Instantiate a file reader for dta files.
+DTAFile dta_file;
+// Load the raw data stored in "MSSpectrum.dta" into the raw data container.
+dta_file.load("MSSpectrum.dta", raw_spectrum);
 
 // instantiate a top hat filter object
-DTopHatFilter&lt;2&gt; top_hat; //use the default constructor with a default value for the length of the structuring element
+TophatFilter tophat;
+// Set the width of the structuring element (given in Thomson)
+tophat.setStrucElemSize(5);
 
-//remove the baseline and and write the filtered signal into the variable top_hat_filtered 
-raw &gt;&gt; top_hat(top_hat_filtered); 
-</pre>The parameter in the constructor defines the length of the
-structuring element (given by the number of its data points).
-  <br>
-  <b>Note:</b> The structuring element defines the baseline, so
-  choose its length much bigger than the number of data points of a
-  common overlapping isotopic peak pattern (e.g. 21)!
+// Container for the resulting filtered data
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; filtered_spectrum;
 
+// First possibility: filter the raw data in a well defined iterator range
+tophat.filter(raw_spectrum.begin(), raw_spectrum.end(), filtered_spectrum); 
+
+// Second possibility: filter the whole raw data container
+tophat.filter(raw_spectrum, filtered_spectrum);
+</pre>
+
+The other two methods work on containers of MSSpectra (e.g. vector<MSSpectrum<DRawDataPoint<1> > >). 
+The following code example should explain the usage:
+
+ <pre>
+// Instantiate a MSExperiment (a container for raw data containers) for the raw data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; raw_experiment;
+// Instantiate a file reader for mzData files.
+MzDataFile mzdata_file;
+// Load the raw data stored in "MSExperiment.mzData" into the raw_experiment
+mzdata_file.load("MSExperiment.mzData", raw_experiment);
+
+// instantiate a top hat filter object
+TophatFilter tophat;
+// Set the width of the structuring element (given in Thomson)
+tophat.setStrucElemSize(5);
+
+// Container for the resulting filtered data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; filtered_experiment;
+
+// First possibility: filter the raw data in a well defined iterator range 
+// (note: this method does not copy the experimental settings of the raw data)
+tophat.filterExperiment(raw_experiment.begin(), raw_experiment.end(), filtered_experiment);
+
+// Second possibility: filter the whole raw_experiment
+tophat.filterExperiment(raw_experiment, filtered_experiment);
+</pre>
+
+Instead of setting the width of the structuring element manually you can also use a parameter file.
+The two other constructors of the top hat filter need either the parameters stored in a xml file or in a Param object.
+  
   <h3>Smoothing</h3>
   This folder contains smoothing filter classes for raw data.
   <br>
   <br>
-  <b>DGaussianFilter</b>
+  <b>GaussFilter</b>
   <br>
   This class represents a Gaussian lowpass-filter.
   <br>
-  Using the following code fragment, 2 dimensional raw data are
-  smoothed:
+  <br>
+  It offers you four different mehtods to invoke the gaussian filtering algorithm. Two of them work on 
+  a container of one-dimensional data points. The following code shows for example how to filter 
+  a single MS spectrum:
 
   <pre>
-typedef DPeakArrayNonPolymorphic&lt; 2,DRawDataPoint&lt;2&gt; &gt; RawData2D; 
+// A container for the raw data 
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; raw_spectrum;
+// Instantiate a file reader for dta files.
+DTAFile dta_file;
+// Load the raw data stored in "MSSpectrum.dta" into the raw data container.
+dta_file.load("MSSpectrum.dta", raw_spectrum);
 
-RawData2D raw_data, gaussian_filtered; 
+// Instantiate a gaussian filter object
+GaussFilter gaussian;
+// Set the standard deviation of the filter and the spacing of the filter coefficients 
+gaussian.init(0.1,0.001);
 
-// instantiate a savitzky golay filter object 
-DGaussianFilter&lt;2&gt; gaussian; //use the default constructor with default values for sigma and the frame length
+// Container for the resulting filtered data
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; filtered_spectrum;
 
-//remove the noise and write the filtered signal into the variable gaussian_filtered
-raw &gt;&gt; gaussian(gaussian_filtered);
-</pre>The parameters in the constructor define the length of the
-filter (given by the number of its data points) and the standard
-deviation of the gaussian.
+// First possibility: filter the raw data in a well defined iterator range
+gaussian.filter(raw_spectrum.begin(), raw_spectrum.end(), filtered_spectrum); 
+
+// Second possibility: filter the whole raw data container
+gaussian.filter(raw_spectrum, filtered_spectrum);
+</pre>
+
+The other two methods work on containers of MSSpectra (e.g. vector<MSSpectrum<DRawDataPoint<1> > >). 
+The following code example should explain the usage:
+
+ <pre>
+// Instantiate a MSExperiment (a container for raw data containers) for the raw data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; raw_experiment;
+// Instantiate a file reader for mzData files.
+MzDataFile mzdata_file;
+// Load the raw data stored in "MSExperiment.mzData" into the MSExperiment
+mzdata_file.load("MSExperiment.mzData", raw_experiment);
+
+// instantiate a top hat filter object
+GaussFilter tophat;
+// Set the standard deviation of the filter and the spacing of the filter coefficients 
+gaussian.init(0.1,0.001);
+
+// Container for the resulting filtered data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; filtered_experiment;
+
+// First possibility: filter the raw data in a well defined iterator range 
+// (note: this method does not copy the experimental settings of the raw data)
+gaussian.filterExperiment(raw_experiment.begin(), raw_experiment.end(), filtered_experiment);
+
+// Second possibility: filter the whole raw MSExperiment
+gaussian.filterExperiment(raw_experiment, filtered_experiment);
+</pre>
   <br>
   <b>Note:</b> The gaussian filter is normalized, so the area under
   a peak is preserved, but the maximum position gets blurred.
   <br>
   <br>
-  <b>DSavitzkyGolayQRFilter and DSavitzkyGolaySVDFilter</b>
+  <b>SavitzkyGolayQRFilter and SavitzkyGolaySVDFilter</b>
   <br>
-  This classes represent SavitzkyGolay lowpass-filter.
+  This classes represent a SavitzkyGolay lowpass-filter.
+<br>
+
+ <br>
+  Both classes offers the same interface. You can use four different mehtods to invoke the gaussian filtering algorithm. Two of them work on 
+  a container of one-dimensional data points. The following code shows for example how to filter 
+  a single MS spectrum:
 
   <pre>
-typedef DPeakArrayNonPolymorphic&lt; 2,DRawDataPoint&lt;2&gt; &gt; RawData2D; 
+// A container for the raw data 
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; raw_spectrum;
+// Instantiate a file reader for dta files.
+DTAFile dta_file;
+// Load the raw data stored in "MSSpectrum.dta" into the raw data container.
+dta_file.load("MSSpectrum.dta", raw_spectrum);
 
-RawData2D raw_data, sgolay_filtered; 
+// Instantiate a gaussian filter object
+SavitzkyGolaySVDFilter sgolay;
+// Set the size of the filter kernel (given by the number of data points!)
+sgolay.setWindowSize(17);
+// Set the order of the smoothing polynom
+sgolay.setOrder(4);
 
-// instantiate a savitzky golay filter object 
-DSavitzkyGolaySVDFilter&lt;2&gt; sgolay; //use the default constructor with default values for the order of the polynomial and the frame length
+// Container for the resulting filtered data
+MSSpectrum &lt;DRawDataPoint &lt;1&gt; &gt; filtered_spectrum;
 
-//remove the noise and write the filtered signal into the variable sgolay_filtered
-raw &gt;&gt; sgolay(sgolay_filtered);
-</pre>The parameters in the constructor define the length of the
-filter (given by the number of its data points) and the order of
-the polynom which is used.
+// First possibility: filter the raw data in a well defined iterator range
+sgolay.filter(raw_spectrum.begin(), raw_spectrum.end(), filtered_spectrum); 
+
+// Second possibility: filter the whole raw data container
+sgolay.filter(raw_spectrum, filtered_spectrum);
+</pre>
+
+The other two methods work on containers of MSSpectra (e.g. vector<MSSpectrum<DRawDataPoint<1> > >). 
+The following code example should explain the usage:
+
+ <pre>
+// Instantiate a MSExperiment (a container for raw data containers) for the raw data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; raw_experiment;
+// Instantiate a file reader for mzData files.
+MzDataFile mzdata_file;
+// Load the raw data stored in "MSExperiment.mzData" into the raw_experiment
+mzdata_file.load("MSExperiment.mzData", raw_experiment);
+
+// Instantiate a gaussian filter object
+SavitzkyGolaySVDFilter sgolay;
+// Set the size of the filter kernel (given by the number of data points!)
+sgolay.setWindowSize(17);
+// Set the order of the smoothing polynom
+sgolay.setOrder(4);
+
+// Container for the resulting filtered data
+MSExperiment &lt;DRawDataPoint &lt;1&gt; &gt; filtered_experiment;
+
+// First possibility: filter the raw data in a well defined iterator range 
+// (note: this method does not copy the experimental settings of the raw data)
+sgolay.filterExperiment(raw_experiment.begin(), raw_experiment.end(), filtered_experiment);
+
+// Second possibility: filter the whole raw_experiment
+sgolay.filterExperiment(raw_experiment, filtered_experiment);
+</pre>
   <br>
   <b>Note:</b>
 
   <ul>
-    <li>By decreasing the order of the polynoms or increasing the
-    number of data points, the filtered signal gets smoother (the
+    <li>By decreasing the order of the polynomial or increasing the
+    number of filter coefficients, the filtered signal gets smoother (the
     order x should be 2 &lt;= x &lt;= 4) !</li>
-
 
     <li>The Savitzky Golay filter preserves the maximum position of
     a peak much better than the Gaussian filter!</li>
 
-
-    <li>The DSavitzkyGolayQRFilter and the DSavitzkyGolaySVDFilter
+    <li>The SavitzkyGolayQRFilter and the SavitzkyGolaySVDFilter
     generate the same filtering, but they vary in run time. Try
     which one is more suitable for your application!</li>
   </ul>
