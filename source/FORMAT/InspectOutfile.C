@@ -1,52 +1,44 @@
-/// -*- Mode: C++; tab-width: 2; -*-
-/// vi: set ts=2:
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
 //
-/// --------------------------------------------------------------------------
-///                   OpenMS Mass Spectrometry Framework
-/// --------------------------------------------------------------------------
-///  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
-///  This library is free software; you can redistribute it and/or
-///  modify it under the terms of the GNU Lesser General Public
-///  License as published by the Free Software Foundation; either
-///  version 2.1 of the License, or (at your option) any later version.
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
 //
-///  This library is distributed in the hope that it will be useful,
-///  but WITHOUT ANY WARRANTY; without even the implied warranty of
-///  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-///  Lesser General Public License for more details.
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
 //
-///  You should have received a copy of the GNU Lesser General Public
-///  License along with this library; if not, write to the Free Software
-///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-/// --------------------------------------------------------------------------
-/// $Id: InspectOutfile.C,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-/// $Author: martinlangwisch $
-/// $Maintainer: Martin Langwisch $
-/// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// $Id: InspectOutfile.C,v 1.0 2006/07/25 13:46:15 martinlangwisch Exp $
+// $Author: martinlangwisch $
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
 
 namespace OpenMS 
 {
-	InspectOutfile::InspectOutfile()
-    : Outfile()
-	{}
-	
-	InspectOutfile::InspectOutfile(const InspectOutfile& source)
-    : Outfile(source)
-	{}
-	
   InspectOutfile::InspectOutfile(const std::string& result_filename, const std::string& database_filename_, const std::string& database_path, std::string index_filename_)
   	throw (Exception::FileNotFound, Exception::ParseError)
     : Outfile()
   {
-		/// (0) preparations
-		/// open the result and database file
+		// (0) preparations
+		// open the result and database file
 		String database_filename(database_filename_);
 		String index_filename(index_filename_);
-		std::ifstream result_file(result_filename.c_str());
+		std::ifstream result_file( result_filename.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
@@ -61,13 +53,71 @@ namespace OpenMS
 		}
 		
 		std::string start_seperator, buffer;
-		getSeparators(path_and_file, buffer, start_seperator, buffer, buffer, buffer);
+		getLabels(path_and_file, buffer, start_seperator, buffer, buffer, buffer);
 		database_file.close();
 		database_file.clear();
 		
-		/// get the header
+		// get the header
 		String line;
+		//unsigned int number_of_columns;
 		std::vector<String> substrings;
+		/*if ( getline(result_file, line) )
+		{
+			if ( !line.empty() ) line.resize(line.length()-1);
+			line.split('\t', substrings);
+			number_of_columns = substrings.size();
+		}
+		else // Inspect search was not successfull
+		{
+			return;
+		}
+		
+		// get the number of some columns
+		int spectrum_file_column = -1;
+		int scan_column = -1;
+		int peptide_column = -1;
+		int protein_column = -1;
+		int charge_column = -1;
+		int MQScore_column = -1;
+		int record_number_column = -1;
+		
+		for ( std::vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
+		{
+			if ( (*iter) == "#SpectrumFile" )
+			{
+				spectrum_file_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "Scan#" )
+			{
+				scan_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "Annotation" )
+			{
+				peptide_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "Protein" )
+			{
+				protein_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "Charge" )
+			{
+				charge_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "MQScore" )
+			{
+				MQScore_column = (iter - substrings.begin());
+			}
+			else if ( (*iter) == "RecordNumber" )
+			{
+				record_number_column = (iter - substrings.begin());
+			}
+		}
+		
+		// check whether the columns are available in the header
+		if ( (spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQScore_column == -1) ||  (record_number_column == -1))
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore' or  'RecordNumber' is missing!" , result_filename);
+		}*/
 		
 		enum columns
 		{
@@ -90,7 +140,7 @@ namespace OpenMS
 		};
 		unsigned int number_of_columns = 16;
 		
-		/// map the protein hits according to their record number in the result file
+		// map the protein hits according to their record number in the result file
 		//					record number			position in protein_hits_
 		std::map< unsigned int, unsigned int > rn_position_map;
 		Identification* query;
@@ -104,7 +154,7 @@ namespace OpenMS
 		unsigned int record_number, scan_number;
 		unsigned int rank = 0;
 		unsigned int max_record_number = 0;
-		unsigned int line_number = 0; /// used to report in which line an error occured
+		unsigned int line_number = 0; // used to report in which line an error occured
 		
 		while ( getline(result_file, line) )
 		{
@@ -112,7 +162,7 @@ namespace OpenMS
 			++line_number;
 			line.split('\t', substrings);
 			
-			/// check whether the line has enough columns
+			// check whether the line has enough columns
 			if (substrings.size() < number_of_columns )
 			{
 				char buffer[10];
@@ -129,7 +179,10 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
 			}
 			
-			/// (1.0) if a new query is found, insert it into the vector and start a new one
+			// if the version Inspect.20060620.zip is used, there is a header
+			if ( substrings[0] == "#SpectrumFile" ) continue;
+			
+			// (1.0) if a new query is found, insert it into the vector and start a new one
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((unsigned int) atoi(substrings[scan_column].c_str()) != scan_number) )
 			{
 				queries_.push_back(Identification());
@@ -138,19 +191,14 @@ namespace OpenMS
 				scan_number = atoi(substrings[scan_column].c_str());
 				
 				query->setCharge(atoi(substrings[charge_column].c_str()));
-				query->setDateTime(datetime);
-				query->setPeptideSignificanceThreshold(0.0);
-				query->setProteinSignificanceThreshold(0.0);
-				precursor_retention_times_.push_back(0.0);
-				precursor_mz_values_.push_back(0.0);
 				rank = 0;
 			}
 			
 			record_number = atoi(substrings[record_number_column].c_str());
-			/// get accession number and type
-			get_ac_and_ac_type(substrings[protein_column], result_filename, accession, accession_type);
+			// get accession number and type
+			getACAndACType(substrings[protein_column], accession, accession_type);
 			
-			/// (1.1)  if a new protein is found, get all the information and insert it
+			// (1.1)  if a new protein is found, get all the information and insert it
 			if ( rn_position_map.find(record_number) == rn_position_map.end() )
 			{
 				max_record_number = std::max(max_record_number, record_number);
@@ -158,52 +206,52 @@ namespace OpenMS
 				protein_hit.clear();
 				protein_hit.setAccession(accession);
 				protein_hit.setAccessionType(accession_type);
-/// ### score einfach zusammenrechnen?
+// ### score einfach zusammenrechnen?
 				//protein_hit.setScore(0.0);
-				//protein_hit.setScoreType("MQScore");
+				//protein_hit.setScoreType(score_type_);
 				
 				rn_position_map.insert(std::make_pair(record_number, protein_hits_.size()));
 				protein_hit.setRank(rn_position_map.size());
 				protein_hits_.push_back(protein_hit);
 			}
 			
-			/// (1.2) get the peptide infos from the new peptide and insert it
+			// (1.2) get the peptide infos from the new peptide and insert it
 			peptide_hit.clear();
 			peptide_hit.setScore(atof(substrings[MQ_score_column].c_str()));
-			peptide_hit.setScoreType("MQScore");
+			peptide_hit.setScoreType(score_type_);
 			peptide_hit.setSequence(substrings[peptide_column]);
 			peptide_hit.setRank(++rank);
 			peptide_hit.addProteinIndex(datetime, accession);
 			
 			rank -= updatePeptideHits(peptide_hit, query->getPeptideHits());
 			updatePeptideHits(peptide_hit, peptide_hits_);
-		} /// result file read
-		result_file.close();
+		} // result file read
 		
-		/// get the sequences of the protein
-		/// make a vector of the records to get the sequences of the proteins
+		// get the sequences of the protein
+		// make a vector of the records to get the sequences of the proteins
 		std::vector< unsigned int > record_vector;
 		for ( std::map< unsigned int, unsigned int >::iterator i = rn_position_map.begin(); i != rn_position_map.end(); ++i)
 		{
 			record_vector.push_back(i->first);
 		}
-		/// it it's no trie database generate one from the database and use this one
+		// it it's no trie database generate one from the database and use this one
 		if ( start_seperator != std::string(1, trie_delimiter_) )
 		{
+			database_file.close();
+			database_file.clear();
 			std::string old_database_filename = database_filename;
 			database_filename = getTempDatabaseFilename();
 			index_filename = getTempIndexFilename();
 			
-			compressor(old_database_filename, database_path, database_path, record_vector, database_filename, index_filename);
+			generateTrieDB(old_database_filename, database_path, database_path, record_vector, database_filename, index_filename);
 			
-			/// change the vector so it contains the positions of the wanted records in the new database (which is just their number, but this way the record vector can be used for 'old', as well as just generated trie databases)
+			// change the vector so it contains the positions of the wanted records in the new database (which is just their number, but this way the record vector can be used for 'old', as well as just generated trie databases)
 			for ( unsigned int i = 0; i < record_vector.size(); ++i)
 			{
 				record_vector[i] = i;
 			}
 		}
 		
-		/// retrieve the sequences
 		std::vector<std::string> sequences;
 		getSequences(database_path, database_filename, index_filename, record_vector, sequences);
 		
@@ -215,13 +263,11 @@ namespace OpenMS
 		}
 		sequences.clear();
 		
-		/// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
+		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
 		if ( queries_.empty() )
 		{
 			query->setProteinHits(protein_hits_);
 			query->setDateTime(datetime);
-			query->setPeptideSignificanceThreshold(0.0);
-			query->setProteinSignificanceThreshold(0.0);
 		}
 		
 		protein_ids_.setProteinHits(protein_hits_);
@@ -237,7 +283,7 @@ namespace OpenMS
 		curr_protein_hit_ = protein_hits_.begin();
 		curr_query_ = queries_.begin();
 
-		/// now that all information are read
+		// now that all information are read
  		ok_ = true;
   }
 
