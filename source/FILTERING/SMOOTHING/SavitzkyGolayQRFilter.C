@@ -53,7 +53,7 @@ namespace OpenMS
 
     if (!isOdd(frame_size_))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size must be an odd integer!", String(frame_size_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size hast to be an odd integer!", String(frame_size_));
     }
 
     dv = param_.getValue("PolynomOrder");
@@ -65,7 +65,7 @@ namespace OpenMS
 
     if (frame_size_ <= order_)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to  must be less than the frame length.", String(order_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
     }
 
 
