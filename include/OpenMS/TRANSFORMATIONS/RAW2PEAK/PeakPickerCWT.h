@@ -193,11 +193,11 @@ namespace OpenMS
     inline void setNoiseLevel(const float& noise_level) { noise_level_ = noise_level; }
 
     /// Non-mutable access to the optimization switch
-    inline const bool& getOptimizationValue() const { return optimization_; }
+    inline const bool& getOptimizationFlag() const { return optimization_; }
     /// Mutable access to the optimization switch
-    inline bool& getOptimizationValue() { return optimization_; }
+    inline bool& getOptimizationFlag() { return optimization_; }
     /// Mutable access to the optimization switch
-    inline void setOptimizationValue(const bool& optimization) { optimization_ = optimization; }
+    inline void setOptimizationFlag(const bool& optimization) { optimization_ = optimization; }
     //@}
 
 
@@ -521,7 +521,7 @@ namespace OpenMS
     {
       // copy the experimental settings
       static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;
-
+	
       pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
     }
 
