@@ -220,9 +220,9 @@ EXECUTABLES_FILTERING = \
 	MorphFilter_test\
 	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
-	SmoothFilter_test
-	
-	#DGaussFilter_test\
+	SmoothFilter_test\
+	GaussFilter_test
+
 
 #COMPARISON
 

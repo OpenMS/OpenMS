@@ -1,0 +1,304 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Eva Lange  $
+// --------------------------------------------------------------------------
+//
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+
+///////////////////////////
+
+START_TEST(GaussFilter<D>, "$Id: GaussFilter_test.C 139 2006-07-14 10:08:39Z marc_sturm $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+
+
+typedef DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > RawDataArray1D;
+typedef RawDataArray1D::Iterator RawDataIterator1D;
+typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
+
+
+GaussFilter* dgauss_ptr = 0;
+CHECK((GaussFilter()))
+  dgauss_ptr = new GaussFilter;
+  TEST_NOT_EQUAL(dgauss_ptr, 0)
+RESULT
+
+CHECK((~GaussFilter()))
+    delete dgauss_ptr;
+RESULT
+
+CHECK((GaussFilter& operator=(const GaussFilter& s)))
+  GaussFilter gauss;
+  gauss.setSigma(0.2);
+  gauss.setSpacing(0.01);
+  
+  GaussFilter gauss_copy;
+  gauss_copy = gauss;
+
+  TEST_REAL_EQUAL(gauss_copy.getSigma(),0.2)
+  TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
+RESULT
+
+CHECK((GaussFilter(const GaussFilter& g)))
+ GaussFilter gauss;
+  gauss.setSigma(0.2);
+  gauss.setSpacing(0.01);
+  
+  GaussFilter gauss_copy(gauss);
+
+  TEST_REAL_EQUAL(gauss_copy.getSigma(),0.2)
+  TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
+RESULT
+
+CHECK((GaussFilter(const Param& parameters) throw(Exception::InvalidValue)))
+  Param p;
+  p.setValue("GaussianWidth",1.6);
+  GaussFilter gauss(p);
+  
+  TEST_REAL_EQUAL(gauss.getSigma(),.2);
+  TEST_REAL_EQUAL(gauss.getKernelWidth(),1.6);
+RESULT
+
+CHECK((const Param& getParam() const))
+  Param p;
+  p.setValue("GaussianWidth",1.6);
+  const GaussFilter gauss(p);
+
+  TEST_EQUAL(gauss.getParam() == p, true);
+RESULT
+
+CHECK((const double& getSigma() const))
+  const GaussFilter gaussian;
+
+  TEST_REAL_EQUAL(gaussian.getSigma(),.1);
+RESULT
+
+CHECK((const double& getSpacing() const))
+  const GaussFilter gaussian;
+
+  TEST_REAL_EQUAL(gaussian.getSpacing(),0.01);
+RESULT
+
+CHECK((double getKernelWidth() const))
+  const GaussFilter gaussian;
+
+  TEST_REAL_EQUAL(gaussian.getKernelWidth(),.8);
+RESULT
+
+CHECK((void init(float sigma, float spacing)))
+  GaussFilter gaussian;
+  gaussian.init(0.2,0.001);
+
+  TEST_REAL_EQUAL(gaussian.getSpacing(),0.001);
+  TEST_REAL_EQUAL(gaussian.getSigma(),0.2);
+  TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
+RESULT
+
+CHECK((void setKernelWidth(const double& kernel_width)))
+  GaussFilter gaussian;
+  gaussian.setKernelWidth(1.6);
+
+  TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
+RESULT
+
+CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
+  Param p;
+  p.setValue("GaussianWidth",1.6);
+  GaussFilter gaussian(p);
+
+  TEST_REAL_EQUAL(gaussian.getSigma(),0.2);
+  TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
+RESULT
+
+CHECK((void setSigma(const double& sigma)))
+  GaussFilter gauss;
+  gauss.setSigma(2.434);
+  
+  TEST_REAL_EQUAL(gauss.getSigma(), 2.434)
+RESULT
+
+CHECK((void setSpacing(const double& spacing)))
+  GaussFilter gaussian;
+  gaussian.setSpacing(0.0001);
+
+  TEST_REAL_EQUAL(gaussian.getSpacing(),0.0001);
+RESULT
+
+CHECK((void setKernelWidth(const double& kernel_width)))
+  GaussFilter gauss;
+  gauss.setSigma(0.2);
+
+  TEST_REAL_EQUAL(gauss.getSigma(), 0.2)
+  TEST_REAL_EQUAL(gauss.getKernelWidth(), 1.6)
+RESULT
+
+CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)))
+  RawDataArray1D raw(5);
+  RawDataArray1D filtered;
+
+  RawDataIterator1D it = raw.begin();
+  for (int i=0; i<5; ++i, ++it)
+  {
+    if (i==2)
+    {
+      it->setIntensity(1);
+    }
+    else
+    {
+      it->setIntensity(0);
+    }
+  }
+
+  GaussFilter gauss;
+  gauss.init(0.5,0.1);
+  gauss.filter(raw.begin(),raw.end(),filtered);
+  it=filtered.begin();
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+RESULT 
+
+CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
+	MSExperiment< DRawDataPoint<1> > raw_exp;
+	MSExperiment< DRawDataPoint<1> > filtered_exp;
+	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
+	raw_spectrum.resize(5);
+	
+  
+  MSSpectrum< DRawDataPoint<1> >::iterator it=raw_spectrum.begin();
+  for (int i=0; i<5; ++i, ++it)
+  {
+    if (i==2)
+    {
+      it->setIntensity(1);
+    }
+    else
+    {
+      it->setIntensity(0);
+    }
+  }
+
+  GaussFilter gauss;
+  raw_exp.resize(1);
+  raw_exp[0] = raw_spectrum;
+  gauss.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
+
+  it = filtered_exp[0].begin();
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+RESULT
+
+CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
+	MSExperiment< DRawDataPoint<1> > raw_exp;
+	MSExperiment< DRawDataPoint<1> > filtered_exp;
+	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
+	raw_spectrum.resize(5);
+	
+  
+  MSSpectrum< DRawDataPoint<1> >::iterator it=raw_spectrum.begin();
+  for (int i=0; i<5; ++i, ++it)
+  {
+    if (i==2)
+    {
+      it->setIntensity(1);
+    }
+    else
+    {
+      it->setIntensity(0);
+    }
+  }
+
+  GaussFilter gauss;
+  raw_exp.resize(1);
+  raw_exp[0] = raw_spectrum;
+  gauss.filterExperiment(raw_exp,filtered_exp);
+
+  it = filtered_exp[0].begin();
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+RESULT
+
+CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
+  RawDataArray1D raw(5);
+  RawDataArray1D filtered;
+
+  RawDataIterator1D it = raw.begin();
+  for (int i=0; i<5; ++i, ++it)
+  {
+    if (i==2)
+    {
+      it->setIntensity(1);
+    }
+    else
+    {
+      it->setIntensity(0);
+    }
+  }
+
+  GaussFilter gauss;
+  gauss.filter(raw,filtered);
+  it=filtered.begin();
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+  ++it;
+  TEST_REAL_EQUAL(it->getIntensity(),0)
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
