@@ -56,7 +56,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size hast to be an odd integer!", String(frame_size_));
     }
 
-    dv = param_.getValue("PolynomOrder");
+    dv = param_.getValue("PolynomialOrder");
     if (dv.isEmpty() || dv.toString() == "")
       order_ = 4;
     else
@@ -88,7 +88,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size must be an odd integer!", String(frame_size_));
     }
 
-    dv = param_.getValue("PolynomOrder");
+    dv = param_.getValue("PolynomialOrder");
     if (!(dv.isEmpty() || dv.toString() == ""))
       order_ = (unsigned int)dv;
 
