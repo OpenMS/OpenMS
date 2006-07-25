@@ -1,37 +1,37 @@
-/// -*- Mode: C++; tab-width: 2; -*-
-/// vi: set ts=2:
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
 //
-/// --------------------------------------------------------------------------
-///                   OpenMS Mass Spectrometry Framework
-/// --------------------------------------------------------------------------
-///  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
-///  This library is free software; you can redistribute it and/or
-///  modify it under the terms of the GNU Lesser General Public
-///  License as published by the Free Software Foundation; either
-///  version 2.1 of the License, or (at your option) any later version.
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
 //
-///  This library is distributed in the hope that it will be useful,
-///  but WITHOUT ANY WARRANTY; without even the implied warranty of
-///  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-///  Lesser General Public License for more details.
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
 //
-///  You should have received a copy of the GNU Lesser General Public
-///  License along with this library; if not, write to the Free Software
-///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-/// --------------------------------------------------------------------------
-/// $Id: InspectInfile.C,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-/// $Author: martinlangwisch $
-/// $Maintainer: Martin Langwisch $
-/// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// $Id: InspectInfile.C,v 1.0 2006/07/25 13:46:15 martinlangwisch Exp $
+// $Author: martinlangwisch $
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
 
 namespace OpenMS
 {
 	
-	/// default constructor
+	// default constructor
 	InspectInfile::InspectInfile():
 		mods_(-1),
 		blind_(2),
@@ -45,7 +45,7 @@ namespace OpenMS
 	{
 	}
 	
-	/// copy constructor
+	// copy constructor
 	InspectInfile::InspectInfile(const InspectInfile& inspect_infile):
 		spectra_(inspect_infile.spectra_),
 		db_(inspect_infile.db_),
@@ -66,13 +66,13 @@ namespace OpenMS
 	{
 	}
 	
-	/// destructor
+	// destructor
 	InspectInfile::~InspectInfile()
 	{
 		mod_.clear();
 	}
 	
-	/// assignment operator
+	// assignment operator
 	InspectInfile& InspectInfile::operator= (const InspectInfile& inspect_infile)
 	{
 		if (this != &inspect_infile)
@@ -97,24 +97,24 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void InspectInfile::write(const String& filename) throw (Exception::UnableToCreateFile)
+	void InspectInfile::store(const String& filename) throw (Exception::UnableToCreateFile)
 	{
 		std::ofstream ofs( filename.c_str() );
 		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		
-		/// the spectrum
+		// the spectrum
 		ofs << "spectra," << spectra_ << std::endl;
 			
-		/// the database
+		// the database
 		if ( !db_.empty() ) ofs << "db," << db_ << std::endl;
 		
-		/// the sequence file
+		// the sequence file
 		if ( !sequence_file_.empty() ) ofs << "sequence_file," << sequence_file_ << std::endl;
 		
-		/// the protease ###
+		// the protease ###
 		if ( !protease_.empty() ) ofs << "protease," << protease_ << std::endl;
 		
-		/// the modifications
+		// the modifications
 		for ( std::vector< std::vector< String > >::const_iterator iter = mod_.begin(); iter != mod_.end(); ++iter )
 		{
 			ofs << "mod";
@@ -125,37 +125,37 @@ namespace OpenMS
 			ofs << std::endl;
 		}
 		
-		/// number of modifications per peptide
+		// number of modifications per peptide
 		if ( mods_ > -1 ) ofs << "mods," << mods_ << std::endl;
 		
-		/// whether to do a "blind" search
+		// whether to do a "blind" search
 		if ( blind_ != 2 ) ofs << "blind," << blind_ << std::endl;
 
-		/// maximum modification size in a "blind" search
+		// maximum modification size in a "blind" search
 		if ( maxptmsize_ >= 0) ofs << "maxptmsize," << maxptmsize_ << std::endl;
 		
-		/// parent mass tolerance
+		// parent mass tolerance
 		if ( PM_tolerance_ >= 0 ) ofs << "PM_tolerance," << PM_tolerance_ << std::endl;
 		
-		/// ion mass tolerance
+		// ion mass tolerance
 		if ( ion_tolerance_ >= 0 ) ofs << "ion_tolerance," << ion_tolerance_ << std::endl;
 		
-		/// jumpscores file
+		// jumpscores file
 		if ( !jumpscores_.empty() ) ofs << "jumpscores," << jumpscores_ << std::endl;
 		
-		/// whether precursor ion may be multiply charged
+		// whether precursor ion may be multiply charged
 		if ( multicharge_ != 2 ) ofs << "multicharge," << multicharge_ << std::endl;
 		
-		/// instrument type
+		// instrument type
 		if ( !instrument_.empty() ) ofs << "instrument," << instrument_ << std::endl;
 		
-		/// number of tags to generate for the first pass of a two-pass search
+		// number of tags to generate for the first pass of a two-pass search
 		if ( TagCountA_ >= 0 ) ofs << "TagCountA," << TagCountA_ << std::endl;
 		
-		/// Number of tags to generate for the second pass of a two-pass search, OR the number of tags to use in a one-pass search.
+		// Number of tags to generate for the second pass of a two-pass search, OR the number of tags to use in a one-pass search.
 		if ( TagCountB_ >= 0 ) ofs << "TagCountB," << TagCountB_ << std::endl;
 		
-		/// whether to use two-pass search
+		// whether to use two-pass search
 		if ( twopass_ != 2 ) ofs << "twopass," << twopass_ << std::endl;
 		
 		ofs.close();
@@ -333,9 +333,7 @@ namespace OpenMS
 		twopass_ = twopass;
 	}
 
-	/// generate a database from an inspect result file; this new database can be used for a blind search
-	/// either a trie database is given as input, or a corresponding database is generated from the input
-		void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		if ( (cutoff_p_value < 0) || (cutoff_p_value-1.0 > 0) )
 		{
@@ -359,12 +357,12 @@ namespace OpenMS
 		}
 		
 		std::string start_separator, buffer1;
-		/// get the start separator
+		// get the start separator
 		
-		getSeparators(path_and_file, buffer1, start_separator, buffer1, buffer1, buffer1);
+		getLabels(path_and_file, buffer1, start_separator, buffer1, buffer1, buffer1);
 		
-		/// processing the information from the result file
-		/// get the number of column "#SpectrumFile", "p-value" and "RecordNumber"
+		// processing the information from the result file
+		// get the number of column "#SpectrumFile", "p-value" and "RecordNumber"
 		/*int spectrum_file_column = -1;
 		int p_value_column = -1;
 		int record_number_column = -1;
@@ -394,7 +392,7 @@ namespace OpenMS
 		std::vector<String> substrings;
 		String line;
 		
-		/*/// get the header
+		/*// get the header
 		if ( getline(result_file, line) )
 		{
 			if ( !line.empty() ) line.resize(line.length()-1);
@@ -406,7 +404,7 @@ namespace OpenMS
 			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		/// get the numbers
+		// get the numbers
 		for ( std::vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
 		{
 			if ( !iter->compare("#SpectrumFile") )
@@ -422,31 +420,31 @@ namespace OpenMS
 				record_number_column = (iter - substrings.begin());
 			}
 		}
-		/// check whether the columns are available in the header
+		// check whether the columns are available in the header
 		if ( (spectrum_file_column == -1) || (p_value_column == -1) ||  (record_number_column == -1))
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns 'SpectrumFile', 'Protein', 'p-value' or  'RecordNumber' is missing!" , result_filename);
 		}*/
 		
-		/// map the proteins according to their record number in the result file (and count the number of annotated spectrum)
+		// map the proteins according to their record number in the result file (and count the number of annotated spectrum)
 		std::map< unsigned int, unsigned int > record_map;
 		std::map< unsigned int, unsigned int >::iterator i;
 		
-		/// get the proteins whose p-value <= p_value_column and count the annotated spectrum (done via a set)
+		// get the proteins whose p-value <= p_value_column and count the annotated spectrum (done via a set)
 		unsigned int record_number;
 		unsigned int max_record_number = 0;
-		unsigned int line_number = 0; /// used to report in which line an error occured
+		unsigned int line_number = 0; // used to report in which line an error occured
 		//std::set<std::string, string_less> spectrum_count;
 		std::set< std::string > spectrum_count;
 		char buffer[10];
 		
-		/// read out the whole result file
+		// read out the whole result file
 		while ( getline(result_file, line) )
 		{
 			if ( !line.empty() ) line.resize(line.length()-1);
 			++line_number;
 			line.split('\t', substrings);
-			/// check whether the line has enough columns
+			// check whether the line has enough columns
 			if ( substrings.size() < number_of_columns )
 			{
 				sprintf(buffer, "%i", line_number);
@@ -462,19 +460,22 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
 			}
 			
+			// if the version Inspect.20060620.zip is used, there is a header
+			if ( substrings[0] == "#SpectrumFile" ) continue;
+			
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
-			/// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
+			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
 			if ( atof(substrings[p_value_column].c_str()) <= cutoff_p_value )
 			{
 				record_number = atoi(substrings[record_number_column].c_str());
 				max_record_number = std::max(max_record_number, record_number);
-				/// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
+				// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
 				++record_map[record_number];
 			}
-		} /// result file read
+		} // result file read
 		
-		/// if no protein has a p_value less equal the cutoff value return an empty database
+		// if no protein has a p_value less equal the cutoff value return an empty database
 		if ( record_map.empty() )
 		{
 			path_and_file = second_database_path;
@@ -500,7 +501,7 @@ namespace OpenMS
 		}
 		
 		
-		/// get the number of proteins
+		// get the number of proteins
 		unsigned int number_of_proteins = 0;
 		unsigned int pos = 0;
 		
@@ -514,24 +515,24 @@ namespace OpenMS
 				pos = line.find(start_separator, ++pos);
 			}
 		}
-		/// a trie datase has one more protein than delimiters
+		// a trie datase has one more protein than delimiters
 		if ( start_separator == std::string(1, trie_delimiter_) ) ++ number_of_proteins;
 		
-		/// check whether the number of proteins in the database and the result file correspond
+		// check whether the number of proteins in the database and the result file correspond
 		if ( number_of_proteins < max_record_number+1 )
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Wrong database file ("+database_filename+") for this result file ("+result_filename+") (number of proteins in database is lower than a RecordNumber in the result file)!" ,result_filename);
 		}
 		
-		/// generate the new database using all proteins whose #annotated spectrum >= min_annotated_spectrum_per_peptid
-		/// compute min_annotated_spectra_per_protein if it's not given
+		// generate the new database using all proteins whose #annotated spectrum >= min_annotated_spectrum_per_peptid
+		// compute min_annotated_spectra_per_protein if it's not given
 		if ( min_annotated_spectra_per_protein < 0 )
 		{
 			min_annotated_spectra_per_protein = std::max(1, (signed) (2 * spectrum_count.size() / number_of_proteins));
 		}
 		spectrum_count.clear();
 		
-		/// insert those records into a vector whose #annotated spectrum >= min_annotated_spectrum_per_peptid
+		// insert those records into a vector whose #annotated spectrum >= min_annotated_spectrum_per_peptid
 		std::vector< unsigned int > wanted_records;
 		for ( std::map< unsigned int, unsigned int >::const_iterator i = record_map.begin(); i != record_map.end(); ++i )
 		{
@@ -541,7 +542,7 @@ namespace OpenMS
 		database_file.close();
 		result_file.close();
 		
-		/// if no protein has a p_value less equal the cutoff value return an empty database
+		// if no protein has a p_value less equal the cutoff value return an empty database
 		if ( wanted_records.empty() )
 		{
 			path_and_file = second_database_path;
@@ -567,8 +568,8 @@ namespace OpenMS
 		}
 		
 		if (start_separator == std::string(1, trie_delimiter_)) compressTrieDB(database_filename, index_filename, database_path, wanted_records, second_database_filename, second_index_filename, second_database_path);
-		else compressor(result_filename, result_path, second_database_path, wanted_records, second_database_filename, second_index_filename, false, species);
+		else generateTrieDB(result_filename, result_path, second_database_path, wanted_records, second_database_filename, second_index_filename, false, species);
 	}
 
 
-} /// namespace OpenMS
+} // namespace OpenMS
