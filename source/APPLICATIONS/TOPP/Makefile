@@ -59,7 +59,8 @@ EXECUTABLES=\
 	UnlabeledMatcher\
 	LabeledMatcher\
 	Dewarper\
-	$(LIBSVM_EXEC)
+	$(LIBSVM_EXEC)\
+	SpectraFilter
 
 #	FeaturePairSplitter\
 #	RawDataResampler\
@@ -170,4 +171,7 @@ UnlabeledMatcher: UnlabeledMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 
 FileMerger: FileMerger.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+
+SpectraFilter: SpectraFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
