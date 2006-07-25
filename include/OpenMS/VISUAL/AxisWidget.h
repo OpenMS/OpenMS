@@ -188,12 +188,6 @@ namespace OpenMS
 			/// see QWidget
 			void paintEvent( QPaintEvent * );
 	
-			/// calculate values between min_ and max_ that will be used as axis labels and define where gridlines should be used
-			GridVector calcGridLines_(double x1, double x2);
-	    /// calculate log grid lines in 10
-	    GridVector calcLogGridLines_(double x1, double x2);
-	
-			/// smallest distance between two gridline values, used to find the optimal font size
 			double grid_line_dist_;
 	
 		private:

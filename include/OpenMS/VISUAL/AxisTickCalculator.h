@@ -29,7 +29,7 @@
 
 // STL
 #include <vector>
-
+#include <OpenMS/CONCEPT/Types.h>
 namespace OpenMS
 {
 	/**
@@ -44,23 +44,27 @@ namespace OpenMS
 		
 		public:
 	    /// Typedef for the grid vector
-			typedef std::vector<std::vector<double> > GridVector;
-			
+		typedef std::vector<std::vector<double> > GridVector;
+		static enum {TOP, BOTTOM, LEFT, RIGHT} ALIGNMENT_ENUM;
+		/**
+			 @brief Returns a GridVector with ticks for linear scales.
+			 
+			 @param x1 minimum value
+			 @param x2 maximum value
+			 @param level numbers of different tick levels (maximum is 3)
+			 @param grid  numbers the grid_vector
+			 @param max_num_big
+			 @param max_num_small 
+			 @param grid_line_dist the distanve of the gridlines
+		*/
+		static void calcGridLines(double x1, double x2, int levels, GridVector& grid,UnsignedInt max_num_big, UnsignedInt max_num_small,double& grid_line_dist);
 			/**
-				@brief Returns a GridVector with ticks for linear scales.
-				
-				@param x1 minimum value
-				@param x2 maximum value
-				@param level numbers of different tick levels (maximum is 3)
+				 @brief Returns a GridVector with ticks for logarithmic scales.
+				 
+				 @param x1 minimum value
+				 @param x2 maximum value
 			*/
-			static void calcGridLines(double x1, double x2, int levels, GridVector& grid);
-			/**
-				@brief Returns a GridVector with ticks for logarithmic scales.
-				
-				@param x1 minimum value
-				@param x2 maximum value
-			*/
-			static void calcLogGridLines(double x1, double x2, GridVector& grid);
+		static void calcLogGridLines(double x1, double x2, GridVector& grid);
 			
 		private: 
 			///Constructor: only static methods

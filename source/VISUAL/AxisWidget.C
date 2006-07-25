@@ -35,6 +35,7 @@
 // OpenMS
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/VISUAL/AxisTickCalculator.h>
 
 // ANSI C/C++
 #include "stdio.h"
@@ -297,10 +298,12 @@ namespace OpenMS
 	  {
 	    if (is_log_)
 	    {
-			  grid_line_ = calcLogGridLines_(min_,max_);
-	    } else
-	    {
-	      grid_line_ = calcGridLines_(min_, max_);
+				AxisTickCalculator::calcLogGridLines(min_,max_,grid_line_);
+			} else
+	    {	
+				UnsignedInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
+				UnsignedInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
+				AxisTickCalculator::calcGridLines(min_, max_,tick_level_,grid_line_,max_num_big, max_num_small,grid_line_dist_);
 	    }
 			invalidate_();
 		}
@@ -437,131 +440,81 @@ namespace OpenMS
 	}
 		
 	
-	//////////////////////////////////////////////////////////////////////////////////
-	// grid lines
-	AxisWidget::GridVector AxisWidget::calcGridLines_(double x1, double x2)
-	// Input:  x1, x2 (with x2>x1)
-	// Output: a vector containing at least 1 and at most 4 vectors of gridlines in diagram coordinates
-	//		   the first vector of gridlines contains big steps of size Pow10(sDecPower)
-	//		   the second vector contains the smaller ones of step size Pow10(sDecPower)/2
-	//		   the third vector contains the even smaller ones of size Pow10(sDecPower)/4
-	{
-	  //cout << "calcGridLines_: " << x1 << " " << x2 << endl;
-		GridVector grid_lines;
+// 	//////////////////////////////////////////////////////////////////////////////////
+// 	// grid lines
+// 	AxisWidget::GridVector AxisWidget::calcGridLines_(double x1, double x2)
+// 	// Input:  x1, x2 (with x2>x1)
+// 	// Output: a vector containing at least 1 and at most 4 vectors of gridlines in diagram coordinates
+// 	//		   the first vector of gridlines contains big steps of size Pow10(sDecPower)
+// 	//		   the second vector contains the smaller ones of step size Pow10(sDecPower)/2
+// 	//		   the third vector contains the even smaller ones of size Pow10(sDecPower)/4
+// 	{
+// 	  //cout << "calcGridLines_: " << x1 << " " << x2 << endl;
+// 		GridVector grid_lines;
 	
-		UnsignedInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
-		UnsignedInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
+// 		UnsignedInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
+// 		UnsignedInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
 	
-		// TODO:
-		// Problem: e.g. x1=0, x2=10000, then the last grid line (10000.0) might fall on e.g. 10000.1 because of rounding errors
-		//					and therefore wouldn't be drawn
+// 		// TODO:
+// 		// Problem: e.g. x1=0, x2=10000, then the last grid line (10000.0) might fall on e.g. 10000.1 because of rounding errors
+// 		//					and therefore wouldn't be drawn
 	
-		// quick fix: epsilon as an interval around the last grid line position
+// 		// quick fix: epsilon as an interval around the last grid line position
 	
-	  if (x1 > -0.0001 && x1 < 0.0001) x1 = 0.0001;  // cosmetical reason.
-		double dx = x2 - x1;
-	  if (dx < 0.0000001)
-	  {
-	    //TODO std::cerr << "Error: grid line intervall too small! Line: " << __LINE__ << " in File " << __FILE__ << std::endl;
-	    return grid_lines;
-	  }
-		double epsilon = dx/200;
+// 	  if (x1 > -0.0001 && x1 < 0.0001) x1 = 0.0001;  // cosmetical reason.
+// 		double dx = x2 - x1;
+// 	  if (dx < 0.0000001)
+// 	  {
+// 	    //TODO std::cerr << "Error: grid line intervall too small! Line: " << __LINE__ << " in File " << __FILE__ << std::endl;
+// 	    return grid_lines;
+// 	  }
+// 		double epsilon = dx/200;
 	
-		// calculate the nearest, smaller decimal power of dx
-		// we will use this value to decide 
-		// 1. how many grid lines we will draw
-		// 2. how big the distance between the grid lines will be	
-		double sDecPow = floor(log10(dx));
-		if (sDecPow<0 && is_log_) sDecPow = 0;
-		double sDec = pow(10,sDecPow);
+// 		// calculate the nearest, smaller decimal power of dx
+// 		// we will use this value to decide 
+// 		// 1. how many grid lines we will draw
+// 		// 2. how big the distance between the grid lines will be	
+// 		double sDecPow = floor(log10(dx));
+// 		if (sDecPow<0 && is_log_) sDecPow = 0;
+// 		double sDec = pow(10,sDecPow);
 	
-		// grid lines with interval sDecPow
-		grid_line_dist_ = sDec;
-		std::vector<double> big;
-		double currGL = ceil_decimal(x1, (UnsignedInt)sDecPow);
-		while (currGL < (x2+epsilon) ) {
-			big.push_back(currGL);
-			currGL += sDec;
-		}
-		grid_lines.push_back(big);
+// 		// grid lines with interval sDecPow
+// 		grid_line_dist_ = sDec;
+// 		std::vector<double> big;
+// 		double currGL = ceil_decimal(x1, (UnsignedInt)sDecPow);
+// 		while (currGL < (x2+epsilon) ) {
+// 			big.push_back(currGL);
+// 			currGL += sDec;
+// 		}
+// 		grid_lines.push_back(big);
 			
-		if (big.size() < max_num_big && !is_log_ && tick_level_>=2) {
-			// grid lines with interval sDecPow/2
-			grid_line_dist_ = sDec/2.0;
+// 		if (big.size() < max_num_big && !is_log_ && tick_level_>=2) {
+// 			// grid lines with interval sDecPow/2
+// 			grid_line_dist_ = sDec/2.0;
 	
-			std::vector<double> small;
-			currGL = grid_lines[0][0] - sDec/2;	
-			while (currGL < (x2+epsilon)) {								
-				if (currGL > x1) small.push_back(currGL);	// check if first grid line falls off diagramm limits
-				currGL += sDec;
-			}
-			grid_lines.push_back(small);
+// 			std::vector<double> small;
+// 			currGL = grid_lines[0][0] - sDec/2;	
+// 			while (currGL < (x2+epsilon)) {								
+// 				if (currGL > x1) small.push_back(currGL);	// check if first grid line falls off diagramm limits
+// 				currGL += sDec;
+// 			}
+// 			grid_lines.push_back(small);
 		
-			if (big.size() < max_num_small && tick_level_==3) {
-				// grid lines with interval sDecPow/4
-				grid_line_dist_ = sDec/4.0;
-				std::vector<double> smaller;
-				currGL = grid_lines[0][0] - 0.75*sDec;		
-				while (currGL < (x2+epsilon)) {								
-					if (currGL > x1) smaller.push_back(currGL); 
-					currGL += sDec/2;
-				}
-				grid_lines.push_back(smaller);
-			}
-		}
+// 			if (big.size() < max_num_small && tick_level_==3) {
+// 				// grid lines with interval sDecPow/4
+// 				grid_line_dist_ = sDec/4.0;
+// 				std::vector<double> smaller;
+// 				currGL = grid_lines[0][0] - 0.75*sDec;		
+// 				while (currGL < (x2+epsilon)) {								
+// 					if (currGL > x1) smaller.push_back(currGL); 
+// 					currGL += sDec/2;
+// 				}
+// 				grid_lines.push_back(smaller);
+// 			}
+// 		}
 	
-		return grid_lines;
-	}
-	
-	AxisWidget::GridVector AxisWidget::calcLogGridLines_(double x1, double x2)
-	// With log grid lines we have a fixed tick level of 2
-	// We are dealing with log scaled data so the first vector holds integral values: ceiling(x1), ceiling(x1)+1,..., floor(x2)
-	{
-		GridVector grid_lines;
-	  double scaleValues[8];
-	  scaleValues[0] = log10(2.0);
-	  scaleValues[1] = log10(3.0);
-	  scaleValues[2] = log10(4.0);
-	  scaleValues[3] = log10(5.0);
-	  scaleValues[4] = log10(6.0);
-	  scaleValues[5] = log10(7.0);
-	  scaleValues[6] = log10(8.0);
-	  scaleValues[7] = log10(9.0); 
-	  
-		double dx = x2 - x1;
-	  if (dx < 0.0000001)
-	  {
-	    std::cerr << "Error: grid line intervall too small! Line: " << __LINE__ << " in File " << __FILE__ << std::endl;
-	    return grid_lines;
-	  }
-	
-		int x1ceiling = (int)floor(x1);
-	  int x2floor = (int)ceil(x2);
-	  
-		std::vector<double> big;
-	  for (int v = x1ceiling; v!=x2floor; ++v)
-	  {
-	    big.push_back(v);
-	  }
-	  grid_lines.push_back(big);
-	
-	  std::vector<double> small;
-	  for (UnsignedInt i=0; i!=grid_lines[0].size(); ++i)
-	  {
-	    double currGL = grid_lines[0][i];
-	    for (int j=0; j!=8; ++j)
-	    {
-	      if (currGL+scaleValues[j] > x2) break;
-	      small.push_back(currGL+scaleValues[j]);
-	    }       
-	  }
-	  grid_lines.push_back(small);
-	
-	  return grid_lines;
-	}
-	
-	
-	
+// 		return grid_lines;
+// 	}
 	const AxisWidget::GridVector& AxisWidget::gridLines()
 	{
 		return grid_line_;

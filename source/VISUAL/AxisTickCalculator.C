@@ -40,58 +40,73 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid)
+	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid,UnsignedInt max_num_big,UnsignedInt max_num_small,double& grid_line_dist)
 	{		
 		grid.clear();
-		
+
 		if (x1 > -0.0001 && x1 < 0.0001) 
 		{
 			x1 = 0.0001; 
 		}
+
 		double dx = x2 - x1;
+
 		if (dx < 0.0000001)
 		{
 			//std::cerr << "Error: grid line intervall too small! Line: " << __LINE__ << " in File " << __FILE__ << std::endl;
 			return;
 		}
 		double epsilon = dx/200;
-		double sDecPow = (int)floor(log10(dx));
+
+		double sDecPow = floor(log10(dx));
 		if (sDecPow<0) sDecPow = 0;
 		double sDec = pow(10.0,sDecPow);
+
 		std::vector<double> big;
 		double currGL = ceil_decimal(x1, (UnsignedInt)sDecPow);
 		while (currGL < (x2+epsilon) )
 		{
 			
 			big.push_back(currGL);
-			//cout<<"big"<<currGL<<endl;
+			//	cout<<"big"<<currGL<<endl;
 			currGL += sDec;
 		}
 		grid.push_back(big);
-		std::vector<double> small;
-		currGL = grid[0][0]-sDec/2;
-		while(currGL<(x2+epsilon))
+		if (big.size() < max_num_big && levels>=2) 
 		{
-			if(currGL>x1)
-				small.push_back(currGL);
-			//	cout<<"small"<<currGL<<endl;
+			grid_line_dist = sDec/2.0;
+			std::vector<double> small;
+			currGL = grid[0][0]-sDec/2;
+			while(currGL<(x2+epsilon))
+			{
+				if(currGL>x1)
+				{
+					small.push_back(currGL);
+				}
+				//		cout<<"small"<<currGL<<endl;
 			currGL +=sDec;
 		}
+			
 		grid.push_back(small);
-		if(big.size() <6 && levels==3)
-		{
+
+		if(big.size() <max_num_small && levels==3)
+		{	
+			grid_line_dist = sDec/4.0;
 			std::vector<double> smaller;
 			currGL=grid[0][0]-0.75*sDec;
 			while(currGL<(x2+epsilon))
 			{
 				if(currGL>x1)
+				{
 					smaller.push_back(currGL);
-				
-				//	cout<<"smaller"<<currGL<<endl;
+				}
+				//		cout<<"smaller"<<currGL<<endl;
 				currGL +=sDec/2;
 			}
 			grid.push_back(smaller);
 		}
+		}
+		
 	}
 	
 	void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)

@@ -56,13 +56,10 @@ Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent, const char* name
 	near_=0.0;	
 	far_=600.0;
 	zoom_= 1.5;	
-	x_1_=0.0;
-	y_1_=0.0;
-	x_2_=0.0;
-	y_2_=0.0;	
 	xrot_=220;
 	yrot_ = 220;
 	zrot_=0;
+	
 	translation_on_ = false;
 	trans_x_ =0.0;
 	trans_y_ = 0.0;
@@ -79,25 +76,25 @@ Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()
 
 void Spectrum3DOpenGLCanvas::calculateGridLines_()
 {
-	
+	double dist = 0.0;
 	switch(canvas_3d_.intensity_mode_)
 	{
 	case SpectrumCanvas::IM_SNAP:
 		updateIntensityScale();
-		AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],3,grid_intensity_); 
+		AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],3,grid_intensity_,7,5,dist); 
 		break;
 	case SpectrumCanvas::IM_NONE:
-		AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_); 
+		AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_,7,5,dist); 
 		break;
 	case SpectrumCanvas::IM_LOG:
 		AxisTickCalculator::calcLogGridLines(log10(canvas_3d_.overall_data_range_.min_[2]),log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_);	
  		break;
 	case SpectrumCanvas::IM_PERCENTAGE:
-		AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_); 
+		AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5,dist); 
 		break;
 	}
-	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_);
-	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_);
+	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_,7,5,dist);
+	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_,7,5,dist);
 }
 
 
@@ -1130,8 +1127,7 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 			x_2_ = ((lastMousePos_.x()- width_/2) * corner_ *1.25* 2) / width_;
 			y_2_ = -300 + (((lastMousePos_.y()-heigth_/2) * corner_*1.25* 2) / heigth_);
 			show_zoom_selection_=true;
-		// 	initializeGL();
-// 			updateGL();
+	
 			canvas_3d_.repaintAll();
 		}
 	}
