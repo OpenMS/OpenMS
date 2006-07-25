@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Early Pearly $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEEXTENDER_H

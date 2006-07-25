@@ -245,6 +245,17 @@ RESULT
 CHECK(UnsignedInt getSize() const)
 	MSExperimentExtern<DRawDataPoint<1> > tmp;
 	TEST_EQUAL(tmp.getSize(),0);
+	
+	DRawDataPoint<1> p1;
+	MSSpectrum<DRawDataPoint<1> > spec;
+	spec.push_back(p1);
+	spec.push_back(p1);
+	spec.push_back(p1);
+	
+	tmp.push_back(spec);
+	tmp.updateRanges();
+	TEST_EQUAL(tmp.getSize(),3);
+		
 RESULT
 
 /////////////////////////////////////////////////////////////
