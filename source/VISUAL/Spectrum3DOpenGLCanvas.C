@@ -82,19 +82,21 @@ void Spectrum3DOpenGLCanvas::calculateGridLines_()
 	case SpectrumCanvas::IM_SNAP:
 		updateIntensityScale();
 		AxisTickCalculator::calcGridLines(int_scale_.min_[0],int_scale_.max_[0],3,grid_intensity_,7,5,dist); 
+		
 		break;
 	case SpectrumCanvas::IM_NONE:
 		AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_,7,5,dist); 
 		break;
 	case SpectrumCanvas::IM_LOG:
 		AxisTickCalculator::calcLogGridLines(log10(canvas_3d_.overall_data_range_.min_[2]),log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_);	
- 		break;
+ 	break;
 	case SpectrumCanvas::IM_PERCENTAGE:
 		AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5,dist); 
-		break;
+	 	break;
 	}
 	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_,7,5,dist);
 	AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_,7,5,dist);
+
 }
 
 
@@ -266,28 +268,31 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 							result,
 							font);
 	font.setPixelSize(10);
-	if(zoom_<3.0 && grid_rt_.size()>=2)
+	if(grid_rt_.size()>0)
 	{
 		for(UnsignedInt i = 0;i<grid_rt_[0].size();i++)
+			{
+				result = QString("%1").arg(grid_rt_[0][i]);
+				renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
+										-corner_-5.0,
+										-near_-2*corner_+15.0,
+										result,
+										font);
+			}
+	}
+	if(zoom_<3.0 && grid_rt_.size()>=2)
 		{
-			result = QString("%1").arg(grid_rt_[0][i]);
-			renderText (-corner_-result.length()+scaledRT(grid_rt_[0][i]), 
-									-corner_-5.0,
-									-near_-2*corner_+15.0,
-									result,
-									font);
-		}
-				for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
-					{
-						result = QString("%1").arg(grid_rt_[1][i]);
-						renderText (-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
+			for(UnsignedInt i = 0;i<grid_rt_[1].size();i++)
+				{
+					result = QString("%1").arg(grid_rt_[1][i]);
+					renderText (-corner_-result.length()+scaledRT(grid_rt_[1][i]), 
 											-corner_-5.0,
 											-near_-2*corner_+15.0,
 											result,
 											font);
-					}
-	}
-	if(width_>1000 && heigth_>700&& zoom_<2.0 && grid_rt_.size()>=3)
+				}
+		}
+	if(zoom_<2.0 && grid_rt_.size()>=3)
 		{
 			for(UnsignedInt i = 0;i<grid_rt_[2].size();i++)
 				{
@@ -307,17 +312,21 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 							result,
 							font);
 	font.setPixelSize(10);
+	if(grid_mz_.size()>0)
+	{
+		for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
+		{
+			result = QString("%1").arg(grid_mz_[0][i]);
+			renderText (-corner_-15.0, 
+									-corner_-5.0,
+									-near_-2*corner_-scaledMZ(grid_mz_[0][i]),
+									result,
+											font);
+		}
+	}
 	if(zoom_<3.0 && grid_mz_.size()>=2)
 		{
-			for(UnsignedInt i = 0;i<grid_mz_[0].size();i++)
-				{
-					result = QString("%1").arg(grid_mz_[0][i]);
-					renderText (-corner_-15.0, 
-											-corner_-5.0,
-											-near_-2*corner_-scaledMZ(grid_mz_[0][i]),
-											result,
-											font);
-				}
+			
 			for(UnsignedInt i = 0;i<grid_mz_[1].size();i++)
 				{
 					result = QString("%1").arg(grid_mz_[1][i]);
@@ -328,7 +337,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 											font);
 				}
 		}
-	if(width_>800 && heigth_>600 && zoom_<2.0 && grid_mz_.size()>=3)
+	if(zoom_<2.0 && grid_mz_.size()>=3)
 		{
 			for(UnsignedInt i = 0;i<grid_mz_[2].size();i++)
 				{
@@ -990,7 +999,8 @@ double Spectrum3DOpenGLCanvas::scaledInversRT(double rt)
 {
 	double i_rt =(rt* canvas_3d_.visible_area_.max_[0] -canvas_3d_.visible_area_.min_[0]*rt);
 	i_rt = i_rt/200.0;
-	i_rt = i_rt + canvas_3d_.visible_area_.min_[0]; 
+	i_rt = i_rt + canvas_3d_.visible_area_.min_[0]; 	
+	//	cout<<"rt"<<rt<<"  "<<"scaledinver"<<i_rt<<endl;
 	return i_rt;
  }
 
@@ -1126,6 +1136,7 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 			y_1_ = -300 + (((firstMousePos_.y()-heigth_/2) * corner_*1.25* 2) / heigth_);
 			x_2_ = ((lastMousePos_.x()- width_/2) * corner_ *1.25* 2) / width_;
 			y_2_ = -300 + (((lastMousePos_.y()-heigth_/2) * corner_*1.25* 2) / heigth_);
+			//	cout<<x_1_<<"  "<<x_2_<<"  "<<y_1_<<"  "<<y_2_<<endl;
 			show_zoom_selection_=true;
 	
 			canvas_3d_.repaintAll();
@@ -1181,6 +1192,7 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 	double scale_x2 = scaledInversRT(x_2+100.0);
 	double scale_y1 = scaledInversMZ(-200-y_1);
 	double scale_y2 = scaledInversMZ(-200-y_2);
+	//cout<<scale_x1<<"   "<<scale_x2<<"   "<<scale_y1<<"   "<<scale_y2<<endl;
 	DRange<2> new_area_;
 	
 	if(scale_x1<=scale_x2)
@@ -1204,6 +1216,7 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 		 new_area_.max_[1]= scale_y1;
 	 } 
 	canvas_3d_.changeVisibleArea_(new_area_, true);
+	
 }
 
 

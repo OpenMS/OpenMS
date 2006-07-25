@@ -83,7 +83,7 @@ namespace OpenMS
 				{
 					small.push_back(currGL);
 				}
-				//		cout<<"small"<<currGL<<endl;
+				//	cout<<"small"<<currGL<<endl;
 			currGL +=sDec;
 		}
 			
