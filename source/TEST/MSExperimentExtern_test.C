@@ -244,7 +244,7 @@ RESULT
 
 CHECK(UnsignedInt getSize() const)
 	MSExperimentExtern<DRawDataPoint<1> > tmp;
-	TEST_EQUAL(tmp.getSize(),1)
+	TEST_EQUAL(tmp.getSize(),0);
 RESULT
 
 /////////////////////////////////////////////////////////////

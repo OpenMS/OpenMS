@@ -377,8 +377,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
             buffer2scan_(), exp_()
     {
         file_name_ = "msexp_" + String(std::rand());
-		std::cout << "Filename : " << file_name_ << std::endl;
-        exp_.resize(buffer_size_);
+		exp_.resize(buffer_size_);
     }
 
     /// Copy constructor: copies the content of the temporary file as well (slow !)
@@ -389,8 +388,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
             buffer2scan_(source.buffer2scan_), exp_(source.exp_)
     {
         file_name_ = "msexp_" + String(std::rand());
-		std::cout << "Filename : " << file_name_ << std::endl;
-        copyTmpFile_(source.file_name_);
+		copyTmpFile_(source.file_name_);
         exp_.resize(buffer_size_);
     }
 
@@ -398,7 +396,6 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
     ~MSExperimentExtern()
     {
         // delete temporary file
-        std::cout << "Deleting file: " << file_name_ << std::endl;
         std::remove ( file_name_ .c_str());
     }
 
@@ -418,8 +415,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
         // generate new name for temp file
 		std::remove ( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
-		std::cout << "Filename : " << file_name_ << std::endl;
-        // and copy the old one
+		// and copy the old one
         copyTmpFile_(source.file_name_);
 
         exp_.resize(buffer_size_);
