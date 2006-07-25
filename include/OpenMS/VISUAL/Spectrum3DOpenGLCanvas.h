@@ -120,10 +120,6 @@ namespace OpenMS
 			 @brief Display list for the different axes label
 		*/
 		virtual GLuint makeAxesLabel();
-	  /**
-		 	 @brief Display list for the sticks 
-		*/
-		virtual GLuint makeDataAsStickLog();
 		/**
 			 @brief Display list for the top view
 		*/
