@@ -138,6 +138,10 @@ void Spectrum3DCanvas::invalidate_()
 {				
 	if(recalculate_)
 	{
+		if(intensity_mode_ == SpectrumCanvas::IM_SNAP)
+			{
+				openglwidget()->updateIntensityScale();
+			}
 		openglwidget()->recalculateDotGradient_();
 		openglwidget()->glInit (); 
 	}	
@@ -154,10 +158,6 @@ void Spectrum3DCanvas::repaintAll()
 
 void Spectrum3DCanvas::intensityModeChange_()
 {
-	if(intensity_mode_ == SpectrumCanvas::IM_SNAP)
-		{
-			openglwidget()->updateIntensityScale();
-		}
 	repaintAll();
 }
 

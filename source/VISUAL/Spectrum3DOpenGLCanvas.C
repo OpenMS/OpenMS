@@ -101,10 +101,6 @@ void Spectrum3DOpenGLCanvas::calculateGridLines_()
 }
 
 
-
-
-
-
 void Spectrum3DOpenGLCanvas::resizeGL(int w,int h)
 {
 			width_ = (float)w;
@@ -134,23 +130,26 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 	case SpectrumCanvas::AM_ZOOM:
 			if(canvas_3d_.getDataSetCount()!=0 )
 			{
-				calculateGridLines_();
-				coord_ = makeCoordinates();
-				if(canvas_3d_.show_grid_)
-				{
-					gridlines_ = makeGridLines();
-				}
-				xrot_ = 90*16;
-				yrot_ = 0;
-				zrot_ = 0;		
-				stickdata_ = makeDataAsTopView();
-				axeslabel_ = makeAxesLabel();		
 				if(show_zoom_selection_)
 				{
 					zoomselection_ = makeZoomSelection();
 				}
+				else
+			  {
+					calculateGridLines_();
+					coord_ = makeCoordinates();
+					if(canvas_3d_.show_grid_)
+					{
+						gridlines_ = makeGridLines();
+					}
+					xrot_ = 90*16;
+					yrot_ = 0;
+					zrot_ = 0;		
+					stickdata_ = makeDataAsTopView();
+					axeslabel_ = makeAxesLabel();		
+					axeslegend_ = makeLegend();
+				}
 			}
-			axeslegend_ = makeLegend();
 			break;
 			
 	case SpectrumCanvas::AM_TRANSLATE:	
@@ -554,11 +553,30 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 				{	
 					if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
 					{
+
+
+
+						
 						glBegin(GL_POINTS);
 						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
 						{
-							
-							qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+						
+							switch (canvas_3d_.intensity_mode_)
+							{
+							case SpectrumCanvas::IM_NONE:
+								qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+								break;
+							case SpectrumCanvas::IM_LOG:
+								qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
+								break;
+							case SpectrumCanvas::IM_PERCENTAGE:	
+								double intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
+								qglColor(QColor( gradient_.precalculatedColorAt(intensity )));
+								break;
+							case SpectrumCanvas::IM_SNAP:
+								qglColor(QColor( gradient_.precalculatedColorAt(it->getIntensity())));
+								break;
+							}
 							glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
 												 -corner_,
 												 -near_-2*corner_-(GLfloat)scaledMZ(it->getPosition()[0]));
@@ -1112,8 +1130,9 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 			x_2_ = ((lastMousePos_.x()- width_/2) * corner_ *1.25* 2) / width_;
 			y_2_ = -300 + (((lastMousePos_.y()-heigth_/2) * corner_*1.25* 2) / heigth_);
 			show_zoom_selection_=true;
-			initializeGL();
-			updateGL();
+		// 	initializeGL();
+// 			updateGL();
+			canvas_3d_.repaintAll();
 		}
 	}
 	if(translation_on_)
@@ -1146,8 +1165,7 @@ void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 		{			
 			dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
 			show_zoom_selection_ = false;
-			initializeGL();
-			updateGL();
+			canvas_3d_.repaintAll();
 		}
 }
 void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent * e) 
@@ -1190,8 +1208,11 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 		 new_area_.max_[1]= scale_y1;
 	 } 
 	canvas_3d_.changeVisibleArea_(new_area_, true);
-
 }
+
+
+
+
 void Spectrum3DOpenGLCanvas::updateIntensityScale()
 {
 	int_scale_.min_[0]= canvas_3d_.overall_data_range_.max_[2];
