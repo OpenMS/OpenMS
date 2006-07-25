@@ -92,7 +92,6 @@ namespace OpenMS
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
    
-    @todo Fix and add test (Eva)
   */
   class SavitzkyGolaySVDFilter : public SmoothFilter
   {
@@ -139,11 +138,13 @@ namespace OpenMS
         return *this;
       }
 
+      
       /// Non-mutable access to the order
       inline const unsigned int& getOrder() const
       {
         return order_;
       }
+      
       /// Mutable access to the order
       void setOrder(const unsigned int& order);
 
