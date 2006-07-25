@@ -80,12 +80,12 @@ namespace OpenMS
 				"File is empty!", filename);
 		}
 	
-		///Mascot search was not successfull
+		//Mascot search was not successfull
 		if (f.size()<5) return;
 		  	
   	TextFile::iterator it;
 
-  	/// (1.0) parse for retention time
+  	// (1.0) parse for retention time
   	it = f.search("_RETENTION_TIME=");
   	if (it==f.end())
   	{
@@ -95,7 +95,7 @@ namespace OpenMS
   	{
  			precursor_retention_times.push_back(it->suffix('=').trim().toFloat());
   	}
-  	/// (1.0) parse for date
+  	// (1.0) parse for date
 
   	it = f.search(it, "date=");
   	if (it==f.end())
@@ -120,7 +120,7 @@ namespace OpenMS
 			ss.str().substr(0,4) + " " + it->suffix('=').trim());
 		temp_identification.setDateTime(date);
 		
-  	/// (1.0.1) parse for number of queries
+  	// (1.0.1) parse for number of queries
   	it = f.search(it, "queries=");
   	if (it==f.end())
   	{
@@ -129,7 +129,7 @@ namespace OpenMS
   	}
 		number_of_queries = it->suffix('=').trim().toInt();
 
-		/// (1.0.2) Searching for query indices for which peptides are present
+		// (1.0.2) Searching for query indices for which peptides are present
 		if (number_of_queries > 1)
 		{
 			for(UnsignedInt i = 1; i <= number_of_queries; i++)
@@ -154,7 +154,7 @@ namespace OpenMS
 	  	indices.insert(make_pair(1, 0));
 	  }
 	  
-		/// (1.1) parse for precursor values
+		// (1.1) parse for precursor values
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
 				indices_iterator++)
@@ -181,7 +181,7 @@ namespace OpenMS
 			identifications.push_back(temp_identification);
 		}
 		
-		/// (1.2) parse for peptide significance threshold
+		// (1.2) parse for peptide significance threshold
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
 				indices_iterator++)
@@ -218,11 +218,11 @@ namespace OpenMS
 		}
 		
 		
-		/// The protein significance threshold is left zero because it is not
-		/// stored directly in the Mascot outfile and information about the 
-		/// calculation is, to our knowledge, not publicly available.				
+		// The protein significance threshold is left zero because it is not
+		// stored directly in the Mascot outfile and information about the 
+		// calculation is, to our knowledge, not publicly available.				
 		
-		/// (2.1) parse for ProteinHit information (MudPIT scoring)
+		// (2.1) parse for ProteinHit information (MudPIT scoring)
 		
 		if (number_of_queries > 1000)
 		{
@@ -233,17 +233,17 @@ namespace OpenMS
 				cout << "no \"proteins\" tag found " << endl;
 			}
 
-	  	///Go to first protein hit entry
+	  	//Go to first protein hit entry
 			if (it != f.end() && (it + 1) != f.end())
 			{
 				it += 2;
 			}
 	  	while(it != f.end())
 	  	{
-	  		/// search for first "
+	  		// search for first "
 	  		if ((tag_start = (*it).find('"')) != string::npos)
 	  		{
-	  			/// search for second "
+	  			// search for second "
 		  		if ((tag_end = (*it).find('"', tag_start + 1)) != string::npos)
 		  		{
 		  			temp_identifier = (*it).substr(tag_start + 1, tag_end - tag_start - 1);
@@ -267,22 +267,22 @@ namespace OpenMS
 			}							
 		}
 
-	  UnsignedInt i = 1; /// first index of the peptidehits
-	  UnsignedInt j = 1; /// second index of the peptidehits
-  	/// (2.2) parse for PeptideHit information
+	  UnsignedInt i = 1; // first index of the peptidehits
+	  UnsignedInt j = 1; // second index of the peptidehits
+  	// (2.2) parse for PeptideHit information
 		for(indices_iterator = indices.begin(); 
 				indices_iterator != indices.end();
 				indices_iterator++)
 		{
 			i = indices_iterator->first;
 			j = 1;
-			UnsignedInt counter = 1; ///counter of the peptidehits
+			UnsignedInt counter = 1; //counter of the peptidehits
 	  	it = f.search(String("q")+String(i)+"_p" + String(j) + "=");
 	  	while(it != f.end())
 	  	{
 	  		PeptideHit hit;
 				
-	  		///(2.1) parse for peptide sequence
+	  		//(2.1) parse for peptide sequence
 				it->suffix('=').split(',',parts);
 	  		hit.setSequence(parts[4]);
 				temp_score = parts[7].toFloat();			
@@ -290,7 +290,7 @@ namespace OpenMS
 				hit.setScoreType("Mascot");
 	  		
 	  		hit.setRank(counter);
-	   		///(2.3) insert into hits vector
+	   		//(2.3) insert into hits vector
 	  		if (temp_score > 0)
 	  		{
 	  			identifications[indices_iterator->second].insertPeptideHit(hit);
@@ -311,11 +311,11 @@ namespace OpenMS
 			  		{
 			  			temp_scores = protein_map[parts[index]];
 			  					  			
-			  			/// the score of the protein hit
+			  			// the score of the protein hit
 			  			temp_scores[0] += (temp_score - temp_significance_threshold);
-			  			/// sum of the used significance thresholds
+			  			// sum of the used significance thresholds
 			  			temp_scores[1] += temp_significance_threshold;
-			  			/// number of significance thresholds used in sum
+			  			// number of significance thresholds used in sum
 			  			temp_scores[2] = temp_scores[2] + 1;
 			  			
 			  			protein_map[parts[index]] = temp_scores;
@@ -325,14 +325,14 @@ namespace OpenMS
 		  		}
 	  		}
 	  		
-	  		///search for the next hit
+	  		//search for the next hit
 	  		++j;
 	  		it = f.search(it,String("q")+String(i)+"_p" + String(j) + "=");
 				parts.clear();	
 	  	}
 		}
 
-  	///(3) search for protein hit information
+  	//(3) search for protein hit information
  		i = 1;
  		j = 1;
  		if (number_of_queries == 1)
@@ -358,7 +358,7 @@ namespace OpenMS
 		  			String("Line starting with 'h")+String(i)+"_q1=' not found!" ,
 		  			filename);
 		  	}
-		  	/// search for the peptide hits belonging to the actual protein hit
+		  	// search for the peptide hits belonging to the actual protein hit
 		  	while(it != f.end())
 		  	{ 	
 					vector<String> parts;
@@ -372,7 +372,7 @@ namespace OpenMS
 							peptide_index = index;
 						}
 					}
-					/// setting of the indices to store the relational information 
+					// setting of the indices to store the relational information 
 					if (peptide_index != -1)
 					{
 //						peptide_hits[peptide_index].addProteinIndex(i - 1);
@@ -423,7 +423,7 @@ namespace OpenMS
 			{
 				ProteinHit protein_hit;
 				
-				/// the protein score is the score + the average of the used thresholds
+				// the protein score is the score + the average of the used thresholds
 				protein_hit.setScore(protein_map_iterator->second[0] + 
 														 (protein_map_iterator->second[1] /
 														 protein_map_iterator->second[2]));
@@ -437,4 +437,4 @@ namespace OpenMS
 		}
 	}
 
-} ///namespace OpenMS
+} //namespace OpenMS

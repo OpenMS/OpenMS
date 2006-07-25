@@ -55,37 +55,37 @@ namespace OpenMS {
   	protein_hits_.clear();
   }
   
-  /// read access to peptide hits
+  // read access to peptide hits
   const std::vector<PeptideHit>& Identification::getPeptideHits() const 
  	{ 
  		return peptide_hits_;
  	}
 
-  /// mutable access to peptide hits
+  // mutable access to peptide hits
   std::vector<PeptideHit>& Identification::getPeptideHits() 
  	{ 
  		return peptide_hits_;
  	}
 
-	/// retrival of the peptide significance threshold value
+	// retrival of the peptide significance threshold value
   float Identification::getPeptideSignificanceThreshold() const 
   { 
   	return peptide_significance_threshold_;
   }
 
-	/// setting of the peptide significance threshold value
+	// setting of the peptide significance threshold value
 	void Identification::setPeptideSignificanceThreshold(float value) 
 	{ 
 		peptide_significance_threshold_ = value;
 	}
 
-	/// retrival of the charge of the used precursor
+	// retrival of the charge of the used precursor
   SignedInt Identification::getCharge() const 
   { 
   	return charge_;
   }
 
-	/// setting of the charge of the used precursor
+	// setting of the charge of the used precursor
 	void Identification::setCharge(SignedInt value) 
 	{ 
 		charge_ = value;
@@ -117,7 +117,7 @@ namespace OpenMS {
     return *this;  
   }
 
-	/// Equality operator
+	// Equality operator
 	bool Identification::operator == (const Identification& rhs) const
 	{
 		return date_ == rhs.getDateTime() 
@@ -128,13 +128,13 @@ namespace OpenMS {
 						&& protein_significance_threshold_ == rhs.getProteinSignificanceThreshold();						 
 	}
 		
-	/// Inequality operator
+	// Inequality operator
 	bool Identification::operator != (const Identification& rhs) const
 	{
 		return !(operator==(rhs));						 
 	}
 	
-	/// inserts a peptide hit if the peptide hit has the same score type as the existing hits
+	// inserts a peptide hit if the peptide hit has the same score type as the existing hits
   void Identification::insertPeptideHit(const PeptideHit& input)
   {
     if ( !peptide_hits_.size() )
@@ -153,7 +153,7 @@ namespace OpenMS {
     }
   }
 
-	/// Stores peptide and protein hits and clears all previous hit information
+	// Stores peptide and protein hits and clears all previous hit information
   void Identification::setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits, const std::vector<ProteinHit>& protein_hits)
   {
   	peptide_hits_.clear();

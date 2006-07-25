@@ -32,14 +32,14 @@ using namespace std;
 
 namespace OpenMS 
 {
-	/// default constructor
+	// default constructor
   PeptideHit::PeptideHit()
 			:	//PersistentObject(),
 				score_(0), score_type_(""), rank_(0), sequence_("")
   {
   }
   
-	/// values constructor
+	// values constructor
   PeptideHit::PeptideHit(double score, 
   											 std::string score_type, 
   											 uint rank, 
@@ -53,7 +53,7 @@ namespace OpenMS
   	sequence_.trim();
   }
   
-	/// copy constructor
+	// copy constructor
   PeptideHit::PeptideHit(const PeptideHit& source)
     	: //PersistentObject(source),
 				score_(source.score_), 
@@ -64,7 +64,7 @@ namespace OpenMS
   {
   }
   
-	/// destructor
+	// destructor
   PeptideHit::~PeptideHit()
   {  	
   	score_type_.erase();
@@ -139,25 +139,25 @@ namespace OpenMS
 		addProteinIndex(make_pair(date_time, accession));		
 	}
 
-  /// returns the score of the peptide hit 
+  // returns the score of the peptide hit 
   float PeptideHit::getScore() const 
   {
   	return score_;
   }
   
-  /// returns the type of the score
+  // returns the type of the score
   const std::string& PeptideHit::getScoreType() const 
   {
   	return score_type_;
   }
 	
-	/// returns the rank of the peptide hit
+	// returns the rank of the peptide hit
   UnsignedInt PeptideHit::getRank() const 
   {
   	return rank_;
   }
 	
-	/// returns the peptide sequence without trailing or following spaces
+	// returns the peptide sequence without trailing or following spaces
 	String PeptideHit::getSequence() const 
 	{
 		return sequence_;
@@ -169,31 +169,31 @@ namespace OpenMS
 		sequence_.trim();
 	}
 	
-	/// returns the corresponding protein indices
+	// returns the corresponding protein indices
 	const vector< pair<String, String> >& PeptideHit::getProteinIndices() const 
 	{
 		return corresponding_protein_indices_;
 	}
 
-	/// returns the corresponding protein indices
+	// returns the corresponding protein indices
 	vector< pair<String, String> >& PeptideHit::getProteinIndices()
 	{
 		return corresponding_protein_indices_;
 	}
 
-  /// sets the score of the peptide hit 
+  // sets the score of the peptide hit 
   void PeptideHit::setScore(const double& score) 
   {
   	score_ = score;
   }
   
-  /// sets the type of the score
+  // sets the type of the score
   void PeptideHit::setScoreType(const std::string& score_type) 
   {
   	score_type_ = score_type;
   }
 
-	/// sets the rank
+	// sets the rank
   void PeptideHit::setRank(uint newrank) 
   {
   	rank_ = newrank;

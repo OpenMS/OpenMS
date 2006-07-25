@@ -259,18 +259,18 @@ namespace OpenMS
 		}
 		if (number > 1)
 		{
-			/// Creating the particular partition instances
+			// Creating the particular partition instances
 			for(UnsignedInt i = 0; i < number; i++)
 			{
 				problems->push_back(new svm_problem());
 			}
 			
-			/// Creating indices
+			// Creating indices
 			for(SignedInt i = 0; i < problem->l; i++)
 			{
 				indices.push_back(i);
 			}
-			/// Shuffling the indices => random indices
+			// Shuffling the indices => random indices
 			random_shuffle(indices.begin(), indices.end());
 			
 			indices_iterator = indices.begin();
@@ -280,14 +280,14 @@ namespace OpenMS
 					partition_index++)
 			{
 				actual_partition_size = 0;
-				/// determining the number of elements in this partition
+				// determining the number of elements in this partition
 				partition_count = (problem->l / number);
 				if (problem->l % number > partition_index)
 				{
 					partition_count++;
 				}
 				
-				/// filling the actual partition with 'partition_count' elements
+				// filling the actual partition with 'partition_count' elements
 				while(actual_partition_size < partition_count)
 				{
 					if (actual_partition_size == 0)
@@ -367,13 +367,14 @@ namespace OpenMS
 		return labels;
 	}
 	
-	map<SVM_parameter_type, DoubleReal>* SVMWrapper::performCrossValidation(svm_problem* problem,
-																 map<SVM_parameter_type, DoubleReal>& start_values_map,
-																 map<SVM_parameter_type, DoubleReal>& step_sizes_map,
-																 map<SVM_parameter_type, DoubleReal>& end_values_map,
-																 														 DoubleReal* cv_quality,
-																 														 UnsignedInt number_of_partitions,
-																 														 UnsignedInt number_of_runs)
+	map<SVM_parameter_type, DoubleReal>* SVMWrapper::performCrossValidation(svm_problem*   problem,
+																 									map<SVM_parameter_type, DoubleReal>&   start_values_map,
+																 									map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
+																 									map<SVM_parameter_type, DoubleReal>&   end_values_map,
+																 									DoubleReal* 												   cv_quality,
+																 									UnsignedInt 												   number_of_partitions,
+																 									UnsignedInt 												   number_of_runs,
+																 									bool				 												   output)
 	{
 		map<SVM_parameter_type, DoubleReal>::iterator start_values_iterator;
 		map<SVM_parameter_type, DoubleReal>::iterator step_sizes_iterator;
@@ -404,7 +405,7 @@ namespace OpenMS
 		step_sizes_iterator = step_sizes_map.begin();
 		end_values_iterator = end_values_map.begin();
 		
-		/// Initializing the necessary variables
+		// Initializing the necessary variables
 		while(start_values_iterator != start_values_map.end())
 		{
 			actual_types[actual_index] = start_values_iterator->first;
@@ -432,7 +433,7 @@ namespace OpenMS
 			actual_index++;
 		}
 
-		/// for every 
+		// for every 
 		for(UnsignedInt i = 0; i < number_of_runs; i++)
 		{
 			partitions = createRandomPartitions(problem, number_of_partitions);
@@ -448,7 +449,7 @@ namespace OpenMS
 			
 			while(found)
 			{
-				/// testing whether actual parameters are in the defined range
+				// testing whether actual parameters are in the defined range
 				condition = true;	
 				actual_index = 0;
 				while(actual_index < start_values_map.size())
@@ -459,7 +460,7 @@ namespace OpenMS
 					}
 					actual_index++;
 				}
-				/// setting the actual parameters
+				// setting the actual parameters
 				actual_index = 0;
 				while(actual_index < start_values_map.size())
 				{
@@ -467,7 +468,7 @@ namespace OpenMS
 					actual_index++;
 				}
 
-				/// evaluation of parameter performance
+				// evaluation of parameter performance
 				temp_performance = 0;
 				for(UnsignedInt j = 0; j < number_of_partitions; j++)
 				{
@@ -475,6 +476,8 @@ namespace OpenMS
 					{
 						predicted_labels = predict((*partitions)[j]);
 						real_labels = getLabels((*partitions)[j]);
+						vector<DoubleReal>::iterator predicted_it = predicted_labels->begin();
+						vector<DoubleReal>::iterator real_it = real_labels->begin();
 
 						temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
 							predicted_labels->begin(), predicted_labels->end(),
@@ -485,7 +488,7 @@ namespace OpenMS
 					}
 				}
 
-				/// storing performance for this parameter combination
+				// storing performance for this parameter combination
 				temp_performance = temp_performance / number_of_partitions;				
 				if (i == 0)
 				{
@@ -497,7 +500,7 @@ namespace OpenMS
 					counter++;
 				}
 
-				/// trying to set new parameter combination
+				// trying to set new parameter combination
 				found = false;
 				actual_index = 0;
 				while(actual_index < start_values_map.size()
@@ -526,10 +529,13 @@ namespace OpenMS
 				delete training_data[k];
 			}
 			delete training_data;
-			cout << "run finished, time elapsed since start: " << clock() << endl;
+			if (output)
+			{
+				cout << "run finished, time elapsed since start: " << clock() << endl;
+			}
 		}
 		
-		/// Determining the index for the maximum performance
+		// Determining the index for the maximum performance
 		for(UnsignedInt i = 0; i < performances.size(); i++)
 		{
 			if (performances[i] > max)
@@ -539,10 +545,10 @@ namespace OpenMS
 			}
 		}
 
-		/// Determining the best parameter combination		
+		// Determining the best parameter combination		
 		start_values_iterator = start_values_map.begin();
 		actual_index = 0;
-		/// resetting actual values to start values
+		// resetting actual values to start values
 		while(start_values_iterator != start_values_map.end())
 		{
 			actual_values[actual_index] = start_values_iterator->second;
@@ -612,7 +618,7 @@ namespace OpenMS
 						performances_file << endl;
 					}
 				}
-				/// best parameter combination found
+				// best parameter combination found
 				if (counter == max_index)
 				{
 					found = false;
@@ -664,18 +670,16 @@ namespace OpenMS
 	  
 	  param_->svm_type = NU_SVR;
 	  param_->kernel_type = POLY;
-	  param_->degree = 1;                            /* for poly*/
-	  param_->gamma = 1.0;	                         /* for poly/rbf/sigmoid */
-	  param_->coef0 = 0;	                           /* for poly/sigmoid */
-	  
-	  /* these are for training only */
-	  param_->cache_size = 300;                      /* in MB */
-	  param_->eps = 0.001;	                         /* stopping criteria */
-	  param_->C = 1;	                               /* for C_SVC, EPSILON_SVR, and NU_SVR */
-	  param_->nr_weight = 0;	                       /* for C_SVC */
-	  param_->nu = 0.5;	                             /* for NU_SVC, ONE_CLASS, and NU_SVR */
-	  param_->p = 0.1;	                             /* for EPSILON_SVR */
-	  param_->shrinking = 0;	                       /* use the shrinking heuristics */
+	  param_->degree = 1;                            // for poly
+	  param_->gamma = 1.0;	                         // for poly/rbf/sigmoid 
+	  param_->coef0 = 0;	                           // for poly/sigmoid 
+	  param_->cache_size = 300;                      // in MB 
+	  param_->eps = 0.001;	                         // stopping criterium 
+	  param_->C = 1;	                               // for C_SVC, EPSILON_SVR, and NU_SVR 
+	  param_->nr_weight = 0;	                       // for C_SVC 
+	  param_->nu = 0.5;	                             // for NU_SVC, ONE_CLASS, and NU_SVR 
+	  param_->p = 0.1;	                             // for EPSILON_SVR 
+	  param_->shrinking = 0;	                       // use the shrinking heuristics 
 		param_->probability = 0;
 	}
 

@@ -187,7 +187,8 @@ namespace OpenMS
 																					std::map<SVM_parameter_type, DoubleReal>& end_values,
 																 					DoubleReal* cv_quality,
 																 					UnsignedInt number_of_partitions,
-																 					UnsignedInt number_of_runs);
+																 					UnsignedInt number_of_runs,
+																 					bool output = true);
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the model.		      

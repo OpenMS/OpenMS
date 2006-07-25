@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS 
 {
-	/// default constructor
+	// default constructor
   ProteinHit::ProteinHit()
 			:	//PersistentObject(),
 				score_(0), 
@@ -44,7 +44,7 @@ namespace OpenMS
   {
   }
   
-	/// values constructor
+	// values constructor
   ProteinHit::ProteinHit(DoubleReal score, 
   											 std::string score_type, 
   											 UnsignedInt rank, 
@@ -63,7 +63,7 @@ namespace OpenMS
   	sequence_.trim();
   }
   
-	/// copy constructor
+	// copy constructor
   ProteinHit::ProteinHit(const ProteinHit& source)
     	: //PersistentObject(source),
 				score_(source.score_), 
@@ -75,7 +75,7 @@ namespace OpenMS
   {
   }
   
-	/// destructor
+	// destructor
   ProteinHit::~ProteinHit()
   {  	
   	score_type_.erase();
@@ -84,7 +84,7 @@ namespace OpenMS
   	accession_type_.erase();
   }
   
-  /// clears all data of the protein hit
+  // clears all data of the protein hit
   void ProteinHit::clear() {
     //clearId();
     score_ = 0;
@@ -95,7 +95,7 @@ namespace OpenMS
     rank_ = 0;
   }
    
-  /// assignment operator
+  // assignment operator
   ProteinHit& ProteinHit::operator= (const ProteinHit& source)
   {
   	if (this == &source)
@@ -112,7 +112,7 @@ namespace OpenMS
     return *this;
   }
 	
-	/// equality operator
+	// equality operator
 	bool ProteinHit::operator == (const ProteinHit& rhs) const	
 	{
 		return score_ == rhs.score_ 
@@ -123,7 +123,7 @@ namespace OpenMS
 			&& sequence_ == rhs.sequence_;
 	}
 
-	/// inequality operator
+	// inequality operator
 	bool ProteinHit::operator != (const ProteinHit& rhs) const	
 	{
 		return score_ != rhs.score_ 
@@ -134,75 +134,75 @@ namespace OpenMS
 			|| sequence_ != rhs.sequence_;
 	}
 	
-  /// returns the score of the protein hit 
+  // returns the score of the protein hit 
   Real ProteinHit::getScore() const 
   {
   	return score_;
   }
   
-  /// returns the type of the score
+  // returns the type of the score
   const std::string& ProteinHit::getScoreType() const 
   {
   	return score_type_;
   }
 	
-	/// returns the rank of the protein hit
+	// returns the rank of the protein hit
   UnsignedInt ProteinHit::getRank() const 
   {
   	return rank_;
   }
 	
-	/// returns the protein sequence
+	// returns the protein sequence
 	const String& ProteinHit::getSequence() const 
 	{
 		return sequence_;
 	}
 	
-	/// returns the accession of the protein
+	// returns the accession of the protein
 	const String& ProteinHit::getAccession() const 
 	{
 		return accession_;
 	}
 	
-	/// returns the type of the accession string of the protein
+	// returns the type of the accession string of the protein
 	const std::string& ProteinHit::getAccessionType() const 
 	{
 		return accession_type_;
 	}    	
 	
-  /// sets the score of the protein hit 
+  // sets the score of the protein hit 
   void ProteinHit::setScore(const DoubleReal& score) 
   {
   	score_ = score;
   }
 
-  /// sets the type of the score
+  // sets the type of the score
   void ProteinHit::setScoreType(const std::string& score_type) 
   {
   	score_type_ = score_type;
   }
   
-	/// sets the rank
+	// sets the rank
   void ProteinHit::setRank(UnsignedInt newrank) 
   {
   	rank_ = newrank;
   }
 	
-	/// sets the protein sequence
+	// sets the protein sequence
 	void ProteinHit::setSequence(const String& sequence) 
 	{
 		sequence_ = sequence;
 		sequence_.trim();
 	}
 	
-	/// sets the accession of the protein
+	// sets the accession of the protein
 	void ProteinHit::setAccession(const String& accession) 
 	{
 		accession_ = accession;
 		accession_.trim();
 	}
 	
-	/// sets the type of the accession string of the protein
+	// sets the type of the accession string of the protein
 	void ProteinHit::setAccessionType(const std::string& accession_type) 
 	{
 		accession_type_ = accession_type;
