@@ -179,7 +179,6 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   }
 
   GaussFilter gauss;
-  gauss.init(0.5,0.1);
   gauss.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
