@@ -1,30 +1,30 @@
-/// -*- Mode: C++; tab-width: 2; -*-
-/// vi: set ts=2:
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
 //
-/// --------------------------------------------------------------------------
-///                   OpenMS Mass Spectrometry Framework
-/// --------------------------------------------------------------------------
-///  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
-///  This library is free software; you can redistribute it and/or
-///  modify it under the terms of the GNU Lesser General Public
-///  License as published by the Free Software Foundation; either
-///  version 2.1 of the License, or (at your option) any later version.
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
 //
-///  This library is distributed in the hope that it will be useful,
-///  but WITHOUT ANY WARRANTY; without even the implied warranty of
-///  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-///  Lesser General Public License for more details.
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
 //
-///  You should have received a copy of the GNU Lesser General Public
-///  License along with this library; if not, write to the Free Software
-///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-/// --------------------------------------------------------------------------
-/// $Id: InspectAdapter.C,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-/// $Author: martinlangwisch $
-/// $Maintainer: Martin Langwisch $
-/// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
+// $Id: InspectAdapter.C,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
+// $Author: martinlangwisch $
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
@@ -43,6 +43,8 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
+
+// @cond TOPPCLASSES 
 
 
 /**
@@ -94,7 +96,7 @@ using namespace OpenMS;
 				</li>
 	</ol>
 	
-	@todo look for possible crash codes of inspect and catching them; extract by-ions
+	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?
 	
 	@ingroup TOPP
 */
@@ -182,7 +184,7 @@ class TOPPInspectAdapter
 		{
 			options_["-inspect_dir"] = "inspect_dir";
 			options_["-temp_data_dir"] = "temp_data_dir";
-			options_["-Inspect_in"] = "Inspect_in";
+			flags_["-Inspect_in"] = "Inspect_in";
 			options_["-spectra"] = "spectra";
 			options_["-trie_dbs"] = "dbs";
 			options_["-dbs"] = "seq_files";
@@ -199,18 +201,18 @@ class TOPPInspectAdapter
 			options_["-multicharge"] = "multicharge";
 			options_["-TagCountA"] = "TagCountA";
 			options_["-TagCountB"] = "TagCountB";
-			options_["-twopass"] = "twopass";
-			options_["-Inspect_out"] = "Inspect_out";
+			flags_["-twopass"] = "twopass";
+			flags_["-Inspect_out"] = "Inspect_out";
 			options_["-in"] = "in";
 			options_["-out"] = "out";
 			options_["-o"] = "o";
-			options_["-blind_only"] = "blind_only";
+			flags_["-blind_only"] = "blind_only";
 			options_["-p_value"] = "cutoff_p_value";
 			options_["-min_spp"] = "min_annotated_spectra_per_protein";
 			options_["-maxptmsize"] = "maxptmsize";
-			options_["-blind"] = "blind";
-			options_["-no_cmn_conts"] = "no_common_contaminants";
-			options_["-no_tmp_dbs"] = "no_tmp_dbs";
+			flags_["-blind"] = "blind";
+			flags_["-no_cmn_conts"] = "no_common_contaminants";
+			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
 			//options_["-contact"] = "contact_person";
 		}
 		
@@ -294,7 +296,7 @@ class TOPPInspectAdapter
 			else return std::string();
 		}
 		
-		/// deleting all temporary files
+		// deleting all temporary files
 		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_index_filename, const String& inspect_logfilename)
 		{
 			if ( input_filename.hasSuffix("tmp.inspect.input") ) remove(input_filename.c_str());
@@ -310,64 +312,65 @@ class TOPPInspectAdapter
 		ExitCodes main_(int , char**)
 		{
 			///-------------------------------------------------------------
-			/// (1) variables
+			// (1) variables
 			///-------------------------------------------------------------
 
 			InspectInfile inspect_infile;
 
-			/// (1.0) general variables
+			// (1.0) general variables
 			std::vector< String > substrings;
 			String buffer, db_filename, idx_filename, snd_db_filename, snd_index_filename, common_contaminants_filename, logfile, inspect_logfilename;
 			ContactPerson contact_person;
 
-			/// (1.1) parameter variables
-			/// (1,1,0) general parameter variables
+			// (1.1) parameter variables
+			// (1,1,0) general parameter variables
 			String inspect_dir, temp_data_dir;
 
-			/// (1.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
+			// (1.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			bool Inspect_in = false;
-			/// (1.1.1.0) mandatory parameters
-			String new_db, new_db_dir, snd_db, snd_db_dir; /// at least one of the parameters db or seq_file has to be set
-			std::vector< String >dbs, seq_files, tax; /// if several dbs are given, they are merged into one, that is then processed
+			// (1.1.1.0) mandatory parameters
+			String new_db, new_db_dir, snd_db, snd_db_dir; // at least one of the parameters db or seq_file has to be set
+			std::vector< String >dbs, seq_files, tax; // if several dbs are given, they are merged into one, that is then processed
 
-			/// (1.1.1.1) optional parameters
-			std::vector < std::vector< String > > mod; /// some from ini file
+			// (1.1.1.1) optional parameters
+			std::vector < std::vector< String > > mod; // some from ini file
 
-			/// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
+			// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
 			bool Inspect_out = false;
 			String output_filename, inspect_output_filename;
 
-			/// (1.1.3) parameters corresponding to both Inspect_in and Inspect_out
-			String input_filename; /// in normal mode, this can be a temporary file (from ini)
+			// (1.1.3) parameters corresponding to both Inspect_in and Inspect_out
+			String input_filename; // in normal mode, this can be a temporary file (from ini)
 
-			/// (1.1.4) blind_only - running inspect in blind mode only and corresponding parameters
+			// (1.1.4) blind_only - running inspect in blind mode only and corresponding parameters
 			bool blind_only = false;
 
-			/// (1.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
+			// (1.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
 			bool blind = false;
 			double cutoff_p_value = 0.05;
 			int min_annotated_spectra_per_protein = -1;
 
-			/// (1.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
+			// (1.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
 			bool no_common_contaminants = false;
 
-			/// (1.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
+			// (1.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
 			bool no_tmp_dbs = false;
 
 
 			///-------------------------------------------------------------
-			/// (2) parsing and checking parameters
+			// (2) parsing and checking parameters
 			///-------------------------------------------------------------
-std::cout << "parsing" << std::endl;
-			/// (2.0) general variables
+			
+			// (2.0) general variables
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
 			contact_person.setContactInfo(getParamAsString_("contactInfo"));
 			logfile = getParamAsString_("log", "Inspect.log");
 			
-			/// (2.1) parameter variables
-			/// (2.1,0) general parameter variables
+			// (2.1) parameter variables
+			// (2.1,0) general parameter variables
 			inspect_dir = getParamAsString_("inspect_dir");
+			
 			inspect_infile.ensurePathChar(inspect_dir);
 			common_contaminants_filename = inspect_dir + "CommonContaminants.fasta";
 			temp_data_dir = getParamAsString_("temp_data_dir");
@@ -378,16 +381,16 @@ std::cout << "parsing" << std::endl;
 			inspect_output_filename = temp_data_dir; inspect_output_filename.append("tmp.direct.inspect.output");
 			input_filename = temp_data_dir; input_filename.append("tmp.inspect.input");
 			
-			/// (2.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
+			// (2.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			if ( getParamAsString_("Inspect_in", "false") != "false" ) Inspect_in = true;
 			if ( getParamAsString_("Inspect_out", "false") != "false" ) Inspect_out = true;
 
-			/// a 'normal' inspect run corresponds to both Inspect_in and Inspect_out set
+			// a 'normal' inspect run corresponds to both Inspect_in and Inspect_out set
 			if ( !Inspect_in && !Inspect_out ) Inspect_in = Inspect_out = true;
 
 			if ( Inspect_in )
 			{
-				/// (2.1.1.0) mandatory parameters
+				// (2.1.1.0) mandatory parameters
 				inspect_infile.setSpectra(getParamAsString_("spectra"));
 				if ( inspect_infile.getSpectra().empty() )
 				{
@@ -400,7 +403,7 @@ std::cout << "parsing" << std::endl;
 				buffer = getParamAsString_("dbs");
 				if ( !buffer.empty() )
 				{
-					/// get the single databases
+					// get the single databases
 					buffer.split(',', dbs);
 					if ( dbs.empty() ) dbs.push_back(buffer);
 				}
@@ -409,11 +412,11 @@ std::cout << "parsing" << std::endl;
 
 				if ( !buffer.empty() )
 				{
-					/// get the single sequence files
+					// get the single sequence files
 					buffer.split(',', seq_files);
 					if ( seq_files.empty() ) seq_files.push_back(buffer);
 					
-					/// get the corresponding taxonomies
+					// get the corresponding taxonomies
 					for ( std::vector< String >::iterator i = seq_files.begin(); i != seq_files.end(); ++i)
 					{
 						substrings.clear();
@@ -430,7 +433,7 @@ std::cout << "parsing" << std::endl;
 					}
 				}
 
-				/// at least one of the parameters db or seq_file has to be set
+				// at least one of the parameters db or seq_file has to be set
 				if ( dbs.empty() && seq_files.empty() )
 				{
 					writeLog_("No database or sequence file specified. Aborting!");
@@ -442,16 +445,15 @@ std::cout << "parsing" << std::endl;
 				new_db = getParamAsString_("new_db");
 				snd_db = getParamAsString_("snd_db");
 
-				/// (2.1.1.1) optional parameters
+				// (2.1.1.1) optional parameters
 				inspect_infile.setProtease(getParamAsString_("protease"));
 				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
 				inspect_infile.setInstrument(getParamAsString_("instrument"));
 
-				/// get the single modifications
+				// get the single modifications
 				getParamAsString_("mod").split(';', substrings);
 				
-				/// for each modification get the mass, residues, type (optional) and name (optional)
-				// ### noch die anderen vom ini-file laden ?
+				// for each modification get the mass, residues, type (optional) and name (optional)
 				for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
 				{
 					mod.push_back(std::vector< String >());
@@ -483,7 +485,7 @@ std::cout << "parsing" << std::endl;
 				if ( !buffer.empty() ) inspect_infile.setTwopass( (unsigned int) (getParam_("twopass")) );
 			}
 
-			/// (2.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
+			// (2.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
 			buffer = getParamAsString_("out");
 			if ( buffer.empty() )
 			{
@@ -506,8 +508,8 @@ std::cout << "parsing" << std::endl;
 				inspect_output_filename = buffer;
 			}
 
-			/// (2.1.3) parameters corresponding to both Inspect_in and Inspect_out
-			buffer = getParamAsString_("in"); /// in normal mode, this can be a temporary file (from ini)
+			// (2.1.3) parameters corresponding to both Inspect_in and Inspect_out
+			buffer = getParamAsString_("in"); // in normal mode, this can be a temporary file (from ini)
 			if ( buffer.empty() )
 			{
 				if ( (Inspect_in || Inspect_out) && !(Inspect_in && Inspect_out) )
@@ -523,16 +525,16 @@ std::cout << "parsing" << std::endl;
 				input_filename = buffer;
 			}
 
-			/// (2.1.4) blind_only - running inspect in blind mode only and corresponding parameters
+			// (2.1.4) blind_only - running inspect in blind mode only and corresponding parameters
 			if ( getParamAsString_("blind_only", "false") != "false" ) blind_only = true;
 
 			buffer = getParamAsString_("maxptmsize");
 			if ( !buffer.empty() ) inspect_infile.setMaxptmsize( (unsigned int) (getParam_("maxptmsize")) );
 
-			/// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
+			// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
 			if ( getParamAsString_("blind", "false") != "false" )
 			{
-				/// a blind search with prior run to minimize the database can only be run in full mode
+				// a blind search with prior run to minimize the database can only be run in full mode
 				if ( Inspect_in && !Inspect_out )
 				{
 					writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!");
@@ -557,10 +559,10 @@ std::cout << "parsing" << std::endl;
 			buffer = getParamAsString_("min_annotated_spectra_per_protein");
 			if ( !buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_annotated_spectra_per_protein");
 
-			/// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
+			// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
 			if ( getParamAsString_("no_common_contaminants", "false") != "false" ) no_common_contaminants = true;
 
-			/// (2.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
+			// (2.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
 			if ( getParamAsString_("no_tmp_dbs", "false") != "false" ) no_tmp_dbs = true;
 			if ( no_tmp_dbs )
 			{
@@ -581,7 +583,7 @@ std::cout << "parsing" << std::endl;
 			{
 				if ( new_db.empty() )
 				{
-					/// if only the Inspect_in flag is set, a database name has to be be given
+					// if only the Inspect_in flag is set, a database name has to be be given
 					if ( Inspect_in && !Inspect_out )
 					{
 						writeLog_("No name for new trie database given. Aborting!");
@@ -634,13 +636,13 @@ std::cout << "parsing" << std::endl;
 			inspect_logfilename = temp_data_dir + "tmp.inspect.log";
 			
 			///-------------------------------------------------------------
-			/// (3) running program according to parameters
+			// (3) running program according to parameters
 			///-------------------------------------------------------------
-std::cout << "checking accessability of files" << std::endl;
-			/// (3.1) checking accessability of files
+			
+			// (3.1) checking accessability of files
 
-			/// (3.1.1) input file
-			/// the input file has to be existent and readable if Inspect_out is set only
+			// (3.1.1) input file
+			// the input file has to be existent and readable if Inspect_out is set only
 			if ( !Inspect_in )
 			{
 				if ( !exists(input_filename) )
@@ -664,7 +666,7 @@ std::cout << "checking accessability of files" << std::endl;
 				}
 			}
 			
-			/// (3.1.2) output file
+			// (3.1.2) output file
 			if ( Inspect_out )
 			{
 				if ( !isWritable(output_filename) )
@@ -673,7 +675,7 @@ std::cout << "checking accessability of files" << std::endl;
 				}
 			}
 			
-			/// (3.1.2.1) inspect output file
+			// (3.1.2.1) inspect output file
 			if ( Inspect_out )
 			{
 				if ( !isWritable(inspect_output_filename) )
@@ -684,7 +686,7 @@ std::cout << "checking accessability of files" << std::endl;
 
 			if ( Inspect_in )
 			{
-				/// (3.1.3) given databases and sequence files
+				// (3.1.3) given databases and sequence files
 				std::vector< String > not_accessable;
 				for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i )
 				{
@@ -716,7 +718,7 @@ std::cout << "checking accessability of files" << std::endl;
 					std::cout << buffer << std::endl;
 				}
 				
-				/// (3.1.3.1) common contaminants
+				// (3.1.3.1) common contaminants
 				if ( !no_common_contaminants )
 				{
 					if ( !exists(common_contaminants_filename) )
@@ -729,7 +731,7 @@ std::cout << "checking accessability of files" << std::endl;
 					}
 				}
 
-				/// (3.1.4) database and index
+				// (3.1.4) database and index
 				if ( !isWritable(db_filename) )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
@@ -740,7 +742,7 @@ std::cout << "checking accessability of files" << std::endl;
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
 				}
 
-				/// (3.1.5) second database and index
+				// (3.1.5) second database and index
 				if ( blind )
 				{
 					if ( !isWritable(snd_db_filename) )
@@ -755,20 +757,20 @@ std::cout << "checking accessability of files" << std::endl;
 				}
 			}
 			
-			/// the on-screen output of inspect
+			// the on-screen output of inspect
 			if ( !isWritable(inspect_logfilename) )
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_logfilename);
 			}
 			
-			/// (3.2) running the program
+			// (3.2) running the program
 			
 			String database_path = pathDir(db_filename);
 			String database_filename = fileName(db_filename);
 			String index_filename = fileName(idx_filename);
 			std::vector< unsigned int > wanted_records;
 			
-			/// (3.2.1) creating the input file and converting and merging the databases
+			// (3.2.1) creating the input file and converting and merging the databases
 			if ( Inspect_in )
 			{
 				if ( !no_common_contaminants )
@@ -776,26 +778,25 @@ std::cout << "checking accessability of files" << std::endl;
 					seq_files.push_back(common_contaminants_filename);
 					tax.push_back("None");
 				}
-std::cout << "merging and converting databases" << std::endl;
-				/// merging the trie databases (all but the first databases are appended)
+				// merging the trie databases (all but the first databases are appended)
 				for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
 				{
 					inspect_infile.compressTrieDB(fileName(*i), "", pathDir(*i), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
 				}
 				
-				/// converting and merging the other databases (all but the first databases are appended)
+				// converting and merging the other databases (all but the first databases are appended)
 				std::vector< String >::const_iterator tax_i = tax.begin();
 				for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
 				{
-					inspect_infile.compressor(fileName(*i), pathDir(*i), database_path, wanted_records, database_filename, index_filename, i != seq_files.begin(), *tax_i);
+					inspect_infile.generateTrieDB(fileName(*i), pathDir(*i), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
 				}
 				
 				if ( blind ) inspect_infile.setBlind(false);
 				
-				inspect_infile.write(input_filename);
+				inspect_infile.store(input_filename);
 			}
-std::cout << "running inspect" << std::endl;
-			/// (3.2.2) running inspect and generating a second database from the results and running inspect in blind mode on this new database
+			
+			// (3.2.2) running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind )
 			{
 				String call;
@@ -817,7 +818,7 @@ std::cout << "running inspect" << std::endl;
 				call.append(input_filename);
 				call.append(" -o ");
 				call.append(inspect_output_filename);
-				/// writing the inspect output to a temporary file
+				// writing the inspect output to a temporary file
 				call.append(" > ");
 				call.append(inspect_logfilename);
 				
@@ -845,13 +846,13 @@ std::cout << "running inspect" << std::endl;
 					std::cout << "No proteins matching criteria for generating minimized database for blind search!" << std::endl;
 				}
 				
-				/// (3.2.3) setting the database name to the new database
+				// (3.2.3) setting the database name to the new database
 				inspect_infile.setDb(snd_db_filename);
 				inspect_infile.setBlind(true);
-				inspect_infile.write(input_filename);
+				inspect_infile.store(input_filename);
 			}
 			
-			/// (3.2.3) writing the output of inspect into an analysisXML file
+			// (3.2.3) writing the output of inspect into an analysisXML file
 			if ( Inspect_out )
 			{
 				String call;
@@ -874,7 +875,7 @@ std::cout << "running inspect" << std::endl;
 				call.append(input_filename);
 				call.append(" -o ");
 				call.append(inspect_output_filename);
-				/// writing the inspect output to a temporary file
+				// writing the inspect output to a temporary file
 				call.append(" > ");
 				call.append(inspect_logfilename);
 				
@@ -890,7 +891,7 @@ std::cout << "running inspect" << std::endl;
 					return EXTERNAL_PROGRAM_ERROR;						
 				}
 
-				/// if Inspect_in is not set, retrieve the name of the database from the input file
+				// if Inspect_in is not set, retrieve the name of the database from the input file
 				if ( !Inspect_in )
 				{
 					String line;
@@ -909,7 +910,7 @@ std::cout << "running inspect" << std::endl;
 					get_db_name.close();
 					get_db_name.clear();
 				}
-std::cout << "writing analysis file" << std::endl;
+				
 				AnalysisXMLFile analysisXML_file;
 				
 				if ( !emptyFile(inspect_output_filename) )
@@ -929,7 +930,7 @@ std::cout << "writing analysis file" << std::endl;
 				}
 			}
 			
-			/// (3.3) deleting all temporary files
+			// (3.3) deleting all temporary files
 			deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfilename);
 			
 			return OK;
