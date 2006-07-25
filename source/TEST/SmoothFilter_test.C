@@ -132,7 +132,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   TEST_REAL_EQUAL(it->getIntensity(),1)
 RESULT
 
-CHECK((template<typename InputSpectrumIterator, typename OutputSpectrumContainer  > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, OutputSpectrumContainer& smoothed_data_container)))
+CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
 	MSExperiment< DRawDataPoint<1> > raw_exp;
 	MSExperiment< DRawDataPoint<1> > filtered_exp;
 	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
@@ -190,7 +190,7 @@ CHECK((void setCoeffs(std::vector<double>& coeffs)))
   TEST_EQUAL(smooth.getCoeffs()[2],1.4)
 RESULT
 
-CHECK((template<typename InputPeakType, typename OutputPeakType  > void filterExperiment(const MSExperiment<InputPeakType>& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
+CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
 	MSExperiment< DRawDataPoint<1> > raw_exp;
 	MSExperiment< DRawDataPoint<1> > filtered_exp;
 	MSSpectrum< DRawDataPoint<1> > raw_spectrum;
@@ -248,7 +248,7 @@ CHECK((void setCoeffs(std::vector<double>& coeffs)))
   TEST_EQUAL(smooth.getCoeffs()[2],1.4)
 RESULT
 
-CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
+CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
  RawDataArray1D raw(5);
   RawDataArray1D filtered(5);
 

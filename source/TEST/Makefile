@@ -206,10 +206,10 @@ ifeq ($(GSL_SUPPORT),true)
   	PeakPosBins_test\
   	PeakDiffBins_test\
   	IntensityDistBins_test\
-  	KellerQuality_test
+  	KellerQuality_test\
+	SavitzkyGolayQRFilter_test\
+	SavitzkyGolaySVDFilter_test
 endif
-#		DSavitzkyGolaySVDFilter_test\
-#		DSavitzkyGolayQRFilter_test\
 
 
 EXECUTABLES_FILTERING = \
@@ -222,8 +222,6 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimatorMedian_test\
 	SmoothFilter_test
 	
-#	DSmoothFilter_test\
-	#${GSL_EXECUTABLES_FILTERING}\
 	#DGaussFilter_test\
 
 #COMPARISON
