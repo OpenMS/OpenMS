@@ -1702,7 +1702,7 @@ namespace OpenMS
       peak_picker.setFwhmBound(dialog.getFwhm());
       peak_picker.setPeakBound(dialog.getPeakHeight());
       peak_picker.setPeakBoundMs2Level(dialog.getPeakHeightMs2());
-      peak_picker.setOptimizationValue(dialog.getOptimization());
+      peak_picker.setOptimizationFlag(dialog.getOptimization());
       peak_picker.setSignalToNoiseLevel(dialog.getSignalToNoise());
 
       Spectrum1DWindow* w = active1DWindow_();
