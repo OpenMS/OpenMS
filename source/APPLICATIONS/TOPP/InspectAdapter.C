@@ -792,6 +792,7 @@ class TOPPInspectAdapter
 				}
 				
 				if ( blind ) inspect_infile.setBlind(false);
+				if ( blind_only ) inspect_infile.setBlind(true);
 				
 				inspect_infile.store(input_filename);
 			}
