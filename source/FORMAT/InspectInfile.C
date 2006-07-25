@@ -27,6 +27,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -337,7 +338,7 @@ namespace OpenMS
 	{
 		if ( (cutoff_p_value < 0) || (cutoff_p_value-1.0 > 0) )
 		{
-			throw ClusterSpectrum::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cutoff_p_value is lower 0 or greater 1!");
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cutoff_p_value is lower 0 or greater 1!");
 		}
 		std::string path_and_file = result_path;
 		ensurePathChar(path_and_file);

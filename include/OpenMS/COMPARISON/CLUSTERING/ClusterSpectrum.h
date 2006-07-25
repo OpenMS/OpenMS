@@ -76,17 +76,6 @@ namespace OpenMS
     };
 
     /**
-    some Argument contains illegal values
-    for example an id thats not a PeakList
-    */
-    class IllegalArgument : public Exception::Base
-    {
-    public:
-      IllegalArgument(const char* file, int line, const char* function, const char* argument = "unknown") throw();
-      ~IllegalArgument() throw();
-    };
-
-    /**
     allows a more convenient way of getting spectra from the db<br>
     although it is more efficient to get the spectra in large chunks directly
         with DBAdapter (ca 5% in simple benchmarks(10k spectra)), getting them on demand allows using less memory<br>

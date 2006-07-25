@@ -397,6 +397,18 @@ namespace OpenMS
 				return filename_;
 			}
 
+		  IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const char* argument) throw()
+    		: Base(file, line, function)
+  		{
+    		what_ = "The Argument ";
+    		what_ += argument;
+    		what_ += "is not legal for this Operation";
+    		globalHandler.setMessage(what_);
+  		}
+
+  		IllegalArgument::~IllegalArgument() throw()
+  		{
+  		}
 
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 

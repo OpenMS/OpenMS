@@ -58,7 +58,7 @@ namespace OpenMS
     void init();
 
     /** @brief use instead of destructor */
-    void destroy(){ delete instancep_;instancep_ = 0;}
+    void destroy() { delete instancep_;instancep_ = 0; }
 
     /** @brief return registered FactoryProducts <br> */
     std::vector<String> catalogue(String type = "FactoryProduct") const;
@@ -80,6 +80,7 @@ namespace OpenMS
     ClusterFactory& operator=(const ClusterFactory& source);
 
     std::map<String, FactoryProduct*(*)()> inventory_;
+
     static ClusterFactory* instancep_ ;
   };
 

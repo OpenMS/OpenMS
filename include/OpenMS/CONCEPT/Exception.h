@@ -663,6 +663,22 @@ namespace OpenMS
 			std::string filename_;
 		};
 		
+    /**
+			@brief some Argument contains illegal values
+
+    */
+    class IllegalArgument 
+			: public Base
+    {
+    public:
+
+      IllegalArgument(const char* file, int line, const char* function, const char* argument = "unknown") throw();
+
+      ~IllegalArgument() throw();
+
+    };
+
+
 
 		/**
 			@brief OpenMS global exception handler

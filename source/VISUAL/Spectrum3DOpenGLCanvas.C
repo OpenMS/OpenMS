@@ -566,7 +566,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 						glBegin(GL_POINTS);
 						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
 						{
-						
+							double intensity = 0;
 							switch (canvas_3d_.intensity_mode_)
 							{
 							case SpectrumCanvas::IM_NONE:
@@ -576,7 +576,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 								qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
 								break;
 							case SpectrumCanvas::IM_PERCENTAGE:	
-								double intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
+								intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
 								qglColor(QColor( gradient_.precalculatedColorAt(intensity )));
 								break;
 							case SpectrumCanvas::IM_SNAP:
@@ -637,12 +637,13 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 
 						if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
 						{
+							double intensity = 0;
 							switch (canvas_3d_.intensity_mode_)
 							{
 							
 							case SpectrumCanvas::IM_PERCENTAGE:	
 								
-								double intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
+								intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
 								qglColor(QColor( gradient_.precalculatedColorAt(0)));
 								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
 													 -corner_,

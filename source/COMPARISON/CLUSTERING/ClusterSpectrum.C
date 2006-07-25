@@ -55,20 +55,6 @@ namespace OpenMS
   {
   }
 
-  ClusterSpectrum::IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const char* argument) throw()
-    : Exception::Base(file, line, function)
-  {
-    what_ = "The Argument ";
-    what_ += argument;
-    what_ += "is not legal for this Operation";
-
-    Exception::globalHandler.setMessage(what_);
-  }
-
-  ClusterSpectrum::IllegalArgument::~IllegalArgument() throw()
-  {
-  }
- 
   // intended for the use in Containers, like the stl
   ClusterSpectrum::ClusterSpectrum()
     :specp_(0), binrepp_(0),adapterp_(0),binsize_(0),binspread_(0),id_(0),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
@@ -194,7 +180,7 @@ namespace OpenMS
       {
         if (binsize_ < 0 )
         {
-          throw IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"binsize_");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"binsize_");
         }
         else 
         {
@@ -261,7 +247,7 @@ namespace OpenMS
           ostringstream ss;
           ss.str("");
           ss << "id " << id_ << " ";
-          throw IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,ss.str().c_str());
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,ss.str().c_str());
         }
       }
     }
