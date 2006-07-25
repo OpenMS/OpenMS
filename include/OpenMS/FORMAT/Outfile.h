@@ -1,30 +1,30 @@
-/// -*- Mode: C++; tab-width: 2; -*-
-/// vi: set ts=2:
-///
-/// --------------------------------------------------------------------------
-///                   OpenMS Mass Spectrometry Framework
-/// --------------------------------------------------------------------------
-///  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
-///
-///  This library is free software; you can redistribute it and/or
-///  modify it under the terms of the GNU Lesser General Public
-///  License as published by the Free Software Foundation; either
-///  version 2.1 of the License, or (at your option) any later version.
-///
-///  This library is distributed in the hope that it will be useful,
-///  but WITHOUT ANY WARRANTY; without even the implied warranty of
-///  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-///  Lesser General Public License for more details.
-///
-///  You should have received a copy of the GNU Lesser General Public
-///  License along with this library; if not, write to the Free Software
-///  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-///
-/// --------------------------------------------------------------------------
-/// $Id: Outfile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-/// $Author: martinlangwisch $
-/// $Maintainer: Martin Langwisch $
-/// --------------------------------------------------------------------------
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Id: Outfile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
+// $Author: martinlangwisch $
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_OUTFILE_H
 #define OPENMS_FORMAT_OUTFILE_H
@@ -48,10 +48,9 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of an  outfile
+    @brief Can be used as base class for outfile classes
     
-    This class serves to read in an  outfile. The information can be 
-    retrieved via the >> operator. 
+    The information can be retrieved via the >> operator. 
   
   	@ingroup FileIO
   */
@@ -67,6 +66,9 @@ namespace OpenMS
 			/// Destructor
       ~Outfile();
 			
+			/// Assignment operator
+	    Outfile& operator=(const Outfile& source);
+			
       /// true if the search was successfull, false otherwise
       bool ok() const;
 			
@@ -78,9 +80,6 @@ namespace OpenMS
 			
       /// fills a ProteinHit object
       Outfile& operator>>(ProteinHit& protein_hit);
-			
-			/// Assignment operator
-	    Outfile& operator=(const Outfile& source);
 			
       /// returns the retention time of the  search
       const std::vector<float>& getPrecursorRetentionTimes() const;
@@ -107,8 +106,8 @@ namespace OpenMS
       void setProteinIdentification(const ProteinIdentification& protein_ids);
 			
     protected:			
-			/// get the accession and accession type
-			void get_ac_and_ac_type(String line, const std::string& filename, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
+			/// get the accession and accession type of a protein
+			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
 			
 			/// given a vector of peptide hits, either insert the new peptide hit or update its ProteinHits, returns whether an update took place
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
@@ -142,7 +141,6 @@ namespace OpenMS
 			
 			/// iterator pointing to the current hit
 			std::vector< ProteinHit >::iterator curr_protein_hit_;
-			
    };
 	
 } //namespace OpenMS
