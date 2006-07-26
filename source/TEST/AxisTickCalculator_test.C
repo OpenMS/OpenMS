@@ -39,51 +39,51 @@ START_TEST(AxisTickCalculator, "$Id:$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CHECK((static void calcGridLines(double x1, double x2, int levels, GridVector& grid)))
-	std::vector<std::vector<double> > vector1;
-	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1);
-	
-	TEST_REAL_EQUAL(3,vector1.size());
-	TEST_REAL_EQUAL(4,vector1[0].size());
-	TEST_REAL_EQUAL(3,vector1[1].size());
-	TEST_REAL_EQUAL(6,vector1[2].size());
-	
-	TEST_REAL_EQUAL(1.0,vector1[0][0]);
-	TEST_REAL_EQUAL(2.0,vector1[0][1]);
-	TEST_REAL_EQUAL(3.0,vector1[0][2]);
-	TEST_REAL_EQUAL(4.0,vector1[0][3]);
-	
-	TEST_REAL_EQUAL(1.5,vector1[1][0]);
-	TEST_REAL_EQUAL(2.5,vector1[1][1]);
-	TEST_REAL_EQUAL(3.5,vector1[1][2]);
-	
-	TEST_REAL_EQUAL(1.25,vector1[2][0]);
-	TEST_REAL_EQUAL(1.75,vector1[2][1]);
-	TEST_REAL_EQUAL(2.25,vector1[2][2]);
-	TEST_REAL_EQUAL(2.75,vector1[2][3]);
-	TEST_REAL_EQUAL(3.25,vector1[2][4]);
-	TEST_REAL_EQUAL(3.75,vector1[2][5]);
-RESULT
-
-
-CHECK((static void calcLogGridLines(double x1, double x2, GridVector& grid)))
-	std::vector<std::vector<double> > vector1;
-	AxisTickCalculator::calcLogGridLines(log10(10.0),log10(100.0),vector1);
-
-	TEST_REAL_EQUAL(1,vector1[0].size());
-	TEST_REAL_EQUAL(8,vector1[1].size());
-	
-	TEST_REAL_EQUAL(1.0,vector1[0][0]);
-	
-	TEST_REAL_EQUAL( 1.30103 ,vector1[1][0]);
-	TEST_REAL_EQUAL( 1.47712 ,vector1[1][1]);
-	TEST_REAL_EQUAL( 1.60206 ,vector1[1][2]);
-	TEST_REAL_EQUAL( 1.69897 ,vector1[1][3]);
-	TEST_REAL_EQUAL( 1.77815 ,vector1[1][4]);
-	TEST_REAL_EQUAL( 1.8451 ,vector1[1][5]);
-	TEST_REAL_EQUAL( 1.90309 ,vector1[1][6]);
-	TEST_REAL_EQUAL( 1.95425 ,vector1[1][7]);
-RESULT
+//CHECK((static void calcGridLines(double x1, double x2, int levels, GridVector& grid)))
+//	std::vector<std::vector<double> > vector1;
+//	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1);
+//	
+//	TEST_REAL_EQUAL(3,vector1.size());
+//	TEST_REAL_EQUAL(4,vector1[0].size());
+//	TEST_REAL_EQUAL(3,vector1[1].size());
+//	TEST_REAL_EQUAL(6,vector1[2].size());
+//	
+//	TEST_REAL_EQUAL(1.0,vector1[0][0]);
+//	TEST_REAL_EQUAL(2.0,vector1[0][1]);
+//	TEST_REAL_EQUAL(3.0,vector1[0][2]);
+//	TEST_REAL_EQUAL(4.0,vector1[0][3]);
+//	
+//	TEST_REAL_EQUAL(1.5,vector1[1][0]);
+//	TEST_REAL_EQUAL(2.5,vector1[1][1]);
+//	TEST_REAL_EQUAL(3.5,vector1[1][2]);
+//	
+//	TEST_REAL_EQUAL(1.25,vector1[2][0]);
+//	TEST_REAL_EQUAL(1.75,vector1[2][1]);
+//	TEST_REAL_EQUAL(2.25,vector1[2][2]);
+//	TEST_REAL_EQUAL(2.75,vector1[2][3]);
+//	TEST_REAL_EQUAL(3.25,vector1[2][4]);
+//	TEST_REAL_EQUAL(3.75,vector1[2][5]);
+//RESULT
+//
+//
+//CHECK((static void calcLogGridLines(double x1, double x2, GridVector& grid)))
+//	std::vector<std::vector<double> > vector1;
+//	AxisTickCalculator::calcLogGridLines(log10(10.0),log10(100.0),vector1);
+//
+//	TEST_REAL_EQUAL(1,vector1[0].size());
+//	TEST_REAL_EQUAL(8,vector1[1].size());
+//	
+//	TEST_REAL_EQUAL(1.0,vector1[0][0]);
+//	
+//	TEST_REAL_EQUAL( 1.30103 ,vector1[1][0]);
+//	TEST_REAL_EQUAL( 1.47712 ,vector1[1][1]);
+//	TEST_REAL_EQUAL( 1.60206 ,vector1[1][2]);
+//	TEST_REAL_EQUAL( 1.69897 ,vector1[1][3]);
+//	TEST_REAL_EQUAL( 1.77815 ,vector1[1][4]);
+//	TEST_REAL_EQUAL( 1.8451 ,vector1[1][5]);
+//	TEST_REAL_EQUAL( 1.90309 ,vector1[1][6]);
+//	TEST_REAL_EQUAL( 1.95425 ,vector1[1][7]);
+//RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

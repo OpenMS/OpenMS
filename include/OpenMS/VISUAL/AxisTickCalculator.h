@@ -41,34 +41,36 @@ namespace OpenMS
 	*/
   class AxisTickCalculator 
 	{
-		
 		public:
-	    /// Typedef for the grid vector
+	 
+	  /// Typedef for the grid vector
 		typedef std::vector<std::vector<double> > GridVector;
-		static enum {TOP, BOTTOM, LEFT, RIGHT} ALIGNMENT_ENUM;
+
 		/**
 			 @brief Returns a GridVector with ticks for linear scales.
 			 
 			 @param x1 minimum value
 			 @param x2 maximum value
-			 @param level numbers of different tick levels (maximum is 3)
+			 @param levels numbers of different tick levels (maximum is 3)
 			 @param grid  numbers the grid_vector
 			 @param max_num_big
 			 @param max_num_small 
-			 @param grid_line_dist the distanve of the gridlines
+			 @param grid_line_dist the distance of the gridlines
 		*/
-		static void calcGridLines(double x1, double x2, int levels, GridVector& grid,UnsignedInt max_num_big, UnsignedInt max_num_small,double& grid_line_dist);
-			/**
-				 @brief Returns a GridVector with ticks for logarithmic scales.
-				 
-				 @param x1 minimum value
-				 @param x2 maximum value
-			*/
+		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double grid_line_dist);
+		
+		/**
+			 @brief Returns a GridVector with ticks for logarithmic scales.
+			 
+			 @param x1 minimum value
+			 @param x2 maximum value
+		*/
 		static void calcLogGridLines(double x1, double x2, GridVector& grid);
 			
 		private: 
-			///Constructor: only static methods
-			AxisTickCalculator();
+		
+		///Constructor: only static methods
+		AxisTickCalculator();
 	};
 }
 #endif
