@@ -1445,7 +1445,7 @@ namespace OpenMS
         Spectrum2DWindow* w2 = active2DWindow_();
         if (w2!=0)
         {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->currentDataSet();
 
           SavitzkyGolaySVDFilter sgolay;
           GaussFilter gauss;
@@ -1612,7 +1612,7 @@ namespace OpenMS
         Spectrum2DWindow* w2 = active2DWindow_();
         if (w2!=0)
         {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->currentDataSet();
           TopHatFilter tophat;
           tophat.setStrucElemSize(dialog.getStrucElemWidth());
 
