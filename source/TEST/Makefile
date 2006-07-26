@@ -207,8 +207,8 @@ ifeq ($(GSL_SUPPORT),true)
   	PeakDiffBins_test\
   	IntensityDistBins_test\
   	KellerQuality_test\
-	SavitzkyGolayQRFilter_test\
-	SavitzkyGolaySVDFilter_test
+		SavitzkyGolayQRFilter_test\
+		SavitzkyGolaySVDFilter_test
 endif
 
 
@@ -236,11 +236,11 @@ ifeq ($(GSL_SUPPORT),true)
 	ClusterFunctor_test\
 	AnalysisFunctor_test\
 	CompareFunctor_test\
-  BinnedRepMutualInformation_test\
-  BinnedRepSpectrumContrastAngle_test\
-  BinnedRepSharedPeakCount_test\
-  BinnedRepSumAgreeingIntensities_test\
-  SequestCompareFunctor_test\
+	BinnedRepMutualInformation_test\
+	BinnedRepSpectrumContrastAngle_test\
+	BinnedRepSharedPeakCount_test\
+	BinnedRepSumAgreeingIntensities_test\
+	SequestCompareFunctor_test\
   SpectrumPrecursorComparator_test
 endif
 
