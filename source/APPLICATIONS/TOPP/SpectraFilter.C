@@ -29,6 +29,14 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 
@@ -69,7 +77,7 @@ class TOPPSpectraFilter
 						<< "  -in <file>        input mzData file name" << endl
 						<< "  -out <file>       output mzData file name" << endl
 						<< "  -rt [min]:[max]   retention time range to extract" << endl
-						<< "  -filters <name> [, <another_name>]... filters to apply (see --help-opt for complete list)" << endl;
+						<< "  -filters <name> [,<another_name>]... filters to apply (see --help-opt for complete list)" << endl;
 		}
 	
 		void printToolHelpOpt_()
@@ -200,18 +208,15 @@ class TOPPSpectraFilter
       // calculations
       //-------------------------------------------------------------
 
-			RTRange<MSExperiment< >::SpectrumType> rt_predicate(rt_l, rt_u, true);
+			RTRange<MSExperiment< >::SpectrumType> rt_predicate(rt_l, rt_u, false);
 
 			// for every filter
 			for (vector<FactoryProduct*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				//cout << (*it)->getName() << endl;
-
 				Param filter_param = getParamCopy_("SpectraFilter:1:filters:" + (*it)->getName() + ":", true);
-
-				//PreprocessingFunctor* filter = static_cast<PreprocessingFunctor*>(*it);
 	
-				if ((*it)->getName() == "NLargest")
+				String filter_name = (*it)->getName();
+				if (filter_name == "NLargest")
 				{
 					NLargest filter;
 					filter.getParam().insert("", filter_param);
@@ -219,14 +224,126 @@ class TOPPSpectraFilter
 					// apply to every spectrum in the mzdata file
 					for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
 					{
-						//cout << sit->size() << " -> ";
-						//if (rt_predicate(*sit))
-						//{
+						if (rt_predicate(*sit))
+						{
 							filter.apply(*sit);
-						//}
-						//cout << sit->size() << endl;
+						}
 					}
+					continue;
 				}
+
+				if (filter_name == "Normalizer")
+				{
+					Normalizer filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
+				if (filter_name == "BernNorm")
+				{
+					BernNorm filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
+				if (filter_name == "ParentPeakMower")
+				{
+					ParentPeakMower filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
+				if (filter_name == "Scaler")
+				{
+					Scaler filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+				
+				if (filter_name == "SqrtMower")
+				{
+					SqrtMower filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
+				if (filter_name == "ThresholdMower")
+				{
+					ThresholdMower filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
+				if (filter_name == "WindowMower")
+				{
+					WindowMower filter;
+					filter.getParam().insert("", filter_param);
+
+          // apply to every spectrum in the mzdata file
+          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+          {
+            if (rt_predicate(*sit))
+            {
+              filter.apply(*sit);
+            }
+          }
+					continue;
+				}
+
 			}
 		
 			//-------------------------------------------------------------
