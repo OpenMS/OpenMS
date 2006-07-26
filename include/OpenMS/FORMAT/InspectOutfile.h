@@ -48,7 +48,7 @@ namespace OpenMS
   {
     public:
       /// Constructor
-      InspectOutfile(const std::string& result_filename, const std::string& database_filename, const std::string& database_path, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError);
+      InspectOutfile(const std::string& result_filename, const std::string& database_filename, const std::string& database_path, const double& p_value_threshold = 1.0, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError);
       
    };
 	
