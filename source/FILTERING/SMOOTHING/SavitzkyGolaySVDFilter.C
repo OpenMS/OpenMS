@@ -68,7 +68,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
     }
 
-
+    coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
@@ -96,7 +96,8 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
     }
-
+    
+    coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
@@ -104,6 +105,7 @@ namespace OpenMS
   void SavitzkyGolaySVDFilter::setWindowSize(const unsigned int& frame_size)
   {
     frame_size_=frame_size;
+    coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
