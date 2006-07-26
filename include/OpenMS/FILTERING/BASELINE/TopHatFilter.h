@@ -161,28 +161,33 @@ public:
         unsigned int n = distance(first,last);
         // pick peaks on each scan
         for (unsigned int i = 0; i < n; ++i)
-        {
-            MSSpectrum< OutputPeakType > spectrum;
-            InputSpectrumIterator input_it(first+i);
-
-            // pick the peaks in scan i
-            filter(*input_it,spectrum);
-
-            // if any peaks are found copy the spectrum settings
-            if (spectrum.size() > 0)
-            {
-                // copy the spectrum settings
-                static_cast<SpectrumSettings&>(spectrum) = *input_it;
-                spectrum.setType(SpectrumSettings::RAWDATA);
-
-                // copy the spectrum information
-                spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-                spectrum.setRetentionTime(input_it->getRetentionTime());
-                spectrum.setMSLevel(input_it->getMSLevel());
-                spectrum.getName() = input_it->getName();
-
-                ms_exp_filtered.push_back(spectrum);
-            }
+        {	
+        	InputSpectrumIterator input_it(first+i);
+        	// if the scan contains enough raw data points filter the baseline
+        	if ( struc_size_ < fabs((input_it->end()-1)->getPos()- input_it->begin()->getPos()))
+        		{ 
+        			std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
+	            MSSpectrum< OutputPeakType > spectrum;
+	            
+	            // pick the peaks in scan i
+	            filter(*input_it,spectrum);
+	
+	            // if any peaks are found copy the spectrum settings
+	            if (spectrum.size() > 0)
+	            {
+	                // copy the spectrum settings
+	                static_cast<SpectrumSettings&>(spectrum) = *input_it;
+	                spectrum.setType(SpectrumSettings::RAWDATA);
+	
+	                // copy the spectrum information
+	                spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+	                spectrum.setRetentionTime(input_it->getRetentionTime());
+	                spectrum.setMSLevel(input_it->getMSLevel());
+	                spectrum.getName() = input_it->getName();
+	
+	                ms_exp_filtered.push_back(spectrum);
+	            }
+          	}
         }
     }
 
