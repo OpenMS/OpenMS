@@ -31,7 +31,7 @@
 namespace OpenMS 
 {
   InspectOutfile::InspectOutfile(const std::string& result_filename, const std::string& database_filename_, const std::string& database_path, const double& p_value_threshold, std::string index_filename_)
-  	throw (Exception::FileNotFound, Exception::ParseError)
+  	throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
     : Outfile()
   {
 		// (0) preparations
@@ -39,7 +39,7 @@ namespace OpenMS
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold is less zero or greater one!" , result_filename);
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
 		}
 
 		// open the result and database file
@@ -201,6 +201,7 @@ namespace OpenMS
 				scan_number = atoi(substrings[scan_column].c_str());
 				
 				query->setCharge(atoi(substrings[charge_column].c_str()));
+				query->setPeptideSignificanceThreshold(p_value_threshold);
 				rank = 0;
 			}
 			
