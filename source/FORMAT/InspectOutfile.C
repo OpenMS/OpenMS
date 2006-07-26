@@ -30,11 +30,18 @@
 
 namespace OpenMS 
 {
-  InspectOutfile::InspectOutfile(const std::string& result_filename, const std::string& database_filename_, const std::string& database_path, std::string index_filename_)
+  InspectOutfile::InspectOutfile(const std::string& result_filename, const std::string& database_filename_, const std::string& database_path, const double& p_value_threshold, std::string index_filename_)
   	throw (Exception::FileNotFound, Exception::ParseError)
     : Outfile()
   {
 		// (0) preparations
+
+		// check whether the p_value is correct
+		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold is less zero or greater one!" , result_filename);
+		}
+
 		// open the result and database file
 		String database_filename(database_filename_);
 		String index_filename(index_filename_);
@@ -151,7 +158,7 @@ namespace OpenMS
 		ProteinHit protein_hit;
 		std::vector< std::pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
 		std::string accession, accession_type, spectrum_file;
-		unsigned int record_number, scan_number;
+		unsigned int record_number, scan_number, start, end;
 		unsigned int rank = 0;
 		unsigned int max_record_number = 0;
 		unsigned int line_number = 0; // used to report in which line an error occured
@@ -182,6 +189,9 @@ namespace OpenMS
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
+			// take only those peptides whose p-value is less or equal the given threshold
+			if ( atof(substrings[p_value_column].c_str()) > p_value_threshold ) continue;			
+
 			// (1.0) if a new query is found, insert it into the vector and start a new one
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((unsigned int) atoi(substrings[scan_column].c_str()) != scan_number) )
 			{
@@ -219,7 +229,9 @@ namespace OpenMS
 			peptide_hit.clear();
 			peptide_hit.setScore(atof(substrings[MQ_score_column].c_str()));
 			peptide_hit.setScoreType(score_type_);
-			peptide_hit.setSequence(substrings[peptide_column]);
+			start = substrings[peptide_column].find('.')+1;
+			end = substrings[peptide_column].find_last_of('.');
+			peptide_hit.setSequence(substrings[peptide_column].substr(start, end-start));
 			peptide_hit.setRank(++rank);
 			peptide_hit.addProteinIndex(datetime, accession);
 			
