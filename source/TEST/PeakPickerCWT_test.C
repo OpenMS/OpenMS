@@ -320,7 +320,7 @@ RESULT
 CHECK((void setOptimizationFlag(const bool& optimization)))
   PeakPickerCWT pp;
   
-  pp.setOptimizationValue(true);
+  pp.setOptimizationFlag(true);
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
 RESULT
 
