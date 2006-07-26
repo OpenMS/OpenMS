@@ -544,7 +544,6 @@ class TOPPInspectAdapter
 			if ( !buffer.empty() )
 			{
 				p_value_threshold = (double) (getParam_("p_value_threshold"));
-std::cout << p_value_threshold << std::endl;
 				if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 				{
 					writeLog_("Illegal p-value. Aborting!");
