@@ -175,8 +175,6 @@ using namespace std;
 		</ul>
 	</ul>		
 	
-	@todo Fix --help-opt output (Nico)
-	
 	@ingroup TOPP
 */
 class TOPPMascotAdapter
