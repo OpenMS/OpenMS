@@ -30,7 +30,6 @@
 #define OPENMS_FORMAT_INSPECTINFILE_H
 
 #include <OpenMS/FORMAT/InspectFile.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <set>
@@ -65,7 +64,7 @@ namespace OpenMS
 
 			/// generate a database from an Inspect result file; this new database can be used for a blind search
 			/// either a trie database is given as input, or a corresponding database is generated from the input
-			void generateSecondDatabase(const std::string& result_filename_, const std::string& result_path, const std::string& database_path, const std::string& database_filename_, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename_, std::string second_index_filename_, std::string index_filename_, std::string second_database_path, std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError);
+			void generateSecondDatabase(const std::string& result_filename_, const std::string& result_path, const std::string& database_path, const std::string& database_filename_, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename_, std::string second_index_filename_, std::string index_filename_, std::string second_database_path, std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
 			/// stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
@@ -130,8 +129,8 @@ namespace OpenMS
 				
 				Defaults to 200. Larger values require more time to search.
 			*/
-			const double getMaxptmsize() const;
-			void setMaxptmsize(double maxptmsize);
+			const double getMaxPTMsize() const;
+			void setMaxPTMsize(double maxptmsize);
 			
 			/**
 				@brief Specifies the parent mass tolerance, in Daltons.
@@ -194,7 +193,7 @@ namespace OpenMS
 			unsigned int blind_; ///< If true, use the MS-Alignment algorithm to perform a blind search (allowing arbitrary modification masses). Running a blind search with one mod per peptide is slower than the normal (tag-based) search; running time is approximately 1 second per spectra per megabyte of database. Running a blind search with two mods is significantly slower. We recommend performing "blind" searches against a small database, containing proteins output by an earlier search. (The "Summary.py" script can be used to generate a second-pass database from initial search results)
 			/// 0 - false, 1 - true, 2 - not set
 
-		  double maxptmsize_; ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
+		  	double maxptmsize_; ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
 
 			double PM_tolerance_; ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than ths amount. <0 is not set
 
@@ -207,9 +206,9 @@ namespace OpenMS
 
 			String instrument_; ///< If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.
 
-			int TagCountA_; ///< Number of tags to generate for the first pass of a two-pass search. <0 is not set
+			int tag_count_a_; ///< Number of tags to generate for the first pass of a two-pass search. <0 is not set
 
-			int TagCountB_; ///< Number of tags to generate for the second pass of a two-pass search, OR the number of tags to use in a one-pass search. <0 is not set
+			int tag_count_b_; ///< Number of tags to generate for the second pass of a two-pass search, OR the number of tags to use in a one-pass search. <0 is not set
 
 			unsigned int twopass_; ///< Use two-pass search. The first pass uses fewer tags, and produces a list of proteins which are re-searched in the second pass.
 			/// 0 - false, 1 - true, 2 - not set
