@@ -76,7 +76,7 @@ Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()
 
 void Spectrum3DOpenGLCanvas::calculateGridLines_()
 {
-	double dist = 0.0;
+	double dist;
 	switch(canvas_3d_.intensity_mode_)
 	{
 	case SpectrumCanvas::IM_SNAP:

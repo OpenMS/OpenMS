@@ -106,7 +106,6 @@ namespace OpenMS
 			grid.push_back(smaller);
 		}
 		}
-		
 	}
 	
 	void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
