@@ -130,6 +130,8 @@ class TOPPInspectAdapter
 						<< "  -Inspect_in         if this flag is set the InspectAdapter will create an Inspect Input file" << std::endl
 						<< "                      if only Inspect_in is set, a name for the trie database (see below) has to be given!" << std::endl
 						<< "  -Inspect_out        if this flag is set the InspectAdapter will read in an Inspect Input file and write an analysisXML file." << std::endl
+						<< "  -inspect_dir        the name of the InsPecT directory." << std::endl
+						<< "  -temp_data_dir      the name of the directory where the temporary data will be stored." << std::endl
 						<< "  -spectra <file>     the spectrum file OR directory to search (every file in that directory will be searched(non-recursively)" << std::endl
 						<< "                      supported spectrum file formats are .mzXML, .mzData, .ms2, dta, and .pkl" << std::endl
 						<< "                      multiple spectra in one .dta file are not supported" << std::endl
@@ -152,7 +154,9 @@ class TOPPInspectAdapter
 						<< "                      This search can only be run in full mode." << std::endl
 						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << std::endl
 						<< "  -p_value            annotations with inferior p-value are ignored. Default is 0.05" << std::endl
-						<< "  -min_spp            the minimum number of spectra a protein has to annotate in order to add it to the filtered database " << std::endl
+						<< "  -p_value_blind      used when generating the minimized database for blind search" << std::endl
+						<< "  -min_spp            used when generating the minimized database for blind search " << std::endl
+						<< "                      the minimum number of spectra a protein has to annotate in order to add it to the filtered database " << std::endl
 						<< "                      default is #spectra / #proteins * 2" << std::endl
 						<< "  -maxptmsize         for blind search, specifies the maximum modification size (in Da) to consider (default read from INI file)" << std::endl
 						<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << std::endl
@@ -198,7 +202,7 @@ class TOPPInspectAdapter
 			options_["-max_mods_pp"] = "mods";
 			options_["-PM_tol"] = "PM_tolerance";
 			options_["-ion_tol"] = "ion_tolerance";
-			options_["-multicharge"] = "multicharge";
+			flags_["-multicharge"] = "multicharge";
 			options_["-TagCountA"] = "TagCountA";
 			options_["-TagCountB"] = "TagCountB";
 			flags_["-twopass"] = "twopass";
@@ -207,7 +211,8 @@ class TOPPInspectAdapter
 			options_["-out"] = "out";
 			options_["-o"] = "o";
 			flags_["-blind_only"] = "blind_only";
-			options_["-p_value"] = "cutoff_p_value";
+			options_["-p_value"] = "p_value_threshold";
+			options_["-p_value_blind"] = "cutoff_p_value";
 			options_["-min_spp"] = "min_annotated_spectra_per_protein";
 			options_["-maxptmsize"] = "maxptmsize";
 			flags_["-blind"] = "blind";
@@ -336,6 +341,7 @@ class TOPPInspectAdapter
 			std::vector < std::vector< String > > mod; // some from ini file
 
 			// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
+			double p_value_threshold = 1.0;
 			bool Inspect_out = false;
 			String output_filename, inspect_output_filename;
 
@@ -464,28 +470,90 @@ class TOPPInspectAdapter
 				inspect_infile.setMod(mod);
 				
 				buffer = getParamAsString_("mods");
-				if ( !buffer.empty() ) inspect_infile.setMods(getParamAsInt_("mods"));
+				if ( !buffer.empty() )
+				{
+					inspect_infile.setMods(getParamAsInt_("mods"));
+					if ( (inspect_infile.getMods() < 0) )
+					{
+						writeLog_("Illegal number of modifications (<0) given. Aborting!");
+						std::cout << "Illegal number of modifications (<0) given. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 
 				buffer = getParamAsString_("PM_tolerance");
-				if ( !buffer.empty() ) inspect_infile.setPMTolerance( (double) (getParam_("PM_tolerance")) );
+				if ( !buffer.empty() )
+				{
+					inspect_infile.setPMTolerance( (double) (getParam_("PM_tolerance")) );
+					if ( (inspect_infile.getPMTolerance() < 0) )
+					{
+						writeLog_("Illegal parent mass tolerance (<0) given. Aborting!");
+						std::cout << "Illegal parent mass tolerance (<0) given. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 
 				buffer = getParamAsString_("ion_tolerance");
-				if ( !buffer.empty() ) inspect_infile.setIonTolerance( (double) (getParam_("ion_tolerance")) );
+				if ( !buffer.empty() )
+				{
+					inspect_infile.setIonTolerance( (double) (getParam_("ion_tolerance")) );
+					if ( (inspect_infile.getIonTolerance() < 0) )
+					{
+						writeLog_("Illegal ion mass tolerance (<0) given. Aborting!");
+						std::cout << "Illegal ion mass tolerance (<0) given. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 
-				buffer = getParamAsString_("multicharge");
-				if ( !buffer.empty() ) inspect_infile.setMulticharge(getParamAsInt_("multicharge"));
+				if ( getParamAsString_("mutlicharge", "false") != "false" ) inspect_infile.setMulticharge(1);
 
 				buffer = getParamAsString_("TagCountA");
-				if ( !buffer.empty() ) inspect_infile.setTagCountA(getParamAsInt_("TagCountA"));
+				if ( !buffer.empty() )
+				{
+					inspect_infile.setTagCountA(getParamAsInt_("TagCountA"));
+					if ( (inspect_infile.getTagCountA() < 0) )
+					{
+						writeLog_("Illegal number of tags (TagCountA <0) given. Aborting!");
+						std::cout << "Illegal number of tags (TagCountA <0) given. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 
 				buffer = getParamAsString_("TagCountB");
-				if ( !buffer.empty() ) inspect_infile.setTagCountB(getParamAsInt_("TagCountB"));
+				if ( !buffer.empty() ) 
+				{
+					inspect_infile.setTagCountB(getParamAsInt_("TagCountB"));
+					if ( (inspect_infile.getTagCountB() < 0) )
+					{
+						writeLog_("Illegal number of tags (TagCountB <0) given. Aborting!");
+						std::cout << "Illegal number of tags (TagCountB <0) given. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 
-				buffer = getParamAsString_("twopass");
-				if ( !buffer.empty() ) inspect_infile.setTwopass( (unsigned int) (getParam_("twopass")) );
+				if ( getParamAsString_("twopass", "false") != "false" ) inspect_infile.setTwopass(true);
 			}
 
 			// (2.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
+			buffer = getParamAsString_("p_value_threshold");
+			if ( !buffer.empty() )
+			{
+				p_value_threshold = (double) (getParam_("p_value_threshold"));
+std::cout << p_value_threshold << std::endl;
+				if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
+				{
+					writeLog_("Illegal p-value. Aborting!");
+					std::cout << "Illegal p-value. Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+			}
+			
 			buffer = getParamAsString_("out");
 			if ( buffer.empty() )
 			{
@@ -529,7 +597,17 @@ class TOPPInspectAdapter
 			if ( getParamAsString_("blind_only", "false") != "false" ) blind_only = true;
 
 			buffer = getParamAsString_("maxptmsize");
-			if ( !buffer.empty() ) inspect_infile.setMaxptmsize( (unsigned int) (getParam_("maxptmsize")) );
+			if ( !buffer.empty() )
+			{
+				inspect_infile.setMaxPTMsize( (double) (getParam_("maxptmsize")) );
+				if ( inspect_infile.getMaxPTMsize() < 0 )
+				{
+					writeLog_("Illegal maximum modification size (<0). Aborting!");
+					std::cout << "Illegal maximum modification size (<0). Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+			}
 
 			// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
 			if ( getParamAsString_("blind", "false") != "false" )
@@ -673,14 +751,16 @@ class TOPPInspectAdapter
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
 				}
-			}
 			
-			// (3.1.2.1) inspect output file
-			if ( Inspect_out )
-			{
+				// (3.1.2.1) inspect output file
 				if ( !isWritable(inspect_output_filename) )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
+				}
+				
+				if ( (!inspect_infile.getJumpscores().empty()) && !isReadable(inspect_infile.getJumpscores()) )
+				{
+					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
 				}
 			}
 
@@ -916,7 +996,7 @@ class TOPPInspectAdapter
 				
 				if ( !emptyFile(inspect_output_filename) )
 				{
-					InspectOutfile inspect_outfile(inspect_output_filename, fileName(inspect_infile.getDb()), pathDir(inspect_infile.getDb()));
+					InspectOutfile inspect_outfile(inspect_output_filename, fileName(inspect_infile.getDb()), pathDir(inspect_infile.getDb()), p_value_threshold);
 
 					std::vector< ProteinIdentification > pis;
 					pis.push_back(inspect_outfile.getProteinIdentification());
