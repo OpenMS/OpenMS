@@ -29,6 +29,8 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
+
 #include <OpenMS/FORMAT/Param.h>
 
 #include <gsl/gsl_vector.h>
@@ -283,7 +285,7 @@ namespace OpenMS
           	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
                     or any other derived class of DRawDataPoint.
 
-              @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+              @note You have to copy the ExperimentalSettings of the raw data on your own. 	
           */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void filterExperiment(InputSpectrumIterator first,
@@ -337,6 +339,20 @@ namespace OpenMS
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 
+	  /** @brief Filters a MSExperimentExtern.
+           	
+           Filters the data every scan in MSExperimentExtern.
+             
+       */
+      template <typename InputPeakType, typename OutputPeakType >
+      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
+                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      {
+        // copy the experimental settings
+        //static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+      }
 
     protected:
       /// Parameter object
