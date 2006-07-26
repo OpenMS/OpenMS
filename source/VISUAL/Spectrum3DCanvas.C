@@ -64,7 +64,11 @@ void Spectrum3DCanvas::showContextMenu(QPoint p)
 {
 	emit contextMenu(p);
 }
-
+void Spectrum3DCanvas::showLegend(bool show)
+{
+	legend_shown_ = show;
+	repaintAll();
+}
 SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 {
 	if (type_.back()==DT_FEATURE)

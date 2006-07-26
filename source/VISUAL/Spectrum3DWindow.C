@@ -53,7 +53,32 @@ namespace OpenMS
 
 	void Spectrum3DWindow::createContextMenu_()
 	{
-		SpectrumWindow::createContextMenu_();
+		if (context_menu_!=0)
+		{
+			delete(context_menu_);
+		}
+		
+		//create menu
+		context_menu_ = new QPopupMenu(this);
+	 	SignedInt item;
+	
+		//intensity distrubution
+		context_menu_->insertItem("intensity distribution",widget_,SLOT(showIntensityDistribution()));
+		context_menu_->insertSeparator();
+	
+		//legend menu
+		QPopupMenu* legend_menu = new QPopupMenu(context_menu_);
+		item = legend_menu->insertItem("shown",widget(),SLOT(showLegend(int)),0,1);
+		if (widget()->isLegendShown()) legend_menu->setItemEnabled(item,false);
+		item = legend_menu->insertItem("hidden",widget(),SLOT(showLegend(int)),0,0);
+		if (!widget()->isLegendShown()) legend_menu->setItemEnabled(item,false);
+		context_menu_->insertItem("legend",legend_menu);
+		context_menu_->insertSeparator();	
+	
+		//Preferences
+		context_menu_->insertItem("Preferences",this,SLOT(showPreferences_()));
+		context_menu_->insertSeparator();	
+		//SpectrumWindow::createContextMenu_();
 	}
 		
 	PreferencesDialogPage* Spectrum3DWindow::createPreferences(QWidget* parent)

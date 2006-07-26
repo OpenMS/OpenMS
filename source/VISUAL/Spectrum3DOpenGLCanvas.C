@@ -146,7 +146,10 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 					zrot_ = 0;		
 					stickdata_ = makeDataAsTopView();
 					axeslabel_ = makeAxesLabel();		
-					axeslegend_ = makeLegend();
+					if(canvas_3d_.legend_shown_)
+					{
+						axeslegend_ = makeLegend();
+					}
 				}
 			}
 			break;
@@ -168,7 +171,10 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 			y_2_ = 0.0;
 		 	stickdata_ =  makeDataAsStick();
 			axeslabel_ = makeAxesLabel();
-			axeslegend_ = makeLegend();
+			if(canvas_3d_.legend_shown_)
+			{
+				axeslegend_ = makeLegend();
+			}
 		}
 		break;
 	case SpectrumCanvas::AM_MEASURE:
@@ -195,15 +201,13 @@ void Spectrum3DOpenGLCanvas::paintGL()
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+
 	glTranslated(0.0, 0.0,-3.0*corner_);
 	glRotated(xrot_ / 16.0, 1.0, 0.0, 0.0);
 	glRotated(yrot_ / 16.0, 0.0, 1.0, 0.0);
 	glRotated(zrot_/16.0, 0.0, 0.0, 1.0);
-	glTranslated(0.0, 0.0,3.0*corner_);
-	if(translation_on_)
-	{
-		glTranslated(trans_x_, trans_y_,0.0);
-	}
+	glTranslated(trans_x_, trans_y_,3.0*corner_);
+	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -214,7 +218,10 @@ void Spectrum3DOpenGLCanvas::paintGL()
 		case SpectrumCanvas::AM_ZOOM:
 			
 			glCallList(stickdata_);	
-			glCallList(axeslegend_);		
+			if(canvas_3d_.legend_shown_)
+				{
+					glCallList(axeslegend_);	
+				}
 			glCallList(axeslabel_);
 			if(canvas_3d_.show_grid_)
 			{	
@@ -235,7 +242,10 @@ void Spectrum3DOpenGLCanvas::paintGL()
 			glCallList(ground_);
 			glCallList(stickdata_);	
 			glCallList(axeslabel_);
-			glCallList(axeslegend_);	
+			if(canvas_3d_.legend_shown_)
+			{
+				glCallList(axeslegend_);	
+			}
 			if(canvas_3d_.show_grid_)
 			{
 				glCallList(gridlines_);

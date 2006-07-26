@@ -104,5 +104,15 @@ namespace OpenMS
 		QImage img = pix.convertToImage();
 		return img;
 	}
+	void Spectrum3DWidget::showLegend(int show)
+	{
+		legend_shown_ = (bool)show;
+		canvas()->showLegend(legend_shown_);
+	}
+
+	bool Spectrum3DWidget::isLegendShown()  
+	{
+		return legend_shown_; 
+	}
 }//namespace
 

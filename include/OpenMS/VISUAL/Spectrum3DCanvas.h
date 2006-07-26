@@ -113,9 +113,10 @@ namespace OpenMS
     //resizeEvent
     void resizeEvent(QResizeEvent * e);
 	  void connectMouseEvents();
-    
+    void showLegend(bool);
     Spectrum3DOpenGLCanvas* openglcanvas_;
     int current_zoom_;
+		bool legend_shown_;
     
 public slots:
     ///shows the contextmenu at position p

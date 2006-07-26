@@ -66,6 +66,11 @@ namespace OpenMS
 		virtual Math::Histogram<UnsignedInt, float> createIntensityDistribution_();   
 		// Docu in base class
 		virtual QImage getImage(UnsignedInt width, UnsignedInt height);
+
+		bool isLegendShown() ;
+		bool legend_shown_;
+public slots:
+void showLegend(int);
 	};
 	
 }//namespace
