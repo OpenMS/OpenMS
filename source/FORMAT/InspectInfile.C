@@ -27,7 +27,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -40,30 +39,30 @@ namespace OpenMS
 		PM_tolerance_(-1.0),
 		ion_tolerance_(-1.0),
 		multicharge_(2),
-		TagCountA_(-1),
-		TagCountB_(-1),
+		tag_count_a_(-1),
+		tag_count_b_(-1),
 		twopass_(2)
 	{
 	}
 	
 	// copy constructor
 	InspectInfile::InspectInfile(const InspectInfile& inspect_infile):
-		spectra_(inspect_infile.spectra_),
-		db_(inspect_infile.db_),
-		sequence_file_(inspect_infile.sequence_file_),
-		protease_(inspect_infile.protease_),
-		mod_(inspect_infile.mod_),
-		mods_(inspect_infile.mods_),
-		blind_(inspect_infile.blind_),
-		maxptmsize_(inspect_infile.maxptmsize_),
-		PM_tolerance_(inspect_infile.PM_tolerance_),
-		ion_tolerance_(inspect_infile.ion_tolerance_),
-		jumpscores_(inspect_infile.jumpscores_),
-		multicharge_(inspect_infile.multicharge_),
-		instrument_(inspect_infile.instrument_),
-		TagCountA_(inspect_infile.TagCountA_),
-		TagCountB_(inspect_infile.TagCountB_),
-		twopass_(inspect_infile.twopass_)
+		spectra_(inspect_infile.getSpectra()),
+		db_(inspect_infile.getDb()),
+		sequence_file_(inspect_infile.getSequenceFile()),
+		protease_(inspect_infile.getProtease()),
+		mod_(inspect_infile.getMod()),
+		mods_(inspect_infile.getMods()),
+		blind_(inspect_infile.getBlind()),
+		maxptmsize_(inspect_infile.getMaxPTMsize()),
+		PM_tolerance_(inspect_infile.getPMTolerance()),
+		ion_tolerance_(inspect_infile.getIonTolerance()),
+		jumpscores_(inspect_infile.getJumpscores()),
+		multicharge_(inspect_infile.getMulticharge()),
+		instrument_(inspect_infile.getInstrument()),
+		tag_count_a_(inspect_infile.getTagCountA()),
+		tag_count_b_(inspect_infile.getTagCountB()),
+		twopass_(inspect_infile.getTwopass())
 	{
 	}
 	
@@ -78,22 +77,22 @@ namespace OpenMS
 	{
 		if (this != &inspect_infile)
 		{
-			spectra_ = inspect_infile.spectra_;
-			db_ = inspect_infile.db_;
-			sequence_file_ = inspect_infile.sequence_file_;
-			protease_ = inspect_infile.protease_;
-			mod_ = inspect_infile.mod_;
-			mods_ = inspect_infile.mods_;
-			blind_ = inspect_infile.blind_;
-			maxptmsize_ = inspect_infile.maxptmsize_;
-			PM_tolerance_ = inspect_infile.PM_tolerance_;
-			ion_tolerance_ = inspect_infile.ion_tolerance_;
-			jumpscores_ = inspect_infile.jumpscores_;
-			multicharge_ = inspect_infile.multicharge_;
-			instrument_ = inspect_infile.instrument_;
-			TagCountA_ = inspect_infile.TagCountA_;
-			TagCountB_ = inspect_infile.TagCountB_;
-			twopass_ = inspect_infile.twopass_;
+			spectra_ = inspect_infile.getSpectra();
+			db_ = inspect_infile.getDb();
+			sequence_file_ = inspect_infile.getSequenceFile();
+			protease_ = inspect_infile.getProtease();
+			mod_ = inspect_infile.getMod();
+			mods_ = inspect_infile.getMods();
+			blind_ = inspect_infile.getBlind();
+			maxptmsize_ = inspect_infile.getMaxPTMsize();
+			PM_tolerance_ = inspect_infile.getPMTolerance();
+			ion_tolerance_ = inspect_infile.getIonTolerance();
+			jumpscores_ = inspect_infile.getJumpscores();
+			multicharge_ = inspect_infile.getMulticharge();
+			instrument_ = inspect_infile.getInstrument();
+			tag_count_a_ = inspect_infile.getTagCountA();
+			tag_count_b_ = inspect_infile.getTagCountB();
+			twopass_ = inspect_infile.getTwopass();
 		}
 		return *this;
 	}
@@ -151,10 +150,10 @@ namespace OpenMS
 		if ( !instrument_.empty() ) ofs << "instrument," << instrument_ << std::endl;
 		
 		// number of tags to generate for the first pass of a two-pass search
-		if ( TagCountA_ >= 0 ) ofs << "TagCountA," << TagCountA_ << std::endl;
+		if ( tag_count_a_ >= 0 ) ofs << "TagCountA," << tag_count_a_ << std::endl;
 		
 		// Number of tags to generate for the second pass of a two-pass search, OR the number of tags to use in a one-pass search.
-		if ( TagCountB_ >= 0 ) ofs << "TagCountB," << TagCountB_ << std::endl;
+		if ( tag_count_a_ >= 0 ) ofs << "TagCountB," << tag_count_b_ << std::endl;
 		
 		// whether to use two-pass search
 		if ( twopass_ != 2 ) ofs << "twopass," << twopass_ << std::endl;
@@ -244,12 +243,12 @@ namespace OpenMS
 		blind_ = blind;
 	}
 
-	const double InspectInfile::getMaxptmsize() const
+	const double InspectInfile::getMaxPTMsize() const
 	{
 		return maxptmsize_;
 	}
 
-	void InspectInfile::setMaxptmsize(double maxptmsize)
+	void InspectInfile::setMaxPTMsize(double maxptmsize)
 	{
 		maxptmsize_ = maxptmsize;
 	}
@@ -306,22 +305,22 @@ namespace OpenMS
 
 	const int InspectInfile::getTagCountA() const
 	{
-		return TagCountA_;
+		return tag_count_a_;
 	}
 
-	void InspectInfile::setTagCountA(int TagCountA)
+	void InspectInfile::setTagCountA(int tag_count_a)
 	{
-		TagCountA_ = TagCountA;
+		tag_count_a_ = tag_count_a;
 	}
 
 	const int InspectInfile::getTagCountB() const
 	{
-		return TagCountB_;
+		return tag_count_b_;
 	}
 
-	void InspectInfile::setTagCountB(int TagCountB)
+	void InspectInfile::setTagCountB(int tag_count_b)
 	{
-		TagCountB_ = TagCountB;
+		tag_count_b_ = tag_count_b;
 	}
 
 	const unsigned int InspectInfile::getTwopass() const
@@ -334,7 +333,7 @@ namespace OpenMS
 		twopass_ = twopass;
 	}
 
-	void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
 	{
 		if ( (cutoff_p_value < 0) || (cutoff_p_value-1.0 > 0) )
 		{
