@@ -40,7 +40,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double grid_line_dist)
+	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double& grid_line_dist)
 	{		
 		grid.clear();
 

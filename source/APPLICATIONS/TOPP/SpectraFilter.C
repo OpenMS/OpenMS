@@ -53,7 +53,7 @@ using namespace std;
 
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES 
+/// @cond TOPPCLASSES
 
 class TOPPSpectraFilter
 	: public TOPPBase

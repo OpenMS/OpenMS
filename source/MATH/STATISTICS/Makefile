@@ -37,7 +37,6 @@ CPP_SOURCES= \
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)
   GSL_SOURCES=\
-	ChiSquared.C\
 	LinearRegression.C
 endif
 

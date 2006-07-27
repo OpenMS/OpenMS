@@ -1384,6 +1384,7 @@ namespace OpenMS
 		}
 				
 		//overall values update
+		currentDataSet_().sortSpectra(true);
 		updateRanges_(current_data_,0,1,2);
 				
 		AreaType tmp_area;

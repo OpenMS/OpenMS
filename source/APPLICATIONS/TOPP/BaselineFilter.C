@@ -37,8 +37,6 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES
-
 /**
    @page BaselineFilter BaselineFilter
  
@@ -57,6 +55,10 @@ using namespace std;
  
    @ingroup TOPP
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
+
 class TOPPBaselineFilter
             : public TOPPBase
 {

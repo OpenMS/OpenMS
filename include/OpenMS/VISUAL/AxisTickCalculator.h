@@ -57,7 +57,7 @@ namespace OpenMS
 			 @param max_num_small 
 			 @param grid_line_dist the distance of the gridlines
 		*/
-		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double grid_line_dist);
+		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UnsignedInt max_num_big, UnsignedInt max_num_small, double& grid_line_dist);
 		
 		/**
 			 @brief Returns a GridVector with ticks for logarithmic scales.

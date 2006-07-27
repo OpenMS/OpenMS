@@ -39,8 +39,6 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES 
-
 /**
 	@page FileConverter FileConverter
 	
@@ -53,6 +51,10 @@ using namespace std;
 	
 	@ingroup TOPP
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
+
 class TOPPFileConverter
 	: public TOPPBase
 {

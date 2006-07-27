@@ -72,7 +72,9 @@ typedef DGrid<2> GridType;
 
 */
 
-// @cond TOPPCLASSES // We do not want this class to show up in the documention.
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
+
 
 class TOPPUnlabeledMatcher
       : public TOPPBase

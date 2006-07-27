@@ -54,8 +54,6 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES 
-
 /**
 	@page MascotAdapter MascotAdapter
 	
@@ -177,6 +175,11 @@ using namespace std;
 	
 	@ingroup TOPP
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
+
+
 class TOPPMascotAdapter
 	: public TOPPBase
 {
@@ -656,8 +659,7 @@ class TOPPMascotAdapter
 				/// we need also the old out-file to retrieve them. All other data is loaded 
 				/// from the mascot xml file (if possible).
 				mascot_outfile = new MascotOutfile();
-
-				vector<Real> wrong_retention_times;				
+			
 				if (!mascot_out)
 				{
 //					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name,
@@ -691,7 +693,6 @@ class TOPPMascotAdapter
 					}
 							
 				}
-				wrong_retention_times.clear();
 			
 			//-------------------------------------------------------------
 			// writing output

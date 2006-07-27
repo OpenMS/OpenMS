@@ -51,8 +51,6 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES 
-
 /**
 	@page RTPredict RTPredict
 	
@@ -73,6 +71,10 @@ using namespace std;
 	
 	@ingroup TOPP
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
+
 class TOPPRTPredict
 	: public TOPPBase
 {
