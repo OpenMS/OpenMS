@@ -53,7 +53,22 @@ namespace OpenMS
       /// Constructor
       MascotOutfile();
 
-			void load(String filename, std::vector<Identification>& identifications, std::vector<Real>& rt, std::vector<Real>& mz, Real p = 0.05) throw (Exception::ParseError);
+		  /**
+		    @brief loads data from a Mascot outfile
+		    
+		    @param filename the file to be loaded
+		    @param identifications the identifications
+		    @param precursor_retention_times the retention times of the precursors corresponding to the identifications
+		    @param precursor_mz_values the mz values of the precursors corresponding to the identifications
+				@param p the significance level (for the protein hit scores)
+
+		    This class serves to read in a Mascot outfile. The information can be 
+		    retrieved via the load function. This class is only contained to be compatible with previous versions.
+		    You should use the MascotXMLFile instead. 
+		  	
+		  	@ingroup FileIO
+		  */
+			void load(String filename, std::vector<Identification>& identifications, std::vector<Real>& precursor_retention_times, std::vector<Real>& precursor_mz_values, Real p = 0.05) throw (Exception::ParseError);
 
     protected:
 

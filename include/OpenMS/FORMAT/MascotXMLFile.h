@@ -53,8 +53,20 @@ namespace OpenMS
       /// Destructor
       ~MascotXMLFile();
       
-      /// loads the data of the MascotXML file
-      void load(const String& 								filename,
+		  /**
+		    @brief loads data from a MascotXML file
+		    
+		    @param filename the file to be loaded
+		    @param identifications the identifications
+		    @param precursor_retention_times the retention times of the precursors corresponding to the identifications
+		    @param precursor_mz_values the mz values of the precursors corresponding to the identifications
+
+		    This class serves to read in a MascotXML file. The information can be 
+		    retrieved via the load function.      
+		  	
+		  	@ingroup FileIO
+		  */
+	    void load(const String& 								filename,
       					ProteinIdentification*				protein_identification, 
       					std::vector<Identification>* 	identifications, 
       					std::vector<float>* 					precursor_retention_times,
