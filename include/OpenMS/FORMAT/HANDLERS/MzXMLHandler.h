@@ -44,7 +44,7 @@ namespace OpenMS
   	@brief XML handlers for MzXMLFile
 
 		MapType has to be a MSExperiment or have the same interface.
-  	Do not use this class. It is only needed in MzXMLFile.
+  		Do not use this class. It is only needed in MzXMLFile.
   */
 	template <typename MapType>
   class MzXMLHandler
@@ -412,7 +412,8 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
-					exp_->insert(exp_->end(), SpectrumType() );
+					//exp_->insert(exp_->end(), SpectrumType() );
+					exp_->push_back(SpectrumType() );
 					spec_ = &(exp_->back());
 					
 					// required attributes

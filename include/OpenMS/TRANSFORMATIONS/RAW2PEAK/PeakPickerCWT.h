@@ -30,6 +30,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
@@ -215,7 +216,7 @@ namespace OpenMS
     	     We recommend to use the DPickedPeak<1> because it stores important information gained during
     	     the peak picking algorithm.
     					
-    	     If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.							
+    	     If you use MSSpectrum iterators you have to set the SpectrumSettings on your own.							
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
@@ -504,6 +505,52 @@ namespace OpenMS
         }
       }
     }
+	
+	/** @brief Picks the peaks in a range of MSSpectren (and output data structure MSExperimentExtern).
+    		
+    	Picks the peaks successive in every scan in the intervall [first,last).
+    	The detected peaks are stored in a MSExperiment.
+    					
+    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+              or any other derived class of DRawDataPoint.
+    	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    	      the peak picking algorithm.  
+
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+    */
+    template <typename InputSpectrumIterator, typename OutputPeakType >
+    void pickExperiment(InputSpectrumIterator first,
+                        InputSpectrumIterator last,
+                        MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
+    {
+      unsigned int n = distance(first,last);
+      // pick peaks on each scan
+      for (unsigned int i = 0; i < n; ++i)
+      {
+        MSSpectrum< OutputPeakType > spectrum;
+        InputSpectrumIterator input_it(first+i);
+
+        // pick the peaks in scan i
+        pick(*input_it,spectrum,input_it->getMSLevel());
+
+        // if any peaks are found copy the spectrum settings
+        if (spectrum.size() > 0)
+        {
+          // copy the spectrum settings
+          static_cast<SpectrumSettings&>(spectrum) = *input_it;
+          spectrum.setType(SpectrumSettings::PEAKS);
+
+          // copy the spectrum information
+          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+          spectrum.setRetentionTime(input_it->getRetentionTime());
+          spectrum.setMSLevel(input_it->getMSLevel());
+          spectrum.getName() = input_it->getName();
+
+          ms_exp_peaks.push_back(spectrum);
+        }
+      }
+    }
+
 
 
 
@@ -523,6 +570,21 @@ namespace OpenMS
       static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;
 	
       pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
+    }
+	
+	/** @brief Picks the peaks in a MSExperimentExtern.
+    		
+    	Picks the peaks on every scan in the MSExperiment.
+    	The detected peaks are stored in a MSExperiment.
+    					
+    	@note The input peaks should be of type DRawDataPoint<1> or any other derived class of DRawDataPoint.
+    	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
+    	      the peak picking algorithm.   
+    */
+    template <typename InputPeakType, typename OutputPeakType >
+    void pickExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
+    {
+  	  pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
     }
 
 

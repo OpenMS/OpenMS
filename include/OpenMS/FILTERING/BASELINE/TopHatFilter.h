@@ -30,6 +30,7 @@
 
 #include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <algorithm>
 
@@ -191,6 +192,49 @@ public:
         }
     }
 
+	
+	/** @brief Removes the baseline in a range of MSSpectren (for an MSExperimentExtern output class)..
+    		
+    	Filters the data successive in every scan in the intervall [first,last).
+    	The filtered data are stored in a MSExperiment.
+    					
+    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+              or any other derived class of DRawDataPoint.
+
+    */
+    template <typename InputSpectrumIterator, typename OutputPeakType >
+    void filterExperiment(InputSpectrumIterator first,
+                          InputSpectrumIterator last,
+                          MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+    {
+        unsigned int n = distance(first,last);
+        // pick peaks on each scan
+        for (unsigned int i = 0; i < n; ++i)
+        {
+            MSSpectrum< OutputPeakType > spectrum;
+            InputSpectrumIterator input_it(first+i);
+
+            // pick the peaks in scan i
+            filter(*input_it,spectrum);
+
+            // if any peaks are found copy the spectrum settings
+            if (spectrum.size() > 0)
+            {
+                // copy the spectrum settings
+                static_cast<SpectrumSettings&>(spectrum) = *input_it;
+                spectrum.setType(SpectrumSettings::RAWDATA);
+
+                // copy the spectrum information
+                spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+                spectrum.setRetentionTime(input_it->getRetentionTime());
+                spectrum.setMSLevel(input_it->getMSLevel());
+                spectrum.getName() = input_it->getName();
+
+                ms_exp_filtered.push_back(spectrum);
+            }
+        }
+    }
+
 
 
     /** @brief Removes the baseline in a MSExperiment.
@@ -209,6 +253,21 @@ public:
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
 
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+    }
+	
+	/** @brief Removes the baseline in a MSExperiment.
+    	
+    Filters the data every scan in the MSExperiment.
+    The filtered data are stored in a MSExperiment.
+    				
+    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+             or any other derived class of DRawDataPoint.
+    */
+    template <typename InputPeakType, typename OutputPeakType >
+    void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
+                          MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+    {
+    	filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
     }
 };
 

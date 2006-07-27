@@ -224,7 +224,7 @@ public:
 
     /// Mutable iterator
     template <class IteratorPeakT>
-class MSExperimentExternIterator : public MSExperimentExternConstIterator<IteratorPeakT>
+	class MSExperimentExternIterator : public MSExperimentExternConstIterator<IteratorPeakT>
     {
         friend class MSExperimentExtern;
 
@@ -530,6 +530,18 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
         exp_.erase(exp_.begin()+first.position_,exp_.begin()+last.position_);
         return first;
     }
+	
+	/// See std::vector documentation.
+	reference back()
+	{
+		return *(exp_.end()-1);
+	}
+	
+	/// See std::vector documentation.
+	Iterator insert(Iterator pos, const SpectrumType& spec)
+	{
+		return pos;
+	}
 
     void push_back(const SpectrumType& spec)
     {
@@ -644,6 +656,11 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
     {
         return exp_.getSize();
     }
+	
+	void resize(UnsignedInt new_size) 
+	{
+		exp_.resize(new_size);
+	}
 
     /// See std::vector documentation.
     void reserve(size_type n)
@@ -816,6 +833,7 @@ protected:
     /// Name of the temporary file to store the peak data
     String file_name_;
 
+	/// The internal ms experiment instance.
     mutable ExperimentType exp_;
 
     /// reads a scan from the temp file and stores it in the buffer
