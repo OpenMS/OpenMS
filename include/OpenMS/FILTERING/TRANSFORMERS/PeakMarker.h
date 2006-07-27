@@ -40,15 +40,14 @@ namespace OpenMS
 	*/
 
 	/**
-		@ingroup PeakMarker
-	
   	@brief PeakMarker marks peaks that seem to fulfil some criterion
   */
   class PeakMarker
     : public FactoryProduct
   {
   public:
-    /// standard constructor
+
+    /// default constructor
     PeakMarker() ;
 
     /// copy constructor

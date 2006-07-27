@@ -36,7 +36,7 @@
 namespace OpenMS
 {
   /**
-  	@brief GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss <br>
+  	@brief GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss
   
   	@param tolerance m/z tolerance
 

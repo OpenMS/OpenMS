@@ -33,10 +33,10 @@ namespace OpenMS
 {
 
   /**
-  	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented parent ions<br>
+  	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented parent ions
   
-	  \param windowsize consider all peaks inside parent ion m/z +- windowsize
-	  \param x what is considered high: intensity > x*mean(peakintensity)
+	  @param windowsize consider all peaks inside parent ion m/z +- windowsize
+	  @param x what is considered high: intensity > x*mean(peakintensity)
 
 		@ingroup SpectraPreprocessing
   */

@@ -36,7 +36,7 @@
 namespace OpenMS
 {
   /**
-  	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed<br>
+  	@brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed
 
 		@ingroup SpectraPreprocessing
   */

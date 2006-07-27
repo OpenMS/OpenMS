@@ -39,17 +39,16 @@ namespace OpenMS
     @ingroup Filtering
   */
 
+	/**
+	 */
+
   /**
   	@brief Base class for MSSpectrum preprocessing classes
-
-		@ingroup SpectraPreprocessing
   */
   class PreprocessingFunctor : public FactoryProduct
   {
   public:
 
-		// @name Constructors and Destructors
-		// @{
     /// default constructor
     PreprocessingFunctor();
 		
@@ -58,19 +57,12 @@ namespace OpenMS
 		
     /// destructor
     virtual ~PreprocessingFunctor() {}
-		// @}
 		
-		// @name Operators
-		// @{
     /// assignment operator
     PreprocessingFunctor& operator = (const PreprocessingFunctor& source);
-		// @}
 
-		// @name Accessors
-		// @{
 		/// interface definition of the functor classes
 		template <typename SpectrumType> void apply(SpectrumType& /* spectrum */) {}
-		// @}
 	};
 
 }

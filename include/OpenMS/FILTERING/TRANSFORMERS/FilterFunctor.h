@@ -36,7 +36,7 @@ namespace OpenMS
 	/** 
 		@defgroup SpectraFilter Spectra Filters
 		
-		The base class of all classes in this module is FilterFunctor. It defindes the interface to all the filters.
+		@ingroup Filtering
 	*/
 
   /**	
@@ -46,9 +46,7 @@ namespace OpenMS
   {
   public:
 
-		// @name Constructors and Destructors
-		//@{
-    /// standard constructor
+    /// default constructor
     FilterFunctor();
 
     /// copy constructor
@@ -56,19 +54,12 @@ namespace OpenMS
 
 		/// destructor
 		virtual ~FilterFunctor();
-		//@}
 
-		// @name Operators
-		// @{
     /// assignment operator
     FilterFunctor& operator = (const FilterFunctor& source);
-		//@}
 
-		// @name Accessors
-		//@{
     /// function call operator
     template <typename SpectrumType> double apply(SpectrumType& spectrum) = 0;
-		//@}
 
   };
 }

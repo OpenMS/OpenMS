@@ -63,8 +63,6 @@ namespace OpenMS
 
   public:
 
-		// @name Constructors and Destructors
-		// @{
     /// default constructor
     CompareFunctor();
 
@@ -73,10 +71,7 @@ namespace OpenMS
 
     /// destructor
     virtual ~CompareFunctor();
-		// @}
 
-		// @name Operators
-		// @{
     /// assignment operator
     CompareFunctor& operator = (const CompareFunctor& source);
 
@@ -88,16 +83,12 @@ namespace OpenMS
 
     /// function call operator, calculates the self similarity
     double operator()(const ClusterSpectrum& a) const { return (*this)(a, a); }
-		// @}
 
-		// @name Accessors
-		// @{
     /// preliminary check for similarity
     double filter(const ClusterSpectrum&, const ClusterSpectrum&) const;
 
     /// returns type of compared spectrum representation
     bool usebins() const { return usebins_; }
-		// @}
 
   protected:
 
