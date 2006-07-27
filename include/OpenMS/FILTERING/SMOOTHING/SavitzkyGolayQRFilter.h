@@ -346,7 +346,7 @@ namespace OpenMS
       unsigned int order_;
 
       /// Compute the coefficient-matrix \f$ C \f$ of the filter.
-      void computeCoeffs_();
+      void computeCoeffs_() throw (Exception::InvalidValue);
   };
 
 } // namespace OpenMS

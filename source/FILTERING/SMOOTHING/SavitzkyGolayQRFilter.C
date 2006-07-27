@@ -117,8 +117,18 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolayQRFilter::computeCoeffs_()
+  void SavitzkyGolayQRFilter::computeCoeffs_() throw (Exception::InvalidValue)
   {
+  	if (!isOdd(frame_size_))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size has to be an odd integer!", String(frame_size_));
+    }
+
+    if (frame_size_ <= order_)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
+    }
+    
     int nr, m = frame_size_/2;
 
     for (int nl=0; nl <= m; ++nl)
