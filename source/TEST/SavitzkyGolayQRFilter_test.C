@@ -157,8 +157,8 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer  > voi
   }
 
   SavitzkyGolayQRFilter sgolay;
-  sgolay.setWindowSize(3);
   sgolay.setOrder(2);
+  sgolay.setWindowSize(3);
   sgolay.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
@@ -193,8 +193,8 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   }
 
   SavitzkyGolayQRFilter sgolay;
-  sgolay.setWindowSize(3);
   sgolay.setOrder(2);
+  sgolay.setWindowSize(3);  
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   sgolay.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
@@ -232,8 +232,8 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   }
 
   SavitzkyGolayQRFilter sgolay;
-  sgolay.setWindowSize(3);
   sgolay.setOrder(2);
+  sgolay.setWindowSize(3);  
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   sgolay.filterExperiment(raw_exp,filtered_exp);
@@ -268,8 +268,8 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   }
 
   SavitzkyGolayQRFilter sgolay;
-  sgolay.setWindowSize(3);
   sgolay.setOrder(2);
+  sgolay.setWindowSize(3);
   sgolay.filter(raw,filtered);
   it=filtered.begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
