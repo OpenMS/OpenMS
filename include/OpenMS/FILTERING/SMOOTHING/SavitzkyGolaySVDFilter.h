@@ -183,7 +183,7 @@ namespace OpenMS
       template < typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) throw (Exception::InvalidSize)
       {
-        if (distance(first,last) <= frame_size_)
+        if (distance(first,last) <= (int)frame_size_)
         {
           throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,distance(first,last));
         }
