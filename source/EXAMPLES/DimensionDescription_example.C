@@ -79,16 +79,16 @@ main()
 
 
   cout << "Now here is the information about each dimension...\n";
-  for ( int dim = 0; dim < DimDesc::DIMENSION_ID_SIZE; ++dim )
-    {
-      cout
-	<< dim << ' '
-	<< DimDesc::dimension_name_short[dim] << ' '
-	<< DimDesc::dimension_name_full[dim] << ' '
-	<< DimDesc::dimension_unit_short[dim] << ' '
-	<< DimDesc::dimension_unit_full[dim] << ' '
-	<< endl;
-    }
+  for ( int dim = 0; dim < DimDesc::DIMENSION; ++dim )
+	{
+		cout
+			<< dim << ' '
+			<< DimDesc::dimension_name_short[dim] << ' '
+			<< DimDesc::dimension_name_full[dim] << ' '
+			<< DimDesc::dimension_unit_short[dim] << ' '
+			<< DimDesc::dimension_unit_full[dim] << ' '
+			<< endl;
+	}
 
 
   // Of course, you don't need to prefix "DimensionDescription < DimensionDescriptionTagLCMS >::" all the time

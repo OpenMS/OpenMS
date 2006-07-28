@@ -482,6 +482,33 @@ int main(int argc, char **argv)\
 			std::cout << " - " << std::endl;\
 	}\
 
+/**	@brief String equality macro.
+
+  Both arguments are converted to std::string and tested for equality.
+	(That is, we check whether <code>(std::string(a) == std::string(b))</code> holds.)
+
+  @param a value to test
+	@param b expected value
+
+   @hideinitializer
+*/
+#define TEST_STRING_EQUAL(a,b)  \
+	TEST::this_test = (std::string(a) == std::string(b)); \
+	TEST::test = TEST::test && TEST::this_test;\
+	if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))\
+	{\
+		if (!TEST::newline)\
+		{\
+			TEST::newline = true;\
+			std::cout << std::endl;\
+		}\
+ 		std::cout << "    (line " << __LINE__ << " TEST_STRING_EQUAL("<< #a << ", " << #b << "): got \"" << (a) << "\", expected \"" << (b) << "\") ";\
+		if (TEST::this_test)\
+			std::cout << " + " << std::endl;\
+		else \
+			std::cout << " - " << std::endl;\
+	}\
+
 /**	@brief Generic equality macro.
 
   This macro uses the operator == to check its two arguments for equality.

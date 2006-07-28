@@ -27,12 +27,16 @@
 DIRECTORY=EXAMPLES
 
 CPP_SOURCES= \
-	FeatureFinder.C \
-	DimensionDescription_example.C\
-	FeatureMapping.C \
 	Serialization_example_GPS.C \
 	Serialization_example_KERNEL_1.C \
-	Serialization_example_KERNEL_2.C
+	FeatureFinder.C \
+	FeatureMapping.C \
+
+### Apparently this one doesn't compile with g++ version 4.1.0.
+### It used to compile with an earlier version...
+### TODO fix that (Clemens).
+#	Serialization_example_KERNEL_2.C \
+
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -45,17 +49,15 @@ EXECUTABLES=$(SOURCES:.C=)
 
 build_all:	$(EXECUTABLES)
 
-# remove the library specific flags, includes, libs
-OPENMS_INCLUDES=$(GUI_INCLUDES)
-LIBS=$(GUI_LIBS)
+OPENMS_INCLUDES =  $(GUI_INCLUDES) 
+
+LIBS = $(GUI_LIBS)
+
 LIB_CXXFLAGS = $(NONLIB_CXXFLAGS)
 
 CXXFLAGS += -g
 
 clean:	default_clean
-
-DimensionDescription_example: DimensionDescription_example.o
-	$(CXX) $(LDFLAGS) -o $@ $@.o $(LIBS)
 
 FeatureFinder:	FeatureFinder.o 
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
@@ -63,20 +65,38 @@ FeatureFinder:	FeatureFinder.o
 FeatureMapping: FeatureMapping.o
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
+
+# I admit that this is a weird hack, but we need to prefer "boost-1_33_1/boost" over "boost".
+# The .C.o rule is otherwise the same as in config.mak, which turns out not to be affected by configure (momentarily).
+# (Maybe there is a problem with the contrib package?)
 Serialization_example_GPS.o: Serialization_example_GPS.C
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES:include=include/boost-1_33_1) $(OPENMS_INCLUDES) $(ADD_INCLUDES) $(GUI_INCLUDES) -c $*.C -o $@
 
 Serialization_example_GPS: Serialization_example_GPS.o
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
+
+# I admit that this is a weird hack, but we need to prefer "boost-1_33_1/boost" over "boost".
+# The .C.o rule is otherwise the same as in config.mak, which turns out not to be affected by configure (momentarily).
+# (Maybe there is a problem with the contrib package?)
 Serialization_example_KERNEL_1.o: Serialization_example_KERNEL_1.C
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES:include=include/boost-1_33_1) $(OPENMS_INCLUDES) $(ADD_INCLUDES) $(GUI_INCLUDES) -c $*.C -o $@
 
 Serialization_example_KERNEL_1: Serialization_example_KERNEL_1.o
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
+
+# I admit that this is a weird hack, but we need to prefer "boost-1_33_1/boost" over "boost".
+# The .C.o rule is otherwise the same as in config.mak, which turns out not to be affected by configure (momentarily).
+# (Maybe there is a problem with the contrib package?)
 Serialization_example_KERNEL_2.o: Serialization_example_KERNEL_2.C
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES:include=include/boost-1_33_1) $(OPENMS_INCLUDES) $(ADD_INCLUDES) $(GUI_INCLUDES) -c $*.C -o $@
 
 Serialization_example_KERNEL_2: Serialization_example_KERNEL_2.o
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
 dummy:
 
+
+bla:
+	echo $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) $(GUI_INCLUDES)

@@ -63,7 +63,7 @@ namespace OpenMS
 					if a new id is added and the corresponding names are not provided
 					in the static intitializers.
 				*/
-				DIMENSION_ID_SIZE 
+				DIMENSION 
       };
 		
     /**
@@ -72,16 +72,16 @@ namespace OpenMS
     	By convention, it should be the same as the identifier in the @p enum,
 			e.g. <code>dimension_name_short[MZ] == "MZ"</code>, etc.
 		*/
-    static char const * const dimension_name_short [DIMENSION_ID_SIZE];
+    static char const * const dimension_name_short [DIMENSION];
 		
     /// Long name of the dimension (self-explanatory form)
-    static char const * const dimension_name_full  [DIMENSION_ID_SIZE];
+    static char const * const dimension_name_full  [DIMENSION];
 
     /// Unit of measurement (abbreviated form)
-    static char const * const dimension_unit_short [DIMENSION_ID_SIZE];
+    static char const * const dimension_unit_short [DIMENSION];
 
     /// Unit of measurement (self-explanatory form)
-    static char const * const dimension_unit_full  [DIMENSION_ID_SIZE];
+    static char const * const dimension_unit_full  [DIMENSION];
     
   };
   

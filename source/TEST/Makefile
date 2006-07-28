@@ -1,3 +1,4 @@
+# -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -108,15 +109,16 @@ EXECUTABLES_KERNEL =\
 	RangeUtils_test\
 	MSSpectrum_test\
 	MSExperiment_test\
-	MSExperimentExtern_test
+	MSExperimentExtern_test\
+	DimensionDescription_test
 
 #VISUAL
 
 ifeq ($(ENABLE_GUI),true)
 	EXECUTABLES_VISUAL =\
-		MultiGradient_test\
-		MappingInfo_test\
-   	        AxisTickCalculator_test	
+	MultiGradient_test\
+	MappingInfo_test\
+	AxisTickCalculator_test	
 endif
 
 #FORMAT
@@ -179,34 +181,34 @@ EXECUTABLES_MATH = \
 
 ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_FILTERING = \
-  	PreprocessingFunctor_test\
-  	NLargest_test\
-  	Scaler_test\
-  	BernNorm_test\
-  	Normalizer_test\
-  	ParentPeakMower_test\
-  	SqrtMower_test\
-  	ThresholdMower_test\
-  	WindowMower_test\
-  	FilterFunctor_test\
-  	ComplementFilter_test\
-  	GoodDiffFilter_test\
-  	IntensityBalanceFilter_test\
-  	IsotopeDiffFilter_test\
-  	NeutralLossDiffFilter_test\
-  	PeakDensityFilter_test\
-  	TICFilter_test\
-  	PeakMarker_test\
-  	ComplementMarker_test\
-  	IsotopeMarker_test\
-  	NeutralLossMarker_test\
-  	MarkerMower_test\
-  	ParentFilter_test\
-  	TradSeqQuality_test\
-  	PeakPosBins_test\
-  	PeakDiffBins_test\
-  	IntensityDistBins_test\
-  	KellerQuality_test\
+	PreprocessingFunctor_test\
+	NLargest_test\
+	Scaler_test\
+	BernNorm_test\
+	Normalizer_test\
+	ParentPeakMower_test\
+	SqrtMower_test\
+	ThresholdMower_test\
+	WindowMower_test\
+	FilterFunctor_test\
+	ComplementFilter_test\
+	GoodDiffFilter_test\
+	IntensityBalanceFilter_test\
+	IsotopeDiffFilter_test\
+	NeutralLossDiffFilter_test\
+	PeakDensityFilter_test\
+	TICFilter_test\
+	PeakMarker_test\
+	ComplementMarker_test\
+	IsotopeMarker_test\
+	NeutralLossMarker_test\
+	MarkerMower_test\
+	ParentFilter_test\
+	TradSeqQuality_test\
+	PeakPosBins_test\
+	PeakDiffBins_test\
+	IntensityDistBins_test\
+	KellerQuality_test\
 		SavitzkyGolayQRFilter_test\
 		SavitzkyGolaySVDFilter_test
 endif
@@ -406,7 +408,7 @@ transformations_test:	$(EXECUTABLES_TRANSFORMATIONS) dummy
 
 analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 	@./runtests -section "ANALYSIS_ID" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_ID)
-	
+
 analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING)
 
