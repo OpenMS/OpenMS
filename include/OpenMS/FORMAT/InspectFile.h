@@ -1,25 +1,25 @@
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
-///
+//
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
-///
+//
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-///
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //  Lesser General Public License for more details.
-///
+//
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-///
+//
 // --------------------------------------------------------------------------
 // $Id: InspectFile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
 // $Author: martinlangwisch $
@@ -58,6 +58,9 @@ namespace OpenMS
 			
 			/// compress a trie database to contain the wanted records only
 			void compressTrieDB(const std::string database_filename, std::string index_filename, std::string database_path, std::vector< unsigned int > wanted_records, std::string second_database_filename = "", std::string second_index_filename = "", std::string second_database_path = "", bool append = false) throw (Exception::FileNotFound, Exception::ParseError);
+			
+			/// get the sequence, accession and accession type for some proteins from a database
+			void getSequenceAndACandACType(const std::string& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label , std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/**
 				@brief retrieve the labels used in a file
