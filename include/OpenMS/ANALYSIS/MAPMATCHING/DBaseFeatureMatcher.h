@@ -95,11 +95,13 @@ namespace OpenMS
 
 		/// Type of features considered here 
 		typedef FeatureT FeatureType;
+
 		/// Container for input features
 		typedef DFeatureMap < DIMENSION, FeatureType > FeatureMapType;
 
 		/// Type of feature pairs
 		typedef DFeaturePair < DIMENSION, FeatureType > FeaturePairType;
+
 		/// Container for generated feature pairs
 		typedef DFeaturePairVector < DIMENSION, FeatureType > FeaturePairVectorType;
 

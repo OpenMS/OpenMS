@@ -1,5 +1,4 @@
-
-# -*- Mode: make; tab-width: 2; -*-
+# -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -101,7 +100,7 @@ GUI_MOC_SOURCES=\
 	LayerItem_moc.C\
 	LayerManagerTemplate_moc.C\
 	LayerManager_moc.C
-	
+
 UIC_SOURCES=\
 	LayerItemTemplate.C\
 	LayerManagerTemplate.C

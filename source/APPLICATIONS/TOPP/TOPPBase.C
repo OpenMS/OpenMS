@@ -194,9 +194,9 @@ namespace OpenMS
 							<< "  -ini <file>       Use the given TOPP INI file" << std::endl
 							<< "  -log <file>       log file (default: TOPP.log)" << std::endl
 							<< "  -n <int>          instance number (default: 1)" << std::endl
-							<< "  -d <level>        sets debug level (default: 0)" << std::endl
-							<< "  --help            shows this help" << std::endl
-							<< "  --help-opt        shows help on the INI options accepted" << std::endl
+							<< "  -d <level>        set debug level (default: 0)" << std::endl
+							<< "  --help            show this help" << std::endl
+							<< "  --help-opt        show help on the INI options accepted" << std::endl
 							<< std::endl ;	
 	}
 
@@ -249,6 +249,19 @@ namespace OpenMS
 		if (!tmp.isEmpty())
 		{
 			return (SignedInt)(tmp);
+		}
+		else
+		{
+			return default_value;
+		}
+	}
+
+	double TOPPBase::getParamAsDouble_(const String& key, double default_value)
+	{
+		const DataValue& tmp = getParam_(key);
+		if (!tmp.isEmpty())
+		{
+			return (double)(tmp);
 		}
 		else
 		{

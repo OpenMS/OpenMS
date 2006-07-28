@@ -205,8 +205,7 @@ namespace OpenMS
 			void writeTo(std::ostream& os)
 			{
 					
-				os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << std::endl; 			
-				os << "<!-- -*- Mode: XML; tab-width: 2; -*- -->" << std::endl;
+				os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!-- -*- mode: nxml; tab-width: 2 -*- -->" << std::endl;
 				os << "<celllist>" << std::endl;	
 						 
 				// write features with their attributes				

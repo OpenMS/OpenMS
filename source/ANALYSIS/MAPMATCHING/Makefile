@@ -1,4 +1,4 @@
-# -*- Mode: make; tab-width: 2; -*-
+# -*- Mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -21,9 +21,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Ole Schulz-Trieglaff  $
+# $Maintainer: Eva Lange $
 # --------------------------------------------------------------------------
-#
 
 DIRECTORY=ANALYSIS/MAPMATCHING
 

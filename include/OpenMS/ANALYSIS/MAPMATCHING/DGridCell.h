@@ -58,18 +58,21 @@ namespace OpenMS
 			DRange<D,TraitsType>(),
 			mappings_()			
 			{	}
+
 		/// "Convenience contructor"
 		DGridCell(CoordinateType i, CoordinateType j, 
 							CoordinateType k, CoordinateType l) : 
 			DRange<D,TraitsType>(i, j, k, l),	
 			mappings_()
 			{	}  
+
 		/// Copy constructor
 		DGridCell(const DGridCell& gc) 
 			: DRange<D,TraitsType>(gc)
 		{
 			setMappings(gc.mappings_);
 		}		
+
 		/// Destructor
 		virtual ~DGridCell() 
 		{			
@@ -102,11 +105,11 @@ namespace OpenMS
 		*/
 		//@{	
 		/// Set transform 
-    	void setMappings(MappingVector m) { mappings_ = m; }
+    	void setMappings(MappingVector const & m) { mappings_ = m; }
 		/// Get transform 
    		MappingVector& getMappings() { return mappings_; }
     	/// Get transform (non-mutable)
-    	const MappingVector getMappings() const { return mappings_; }
+    	const MappingVector& getMappings() const { return mappings_; }
 		 //@} 
 				 	
 		protected:

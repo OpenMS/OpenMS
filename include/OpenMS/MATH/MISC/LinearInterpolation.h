@@ -1,4 +1,4 @@
-///@cond
+
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
@@ -21,7 +21,6 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-///@endcond
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------

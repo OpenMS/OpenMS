@@ -60,11 +60,9 @@ EXECUTABLES=\
 	LabeledMatcher\
 	Dewarper\
 	$(LIBSVM_EXEC)\
-	SpectraFilter
-
-#	FeaturePairSplitter\
+	SpectraFilter\
+	FeaturePairSplitter\
 #	RawDataResampler\
-
 #	DBExporter\
 #	DBImporter\
 

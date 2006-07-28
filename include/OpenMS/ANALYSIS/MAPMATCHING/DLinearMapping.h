@@ -118,12 +118,24 @@ namespace OpenMS
 			this->param_ = pa;
 		}
 		
-		void apply(DPosition<D>& pos)
+		// ok for D==1 but otherwise ????
+		void apply(DPosition<D>& pos) const
 		{
 			for (UnsignedInt i=0; i < D; ++i)
 			{
 				pos[i] = intercept_ + slope_ * pos[i];
 			}
+		}
+			
+		void apply( typename Traits::RealType & pos) const
+		{
+			// std::cout << "DLinearMapping slope and intercept:  "
+			// 					<< this 
+			// 					<< ' ' << slope_
+			// 					<< ' ' << intercept_
+			// 					<< std::endl;
+			pos *= slope_;
+			pos += intercept_;
 		}
 			
 		const String getName()

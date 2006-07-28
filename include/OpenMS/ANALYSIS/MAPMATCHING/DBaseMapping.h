@@ -89,8 +89,12 @@ namespace OpenMS
 		//@}
 						
 		/// apply the transform to a feature
-		virtual void apply(DPosition<D>& ) = 0;
-			
+		virtual void apply(DPosition<D>& ) const = 0;
+
+		/// apply the transformation
+		virtual void apply( typename Traits::RealType & pos) const = 0;
+		
+	
 		/// return the name of this transformation
 		virtual const String getName() = 0;
 					
