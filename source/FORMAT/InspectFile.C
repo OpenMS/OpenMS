@@ -390,7 +390,8 @@ namespace OpenMS
 			}
 			source_file_pos_buffer = source_file.tellg();
 		} // source file read
-		
+		source_file.close();		
+
 		// if the last record has no sequence end label, the sequence has to be appended nevertheless
 		if ( record_flags==(ac_flag|species_flag|sequence_flag) )
 		{
@@ -428,6 +429,132 @@ namespace OpenMS
 		fclose(database_file);
 		fclose(index_file);
 	}
+	
+	void InspectFile::getSequenceAndACandACType(const std::string& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label , std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	{
+		std::ifstream database_file(database_filename.c_str());
+		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+		
+		unsigned char ac_flag = 1;
+		unsigned char species_flag = 2;
+		unsigned char sequence_flag = 4;
+		unsigned char record_flags = (species == "None") ? species_flag : 0; // what records have already been set
+		unsigned int found_records = 0; // whether records have already been written
+		unsigned int seen_records = 0;
+		unsigned int pos = 0;
+		String line; // the current line read
+		String accession_line, sequence; // the sequence of a record
+		std::vector< String > s_ac_act(2);
+		
+		std::vector< unsigned int >::const_iterator i = wanted_records.begin();
+		
+		while ( getline(database_file, line) && ( wanted_records.empty() || (found_records <= wanted_records.size())) )
+		{
+			if ( !line.empty() ) line.resize(line.length()-1);
+			line.trim();
+			
+			// empty and comment lines are skipped
+			if ( line.empty() || line.hasPrefix(comment_label) ) continue;
+			// read the sequence
+			if ( record_flags==(ac_flag|species_flag|sequence_flag) )
+			{
+				if ( line.hasPrefix(sequence_end_label) )
+				{
+					// if the sequence is not empty, the record has the correct form
+					if ( !sequence.empty() )
+					{
+						// add the sequence, accession and accession_type
+						if ( wanted_records.empty() || (*i == seen_records) )
+						{
+							if ( !wanted_records.empty() ) ++i;
+							
+							s_ac_act[0] = sequence;
+							s_ac_act[1] = accession_line;
+							
+							protein_info.push_back(s_ac_act);
+							++found_records;
+							sequence.clear();
+							accession_line.clear();
+						}
+						
+						// stop when the all wanted records are found
+						if ( !wanted_records.empty() && (i == wanted_records.end()) )
+						{
+							record_flags = (species == "None") ? species_flag : 0;
+							break;
+						}
+					}
+					// if the sequence is empty
+					else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "empty sequence!", database_filename);
+					// set back the record flags for a new record
+					record_flags = (species == "None") ? species_flag : 0;
+					++seen_records;
+				}
+				else
+				{
+					// erase all whitespaces from the sequence
+					removeWhitespaces(line);
+					// save this part of the sequence
+					sequence.append(line);
+				}
+			}
+			if ( !(record_flags&sequence_flag) )
+			{
+				if ( line.hasPrefix(ac_label) )
+				{
+					// find the beginning of the accession
+					pos = ac_label.length();
+					// discard the whitespaces after the label
+					while ( (line.length() > pos) && (line[pos] < 33) )
+					{
+						++pos;
+					}
+					if ( pos != line.length() )
+					{
+						accession_line = line;
+					}
+					else
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "record has no accession!", database_filename);
+					}
+					record_flags |= ac_flag; // set the ac flag
+				}
+				// if a species line is found and a species (other than "None") is given, check whether this record is from the wanted species
+				// (if no species is given, the species label ("") is always found, but the compare will always give zero as the species then will be "None")
+				if ( line.hasPrefix(species_label) && (record_flags==ac_flag) )
+				{
+					pos = species_label.length();
+					if ( line.find(species, pos) != std::string::npos ) record_flags |= species_flag;
+					
+					// if it's not from the wanted species, skip the record
+					if ( !(record_flags&species_flag) ) record_flags = 0;
+				}
+				// if the beginning of the sequence is found
+				if ( line.hasPrefix(sequence_start_label) && (record_flags&ac_flag) && (record_flags&species_flag) ) record_flags |= sequence_flag;
+			}
+		}
+		
+		// if the last record has no sequence end label, the sequence has to be appended nevertheless
+		if ( record_flags==(ac_flag|species_flag|sequence_flag) )
+		{
+			// if the sequence is not empty, the record has the correct form
+			if ( !sequence.empty() )
+			{
+				s_ac_act[0] = sequence;
+				s_ac_act[1] = accession_line;
+				protein_info.push_back(s_ac_act);
+			}
+			// if the sequence is empty
+			else
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "emtpy sequence!" , database_filename);
+			}
+		}
+		
+		// close the filestreams
+		database_file.close();
+	}
+	
 	
 	void InspectFile::generateTrieDB(const std::string& source_filename, const std::string& source_path, const std::string& database_path, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
 	{
@@ -546,6 +673,7 @@ namespace OpenMS
 			}
 			
 			index_file.close();
+			index_file.clear();
 		}
 		// without index file
 		else
@@ -657,6 +785,6 @@ namespace OpenMS
 	const unsigned int InspectFile::index_trie_record_length_ = 4;
 	const unsigned int InspectFile::index_record_length_ = index_peptide_name_length_ + index_db_record_length_ + index_trie_record_length_;
 	const char InspectFile::trie_delimiter_ = '*';
-	const std::string InspectFile::score_type_ = "MQScore";
+	const std::string InspectFile::score_type_ = "InsPecT";
 
 } // namespace OpenMS
