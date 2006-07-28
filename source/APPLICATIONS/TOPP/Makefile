@@ -61,7 +61,8 @@ EXECUTABLES=\
 	Dewarper\
 	$(LIBSVM_EXEC)\
 	SpectraFilter\
-	FeaturePairSplitter\
+	FeaturePairSplitter
+
 #	RawDataResampler\
 #	DBExporter\
 #	DBImporter\
