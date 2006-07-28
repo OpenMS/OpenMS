@@ -407,8 +407,29 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 					break;
 				case SpectrumCanvas::IM_NONE:
 				case SpectrumCanvas::IM_SNAP:
+					int expo = 0;
+					if(grid_intensity_.size()>=1)
+					{
+						expo = (int)ceil(log10(grid_intensity_[0][0]));
+					}
+					if(grid_intensity_.size()>=2)
+					{
+						if(expo>=ceil(log10(grid_intensity_[1][0])))
+						{
+							expo = (int)ceil(log10(grid_intensity_[1][0]));
+						}
+					}
+					if(grid_intensity_.size()>=3)
+					{
+							if(expo>=ceil(log10(grid_intensity_[2][0])))
+							{
+								expo =(int) ceil(log10(grid_intensity_[2][0]));
+							}	
+					}
+					
+					
 					font.setPixelSize(12);
-					result=  QString("intensity ");
+					result=   QString("intensity e+%1").arg(expo,0,'f',1);
 					renderText (-corner_-20.0, 
 											corner_+10.0,
 											-near_-2*corner_+20.0,
@@ -419,7 +440,8 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 						{
 							for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
 								{ 
-									result = QString("%1").arg(grid_intensity_[0][i],0,'E',1);
+									double intensity = (double)grid_intensity_[0][i]/pow(10,expo);
+									result = QString("%1").arg(intensity,0,'f',1);
 									renderText (-corner_-result.length()-width_/200.0-5.0, 
 															-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_data_),
 															-near_-2*corner_,
@@ -428,26 +450,28 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 								}
 							for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
 								{
-								result = QString("%1").arg(grid_intensity_[1][i],0,'E',1);
-								renderText (-corner_-result.length()-width_/200.0-5.0, 
-														-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
-																	-near_-2*corner_,
-														result,
-														font);
-							}
-					}
-				if(width_>800 && heigth_>600&& zoom_<2.0 && grid_intensity_.size()>=3)
-					{
-						for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
-							{
-								result = QString("%1").arg(grid_intensity_[2][i],0,'E',1);
-								renderText (-corner_-result.length()-width_/200.0-5.0, 
-														-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
-														-near_-2*corner_,
-														result,
-														font);
-							}
-					}
+									double intensity = (double)grid_intensity_[1][i]/pow(10,expo);
+									result = QString("%1").arg(intensity,0,'f',1);
+									renderText (-corner_-result.length()-width_/200.0-5.0, 
+															-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
+															-near_-2*corner_,
+															result,
+															font);
+								}
+						}
+					if(width_>800 && heigth_>600&& zoom_<2.0 && grid_intensity_.size()>=3)
+						{
+							for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
+								{
+									double intensity = (double)grid_intensity_[2][i]/pow(10,expo);
+									result = QString("%1").arg(intensity,0,'f',1);
+									renderText (-corner_-result.length()-width_/200.0-5.0, 
+															-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
+															-near_-2*corner_,
+															result,
+															font);
+								}
+						}
 				
 				break;
 			}

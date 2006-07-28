@@ -48,6 +48,7 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	openglcanvas_= new Spectrum3DOpenGLCanvas(this,"openglcanvas", *this);
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
 	action_mode_ = AM_TRANSLATE;
+	legend_shown_ = true;
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
