@@ -1,0 +1,209 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/FORMAT/DFeaturePairsFile.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+
+#include "TOPPBase.h"
+
+#include <map>
+#include <iostream>
+#include <fstream>
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+// @cond TOPPCLASSES
+
+
+/**
+	@page FeaturePairSplitter FeaturePairSplitter
+	
+	@brief Splits a feature pair file into two feature files.
+
+	This is just a small utility.  The features are copied from the pairs.  The
+	relative order of features is preserved.  For example the first two features
+	of each output file belong to each other, then the second two, and so on.
+	The <i>quality</i> information of the feature pairs is written to a third
+	file.
+	
+  The input file is parsed by DFeaturePairsFile; a typical file name extension
+  would be ".pairs.xml".
+
+  The two output files are written by DFeatureMapFile; a typical file name
+  extension would be '.feat.xml'.
+	
+	The qualities are written one per line; a typical file name extension would be '.txt'.
+
+	@note All options needed to operate this tool can be given in the command
+	line, so no INI file is needed.
+	
+	@ingroup TOPP
+
+*/
+
+class TOPPFeaturePairSplitter
+      : public TOPPBase
+{
+ public:
+  TOPPFeaturePairSplitter()
+		: TOPPBase("FeaturePairSplitter")
+  {}
+
+ protected:
+  void printToolUsage_()
+  {
+    cerr << endl
+				 << tool_name_ << " -- split a feature pairs file into two feature files and a qualities file.\n"
+			"\n"
+			"Usage:\n"
+			"  " << tool_name_ << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
+			"Options are:\n"
+			"  -in <file>        input file\n"
+			"  -out1 <file>      first feature output file\n"
+			"  -out2 <file>      second feature output file\n"
+			"  -qual <file>      pair qualtities output file\n"
+			"All output options are optional.\n"
+				 << endl;
+  }
+
+  void printToolHelpOpt_()
+  {
+    cerr << "\n"
+				 << tool_name_ << "\n"
+			"\n"
+			"INI options:\n"
+			"  in     input feature pairs file\n"
+			"  out1   first feature output file\n"
+			"  out2   second feature output file\n"
+			"  qual   pair qualtities output file\n"
+			"\n"
+			"INI File example section:\n"
+			"  <ITEM name=\"in\" value=\"pairs.xml\" type=\"string\"/>\n"
+			"  <ITEM name=\"out1\" value=\"features1.xml\" type=\"string\"/>\n"
+			"  <ITEM name=\"out2\" value=\"features2.xml\" type=\"string\"/>\n"
+			"  <ITEM name=\"qual\" value=\"qualities.txt\" type=\"string\"/>\n"
+			"\n"
+			"All output options are optional.\n"
+			;
+  }
+
+  void setOptionsAndFlags_()
+  {
+    options_["-in"]   = "in";
+    options_["-out1"] = "out1";
+    options_["-out2"] = "out2";
+    options_["-qual"] = "qual";
+  }
+
+  ExitCodes main_(int , char**)
+  {
+
+		writeDebug_("--------------------------------------------------",1);
+		writeDebug_("Running FeaturePairSplitter.",1);
+
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+
+		// file names
+		String in = getParamAsString_("in");
+		writeDebug_(String("Input feture pairs file: ") + in, 1);
+
+		String out1 = getParamAsString_("out1");
+		writeDebug_(String("First feature output file: ") + out1, 1);
+		bool const write_out1 = !out1.empty();
+
+		String out2 = getParamAsString_("out2");
+		writeDebug_(String("Second feature output file: ") + out2, 1);
+		bool const write_out2 = !out2.empty();
+
+		String qual = getParamAsString_("qual");
+		writeDebug_(String("Pair qualities output file: ") + qual, 1);
+		bool const write_qual = !qual.empty();
+
+		// load data from input file.
+		DFeaturePairVector<2> feature_pairs;
+		DFeaturePairsFile feature_pairs_file;
+		feature_pairs_file.load(in,feature_pairs);
+
+		// store the data
+		DFeatureMap<2> first_feature_map, second_feature_map;
+		std::vector<double> qualities_vector;
+		for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
+					iter != feature_pairs.end();
+					++iter
+				)
+		{
+			if ( write_out1 )
+				first_feature_map.push_back(iter->getFirst());
+			if ( write_out2 )
+			second_feature_map.push_back(iter->getSecond());
+			if ( write_qual )
+				qualities_vector.push_back(iter->getQuality());
+		}
+
+		// write the data to files
+		DFeatureMapFile f;
+		if ( write_out1 )
+		{
+			DFeatureMapFile f;
+			f.store(out1,first_feature_map);
+		}
+		if ( write_out2 )
+		{
+			DFeatureMapFile f;
+			f.store(out2,second_feature_map);
+		}
+		if ( write_qual )
+		{
+			std::ofstream qualities_file(qual.c_str());
+			std::copy(qualities_vector.begin(),qualities_vector.end(),
+								std::ostream_iterator<double>(qualities_file,"\n")
+							 );
+		}
+
+		return OK;
+
+	} // main_()
+	
+}; // TOPPFeaturePairSplitter
+
+
+int main( int argc, char ** argv )
+{
+  TOPPFeaturePairSplitter tool;
+  return tool.main(argc,argv);
+}
+
+// @endcond
