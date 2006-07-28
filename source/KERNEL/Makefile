@@ -44,7 +44,9 @@ CPP_SOURCES= \
 	DFeatureMap.C\
 	MSSpectrum.C\
 	MSExperiment.C\
-	MSExperimentExtern.C
+	MSExperimentExtern.C\
+	DPeakConstReferenceArray.C\
+	DPeakReferenceArray.C\
 
 ADD_CPP_SOURCES = ${CGAL_SOURCES}
 
