@@ -29,7 +29,14 @@
 #ifndef OPENMS_FORMAT_INSPECTOUTFILE_H
 #define OPENMS_FORMAT_INSPECTOUTFILE_H
 
-#include <OpenMS/FORMAT/Outfile.h>
+#include <OpenMS/KERNEL/KernelTraits.h>
+#include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <OpenMS/FORMAT/InspectFile.h>
 
 namespace OpenMS
@@ -42,14 +49,23 @@ namespace OpenMS
   
   	@ingroup FileIO
   */
-  class InspectOutfile:
-		public Outfile, 
+  class InspectOutfile: 
 		InspectFile
   {
     public:
       /// Constructor
-      InspectOutfile(const std::string& result_filename, const std::string& database_filename, const std::string& database_path, const double& p_value_threshold = 1.0, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			InspectOutfile();
+			
+			/// load the results of an InsPecT search
+      void load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& 	precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database_filename, const std::string& database_path, const std::string& sequence_filename, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
       
+		protected:			
+			/// get the accession and accession type of a protein
+			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
+			
+			/// given a vector of peptide hits, either insert the new peptide hit or update its ProteinHits, returns whether an update took place
+			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
+		
    };
 	
 } //namespace OpenMS
