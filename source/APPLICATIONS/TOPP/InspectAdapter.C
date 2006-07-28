@@ -44,6 +44,9 @@ using namespace OpenMS;
 //Doxygen docu
 //-------------------------------------------------------------
 
+// @cond TOPPCLASSES 
+
+
 /**
 	@page InspectAdapter InspectAdapter
 	
@@ -99,8 +102,7 @@ using namespace OpenMS;
 */
 
 // We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES
-
+/// @cond 
 
 class TOPPInspectAdapter
 	: public TOPPBase
@@ -136,6 +138,8 @@ class TOPPInspectAdapter
 						<< "  -trie_dbs <file1>,<file2>,...      names of a databases (.trie file) to search ()" << std::endl
 						<< "  -dbs <file>;tax1,<file2>;tax2,...  names of a other databases to search (currently FASTA and SwissProt are supported)" << std::endl
 						<< "                                     tax - the desired taxonomy, if not given for a database, all entries are taken." << std::endl
+						<< "  -make_trie_db       if set, the InspectAdapter will generate one trie database from all given databases." << std::endl
+						<< "                      if you do not use this switch you may only use one FASTA database XOR one trie database" << std::endl
 						<< "  -instr              the instrument that was used to measure the spectra (default read from INI file)" << std::endl
 						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << std::endl
 						<< "  -PM_tol             the precursor mass tolerance (default read from INI file)" << std::endl
@@ -216,6 +220,7 @@ class TOPPInspectAdapter
 			flags_["-blind"] = "blind";
 			flags_["-no_cmn_conts"] = "no_common_contaminants";
 			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
+			flags_["-make_trie_db"] = "make_trie_db";
 			//options_["-contact"] = "contact_person";
 		}
 		
@@ -336,6 +341,8 @@ class TOPPInspectAdapter
 			std::vector< String >dbs, seq_files, tax; // if several dbs are given, they are merged into one, that is then processed
 
 			// (1.1.1.1) optional parameters
+			bool make_trie_db = false;
+			
 			std::vector < std::vector< String > > mod; // some from ini file
 
 			// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
@@ -364,7 +371,6 @@ class TOPPInspectAdapter
 			///-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			///-------------------------------------------------------------
-			
 			// (2.0) general variables
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
@@ -450,6 +456,7 @@ class TOPPInspectAdapter
 				snd_db = getParamAsString_("snd_db");
 
 				// (2.1.1.1) optional parameters
+				inspect_infile.setSpectra(getParamAsString_("spectra"));
 				inspect_infile.setProtease(getParamAsString_("protease"));
 				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
 				inspect_infile.setInstrument(getParamAsString_("instrument"));
@@ -636,6 +643,15 @@ class TOPPInspectAdapter
 
 			// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
 			if ( getParamAsString_("no_common_contaminants", "false") != "false" ) no_common_contaminants = true;
+			
+			if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
+			if ( make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
+			{
+				writeLog_("Too many databases (make_trie_db not set). Aborting!");
+				std::cout << "Too many databases (make_trie_db not set). Aborting!" << std::endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
 
 			// (2.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
 			if ( getParamAsString_("no_tmp_dbs", "false") != "false" ) no_tmp_dbs = true;
@@ -715,7 +731,6 @@ class TOPPInspectAdapter
 			///-------------------------------------------------------------
 			
 			// (3.1) checking accessability of files
-
 			// (3.1.1) input file
 			// the input file has to be existent and readable if Inspect_out is set only
 			if ( !Inspect_in )
@@ -731,13 +746,6 @@ class TOPPInspectAdapter
 				if ( fsize(input_filename) == 0 )
 				{
 					throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
-				}
-			}
-			else
-			{
-				if ( !isWritable(idx_filename) )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
 				}
 			}
 			
@@ -809,14 +817,17 @@ class TOPPInspectAdapter
 				}
 
 				// (3.1.4) database and index
-				if ( !isWritable(db_filename) )
+				if ( make_trie_db || (!dbs.empty()) )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
-				}
-				
-				if ( !isWritable(idx_filename) )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
+					if ( !isWritable(db_filename) )
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
+					}
+					
+					if ( !isWritable(idx_filename) )
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
+					}
 				}
 
 				// (3.1.5) second database and index
@@ -855,25 +866,44 @@ class TOPPInspectAdapter
 					seq_files.push_back(common_contaminants_filename);
 					tax.push_back("None");
 				}
-				// merging the trie databases (all but the first databases are appended)
-				for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
-				{
-					inspect_infile.compressTrieDB(fileName(*i), "", pathDir(*i), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
-				}
 				
-				// converting and merging the other databases (all but the first databases are appended)
-				std::vector< String >::const_iterator tax_i = tax.begin();
-				for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
+				if ( make_trie_db )
 				{
-					inspect_infile.generateTrieDB(fileName(*i), pathDir(*i), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
+					// merging the trie databases (all but the first databases are appended)
+					for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
+					{
+						inspect_infile.compressTrieDB(fileName(*i), "", pathDir(*i), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
+					}
+					
+					// converting and merging the other databases (all but the first databases are appended)
+					std::vector< String >::const_iterator tax_i = tax.begin();
+					for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
+					{
+						inspect_infile.generateTrieDB(fileName(*i), pathDir(*i), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
+					}
+				}
+				else
+				{
+					if ( !dbs.empty() )
+					{
+						database_filename = fileName(dbs[0]);
+						database_path = pathDir(dbs[0]);
+						inspect_infile.ensurePathChar(database_path);
+					}
+					else
+					{
+						database_filename = "";
+						database_path = "";
+					}
+					inspect_infile.setDb(String(database_path+database_filename));
+					if ( !seq_files.empty() ) inspect_infile.setSequenceFile(seq_files[0]);
 				}
 				
 				if ( blind ) inspect_infile.setBlind(false);
 				if ( blind_only ) inspect_infile.setBlind(true);
 				
 				inspect_infile.store(input_filename);
-			}
-			
+			}	
 			// (3.2.2) running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind )
 			{
@@ -913,7 +943,15 @@ class TOPPInspectAdapter
 					return EXTERNAL_PROGRAM_ERROR;						
 				}
 				
+				if ( database_filename.empty() && (!inspect_infile.getSequenceFile().empty()) )
+				{
+					database_filename = inspect_infile.getSequenceFile();
+					database_path = pathDir(database_filename);
+					database_filename = fileName(database_filename);
+				}
+				
 				inspect_infile.generateSecondDatabase(fileName(inspect_output_filename), pathDir(inspect_output_filename), database_path, database_filename, cutoff_p_value, min_annotated_spectra_per_protein, fileName(snd_db_filename), fileName(snd_index_filename), pathDir(snd_db_filename), index_filename);
+				
 				
 				if ( emptyFile(snd_db_filename) )
 				{
@@ -926,6 +964,7 @@ class TOPPInspectAdapter
 				
 				// (3.2.3) setting the database name to the new database
 				inspect_infile.setDb(snd_db_filename);
+				inspect_infile.setSequenceFile("");
 				inspect_infile.setBlind(true);
 				inspect_infile.store(input_filename);
 			}
@@ -993,12 +1032,18 @@ class TOPPInspectAdapter
 				
 				if ( !emptyFile(inspect_output_filename) )
 				{
-					InspectOutfile inspect_outfile(inspect_output_filename, fileName(inspect_infile.getDb()), pathDir(inspect_infile.getDb()), p_value_threshold);
-
-					std::vector< ProteinIdentification > pis;
-					pis.push_back(inspect_outfile.getProteinIdentification());
+					std::vector< Identification >	identifications;
+					ProteinIdentification protein_identification;
+					std::vector< float >	precursor_retention_times, precursor_mz_values;
 					
-					analysisXML_file.store(output_filename, pis, inspect_outfile.getIdentifications(), inspect_outfile.getPrecursorRetentionTimes(),  inspect_outfile.getPrecursorMZValues(), contact_person);
+					InspectOutfile inspect_outfile;
+
+					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, fileName(inspect_infile.getDb()), pathDir(inspect_infile.getDb()), inspect_infile.getSequenceFile());
+
+					std::vector<ProteinIdentification> protein_identifications;
+					protein_identifications.push_back(protein_identification);
+					
+					analysisXML_file.store(output_filename, protein_identifications, identifications, precursor_retention_times, precursor_mz_values, contact_person);
 				}
 				else
 				{
@@ -1010,7 +1055,7 @@ class TOPPInspectAdapter
 			
 			// (3.3) deleting all temporary files
 			deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfilename);
-			
+
 			return OK;
 		}
 };
