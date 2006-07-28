@@ -290,6 +290,7 @@ namespace OpenMS
 
 	void InspectInfile::setMulticharge(unsigned int multicharge)
 	{
+std::cout << multicharge << std::endl;
 		multicharge_ = multicharge;
 	}
 
@@ -347,6 +348,7 @@ namespace OpenMS
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
+		
 		path_and_file = database_path;
 		ensurePathChar(path_and_file);
 		path_and_file.append(database_filename);
@@ -358,16 +360,9 @@ namespace OpenMS
 		
 		std::string start_separator, buffer1;
 		// get the start separator
-		
 		getLabels(path_and_file, buffer1, start_separator, buffer1, buffer1, buffer1);
 		
 		// processing the information from the result file
-		// get the number of column "#SpectrumFile", "p-value" and "RecordNumber"
-		/*int spectrum_file_column = -1;
-		int p_value_column = -1;
-		int record_number_column = -1;
-		
-		unsigned int number_of_columns;*/
 		enum columns
 		{
 			spectrum_file_column,
@@ -392,40 +387,6 @@ namespace OpenMS
 		std::vector<String> substrings;
 		String line;
 		
-		/*// get the header
-		if ( getline(result_file, line) )
-		{
-			if ( !line.empty() ) line.resize(line.length()-1);
-			line.split('\t', substrings);
-			number_of_columns = substrings.size();
-		}
-		else
-		{
-			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
-		}
-		
-		// get the numbers
-		for ( std::vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
-		{
-			if ( !iter->compare("#SpectrumFile") )
-			{
-				spectrum_file_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("p-value") )
-			{
-				p_value_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("RecordNumber") )
-			{
-				record_number_column = (iter - substrings.begin());
-			}
-		}
-		// check whether the columns are available in the header
-		if ( (spectrum_file_column == -1) || (p_value_column == -1) ||  (record_number_column == -1))
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns 'SpectrumFile', 'Protein', 'p-value' or  'RecordNumber' is missing!" , result_filename);
-		}*/
-		
 		// map the proteins according to their record number in the result file (and count the number of annotated spectrum)
 		std::map< unsigned int, unsigned int > record_map;
 		std::map< unsigned int, unsigned int >::iterator i;
@@ -434,6 +395,7 @@ namespace OpenMS
 		unsigned int record_number;
 		unsigned int max_record_number = 0;
 		unsigned int line_number = 0; // used to report in which line an error occured
+		bool missing_column;
 		//std::set<std::string, string_less> spectrum_count;
 		std::set< std::string > spectrum_count;
 		char buffer[10];
@@ -445,7 +407,8 @@ namespace OpenMS
 			++line_number;
 			line.split('\t', substrings);
 			// check whether the line has enough columns
-			if ( substrings.size() < number_of_columns )
+			missing_column = ( substrings.size() == number_of_columns - 1 );
+			if ( !missing_column && (substrings.size() < number_of_columns) )
 			{
 				sprintf(buffer, "%i", line_number);
 				std::string error_message = "wrong number of columns in row ";
@@ -466,14 +429,16 @@ namespace OpenMS
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
 			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
-			if ( atof(substrings[p_value_column].c_str()) <= cutoff_p_value )
+			if ( (substrings[p_value_column - missing_column] == "nan") || (atof(substrings[p_value_column - missing_column].c_str()) <= cutoff_p_value) )
 			{
-				record_number = atoi(substrings[record_number_column].c_str());
+				record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
 				max_record_number = std::max(max_record_number, record_number);
 				// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
 				++record_map[record_number];
 			}
 		} // result file read
+		result_file.close();
+		result_file.clear();
 		
 		// if no protein has a p_value less equal the cutoff value return an empty database
 		if ( record_map.empty() )
@@ -568,7 +533,7 @@ namespace OpenMS
 		}
 		
 		if (start_separator == std::string(1, trie_delimiter_)) compressTrieDB(database_filename, index_filename, database_path, wanted_records, second_database_filename, second_index_filename, second_database_path);
-		else generateTrieDB(result_filename, result_path, second_database_path, wanted_records, second_database_filename, second_index_filename, false, species);
+		else generateTrieDB(database_filename, database_path, second_database_path, wanted_records, second_database_filename, second_index_filename, false, species);
 	}
 
 
