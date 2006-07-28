@@ -186,7 +186,7 @@ namespace OpenMS
     /// normalize the angel
 		void normalizeAngle(int *angle);
 		///
-		void resetAngels();
+		void setAngels(int xrot, int yrot, int zrot);
 		///
 		void resetTranslation();
 		///
@@ -274,7 +274,7 @@ public slots:
 		/// first normalize the angel and then set zRot_ 
     void setRotationZ(int angle);
 		/// set the member variable zoom_ and calls initializeGL and updateGL
-		void setZoomFactor(double zoom);
+		void setZoomFactor(double zoom,bool repaint);
 signals:
 		/// signal which is emmited in the mouseReleaseEvent 
 		void rightButton(QPoint pos);

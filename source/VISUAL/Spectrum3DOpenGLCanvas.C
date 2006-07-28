@@ -143,7 +143,8 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 					}
 					xrot_ = 90*16;
 					yrot_ = 0;
-					zrot_ = 0;		
+					zrot_ = 0;	
+					zoom_ = 1.25;
 					stickdata_ = makeDataAsTopView();
 					axeslabel_ = makeAxesLabel();		
 					if(canvas_3d_.legend_shown_)
@@ -184,11 +185,11 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 	}
 	
 }
-void Spectrum3DOpenGLCanvas::resetAngels()
+void Spectrum3DOpenGLCanvas::setAngels(int xrot, int yrot, int zrot)
 {
-	xrot_=220;
-	yrot_ = 220;
-	zrot_=0;
+	xrot_=xrot;
+	yrot_ =yrot;
+	zrot_=zrot;
 
 }
 void Spectrum3DOpenGLCanvas::resetTranslation()
@@ -1101,11 +1102,14 @@ void Spectrum3DOpenGLCanvas::normalizeAngle(int *angle)
 	}
 }
 
-void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom)
+void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom, bool repaint)
 {
  	zoom_ = zoom;
-	resizeGL((int)width_,(int) heigth_);
-	glDraw (); 
+	if(repaint)
+		{
+			resizeGL((int)width_,(int) heigth_);
+			glDraw (); 
+		}
 }
 
 ///////////////wheel- and MouseEvents//////////////////
@@ -1118,12 +1122,12 @@ void Spectrum3DOpenGLCanvas::wheelEvent ( QWheelEvent * e )
 			double zoom = zoom_+distance;
 			if(zoom>0.0)
 				{	
-					setZoomFactor( zoom);
+					setZoomFactor( zoom,true);
 				}
 			else
 				{
 					zoom = 0.25;
-					setZoomFactor( zoom);
+					setZoomFactor( zoom,true);
 				}
 		}
 }

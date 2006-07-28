@@ -54,14 +54,14 @@ namespace OpenMS
 		if (dx < 0.0000001)
 		{
 			//std::cerr << "Error: grid line intervall too small! Line: " << __LINE__ << " in File " << __FILE__ << std::endl;
-			return;
+			return ;
 		}
 		double epsilon = dx/200;
 
 		double sDecPow = floor(log10(dx));
-		if (sDecPow<0) sDecPow = 0;
+	// 	if (sDecPow<0) sDecPow = 0;
 		double sDec = pow(10.0,sDecPow);
-
+		grid_line_dist = sDec;
 		std::vector<double> big;
 		double currGL = ceil_decimal(x1, (UnsignedInt)sDecPow);
 		while (currGL < (x2+epsilon) )

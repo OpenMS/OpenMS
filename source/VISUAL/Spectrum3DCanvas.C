@@ -109,13 +109,14 @@ void Spectrum3DCanvas::actionModeChange_()
 	switch(action_mode_)
 	{
 	case AM_TRANSLATE:
-		openglwidget()->setZoomFactor(1.5);
-		openglwidget()->resetAngels();
+		openglwidget()->setAngels(220,220,0);
+		openglwidget()->setZoomFactor(1.5,false);
 		repaintAll();
 		break;
 	case AM_ZOOM:
-		openglwidget()->setZoomFactor(1.25);
+		openglwidget()->setAngels(1440,0,0);
 		openglwidget()->resetTranslation();
+		openglwidget()->setZoomFactor(1.25,false);
 		repaintAll();
 		break;
 	case AM_MEASURE:
