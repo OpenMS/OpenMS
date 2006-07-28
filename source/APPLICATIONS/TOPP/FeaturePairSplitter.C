@@ -43,8 +43,6 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES
-
 
 /**
 	@page FeaturePairSplitter FeaturePairSplitter
@@ -71,6 +69,9 @@ using namespace std;
 	@ingroup TOPP
 
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
 
 class TOPPFeaturePairSplitter
       : public TOPPBase

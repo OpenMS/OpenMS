@@ -52,8 +52,6 @@ typedef DGrid<2> GridType;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES
-
 /**
 	@page UnlabeledMatcher UnlabeledMatcher
 	
@@ -72,8 +70,10 @@ typedef DGrid<2> GridType;
 	on this transform.	
 		
 	@ingroup TOPP
-
 */
+
+// We do not want this class to show up in the docu -> @cond
+/// @cond TOPPCLASSES
 
 class TOPPUnlabeledMatcher
       : public TOPPBase

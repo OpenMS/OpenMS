@@ -174,3 +174,6 @@ FileMerger: FileMerger.o TOPPBase.o
 
 SpectraFilter: SpectraFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+
+DTAExtractor: DTAExtractor.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)

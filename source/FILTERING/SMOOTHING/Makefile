@@ -21,9 +21,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer: Eva Lange $
 # --------------------------------------------------------------------------
-#
 
 DIRECTORY=FILTERING/SMOOTHING
 
@@ -32,15 +31,14 @@ THISLIB=$(LIBNAME)
 include ../../config_defs.mak
 
 CPP_SOURCES= \
+	SmoothFilter.C\
+	GaussFilter.C\
+
 #conditional compiles
 ifeq ($(GSL_SUPPORT),true)
 	ADD_CPP_SOURCES=\
-	SmoothFilter.C\
-	GaussFilter.C\
 	SavitzkyGolayQRFilter.C\
 	SavitzkyGolaySVDFilter.C
-
-
 endif
 
 include ../../common.mak

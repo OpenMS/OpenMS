@@ -23,9 +23,14 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
+#include <OpenMS/config.h>
+
+#ifdef GSL_DEF
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#endif
+
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
@@ -172,6 +177,7 @@ class TOPPNoiseFilter
 
       if (filter_type == "sgolay")
       {
+#ifdef GSL_DEF   	
         SavitzkyGolaySVDFilter sgolay(param_);
 
         LinearResampler lin_resampler;
@@ -215,7 +221,11 @@ class TOPPNoiseFilter
             }
           }
         }
-
+#else
+			writeLog_("Savitzky Golay filter is not available as GSL is deactivated. Aborting!");
+			printUsage_();
+			return ILLEGAL_PARAMETERS;
+#endif   
       }
       else
         if (filter_type == "gaussian")

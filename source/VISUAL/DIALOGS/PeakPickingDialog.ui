@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>PeakPickingDialogTemplate</class>
 <widget class="QDialog">
     <property name="name">
@@ -8,169 +8,283 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>367</width>
-            <height>273</height>
+            <width>331</width>
+            <height>250</height>
         </rect>
     </property>
     <property name="caption">
         <string>Pick Peaks</string>
     </property>
-    <widget class="QLayoutWidget">
+    <vbox>
         <property name="name">
-            <cstring>layout6</cstring>
+            <cstring>unnamed</cstring>
         </property>
-        <property name="geometry">
-            <rect>
-                <x>12</x>
-                <y>234</y>
-                <width>350</width>
-                <height>34</height>
-            </rect>
-        </property>
-        <grid>
+        <widget class="QGroupBox">
             <property name="name">
-                <cstring>unnamed</cstring>
+                <cstring>groupBox10</cstring>
             </property>
-            <widget class="QPushButton" row="0" column="2">
+            <property name="title">
+                <string>Peak detection thresholds</string>
+            </property>
+            <grid>
                 <property name="name">
-                    <cstring>start_button</cstring>
+                    <cstring>unnamed</cstring>
                 </property>
-                <property name="text">
-                    <string>Start</string>
-                </property>
-            </widget>
-            <widget class="QPushButton" row="0" column="1">
-                <property name="name">
-                    <cstring>reset_button</cstring>
-                </property>
-                <property name="enabled">
-                    <bool>true</bool>
-                </property>
-                <property name="text">
-                    <string>Reset</string>
-                </property>
-            </widget>
-            <spacer row="0" column="0">
-                <property name="name">
-                    <cstring>spacer2</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Horizontal</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>184</width>
-                        <height>20</height>
-                    </size>
-                </property>
-            </spacer>
-        </grid>
-    </widget>
-    <widget class="QGroupBox">
-        <property name="name">
-            <cstring>groupBox10</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>10</y>
-                <width>350</width>
-                <height>150</height>
-            </rect>
-        </property>
-        <property name="title">
-            <string>Peak detection thresholds</string>
-        </property>
-        <grid>
+                <widget class="QLabel" row="1" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel1_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Minimal peak height (tandem ms):</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="2" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel1_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Minimal signal to noise value:</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="3" column="0" rowspan="2" colspan="2">
+                    <property name="name">
+                        <cstring>textLabel1_2_2</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Minimal full width at half maximum:</string>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="2" column="3">
+                    <property name="name">
+                        <cstring>signal_to_noise_line_edit</cstring>
+                    </property>
+                    <property name="minimumSize">
+                        <size>
+                            <width>100</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>100</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="1" column="3">
+                    <property name="name">
+                        <cstring>height_ms2_line_edit</cstring>
+                    </property>
+                    <property name="minimumSize">
+                        <size>
+                            <width>100</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>100</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="3" column="3" rowspan="2" colspan="1">
+                    <property name="name">
+                        <cstring>fwhm_line_edit</cstring>
+                    </property>
+                    <property name="minimumSize">
+                        <size>
+                            <width>100</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>100</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <widget class="QLineEdit" row="0" column="3">
+                    <property name="name">
+                        <cstring>height_line_edit</cstring>
+                    </property>
+                    <property name="minimumSize">
+                        <size>
+                            <width>100</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>100</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <spacer row="1" column="2">
+                    <property name="name">
+                        <cstring>spacer13</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>21</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <spacer row="2" column="2" rowspan="2" colspan="1">
+                    <property name="name">
+                        <cstring>spacer14</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>21</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <spacer row="4" column="2">
+                    <property name="name">
+                        <cstring>spacer15</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
+                        <cstring>textLabel1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Minimal peak heigth:</string>
+                    </property>
+                </widget>
+                <spacer row="0" column="1" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>spacer12</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>70</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </grid>
+        </widget>
+        <widget class="QGroupBox">
             <property name="name">
-                <cstring>unnamed</cstring>
+                <cstring>groupBox11</cstring>
             </property>
-            <widget class="QLabel" row="0" column="0">
+            <property name="title">
+                <string>Peak fitting</string>
+            </property>
+            <grid>
                 <property name="name">
-                    <cstring>textLabel1</cstring>
+                    <cstring>unnamed</cstring>
                 </property>
-                <property name="text">
-                    <string>Minimal peak heigth:</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="1" column="0">
-                <property name="name">
-                    <cstring>textLabel1_3</cstring>
-                </property>
-                <property name="text">
-                    <string>Minimal peak height (tandem ms):</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="2" column="0">
-                <property name="name">
-                    <cstring>textLabel1_2</cstring>
-                </property>
-                <property name="text">
-                    <string>Minimal signal to noise value:</string>
-                </property>
-            </widget>
-            <widget class="QLabel" row="3" column="0">
-                <property name="name">
-                    <cstring>textLabel1_2_2</cstring>
-                </property>
-                <property name="text">
-                    <string>Minimal full width at half maximum:</string>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="0" column="1">
-                <property name="name">
-                    <cstring>height_line_edit</cstring>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="1" column="1">
-                <property name="name">
-                    <cstring>height_ms2_line_edit</cstring>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="2" column="1">
-                <property name="name">
-                    <cstring>signal_to_noise_line_edit</cstring>
-                </property>
-            </widget>
-            <widget class="QLineEdit" row="3" column="1">
-                <property name="name">
-                    <cstring>fwhm_line_edit</cstring>
-                </property>
-            </widget>
-        </grid>
-    </widget>
-    <widget class="QGroupBox">
-        <property name="name">
-            <cstring>groupBox11</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>160</y>
-                <width>350</width>
-                <height>60</height>
-            </rect>
-        </property>
-        <property name="title">
-            <string>Peak fitting</string>
-        </property>
-        <grid>
+                <widget class="QCheckBox" row="0" column="0">
+                    <property name="name">
+                        <cstring>opt_check_box</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Optimize estimated peak parameters</string>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <spacer>
             <property name="name">
-                <cstring>unnamed</cstring>
+                <cstring>spacer2_2</cstring>
             </property>
-            <widget class="QCheckBox" row="0" column="0">
+            <property name="orientation">
+                <enum>Vertical</enum>
+            </property>
+            <property name="sizeType">
+                <enum>Expanding</enum>
+            </property>
+            <property name="sizeHint">
+                <size>
+                    <width>20</width>
+                    <height>21</height>
+                </size>
+            </property>
+        </spacer>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout6</cstring>
+            </property>
+            <grid>
                 <property name="name">
-                    <cstring>opt_check_box</cstring>
+                    <cstring>unnamed</cstring>
                 </property>
-                <property name="text">
-                    <string>Optimize estimated peak parameters</string>
-                </property>
-            </widget>
-        </grid>
-    </widget>
+                <widget class="QPushButton" row="0" column="2">
+                    <property name="name">
+                        <cstring>start_button</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Start</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton" row="0" column="1">
+                    <property name="name">
+                        <cstring>reset_button</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>true</bool>
+                    </property>
+                    <property name="text">
+                        <string>Reset</string>
+                    </property>
+                </widget>
+                <spacer row="0" column="0">
+                    <property name="name">
+                        <cstring>spacer2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>184</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </grid>
+        </widget>
+    </vbox>
 </widget>
 <connections>
     <connection>
