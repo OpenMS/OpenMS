@@ -31,7 +31,9 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-CPP_SOURCES=
+CPP_SOURCES= #\
+	#PairwiseMapSimilarity.C\
+	#GeomHashDistance.C
 
 ADD_CPP_SOURCES = 
 

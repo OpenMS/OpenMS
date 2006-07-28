@@ -484,6 +484,7 @@ namespace OpenMS
       {
         MSSpectrum< OutputPeakType > spectrum;
         InputSpectrumIterator input_it(first+i);
+        std::cout << "pick " << input_it->getRetentionTime()<< std::endl;
 
         // pick the peaks in scan i
         pick(*input_it,spectrum,input_it->getMSLevel());

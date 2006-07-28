@@ -62,6 +62,8 @@ namespace OpenMS
   	@brief MDI window for several SpectrumWindow instances
   	
   	@ingroup spectrum_widgets
+  	
+  	@todo catch exceptions in sgolay (Eva)
   */
   class SpectrumMDIWindow : public QMainWindow, public PreferencesManager
   {
