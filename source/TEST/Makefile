@@ -275,6 +275,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DGridCell_test\
 	DGrid_test\
 	DLinearMapping_test\
+	PairMatcher_test\
 	$(GSL_EXECUTABLES_ANALYSIS_MAPMATCHING)
 
 # TRANSFORMATIONS

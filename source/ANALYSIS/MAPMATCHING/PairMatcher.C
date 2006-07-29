@@ -42,7 +42,7 @@ namespace OpenMS
 			defaults_.setValue("rt_stdev2",0.65);
 			defaults_.setValue("mz_stdev",0.025);
 			defaults_.setValue("mz_pair_dist",4.0);
-			defaults_.setValue("rt_pair_dist",0.2);
+			defaults_.setValue("rt_pair_dist",0.3);
 			param_ = defaults_;
 		}
 
@@ -90,7 +90,14 @@ namespace OpenMS
 			// fill tree
 			QuadTreeType tree(DRange<2>(min_x, max_x, min_y, max_y));
 			for (Size i=0; i<features_.size(); ++i)
-				tree.insert(features_[i].getPosition(), &features_[i] );
+			{
+				try{
+					tree.insert(features_[i].getPosition(), &features_[i] );
+				}catch(Exception::IllegalTreeOperation e)
+				{
+					cout << "Warning: Multiple identical feature positions in given feature map!" << endl;
+				}
+			}
 
 			// clear convex hulls and meta value, set id for each feature
 			int id = -1;
@@ -222,10 +229,10 @@ namespace OpenMS
 
 		void PairMatcher::printInfo(std::ostream& out, const PairVectorType& pairs)
 		{
-			out << "Found the following " << pairs.size() << "pairs:\n"
+			out << "Found the following " << pairs.size() << " pairs:\n"
 					<< "Quality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]"
 					<< "\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]"
-					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ}\n";
+					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
 			for (Size i=0; i<pairs.size(); ++i)
 			{
 				DPosition<2> diff
