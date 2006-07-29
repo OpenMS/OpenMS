@@ -41,16 +41,16 @@ using namespace OpenMS;
 using namespace std;
 
 MzDataFile* ptr = 0;
-CHECK(MzDataFile())
+CHECK((MzDataFile()))
 	ptr = new MzDataFile;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MzDataFile())
+CHECK((~MzDataFile()))
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
@@ -116,26 +116,26 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
   // 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
 	//--------------------------------------------------------------------------- 
   TEST_EQUAL(e.size(), 3)
-	TEST_REAL_EQUAL(e[0].getMSLevel(), 2)
-	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
+	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
+	TEST_REAL_EQUAL(e[1].getMSLevel(), 2)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
 	TEST_REAL_EQUAL(e[0].getRetentionTime(), 60)
 	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
 	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
 	
-	TEST_EQUAL(e[0].getPrecursorPeak().getPosition()[0], 1.2f)
-	TEST_EQUAL(e[0].getPrecursorPeak().getCharge(), 2)
-	TEST_EQUAL(e[0].getPrecursorPeak().getIntensity(), 2.3f)
-	TEST_EQUAL(e[0].getPrecursorPeak().getMetaValue("#IntensityUnits"),
+	TEST_EQUAL(e[1].getPrecursorPeak().getPosition()[0], 1.2f)
+	TEST_EQUAL(e[1].getPrecursorPeak().getCharge(), 2)
+	TEST_EQUAL(e[1].getPrecursorPeak().getIntensity(), 2.3f)
+	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("#IntensityUnits"),
 																														"NumberOfCounts")
-	TEST_EQUAL(e[0].getPrecursorPeak().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e[0].getPrecursorPeak().getMetaValue("IonSelectionComment"), "selected")
-	TEST_EQUAL(e[0].getPrecursor().getActivationMethod(), Precursor::CID)
-	TEST_EQUAL(e[0].getPrecursor().getActivationEnergy(), 3.4f)
-	TEST_EQUAL(e[0].getPrecursor().getActivationEnergyUnit(), Precursor::PERCENT)
-	TEST_EQUAL(e[0].getPrecursor().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e[0].getPrecursor().getMetaValue("ActivationComment"), "active")
+	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e[1].getPrecursorPeak().getMetaValue("IonSelectionComment"), "selected")
+	TEST_EQUAL(e[1].getPrecursor().getActivationMethod(), Precursor::CID)
+	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 3.4f)
+	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::PERCENT)
+	TEST_EQUAL(e[1].getPrecursor().getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e[1].getPrecursor().getMetaValue("ActivationComment"), "active")
 
 	TEST_EQUAL(e[0].getInstrumentSettings().getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getInstrumentSettings().getMetaValue("URL"), "www.open-ms.de")
@@ -391,7 +391,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw (Exception::UnableToCreateFile))
+CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
   MSExperiment< DPickedPeak<1> > e;
   MzDataFile f;
@@ -417,7 +417,7 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 RESULT
 
 // check load for 64Bit precision and endian conversion
-CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
 	MSExperiment< DPickedPeak<1> > e;
@@ -467,7 +467,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 RESULT
 
 // check for Float Kernel traits
-CHECK(load/store for Float Kernel Traits)
+CHECK((load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
   

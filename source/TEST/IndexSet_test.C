@@ -44,7 +44,7 @@ using std::stringstream;
 
 // default ctor
 IndexSet* ptr = 0;
-CHECK(IndexSet())
+CHECK((IndexSet()))
 	ptr = new IndexSet;
 	TEST_NOT_EQUAL(ptr, 0)
 	
@@ -53,13 +53,13 @@ CHECK(IndexSet())
 RESULT
 
 // destructor
-CHECK(~IndexSet())
+CHECK((~IndexSet()))
 	delete ptr;
 RESULT
 
 
 // assignment operator
-CHECK(IndexSet& operator = (const IndexSet& source))
+CHECK((IndexSet& operator = (const IndexSet& source)))
 	IndexSet is1(10,20);	
   is1.add(15).add(21);
   is1.sort();
@@ -71,20 +71,20 @@ CHECK(IndexSet& operator = (const IndexSet& source))
 RESULT
 
 // construct set with index
-CHECK(IndexSet(Size index))
+CHECK((IndexSet(UnsignedInt index)))
 	IndexSet is2(4);	
 	TEST_EQUAL(is2.isEmpty(), 0)
 RESULT
 
 // construct set [<i>from_index</i>,...,<i>to_index</to>]
-CHECK(IndexSet(Size index_from, Size index_to))
+CHECK((IndexSet(UnsignedInt index_from, UnsignedInt index_to)))
 	IndexSet s(1,10);
   IndexSet t;
   t.add(10,1);
   TEST_EQUAL(s,t)
 RESULT
 
-CHECK(bool operator == (const IndexSet& rhs) const)
+CHECK((bool operator == (const IndexSet& rhs) const))
 	IndexSet s(1,10);
   IndexSet t;
   t.add(2,10).add(1);
@@ -92,13 +92,13 @@ CHECK(bool operator == (const IndexSet& rhs) const)
   TEST_EQUAL(s, t)
 RESULT
 
-CHECK(bool operator != (const IndexSet& rhs) const)
+CHECK((bool operator != (const IndexSet& rhs) const))
 	IndexSet s(1,10);
   IndexSet t(5);
   TEST_NOT_EQUAL(s, t)
 RESULT
 
-CHECK(IndexSet& add(Size index))
+CHECK((IndexSet& add(UnsignedInt index)))
 	IndexSet s(1,6);
   IndexSet t(4);
   t.add(5).add(4).add(3).add(1).add(2).add(6);
@@ -108,7 +108,7 @@ RESULT
 	
 	
 // append indices [<i>from_index</i>,...,<i>to_index</to>] to set 
-CHECK(IndexSet& add(Size index_from, Size index_to))
+CHECK((IndexSet& add(UnsignedInt index_from, UnsignedInt index_to)))
 	IndexSet s(1,10);
   s.add(12,15).add(25,20).add(29);
 
@@ -123,7 +123,7 @@ RESULT
 
 
 // remove index from set
-CHECK(IndexSet& remove(Size index))
+CHECK((IndexSet& remove(UnsignedInt index)))
 	IndexSet s(9,19);
   s.add(21,25);
 
@@ -133,7 +133,7 @@ CHECK(IndexSet& remove(Size index))
 RESULT
  
 // remove indices [<i>from_index</i>,...,<i>to_index</to>] from set 
-CHECK(IndexSet& remove(Size index_from, Size index_to))
+CHECK((IndexSet& remove(UnsignedInt index_from, UnsignedInt index_to)))
 	IndexSet s(9,17);
   s.add(21,25);
 
@@ -143,7 +143,7 @@ CHECK(IndexSet& remove(Size index_from, Size index_to))
 RESULT
 
  
-CHECK(void clear())
+CHECK((void clear()))
   IndexSet t(54);
 	TEST_NOT_EQUAL(t.isEmpty(), 1)
 	t.clear();
@@ -157,7 +157,7 @@ CHECK(void clear())
 	TEST_EQUAL(res, 1)  
 RESULT
 
-CHECK(ostream& operator << (ostream& os, const IndexSet& set);)
+CHECK((friend std::ostream& operator << (std::ostream& os, const IndexSet& set )))
   IndexSet t(12,15);
   t.add(105,103).add(100);
   t.sort();
@@ -167,7 +167,7 @@ CHECK(ostream& operator << (ostream& os, const IndexSet& set);)
 	TEST_EQUAL(stream.str(), "12..15,100,103..105")
 RESULT
 
-CHECK( ConstIterator begin() const)
+CHECK((ConstIterator begin() const throw(Exception::Precondition)))
 	IndexSet t(12,13);
   t.add(105,103).add(100);
   t.sort();
@@ -186,7 +186,7 @@ CHECK( ConstIterator begin() const)
   TEST_EQUAL(i, 105)	
 RESULT
 
-CHECK( ConstIterator begin(Size index) const)
+CHECK((ConstIterator begin(UnsignedInt index) const throw(Exception::Precondition)))
 	IndexSet t(12,15);
   t.add(105,103).add(100);
   t.sort();
@@ -200,7 +200,7 @@ CHECK( ConstIterator begin(Size index) const)
 RESULT
 
 
-CHECK( ConstIterator end() const)
+CHECK((ConstIterator end() const throw(Exception::Precondition)))
 	IndexSet t(12,12);
   IndexSet::const_iterator it = ++t.begin();
   bool res = it==t.end();
@@ -214,16 +214,16 @@ RESULT
 typedef IndexSet::IndexSetConstIterator Iterator;
 Iterator* it_ptr = 0;
 
-CHECK(IndexSetConstIterator())
+CHECK((IndexSetConstIterator()))
 	it_ptr = new Iterator;
 	TEST_NOT_EQUAL(it_ptr, 0)
 RESULT
 
-CHECK( ~IndexSetConstIterator() )
+CHECK((~IndexSetConstIterator()))
 	delete it_ptr;
 RESULT
 
-CHECK( IndexSetConstIterator(const Size index, const VecIndex pos, const IndexSet* ref) )
+CHECK((IndexSetConstIterator(const UnsignedInt index, const VecIndex pos, const IndexSet* ref)))
 	IndexSet s(5,10);
   Iterator it(5,0,&s);
   Size i = *it;
@@ -235,7 +235,7 @@ CHECK( IndexSetConstIterator(const Size index, const VecIndex pos, const IndexSe
 RESULT
 
 
-CHECK(IndexSetConstIterator(const IndexSetConstIterator& it) )
+CHECK((IndexSetConstIterator(const IndexSetConstIterator& it)))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
   Iterator it2(it1);
@@ -247,7 +247,7 @@ CHECK(IndexSetConstIterator(const IndexSetConstIterator& it) )
 RESULT
 
      
-CHECK(IndexSetConstIterator& operator = (const IndexSetConstIterator& rhs) )
+CHECK((IndexSetConstIterator& operator = (const IndexSetConstIterator& rhs)))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
   Iterator it2;
@@ -259,7 +259,7 @@ CHECK(IndexSetConstIterator& operator = (const IndexSetConstIterator& rhs) )
   TEST_EQUAL( i, 6)
 RESULT
         
-CHECK(bool operator < (const IndexSetConstIterator& it) const )
+CHECK((bool operator < (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -272,7 +272,7 @@ CHECK(bool operator < (const IndexSetConstIterator& it) const )
   TEST_EQUAL(res , 0)
 RESULT
       
-CHECK(bool operator > (const IndexSetConstIterator& it) const )
+CHECK((bool operator > (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -285,7 +285,7 @@ CHECK(bool operator > (const IndexSetConstIterator& it) const )
   TEST_EQUAL(res , 0)
 RESULT
 
-CHECK(bool operator <= (const IndexSetConstIterator& it) const )
+CHECK((bool operator <= (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -298,7 +298,7 @@ CHECK(bool operator <= (const IndexSetConstIterator& it) const )
   TEST_EQUAL(res , 1)
 RESULT
       
-CHECK(bool operator >= (const IndexSetConstIterator& it) const )
+CHECK((bool operator >= (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -311,7 +311,7 @@ CHECK(bool operator >= (const IndexSetConstIterator& it) const )
   TEST_EQUAL(res , 1)
 RESULT
 
-CHECK(bool operator == (const IndexSetConstIterator& it) const )
+CHECK((bool operator == (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -323,7 +323,7 @@ CHECK(bool operator == (const IndexSetConstIterator& it) const )
 RESULT
 
 
-CHECK(bool operator != (const IndexSetConstIterator& it) const )
+CHECK((bool operator != (const IndexSetConstIterator& it) const))
 	IndexSet s(5,10);
   Iterator it1(5,0,&s);
 
@@ -334,7 +334,7 @@ CHECK(bool operator != (const IndexSetConstIterator& it) const )
   TEST_EQUAL( res, 0)
 RESULT
 
-CHECK( const Size& operator * ())
+CHECK((const UnsignedInt& operator * ()))
 	IndexSet s(5,10);
   Iterator it(5,0,&s);
 
@@ -342,7 +342,7 @@ CHECK( const Size& operator * ())
   TEST_EQUAL( i, 5)
 RESULT
 
-CHECK(IndexSetConstIterator& operator ++ ())
+CHECK((IndexSetConstIterator& operator ++ ()))
 	IndexSet s(5,10);
   Iterator it(8,1,&s);
 
@@ -355,7 +355,7 @@ CHECK(IndexSetConstIterator& operator ++ ())
   TEST_EQUAL( res, 1)
 RESULT
 
-CHECK(IndexSetConstIterator operator ++ (int))
+CHECK((IndexSetConstIterator operator ++ (int)))
 	IndexSet s(5,10);
   Iterator it(8,1,&s);
 
@@ -369,7 +369,7 @@ CHECK(IndexSetConstIterator operator ++ (int))
 RESULT
 
  
-CHECK(IndexSetConstIterator& operator --())
+CHECK((IndexSetConstIterator& operator -- ()))
 	IndexSet s(5,10);
   Iterator it = s.begin();
   it++;
@@ -382,7 +382,7 @@ CHECK(IndexSetConstIterator& operator --())
 RESULT
 
 
-CHECK(IndexSetConstIterator operator -- (int))
+CHECK((IndexSetConstIterator operator -- (int)))
 	IndexSet s(5,10);
   Iterator it = s.end();
 

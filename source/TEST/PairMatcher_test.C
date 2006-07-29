@@ -75,17 +75,17 @@ features[2].setOverallQuality(1.0f);
 features[3].setOverallQuality(1.0f);
 
 PairMatcher* ptr = 0;
-CHECK(PairMatcher(FeatureMapType& features))
+CHECK((PairMatcher(FeatureMapType& features)))
 	ptr = new PairMatcher(features);
 	TEST_NOT_EQUAL(ptr, 0)
 	TEST_EQUAL(PairMatcher::getName(), "PairMatcher")
 RESULT
 
-CHECK(~PairMatcher())
+CHECK((~PairMatcher()))
 	delete ptr;
 RESULT
 
-CHECK(PairMatcher& operator = (const PairMatcher& source))
+CHECK((PairMatcher& operator = (const PairMatcher& source)))
   PairMatcher pm1(features);
 	pm1.getParam().setValue("rt_stdev1",0.1);
 	pm1.getParam().setValue("rt_stdev2",0.2);
@@ -100,7 +100,7 @@ CHECK(PairMatcher& operator = (const PairMatcher& source))
   TEST_EQUAL(pm1==pm2,true);
 RESULT
 
-CHECK(PairMatcher(const PairMatcher& source))
+CHECK((PairMatcher(const PairMatcher& source)))
   PairMatcher pm1(features);
 
   PairMatcher pm2(pm1);
@@ -110,7 +110,7 @@ CHECK(PairMatcher(const PairMatcher& source))
 RESULT
 
 
-CHECK(const PairVectorType& run())
+CHECK((const PairVectorType& run()))
 	PairMatcher pm(features);
 	const Pairs& pairs = pm.run();
 	TEST_EQUAL(pairs.size(),2)
@@ -127,7 +127,7 @@ CHECK(const PairVectorType& run())
 RESULT
 
 
-CHECK(const PairVectorType& getBestPairs())
+CHECK((const PairVectorType& getBestPairs()))
 	PairMatcher pm(features);
 	pm.run();
 	const Pairs& pairs = pm.getBestPairs();
@@ -139,7 +139,7 @@ CHECK(const PairVectorType& getBestPairs())
 	TEST_REAL_EQUAL(pairs[0].getSecond().getPosition()[RT],0.0f);
 RESULT
 
-CHECK(static void printInfo(std::ostream& out, const PairVectorType& pairs))
+CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))
 	PairMatcher pm(features);
 	pm.run();
 	const Pairs& pairs = pm.getBestPairs();
@@ -148,7 +148,7 @@ CHECK(static void printInfo(std::ostream& out, const PairVectorType& pairs))
 	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n   0.36\t   0.10\t   0.00\t   1.00\t   1.00\t   0.00\t   4.00\t   2.00\t   1.00\t   0.50\t1\t0.10\t-4.00\n");
 RESULT
 
-CHECK(static void fillFeatureMap(FeatureMapType&, const PairVectorType&))
+CHECK((static void fillFeatureMap(FeatureMapType&, const PairVectorType&)))
 	PairMatcher pm(features);
 	const Pairs& pairs = pm.run();
 

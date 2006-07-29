@@ -539,7 +539,7 @@ namespace OpenMS
 						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,value));
 						break;
 					case ENERGY: 
-						prec_->setActivationEnergy( asFloat_(value) ); 
+						prec_->setActivationEnergy( asFloat_(value) );
 						break;
 					case EUNITS:
 						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,value));
@@ -624,6 +624,7 @@ namespace OpenMS
 
 			os << "\t<spectrumList count=\"" << count_tmp_ << "\">\n";
 
+			int spectrum_ref = -1;
 			for (UnsignedInt s=0; s<cexp_->size(); s++)
 			{
 				const SpectrumType& spec = (*cexp_)[s];
@@ -663,6 +664,8 @@ namespace OpenMS
 				const InstrumentSettings& iset = spec.getInstrumentSettings();
 				os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel()
 					 << "\"";
+
+				if (spec.getMSLevel()==1) spectrum_ref = spec_write_counter_-1;
 				if (iset.getMzRangeStart() != 0 && iset.getMzRangeStop() != 0)
 				{
 					os << " mzRangeStart=\""
@@ -686,7 +689,8 @@ namespace OpenMS
 						|| spec.getPrecursor() != Precursor())
 				{
 					os	<< "\t\t\t\t<precursorList count=\"1\">\n"
-							<< "\t\t\t\t\t<precursor msLevel=\"1\" spectrumRef=\"0\">\n";
+							<< "\t\t\t\t\t<precursor msLevel=\"2\" spectrumRef=\""
+							<< spectrum_ref << "\">\n";
 					if (spec.getPrecursorPeak() != PrecursorPeak())
 					{
 						const PrecursorPeak& peak = spec.getPrecursorPeak();

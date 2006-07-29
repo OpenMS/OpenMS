@@ -40,16 +40,16 @@ START_TEST(ANDIFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ANDIFile* ptr = 0;
-CHECK(ANDIFile())
+CHECK((ANDIFile()))
 	ptr = new ANDIFile;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~ANDIFile())
+CHECK((~ANDIFile()))
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;

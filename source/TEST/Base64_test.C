@@ -43,17 +43,17 @@ using std::string;
 // default ctor
 Base64* ptr = 0;
 
-CHECK(Base64())
+CHECK((Base64()))
 	ptr = new Base64;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~Base64())
+CHECK((~Base64()))
 	delete ptr;
 RESULT
 
-CHECK( Size getOutputBufferSize() )
+CHECK((Size getOutputBufferSize()))
 	Base64 b64;
   string src = "SGFsbG8gV29ybA==";  //"Hallo Worl"
 	b64.decode(src.c_str(), src.size());
@@ -80,7 +80,7 @@ CHECK( Size getOutputBufferSize() )
   TEST_EQUAL(b64.getOutputBufferSize(), 18)
 RESULT
 
-CHECK( void setOutputBufferSize(Size) )
+CHECK((void setOutputBufferSize(Size s)))
 	Base64 b64;
   b64.setOutputBufferSize(22);
   string src = "SGFsbG8gV29ybGQ=";  //"Hallo World"
@@ -88,7 +88,7 @@ CHECK( void setOutputBufferSize(Size) )
   TEST_EQUAL(b64.getOutputBufferSize(), 24)
 RESULT
 
-CHECK(	char* decode(const char* src) )
+CHECK((char* decode(const char* src, const Size size)))
 	Base64 b64;
 	string src = "SGFsbG8gV29ybGQ=";
 	string dest = b64.decode(src.c_str(), src.size());
@@ -102,7 +102,7 @@ CHECK(	char* decode(const char* src) )
   TEST_EQUAL(dest, "This is one test")
 RESULT
 
-CHECK( float* decodeFloat(const char* src, const Size size) )
+CHECK((float* decodeFloat(const char* src, const Size size)))
   PRECISION(0.001)
 	Base64 b64;
 	string src = "JhOWQ8b/l0PMTJhD";
@@ -119,7 +119,7 @@ CHECK( float* decodeFloat(const char* src, const Size size) )
 RESULT
 
 
-CHECK( float* decodeFloatCorrected(const char* src, const Size size) )
+CHECK((float* decodeFloatCorrected(const char* src, const Size size)))
   PRECISION(0.001)
 	Base64 b64;
 	string src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
@@ -133,7 +133,7 @@ CHECK( float* decodeFloatCorrected(const char* src, const Size size) )
 RESULT
 
 
-CHECK(	char* encode(const char* src) )
+CHECK((char* encode(const char* src, const Size size)))
 	Base64 b64;
 	string src = "Hallo World";
 	string dest = b64.encode(src.c_str(), src.size());
@@ -158,7 +158,7 @@ CHECK(	char* encode(const char* src) )
 	TEST_EQUAL(dest, src)
 RESULT
 
-CHECK( char* encodeFloat() )
+CHECK((char* encodeFloat()))
   PRECISION(0.001)
 
 	Base64 b64;
@@ -184,7 +184,7 @@ CHECK( char* encodeFloat() )
 	TEST_REAL_EQUAL(res[0], 4711.08)
 RESULT
 
-CHECK( char* encodeFloatCorrected() )
+CHECK((char* encodeFloatCorrected()))
   PRECISION(0.001)
 
 	Base64 b64;
@@ -200,7 +200,7 @@ CHECK( char* encodeFloatCorrected() )
 	TEST_REAL_EQUAL(res[2], 304.6)
 RESULT
 
-CHECK( char* encodeDouble() )
+CHECK((char* encodeDouble()))
   PRECISION(0.001)
 
 	Base64 b64;
@@ -225,7 +225,7 @@ CHECK( char* encodeDouble() )
 	TEST_REAL_EQUAL(res[0], 4711.08)
 RESULT
 
-CHECK( char* encodeDoubleCorrected() )
+CHECK((char* encodeDoubleCorrected()))
   PRECISION(0.001)
 
 	Base64 b64;

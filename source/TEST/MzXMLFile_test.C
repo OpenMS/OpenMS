@@ -42,16 +42,16 @@ using namespace OpenMS;
 using namespace std;
 
 MzXMLFile* ptr = 0;
-CHECK(MzXMLFile())
+CHECK((MzXMLFile()))
 	ptr = new MzXMLFile;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MzXMLFile())
+CHECK((~MzXMLFile()))
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::FileNotFound))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -241,7 +241,7 @@ CHECK(void load(const String& filename, MSExperiment<>& exp) throw (Exception::F
 RESULT
 
 
-CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw (Exception::UnableToCreateFile))
+CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
   MSExperiment< DRawDataPoint<1> > e;
   MzXMLFile f;
@@ -264,7 +264,7 @@ CHECK(void store(const String& filename, const MSExperiment<>& exp) const throw 
 	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
 RESULT
 
-CHECK(load/store for Float Kernel Traits)
+CHECK((load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
