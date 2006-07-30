@@ -645,7 +645,7 @@ namespace OpenMS
       typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
 
     public:
-      PeakArea_(){}
+      PeakArea_() : left(0), max(0), right(0), left_behind_centroid(0){}
 
       /** @brief Iterator defining a raw data peak.
          
