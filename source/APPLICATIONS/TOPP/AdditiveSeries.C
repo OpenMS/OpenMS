@@ -49,6 +49,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 using namespace OpenMS;
+using namespace Math;
 using namespace std;
 
 typedef DFeature<2>::CoordinateType CoordinateType;
