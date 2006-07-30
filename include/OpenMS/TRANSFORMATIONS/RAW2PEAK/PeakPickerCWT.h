@@ -36,7 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 
 #ifdef GSL_DEF
-# include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+	#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #endif
 
 #include <math.h>
@@ -305,12 +305,20 @@ namespace OpenMS
         // search for maximum positions in the cwt and extract potential peaks
         int direction=1;
         int distance_from_scan_border = 0;
-        while ((distance(it_pick_begin, it_pick_end) > 3) && getMaxPosition_(it_pick_begin, it_pick_end, wt_, area, distance_from_scan_border, ms_level, direction))
+        while ((distance(it_pick_begin, it_pick_end) > 3) 
+        				&& getMaxPosition_(it_pick_begin, 
+        													 it_pick_end, 
+        													 wt_, 
+        													 area, 
+        													 distance_from_scan_border, 
+        													 ms_level, 
+        													 direction))
         {
           //search for the endpoints of the peak
           regular_endpoints = getPeakEndPoints_(it_pick_begin,
                                                 it_pick_end,
                                                 area,
+                                                distance_from_scan_border,
                                                 peak_left_index,
                                                 peak_right_index);
 
@@ -704,7 +712,8 @@ namespace OpenMS
         (2) analogous procedure to the right of x_r
     */
     bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,
-                           PeakArea_ &area, int& peak_left_index, int& peak_right_index);
+                           PeakArea_ &area, int distance_from_scan_border, 
+                           int& peak_left_index, int& peak_right_index);
 
 
     /** @brief Estimates a peak's centroid position.

@@ -190,6 +190,7 @@ namespace OpenMS
   bool PeakPickerCWT::getPeakEndPoints_(RawDataPointIterator first,
                                         RawDataPointIterator last,
                                         PeakArea_& area,
+                                        int distance_from_scan_border,
                                         int& peak_left_index,
                                         int& peak_right_index)
   {
@@ -212,21 +213,34 @@ namespace OpenMS
     // search for the left endpoint
     while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
     {
+#ifdef DEBUG_PEAK_PICKING
+    	std::cout << "while left endpoint " << std::endl;
+#endif
       // if the values are still falling to the left, everything is ok.
       if ((it_help-1)->getIntensity() < it_help->getIntensity())
       {
         --it_help;
+      
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "it_help " << it_help->getPos() << std::endl;
+#endif
       }
       // if the values are _rising_, we have to check the cwt
       else
       {
         if ((it_help-2) <= first)
         {
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "it_help-2) <= first"  << std::endl;
+#endif      
           break;
         }
         // now check the value to the left of the problematic value
         if ((it_help-2)->getIntensity() > (it_help-1)->getIntensity()) // we probably ran into another peak
         {
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
+#endif        		
           break;
         }
 
@@ -242,19 +256,28 @@ namespace OpenMS
         // if the cwt is monotonous in this region
         // TODO: better monotonicity test... say two or three points more
         monoton=true;
-        start   =   ((cwt_pos-ep_radius) < 0)
-                    ? zeros_left_index+1
-                    : cwt_pos-ep_radius+zeros_left_index+1;
-        stop    =   ((cwt_pos+ep_radius) > wt_.getSignalLength())
-                    ?  (wt_.getSignalLength() + zeros_left_index)
-                    : (cwt_pos+ep_radius+zeros_left_index);
+      
+				start   =   (cwt_pos < ep_radius)
+                    ? (distance_from_scan_border + zeros_left_index) + 2 
+                    : cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+        stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
+                    ?  (wt_.getSize() - 2)
+                    : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
+#ifdef DEBUG_PEAK_PICKING
+				std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start]  )
                  * (wt_[start]   - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
+#ifdef DEBUG_PEAK_PICKING            
+            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
+            					<< " " <<  wt_.getSignal()[start].getPos()
+            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif            						
             monoton=false;
             break;
           }
@@ -273,21 +296,33 @@ namespace OpenMS
     // search for the right endpoint ???
     while (((it_help+1) < last) && (it_help->getIntensity() > noise_level_))
     {
+#ifdef DEBUG_PEAK_PICKING    	
+    	std::cout << "while right endpoint " << std::endl;
+#endif    		
       // if the values are still falling to the right, everything is ok.
       if (it_help->getIntensity() > (it_help+1)->getIntensity())
       {
         ++it_help;
+#ifdef DEBUG_PEAK_PICKING        
+         std::cout << "it_help " << it_help->getPos() << std::endl;
+#endif         	
       }
       // if the values are _rising_, we have to check the cwt
       else
       {
         if ((it_help+2) >= last)
         {
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "it_help+2) <= first"  << std::endl;
+#endif        		
           break;
         }
         // now check the value to the right of the problematic value
         if ((it_help+2)->getIntensity() > (it_help+1)->getIntensity()) // we probably ran into another peak
         {
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
+#endif        		
           break;
         }
 
@@ -302,20 +337,28 @@ namespace OpenMS
         // if the cwt is monotonous in this region
         // TODO: better monotonicity test... say two or three points more
         monoton = true;
+              	
+        start   =   (cwt_pos < ep_radius)
+                    ? (distance_from_scan_border + zeros_left_index) + 2 
+                    : cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
+        stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
+                    ?  (wt_.getSize() - 2)
+                    : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
-        start   =   ((cwt_pos-ep_radius) < 0)
-                    ? zeros_left_index+1
-                    : cwt_pos-ep_radius+zeros_left_index+1;
-        stop    =   ((cwt_pos+ep_radius) > wt_.getSignalLength())
-                    ?  (wt_.getSignalLength() + zeros_left_index)
-                    : (cwt_pos+ep_radius+zeros_left_index);
-
+#ifdef DEBUG_PEAK_PICKING
+				std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start])
                  * (wt_[start]  - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
+#ifdef DEBUG_PEAK_PICKING            
+             std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
+            					<< " " <<  wt_.getSignal()[start].getPos()
+            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif            						
             monoton=false;
             break;
           }

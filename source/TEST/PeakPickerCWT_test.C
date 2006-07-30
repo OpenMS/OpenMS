@@ -180,7 +180,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
    
   pp.pickExperiment(exp_raw,peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 277)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 276)
   ExperimentalSettings e = peaks;
   TEST_EQUAL(e == exp_raw, true)
   std::cout << "pickExp(it,it,cont) " << std::endl;
@@ -192,7 +192,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
    
   pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()),277)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()),276)
   std::cout << "pickExperiment(cont,cont)" << std::endl;
 RESULT
 
