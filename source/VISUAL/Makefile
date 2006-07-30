@@ -162,6 +162,7 @@ uic_depend: $(UIC_SOURCES)
 uic_clean:
 	@echo "Cleaning UIC files in $(UIC_DIR) and local direcory..."
 	@$(RM) -f $(UIC_DIR)/*.h
+	@$(RM) -f *.dh
 	@$(RM) -f *Template.C
 
 default_clean: uic_clean

@@ -222,6 +222,10 @@ namespace OpenMS
 	
 	void SpectrumCanvas::paintGridLines_(QPainter* p)
 	{
+		QColor g1(130,130,130);
+		QColor g2(170,170,170);
+		QColor g3(230,230,230);
+		
 		if (!show_grid_ || !spectrum_widget_) return;
 	
 		p->save();
@@ -236,28 +240,26 @@ namespace OpenMS
 
 	
 		// drawing of grid lines and associated text	
-		QColor grid_line_color;
-	
 		for (unsigned int j = 0; j != spectrum_widget_->xAxis()->gridLines().size() ; j++) 
 		{
 			// style definitions
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-				grid_line_color = QColor(90, 90, 90);
-				break;
+					p->setPen(QPen(g1,pen_width_));
+					break;
 				case 1:	// style settings for small intervals
-					grid_line_color = QColor(130, 130, 130);
-				break;
+					p->setPen(QPen(g2,pen_width_));
+					break;
 				case 2: // style settings for smalles intervals
-					grid_line_color = QColor(170, 170, 170);
-				break;
+					p->setPen(QPen(g3,pen_width_));
+					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
-					grid_line_color = QColor(0, 0, 0);
-				break;
+					p->setPen(QPen(QColor(0,0,0),pen_width_));
+					break;
 			}
-			p->setPen(QPen(grid_line_color,pen_width_));
+
 			int x;
 			for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); it++) 
 			{
@@ -268,24 +270,25 @@ namespace OpenMS
 		
 		for (unsigned int j = 0; j != spectrum_widget_->yAxis()->gridLines().size() ; j++) 
 		{
+
 			// style definitions
 			switch(j)
 			{
 				case 0:	// style settings for big intervals 
-					grid_line_color = QColor(90, 90, 90);
+					p->setPen(QPen(g1,pen_width_));
 					break;
 				case 1:	// style settings for small intervals
-					grid_line_color = QColor(130, 130, 130);
+					p->setPen(QPen(g2,pen_width_));
 					break;
 				case 2: // style settings for smalles intervals
-					grid_line_color = QColor(170, 170, 170);
+					p->setPen(QPen(g3,pen_width_));
 					break;
 				default:
 					std::cout << "empty vertical grid line vector error!" << std::endl;
-					grid_line_color = QColor(0, 0, 0);
-				break;
+					p->setPen(QPen(QColor(0,0,0),pen_width_));
+					break;
 			}
-			p->setPen(QPen(grid_line_color,pen_width_));
+
 			int y;
 			for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); it++) 
 			{

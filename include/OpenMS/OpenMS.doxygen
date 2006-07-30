@@ -47,10 +47,6 @@
 */
 
 /*
-	ToDo-Liste Marc:
-	- Projecktionen: Action -> Select
-	- Mit Eva: Layout der Dialoge
-
 	Klassen Jens:
   - ANALYSIS\MAPMATCHING\LabeledMatcher.h
   - DATASTRUCTURES\IndexSet.h

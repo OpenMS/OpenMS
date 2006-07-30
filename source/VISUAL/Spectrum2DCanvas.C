@@ -1259,8 +1259,8 @@ namespace OpenMS
 		map<float, float> mz, rt;
 		for (QuadTreeType_::Iterator i = trees_[current_data_]->begin(area2); i != trees_[current_data_]->end(); ++i)
 		{
-			mz[round(i->first[0]*100.0f) / 100.0f] += i->second->getIntensity();
-			rt[round(i->first[1]*100.0f) / 100.0f] += i->second->getIntensity();
+			mz[i->first[0]] += i->second->getIntensity();
+			rt[i->first[1]] += i->second->getIntensity();
 		}
 		
 		// write to spactra
