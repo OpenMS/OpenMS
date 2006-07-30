@@ -1356,7 +1356,11 @@ namespace OpenMS
     if (dialog.exec())
     {
       float kernel_width = dialog.getKernelWidth();
-      float spacing = dialog.getSpacing();
+#ifdef GSL_DEF
+			float spacing = dialog.getSpacing();
+			bool resampling_flag = dialog.getResampling();
+#endif
+      
       bool sgolay_flag = dialog.getSGolay();
 			
 			if (sgolay_flag)
@@ -1366,8 +1370,6 @@ namespace OpenMS
 				return;
 #endif
 			}
-
-      bool resampling_flag = dialog.getResampling();
       
       // 1D smoothing
       Spectrum1DWindow* w = active1DWindow_();

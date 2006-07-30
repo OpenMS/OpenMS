@@ -312,7 +312,7 @@ class TOPPUnlabeledMatcher
 			}
 		} // switch (algorithm)
 
-		writeDebug_(String("Number of feature pairs: ") + String(feature_pair_vector.size()),1);
+		writeDebug_(String("Number of feature pairs: ") + String(SignedInt(feature_pair_vector.size())),1);
 		writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
 	
 		FeaturePairVectorFile feature_pair_vector_file;

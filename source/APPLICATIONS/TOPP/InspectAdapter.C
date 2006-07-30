@@ -795,9 +795,9 @@ class TOPPInspectAdapter
 				}
 				else if ( !not_accessable.empty() )
 				{
-					buffer = String(not_accessable.size());
+					buffer = String(SignedInt(not_accessable.size()));
 					buffer.append(" databases/sequence files are not accessable or empty. Using ");
-					buffer.append(String( dbs.size()+seq_files.size()-not_accessable.size() ));
+					buffer.append(String( SignedInt(dbs.size()+seq_files.size()-not_accessable.size() )));
 					buffer.append(" databases/sequences files only!");
 					writeLog_(buffer.c_str());
 					std::cout << buffer << std::endl;
