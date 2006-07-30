@@ -53,7 +53,7 @@ namespace OpenMS
     public:
       /**@name Constructors and destructor */
       //@{
-      ///
+      /// Constructor for a write-only handler
       MzXMLHandler(MapType& exp)
 			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
 				exp_(&exp),	
@@ -68,7 +68,7 @@ namespace OpenMS
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
 			}
 
-      ///
+      /// Constructor for a read-only handler
       MzXMLHandler(const MapType& exp)
 			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
 				exp_(0), 
@@ -82,7 +82,7 @@ namespace OpenMS
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
 			}
 
-  		///
+  		/// Destructor
       virtual ~MzXMLHandler(){}
       //@}
 

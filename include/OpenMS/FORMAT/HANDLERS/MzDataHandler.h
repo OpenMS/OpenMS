@@ -48,8 +48,7 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
-			
-			@todo implement and test SupDesc part (Jens)
+		
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -58,12 +57,14 @@ namespace OpenMS
 		 public:
       /**@name Constructors and destructor */
       //@{
-      ///
+      /// Constructor for a write-only handler
       MzDataHandler(MapType& exp)
 				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-					exp_(&exp), 
+					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
+					spec_(0),	prec_(0),	acq_(0),
+					meta_id_(),
 					exp_sett_str_(),
 					exp_sett_(exp_sett_str_, IO_ReadWrite),
 					decoder_(2),
@@ -72,12 +73,14 @@ namespace OpenMS
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
 			}
 
-      ///
+      /// Constructor for a read-only handler
       MzDataHandler(const MapType& exp)
 				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-					exp_(0), 
+					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),
+					spec_(0),	prec_(0),	acq_(0),
+					meta_id_(),
 					exp_sett_str_(),
 					exp_sett_(),
 					decoder_(2),
@@ -86,7 +89,7 @@ namespace OpenMS
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
 			}
 
-      ///
+      /// Destructor
       virtual ~MzDataHandler(){}
       //@}
 
@@ -98,11 +101,10 @@ namespace OpenMS
       virtual bool startElement(const QString & uri, const QString & local_name,
 																const QString & qname, const QXmlAttributes & attributes );
 
-			/// This function is called by the parser for each chunk of
-		  /// characters between two tags.
+			/// This function is called by the parser for each chunk of characters between two tags.
       virtual bool characters( const QString & chars );
 
-  		///Writes the contents to a stream
+  		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
 
 		 protected:
@@ -110,7 +112,7 @@ namespace OpenMS
 			MapType* exp_;
 			/// map pointer for writing
 			const MapType* cexp_;
-		
+
 			/** @brief indices for tags used by mzData
 
 			Used to access is_parser_in_tag_.
@@ -160,8 +162,7 @@ namespace OpenMS
 			SpectrumType* spec_;
 			Precursor* prec_;
 			Acquisition* acq_;
-			MetaInfoDescription* meta_;
-			QString meta_id_;
+			String meta_id_;
 			std::vector<QString> data_;
 			std::vector<QString> array_name_;
 			std::vector<Precision> precisions_;
@@ -241,7 +242,7 @@ namespace OpenMS
 			void readPeakSupplementalData_( std::vector<void*>& /*data*/, PeakType& /*peak*/, Size /*n*/)
 			{
 			}
-			
+
 		};
 
 		//--------------------------------------------------------------------------------
@@ -280,11 +281,17 @@ namespace OpenMS
 							break;
 					  case ARRAYNAME:
 							array_name_.push_back(chars);
+							if (spec_->getMetaInfoDescriptions().find(meta_id_)
+									!= spec_->getMetaInfoDescriptions().end())
+							{
+								// save sup-data name in comment-member of MetaInfoDescription
+								spec_->getMetaInfoDescriptions()[meta_id_].setComment(chars.ascii());
+							}
 							break;
 						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								meta_->getSourceFile().setNameOfFile( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( chars.ascii() );
 							}
 							else
 							{
@@ -294,7 +301,7 @@ namespace OpenMS
 						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								meta_->getSourceFile().setPathToFile( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( chars.ascii() );
 							}
 							else
 							{
@@ -304,7 +311,7 @@ namespace OpenMS
 						case FILETYPE: // <fileType> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								meta_->getSourceFile().setFileType( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( chars.ascii() );
 							}
 							else
 							{
@@ -339,20 +346,23 @@ namespace OpenMS
 			case DESCRIPTION: exp_sett_ << '<' << qname << '>'; break;
 			case CVPARAM:	cvParam_(attributes.value("name"),attributes.value("value")); break;
 		  case USERPARAM:	userParam_(attributes.value("name"),attributes.value("value")); break;
-			case SPECTRUM: 
+			case SUPARRAYBINARY:
+				meta_id_ = attributes.value("id").ascii();
+				break;
+			case SPECTRUM:
 				exp_->insert(exp_->end(),SpectrumType());
 				//std::cout << "Capacity: " << exp_->capacity() << std::endl;
-				spec_ = &(exp_->back()); 
+				spec_ = &(exp_->back());
 				break;
-		  case SPECTRUMLIST: 
+		  case SPECTRUMLIST:
 		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-		  	exp_->reserve( asSignedInt_(attributes.value("count")) ); 
+		  	exp_->reserve( asSignedInt_(attributes.value("count")) );
 		  	//std::cout << Date::now() << " done" << std::endl;
 		  	break;
 			case ACQSPEC:
 				if  (attributes.value("spectrumType") == "CentroidMassSpectrum")
 				{
-					spec_->setType(SpectrumSettings::PEAKS);	
+					spec_->setType(SpectrumSettings::PEAKS);
 				}
 				else if (attributes.value("spectrumType") == "ContinuumMassSpectrum")
 				{
@@ -387,9 +397,8 @@ namespace OpenMS
 				prec_ = &(spec_->getPrecursor());
 				//UNHANDLED: attributes.value("spectrumRef");
 				break;
-			case SUPDATADESC:
-				meta_ = new MetaInfoDescription();
-				meta_id_ = attributes.value("supDataArrayRef");
+			case SUPDESC:
+				meta_id_ = attributes.value("supDataArrayRef").ascii();
 				break;
 			case DATA:
 				// store precision for later
@@ -461,11 +470,7 @@ namespace OpenMS
 				precisions_.clear();
 				endians_.clear();
 				break;
-			case SUPDESC:
-				spec_->getMetaInfoDescriptions()[meta_id_.ascii()] = *meta_;
-				delete meta_;
-				break;
-			}  
+			}
 			return true;
 		}
 
@@ -482,6 +487,11 @@ namespace OpenMS
 									 "PrecursorList.Precursor.IonSelection.UserParam");
 			else if (is_parser_in_tag_[ACTIVATION])
 				setAddInfo(*prec_,name,value,"PrecursorList.Precursor.Activation.UserParam");
+			else if (is_parser_in_tag_[SUPDATADESC])
+			{
+				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_],
+									 name,value,"Spectrum.SupDesc.SupDataDesc.UserParam");
+			}
 			else
 			{
 				warning(QXmlParseException(QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
@@ -544,7 +554,7 @@ namespace OpenMS
 					case EUNITS:
 						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,value));
 						break;
-					default:     
+					default:
 						error = "PrecursorList.Precursor.Activation.UserParam";
 				}
 			}
@@ -552,7 +562,7 @@ namespace OpenMS
 			{
 			  warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)) );
 			}
-			
+
 			if (error != "")
 			{
 				warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n") .arg(name).arg(value).arg(error.c_str())) );
@@ -587,10 +597,10 @@ namespace OpenMS
 					}
 				}
 			}
-			
+
 			const int MZ = 0;
 			const int INTENS = 1;
-			
+
 			// this works only if MapType::PeakType is at leat DRawDataPoint
 			{
 				//push_back the peaks into the container
@@ -647,7 +657,7 @@ namespace OpenMS
 					{
 						os << "ContinuumMassSpectrum";
 					}
-					 
+
 					os << "\" methodOfCombination=\""
 						 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
 						 << spec.getAcquisitionInfo().size() << "\">\n";
@@ -720,6 +730,34 @@ namespace OpenMS
 						 << "\t\t\t\t</precursorList>\n";
 				}
 				os << "\t\t\t</spectrumDesc>\n";
+
+				typedef const std::map<String,MetaInfoDescription> Map;
+				if (spec.getMetaInfoDescriptions().size()>0)
+				{
+					for (Map::const_iterator it = spec.getMetaInfoDescriptions().begin();
+							 it != spec.getMetaInfoDescriptions().end(); ++it)
+					{
+						os << "\t\t\t<supDesc supDataArrayRef=\"" << it->first << "\">\n";
+						if (!it->second.isMetaEmpty())
+						{
+							os << "\t\t\t\t<supDataDesc>\n";
+							writeUserParam_(os, it->second, 5);
+							os << "\t\t\t\t</supDataDesc>\n";
+						}
+						if (it->second.getSourceFile()!=SourceFile())
+						{
+							os << "\t\t\t\t<supSourceFile>\n"
+					 				<< "\t\t\t\t\t<nameOfFile>" << it->second.getSourceFile().getNameOfFile()
+									<< "</nameOfFile>\n"
+					 				<< "\t\t\t\t\t<pathToFile>" << it->second.getSourceFile().getPathToFile()
+									<< "</pathToFile>\n";
+							if (it->second.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
+								<< it->second.getSourceFile().getFileType()	<< "</fileType>\n";
+							os << "\t\t\t\t</supSourceFile>\n";
+						}
+						os << "\t\t\t</supDesc>\n";
+					}
+				}
 
 				// m/z
 				float* tmp = decoder_[0].getFloatBuffer(spec.size());

@@ -35,7 +35,7 @@ namespace OpenMS
 		template <>
 		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::writeDerivedPeakSupplementalData_ < DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > >( std::ostream& os, DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > const & container)
 		{
-			// ???? this should work for double as well as float!!!
+			// default: write data in 32Bit -> fill float array
 			float* tmp = decoder_[0].getFloatBuffer(container.size());
 			Size container_size = container.size();
 			// area

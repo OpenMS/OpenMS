@@ -40,7 +40,7 @@ namespace OpenMS
 	{
 
   /**
-  	@brief XML handler for MzDataFile
+  	@brief XML handler for experimental settings of MzDataFile
 
 		MapType has to be a MSExperiment or have the same interface.
   	Do not use this class. It is only needed in MzDataFile.
@@ -51,23 +51,23 @@ namespace OpenMS
     public:
       /**@name Constructors and destructor */
       //@{
-      ///
+      /// Constructor for a write-only handler
       MzDataExpSettHandler(ExperimentalSettings& exp);
 
-      ///
+      /// Constructor for a read-only handler
       MzDataExpSettHandler(const ExperimentalSettings& exp);
 
-      ///
+      /// Destructor
       virtual ~MzDataExpSettHandler();
       //@}
 
-      ///
+      /// This function is called for each closing tag in the XML file.
       virtual bool endElement( const QString & uri, const QString & local_name,
 															 const QString & qname );
-      ///
+      /// This function is called for each opening XML tag in the file.
       virtual bool startElement(const QString & uri, const QString & local_name,
 																const QString & qname, const QXmlAttributes & attributes );
-		  ///
+		  /// This function is called for each opening XML tag in the file.
       virtual bool characters( const QString & chars );
 
   		///Writes the contents to a stream

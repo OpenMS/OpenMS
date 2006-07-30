@@ -270,18 +270,37 @@ protected:
     */
     void sort_(UnsignedInt skip_from=END, UnsignedInt skip_to=END);
 
-    static const UnsignedInt DOTS;  // internal value for "..." -> IndexRange
-    static const UnsignedInt END;   // internal value for end iterator
+		/// internal value for "..." to define a range of indices
+    static const UnsignedInt DOTS;
+		/// internal value for end iterator
+    static const UnsignedInt END;
 
+		/**
+			@brief set of indices
+
+			facilitates compression by containining enum-value DOTS to indicate index ranges
+		*/
     std::vector<UnsignedInt> set_;
+
+		/**
+			@brief is index set sorted?
+
+			required because of lazy add-function
+		*/
     bool is_sorted_;
+
+		/**
+			@brief number of indices in set
+
+			number of indices in set independent from compression <br>
+			updated by every call to add/remove
+		*/
     Size size_;
 
 };
 
 ///Print the contents of a IndexSet to a stream.
-std::ostream& operator << (std::ostream& os, const IndexSet& set
-                              );
+std::ostream& operator << (std::ostream& os, const IndexSet& set);
 
 }
 

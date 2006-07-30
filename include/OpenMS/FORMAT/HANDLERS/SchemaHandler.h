@@ -62,7 +62,7 @@ namespace OpenMS
 			SchemaHandler();
       /** @brief constructor used to initialize all vectors to non-trivial sizes
 
-				@p tag_num number of tags
+				@p tag_num number of tags<br>
 				@p map_num number of maps
 			*/
       SchemaHandler(Size tag_num, Size map_num);

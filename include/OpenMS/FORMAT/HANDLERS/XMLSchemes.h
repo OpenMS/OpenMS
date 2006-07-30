@@ -34,7 +34,7 @@ namespace OpenMS
   /** @brief the XML schema namespace
 
 		 	This namespace contains the XML schemas.
-		 	Schemata are sorted descending with respect to their version
+		 	Schemata are sorted with respect to their version in descending order
 
 			A schema consists of an array of Strings.
 			<br>
@@ -46,8 +46,8 @@ namespace OpenMS
 			<br>
 			All other Strings in the array are used to fill maps in the corresponding
 			Handler and contain strings separated by semicolons.
-			These strings correspond to values of enumerations defined in the METADATA classes.
-			Empty strings are uses if no the schema does not define one (e.g. for NULL).
+			These strings correspond to values of enumerations (e.g. defined in the PSIOM classes).
+			Empty strings are uses if the schema does not define one (e.g. for NULL).
   */
   namespace Schemes
   {

@@ -39,7 +39,9 @@
 namespace OpenMS
 {
 	/**
-	 	@brief The PairMatcher allows the matching of labeled features with a fixed distance.
+	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance)
+		as described in the thesis "Automated LC-MS data analysis for differential quantification
+		of MHC ligands using stable isotope labeling".
 
 	  Parameters:
 			<table>
@@ -90,20 +92,22 @@ namespace OpenMS
 		/// Destructor
 		virtual ~PairMatcher();
 
-		/** Pairing step of the PairMatcher
+		/** @brief Pairing step of the PairMatcher
 
-				Return pairs of features that have the same charge and a distance lying within a user-defined range.
+			Return pairs of features that have the same charge and a distance
+			lying within a user-defined range.
 		*/
 		const PairVectorType& run();
 
-		/** @brief Reduction step of the PairMatcher
+		/** @brief Matching step of the PairMatcher
 
-				Remove ambiguous pairs by extracting the best pairs so that each feature is associated with only one pair.
+			Greedy 2-approximation to extract a set of pairs so that each feature
+			is contained in at most one pair.
 		*/
 		const PairVectorType& getBestPairs();
 
 
-		/** @brief Convert pair vector into feature map 
+		/** @brief Convert pair vector into feature map
 
 				Convert pair vector into feature map for visualization in TOPPView.
 				The pairing is shown as an octagon stored in the convex hull layer of
@@ -114,7 +118,7 @@ namespace OpenMS
 
 		/** @brief Print informations about the pair vector @p pairs to stream @p out
 
-			 Print informations (quality, ratio, charge, feature positions, ...) 
+			 Print informations (quality, ratio, charge, feature positions, ...)
 			 about the pair vector @p pairs to stream @p out
 		*/
 		static void printInfo(std::ostream& out, const PairVectorType& pairs);
@@ -125,19 +129,17 @@ namespace OpenMS
     }
 
 		protected:
+		/// Square root of two
 		static const double sqrt2;
 
-		/// feature to be paired
+		/// features to be paired
 		FeatureMapType& features_;
 
-		/// all possible pairs
+		/// all possible pairs (after Pairing)
 		PairVectorType pairs_;
 
-		/// only the best pairs, no ambiguities
+		/// only the best pairs, no ambiguities (after Matching)
 		PairVectorType best_pairs_;
-
-		double mz_diff_, rt_min_, rt_max_, mz_pair_dist_, rt_pair_dist_;
-		double rt_stdev1_, rt_stdev2_, mz_stdev_;
 
 		/// Compare to pairs by comparing their qualities
 		struct Comparator{
@@ -147,6 +149,8 @@ namespace OpenMS
 			}
 		};
 
+		/// return the p-value at position x for the bi-Gaussian distribution
+		/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
 		inline double p_value_(double x, double m, double sig1, double sig2)
 		{
 			if (m<x)
@@ -159,7 +163,11 @@ namespace OpenMS
 		}
 
 		private:
-		enum Constants{ ID=11, LOW_QUALITY};
+		/// constants for accessing feature meta values
+		enum Constants{
+			ID=11,				/**<  used to assocate the feature with its index in the set */
+			LOW_QUALITY		/**< used by the greedy approximation */
+		};
 
 	}; // end of class PairMatcher
 

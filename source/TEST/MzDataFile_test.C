@@ -68,7 +68,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
-  // 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//--------------------------------------------------------------------------- 
   TEST_EQUAL(e2.size(), 3)
 
@@ -123,7 +123,55 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
 	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
-	
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getNameOfFile(),"area.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getMetaValue("Comment"),"Area of the peak")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getNameOfFile(),"fwhm.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getMetaValue("Comment"),"Full width at half max")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getNameOfFile(),"leftWidth.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getMetaValue("Comment"),"Left width")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getNameOfFile(),"rightWidth.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getMetaValue("Comment"),"Right width")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getNameOfFile(),"charge.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getMetaValue("Comment"),"Peak charge")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getNameOfFile(),"signalToNoise.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getMetaValue("Comment"),"Signal to noise ratio")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getNameOfFile(),"rValue.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getMetaValue("Comment"),"Correlation value")
+
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getNameOfFile(),"peakShape.raw")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("Comment"),"Peak shape")
+
 	TEST_EQUAL(e[1].getPrecursorPeak().getPosition()[0], 1.2f)
 	TEST_EQUAL(e[1].getPrecursorPeak().getCharge(), 2)
 	TEST_EQUAL(e[1].getPrecursorPeak().getIntensity(), 2.3f)
@@ -470,10 +518,10 @@ RESULT
 CHECK((load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
-  
+
   MzDataFile f;
 	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e2;
-	
+
 	f.load("data/MzDataFile_test_2.mzData",e2);
 	f.store(tmp_filename,e2);
 	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");

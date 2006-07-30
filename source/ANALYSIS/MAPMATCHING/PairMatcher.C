@@ -62,15 +62,15 @@ namespace OpenMS
 
 		const PairMatcher::PairVectorType& PairMatcher::run()
 		{
-			rt_stdev1_ = param_.getValue("rt_stdev1");
-			rt_stdev2_ = param_.getValue("rt_stdev2");
-			mz_stdev_ = param_.getValue("mz_stdev");
-			mz_pair_dist_ = param_.getValue("mz_pair_dist");
-			rt_pair_dist_ = param_.getValue("rt_pair_dist");
+			double rt_stdev1 = param_.getValue("rt_stdev1");
+			double rt_stdev2 = param_.getValue("rt_stdev2");
+			double mz_stdev = param_.getValue("mz_stdev");
+			double mz_pair_dist = param_.getValue("mz_pair_dist");
+			double rt_pair_dist = param_.getValue("rt_pair_dist");
 
-			rt_min_ = rt_pair_dist_ - 2.0*rt_stdev1_;
-			rt_max_ = rt_pair_dist_ + 2.0*rt_stdev2_;
-			mz_diff_ = 2.0*mz_stdev_;
+			double rt_min = rt_pair_dist - 2.0*rt_stdev1;
+			double rt_max = rt_pair_dist + 2.0*rt_stdev2;
+			double mz_diff = 2.0*mz_stdev;
 
 			pairs_.clear();
 
@@ -114,11 +114,11 @@ namespace OpenMS
 			{
 				// set up local area to search for feature partner
 				int charge = it->getCharge();
-				double mz_opt = mz_pair_dist_/charge;
-				local.setMinX(it->getPosition()[0]-rt_max_);
-				local.setMaxX(it->getPosition()[0]-rt_min_);
-				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff_);
-				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff_);
+				double mz_opt = mz_pair_dist/charge;
+				local.setMinX(it->getPosition()[0]-rt_max);
+				local.setMaxX(it->getPosition()[0]-rt_min);
+				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff);
+				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff);
 
 				for (QuadTreeType::Iterator check=tree.begin(local); check!=tree.end(); ++check)
 				{
@@ -129,8 +129,8 @@ namespace OpenMS
 						diff[MZ] = fabs( it->getPosition()[MZ] - check->second->getPosition()[MZ] );
 						diff[RT] = it->getPosition()[RT] - check->second->getPosition()[RT];
 
-						double score =  p_value_(diff[MZ], mz_opt, mz_stdev_, mz_stdev_)
-													* p_value_(diff[RT],rt_pair_dist_, rt_stdev1_, rt_stdev2_)
+						double score =  p_value_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
+													* p_value_(diff[RT],rt_pair_dist, rt_stdev1, rt_stdev2)
 													* check->second->getOverallQuality()
 													* it->getOverallQuality();
 
