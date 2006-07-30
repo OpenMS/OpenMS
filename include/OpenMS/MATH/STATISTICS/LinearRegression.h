@@ -39,7 +39,7 @@ namespace OpenMS
 	namespace Math
 	{
 		/**
-			@brief This class offers functions to perform least-squares fits to a straight line model, Y(c,x) = c_0 + c_1 x.
+			@brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 						
 						It capsulates the GSL methods for a weighted and an unweigthed linear regression.
 			
@@ -117,10 +117,11 @@ namespace OpenMS
 	    virtual ~LinearRegression(){}
 	    
 			
-			/** @brief This function computes the best-fit linear regression coefficients \f$(c_0,c_1)$\f 
-									of the model \f$Y = c_0 + c_1 X$\f for the dataset \f$(x, y)$\f.
+			/** 
+					@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+					       of the model \f$ Y = c_0 + c_1 X \f$ for the dataset \f$ (x, y) \f$.
 									
-					The values in x-dimension of the dataset \f$(x,y)$\f are given by the iterator range [x_begin,x_end)
+					The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
 					 and the corresponding y-values start at position y_begin.
 								
 			
@@ -134,10 +135,11 @@ namespace OpenMS
 			 Iterator x_end,
 			 Iterator y_begin);
 	
-			/** @brief This function computes the best-fit linear regression coefficients \f$(c_0,c_1)$\f 
-								 of the model \f$Y = c_0 + c_1 X$\f for the weighted dataset \f$(x, y)$\f.
+			/** 
+					@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+								 of the model \f$ Y = c_0 + c_1 X \f$ for the weighted dataset \f$ (x, y) \f$.
 									
-					The values in x-dimension of the dataset \f$(x, y)$\f are given by the iterator range [x_begin,x_end)
+					The values in x-dimension of the dataset \f$ (x, y) \f$ are given by the iterator range [x_begin,x_end)
 					and the corresponding y-values start at position y_begin. They will be weighted by the 
 					values starting at w_begin.
 			
