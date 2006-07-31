@@ -49,12 +49,12 @@ using namespace std;
 // We do not want this class to show up in the docu -> @cond
 /// @cond TOPPCLASSES 
 
-class TOPPFileFilter
+class TOPPDTAExtractor
 	: public TOPPBase
 {
 	public:
-		TOPPFileFilter()
-			: TOPPBase("FileFilter")
+		TOPPDTAExtractor()
+			: TOPPBase("DTAExtractor")
 		{
 			
 		}
@@ -261,7 +261,7 @@ class TOPPFileFilter
 
 int main( int argc, char ** argv )
 {
-	TOPPFileFilter tool;
+	TOPPDTAExtractor tool;
 	return tool.main(argc,argv);
 }
 
