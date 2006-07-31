@@ -33,8 +33,8 @@ GSL_EXEC=\
 	MapStatistics\
 	AdditiveSeries\
 	MapMatcher\
-#	NoiseFilter\
-
+	NoiseFilter\
+	SpectraFilter
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -44,13 +44,14 @@ LIBSVM_EXEC=\
 endif
 
 EXECUTABLES=\
+	$(GSL_EXEC)\
+	$(LIBSVM_EXEC)\
 	FileConverter\
 	FileInfo\
 	FileFilter\
 	FileMerger\
 	TOPPView\
 	FeatureFinder\
-	$(GSL_EXEC)\
 	BaselineFilter\
 	IDFilter\
 	MascotAdapter\
@@ -59,9 +60,8 @@ EXECUTABLES=\
 	UnlabeledMatcher\
 	LabeledMatcher\
 	Dewarper\
-	$(LIBSVM_EXEC)\
-	SpectraFilter\
-	FeaturePairSplitter
+	FeaturePairSplitter\
+	DTAExtractor
 
 #	RawDataResampler\
 #	DBExporter\
