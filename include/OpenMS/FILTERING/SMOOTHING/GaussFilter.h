@@ -198,7 +198,6 @@ namespace OpenMS
         smoothed_data_container.resize(distance(first,last));
 
 #ifdef DEBUG_FILTERING
-
         std::cout << "KernelWidth: " << 8*sigma_ << std::endl;
 #endif
 
@@ -254,8 +253,7 @@ namespace OpenMS
         for (unsigned int i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
-          InputSpectrumIterator input_it(first+i);
-					std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
+          InputSpectrumIterator input_it = first+i;
 
           // pick the peaks in scan i
           filter(*input_it,spectrum);
