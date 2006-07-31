@@ -38,6 +38,7 @@
 #include <qlabel.h>
 #include <qgroupbox.h>
 #include <qvbuttongroup.h>
+#include <qhbuttongroup.h>
 #include <qspinbox.h>
 using namespace std;
 
@@ -52,7 +53,7 @@ namespace OpenMS
 								"<br>";
 			QGridLayout* grid;
 			QLabel * label;
-			grid = new QGridLayout(this, 2, 1);
+			grid = new QGridLayout(this, 2, 2);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
 			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",this);
@@ -63,14 +64,19 @@ namespace OpenMS
 			dot_mode_gradient_ = new QRadioButton("Gradient",coloring_group);
 			dot_gradient_ = new MultiGradientSelector(box);
 			box->addSpace(0);
-			label = new QLabel("Interpolation steps: ",box);
-			dot_interpolation_steps_ = new QSpinBox(10,1000,1,box,"");
+
+			
+			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolationsteps",box);
+			label = new QLabel("Interpolation steps: ",interpolation_box);
+			dot_interpolation_steps_ = new QSpinBox(10,1000,1,interpolation_box,"");
 			dot_interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+
+
 			QVButtonGroup* shading_group = new QVButtonGroup("Shade Mode:",box);
 			//shading_group->setFrameStyle(QFrame::NoFrame);
 			shade_mode_flat_ = new QRadioButton("Flat",shading_group);
 			shade_mode_smooth_ = new QRadioButton("Smooth",shading_group);			
-			grid->addMultiCellWidget(box,0,1,0,0);
+			grid->addMultiCellWidget(box,0,1,0,2);
 
 			box = new QGroupBox(2,Qt::Horizontal,"Line Width",this);
 			label = new QLabel("Line Width: ",box);
@@ -83,7 +89,7 @@ namespace OpenMS
 			background_color_ = new ColorSelector(box);
 			label = new QLabel("Axes Color: ",box);
 			axes_color_ = new ColorSelector(box);
-			grid->addWidget(box,0,1);	
+			grid->addWidget(box,2,2);	
 			
 			load();
 		}
