@@ -131,8 +131,6 @@ using namespace std;
 	The model can be used in RTPredict, to predict retention times 
 	for peptides.
 
-	@todo Fix --help and --help-opt output (Nico)
-	
 	@ingroup TOPP
 */
 

@@ -106,8 +106,6 @@ using namespace std;
 		commandline or the ini file that you want to drop all of them. 
 		If you do not specify this option these identifications will be kept.						 
 
-	@todo Fix --help and --help-opt output (Nico)
-
 	@ingroup TOPP
 */
 
