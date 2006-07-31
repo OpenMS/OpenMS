@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGeomHashPairwiseMapMatcher.h> // the new one
-#include <OpenMS/ANALYSIS/MAPMATCHING/DSimpleFeatureMatcher.h> // the old one
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
@@ -44,7 +43,7 @@ typedef DFeatureMapFile FeatureMapFile;
 typedef DFeaturePair<2,Feature> FeaturePair;
 typedef DFeaturePairVector<2,Feature> FeaturePairVector;
 typedef DFeaturePairsFile FeaturePairVectorFile;
-typedef DSimpleFeatureMatcher<2,KernelTraits,Feature> SimpleFeatureMatcherType;
+// typedef DSimpleFeatureMatcher<2,KernelTraits,Feature> SimpleFeatureMatcherType;
 typedef DGrid<2> GridType;
 
 
@@ -72,8 +71,8 @@ typedef DGrid<2> GridType;
 	@ingroup TOPP
 */
 
-// We do not want this class to show up in the docu -> @cond
-/// @cond TOPPCLASSES
+// We do not want this class to show up in the docu, thus:
+/// @endcond 
 
 class TOPPUnlabeledMatcher
       : public TOPPBase
@@ -116,6 +115,7 @@ class TOPPUnlabeledMatcher
 			"  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
 			"  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
 			"Note: many more parameters can be set in the INI File.\n"
+			"See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
 			;
   }
 
@@ -199,129 +199,43 @@ class TOPPUnlabeledMatcher
 
     //-------------------------------------------------------------
 
-		// polymorphism, the hard way...
-		enum Algorithm
-			{
-				ALGORITHM_NONE = 0,
-				ALGORITHM_SIMPLE = 1,
-				ALGORITHM_GEOMHASH_SHIFT = 2,
-				// ...
-				ALGORITHM_OLD = 99
-			} algorithm = ALGORITHM_NONE;
-
-		if      ( param.getValue("algorithm") == "simple" )
-		{
-			writeDebug_("Using algorithm \"simple\".",1);
-			algorithm = ALGORITHM_SIMPLE;
-		}
-		else if ( param.getValue("algorithm") == "geomhash_shift" )
-		{
-			writeDebug_("Using algorithm \"geomhash_shift\".",1);
-			algorithm = ALGORITHM_GEOMHASH_SHIFT;
-		}
-		else if ( param.getValue("algorithm") == "old" )
-		{
-			writeDebug_("Using algorithm \"old\".",1);
-			algorithm = ALGORITHM_OLD;
-		}
-		else
-		{
-			writeLog_("Error: No existing algorithm specified!  Stop.");
-			// We do not provide a default, so just return.
-			return ILLEGAL_PARAMETERS;
-		}
-		
-		writeDebug_(String("(Useless fact: This algorithm has number ")+String(algorithm)+" in class TOPPUnlabeledMatcher (see UnlabeledMatcher.C))", 13);
-			
-    //-------------------------------------------------------------
-
 
 		// the resulting feature pairs go here
 		FeaturePairVector feature_pair_vector;
 
-
-		// the resulting grid goes here
-		GridType grid;
-
-
-		switch ( algorithm )
+		DGeomHashPairwiseMapMatcher<2> geomhash_feature_matcher;
+		
+		geomhash_feature_matcher.setParam(param);
+		
+		for ( Size index = 0; index < 2; ++index )
 		{
-			// --------------------------------------------------
-			// We can still distinguish among them by the "algorithm" parameter setting.
-		case ALGORITHM_SIMPLE:
-		case ALGORITHM_GEOMHASH_SHIFT:
-			{
+			geomhash_feature_matcher.setFeatureMap(index,feature_map[index]);
+		}
+		
+		geomhash_feature_matcher.setFeaturePairs(feature_pair_vector);
+		
+		writeDebug_("Running algorithm.",1);
 
-				DGeomHashPairwiseMapMatcher<2> geomhash_feature_matcher;
+		geomhash_feature_matcher.run();
 				
-				geomhash_feature_matcher.setParam(param);
+		writeDebug_("Running algorithm...done.",1);
 
-				for ( Size index = 0; index < 2; ++index )
-				{
-					geomhash_feature_matcher.setFeatureMap(index,feature_map[index]);
-				}
+		// this does a deep copy
+		// grid = geomhash_feature_matcher.getGrid();
 
-				geomhash_feature_matcher.setFeaturePairs(feature_pair_vector);
+		// this does a deep copy
+		// feature_pair_vector = geomhash_feature_matcher.getFeaturePairs();
 
-				writeDebug_("Running algorithm.",1);
-
-				geomhash_feature_matcher.run();
-				
-				writeDebug_("Running algorithm...done.",1);
-
-				// this does a deep copy
-				grid = geomhash_feature_matcher.getGrid();
-
-				// this does a deep copy
-				feature_pair_vector = geomhash_feature_matcher.getFeaturePairs();
-
-				break;
-			}
-			// --------------------------------------------------
-		case ALGORITHM_OLD:
-			{
-				// This is the old algorithm.  It shall be replaced soon.
-
-				SimpleFeatureMatcherType simple_feature_matcher;
-
-				simple_feature_matcher.setParam(param);
-
-				for ( Size index = 0; index < 2; ++index )
-				{
-					simple_feature_matcher.setFeatureMap(index,feature_map[index]);
-				}
-
-				simple_feature_matcher.setFeaturePairs(feature_pair_vector);
-
-				simple_feature_matcher.setGrid(grid);
-
-				writeDebug_("Running.",1);
-
-				simple_feature_matcher.run();
-
-				writeDebug_("Running...done.",1);
-
-				break;
-			}
-			// --------------------------------------------------
-		default:
-			{
-				writeLog_("Unrecognized algorithm number in switch statement - I am confused!");
-				return UNKNOWN_ERROR;
-				break;
-			}
-		} // switch (algorithm)
-
-		writeDebug_(String("Number of feature pairs: ") + String(SignedInt(feature_pair_vector.size())),1);
+		writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
 		writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
 	
 		FeaturePairVectorFile feature_pair_vector_file;
-		feature_pair_vector_file.store(pairsfile,feature_pair_vector);
+		feature_pair_vector_file.store(pairsfile,geomhash_feature_matcher.getFeaturePairs());
 	
 		writeDebug_(String("Writing grid file `") + gridfilename + String("'."),1);
 	
 		DGridFile grid_file;
-		grid_file.store(gridfilename,grid);
+		grid_file.store(gridfilename,geomhash_feature_matcher.getGrid());
 
 		writeDebug_("Running UnlabeledMatcher...done.",1);
  
