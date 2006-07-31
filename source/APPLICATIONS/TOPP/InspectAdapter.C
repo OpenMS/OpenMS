@@ -44,9 +44,6 @@ using namespace OpenMS;
 //Doxygen docu
 //-------------------------------------------------------------
 
-// @cond TOPPCLASSES 
-
-
 /**
 	@page InspectAdapter InspectAdapter
 	
@@ -101,8 +98,8 @@ using namespace OpenMS;
 	@ingroup TOPP
 */
 
-// We do not want this class to show up in the docu -> @cond
-/// @cond 
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPInspectAdapter
 	: public TOPPBase
@@ -1060,7 +1057,7 @@ class TOPPInspectAdapter
 		}
 };
 
-///@endcond
+/// @endcond
 
 
 

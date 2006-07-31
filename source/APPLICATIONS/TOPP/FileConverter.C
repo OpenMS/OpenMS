@@ -52,7 +52,7 @@ using namespace std;
 	@ingroup TOPP
 */
 
-// We do not want this class to show up in the docu -> @cond
+// We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPFileConverter
@@ -216,4 +216,4 @@ int main( int argc, char ** argv )
 	return tool.main(argc,argv);
 }
 
-// @endcond
+/// @endcond

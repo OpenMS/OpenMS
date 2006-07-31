@@ -71,7 +71,7 @@ using namespace std;
 	@ingroup TOPP
 */
 
-// We do not want this class to show up in the docu -> @cond
+// We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES 
 
 class MapStatistics

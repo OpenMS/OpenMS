@@ -72,7 +72,7 @@ typedef DGrid<2> GridType;
 */
 
 // We do not want this class to show up in the docu, thus:
-/// @endcond 
+/// @cond TOPPCLASSES
 
 class TOPPUnlabeledMatcher
       : public TOPPBase
@@ -252,5 +252,5 @@ int main( int argc, char ** argv )
   return tool.main(argc,argv);
 }
 
-// @endcond
+/// @endcond
 

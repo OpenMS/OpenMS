@@ -70,7 +70,7 @@ using namespace std;
 
 */
 
-// We do not want this class to show up in the docu -> @cond
+// We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPFeaturePairSplitter
@@ -207,4 +207,4 @@ int main( int argc, char ** argv )
   return tool.main(argc,argv);
 }
 
-// @endcond
+/// @endcond
