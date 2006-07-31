@@ -429,7 +429,6 @@ namespace OpenMS
                    && (shape.getFWHM() >= fwhm_bound_)
                    && (sne.getSignalToNoise(area.max) >= signal_to_noise_))
               {
-                std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
                 //  shape.getSymmetricMeasure();
                 shape.signal_to_noise = sne.getSignalToNoise(area.max);
                 peak_shapes_.push_back(shape);
