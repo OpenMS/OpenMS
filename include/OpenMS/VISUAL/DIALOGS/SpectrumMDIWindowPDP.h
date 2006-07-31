@@ -107,6 +107,7 @@ namespace OpenMS
 			QRadioButton* shade_mode_flat_3d_;
 			QRadioButton* shade_mode_smooth_3d_;
 			ColorSelector* axes_color_3d_;
+			QSpinBox* dot_line_width_;
 		};
 	
 	} //namespace Internal

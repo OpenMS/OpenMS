@@ -42,6 +42,7 @@
 #include <qgroupbox.h>
 #include <qcheckbox.h>
 #include <qvbuttongroup.h>
+#include <qhbuttongroup.h>
 #include <qfiledialog.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
@@ -235,36 +236,43 @@ namespace OpenMS
 			//-----------3D View Tab-----------
 			background = new QWidget(tab);
 		
-			grid = new QGridLayout(background,2,2);
+			grid = new QGridLayout(background,4,2);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
 		
 			box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",background);
 		  QVButtonGroup* coloring_group_3d = new QVButtonGroup("Color Mode:",box);
-		  coloring_group_3d->setFrameStyle(QFrame::NoFrame);
+		  //coloring_group_3d->setFrameStyle(QFrame::NoFrame);
 			box->addSpace(0);
 	    
 	    dot_mode_black_3d_ = new QRadioButton("Black",coloring_group_3d);
 			dot_mode_gradient_3d_ = new QRadioButton("Gradient",coloring_group_3d);
-			dot_gradient_3d_ = new MultiGradientSelector(box);
-			box->addSpace(0);
-			
-			label = new QLabel("Interpolation steps: ",box);
-			dot_interpolation_steps_3d_ = new QSpinBox(10,1000,1,box,"");
+			dot_gradient_3d_ = new MultiGradientSelector(coloring_group_3d);
+			//box->addSpace(0);
+			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolation steps",box);
+			label = new QLabel("Interpolation steps: ",interpolation_box);
+			dot_interpolation_steps_3d_ = new QSpinBox(10,1000,1,interpolation_box,"");
 			dot_interpolation_steps_3d_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			
+			box->addSpace(0);
 			QVButtonGroup* shading_group_3d = new QVButtonGroup("Shade Mode:",box);
-			shading_group_3d->setFrameStyle(QFrame::NoFrame);
+			//shading_group_3d->setFrameStyle(QFrame::NoFrame);
 			shade_mode_flat_3d_ = new QRadioButton("Flat",shading_group_3d);
 			shade_mode_smooth_3d_ = new QRadioButton("Smooth",shading_group_3d);	
-			grid->addMultiCellWidget(box,0,2,0,0);
+			grid->addMultiCellWidget(box,0,3,0,0);
+			
+			box = new QGroupBox(2,Qt::Horizontal,"Line Width",background);
+			label = new QLabel("Line Width: ",box);
+			dot_line_width_ = new QSpinBox(1,10,1,box,"");
+			dot_line_width_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
+			grid->addWidget(box,0,1);	
 			
 			box = new QGroupBox(2,Qt::Horizontal,"Colors",background);
 			label = new QLabel("Background color: ",box);
 			back_color_3d_ = new ColorSelector(box);
 			label = new QLabel("Axes color: ",box);
 			axes_color_3d_ = new ColorSelector(box);
-			grid->addWidget(box,0,1);	
+			
+			grid->addWidget(box,1,1);	
 			
 			grid->setRowStretch (2,2);
 			
@@ -342,6 +350,8 @@ namespace OpenMS
 			back_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_3d_->gradient().fromString(manager_->getPrefAsString("Preferences:3D:Dot:Gradient"));
 			axes_color_3d_->setColor(QColor(manager_->getPrefAsString("Preferences:3D:AxesColor").c_str()));
+			dot_line_width_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Dot:LineWidth")));
+		
 		}
 		
 		void SpectrumMDIWindowPDP::save()
@@ -406,6 +416,7 @@ namespace OpenMS
 			}
 		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().ascii());
 			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().ascii());
+			manager_->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
 		}
 		
 		void SpectrumMDIWindowPDP::browseDefaultPath_()

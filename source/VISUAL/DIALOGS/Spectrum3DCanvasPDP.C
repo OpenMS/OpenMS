@@ -53,43 +53,42 @@ namespace OpenMS
 								"<br>";
 			QGridLayout* grid;
 			QLabel * label;
-			grid = new QGridLayout(this, 2, 2);
+			grid = new QGridLayout(this, 4, 2);
 			grid->setMargin(6);
 			grid->setSpacing(4);	
+
 			QGroupBox* box = new QGroupBox(2,Qt::Horizontal,"Dot coloring",this);
+
 			QVButtonGroup* coloring_group = new QVButtonGroup("Color Mode:",box);
-			//coloring_group->setFrameStyle(QFrame::NoFrame);
-			box->addSpace(0);
+			box->addSpace(0);  
 			dot_mode_black_ = new QRadioButton("Black",coloring_group);
 			dot_mode_gradient_ = new QRadioButton("Gradient",coloring_group);
-			dot_gradient_ = new MultiGradientSelector(box);
-			box->addSpace(0);
-
-			
-			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolationsteps",box);
+			dot_gradient_ = new MultiGradientSelector(coloring_group);
+		// 	box->addSpace(0);
+			//		
+			QHButtonGroup* interpolation_box = new QHButtonGroup("Interpolation steps",box);
 			label = new QLabel("Interpolation steps: ",interpolation_box);
 			dot_interpolation_steps_ = new QSpinBox(10,1000,1,interpolation_box,"");
 			dot_interpolation_steps_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-
-
+			box->addSpace(0);
 			QVButtonGroup* shading_group = new QVButtonGroup("Shade Mode:",box);
 			//shading_group->setFrameStyle(QFrame::NoFrame);
 			shade_mode_flat_ = new QRadioButton("Flat",shading_group);
-			shade_mode_smooth_ = new QRadioButton("Smooth",shading_group);			
-			grid->addMultiCellWidget(box,0,1,0,2);
+			shade_mode_smooth_ = new QRadioButton("Smooth",shading_group);	
+			grid->addMultiCellWidget(box,0,3,0,0);
 
 			box = new QGroupBox(2,Qt::Horizontal,"Line Width",this);
 			label = new QLabel("Line Width: ",box);
 			dot_line_width_ = new QSpinBox(1,10,1,box,"");
 			dot_line_width_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Minimum);
-			grid->addWidget(box,2,0);	
+			grid->addWidget(box,0,1);	
 
 			box = new QGroupBox(2,Qt::Horizontal,"Colors",this);
 			label = new QLabel("Background color: ",box);
 			background_color_ = new ColorSelector(box);
 			label = new QLabel("Axes Color: ",box);
 			axes_color_ = new ColorSelector(box);
-			grid->addWidget(box,2,2);	
+			grid->addWidget(box,1,1);	
 			
 			load();
 		}
