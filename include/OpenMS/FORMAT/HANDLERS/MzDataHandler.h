@@ -284,8 +284,7 @@ namespace OpenMS
 							if (spec_->getMetaInfoDescriptions().find(meta_id_)
 									!= spec_->getMetaInfoDescriptions().end())
 							{
-								// save sup-data name in comment-member of MetaInfoDescription
-								spec_->getMetaInfoDescriptions()[meta_id_].setComment(chars.ascii());
+								spec_->getMetaInfoDescriptions()[meta_id_].setName(chars.ascii());
 							}
 							break;
 						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
