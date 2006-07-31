@@ -32,7 +32,9 @@ namespace OpenMS
 {
 	
 	MetaInfoDescription::MetaInfoDescription():
-		MetaInfoInterface()
+		MetaInfoInterface(),
+		comment_(),
+		name_()
 	{
 	  
 	}
@@ -40,6 +42,7 @@ namespace OpenMS
 	MetaInfoDescription::MetaInfoDescription(const MetaInfoDescription& source):
 		MetaInfoInterface(source),
 	  comment_(source.comment_),
+	  name_(source.name_),
 	  source_file_(source.source_file_)
 	{
 	  
@@ -56,6 +59,7 @@ namespace OpenMS
 	  
 	  MetaInfoInterface::operator=(source);
 	  comment_ = source.comment_;
+	  name_ = source.name_;
 	  source_file_ = source.source_file_;
 	  
 	  return *this;
@@ -65,15 +69,11 @@ namespace OpenMS
   {
   	return 
 		  comment_ == rhs.comment_ &&
+		  name_ == rhs.name_ &&
 		  source_file_ == rhs.source_file_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
-  
-  bool MetaInfoDescription::operator!= (const MetaInfoDescription& rhs) const
-  {
-  	return !(operator==(rhs));
- 	}
 	
 	const String& MetaInfoDescription::getComment() const 
 	{
@@ -98,6 +98,16 @@ namespace OpenMS
 	void MetaInfoDescription::setSourceFile(const SourceFile& source_file)
 	{
 	  source_file_ = source_file; 
+	}
+
+	const String& MetaInfoDescription::getName() const 
+	{
+	  return name_; 
+	}
+	
+	void MetaInfoDescription::setName(const String& name)
+	{
+	  name_ = name; 
 	}
 	
 }

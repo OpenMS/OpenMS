@@ -55,8 +55,6 @@ namespace OpenMS
 
       /// Equality operator
       bool operator== (const MetaInfoDescription& rhs) const;
-      /// Equality operator
-      bool operator!= (const MetaInfoDescription& rhs) const;
 			
 			/// returns the free-text comment
       const String& getComment() const;
@@ -69,10 +67,15 @@ namespace OpenMS
       SourceFile& getSourceFile();
       /// sets the source file the information
       void setSourceFile(const SourceFile& source_file);
+
+			/// returns the name of the peak annotations
+      const String& getName() const;
+      /// sets the name of the peak annotations
+      void setName(const String& name);
       
     protected:
-      String name_;
       String comment_;
+      String name_;
       SourceFile source_file_;
   };
 } // namespace OpenMS

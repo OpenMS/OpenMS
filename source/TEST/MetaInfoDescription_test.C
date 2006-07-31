@@ -78,15 +78,28 @@ CHECK(void setComment(const String& comment))
   TEST_EQUAL(tmp.getComment(),"comment");
 RESULT
 
+CHECK(const String& getName() const)
+  MetaInfoDescription tmp;
+  TEST_EQUAL(tmp.getName(),"");
+RESULT
+
+CHECK(void setName(const String& name))
+  MetaInfoDescription tmp;
+  tmp.setName("name");
+  TEST_EQUAL(tmp.getName(),"name");
+RESULT
+
 CHECK(MetaInfoDescription(const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.getSourceFile().setFileType("wma");
   tmp.setComment("bla");
+  tmp.setName("bla2");
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2(tmp);
   TEST_EQUAL(tmp2.getSourceFile().getFileType(),"wma");
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getName(),"bla2");
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 RESULT
 
@@ -94,17 +107,20 @@ CHECK(MetaInfoDescription& operator= (const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.getSourceFile().setFileType("wma");
   tmp.setComment("bla");
+  tmp.setName("bla2");
   tmp.setMetaValue("label",String("label"));
   
   MetaInfoDescription tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getSourceFile().getFileType(),"wma");
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getName(),"bla2");
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 
   tmp2 = MetaInfoDescription();
   TEST_EQUAL(tmp2.getSourceFile().getFileType(),"");
   TEST_EQUAL(tmp2.getComment(),"");
+  TEST_EQUAL(tmp2.getName(),"");
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 RESULT
 
@@ -121,25 +137,12 @@ CHECK(bool operator== (const MetaInfoDescription& rhs) const)
 	TEST_EQUAL(edit==empty, false);
 
   edit = empty;
+  edit.setName("bla2");
+	TEST_EQUAL(edit==empty, false);
+
+  edit = empty;
   edit.setMetaValue("label",String("label"));
   TEST_EQUAL(edit==empty, false);
-RESULT
-
-CHECK(bool operator!= (const MetaInfoDescription& rhs) const)
-  MetaInfoDescription edit, empty;
-  
-  TEST_EQUAL(edit!=empty, false);
-  
-  edit.getSourceFile().setFileType("wma");
-  TEST_EQUAL(edit!=empty, true);
-  
-  edit = empty;
-  edit.setComment("bla");
-	TEST_EQUAL(edit!=empty, true);
-
-  edit = empty;
-  edit.setMetaValue("label",String("label"));
-  TEST_EQUAL(edit!=empty, true);
 RESULT
 
 /////////////////////////////////////////////////////////////
