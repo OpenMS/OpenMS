@@ -8,9 +8,9 @@ function run_wrapper()
 {
 # uncomment your choice (for debugging of this script)
 #  yes, do run
-	$@
+#	time $@
 #  simulate
-#	echo run_wrapper: $@
+	echo run_wrapper: $@
 }
 #--------------------------------------------------
 
@@ -38,14 +38,14 @@ echo " "
 run_wrapper UnlabeledMatcher -ini UnlabeledMatcher.ini -n 10 -d 1
 run_wrapper UnlabeledMatcher -ini UnlabeledMatcher.ini -n 11 -d 1
 
-gnuplot E32R_24h_1_vs_2.geomhash_shift.data.gp - <<EOF
+run_wrapper gnuplot E32R_24h_1_vs_2.geomhash_shift.data.gp - <<EOF
 set output 'E32R_24h_1_vs_2.geomhash_shift.data.png'
 set terminal png size 1000,1000
 replot
 quit
 EOF
 
-gnuplot E32R_24h_1_vs_2.simple.data.gp - <<EOF
+run_wrapper gnuplot E32R_24h_1_vs_2.simple.data.gp - <<EOF
 set output 'E32R_24h_1_vs_2.simple.data.png'
 set terminal png size 1000,1000
 replot
@@ -60,13 +60,13 @@ echo "The x-axis is the index of the feature pair, ordered by quality,"
 echo "the y-axis is the quality."
 echo " "
 
-FeaturePairSplitter -in E32R_24h_1_vs_2.geomhash_shift.pairs.xml -qual E32R_24h_1_vs_2.geomhash_shift.pairs.qualities
+run_wrapper FeaturePairSplitter -in E32R_24h_1_vs_2.geomhash_shift.pairs.xml -qual E32R_24h_1_vs_2.geomhash_shift.pairs.qualities
 LC_ALL=C sort -nr E32R_24h_1_vs_2.geomhash_shift.pairs.qualities > E32R_24h_1_vs_2.geomhash_shift.pairs.qualities.sorted
 
-FeaturePairSplitter -in E32R_24h_1_vs_2.simple.pairs.xml -qual E32R_24h_1_vs_2.simple.pairs.qualities
+run_wrapper FeaturePairSplitter -in E32R_24h_1_vs_2.simple.pairs.xml -qual E32R_24h_1_vs_2.simple.pairs.qualities
 LC_ALL=C sort -nr E32R_24h_1_vs_2.simple.pairs.qualities > E32R_24h_1_vs_2.simple.pairs.qualities.sorted
 
-gnuplot - <<EOF
+run_wrapper gnuplot - <<EOF
 plot 'E32R_24h_1_vs_2.geomhash_shift.pairs.qualities.sorted' with lines
 replot 'E32R_24h_1_vs_2.simple.pairs.qualities.sorted' with lines
 set output 'E32R_24h_1_vs_2.algorithm.qualities.png'
@@ -79,35 +79,48 @@ echo " "
 echo "============================================================"
 echo " "
 
+#--------------------------------------------------
+function run_wrapper()
+{
+# uncomment your choice (for debugging of this script)
+#  yes, do run
+	time $@
+#  simulate
+#	echo run_wrapper: $@
+}
+#--------------------------------------------------
+
 echo "Finally, we go through the same steps for another two repeat measurements."
 
-echo "The 'geomhash_shift' algorithm finds 2211, the 'simple' algorithm 2196 feature pairs."
+echo "Here the 'geomhash_shift' algorithm finds 2182, the 'simple' algorithm 2155 feature pairs."
+echo "Have a look at the  grid file.  It lists the shifts,"
+echo "which change over time in a complex, non-linear way."
 echo " "
 
 run_wrapper UnlabeledMatcher -ini UnlabeledMatcher.ini -n 20 -d 1
 run_wrapper UnlabeledMatcher -ini UnlabeledMatcher.ini -n 21 -d 1
 
-gnuplot E32R_24h_10uMCu_1_vs_2.geomhash_shift.data.gp - <<EOF
+run_wrapper gnuplot E32R_24h_10uMCu_1_vs_2.geomhash_shift.data.gp - <<EOF
 set output 'E32R_24h_10uMCu_1_vs_2.geomhash_shift.data.png'
 set terminal png size 1000,1000
 replot
 quit
 EOF
-
-gnuplot E32R_24h_10uMCu_1_vs_2.simple.data.gp - <<EOF
+xs
+run_wrapper gnuplot E32R_24h_10uMCu_1_vs_2.simple.data.gp - <<EOF
 set output 'E32R_24h_10uMCu_1_vs_2.simple.data.png'
 set terminal png size 1000,1000
 replot
 quit
 EOF
 
-FeaturePairSplitter -in E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.xml -qual E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.qualities
+run_wrapper FeaturePairSplitter -in E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.xml -qual E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.qualities
 LC_ALL=C sort -nr E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.qualities > E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.qualities.sorted
 
-FeaturePairSplitter -in E32R_24h_10uMCu_1_vs_2.simple.pairs.xml -qual E32R_24h_10uMCu_1_vs_2.simple.pairs.qualities
+run_wrapper FeaturePairSplitter -in E32R_24h_10uMCu_1_vs_2.simple.pairs.xml -qual E32R_24h_10uMCu_1_vs_2.simple.pairs.qualities
 LC_ALL=C sort -nr E32R_24h_10uMCu_1_vs_2.simple.pairs.qualities > E32R_24h_10uMCu_1_vs_2.simple.pairs.qualities.sorted
 
-gnuplot - <<EOF
+run_wrapper gnuplot - <<EOF
 plot 'E32R_24h_10uMCu_1_vs_2.geomhash_shift.pairs.qualities.sorted' with lines
 replot 'E32R_24h_10uMCu_1_vs_2.simple.pairs.qualities.sorted' with lines
 set output 'E32R_24h_10uMCu_1_vs_2.algorithm.qualities.png'
