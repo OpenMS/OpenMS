@@ -37,7 +37,7 @@
  	
  	All TOPP tools provide the following command line options:
  	<UL>
- 	  <LI><B>-ini &lt;file&gt;</b><BR>Use the given TOPP INI file
+ 	  <LI><B>-ini &lt;file&gt;</b>Use the given TOPP INI file
  	  <LI><B>-log &lt;file&gt;</b> log file (default: TOPP.log)
  	  <LI><B>-n &lt;int&gt;</b> instance number (default: 1)
  	  <LI><B>-d &lt;level&gt;</b> debug level (default: 0)

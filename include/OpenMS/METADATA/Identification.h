@@ -110,7 +110,7 @@ namespace OpenMS
 			@brief returns all referencing hits
     	
 			Returns a vector of peptide hits that reference a protein hit with @code date_time @endcode
-			@endcode and @code accession @endcode.
+			and @code accession @endcode.
     */
     std::vector<PeptideHit>* getReferencingHits(String date_time, String accession) const;
 

@@ -52,7 +52,7 @@ namespace OpenMS
 			 @param x1 minimum value
 			 @param x2 maximum value
 			 @param levels numbers of different tick levels (maximum is 3)
-			 @param grid  numbers the grid_vector
+			 @param grid the grid_vector to fill
 			 @param max_num_big
 			 @param max_num_small 
 			 @param grid_line_dist the distance of the gridlines
@@ -64,6 +64,7 @@ namespace OpenMS
 			 
 			 @param x1 minimum value
 			 @param x2 maximum value
+			 @param grid the grid_vector to fill
 		*/
 		static void calcLogGridLines(double x1, double x2, GridVector& grid);
 			

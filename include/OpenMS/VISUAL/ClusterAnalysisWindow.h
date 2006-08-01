@@ -75,8 +75,15 @@ namespace OpenMS
     void addClusterSpectrum(const ClusterSpectrum& ,bool = 1);
     /** @brief display cluster in SimMatrixWidget or highlight peptide <br> */
     void clusterListViewDoubleClick(QListViewItem*);
-    /** @brief display two spectra <br> */
-    void inspect(int = 0,int = 0,bool = 0, bool = 0);
+    /** 
+    	@brief display two spectra
+    	
+		  @param id1 id of first spectrum. if id1 == 0, show dialog
+		  @param id2 id of second spectrum
+		  @param preprocess1 preprocess first spectrum
+		  @param preprocess2 preprocess second spectrum
+    */
+    void inspect(int id1 = 0, int id2 = 0, bool preprocess1 = 0, bool preprocess2 = 0);
     /** @brief show spectrum information in the status bar <br> */
     void updateStatusBar(int,int);
     /** @brief let user input DB connection <br> */

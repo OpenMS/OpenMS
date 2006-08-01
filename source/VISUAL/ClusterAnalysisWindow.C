@@ -358,13 +358,6 @@ namespace OpenMS
     delete pwi;
   }
 
-  /**
-  \param id1 id of first spectrum
-  \param id2 id of second spectrum
-  \param preprocess1 preprocess first spectrum
-  \param preprocess2 preprocess second spectrum
-  if id1 == 0, show dialog <br>
-   */
   void ClusterAnalysisWindow::inspect(int /*id1*/ , int /*id2*/, bool /*preprocess1*/, bool /*preprocess2*/)
   {
 //TODO Persistence

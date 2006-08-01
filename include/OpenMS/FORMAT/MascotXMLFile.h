@@ -57,6 +57,7 @@ namespace OpenMS
 		    @brief loads data from a MascotXML file
 		    
 		    @param filename the file to be loaded
+		    @param protein_identification protein identifications belonging to the whole experiment
 		    @param identifications the identifications
 		    @param precursor_retention_times the retention times of the precursors corresponding to the identifications
 		    @param precursor_mz_values the mz values of the precursors corresponding to the identifications

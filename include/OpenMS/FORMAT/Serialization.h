@@ -53,7 +53,7 @@
 	
 	<code>\#define OPENMS_HAVE_SERIALIZATION 1</code>
  
-	before any OpenMS header files are included.</b>
+	before any OpenMS header files are included.
 
  */
 #define OPENMS_HAVE_SERIALIZATION 0

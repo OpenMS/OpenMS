@@ -103,22 +103,25 @@ public:
 
 
     /**
-      		@brief add seeder to FeatureFinder  
-      		
-      	 \param name unique name (see BaseSeeder) for Seeder class derived from BaseSeeder  
-      */
+			@brief add seeder to FeatureFinder  
+			
+			@param name unique name (see BaseSeeder) for Seeder class derived from BaseSeeder 
+			@param param settings for the seeder
+    */
     void addSeeder(const String& name, const Param* param=0);
     /**
-     		@brief add extender to FeatureFinder  
-     		
-    		\param name unique name (see BaseExtender) for Extender class derived from BaseExtender  
+	 		@brief add extender to FeatureFinder  
+	 		
+			@param name unique name (see BaseExtender) for Extender class derived from BaseExtender
+			@param param settings for the extender
     */
     void addExtender(const String& name, const Param* param=0);
 
     /**
-    		@brief add modelfitter to FeatureFinder  
-    		
-    		\param name unique name (see BaseFitter) for Fitter class derived from BaseFitter
+  		@brief add modelfitter to FeatureFinder  
+  		
+  		@param name unique name (see BaseFitter) for Fitter class derived from BaseFitter
+  		@param param settings for the fitter
     */
     void addFitter(const String& name, const Param* param=0);
 

@@ -44,17 +44,18 @@ namespace OpenMS
 						It capsulates the GSL methods for a weighted and an unweigthed linear regression.
 			
 						Next to the intercept with the y-axis and the slope of the fitted line, this class
-						computes the: 
-									<li> squared pearson coefficient            
-									<li> value of the t-distribution              
-									<li> standard deviation of the residuals 
-									<li> standard error of the slope   
-									<li> intercept with the x-axis (useful for additive series experiments)
-									<li> lower border of confidence interval  
-									<li> higher border of confidence interval 
-									<li> chi squared value      
-									<li> x mean 
-						
+						computes the:
+						<UL>
+							<li> squared pearson coefficient</LI>       
+							<li> value of the t-distribution</LI>      
+							<li> standard deviation of the residuals</LI> 
+							<li> standard error of the slope</LI>   
+							<li> intercept with the x-axis (useful for additive series experiments)</LI>
+							<li> lower border of confidence interval</LI>  
+							<li> higher border of confidence interval</LI> 
+							<li> chi squared value</LI>      
+							<li> x mean</LI> 
+						</UL>
 			@ingroup Math
 		*/
 		template <typename Iterator> 
