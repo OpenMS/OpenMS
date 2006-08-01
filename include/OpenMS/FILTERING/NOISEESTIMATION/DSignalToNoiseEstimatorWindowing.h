@@ -53,6 +53,8 @@ namespace OpenMS
 
   ???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
   Please use it carefully.
+  
+  TODO: This class is not bug free. Maintainer should check this (Eva)
 
     @ingroup PeakPicking
   */
