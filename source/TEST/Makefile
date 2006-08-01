@@ -138,11 +138,17 @@ ifeq ($(ENABLE_DB),true)
 	DBAdapter_test
 endif
 
+ifeq ($(LIBSVM_SUPPORT),true)
+	LIBSVM_EXECUTABLES_FORMAT=\
+		LibSVMEncoder_test
+endif
+
 EXECUTABLES_FORMAT = \
 	RTTI_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${DB_EXECUTABLES_FORMAT}\
+	${LIBSVM_EXECUTABLES_FORMAT}\
 	DTAFile_test\
 	DTA2DFile_test\
 	MascotInfile_test\

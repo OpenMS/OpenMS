@@ -36,11 +36,6 @@ namespace OpenMS
     
   }
   
-  LibSVMEncoder::LibSVMEncoder(const LibSVMEncoder& /* source */)
-  {
-    
-  }
-   
   LibSVMEncoder::~LibSVMEncoder()
   {
     

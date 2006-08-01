@@ -48,14 +48,9 @@ namespace OpenMS
     public:
       /// Constructor
       LibSVMEncoder();
-      /// Copy constructor
-      LibSVMEncoder(const LibSVMEncoder& source);
       /// Destructor
       ~LibSVMEncoder();
-      
-      /// Assignment operator
-      LibSVMEncoder& operator = (const LibSVMEncoder& source);
-      
+            
       /**
  				@brief returns a composition vector of 'sequence'
  				
