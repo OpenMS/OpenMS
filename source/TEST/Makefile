@@ -92,6 +92,7 @@ EXECUTABLES_SYSTEM = \
 	StopWatch_test
 
 EXECUTABLES_KERNEL =\
+	KernelTraits_test\
 	DPosition_test\
 	DRawDataPoint_test\
 	DPeak_test\

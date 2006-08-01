@@ -32,14 +32,29 @@
 
 namespace OpenMS
 {
+
+	// forward declarations ...
+	struct DoubleKernelTraits;
+	struct FloatKernelTraits;
+
 	/**
-		@brief Double traits class for the KERNEL classes (default).
-		
-		This struct defines the default types used for coordinates, intensity, charge, area, ...
-		
-		@ingroup Kernel
+		 @brief Default traits class for the KERNEL classes.
+		 
+		 This struct defines the default types used for coordinates, intensity, charge, area, ...
+		 
+		 @ingroup Kernel
 	*/
-	struct KernelTraits 
+	typedef DoubleKernelTraits KernelTraits;
+	
+	/**
+		 @brief Double traits class for the KERNEL classes.
+		 
+		 This struct defines the types used for coordinates, intensity, charge, area, ...
+		 This traits struct uses <code>double</code> for real numbers.
+		 
+		 @ingroup Kernel
+	*/
+	struct DoubleKernelTraits 
 	{
 	 public:
 		
@@ -71,13 +86,21 @@ namespace OpenMS
 		/// Type for a charge (signed)
 		typedef	SignedInt ChargeType;
 		//@}
+
+	 private:
+		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		DoubleKernelTraits();
+		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		DoubleKernelTraits(DoubleKernelTraits const &);
 	};
 
 	/**
 		 @brief Float traits class for the KERNEL classes.
-		
+		 
 		 This struct defines the types used for coordinates, intensity, charge, area, ...
-		 This traits struct uses floats instead of the default (double).
+		 This traits struct uses <code>float</code> for real numbers.
+		 
+		 @ingroup Kernel
 	*/
   struct FloatKernelTraits
   {
@@ -111,6 +134,12 @@ namespace OpenMS
 		/// Type for a charge (signed)
 		typedef	SignedInt ChargeType;
 		//@}    
+
+	 private:
+		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		FloatKernelTraits();
+		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		FloatKernelTraits(FloatKernelTraits const &);
   };
   
 } // namespace OpenMS

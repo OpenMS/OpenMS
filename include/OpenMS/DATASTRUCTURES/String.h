@@ -103,13 +103,23 @@ namespace OpenMS
 			
 		}
 		/// Constructor from an integer
-		String(SignedInt i);
+		String(int i);
 		/// Constructor from an unsigned integer
-		String(UnsignedInt i);
+		String(unsigned int i);
+		/// Constructor from an integer
+		String(short int i);
+		/// Constructor from an unsigned integer
+		String(short unsigned int i);
+		/// Constructor from an integer
+		String(long int i);
+		/// Constructor from an unsigned integer
+		String(long unsigned int i);
 		/// Constructor from float (precision is 7)
 		String(float f);
 		/// Constructor from double (precision is 10)
 		String(double d);
+		/// Constructor from long double (precision is 16)
+		String(long double d);
 		/**
 			@brief  Constructor from double, that is converted to string of maximum length @p size. 
 		

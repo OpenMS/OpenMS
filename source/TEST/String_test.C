@@ -91,13 +91,33 @@ CHECK(String(const char c))
 	TEST_EQUAL(s,"v")
 RESULT
 
-CHECK(String(SignedInt i))
-	String s(SignedInt(-17));
+CHECK(String(int i))
+	String s(int (-17));
 	TEST_EQUAL(s,"-17")
 RESULT
 
-CHECK(String(UnsignedInt i))
-	String s(UnsignedInt(17));
+CHECK(String(unsigned int i))
+	String s((unsigned int) (17));
+	TEST_EQUAL(s,"17")
+RESULT
+
+CHECK(String(long int i))
+	String s((long int)(-17));
+	TEST_EQUAL(s,"-17")
+RESULT
+
+CHECK(String(long unsigned int i))
+	String s((long unsigned int)(17));
+	TEST_EQUAL(s,"17")
+RESULT
+
+CHECK(String(short int i))
+	String s((short int)(-17));
+	TEST_EQUAL(s,"-17")
+RESULT
+
+CHECK(String(short unsigned int i))
+	String s((short unsigned int)(17));
 	TEST_EQUAL(s,"17")
 RESULT
 
@@ -108,6 +128,11 @@ RESULT
 
 CHECK(String(double d))
 	String s(double(17.012345));
+	TEST_EQUAL(s,"17.012345")
+RESULT
+
+CHECK(String(long double d))
+	String s((long double)(17.012345));
 	TEST_EQUAL(s,"17.012345")
 RESULT
 

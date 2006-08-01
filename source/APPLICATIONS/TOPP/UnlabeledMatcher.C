@@ -220,12 +220,6 @@ class TOPPUnlabeledMatcher
 				
 		writeDebug_("Running algorithm...done.",1);
 
-		// this does a deep copy
-		// grid = geomhash_feature_matcher.getGrid();
-
-		// this does a deep copy
-		// feature_pair_vector = geomhash_feature_matcher.getFeaturePairs();
-
 		writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
 		writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
 	

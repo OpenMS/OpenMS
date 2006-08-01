@@ -75,7 +75,7 @@ namespace OpenMS
 	{
 	}
 
-	String::String(SignedInt i)
+	String::String(int i)
 		: string()
 	{
 		stringstream s;
@@ -83,7 +83,39 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
-	String::String(UnsignedInt i)
+	String::String(unsigned int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
+	String::String(short int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
+	String::String(short unsigned int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
+	String::String(long int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
+	String::String(long unsigned int i)
 		: string()
 	{
 		stringstream s;
@@ -105,6 +137,15 @@ namespace OpenMS
 	{
 		stringstream s;
 		s.precision(10);
+		s << d;
+		string::operator=(s.str());
+	}
+
+	String::String(long double d)
+		: string()
+	{
+		stringstream s;
+		s.precision(16);
 		s << d;
 		string::operator=(s.str());
 	}
