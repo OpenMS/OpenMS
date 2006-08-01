@@ -321,6 +321,7 @@ namespace OpenMS
 						<< p.getIntensity() << "\n";
 			}
 		}
+		file.close();
 		#endif
 		++counter_;
 

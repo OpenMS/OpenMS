@@ -136,25 +136,25 @@ namespace OpenMS
 
 
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
+	/// NOTE: Works only scanwise i.e. you have to pass your data to this function
+	/// scan by scan.
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
 	  first_= it_begin;
       last_= it_end;
-	  
-      CoordinateType current_rt = it_begin->getPosition()[RT];
+	
       std::vector<IntensityType> intensities(window_size_);
       DPeakArrayNonPolymorphic<D,PeakType> scan;
-      while (it_begin != it_end)
+      // collect all intensities and compute the background noise as
+	  // the median of the intensities in a small window.
+	  while (it_begin != it_end)
       {
-        CoordinateType next_rt = it_begin->getPosition()[RT];
-        if (next_rt != current_rt)
-        {
-          shiftWindow_(scan);
-          scan.clear();
-        }
         scan.push_back(*it_begin);
         it_begin++;
       }
+	  
+	  shiftWindow_(scan);
+      scan.clear();
     }
 
     /// Return to signal/noise estimate for data point @p data_point

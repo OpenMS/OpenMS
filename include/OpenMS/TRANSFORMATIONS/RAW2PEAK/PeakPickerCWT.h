@@ -656,9 +656,6 @@ namespace OpenMS
         }
       }
 
-
-
-
       /** @brief Picks the peaks in a MSExperiment.
       		
       	Picks the peaks on every scan in the MSExperiment.

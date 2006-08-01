@@ -490,14 +490,14 @@ public:
     ReverseIterator rbegin()
     {
         return ReverseIterator(end());
-        ;
+       
     }
 
     /// See std::vector documentation.
     ReverseIterator rend()
     {
         return ReverseIterator(begin());
-        ;
+       
     }
 
     /// See std::vector documentation.
