@@ -39,7 +39,7 @@ START_TEST(KernelTraits, "$Id: hi folks! (cg) 2006-08-01 $")
 
 using namespace OpenMS;
 
-STATUS("KernelTraits struct is a traits class and cannot even be instantiated.")
+STATUS("KernelTraits struct is a traits class and cannot be instantiated.")
 STATUS("Thus we can only employ all its typedef to instantiate something.")
 STATUS("But if this test doesn't even COMPILE,")
 STATUS("-- well, then there is definitely something going wrong.")
@@ -127,10 +127,6 @@ CHECK(FloatKernelTraits)
   chargetype_instance++;
 
 RESULT
-
-
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

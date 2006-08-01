@@ -30,6 +30,7 @@ DIRECTORY=KERNEL
 THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
+	KernelTraits.C\
 	DSpectrum.C\
 	DFeature.C\
 	DimensionDescription.C\

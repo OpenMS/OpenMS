@@ -34,6 +34,7 @@ namespace OpenMS
 {
 
 	// forward declarations ...
+
 	struct DoubleKernelTraits;
 	struct FloatKernelTraits;
 
@@ -47,7 +48,7 @@ namespace OpenMS
 	typedef DoubleKernelTraits KernelTraits;
 	
 	/**
-		 @brief Double traits class for the KERNEL classes.
+		 @brief Double traits class for the KERNEL classes.  See KernelTraits.
 		 
 		 This struct defines the types used for coordinates, intensity, charge, area, ...
 		 This traits struct uses <code>double</code> for real numbers.
@@ -88,14 +89,14 @@ namespace OpenMS
 		//@}
 
 	 private:
-		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		/// Constructor intentionally declared private -- instantiating this class makes no sense.
 		DoubleKernelTraits();
-		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		/// Constructor intentionally declared private -- instantiating this class makes no sense.
 		DoubleKernelTraits(DoubleKernelTraits const &);
 	};
 
 	/**
-		 @brief Float traits class for the KERNEL classes.
+		 @brief Float traits class for the KERNEL classes.  See KernelTraits.
 		 
 		 This struct defines the types used for coordinates, intensity, charge, area, ...
 		 This traits struct uses <code>float</code> for real numbers.
@@ -136,9 +137,9 @@ namespace OpenMS
 		//@}    
 
 	 private:
-		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		/// Constructor intentionally declared private -- instantiating this class makes no sense.
 		FloatKernelTraits();
-		/// Constructor intentionally declared private -- instantiating traits classes makes no sense.
+		/// Constructor intentionally declared private -- instantiating this class makes no sense.
 		FloatKernelTraits(FloatKernelTraits const &);
   };
   
