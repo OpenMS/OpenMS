@@ -1049,9 +1049,9 @@ double Spectrum3DOpenGLCanvas::scaledMZ(double mz)
 
 double Spectrum3DOpenGLCanvas::scaledInversMZ(double mz)
 {
-	double i_mz =(mz *canvas_3d_.overall_data_range_.max_[1] - mz *canvas_3d_.overall_data_range_.min_[1]);
+	double i_mz =(mz *canvas_3d_.visible_area_.max_[1] - mz *canvas_3d_.visible_area_.min_[1]);
 	i_mz = i_mz/200;
-	i_mz = i_mz + canvas_3d_.overall_data_range_.min_[1]; 
+	i_mz = i_mz + canvas_3d_.visible_area_.min_[1]; 
 	return i_mz;
 }
 
@@ -1234,7 +1234,6 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 	double scale_x2 = scaledInversRT(x_2+100.0);
 	double scale_y1 = scaledInversMZ(-200-y_1);
 	double scale_y2 = scaledInversMZ(-200-y_2);
-	//cout<<scale_x1<<"   "<<scale_x2<<"   "<<scale_y1<<"   "<<scale_y2<<endl;
 	DRange<2> new_area_;
 	
 	if(scale_x1<=scale_x2)
