@@ -65,6 +65,7 @@ void Spectrum3DCanvas::showContextMenu(QPoint p)
 {
 	emit contextMenu(p);
 }
+
 void Spectrum3DCanvas::showLegend(bool show)
 {
 	legend_shown_ = show;

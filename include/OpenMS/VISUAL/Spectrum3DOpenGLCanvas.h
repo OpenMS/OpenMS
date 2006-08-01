@@ -278,7 +278,7 @@ public slots:
 signals:
 		/// signal which is emmited in the mouseReleaseEvent 
 		void rightButton(QPoint pos);
-	};
+		};
   
   
 }
