@@ -1194,7 +1194,9 @@ void Spectrum3DOpenGLCanvas::mouseMoveEvent ( QMouseEvent * e)
 void Spectrum3DOpenGLCanvas::mousePressEvent ( QMouseEvent * e)
 {
 	firstMousePos_ = e->pos();
-	lastMousePos_ = e->pos();
+	lastMousePos_ = e->pos();	
+
+
 }
 void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 {
@@ -1202,22 +1204,21 @@ void Spectrum3DOpenGLCanvas::mouseReleaseEvent ( QMouseEvent * e)
 	translation_on_ = false;
 
 	if(e->button()==Qt::RightButton)
-		{
+	{
 			emit rightButton(e->globalPos());
-		}
-	if(e->button()==Qt::MidButton)
-	{
-		canvas_3d_.zoomBack_();
 	}
-	else
+	if(e->state()==Qt::MidButton)
 	{
-		if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM)
-		{			
+		canvas_3d_.zoomBack_();	
+	}
+
+	if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button()==Qt::LeftButton)
+	{			
 			dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
 			show_zoom_selection_ = false;
 			canvas_3d_.repaintAll();
-		}
 	}
+
 }
 
 void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent * e) 
@@ -1226,7 +1227,6 @@ void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent * e)
 	{
 		translation_on_ = true;
 	}
-	
 }
 void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2, double y_2)
 {
@@ -1234,6 +1234,7 @@ void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2,
 	double scale_x2 = scaledInversRT(x_2+100.0);
 	double scale_y1 = scaledInversMZ(-200-y_1);
 	double scale_y2 = scaledInversMZ(-200-y_2);
+	//	cout<<scale_x1<<"   "<<scale_x2<<"   "<<scale_y1<<"   "<<scale_y2<<endl;
 	DRange<2> new_area_;
 	
 	if(scale_x1<=scale_x2)
