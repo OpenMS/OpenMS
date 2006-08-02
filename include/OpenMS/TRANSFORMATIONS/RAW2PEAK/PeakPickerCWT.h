@@ -43,7 +43,7 @@
 #include <vector>
 #include <algorithm>
 
-#define DEBUG_PEAK_PICKING
+//#define DEBUG_PEAK_PICKING
 namespace OpenMS
 {
   /**
@@ -187,17 +187,40 @@ namespace OpenMS
       {
         return scale_;
       }
+      
       /// Mutable access to the scale of the wavelet transform
       inline float& getWaveletScale()
       {
         return scale_;
       }
+      
       /// Mutable access to the scale of the wavelet transform
       inline void setWaveletScale(const float& scale)
       {
         scale_ = scale;
+        calculatePeakBoundCWT_();
       }
 
+      /// Non-mutable access to the threshold of the height
+      inline const float& getPeakBound() const 
+      { 
+        return peak_bound_; 
+      }
+      
+      /// Mutable access to the threshold of the height
+      inline float& getPeakBound()  
+      { 
+        return peak_bound_; 
+      }
+      
+      /// Mutable access to the threshold of the height
+      virtual void setPeakBound(const float& peak_bound) 
+      { 
+        peak_bound_ = peak_bound;  
+        calculatePeakBoundCWT_();
+      }
+      
+      
       /// Non-mutable access to the peak bound in the wavelet transform for the MS 1 level
       inline const float& getPeakBoundCWT() const
       {
@@ -260,6 +283,7 @@ namespace OpenMS
       inline void setNoiseLevel(const float& noise_level)
       {
         noise_level_ = noise_level;
+        calculatePeakBoundCWT_();
       }
 
       /// Non-mutable access to the optimization switch
@@ -588,7 +612,7 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-          std::cout << "pick " << input_it->getRetentionTime()<< std::endl;
+          std::cout << "Pick Scan" << input_it->getRetentionTime()<< std::endl;
 
           // pick the peaks in scan i
           pick(*input_it,spectrum,input_it->getMSLevel());

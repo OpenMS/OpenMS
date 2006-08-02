@@ -83,8 +83,6 @@ namespace OpenMS
     if (dv.isEmpty() || dv.toString() == "") noise_level_ = 0.1;
     else noise_level_ = (float)dv;
 
-    //    std::cout << "Noise Level " << noise_level_ << " scale " << scale_ << std::endl;
-
     dv =param_.getValue("Thresholds:SearchRadius");
     if (dv.isEmpty() || dv.toString() == "") radius_ = 3;
     else radius_ = (int)dv;
