@@ -64,7 +64,7 @@ namespace OpenMS
 
 			/// generate a database from an Inspect result file; this new database can be used for a blind search
 			/// either a trie database is given as input, or a corresponding database is generated from the input
-			void generateSecondDatabase(const std::string& result_filename_, const std::string& result_path, const std::string& database_path, const std::string& database_filename_, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename_, std::string second_index_filename_, std::string index_filename_, std::string second_database_path, std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			void generateSecondDatabase(const std::string& result_filename_, const std::string& result_path, const std::string& database_path, const std::string& database_filename_, const double& cutoff_p_value, const double& cutoff_score_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
 			/// stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
