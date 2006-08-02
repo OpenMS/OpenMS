@@ -68,7 +68,7 @@
 	- Umstieg auf XERCES oder so
 	- AdaptiveSeeder (Gradient)
 	- Deisotoping / Decharging
-	- 2DView: schneller mit geometric hashing? scrollbars immer anzeigen?
+	- 2DView: schneller mit geometric hashing? scrollbars immer anzeigen? Preferences für Layers
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren

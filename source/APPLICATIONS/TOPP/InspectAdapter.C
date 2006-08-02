@@ -982,7 +982,7 @@ class TOPPInspectAdapter
 						database_filename = "";
 						database_path = "";
 					}
-					inspect_infile.setDb(String(database_path+database_filename));
+					inspect_infile.setDb(String(database_path+"/"+database_filename));
 					if ( !seq_files.empty() ) inspect_infile.setSequenceFile(seq_files[0]);
 				}
 				
