@@ -44,7 +44,7 @@ unsigned int getDim ()
 
 ///////////////////////////
 
-START_TEST(DimensionDescription<DimensionDescriptionTagLCMS>, "$Id: DimensionDescription, hi folks, (cg) 2006-07-28 $")
+START_TEST(DimensionDescription<DimensionDescriptionTagLCMS>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

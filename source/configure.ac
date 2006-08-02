@@ -9,7 +9,7 @@ dnl
 dnl 
 dnl    Some initialization stuff...
 dnl 
-AC_INIT(OpenMS, 0.55, www.OpenMS.de)
+AC_INIT(OpenMS, 0.90, www.OpenMS.de)
 AC_CONFIG_HEADER([
 	config.h:config/config.h.in
 ])

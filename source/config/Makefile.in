@@ -36,7 +36,7 @@
 include config.mak
 
 # 	library version number
-LIB_VERSION	= 0.55
+LIB_VERSION	= 0.90
 
 #	default library name
 LIBNAME = libOpenMS

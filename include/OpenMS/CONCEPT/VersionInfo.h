@@ -32,7 +32,7 @@
 //
 //  master data for all revisions is stored in this define!
 //
-#define OPENMS_RELEASE_STRING             "0.5.5"
+#define OPENMS_RELEASE_STRING             "0.9.0"
 
 namespace OpenMS
 {
