@@ -333,10 +333,10 @@ std::cout << multicharge << std::endl;
 	{
 		twopass_ = twopass;
 	}
-
-	void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, double cutoff_p_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
+	
+	void InspectInfile::generateSecondDatabase(const std::string& result_filename, const std::string& result_path, const std::string&  database_path, const std::string& database_filename, const double& cutoff_p_value, const double& cutoff_score_value, int min_annotated_spectra_per_protein, std::string second_database_filename, std::string second_index_filename, std::string second_database_path, std::string index_filename, std::string species) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
 	{
-		if ( (cutoff_p_value < 0) || (cutoff_p_value-1.0 > 0) )
+		if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cutoff_p_value is lower 0 or greater 1!");
 		}
@@ -398,18 +398,18 @@ std::cout << multicharge << std::endl;
 		bool missing_column;
 		//std::set<std::string, string_less> spectrum_count;
 		std::set< std::string > spectrum_count;
-		char buffer[10];
+		//char buffer[10];
 		
 		// read out the whole result file
 		while ( getline(result_file, line) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			++line_number;
 			line.split('\t', substrings);
 			// check whether the line has enough columns
 			missing_column = ( substrings.size() == number_of_columns - 1 );
-			if ( !missing_column && (substrings.size() < number_of_columns) )
-			{
+			if ( !missing_column && (substrings.size() < number_of_columns) ) continue;
+			/*{
 				sprintf(buffer, "%i", line_number);
 				std::string error_message = "wrong number of columns in row ";
 				error_message.append(buffer);
@@ -421,7 +421,7 @@ std::cout << multicharge << std::endl;
 				error_message.append(buffer);
 				error_message.append(")");
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}
+			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
@@ -429,7 +429,7 @@ std::cout << multicharge << std::endl;
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
 			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
-			if ( (substrings[p_value_column - missing_column] == "nan") || (atof(substrings[p_value_column - missing_column].c_str()) <= cutoff_p_value) )
+			if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(substrings[p_value_column - missing_column].c_str()) <= cutoff_p_value) )
 			{
 				record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
 				max_record_number = std::max(max_record_number, record_number);
@@ -465,14 +465,13 @@ std::cout << multicharge << std::endl;
 			return;
 		}
 		
-		
 		// get the number of proteins
 		unsigned int number_of_proteins = 0;
 		unsigned int pos = 0;
 		
 		while ( getline(database_file, line) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			pos = line.find(start_separator, pos);
 			while ( pos != std::string::npos )
 			{
