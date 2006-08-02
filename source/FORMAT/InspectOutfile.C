@@ -212,8 +212,8 @@ namespace OpenMS
 			
 			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
 			missing_column = ( substrings.size() == number_of_columns-1 );
-			if ( substrings.size() < number_of_columns - missing_column )
-			{
+			if ( substrings.size() < number_of_columns - missing_column ) continue;
+			/*{
 				char buffer[10];
 				sprintf(buffer, "%i", line_number);
 				std::string error_message = "wrong number of columns in row ";
@@ -226,7 +226,7 @@ namespace OpenMS
 				error_message.append(buffer);
 				error_message.append(")");
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}
+			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
