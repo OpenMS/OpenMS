@@ -300,7 +300,7 @@ namespace OpenMS
 		
 		while ( getline(source_file, line) && ( wanted_records.empty() || (written_records < wanted_records.size())) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.trim();
 			
 			// empty and comment lines are skipped
@@ -450,7 +450,7 @@ namespace OpenMS
 		
 		while ( getline(database_file, line) && ( wanted_records.empty() || (found_records <= wanted_records.size())) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.trim();
 			
 			// empty and comment lines are skipped
@@ -577,7 +577,7 @@ namespace OpenMS
 		String line;
 		while ( getline(source_file, line) && (sequence_start_label.empty()) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			if ( line.trim().empty() ) continue;
 			else if ( line.hasPrefix("#") ) continue;
 			
