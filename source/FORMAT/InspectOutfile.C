@@ -263,7 +263,7 @@ namespace OpenMS
 			
 			// (1.2) get the peptide infos from the new peptide and insert it
 			peptide_hit.clear();
-			peptide_hit.setScore(atof(substrings[MQ_score_column].c_str()));
+			peptide_hit.setScore(atof(substrings[MQ_score_column - missing_column].c_str()));
 			peptide_hit.setScoreType(score_type_);
 			start = substrings[peptide_column].find('.')+1;
 			end = substrings[peptide_column].find_last_of('.');
@@ -317,10 +317,8 @@ namespace OpenMS
 	{
 		std::pair<std::string, std::string> p;
 		// if it's a FASTA line
-		if ( line.hasPrefix(">") )
-		{
-			line.erase(0,1);
-		}
+		if ( line.hasPrefix(">") ) line.erase(0,1);
+		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 		line.trim();
 		
 		// if it's a swissprot accession
@@ -367,6 +365,21 @@ namespace OpenMS
 			accession = line;
 		}
 		else
+		{
+			unsigned int pos1 = line.find('(', 0);
+			unsigned int pos2;
+			if ( pos1 != std::string::npos )
+			{
+				pos2 = line.find(')', ++pos1);
+				if ( pos2 != std::string::npos )
+				{
+					accession = line.substr(pos1, pos2 - pos1);
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != std::string::npos) ) accession_type = "SwissProt";
+					else accession.clear();
+				}
+			}
+		}
+		if ( accession.empty() )
 		{
 			accession = line.trim();
 			accession_type = "unknown";
