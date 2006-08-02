@@ -177,7 +177,7 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
 	protein_hits = identification2.getProteinHits();
-	TEST_EQUAL(protein_hits.size(), 1)
+	TEST_EQUAL(protein_hits.size(), 50)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 	
 RESULT
@@ -204,7 +204,7 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
 	protein_hits = identification2.getProteinHits();
-	TEST_EQUAL(protein_hits.size(), 1)
+	TEST_EQUAL(protein_hits.size(), 50)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 
 RESULT

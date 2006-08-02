@@ -79,16 +79,19 @@ namespace OpenMS
       /// sets the protein sequences used for filtering
       void setProteins(const std::vector< std::pair<String, String> >& proteins);
 
-      /// filters a identification corresponding to the threshold_fractions
-			void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification, bool strict = false);
+      /// filters an identification corresponding to the threshold_fractions
+			void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification);
 
-      /// filters a identification corresponding to the threshold_fractions
-			void filterIdentificationsByThresholds(const Identification& identification, Identification& filtered_identification, bool strict = false);
+      /// filters an identification corresponding to the threshold_fractions
+			void filterIdentificationsByThresholds(const Identification& identification, Identification& filtered_identification);
 			
-      /// filters a identification corresponding to the given proteins
+      /// filters an identification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
+			void filterIdentificationsByBestHits(const Identification& identification, Identification& filtered_identification, bool strict = false);
+
+      /// filters an identification corresponding to the given proteins
 			void filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins, Identification& filtered_identification);
 
-      /// filters a identification corresponding to the given proteins
+      /// filters an identification corresponding to the given proteins
 			void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification);
 
       /// filters the peptides of a identification corresponding to the retention times
@@ -102,8 +105,7 @@ namespace OpenMS
 			template <class PeakT>
 			void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment,
 																						 double peptide_threshold_fraction,
-																						 double protein_threshold_fraction, 
-																						 bool strict = false)
+																						 double protein_threshold_fraction)
 			{
 				std::vector<Identification> temp_identifications;
 				std::vector<Identification> filtered_identifications;
@@ -122,7 +124,7 @@ namespace OpenMS
 						{
 							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 							{
-								filterIdentificationsByThresholds(temp_identifications[j], temp_identification, strict);
+								filterIdentificationsByThresholds(temp_identifications[j], temp_identification);
 								if (!temp_identification.empty())
 								{
 									filtered_identifications.push_back(temp_identification);

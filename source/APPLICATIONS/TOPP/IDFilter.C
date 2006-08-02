@@ -96,16 +96,13 @@ using namespace std;
 			retention time. To use this filter mode you have to supply an
 			analysisXML file that is produced by the RTPredict component.
 		</li>
+		<li>
+			strict: If this flag is set, only the best hit of a spectrum is kept.
+			If there is more than one hit for a spectrum with the maximal score then
+			none of the hits will be kept. 
+		</li>
 	</ul>
 	
-	<br>
-		The first three filtering possibilities have in common that for 
-		one spectrum only the hits with the maximal score are kept. 
-		If there is more than one peptide hit with maximal score for 
-		one spectrum you can specify by the <b>strict</b> option in the 
-		commandline or the ini file that you want to drop all of them. 
-		If you do not specify this option these identifications will be kept.						 
-
 	@ingroup TOPP
 */
 
@@ -414,8 +411,7 @@ class TOPPIDFilter
 			filter.filterIdentificationsByThresholds(identifications[i], 
 																							 peptide_significance_threshold_fraction, 
 																							 protein_significance_threshold_fraction,
-																							 filtered_identification, 
-																							 strict);
+																							 filtered_identification);
 			if (sequences_file_name != "")
 			{
 				Identification temp_identification = filtered_identification;
@@ -444,6 +440,14 @@ class TOPPIDFilter
 																												filtered_identification); 				
 			}
 	
+			if (strict)
+			{
+				Identification temp_identification = filtered_identification;
+				filter.filterIdentificationsByBestHits(temp_identification,
+																							 filtered_identification,
+																							 strict); 				
+			}
+
 			if(!filtered_identification.empty())
 			{
 				filtered_identifications.push_back(filtered_identification);
