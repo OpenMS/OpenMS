@@ -67,7 +67,6 @@ CHECK((PeakPickerCWT(const String& filename)))
   TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
   TEST_EQUAL(pp.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp.getSearchRadius(),2)
-  std::cout << "(PeakPickerCWT(const String& filename)" << std::endl;
 RESULT
 
 CHECK((PeakPickerCWT(const Param& parameters)))
@@ -85,7 +84,6 @@ CHECK((PeakPickerCWT(const Param& parameters)))
   TEST_EQUAL(pp.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp.getSearchRadius(),2)
   TEST_EQUAL(pp.getParam() == param, true)
-  std::cout << "(PeakPickerCWT(const param)" << std::endl;
 RESULT
 
 CHECK((ContinuousWaveletTransformNumIntegration& getWaveletTransform()))
@@ -96,7 +94,6 @@ CHECK((ContinuousWaveletTransformNumIntegration& getWaveletTransform()))
   pp.getWaveletTransform() = cwt;
   
   TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
-  std::cout << "getWaveletScale" << std::endl;
 RESULT
 
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
@@ -116,7 +113,6 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
   TEST_EQUAL(pp_copy.getParam() == param, true)
-  std::cout << "operator=" << std::endl;
 RESULT
 
 CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
@@ -135,7 +131,6 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
   TEST_EQUAL(pp_copy.getParam() == param, true)
-  std::cout << "copy constr" << std::endl;
 RESULT
 
 MzDataFile mz_data_file;
@@ -151,7 +146,6 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)  
   TEST_REAL_EQUAL(it->getPos(),pp.getPeakShapes()[0].mz_position)
   TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
-  std::cout << "pick(it,it,cont)" << std::endl;
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
@@ -171,7 +165,6 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   TEST_REAL_EQUAL(it->getRightWidthParameter(),pp.getPeakShapes()[0].right_width)
   TEST_REAL_EQUAL(it->getPeakShape(),pp.getPeakShapes()[0].type)
   TEST_REAL_EQUAL(it->getSN(),pp.getPeakShapes()[0].signal_to_noise)
-  std::cout << "pick(cont, cont)" << std::endl;
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
@@ -180,10 +173,9 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
    
   pp.pickExperiment(exp_raw,peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 805)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 800)
   ExperimentalSettings e = peaks;
   TEST_EQUAL(e == exp_raw, true)
-  std::cout << "pickExp(it,it,cont) " << std::endl;
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
@@ -192,8 +184,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
    
   pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()),805)
-  std::cout << "pickExperiment(cont,cont)" << std::endl;
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()),800)
 RESULT
 
 CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
@@ -211,21 +202,21 @@ RESULT
 CHECK((const float& getNoiseLevel() const))
   PeakPickerCWT pp;
   
-  TEST_REAL_EQUAL(pp.getNoiseLevel(),10)
+  TEST_REAL_EQUAL(pp.getNoiseLevel(),0.1)
 RESULT
 
 CHECK((const float& getPeakBoundCWT() const))
   PeakPickerCWT pp;
   PRECISION(0.001)
   
-  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),39.546)
+  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),5.25617)
 RESULT
 
 CHECK((const float& getPeakBoundMs2LevelCWT() const))
   PeakPickerCWT pp;
   PRECISION(0.001)
   
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),9.886)
+  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),1.31404)
 RESULT
 
 CHECK((const float& getPeakCorrBound() const))
