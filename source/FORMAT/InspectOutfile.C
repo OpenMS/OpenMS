@@ -33,7 +33,7 @@ namespace OpenMS
 	InspectOutfile::InspectOutfile()
 	{}
 	
-  void InspectOutfile::load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& 	precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database_filename, const std::string& database_path, const std::string& sequence_filename, std::string index_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
+  void InspectOutfile::load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& 	precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const double& score_value_threshold, const std::string& database_filename, const std::string& database_path, const std::string& sequence_filename, std::string index_filename) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument)
   {
 		// (0) preparations
 		std::vector< PeptideHit > peptide_hits;
@@ -107,14 +107,14 @@ namespace OpenMS
 		
 		while ( getline(result_file, line) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			++line_number;
 			line.split('\t', substrings);
 			
 			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
 			missing_column = ( substrings.size() == number_of_columns-1 );
-			if ( substrings.size() < number_of_columns - missing_column )
-			{
+			if ( substrings.size() < number_of_columns - missing_column ) continue;
+			/*{
 				char buffer[10];
 				sprintf(buffer, "%i", line_number);
 				std::string error_message = "wrong number of columns in row ";
@@ -127,13 +127,13 @@ namespace OpenMS
 				error_message.append(buffer);
 				error_message.append(")");
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}
+			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
-			// take only those peptides whose p-value is less or equal the given threshold
-			if ( (substrings[p_value_column - missing_column] != "nan") && (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
+			// take only those peptides whose p-value is less or equal the given threshold (if no p-value is found, take the protein if it's MQ score is above the given threshold
+			if ( ((substrings[p_value_column - missing_column] != "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
 			
 			// if there's a missing column, the record number is one too high
 			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
@@ -199,9 +199,14 @@ namespace OpenMS
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
+		// to get the precursor retention time and mz values
+		//                      filename     scan numbers
+		std::vector< std::pair< String, std::vector< unsigned int > > > files_and_scan_numbers;
+		std::vector< unsigned int >* scan_numbers;
+		
 		while ( getline(result_file, line) )
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			++line_number;
 			line.split('\t', substrings);
 			
@@ -234,12 +239,24 @@ namespace OpenMS
 			{
 				identifications.push_back(Identification());
 				query = &identifications.back();
-				spectrum_file = substrings[spectrum_file_column];
-				scan_number = atoi(substrings[scan_column].c_str());
 				
 				query->setCharge(atoi(substrings[charge_column - missing_column].c_str()));
 				query->setPeptideSignificanceThreshold(p_value_threshold);
 				rank = 0;
+				
+				if ( substrings[spectrum_file_column] != spectrum_file )
+				{
+					files_and_scan_numbers.push_back(std::make_pair(substrings[spectrum_file_column], std::vector< unsigned int >()));
+					scan_numbers = &(files_and_scan_numbers.back().second);
+				}
+				
+				spectrum_file = substrings[spectrum_file_column];
+				scan_number = atoi(substrings[scan_column].c_str());
+				
+				scan_numbers->push_back(scan_number);
+				
+				precursor_retention_times.push_back(0);
+				precursor_mz_values.push_back(0);
 			}
 			
 			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
@@ -273,6 +290,10 @@ namespace OpenMS
 			sequences.clear();
 			trie_proteins.clear();
 		}
+		
+		// get the precursor retention times and mz values
+		getPrecursorRTandMZ(files_and_scan_numbers, precursor_retention_times, precursor_mz_values);
+		
 		
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
 		if ( identifications.empty() )
@@ -315,18 +336,11 @@ namespace OpenMS
 			++third;
 			accession = line.substr(third, line.find('|', third)-third);
 			accession_type = line.substr(snd, third-1-snd);
-			if ( accession_type == "gb" )
-			{
-				accession_type = "GenBank";
-			}
-			else if ( accession_type == "emb" )
-			{
-				accession_type = "EMBL";
-			}
-			else if ( accession_type == "dbj" )
-			{
-				accession_type = "DDBJ";
-			}
+			if ( accession_type == "gb" ) accession_type = "GenBank";
+			else if ( accession_type == "emb" ) accession_type = "EMBL";
+			else if ( accession_type == "dbj" ) accession_type = "DDBJ";
+			else if ( accession_type == "ref" ) accession_type = "NCBI";
+			else if ( (accession_type == "sp") || (accession_type == "tr") ) accession_type = "SwissProt";
 		}
 		else if ( line.hasPrefix("ref") )
 		{
@@ -340,18 +354,23 @@ namespace OpenMS
 			accession = line.trim();
 			accession_type = "SwissProt";
 		}
+		else if ( line.hasPrefix("gnl") )
+		{
+			line.erase(0,3);
+			accession_type = line.substr(0, line.find('|', 0));
+			accession = line.substr(accession_type.length()+1);
+		}
+		else if ( line.hasPrefix("lcl") )
+		{
+			line.erase(0,4);
+			accession_type = "lcl";
+			accession = line;
+		}
 		else
 		{
 			accession = line.trim();
 			accession_type = "unknown";
 		}
-		/* GenBank                           gi|gi-number|gb|accession|locus
- EMBL Data Library                 gi|gi-number|emb|accession|locus
- DDBJ, DNA Database of Japan       gi|gi-number|dbj|accession|locus
- NCBI Reference Sequence           gi|gi-number|ref|accession|locus
- SWISS-PROT                        gi|gi-number|sp|accession|name
- General database identifier       gnl|database|identifier
- Local Sequence identifier         lcl|identifier*/
 	}
 	
 	bool InspectOutfile::updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits)
@@ -391,6 +410,54 @@ namespace OpenMS
 			}
 		}
 		return false;
+	}
+	
+	void InspectOutfile::getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< unsigned int > > >& files_and_scan_numbers, std::vector< float >&  precursor_retention_times, std::vector< float >& precursor_mz_values)
+	{
+		std::ifstream ifs;
+		String line;
+		bool found_scan;
+		String search_for = "<scan num=\"";
+		unsigned int prefix_length = search_for.length();
+		String rt = "retentionTime=\"PT";
+		unsigned int rt_length = rt.length();
+		String mz = "basePeakMz=\"";
+		unsigned int mz_length = mz.length();
+		unsigned int pos;
+		std::vector< float >::iterator rt_i = precursor_retention_times.begin();
+		std::vector< float >::iterator mz_i = precursor_mz_values.begin();
+		
+		for ( std::vector< std::pair< String, std::vector< unsigned int > > >::const_iterator file_and_scan_numbers = files_and_scan_numbers.begin(); file_and_scan_numbers != files_and_scan_numbers.end(); ++file_and_scan_numbers )
+		{
+			ifs.open(file_and_scan_numbers->first.c_str());
+			if ( ifs )
+			{
+				for ( std::vector< unsigned int >::const_iterator scan_number = file_and_scan_numbers->second.begin(); scan_number != file_and_scan_numbers->second.end(); ++scan_number, ++rt_i, ++mz_i )
+				{
+					found_scan = false;
+					while ( getline(ifs, line) && !found_scan )
+					{
+						if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+						line.trim();
+						if ( (line.hasPrefix(search_for)) && ((*scan_number) == (unsigned int) atoi(line.substr(prefix_length, line.find('\"', prefix_length) - prefix_length).c_str())) )
+						{
+							pos = line.find(rt, prefix_length);
+							(*rt_i) = atof(line.substr(pos + rt_length , line.find('\"', pos + rt_length) - pos - rt_length).c_str());
+							pos = line.find(mz, prefix_length);
+							(*mz_i) = atof(line.substr(pos + mz_length , line.find('\"', pos + mz_length) - pos - mz_length).c_str());
+							found_scan = true;
+						}
+					}
+				}
+				ifs.close();
+			}
+			else
+			{
+				rt_i += file_and_scan_numbers->second.size();
+				mz_i += file_and_scan_numbers->second.size();
+			}
+			ifs.clear();
+		}
 	}
 
 } //namespace OpenMS
