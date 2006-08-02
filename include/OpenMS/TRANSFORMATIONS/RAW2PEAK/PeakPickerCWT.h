@@ -43,7 +43,7 @@
 #include <vector>
 #include <algorithm>
 
-//#define DEBUG_PEAK_PICKING
+#define DEBUG_PEAK_PICKING
 namespace OpenMS
 {
   /**
@@ -380,7 +380,7 @@ namespace OpenMS
 
           // compute the continious wavelet transform with resolution 1
           wt_.transform(it_pick_begin, it_pick_end,1.);
-
+          
           PeakArea_ area;
           bool centroid_fit=false;
           bool regular_endpoints=true;

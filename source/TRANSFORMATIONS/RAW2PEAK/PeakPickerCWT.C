@@ -34,7 +34,7 @@ namespace OpenMS
       radius_(3),
       scale_(0.15),
       peak_corr_bound_(0.5),
-      noise_level_(10),
+      noise_level_(0.1),
       optimization_(false)
   {
     double precision;
@@ -80,7 +80,7 @@ namespace OpenMS
     else scale_ = (float)dv;
 
     dv = param_.getValue("Thresholds:NoiseLevel");
-    if (dv.isEmpty() || dv.toString() == "") noise_level_ = 10.;
+    if (dv.isEmpty() || dv.toString() == "") noise_level_ = 0.1.;
     else noise_level_ = (float)dv;
 
     //    std::cout << "Noise Level " << noise_level_ << " scale " << scale_ << std::endl;
@@ -136,8 +136,8 @@ namespace OpenMS
     {
       // Check for maximum in cwt at position i
       if(((wt[i-1] - wt[i]  ) < 0)
-          && ((wt[i]   - wt[i+1]) > 0)
-          && ( wt[i]   >  noise_level_cwt))
+          && ((wt[i] - wt[i+1]) > 0)
+          && ( wt[i]  >  noise_level_cwt))
       {
         max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
 #ifdef DEBUG_PEAK_PICKING
