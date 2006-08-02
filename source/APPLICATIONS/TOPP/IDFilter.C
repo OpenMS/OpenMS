@@ -68,7 +68,8 @@ using namespace std;
 			peptide will only be kept by the filter if the significance 
 			threshold fraction is set to 0.75 or lower. The value for this
 			parameter can be set in the ini file with the 
-			<b>peptide_significance_threshold_fraction</b> parameter.
+			<b>peptide_significance_threshold_fraction</b> parameter or in the
+			shell via the <b>pepfr</b> parameter.
 		</li> 
 		<li> 
 			protein significance threshold fraction: This parameter 
@@ -76,7 +77,8 @@ using namespace std;
 			fraction parameter. The only difference is that it is used
 			to filter protein hits. The value for this
 			parameter can be set in the ini file with the 
-			<b>protein_significance_threshold_fraction</b> parameter.
+			<b>protein_significance_threshold_fraction</b> parameter or in the
+			shell via the <b>protfr</b> parameter.
 		</li>
 		<li>
 			sequences file (in FASTA format): If you know which proteins
@@ -85,7 +87,7 @@ using namespace std;
 			peptides which are not a substring of a protein contained
 			in the sequences file will be filtered out. The name of the
 			sequences file can be specified by the <b>sequences_file</b>
-			parameter in the ini file.
+			parameter.
 		</li>
 		<li>
 			retention time: To filter identifications according to their 
@@ -97,9 +99,16 @@ using namespace std;
 			analysisXML file that is produced by the RTPredict component.
 		</li>
 		<li>
+			exclusion peptides: With this option you can specify an AnalysisXML file.
+			All peptides that are present in both files (in-file and exclusion peptides
+			file) will be dropped. The name of the exclusion peptides file can be
+			specified by the <b>exclusion_peptides_file</b>	parameter.
+		</li>
+		<li>
 			strict: If this flag is set, only the best hit of a spectrum is kept.
 			If there is more than one hit for a spectrum with the maximal score then
-			none of the hits will be kept. 
+			none of the hits will be kept. You can specify this option by using the
+			<b>strict</b> parameter.
 		</li>
 	</ul>
 	
