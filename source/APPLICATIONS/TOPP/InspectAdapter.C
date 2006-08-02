@@ -937,7 +937,7 @@ class TOPPInspectAdapter
 			
 			// (3.2) running the program
 			file_info.setFile(db_filename.c_str());
-			String database_path = file_info.dirPath().ascii()+"/";
+			String database_path = String(file_info.dirPath().ascii())+"/";
 			String database_filename = file_info.fileName().ascii();
 			file_info.setFile(idx_filename.c_str());
 			String index_filename = file_info.fileName().ascii();
@@ -975,7 +975,7 @@ class TOPPInspectAdapter
 					{
 						file_info.setFile(dbs[0].c_str());
 						database_filename = file_info.fileName().ascii();
-						database_path = file_info.dirPath().ascii()+"/";
+						database_path = String(file_info.dirPath().ascii())+"/";
 					}
 					else
 					{
@@ -1032,7 +1032,7 @@ class TOPPInspectAdapter
 				if ( database_filename.empty() && (!inspect_infile.getSequenceFile().empty()) )
 				{
 					file_info.setFile(inspect_infile.getSequenceFile().c_str());
-					database_path = file_info.dirPath().ascii()+"/";
+					database_path = String(file_info.dirPath().ascii())+"/";
 					database_filename = file_info.fileName().ascii();
 				}
 				
@@ -1111,7 +1111,7 @@ class TOPPInspectAdapter
 					std::vector< float >	precursor_retention_times, precursor_mz_values;
 					
 					InspectOutfile inspect_outfile;
-
+					std::cout << inspect_infile.getSequenceFile() << std::endl;
 					file_info.setFile(inspect_infile.getDb().c_str());
 					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, score_value_threshold, file_info.fileName().ascii(), file_info.dirPath().ascii(), inspect_infile.getSequenceFile());
 					
