@@ -57,7 +57,7 @@ namespace OpenMS
 			InspectOutfile();
 			
 			/// load the results of an InsPecT search
-      void load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& 	precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database_filename, const std::string& database_path, const std::string& sequence_filename, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+      void load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& 	precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const double& score_value_threshold, const std::string& database_filename, const std::string& database_path, const std::string& sequence_filename, std::string index_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
       
 		protected:			
 			/// get the accession and accession type of a protein
@@ -65,7 +65,8 @@ namespace OpenMS
 			
 			/// given a vector of peptide hits, either insert the new peptide hit or update its ProteinHits, returns whether an update took place
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
-		
+			
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< unsigned int > > >& files_and_scan_numbers, std::vector< float >&  precursor_retention_times, std::vector< float >& precursor_mz_values);
    };
 	
 } //namespace OpenMS
