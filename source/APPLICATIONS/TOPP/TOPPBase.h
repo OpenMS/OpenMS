@@ -113,6 +113,8 @@ namespace OpenMS
 			 options_["-d"] = "debug";<BR>
 			 flags_["--help"] = "help";<BR>
 			 flags_["--help-opt"] = "helpopt";<BR>
+			 
+			 @note Make sure the name command line name and the internal name are the same! Otherwise the lookup from the ini file does not work!
 		*/
 		virtual void setOptionsAndFlags_()=0;
 			

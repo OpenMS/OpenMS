@@ -205,9 +205,9 @@ class TOPPInspectAdapter
 			options_["-jumpscores"] = "jumpscores";
 			options_["-instrument"] = "instrument";
 			options_["-mods"] = "mod";
-			options_["-max_mods_pp"] = "mods";
-			options_["-PM_tol"] = "PM_tolerance";
-			options_["-ion_tol"] = "ion_tolerance";
+			options_["-max_mods_pp"] = "max_mods_pp";
+			options_["-PM_tol"] = "PM_tol";
+			options_["-ion_tol"] = "ion_tol";
 			flags_["-multicharge"] = "multicharge";
 			options_["-TagCountA"] = "TagCountA";
 			options_["-TagCountB"] = "TagCountB";
@@ -217,14 +217,14 @@ class TOPPInspectAdapter
 			options_["-out"] = "out";
 			options_["-o"] = "o";
 			flags_["-blind_only"] = "blind_only";
-			options_["-p_value"] = "p_value_threshold";
-			options_["-p_value_blind"] = "cutoff_p_value";
-			options_["-score_value"] = "score_value_threshold";
-			options_["-score_value_blind"] = "cutoff_score_value";
-			options_["-min_spp"] = "min_annotated_spectra_per_protein";
+			options_["-p_value"] = "p_value";
+			options_["-p_value_blind"] = "p_value_blind";
+			options_["-score_value"] = "score_value";
+			options_["-score_value_blind"] = "score_value_blind";
+			options_["-min_spp"] = "min_spp";
 			options_["-maxptmsize"] = "maxptmsize";
 			flags_["-blind"] = "blind";
-			flags_["-no_cmn_conts"] = "no_common_contaminants";
+			flags_["-no_cmn_conts"] = "no_cmn_conts";
 			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
 			flags_["-make_trie_db"] = "make_trie_db";
 			//options_["-contact"] = "contact_person";
@@ -471,7 +471,7 @@ class TOPPInspectAdapter
 				}
 				
 				// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
-				if ( getParamAsString_("no_common_contaminants", "false") != "false" ) no_common_contaminants = true;
+				if ( getParamAsString_("no_cmn_conts", "false") != "false" ) no_common_contaminants = true;
 				if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
 				if ( !make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
 				{
@@ -608,10 +608,10 @@ class TOPPInspectAdapter
 				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
 				inspect_infile.setInstrument(getParamAsString_("instrument"));
 				
-				buffer = getParamAsString_("mods");
+				buffer = getParamAsString_("max_mods_pp");
 				if ( !buffer.empty() )
 				{
-					inspect_infile.setMods(getParamAsInt_("mods"));
+					inspect_infile.setMods(getParamAsInt_("max_mods_pp"));
 					if ( (inspect_infile.getMods() < 0) )
 					{
 						writeLog_("Illegal number of modifications (<0) given. Aborting!");
@@ -621,10 +621,10 @@ class TOPPInspectAdapter
 					}
 				}
 
-				buffer = getParamAsString_("PM_tolerance");
+				buffer = getParamAsString_("PM_tol");
 				if ( !buffer.empty() )
 				{
-					inspect_infile.setPMTolerance( (double) (getParam_("PM_tolerance")) );
+					inspect_infile.setPMTolerance( (double) (getParam_("PM_tol")) );
 					if ( (inspect_infile.getPMTolerance() < 0) )
 					{
 						writeLog_("Illegal parent mass tolerance (<0) given. Aborting!");
@@ -634,10 +634,10 @@ class TOPPInspectAdapter
 					}
 				}
 
-				buffer = getParamAsString_("ion_tolerance");
+				buffer = getParamAsString_("ion_tol");
 				if ( !buffer.empty() )
 				{
-					inspect_infile.setIonTolerance( (double) (getParam_("ion_tolerance")) );
+					inspect_infile.setIonTolerance( (double) (getParam_("ion_tol")) );
 					if ( (inspect_infile.getIonTolerance() < 0) )
 					{
 						writeLog_("Illegal ion mass tolerance (<0) given. Aborting!");
@@ -690,8 +690,8 @@ class TOPPInspectAdapter
 					}
 				}
 				
-				buffer = getParamAsString_("cutoff_p_value");
-				if ( !buffer.empty() ) cutoff_p_value = (double) (getParam_("cutoff_p_value"));
+				buffer = getParamAsString_("p_value_blind");
+				if ( !buffer.empty() ) cutoff_p_value = (double) (getParam_("p_value_blind"));
 				if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
 				{
 					writeLog_("Illegal p-value for blind search. Aborting!");
@@ -700,11 +700,11 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				buffer = getParamAsString_("cutoff_score_value");
-				if ( !buffer.empty() ) cutoff_score_value = (double) (getParam_("cutoff_score_value"));
+				buffer = getParamAsString_("score_value_blind");
+				if ( !buffer.empty() ) cutoff_score_value = (double) (getParam_("score_value_blind"));
 	
-				buffer = getParamAsString_("min_annotated_spectra_per_protein");
-				if ( !buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_annotated_spectra_per_protein");
+				buffer = getParamAsString_("min_spp");
+				if ( !buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_spp");
 			}
 			
 			// (2.1.2) Inspect_out - output of inspect is written xml analysis file
@@ -712,10 +712,10 @@ class TOPPInspectAdapter
 			{
 				// get the database and sequence file name from the input file
 				
-				buffer = getParamAsString_("p_value_threshold");
+				buffer = getParamAsString_("p_value");
 				if ( !buffer.empty() )
 				{
-					p_value_threshold = (double) (getParam_("p_value_threshold"));
+					p_value_threshold = (double) (getParam_("p_value"));
 					if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 					{
 						writeLog_("Illegal p-value. Aborting!");
@@ -725,10 +725,10 @@ class TOPPInspectAdapter
 					}
 				}
 				
-				buffer = getParamAsString_("score_value_threshold");
+				buffer = getParamAsString_("score_value");
 				if ( !buffer.empty() )
 				{
-					score_value_threshold = (double) (getParam_("score_value_threshold"));
+					score_value_threshold = (double) (getParam_("score_value"));
 				}
 				
 				output_filename = getParamAsString_("out");
