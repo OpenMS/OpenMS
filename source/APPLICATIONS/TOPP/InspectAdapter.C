@@ -196,8 +196,8 @@ class TOPPInspectAdapter
 			options_["-temp_data_dir"] = "temp_data_dir";
 			flags_["-Inspect_in"] = "Inspect_in";
 			options_["-spectra"] = "spectra";
-			options_["-trie_dbs"] = "dbs";
-			options_["-dbs"] = "seq_files";
+			options_["-trie_dbs"] = "trie_dbs";
+			options_["-dbs"] = "dbs";
 			options_["-new_db"] = "new_db";
 			options_["-snd_db"] = "snd_db";
 			options_["-tax"] = "tax";
@@ -429,7 +429,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 
-				buffer = getParamAsString_("dbs");
+				buffer = getParamAsString_("trie_dbs");
 				if ( !buffer.empty() )
 				{
 					// get the single databases
@@ -437,7 +437,7 @@ class TOPPInspectAdapter
 					if ( dbs.empty() ) dbs.push_back(buffer);
 				}
 				
-				buffer = getParamAsString_("seq_files");
+				buffer = getParamAsString_("dbs");
 				if ( !buffer.empty() )
 				{
 					// get the single sequence files
