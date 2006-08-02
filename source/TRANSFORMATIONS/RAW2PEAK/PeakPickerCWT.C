@@ -80,7 +80,7 @@ namespace OpenMS
     else scale_ = (float)dv;
 
     dv = param_.getValue("Thresholds:NoiseLevel");
-    if (dv.isEmpty() || dv.toString() == "") noise_level_ = 0.1.;
+    if (dv.isEmpty() || dv.toString() == "") noise_level_ = 0.1;
     else noise_level_ = (float)dv;
 
     //    std::cout << "Noise Level " << noise_level_ << " scale " << scale_ << std::endl;
