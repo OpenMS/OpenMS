@@ -937,7 +937,7 @@ class TOPPInspectAdapter
 			
 			// (3.2) running the program
 			file_info.setFile(db_filename.c_str());
-			String database_path = file_info.dirPath().ascii();
+			String database_path = file_info.dirPath().ascii()+"/";
 			String database_filename = file_info.fileName().ascii();
 			file_info.setFile(idx_filename.c_str());
 			String index_filename = file_info.fileName().ascii();
@@ -975,14 +975,14 @@ class TOPPInspectAdapter
 					{
 						file_info.setFile(dbs[0].c_str());
 						database_filename = file_info.fileName().ascii();
-						database_path = file_info.dirPath().ascii();
+						database_path = file_info.dirPath().ascii()+"/";
 					}
 					else
 					{
 						database_filename = "";
 						database_path = "";
 					}
-					inspect_infile.setDb(String(database_path+"/"+database_filename));
+					inspect_infile.setDb(String(database_path+database_filename));
 					if ( !seq_files.empty() ) inspect_infile.setSequenceFile(seq_files[0]);
 				}
 				
@@ -1032,7 +1032,7 @@ class TOPPInspectAdapter
 				if ( database_filename.empty() && (!inspect_infile.getSequenceFile().empty()) )
 				{
 					file_info.setFile(inspect_infile.getSequenceFile().c_str());
-					database_path = file_info.dirPath().ascii();
+					database_path = file_info.dirPath().ascii()+"/";
 					database_filename = file_info.fileName().ascii();
 				}
 				
