@@ -46,7 +46,16 @@ using namespace std;
 /**
 	@page SpectraFilter SpectraFilter
 	
-	@brief Filters spectra with several filters from mzData files
+	@brief Applies different spectrum modification filters to the data.
+	
+	Examples of filters are:
+	<UL>
+		<LI> NLargest -- keeps the n most intensive peaks of each spectrum
+		<LI> ParentPeakMower -- reduces the intensity of the parent peak
+		<LI> SqrtMower -- set each intensity to the square root of the original intensity
+		<LI> ThresholdMower -- removes peaks lower than a threshold intensity
+		<LI> WindowMower -- keeps the biggest peaks in a sliding window
+	</UL>
 	
 	@ingroup TOPP
 */
@@ -68,16 +77,16 @@ class TOPPSpectraFilter
 		void printToolUsage_()
 		{
 			cerr  << endl
-						<< tool_name_ << " -- applies spectra ilters of the data from an mzData file." << endl
+						<< tool_name_ << " -- applies different spectrum modification filters to the data." << endl
 						<< endl
 						<< "Usage:" << endl
 						<< " " << tool_name_ << " [options]" << endl
 						<< endl
 						<< "Options are:" << endl
-						<< "  -in <file>        input mzData file name" << endl
-						<< "  -out <file>       output mzData file name" << endl
-						<< "  -rt [min]:[max]   retention time range to extract" << endl
-						<< "  -filters <name> [,<another_name>]... filters to apply (see --help-opt for complete list)" << endl;
+						<< "  -in <file>                   input mzData file name" << endl
+						<< "  -out <file>                  output mzData file name" << endl
+						<< "  -rt [min]:[max]              retention time range to extract" << endl
+						<< "  -filters <name>[,<name>,...] filters to apply (see --help-opt for complete list)" << endl;
 		}
 	
 		void printToolHelpOpt_()
@@ -114,7 +123,6 @@ class TOPPSpectraFilter
 			options_["-out"] = "out";
 			options_["-in"] = "in";
 			options_["-rt"] = "rt";
-			options_["-level"] = "level";
 			// filters to apply 
 			options_["-filters"] = "filters";
 		}
@@ -134,9 +142,8 @@ class TOPPSpectraFilter
 			writeDebug_(String("Output file: ") + out, 1);
 
 			//ranges
-			String mz, rt, it, level, tmp;
+			String mz, rt, it, tmp;
 			double rt_l, rt_u;
-			vector<UnsignedInt> levels;
 			
 			//initialize ranges
 			rt_l = -1 * numeric_limits<double>::max();

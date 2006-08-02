@@ -25,9 +25,7 @@
 // --------------------------------------------------------------------------
 
 /**
-  @defgroup TOPPView TOPPView - A MS data viewer
-  
-  @brief TOPPView documentation
+  @page TOPPView TOPPView - A MS data viewer
   
   TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
   and several other text-based file formats. It also supports viewing data from an OpenMS database.
@@ -93,7 +91,7 @@
                                         'intensity distribution' menu of the context menu.
   </UL>
 
-  @ingroup Applications
+  @ingroup TOPP
 */
 
 //QT
