@@ -110,8 +110,7 @@ namespace OpenMS
 	
 	void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
 	{
-		grid.clear();
-		
+		grid.clear();		
 		double scalValues[8];
 		scalValues[0]=log10(2.0);
 		scalValues[1]=log10(3.0);
@@ -122,6 +121,7 @@ namespace OpenMS
 		scalValues[6]=log10(8.0);
 		scalValues[7]=log10(9.0);
 		double dx = x2-x1;
+
 		if(dx<0.00000001)
 		{
 			//std::cerr<<"Error: grid line intevall too small:"<<__LINE__<<"in File:"<<__FILE__<<std::endl;
@@ -134,9 +134,8 @@ namespace OpenMS
 		for(int i = x1ceil;i!=x2floor;++i)
 		{
 			big.push_back(i);
-		}
+			}
 		grid.push_back(big);
-		
 		std::vector<double> small;
 		for(UnsignedInt i = 0;i!=grid[0].size();++i)
 		{

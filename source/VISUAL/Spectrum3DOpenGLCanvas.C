@@ -88,8 +88,17 @@ void Spectrum3DOpenGLCanvas::calculateGridLines_()
 		AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_,7,5,dist); 
 		break;
 	case SpectrumCanvas::IM_LOG:
-		AxisTickCalculator::calcLogGridLines(log10(canvas_3d_.overall_data_range_.min_[2]),log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_);	
- 	break;
+		double log_min;
+		if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
+		{
+			log_min = 0.0;
+		}
+		else
+		{
+			log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
+		}
+		AxisTickCalculator::calcLogGridLines(log_min,log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_);	
+		break;
 	case SpectrumCanvas::IM_PERCENTAGE:
 		AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5,dist); 
 	 	break;
@@ -135,7 +144,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 				}
 				else
 			  {
-					calculateGridLines_();
+					//	calculateGridLines_();
 					coord_ = makeCoordinates();
 					if(canvas_3d_.show_grid_)
 					{
@@ -159,7 +168,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
 		
 		if(canvas_3d_.getDataSetCount()!=0)
 		{
-			calculateGridLines_();
+			//calculateGridLines_();
 			if(canvas_3d_.show_grid_)
 			{
 				gridlines_ = makeGridLines();
@@ -1073,8 +1082,17 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int data_set)
 		scaledintensity = scaledintensity * 2.0 * corner_/100.0;	
 		break;	
 	case SpectrumCanvas::IM_LOG:
-		scaledintensity = intensity -log10(canvas_3d_.overall_data_range_.min_[2]);	
-		scaledintensity =(scaledintensity * 2.0 * corner_)/(log10(canvas_3d_.overall_data_range_.max_[2])-log10(canvas_3d_.overall_data_range_.min_[2]));
+		double log_min = 0.0;
+		if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
+		{
+			log_min = 0.0;
+		}
+		else
+		{
+			log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
+		}
+		scaledintensity = intensity -log_min;	
+		scaledintensity =(scaledintensity * 2.0 * corner_)/(log10(canvas_3d_.overall_data_range_.max_[2])-log_min);
 		if(scaledintensity<0)
 		{
 			scaledintensity =0.0;
@@ -1288,6 +1306,7 @@ void Spectrum3DOpenGLCanvas::updateIntensityScale()
 					}
 				}
 		}
+	
 }
 
 // sets the Multigradient gradient_
@@ -1311,9 +1330,18 @@ void Spectrum3DOpenGLCanvas::recalculateDotGradient_()
 																				 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 		break;
 	case SpectrumCanvas::IM_LOG:
-		gradient_.activatePrecalculationMode(log10(canvas_3d_.overall_data_range_.min_[2]),
-																						log10(canvas_3d_.overall_data_range_.max_[2]), 
-																						UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
+		double log_min;
+		if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
+		{
+			log_min = 0.0;
+		}
+		else
+		{
+			log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
+		}
+		gradient_.activatePrecalculationMode(log_min,
+																				 log10(canvas_3d_.overall_data_range_.max_[2]), 
+																				 UnsignedInt(canvas_3d_.getPref("Preferences:3D:Dot:InterpolationSteps")));
 		
 		break;
 	case SpectrumCanvas::IM_PERCENTAGE:
