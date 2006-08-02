@@ -38,11 +38,16 @@
 #include <stdlib.h>
 #include <vector>
 
+#include <qfileinfo.h>
+
 using namespace OpenMS;
 
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
+
+// @cond TOPPCLASSES 
+
 
 /**
 	@page InspectAdapter InspectAdapter
@@ -93,13 +98,13 @@ using namespace OpenMS;
 				</li>
 	</ol>
 	
-	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?
+	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?, catch exceptions to close files
 	
 	@ingroup TOPP
 */
 
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
+// We do not want this class to show up in the docu -> @cond
+/// @cond 
 
 class TOPPInspectAdapter
 	: public TOPPBase
@@ -107,9 +112,7 @@ class TOPPInspectAdapter
 	public:
 		TOPPInspectAdapter()
 			: TOPPBase("InspectAdapter")
-		{
-			
-		}
+		{}
 	
 	protected:
 		void printToolUsage_()
@@ -153,7 +156,11 @@ class TOPPInspectAdapter
 						<< "                      This search can only be run in full mode." << std::endl
 						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << std::endl
 						<< "  -p_value            annotations with inferior p-value are ignored. Default is 0.05" << std::endl
+						<< "  -score_value        annotations with inferior score-value are ignored. Default is 1." << std::endl
+						<< "                      (this is a workaround because sometimes inspect produces only nan as p-value;" << std::endl
+						<< "                      a hit with score of >=1 is supposed to be good)" << std::endl
 						<< "  -p_value_blind      used when generating the minimized database for blind search" << std::endl
+						<< "  -score_value_blind  annotations with inferior score-value are ignored. Default is 1 (see score_value)." << std::endl
 						<< "  -min_spp            used when generating the minimized database for blind search " << std::endl
 						<< "                      the minimum number of spectra a protein has to annotate in order to add it to the filtered database " << std::endl
 						<< "                      default is #spectra / #proteins * 2" << std::endl
@@ -212,6 +219,8 @@ class TOPPInspectAdapter
 			flags_["-blind_only"] = "blind_only";
 			options_["-p_value"] = "p_value_threshold";
 			options_["-p_value_blind"] = "cutoff_p_value";
+			options_["-score_value"] = "score_value_threshold";
+			options_["-score_value_blind"] = "cutoff_score_value";
 			options_["-min_spp"] = "min_annotated_spectra_per_protein";
 			options_["-maxptmsize"] = "maxptmsize";
 			flags_["-blind"] = "blind";
@@ -220,41 +229,7 @@ class TOPPInspectAdapter
 			flags_["-make_trie_db"] = "make_trie_db";
 			//options_["-contact"] = "contact_person";
 		}
-		
-		// workaround because qt string is not convertable to std::string
-		bool exists(const std::string& filename)
-		{
-			FILE* file = fopen(filename.c_str(), "r");
-			bool ret = ( file != NULL );
-			if ( ret ) fclose(file);
-			return ret;
-		}
 
-		bool isReadable(const std::string& filename)
-		{
-			bool ret;
-			FILE* file = fopen(filename.c_str(), "r");
-			if ( file != NULL )
-			{
-				fgetc(file);
-				ret = !ferror(file);
-				fclose(file);
-				return ret;
-			}
-			else return false;
-		}
-
-		bool isWritable(const std::string& filename)
-		{
-			bool writable;
-			bool existed = exists(filename);
-			FILE* file = fopen(filename.c_str(), "a");
-			writable = ( file != NULL );
-			if ( writable ) fclose(file);
-			if ( !existed ) remove(filename.c_str());
-			return writable;
-		}
-		
 		long fsize(const std::string& filename)
 		{
 			FILE* file = fopen(filename.c_str(), "r");
@@ -269,19 +244,9 @@ class TOPPInspectAdapter
 			return -1;
 		}
 		
-		bool emptyFile(const std::string& filename)
+		inline bool emptyFile(const std::string& filename)
 		{
 			return ( fsize(filename) == 0 );
-		}
-		
-		std::string pathDir(const std::string& filename, char slash = '/')
-		{
-			return filename.substr(0, filename.find_last_of(slash)+1);
-		}
-		
-		std::string fileName(const std::string& filename, char slash = '/')
-		{
-			return filename.substr(filename.find_last_of(slash)+1);
 		}
 
 		std::string fileContent(const std::string& filename)
@@ -302,7 +267,7 @@ class TOPPInspectAdapter
 		}
 		
 		// deleting all temporary files
-		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_index_filename, const String& inspect_logfilename)
+		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_index_filename, const String& inspect_logfile)
 		{
 			if ( input_filename.hasSuffix("tmp.inspect.input") ) remove(input_filename.c_str());
 			if ( output_filename.hasSuffix("tmp.inspect.output") ) remove(output_filename.c_str());
@@ -311,20 +276,20 @@ class TOPPInspectAdapter
 			if ( idx_filename.hasSuffix("tmp.inspect.db.index") ) remove(idx_filename.c_str());
 			if ( snd_db_filename.hasSuffix("tmp.inspect.db.snd.trie") ) remove(snd_db_filename.c_str());
 			if ( snd_index_filename.hasSuffix("tmp.inspect.db.snd.index") ) remove(snd_index_filename.c_str());
-			if ( inspect_logfilename.hasSuffix("tmp.inspect.log") ) remove(inspect_logfilename.c_str());
+			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
 		}
 
 		ExitCodes main_(int , char**)
 		{
-			///-------------------------------------------------------------
+			//-------------------------------------------------------------
 			// (1) variables
-			///-------------------------------------------------------------
+			//-------------------------------------------------------------
 
 			InspectInfile inspect_infile;
 
 			// (1.0) general variables
 			std::vector< String > substrings;
-			String buffer, db_filename, idx_filename, snd_db_filename, snd_index_filename, common_contaminants_filename, logfile, inspect_logfilename;
+			String buffer, db_filename, idx_filename, snd_db_filename, snd_index_filename, common_contaminants_filename, inspect_logfile, logfile;
 			ContactPerson contact_person;
 
 			// (1.1) parameter variables
@@ -334,7 +299,7 @@ class TOPPInspectAdapter
 			// (1.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			bool Inspect_in = false;
 			// (1.1.1.0) mandatory parameters
-			String new_db, new_db_dir, snd_db, snd_db_dir; // at least one of the parameters db or seq_file has to be set
+			String snd_db, snd_db_dir; // at least one of the parameters db or seq_file has to be set
 			std::vector< String >dbs, seq_files, tax; // if several dbs are given, they are merged into one, that is then processed
 
 			// (1.1.1.1) optional parameters
@@ -344,11 +309,12 @@ class TOPPInspectAdapter
 
 			// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
 			double p_value_threshold = 1.0;
+			double score_value_threshold = 1.0;
 			bool Inspect_out = false;
-			String output_filename, inspect_output_filename;
+			String output_filename;
 
 			// (1.1.3) parameters corresponding to both Inspect_in and Inspect_out
-			String input_filename; // in normal mode, this can be a temporary file (from ini)
+			String input_filename, inspect_output_filename;
 
 			// (1.1.4) blind_only - running inspect in blind mode only and corresponding parameters
 			bool blind_only = false;
@@ -356,6 +322,7 @@ class TOPPInspectAdapter
 			// (1.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
 			bool blind = false;
 			double cutoff_p_value = 0.05;
+			double cutoff_score_value = 1.0;
 			int min_annotated_spectra_per_protein = -1;
 
 			// (1.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
@@ -365,36 +332,91 @@ class TOPPInspectAdapter
 			bool no_tmp_dbs = false;
 
 
-			///-------------------------------------------------------------
+			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
-			///-------------------------------------------------------------
+			//-------------------------------------------------------------
 			// (2.0) general variables
-			contact_person.setName(getParamAsString_("contactName", "unknown"));
-			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));
-			logfile = getParamAsString_("log", "Inspect.log");
-			
-			// (2.1) parameter variables
-			// (2.1,0) general parameter variables
-			inspect_dir = getParamAsString_("inspect_dir");
-			
-			inspect_infile.ensurePathChar(inspect_dir);
-			common_contaminants_filename = inspect_dir + "CommonContaminants.fasta";
-			temp_data_dir = getParamAsString_("temp_data_dir");
-			if ( temp_data_dir.empty() ) temp_data_dir = "/home/bude/langwisc/inspect/temp/";
-			inspect_infile.ensurePathChar(temp_data_dir);
-			
-			output_filename = temp_data_dir; output_filename.append("tmp.inspect.output");
-			inspect_output_filename = temp_data_dir; inspect_output_filename.append("tmp.direct.inspect.output");
-			input_filename = temp_data_dir; input_filename.append("tmp.inspect.input");
-			
-			// (2.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			if ( getParamAsString_("Inspect_in", "false") != "false" ) Inspect_in = true;
 			if ( getParamAsString_("Inspect_out", "false") != "false" ) Inspect_out = true;
 
 			// a 'normal' inspect run corresponds to both Inspect_in and Inspect_out set
 			if ( !Inspect_in && !Inspect_out ) Inspect_in = Inspect_out = true;
-
+			
+			if (!getParam_("log").isEmpty())
+			{
+				logfile = getParamAsString_("log");
+			}
+			
+			contact_person.setName(getParamAsString_("contactName", "unknown"));
+			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
+			contact_person.setContactInfo(getParamAsString_("contactInfo"));
+			
+			// (2.1) parameter variables
+			// (2.1,0) general parameter variables
+			inspect_dir = getParamAsString_("inspect_dir");
+			if ( ((Inspect_in && Inspect_out) || (Inspect_in && blind)) && inspect_dir.empty() )
+			{
+				writeLog_("No inspect directory file specified. Aborting!");
+				std::cout << "No inspect directory specified. Aborting!" << std::endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+			inspect_infile.ensurePathChar(inspect_dir);
+			
+			common_contaminants_filename = inspect_dir + "CommonContaminants.fasta";
+			
+			temp_data_dir = getParamAsString_("temp_data_dir");
+			if ( ((Inspect_in && Inspect_out) || (Inspect_in && blind)) && temp_data_dir.empty() )
+			{
+				writeLog_("No directory for temporary files specified. Aborting!");
+				std::cout << "No directory for temporary files specified. Aborting!" << std::endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+			inspect_infile.ensurePathChar(temp_data_dir);
+			
+			// (2.1.3) parameters corresponding to both Inspect_in and Inspect_out
+			buffer = getParamAsString_("o");
+			if ( !Inspect_in && Inspect_out )
+			{
+				if ( buffer.empty() )
+				{
+					writeLog_("No InsPecT output file specified. Aborting!");
+					std::cout << "No InsPecT output file specified. Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+				else inspect_output_filename = buffer;
+			}
+			else if ( (Inspect_in && Inspect_out) || (Inspect_in && blind) )
+			{
+				if ( buffer.empty() ) inspect_output_filename = temp_data_dir + "tmp.direct.inspect.output";
+				else inspect_output_filename = buffer;
+			}
+			
+			buffer = getParamAsString_("in");
+			// if only one mode is used, a name for the input file has to be given
+			if ( Inspect_in != Inspect_out )
+			{
+				if ( buffer.empty() )
+				{
+					writeLog_("No input file specified. Aborting!");
+					std::cout << "No input file specified. Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+				else input_filename = buffer;
+			}
+			// if both flags are set a the input file may be temporary
+			else
+			{
+				if ( buffer.empty() ) input_filename = temp_data_dir + "tmp.inspect.input";
+				else input_filename = buffer;
+			}
+			
+			if ( getParamAsString_("blind_only", "false") != "false" ) blind_only = true;
+			
+			// (2.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			if ( Inspect_in )
 			{
 				// (2.1.1.0) mandatory parameters
@@ -416,7 +438,6 @@ class TOPPInspectAdapter
 				}
 				
 				buffer = getParamAsString_("seq_files");
-
 				if ( !buffer.empty() )
 				{
 					// get the single sequence files
@@ -439,7 +460,7 @@ class TOPPInspectAdapter
 						else tax.push_back("None");
 					}
 				}
-
+				
 				// at least one of the parameters db or seq_file has to be set
 				if ( dbs.empty() && seq_files.empty() )
 				{
@@ -448,19 +469,121 @@ class TOPPInspectAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-
-				new_db = getParamAsString_("new_db");
-				snd_db = getParamAsString_("snd_db");
-
-				// (2.1.1.1) optional parameters
-				inspect_infile.setSpectra(getParamAsString_("spectra"));
-				inspect_infile.setProtease(getParamAsString_("protease"));
-				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
-				inspect_infile.setInstrument(getParamAsString_("instrument"));
-
-				// get the single modifications
-				getParamAsString_("mod").split(';', substrings);
 				
+				// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
+				if ( getParamAsString_("no_common_contaminants", "false") != "false" ) no_common_contaminants = true;
+				if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
+				if ( !make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
+				{
+					writeLog_("Too many databases (make_trie_db not set). Aborting!");
+					std::cout << "Too many databases (make_trie_db not set). Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+				
+				if ( getParamAsString_("no_tmp_dbs", "false") != "false" ) no_tmp_dbs = true;
+				if ( !make_trie_db && !dbs.empty() ) db_filename = dbs[0];
+				else if ( make_trie_db )
+				{
+					db_filename = getParamAsString_("new_db");
+					
+					if ( no_tmp_dbs )
+					{
+						if ( db_filename.empty() )
+						{
+							writeLog_("No_tmp_dbs flag set but no name for database given. Aborting!");
+							std::cout << "No_tmp_dbs flag set but no name for database given. Aborting!" << std::endl;
+							return ILLEGAL_PARAMETERS;
+						}
+					}
+					else
+					{
+						if ( db_filename.empty() )
+						{
+							// if only the Inspect_in flag is set, a database name has to be be given, except if inspect is run in blind mode
+							if ( !Inspect_out && !blind )
+							{
+								writeLog_("No name for new trie database given. Aborting!");
+								std::cout << "No name for new trie database given. Aborting!" << std::endl;
+								return ILLEGAL_PARAMETERS;
+							}
+							else
+							{
+								db_filename = temp_data_dir + "tmp.inspect.db.trie";
+								inspect_infile.setDb(db_filename);
+								idx_filename = temp_data_dir + "tmp.inspect.db.index";
+							}
+						}
+						else
+						{
+							if ( db_filename.hasSuffix(".trie") )
+							{
+								db_filename = db_filename;
+								inspect_infile.setDb(db_filename);
+								idx_filename = db_filename.substr(0, db_filename.size()-4) + "index";
+							}
+							else
+							{
+								db_filename = db_filename + ".trie";
+								inspect_infile.setDb(db_filename);
+								idx_filename = db_filename + ".index";
+							}
+						}
+					}
+				}
+				// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
+				if ( getParamAsString_("blind", "false") != "false" )
+				{
+					// a blind search with prior run to minimize the database can only be run in full mode
+					if ( Inspect_in && !Inspect_out )
+					{
+						writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!");
+						std::cout << "a blind search with prior run to minimize the database can only be run in full mode. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+					blind = true;
+				}
+				
+				if ( blind && blind_only )
+				{
+					writeLog_("Both blind flags set. Aborting!");
+					std::cout << "Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set" << std::endl;
+					return ILLEGAL_PARAMETERS;
+				}
+				
+				snd_db = getParamAsString_("snd_db");
+				
+				if ( no_tmp_dbs && blind && snd_db.empty() )
+				{
+					writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
+					std::cout << "No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!" << std::endl;
+					return ILLEGAL_PARAMETERS;
+				}
+				else if ( blind && snd_db.empty() )
+				{
+					snd_db_filename = temp_data_dir + "tmp.inspect.db.snd.trie";
+					snd_index_filename = temp_data_dir + "tmp.inspect.db.snd.index";
+				}
+				else if ( blind )
+				{
+					if ( snd_db.hasSuffix(".trie") )
+					{
+						snd_db_filename = snd_db;
+						snd_index_filename = snd_db.substr(0, snd_db.size()-4) + "index";
+					}
+					else
+					{
+						snd_db_filename = snd_db + ".trie";
+						snd_index_filename = snd_db + ".index";
+					}
+				}
+				
+				// get the single modifications
+				buffer = getParamAsString_("mod");
+				buffer.split(';', substrings);
+				
+				if ( substrings.empty() ) substrings.push_back(buffer);
 				// for each modification get the mass, residues, type (optional) and name (optional)
 				for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
 				{
@@ -469,7 +592,21 @@ class TOPPInspectAdapter
 					if ( i->hasSuffix("]") ) i->erase(i->length()-1, 1);
 					i->split(',', mod.back());
 				}
+				if ( !blind_only && mod.empty() )
+				{
+					writeLog_("No modifications specified. Aborting!");
+					std::cout << "No modifications specified. Aborting!" << std::endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
 				inspect_infile.setMod(mod);
+				
+				inspect_logfile = temp_data_dir + "tmp.inspect.log";
+
+				// (2.1.1.1) optional parameters
+				inspect_infile.setProtease(getParamAsString_("protease"));
+				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
+				inspect_infile.setInstrument(getParamAsString_("instrument"));
 				
 				buffer = getParamAsString_("mods");
 				if ( !buffer.empty() )
@@ -539,26 +676,63 @@ class TOPPInspectAdapter
 				}
 
 				if ( getParamAsString_("twopass", "false") != "false" ) inspect_infile.setTwopass(true);
-			}
-
-			// (2.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
-			buffer = getParamAsString_("p_value_threshold");
-			if ( !buffer.empty() )
-			{
-				p_value_threshold = (double) (getParam_("p_value_threshold"));
-				if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
+				
+				buffer = getParamAsString_("maxptmsize");
+				if ( !buffer.empty() )
 				{
-					writeLog_("Illegal p-value. Aborting!");
-					std::cout << "Illegal p-value. Aborting!" << std::endl;
+					inspect_infile.setMaxPTMsize( (double) (getParam_("maxptmsize")) );
+					if ( inspect_infile.getMaxPTMsize() < 0 )
+					{
+						writeLog_("Illegal maximum modification size (<0). Aborting!");
+						std::cout << "Illegal maximum modification size (<0). Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				
+				buffer = getParamAsString_("cutoff_p_value");
+				if ( !buffer.empty() ) cutoff_p_value = (double) (getParam_("cutoff_p_value"));
+				if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
+				{
+					writeLog_("Illegal p-value for blind search. Aborting!");
+					std::cout << "Illegal p-value for blind search. Aborting!" << std::endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
+				
+				buffer = getParamAsString_("cutoff_score_value");
+				if ( !buffer.empty() ) cutoff_score_value = (double) (getParam_("cutoff_score_value"));
+	
+				buffer = getParamAsString_("min_annotated_spectra_per_protein");
+				if ( !buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_annotated_spectra_per_protein");
 			}
 			
-			buffer = getParamAsString_("out");
-			if ( buffer.empty() )
+			// (2.1.2) Inspect_out - output of inspect is written xml analysis file
+			if ( Inspect_out )
 			{
-				if ( Inspect_out || !Inspect_in )
+				// get the database and sequence file name from the input file
+				
+				buffer = getParamAsString_("p_value_threshold");
+				if ( !buffer.empty() )
+				{
+					p_value_threshold = (double) (getParam_("p_value_threshold"));
+					if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
+					{
+						writeLog_("Illegal p-value. Aborting!");
+						std::cout << "Illegal p-value. Aborting!" << std::endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				
+				buffer = getParamAsString_("score_value_threshold");
+				if ( !buffer.empty() )
+				{
+					score_value_threshold = (double) (getParam_("score_value_threshold"));
+				}
+				
+				output_filename = getParamAsString_("out");
+				if ( output_filename.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
 					std::cout << "No output file specified. Aborting!" << std::endl;
@@ -566,293 +740,207 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 			}
-			else
-			{
-				output_filename = buffer;
-			}
 			
-			buffer = getParamAsString_("o");
-			if ( !buffer.empty() )
-			{
-				inspect_output_filename = buffer;
-			}
-
-			// (2.1.3) parameters corresponding to both Inspect_in and Inspect_out
-			buffer = getParamAsString_("in"); // in normal mode, this can be a temporary file (from ini)
-			if ( buffer.empty() )
-			{
-				if ( (Inspect_in || Inspect_out) && !(Inspect_in && Inspect_out) )
-				{
-					writeLog_("No input file specified. Aborting!");
-					std::cout << "No input file specified. Aborting!" << std::endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-			else
-			{
-				input_filename = buffer;
-			}
-
-			// (2.1.4) blind_only - running inspect in blind mode only and corresponding parameters
-			if ( getParamAsString_("blind_only", "false") != "false" ) blind_only = true;
-
-			buffer = getParamAsString_("maxptmsize");
-			if ( !buffer.empty() )
-			{
-				inspect_infile.setMaxPTMsize( (double) (getParam_("maxptmsize")) );
-				if ( inspect_infile.getMaxPTMsize() < 0 )
-				{
-					writeLog_("Illegal maximum modification size (<0). Aborting!");
-					std::cout << "Illegal maximum modification size (<0). Aborting!" << std::endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-
-			// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
-			if ( getParamAsString_("blind", "false") != "false" )
-			{
-				// a blind search with prior run to minimize the database can only be run in full mode
-				if ( Inspect_in && !Inspect_out )
-				{
-					writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!");
-					std::cout << "a blind search with prior run to minimize the database can only be run in full mode. Aborting!" << std::endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-				blind = true;
-				inspect_infile.setBlind(true);
-			}
-
-			if ( blind && blind_only )
-			{
-				writeLog_("Both blind flags set. Aborting!");
-				std::cout << "Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set" << std::endl;
-				return ILLEGAL_PARAMETERS;
-			}
-
-			buffer = getParamAsString_("cutoff_p_value");
-			if ( !buffer.empty() ) cutoff_p_value = double(getParam_("cutoff_p_value"));
-
-			buffer = getParamAsString_("min_annotated_spectra_per_protein");
-			if ( !buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_annotated_spectra_per_protein");
-
-			// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
-			if ( getParamAsString_("no_common_contaminants", "false") != "false" ) no_common_contaminants = true;
-			
-			if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
-			if ( make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
-			{
-				writeLog_("Too many databases (make_trie_db not set). Aborting!");
-				std::cout << "Too many databases (make_trie_db not set). Aborting!" << std::endl;
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-
-			// (2.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
-			if ( getParamAsString_("no_tmp_dbs", "false") != "false" ) no_tmp_dbs = true;
-			if ( no_tmp_dbs )
-			{
-				if ( new_db.empty() )
-				{
-					writeLog_("Mo_tmp_dbs flag set but no name for database given. Aborting!");
-					std::cout << "No_tmp_dbs flag set but no name for database given. Aborting!" << std::endl;
-					return ILLEGAL_PARAMETERS;
-				}
-				if ( snd_db.empty() && blind )
-				{
-					writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
-					std::cout << "No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!" << std::endl;
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-			else
-			{
-				if ( new_db.empty() )
-				{
-					// if only the Inspect_in flag is set, a database name has to be be given
-					if ( Inspect_in && !Inspect_out )
-					{
-						writeLog_("No name for new trie database given. Aborting!");
-						std::cout << "No name for new trie database given. Aborting!" << std::endl;
-						return ILLEGAL_PARAMETERS;
-					}
-					else
-					{
-						db_filename = temp_data_dir + "tmp.inspect.db.trie";
-						inspect_infile.setDb(db_filename);
-						idx_filename = temp_data_dir + "tmp.inspect.db.index";
-					}
-				}
-				else
-				{
-					if ( new_db.hasSuffix(".trie") )
-					{
-						db_filename = new_db;
-						inspect_infile.setDb(db_filename);
-						idx_filename = new_db.substr(0, new_db.size()-4) + "index";
-					}
-					else
-					{
-						db_filename = new_db + ".trie";
-						inspect_infile.setDb(db_filename);
-						idx_filename = new_db + ".index";
-					}
-				}
-				
-				if ( blind && snd_db.empty() )
-				{
-					snd_db_filename = temp_data_dir + "tmp.inspect.db.snd.trie";
-					snd_index_filename = temp_data_dir + "tmp.inspect.db.snd.index";
-				}
-				else if ( blind )
-				{
-					if ( snd_db.hasSuffix(".trie") )
-					{
-						snd_db_filename = snd_db;
-						snd_index_filename = snd_db.substr(0, snd_db.size()-4) + "index";
-					}
-					else
-					{
-						snd_db_filename = snd_db + ".trie";
-						snd_index_filename = snd_db + ".index";
-					}
-				}
-			}
-			
-			inspect_logfilename = temp_data_dir + "tmp.inspect.log";
-			
-			///-------------------------------------------------------------
+			//-------------------------------------------------------------
 			// (3) running program according to parameters
-			///-------------------------------------------------------------
-			
+			//-------------------------------------------------------------
 			// (3.1) checking accessability of files
+			QFileInfo file_info;
+			QFile file;
+			
 			// (3.1.1) input file
-			// the input file has to be existent and readable if Inspect_out is set only
-			if ( !Inspect_in )
+			// if only Inspect_out is set, the file has to exist, be readable and not empty
+			file_info.setFile(input_filename);
+			if ( Inspect_out && !Inspect_in )
 			{
-				if ( !exists(input_filename) )
+				if ( !file_info.exists() )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
 				}
-				if ( !isReadable(input_filename) )
+				if ( !file_info.isReadable() )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
 				}
-				if ( fsize(input_filename) == 0 )
+				if ( emptyFile(input_filename) )
 				{
 					throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
 				}
+			}
+			// if both flags or only Inspect_in is set, the file has to be writable
+			else
+			{
+				file.setName(input_filename);
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
+				{
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
+				}
+				file.close();
+			}
+			
+			// retrieve the name of the databases from the input file
+			if ( Inspect_out && ! Inspect_in )
+			{
+				String line;
+				inspect_infile.setDb("");
+				std::ifstream get_db_names(input_filename.c_str());
+				String db = "db,";
+				String seq = "sequence_file,";
+				while ( getline(get_db_names, line) && inspect_infile.getDb().empty() && inspect_infile.getSequenceFile().empty() )
+				{
+					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+					buffer = line;
+					buffer.toLower();
+					if ( buffer.hasPrefix(db) )
+					{
+						inspect_infile.setDb(line.substr(db.length(), line.length()-db.length()));
+						dbs.push_back(line.substr(db.length(), line.length()-db.length()));
+					}
+					else if ( buffer.hasPrefix(seq) )
+					{
+						inspect_infile.setSequenceFile(line.substr(seq.length(), line.length()-seq.length()));
+						seq_files.push_back(line.substr(seq.length(), line.length()-seq.length()));
+					}
+				}
+				get_db_names.close();
+			}
+			
+			// (3.1.2.1) inspect output file
+			if ( (Inspect_in && Inspect_out) || (Inspect_in && blind) )
+			{
+				file.setName(inspect_output_filename);
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
+				{
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
+				}
+				file.close();
+			}
+			file_info.setFile(inspect_infile.getJumpscores());
+			if ( (!inspect_infile.getJumpscores().empty()) && !file_info.isReadable() )
+			{
+				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
 			}
 			
 			// (3.1.2) output file
 			if ( Inspect_out )
 			{
-				if ( !isWritable(output_filename) )
+				file.setName(output_filename);
+				file.open(IO_WriteOnly);
+				if ( Inspect_out )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
+					if ( !file.isWritable() )
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
+					}
 				}
-			
-				// (3.1.2.1) inspect output file
-				if ( !isWritable(inspect_output_filename) )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
-				}
-				
-				if ( (!inspect_infile.getJumpscores().empty()) && !isReadable(inspect_infile.getJumpscores()) )
-				{
-					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
-				}
+				file.close();
 			}
-
+			
+			// (3.1.3) given databases and sequence files
+			std::vector< String > not_accessable;
+			for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i )
+			{
+				file_info.setFile(i->c_str());
+				if ( !file_info.exists() ) not_accessable.push_back(*i);
+				else if ( !file_info.isReadable() ) not_accessable.push_back(*i);
+				else if ( emptyFile(*i) ) not_accessable.push_back(*i);
+			}
+			
+			for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i )
+			{
+				file_info.setFile(i->c_str());
+				if ( !file_info.exists() ) not_accessable.push_back(*i);
+				else if ( !file_info.isReadable() ) not_accessable.push_back(*i);
+				else if ( emptyFile(*i) ) not_accessable.push_back(*i);
+			}
+			if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
+			{
+				writeLog_("All of the given databases and sequence files are either not existent, not readable or empty. Aborting!");
+				std::cout << "All of the given databases and sequence files are either not existent, not readable or empty. Aborting!" << std::endl;
+				if ( dbs.empty() ) throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, seq_files.front());
+				else throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, dbs.front());
+			}
+			else if ( !not_accessable.empty() )
+			{
+				buffer = String(not_accessable.size());
+				buffer.append(" databases/sequence files are not accessable or empty. Using ");
+				buffer.append(String( dbs.size()+seq_files.size()-not_accessable.size() ));
+				buffer.append(" databases/sequences files only!");
+				writeLog_(buffer.c_str());
+				std::cout << buffer << std::endl;
+			}
+			
 			if ( Inspect_in )
 			{
-				// (3.1.3) given databases and sequence files
-				std::vector< String > not_accessable;
-				for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i )
-				{
-					if ( !exists(*i) ) not_accessable.push_back(*i);
-					else if ( !isReadable(*i) ) not_accessable.push_back(*i);
-					else if ( fsize(*i) == 0 ) not_accessable.push_back(*i);
-				}
-
-				for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i )
-				{
-					if ( !exists(*i) ) not_accessable.push_back(*i);
-					else if ( !isReadable(*i) ) not_accessable.push_back(*i);
-					else if ( fsize(*i) == 0 ) not_accessable.push_back(*i);
-				}
-				if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
-				{
-					writeLog_("All of the given databases and sequence files are either not existent, not readable or empty. Aborting!");
-					std::cout << "All of the given databases and sequence files are either not existent, not readable or empty. Aborting!" << std::endl;
-					if ( dbs.empty() ) throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, seq_files.front());
-					else throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, dbs.front());
-				}
-				else if ( !not_accessable.empty() )
-				{
-					buffer = String(SignedInt(not_accessable.size()));
-					buffer.append(" databases/sequence files are not accessable or empty. Using ");
-					buffer.append(String( SignedInt(dbs.size()+seq_files.size()-not_accessable.size() )));
-					buffer.append(" databases/sequences files only!");
-					writeLog_(buffer.c_str());
-					std::cout << buffer << std::endl;
-				}
-				
 				// (3.1.3.1) common contaminants
 				if ( !no_common_contaminants )
 				{
-					if ( !exists(common_contaminants_filename) )
+					file_info.setFile(common_contaminants_filename.c_str());
+					if ( !file_info.exists() )
 					{
 						throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, common_contaminants_filename);
 					}
-					if ( !isReadable(common_contaminants_filename) )
+					if ( !file_info.isReadable() )
 					{
 						throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, common_contaminants_filename);
 					}
 				}
-
+				
 				// (3.1.4) database and index
-				if ( make_trie_db || (!dbs.empty()) )
+				if ( make_trie_db )
 				{
-					if ( !isWritable(db_filename) )
+					file.setName(db_filename.c_str());
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
 					}
-					
-					if ( !isWritable(idx_filename) )
+					file.close();
+					file.setName(idx_filename);
+					file.open( IO_WriteOnly );
+					if ( !file.isWritable() )
 					{
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
 					}
+					file.close();
 				}
-
+				
 				// (3.1.5) second database and index
 				if ( blind )
 				{
-					if ( !isWritable(snd_db_filename) )
+					file.setName(snd_db_filename);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_db_filename);
 					}
-					
-					if ( !isWritable(snd_index_filename) )
+					file.close();
+					file.setName(snd_index_filename);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_index_filename);
 					}
+					file.close();
 				}
-			}
-			
-			// the on-screen output of inspect
-			if ( !isWritable(inspect_logfilename) )
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_logfilename);
+				
+				// the on-screen output of inspect
+				file.setName(inspect_logfile);
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
+				{
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_logfile);
+				}
+				file.close();
 			}
 			
 			// (3.2) running the program
-			
-			String database_path = pathDir(db_filename);
-			String database_filename = fileName(db_filename);
-			String index_filename = fileName(idx_filename);
+			file_info.setFile(db_filename.c_str());
+			String database_path = file_info.dirPath().ascii();
+			String database_filename = file_info.fileName().ascii();
+			file_info.setFile(idx_filename.c_str());
+			String index_filename = file_info.fileName().ascii();
 			std::vector< unsigned int > wanted_records;
 			
 			// (3.2.1) creating the input file and converting and merging the databases
@@ -869,23 +957,25 @@ class TOPPInspectAdapter
 					// merging the trie databases (all but the first databases are appended)
 					for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
 					{
-						inspect_infile.compressTrieDB(fileName(*i), "", pathDir(*i), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
+						file_info.setFile(i->c_str());
+						inspect_infile.compressTrieDB(file_info.fileName().ascii(), "", file_info.dirPath().ascii(), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
 					}
 					
 					// converting and merging the other databases (all but the first databases are appended)
 					std::vector< String >::const_iterator tax_i = tax.begin();
 					for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
 					{
-						inspect_infile.generateTrieDB(fileName(*i), pathDir(*i), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
+						file_info.setFile(i->c_str());
+						inspect_infile.generateTrieDB(file_info.fileName().ascii(), file_info.dirPath().ascii(), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
 					}
 				}
 				else
 				{
 					if ( !dbs.empty() )
 					{
-						database_filename = fileName(dbs[0]);
-						database_path = pathDir(dbs[0]);
-						inspect_infile.ensurePathChar(database_path);
+						file_info.setFile(dbs[0].c_str());
+						database_filename = file_info.fileName().ascii();
+						database_path = file_info.dirPath().ascii();
 					}
 					else
 					{
@@ -925,30 +1015,35 @@ class TOPPInspectAdapter
 				call.append(inspect_output_filename);
 				// writing the inspect output to a temporary file
 				call.append(" > ");
-				call.append(inspect_logfilename);
+				call.append(inspect_logfile);
 				
 				int status = system(call.c_str());
 				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfilename));
+				writeLog_(fileContent(inspect_logfile));
 				
 				if (status != 0)
 				{
-					std::cout << "Inspect problem. Aborting! (Details can be seen " 
-					<< " in the logfile: \"" << logfile << "\")" << std::endl;
+					std::cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << std::endl;
 					writeLog_("Inspect problem. Aborting!");
-					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfilename);
-					return EXTERNAL_PROGRAM_ERROR;						
+					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
+					return EXTERNAL_PROGRAM_ERROR;
 				}
 				
 				if ( database_filename.empty() && (!inspect_infile.getSequenceFile().empty()) )
 				{
-					database_filename = inspect_infile.getSequenceFile();
-					database_path = pathDir(database_filename);
-					database_filename = fileName(database_filename);
+					file_info.setFile(inspect_infile.getSequenceFile().c_str());
+					database_path = file_info.dirPath().ascii();
+					database_filename = file_info.fileName().ascii();
 				}
 				
-				inspect_infile.generateSecondDatabase(fileName(inspect_output_filename), pathDir(inspect_output_filename), database_path, database_filename, cutoff_p_value, min_annotated_spectra_per_protein, fileName(snd_db_filename), fileName(snd_index_filename), pathDir(snd_db_filename), index_filename);
+				file_info.setFile(snd_db_filename);
+				String snd_db_path = file_info.dirPath().ascii();
+				String snd_db_filename_buf = file_info.fileName().ascii();
+				file_info.setFile(snd_index_filename);
+				String snd_index_filename_buf = file_info.fileName().ascii();
+				file_info.setFile(inspect_output_filename);
 				
+				inspect_infile.generateSecondDatabase(file_info.fileName().ascii(), file_info.dirPath().ascii(), database_path, database_filename, cutoff_p_value, cutoff_score_value, min_annotated_spectra_per_protein, snd_db_filename_buf, snd_index_filename_buf, snd_db_path, index_filename);
 				
 				if ( emptyFile(snd_db_filename) )
 				{
@@ -967,7 +1062,7 @@ class TOPPInspectAdapter
 			}
 			
 			// (3.2.3) writing the output of inspect into an analysisXML file
-			if ( Inspect_out )
+			if ( Inspect_in && Inspect_out )
 			{
 				String call;
 				if ( !inspect_dir.empty() )
@@ -991,40 +1086,22 @@ class TOPPInspectAdapter
 				call.append(inspect_output_filename);
 				// writing the inspect output to a temporary file
 				call.append(" > ");
-				call.append(inspect_logfilename);
+				call.append(inspect_logfile);
 				
 				int status = system(call.c_str());
 				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfilename));
+				writeLog_(fileContent(inspect_logfile));
 				if (status != 0)
 				{
-					std::cout << "Inspect problem. Aborting! (Details can be seen " 
-					<< " in the logfile: \"" << logfile << "\")" << std::endl;
+					std::cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << std::endl;
 					writeLog_("Inspect problem. Aborting!");
-					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfilename);
-					return EXTERNAL_PROGRAM_ERROR;						
+					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
+					return EXTERNAL_PROGRAM_ERROR;
 				}
+			}
 
-				// if Inspect_in is not set, retrieve the name of the database from the input file
-				if ( !Inspect_in )
-				{
-					String line;
-					inspect_infile.setDb("");
-					std::ifstream get_db_name(input_filename.c_str());
-					while ( getline(get_db_name, line) && inspect_infile.getDb().empty() )
-					{
-						buffer = line.substr(0,2);
-						buffer.toUpper();
-						if ( buffer == "DB" )
-						{
-							if ( !line.empty() ) line.resize(line.length()-1);
-							inspect_infile.setDb(line.substr(3, line.length()-3));
-						}
-					}
-					get_db_name.close();
-					get_db_name.clear();
-				}
-				
+			if ( Inspect_out )
+			{
 				AnalysisXMLFile analysisXML_file;
 				
 				if ( !emptyFile(inspect_output_filename) )
@@ -1035,8 +1112,9 @@ class TOPPInspectAdapter
 					
 					InspectOutfile inspect_outfile;
 
-					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, fileName(inspect_infile.getDb()), pathDir(inspect_infile.getDb()), inspect_infile.getSequenceFile());
-
+					file_info.setFile(inspect_infile.getDb().c_str());
+					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, score_value_threshold, file_info.fileName().ascii(), file_info.dirPath().ascii(), inspect_infile.getSequenceFile());
+					
 					std::vector<ProteinIdentification> protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
@@ -1051,13 +1129,13 @@ class TOPPInspectAdapter
 			}
 			
 			// (3.3) deleting all temporary files
-			deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfilename);
+			deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
 
 			return OK;
 		}
 };
 
-/// @endcond
+///@endcond
 
 
 
