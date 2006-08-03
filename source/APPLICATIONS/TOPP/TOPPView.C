@@ -61,7 +61,7 @@
   <LI><b>Zoom:</b> <BR> Allows displaying a specific data area.
   <LI><b>Translate:</b> <BR> In this mode it is possible to translate the visible area.
   <LI><b>Select:</b> <BR> The m/z, RT and intensity of a selected peak are displayed in the sttatus bar in this mode.
-  <LI><b>Measure</b> <BR> This mode is used to depermine the difference in m/z and RT, and intensity ratio of the seleced
+  <LI><b>Measure</b> <BR> This mode is used to determine the difference in m/z and RT, and intensity ratio of the seleced
                           peaks.
   </UL>
 

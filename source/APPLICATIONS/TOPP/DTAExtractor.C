@@ -41,7 +41,7 @@ using namespace std;
 	
 	@brief Extracts scans of an mzData file to several files in DTA format
 	
-	The etention time, the m/z ratio (for MS level > 1) and the file extention are appended to the output file name.
+	The retention time, the m/z ratio (for MS level > 1) and the file extention are appended to the output file name.
 	
 	@ingroup TOPP
 */

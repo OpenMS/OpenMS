@@ -617,9 +617,9 @@ namespace OpenMS
 			try
 			{
 				std::string type = inst.getMetaValue("#InstSoftwareType").toString(),
-				 	name = inst.getMetaValue("#InstSoftware"),
-					version = inst.getMetaValue("#InstSoftwareVersion");
-				String str = inst.getMetaValue("#InstSoftwareTime");
+				name = inst.getMetaValue("#InstSoftware").toString(),
+				version = inst.getMetaValue("#InstSoftwareVersion").toString();
+				String str = inst.getMetaValue("#InstSoftwareTime").toString();
 				QString time(str);
 				time.replace(" ","T");
 				os << "\t\t\t<software type=\"" << type
@@ -631,7 +631,7 @@ namespace OpenMS
 			{
 
 			}
-
+			
 			if ( analyzers.size()>0 )
 			{
 				if (analyzers[0].getResolutionMethod())

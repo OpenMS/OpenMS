@@ -5,14 +5,14 @@ echo "extracting OpenMS ..."
 cd /tmp
 rm -rf OpenMS-dist
 mkdir OpenMS-dist
-cd OpenMS-dist
-svn co http://svn.sourfeforge.net/svnroot/open-ms/OpenMS 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+cd /tmp/OpenMS-dist
+svn co https://svn.sourceforge.net/svnroot/open-ms/OpenMS 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
 # remove SVN information
 REMOVE=`find . -name .svn -type d`
 rm -rf ${REMOVE} 2>/dev/null
-cd OpenMS/source
+cd /tmp/OpenMS-dist/OpenMS/source
 FILE="OpenMS-`grep OPENMS_RELEASE_STRING ../include/OpenMS/CONCEPT/VersionInfo.h | head -1 | awk '{print $3}'| tr -d \\"`.tar"
-cd ../../
+cd /tmp/OpenMS-dist/
 
 echo "checking versions..."
 grep "e OPENMS_RELEASE_STRING" OpenMS/include/OpenMS/CONCEPT/VersionInfo.h
