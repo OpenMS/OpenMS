@@ -101,6 +101,7 @@ namespace OpenMS
 		unsigned int rank = 0;
 		//unsigned int max_record_number = 0;
 		unsigned int line_number = 0; // used to report in which line an error occured
+		String p_value;
 		
 		// get all the proteins and make a vector of those who come from a FASTA file and those who come from a trie database
 		std::vector< unsigned int > FASTA_proteins, trie_proteins;
@@ -114,26 +115,15 @@ namespace OpenMS
 			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
 			missing_column = ( substrings.size() == number_of_columns-1 );
 			if ( substrings.size() < number_of_columns - missing_column ) continue;
-			/*{
-				char buffer[10];
-				sprintf(buffer, "%i", line_number);
-				std::string error_message = "wrong number of columns in row ";
-				error_message.append(buffer);
-				error_message.append("! (");
-				sprintf(buffer, "%i", substrings.size());
-				error_message.append(buffer);
-				error_message.append(" present, should be ");
-				sprintf(buffer, "%i", number_of_columns);
-				error_message.append(buffer);
-				error_message.append(")");
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
 			// take only those peptides whose p-value is less or equal the given threshold (if no p-value is found, take the protein if it's MQ score is above the given threshold
-			if ( ((substrings[p_value_column - missing_column] != "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
+			p_value = substrings[p_value_column - missing_column];
+			
+			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
+			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
 			
 			// if there's a missing column, the record number is one too high
 			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
@@ -141,8 +131,6 @@ namespace OpenMS
 			// (1.1)  if a new protein is found, get the rank and insert it
 			if ( rn_position_map.find(std::make_pair(from_fasta, record_number)) == rn_position_map.end() )
 			{
-				//max_record_number = std::max(max_record_number, record_number);
-				
 				protein_hit.clear();
 				//protein_hit.setScore(0.0);
 				//protein_hit.setScoreType(score_type_);
@@ -188,7 +176,6 @@ namespace OpenMS
 				protein_hits[rn_position_map[std::make_pair(true, *i)]].setAccession(accession);
 				protein_hits[rn_position_map[std::make_pair(true, *i)]].setAccessionType(accession_type);
 			}
-			
 			protein_info.clear();
 			FASTA_proteins.clear();
 		}
@@ -203,7 +190,6 @@ namespace OpenMS
 		//                      filename     scan numbers
 		std::vector< std::pair< String, std::vector< unsigned int > > > files_and_scan_numbers;
 		std::vector< unsigned int >* scan_numbers;
-		
 		while ( getline(result_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -213,27 +199,14 @@ namespace OpenMS
 			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
 			missing_column = ( substrings.size() == number_of_columns-1 );
 			if ( substrings.size() < number_of_columns - missing_column ) continue;
-			/*{
-				char buffer[10];
-				sprintf(buffer, "%i", line_number);
-				std::string error_message = "wrong number of columns in row ";
-				error_message.append(buffer);
-				error_message.append("! (");
-				sprintf(buffer, "%i", substrings.size());
-				error_message.append(buffer);
-				error_message.append(" present, should be ");
-				sprintf(buffer, "%i", number_of_columns);
-				error_message.append(buffer);
-				error_message.append(")");
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
+			p_value = substrings[p_value_column - missing_column];
 			// take only those peptides whose p-value is less or equal the given threshold, nans are included
-			if ( (substrings[p_value_column - missing_column] != "nan") && (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;			
-
+			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
+			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
 			// (1.0) if a new query is found, insert it into the vector
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((unsigned int) atoi(substrings[scan_column].c_str()) != scan_number) )
 			{
@@ -294,9 +267,8 @@ namespace OpenMS
 		// get the precursor retention times and mz values
 		getPrecursorRTandMZ(files_and_scan_numbers, precursor_retention_times, precursor_mz_values);
 		
-		
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
-		if ( identifications.empty() )
+		if ( identifications.size() == 1 )
 		{
 			query->setProteinHits(protein_hits);
 			query->setDateTime(datetime);
