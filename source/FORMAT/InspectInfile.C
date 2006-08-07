@@ -409,19 +409,6 @@ std::cout << multicharge << std::endl;
 			// check whether the line has enough columns
 			missing_column = ( substrings.size() == number_of_columns - 1 );
 			if ( !missing_column && (substrings.size() < number_of_columns) ) continue;
-			/*{
-				sprintf(buffer, "%i", line_number);
-				std::string error_message = "wrong number of columns in row ";
-				error_message.append(buffer);
-				error_message.append("! (");
-				sprintf(buffer, "%i", substrings.size());
-				error_message.append(buffer);
-				error_message.append(" present, should be ");
-				sprintf(buffer, "%i", number_of_columns);
-				error_message.append(buffer);
-				error_message.append(")");
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
-			}*/
 			
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
@@ -429,13 +416,15 @@ std::cout << multicharge << std::endl;
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
 			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
-			if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(substrings[p_value_column - missing_column].c_str()) <= cutoff_p_value) )
-			{
-				record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
-				max_record_number = std::max(max_record_number, record_number);
-				// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
-				++record_map[record_number];
-			}
+			p_value = substrings[p_value_column - missing_column];
+			
+			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
+			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
+			
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
+			max_record_number = std::max(max_record_number, record_number);
+			// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
+			++record_map[record_number];
 		} // result file read
 		result_file.close();
 		result_file.clear();
