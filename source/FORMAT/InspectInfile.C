@@ -416,10 +416,10 @@ std::cout << multicharge << std::endl;
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
 			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
-			p_value = substrings[p_value_column - missing_column];
+			String p_value = substrings[p_value_column - missing_column];
 			
 			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
-			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
+			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(p_value.c_str()) > cutoff_p_value) ) continue;
 			
 			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
 			max_record_number = std::max(max_record_number, record_number);
