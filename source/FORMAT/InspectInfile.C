@@ -398,7 +398,8 @@ std::cout << multicharge << std::endl;
 		bool missing_column;
 		//std::set<std::string, string_less> spectrum_count;
 		std::set< std::string > spectrum_count;
-		//char buffer[10];
+		double p_value;
+		bool from_fasta = (start_separator != "*");
 		
 		// read out the whole result file
 		while ( getline(result_file, line) )
@@ -416,12 +417,16 @@ std::cout << multicharge << std::endl;
 			spectrum_count.insert(substrings[spectrum_file_column]);
 			
 			// if the p_value of this record is lower or equal to the cutoff it is inserted or it's number of annotated spectrum is increased
-			String p_value = substrings[p_value_column - missing_column];
+			// workaround for a bug in inspect. sometimes, when the protein column is missing, there's an extra zeros-column before the p-value column
+			if ( missing_column && (substrings[p_value_column - missing_column].length() >= 5) && (substrings[p_value_column - missing_column].substr(0,5) == "0.000") )
+			{
+				p_value = atof(substrings[p_value_column - missing_column].c_str());
+				
+				if ( (p_value >= 0) && (p_value <= 1) && (p_value > cutoff_p_value) ) continue;
+			}
+			else if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(substrings[p_value_column - missing_column].c_str()) > cutoff_p_value) ) continue;
 			
-			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
-			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(p_value.c_str()) > cutoff_p_value) ) continue;
-			
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column -from_fasta;
 			max_record_number = std::max(max_record_number, record_number);
 			// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
 			++record_map[record_number];

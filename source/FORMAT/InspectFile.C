@@ -262,20 +262,7 @@ namespace OpenMS
 		if ( database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		
 		// if in append mode, check whether the file is empty and if so set append to false
-		if ( append )
-		{
-			//fseek(database_file, 0, SEEK_END);
-			if ( !ftell(database_file) )	append = false;
-			//if ( ftell(database_file) )	fseek(database_file, 0, SEEK_SET);
-			/*else
-			{
-				fclose(database_file);
-				append = false;
-				openmode[0] = 'w';
-				database_file = fopen(path_and_file.c_str(), openmode);
-				if ( database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
-			}*/
-		}
+		if ( append ) if ( !ftell(database_file) )	append = false;
 		
 		path_and_file = database_path;
 		ensurePathChar(path_and_file);
@@ -375,7 +362,7 @@ namespace OpenMS
 					}
 					record_flags |= ac_flag; // set the ac flag
 				}
-				// if a species line is found and a species (other than "None") is given, check whether this record is from the wanted species ### None auch global setzten
+				// if a species line is found and a species (other than "None") is given, check whether this record is from the wanted species
 				// (if no species is given, the species label ("") is always found, but the compare will always give zero as the species then will be "None")
 				if ( line.hasPrefix(species_label) && (record_flags==ac_flag) )
 				{
@@ -390,7 +377,7 @@ namespace OpenMS
 			}
 			source_file_pos_buffer = source_file.tellg();
 		} // source file read
-		source_file.close();		
+		source_file.close();
 
 		// if the last record has no sequence end label, the sequence has to be appended nevertheless
 		if ( record_flags==(ac_flag|species_flag|sequence_flag) )
@@ -439,7 +426,7 @@ namespace OpenMS
 		unsigned char species_flag = 2;
 		unsigned char sequence_flag = 4;
 		unsigned char record_flags = (species == "None") ? species_flag : 0; // what records have already been set
-		unsigned int found_records = 0; // whether records have already been written
+		unsigned int found_records = 0; // whether records have already been found
 		unsigned int seen_records = 0;
 		unsigned int pos = 0;
 		String line; // the current line read
@@ -540,15 +527,24 @@ namespace OpenMS
 			// if the sequence is not empty, the record has the correct form
 			if ( !sequence.empty() )
 			{
+				if ( !wanted_records.empty() ) ++i;
+				
 				s_ac_act[0] = sequence;
 				s_ac_act[1] = accession_line;
 				protein_info.push_back(s_ac_act);
+				++found_records;
 			}
 			// if the sequence is empty
 			else
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "emtpy sequence!" , database_filename);
 			}
+			
+			
+		}
+		if ( i != wanted_records.end() )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Wrong database file (number of proteins in database is lower than a RecordNumber)!" ,database_filename);
 		}
 		
 		// close the filestreams

@@ -99,9 +99,8 @@ namespace OpenMS
 		std::string accession, accession_type, spectrum_file;
 		unsigned int record_number, scan_number, start, end;
 		unsigned int rank = 0;
-		//unsigned int max_record_number = 0;
 		unsigned int line_number = 0; // used to report in which line an error occured
-		String p_value;
+		double p_value;
 		
 		// get all the proteins and make a vector of those who come from a FASTA file and those who come from a trie database
 		std::vector< unsigned int > FASTA_proteins, trie_proteins;
@@ -120,13 +119,17 @@ namespace OpenMS
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
 			// take only those peptides whose p-value is less or equal the given threshold (if no p-value is found, take the protein if it's MQ score is above the given threshold
-			p_value = substrings[p_value_column - missing_column];
-			
-			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
-			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
+			// workaround for a bug in inspect. sometimes, when the protein column is missing, there's an extra zeros-column before the p-value column
+			if ( missing_column && (substrings[p_value_column - missing_column].length() >= 5) && (substrings[p_value_column - missing_column].substr(0,5) == "0.000") )
+			{
+				p_value = atof(substrings[p_value_column - missing_column].c_str());
+				
+				if ( (p_value >= 0) && (p_value <= 1) && (p_value > p_value_threshold) ) continue;
+			}
+			else if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
 			
 			// if there's a missing column, the record number is one too high
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column - from_fasta;
 			
 			// (1.1)  if a new protein is found, get the rank and insert it
 			if ( rn_position_map.find(std::make_pair(from_fasta, record_number)) == rn_position_map.end() )
@@ -203,10 +206,15 @@ namespace OpenMS
 			// if the version Inspect.20060620.zip is used, there is a header
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
-			p_value = substrings[p_value_column - missing_column];
-			// take only those peptides whose p-value is less or equal the given threshold, nans are included
-			if ( (p_value.length() >= 5) && (p_value.substr(0,5) == "0.000") && (substrings[p_value_column] == "nan") ) p_value = "nan";
-			if ( ((p_value == "nan") && (atoi(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(p_value.c_str()) > p_value_threshold) ) continue;
+			// workaround for a bug in inspect. sometimes, when the protein column is missing, there's an extra zeros-column before the p-value column
+			if ( missing_column && (substrings[p_value_column - missing_column].length() >= 5) && (substrings[p_value_column - missing_column].substr(0,5) == "0.000") )
+			{
+				p_value = atof(substrings[p_value_column - missing_column].c_str());
+				
+				if ( (p_value >= 0) && (p_value <= 1) && (p_value > p_value_threshold) ) continue;
+			}
+			else if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
+			
 			// (1.0) if a new query is found, insert it into the vector
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((unsigned int) atoi(substrings[scan_column].c_str()) != scan_number) )
 			{
@@ -232,7 +240,7 @@ namespace OpenMS
 				precursor_mz_values.push_back(0);
 			}
 			
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column -from_fasta;
 			
 			// (1.2) get the peptide infos from the new peptide and insert it
 			peptide_hit.clear();
