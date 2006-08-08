@@ -140,21 +140,28 @@ class TOPPInspectAdapter
 						<< "                                     tax - the desired taxonomy, if not given for a database, all entries are taken." << std::endl
 						<< "  -make_trie_db       if set, the InspectAdapter will generate one trie database from all given databases." << std::endl
 						<< "                      if you do not use this switch you may only use one FASTA database XOR one trie database" << std::endl
+						<< "  -mods [<MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>];[<MASS2>,<RESIDUES2>,<TYPE2>,<NAME2>]" << std::endl
+						<< "                      modifications i.e. [80,STY,opt,phosphorylation] (default read from INI file)" << std::endl
+						<< "                      MASS and RESIDUES are mandatory, make sure the modifications are seperated by a semicolon!" << std::endl
+						<< "                      Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << std::endl
+						<< "  -blind              perform a blind search (allowing arbitrary modification masses), as this is slower than the normal search" << std::endl
+						<< "                      A normal search is performed in advance to gain a smaller database." << std::endl
+						<< "                      This search can only be run in full mode." << std::endl
+						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << std::endl;
+		}
+
+
+		void printToolHelpOpt_()
+		{
+			std::cerr	<< std::endl
 						<< "  -instr              the instrument that was used to measure the spectra (default read from INI file)" << std::endl
 						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << std::endl
 						<< "  -PM_tol             the precursor mass tolerance (default read from INI file)" << std::endl
 						<< "  -ion_tol            the peak mass tolerance (default read from INI file)" << std::endl
 						<< "  -protease           the name of a protease. \"Trypsin\", \"None\", and \"Chymotrypsin\" are the available values." << std::endl
-						<< "  -mods [<MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>];[<MASS2>,<RESIDUES2>,<TYPE2>,<NAME2>]" << std::endl
-						<< "                      modifications i.e. [80,STY,opt,phosphorylation] (default read from INI file)" << std::endl
-						<< "                      MASS and RESIDUES are mandatory, make sure the modifications are seperated by a semicolon!" << std::endl
-						<< "                      Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << std::endl
 						<< "                      The first four	characters of the name should be unique." << std::endl
 						<< "  -max_mods_pp        number of PTMs permitted in a single peptide. (default: read from INI file)" << std::endl
-						<< "  -blind              perform a blind search (allowing arbitrary modification masses), as this is slower than the normal search" << std::endl
-						<< "                      A normal search is performed in advance to gain a smaller database." << std::endl
-						<< "                      This search can only be run in full mode." << std::endl
-						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << std::endl
+						
 						<< "  -p_value            annotations with inferior p-value are ignored. Default is 0.05" << std::endl
 						<< "  -score_value        annotations with inferior score-value are ignored. Default is 1." << std::endl
 						<< "                      (this is a workaround because sometimes inspect produces only nan as p-value;" << std::endl
@@ -173,7 +180,7 @@ class TOPPInspectAdapter
 						<< "  -TagCountA          number of tags to generate for the first pass of a two-pass search" << std::endl
 						<< "  -TagCountB          number of tags to generate for the second pass of a two-pass search" << std::endl
 						<< "                      OR the number of tags to use in a one-pass search" << std::endl
-						<< "  -no_cmn_conts       do not add the proteins from CommonContaminents.fasta to the search database" << std::endl
+						<< "  -cmn_conts          add the proteins from CommonContaminents.fasta (in inspect path) to the search database" << std::endl
 						<< "  -no_tmp_dbs         no temporary databases are used" << std::endl
 						<< "  -new_db             name of the trie database (given databases are converted and merged to one trie database)." << std::endl
 						<< "                      This has to be set if no_tmp_dbs is set! If the name does not end with \".trie\"" << std::endl
@@ -182,11 +189,6 @@ class TOPPInspectAdapter
 						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << std::endl
 						<< "                      This has to be set if no_tmp_dbs is set!" << std::endl;
 						//<< "  -contact		 name of the contact person" << std::endl
-		}
-
-
-		void printToolHelpOpt_()
-		{
 		}
 
 
@@ -204,7 +206,7 @@ class TOPPInspectAdapter
 			options_["-protease"] = "protease";
 			options_["-jumpscores"] = "jumpscores";
 			options_["-instrument"] = "instrument";
-			options_["-mods"] = "mod";
+			options_["-mods"] = "mods";
 			options_["-max_mods_pp"] = "max_mods_pp";
 			options_["-PM_tol"] = "PM_tol";
 			options_["-ion_tol"] = "ion_tol";
@@ -224,7 +226,7 @@ class TOPPInspectAdapter
 			options_["-min_spp"] = "min_spp";
 			options_["-maxptmsize"] = "maxptmsize";
 			flags_["-blind"] = "blind";
-			flags_["-no_cmn_conts"] = "no_cmn_conts";
+			flags_["-cmn_conts"] = "cmn_conts";
 			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
 			flags_["-make_trie_db"] = "make_trie_db";
 			//options_["-contact"] = "contact_person";
@@ -326,7 +328,7 @@ class TOPPInspectAdapter
 			int min_annotated_spectra_per_protein = -1;
 
 			// (1.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
-			bool no_common_contaminants = false;
+			bool no_common_contaminants = true;
 
 			// (1.1.7) no_tmp_dbs - whether to use temporary database files or to save them (faster if they are used more than once)
 			bool no_tmp_dbs = false;
@@ -338,7 +340,7 @@ class TOPPInspectAdapter
 			// (2.0) general variables
 			if ( getParamAsString_("Inspect_in", "false") != "false" ) Inspect_in = true;
 			if ( getParamAsString_("Inspect_out", "false") != "false" ) Inspect_out = true;
-
+			
 			// a 'normal' inspect run corresponds to both Inspect_in and Inspect_out set
 			if ( !Inspect_in && !Inspect_out ) Inspect_in = Inspect_out = true;
 			
@@ -471,7 +473,7 @@ class TOPPInspectAdapter
 				}
 				
 				// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
-				if ( getParamAsString_("no_cmn_conts", "false") != "false" ) no_common_contaminants = true;
+				if ( getParamAsString_("cmn_conts", "true") != "true" ) no_common_contaminants = true;
 				if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
 				if ( !make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
 				{
@@ -580,10 +582,10 @@ class TOPPInspectAdapter
 				}
 				
 				// get the single modifications
-				buffer = getParamAsString_("mod");
+				buffer = getParamAsString_("mods");
 				buffer.split(';', substrings);
 				
-				if ( substrings.empty() ) substrings.push_back(buffer);
+				if ( substrings.empty() && !buffer.empty() ) substrings.push_back(buffer);
 				// for each modification get the mass, residues, type (optional) and name (optional)
 				for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
 				{
@@ -986,11 +988,12 @@ class TOPPInspectAdapter
 					if ( !seq_files.empty() ) inspect_infile.setSequenceFile(seq_files[0]);
 				}
 				
-				if ( blind ) inspect_infile.setBlind(false);
+				if ( blind ) inspect_infile.setBlind(2);
 				if ( blind_only ) inspect_infile.setBlind(true);
 				
 				inspect_infile.store(input_filename);
-			}	
+			}
+			
 			// (3.2.2) running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind )
 			{
@@ -1111,8 +1114,9 @@ class TOPPInspectAdapter
 					std::vector< float >	precursor_retention_times, precursor_mz_values;
 					
 					InspectOutfile inspect_outfile;
-					std::cout << inspect_infile.getSequenceFile() << std::endl;
+					
 					file_info.setFile(inspect_infile.getDb().c_str());
+					
 					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, score_value_threshold, file_info.fileName().ascii(), file_info.dirPath().ascii(), inspect_infile.getSequenceFile());
 					
 					std::vector<ProteinIdentification> protein_identifications;
