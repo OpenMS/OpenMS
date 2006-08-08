@@ -45,10 +45,8 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
 		}
 
-		// open the result and database file(s) ####
-		//String database_filename(database_filename_);
-		//String index_filename(index_filename_);
-		std::ifstream result_file( result_filename.c_str());
+		// open the result and database file(s)
+		std::ifstream result_file(result_filename.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
@@ -102,6 +100,29 @@ namespace OpenMS
 		unsigned int line_number = 0; // used to report in which line an error occured
 		double p_value;
 		
+		// workaround for a bug in inspect
+		// if there is at least one line with a missing protein column, the record numbers are one too high
+		bool false_record_number = false;
+		
+		while ( getline(result_file, line) && !false_record_number )
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.split('\t', substrings);
+			
+			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
+			if ( substrings.size() < number_of_columns - 1 ) continue;
+			false_record_number = ( line_number && (substrings.size() != line_number) );
+			line_number = substrings.size();
+		}
+		result_file.close();
+		result_file.clear();
+		result_file.open(result_filename.c_str());
+		if ( !result_file )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+		}
+		line_number = 0;
+		
 		// get all the proteins and make a vector of those who come from a FASTA file and those who come from a trie database
 		std::vector< unsigned int > FASTA_proteins, trie_proteins;
 		
@@ -129,7 +150,7 @@ namespace OpenMS
 			else if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < score_value_threshold)) || (atof(substrings[p_value_column - missing_column].c_str()) > p_value_threshold) ) continue;
 			
 			// if there's a missing column, the record number is one too high
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column - from_fasta;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - false_record_number;
 			
 			// (1.1)  if a new protein is found, get the rank and insert it
 			if ( rn_position_map.find(std::make_pair(from_fasta, record_number)) == rn_position_map.end() )
@@ -240,7 +261,7 @@ namespace OpenMS
 				precursor_mz_values.push_back(0);
 			}
 			
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column -from_fasta;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - false_record_number;
 			
 			// (1.2) get the peptide infos from the new peptide and insert it
 			peptide_hit.clear();

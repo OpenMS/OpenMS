@@ -539,8 +539,6 @@ namespace OpenMS
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "emtpy sequence!" , database_filename);
 			}
-			
-			
 		}
 		if ( i != wanted_records.end() )
 		{

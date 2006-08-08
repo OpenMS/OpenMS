@@ -343,7 +343,7 @@ std::cout << multicharge << std::endl;
 		std::string path_and_file = result_path;
 		ensurePathChar(path_and_file);
 		path_and_file.append(result_filename);
-		std::ifstream result_file( path_and_file.c_str(), std::ios::in | std::ios::binary );
+		std::ifstream result_file(path_and_file.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
@@ -401,6 +401,33 @@ std::cout << multicharge << std::endl;
 		double p_value;
 		bool from_fasta = (start_separator != "*");
 		
+		// workaround for a bug in inspect
+		// if there is at least one line with a missing protein column, the record numbers are one too high
+		bool false_record_number = false;
+		
+		while ( getline(result_file, line) && !false_record_number )
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.split('\t', substrings);
+			
+			// check whether the line has enough columns (a line from a fasta-db does not include the protein name)
+			if ( substrings.size() < number_of_columns - 1 ) continue;
+			false_record_number = ( line_number && (substrings.size() != line_number) );
+			line_number = substrings.size();
+		}
+		result_file.close();
+		result_file.clear();
+		result_file.open(result_filename.c_str());
+		path_and_file = result_path;
+		ensurePathChar(path_and_file);
+		path_and_file.append(result_filename);
+		result_file.open(path_and_file.c_str());
+		if ( !result_file )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+		}
+		line_number = 0;
+		
 		// read out the whole result file
 		while ( getline(result_file, line) )
 		{
@@ -426,7 +453,7 @@ std::cout << multicharge << std::endl;
 			}
 			else if ( ((substrings[p_value_column - missing_column] == "nan") && (atof(substrings[MQ_score_column - missing_column].c_str()) < cutoff_score_value)) || (atof(substrings[p_value_column - missing_column].c_str()) > cutoff_p_value) ) continue;
 			
-			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - missing_column -from_fasta;
+			record_number = atoi(substrings[record_number_column - missing_column].c_str()) - false_record_number;
 			max_record_number = std::max(max_record_number, record_number);
 			// if the record has already been inserted it's number of annotated spectrum is increased  otherwise it is inserted
 			++record_map[record_number];
