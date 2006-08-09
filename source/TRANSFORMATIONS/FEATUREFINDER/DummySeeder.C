@@ -24,36 +24,23 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-// all from BaseExtender derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <iostream>
 
 namespace OpenMS
 {
-	void BaseExtender::registerChildren()
-	{
-		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
-	}	
 
-	BaseExtender::BaseExtender() : FeaFiModule() 
+	DummySeeder::DummySeeder()
 	{
+		name_ = DummySeeder::getName();
 	}
 
+	DummySeeder::~DummySeeder(){}
 
-	BaseExtender::BaseExtender(const BaseExtender& source)
-		: FeaFiModule(source) {}
-
-	BaseExtender::~BaseExtender(){}
-	
-	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
+  	Index DummySeeder::nextSeed() throw (NoSuccessor)
 	{
-		FeaFiModule::operator = (source);
-		return *this;
+		return 1;
 	}
+
 }
-
-

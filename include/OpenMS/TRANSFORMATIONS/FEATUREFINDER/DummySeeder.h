@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- C++: make; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,39 +21,58 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYEEDER_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYSEEDER_H
 
-// all from BaseExtender derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
+#include <vector>
+#include <iostream>
 
 namespace OpenMS
 {
-	void BaseExtender::registerChildren()
-	{
-		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
-	}	
 
-	BaseExtender::BaseExtender() : FeaFiModule() 
-	{
-	}
-
-
-	BaseExtender::BaseExtender(const BaseExtender& source)
-		: FeaFiModule(source) {}
-
-	BaseExtender::~BaseExtender(){}
+	/** @brief Dummy seeder class which always returns the same seed (1)
 	
-	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
-	{
-		FeaFiModule::operator = (source);
-		return *this;
-	}
+		This class can be used for Feature Finder instances that don't need a seeding module.
+		One example is the class SweepExtender which performs Seeding and Extension
+		at the same time.
+	 	
+		@ingroup FeatureFinder
+		
+	*/ 
+  class DummySeeder 
+    : public BaseSeeder
+  {
+
+  public:
+	  	
+    /// standard constructor
+    DummySeeder();
+
+    /// destructor 
+    virtual ~DummySeeder();
+
+    /// return next seed (always 1)
+    Index nextSeed() throw (NoSuccessor);
+
+    static BaseSeeder* create()
+    {
+      return new DummySeeder();
+    }
+
+    static const String getName()
+    {
+      return "DummySeeder";
+    }
+
+  };
 }
-
-
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_DUMMYSEEDER_H

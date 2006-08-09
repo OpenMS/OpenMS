@@ -48,7 +48,9 @@ CPP_SOURCES=\
 	Correlation.C\
 	IsotopeModel.C\
 	BiGaussModel.C\
-	FeaFiTraits.C
+	FeaFiTraits.C\
+	DummySeeder.C\
+	SweepExtender.C
 	
 include ../../common.mak
 -include .Dependencies

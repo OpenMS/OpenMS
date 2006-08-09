@@ -29,12 +29,14 @@
 
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
 
 namespace OpenMS
 {
 	void BaseSeeder::registerChildren()
 	{
-		Factory<BaseSeeder>::registerProduct("SimpleSeeder", &SimpleSeeder::create);
+		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
+		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}

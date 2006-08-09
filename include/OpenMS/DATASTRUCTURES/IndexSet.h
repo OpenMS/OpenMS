@@ -259,8 +259,7 @@ public:
     /// Returns the number of indices in set
     Size size() const;
 
-    friend std::ostream& operator << (std::ostream& os, const IndexSet& set
-                                         );
+    friend std::ostream& operator << (std::ostream& os, const IndexSet& set );
 
 protected:
     /**
