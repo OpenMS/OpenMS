@@ -54,6 +54,7 @@ namespace OpenMS
    	C:           	the C parameter of the svm
    	NU:          	the nu parameter for nu-SVR
    	P:           	the epsilon parameter for epsilon-SVR
+   	GAMMA:       	the gamma parameter of the POLY, RBF and SIGMOID kernel
 	*/
 	typedef enum{
 		
@@ -63,6 +64,7 @@ namespace OpenMS
 	    C,
 	    NU,
 	    P,
+	    GAMMA,
 	    PROBABILITY
 	    	
 	}SVM_parameter_type;
@@ -80,7 +82,10 @@ namespace OpenMS
 		  /**
 		    @brief You can set the parameters of the svm: 
 	     
-	         KERNEL_TYPE: can be POLY     for the polynomial kernel
+	         KERNEL_TYPE: can be LINEAR              		 for the linear kernel
+	                             RBF                 		 for the rbf kernel
+	                             POLY                    for the polynomial kernel
+	                             SIGMOID           			 for the sigmoid kernel 
 	         DEGREE:      the degree for the polynomial- kernel and the
 	                      locality- improved kernel
 	     
@@ -153,7 +158,8 @@ namespace OpenMS
 		    C:            the C parameter of the svm
 		    P:			      the P parameter of the svm (sets the epsilon in
 	     											  epsilon-svr)
-	   		NU:           the nu parameter in nu-SVR		    
+	   		NU:           the nu parameter in nu-SVR
+	   		GAMMA:				for POLY, RBF and SIGMOID		    
 		  */
 	    double getDoubleParameter(SVM_parameter_type type); 
 

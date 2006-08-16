@@ -82,6 +82,9 @@ namespace OpenMS
 			case(NU):
 				param_->nu = value;
 				break;
+			case(GAMMA):
+				param_->gamma = value;
+				break;
 			case(PROBABILITY):
 				if (value == 1 || value == 0)
 				{
@@ -146,6 +149,9 @@ namespace OpenMS
      	    break;
      	case(NU):
      	    return param_->nu;
+     	    break;
+     	case(GAMMA):
+     	    return param_->gamma;
      	    break;
      	default:
      	    return -1;
@@ -608,6 +614,10 @@ namespace OpenMS
 					else if (actual_types[k] == P)
 					{
 						performances_file << "P: " << actual_values[k];						
+					}
+					else if (actual_types[k] == GAMMA)
+					{
+						performances_file << "GAMMA: " << actual_values[k];						
 					}
 					if (k < (start_values_map.size() - 1))
 					{
