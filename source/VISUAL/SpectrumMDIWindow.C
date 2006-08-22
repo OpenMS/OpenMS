@@ -1379,7 +1379,7 @@ namespace OpenMS
         const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
 				
 				//add new layer
-        String new_name = exp_raw.getName()+" (smoothed)";
+        String new_name = exp_raw.getName()+"(smoothed)";
         Spectrum1DCanvas::ExperimentType& exp_smoothed = w->widget()->canvas()->addEmptyDataSet();
         exp_smoothed.setName(new_name); // set layername
 
@@ -1749,7 +1749,7 @@ namespace OpenMS
           Spectrum2DWindow* w_picked = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_picked->setMainPreferences(prefs_);
-          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (picked)";
+          String new_name = w2->widget()->canvas()->currentDataSet().getName()+"(picked)";
 
           Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyDataSet();
           exp2.setName(new_name); // set layername

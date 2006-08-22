@@ -341,7 +341,8 @@ namespace OpenMS
   	map< String , UnsignedInt>::iterator	date_times_iterator;
 		UnsignedInt 													group_count = 0;
 		
-		os << "<!-- -*- Mode: XML; tab-width: 2; -*- -->\n"
+		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n"
+		 //<< "<?xml-stylesheet href=\"identifications.xsl\" type=\"text/xsl\"?>\n"
 		 << "<mzIdent>\n"
 		 << "\t<description>\n"
 		 << "\t\t<admin>\n"
