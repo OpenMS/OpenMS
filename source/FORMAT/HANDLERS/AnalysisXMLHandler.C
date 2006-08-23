@@ -68,7 +68,8 @@ namespace OpenMS
     predicted_sigma_(0),
     const_predicted_sigma_(0),
     date_times_temp_(),
-    date_times_counter_(0)
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
   {
   }
    									 
@@ -103,7 +104,8 @@ namespace OpenMS
     predicted_sigma_(0),
     const_predicted_sigma_(0),
     date_times_temp_(),
-    date_times_counter_(0)    
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")    
   {
   }
    									 
@@ -139,7 +141,8 @@ namespace OpenMS
     predicted_sigma_(0),
     const_predicted_sigma_(0),
     date_times_temp_(),
-    date_times_counter_(0)
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
   {
   }
 
@@ -177,7 +180,8 @@ namespace OpenMS
     predicted_sigma_(predicted_sigma),
     const_predicted_sigma_(0),
     date_times_temp_(),
-    date_times_counter_(0)
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
   {
   }
 
@@ -213,7 +217,8 @@ namespace OpenMS
     predicted_sigma_(0),
 		const_predicted_sigma_(0),
     date_times_temp_(),
-    date_times_counter_(0)
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
   {
   }
       									 	      									 	  
@@ -251,7 +256,8 @@ namespace OpenMS
     predicted_sigma_(),
     const_predicted_sigma_(predicted_sigma),
     date_times_temp_(),
-    date_times_counter_(0)
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
   {
   }
       									 	      									 	  
@@ -283,7 +289,8 @@ namespace OpenMS
     predicted_sigma_(source.predicted_sigma_),                                    
     const_predicted_sigma_(source.const_predicted_sigma_),
     date_times_temp_(),
-    date_times_counter_(0)                                    
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")                                    
   {
 
   }
@@ -338,8 +345,13 @@ namespace OpenMS
   	UnsignedInt 													date_times_counter = 0;
   	String 																date_time_string;
   	DateTime															date_time;
+  	String																actual_date_time_;
   	map< String , UnsignedInt>::iterator	date_times_iterator;
 		UnsignedInt 													group_count = 0;
+		
+		date_time.now();
+		date_time.get(actual_date_time_);
+		date_time.clear();
 		
 		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>\n"
 		 //<< "<?xml-stylesheet href=\"identifications.xsl\" type=\"text/xsl\"?>\n"
@@ -408,6 +420,10 @@ namespace OpenMS
   	{
   		date_time = it->getDateTime();
   		date_time.get(date_time_string);
+  		if (date_time_string == "0000-00-00 00:00:00")
+  		{
+  			date_time_string = actual_date_time_;
+  		}
   		if (date_times.find(date_time_string) == date_times.end())
   		{
   			date_times.insert(make_pair(date_time_string, date_times_counter));
@@ -422,6 +438,10 @@ namespace OpenMS
   	{
   		date_time = it->getDateTime();
   		date_time.get(date_time_string);
+  		if (date_time_string == "0000-00-00 00:00:00")
+  		{
+  			date_time_string = actual_date_time_;
+  		}
   		if (date_times.find(date_time_string) == date_times.end())
   		{
   			date_times.insert(make_pair(date_time_string, date_times_counter));
@@ -441,7 +461,11 @@ namespace OpenMS
 			{
 				date_time = const_protein_identifications_[j].getDateTime();
 				date_time.get(date_time_string);
-					
+	  		if (date_time_string == "0000-00-00 00:00:00")
+	  		{
+	  			date_time_string = actual_date_time_;
+	  		}
+									
 				os << "\t\t<proteinGroup count=\"" << group_count << "\">\n";
 				temp_protein_hits = const_protein_identifications_[j].getProteinHits();
 				for(vector<ProteinHit>::const_iterator protein_hits_it = temp_protein_hits.begin();
@@ -513,6 +537,10 @@ namespace OpenMS
 			{
 				date_time = const_identifications_[j].getDateTime();
 				date_time.get(date_time_string);
+	  		if (date_time_string == "0000-00-00 00:00:00")
+	  		{
+	  			date_time_string = actual_date_time_;
+	  		}				
 					
 				temp_protein_hits = const_identifications_[j].getProteinHits();
 				for(vector<ProteinHit>::const_iterator protein_hits_it = temp_protein_hits.begin();
@@ -575,6 +603,11 @@ namespace OpenMS
 		for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
 		{
 			const_identifications_[i].getDateTime().get(date_time_string);
+  		if (date_time_string == "0000-00-00 00:00:00")
+  		{
+  			date_time_string = actual_date_time_;
+  		}
+			
 			for(vector<ProteinHit>::const_iterator it = const_identifications_[i].getProteinHits().begin();
 					it != const_identifications_[i].getProteinHits().end();
 					it++)
@@ -585,6 +618,11 @@ namespace OpenMS
 		for(UnsignedInt i = 0; i < const_protein_identifications_.size(); i++)
 		{
 			const_protein_identifications_[i].getDateTime().get(date_time_string);
+  		if (date_time_string == "0000-00-00 00:00:00")
+  		{
+  			date_time_string = actual_date_time_;
+  		}
+			
 			for(vector<ProteinHit>::const_iterator it = const_protein_identifications_[i].getProteinHits().begin();
 					it != const_protein_identifications_[i].getProteinHits().end();
 					it++)
@@ -881,6 +919,11 @@ namespace OpenMS
 		
 		// determining the date group
 		date_time.get(date_time_string);
+ 		if (date_time_string == "0000-00-00 00:00:00")
+ 		{
+ 			date_time_string = actual_date_time_;
+ 		}
+		
 		date_times_iterator = date_times.find(date_time_string);
 		if (date_times_iterator != date_times.end())
 		{

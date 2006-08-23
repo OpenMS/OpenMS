@@ -123,6 +123,9 @@ namespace OpenMS
 	{
 	    switch(type)
 	    {
+				case(DEGREE):
+					param_->degree = value;
+				  break;
 				case(C):
 			    param_->C = value;
 		   		break;
@@ -131,6 +134,9 @@ namespace OpenMS
 		   		break;
 				case(NU):
 			    param_->nu = value;
+		   		break;
+				case(GAMMA):
+			    param_->gamma = value;
 		   		break;
 				default:
 			    break;
@@ -380,6 +386,7 @@ namespace OpenMS
 																 									DoubleReal* 												   cv_quality,
 																 									UnsignedInt 												   number_of_partitions,
 																 									UnsignedInt 												   number_of_runs,
+																 									bool																	 additive_step_sizes,
 																 									bool				 												   output)
 	{
 		map<SVM_parameter_type, DoubleReal>::iterator start_values_iterator;
@@ -491,6 +498,42 @@ namespace OpenMS
 						
 						delete predicted_labels;
 						delete real_labels;												
+
+						if (output)
+						{
+							performances_file << temp_performance / (j + 1) << ": ";
+							for(UnsignedInt k = 0; k < start_values_map.size(); k++)
+							{
+								if (actual_types[k] == C)
+								{
+									performances_file << "C: " << actual_values[k];						
+								}
+								else if (actual_types[k] == NU)
+								{
+									performances_file << "NU: " << actual_values[k];						
+								}
+								else if (actual_types[k] == DEGREE)
+								{
+									performances_file << "DEGREE: " << actual_values[k];						
+								}
+								else if (actual_types[k] == P)
+								{
+									performances_file << "P: " << actual_values[k];						
+								}
+								else if (actual_types[k] == GAMMA)
+								{
+									performances_file << "GAMMA: " << actual_values[k];						
+								}
+								if (k < (start_values_map.size() - 1))
+								{
+									performances_file << ", ";
+								}
+								else
+								{
+									performances_file << endl;
+								}
+							}
+						}
 					}
 				}
 
@@ -511,20 +554,38 @@ namespace OpenMS
 				actual_index = 0;
 				while(actual_index < start_values_map.size()
 							&& !found)
-				{			
-					if (actual_values[actual_index] + 
-							step_sizes[actual_index] 
-							<= end_values[actual_index] + precision)
-					{
-						found = true;
-						actual_values[actual_index] = actual_values[actual_index] + 
-																					step_sizes[actual_index];
+				{
+					if (additive_step_sizes)
+					{			
+						if (actual_values[actual_index] + 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] + 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
 					}
 					else
 					{
-						actual_values[actual_index] = start_values[actual_index];
+						if (actual_values[actual_index] * 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] * 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
 					}
-					actual_index++;
+					actual_index++;						
 				}
 			}
 			
@@ -537,7 +598,8 @@ namespace OpenMS
 			delete training_data;
 			if (output)
 			{
-				cout << "run finished, time elapsed since start: " << clock() << endl;
+				cout << "run finished, time elapsed since start: " << clock() 
+				<< " performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) << endl;
 			}
 		}
 		
@@ -573,6 +635,7 @@ namespace OpenMS
 		}
 		else
 		{
+			performances_file << "Best parameter combination *********************" << endl;
 			counter = 1;
 			found = true;
 			while(found)
@@ -582,21 +645,39 @@ namespace OpenMS
 				while(actual_index < start_values_map.size()
 							&& !found && counter <= max_index)
 				{			
-					if (actual_values[actual_index] + 
-							step_sizes[actual_index] 
-							<= end_values[actual_index] + precision)
-					{
-						found = true;
-						actual_values[actual_index] = actual_values[actual_index] + 
-																					step_sizes[actual_index];
+					if (additive_step_sizes)
+					{			
+						if (actual_values[actual_index] + 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] + 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
 					}
 					else
 					{
-						actual_values[actual_index] = start_values[actual_index];
+						if (actual_values[actual_index] * 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] * 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
 					}
-					actual_index++;
+					actual_index++;						
 				}
-				performances_file << performances[counter]  / number_of_runs << ": ";
+				performances_file	<< performances[counter]  / number_of_runs << ": ";
 				for(UnsignedInt k = 0; k < start_values_map.size(); k++)
 				{
 					if (actual_types[k] == C)
@@ -635,6 +716,7 @@ namespace OpenMS
 				}
 				counter++;
 			}
+			performances_file << "Best parameter combination ended****************" << endl;
 		}
 		
 		performances_file.close();

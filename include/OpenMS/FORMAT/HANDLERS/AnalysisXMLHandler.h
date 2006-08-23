@@ -141,6 +141,7 @@ namespace OpenMS
 			DoubleReal const_predicted_sigma_;
 			std::vector< String > date_times_temp_;
 			UnsignedInt date_times_counter_;
+			String actual_date_time_;
 			
 		private:
 				/// determines the date group index

@@ -244,6 +244,7 @@ namespace OpenMS
 				
 				query->setCharge(atoi(substrings[charge_column - missing_column].c_str()));
 				query->setPeptideSignificanceThreshold(p_value_threshold);
+				query->setDateTime(datetime);
 				rank = 0;
 				
 				if ( substrings[spectrum_file_column] != spectrum_file )
@@ -367,8 +368,8 @@ namespace OpenMS
 		}
 		else
 		{
-			unsigned int pos1 = line.find('(', 0);
-			unsigned int pos2;
+			std::string::size_type pos1 = line.find('(', 0);
+			std::string::size_type pos2;
 			if ( pos1 != std::string::npos )
 			{
 				pos2 = line.find(')', ++pos1);

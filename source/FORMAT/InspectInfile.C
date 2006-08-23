@@ -488,7 +488,7 @@ std::cout << multicharge << std::endl;
 		
 		// get the number of proteins
 		unsigned int number_of_proteins = 0;
-		unsigned int pos = 0;
+		std::string::size_type pos = 0;
 		
 		while ( getline(database_file, line) )
 		{
