@@ -638,7 +638,7 @@ class TOPPMascotAdapter
 						writeLog_("Mascot server problem. Aborting!");
 						call = "rm " + mascot_data_dir + "/" 
 										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";";
-//						system(call.c_str());
+						system(call.c_str());
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
 					
@@ -649,15 +649,12 @@ class TOPPMascotAdapter
 															 experiment, 
 															 "OpenMS search");		
 				}
-		
+				delete mascot_infile;
 			} // from if(!mascot_out)
 			if (!mascot_in)
 			{
 	
 				/// Reading in the Mascot outfile
-				/// Since Mascot does not store the retention times in the mascot xml format
-				/// we need also the old out-file to retrieve them. All other data is loaded 
-				/// from the mascot xml file (if possible).
 				mascot_outfile = new MascotOutfile();
 			
 				if (!mascot_out)
@@ -693,6 +690,7 @@ class TOPPMascotAdapter
 					}
 							
 				}
+				delete mascot_outfile;
 			
 			//-------------------------------------------------------------
 			// writing output
