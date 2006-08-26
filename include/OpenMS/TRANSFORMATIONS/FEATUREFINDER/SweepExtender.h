@@ -96,7 +96,7 @@ public:
         return "SweepExtender";
     }
 
-    /// stores information about an isotopic cluser (i.e. potential peptide)
+    /// stores information about an isotopic cluser (i.e. potential peptide charge variant)
     struct IsotopeCluster
     {
         IsotopeCluster()
@@ -118,7 +118,7 @@ public:
 
 protected:
 
-    /// Finds the neighbour of the peak denoted by @p current_mz
+    /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
     std::vector<double>::iterator searchInScan_(std::vector<CoordinateType>::iterator scan_begin,
             std::vector<CoordinateType>::iterator scan_end ,
             double current_mz)
@@ -180,6 +180,11 @@ protected:
 	CoordinateType charge2_ub_;
 	/// lower bound for distance between charge 2 peaks
 	CoordinateType charge2_lb_;	
+	
+	/// upper bound for distance between charge 3 peaks
+	CoordinateType charge3_ub_;
+	/// lower bound for distance between charge 3 peaks
+	CoordinateType charge3_lb_;	
 
 }
 ; // end of class SweepExtender

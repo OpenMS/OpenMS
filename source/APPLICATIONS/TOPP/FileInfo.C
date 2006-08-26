@@ -158,7 +158,7 @@ class TOPPFileInfo
 			//basic info
 			exp.updateRanges();
 			vector<UnsignedInt> levels = exp.getMSLevels();
-			
+									
 			cout << endl
 					 << "file name: " << in << endl
 					 << "file type: " <<  fh.typeToName(in_type) << endl

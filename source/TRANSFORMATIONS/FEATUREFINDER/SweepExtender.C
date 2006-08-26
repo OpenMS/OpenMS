@@ -34,11 +34,20 @@ SweepExtender::SweepExtender()
 {
     name_ = SweepExtender::getName();
 	
+	// lower and upper bounds for distances between isotopic peaks (defaults)
+	// charge 1
 	defaults_.setValue("charge1_ub",1.3f);
-	defaults_.setValue("charge1_lb",0.7f);
-	defaults_.setValue("charge2_ub",0.8f);
-	defaults_.setValue("charge2_lb",0.3f);
-	defaults_.setValue("tolerance_mz",0.7f);
+	defaults_.setValue("charge1_lb",0.8f);
+	// charge 2
+	defaults_.setValue("charge2_ub",0.7f);
+	defaults_.setValue("charge2_lb",0.45f);
+	// charge 3
+	defaults_.setValue("charge3_ub",0.4f);
+	defaults_.setValue("charge3_lb",0.1f);
+	
+	// tolerance in m/z for an monoisotopic peak in the previous scan
+	defaults_.setValue("tolerance_mz",1.5f);
+	
     param_ = defaults_;
 }
 
@@ -97,6 +106,9 @@ void SweepExtender::sweep_()
 	charge2_ub_    = param_.getValue("charge2_ub");
 	charge2_lb_     = param_.getValue("charge2_lb");
 	
+	charge3_ub_    = param_.getValue("charge3_ub");
+	charge3_lb_     = param_.getValue("charge3_lb");
+	
 	CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
 	UnsignedInt current_charge     = 0;
 	
@@ -119,10 +131,7 @@ void SweepExtender::sweep_()
 		
 		// test for different charge states
 		current_charge = testDistance2NextPeak_(dist2nextpeak);
-			
-		//std::cout << "Charge set to " << current_charge << std::endl;
 		
-        // check for charge 1 isotope
         if (current_charge > 0)
         {
             IsotopeCluster iso_clust; // stores scan and peaks
@@ -166,30 +175,34 @@ void SweepExtender::sweep_()
 			
             // std::cout << "and store next one as well" << std::endl;
             iso_clust.peaks_.push_back(curr_peak);
-           // iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+           	iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
 
 		   //std::cout << "computing next distance.." << std::endl;
 		   if ( (curr_peak+1) >= nr_peaks ) break;
 		   
             dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak));
 			
-			if (testDistance2NextPeak_(dist2nextpeak) != current_charge) continue;	// charge state should remain the same 
-						
+			if (testDistance2NextPeak_(dist2nextpeak) != current_charge) 	// charge state should remain the same 
+			{
+				 // store current cluster
+                iso_map_[curr_mz] = iso_clust;				
+				continue;
+			}			
+			
             while (current_charge > 0)
             {
                 ++curr_peak;
-                if (curr_peak == nr_peaks) break;
+                if (curr_peak == nr_peaks) break;				// we reached last peak, quit this loop
+				
            		iso_clust.peaks_.push_back(curr_peak);		// save peak in cluster
-
-               dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
-			   current_charge = testDistance2NextPeak_(dist2nextpeak);
-			   
-                // store current cluster
-                iso_map_[curr_mz] = iso_clust;
-            
+				iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+				
+               	dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
+			   	current_charge = testDistance2NextPeak_(dist2nextpeak);
+			 
 			} // end while(...)
 			
-			iso_map_[curr_mz] =   iso_clust; 	// update cluster for this mass
+			iso_map_[curr_mz]  =  iso_clust; 	// update cluster for this mass
 			
         } // end of if (charge > 0)
     
@@ -213,6 +226,10 @@ UnsignedInt SweepExtender::testDistance2NextPeak_(CoordinateType dist2nextpeak)
 	else if (dist2nextpeak < charge2_ub_ && dist2nextpeak > charge2_lb_) 
 	{
 		return 2;
+	}
+	else if (dist2nextpeak < charge3_ub_ && dist2nextpeak > charge3_lb_) 
+	{
+		return 3;
 	}
 	else
 	{

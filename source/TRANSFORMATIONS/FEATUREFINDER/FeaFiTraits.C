@@ -351,21 +351,20 @@ namespace OpenMS
         if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
         {
           // estimate noise for last scan
-          //sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+          sn_estimator_.init(last_scan_.begin(),last_scan_.end());
 
           for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
                cit != last_scan_.end();
                ++cit)
           {
             // save s/n values
-            //double sn = sn_estimator_.getSignalToNoise(cit);
-			double sn = 1;
-            // Oles super bugfix
+           	double sn = sn_estimator_.getSignalToNoise(cit);
+			// Oles super bugfix !!
             if (sn < 0)  sn = 1;
             sn_ratios_.push_back(log10(sn));
 
 #ifdef DEBUG_FEATUREFINDER
-            //outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+            outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
 #endif
 
           }
@@ -379,20 +378,20 @@ namespace OpenMS
     }
 
     // estimate noise for last scan
-//     sn_estimator_.init(last_scan_.begin(),last_scan_.end());
-// 
-//     for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
-//          cit != last_scan_.end();
-//          ++cit)
-//     {
-//       // save s/n values
-//       sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
+    sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+
+    for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+         cit != last_scan_.end();
+         ++cit)
+    {
+      // save s/n values
+      sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
 
 #ifdef DEBUG_FEATUREFINDER
-      //outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+      outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
 #endif
 
-    //}
+    }
     // empty container
     last_scan_.clear();
 
