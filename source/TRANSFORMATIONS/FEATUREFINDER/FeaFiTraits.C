@@ -183,9 +183,11 @@ namespace OpenMS
     {
       while (true)
       {
+	  	std::cout << "Seeding ..." << std::endl;
         UnsignedInt seed = seeders[0]->nextSeed();
 
         watch.start();
+		std::cout << "Extension ..." << std::endl;
         IndexSet peaks = extenders[0]->extend(seed);
         watch.stop();
         std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;

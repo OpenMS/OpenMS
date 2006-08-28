@@ -120,8 +120,8 @@ protected:
 
     /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
     std::vector<double>::iterator searchInScan_(std::vector<CoordinateType>::iterator scan_begin,
-            std::vector<CoordinateType>::iterator scan_end ,
-            double current_mz)
+            																std::vector<CoordinateType>::iterator scan_end ,
+            																double current_mz)
     {
 
         // perform binary search to find the neighbour in rt dimension

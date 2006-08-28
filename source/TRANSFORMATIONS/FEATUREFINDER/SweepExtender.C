@@ -95,7 +95,9 @@ void SweepExtender::sweep_()
     // stores the monoisotopic peaks of isotopic clusters
     std::vector<double> iso_last_scan;
     std::vector<double> iso_curr_scan;
-
+	
+	std::cout << "Retrieving # peaks..." << std::endl;
+	
     unsigned int nr_peaks    = traits_->getNumberOfPeaks();
     CoordinateType last_rt  = traits_->getPeakRt(0);
 	
@@ -155,31 +157,31 @@ void SweepExtender::sweep_()
                     curr_mz = *it;
                     iso_clust = iso_map_[curr_mz];
                     iso_clust.scans_.push_back( traits_->getPeakRt(curr_peak) );
-                    //std::cout << "Cluster with " << iso_clust.peaks_.size() << " peaks retrieved." << std::endl;
+                    std::cout << "Cluster with " << iso_clust.peaks_.size() << " peaks retrieved." << std::endl;
                 }
 
             }
             else
             {
-                //std::cout << "Last scan empty. New cluster." << std::endl;
+                std::cout << "Last scan empty. New cluster." << std::endl;
 			    iso_clust.left_mz_ = curr_mz;
                 iso_clust.charge_  = current_charge;
                 iso_clust.scans_.push_back( traits_->getPeakRt(curr_peak) );
             }
 
-            //std::cout << "store found peak in current isotopic cluster" << std::endl;
+            std::cout << "store found peak in current isotopic cluster" << std::endl;
             iso_clust.peaks_.push_back(curr_peak);
 			iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
             ++curr_peak;
 		    if (curr_peak == nr_peaks ) break;
 			
-            // std::cout << "and store next one as well" << std::endl;
+            std::cout << "and store next one as well" << std::endl;
             iso_clust.peaks_.push_back(curr_peak);
            	iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
 
-		   //std::cout << "computing next distance.." << std::endl;
-		   if ( (curr_peak+1) >= nr_peaks ) break;
-		   
+		   std::cout << "computing next distance.." << std::endl;
+		   if ( (curr_peak+1) >=  nr_peaks) break;
+		   std::cout << (curr_peak+1) << " vs " << nr_peaks << std::endl;
             dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak));
 			
 			if (testDistance2NextPeak_(dist2nextpeak) != current_charge) 	// charge state should remain the same 
@@ -192,10 +194,14 @@ void SweepExtender::sweep_()
             while (current_charge > 0)
             {
                 ++curr_peak;
-                if (curr_peak == nr_peaks) break;				// we reached last peak, quit this loop
+                if (curr_peak >= nr_peaks) break;				// we reached last peak, quit this loop
 				
            		iso_clust.peaks_.push_back(curr_peak);		// save peak in cluster
 				iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+				
+				std::cout << "computing next distance.." << std::endl;
+		  		if ( (curr_peak+1) >=  nr_peaks) break;
+		   		std::cout << (curr_peak+1) << " vs " << nr_peaks << std::endl;
 				
                	dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
 			   	current_charge = testDistance2NextPeak_(dist2nextpeak);
