@@ -167,6 +167,46 @@ namespace OpenMS
 	};
 
 	/**
+		@brief Predicate that determines if a spectrum has a certain scan mode
+		
+		SpectrumType must be a DSpectrum or have the same interface (SpectrumSettings)
+		
+		@ingroup RangeUtils
+	*/	
+	template <class SpectrumType>
+	class ScanModePredicate
+		: std::unary_function<SpectrumType, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param mode scan mode
+				@param reverse if @p reverse is true, operator() return true if the spectrum has a different scan mode
+			*/
+			ScanModePredicate(SignedInt mode, bool reverse = false)
+				: 
+				mode_(mode),
+				reverse_(reverse)
+			{
+				
+			}
+		
+			inline bool operator()(const SpectrumType& s) const
+			{
+				if (reverse_)
+				{
+					return s.getInstrumentSettings().getScanMode() != mode_ ; 
+				}
+				return s.getInstrumentSettings().getScanMode() == mode_ ; 
+			}
+		
+		protected:
+			SignedInt mode_;
+			bool reverse_;
+	};
+
+	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		
 		PeakType must be a DRawDataPoint or have the same interface.

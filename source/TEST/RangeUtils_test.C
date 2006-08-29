@@ -29,7 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 ///////////////////////////
 
@@ -111,6 +111,30 @@ CHECK(inline bool operator()(const SpectrumType& s) const)
 	s.setMSLevel(5);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);	
+RESULT
+
+//ScanModePredicate
+
+ScanModePredicate<MSSpectrum<> >* ptr2_1 = 0;
+CHECK(ScanModePredicate(UnsignedInt mode, bool reverse = false))
+	ptr2_1 = new ScanModePredicate<MSSpectrum<> >(1,false);
+	TEST_NOT_EQUAL(ptr2, 0)
+RESULT
+
+CHECK(~ScanModePredicate())
+	delete ptr2_1;
+RESULT
+
+CHECK(inline bool operator()(const SpectrumType& s) const)
+	ScanModePredicate<MSSpectrum<> > r(1,false);
+	ScanModePredicate<MSSpectrum<> > r2(2,true);
+	MSSpectrum<> s;
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+	TEST_EQUAL(r(s), true);
+	TEST_EQUAL(r2(s), true);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSCAN);
+	TEST_EQUAL(r(s), false);
+	TEST_EQUAL(r2(s), false);
 RESULT
 
 //MZRange

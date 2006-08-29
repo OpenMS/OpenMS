@@ -76,7 +76,9 @@ class TOPPFileFilter
 						<< "  -mz [min]:[max]   m/z range to extract" << endl
 						<< "  -rt [min]:[max]   retention time range to extract" << endl
 						<< "  -int [min]:[max]  intensity range to extract" << endl
-						<< "  -level i[,j]...   MS levels to extract (default: ALL)" << endl;
+						<< "  -level i[,j]...   MS levels to extract (default: ALL)" << endl
+					  << "  -remove_zoom      flag that removes zoom scans" << endl
+					  ;
 		}
 	
 		void printToolHelpOpt_()
@@ -85,12 +87,13 @@ class TOPPFileFilter
 		       << tool_name_ << endl
 		       << endl
 		       << "INI options:" << endl
-					 << "  in      input mzData file name" << endl
-					 << "  out     output mzData file name" << endl
-					 << "  mz      m/z range to extract" << endl
-					 << "  rt      retention time range to extract" << endl
-					 << "  int     intensity range to extract" << endl
-					 << "  level   MS levels to extract (default: ALL)" << endl
+					 << "  in            input mzData file name" << endl
+					 << "  out           output mzData file name" << endl
+					 << "  mz            m/z range to extract" << endl
+					 << "  rt            retention time range to extract" << endl
+					 << "  int           intensity range to extract" << endl
+					 << "  level         MS levels to extract (default: ALL)" << endl
+					 << "  remove_zoom   remove zoom scans (default: no)" << endl
 					 << endl
 					 << "INI File example section:" << endl
 					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
@@ -98,7 +101,9 @@ class TOPPFileFilter
 					 << "  <ITEM name=\"mz\" value=\"500:1000\" type=\"string\"/>" << endl
 					 << "  <ITEM name=\"rt\" value=\":100\" type=\"string\"/>" << endl
 					 << "  <ITEM name=\"int\" value=\"5000:\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"level\" value=\"1,2\" type=\"string\"/>" << endl;
+					 << "  <ITEM name=\"level\" value=\"1,2\" type=\"string\"/>" << endl
+					 << "  <ITEM name=\"remove_zoom\" value=\"\" type=\"string\"/>" << endl
+					 ;
 		}
 	
 		void setOptionsAndFlags_()
@@ -109,6 +114,7 @@ class TOPPFileFilter
 			options_["-rt"] = "rt";
 			options_["-int"] = "int";
 			options_["-level"] = "level";
+			options_["-remove_zoom"] = "remove_zoom";
 		}
 	
 		ExitCodes main_(int , char**)
@@ -238,6 +244,13 @@ class TOPPFileFilter
 			
 			//remove ms level first (might be a large amount of spectra)
 			exp.erase(remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
+			
+			//remove zoom scan mode (might be a large amount of spectra)
+			if (getParam_("remove_zoom")!=DataValue::EMPTY)
+			{
+				cout << "remove_zoom ACTIVATED" << endl;
+				exp.erase(remove_if(exp.begin(), exp.end(), ScanModePredicate<MSExperiment< >::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
+			}
 			
 			//remove rt range (discards whole spectra)
 			exp.erase(remove_if(exp.begin(), exp.end(), RTRange<MSExperiment< >::SpectrumType>(rt_l, rt_u, true)), exp.end());
