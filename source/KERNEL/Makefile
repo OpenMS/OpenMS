@@ -37,8 +37,6 @@ CPP_SOURCES= \
 	DPosition.C\
 	DPeak.C\
 	DPickedPeak.C\
-	DPeakList.C\
-	DPeakArray.C\
 	DPeakArrayNonPolymorphic.C\
 	DRawDataPoint.C\
 	StandardTypes.C\
@@ -47,7 +45,11 @@ CPP_SOURCES= \
 	MSExperiment.C\
 	MSExperimentExtern.C\
 	DPeakConstReferenceArray.C\
-	DPeakReferenceArray.C\
+	DPeakReferenceArray.C
+
+#	DPeakList.C\
+#	DPeakArray.C\
+
 
 ADD_CPP_SOURCES = ${CGAL_SOURCES}
 

@@ -76,30 +76,11 @@ namespace OpenMS
 		\note The destructor is non-virtual although many classes are derived from
 		  DRawDataPoint.  This is intentional, since otherwise we would "waste"
 		  space for a vtable pointer in each instance - but DRawDataPoints are
-		  used in great amounts for storing raw data.  Note that class DPeak
-		  <i>has</i> a virtual destructor and thus all classes derived from it,
-		  thus polymorphism is fully supported below that point in the class
-		  hierarchy.  Normally you should not derive other classes from
+		  used in great amounts for storing raw data. Normally you should not derive other classes from
 		  DRawDataPoint (unless you know what you are doing, of course).
 		*/
 		~DRawDataPoint() {}
 		//@}
-		
-		/**
-			@brief Clone function for polymorphism.
-			
-			Function that creates a copy like the copy constructor does.  Normally
-			such clone() functions are used to create exact copies of subclasses in
-			polymorphic scenarios.  However for DRawDataPoint clone() is non-virtual
-			and will thus only "copy" the DRawDataPoint part of derived classes.
-			This is intentional - see ~DRawDataPoint() for further explanations on
-			this issue.
-		*/
-		DRawDataPoint* clone() const
-		{
-			DRawDataPoint* tmp = new DRawDataPoint(*this);
-			return tmp;
-		}
 		
 		/**	
 			@name Accessors
@@ -174,7 +155,7 @@ namespace OpenMS
  		/**	@name	Comparator classes.
 				These classes implement binary predicates that can be used 
 				to compare two peaks with respect to their intensities, positions.
-				They are employed by the sort methods e.g. in DPeakList and DPeakArray.
+				They are employed by the sort methods e.g. DPeakArrayNonPolymorphic.
 		*/
 		//@{
 

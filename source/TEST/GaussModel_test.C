@@ -119,8 +119,8 @@ CHECK(void setParam(Param param))
 	GaussModel gm2;
 	gm2.setParam(gm1.getParam());
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArrayNonPolymorphic<1> dpa1;
+	DPeakArrayNonPolymorphic<1> dpa2;
 	gm1.getSamples(dpa1);
 	gm2.getSamples(dpa2);
 
@@ -185,8 +185,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(gm1.getCenter(), gm2.getCenter())
 	TEST_REAL_EQUAL(gm1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArrayNonPolymorphic<1> dpa1;
+	DPeakArrayNonPolymorphic<1> dpa2;
 	gm1.getSamples(dpa1);
 	gm2.getSamples(dpa2);
 

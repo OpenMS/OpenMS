@@ -26,9 +26,8 @@
 
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
-
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
 #include "TOPPBase.h"

@@ -30,7 +30,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
-#include <OpenMS/FORMAT/PersistentObject.h>
 #include <OpenMS/FORMAT/PersistenceManager.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -55,7 +54,6 @@ namespace OpenMS
 	template <Size D, typename Traits = KernelTraits>
 	class DPeak 
 		: public DRawDataPoint < D, Traits >, 
-			public PersistentObject, 
 			public MetaInfoInterface
 	{
 		public:
@@ -76,7 +74,6 @@ namespace OpenMS
 		/// Default constructor
 		DPeak() 
 			: DRawDataPoint<D,Traits>(),
-				PersistentObject(),
 				MetaInfoInterface()
 		{
 			
@@ -85,27 +82,15 @@ namespace OpenMS
 		/// Copy constructor
 		inline DPeak(DPeak const& p) 
 			: DRawDataPoint<D,Traits>(p),
-				PersistentObject(p), 
 				MetaInfoInterface(p)
 		{
 		}
 
 		/// Destructor
-		virtual ~DPeak() 
+		~DPeak() 
 		{
 		}
 		//@}	
-		
-		/**
-			@brief Clone function for polymorphism.
-			
-			Virtual function that creates a copy like the copy constructor does.
-			Needed to create exact copies of subclasses of DPeak, without knowing what exact type the subclass has.
-		*/
-		virtual DPeak* clone() const
-		{
-			return new DPeak(*this);
-		}
 
 		/// Assignment operator
 		DPeak& operator = (const DPeak& rhs)
@@ -119,7 +104,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		virtual bool operator == (const DPeak& rhs) const
+		bool operator == (const DPeak& rhs) const
 		{
 			return 
 				DRawDataPoint<D,Traits>::operator == (rhs) &&
@@ -128,39 +113,12 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		virtual bool operator != (const DPeak& rhs) const
+		bool operator != (const DPeak& rhs) const
 		{
 			return !(operator == (rhs));
 		}
-
-		// Docu in base class
-		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
-		{
-			//std::cout << "--  Peak Header --" << std::endl;
-			pm.writeObjectHeader(this,name);
-			//std::cout << "--  Peak intensity: "<<DRawDataPoint < D, Traits >::intensity_<<" --" << std::endl;
-			pm.writePrimitive(DRawDataPoint < D, Traits >::intensity_, "Intensity");
-			//std::cout << "--  Peak m/z: "<<DRawDataPoint < D, Traits >::position_[0]<<" --" << std::endl;
-			pm.writePrimitive(DRawDataPoint < D, Traits >::position_[0], "mz");
-			//std::cout << "--  Peak Trailer --" << std::endl<< std::endl<< std::endl;
-			pm.writeObjectTrailer(name);
-		}
 		
-		// Docu in base class
-		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
-		{
-			pm.readPrimitive(getPersistenceId(),"id");
-			pm.readPrimitive(DRawDataPoint < D, Traits >::intensity_, "Intensity");
-			pm.readPrimitive(DRawDataPoint < D, Traits >::position_[0], "mz");
-		}
-		
-	protected:
-	
-		// Docu in base class
-    virtual void clearChildIds_()
-    {
-    	//TODO Persistence	
-    };		
+	protected:	
 
 		///@name Serialization
 		//@{

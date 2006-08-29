@@ -106,16 +106,8 @@ namespace OpenMS
 		}
 
 		/// Destructor
-		virtual ~DFeature() {}
+		~DFeature() {}
 		//@}
-		
-		/**
-			@brief Clone function for polymorphism.
-			
-			Virtual function that creates a copy like the copy constructor does.
-			Needed to create exact copies of subclasses of DPeak, without knowing what exact type the subclass has.
-		*/
-		virtual DFeature* clone() const { return new DFeature(*this); }
 		
 		/**	@name Accessors	*/
 		//@{
@@ -176,9 +168,7 @@ namespace OpenMS
 		DFeature& operator = (const DFeature& rhs);
 
 		/// Equality operator
-		virtual bool operator == (const DFeature& rhs) const;
-		/// Equality operator
-		virtual bool operator != (const DFeature& rhs) const;			
+		bool operator == (const DFeature& rhs) const;
 		
 		/// Compare by getOverallQuality()
 		struct OverallQualityLess
@@ -261,12 +251,6 @@ namespace OpenMS
 						&& std::equal(qualities_, qualities_+D, rhs.qualities_)
 						&& (model_desc_ == rhs.model_desc_)
 						&& (convex_hulls_ == rhs.convex_hulls_));
-	}
-
-	template <Size D, typename Traits>
-	bool DFeature<D, Traits>::operator != (const DFeature<D, Traits>& rhs) const
-	{
-		return !(operator == (rhs));
 	}
 
 	template <Size D, typename Traits>

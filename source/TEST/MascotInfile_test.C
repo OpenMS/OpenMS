@@ -43,7 +43,7 @@ START_TEST(MascotInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-//DPeakArray (dummy for spectrum)
+//DPeakArrayNonPolymorphic (dummy for spectrum)
 DPeakArrayNonPolymorphic<1> spec;
 DPeak<1> tmp;
 vector<SignedInt> charges;

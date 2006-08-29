@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DPeakList.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
 ///////////////////////////
@@ -184,12 +183,12 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	TEST_REAL_EQUAL(a[4].getPosition()[MZ],25);
 
 	//Convert
-	DPeakList<2> list;
+	DPeakArrayNonPolymorphic<2> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakList<2>::const_iterator it = list.begin();
+	DPeakArrayNonPolymorphic<2>::const_iterator it = list.begin();
 	TEST_REAL_EQUAL(it->getPosition()[RT],11.1);
 	TEST_REAL_EQUAL(it->getPosition()[MZ],5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
@@ -540,7 +539,7 @@ CHECK(void updateRanges(SignedInt ms_level))
 RESULT
 
 CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
-	DPeakList<2> plist;
+	DPeakArrayNonPolymorphic<2> plist;
 	
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1.0;
@@ -579,7 +578,7 @@ CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
 RESULT
 
 CHECK(PeakIterator())
-	DPeakList<2> plist;
+	DPeakArrayNonPolymorphic<2> plist;
 	
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1.0;
@@ -718,7 +717,7 @@ CHECK(ConstIterator RTEnd(double rt) const)
 RESULT
 
 CHECK(void sortSpectra(bool sort_mz))
-	DPeakList<2> plist;
+	DPeakArrayNonPolymorphic<2> plist;
 	
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1.0;

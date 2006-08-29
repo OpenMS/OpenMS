@@ -97,11 +97,7 @@ EXECUTABLES_KERNEL =\
 	DRawDataPoint_test\
 	DPeak_test\
 	DPickedPeak_test\
-	DPeakArray_test\
-	DPeakList_test\
-	DPeakListIterator_test\
 	DPeakArrayNonPolymorphic_test\
-	DPeakArrayIterator_test\
 	DSpectrum_test\
 	ComparatorUtils_test\
 	StandardTypes_test\
@@ -112,6 +108,12 @@ EXECUTABLES_KERNEL =\
 	MSExperiment_test\
 	MSExperimentExtern_test\
 	DimensionDescription_test
+
+#	DPeakListIterator_test\
+#	DPeakArrayIterator_test\
+#	DPeakArray_test\
+#	DPeakList_test\
+
 
 #VISUAL
 

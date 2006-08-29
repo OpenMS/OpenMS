@@ -32,7 +32,7 @@
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 #include <vector>
 
 namespace OpenMS
@@ -62,7 +62,7 @@ namespace OpenMS
       typedef typename DPeak<D,Traits>::IntensityType IntensityType;
       typedef DPosition<D,Traits> PositionType;
       typedef DPeak<D,Traits> PeakType;
-			typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
+			typedef DPeakArrayNonPolymorphic<D, DPeak<D,Traits> > SamplesType;
 
 
       /// standard constructor. 

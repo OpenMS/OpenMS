@@ -238,7 +238,7 @@ protected:
             MzDataFile f;
             f.load(in,exp);
 
-            DPeakArray<2> array;
+            DPeakArrayNonPolymorphic<2> array;
             exp.get2DData(array);
 
             unsigned int size = array.size();

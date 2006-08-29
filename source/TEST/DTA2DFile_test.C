@@ -114,12 +114,12 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 
 
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
-	DPeakArray<2> array;
+	DPeakArrayNonPolymorphic<2> array;
 	e.get2DData(array);
 	TEST_EQUAL(array.size(), 9);
 	ABORT_IF(array.size() != 9)
 
-	DPeakArray<2>::ConstIterator it2 = array.begin();
+	DPeakArrayNonPolymorphic<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
@@ -230,12 +230,12 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 
 	MSExperiment<> e2;
 	f.load(tmp_filename,e2);
-	DPeakArray<2> array;
+	DPeakArrayNonPolymorphic<2> array;
 	e2.get2DData(array);
 	TEST_EQUAL(array.size(), 9);
 	ABORT_IF(array.size() != 9)
 
-	DPeakArray<2>::ConstIterator it2 = array.begin();
+	DPeakArrayNonPolymorphic<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)

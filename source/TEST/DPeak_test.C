@@ -102,19 +102,6 @@ CHECK(bool operator != (const DPeak& rhs) const)
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 
-CHECK(DPeak* clone() const)
-	DPeak<3> p;
-	p.getIntensity() = 123.456;
-	p.setMetaValue("cluster_id",4711);
-
-	DPeak<3>* copy_of_p;
-	copy_of_p = p.clone();
-
-	TEST_REAL_EQUAL(copy_of_p->getIntensity(), 123.456)
-	TEST_EQUAL(copy_of_p->getMetaValue("cluster_id"),DataValue(4711));
-	delete(copy_of_p);
-RESULT
-
 CHECK([EXTRA] meta info with copy constructor)
 	DPeak<1> p;
 	p.setMetaValue(2,std::string("bla"));

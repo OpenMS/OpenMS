@@ -106,13 +106,6 @@ CHECK(CoordinateType const& getPos() const)
 	TEST_REAL_EQUAL(p1.getPos(), 12345.0)
 RESULT
 
-CHECK(DRawDataPoint* clone() const)
-  DRawDataPoint<1> p0;
-  p0.setPos(33.0);
-  DRawDataPoint<1> * p1 = p0.clone();
-  TEST_REAL_EQUAL(p0.getPos(),p1->getPos())
-RESULT
-
 CHECK(CoordinateType& getPos(Size const i))
 	DRawDataPoint<2> p;
 	TEST_REAL_EQUAL(p.getPos(1), 0.0)

@@ -129,21 +129,8 @@ namespace OpenMS
     {}
 
     /// Desctructor
-    virtual ~DPickedPeak()
+    ~DPickedPeak()
     {}
-    
-    /**
-    	 @brief Clone function for polymorphism.
-    	
-    	 Virtual function that creates a copy like the copy constructor does.
-    	 Needed to create exact copies of subclasses of DPeak, without knowing what exact type the subclass has.
-    */
-    virtual DPeak<D,Traits>* clone() const
-    {
-      DPeak<D,Traits>* tmp = new DPickedPeak(*this);
-      return tmp;
-    }
-
     
     /// Non-mutable access to the correlation coefficient between raw data and the peak model
     inline const RValueType& getRValue() const { return r_value_; }
@@ -220,49 +207,23 @@ namespace OpenMS
     }
 
     /// Equality operator
-    virtual bool operator == (const DPeak<D,Traits>& rhs) const
+    bool operator == (const DPickedPeak& rhs) const
     {
-      //std::cout<<"DPP::operator==(DPP)"<<std::endl;
-      if (typeid(*this)!=typeid(rhs))
-      {
-        return false;
-      }
-      else
-      {
-        const DPickedPeak* ptr = dynamic_cast<const DPickedPeak*>(&rhs);
-        return r_value_ == ptr->r_value_ && area_ == ptr->area_ &&	fwhm_ == ptr->fwhm_ &&  type_ == ptr->type_ && charge_ == ptr->charge_  && left_width_paramter_ == ptr->left_width_paramter_ && right_width_paramter_ == ptr->right_width_paramter_ && signal_to_noise_ == ptr->signal_to_noise_ && DPeak<D,Traits>::operator==(rhs);
-      }
+    	return r_value_ == rhs.r_value_ && 
+    				 area_ == rhs.area_ &&	
+    				 fwhm_ == rhs.fwhm_ &&  
+    				 type_ == rhs.type_ && 
+    				 charge_ == rhs.charge_  && 
+    				 left_width_paramter_ == rhs.left_width_paramter_ && 
+    				 right_width_paramter_ == rhs.right_width_paramter_ && 
+    				 signal_to_noise_ == rhs.signal_to_noise_ && 
+    				 DPeak<D,Traits>::operator==(rhs);
     }
 
     /// Equality operator
-    virtual bool operator != (const DPeak<D,Traits>& rhs) const
+    bool operator != (const DPickedPeak& rhs) const
     {
-      //std::cout<<"DPP::operator!=(DPP) =>"<<std::endl;
       return !(operator == (rhs));
-    }
-
-    // Docu in base class
-    virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
-    {
-      //std::cout << "--  DPickedPeak Header --" << std::endl;
-      pm.writeObjectHeader(this,name);
-      //std::cout << "--  DPickedPeak intensity: "<<DRawDataPoint < D, Traits >::intensity_<<" --" << std::endl;
-      pm.writePrimitive(DRawDataPoint < D, Traits >::intensity_, "Intensity");
-      //std::cout << "--  DPickedPeak charge: " << charge_ <<" --" << std::endl;
-      pm.writePrimitive(charge_, "Charge");
-      //std::cout << "--  DPickedPeak m/z: "<<DRawDataPoint < D, Traits >::position_[0]<<" --" << std::endl;
-      pm.writePrimitive(DRawDataPoint < D, Traits >::position_[0], "mz");
-      //std::cout << "--  DPickedPeak Trailer --" << std::endl<< std::endl<< std::endl;
-      pm.writeObjectTrailer(name);
-    }
-
-    // Docu in base class
-    virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
-    {
-      pm.readPrimitive(this->getPersistenceId(),"id");
-      pm.readPrimitive(DRawDataPoint < D, Traits >::intensity_, "Intensity");
-      pm.readPrimitive(charge_, "Charge");
-      pm.readPrimitive(DRawDataPoint < D, Traits >::position_[0], "mz");
     }
 
     /**
@@ -408,12 +369,6 @@ namespace OpenMS
     ChargeType		charge_;
     /// The signal to noise value of the peak
     SignalToNoiseType signal_to_noise_;
-
-    // Docu in base class
-    virtual void clearChildIds_()
-    {
-      //TODO Persistence
-    }
 
     /**@name Serialization
      */

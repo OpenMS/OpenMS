@@ -37,7 +37,6 @@
 
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 
 #include "TOPPBase.h"
 

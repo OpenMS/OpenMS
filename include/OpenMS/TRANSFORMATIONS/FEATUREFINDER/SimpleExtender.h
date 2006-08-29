@@ -37,6 +37,7 @@
 
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+#include <queue>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -227,9 +228,7 @@ namespace OpenMS
   	UnsignedInt last_extracted_;
   	
   	/// Represents the boundary of a feature 
-  	std::priority_queue<IndexWithPriority, 
-  	            				std::vector<IndexWithPriority>, 
-  	           					IndexWithPriority::PriorityLess> boundary_;    
+  	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess > boundary_;    
   	           					
   	/*MutablePriorityQueue<IndexWithPriority, 
   	                    std::vector<IndexWithPriority>, 

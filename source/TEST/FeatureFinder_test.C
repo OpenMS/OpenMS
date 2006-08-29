@@ -30,7 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -112,7 +111,7 @@ RESULT
 
 CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, ConstPeakIterator end)))
   	
-	DPeakArray<2> parray;
+	DPeakArrayNonPolymorphic<2> parray;
 	
 	for (int i=0; i<10;++i)
 	{

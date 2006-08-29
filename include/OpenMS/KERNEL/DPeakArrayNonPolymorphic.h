@@ -29,6 +29,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/FORMAT/PersistentObject.h>
 
 #include <vector>
 #include <algorithm>

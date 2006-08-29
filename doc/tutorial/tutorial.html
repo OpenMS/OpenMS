@@ -119,21 +119,10 @@ intersection and center.
   <br>
   One of the template arguments of <tt>DSpectrum</tt> is the
   Container the data is stored in. As container
-  <tt>DPeakArrayNonPolymorphic</tt>, <tt>DPeakArray</tt> or
-  <tt>DPeakList</tt> are used.
+  <tt>DPeakArrayNonPolymorphic</tt> or a container with the same interface is used.
   <br>
   <b>DPeakArrayNonPolymorphic</b> is vector of data points with a
   more convenient interface for sorting of the data.
-  <br>
-  <i>DPeakArrayNonPolymorphic is the recommended container, if you
-  do not need polymorphism</i>!
-  <br>
-  <b>DPeakArray</b> behaves like <tt>DPeakArrayNonPolymorphic</tt>
-  but is polymorphic, i.e. it can hold peaks of <tt>PeakType</tt>
-  and of classes derived from <tt>PeakType</tt> at a time.
-  <br>
-  <b>DPeakList</b> behaves like <tt>std::list&lt;PeakType&gt;</tt>
-  but is polymorphic.
   <br>
   <br>
   The following example demonstrates the use of a 2-dimensional

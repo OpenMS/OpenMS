@@ -31,7 +31,6 @@
 #include <string>
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakList.h>
 
 ///////////////////////////
 
@@ -71,11 +70,6 @@ RESULT
 
 CHECK(~DSpectrum())
 	delete ptr;
-RESULT
-
-CHECK([EXTRA] Instantiation w/ DPeakList)
-	DSpectrum<4, DPeakList<4> > ds;
-	TEST_EQUAL(ds.getContainer().size(), 0)
 RESULT
 
 CHECK(UnsignedInt getMSLevel() const)
@@ -133,6 +127,7 @@ CHECK(DSpectrum(const DSpectrum<D>& rhs))
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRetentionTime(7.0,5.0,10.0);
+	s.setName("bla");
 	s.updateRanges();
 	DSpectrum<1> s2(s);
 
@@ -147,6 +142,7 @@ CHECK(DSpectrum(const DSpectrum<D>& rhs))
 	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
 	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
 	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+	TEST_EQUAL("bla",s2.getName())
 RESULT
 
 CHECK(DSpectrum& operator = (const DSpectrum& rhs))
@@ -157,6 +153,7 @@ CHECK(DSpectrum& operator = (const DSpectrum& rhs))
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRetentionTime(7.0,5.0,10.0);
+	s.setName("bla");
 	s.updateRanges();
 	DSpectrum<1> s2;
 	s2 = s;
@@ -172,6 +169,7 @@ CHECK(DSpectrum& operator = (const DSpectrum& rhs))
 	TEST_REAL_EQUAL(7.0 , s2.getRetentionTime())
 	TEST_REAL_EQUAL(5.0 , s2.getRetentionTimeStart())
 	TEST_REAL_EQUAL(10.0 , s2.getRetentionTimeStop())
+	TEST_EQUAL("bla",s2.getName())
 RESULT
 
 CHECK(bool operator == (const DSpectrum& rhs) const)
@@ -212,6 +210,11 @@ CHECK(bool operator == (const DSpectrum& rhs) const)
 	edit = empty;
 	edit.getPrecursorPeak().getPosition()[0] = 1.5;
 	TEST_EQUAL(empty==edit, false);
+	
+	//name is not checked => no change
+	edit = empty;
+	edit.setName("bla");
+	TEST_EQUAL(empty==edit, true);
 	
 	edit = empty;
 	edit.push_back(p);
@@ -256,6 +259,11 @@ CHECK(bool operator != (const DSpectrum& rhs) const)
 	edit.getContainer().push_back(DSpectrum<1>::ContainerType::value_type());
 	TEST_EQUAL(empty!=edit, true);
 
+	//name is not checked => no change
+	edit = empty;
+	edit.setName("bla");
+	TEST_EQUAL(empty!=edit, false);
+
 	edit = empty;
 	edit.push_back(p);
 	edit.push_back(p2);
@@ -264,7 +272,16 @@ CHECK(bool operator != (const DSpectrum& rhs) const)
 	TEST_EQUAL(empty!=edit, true);	
 RESULT
 
+CHECK(std::string getName() const)
+	DSpectrum<1> s;
+	TEST_EQUAL(s.getName(),"")
+RESULT
 
+CHECK(void setName(const std::string& name))
+	DSpectrum<1> s;
+	s.setName("bla");
+	TEST_EQUAL(s.getName(),"bla")
+RESULT
 
 //*************************** Container interface tests *********************************
 
@@ -729,17 +746,6 @@ CHECK(void setRetentionTime(double rt, double start=0, double stop=0))
   sdi.setRetentionTime(0.451,0.0,2.0);
   TEST_REAL_EQUAL(sdi.getRetentionTime(),0.451)
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),0.2255)
-RESULT
-
-CHECK(std::string getName() const)
-	DSpectrum<1> s;
-	TEST_EQUAL(s.getName(),"")
-RESULT
-
-CHECK(void setName(const std::string& name))
-	DSpectrum<1> s;
-	s.setName("bla");
-	TEST_EQUAL(s.getName(),"bla")
 RESULT
 
 

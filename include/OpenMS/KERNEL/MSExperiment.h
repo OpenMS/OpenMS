@@ -143,8 +143,8 @@ public:
     /**
     	@brief Reads out a 2D Spectrum
       	
-      	Container is a DPeakArray<2>, DPeakList<2>, DPeakArrayNonPolymorphic
-    	or a STL container of DPeak<2> or DRawDataPoint<2> which supports insert(), end() and back()
+      	Container is a DPeakArrayNonPolymorphic<2> or a STL container of DPeak<2> 
+      	or DRawDataPoint<2> which supports insert(), end() and back()
       */
     template <class Container>
     void get2DData(Container& cont) const
@@ -174,8 +174,7 @@ public:
     /**
     	@brief Assignment of a 2D spectrum to MSExperiment
     	  	
-    	Container is a DPeakArray<2>, DPeakList<2>, DPeakArrayNonPolymorphic
-    	or a STL container of DPeak<2> or DRawDataPoint<2>
+    	Container is a DPeakArrayNonPolymorphic<2> or a STL container of DPeak<2> or DRawDataPoint<2>
     	
     	@note The container has to be sorted according to retention time. Otherwise a Precondition exception is thrown.
     */

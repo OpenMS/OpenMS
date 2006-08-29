@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_DSPECTRUM_H
 
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
 #include <OpenMS/DATASTRUCTURES/RangeManager.h>
@@ -47,8 +47,8 @@ namespace OpenMS
 	/**	
 		@brief Representation of a D-dimensional spectrum.
 		
-		The peak data itself is stored in a container class, which can be a DPeakArray, a 
-		DPeakArrayNonpolymorphic, a DPeakList or a STL container like std::list or std::vector.
+		The peak data itself is stored in a container class, which can be a DPeakArrayNonpolymorphic
+		or a STL container like std::list or std::vector.
 		
 		Some meta information about the spectrum (ms-level, precursor peak, ...) is 
 		also stored. If you want to store more meta information 
@@ -62,7 +62,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <Size D, typename ContainerT = DPeakArray<D> >
+	template <Size D, typename ContainerT = DPeakArrayNonPolymorphic<D> >
 	class DSpectrum
 		: public MetaInfoInterface,
 			public RangeManager<D, typename ContainerT::PeakType::TraitsType>
@@ -121,7 +121,8 @@ namespace OpenMS
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				retention_start_(0),
 				retention_stop_(0),
-				ms_level_(1)
+				ms_level_(1),
+				name_()
 			{
 			}
 	
@@ -134,7 +135,8 @@ namespace OpenMS
 				retention_time_(rhs.retention_time_),
 				retention_start_(rhs.retention_start_),
 				retention_stop_(rhs.retention_stop_),
-				ms_level_(rhs.ms_level_)
+				ms_level_(rhs.ms_level_),
+				name_(rhs.name_)
 			{
 			}
 			
@@ -157,7 +159,7 @@ namespace OpenMS
 				retention_start_ = rhs.retention_start_;
 				retention_stop_ = rhs.retention_stop_;
 				ms_level_ = rhs.ms_level_;
-				
+				name_ = rhs.name_;
 				return *this;
 			}
 	
@@ -174,6 +176,7 @@ namespace OpenMS
 					retention_stop_ == rhs.retention_stop_ &&
 					ms_level_ == rhs.ms_level_
 					;				
+					//name_ == rhs.name_  // the name can differ => do not test it	
 			}
 			
 			/// Equality operator
@@ -447,8 +450,8 @@ namespace OpenMS
 	    void setRetentionTime(double rt, double start=0, double stop=0) 
 	    { 
 	    	retention_time_= rt; 
-			retention_start_ = start;
-			retention_stop_ = stop;
+				retention_start_ = start;
+				retention_stop_ = stop;
 	    }
 	    
 	    /**

@@ -109,8 +109,8 @@ CHECK(void setParam(Param param))
 	bgm2.setParam(bgm1.getParam());
 	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArrayNonPolymorphic<1> dpa1;
+	DPeakArrayNonPolymorphic<1> dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 
@@ -186,8 +186,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(bgm1.getCenter(), bgm2.getCenter())
 	TEST_REAL_EQUAL(bgm1.getCenter(), 682.1)
 
-	DPeakArray<1> dpa1;
-	DPeakArray<1> dpa2;
+	DPeakArrayNonPolymorphic<1> dpa1;
+	DPeakArrayNonPolymorphic<1> dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 

@@ -64,7 +64,7 @@ namespace OpenMS
 			typedef typename PositionType::CoordinateType CoordinateType;
 			typedef Math::LinearInterpolation<CoordinateType,IntensityType> LinearInterpolation;
 			typedef typename LinearInterpolation::container_type ContainerType;
-			typedef DPeakArray<1, DPeak<1,Traits> > SamplesType;
+			typedef DPeakArrayNonPolymorphic<1, DPeak<1,Traits> > SamplesType;
 
       /// standard constructor
       InterpolationModel()

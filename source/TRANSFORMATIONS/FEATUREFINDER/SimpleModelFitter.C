@@ -304,9 +304,9 @@ namespace OpenMS
 		String fname = "model"+String(counter_);
 		ofstream file(fname.c_str()); // gnuplot file with feature model
 
-		DPeakArray<2> dpa;
+		DPeakArrayNonPolymorphic<2> dpa;
 		final->getSamples(dpa);
-		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
+		for (DPeakArrayNonPolymorphic<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
 		if (it->getIntensity()>0.1)
 			file << it->getPosition()[RT] << " " << it->getPosition()[MZ] << " "
 					<< it->getIntensity() << "\n";

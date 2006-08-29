@@ -39,14 +39,12 @@
 #include <OpenMS/FORMAT/Serialization.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
-#include <OpenMS/KERNEL/DPeakList.h>
 
 ////////////////////////////////////////////////////////////
 
 // In this serialization example we practice some harder exercises.  We
 // serialize a DataValue, whose binary content can have many interpretations.
-// We also serialize a polymorphic DPeakArray containing DPeak and DFeature
-// instances.  Even worse, we serialize some features through pointers into the
+// Even worse, we serialize some features through pointers into the
 // DPeakArray.  One is serialzed before, the other afterwards.  Have a look at
 // archive2.xml to see how funnily shows up in xml ;-)
 // 
@@ -89,7 +87,7 @@ int main() {
 	std::string blabla("blablablabla");
 	const RawSpectrum raw_spectrum;
 
-	DPeakArray<2> dpeak_array;
+	DPeakArrayNonPolymorphic<2> dpeak_array;
 	
 	Feature feature;
  	feature.setPos(0,178);
@@ -113,7 +111,7 @@ int main() {
   const Feature * feature0 = dynamic_cast<const Feature * const>(&dpeak_array[0]);
 	const Feature * feature2 = dynamic_cast<const Feature * const>(&dpeak_array[2]);
 	
-	DPeakList<2> dpeak_list(dpeak_array.begin(),dpeak_array.end());
+	DPeakArrayNonPolymorphic<2> dpeak_list(dpeak_array.begin(),dpeak_array.end());
 	DPickedPeak<2> dpicked_peak;
 	
   // save data to archive
@@ -200,8 +198,8 @@ int main() {
 	RawSpectrum restored_xml_raw_spectrum;
 	Feature * restored_xml_feature0;
 	Feature * restored_xml_feature2;
-	DPeakArray<2> restored_xml_dpeak_array;
-	DPeakList<2> restored_xml_dpeak_list;
+	DPeakArrayNonPolymorphic<2> restored_xml_dpeak_array;
+	DPeakArrayNonPolymorphic<2> restored_xml_dpeak_list;
 	DPickedPeak<2> restored_xml_dpicked_peak;
 	
 	try
