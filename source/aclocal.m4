@@ -2761,6 +2761,111 @@ AC_DEFUN(CF_LIBSVM, [
 	
 ])
 
+dnl
+dnl		XERCES support
+dnl
+AC_DEFUN(CF_XERCES, [
+	AC_MSG_CHECKING(Checking for XERCES support)
+	dnl
+  dnl  variable substitutions required for XERCES support
+  dnl
+  AC_SUBST(XERCES_SUPPORT)
+  AC_SUBST(XERCES_OBJECT)
+
+	dnl
+	dnl Check for the XERCES headers
+	dnl
+	if test "${XERCES_SUPPORT}" = "true" ; then	
+		AC_MSG_RESULT(enabled)
+
+		AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES)
+		AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES_H)
+
+		AC_MSG_CHECKING(for XERCES header file)
+		if test "${XERCES_INCPATH}" = "" ; then
+			AC_MSG_RESULT([Please specify the path to <xercesc/util/XMLString.hpp>])
+		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
+		  AC_MSG_RESULT()
+		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
+		  AC_MSG_RESULT()
+			CF_ERROR
+		fi
+		
+   	CF_FIND_HEADER(XERCES_DIR, xercesc/util/XMLString.hpp, ${XERCES_INCPATH})
+		if test "${XERCES_DIR}" = "" ; then
+      AC_MSG_RESULT()
+		  AC_MSG_RESULT()
+			AC_MSG_RESULT([The XERCES headers could not be found. Please specify the path to <xercesc/util/XMLString.hpp>])
+		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
+		  AC_MSG_RESULT()
+		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
+		  AC_MSG_RESULT()
+			CF_ERROR
+		  CF_ERROR
+	  else
+  		AC_MSG_RESULT((${XERCES_DIR}))
+  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${XERCES_DIR}"
+  	fi
+
+	dnl
+	dnl Check for the XERCES lib
+	dnl
+		AC_MSG_CHECKING(for XERCES object file)
+
+   	CF_FIND_HEADER(XERCES_DIR2, libxerces-c.so, ${XERCES_LIBPATH})
+		if test "${XERCES_DIR2}" = "" ; then
+      AC_MSG_RESULT((not found!))
+		  AC_MSG_RESULT()
+			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.so>])
+		  AC_MSG_RESULT([by passing the option --with-xerces-lib=DIR to configure.])
+		  AC_MSG_RESULT()
+		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
+		  AC_MSG_RESULT()
+			CF_ERROR
+		  CF_ERROR
+	  else
+  		AC_MSG_RESULT((${XERCES_DIR2}))
+  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${XERCES_DIR2}/libxerces-c.so"	
+  	fi
+
+
+	dnl
+	dnl Linking against the XERCES lib
+	dnl
+
+		AC_MSG_CHECKING(linking against XERCES)
+		SAVE_LIBS=${LIBS}
+		SAVE_LDFLAGS=${LDFLAGS}
+		LIBS=" ${XERCES_DIR2}/libxerces-c.so "
+		LDFLAGS=" -I${XERCES_DIR} "
+		XERCES_LINKING_OK=0
+		AC_TRY_LINK([
+									#include <xercesc/util/XMLString.hpp>
+								],
+								[
+							    xercesc::XMLString::compareIString("bluff","bla");
+								], XERCES_LINKING_OK=1)
+		LIBS=${SAVE_LIBS}
+		LDFLAGS=${SAVE_LDFLAGS}
+		if test "${XERCES_LINKING_OK}" != "1" ; then
+			AC_MSG_RESULT(no)
+			AC_MSG_RESULT()
+			AC_MSG_RESULT([Cannot link against libxerces-c.so . Please check config.log and])
+			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-xerces-lib/incl).])
+			CF_ERROR
+		else
+			AC_MSG_RESULT(yes)
+		fi
+
+	else
+		AC_MSG_RESULT(disabled)
+	fi
+	
+])
+
 
 AC_DEFUN(CF_GUI_OPENGL, [
 dnl
