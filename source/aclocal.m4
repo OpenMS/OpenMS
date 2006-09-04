@@ -2709,7 +2709,7 @@ AC_DEFUN(CF_LIBSVM, [
 	dnl
 		AC_MSG_CHECKING(for LIBSVM object file)
 
-   	CF_FIND_HEADER(LIBSVM_DIR2, svm.o, ${LIBSVM_LIBPATH})
+   	CF_FIND_LIB(LIBSVM_DIR2, svm.o, ${LIBSVM_LIBPATH})
 		if test "${LIBSVM_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()
@@ -2786,7 +2786,7 @@ AC_DEFUN(CF_XERCES, [
 			AC_MSG_RESULT([Please specify the path to <xercesc/util/XMLString.hpp>])
 		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
 		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
 		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
@@ -2799,7 +2799,7 @@ AC_DEFUN(CF_XERCES, [
 			AC_MSG_RESULT([The XERCES headers could not be found. Please specify the path to <xercesc/util/XMLString.hpp>])
 		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
 		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
 		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
@@ -2814,14 +2814,14 @@ AC_DEFUN(CF_XERCES, [
 	dnl
 		AC_MSG_CHECKING(for XERCES object file)
 
-   	CF_FIND_HEADER(XERCES_DIR2, libxerces-c.so, ${XERCES_LIBPATH})
+   	CF_FIND_LIB(XERCES_DIR2, libxerces-c, ${XERCES_LIBPATH})
 		if test "${XERCES_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()
 			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.so>])
 		  AC_MSG_RESULT([by passing the option --with-xerces-lib=DIR to configure.])
 		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for retention time predition.])
+		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
 		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
