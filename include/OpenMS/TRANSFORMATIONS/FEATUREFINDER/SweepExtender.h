@@ -42,6 +42,9 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+ 
+#include <fstream>
+#include<sstream>
 
 namespace OpenMS
 {
@@ -100,19 +103,15 @@ public:
     struct IsotopeCluster
     {
         IsotopeCluster()
-                : left_mz_(-1), charge_(0),
-                peaks_(), scans_()
+          : charge_(0), peaks_(), scans_()
         {}
-
-        // m/z of the first peak in this cluster (i.e. the upper left one)
-        CoordinateType left_mz_;
+     
         // predicted charge state of this peptide
         UnsignedInt charge_;
         // peaks in this cluster
         std::vector< UnsignedInt > peaks_;
         // the scans of this cluster
         std::vector<CoordinateType> scans_;
-
     };
 
 
@@ -125,35 +124,39 @@ protected:
     {
 
         // perform binary search to find the neighbour in rt dimension
+		// 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
         std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
 
-        if ( insert_iter == scan_end ) // only one choice
+		// the peak found by lower_bound does not have to be the closest one, therefore we have
+		// to check both neighbours
+	    if ( insert_iter == scan_end ) // we are at the and have only one choice
         {
             return --insert_iter;
         }
         else
         {
-            // if the found peak is at the beginning of the spectrum,
-            // there is not much we can do.
+			// if the found peak is at the beginning of the spectrum,
+			// there is not much we can do.
             if ( insert_iter == scan_begin )
             {
                 return insert_iter;
             }
             else // see if the next smaller one fits better
             {
-                double delta_mz = (*insert_iter - current_mz);
+                double delta_mz = fabs(*insert_iter - current_mz);
                 --insert_iter;
 
-                if ( current_mz - *insert_iter > delta_mz )
+                if ( fabs(*insert_iter - current_mz) < delta_mz )
                 {
-                    return insert_iter; // peak to the right is closer (in m/z dimension)
+                    return insert_iter; // peak to the left is closer (in m/z dimension)
                 }
                 else
                 {
-                    return ++insert_iter;    // peak to the left is closer
+                    return ++insert_iter;    // peak to the right is closer
                 }
             }
         }
+		
     } // end of searchInScan_
 	
 	/// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
@@ -185,8 +188,8 @@ protected:
 	CoordinateType charge3_ub_;
 	/// lower bound for distance between charge 3 peaks
 	CoordinateType charge3_lb_;	
+	
+}; // end of class SweepExtender
 
-}
-; // end of class SweepExtender
-}
+} // end of namespace OpenMS
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SWEEPEXTENDER_H

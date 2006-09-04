@@ -67,7 +67,6 @@ const IndexSet& SweepExtender::extend(const UnsignedInt /*seed_index*/)
 	// check if this cluster consists of one scan only
 	if ((*curr_region_).second.scans_.size() == 1)
 	{
-		//std::cout << "Only one scan " << std::endl;
 		++curr_region_;
 		return region_;	// this isotopic pattern occurs in one scan only and is therefore unreliable => omit it	
 	}	
@@ -95,9 +94,7 @@ void SweepExtender::sweep_()
     // stores the monoisotopic peaks of isotopic clusters
     std::vector<double> iso_last_scan;
     std::vector<double> iso_curr_scan;
-	
-	std::cout << "Retrieving # peaks..." << std::endl;
-	
+		
     unsigned int nr_peaks    = traits_->getNumberOfPeaks();
     CoordinateType last_rt  = traits_->getPeakRt(0);
 	
@@ -112,7 +109,9 @@ void SweepExtender::sweep_()
 	charge3_lb_     = param_.getValue("charge3_lb");
 	
 	CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
-	UnsignedInt current_charge     = 0;
+	
+	UnsignedInt current_charge     = 0;			// charge state of the current isotopic cluster
+	CoordinateType mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
     // sweep through scans
     for (unsigned int curr_peak = 0; curr_peak < nr_peaks; ++curr_peak)
@@ -125,6 +124,8 @@ void SweepExtender::sweep_()
             iso_last_scan = iso_curr_scan;
             iso_curr_scan.clear();
 			last_rt = current_rt;
+// 			std::cout << "Next scan with rt: " << current_rt << std::endl;
+// 			std::cout << "---------------------------------------------------------------------------" << std::endl;
         }
         // store the m/z of the current peak
         CoordinateType curr_mz         = traits_->getPeakMz(curr_peak);
@@ -134,91 +135,101 @@ void SweepExtender::sweep_()
 		// test for different charge states
 		current_charge = testDistance2NextPeak_(dist2nextpeak);
 		
-        if (current_charge > 0)
+        if (current_charge > 0) // charger = 0 => no isotope
         {
-            IsotopeCluster iso_clust; // stores scan and peaks
+//       	std::cout << "Isotopic pattern found ! " << std::endl;
+// 			std::cout << "We are at: " << traits_->getPeakRt(curr_peak) << " " << curr_mz << std::endl;
 
-            if (iso_last_scan.size() > 0)
+            if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
             {
                 // there were some isotopic clustures in the last scan...
                 std::vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
-                double delta_mz = (*it - curr_mz);
-
-                if ( fabs(delta_mz) > tolerance_mz)
+                double delta_mz = fabs(*it - curr_mz);
+				
+// 				std::cout << "Next peak in previous scan is at: " << delta_mz << std::endl;
+				
+                if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
                 {
-                    // create new isotopic cluster
-                    iso_clust.left_mz_ = curr_mz;
-                    iso_clust.charge_  = current_charge;
-                    iso_clust.scans_.push_back( traits_->getPeakRt(curr_peak) );
+					mz_in_hash = curr_mz; // update current hash key
+                    
+					// create new isotopic cluster
+// 					std::cout << "Last peak cluster too far, creating new cluster" << std::endl;
+					iso_map_[mz_in_hash] = IsotopeCluster();
+		
+                    iso_map_[mz_in_hash].charge_  = current_charge;
+                    iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt(curr_peak) );					
                 }
                 else
                 {
+					#ifdef DEBUG_FEATUREFINDER
                     std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
-                    curr_mz = *it;
-                    iso_clust = iso_map_[curr_mz];
-                    iso_clust.scans_.push_back( traits_->getPeakRt(curr_peak) );
-                    std::cout << "Cluster with " << iso_clust.peaks_.size() << " peaks retrieved." << std::endl;
+					#endif
+					
+                    mz_in_hash = *it;	// retrieve new hash key
+ 					// save current rt and m/z
+                    iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt(curr_peak) );
+					
+					#ifdef DEBUG_FEATUREFINDER
+                    std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
+					#endif
                 }
 
             }
-            else
-            {
-                std::cout << "Last scan empty. New cluster." << std::endl;
-			    iso_clust.left_mz_ = curr_mz;
-                iso_clust.charge_  = current_charge;
-                iso_clust.scans_.push_back( traits_->getPeakRt(curr_peak) );
-            }
+            else // last scan did not contain any isotopic cluster
+            {	
+				#ifdef DEBUG_FEATUREFINDER
+                std::cout << "Last scan was empty => creating new cluster." << std::endl;
+				#endif
+				
+			    mz_in_hash = curr_mz; // update current hash key
+                    
+				// create new isotopic cluster
+				iso_map_[mz_in_hash] = IsotopeCluster();
+// 				std::cout << "Creating cluster at m/z : " << mz_in_hash << std::endl;
+                iso_map_[mz_in_hash].charge_  = current_charge;
+                iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt(curr_peak) );
+			}
 
-            std::cout << "store found peak in current isotopic cluster" << std::endl;
-            iso_clust.peaks_.push_back(curr_peak);
-			iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+			#ifdef DEBUG_FEATUREFINDER
+            std::cout << "Storing found peak in current isotopic cluster" << std::endl;
+			#endif
+            iso_map_[mz_in_hash].peaks_.push_back(curr_peak);
+			iso_curr_scan.push_back(  mz_in_hash );	// insert in each scan the m/z of the first peak found ( => verifiy if this is a good idea ! )
             ++curr_peak;
-		    if (curr_peak == nr_peaks ) break;
+		    //if (curr_peak >= nr_peaks ) break;
 			
-            std::cout << "and store next one as well" << std::endl;
-            iso_clust.peaks_.push_back(curr_peak);
-           	iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
-
-		   std::cout << "computing next distance.." << std::endl;
-		   if ( (curr_peak+1) >=  nr_peaks) break;
-		   std::cout << (curr_peak+1) << " vs " << nr_peaks << std::endl;
-            dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak));
+            iso_map_[mz_in_hash].peaks_.push_back(curr_peak);
+           	//iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+		   
+		   // check distance to next peak
+		   	if (curr_peak >= nr_peaks ) break;
+			dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak));
 			
-			if (testDistance2NextPeak_(dist2nextpeak) != current_charge) 	// charge state should remain the same 
+			if (testDistance2NextPeak_(dist2nextpeak) != current_charge) 	
 			{
-				 // store current cluster
-                iso_map_[curr_mz] = iso_clust;				
+				iso_map_[mz_in_hash].peaks_.push_back(curr_peak + 1);
 				continue;
-			}			
+			}	
 			
-            while (current_charge > 0)
+			// loop until end of isotopic pattern in this scan
+            while (testDistance2NextPeak_(dist2nextpeak) == current_charge
+			           &&  curr_peak < (nr_peaks-1) )
             {
-                ++curr_peak;
-                if (curr_peak >= nr_peaks) break;				// we reached last peak, quit this loop
-				
-           		iso_clust.peaks_.push_back(curr_peak);		// save peak in cluster
-				iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
-				
-				std::cout << "computing next distance.." << std::endl;
-		  		if ( (curr_peak+1) >=  nr_peaks) break;
-		   		std::cout << (curr_peak+1) << " vs " << nr_peaks << std::endl;
-				
-               	dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
-			   	current_charge = testDistance2NextPeak_(dist2nextpeak);
+          		iso_map_[mz_in_hash].peaks_.push_back(curr_peak);				// save peak in cluster
+				++curr_peak;			
+               	
+				dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
 			 
 			} // end while(...)
-			
-			iso_map_[curr_mz]  =  iso_clust; 	// update cluster for this mass
-			
+		
         } // end of if (charge > 0)
     
 		current_charge = 0; // reset charge
 	} // end for (...)
 
 	curr_region_ = iso_map_.begin();
-	
-	std::cout << iso_map_.size() << " clusters were found ! " << std::endl;
-	
+	std::cout << iso_map_.size() << " isotopic clusters were found ! " << std::endl;
+		
 } // end of void sweep_()
 
 
