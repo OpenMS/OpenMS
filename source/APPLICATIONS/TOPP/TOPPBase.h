@@ -72,18 +72,25 @@ namespace OpenMS
 		ExitCodes main(int argc , char** argv);
 			
 	 protected:
+
 		/// Tool name
 		String tool_name_;
+
 		/// Debug level
 		SignedInt debug_level_;
+
 		/// Settings
 		Param param_;
+
 		/// Log file stream
 		std::ofstream log_;
+
 		/// Command line options with argument (options)
 		std::map<std::string,std::string> options_;
+
 		/// Command line options without argument (flags)
 		std::map<std::string,std::string> flags_;
+
 		/// Current Instance number
 		SignedInt instance_number_;
 
@@ -114,7 +121,8 @@ namespace OpenMS
 			 flags_["--help"] = "help";<BR>
 			 flags_["--help-opt"] = "helpopt";<BR>
 			 
-			 @note Make sure the name command line name and the internal name are the same! Otherwise the lookup from the ini file does not work!
+			 @note Make sure the name command line name and the internal name are the same!
+			 Otherwise the lookup from the ini file does not work!
 		*/
 		virtual void setOptionsAndFlags_()=0;
 			
@@ -165,6 +173,18 @@ namespace OpenMS
 			 Otherwise not only nodes, but as well values with that prefix are copied.
 			 @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
 			 @param new_prefix is added to the front of all keys
+
+			 Inheritance of parameters is supported as follows: If the subtree
+			 specified by prefix contains an <code>&lt;ITEM name="inherit"
+			 value="other:place" type="string"/&gt;</code>, then everything from
+			 <code>other:place</code> is inherited.  This works recursively, but at
+			 most 15 steps.  Otherwise an exception is thrown (e.g. to detect
+			 cycles).  It is not an error if <code>other:place</code> is not an
+			 existing <code>&lt;NODE&gt;</code> - we just won't inherit anything
+			 from there in this case.
+
+			 @todo Support for new_prefix is not fully tested and should be considered experimental. (Clemens)
+
 		*/
 		Param getParamCopy_(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="");
 

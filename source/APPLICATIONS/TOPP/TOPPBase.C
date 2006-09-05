@@ -298,7 +298,50 @@ namespace OpenMS
 	
 	Param TOPPBase::getParamCopy_(const std::string& prefix, bool remove_prefix, const std::string& new_prefix)
 	{
+#if 1 // We support inheritance using "inherit" ITEMs
+		Param param_copy = param_.copy(prefix,remove_prefix,new_prefix);
+
+		const int debug_level_min = 5;
+		if ( debug_level_ >= debug_level_min )
+		{
+			std::cout << "Parameters from `" << prefix << "' are:\n"
+								<< param_copy << std::endl;
+		}
+
+		const int inheritance_steps_max = 15;
+		int inheritance_steps = 0;
+
+		DataValue const * inherit_path_value = & param_copy.getValue("inherit");
+		while ( ! inherit_path_value->isEmpty() )
+		{
+			std::string inherit_path = inherit_path_value->toString();
+			if ( debug_level_ >= debug_level_min )
+			{
+				std::cout << "Inheriting from `" << inherit_path << "'.\n";
+			}
+			if ( ++inheritance_steps > inheritance_steps_max )
+			{
+				String message = String("Too many inheritance steps (")+String(inheritance_steps_max)+String(" allowed).  Perhaps there is a cycle?");
+				writeLog_(message);
+				// We just cannot go on in this case, better throw an informative message
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"<ITEM name=\"inherit\" ... />",message);
+				break;
+			}
+			// remove
+			param_copy.remove("inherit");
+			param_copy.setDefaults( param_.copy(inherit_path+':',true,"" ),"",false);
+			if ( debug_level_ >= debug_level_min )
+			{
+				std::cout << "Parameters after inheriting from `" << inherit_path << "' are:\n"
+									<< param_copy << std::endl;
+			}
+			inherit_path_value = & param_copy.getValue("inherit");
+		}
+		return param_copy.copy("",true,new_prefix);
+#else
+		// old version, does not support "inherit" ITEMs
 		return param_.copy(prefix,remove_prefix,new_prefix);
+#endif
 	}
 
 

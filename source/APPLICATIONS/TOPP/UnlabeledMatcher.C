@@ -139,35 +139,6 @@ class TOPPUnlabeledMatcher
 
 		String param_path = tool_name_ + ':' + String(instance_number_) + ':';
 		Param param = getParamCopy_(param_path,true);
-		{
-			std::string bla;
-			std::stringstream blastream(bla);
-			blastream << param;
-			writeDebug_(String("Parameters from `")+param_path+"' are:\n"
-									+blastream.str(),2);
-		}
-		const int inheritance_steps_max = 15;
-		int inheritance_steps = 0;
-		for (	String param_inherit_path = param.getValue("inherit");
-					!param_inherit_path.empty();
-					param_inherit_path = param.getValue("inherit")
-				)
-		{
-			if ( ++inheritance_steps > inheritance_steps_max )
-			{
-				writeLog_("Too many inheritance steps ("+String(inheritance_steps_max)+" allowed).  Perhaps there is a cycle?");
-				return ILLEGAL_PARAMETERS;
-			}
-			param.remove("inherit");
-			param.setDefaults(getParamCopy_(param_inherit_path,true),"",false);
-			{
-				std::string bla;
-				std::stringstream blastream(bla);
-				blastream << param;
-				writeDebug_(String("Parameters after inheriting from `")+param_inherit_path+"' are:\n"
-										+blastream.str(),2);
-			}
-		}
 
     // input files to be read
     String inputfile[2];

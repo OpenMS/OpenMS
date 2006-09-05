@@ -50,6 +50,8 @@ namespace OpenMS
 	
 	Example: 'GeneralOptions:FileOptions:DefaultFileOpenPath = /share/'
  	
+	@todo Add support for inheritance using 'inherit' keyword as in TOPPBase::getParamCopy_(), and produce better error messages. (Clemens)
+
  	@ingroup FileIO
 */
 class Param
