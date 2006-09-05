@@ -29,12 +29,15 @@
 
 // all from BaseModelFitter derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
 
 namespace OpenMS
 {
 	void BaseModelFitter::registerChildren()
 	{
 		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getName(), &SimpleModelFitter::create);
+
+		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getName(), &ExtendedModelFitter::create);
 	}	
 
 	BaseModelFitter::BaseModelFitter() : FeaFiModule() {}

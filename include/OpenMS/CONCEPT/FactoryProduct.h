@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_FACTORYPRODUCT_H
@@ -49,7 +49,7 @@ namespace OpenMS
   class FactoryProduct
   {
 
-  public:
+	 public:
     /// standard constructor
     FactoryProduct();
 
@@ -78,12 +78,12 @@ namespace OpenMS
     const String& getName() const;
 
     bool operator == (const FactoryProduct& rhs) const;
-	bool operator != (const FactoryProduct& rhs) const;
+		bool operator != (const FactoryProduct& rhs) const;
 
-  protected:
+	 protected:
     mutable Param param_;
-	Param defaults_;
-	bool check_defaults_;
+		Param defaults_;
+		bool check_defaults_;
     String name_;
 
   };

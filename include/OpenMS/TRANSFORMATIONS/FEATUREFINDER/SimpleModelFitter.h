@@ -159,6 +159,7 @@ namespace OpenMS
 		 protected:
 			RealType variance1_, variance2_;
 		};
+
 	}
 
 

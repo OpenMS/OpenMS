@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Ole Schulz-Trieglaff $
+# $Maintainer: Ole Schulz-Trieglaff, Clemens Groepl $
 # --------------------------------------------------------------------------
 
 
@@ -47,14 +47,18 @@ CPP_SOURCES=\
 	BaseQuality.C\
 	Correlation.C\
 	IsotopeModel.C\
+	LmaGaussModel.C\
+	EmgModel.C\
+	LogNormalModel.C\
+	ExtendedModelFitter.C\
 	BiGaussModel.C\
 	FeaFiTraits.C\
 	DummySeeder.C\
 	SweepExtender.C
-	
+
 include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
 #ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
- 
+

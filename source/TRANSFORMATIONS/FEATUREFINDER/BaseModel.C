@@ -28,10 +28,13 @@
 #include <iostream>
 
 // all from BaseModel derived classes
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
 
 namespace OpenMS
 {
@@ -45,6 +48,9 @@ namespace OpenMS
 		Factory< BaseModel<1> >::registerProduct(GaussModel::getName(), &GaussModel::create);
 		Factory< BaseModel<1> >::registerProduct(BiGaussModel::getName(), &BiGaussModel::create);
 		Factory< BaseModel<1> >::registerProduct(IsotopeModel::getName(), &IsotopeModel::create);
+		Factory< BaseModel<1> >::registerProduct(EmgModel::getName(), &EmgModel::create);
+		Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getName(), &LmaGaussModel::create);
+		Factory< BaseModel<1> >::registerProduct(LogNormalModel::getName(), &LogNormalModel::create);
 	}
 
 }
