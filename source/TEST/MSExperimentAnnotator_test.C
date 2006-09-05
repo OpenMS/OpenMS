@@ -59,15 +59,25 @@ vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 ContactPerson contact_person;
 float precision = 0.1;
-
-file.load("data/MzXMLFile_test_3.mzXML", experiment);
+MSSpectrum< DPeak<1> > spectrum;
+DPeak<1> peak;
 
 xml_file.load("data/MSExperimentAnnotatorFile_test.analysisXML",
 							&protein_identifications, 
 				   		&identifications, 
 							&precursor_retention_times, 
 							&precursor_mz_values, 
-							&contact_person);								
+							&contact_person);
+							
+peak.setPosition(0);
+
+spectrum.setRetentionTime(60);
+spectrum.push_back(peak);
+experiment.push_back(spectrum);							
+spectrum.setRetentionTime(120);
+experiment.push_back(spectrum);							
+spectrum.setRetentionTime(180);
+experiment.push_back(spectrum);							
 
 CHECK(MSExperimentAnnotator())
 	ptr = new MSExperimentAnnotator();
