@@ -46,7 +46,7 @@ SweepExtender::SweepExtender()
 	defaults_.setValue("charge3_lb",0.1f);
 	
 	// tolerance in m/z for an monoisotopic peak in the previous scan
-	defaults_.setValue("tolerance_mz",1.5f);
+	defaults_.setValue("tolerance_mz",1.2f);
 	
     param_ = defaults_;
 }
@@ -62,14 +62,15 @@ const IndexSet& SweepExtender::extend(const UnsignedInt /*seed_index*/)
 	
 	is_initialized_ = true;
 	
-	if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 ) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
-	
-	// check if this cluster consists of one scan only
-	if ((*curr_region_).second.scans_.size() == 1)
+	// check if this cluster consists of one scan only and if so, just move to the next one
+	while ((*curr_region_).second.scans_.size() == 1 &&
+	            curr_region_ != iso_map_.end() )
 	{
 		++curr_region_;
-		return region_;	// this isotopic pattern occurs in one scan only and is therefore unreliable => omit it	
 	}	
+	
+	if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 ) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
+		
 	std::vector<UnsignedInt> next_region = (*curr_region_).second.peaks_;
 		
 	for (std::vector<UnsignedInt>::const_iterator cit = next_region.begin();
@@ -82,8 +83,6 @@ const IndexSet& SweepExtender::extend(const UnsignedInt /*seed_index*/)
 	++curr_region_;
 	
 	region_.sort();
-	
-	std::cout << "Retrieved region with " << region_.size() << " peaks. " << std::endl;
 	
     return region_;
 
@@ -194,12 +193,11 @@ void SweepExtender::sweep_()
             std::cout << "Storing found peak in current isotopic cluster" << std::endl;
 			#endif
             iso_map_[mz_in_hash].peaks_.push_back(curr_peak);
-			iso_curr_scan.push_back(  mz_in_hash );	// insert in each scan the m/z of the first peak found ( => verifiy if this is a good idea ! )
+			iso_curr_scan.push_back(  mz_in_hash );	
             ++curr_peak;
-		    //if (curr_peak >= nr_peaks ) break;
-			
+		
             iso_map_[mz_in_hash].peaks_.push_back(curr_peak);
-           	//iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
+           	iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
 		   
 		   // check distance to next peak
 		   	if (curr_peak >= nr_peaks ) break;
@@ -221,12 +219,12 @@ void SweepExtender::sweep_()
 				dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
 			 
 			} // end while(...)
-		
+				
         } // end of if (charge > 0)
     
 		current_charge = 0; // reset charge
 	} // end for (...)
-
+		
 	curr_region_ = iso_map_.begin();
 	std::cout << iso_map_.size() << " isotopic clusters were found ! " << std::endl;
 		

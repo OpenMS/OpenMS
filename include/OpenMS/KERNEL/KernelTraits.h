@@ -85,7 +85,7 @@ namespace OpenMS
 		/// Type for signal to noise
 		typedef RealType SignalToNoiseType;
 		/// Type for a charge (signed)
-		typedef	SignedInt ChargeType;
+		typedef SignedInt ChargeType;
 		//@}
 
 	 private:

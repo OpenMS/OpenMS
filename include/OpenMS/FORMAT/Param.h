@@ -43,7 +43,7 @@ namespace OpenMS
 	
 	This class provides a means to associate string names to int/double/string values.
 	
-	It is similar to a map<string,DataValue> but it also supports storing hierarchical 
+	It is similar to a map<string,DataValue> but it also supports hierarchical 
 	data and to save/load the contained data as XML.
 	
 	Hierachy levels are separated from each other and from the name by colons.
