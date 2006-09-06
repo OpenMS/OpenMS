@@ -95,7 +95,7 @@ namespace OpenMS
 	/**
 		 @brief  Two-dimensional map of features, with meta information about experimental settings.
 	*/
-	typedef DFeatureMap<2,Feature> FeatureMap;
+	typedef DFeatureMap<2, Feature> FeatureMap;
 	//@}
 
 }

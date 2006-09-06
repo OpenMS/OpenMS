@@ -25,36 +25,43 @@
 # --------------------------------------------------------------------------
 
 
-include ../../config_defs.mak
 DIRECTORY=TRANSFORMATIONS/FEATUREFINDER
 
 THISLIB=$(LIBNAME)
 
+include ../../config_defs.mak
 
 CPP_SOURCES=\
-	FeaFiModule.C\
 	BaseExtender.C\
-	BaseSeeder.C\
-	BaseModelFitter.C\
 	BaseModel.C\
-	ModelDescription.C\
-	SimpleExtender.C\
-	SimpleSeeder.C\
-	SimpleModelFitter.C\
-	GaussModel.C\
-	ProductModel.C\
-	FeatureFinder.C\
+	BaseModelFitter.C\
 	BaseQuality.C\
-	Correlation.C\
-	IsotopeModel.C\
-	LmaGaussModel.C\
-	EmgModel.C\
-	LogNormalModel.C\
-	ExtendedModelFitter.C\
+	BaseSeeder.C\
 	BiGaussModel.C\
-	FeaFiTraits.C\
+	Correlation.C\
 	DummySeeder.C\
+	FeaFiModule.C\
+	FeaFiTraits.C\
+	FeatureFinder.C\
+	GaussModel.C\
+	IsotopeModel.C\
+	ModelDescription.C\
+	ProductModel.C\
+	SimpleExtender.C\
+	SimpleModelFitter.C\
+	SimpleSeeder.C\
 	SweepExtender.C
+
+ifeq ($(GSL_SUPPORT),true)
+ GSL_SOURCES=\
+	EmgModel.C\
+	ExtendedModelFitter.C\
+	LmaGaussModel.C\
+	LogNormalModel.C
+
+endif
+
+ADD_CPP_SOURCES = ${GSL_SOURCES}
 
 include ../../common.mak
 -include .Dependencies

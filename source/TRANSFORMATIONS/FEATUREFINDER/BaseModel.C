@@ -28,16 +28,23 @@
 #include <iostream>
 
 // all from BaseModel derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
+
+#ifdef GSL_DEF
+#  include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+#  include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
+#  include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
+#endif
+
+
+
 
 namespace OpenMS
 {
+
 	template<>
 	void BaseModel<2>::registerChildren(){
 		Factory< BaseModel<2> >::registerProduct(ProductModel<2>::getName(), &ProductModel<2>::create);
@@ -45,12 +52,17 @@ namespace OpenMS
 
 	template<>
 	void BaseModel<1>::registerChildren(){
+
 		Factory< BaseModel<1> >::registerProduct(GaussModel::getName(), &GaussModel::create);
 		Factory< BaseModel<1> >::registerProduct(BiGaussModel::getName(), &BiGaussModel::create);
 		Factory< BaseModel<1> >::registerProduct(IsotopeModel::getName(), &IsotopeModel::create);
+#ifdef GSL_DEF
 		Factory< BaseModel<1> >::registerProduct(EmgModel::getName(), &EmgModel::create);
 		Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getName(), &LmaGaussModel::create);
 		Factory< BaseModel<1> >::registerProduct(LogNormalModel::getName(), &LogNormalModel::create);
+#endif
+
+		return;
 	}
 
-}
+} // namespace OpenMS

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Clemens Groepl  $
 // --------------------------------------------------------------------------
 //
 
@@ -41,22 +41,38 @@ START_TEST(StandardTypes, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-
-// RawData1D* drd1d_ptr = 0;
-// CHECK(RawData1D())
-// 	drd1d_ptr = new RawData1D;
-// 	TEST_NOT_EQUAL(drd1d_ptr, 0)
-// RESULT
-
-// CHECK(~RawData1D())
-// 	delete drd1d_ptr;
-// RESULT
-
 CHECK(StandardTypes)
 
-
+	STATUS("Note: Here we only check whether the typedefs (as such) are fine.")
 
 RESULT
+
+// super duper macro
+
+#define CHECK_A_TYPEDEF(Type)												\
+{																										\
+	Type* ptr = 0;																		\
+  CHECK(Type())																			\
+    ptr = new Type;																	\
+    TEST_NOT_EQUAL(ptr, 0)													\
+  RESULT																						\
+  CHECK(~Type())																		\
+    delete ptr;																			\
+  RESULT																						\
+}
+
+
+CHECK_A_TYPEDEF(RawDataPoint)
+CHECK_A_TYPEDEF(RawDataPoint2D)
+CHECK_A_TYPEDEF(RawSpectrum)
+CHECK_A_TYPEDEF(RawMap)
+CHECK_A_TYPEDEF(Peak)
+CHECK_A_TYPEDEF(Peak2D)
+CHECK_A_TYPEDEF(PeakSpectrum)
+CHECK_A_TYPEDEF(PeakMap)
+CHECK_A_TYPEDEF(Feature)
+CHECK_A_TYPEDEF(FeatureMap)
+
 
 
 /////////////////////////////////////////////////////////////

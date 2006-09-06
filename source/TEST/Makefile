@@ -288,7 +288,12 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_TRANSFORMATIONS = \
 		ContinuousWaveletTransformNumIntegration_test\
-		OptimizePick_test
+		OptimizePick_test\
+		EmgModel_test\
+		LmaGaussModel_test\
+		LogNormalModel_test\
+		ExtendedModelFitter_test\
+
 endif
 
 EXECUTABLES_TRANSFORMATIONS = \
@@ -296,10 +301,6 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	BaseModel_test\
-	EmgModel_test\
-	LmaGaussModel_test\
-	LogNormalModel_test\
-	ExtendedModelFitter_test\
 	GaussModel_test\
 	BiGaussModel_test\
 	IsotopeModel_test\
