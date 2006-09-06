@@ -78,16 +78,22 @@ lib_clean:
 
 
 libOpenMS.objects:
+	@$(ECHO)
 	@$(ECHO) "Collecting object files for libraries..."
 	@-rm -f libOpenMS.objects
 	@$(MAKE) subdirs SUBDIRS="$(DIRS)" TARGET=collectlib LIBNAME=$(LIBNAME)
 
 libOpenMS_GUI.objects:
+	@$(ECHO)
 	@$(ECHO) "Collecting object files for libraries..."
 	@-rm -f libOpenMS_GUI.objects
 	@$(MAKE) subdirs SUBDIRS="$(GUI_DIRS)" TARGET=collectlib LIBNAME=$(GUILIBNAME)
 
 collect:	$(OBJECT_LISTS)
+
+recollect:
+	rm -f $(OBJECT_LISTS)
+	@$(MAKE) collect
 
 libOpenMS.@SHARED_LIB_SUFFIX@:	collect
 	@$(ECHO)
