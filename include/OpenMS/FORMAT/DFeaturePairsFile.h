@@ -29,12 +29,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/FORMAT/HANDLERS/DFeaturePairsHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
-#include <qxml.h>
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <iostream>  
 #include <fstream>   
@@ -59,28 +60,64 @@ namespace OpenMS
        /** @name Constructors and Destructor */
       //@{
       ///Default constructor
-      DFeaturePairsFile() { initParser_(); }
+      DFeaturePairsFile() 
+      {
+      	
+      }
        ///Destructor
-      virtual ~DFeaturePairsFile() { delete parser_; }
+      virtual ~DFeaturePairsFile() 
+      {
+      	
+      }
       //@}
 
       /** @name Accessors */
       //@{
       /// loads the file with name @p filename into @p pairs.
       template<Size D> 
-      void load(String filename, DFeaturePairVector<D>& pairs) throw (Exception::FileNotFound)
+      void load(String filename, DFeaturePairVector<D>& pairs) throw (Exception::FileNotFound, Exception::ParseError)
       {
-				Internal::DFeaturePairsHandler<D> handler(pairs);
-				parser_->setContentHandler(&handler);
-				parser_->setErrorHandler(&handler);
+      	//try to open file
+				if (!TextFile::exists(filename))
+		    {
+		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		    }
+				
+				// initialize parser
+				try 
+				{
+					xercesc::XMLPlatformUtils::Initialize();
+				}
+				catch (const xercesc::XMLException& toCatch) 
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+			  }
 
-				QFile qfile(filename.c_str());
-				if (!qfile.exists())
-				{	
-				  throw new Exception::FileNotFound(__FILE__,__LINE__,"DFeaturePairsFile::load()",filename);
-				} 	
-				QXmlInputSource source(qfile);
-				parser_->parse(source);
+				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+				Internal::DFeaturePairsHandler<D> handler(pairs);
+				parser->setContentHandler(&handler);
+				parser->setErrorHandler(&handler);
+				
+				xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+				try 
+        {
+        	parser->parse(source);
+        	delete(parser);
+        }
+        catch (const xercesc::XMLException& toCatch) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+        }
+        catch (const xercesc::SAXParseException& toCatch) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+        }
+        catch (...) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+        }
       }
 
       /// stores the pair vector @p pairs in file with name @p filename. 
@@ -102,20 +139,7 @@ namespace OpenMS
       }
                
       //@}
-      
-     protected:
-      /// parser initialization
-			inline void initParser_()
-			{
-				srand(static_cast<unsigned>(time(0)));
-				parser_ = new QXmlSimpleReader();
-				parser_->setFeature("http://xml.org/sax/features/namespaces",false);
-				parser_->setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-			}
-			
-			/// the parser
-			QXmlSimpleReader* parser_;
-			
+
 	};
 
 } // namespace OpenMS

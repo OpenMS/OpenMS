@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
+#include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
 {
@@ -61,14 +62,14 @@ namespace OpenMS
       virtual ~MzDataExpSettHandler();
       //@}
 
-      /// This function is called for each closing tag in the XML file.
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname );
-      /// This function is called for each opening XML tag in the file.
-      virtual bool startElement(const QString & uri, const QString & local_name,
-																const QString & qname, const QXmlAttributes & attributes );
-		  /// This function is called for each opening XML tag in the file.
-      virtual bool characters( const QString & chars );
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
 
   		///Writes the contents to a stream
 			void writeTo(std::ostream& os);
@@ -131,7 +132,7 @@ namespace OpenMS
 			&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
 			@p name and sometimes @p value are defined in the MzData ontology.
 		*/
-		void cvParam_(QString name, QString value);
+		void cvParam_(const XMLCh* name, const XMLCh* value);
 
 		/** @brief read attributes of MzData's userParamType
 
@@ -139,7 +140,7 @@ namespace OpenMS
 			&lt;userParam name="@p name" value="@p value"/&gt;
 			@p name and @p value are stored as MetaValues
 		*/
-		void userParam_(QString name, QString value);
+		void userParam_(const XMLCh* name, const XMLCh* value);
   };
 
 	} // namespace Internal

@@ -50,11 +50,11 @@ namespace OpenMS
 			/// Destructor
       virtual ~ParamXMLHandler();
 
-      virtual bool startElement(const QString & namespaceURI, const QString & localName, 
-																const QString & qName, const QXmlAttributes & atts );
-
-      virtual bool endElement( const QString & namespaceURI, const QString & localName,
-															 const QString & qName );
+			// Docu in base class
+      virtual void endElement( const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     protected :
       std::vector<std::string> nodes_;

@@ -31,11 +31,12 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeatureMapHandler.h>
 
-#include <qxml.h>
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <OpenMS/FORMAT/TextFile.h>
 
-#include <iostream>
 #include <fstream>
-#include <sstream>
 
 namespace OpenMS
 {
@@ -54,9 +55,15 @@ namespace OpenMS
 		//@{
 
 		///Default constructor
-		DFeatureMapFile() { initParser_(); }
+		DFeatureMapFile() 
+		{
+		
+		}
 		///Destructor
-		virtual ~DFeatureMapFile() { delete parser_; }
+		virtual ~DFeatureMapFile() 
+		{
+		
+		}
 		//@}
 
 		/** @name Accessors */
@@ -67,21 +74,52 @@ namespace OpenMS
 			
 		
 		/// loads the file with name @p filename into @p map.
-		void load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound)
-		{
-			feature_map.clear();
-
-			Internal::DFeatureMapHandler<2> handler(feature_map);
-			parser_->setContentHandler(&handler);
-			parser_->setErrorHandler(&handler);
-		
-			QFile qfile(filename.c_str());
-			if (!qfile.exists())
+		void load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
+    {
+    	//try to open file
+			if (!TextFile::exists(filename))
+	    {
+	      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+	    }
+			
+			// initialize parser
+			try 
 			{
-				throw Exception::FileNotFound(__FILE__, __LINE__, "DFeatureMapFile::load",filename);
+				xercesc::XMLPlatformUtils::Initialize();
 			}
-			QXmlInputSource source( qfile );
-			parser_->parse(source);
+			catch (const xercesc::XMLException& toCatch) 
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+		  }
+
+			xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+			parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+			parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+			
+			feature_map.clear();
+			Internal::DFeatureMapHandler<2> handler(feature_map);
+			
+			parser->setContentHandler(&handler);
+			parser->setErrorHandler(&handler);
+			
+			xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+			try 
+      {
+      	parser->parse(source);
+      	delete(parser);
+      }
+      catch (const xercesc::XMLException& toCatch) 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      }
+      catch (const xercesc::SAXParseException& toCatch) 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      }
+      catch (...) 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+      }
 		}
       
 		/// stores the map @p map in file with name @p filename. General case is not implemented!
@@ -109,18 +147,6 @@ namespace OpenMS
 		}
                 
 		//@}
-      
-	 protected:
-		// parser initialization
-		inline void initParser_()
-		{
-			srand(static_cast<unsigned>(time(0)));
-			parser_ = new QXmlSimpleReader();
-			parser_->setFeature("http://xml.org/sax/features/namespaces",false);
-			parser_->setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-		}
-		// the parser
-		QXmlSimpleReader* parser_;
 
 	};
 

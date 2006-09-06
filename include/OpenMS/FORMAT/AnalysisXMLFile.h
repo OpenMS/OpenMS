@@ -32,10 +32,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 
+
+
 #include <fstream>
-
-#include <qxml.h>
-
 #include <vector>
 
 namespace OpenMS 
@@ -70,8 +69,6 @@ namespace OpenMS
       					std::vector<float>* precursor_retention_times,
       					std::vector<float>* precursor_mz_values,
       					ContactPerson* contact_person)  	const throw (Exception::FileNotFound, 
-  							 																							 Exception::FileNotReadable, 
-  							 																							 Exception::FileEmpty,
   							 																							 Exception::ParseError);
       					 
 			/**
@@ -90,8 +87,6 @@ namespace OpenMS
       					ContactPerson* contact_person,
       					std::map<String, double>* predicted_retention_times,
       					DoubleReal* predicted_sigma)  	const throw (Exception::FileNotFound, 
-  							 																						 Exception::FileNotReadable, 
-  							 																						 Exception::FileEmpty,
   							 																						 Exception::ParseError);
       					 
 			/**

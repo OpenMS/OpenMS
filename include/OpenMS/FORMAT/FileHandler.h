@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+
 #include <OpenMS/FORMAT/ANDIFile.h>
 
 namespace OpenMS

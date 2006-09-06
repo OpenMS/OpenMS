@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTEREXPERIMENT_H
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTEREXPERIMENT_H
 
@@ -365,10 +365,10 @@ namespace OpenMS
     ClusterRun* getClusterRun(uint pos) throw(Exception::IndexOverflow);
 
     /** @brief save to xml <br> */
-    void save(String);
+    void save(const String& filename);
 
     /** @brief load from xml <br> */
-    void load(String);
+    void load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
 
     /** @name write accessors for dataset <br> */
     //@{

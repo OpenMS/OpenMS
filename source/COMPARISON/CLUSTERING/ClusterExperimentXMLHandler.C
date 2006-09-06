@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperimentXMLHandler.h>
 
 #include <iostream>
@@ -35,12 +35,24 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 
+#include <xercesc/sax2/Attributes.hpp>
+
+using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
 {
   ClusterExperimentXMLHandler::ClusterExperimentXMLHandler(ClusterExperiment& crun)
-    : XMLHandler(),crun_(crun), forwardconfigurablep_(0),isclusterexperiment_(0),tmpclusterp_(0),ismemberid_(0),iscomment_(0),clid_(-1),cl_min_mass_(0),cl_max_mass_(0)
+    : XMLHandler(),
+    	crun_(crun),
+    	forwardconfigurablep_(0),
+    	isclusterexperiment_(0),
+    	tmpclusterp_(0),
+    	ismemberid_(0),
+    	iscomment_(0),
+    	clid_(-1),
+    	cl_min_mass_(0),
+    	cl_max_mass_(0)
   {
 		file_ = __FILE__;
   }
@@ -49,45 +61,50 @@ namespace OpenMS
   {
   }
 
-  bool ClusterExperimentXMLHandler::startElement(const QString & /*uri*/, const QString & /*local_name*/, 
-																const QString & qname, const QXmlAttributes & attributes )
+  void ClusterExperimentXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
+  	String qname_string = XMLString::transcode(qname);
+  	
     // if a FactoryProduct is found its parameters are set here
     if ( forwardconfigurablep_)
     {
-      if (qname == "param")
+      if (qname_string =="param")
       {
-        const char* name = attributes.value("name").ascii();
-        double value = asDouble_(attributes.value("value"));
         //should not happen since attributes in param are required
         //but in case validity is not checked (it is not)
-        if (name != 0)
+        if (attributes.getIndex(XMLString::transcode("name"))!=-1)
         {
-          forwardconfigurablep_->getParam().setValue(name,value);
+          forwardconfigurablep_->getParam().setValue(XMLString::transcode(attributes.getValue(XMLString::transcode("name"))),asDouble_(XMLString::transcode(attributes.getValue(XMLString::transcode("value")))));
         }
       }
     }
     //simple way of checking if it is a ClusterExperiment xml file
     //real error checking should (hopefully) not be needed since the files are only written by
     //ClusterExperiment.save()
-    else if (qname == "ClusterExperiment" )
+    else if (qname_string =="ClusterExperiment" )
     {
       isclusterexperiment_ = 1;
     }
-    else if (!isclusterexperiment_) return false;
-    //top elements
-    else if (qname == "Data" )
+    else if (!isclusterexperiment_)
     {
-      const char* name = attributes.value("Name").ascii();
+			const xercesc::Locator* loc;
+			setDocumentLocator(loc);
+			String message = String("Invalid file or not a ClusterExperiment file!");
+			error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+    }
+    //top elements
+    else if (qname_string =="Data" )
+    {
+      const char* name = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("Name")));
       if ( name != 0 )
       {
         crun_.datasetname_ = String(name);
       }
     }
-    else if (qname == "Info")
+    else if (qname_string =="Info")
     {
-      const char* user = attributes.value("User").ascii();
-      const char* date = attributes.value("Date").ascii();
+      const char* user = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("User")));
+      const char* date = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("Date")));
       if ( user != 0 )
       {
         crun_.info_user_ = String(user);
@@ -97,93 +114,102 @@ namespace OpenMS
         crun_.info_date_ = String(date);
       }
     }
-    else if (qname == "Norm")
+    else if (qname_string =="Norm")
     {
-      if ( attributes.value("mean") == "arithmetic" )
+      if ( String(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mean")))) == "arithmetic" )
       {
         crun_.setNorm(arithmetic);
       }
-      else if ( attributes.value("mean") == "none" )
+      else if ( String(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mean")))) == "none" )
       {
         crun_.setNorm(none);
       }
-      else if ( attributes.value("mean") == "geometric" )
+      else if ( String(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mean")))) == "geometric" )
       {
         crun_.setNorm(geometric);
       }
     }
-    else if (qname == "Bins")
+    else if (qname_string =="Bins")
     {
       double size = 0;
       int spread = -1;
-      size = asDouble_(attributes.value("size")); 
-      spread = asUnsignedInt_(attributes.value("spread"));
+      size = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("size")))); 
+      spread = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("spread"))));
       if ( size > 1e-8 )
       {
         crun_.setBinSize(size);
         crun_.setBinSpread(spread);
       }
     }
-    else if (qname == "Comment")
+    else if (qname_string =="Comment")
     {
       iscomment_ = 1;
     }
-    else if (qname == "ClusterRun")
+    else if (qname_string =="ClusterRun")
     {
       crun_.createrun();
-      didrun_ = asSignedInt_(attributes.value("finished"));
+      didrun_ = asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("finished"))));
     }
-    else if (qname == "Preprocessing")
+    else if (qname_string =="Preprocessing")
     {
       //noop
       //FilterFunc is a child of Preprocessing for cosmetic reasons
     }
-    else if (qname == "FilterFunc" )
+    else if (qname_string =="FilterFunc" )
     {
-      const char* name = attributes.value("name").ascii();
+      const char* name = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
       if (name != 0 )
       {
         forwardconfigurablep_ = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->create(name));
         if (!forwardconfigurablep_)
         {
-          throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"unknown FactoryProduct",name);
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("unknown FactoryProduct \"") + name + "\"";
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
         }
       }
     }
-    else if (qname == "SimFunc")
+    else if (qname_string =="SimFunc")
     {
-      const char* name = attributes.value("name").ascii();
+      const char* name = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
       if (name != 0)
       {
         forwardconfigurablep_ = dynamic_cast<CompareFunctor*>(ClusterFactory::instance()->create(name));
         if (!forwardconfigurablep_)
         {
-          throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"unknown FactoryProduct",name);
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("unknown FactoryProduct \"") + name + "\"";
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
       }
     }
-    else if (qname == "ClustFunc" )
+    else if (qname_string =="ClustFunc" )
     {
-      const char* name = attributes.value("name").ascii();
+      const char* name = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
       if (name != 0 )
       {
         forwardconfigurablep_ = dynamic_cast<ClusterFunctor*>(ClusterFactory::instance()->create(name));
         if (!forwardconfigurablep_)
         {
-          throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"unknown FactoryProduct",name);
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("unknown FactoryProduct \"") + name + "\"";
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
         }
       }
     }
-    else if (qname == "Clustering")
+    else if (qname_string =="Clustering")
     {
       //noop, just for cosmetical purposes
     }
-    else if (qname == "Cluster")
+    else if (qname_string =="Cluster")
     {
-      for ( int i = 0 ; i < attributes.length(); ++i )
+      for ( UnsignedInt i = 0 ; i < attributes.getLength(); ++i )
       {
-        QString attributesValue =  attributes.value(i) ;
-        QString attributesName = attributes.qName(i);
+        String attributesValue =  xercesc::XMLString::transcode(attributes.getValue(i)) ;
+        String attributesName = xercesc::XMLString::transcode(attributes.getQName(i));
         if( attributesName == "id" )
         {
           clid_ = asSignedInt_(attributesValue);
@@ -198,67 +224,77 @@ namespace OpenMS
         }    
       }
     }
-    else if (qname == "member_id" )
+    else if (qname_string =="member_id" )
     {
       ismemberid_ = 1;  
     }
-    else if (qname == "Evaluation")
+    else if (qname_string =="Evaluation")
     {
       //noop, just for cosmetical purposes
     }
-    else if (qname == "Analysis")
+    else if (qname_string =="Analysis")
     {
     }
-    else if (qname == "AnaFunc")
+    else if (qname_string =="AnaFunc")
     {
-      const char* name = attributes.value("name").ascii();
+      const char* name = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
       if (name != 0 )
       {
         forwardconfigurablep_ = dynamic_cast<AnalysisFunctor*>(ClusterFactory::instance()->create(name));
         if (!forwardconfigurablep_)
         {
-          throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"unknown FactoryProduct",name);
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("unknown FactoryProduct \"") + name + "\"";
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
         }
       }
     }
-    else if (qname == "Results")
+    else if (qname_string =="Results")
     {
     }
-    else if ( qname == "Result")
+    else if ( qname_string =="Result")
     {
-      const char* rString = attributes.value("string").ascii();
-      double rdouble = asDouble_(attributes.value("double"));
+      const char* rString = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("string")));
+      double rdouble = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("double"))));
 			if ( rString != 0 )
       {
         crun_.runps_[crun_.currentrun_]->analysis_queue_.back().result_.insert(make_pair(rString,rdouble));
       }
     }
-    else if ( qname == "Reference" )
+    else if ( qname_string =="Reference" )
     {
-      uint clusterrun = asUnsignedInt_(attributes.value("ClusterRunNr"));
-      uint ananr = asUnsignedInt_(attributes.value("AnalysisFunctorNr")); 
-      uint reference = asUnsignedInt_(attributes.value("references"));
+      uint clusterrun = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("ClusterRunNr"))));
+      uint ananr = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("AnalysisFunctorNr")))); 
+      uint reference = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("references"))));
       if ( clusterrun >= crun_.runps_.size() || crun_.runps_[clusterrun]->size() <= ananr || reference >= crun_.runps_.size() )
       {
-        cerr << "AnalysisFunctorReferences inconsistent, ignored \n";
-        return false;
+				const xercesc::Locator* loc;
+				setDocumentLocator(loc);
+				String message = String("AnalysisFunctorReferences inconsistent!");
+				error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
       }
       (*crun_.runps_[clusterrun])[ananr].anafuncp_->setClusterRun(crun_.runps_[reference]);
     }
-    
-		return true;
   }
 
-  bool ClusterExperimentXMLHandler::endElement
-	(const QString & /*uri*/, const QString & /*local_name*/, const QString & qname )
+  void ClusterExperimentXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-    if (qname == "ClusterExperiment" )
+		String qname_string = XMLString::transcode(qname);
+		
+    if (qname_string =="ClusterExperiment" )
     {
       isclusterexperiment_ = 0;
     }
-    else if (!isclusterexperiment_) return false;
+    else if (!isclusterexperiment_)
+    {
+			const xercesc::Locator* loc;
+			setDocumentLocator(loc);
+			String message = String("Invalid file or not a ClusterExperiment file!");
+			error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+    }
     //top elements
-    else if (qname == "FilterFunc" )
+    else if (qname_string =="FilterFunc" )
     {
       if ( forwardconfigurablep_)
       {
@@ -269,12 +305,12 @@ namespace OpenMS
       }
     }
     // todo: why is it just called once? ( xerces-2.6 )
-    else if (qname == "ClusterRun")
+    else if (qname_string =="ClusterRun")
     {
       (*crun_.runps_.rbegin())->didrun_ = didrun_;
       didrun_ = 0;
     }
-    else if (qname == "SimFunc")
+    else if (qname_string =="SimFunc")
     {
       if (forwardconfigurablep_)
       {
@@ -283,7 +319,7 @@ namespace OpenMS
         forwardconfigurablep_ = 0;
       }
     }
-    else if (qname == "ClustFunc" )
+    else if (qname_string =="ClustFunc" )
     {
       if ( forwardconfigurablep_)
       {
@@ -293,11 +329,11 @@ namespace OpenMS
         forwardconfigurablep_ = 0;
       }
     }
-    else if (qname == "Clustering")
+    else if (qname_string =="Clustering")
     {
       //noop, just for cosmetical purposes
     }
-    else if (qname == "Cluster")
+    else if (qname_string =="Cluster")
     {
       //todo I need a generalized ClusterNode
       //or maybe i need to save the structure in the ClusterNodes
@@ -311,11 +347,11 @@ namespace OpenMS
       cl_min_mass_ = 0;
       cl_max_mass_ = 0;
     }
-    else if (qname == "member_id" )
+    else if (qname_string =="member_id" )
     {
       ismemberid_ = 0;
     }
-    else if (qname == "AnaFunc")
+    else if (qname_string =="AnaFunc")
     {
       if ( forwardconfigurablep_)
       {
@@ -325,30 +361,26 @@ namespace OpenMS
         forwardconfigurablep_ = 0;
       }
     }
-    
-		return true;
   }
 
-  bool ClusterExperimentXMLHandler::characters(const QString & chars )
+  void ClusterExperimentXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
     if (ismemberid_ )
     {
       if (tmpclusterp_)
       {
-        tmpclusterp_ = new ClusterNode(tmpclusterp_, new ClusterNode(asSignedInt_(chars)));
+        tmpclusterp_ = new ClusterNode(tmpclusterp_, new ClusterNode(asSignedInt_(XMLString::transcode(chars))));
       }
       else 
       {
-        tmpclusterp_ = new ClusterNode(asSignedInt_(chars));
+        tmpclusterp_ = new ClusterNode(asSignedInt_(XMLString::transcode(chars)));
       }
     }
     else if (iscomment_)
     {
-      crun_.info_comment_ = chars.ascii();
+      crun_.info_comment_ = XMLString::transcode(chars);
       iscomment_ = 0;
     }
-    
-		return true;
   }
 
 }

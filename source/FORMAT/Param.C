@@ -32,7 +32,11 @@
 using namespace std;
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
-#include <qxml.h>
+#include <OpenMS/FORMAT/TextFile.h>
+
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 namespace OpenMS
 {
@@ -318,24 +322,49 @@ namespace OpenMS
     os.close();
 	}
 	
-	void Param::load(const string& filename) throw (FileNotFound)
+	void Param::load(const string& filename) throw (FileNotFound,ParseError)
 	{
-		QFile file(filename.c_str());
-		if (!file.exists())
-		{
-			 throw FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,filename);
-		}
+   	//try to open file
+		if (!TextFile::exists(filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
 		
-		QXmlSimpleReader* parser = new QXmlSimpleReader();
-		parser->setFeature("http://xml.org/sax/features/namespaces",false);
-		parser->setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+		// initialize parser
+		try 
+		{
+			xercesc::XMLPlatformUtils::Initialize();
+		}
+		catch (const xercesc::XMLException& toCatch) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	  }
+
+		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 		Internal::ParamXMLHandler handler(values_);
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
-		QXmlInputSource source( file );
-		parser->parse(source); 
-		delete parser;
+		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		try 
+    {
+    	parser->parse(source);
+    	delete(parser);
+    }
+    catch (const xercesc::XMLException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (const xercesc::SAXParseException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (...) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+    }
 	}
 
 	void Param::parseCommandLine(const int argc , char**argv, const string& prefix)

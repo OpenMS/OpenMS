@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
 #include <sstream>
@@ -33,15 +33,16 @@
 
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
-
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
-
 #include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
-
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperimentXMLHandler.h>
 
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 
 using namespace std;
@@ -115,7 +116,7 @@ namespace OpenMS
     delete adapterp_;
   }
 
-  void ClusterExperiment::save(String file)
+  void ClusterExperiment::save(const String& file)
   {
     ofstream document(file.c_str());
     int ind = 0;
@@ -197,19 +198,54 @@ namespace OpenMS
     currentrun_ = -1;
   }
  
-  void ClusterExperiment::load(String file) 
+  void ClusterExperiment::load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError)
   {
+  	//init
     clear_();
-	  QXmlSimpleReader* parser_ = new QXmlSimpleReader();
-		parser_->setFeature("http://xml.org/sax/features/namespaces",false);
-		parser_->setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+
+  	//try to open file
+		if (!TextFile::exists(filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+		
+		// initialize parser
+		try 
+		{
+			xercesc::XMLPlatformUtils::Initialize();
+		}
+		catch (const xercesc::XMLException& toCatch) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	  }
+
+		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+		
 		ClusterExperimentXMLHandler handler(*this);
-    parser_->setContentHandler(&handler);
-    parser_->setErrorHandler(&handler);
-		QFile qfile(file.c_str());
-		QXmlInputSource source( qfile );
-		parser_->parse(source); 
-    delete parser_;
+		
+		parser->setContentHandler(&handler);
+		parser->setErrorHandler(&handler);
+		
+		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		try 
+    {
+    	parser->parse(source);
+    	delete(parser);
+    }
+    catch (const xercesc::XMLException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (const xercesc::SAXParseException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (...) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+    }
   }
 
   const DataSetInfo* ClusterExperiment::getDataSetInfo() const

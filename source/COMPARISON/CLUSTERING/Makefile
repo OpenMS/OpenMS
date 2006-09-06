@@ -35,27 +35,25 @@ include ../../config_defs.mak
 #conditional compiles
 ifeq ($(ENABLE_GUI),true)
 	ifeq ($(GSL_SUPPORT),true)
-
-  DB_SOURCES=\
-  	ClusterIdentificator.C\
-	  Cluster.C\
- 		BinnedRep.C \
-  	ClusterFactory.C\
-  	ClusterExperiment.C\
-  	ClusterRun.C\
-  	Analysis.C\
-  	ClusterRunAnalysisLess.C\
-		AnalysisFunctor.C\
-  	ClusterSpectrum.C\
-		ClusterCompareFunctor.C\
-  	ClusterFunctor.C\
-  	LinkageCluster.C\
-  	DistanceAnalyzer.C\
-  	ClusterNode.C\
-  	helper.C\
-  	SpectrumGenerator.C\
-		ClusterExperimentXMLHandler.C\
-
+	  DB_SOURCES=\
+	  	ClusterIdentificator.C\
+		  Cluster.C\
+	 		BinnedRep.C \
+	  	ClusterFactory.C\
+	  	ClusterExperiment.C\
+	  	ClusterRun.C\
+	  	Analysis.C\
+	  	ClusterRunAnalysisLess.C\
+			AnalysisFunctor.C\
+	  	ClusterSpectrum.C\
+			ClusterCompareFunctor.C\
+	  	ClusterFunctor.C\
+	  	LinkageCluster.C\
+	  	DistanceAnalyzer.C\
+	  	ClusterNode.C\
+	  	helper.C\
+	  	SpectrumGenerator.C\
+			ClusterExperimentXMLHandler.C
 	endif
 endif
 

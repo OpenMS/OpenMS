@@ -88,7 +88,7 @@ CHECK(template<class PeakType> bool loadExperiment(const String& filename, MSExp
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
 	TEST_EQUAL(tmp.loadExperiment("data/DTAFile_test.dta",exp), true)
 	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_test_1.mzData",exp), true)	
-	TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
 #ifdef ANDIMS_DEF
   TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), true)
 #else
@@ -104,7 +104,7 @@ CHECK(bool isSupported(Type type))
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA2D));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZDATA));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
+  TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATURE));
 #ifdef ANDIMS_DEF
   TEST_EQUAL(true, tmp.isSupported(FileHandler::ANDIMS));

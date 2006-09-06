@@ -77,7 +77,6 @@ AC_ARG_ENABLE(fftw-longdbl,    [  --disable-fftw-longdbl  disable support for lo
 AC_ARG_ENABLE(libsvm,          [  --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)])
 AC_ARG_WITH(libsvm-incl,       [  --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"])
 AC_ARG_WITH(libsvm-libs,       [  --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"])
-AC_ARG_ENABLE(xerces,          [  --disable-xerces        disable the use of libXERCES (needed for parsing XML files)])
 AC_ARG_WITH(xerces-incl,       [  --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"])
 AC_ARG_WITH(xerces-libs,       [  --with-xerces-libs=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"])
 
@@ -375,12 +374,8 @@ else
 fi
 
 # support for XERCES
-if test "$with_xerces" = "no" -o "$enable_xerces" = "no"; then
-  XERCES_SUPPORT=false
-else
-  XERCES_SUPPORT=true
-  AC_DEFINE(XERCES_DEF)
-fi
+XERCES_SUPPORT=true
+AC_DEFINE(XERCES_DEF)
 
 if test "$with_xerces_incl" != "" ; then
   XERCES_INCPATH="${with_xerces_incl}"

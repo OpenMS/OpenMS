@@ -29,38 +29,41 @@
 #define OPENMS_FORMAT_HANDLERS_DFEATUREMAPHANDLER_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/FORMAT/Param.h>
 
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <xercesc/util/TransService.hpp>
+
 // STL includes
 #include <iostream>
-#include <valarray>
-#include <string>
+
 
 namespace OpenMS
 {
 	namespace Internal
 	{
 
-	/** @brief XML Handler for a DFeatureMap.
-	 * 
-	 *  This class can be used to save the content of a
-	 *  DFeatureMap into an XML file. The meta information
-	 *  (encapsulated by class ExperimentalSettings) is
-	 *  stored according to the mzData format. The features
-	 *  and their members are stored in a proprietary format
-	 *  inspired by mzData (see funtion writeTo(stream& os)
-	 *  for details.
-	 * 
-	 * */
+	/** 
+		
+		@brief XML Handler for a DFeatureMap.
+	 
+		This class can be used to save the content of a
+		DFeatureMap into an XML file. The meta information
+		(encapsulated by class ExperimentalSettings) is
+		stored according to the mzData format. The features
+		and their members are stored in a proprietary format
+		inspired by mzData (see funtion writeTo(stream& os)
+		for details. 
+	*/
   template <Size D, typename TraitsT = KernelTraits, typename FeatureT = DFeature<D> >
   class DFeatureMapHandler
 		: public SchemaHandler
@@ -101,7 +104,10 @@ namespace OpenMS
       ///
       DFeatureMapHandler(DFeatureMap<D,FeatureType>& map) 
       : SchemaHandler(TAG_NUM,MAP_NUM),
-			 	map_(&map), cmap_(0),	feature_(), exp_sett_(exp_sett_str_, IO_ReadWrite)
+			 	map_(&map), 
+			 	cmap_(0),	
+			 	feature_(), 
+			 	exp_sett_()
   		{
 				file_ = __FILE__;
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
@@ -110,7 +116,10 @@ namespace OpenMS
       ///
       DFeatureMapHandler(const DFeatureMap<D,FeatureType>& map)
       : SchemaHandler(TAG_NUM,MAP_NUM),
-				map_(0), cmap_(&map),	feature_(), exp_sett_(exp_sett_str_, IO_ReadWrite)
+				map_(0), 
+				cmap_(&map),	
+				feature_(), 
+				exp_sett_()
   		{
 				file_ = __FILE__;
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
@@ -120,17 +129,14 @@ namespace OpenMS
       virtual ~DFeatureMapHandler() { }
       //@}
 
-      /// This function is called for each closing tag in the XML file.
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname );
-
-      /// This function is called for each opening XML tag in the file.
-      virtual bool startElement(const QString & uri, const QString & local_name,
-																const QString & qname, const QXmlAttributes & attributes );
-
-			/// This function is called by the parser for each chunk of
-		  /// characters between two tags.
-      virtual bool characters( const QString & chars );
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
 
 			///Writes the contents to a stream
 			void writeTo(std::ostream& os);
@@ -169,9 +175,7 @@ namespace OpenMS
 		DPosition<D>* hull_position_;
 
 		/// stream to collect experimental settings
-		QTextStream exp_sett_;
-		/// string with the xml containing the experimental settings
-		QString exp_sett_str_;
+		std::stringstream exp_sett_;
     //@}
 
  		// both quality and position might consist of several dimensions
@@ -187,16 +191,18 @@ namespace OpenMS
 	//--------------------------------------------------------------------------------
 
   template <Size D, typename TraitsT, typename FeatureT>
-  bool DFeatureMapHandler<D,TraitsT,FeatureT>::endElement( const QString & /*uri*/,
-	const QString & /*local_name*/,	 const QString & qname )
+  void DFeatureMapHandler<D,TraitsT,FeatureT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
-			exp_sett_ << "</" << qname << ">\n";
-			if (qname != enum2str_(TAGMAP,DESCRIPTION))	return true;
+			exp_sett_ << "</" << xercesc::XMLString::transcode(qname) << ">\n";
+			if (String(xercesc::XMLString::transcode(qname)) != enum2str_(TAGMAP,DESCRIPTION))
+			{
+				return;
+			}
 		}
 
-	  int tag = str2enum_(TAGMAP,qname,"closing tag");  // index of current tag
+	  int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
 		is_parser_in_tag_[tag] = false;
 
 		// Do something depending on the tag
@@ -204,17 +210,22 @@ namespace OpenMS
 			case DESCRIPTION:
 				// delegate control to ExperimentalSettings handler
 				{
-					QXmlSimpleReader parser;
-					srand(static_cast<unsigned>(time(0)));
-					parser.setFeature("http://xml.org/sax/features/namespaces",false);
-					parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+					// initialize parser
+					xercesc::XMLPlatformUtils::Initialize();
+					xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+					
 					MzDataExpSettHandler handler( *((ExperimentalSettings*)map_));
-					parser.setContentHandler(&handler);
-					parser.setErrorHandler(&handler);
-					QXmlInputSource source;
-					source.setData(exp_sett_str_);
-					parser.parse(source);
+					handler.resetErrors();
+					parser->setContentHandler(&handler);
+					parser->setErrorHandler(&handler);
+					
+					String tmp(exp_sett_.str().c_str());
+					
+					xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
+	      	parser->parse(source);
+	      	delete(parser);
 				}
 				break;
 			case FEATURE:
@@ -236,75 +247,103 @@ namespace OpenMS
 				delete current_chull_;
 				break;
 		}
-		return true;
   }
 
   template <Size D, typename TraitsT, typename FeatureT>
-  bool DFeatureMapHandler<D,TraitsT,FeatureT>::startElement(
-				const QString & /*uri*/, const QString & /*local_name*/,
-				const QString & qname, const QXmlAttributes & attributes)
+  void DFeatureMapHandler<D,TraitsT,FeatureT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
-			exp_sett_ << '<' << qname;
-			Size n=attributes.count();
+			exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
+			Size n=attributes.getLength();
 			for (Size i=0; i<n; ++i)
-				exp_sett_ << ' ' << attributes.qName(i) << "=\""	<< attributes.value(i) << '\"';
+			{
+				exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
+			}
 			exp_sett_ << '>';
-			return true;
+			return;
 		}
 
-		int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
+		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 
 		// Do something depending on the tag
 		switch(tag) {
-			case DESCRIPTION: exp_sett_ << '<' << qname << '>'; break;
-   		case FEATURE: 	 feature_        = new DFeature<D>(); break;
-			case QUALITY:    current_qcoord_ = asUnsignedInt_(attributes.value("dim")); break;
-			case POSITION:   current_pcoord_ = asUnsignedInt_(attributes.value("dim")); break;
-			case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
-			case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
-			case HPOSITION:  current_hcoord_ = asUnsignedInt_(attributes.value("dim")); break;
+			case DESCRIPTION: 
+				exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
+				break;
+   		case FEATURE: 	 
+   			feature_        = new DFeature<D>();
+   			break;
+			case QUALITY:    
+				current_qcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+				break;
+			case POSITION:   
+				current_pcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+				break;
+			case CONVEXHULL: 
+				current_chull_  = new ConvexHullType(); 
+				break;
+			case HULLPOINT:  
+				hull_position_  = new DPosition<D>(); 
+				break;
+			case HPOSITION:  
+				current_hcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+				break;
 			case FEATMODEL:
 				model_desc_ = new ModelDescription<D>();
 		  	param_ = new Param();
-		  	if (!attributes.value("name").isEmpty())
-		  		model_desc_->setName(attributes.value("name").ascii());
+		  	if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1)
+		  	{
+		  		model_desc_->setName(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))));
+		  	}
 		  	break;
 		  case PARAM:
-		  	if (!attributes.value("name").isEmpty() && !attributes.value("value").isEmpty() )
-		  		param_->setValue(attributes.value("name").ascii(),attributes.value("value").ascii());
+		  	if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1 && attributes.getIndex(xercesc::XMLString::transcode("value"))!=-1 )
+		  		param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))),xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("value"))));
 		  	break;
 		}
-		return true;
 	}
 
 	template <Size D, typename TraitsT, typename FeatureT>
-  bool DFeatureMapHandler<D,TraitsT,FeatureT>::characters( const QString & chars )
+  void DFeatureMapHandler<D,TraitsT,FeatureT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 		{
-			exp_sett_ << chars;
-			return true;
+			exp_sett_ << xercesc::XMLString::transcode(chars);
+			return;
 		}
 
 		// find the tag that the parser is in right now
  		for (Size i=0; i<is_parser_in_tag_.size(); i++)
-			if (is_parser_in_tag_[i]){
-				switch(i) {
-					case FEATINTENSITY: feature_->setIntensity(asDouble_(chars)); break;
-					case POSITION:
-						feature_->getPosition()[current_pcoord_] = asDouble_(chars);
+ 		{
+			if (is_parser_in_tag_[i])
+			{
+				switch(i) 
+				{
+					case FEATINTENSITY: 
+						feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); 
 						break;
-					case QUALITY:       feature_->getQuality(current_qcoord_) = asDouble_(chars); break;
-					case OVERALLQUALITY:  feature_->getOverallQuality() = asDouble_(chars); break;
-					case CHARGE:          feature_->setCharge(asSignedInt_(chars)); break;
-					case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(chars); break;
-					case META:						feature_->setMetaValue(3,chars.ascii()); break;
+					case POSITION:
+						feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
+						break;
+					case QUALITY:       
+						feature_->getQuality(current_qcoord_) = asDouble_(xercesc::XMLString::transcode(chars));
+							break;
+					case OVERALLQUALITY:  
+						feature_->getOverallQuality() = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case CHARGE:          
+						feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars)));
+						break;
+					case HPOSITION:       
+						(*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); 
+						break;
+					case META:						
+						feature_->setMetaValue(3,String(xercesc::XMLString::transcode(chars))); 
+						break;
 				}
 			}
-		return true;
+		}
   }
 
 

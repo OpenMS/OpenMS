@@ -26,9 +26,11 @@
 
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <iostream>
 
@@ -53,33 +55,27 @@ namespace OpenMS
   													 vector<float>* precursor_retention_times,
   													 vector<float>* precursor_mz_values,
   													 ContactPerson* contact_person)
-  	const throw (Exception::FileNotFound, 
-  							 Exception::FileNotReadable, 
-  							 Exception::FileEmpty,
-  							 Exception::ParseError)
+  	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
-		QFileInfo file_info;
-		file_info.setFile(filename.c_str());
-    if (!file_info.exists())
+		if (!TextFile::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
+		
+		// initialize parser
+		try 
+		{
+			xercesc::XMLPlatformUtils::Initialize();
+		}
+		catch (const xercesc::XMLException& toCatch) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	  }
 
-    if (!file_info.isReadable())
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-    if (file_info.size() == 0)
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		QFile file(filename.c_str());
-		QXmlSimpleReader parser;
-		srand(static_cast<unsigned>(time(0)));
-		parser.setFeature("http://xml.org/sax/features/namespaces",false);
-		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		protein_identifications->clear();
 		identifications->clear();
@@ -92,23 +88,28 @@ namespace OpenMS
 															 precursor_retention_times, 
 															 precursor_mz_values,
 															 contact_person);
-		parser.setContentHandler(&handler);
-		parser.setErrorHandler(&handler);
 
-		QXmlInputSource source( file );
-		try
-		{
-			parser.parse(source);
-  	}
-		catch(exception e)
-		{
-			cout << e.what() << endl;
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Parse error");
-		}  
-		catch(...)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Parse error");
-		}  
+		parser->setContentHandler(&handler);
+		parser->setErrorHandler(&handler);
+		
+		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		try 
+    {
+    	parser->parse(source);
+    	delete(parser);
+    }
+    catch (const xercesc::XMLException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (const xercesc::SAXParseException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (...) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+    }
   }
   					 
   void AnalysisXMLFile::load(const String& filename, 
@@ -119,32 +120,27 @@ namespace OpenMS
   													 ContactPerson* contact_person,
       											 std::map<String, double>* predicted_retention_times,
       											 DoubleReal* predicted_sigma)
-  	const throw (Exception::FileNotFound, 
-  							 Exception::FileNotReadable, 
-  							 Exception::FileEmpty,
-  							 Exception::ParseError)
+  	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
-		QFileInfo file_info;
-		file_info.setFile(filename.c_str());
-    if (!file_info.exists())
+		if (!TextFile::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
+		
+		// initialize parser
+		try 
+		{
+			xercesc::XMLPlatformUtils::Initialize();
+		}
+		catch (const xercesc::XMLException& toCatch) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	  }
 
-    if (!file_info.isReadable())
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-    if (file_info.size() == 0)
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		QFile file(filename.c_str());
-		QXmlSimpleReader parser;
-		srand(static_cast<unsigned>(time(0)));
-		parser.setFeature("http://xml.org/sax/features/namespaces",false);
-		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		/// clear information
 		protein_identifications->clear();
@@ -162,23 +158,28 @@ namespace OpenMS
 															 contact_person,
 															 predicted_retention_times,
 															 predicted_sigma);
-		parser.setContentHandler(&handler);
-		parser.setErrorHandler(&handler);
 
-		QXmlInputSource source( file );
-		try
-		{
-			parser.parse(source);
-  	}
-		catch(exception e)
-		{
-			cout << e.what() << endl;
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Parse error");
-		}  
-		catch(...)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Parse error");
-		}  
+		parser->setContentHandler(&handler);
+		parser->setErrorHandler(&handler);
+		
+		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		try 
+    {
+    	parser->parse(source);
+    	delete(parser);
+    }
+    catch (const xercesc::XMLException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (const xercesc::SAXParseException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (...) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+    }
   }
   					 
   void AnalysisXMLFile::store(String filename, 

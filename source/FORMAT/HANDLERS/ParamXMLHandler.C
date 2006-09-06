@@ -28,6 +28,9 @@
 
 #include <iostream>
 
+#include <xercesc/sax2/Attributes.hpp>
+
+using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
@@ -43,68 +46,73 @@ namespace OpenMS
 	ParamXMLHandler::~ParamXMLHandler()
 	{
 	}
-	
-	bool ParamXMLHandler::startElement(const QString & /*uri*/, const QString & /*local_name*/, 
-																const QString & qname, const QXmlAttributes & attributes )
+
+	void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
-		if ("ITEM" == qname)
+		if (String("ITEM") == XMLString::transcode(qname))
 		{
-			QString name, type, value;
-			for(int n = 0 ; n < attributes.length() ; n++ )
+			SignedInt type_index = attributes.getIndex(XMLString::transcode("type"));
+			SignedInt name_index = attributes.getIndex(XMLString::transcode("name"));
+			SignedInt value_index = attributes.getIndex(XMLString::transcode("value"));
+			
+			//check if attributes are present
+			if (type_index==-1 || name_index==-1)
 			{
-			  QString attributesValue = attributes.value(n);
-			  QString attributesName  = attributes.qName(n);
-		
-			  if(attributesName == "name")
-			  {
-			    name = attributesValue;
-				}
-			  if(attributesName == "value")
-			  {
-			    value = attributesValue;
-				}
-			  if(attributesName == "type")
-			  {
-			    type = attributesValue;
-				}
+				const Locator* loc;
+				setDocumentLocator(loc);
+				String message = String("Missing attribure type or name in ITEM in ") + file_;
+				error(SAXParseException(XMLString::transcode(message.c_str()), *loc ));
+			}		
+			
+			//parse value/type
+			String type = XMLString::transcode(attributes.getValue(type_index));
+			String value;
+			if (value_index!=-1)
+			{
+				value = XMLString::transcode(attributes.getValue(value_index));
 			}
+			
+			//cout << "  Type: '" << type << "' Name: '" << XMLString::transcode(attributes.getValue(name_index)) <<"' Value: '" << value << "'"<< endl;
+			
 			if (type == "int")
 			{
-				values_[path_+name.ascii()]=DataValue(asSignedInt_(value.ascii()));
+				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asSignedInt_(value));
 			}
-			if (type == "string")
+			else if (type == "string")
 			{
-				values_[path_+name.ascii()]=DataValue(value.ascii());
+				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(value);
 			}
-			if (type == "float")
+			else if (type == "float")
 			{
-				values_[path_+name.ascii()]=DataValue(asFloat_(value));
+				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asFloat_(value));
+			}
+			else if (type == "double")
+			{
+				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asDouble_(value));
 			}
 		}
 		
-		if ("NODE" == qname)
+		if (String("NODE") == XMLString::transcode(qname))
 		{
-			QString tmp;
-			for(int n = 0 ; n < attributes.length() ; n++ )
+			String tmp;
+			for(UnsignedInt n = 0 ; n < attributes.getLength() ; n++ )
 			{
-			  QString attributesValue = attributes.value(n);
-			  QString attributesName = attributes.qName(n);
+			  String attributesValue = XMLString::transcode(attributes.getValue(n));
+			  String attributesName = XMLString::transcode(attributes.getQName(n));
 		
 			  if( attributesName == "name" )
 			  {
-			    nodes_.push_back(attributesValue.ascii());
+			    nodes_.push_back(attributesValue);
 					tmp += attributesValue + ":";
 				}
 			}
-			path_ += tmp.ascii();
+			path_ += tmp;
 		}
-
-		return true;
 	}
 
-	bool ParamXMLHandler::endElement( const QString & /*uri*/, const QString & /*local_name*/, const QString & qname )
+	void ParamXMLHandler::endElement( const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-		if ("NODE" == qname)
+		if (String("NODE") == XMLString::transcode(qname))
 		{
 			nodes_.pop_back();
 			//renew path
@@ -115,7 +123,6 @@ namespace OpenMS
 			}
 			
 		}		
-		return true;
 	}
 
 

@@ -146,7 +146,7 @@ class TOPPUnlabeledMatcher
     /// determine names of input files
     for ( Size index = 0; index < 2; ++index )
     {
-      string const inputfile_key = string("in") + ('1'+index);
+      String inputfile_key = String("in") + String('1' + index);
       inputfile[index] = param.getValue(inputfile_key);
       writeDebug_(String("Input file: ") + String(index) + ' ' + inputfile_key, 1);
     }

@@ -27,10 +27,12 @@
 #ifndef OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
+#include <iostream>
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
-#include <qxml.h>
+#include <xercesc/sax2/DefaultHandler.hpp>
 
 namespace OpenMS
 {
@@ -39,10 +41,9 @@ namespace OpenMS
 	/**
 		@brief Base class for XML handlers.
 		
-		This class extends the QXmlDefaultHandler by some functionality for the handling of errors.
 	*/
   class XMLHandler
-  	: public QXmlDefaultHandler
+  	: public xercesc::DefaultHandler
   {
     public:
     	/// Default constructor
@@ -51,88 +52,106 @@ namespace OpenMS
       virtual ~XMLHandler();
 
 			/// Fatal error handler. Throws a ParseError exception
-      bool fatalError(const QXmlParseException& exception);
+      void fatalError(const xercesc::SAXParseException& exception);
 			/// Error handler. Currently always returns false, so the parsing stops
-      bool error(const QXmlParseException& exception);
-			/// Warning handler. Stopts parsing depending on abort_on_warning_
-      bool warning(const QXmlParseException& exception);
-
-			/// Parsing method for character data
-		  virtual bool characters( const QString & chars );
-			/// Parsing method for opening tags
-      virtual bool startElement(const QString & uri, const QString & local_name, 
-																const QString & qname, const QXmlAttributes & attributes );
-			/// Parsing method for closing tags
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname ); 
+      void error(const xercesc::SAXParseException& exception);
+			/// Warning handler.
+      void warning(const xercesc::SAXParseException& exception);
 			
-			/// Sets whether warnings are fatal
-			void abortOnWarning(bool do_abort);
-			/// Returns whether warnings are fatal
-			bool abortOnWarning();
+			/// Parsing method for character data
+		  virtual void characters(const XMLCh* const chars, const unsigned int length);
+			/// Parsing method for opening tags
+      virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const xercesc::Attributes& attrs);
+			/// Parsing method for closing tags
+      virtual void endElement( const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname);
 			
 			/// Returns the last error description
-  		QString errorString();
-			
+  		String errorString();
 
   	protected:
 			/// Error message of the last error
-			QString error_message_;
+			String error_message_;
 			
 			/// File name
-			QString file_;
+			String file_;
 			
-			/// If parsing is stopped when a warning is issued
-			bool abort_on_warning_;
-			
-			/// Conversion of a QString to an integer value
-			inline SignedInt asSignedInt_(const QString& in)
+			/// Conversion of a String to an integer value
+			inline SignedInt asSignedInt_(const String& in)
 			{
-				bool ok = true;
-				SignedInt res = in.toInt(&ok);
-				if (!ok)
+				SignedInt res;
+				try
 				{
-					error(QXmlParseException(QString("SignedInt conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
+					res = in.toInt();
+				}
+				catch (Exception::ConversionError)
+				{
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("SignedInt conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				return res;
 			}
-			/// Conversion of a QString to an unsigned integer value
-			inline UnsignedInt asUnsignedInt_(const QString& in)
+			/// Conversion of a String to an unsigned integer value
+			inline UnsignedInt asUnsignedInt_(const String& in)
 			{
-				bool ok = true;
-				UnsignedInt res = in.toUInt(&ok);
-				if (!ok)
+				UnsignedInt res;
+				try
 				{
-					error(QXmlParseException(QString("UnsignedInt conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
+					SignedInt tmp = in.toInt();
+					if (tmp<0)
+					{
+						Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"");
+					}
+					res = UnsignedInt(tmp);
+				}
+				catch (Exception::ConversionError)
+				{
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("UnsignedInt conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				return res;
 			}
-			/// Conversion of a QString to a double value
-	 		inline double asDouble_(const QString& in)
+			/// Conversion of a String to a double value
+	 		inline double asDouble_(const String& in)
 			{
-				bool ok = true;
-				double res = in.toDouble(&ok);
-				if (!ok)
+				double res;
+				try
 				{
-					error(QXmlParseException(QString("Double conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
+					res = in.toDouble();
+				}
+				catch (Exception::ConversionError)
+				{
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("Double conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				return res;
 			}
 	
-			/// Conversion of a QString to a float value
-	 		inline float asFloat_(const QString& in)
+			/// Conversion of a String to a float value
+	 		inline float asFloat_(const String& in)
 			{
-				bool ok = true;
-				double res = in.toFloat(&ok);
-				if (!ok)
+				float res;
+				try
 				{
-					error(QXmlParseException(QString("Float conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
+					res = in.toFloat();
+				}
+				catch (Exception::ConversionError)
+				{
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("Float conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				return res;
 			}
 			
-			/// Conversion of a QString to a bool value
-	 		inline bool asBool_(const QString& in)
+			/// Conversion of a String to a bool value
+	 		inline bool asBool_(const String& in)
 			{
 				if (in == "true" || in == "TRUE" || in == "True" || in == "1") 
 				{
@@ -144,26 +163,51 @@ namespace OpenMS
 				}
 				else 
 				{
-					error(QXmlParseException(QString("Boolean conversion error of \"%1\" parsed by %2 ").arg(in).arg(file_)));
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("Boolean conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				return false;
 			}
 
-			/// Conversion of a QString to a DataTime value
-	 		inline const DateTime asDateTime_(const QString& in)
+			/// Conversion of a String to a DataTime value
+	 		inline DateTime asDateTime_(const String& in)
 			{
+				//std::cout << "IN: " << in << std::endl;
 				DateTime res;
-				if (!in.isEmpty()) try{
-					// xs::DateTime to OpenMS::DateTime
-					QString tmp(in);
-					tmp.replace("T"," ",true);
-					tmp = tmp.left(19);
-					res.set(tmp.ascii());
-				}catch(Exception::ParseError err)
-				{
-					warning(QXmlParseException(QString("Unable to parse DateTime \'%1\'!\n").arg(in)));
+				if (in!="")
+				{ 
+					try
+					{
+						// xs::DateTime to OpenMS::DateTime
+						String tmp(in);
+						tmp.replace('T', ' ');
+						tmp = tmp.substr(0,19);
+						res.set(tmp);
+					}
+					catch(Exception::ParseError err)
+					{
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("DateTime conversion error of \"") + in + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					}
 				}
 				return res;
+			}
+
+			/// Appends the location of the @p exception to the @p message (if available) 
+	 		inline void appendLocation_(const xercesc::SAXParseException& exception, String& message)
+			{
+				if (exception.getLineNumber()!=-1)
+				{
+					message = message + " at line " + String(exception.getLineNumber());
+				}
+				if (exception.getColumnNumber()!=-1)
+				{
+					message = message + " at column " + String(exception.getColumnNumber());
+				}		
 			}
 
 	};

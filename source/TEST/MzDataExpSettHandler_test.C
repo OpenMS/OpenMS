@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -29,7 +29,11 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <sstream>
-#include <qbuffer.h>
+
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+
 
 ///////////////////////////
 
@@ -38,23 +42,24 @@ START_TEST(MzDataExpSettHandler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
-using namespace std;
+using namespace OpenMS; using namespace OpenMS::Internal; using namespace std; 
+using namespace xercesc;
 
 CHECK(MzDataExpSettHandler(ExperimentalSettings& exp))
-	QFile qfile("data/MzDataExpSett_test_1.xml");
-	QXmlSimpleReader parser;
-	srand(static_cast<unsigned>(time(0)));
-	parser.setFeature("http://xml.org/sax/features/namespaces",false);
-	parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+	XMLPlatformUtils::Initialize();
+	SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
+	parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
+	parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+	
 	ExperimentalSettings e;
-	Internal::MzDataExpSettHandler handler(e);
-	parser.setContentHandler(&handler);
-	parser.setErrorHandler(&handler);
-
-	QXmlInputSource source(&qfile);
-	parser.parse(source);
+	MzDataExpSettHandler handler(e);
+	
+	parser->setContentHandler(&handler);
+	parser->setErrorHandler(&handler);
+	
+	LocalFileInputSource source( XMLString::transcode("data/MzDataExpSett_test_1.xml") );
+	parser->parse(source);
+	delete(parser);
 
 	PRECISION(0.01)
 
@@ -170,19 +175,20 @@ CHECK(MzDataExpSettHandler(ExperimentalSettings& exp))
 RESULT
 
 CHECK(MzDataExpSettHandler(const ExperimentalSettings& exp))
-	QFile qfile("data/MzDataExpSett_test_1.xml");
-	QXmlSimpleReader parser;
-	srand(static_cast<unsigned>(time(0)));
-	parser.setFeature("http://xml.org/sax/features/namespaces",false);
-	parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+	XMLPlatformUtils::Initialize();
+	SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
+	parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
+	parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+	
 	ExperimentalSettings e1;
-	Internal::MzDataExpSettHandler handler1(e1);
-	parser.setContentHandler(&handler1);
-	parser.setErrorHandler(&handler1);
-
-	QXmlInputSource source( qfile );
-	parser.parse(source);
+	MzDataExpSettHandler handler(e1);
+	
+	parser->setContentHandler(&handler);
+	parser->setErrorHandler(&handler);
+	
+	LocalFileInputSource source( XMLString::transcode("data/MzDataExpSett_test_1.xml") );
+	parser->parse(source);
+	delete(parser);
 
 	std::stringstream sstr;
 	//read data and close stream

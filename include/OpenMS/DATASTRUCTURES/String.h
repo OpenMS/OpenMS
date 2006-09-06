@@ -209,6 +209,9 @@ namespace OpenMS
 		
 		///Converts the string to lowercase
 		void toLower();
+
+		///Replaces all occurences of the character @p from by the character @p to.
+		void replace(char from, char to);
 		//@}
 
 		/** @name Converters

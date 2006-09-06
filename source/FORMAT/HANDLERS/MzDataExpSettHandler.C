@@ -21,11 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 
+using namespace xercesc;
+using namespace std;
 
 namespace OpenMS
 {
@@ -34,7 +36,8 @@ namespace OpenMS
 
 	MzDataExpSettHandler::MzDataExpSettHandler(ExperimentalSettings& exp)
 		: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-  		exp_(&exp), cexp_(0)
+  		exp_(&exp), 
+  		cexp_(0)
 	{
 		fillMaps_(Schemes::MzDataExpSett[schema_]);
 		// fill maps with current schema
@@ -42,7 +45,8 @@ namespace OpenMS
 
    MzDataExpSettHandler::MzDataExpSettHandler(const ExperimentalSettings& exp)
 		: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
-			exp_(0), cexp_(&exp)
+			exp_(0), 
+			cexp_(&exp)
   {
 		fillMaps_(Schemes::MzDataExpSett[schema_]);
 		// fill maps with current schema
@@ -50,79 +54,88 @@ namespace OpenMS
 
   MzDataExpSettHandler::~MzDataExpSettHandler(){}
 
-  bool MzDataExpSettHandler::characters( const QString & chars )
+  void MzDataExpSettHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		// find the tag that the parser is in right now
  		for (Size i=0; i<is_parser_in_tag_.size(); i++)
 			if (is_parser_in_tag_[i]){
 				switch(i) {
 					// Do something with the characters depending on the tag
-					case SAMPLENAME_TAG:   exp_->getSample().setName( chars.ascii() ); break;
-					case INSTNAME:         exp_->getInstrument().setName(chars.ascii()); break;
-					case SWVERSION:        exp_->getSoftware().setVersion( chars.ascii() ); break;
-					case CONTACTINST:      contact_->setInstitution( chars.ascii() ); break;
-					case CONTACTINFO:      contact_->setContactInfo( chars.ascii() ); break;
+					case SAMPLENAME_TAG:   exp_->getSample().setName( XMLString::transcode(chars) ); break;
+					case INSTNAME:         exp_->getInstrument().setName(XMLString::transcode(chars)); break;
+					case SWVERSION:        exp_->getSoftware().setVersion( XMLString::transcode(chars) ); break;
+					case CONTACTINST:      contact_->setInstitution( XMLString::transcode(chars) ); break;
+					case CONTACTINFO:      contact_->setContactInfo( XMLString::transcode(chars) ); break;
 
-					case NAMEOFFILE:	exp_->getSourceFile().setNameOfFile( chars.ascii() );	break;
-					case PATHTOFILE:	exp_->getSourceFile().setPathToFile( chars.ascii() );	break;
-					case FILETYPE:		exp_->getSourceFile().setFileType( chars.ascii() );	break;
+					case NAMEOFFILE:	exp_->getSourceFile().setNameOfFile( XMLString::transcode(chars) );	break;
+					case PATHTOFILE:	exp_->getSourceFile().setPathToFile( XMLString::transcode(chars) );	break;
+					case FILETYPE:		exp_->getSourceFile().setFileType( XMLString::transcode(chars) );	break;
 					case COMMENTS:		// <comment> is child of more than one other tags
 						if (is_parser_in_tag_[SOFTWARE])
 						{
-							exp_->getSoftware().setComment( chars.ascii() );
+							exp_->getSoftware().setComment( XMLString::transcode(chars) );
 						}
 						else
 						{
-							warning(QXmlParseException(QString("Unhandled tag \"comments\" with content: %1\n").arg(chars)));
+							const Locator* loc;
+							setDocumentLocator(loc);
+							String tmp = String("Unhandled tag \"comments\" with content: ") + XMLString::transcode(chars);
+							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 						}
 						break;
 					case NAME: 	// <name> is child of more than one other tags
 						if (is_parser_in_tag_[CONTACT])
 						{
-							contact_->setName( chars.ascii() );
+							contact_->setName( XMLString::transcode(chars) );
 						}
 						else if (is_parser_in_tag_[SOFTWARE])
 						{
-							exp_->getSoftware().setName( chars.ascii() );
+							exp_->getSoftware().setName( XMLString::transcode(chars) );
 						}
 						else
 						{
-							warning(QXmlParseException(QString("Unhandled tag \"name\" with content: %1\n").arg(chars)));
+							const Locator* loc;
+							setDocumentLocator(loc);
+							String tmp = String("Unhandled tag \"name\" with content: ") + XMLString::transcode(chars);
+							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 						}
 						break;
 				}
 			}
-		return true;
   }
-
 	
-  bool MzDataExpSettHandler::startElement(const QString & /*uri*/,
-		const QString & /*local_name*/,	const QString & qname, const QXmlAttributes & attributes )
+  void MzDataExpSettHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-		int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
+  	
+  	//cout << "Exp - Start: '" << XMLString::transcode(qname) << "'" << endl;
+		
+		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 
 		// Do something depending on the tag
 		switch(tag) 
 		{
-			case CVPARAM:	cvParam_(attributes.value("name"),attributes.value("value")); break;
-		  case USERPARAM:	userParam_(attributes.value("name"),attributes.value("value")); break;
+			case CVPARAM:	cvParam_(attributes.getValue(XMLString::transcode("name")),attributes.getValue(XMLString::transcode("value"))); break;
+		  case USERPARAM:	userParam_(attributes.getValue(XMLString::transcode("name")),attributes.getValue(XMLString::transcode("value"))); break;
 			case CONTACT:  contact_ = new ContactPerson(); break;
 			case ANALYZER: analyzer_ = new MassAnalyzer(); break;
  			case SOFTWARE:
-				exp_->getSoftware().setCompletionTime( asDateTime_(attributes.value("completionTime")) );
+ 				if (attributes.getIndex(XMLString::transcode("completionTime"))!=-1)
+ 				{
+					exp_->getSoftware().setCompletionTime( asDateTime_(XMLString::transcode(attributes.getValue(XMLString::transcode("completionTime")))) );
+				}
 				break;
 		}
-		
-		return true;
 	}
 
 
 
-	bool MzDataExpSettHandler::endElement
-	( const QString & /*uri*/, const QString & /*local_name*/, const QString & qname )
+	void MzDataExpSettHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-		int tag = str2enum_(TAGMAP,qname,"closing tag");  // index of current tag
+  	
+  	//cout << "Exp - End: '" << XMLString::transcode(qname) << "'" << endl;
+  		
+		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"closing tag");  // index of current tag
 		is_parser_in_tag_[tag] = false;
 
 		// Do something depending on the tag
@@ -136,70 +149,69 @@ namespace OpenMS
 				delete analyzer_;
 				break;
 		}
-		return true;
   }
 
 
-	void MzDataExpSettHandler::userParam_(QString name, QString value)
+	void MzDataExpSettHandler::userParam_(const XMLCh* name, const XMLCh* value)
 	{
 		if (is_parser_in_tag_[DETECTOR])
-			setAddInfo(exp_->getInstrument().getIonDetector(),
-								 name,value,"Descr.Instrument.Detector.UserParam");
+			setAddInfo(exp_->getInstrument().getIonDetector(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Detector.UserParam");
 		else if (is_parser_in_tag_[INSTSRC])
-			setAddInfo(exp_->getInstrument().getIonSource(),
-								 name,value,"Descr.Instrument.Source.UserParam");
+			setAddInfo(exp_->getInstrument().getIonSource(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Source.UserParam");
 		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
-			setAddInfo(exp_->getSample(),name,value,"Descr.Admin.SampleDescription.UserParam");
+			setAddInfo(exp_->getSample(),XMLString::transcode(name),XMLString::transcode(value),"Descr.Admin.SampleDescription.UserParam");
 		else if (is_parser_in_tag_[ANALYZER])
-			setAddInfo(*analyzer_,name,value,"AnalyzerList.Analyzer.UserParam");
+			setAddInfo(*analyzer_,XMLString::transcode(name),XMLString::transcode(value),"AnalyzerList.Analyzer.UserParam");
 		else if (is_parser_in_tag_[INSTADDITIONAL])
-			setAddInfo(exp_->getInstrument(),name,value,"Description.Instrument.Additional");
+			setAddInfo(exp_->getInstrument(),XMLString::transcode(name),XMLString::transcode(value),"Description.Instrument.Additional");
 		else if (is_parser_in_tag_[PROCMETHOD])
-			setAddInfo(exp_->getProcessingMethod(),
-								 name,value,"DataProcessing.ProcessingMethod.UserParam");
+			setAddInfo(exp_->getProcessingMethod(), XMLString::transcode(name),XMLString::transcode(value),"DataProcessing.ProcessingMethod.UserParam");
 		else
 		{
-			warning(QXmlParseException(QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+			const Locator* loc;
+			setDocumentLocator(loc);
+			String tmp = String("Invalid userParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
+			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 		}
 	}
 
 
-	void MzDataExpSettHandler::cvParam_(QString name, QString value)
+	void MzDataExpSettHandler::cvParam_(const XMLCh* name, const XMLCh* value)
 	{
-		int ont = str2enum_(ONTOLOGYMAP,name,"cvParam elment"); // index of current ontology term
+		int ont = str2enum_(ONTOLOGYMAP,XMLString::transcode(name),"cvParam elment"); // index of current ontology term
 
 		std::string error = "";
 		if (is_parser_in_tag_[DETECTOR]){
 			IonDetector& ion_d = exp_->getInstrument().getIonDetector();
 			switch (ont){
-			case DETECTTYPE: ion_d.setType( (IonDetector::Type)str2enum_(TYPEMAP,value) ); break;
-			case DETECTRES:  ion_d.setResolution( asFloat_(value) ); break;
-			case ADCFREQ:    ion_d.setADCSamplingFrequency( asFloat_(value) ); break;
+			case DETECTTYPE: ion_d.setType( (IonDetector::Type)str2enum_(TYPEMAP,XMLString::transcode(value)) ); break;
+			case DETECTRES:  ion_d.setResolution( asFloat_(XMLString::transcode(value)) ); break;
+			case ADCFREQ:    ion_d.setADCSamplingFrequency( asFloat_(XMLString::transcode(value)) ); break;
 			case ACQMODE:
-				ion_d.setAcquisitionMode((IonDetector::AcquisitionMode)str2enum_(ACQMODEMAP,value) );
+				ion_d.setAcquisitionMode((IonDetector::AcquisitionMode)str2enum_(ACQMODEMAP,XMLString::transcode(value)) );
 				break;
 			default:         error = "Description.Instrument.Detector.UserParam";
 			}
 		} else if (is_parser_in_tag_[INSTSRC]) {
 			IonSource& ion_s = exp_->getInstrument().getIonSource();
 			switch (ont) {
-			case IONTYPE:   ion_s.setIonizationMethod( (IonSource::IonizationMethod)str2enum_(IONTYPEMAP,value) ); break;
-			case INLETTYPE:	ion_s.setInletType( (IonSource::InletType)str2enum_(INLETTYPEMAP,value) ); break;
-			case IONMODE:   ion_s.setPolarity( (IonSource::Polarity)str2enum_(IONMODEMAP,value) ); break;
+			case IONTYPE:   ion_s.setIonizationMethod( (IonSource::IonizationMethod)str2enum_(IONTYPEMAP,XMLString::transcode(value)) ); break;
+			case INLETTYPE:	ion_s.setInletType( (IonSource::InletType)str2enum_(INLETTYPEMAP,XMLString::transcode(value)) ); break;
+			case IONMODE:   ion_s.setPolarity( (IonSource::Polarity)str2enum_(IONMODEMAP,XMLString::transcode(value)) ); break;
 			default:        error = "Description.Instrument.Source.UserParam";
 			}
 		}
 		else if (is_parser_in_tag_[SAMPLEDESCRIPTION]) {
 			Sample& sample = exp_->getSample();
 			switch (ont){
-			case SAMPLENAME_ONT: sample.setName( value.ascii() ); break;
+			case SAMPLENAME_ONT: sample.setName( XMLString::transcode(value) ); break;
 			case SAMPLESTATE:
-				sample.setState( (Sample::SampleState)str2enum_(SAMPLESTATEMAP,value) );
+				sample.setState( (Sample::SampleState)str2enum_(SAMPLESTATEMAP,XMLString::transcode(value)) );
 				break;
-			case SAMPLEMASS:     sample.setMass( asFloat_(value) ); break;
-			case SAMPLEVOLUME:   sample.setVolume( asFloat_(value) ); break;
-			case SAMPLECONC: 	   sample.setConcentration( asFloat_(value) ); break;
-			case SAMPLENUMBER:   sample.setNumber( value.ascii() ); break;
+			case SAMPLEMASS:     sample.setMass( asFloat_(XMLString::transcode(value)) ); break;
+			case SAMPLEVOLUME:   sample.setVolume( asFloat_(XMLString::transcode(value)) ); break;
+			case SAMPLECONC: 	   sample.setConcentration( asFloat_(XMLString::transcode(value)) ); break;
+			case SAMPLENUMBER:   sample.setNumber( XMLString::transcode(value) ); break;
 		  default:             error = "Description.Admin.SampleDescription.UserParam";
 			}
 		}
@@ -207,67 +219,73 @@ namespace OpenMS
 			typedef MassAnalyzer MA;
 			switch (ont){
 			case ANALYZTYPE:
-				analyzer_->setType( (MA::AnalyzerType)str2enum_(ANALYZERTYPEMAP,value));
+				analyzer_->setType( (MA::AnalyzerType)str2enum_(ANALYZERTYPEMAP,XMLString::transcode(value)));
 				break;
-			case RESOLUTION:	analyzer_->setResolution( asFloat_(value) ); break;
-			case ACCURACY:	  analyzer_->setAccuracy( asFloat_(value) ); break;
-			case SCANRATE:   	analyzer_->setScanRate( asFloat_(value) ); break;
-			case SCANTIME:	  analyzer_->setScanTime( asFloat_(value) ); break;
-			case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(value) ); break;
-			case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(value) ); break;
-			case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(value) ); break;
-			case FINALMSEXP:	analyzer_->setFinalMSExponent( asSignedInt_(value) ); break;
+			case RESOLUTION:	analyzer_->setResolution( asFloat_(XMLString::transcode(value)) ); break;
+			case ACCURACY:	  analyzer_->setAccuracy( asFloat_(XMLString::transcode(value)) ); break;
+			case SCANRATE:   	analyzer_->setScanRate( asFloat_(XMLString::transcode(value)) ); break;
+			case SCANTIME:	  analyzer_->setScanTime( asFloat_(XMLString::transcode(value)) ); break;
+			case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(XMLString::transcode(value)) ); break;
+			case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(XMLString::transcode(value)) ); break;
+			case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(XMLString::transcode(value)) ); break;
+			case FINALMSEXP:	analyzer_->setFinalMSExponent( asSignedInt_(XMLString::transcode(value)) ); break;
 			case RESMETHOD:
-				analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP,value));
+				analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP,XMLString::transcode(value)));
 				break;
 			case RESTYPE:
-				analyzer_->setResolutionType( (MA::ResolutionType)str2enum_(RESTYPEMAP,value));
+				analyzer_->setResolutionType( (MA::ResolutionType)str2enum_(RESTYPEMAP,XMLString::transcode(value)));
 				break;
 			case SCANFCT:
-				analyzer_->setScanFunction( (MA::ScanFunction)str2enum_(SCANFUNCTIONMAP,value));
+				analyzer_->setScanFunction( (MA::ScanFunction)str2enum_(SCANFUNCTIONMAP,XMLString::transcode(value)));
 				break;
 			case SCANDIR:
-				analyzer_->setScanDirection( (MA::ScanDirection)str2enum_(SCANDIRECTIONMAP,value));
+				analyzer_->setScanDirection( (MA::ScanDirection)str2enum_(SCANDIRECTIONMAP,XMLString::transcode(value)));
 				break;
 			case SCANLAW:
-				analyzer_->setScanLaw( (MA::ScanLaw)str2enum_(SCANLAWMAP,value));
+				analyzer_->setScanLaw( (MA::ScanLaw)str2enum_(SCANLAWMAP,XMLString::transcode(value)));
 				break;
 			case TANDEM:
-				analyzer_->setTandemScanMethod((MA::TandemScanningMethod)str2enum_(TANDEMMAP,value));
+				analyzer_->setTandemScanMethod((MA::TandemScanningMethod)str2enum_(TANDEMMAP,XMLString::transcode(value)));
 				break;
 			case REFLECTRON:
-				analyzer_->setReflectronState( (MA::ReflectronState)str2enum_(REFLECTRONMAP,value));
+				analyzer_->setReflectronState( (MA::ReflectronState)str2enum_(REFLECTRONMAP,XMLString::transcode(value)));
 				break;
 			default:          error = "AnalyzerList.Analyzer.UserParam";
 			}
 		}
 		else if (is_parser_in_tag_[INSTADDITIONAL]) {
 			switch (ont){
-			case VENDOR: exp_->getInstrument().setVendor(value.ascii()); break;
-			case MODEL:	 exp_->getInstrument().setModel(value.ascii()); break;
-			case CUSTOM: exp_->getInstrument().setCustomizations(value.ascii()); break;
+			case VENDOR: exp_->getInstrument().setVendor(XMLString::transcode(value)); break;
+			case MODEL:	 exp_->getInstrument().setModel(XMLString::transcode(value)); break;
+			case CUSTOM: exp_->getInstrument().setCustomizations(XMLString::transcode(value)); break;
 			default:     error = "Description.Instrument.Additional";
 			}
 		}
 		else if (is_parser_in_tag_[PROCMETHOD]) {
 			ProcessingMethod& meth = exp_->getProcessingMethod();
 			switch (ont)	{
-			case DEISOTOPED:  meth.setDeisotoping(asBool_(value)); break;
-			case DECONVOLVED: meth.setChargeDeconvolution(asBool_(value)); break;
+			case DEISOTOPED:  meth.setDeisotoping(asBool_(XMLString::transcode(value))); break;
+			case DECONVOLVED: meth.setChargeDeconvolution(asBool_(XMLString::transcode(value))); break;
 			case PEAKPROC:
-				meth.setSpectrumType( (SpectrumSettings::SpectrumType)str2enum_(PEAKPROCMAP,value));
+				meth.setSpectrumType( (SpectrumSettings::SpectrumType)str2enum_(PEAKPROCMAP,XMLString::transcode(value)));
 				break;
 			default:          error = "DataProcessing.ProcessingMethod.UserParam";
 			}
 		}
 		else
 		{
-			warning(QXmlParseException(QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+			const Locator* loc;
+			setDocumentLocator(loc);
+			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
+			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 		}
 		
 		if (error != "")
 		{
-			warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n") .arg(name).arg(value).arg(error.c_str())) );
+			const Locator* loc;
+			setDocumentLocator(loc);
+			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) +"\", value=\"" + XMLString::transcode(value) +"\" in " + error;
+			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
 		}
 	}
 
@@ -376,8 +394,8 @@ namespace OpenMS
 			{
 				String tmp;
 				cexp_->getSoftware().getCompletionTime().get(tmp);
-				QString time(tmp);
-				time.replace(" ","T");
+				String time(tmp);
+				time.replace(' ','T');
 				os << " completionTime=\"" << time << "\"";
 			}
 			os << ">\n"

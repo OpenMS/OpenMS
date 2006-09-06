@@ -26,8 +26,7 @@
 
 #include<OpenMS/FORMAT/DGridFile.h>
 
-namespace OpenMS {
-	
-	// not much going on here...	
+namespace OpenMS 
+{
 	
 }

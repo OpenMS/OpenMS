@@ -27,14 +27,13 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <qxml.h>
-
 #include <iostream>
 #include <vector>
 #include <string>
 #include <netinet/in.h> //network format
 
 using namespace std;
+using namespace xercesc;
 
 namespace OpenMS
 {
@@ -42,8 +41,7 @@ namespace OpenMS
 	{
 
 		XMLHandler::XMLHandler()
-		: error_message_(""),
-			abort_on_warning_(false)
+		: error_message_("")
 		{
 		}
 		
@@ -51,67 +49,40 @@ namespace OpenMS
 		{
 		}
 	
-		bool XMLHandler::fatalError(const QXmlParseException& exception)
+		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
-			error_message_ = "Error: ";
-			error_message_.append(exception.message());
-			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_.ascii(),error_message_.ascii());
-			return false;
+			error_message_ = String("Error: ") + XMLString::transcode(exception.getMessage());
+			appendLocation_(exception, error_message_);
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
-		bool XMLHandler::error(const QXmlParseException& exception)
+		void XMLHandler::error(const SAXParseException& exception)
 		{
-			error_message_ = "Fatal Error: ";
-			error_message_.append(exception.message());
-			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
-			return false;
+			error_message_ = String("Fatal error: ") + XMLString::transcode(exception.getMessage());
+			appendLocation_(exception, error_message_);
 		}
 		
-		bool XMLHandler::warning(const QXmlParseException& exception)
+		void XMLHandler::warning(const SAXParseException& exception)
 		{
-			error_message_ = "Error: ";
-			error_message_.append(exception.message());
-			if (exception.lineNumber()!=-1)	error_message_.append( QString(" at line %1").arg(exception.lineNumber()));
-			if (abort_on_warning_)
-			{
-				return false;
-			}
-			else
-			{
-				return true;
-			}
+			error_message_ = String("Warning: ") + XMLString::transcode(exception.getMessage());
+			appendLocation_(exception, error_message_);
 		}
 		
-		bool XMLHandler::characters( const QString & /*chars*/ )
+		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
 		{
-			return true;
 		}
 		
-		bool XMLHandler::startElement(const QString & /*uri*/, const QString & /*local_name*/, 
-																	const QString & /*qname*/, const QXmlAttributes & /*attributes*/ ) 
+		void XMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/, const XMLCh* const /*qname*/, const Attributes& /*attrs*/)
 		{
-			return true;
 		}
 	
-		bool XMLHandler::endElement( const QString & /*uri*/, const QString & /*local_name*/, const QString & /*qname*/ ) 
+		void XMLHandler::endElement( const XMLCh* const /*uri*/, const XMLCh* const /*localname*/, const XMLCh* const /*qname*/)
 		{
-			return true;
 		}
 	
-		QString XMLHandler::errorString()
+		String XMLHandler::errorString()
 		{
 			return error_message_;
-		}
-	
-		void XMLHandler::abortOnWarning(bool do_abort)
-		{
-			abort_on_warning_ = do_abort;
-		}
-	
-		bool XMLHandler::abortOnWarning()
-		{
-			return abort_on_warning_;
 		}
 
 	} // namespace Internal

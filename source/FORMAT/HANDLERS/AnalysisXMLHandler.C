@@ -27,10 +27,13 @@
 #include <OpenMS/FORMAT/HANDLERS/AnalysisXMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
+#include <xercesc/sax2/Attributes.hpp>
+
 #include <iostream>
 #include <map>
 
 using namespace std;
+using namespace xercesc;
 
 namespace OpenMS
 {
@@ -259,74 +262,12 @@ namespace OpenMS
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")
   {
-  }
-      									 	      									 	  
-  AnalysisXMLHandler::AnalysisXMLHandler(const AnalysisXMLHandler& source) :
-    XMLHandler(source),
-    protein_identifications_(source.protein_identifications_),
-    identifications_(source.identifications_),
-    precursor_retention_times_(source.precursor_retention_times_),
-    precursor_mz_values_(source.precursor_mz_values_),
-    actual_protein_hit_(source.actual_protein_hit_),
-    actual_protein_hits_(source.actual_protein_hits_),
-    actual_peptide_hit_(source.actual_peptide_hit_),
-    actual_peptide_hits_(source.actual_peptide_hits_),
-    peptide_identification_index_(source.peptide_identification_index_),
-    protein_identification_index_(source.protein_identification_index_),
-    inside_peptide_(source.inside_peptide_),
-    contact_person_(source.contact_person_),
-    const_protein_identifications_(source.const_protein_identifications_),
-    const_identifications_(source.const_identifications_),
-    const_precursor_retention_times_(source.const_precursor_retention_times_),
-    const_precursor_mz_values_(source.const_precursor_mz_values_),
-		const_contact_person_(source.const_contact_person_),
-		const_predicted_retention_times_(source.const_predicted_retention_times_),
-		tag_(),
-		charge_identification_index_(source.charge_identification_index_),        
-    inside_protein_(false),
-    inside_global_protein_(false),
-    predicted_retention_times_(source.predicted_retention_times_),
-    predicted_sigma_(source.predicted_sigma_),                                    
-    const_predicted_sigma_(source.const_predicted_sigma_),
-    date_times_temp_(),
-    date_times_counter_(0),
-    actual_date_time_("0000-00-00 00:00:00")                                    
-  {
-
+  	
   }
    
   AnalysisXMLHandler::~AnalysisXMLHandler()
   {
     
-  }
-  
-  AnalysisXMLHandler& AnalysisXMLHandler::operator = (const AnalysisXMLHandler& source)
-  {
-    if (&source == this) return *this;
-    
-    XMLHandler::operator=(source);
-    identifications_ = source.identifications_;
-    precursor_retention_times_ = source.precursor_retention_times_;
-    precursor_mz_values_ = source.precursor_mz_values_;
-    contact_person_ = source.contact_person_;
-    predicted_retention_times_ = source.predicted_retention_times_;
-    
-    return *this;
-  }
-
-  bool AnalysisXMLHandler::operator == (const AnalysisXMLHandler& rhs) const
-  {
-    return 
-      ( identifications_ == rhs.identifications_ ) &&
-      ( precursor_retention_times_ == rhs.precursor_retention_times_ ) &&
-      ( precursor_mz_values_ == rhs.precursor_mz_values_ ) &&
-      ( contact_person_ == rhs.contact_person_ ) && 
-      ( predicted_retention_times_ == rhs.predicted_retention_times_ );
-  }
-
-  bool AnalysisXMLHandler::operator != (const AnalysisXMLHandler& rhs) const
-  {
-    return !(operator == (rhs));
   }
    
   void AnalysisXMLHandler::writeTo(std::ostream& os)
@@ -659,37 +600,34 @@ namespace OpenMS
 		 
   }
 
-  bool AnalysisXMLHandler::startElement(const QString & /* uri */, 
-  																			const QString & /* local_name */,
-																				const QString & qname, 
-																				const QXmlAttributes & attributes )
+  void AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
-		tag_ = String(qname.ascii());
+		tag_ = String(xercesc::XMLString::transcode(qname));
 
 		String attribute_value;
 
 		if (tag_ == "userParam")
 		{
-			attribute_value = String(attributes.value(0).ascii()).trim();
+			attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
 			if (attribute_value == "peptide_significance_threshold")
 			{
 				(*identifications_)[peptide_identification_index_].setPeptideSignificanceThreshold(
-					((String) attributes.value(1).ascii()).toFloat());
+					((String) XMLString::transcode(attributes.getValue(1u))).toFloat());
 			}
 			else if (attribute_value == "precursor_charge")
 			{
-				(*identifications_)[peptide_identification_index_].setCharge(((String) attributes.value(1).ascii()).toInt());
+				(*identifications_)[peptide_identification_index_].setCharge(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
 			}
 			else if (attribute_value == "precursor_retention_time")
 			{
 				(*precursor_retention_times_)[peptide_identification_index_] = 
-					((String) attributes.value(1).ascii()).toFloat();
+					((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 			}
 			else if (attribute_value == "predicted_sigma")
 			{
 				if (predicted_sigma_ != 0)
 				{
-					*predicted_sigma_ = ((String) attributes.value(1).ascii()).toFloat();
+					*predicted_sigma_ = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 				}
 			}
 			else if (attribute_value == "predicted_precursor_retention_time")
@@ -697,13 +635,13 @@ namespace OpenMS
 				if (predicted_sigma_ != 0)
 				{
 					predicted_retention_times_->insert(make_pair(actual_peptide_hit_.getSequence(), 
-						((String) attributes.value(1).ascii()).toFloat()));
+						((String) XMLString::transcode(attributes.getValue(1u))).toFloat()));
 				}
 			}
 			else if (attribute_value == "number_of_identifications" 
 							|| attribute_value == "number_of_db_searches")
 			{
-				for(int i = 0; i < ((String) attributes.value(1).ascii()).toInt(); i++)
+				for(int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
 				{
 					Identification temp_identification;
 					identifications_->push_back(temp_identification);
@@ -713,7 +651,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "number_of_protein_identifications")
 			{
-				for(int i = 0; i < ((String) attributes.value(1).ascii()).toInt(); i++)
+				for(int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
 				{
 					ProteinIdentification temp_protein_identification;
 					protein_identifications_->push_back(temp_protein_identification);
@@ -721,57 +659,57 @@ namespace OpenMS
 			}
 			else if (attribute_value == "precursor_mz")
 			{
-				(*precursor_mz_values_)[peptide_identification_index_] = ((String) attributes.value(1).ascii()).toFloat();
+				(*precursor_mz_values_)[peptide_identification_index_] = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 			}
 			else if (attribute_value == "score")
 			{
 				if (inside_peptide_)
 				{
-					actual_peptide_hit_.setScore(((String) attributes.value(1).ascii()).toFloat());
+					actual_peptide_hit_.setScore(((String) XMLString::transcode(attributes.getValue(1u))).toFloat());
 				}
 				else
 				{
-					actual_protein_hit_.setScore(((String) attributes.value(1).ascii()).toFloat());
+					actual_protein_hit_.setScore(((String) XMLString::transcode(attributes.getValue(1u))).toFloat());
 				}
 			}
 			else if (attribute_value == "score_type")
 			{
 				if (inside_peptide_)
 				{
-					actual_peptide_hit_.setScoreType(((String) attributes.value(1).ascii()));										
+					actual_peptide_hit_.setScoreType(((String) XMLString::transcode(attributes.getValue(1u))));										
 				}
 				else
 				{
-					actual_protein_hit_.setScoreType(((String) attributes.value(1).ascii()));					
+					actual_protein_hit_.setScoreType(((String) XMLString::transcode(attributes.getValue(1u))));					
 				}
 			}
 			else if (attribute_value == "identification_index")
 			{
 				if (inside_peptide_)
 				{
-					peptide_identification_index_ = ((String) attributes.value(1).ascii()).toInt();
+					peptide_identification_index_ = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 				}
 				else
 				{
-					protein_identification_index_ = ((String) attributes.value(1).ascii()).toInt();
+					protein_identification_index_ = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 				}
 			}
 			else if (attribute_value == "protein_identification_index")
 			{
-				protein_identification_index_ = ((String) attributes.value(1).ascii()).toInt();
+				protein_identification_index_ = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
 				inside_global_protein_ = true;
 			}
 			else if (attribute_value.hasPrefix("date_group_") 
 							 && attribute_value != "date_group_index")
 			{
-				date_times_temp_.push_back((String) attributes.value(1).ascii());
+				date_times_temp_.push_back((String) XMLString::transcode(attributes.getValue(1u)));
 				date_times_counter_++;
 			}
 			else if (attribute_value == "date_group_index")
 			{		
 					String   		date_time_string;
 					
-					date_time_string = date_times_temp_.at(((String) attributes.value(1).ascii()).toInt());
+					date_time_string = date_times_temp_.at(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
 					if (inside_peptide_)
 					{
 						(*identifications_)[peptide_identification_index_].getDateTime().set(date_time_string);
@@ -798,16 +736,11 @@ namespace OpenMS
 			inside_protein_ = true;
 			inside_peptide_ = false;			
 		}
-		
-		return true;
-
 	}
-	  
-  bool AnalysisXMLHandler::endElement(const QString & /* uri */, 
-  																		const QString & /* local_name */,
- 								  										const QString & qname)
+
+  void AnalysisXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
- 		tag_ = String(qname.ascii()).trim();
+ 		tag_ = String(xercesc::XMLString::transcode(qname)).trim();
  		
  		if (tag_ == "protein")
  		{	
@@ -864,50 +797,45 @@ namespace OpenMS
  		}
 
 		tag_ = "";
- 		
- 		return true;
- 		
  	} 
 
-  bool AnalysisXMLHandler::characters( const QString & chars )
+  void AnalysisXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		if (tag_ == "name")
 		{
-			contact_person_->setName(((String) chars.ascii()).trim());
+			contact_person_->setName(((String) xercesc::XMLString::transcode(chars)).trim());
 			tag_ = "";
 		}
 		else if (tag_ == "institution")
 		{
-			contact_person_->setInstitution(((String) chars.ascii()).trim());
+			contact_person_->setInstitution(((String) xercesc::XMLString::transcode(chars)).trim());
 			tag_ = "";
 		}
 		else if (tag_ == "contactInfo")
 		{
-			contact_person_->setContactInfo(((String) chars.ascii()).trim());
+			contact_person_->setContactInfo(((String) xercesc::XMLString::transcode(chars)).trim());
 			tag_ = "";
 		}
 		else if (tag_ == "dbName")
 		{
-			actual_protein_hit_.setAccessionType(((String) chars.ascii()).trim());
+			actual_protein_hit_.setAccessionType(((String) xercesc::XMLString::transcode(chars)).trim());
 			tag_ = "";
 		}
 		else if (tag_ == "dbID")
 		{
-			actual_protein_hit_.setAccession(((String) chars.ascii()).trim());			
+			actual_protein_hit_.setAccession(((String) xercesc::XMLString::transcode(chars)).trim());			
 			tag_ = "";
 		}
 		else if (tag_ == "sequence")
 		{
-			actual_protein_hit_.setSequence(((String) chars.ascii()).trim());			
+			actual_protein_hit_.setSequence(((String) xercesc::XMLString::transcode(chars)).trim());			
 			tag_ = "";
 		}
 		else if (tag_ == "seq")
 		{
-			actual_peptide_hit_.setSequence(((String) chars.ascii()).trim());			
+			actual_peptide_hit_.setSequence(((String) xercesc::XMLString::transcode(chars)).trim());			
 			tag_ = "";
 		}
-  	
-		return true;
   }
   
   UnsignedInt AnalysisXMLHandler::getDateGroupIndex(DateTime 											date_time,

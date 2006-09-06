@@ -109,11 +109,6 @@ EXECUTABLES_KERNEL =\
 	MSExperimentExtern_test\
 	DimensionDescription_test
 
-#	DPeakListIterator_test\
-#	DPeakArrayIterator_test\
-#	DPeakArray_test\
-#	DPeakList_test\
-
 
 #VISUAL
 
@@ -155,21 +150,21 @@ EXECUTABLES_FORMAT = \
 	DTA2DFile_test\
 	MascotInfile_test\
 	MascotOutfile_test\
-	Param_test\
 	Base64_test\
-	MzXMLFile_test\
-	MzDataFile_test\
 	UniqueIdGenerator_test\
 	PersistentObject_test\
 	PersistenceManager_test\
+	FASTAFile_test\
+	FileHandler_test\
+	MzDataExpSettHandler_test\
+	MzXMLFile_test\
+	Param_test\
+	MzDataFile_test\
 	DFeatureMapFile_test\
 	DFeaturePairsFile_test\
-	FASTAFile_test\
-	MzDataExpSettHandler_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
-	DGridFile_test\
-	FileHandler_test
+	DGridFile_test
 
 #MATH
 
@@ -255,6 +250,7 @@ ifeq ($(GSL_SUPPORT),true)
   SpectrumPrecursorComparator_test
 endif
 
+
 EXECUTABLES_COMPARISON = \
 	$(GSL_EXECUTABLES_COMPARISON)
 
@@ -293,7 +289,6 @@ ifeq ($(GSL_SUPPORT),true)
 	GSL_EXECUTABLES_TRANSFORMATIONS = \
 		ContinuousWaveletTransformNumIntegration_test\
 		OptimizePick_test
-
 endif
 
 EXECUTABLES_TRANSFORMATIONS = \
@@ -322,6 +317,7 @@ EXECUTABLES_TRANSFORMATIONS = \
 
 EXECUTABLES_ANALYSIS_ID =\
 	MSExperimentAnnotator_test
+
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\

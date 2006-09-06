@@ -56,7 +56,7 @@ namespace OpenMS
 */
 class Param
 {
-public:
+	public:
     /// Const iterator
     typedef std::map<std::string, DataValue>::const_iterator ConstIterator;
 
@@ -125,7 +125,7 @@ public:
     ///Write XML file.
     void store(const std::string& filename) const throw (Exception::UnableToCreateFile);
     ///Read XML file.
-    void load(const std::string& filename) throw (Exception::FileNotFound);
+    void load(const std::string& filename) throw (Exception::FileNotFound,Exception::ParseError);
 
     /**
     	@brief Parses command line arguments.
@@ -175,7 +175,7 @@ public:
     /// Output of the object to a spream.
     friend std::ostream& operator << (std::ostream& os, const Param& param);
 
-protected:
+	protected:
     /// internal storage container
     std::map<std::string, DataValue> values_;
 

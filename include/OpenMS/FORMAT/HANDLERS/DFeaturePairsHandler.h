@@ -45,6 +45,8 @@
 #include <valarray>
 #include <string>
 
+#include <xercesc/sax2/Attributes.hpp>
+
 namespace OpenMS
 {
 	namespace Internal
@@ -105,17 +107,14 @@ namespace OpenMS
       }
       //@}
 
-      /// This function is called for each closing tag in the XML file.
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname );
-
-      /// This function is called for each opening XML tag in the file.
-      virtual bool startElement(const QString & uri, const QString & local_name,
-																const QString & qname, const QXmlAttributes & attributes );
-
-			/// This function is called by the parser for each chunk of
-		  /// characters between two tags.
-      virtual bool characters( const QString & chars );
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
 
   		/// Print the contents to a stream
 			void writeTo(std::ostream& os);
@@ -169,41 +168,37 @@ namespace OpenMS
 	//--------------------------------------------------------------------------------
 
 	template <Size D, typename FeatureT>
-  bool DFeaturePairsHandler<D,FeatureT>::startElement(
-				const QString & /*uri*/, const QString & /*local_name*/,
-				const QString & qname, const QXmlAttributes & attributes)
+  void DFeaturePairsHandler<D,FeatureT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
-		int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
+		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 
 		switch(tag)
 		{
 			case FEATURE: 	 feature_        = new DFeature<D>(); break;
 			case PAIR:		 	 pair_	         = new DFeaturePair<D>(); break;
-			case QUALITY:    current_qcoord_ = asUnsignedInt_(attributes.value("dim")); break;
-			case POSITION:   current_pcoord_ = asUnsignedInt_(attributes.value("dim")); break;
+			case QUALITY:    current_qcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
+			case POSITION:   current_pcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
   		case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
   		case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
-  		case HPOSITION:  current_hcoord_ = asUnsignedInt_(attributes.value("dim")); break;
+  		case HPOSITION:  current_hcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
   		case FEATMODEL:
   			model_desc_ = new ModelDescription<D>();
   			param_ = new Param();
-  			if (!attributes.value("name").isEmpty())
-  				model_desc_->setName(attributes.value("name").ascii());
+  			if (!(attributes.getIndex(xercesc::XMLString::transcode("name"))==-1))
+  				model_desc_->setName(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))));
   			break;
   		case PARAM:
-  			if (!attributes.value("name").isEmpty() && !attributes.value("value").isEmpty() )
-					param_->setValue(attributes.value("name").ascii(),attributes.value("value").ascii());
+  			if (!(attributes.getIndex(xercesc::XMLString::transcode("name"))==-1) && !(attributes.getIndex(xercesc::XMLString::transcode("value"))==-1))
+					param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))),xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("value"))));
 		  	break;
 		 }
-		return true;
 	}
 
   template <Size D, typename FeatureT>
-  bool DFeaturePairsHandler<D,FeatureT>::endElement( const QString & /*uri*/,
-	const QString & /*local_name*/,	 const QString & qname )
+  void DFeaturePairsHandler<D,FeatureT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
- 		int tag = str2enum_(TAGMAP,qname,"closing tag");  // index of current tag
+ 		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
 		is_parser_in_tag_[tag] = false;
 		switch(tag) {
 			case FIRST:
@@ -233,11 +228,10 @@ namespace OpenMS
 				delete current_chull_;
 				break;
 		}
-		return true;
   }
 
 	template <Size D, typename FeatureT>
-  bool DFeaturePairsHandler<D,FeatureT>::characters( const QString & chars )
+  void DFeaturePairsHandler<D,FeatureT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		for (Size i=0; i<is_parser_in_tag_.size(); i++)
 		{
@@ -245,17 +239,16 @@ namespace OpenMS
 			{
 				switch(i)
 				{
-					case FEATINTENSITY:		feature_->setIntensity(asDouble_(chars)); break;
-					case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(chars); break;
-					case QUALITY:         feature_->getQuality(current_qcoord_) = asDouble_(chars); break;
-					case OVERALLQUALITY:  feature_->getOverallQuality() = asDouble_(chars); break;
-					case CHARGE:          feature_->setCharge(asSignedInt_(chars)); break;
-					case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(chars); break;
-					case PAIRQUALITY:			pair_->setQuality(asDouble_(chars));
+					case FEATINTENSITY:		feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); break;
+					case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case QUALITY:         feature_->getQuality(current_qcoord_) = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case OVERALLQUALITY:  feature_->getOverallQuality() = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case CHARGE:          feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars))); break;
+					case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
+					case PAIRQUALITY:			pair_->setQuality(asDouble_(xercesc::XMLString::transcode(chars)));
 				}
 			}
    	}
-		return true;
   }
 
 	template <Size D, typename FeatureT>

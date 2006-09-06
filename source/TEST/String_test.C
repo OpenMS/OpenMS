@@ -426,6 +426,27 @@ CHECK(void toLower())
 	TEST_EQUAL(s,"test45%#.,");
 RESULT
 
+CHECK(void replace(char from, char to))
+	String s = "abcdefg";
+	
+	s.replace('a','x');
+	TEST_EQUAL(s,"xbcdefg")
+
+	s.replace('g','y');
+	TEST_EQUAL(s,"xbcdefy")
+
+	s.replace('c','-');
+	TEST_EQUAL(s,"xb-defy")
+	
+	s = ".....";
+	s.replace('.',',');
+	TEST_EQUAL(s,",,,,,")
+
+	s = ".....";
+	s.replace(',','.');
+	TEST_EQUAL(s,".....")
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

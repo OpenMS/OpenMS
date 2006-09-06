@@ -399,7 +399,6 @@ std::cout << multicharge << std::endl;
 		//std::set<std::string, string_less> spectrum_count;
 		std::set< std::string > spectrum_count;
 		double p_value;
-		bool from_fasta = (start_separator != "*");
 		
 		// workaround for a bug in inspect
 		// if there is at least one line with a missing protein column, the record numbers are one too high

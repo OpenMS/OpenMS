@@ -50,30 +50,17 @@ namespace OpenMS
       								 std::vector<float>* 					precursor_retention_times, 
       								 std::vector<float>* 					precursor_mz_values);
 
-      /// Copy constructor
-      MascotXMLHandler(const MascotXMLHandler& source);
-
       /// Destructor
       ~MascotXMLHandler();
       
-      /// Assignment operator
-      MascotXMLHandler& operator = (const MascotXMLHandler& source);
-      
-      /// Equality operator
-      bool operator == (const MascotXMLHandler& source) const;
-      
-      /// Equality operator
-      bool operator != (const MascotXMLHandler& source) const;
-      
-      /// The method which is invoked when an opening tag is parsed
-      virtual bool startElement(const QString & uri, const QString & local_name,
-												const QString & qname, const QXmlAttributes & attributes );
-			/// The method which is invoked when an closing tag is parsed
-      virtual bool endElement( const QString & uri, const QString & local_name,
-											 const QString & qname ); 
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			
-			/// The method which is invoked when the information enclosed by a tag is parsed			
-		  bool characters( const QString & chars );
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int /*length*/);
 		  
     private:
     	

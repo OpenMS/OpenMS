@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
@@ -34,7 +34,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <qtextstream.h>
+#include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
 {
@@ -63,6 +63,7 @@ namespace OpenMS
 				analyzer_(0),
 				decoder_(),
 				peak_count_(0),
+				char_rest_(),
 				spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
@@ -77,6 +78,7 @@ namespace OpenMS
 				spec_(),
 				decoder_(),
 				peak_count_(0),
+				char_rest_(),
 				spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
@@ -85,15 +87,15 @@ namespace OpenMS
   		/// Destructor
       virtual ~MzXMLHandler(){}
       //@}
-
-      ///
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname ); 
-      ///
-      virtual bool startElement(const QString & uri, const QString & local_name,
-																const QString & qname, const QXmlAttributes & attributes );
-      ///
-      virtual bool characters( const QString & chars );
+			
+			// Docu in base class
+      virtual void endElement( const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
 
   		///Write the contents to a stream
 			void writeTo(std::ostream& os);
@@ -112,7 +114,8 @@ namespace OpenMS
 		*/
 		enum Tags { TAGNULL=0, MSRUN, INDEX, OFFSET, SHA1, PARENTFILE, INSTRUMENT, DATAPROCESSING,
 								SEPARATION, SPOTTING, SCAN, SCANORIGIN, PRECURSORMZ, MALDI, PEAKS, NAMEVALUE,
-								COMMENT, SOFTWARE, INDEXOFFSET, OPERATOR, MANUFACTURER, MODEL, IONISATION, 									ANALYZER, DETECTOR, RESOLUTION, MZXML, PROCESSING, SEPARATIONTECH, TAG_NUM};
+								COMMENT, SOFTWARE, INDEXOFFSET, OPERATOR, MANUFACTURER, MODEL, IONISATION,
+								ANALYZER, DETECTOR, RESOLUTION, MZXML, PROCESSING, SEPARATIONTECH, TAG_NUM};
 
 
 		/** @brief indices for attributes used by MzXML
@@ -154,22 +157,23 @@ namespace OpenMS
 		SpectrumType* spec_;
 		MassAnalyzer* analyzer_;
 		MetaInfoDescription* meta_;
-		QString meta_id_;
+		String meta_id_;
 		Base64 decoder_;
 		Size peak_count_;
 		Precision precision_;
-		const QXmlAttributes* atts_;
+		String char_rest_;
+		const xercesc::Attributes* atts_;
+
 		//@}
 
 		/// spectrum counter (spectra without peaks are not written)
 		UnsignedInt spec_write_counter_;
 
 		/// Add name, value and description to a given MetaInfo object
-		void setAddInfo(MetaInfoInterface& info, const QString& name,
-										const QString& value, const String& description)
+		void setAddInfo(MetaInfoInterface& info, const String& name, const String& value, const String& description)
 		{
-			info.metaRegistry().registerName(name.ascii(), description);
-			info.setMetaValue(name.ascii(),value.ascii());
+			info.metaRegistry().registerName(name, description);
+			info.setMetaValue(name,value);
 		}
 
 		/// write metaInfo to xml (usually in nameValue-tag)
@@ -200,27 +204,32 @@ namespace OpenMS
 		}
 
 		/// check if value of attribute equals the required value, otherwise throw error
-		inline void checkAttribute_(UnsignedInt attribute, const QString& required,
-			const QString& required_alt="")
+		inline void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="")
 		{
-			QString value = atts_->value(enum2str_(ATTMAP,attribute).c_str());
-			if (value=="") return;
+			//TODO improve performace
+			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(ATTMAP,attribute).c_str());
+			if (tmp==0) return;
+			if (atts_->getIndex(tmp)==-1) return;
+			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
 			if (value!=required && value!=required_alt)
 			{
-				error(QXmlParseException(QString("Unable to process data with %3 \"%1\" parsed by %2").arg(value).arg(file_).arg(enum2str_(ATTMAP,attribute))));
+				const xercesc::Locator* loc;
+				setDocumentLocator(loc);
+				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\" in file " + file_;
+				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
 			}
 		}
 
-		/// return value of attribute as QString
-		inline QString getQAttribute(UnsignedInt attribute)
-		{
-			return atts_->value(enum2str_(ATTMAP,attribute).c_str());
-		}
-
 		/// return value of attribute as String
-		inline String getAttribute(UnsignedInt attribute)
+		inline String getAttributeAsString(UnsignedInt attribute)
 		{
-			return atts_->value(enum2str_(ATTMAP,attribute).c_str()).ascii();
+			//TODO improve performace
+			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(ATTMAP,attribute).c_str());
+			if (atts_->getIndex(tmp)==-1) 
+			{
+				return "";
+			}
+			return xercesc::XMLString::transcode(atts_->getValue(tmp));
 		}
   };
 
@@ -235,33 +244,14 @@ namespace OpenMS
 
 
 	template <typename MapType>
-  bool MzXMLHandler<MapType>::characters( const QString & chars )
+  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
+  	//std::cout << " -- Chars -- "<< xercesc::XMLString::transcode(chars) << " -- " << std::endl;
+  		
 		if(is_parser_in_tag_[PEAKS])
 		{
-			if (precision_==DOUBLE)		//precision 64
-			{
-				double* data = decoder_.decodeDoubleCorrected(chars.ascii(), chars.length());
-				//push_back the peaks into the container
-				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
-				{
-					
-					peak_->getPosition()[0] = data[n];
-					peak_->setIntensity(data[n+1]);
- 					++peak_;
- 				}
-			}
-			else											//precision 32
-			{
-				float* data = decoder_.decodeFloatCorrected(chars.ascii(), chars.length());
-				//push_back the peaks into the container
-				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
-				{
-					peak_->getPosition()[0] = data[n];
-					peak_->setIntensity(data[n+1]);
-     			++peak_;
-				}
-			}
+			//chars may be split to several chunks => concatenate them
+			char_rest_ += xercesc::XMLString::transcode(chars);
 		}
 		else if (	is_parser_in_tag_[OFFSET] ||
 							is_parser_in_tag_[INDEXOFFSET] ||
@@ -271,102 +261,104 @@ namespace OpenMS
 		}
 		else if (	is_parser_in_tag_[PRECURSORMZ])
 		{
-			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(chars);
+			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
 		}
 		else if (	is_parser_in_tag_[COMMENT])
 		{
 			if (is_parser_in_tag_[INSTRUMENT])
 			{
-				 setAddInfo(exp_->getInstrument(),"#Comment" , chars, "Instrument.Comment");
+				 setAddInfo(exp_->getInstrument(),"#Comment" , xercesc::XMLString::transcode(chars), "Instrument.Comment");
 			}
 			else if (is_parser_in_tag_[DATAPROCESSING])
 			{
-				setAddInfo(exp_->getProcessingMethod(),"#Comment", chars,"DataProcessing.Comment");
+				setAddInfo(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
 			}
 			else if (is_parser_in_tag_[SCAN])
 			{
-				spec_->setComment( chars.ascii() );
+				spec_->setComment( xercesc::XMLString::transcode(chars) );
 			}
-			else if (chars.stripWhiteSpace()!="")
+			else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
 			{
-				warning(QXmlParseException(QString("Unhandled characters: \"%1\"\n").arg(chars)));
+				std::cout << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
 			}
 		}
-		else if (chars.stripWhiteSpace()!="")
+		else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
 		{
-			warning(QXmlParseException(QString("Unhandled characters: \"%1\"\n").arg(chars)));
+				std::cout << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
 		}
-		return true;
+  	//std::cout << " -- !Chars -- " << std::endl;
   }
 
 	template <typename MapType>
-  	bool MzXMLHandler<MapType>::startElement(const QString & /*uri*/,
-	const QString & /*local_name*/,	const QString & qname, const QXmlAttributes & attributes )
+  void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-  	//std::cout << qname << std::endl;
+  	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
-		int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
+  	String tmp_str;
+  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 		atts_ = &attributes;
-
+		
 		switch(tag)
 		{
-			case MSRUN: case MZXML:
-				if (tag==MSRUN && !getQAttribute(SCANCOUNT).isEmpty()) // optional attribute
+			case MSRUN:
+				tmp_str = getAttributeAsString(SCANCOUNT);
+				if (tmp_str!="") // optional attribute
 				{  
-					exp_->reserve( asUnsignedInt_(getQAttribute(SCANCOUNT)) );
+					exp_->reserve( asUnsignedInt_(tmp_str) );
 				}
-				
+			case MZXML:
 				// look for schema information
-				if (!getQAttribute(SCHEMA).isEmpty())
+				if (atts_->getIndex(xercesc::XMLString::transcode(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
 				{
-					QString s = getQAttribute(SCHEMA);
-					for (UnsignedInt index=0; index<Schemes::MzXML_num; ++index)
+					tmp_str = getAttributeAsString(SCHEMA);
+					//std::cout << "SCHEMA: " << tmp_str << std::endl;
+					if (tmp_str!="")
 					{
-						if (s!=schema_ && s.contains(Schemes::MzXML[index][0].c_str()))
+						for (UnsignedInt index=0; index<Schemes::MzXML_num; ++index)
 						{
-							schema_ = index;
-							// refill maps with older schema
-							for (Size i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-							for (Size i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
-							fillMaps_(Schemes::MzXML[schema_]);
+							if (tmp_str.hasSubstring(Schemes::MzXML[index][0]))
+							{
+								schema_ = index;
+								// refill maps with older schema
+								for (Size i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
+								for (Size i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
+								fillMaps_(Schemes::MzXML[schema_]);
+								break;
+							}
 						}
 					}
 				}
 				// Additional attributes: startTime, endTime
 				break;
 			case PARENTFILE:
-				exp_->getSourceFile().setNameOfFile( getAttribute(FILENAME).c_str() );
-				exp_->getSourceFile().setFileType( getAttribute(FILETYPE) );
+				exp_->getSourceFile().setNameOfFile( getAttributeAsString(FILENAME).c_str() );
+				exp_->getSourceFile().setFileType( getAttributeAsString(FILETYPE) );
 				// Additional attributes: fileSha1
 				break;
 			case INSTRUMENT:
 				{
-					if (attributes.length()==0) break;  // attributes only in mzXML 1.0
-
-					exp_->getInstrument().setModel( attributes.value(enum2str_(TAGMAP,MODEL).c_str()).ascii());
-					exp_->getInstrument().setVendor(attributes.value(
-						enum2str_(TAGMAP,MANUFACTURER).c_str()).ascii()
-					);
-
+					if (attributes.getLength()==0) break;  // attributes only in mzXML 1.0
+					exp_->getInstrument().setModel( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MODEL).c_str()))));
+					exp_->getInstrument().setVendor( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MANUFACTURER).c_str()))));
 					MassAnalyzer analyzer;
-					QString str = enum2str_(TAGMAP,ANALYZER);
-					analyzer.setType(
-						 (MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,atts_->value(str),str)
-					);
+					String str = enum2str_(TAGMAP,ANALYZER);
+					analyzer.setType((MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str()));
 					exp_->getInstrument().getMassAnalyzers().push_back(analyzer);
 					str = enum2str_(TAGMAP,IONISATION);
-					exp_->getInstrument().getIonSource().setIonizationMethod(
-					 (IonSource::IonizationMethod)str2enum_(IONTYPEMAP,atts_->value(str),str));
+					exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod)str2enum_(IONTYPEMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str()));
 				}
 				break;
 			case SOFTWARE:
-				if (is_parser_in_tag_[DATAPROCESSING]){
-					exp_->getSoftware().setVersion( getAttribute(SOFTWAREVERSION) );
-					exp_->getSoftware().setName( getAttribute(NAME) );
-					exp_->getSoftware().setComment( getAttribute(TYPE) );
-					exp_->getSoftware().setCompletionTime( asDateTime_(getQAttribute(COMPLETION_TIME)) );
-				}else if (is_parser_in_tag_[INSTRUMENT]){
+				if (is_parser_in_tag_[DATAPROCESSING])
+				{
+					exp_->getSoftware().setVersion( getAttributeAsString(SOFTWAREVERSION) );
+					exp_->getSoftware().setName( getAttributeAsString(NAME) );
+					exp_->getSoftware().setComment( getAttributeAsString(TYPE) );
+					exp_->getSoftware().setCompletionTime( asDateTime_(getAttributeAsString(COMPLETION_TIME)) );
+				}
+				else if (is_parser_in_tag_[INSTRUMENT])
+				{
 					// not part of METADATA -> putting it into MetaInfo
 					std::string swn = "#InstSoftware", swn_d = "Instrument software name",
 						swv = "#InstSoftwareVersion", swv_d = "Instrument software version",
@@ -377,15 +369,15 @@ namespace OpenMS
 					registry.registerName(swv,swv_d);
 					registry.registerName(swt,swt_d);
 					registry.registerName(cmpl,cmpl_d);
-					exp_->getInstrument().setMetaValue(swn,getAttribute(NAME));
-					exp_->getInstrument().setMetaValue(swv,getAttribute(SOFTWAREVERSION));
-					exp_->getInstrument().setMetaValue(swt,getAttribute(TYPE));
-					if  (!getQAttribute(COMPLETION_TIME).isEmpty())
+					exp_->getInstrument().setMetaValue(swn,getAttributeAsString(NAME));
+					exp_->getInstrument().setMetaValue(swv,getAttributeAsString(SOFTWAREVERSION));
+					exp_->getInstrument().setMetaValue(swt,getAttributeAsString(TYPE));
+					tmp_str = getAttributeAsString(COMPLETION_TIME);
+					if  (tmp_str!="")
 					{
-						DateTime time = asDateTime_(getQAttribute(COMPLETION_TIME));
-						String str;
-						time.get(str);
-						exp_->getInstrument().setMetaValue(cmpl,str);
+						DateTime time = asDateTime_(tmp_str);
+						time.get(tmp_str);
+						exp_->getInstrument().setMetaValue(cmpl,tmp_str);
 					}
 				}
 				break;
@@ -393,8 +385,8 @@ namespace OpenMS
 				{
 					checkAttribute_(PRECISION,enum2str_(PRECISIONMAP,REAL),
 																		enum2str_(PRECISIONMAP,DOUBLE));
-					const QString str = enum2str_(ATTMAP,PRECISION);
-					precision_ = (Precision) str2enum_(PRECISIONMAP,atts_->value(str),str);
+					const String str = enum2str_(ATTMAP,PRECISION);
+					precision_ = (Precision) str2enum_(PRECISIONMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str());
 					checkAttribute_(BYTEORDER,"network");
 					checkAttribute_(PAIRORDER,"m/z-int");
 				}
@@ -403,10 +395,10 @@ namespace OpenMS
 				{
 					PrecursorPeakType& peak
 						= spec_->getPrecursorPeak();
-					peak.setIntensity( asFloat_(getQAttribute(PRECURSOR_INTENSITY)) );
+					peak.setIntensity( asFloat_(getAttributeAsString(PRECURSOR_INTENSITY)) );
 					// optional attribute
-					if (!getQAttribute(PRECURSOR_CHARGE).isEmpty())
-						peak.setCharge(asSignedInt_(getQAttribute(PRECURSOR_CHARGE)));
+					if (!(getAttributeAsString(PRECURSOR_CHARGE)==""))
+						peak.setCharge(asSignedInt_(getAttributeAsString(PRECURSOR_CHARGE)));
 					// Unhandled: windowWideness, precursorScanNum (optinal)
 				}
 				break;
@@ -417,30 +409,28 @@ namespace OpenMS
 					spec_ = &(exp_->back());
 					
 					// required attributes
-					spec_->setMSLevel( asSignedInt_(getQAttribute(MSLEVEL)) );
-					peak_count_ = asSignedInt_( getQAttribute(PEAKSCOUNT) );
+					spec_->setMSLevel( asSignedInt_(getAttributeAsString(MSLEVEL)) );
+					peak_count_ = asSignedInt_( getAttributeAsString(PEAKSCOUNT) );
 					spec_->resize(peak_count_);
 					peak_ = spec_->begin();
 
 					//optinal attributes
-					for (int i=0; i<attributes.length(); i++)
+					for (UnsignedInt i=0; i<attributes.getLength(); i++)
 					{
-						int att = str2enum_(ATTMAP,attributes.qName(i),"scan attribute");
-						QString value = attributes.value(i);
+						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
+						String value = xercesc::XMLString::transcode(attributes.getValue(i));
 						InstrumentSettings& sett = spec_->getInstrumentSettings();
 						switch (att)
 							{
 							case POLARITY:
-								sett.setPolarity( (IonSource::Polarity)
-																		str2enum_(POLARITYMAP,value,"polarity") );
+								sett.setPolarity( (IonSource::Polarity) str2enum_(POLARITYMAP,value,"polarity") );
 								break;
 							case SCANTYPE:
-								sett.setScanMode( (InstrumentSettings::ScanMode)
-																		str2enum_(SCANMODEMAP,value,"scan mode") );
+								sett.setScanMode( (InstrumentSettings::ScanMode) str2enum_(SCANMODEMAP,value,"scan mode") );
 								break;
 							case RETTIME:
-								spec_->setRetentionTime(
-																	asFloat_(value.remove(0,2).remove('S')));
+								value.trim();
+								spec_->setRetentionTime( asFloat_(value.substr(2,value.size()-3)));
 								//std::cout << spec_->getRetentionTime() << std::endl;
 								break;
 							case STARTMZ:      sett.setMzRangeStart( asDouble_(value)); break;
@@ -458,62 +448,61 @@ namespace OpenMS
 			case OPERATOR:
 				{
 					exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
-					exp_->getContacts().back().setName( QString("%2,%1").arg(getQAttribute(FIRST_NAME)).arg(getQAttribute(LAST_NAME)).ascii());
-					if (!getQAttribute(EMAIL).isEmpty())
+					exp_->getContacts().back().setName( getAttributeAsString(FIRST_NAME) + " " +getAttributeAsString(LAST_NAME));
+					if (!(getAttributeAsString(EMAIL)==""))
 					{
-						exp_->getContacts().back().setEmail(getAttribute(EMAIL));
+						exp_->getContacts().back().setEmail(getAttributeAsString(EMAIL));
 					}
-					exp_->getContacts().back().setContactInfo( QString("PHONE: %1 URI: %2").arg(getQAttribute(PHONE)).arg(getQAttribute(URI)).ascii());
+					exp_->getContacts().back().setContactInfo( String("PHONE: ")+getAttributeAsString(PHONE)+" URI: " + getAttributeAsString(URI));
 				}
 				break;
 			case MANUFACTURER:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,MANUFACTURER))
-					exp_->getInstrument().setVendor( getAttribute(VALUE) );
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,MANUFACTURER))
+					exp_->getInstrument().setVendor( getAttributeAsString(VALUE) );
 				break;
 			case MODEL:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,MODEL))
-					exp_->getInstrument().setModel( getAttribute(VALUE) );
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,MODEL))
+					exp_->getInstrument().setModel( getAttributeAsString(VALUE) );
 				break;
 			case IONISATION:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,IONISATION))
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,IONISATION))
 					exp_->getInstrument().getIonSource().setIonizationMethod(
 						(IonSource::IonizationMethod)
-						str2enum_(IONTYPEMAP,getQAttribute(VALUE),"ionization type")
+						str2enum_(IONTYPEMAP,getAttributeAsString(VALUE),"ionization type")
 					);
 				break;
 			case ANALYZER:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,ANALYZER))
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,ANALYZER))
 				{
 					exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
 					analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
 					analyzer_->setType( (MassAnalyzer::AnalyzerType)
-						str2enum_(ANALYZERTYPEMAP,getQAttribute(VALUE),"analyzer type")
+						str2enum_(ANALYZERTYPEMAP,getAttributeAsString(VALUE),"analyzer type")
 					);
 				}
 				break;
 			case DETECTOR:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,DETECTOR))
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,DETECTOR))
 				{
 					IonDetector& ion_d = exp_->getInstrument().getIonDetector();
-					ion_d.setType( (IonDetector::Type)
-						str2enum_(TYPEMAP,getQAttribute(VALUE),"detector type") );
+					ion_d.setType( (IonDetector::Type) str2enum_(TYPEMAP,getAttributeAsString(VALUE),"detector type") );
 				}
 				break;
 			case RESOLUTION:
-				if (getAttribute(CATEGORY)==enum2str_(TAGMAP,RESOLUTION))
+				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,RESOLUTION))
 				{
 					if (analyzer_ == 0) break;
 					analyzer_->setResolutionMethod(
 						(MassAnalyzer::ResolutionMethod)
-						str2enum_(RESMETHODMAP,getQAttribute(VALUE),"resolution method"));
+						str2enum_(RESMETHODMAP,getAttributeAsString(VALUE),"resolution method"));
 				}
 				break;
 			case DATAPROCESSING:
 					//optinal attributes
-					for (int i=0; i<attributes.length(); i++)
+					for (UnsignedInt i=0; i<attributes.getLength(); i++)
 					{
-						int att = str2enum_(ATTMAP,attributes.qName(i),"dataprocessing attribute");
-						QString value = attributes.value(i);
+						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"dataprocessing attribute");
+						String value = xercesc::XMLString::transcode(attributes.getValue(i));
 						switch (att)
 							{
 								case DEISOTOPED:
@@ -533,40 +522,72 @@ namespace OpenMS
 			case NAMEVALUE:
 				if (is_parser_in_tag_[INSTRUMENT])
 				{
-					setAddInfo(	exp_->getInstrument(), getQAttribute(NAME), getQAttribute(VALUE), "Instrument.Comment");
+					setAddInfo(	exp_->getInstrument(), getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
 				}
 				else if (is_parser_in_tag_[SCAN])
 				{
-					setAddInfo(	*spec_, getQAttribute(NAME), getQAttribute(VALUE), "Instrument.Comment");
+					setAddInfo(	*spec_, getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
 				}
 				else
 				{
-					warning(QXmlParseException(QString("Unhandled tag %2.\n").arg(enum2str_(TAGMAP,NAMEVALUE).c_str())));
+					std::cout << " Warning Unhandled tag: \"" << enum2str_(TAGMAP,NAMEVALUE) << "\"" << std::endl;
 				}
 				break;
 			case PROCESSING:
-				setAddInfo(exp_->getProcessingMethod(),
-						QString("%1#%2").arg(getQAttribute(NAME)).arg( getQAttribute(TYPE)),
-						getQAttribute(VALUE), "Processing.Comment");
+				setAddInfo(exp_->getProcessingMethod(), getAttributeAsString(NAME) + "#" + getAttributeAsString(TYPE),
+						getAttributeAsString(VALUE), "Processing.Comment");
 
 		}
-
-		return true;
+		
+		//std::cout << " -- !Start -- " << std::endl;
 	}
 
 
 	template <typename MapType>
-	bool MzXMLHandler<MapType>::endElement( const QString & /*uri*/,
-	const QString & /*local_name*/,	const QString & qname )
+	void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-		int tag = str2enum_(TAGMAP,qname,"closing tag"); // index of current tag
+  	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
+  	
+		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
 		is_parser_in_tag_[tag] = false;
 
 		if (tag==INSTRUMENT && analyzer_)
 		{
 			analyzer_ = 0;
 		}
-		return true;
+		
+		if (tag==PEAKS)
+		{
+			if (precision_==DOUBLE)		//precision 64
+			{
+				double* data = decoder_.decodeDoubleCorrected(char_rest_.c_str(), char_rest_.size());
+				char_rest_ = "";
+				//push_back the peaks into the container
+				for (Size n = 0 ; n < ( 2 * peak_count_) ; n += 2)
+				{
+					
+					peak_->getPosition()[0] = data[n];
+					peak_->setIntensity(data[n+1]);
+ 					++peak_;
+ 				}
+			}
+			else											//precision 32
+			{
+				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
+				char_rest_ = "";
+				//push_back the peaks into the container
+				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
+				{
+					//std::cout << "n  : " << n  << " -> " << data[n] << std::endl;
+					//std::cout << "n+1: " << n+1  << " -> " << data[n+1] << std::endl;
+					
+					peak_->getPosition()[0] = data[n];
+					peak_->setIntensity(data[n+1]);
+     			++peak_;
+				}
+			}
+		}
+		//std::cout << " -- Ende -- " << std::endl;
   }
 
 	template <typename MapType>
@@ -610,7 +631,7 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(QXmlParseException(QString("Warning: mzXML supports only one analyzer! Skipping the other %1 mass analyzers.\n").arg(analyzers.size()-1)));
+				std::cout << " Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
 			}
 			os << "\t\t\t<msDetector category=\"msDetector\" value=\""
 				 << enum2str_(TYPEMAP,inst.getIonDetector().getType()) << "\"/>\n";
@@ -620,8 +641,8 @@ namespace OpenMS
 				name = inst.getMetaValue("#InstSoftware").toString(),
 				version = inst.getMetaValue("#InstSoftwareVersion").toString();
 				String str = inst.getMetaValue("#InstSoftwareTime").toString();
-				QString time(str);
-				time.replace(" ","T");
+				String time(str);
+				time.replace(' ', 'T');
 				os << "\t\t\t<software type=\"" << type
 					 << "\" name=\"" << name
 					 << "\" version=\"" << version
@@ -640,12 +661,13 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(QXmlParseException(QString("Warning: mzXML supports only one analyzer! Skipping the other %1 mass analyzers.\n").arg(analyzers.size()-1)));
+				std::cout << "Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
 			}
 			
 			if ( cexp_->getContacts().size()>0 )
 			{
 				const ContactPerson& cont = cexp_->getContacts()[0];
+				
 				os << "\t\t\t<operator first=\"";
 				std::vector<String> tmp;
 				if (cont.getName().split(',',tmp))
@@ -705,8 +727,8 @@ namespace OpenMS
 		{
 			String tmp;
 			software.getCompletionTime().get(tmp);
-			QString qtmp(tmp);
-			qtmp.replace(" ","T");
+			String qtmp(tmp);
+			qtmp.replace(' ', 'T');
 			os << "\" completionTime=\"" << qtmp;
 		}
 		os << "\"/>\n";

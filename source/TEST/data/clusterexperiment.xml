@@ -14,7 +14,7 @@
     </SimFunc>
     <ClustFunc  name ="LinkageCluster">
       <info>complete,average and single Linkage</info>
-      <param name ="cutoff" value = "0.4"/>
+      <param sdfgsdfg ="cutoff" fgsdfg = "0.4"/>
       <param name ="linkage" value = "2"/>
       <param name ="massdiff" value = "3"/>
       <param name ="split" value = "0"/>

@@ -29,10 +29,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
+
 #include <fstream>
-
-#include <qxml.h>
-
 #include <vector>
 
 namespace OpenMS 
@@ -71,11 +69,8 @@ namespace OpenMS
       					ProteinIdentification*				protein_identification, 
       					std::vector<Identification>* 	identifications, 
       					std::vector<float>* 					precursor_retention_times,
-      					std::vector<float>* 					precursor_mz_values)  	
-      							const throw (Exception::FileNotFound, 
-  							 								 Exception::FileNotReadable, 
-  							 								 Exception::FileEmpty,
-  							 								 Exception::ParseError);
+      					std::vector<float>* 					precursor_mz_values
+      				 ) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
   };
  

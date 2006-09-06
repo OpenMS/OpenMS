@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MZDATAFILE_H
@@ -29,6 +29,11 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
+
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <fstream>
 
@@ -55,29 +60,52 @@ namespace OpenMS
       	@p map has to be a MSExperiment or have the same interface.
       */
       template <typename MapType>
-      void load(const String& filename, MapType& map)
-			throw (Exception::FileNotFound,Exception::ParseError)
-			{
-			  //try to open file
-				QFile qfile(filename.c_str());
-				if (!qfile.exists())
+      void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+      {
+      	//try to open file
+				if (!TextFile::exists(filename))
+		    {
+		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		    }
+				
+				// initialize parser
+				try 
 				{
-					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,filename);
+					xercesc::XMLPlatformUtils::Initialize();
 				}
+				catch (const xercesc::XMLException& toCatch) 
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+			  }
 
-				QXmlSimpleReader parser;
-				srand(static_cast<unsigned>(time(0)));
-				parser.setFeature("http://xml.org/sax/features/namespaces",false);
-				parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+				
 				map = MapType();  // clear map
-
 				Internal::MzDataHandler<MapType> handler(map);
-				parser.setContentHandler(&handler);
-				parser.setErrorHandler(&handler);
-
-				QXmlInputSource source( qfile );
-				parser.parse(source);
+				
+				parser->setContentHandler(&handler);
+				parser->setErrorHandler(&handler);
+				
+				xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+				try 
+        {
+        	parser->parse(source);
+        	delete(parser);
+        }
+        catch (const xercesc::XMLException& toCatch) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+        }
+        catch (const xercesc::SAXParseException& toCatch) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+        }
+        catch (...) 
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+        }
 			}
 
       /**
@@ -92,8 +120,7 @@ namespace OpenMS
 				std::ofstream os(filename.c_str());
 				if (!os)
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-																							__PRETTY_FUNCTION__,filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,filename);
 		    }
 
 				//read data and close stream

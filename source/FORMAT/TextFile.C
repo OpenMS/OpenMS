@@ -179,5 +179,18 @@ namespace OpenMS
 		return searchSuffix(begin(),text,trim);		
 	}
 
+	bool TextFile::exists(const String& file)
+	{
+		fstream fin;
+		fin.open(file.c_str(),ios::in);
+		if( fin.is_open())
+		{
+			fin.close();
+			return true;
+		}
+		fin.close();
+		return false;
+	}
+
 } // namespace OpenMS
 

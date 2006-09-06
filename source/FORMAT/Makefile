@@ -40,24 +40,24 @@ CPP_SOURCES= \
 	DTA2DFile.C\
 	PersistenceManager.C\
 	PersistentObject.C\
-	Param.C\
 	MascotInfile.C\
 	MascotOutfile.C\
 	InspectFile.C\
 	InspectInfile.C\
 	InspectOutfile.C\
 	TextFile.C\
-	MzXMLFile.C\
-	MzDataFile.C\
 	UniqueIdGenerator.C\
+	RTTI.C\
+	FASTAFile.C\
+	FileHandler.C\
+	MzXMLFile.C\
+	Param.C\
+	MzDataFile.C\
 	AnalysisXMLFile.C\
 	DFeatureMapFile.C\
 	DFeaturePairsFile.C\
-	DGridFile.C\
-	RTTI.C\
-	FASTAFile.C\
 	MascotXMLFile.C\
-	FileHandler.C
+	DGridFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

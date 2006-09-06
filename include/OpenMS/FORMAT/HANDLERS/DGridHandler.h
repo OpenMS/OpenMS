@@ -45,6 +45,8 @@
 #include <valarray>
 #include <string>
 
+#include <xercesc/sax2/Attributes.hpp>
+
 namespace OpenMS
 {
 	namespace Internal
@@ -111,33 +113,39 @@ namespace OpenMS
       ///
       virtual ~DGridHandler()  { }     
       //@}
-      
-      /// This function is called for each opening XML tag in the file.
-      virtual bool startElement(const QString & /*uri*/, const QString & /*local_name*/,
-																const QString & qname, const QXmlAttributes & attributes )
+
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   		{
-  			int tag = useMap_(TAGMAP,qname,false,"opening tag");
+  			
+  			const XMLCh* xml_name = xercesc::XMLString::transcode("name");
+  			const XMLCh* xml_value = xercesc::XMLString::transcode("value");
+  			
+  			int tag = useMap_(TAGMAP,xercesc::XMLString::transcode(qname),false,"opening tag");
 				in_tag_[tag] = true;
 				
 				switch(tag) 
 				{
 					case CELL: 				cell_           = new DGridCell<D>(); break;
-					case FPOSITION:		current_fcoord_ = asUnsignedInt_(attributes.value("dim")); break;
-					case SPOSITION:   current_scoord_ = asUnsignedInt_(attributes.value("dim")); break;
+					case FPOSITION:		current_fcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
+					case SPOSITION:   current_scoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
 		  		case PARAM:
-		  				if (!attributes.value("name").isEmpty() && !attributes.value("value").isEmpty() ) 
-		  				{
-		  					param_->setValue(attributes.value("name").ascii(),attributes.value("value").ascii());
-		  				}
-		  				break;
+	  				if (!(attributes.getIndex(xml_name)==-1) && !(attributes.getIndex(xml_value)==-1) ) 
+	  				{
+	  					param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xml_name)),xercesc::XMLString::transcode(attributes.getValue(xml_value)));
+	  				}
+	  				break;
 		  		case MAPPING:
-		  			if (!attributes.value("name").isEmpty())
+		  			if (!(attributes.getIndex(xml_name)==-1))
 		  			{
-		  				String name = attributes.value("name").ascii();
+		  				String name = xercesc::XMLString::transcode(attributes.getValue(xml_name));
 		  				typename std::map<String,DBaseMapping<1>* >::const_iterator cit = mapping_instances.find(name);
 		  				if (cit == mapping_instances.end())
 		  				{
-								error(QXmlParseException(QString("Error! This mapping type has not been registred with the XML Handler: %1").arg(name.c_str())));
+								const xercesc::Locator* loc;
+								setDocumentLocator(loc);
+								String message = String("Error! This mapping type has not been registred with the XML Handler: ")+name;
+								error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc));
 							}	
 							else
 							{
@@ -147,13 +155,10 @@ namespace OpenMS
 		  			} // end if (!attributes..)
 		  			break;
 		  		}
-		  		
-					return true;
 			}
 			
-		  /// This function is called by the parser for each chunk of
-		  /// characters between two tags.
-      virtual bool characters( const QString & chars ) 
+		  // Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int /*length*/)
       {
       	for (Index i=0; i<TAG_NUM; i++) 
       	{
@@ -164,25 +169,23 @@ namespace OpenMS
 							{
 								case FPOSITION:
 									tmp = cell_->min();
-									tmp[current_fcoord_] = asDouble_(chars);
+									tmp[current_fcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
 									cell_->setMin(tmp); 
 									break;
 								case SPOSITION:
 									tmp = cell_->max();
-									tmp[current_scoord_] = asDouble_(chars);
+									tmp[current_scoord_] = asDouble_(xercesc::XMLString::transcode(chars));
 									cell_->setMax(tmp);  
 									break;
 							}
 						}
       	}
-				return true;
       }
       
-      /// This function is called for each closing tag in the XML file.
-      bool endElement( const QString & /*uri*/, const QString & /*local_name*/,
-															 const QString & qname )
+      // Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	  	{
-	  		int tag = useMap_(TAGMAP,qname,false,"closing tag");
+	  		int tag = useMap_(TAGMAP,xercesc::XMLString::transcode(qname),false,"closing tag");
 				in_tag_[tag] = false;
 				switch(tag) 
 				{
@@ -196,9 +199,7 @@ namespace OpenMS
 						delete param_;
 						registerMappings_();
 						break;
-				}  
-				
-				return true;
+				}
   		}
       
   		/// Print the contents to a stream
@@ -267,7 +268,7 @@ namespace OpenMS
 		
 		std::vector<String> tagsVector_;	
 				
-		/// Maps to assoziate QStrings with enumeration values
+		/// Maps to assoziate Strings with enumeration values
 		enum MapType {	TAGMAP };
 		typedef std::map<std::string,int> Map;
 		static const int MAP_NUM = 1;
@@ -311,18 +312,24 @@ namespace OpenMS
 		
 		/// @brief Find value in the given map
 		/// if not found: fatal error or warning message
-		inline int useMap_(MapType type, QString value, bool fatal=true, const char* message="")
+		inline int useMap_(MapType type, String value, bool fatal=true, const char* message="")
 		{
-			Map::const_iterator it =  maps[type].find(value.ascii());
+			Map::const_iterator it =  maps[type].find(value);
 			if (it == maps[type].end())
 			{
 				if (fatal)
 				{
-					error(QXmlParseException(QString("Error in enumerated value \"%1\" parsed by %2 ").arg(value).arg(file_)));
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("Error in enumerated value \"") + value + "\" parsed by " + file_;
+					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				else if (message != "")
 				{
-					warning(QXmlParseException(QString("Unhandled %3 \"%1\" parsed by %2 \n").arg(value).arg(file_).arg(message)));
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					String message = String("Unhandled ") + message + "\"" + value + "\" parsed by " + file_;
+					warning(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 			}	
 			else 

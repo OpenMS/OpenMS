@@ -85,32 +85,22 @@ namespace OpenMS
       									 const ContactPerson& contact_person,
       									 const std::map<String, double>& predicted_retention_times,
       									 DoubleReal predicted_sigma);
-      /// Copy constructor
-      AnalysisXMLHandler(const AnalysisXMLHandler& source);
+      
       /// Destructor
       ~AnalysisXMLHandler();
-      
-      /// Assignment operator
-      AnalysisXMLHandler& operator = (const AnalysisXMLHandler& source);
-      
-      /// Equality operator
-      bool operator == (const AnalysisXMLHandler& source) const;
-      
-      /// Equality operator
-      bool operator != (const AnalysisXMLHandler& source) const;
       
       /// Writes the xml file to the ostream 'os'
       void writeTo(std::ostream& os);
       	
-      /// The method which is invoked when an opening tag is parsed
-      virtual bool startElement(const QString & uri, const QString & local_name,
-												const QString & qname, const QXmlAttributes & attributes );
-			/// The method which is invoked when an closing tag is parsed
-      virtual bool endElement( const QString & uri, const QString & local_name,
-											 const QString & qname ); 
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			
-			/// The method which is invoked when the information enclosed by a tag is parsed			
-		  bool characters( const QString & chars );
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int /*length*/);
+
 
     protected:
       std::vector<ProteinIdentification>* protein_identifications_;

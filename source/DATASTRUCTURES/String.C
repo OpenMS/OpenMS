@@ -31,6 +31,7 @@
 #include <iostream>
 #include <sstream>
 #include <limits>
+#include <algorithm>
 
 using namespace std;
 
@@ -547,6 +548,10 @@ namespace OpenMS
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) tolower);
 	}
 
+	void String::replace(char from, char to)
+	{
+		std::replace(this->begin(), this->end(), from, to);
+	}
 
 } // namespace OpenMS
 

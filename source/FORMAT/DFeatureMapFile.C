@@ -26,8 +26,7 @@
 
 #include<OpenMS/FORMAT/DFeatureMapFile.h>
 
-namespace OpenMS {
-	
-	// not much going on here...	
+namespace OpenMS 
+{
 	
 }

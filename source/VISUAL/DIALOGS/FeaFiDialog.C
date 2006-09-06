@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Id: FeaFiDialog.C,v 1.4 2006/06/09 14:46:55 marc_sturm Exp $
 // $Author: marc_sturm $
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 // OpenMS includes

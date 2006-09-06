@@ -26,12 +26,16 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <iostream>
 
+
+using namespace xercesc;
 using namespace std;
 
 namespace OpenMS 
@@ -47,45 +51,34 @@ namespace OpenMS
 	  	
 	}
 
-  void MascotXMLFile::load(const String& filename,
-  												 ProteinIdentification* protein_identification, 
-  												 vector<Identification>* identifications, 
-  												 vector<float>* precursor_retention_times,
-  												 vector<float>* precursor_mz_values)
-  	const throw (Exception::FileNotFound, 
-  							 Exception::FileNotReadable, 
-  							 Exception::FileEmpty,
-  							 Exception::ParseError)
+  void MascotXMLFile::load(const String& 								filename,
+						      					ProteinIdentification*				protein_identification, 
+						      					std::vector<Identification>* 	identifications, 
+						      					std::vector<float>* 					precursor_retention_times,
+						      					std::vector<float>* 					precursor_mz_values
+						      				 ) const throw (Exception::FileNotFound, Exception::ParseError)
   {
-  	vector<PeptideHit> 									peptide_hits;
-  	vector<float>::iterator 						rt_it;
-  	vector<float>::iterator							mz_it;
-  	vector<Identification>::iterator 		id_it;
-  	
   	//try to open file
-		QFileInfo file_info;
-		file_info.setFile(filename.c_str());
-    if (!file_info.exists())
+		if (!TextFile::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
+		
+		// initialize parser
+		try 
+		{
+			xercesc::XMLPlatformUtils::Initialize();
+		}
+		catch (const xercesc::XMLException& toCatch) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	  }
 
-    if (!file_info.isReadable())
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-    if (file_info.size() == 0)
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		QFile file(filename.c_str());
-		QXmlSimpleReader parser;
-		srand(static_cast<unsigned>(time(0)));
-		parser.setFeature("http://xml.org/sax/features/namespaces",false);
-		parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
+		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-
-		protein_identification->clear();
+		protein_identification->clear();     // clear information
 		identifications->clear();  					 // clear information
 		precursor_retention_times->clear();  // clear information
 		precursor_mz_values->clear();  			 // clear information
@@ -94,23 +87,34 @@ namespace OpenMS
 																			 identifications,
 															 				 precursor_retention_times, 
 															 				 precursor_mz_values);
-		parser.setContentHandler(&handler);
-		parser.setErrorHandler(&handler);
 
-		QXmlInputSource source( file );
-		try
-		{
-			parser.parse(source);
-  	}
-		catch(exception& e)
-		{
-			cout << e.what();
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Parse error");
-		}
+
+		parser->setContentHandler(&handler);
+		parser->setErrorHandler(&handler);
 		
-		id_it = identifications->begin();
-		rt_it = precursor_retention_times->begin();
-		mz_it = precursor_mz_values->begin();
+		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		try 
+    {
+    	parser->parse(source);
+    	delete(parser);
+    }
+    catch (const xercesc::XMLException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (const xercesc::SAXParseException& toCatch) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+    }
+    catch (...) 
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+    }
+
+  	vector<PeptideHit> 									peptide_hits;
+  	vector<float>::iterator 						rt_it = precursor_retention_times->begin();
+  	vector<float>::iterator							mz_it = precursor_mz_values->begin();
+  	vector<Identification>::iterator 		id_it = identifications->begin();
 		
 		/// Since the mascot xml can contain "peptides" without sequences the identifications 
 		/// without any real peptide hit are removed as well as the corresponding mz and rt values.
@@ -133,7 +137,8 @@ namespace OpenMS
 				++rt_it;
 				++mz_it;
 			}
-		}  
+		}         
+      
   }  					 
   					 
 } // namespace OpenMS

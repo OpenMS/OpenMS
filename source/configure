@@ -864,7 +864,6 @@ Optional Features:
   --disable-fftw-double   disable support for double precision in FFT code
   --disable-fftw-longdbl  disable support for long double precision in FFT code
   --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)
-  --disable-xerces        disable the use of libXERCES (needed for parsing XML files)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1777,11 +1776,6 @@ if test "${with_libsvm_libs+set}" = set; then
   withval="$with_libsvm_libs"
 
 fi;
-# Check whether --enable-xerces or --disable-xerces was given.
-if test "${enable_xerces+set}" = set; then
-  enableval="$enable_xerces"
-
-fi;
 
 # Check whether --with-xerces-incl or --without-xerces-incl was given.
 if test "${with_xerces_incl+set}" = set; then
@@ -2110,15 +2104,11 @@ else
 fi
 
 # support for XERCES
-if test "$with_xerces" = "no" -o "$enable_xerces" = "no"; then
-  XERCES_SUPPORT=false
-else
-  XERCES_SUPPORT=true
-  cat >>confdefs.h <<\_ACEOF
+XERCES_SUPPORT=true
+cat >>confdefs.h <<\_ACEOF
 #define XERCES_DEF 1
 _ACEOF
 
-fi
 
 if test "$with_xerces_incl" != "" ; then
   XERCES_INCPATH="${with_xerces_incl}"

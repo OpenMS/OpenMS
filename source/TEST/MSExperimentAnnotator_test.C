@@ -32,7 +32,6 @@
 
 #include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPosition.h>
@@ -50,7 +49,6 @@ using namespace std;
 
 MSExperimentAnnotator annotator;
 MSExperimentAnnotator* ptr;
-MzXMLFile file;
 MSExperiment< DPeak<1> > experiment;
 vector<Identification> identifications; 
 vector<ProteinIdentification> protein_identifications; 

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_SCHEMAHANDLER_H
@@ -34,7 +34,6 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <map>
-#include <qstring.h>
 
 namespace OpenMS
 {
@@ -89,14 +88,15 @@ namespace OpenMS
 			/// index of schema from XMLSchemes.h used for Handler
 			UnsignedInt schema_;
 
-			/// Find the enum-value that corresponds to the string @p value in map
-			/// with index @p index
-			inline UnsignedInt str2enum_(UnsignedInt index, QString value, const char* message="")
+			/// Find the enum-value that corresponds to the string @p value in map with index @p index
+			inline UnsignedInt str2enum_(UnsignedInt index, const String& value, const char* message="")
 			{
-				String2EnumMap::const_iterator it =  str2enum_array_[index].find(value.ascii());
+				String2EnumMap::const_iterator it =  str2enum_array_[index].find(value);
 				if (it == str2enum_array_[index].end()) // no enum-value for string defined
 				{  
-						warning(QXmlParseException(QString("Unhandled %3 \"%1\" parsed by %2").arg(value).arg(file_).arg(message)));
+					const xercesc::Locator* loc;
+					setDocumentLocator(loc);
+					std::cout << "Warning: Unhandled " << message << " \"" << value << "\" parsed by " << file_ << std::endl;
 				}	
 				else
 				{
@@ -110,7 +110,7 @@ namespace OpenMS
 
 					Just for convenience, in consistency with str2enum_().
 			*/
-			inline String enum2str_(UnsignedInt index, UnsignedInt value)
+			inline const String& enum2str_(UnsignedInt index, UnsignedInt value)
 			{
 				return enum2str_array_[index][value];
 			}
@@ -136,11 +136,10 @@ namespace OpenMS
 			}
 
 		/// Add name, value and description to a given MetaInfo object
-		inline void setAddInfo(	MetaInfoInterface& info, QString name,
-														QString value, String description)
+		inline void setAddInfo(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
 		{
-			info.metaRegistry().registerName(name.ascii(), description);
-			info.setMetaValue(name.ascii(),value.ascii());
+			info.metaRegistry().registerName(name, description);
+			info.setMetaValue(name,value);
 		}
 
 		/**  @brief write cvsParamType element containing floats to stream */
@@ -153,7 +152,7 @@ namespace OpenMS
 					Example:
 					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
 		*/
-		inline void writeCVS_(std::ostream& os, float value, String acc, String name, int indent=4)
+		inline void writeCVS_(std::ostream& os, float value, const String& acc, const String& name, int indent=4)
 		{
 			if (value)
 				os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:"
@@ -172,7 +171,7 @@ namespace OpenMS
 					Example:
 					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
 		*/
-		inline void writeCVS_(std::ostream& os, String value, String acc, String name, int indent=4)
+		inline void writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent=4)
 		{
 			if (value!="")
 				os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:"
@@ -192,8 +191,7 @@ namespace OpenMS
 					Example:
 					&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
 		*/
-		inline void writeCVS_(std::ostream& os, int value, int map,
-													String acc, String name, int indent=4)
+		inline void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4)
 		{
 			writeCVS_(os, enum2str_(map,value), acc, name, indent);
 		}

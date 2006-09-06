@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_XMLSCHEMES_H
@@ -37,13 +37,13 @@ namespace OpenMS
 		 	Schemata are sorted with respect to their version in descending order
 
 			A schema consists of an array of Strings.
-			<br>
+
 			The number of elements has to
 			be consistent with the number of Maps in the Handler class.
-			<br>
+
 			The first element has to contain the String the schema is
 			recognized by e.g. the name of the xsd-file or the version number.
-			<br>
+
 			All other Strings in the array are used to fill maps in the corresponding
 			Handler and contain strings separated by semicolons.
 			These strings correspond to values of enumerations (e.g. defined in the PSIOM classes).

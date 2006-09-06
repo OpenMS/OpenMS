@@ -24,11 +24,7 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeatureMapHandler.h>
-#include <vector>
-
-using std::vector;
 
 namespace OpenMS
 {	

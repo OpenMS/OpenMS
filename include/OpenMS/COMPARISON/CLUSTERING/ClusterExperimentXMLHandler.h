@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTEREXPERIMENTXMLHANDLER_H
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTEREXPERIMENTXMLHANDLER_H
 
@@ -37,26 +37,30 @@ namespace OpenMS
 
   class ClusterExperimentXMLHandler : public Internal::XMLHandler
   {
-  public:
-    ClusterExperimentXMLHandler(ClusterExperiment&);
+	  public:
+	  	//Constructor
+	    ClusterExperimentXMLHandler(ClusterExperiment&);
+			
+			//Destructor
+	    virtual ~ClusterExperimentXMLHandler();
 
-    virtual ~ClusterExperimentXMLHandler();
-
-		bool characters( const QString & chars );
-		
-		bool startElement(const QString & uri, const QString & local_name, 
-											const QString & qname, const QXmlAttributes & attributes );
-		
-		bool endElement( const QString & uri, const QString & local_name,
-										 const QString & qname ); 
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
  
   private:
     //not supported by xerces (and not useful)
     ClusterExperimentXMLHandler( const ClusterExperimentXMLHandler& source);
 
-    ClusterExperimentXMLHandler& operator=(const ClusterExperimentXMLHandler& source);
     //not possible because of the reference
     //and not necessary
+    ClusterExperimentXMLHandler& operator=(const ClusterExperimentXMLHandler& source);
+
     ClusterExperimentXMLHandler();
     ClusterExperiment& crun_;
     FactoryProduct* forwardconfigurablep_;

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jens Joachim $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
@@ -36,7 +36,11 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
 
+#include <sstream>
 
 namespace OpenMS
 {
@@ -65,8 +69,7 @@ namespace OpenMS
 					peak_count_(0),
 					spec_(0),	prec_(0),	acq_(0),
 					meta_id_(),
-					exp_sett_str_(),
-					exp_sett_(exp_sett_str_, IO_ReadWrite),
+					exp_sett_(),
 					decoder_(2),
 					spec_write_counter_(1)
 	  	{
@@ -81,7 +84,6 @@ namespace OpenMS
 					peak_count_(0),
 					spec_(0),	prec_(0),	acq_(0),
 					meta_id_(),
-					exp_sett_str_(),
 					exp_sett_(),
 					decoder_(2),
 					spec_write_counter_(1)
@@ -93,16 +95,15 @@ namespace OpenMS
       virtual ~MzDataHandler(){}
       //@}
 
-      /// This function is called for each closing tag in the XML file.
-      virtual bool endElement( const QString & uri, const QString & local_name,
-															 const QString & qname );
 
-			/// This function is called for each opening XML tag in the file.
-      virtual bool startElement(const QString & uri, const QString & local_name,
-																const QString & qname, const QXmlAttributes & attributes );
-
-			/// This function is called by the parser for each chunk of characters between two tags.
-      virtual bool characters( const QString & chars );
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, const unsigned int length);
 
   		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
@@ -163,16 +164,14 @@ namespace OpenMS
 			Precursor* prec_;
 			Acquisition* acq_;
 			String meta_id_;
-			std::vector<QString> data_;
-			std::vector<QString> array_name_;
+			std::vector<String> data_;
+			std::vector<String> array_name_;
 			std::vector<Precision> precisions_;
 			std::vector<Endian> endians_;
 			//@}
 
-			/// string with the xml containing the experimental settings
-			QString exp_sett_str_;
 			/// stream to collect experimental settings
-			QTextStream exp_sett_;
+			std::stringstream exp_sett_;
 
 			/// Decoder/Encoder for Base64-data in MzData
 			std::vector<Base64> decoder_;
@@ -189,7 +188,7 @@ namespace OpenMS
 			&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
 			@p name and sometimes @p value are defined in the MzData ontology.
 			*/
-			void cvParam_(QString name, QString value);
+			void cvParam_(const XMLCh* name, const XMLCh* value);
 
 			/** @brief read attributes of MzData's userParamType
 
@@ -197,17 +196,19 @@ namespace OpenMS
 			&lt;userParam name="@p name" value="@p value"/&gt;
 			@p name and @p value are stored as MetaValues
 			*/
-			void userParam_(QString name, QString value);
+			void userParam_(const XMLCh* name, const XMLCh* value);
 
 			/// write binary data to stream using the first decoder_ (previously filled)
-			inline void writeBinary(std::ostream& os, Size size, const QString& tag,
-															const QString& desc="", int id=-1)
+			inline void writeBinary(std::ostream& os, Size size, const String& tag, const String& desc="", int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (id>=0)
+				{
 					os << " id=\"" << id << "\"";
+				}
 				os << ">\n";
-				if (desc!=""){
+				if (desc!="")
+				{
 					os << "\t\t\t\t<arrayName>" << desc << "</arrayName>\n";
 				}
 				os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
@@ -216,13 +217,16 @@ namespace OpenMS
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 
-			inline double getDatum(const std::vector<void*>& ptrs,
-														 UnsignedInt member, UnsignedInt index)
+			inline double getDatum(const std::vector<void*>& ptrs,  UnsignedInt member, UnsignedInt index)
 			{
 				if (precisions_[member]==DOUBLE)
+				{
 					return static_cast<double*>(ptrs[member])[index];
+				}
 				else
+				{
 					return static_cast<float*>(ptrs[member])[index];
+				}
 			}
 
 			/**
@@ -247,14 +251,13 @@ namespace OpenMS
 
 		//--------------------------------------------------------------------------------
 
-
 		template <typename MapType>
-		bool MzDataHandler<MapType>::characters( const QString & chars )
+		void MzDataHandler<MapType>::characters(const XMLCh* const chars, const unsigned int /*length*/)
 		{
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << chars;
-				return true;
+				exp_sett_ << xercesc::XMLString::transcode(chars);
+				return;
 			}
 
 			// find the tag that the parser is in right now
@@ -267,86 +270,108 @@ namespace OpenMS
 	  				case COMMENTS:		// <comment> is child of more than one other tags
 							if (is_parser_in_tag_[ACQDESC])
 							{
-								spec_->setComment( chars.ascii() );
+								spec_->setComment( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
-								warning(QXmlParseException( QString("Unhandled tag \"comments\" with content: %1\n").arg(chars)) );
+								const xercesc::Locator* loc;
+								setDocumentLocator(loc);
+								String tmp = String("Unhandled tag \"comments\" with content:") + xercesc::XMLString::transcode(chars);
+								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
 							}
 							break;
 						case DATA:
-							data_.push_back(chars);		// store characters for later
+							data_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
 							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
 							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
 							break;
 					  case ARRAYNAME:
-							array_name_.push_back(chars);
-							if (spec_->getMetaInfoDescriptions().find(meta_id_)
-									!= spec_->getMetaInfoDescriptions().end())
+							array_name_.push_back(xercesc::XMLString::transcode(chars));
+							if (spec_->getMetaInfoDescriptions().find(meta_id_) != spec_->getMetaInfoDescriptions().end())
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].setName(chars.ascii());
+								spec_->getMetaInfoDescriptions()[meta_id_].setName(xercesc::XMLString::transcode(chars));
 							}
 							break;
 						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
-								warning(QXmlParseException(QString("Unhandled tag \"nameOfFile\" with content: %1\n").arg(chars)));
+								const xercesc::Locator* loc;
+								setDocumentLocator(loc);
+								String tmp = String("Unhandled tag \"nameOfFile\" with content: ") + xercesc::XMLString::transcode(chars);
+								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
 							}
 							break;
 						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
-								warning(QXmlParseException( QString("Unhandled tag \"pathToFile\" with content: %1\n").arg(chars)) );
+								const xercesc::Locator* loc;
+								setDocumentLocator(loc);
+								String tmp = String("Unhandled tag \"pathToFile\" with content: ") + xercesc::XMLString::transcode(chars);
+								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
 							}
 							break;
 						case FILETYPE: // <fileType> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( chars.ascii() );
+								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
-								warning(QXmlParseException(QString("Unhandled tag \"fileType\" with content: %1\n").arg(chars)));							 
+								const xercesc::Locator* loc;
+								setDocumentLocator(loc);
+								String tmp = String("Unhandled tag \"fileType\" with content: ") + xercesc::XMLString::transcode(chars);
+								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));						 
 							}				 
 							break;	
 					}
 				}
 			}
-			return true;
 		}
 
 		template <typename MapType>
-		bool MzDataHandler<MapType>::startElement(const QString & /*uri*/,
-																							const QString & /*local_name*/,	const QString & qname, const QXmlAttributes & attributes )
+		void MzDataHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
+			
+			//std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << '<' << qname;
-				Size n=attributes.count();
+				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
+				Size n=attributes.getLength();
 				for (Size i=0; i<n; ++i)
-					exp_sett_ << ' ' << attributes.qName(i) << "=\""	<< attributes.value(i) << '\"';
+				{
+					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
+				}
 				exp_sett_ << '>';
-				return true;
+				return;
 			}
 
-			int tag = str2enum_(TAGMAP,qname,"opening tag");	// index of current tag
+			int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 			is_parser_in_tag_[tag] = true;
 
 			// Do something depending on the tag
-			switch(tag) {
-			case DESCRIPTION: exp_sett_ << '<' << qname << '>'; break;
-			case CVPARAM:	cvParam_(attributes.value("name"),attributes.value("value")); break;
-		  case USERPARAM:	userParam_(attributes.value("name"),attributes.value("value")); break;
+			String tmp_type;
+			switch(tag) 
+			{
+			case DESCRIPTION: 
+				exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
+				break;
+			case CVPARAM:	
+				cvParam_(attributes.getValue(xercesc::XMLString::transcode("name")),attributes.getValue(xercesc::XMLString::transcode("value"))); 
+				break;
+		  case USERPARAM:	
+		  	userParam_(attributes.getValue(xercesc::XMLString::transcode("name")),attributes.getValue(xercesc::XMLString::transcode("value"))); 
+		  	break;
 			case SUPARRAYBINARY:
-				meta_id_ = attributes.value("id").ascii();
+				meta_id_ = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id")));
 				break;
 			case SPECTRUM:
 				exp_->insert(exp_->end(),SpectrumType());
@@ -355,15 +380,16 @@ namespace OpenMS
 				break;
 		  case SPECTRUMLIST:
 		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-		  	exp_->reserve( asSignedInt_(attributes.value("count")) );
+		  	exp_->reserve( asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count")))) );
 		  	//std::cout << Date::now() << " done" << std::endl;
 		  	break;
 			case ACQSPEC:
-				if  (attributes.value("spectrumType") == "CentroidMassSpectrum")
+				tmp_type = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("spectrumType")));
+				if  (tmp_type == "CentroidMassSpectrum")
 				{
 					spec_->setType(SpectrumSettings::PEAKS);
 				}
-				else if (attributes.value("spectrumType") == "ContinuumMassSpectrum")
+				else if (tmp_type == "ContinuumMassSpectrum")
 				{
 					spec_->setType(SpectrumSettings::RAWDATA);
 				}
@@ -372,50 +398,50 @@ namespace OpenMS
 					spec_->setType(SpectrumSettings::UNKNOWN);
 				}
 				
-				spec_->getAcquisitionInfo().setMethodOfCombination( attributes.value("methodOfCombination").ascii() );
+				spec_->getAcquisitionInfo().setMethodOfCombination( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("methodOfCombination"))) );
 				break;
 			case ACQUISITION:
 				{
 					spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
 					acq_ = &(spec_->getAcquisitionInfo().back());
-					acq_->setNumber(asSignedInt_(attributes.value("acqNumber")));
+					acq_->setNumber(asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("acqNumber")))));
 				}	
 				break;
 			case SPECTRUMINSTRUMENT: case ACQINSTRUMENT:
-				spec_->setMSLevel(asSignedInt_(attributes.value("msLevel")));
-				if  (!attributes.value("mzRangeStart").isEmpty())
-					spec_->getInstrumentSettings().setMzRangeStart(
-																												 asDouble_(attributes.value("mzRangeStart"))
-																												);
-				if  (!attributes.value("mzRangeStop").isEmpty())
-					spec_->getInstrumentSettings().setMzRangeStop(
-																												asDouble_(attributes.value("mzRangeStop"))
-																											 );
+				spec_->setMSLevel(asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("msLevel")))));
+				if  (attributes.getIndex(xercesc::XMLString::transcode("mzRangeStart"))!=-1)
+				{
+					spec_->getInstrumentSettings().setMzRangeStart( asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzRangeStart"))) ));
+				}
+				if  (attributes.getIndex(xercesc::XMLString::transcode("mzRangeStop"))!=-1)
+				{
+					spec_->getInstrumentSettings().setMzRangeStop( asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzRangeStop"))) ));
+				}
 				break;
 			case PRECURSOR:
 				prec_ = &(spec_->getPrecursor());
-				//UNHANDLED: attributes.value("spectrumRef");
+				//UNHANDLED: "spectrumRef";
 				break;
 			case SUPDESC:
-				meta_id_ = attributes.value("supDataArrayRef").ascii();
+				meta_id_ = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("supDataArrayRef")));
 				break;
 			case DATA:
 				// store precision for later
-				precisions_.push_back((Precision)str2enum_(PRECISION,attributes.value("precision")));
-				endians_.push_back((Endian)str2enum_(ENDIAN,attributes.value("endian")));
+				precisions_.push_back((Precision)str2enum_(PRECISION,xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("precision")))));
+				endians_.push_back((Endian)str2enum_(ENDIAN,xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("endian")))));
 				if (is_parser_in_tag_[MZARRAYBINARY])
 				{
-					peak_count_ = asSignedInt_(attributes.value("length"));
+					peak_count_ = asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("length"))));
 					//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
 					spec_->getContainer().reserve(peak_count_);
 				}
 				break;
 			case MZDATA:
 				{
-					QString s = attributes.value("version");
+					String s = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("version")));
 					for (UnsignedInt index=0; index<Schemes::MzData_num; ++index)
 					{
-						if (s!=schema_ && s.contains(Schemes::MzData[index][0].c_str()))
+						if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
 						{
 							schema_ = index;
 							// refill maps with older schema
@@ -427,21 +453,25 @@ namespace OpenMS
 				}
 				break;
 			}
-			return true;
 		}
 
 
 		template <typename MapType>
-		bool MzDataHandler<MapType>::endElement
-		( const QString & /*uri*/, const QString & /*local_name*/, const QString & qname )
+		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
+			
+			//std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << "</" << qname << ">\n";
-				if (qname != enum2str_(TAGMAP,DESCRIPTION))	return true;
+				exp_sett_ << "</" << xercesc::XMLString::transcode(qname) << ">\n";
+				if (xercesc::XMLString::transcode(qname) != enum2str_(TAGMAP,DESCRIPTION))	
+				{
+					return;
+				}
 			}
 
-	  	int tag = str2enum_(TAGMAP,qname,"closing tag");  // index of current tag
+	  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
 			is_parser_in_tag_[tag] = false;
 
 			// Do something depending on the tag
@@ -449,17 +479,22 @@ namespace OpenMS
 			case DESCRIPTION:
 				// delegate control to ExperimentalSettings handler
 				{
-					QXmlSimpleReader parser;
-					srand(static_cast<unsigned>(time(0)));
-					parser.setFeature("http://xml.org/sax/features/namespaces",false);
-					parser.setFeature("http://xml.org/sax/features/namespace-prefixes", false);
-
+					// initialize parser
+					xercesc::XMLPlatformUtils::Initialize();
+					xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+					
 					MzDataExpSettHandler handler( *((ExperimentalSettings*)exp_));
-					parser.setContentHandler(&handler);
-					parser.setErrorHandler(&handler);
-					QXmlInputSource source;
-					source.setData(exp_sett_str_);
-					parser.parse(source);
+					handler.resetErrors();
+					parser->setContentHandler(&handler);
+					parser->setErrorHandler(&handler);
+					
+					String tmp(exp_sett_.str().c_str());
+					
+					xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
+	      	parser->parse(source);
+	      	delete(parser);
 				}
 				break;
 			case SPECTRUM:
@@ -470,74 +505,85 @@ namespace OpenMS
 				endians_.clear();
 				break;
 			}
-			return true;
 		}
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::userParam_(QString name, QString value)
+		void MzDataHandler<MapType>::userParam_(const XMLCh* name, const XMLCh* value)
 		{
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
-				setAddInfo(spec_->getInstrumentSettings(),
-									 name,value,"SpectrumSettings.SpectrumInstrument.UserParam");
+			{
+				setAddInfo(spec_->getInstrumentSettings(), xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"SpectrumSettings.SpectrumInstrument.UserParam");
+			}
 			else if(is_parser_in_tag_[ACQUISITION])
-				setAddInfo(*acq_,name,value,"SpectrumSettings.AcqSpecification.Acquisition.UserParam");
+			{
+				setAddInfo(*acq_,xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"SpectrumSettings.AcqSpecification.Acquisition.UserParam");
+			}
 			else if (is_parser_in_tag_[IONSELECTION])
-				setAddInfo(spec_->getPrecursorPeak(),name,value,
-									 "PrecursorList.Precursor.IonSelection.UserParam");
+			{
+				setAddInfo(spec_->getPrecursorPeak(),xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value), "PrecursorList.Precursor.IonSelection.UserParam");
+			}
 			else if (is_parser_in_tag_[ACTIVATION])
-				setAddInfo(*prec_,name,value,"PrecursorList.Precursor.Activation.UserParam");
+			{
+				setAddInfo(*prec_,xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"PrecursorList.Precursor.Activation.UserParam");
+			}
 			else if (is_parser_in_tag_[SUPDATADESC])
 			{
-				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_],
-									 name,value,"Spectrum.SupDesc.SupDataDesc.UserParam");
+				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_], xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"Spectrum.SupDesc.SupDataDesc.UserParam");
 			}
 			else
 			{
-				warning(QXmlParseException(QString("Invalid userParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)));
+				const xercesc::Locator* loc;
+				setDocumentLocator(loc);
+				String tmp = String("Invalid userParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"";
+				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));		
 			}													 
 		}
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::cvParam_(QString name, QString value)
+		void MzDataHandler<MapType>::cvParam_(const XMLCh* name, const XMLCh* value)
 		{
-			int ont = str2enum_(ONTOLOGYMAP,name,"cvParam elment"); // index of current ontology term
+			int ont = str2enum_(ONTOLOGYMAP,xercesc::XMLString::transcode(name),"cvParam elment"); // index of current ontology term
 
 			std::string error = "";
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
 				InstrumentSettings& sett = spec_->getInstrumentSettings();
-				switch (ont){
-				case SCANMODE:
-					sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP,value) );
-					break;
-				case TIMEMIN:
-					spec_->setRetentionTime(asFloat_(value)*60); //Minutes to seconds
-					break;
-				case TIMESEC:
-					spec_->setRetentionTime(asFloat_(value));
-					break;
-				case POLARITY:
-					sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP,value) );
-					break;
-			  default:       error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
+				switch (ont)
+				{
+					case SCANMODE:
+						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP,xercesc::XMLString::transcode(value)) );
+						break;
+					case TIMEMIN:
+						spec_->setRetentionTime(asFloat_(xercesc::XMLString::transcode(value))*60); //Minutes to seconds
+						break;
+					case TIMESEC:
+						spec_->setRetentionTime(asFloat_(xercesc::XMLString::transcode(value)));
+						break;
+					case POLARITY:
+						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP,xercesc::XMLString::transcode(value)) );
+						break;
+				  default:      
+				  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
 				}
 			}
-			else if (is_parser_in_tag_[IONSELECTION]) {
-				switch (ont){
-				case MZ_ONT:
-					spec_->getPrecursorPeak().getPosition()[0] = asFloat_(value);
-					break;
-				case CHARGESTATE:
-					spec_->getPrecursorPeak().setCharge(asSignedInt_(value));
-					break;
-				case INTENSITY:
-					spec_->getPrecursorPeak().getIntensity() = asFloat_(value);
-					break;
-				case IUNITS:
-					setAddInfo(spec_->getPrecursorPeak(),"#IntensityUnits",value,
-										 "Precursor.IonSelection.IntensityUnits");
-					break;
-				default:          error = "PrecursorList.Precursor.IonSelection.UserParam";
+			else if (is_parser_in_tag_[IONSELECTION]) 
+			{
+				switch (ont)
+				{
+					case MZ_ONT:
+						spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(value));
+						break;
+					case CHARGESTATE:
+						spec_->getPrecursorPeak().setCharge(asSignedInt_(xercesc::XMLString::transcode(value)));
+						break;
+					case INTENSITY:
+						spec_->getPrecursorPeak().getIntensity() = asFloat_(xercesc::XMLString::transcode(value));
+						break;
+					case IUNITS:
+						setAddInfo(spec_->getPrecursorPeak(),"#IntensityUnits",xercesc::XMLString::transcode(value), "Precursor.IonSelection.IntensityUnits");
+						break;
+					default:
+						error = "PrecursorList.Precursor.IonSelection.UserParam";
 				}
 			}
 			else if (is_parser_in_tag_[ACTIVATION]) 
@@ -545,13 +591,13 @@ namespace OpenMS
 				switch (ont)
 				{
 					case METHOD:
-						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,value));
+						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,xercesc::XMLString::transcode(value)));
 						break;
 					case ENERGY: 
-						prec_->setActivationEnergy( asFloat_(value) );
+						prec_->setActivationEnergy( asFloat_(xercesc::XMLString::transcode(value)) );
 						break;
 					case EUNITS:
-						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,value));
+						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,xercesc::XMLString::transcode(value)));
 						break;
 					default:
 						error = "PrecursorList.Precursor.Activation.UserParam";
@@ -559,12 +605,18 @@ namespace OpenMS
 			}
 			else
 			{
-			  warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\"\n").arg(name).arg(value)) );
+				const xercesc::Locator* loc;
+				setDocumentLocator(loc);
+				String tmp = String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"";
+				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));		
 			}
 
 			if (error != "")
 			{
-				warning(QXmlParseException( QString("Invalid cvParam: name=\"%1\", value=\"%2\" in %3\n") .arg(name).arg(value).arg(error.c_str())) );
+				const xercesc::Locator* loc;
+				setDocumentLocator(loc);
+				String tmp = String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\" in " + error;
+				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));	
 			}
 		}
 
@@ -579,20 +631,24 @@ namespace OpenMS
 			{
 				if (precisions_[i]==DOUBLE)	// precision 64 Bit
 				{
-					if (endians_[i]==BIG){
-						ptrs[i] = static_cast<void*>(
-																				 decoder_[i].decodeDoubleCorrected(data_[i].ascii(), data_[i].length()));
-					}else{
-						ptrs[i] = static_cast<void*>(
-																				 decoder_[i].decodeDouble(data_[i].ascii(), data_[i].length()));
+					if (endians_[i]==BIG)
+					{
+						ptrs[i] = static_cast<void*>( decoder_[i].decodeDoubleCorrected(data_[i].c_str(), data_[i].length()));
 					}
-				}else{											// precision 32 Bit
-					if (endians_[i]==BIG){
-						ptrs[i] = static_cast<void*>(
-																				 decoder_[i].decodeFloatCorrected(data_[i].ascii(), data_[i].length()));
-					}else{
-						ptrs[i] = static_cast<void*>(
-																				 decoder_[i].decodeFloat(data_[i].ascii(), data_[i].length()));
+					else
+					{
+						ptrs[i] = static_cast<void*>( decoder_[i].decodeDouble(data_[i].c_str(), data_[i].length()));
+					}
+				}
+				else
+				{											// precision 32 Bit
+					if (endians_[i]==BIG)
+					{
+						ptrs[i] = static_cast<void*>(decoder_[i].decodeFloatCorrected(data_[i].c_str(), data_[i].length()));
+					}
+					else
+					{
+						ptrs[i] = static_cast<void*>(decoder_[i].decodeFloat(data_[i].c_str(), data_[i].length()));
 					}
 				}
 			}

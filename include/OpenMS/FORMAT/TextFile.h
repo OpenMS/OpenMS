@@ -122,6 +122,9 @@ namespace OpenMS
 				It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
     	*/
 			Iterator searchSuffix(const String& text, bool trim=false);
+
+			/// Static method used for testing if a @p file exists
+			static bool exists(const String& file);
   };
 
 } // namespace OpenMS
