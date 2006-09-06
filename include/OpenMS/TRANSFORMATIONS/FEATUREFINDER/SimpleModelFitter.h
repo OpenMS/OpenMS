@@ -33,6 +33,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 
 #include<iostream>  
 #include<fstream>   
@@ -41,57 +42,19 @@
 
 namespace OpenMS
 {
+
+#if 0
+
 	namespace Internal
 	{
-		/// Iterator adapter that makes operator*()
-		/// return intensity of the corresponding peak
-		struct IntensityIterator : IndexSet::const_iterator
-		{
-			typedef IndexSet::const_iterator IndexSetIter;
-			IntensityIterator ( IndexSetIter const & arg, FeaFiTraits* traits )
-				:IndexSetIter ( arg ), traits_(traits){}
-			FeaFiTraits::IntensityType operator * () const throw()	{
-				IndexSetIter it = *static_cast < IndexSetIter const * >(this);
-				return traits_->getPeakIntensity(*it);
-			}
-		 protected:
-			FeaFiTraits* traits_;
-		};
-
-		/// Iterator adapter that makes operator*()
-		/// return mz of the corresponding peak
-		struct MzIterator : IndexSet::const_iterator
-		{
-			typedef IndexSet::const_iterator IndexSetIter;
-			MzIterator ( IndexSetIter const & arg, FeaFiTraits* traits )
-				:IndexSetIter ( arg ), traits_(traits){}
-			FeaFiTraits::CoordinateType operator * () const throw()	{
-				IndexSetIter it = *static_cast < IndexSetIter const * >(this);
-				return traits_->getPeakMz(*it);
-			}
-		 protected:
-			FeaFiTraits* traits_;
-		};
-
-		/// Iterator adapter that makes operator*()
-		/// return retention time of the corresponding peak
-		struct PeakIterator : IndexSet::const_iterator
-		{
-			typedef IndexSet::const_iterator IndexSetIter;
-			PeakIterator ( IndexSetIter const & arg, FeaFiTraits* traits )
-				:IndexSetIter ( arg ), traits_(traits){}
-			FeaFiTraits::CoordinateType operator * () const throw()	{
-				IndexSetIter it = *static_cast < IndexSetIter const * >(this);
-				return traits_->getPeakRt(*it);
-			}
-		 protected:
-			FeaFiTraits* traits_;
-		};
 
 		/**	@brief Internal class for asymmetric distributions
 
 		Internal class for asymmetric distributions
 		used for consistency with BasisStatistic class
+
+		@todo Various performance improvements are possible, see code.
+		@todo Why not make this a "real" class in namespace OpenMS::Math ?
 		*/
 		class AsymmetricStatistics : public Math::BasicStatistics<>
 		{
@@ -133,6 +96,10 @@ namespace OpenMS
 					diff *= diff;
 					variance_ += *prob_iter * diff;
 
+					// TODO Improvements - to be discussed with maintainer - :
+					// Why not simply have two cases: < vs. >=  ?
+					// Factor 2 can be multiplied after (outside) summation loop.
+					// Compute mean_ +/- precision outside this loop.
 					const double precision = 0.0001;
 					if (*coord_iter < mean_-precision)
 					{
@@ -162,6 +129,7 @@ namespace OpenMS
 
 	}
 
+#endif
 
 	class BaseQuality;
 
@@ -267,7 +235,7 @@ namespace OpenMS
 		BaseQuality* quality_;
 		ProductModel<2> model2D_;
 		Math::BasicStatistics<> mz_stat_;
-		Internal::AsymmetricStatistics rt_stat_;
+		Math::AsymmetricStatistics<> rt_stat_;
 		double stdev_mz_, stdev_rt1_, stdev_rt2_;
 		PositionType min_, max_;
 	

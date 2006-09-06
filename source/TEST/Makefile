@@ -314,10 +314,10 @@ EXECUTABLES_TRANSFORMATIONS = \
 	SimpleModelFitter_test\
 	FeaFiTraits_test\
 	PeakPicker_test\
-	PeakPickerCWT_test\
 	ExtractSignalRegions_test\
 	Correlation_test\
-	FeatureFinder_test
+	FeatureFinder_test\
+	PeakPickerCWT_test\
 
 
 EXECUTABLES_ANALYSIS_ID =\

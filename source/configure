@@ -905,8 +905,8 @@ Optional Packages:
   --with-fftw-lib=DIR     libfftw is in DIR
   --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"
   --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"
-  --with-xerces-incl=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"
-  --with-xerces-libs=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"
+  --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"
+  --with-xerces-libs=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -20637,79 +20637,77 @@ echo "${ECHO_T}(${LIBSVM_DIR})" >&6
 echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 
 
-	_INCLUDES=
+	_LIBS=
 
 		if test "${LIBSVM_DIR2}" != "" ; then
-		_INCLUDES=${LIBSVM_DIR2}
+		_LIBS=${LIBSVM_DIR2}
 	fi
 
-	if test "${_INCLUDES}" = "" ; then
-		for i in ${LIBSVM_LIBPATH} /usr/include /opt/include ; do
-			if test -f "$i/svm.o" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/svm.o" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/svm.o" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-		if test "${FIND_KNOWS_PATH}" = false ; then
-			FIND_OPT="-name"
-			_TMP_FIND_NAME="svm.o"
-			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
+	if test "${_LIBS}" = "" ; then
+		for i in ${LIBSVM_LIBPATH} /usr/lib /opt/lib ; do
+			for j in $i/svm.o.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
 			done
-
-			FIND_ARG="\*${_TMP_FIND_NAME}\*"
-		else
-			FIND_OPT="-path"
-			FIND_ARG="\*svm.o\*"
-		fi
-
-		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-		for j in ${_TMP} ; do
-			if test "${_INCLUDES}" = "" ; then
-				_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-			fi
 		done
+	fi
 
-		if test "${_INCLUDES}" = "" ; then
-			_TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_INCLUDES}" = "" ; then
-					_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
+	if test "${_LIBS}" = "" ; then
+		for i in /usr/*/lib /opt/*/lib ; do
+			for j in $i/svm.o.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
+			done
+		done
+	fi
+
+	if test "${_LIBS}" = "" ; then
+		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+			for j in $i/svm.o.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
+			done
+		done
+	fi
+
+	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+		if test "${_LIBS}" = "" -a "${LIBSVM_LIBPATH}" != ""; then
+			for i in ${LIBSVM_LIBPATH} /dev/null; do
+				if test "${_LIBS}" = "" ; then
+					_TMP=`${FIND} $i -name "svm.o*" -print 2>/dev/null`
+					for j in ${_TMP} ; do
+						if test "${_LIBS}" = "" ; then
+							_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+						fi
+					done
 				fi
 			done
 		fi
 
-		if test "${_INCLUDES}" = "" -a "${LIBSVM_LIBPATH}" != ""; then
-			for i in ${LIBSVM_LIBPATH} /dev/null ; do
-				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-				for j in ${_TMP} ; do
-					if test "${_INCLUDES}" = "" ; then
-						_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-					fi
-				done
+		if test "${_LIBS}" = "" ; then
+			_TMP=`${FIND} /opt -name "svm.o*" -print 2>/dev/null`
+			for j in ${_TMP} ; do
+				if test "${_LIBS}" = "" ; then
+					_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+				fi
 			done
 		fi
+
+		if test "${_LIBS}" = "" ; then
+			_TMP=`${FIND} /usr -name "svm.o*" -print 2>/dev/null`
+			for j in ${_TMP} ; do
+				if test "${_LIBS}" = "" ; then
+					_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+				fi
+			done
+		fi
+
 	fi
 
-	LIBSVM_DIR2="${_INCLUDES}"
+	LIBSVM_DIR2="${_LIBS}"
 
 		if test "${LIBSVM_DIR2}" = "" ; then
       echo "$as_me:$LINENO: result: (not found!)" >&5
@@ -20933,8 +20931,8 @@ echo "${ECHO_T}Please specify the path to <xercesc/util/XMLString.hpp>" >&6
 echo "${ECHO_T}by passing the option --with-xerces-incl=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: XERCES is needed for retention time predition." >&5
-echo "${ECHO_T}XERCES is needed for retention time predition." >&6
+		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
+echo "${ECHO_T}XERCES is needed for XML parsing." >&6
 		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
 echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5
@@ -21057,8 +21055,8 @@ echo "${ECHO_T}The XERCES headers could not be found. Please specify the path to
 echo "${ECHO_T}by passing the option --with-xerces-incl=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: XERCES is needed for retention time predition." >&5
-echo "${ECHO_T}XERCES is needed for retention time predition." >&6
+		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
+echo "${ECHO_T}XERCES is needed for XML parsing." >&6
 		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
 echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5
@@ -21133,79 +21131,77 @@ echo "${ECHO_T}(${XERCES_DIR})" >&6
 echo $ECHO_N "checking for XERCES object file... $ECHO_C" >&6
 
 
-	_INCLUDES=
+	_LIBS=
 
 		if test "${XERCES_DIR2}" != "" ; then
-		_INCLUDES=${XERCES_DIR2}
+		_LIBS=${XERCES_DIR2}
 	fi
 
-	if test "${_INCLUDES}" = "" ; then
-		for i in ${XERCES_LIBPATH} /usr/include /opt/include ; do
-			if test -f "$i/libxerces-c.so" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/libxerces-c.so" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" ; then
-		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/libxerces-c.so" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
-
-	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-		if test "${FIND_KNOWS_PATH}" = false ; then
-			FIND_OPT="-name"
-			_TMP_FIND_NAME="libxerces-c.so"
-			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
+	if test "${_LIBS}" = "" ; then
+		for i in ${XERCES_LIBPATH} /usr/lib /opt/lib ; do
+			for j in $i/libxerces-c.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
 			done
-
-			FIND_ARG="\*${_TMP_FIND_NAME}\*"
-		else
-			FIND_OPT="-path"
-			FIND_ARG="\*libxerces-c.so\*"
-		fi
-
-		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-		for j in ${_TMP} ; do
-			if test "${_INCLUDES}" = "" ; then
-				_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-			fi
 		done
+	fi
 
-		if test "${_INCLUDES}" = "" ; then
-			_TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_INCLUDES}" = "" ; then
-					_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
+	if test "${_LIBS}" = "" ; then
+		for i in /usr/*/lib /opt/*/lib ; do
+			for j in $i/libxerces-c.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
+			done
+		done
+	fi
+
+	if test "${_LIBS}" = "" ; then
+		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+			for j in $i/libxerces-c.* ; do
+				if test -f "$j" -a "${_LIBS}" = ""; then
+					_LIBS="$i"
+				fi
+			done
+		done
+	fi
+
+	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+		if test "${_LIBS}" = "" -a "${XERCES_LIBPATH}" != ""; then
+			for i in ${XERCES_LIBPATH} /dev/null; do
+				if test "${_LIBS}" = "" ; then
+					_TMP=`${FIND} $i -name "libxerces-c*" -print 2>/dev/null`
+					for j in ${_TMP} ; do
+						if test "${_LIBS}" = "" ; then
+							_LIBS=`echo $j|${SED} "s/\/libxerces-c.*/\//"`
+						fi
+					done
 				fi
 			done
 		fi
 
-		if test "${_INCLUDES}" = "" -a "${XERCES_LIBPATH}" != ""; then
-			for i in ${XERCES_LIBPATH} /dev/null ; do
-				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-				for j in ${_TMP} ; do
-					if test "${_INCLUDES}" = "" ; then
-						_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-					fi
-				done
+		if test "${_LIBS}" = "" ; then
+			_TMP=`${FIND} /opt -name "libxerces-c*" -print 2>/dev/null`
+			for j in ${_TMP} ; do
+				if test "${_LIBS}" = "" ; then
+					_LIBS=`echo $j|${SED} "s/\/libxerces-c.*/\//"`
+				fi
 			done
 		fi
+
+		if test "${_LIBS}" = "" ; then
+			_TMP=`${FIND} /usr -name "libxerces-c*" -print 2>/dev/null`
+			for j in ${_TMP} ; do
+				if test "${_LIBS}" = "" ; then
+					_LIBS=`echo $j|${SED} "s/\/libxerces-c.*/\//"`
+				fi
+			done
+		fi
+
 	fi
 
-	XERCES_DIR2="${_INCLUDES}"
+	XERCES_DIR2="${_LIBS}"
 
 		if test "${XERCES_DIR2}" = "" ; then
       echo "$as_me:$LINENO: result: (not found!)" >&5
@@ -21218,8 +21214,8 @@ echo "${ECHO_T}The XERCES object file could not be found. Please specify the pat
 echo "${ECHO_T}by passing the option --with-xerces-lib=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: XERCES is needed for retention time predition." >&5
-echo "${ECHO_T}XERCES is needed for retention time predition." >&6
+		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
+echo "${ECHO_T}XERCES is needed for XML parsing." >&6
 		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
 echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5

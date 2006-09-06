@@ -50,6 +50,16 @@
 
 namespace OpenMS
 {
+	
+	namespace Internal
+	{
+		struct ExpFitPolyData
+		{
+			size_t n;
+			string profile;
+		};
+	}
+
 	using namespace Internal;
 	using namespace std;
 
@@ -58,13 +68,13 @@ namespace OpenMS
 	std::vector<double> signalDC_;
 
 	ExtendedModelFitter::ExtendedModelFitter()
-	: BaseModelFitter(),
-	 	model2D_(),
-		mz_stat_(),
-		rt_stat_(),
-		stdev_mz_(0), stdev_rt1_(0), stdev_rt2_(0),
-		min_(), max_(),
-		counter_(0)
+		: BaseModelFitter(),
+			model2D_(),
+			mz_stat_(),
+			rt_stat_(),
+			stdev_mz_(0), stdev_rt1_(0), stdev_rt2_(0),
+			min_(), max_(),
+			counter_(0)
 	{
 		name_ = ExtendedModelFitter::getName();
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
@@ -126,7 +136,7 @@ namespace OpenMS
 		else profile_ = (string)dv;
 	}
 
-  	DFeature<2> ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
+	DFeature<2> ExtendedModelFitter::fit(const IndexSet& set) throw (UnableToFit)
 	{
 		// not enough peaks to fit
 		if (set.size() < static_cast<Size>(param_.getValue("min_num_peaks:extended")))
@@ -150,8 +160,8 @@ namespace OpenMS
 											MzIterator(set.begin(),traits_) );
 
 		rt_stat_.update ( IntensityIterator(set.begin(),traits_),
-										 IntensityIterator(set.end(),traits_),
-										 PeakIterator(set.begin(),traits_) );
+											IntensityIterator(set.end(),traits_),
+											PeakIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
 		IndexSetIter it=set.begin();
@@ -242,18 +252,18 @@ namespace OpenMS
 			}
 		}
 		// Print number of selected peaks after cutoff
-		#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
-		#endif
+#endif
 
 		// not enough peaks left for feature
 		if (model_set.size() < static_cast<Size>(param_.getValue("min_num_peaks:final")))
 		{
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-						"UnableToFit-FinalSet",
-						"Skipping feature, IndexSet size after cutoff too small: "
-						+String(model_set.size()));
+												"UnableToFit-FinalSet",
+												"Skipping feature, IndexSet size after cutoff too small: "
+												+String(model_set.size()));
 		}
 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
@@ -283,7 +293,7 @@ namespace OpenMS
 		{
 			delete final;
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
-						"UnableToFit-ZeroSum","Skipping feature, model_sum zero.");
+												"UnableToFit-ZeroSum","Skipping feature, model_sum zero.");
 		}
 
 		final->setScale(data_max/model_max);	// use max quotient instead of sum quotient
@@ -300,13 +310,13 @@ namespace OpenMS
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
 			f.setCharge(static_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
 
-		#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 		std::cout << " Offset: "
-				<< float(final->getModel(MZ)->getParam().getValue("statistics:mean"))-mz_stat_.mean()
-				<< " "
-				<< float(final->getModel(RT)->getParam().getValue("statistics:mean"))-rt_stat_.mean()
-				<< "\n";
-		#endif
+							<< float(final->getModel(MZ)->getParam().getValue("statistics:mean"))-mz_stat_.mean()
+							<< " "
+							<< float(final->getModel(RT)->getParam().getValue("statistics:mean"))-rt_stat_.mean()
+							<< "\n";
+#endif
 
 		// calculate convex hull and peak sum of feature region
 		double peak_sum = 0.0;
@@ -316,12 +326,12 @@ namespace OpenMS
 		f.setIntensity(peak_sum);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 
-		#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 		std::cout << Date::now() << " Feature " << counter_
 							<< ": (" << f.getPosition()[RT]
 							<< "," << f.getPosition()[MZ] << ") Qual.:"
 							<< max_quality << "\n";
-		#endif
+#endif
 
 		std::cout << " Feature " << counter_
 							<< ": (" << f.getPosition()[RT]
@@ -337,24 +347,24 @@ namespace OpenMS
 
 		// save meta data in feature for TOPPView
 		String meta = "Feature #" + String(counter_)
-					+ ", +"	+ String(f.getCharge())
-					+ ", " + String(set.size()) + "->" + String(model_set.size())
-					+ ", Corr: (" + String(max_quality)
-					+ "," + String(f.getQuality(RT))
-					+ "," + String(f.getQuality(MZ)) + ")";
+			+ ", +"	+ String(f.getCharge())
+			+ ", " + String(set.size()) + "->" + String(model_set.size())
+			+ ", Corr: (" + String(max_quality)
+			+ "," + String(f.getQuality(RT))
+			+ "," + String(f.getQuality(MZ)) + ")";
 		f.setMetaValue(3,meta);
 
 		// the following code is only executed if debug flag is set.
-		#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 		String fname = "feature"+String(counter_)+"_"+profile_;
 		ofstream file(fname.c_str()); // gnuplot file with feature model
 
 		DPeakArray<2> dpa;
 		final->getSamples(dpa);
 		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
-		if (it->getIntensity()>0.1)
-			file << it->getPosition()[RT] << "	" << it->getPosition()[MZ] << "	"
-					<< it->getIntensity() << "\n";
+			if (it->getIntensity()>0.1)
+				file << it->getPosition()[RT] << "	" << it->getPosition()[MZ] << "	"
+						 << it->getIntensity() << "\n";
 		
 		fname = "cut"+String(counter_);
 		ofstream file2(fname.c_str()); // gnuplot file with peaks after cutoff
@@ -363,10 +373,10 @@ namespace OpenMS
 			{
 				const DRawDataPoint<2>& p = traits_->getPeak(*it);
 				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " "
-						<< final->getIntensity(p.getPosition()) << "\n";
+							<< final->getIntensity(p.getPosition()) << "\n";
 			}
 		}
-		#endif
+#endif
 		++counter_;
 
 		delete final;
@@ -375,7 +385,7 @@ namespace OpenMS
 	}
 
 	double ExtendedModelFitter::fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit,
-		 Coordinate isotope_stdev)
+																	 Coordinate isotope_stdev)
 	{
 
 		const Coordinate interpolation_step_mz = param_.getValue("mz:interpolation_step");
@@ -393,12 +403,12 @@ namespace OpenMS
 		{
 			// old model (The model are used for test data in the bachelor thesis.)
 			/*
-			mz_model = new IsotopeModel();
-			mz_model->setInterpolationStep(interpolation_step_mz);
-			Param iso_param = param_.copy("isotope_model:",true);
-			iso_param.remove("stdev");
-			static_cast<IsotopeModel*>(mz_model)->getParam().insert("",iso_param);
-			static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
+				mz_model = new IsotopeModel();
+				mz_model->setInterpolationStep(interpolation_step_mz);
+				Param iso_param = param_.copy("isotope_model:",true);
+				iso_param.remove("stdev");
+				static_cast<IsotopeModel*>(mz_model)->getParam().insert("",iso_param);
+				static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
 			*/
 
 			// new model
@@ -455,8 +465,8 @@ namespace OpenMS
 
 
 	double ExtendedModelFitter::fitOffset_(	InterpolationModel<>* model,
-			const IndexSet& set, const double stdev1,  const double stdev2,
-			const Coordinate offset_step)
+																					const IndexSet& set, const double stdev1,  const double stdev2,
+																					const Coordinate offset_step)
 	{
 		const Coordinate offset_min = model->getInterpolation().supportMin() - stdev1;
 		const Coordinate offset_max = model->getInterpolation().supportMin() + stdev2;
@@ -657,10 +667,10 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	 /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
-     *  point in the data. */
+	/** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
+	 *  point in the data. */
 	int jacobianDC(const gsl_vector* x, void* params, gsl_matrix* J)
-   	{
+	{
 
 		size_t n = ((struct ExpFitPolyData*)params)->n;
 		String profile = ((struct ExpFitPolyData*)params)->profile;
@@ -783,7 +793,7 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	   /** Driver function for the evaluation of function and jacobian. **/
+	/** Driver function for the evaluation of function and jacobian. **/
 	int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
 		residualDC(x, params, f);
@@ -845,34 +855,34 @@ namespace OpenMS
 		s = gsl_multifit_fdfsolver_alloc(T,n,p);
 		gsl_multifit_fdfsolver_set(s, &f, &x.vector);
 
-		#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 		if (profile_=="LmaGauss") {
 			printf ("before loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-				gsl_vector_get(s->x,0),
-				gsl_vector_get(s->x,1),
-				gsl_vector_get(s->x,2),
-				gsl_blas_dnrm2(s->f));
+							gsl_vector_get(s->x,0),
+							gsl_vector_get(s->x,1),
+							gsl_vector_get(s->x,2),
+							gsl_blas_dnrm2(s->f));
 		}
 		else {
 			if (profile_=="EMG") {
 				printf ("before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-				gsl_vector_get(s->x,0),
-				gsl_vector_get(s->x,1),
-				gsl_vector_get(s->x,2),
-				gsl_vector_get(s->x,3),
-				gsl_blas_dnrm2(s->f));
+								gsl_vector_get(s->x,0),
+								gsl_vector_get(s->x,1),
+								gsl_vector_get(s->x,2),
+								gsl_vector_get(s->x,3),
+								gsl_blas_dnrm2(s->f));
 			}
 			else {
 				printf ("before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f % 15.8f |f(x)| = %g\n", iter,
-				gsl_vector_get(s->x,0),
-				gsl_vector_get(s->x,1),
-				gsl_vector_get(s->x,2),
-				gsl_vector_get(s->x,3),
-				gsl_vector_get(s->x,4),
-				gsl_blas_dnrm2(s->f));
+								gsl_vector_get(s->x,0),
+								gsl_vector_get(s->x,1),
+								gsl_vector_get(s->x,2),
+								gsl_vector_get(s->x,3),
+								gsl_vector_get(s->x,4),
+								gsl_blas_dnrm2(s->f));
 			}
 		}
-		#endif
+#endif
 
 		// this is the loop for fitting
 		do
@@ -880,35 +890,35 @@ namespace OpenMS
 			iter++;
 			status = gsl_multifit_fdfsolver_iterate (s);
 
-			#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 			// This is useful for debugging
 			if (profile_=="LmaGauss") 	{
 				printf ("in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-					gsl_vector_get(s->x,0),
-					gsl_vector_get(s->x,1),
-					gsl_vector_get(s->x,2),
-					gsl_blas_dnrm2(s->f));
+								gsl_vector_get(s->x,0),
+								gsl_vector_get(s->x,1),
+								gsl_vector_get(s->x,2),
+								gsl_blas_dnrm2(s->f));
 			}
 			else {
 				if (profile_=="EMG") {
 					printf ("in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-					gsl_vector_get(s->x,0),
-					gsl_vector_get(s->x,1),
-					gsl_vector_get(s->x,2),
-					gsl_vector_get(s->x,3),
-					gsl_blas_dnrm2(s->f));
+									gsl_vector_get(s->x,0),
+									gsl_vector_get(s->x,1),
+									gsl_vector_get(s->x,2),
+									gsl_vector_get(s->x,3),
+									gsl_blas_dnrm2(s->f));
 				}
 				else {
 					printf ("in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f % 15.8f |f(x)| = %g\n", iter,
-					gsl_vector_get(s->x,0),
-					gsl_vector_get(s->x,1),
-					gsl_vector_get(s->x,2),
-					gsl_vector_get(s->x,3),
-					gsl_vector_get(s->x,4),
-					gsl_blas_dnrm2(s->f));
+									gsl_vector_get(s->x,0),
+									gsl_vector_get(s->x,1),
+									gsl_vector_get(s->x,2),
+									gsl_vector_get(s->x,3),
+									gsl_vector_get(s->x,4),
+									gsl_blas_dnrm2(s->f));
 				}
 			}
-			#endif
+#endif
 
 			// fit is done
 			if (status) break;
@@ -919,24 +929,24 @@ namespace OpenMS
 		// This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar. The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
 		gsl_multifit_covar(s->J, 0.0, covar);
 
-		#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 		gsl_matrix_fprintf(stdout, covar, "%g");
-		#endif
+#endif
 
-		#define FIT(i) gsl_vector_get(s->x, i)
-		#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
+#define FIT(i) gsl_vector_get(s->x, i)
+#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
 
-		#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 		cout << "status: " << gsl_strerror(status) << endl;
 		cout << "symmetry: " << symmetry_ << endl;
-		#endif
+#endif
 		if (profile_=="LmaGauss")
 		{
-			#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 			printf("deviation          = %.5f +/- %.5f\n", FIT(0), ERR(0));
 			printf("expected_value	   = %.5f +/- %.5f\n", FIT(1), ERR(1));
 			printf("scale_factor       = %.5f +/- %.5f\n", FIT(2), ERR(2));
-			#endif
+#endif
 			standard_deviation_ = FIT(0);
 			expected_value_     = FIT(1);
 			scale_factor_       = FIT(2);
@@ -945,12 +955,12 @@ namespace OpenMS
 		{
 			if (profile_=="EMG")
 			{
-				#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 				printf("h = %.5f +/- %.5f\n", FIT(0), ERR(0));
 				printf("w = %.5f +/- %.5f\n", FIT(1), ERR(1));
 				printf("s = %.5f +/- %.5f\n", FIT(2), ERR(2));
 				printf("z = %.5f +/- %.5f\n", FIT(3), ERR(3));
-				#endif
+#endif
 				height_     = FIT(0);
 				width_      = FIT(1);
 				symmetry_   = FIT(2);
@@ -958,13 +968,13 @@ namespace OpenMS
 			}
 			else
 			{
-				#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 				printf("h = %.5f +/- %.5f\n", FIT(0), ERR(0));
 				printf("w = %.5f +/- %.5f\n", FIT(1), ERR(1));
 				printf("s = %.5f +/- %.5f\n", FIT(2), ERR(2));
 				printf("z = %.5f +/- %.5f\n", FIT(3), ERR(3));
 				printf("r = %.5f +/- %.5f\n", FIT(4), ERR(4));
-				#endif
+#endif
 				height_     = FIT(0);
 				width_      = FIT(1);
 				symmetry_   = FIT(2);
@@ -973,18 +983,18 @@ namespace OpenMS
 			}
 		}
 
-		#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 		{
-		// chi-squared value
-		double chi = gsl_blas_dnrm2(s->f);
-		printf("chisq/dof = %g\n", pow(chi, 2.0)/ (n-p));
+			// chi-squared value
+			double chi = gsl_blas_dnrm2(s->f);
+			printf("chisq/dof = %g\n", pow(chi, 2.0)/ (n-p));
 		}
-		#endif
+#endif
 
 		// function free all memory associated with the solver s
 		gsl_multifit_fdfsolver_free(s);
 
-		#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
+#ifdef DEBUG_EXTENDEDMODELFITTER_LMA
 		for (size_t current_point=0; current_point<positionsDC_.size();current_point++)
 			std::cout << positionsDC_[current_point] << " " << signalDC_[current_point] << std::endl;
 
@@ -1000,7 +1010,7 @@ namespace OpenMS
 		cout << "      eps_rel:  " << eps_rel_ << endl;
 		cout << "      profile:  " << profile_ << endl;
 		cout << "" << endl;
-		#endif
+#endif
 
 		positionsDC_.clear();
 		signalDC_.clear();

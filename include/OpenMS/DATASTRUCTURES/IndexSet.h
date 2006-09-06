@@ -110,7 +110,7 @@ public:
             return !(*this==it);
         }
 
-        const UnsignedInt& operator * ()
+        const UnsignedInt& operator * () const
         {
             return index_;
         }

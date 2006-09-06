@@ -32,6 +32,7 @@ THISLIB=$(LIBNAME)
 
 CPP_SOURCES= \
 	BasicStatistics.C\
+	AsymmetricStatistics.C\
 	Histogram.C
 
 #conditional compiles
