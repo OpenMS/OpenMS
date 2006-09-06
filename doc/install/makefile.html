@@ -170,7 +170,7 @@ make test
     files are compiled to <code>*.o</code> files.</dd>
 
 
-    <dt>collect</dt>
+    <dt>collect, recollect</dt>
 
 
     <dd>
@@ -182,7 +182,7 @@ make test
       the linker.
 
       <p><i><b>Note:</b> For reasons similar to those explained for
-      <code>make depend</code>, the <code>*.objects</code> files
+      <code>make depend</code>, the <code>lib*.objects</code> files
       might become outdated when you have changed the
       <code>Makefile</code>s in subdirectories, most notably the
       <code>CPP_SOURCES</code> variable and its relatives which are
@@ -199,7 +199,7 @@ make test
 
 
       <p>In such a case, the remedy is to call <code>make
-      collect</code> and then <code>make lib</code> again.</p>
+      recollect</code> and then <code>make lib</code> again.</p>
     </dd>
 
 
