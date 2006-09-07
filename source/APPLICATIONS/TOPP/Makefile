@@ -68,7 +68,9 @@ EXECUTABLES=\
 #	DBImporter\
 
 
-default: all
+default:
+	@-mkdir $(OPENMS_PATH)/bin 2>/dev/null | cat >/dev/null     
+	make all
 
 all: $(EXECUTABLES)
 
@@ -80,7 +82,8 @@ include ../../common.mak
 -include .Dependencies
 
 clean: default_clean
-	@-$(RM) -rf .Dependencies html
+	@-$(RM) -rf .Dependencies html 
+	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(EXECUTABLES)
 
 ADD_CXXFLAGS= -DQT_THREAD_SUPPORT -pg -DQT_SHARED -D_REENTRANT -pipe -Wall -W -Wno-deprecated -DQT_NO_DEBUG 
 
@@ -93,87 +96,116 @@ CPP_SOURCES =\
 
 MapStatistics: MapStatistics.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/             
 
 MapMatcher: MapMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 NoiseFilter: NoiseFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 BaselineFilter: BaselineFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 AdditiveSeries: AdditiveSeries.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 RTModel: RTModel.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 RTPredict: RTPredict.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FileConverter: FileConverter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FileInfo: FileInfo.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FileFilter: FileFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 TOPPView: TOPPView.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FeatureFinder: FeatureFinder.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 SpectrumComparator: SpectrumComparator.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 SpectrumLibBuilder: SpectrumLibBuilder.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 SpectrumLibMatcher: SpectrumLibMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 Dewarper: Dewarper.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 PeakPicker: PeakPicker.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 IDFilter: IDFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FeaturePairSplitter: FeaturePairSplitter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 DBExporter: DBExporter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 DBImporter: DBImporter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 LabeledMatcher: LabeledMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 MascotAdapter: MascotAdapter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 InspectAdapter: InspectAdapter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 RawDataResampler: RawDataResampler.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 UnlabeledMatcher: UnlabeledMatcher.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 FileMerger: FileMerger.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 SpectraFilter: SpectraFilter.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
 
 DTAExtractor: DTAExtractor.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   

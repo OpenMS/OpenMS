@@ -70,7 +70,7 @@ clean:
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
 
 distclean:	clean
-	@-$(RM) -rf autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h
+	@-$(RM) -rf autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin
 
 lib_clean:
 	@$(ECHO) "Removing all installed libraries..."
@@ -185,6 +185,9 @@ idoc:
 style:
 	@cd ../doc/misc/ && make coding_style.pdf && rm *.aux *.log *.dvi
 
+# build TOPP tools
+TOPP:
+	@cd APPLICATIONS/TOPP/ && make
 
 #
 #    special targets - internal use only! 

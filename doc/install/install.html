@@ -34,7 +34,6 @@
   <br>
   <font color="red"><b>All architectures:</b></font>
 
-  <ul>
     <li>Autoconf version 2.59 or higher is needed for the
     installation of OpenMS and the contrib package. Autoconf can be
     downloaded from <a target="blank"
@@ -114,6 +113,13 @@
       <td align="left">&nbsp;</td>
     </tr>
 
+    <tr>
+      <td align="left">&nbsp;</td>
+
+      <td align="left">XERCES-C</td>
+
+      <td align="left">&nbsp;</td>
+    </tr>
 
     <tr>
       <td align="left">&nbsp;</td>
@@ -126,7 +132,7 @@
   </table>
   <b><font color="red">Note:</font></b> In order to make the
   installation of the required libraries easier, we composed a
-  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL and
+  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, XERCES-C and
   Boost. This contrib package has three advantages over manual
   installation
 
@@ -431,16 +437,37 @@ netcdf.h.
         target="blank">http://www.cgal.org/download/</a>.
   <br>
   You can find the installation manual as pdf at <a href=
-  "http://www.cgal.org/Manual/doc_pdf/installation.pdf"
+  "http://www.cgal.org/Manual/3.2/doc_html/installation_manual/contents.html"
         target=
-        "blank">http://www.cgal.org/Manual/doc_pdf/installation.pdf</a>.
+        "blank">http://www.cgal.org/Manual/3.2/doc_html/installation_manual/contents.html</a>.
   <br>
   <br>
   <b><font color="red">Note:</font></b> During the installation of
   CGAL the platform-specific header file 'compiler_config.h' is
   created in a platform-specific directory in
   'include/CGAL/config/'. You need to copy this file into the
-  'include/CGAL/' directory. <a name="boost"
+  'include/CGAL/' directory. 
+
+	<a name="xerces" id="xerces"></a>
+
+  <h3>XERCES-C (if you do not use the contrib package)</h3>
+  XERCES-C library offers functionality for XML parsing. Thus it can not be disabled in OpenMS configure!
+  <br>
+  You can find the installation instructions at <a target=_blank href="http://xml.apache.org/xerces-c/install.html">http://xml.apache.org/xerces-c/install.html</a>.
+	<BR>
+	<BR>
+	Installation is pretty straight forward, but you better use the script <i>runConfigure</i> instead of <i>configure</i>
+	itself!
+  <pre>
+&gt; autoconf
+&gt; export XERCESCROOT=&lt;path to the xerces-c source directory&gt;
+&gt; ./runConfigure -p linux -P &lt;prefix&gt; -x &lt;c++ compiler&gt;
+&gt; make
+&gt; make install
+</pre>  
+  
+  
+  <a name="boost"
         id="boost"></a>
 
   <h3>Boost (if you do not use the contrib package)</h3>
@@ -579,9 +606,8 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
   with the following command:
 
   <pre>
-&gt; cd &lt;path_to_OpenMS&gt;/source/APPLICATIONS/TOPP/
-&gt; make
-</pre>Now the TOPP tools are ready to use.
+&gt; make TOPP
+</pre>Now the TOPP tools are ready to use in <code>OpenMS/bin/</code>.
   <br>
   <br>
   <b>Note</b>: You have to add the OpenMS libaray location to your

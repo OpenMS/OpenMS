@@ -45,8 +45,7 @@
  		<LI><B>--help-opt</b> shows help about the INI file options of the tool
  	</UL>
   
-  @todo bin-Folder for applications in general (Marc)
-  @todo tests for TOPP tools
+  @todo tests for TOPP tools (Marc / everyone)
   
   @ingroup Applications
 */
