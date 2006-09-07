@@ -29,10 +29,10 @@
 namespace OpenMS
 {
 
-SimpleExtender::SimpleExtender() : BaseExtender(),
-        first_seed_seen_(false), intensity_threshold_(0),
-        last_extracted_(0), nr_peaks_seen_(0)
-{
+	SimpleExtender::SimpleExtender() : BaseExtender(),
+																		 first_seed_seen_(false), intensity_threshold_(0),
+																		 last_extracted_(0), nr_peaks_seen_(0)
+	{
     name_ = SimpleExtender::getName();
     defaults_.setValue("tolerance_rt",2.0f);
     defaults_.setValue("tolerance_mz",0.5f);
@@ -44,41 +44,41 @@ SimpleExtender::SimpleExtender() : BaseExtender(),
     defaults_.setValue("intensity_factor",0.03f);
 
     param_ = defaults_;
-}
+	}
 
-SimpleExtender::~SimpleExtender()
-{}
+	SimpleExtender::~SimpleExtender()
+	{}
 
-const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
-{
+	const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
+	{
     if (!first_seed_seen_)
     {
 
-        float tol_rt = param_.getValue("tolerance_rt");
-        float tol_mz = param_.getValue("tolerance_mz");
-        intensity_factor_ = param_.getValue("intensity_factor");
+			float tol_rt = param_.getValue("tolerance_rt");
+			float tol_mz = param_.getValue("tolerance_mz");
+			intensity_factor_ = param_.getValue("intensity_factor");
 
-        dist_mz_up_   = param_.getValue("dist_mz_up");
-        dist_mz_down_ = param_.getValue("dist_mz_down");
-        dist_rt_up_   = param_.getValue("dist_rt_up");
-        dist_rt_down_ = param_.getValue("dist_rt_down");
+			dist_mz_up_   = param_.getValue("dist_mz_up");
+			dist_mz_down_ = param_.getValue("dist_mz_down");
+			dist_rt_up_   = param_.getValue("dist_rt_up");
+			dist_rt_down_ = param_.getValue("dist_rt_down");
 
-        priority_threshold_ = param_.getValue("priority_thr");
+			priority_threshold_ = param_.getValue("priority_thr");
 
-        // initialise distributions to interpolate the priority
-        score_distribution_rt_.getData().push_back( 1. );
-        score_distribution_rt_.setScale(tol_rt);
-        score_distribution_rt_.setOffset(0);
+			// initialise distributions to interpolate the priority
+			score_distribution_rt_.getData().push_back( 1. );
+			score_distribution_rt_.setScale(tol_rt);
+			score_distribution_rt_.setOffset(0);
 
-        score_distribution_mz_.getData().push_back(1.);
-        score_distribution_mz_.setScale(tol_mz);
-        score_distribution_mz_.setOffset(0);
+			score_distribution_mz_.getData().push_back(1.);
+			score_distribution_mz_.setScale(tol_mz);
+			score_distribution_mz_.setOffset(0);
 
-        // reserve enough space in mutable queue
-        //unsigned int peak_nr = traits_->getNumberOfPeaks();
-        //boundary_.reserve(peak_nr);
+			// reserve enough space in mutable queue
+			//unsigned int peak_nr = traits_->getNumberOfPeaks();
+			//boundary_.reserve(peak_nr);
 
-        first_seed_seen_ = true;
+			first_seed_seen_ = true;
 
     }
 
@@ -86,7 +86,7 @@ const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
     region_.clear();
     //boundary_.clear(); // works only with mutable queue
     while (boundary_.size() > 0)
-        boundary_.pop();
+			boundary_.pop();
     priorities_.clear();
     running_avg_.clear();
 
@@ -106,47 +106,47 @@ const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
 
     while (!boundary_.empty())
     {
-        // remove peak with highest priority
-        IndexWithPriority const index_priority = boundary_.top();
-        boundary_.pop();
+			// remove peak with highest priority
+			IndexWithPriority const index_priority = boundary_.top();
+			boundary_.pop();
 
-        nr_peaks_seen_++;
+			nr_peaks_seen_++;
 
-        UnsignedInt const current_index       = index_priority.index;
-        IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
+			UnsignedInt const current_index       = index_priority.index;
+			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
 
-        // remember last peak to be extracted from the boundary
-        last_extracted_ = current_index;
+			// remember last peak to be extracted from the boundary
+			last_extracted_ = current_index;
 
-        // we set the intensity threshold for raw data points to be
-        // included into the feature region to be a fraction of the
-        // intensity of the fifth largest peak
-        if (nr_peaks_seen_ == 5)
-            intensity_threshold_ = intensity_factor_ * current_intensity;
+			// we set the intensity threshold for raw data points to be
+			// included into the feature region to be a fraction of the
+			// intensity of the fifth largest peak
+			if (nr_peaks_seen_ == 5)
+				intensity_threshold_ = intensity_factor_ * current_intensity;
 
-        if (current_intensity <  intensity_threshold_)
-            continue;
+			if (current_intensity <  intensity_threshold_)
+				continue;
 
-        // Now we explore the neighbourhood of the current peak. Peaks in this area are included
-        // into the boundary if their intensity is not too low and they are not too
-        // far away from the seed.
+			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
+			// into the boundary if their intensity is not too low and they are not too
+			// far away from the seed.
 
-        // get position of current peak
-        FeaFiTraits::PositionType const curr_pos = traits_->getPeak(current_index).getPosition();
-        // and add it to the current average of positions weighted by the intensity
-        running_avg_.add(curr_pos,current_intensity);
+			// get position of current peak
+			FeaFiTraits::PositionType const curr_pos = traits_->getPeak(current_index).getPosition();
+			// and add it to the current average of positions weighted by the intensity
+			running_avg_.add(curr_pos,current_intensity);
 
-        // explore neighbourhood of current peak
-        moveMzUp_(current_index);
-        moveMzDown_(current_index);
-        moveRtUp_(current_index);
-        moveRtDown_(current_index);
+			// explore neighbourhood of current peak
+			moveMzUp_(current_index);
+			moveMzDown_(current_index);
+			moveRtUp_(current_index);
+			moveRtDown_(current_index);
 
-        // set flag
-        if (traits_->getPeakFlag(current_index) != FeaFiTraits::SEED)
-            traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
+			// set flag
+			if (traits_->getPeakFlag(current_index) != FeaFiTraits::SEED)
+				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
 
-        region_.add(current_index);
+			region_.add(current_index);
 
     } // end of while ( !boundary_.empty() )
 
@@ -155,14 +155,14 @@ const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
     region_.sort();
     return region_;
 
-} // end of extend(Unsigned int seed_index)
+	} // end of extend(Unsigned int seed_index)
 
-/**
- * \brief Checks whether the current peak is to far away from the seed
- * 
- * */
-bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
-{
+	/**
+	 * \brief Checks whether the current peak is to far away from the seed
+	 * 
+	 * */
+	bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
+	{
 
     CoordinateType const current_mz   = traits_->getPeakMz(current_peak);
     CoordinateType const current_rt   = traits_->getPeakRt(current_peak);
@@ -175,114 +175,133 @@ bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
     float dist_rt_down = param_.getValue("dist_rt_down");
 
     if ( current_mz > curr_mean[MZ] + dist_mz_up   ||
-            current_mz < curr_mean[MZ] - dist_mz_down ||
-            current_rt > curr_mean[RT] + dist_rt_up   ||
-            current_rt < curr_mean[RT] - dist_rt_down )
+				 current_mz < curr_mean[MZ] - dist_mz_down ||
+				 current_rt > curr_mean[RT] + dist_rt_up   ||
+				 current_rt < curr_mean[RT] - dist_rt_down )
     {
-        return true;
+			return true;
     }
     return false;
-}
+	}
 
-void SimpleExtender::moveMzUp_(UnsignedInt current_index)
-{
+	void SimpleExtender::moveMzUp_(UnsignedInt current_index)
+	{
 
     UnsignedInt current_scan = traits_->getPeakScanNr(current_index);
 
     try // moving up in m/z direction
     {
-        while (true)
-        {
-            current_index = traits_->getNextMz(current_index); // take next peak
+			while (true)
+			{
+				current_index = traits_->getNextMz(current_index); // take next peak
 
-            // stop if we've left the current scan
-            if (current_scan != traits_->getPeakScanNr(current_index)
-                    || isTooFarFromCentroid_(current_index) )
-                break;
+				// ???? TODO (Clemens)
+				// Various improvements are possible here:
+				// The following triggers a binary search in scan_index_.
+				// This could be avoided by looking at RT itself instead of ScanNr.
+				// Also, isTooFarFromCentroid_ need not consider RT here, since it has not changed.
 
-            // check this neighbour for insertion into the boundary
-            checkNeighbour_(current_index);
+				// stop if we've left the current scan
+				if (current_scan != traits_->getPeakScanNr(current_index)
+						|| isTooFarFromCentroid_(current_index) )
+					break;
 
-        } // end of while (true)
+				// check this neighbour for insertion into the boundary
+				checkNeighbour_(current_index);
+
+			} // end of while (true)
 
     }
     catch(NoSuccessor)
     {}
-}
+	}
 
-void SimpleExtender::moveMzDown_(UnsignedInt current_index)
-{
+	void SimpleExtender::moveMzDown_(UnsignedInt current_index)
+	{
 
     UnsignedInt current_scan = traits_->getPeakScanNr(current_index);
 
     try // moving down in m/z direction
     {
-        while (true)
-        {
-            current_index    = traits_->getPrevMz(current_index);	// take next peak
+			while (true)
+			{
+				current_index    = traits_->getPrevMz(current_index);	// take next peak
 
-            // stop if we've left the current scan
-            if (current_scan != traits_->getPeakScanNr(current_index)
-                    || isTooFarFromCentroid_(current_index))
-                break;
+				// ???? TODO (Clemens) 
+				// see remarks in moveMzUp_()
 
-            // check this neighbour for insertion into the boundary
-            checkNeighbour_(current_index);
+				// stop if we've left the current scan
+				if (current_scan != traits_->getPeakScanNr(current_index)
+						|| isTooFarFromCentroid_(current_index))
+					break;
 
-        } // end of while (true)
+				// check this neighbour for insertion into the boundary
+				checkNeighbour_(current_index);
+
+			} // end of while (true)
 
     }
     catch(NoSuccessor)
     {}
-}
+	}
 
-void SimpleExtender::moveRtUp_(UnsignedInt current_index)
-{
+	void SimpleExtender::moveRtUp_(UnsignedInt current_index)
+	{
 
     try // moving up in retention time
     {
-        while (true)
-        {
-            current_index = traits_->getNextRt(current_index); // take next peak
+			while (true)
+			{
 
-            if (isTooFarFromCentroid_(current_index))
-                break;
+				// ???? TODO (Clemens)
+				// Again, binary search for rt is not necessary.  We could maintain that information.
+				// Also, binary search within scan should look for mz of staring point, not the last mz.
+				// (Note: isTooFarFromCentroid_() _does_ need to consider both rt and mz here, since mz might have changed.)
 
-            // check this neighbour for insertion into the boundary
-            checkNeighbour_(current_index);
+				current_index = traits_->getNextRt(current_index); // take next peak
 
-        } // end of while (true)
+				if (isTooFarFromCentroid_(current_index))
+					break;
+
+				// check this neighbour for insertion into the boundary
+				checkNeighbour_(current_index);
+
+			} // end of while (true)
 
     }
     catch(NoSuccessor)
     {}
-}
+	}
 
-void SimpleExtender::moveRtDown_(UnsignedInt current_index)
-{
+	void SimpleExtender::moveRtDown_(UnsignedInt current_index)
+	{
+
+		// ???? TODO (Clemens) 
+		// see remarks in moveRtUp_()
+
 
     try // moving up in retention time
     {
 
-        while (true)
-        {
-            current_index = traits_->getPrevRt(current_index); // take next peak
+			while (true)
+			{
+				current_index = traits_->getPrevRt(current_index); // take next peak
 
-            if (isTooFarFromCentroid_(current_index))
-                break;
+				if (isTooFarFromCentroid_(current_index))
+					break;
 
-            // check this neighbour for insertion into the boundary
-            checkNeighbour_(current_index);
+				// check this neighbour for insertion into the boundary
+				checkNeighbour_(current_index);
 
-        } // end of while (true)
+			} // end of while (true)
 
     }
     catch(NoSuccessor)
     {}
-}
+	}
 
-double SimpleExtender::computePeakPriority_(UnsignedInt current_peak)
-{
+	double SimpleExtender::computePeakPriority_(UnsignedInt current_peak)
+	{
 
     IntensityType curr_intens = traits_->getPeakIntensity(current_peak);
 
@@ -293,45 +312,45 @@ double SimpleExtender::computePeakPriority_(UnsignedInt current_peak)
     CoordinateType last_rt = traits_->getPeakRt(last_extracted_);
 
     return curr_intens *
-           score_distribution_rt_.value(curr_rt-last_rt) *
-           score_distribution_mz_.value(curr_mz-last_mz);
+			score_distribution_rt_.value(curr_rt-last_rt) *
+			score_distribution_mz_.value(curr_mz-last_mz);
 
-}
+	}
 
-void SimpleExtender::checkNeighbour_(UnsignedInt current_index)
-{
+	void SimpleExtender::checkNeighbour_(UnsignedInt current_index)
+	{
     // we don't care about points with intensity zero
     if (traits_->getPeakIntensity(current_index) == 0)
-        return;
+			return;
 
     if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED
-            /*&& !isTooFarFromCentroid_(current_index)*/ )
+				/*&& !isTooFarFromCentroid_(current_index)*/ )
     {
-        std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
-        double pr_new = computePeakPriority_(current_index);
+			std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
+			double pr_new = computePeakPriority_(current_index);
 
-        if (piter == priorities_.end()) // not yet in boundary
+			if (piter == priorities_.end()) // not yet in boundary
+			{
+				if (pr_new > priority_threshold_) // check if priority larger than threshold
+				{
+					priorities_[current_index] = pr_new;
+					IndexWithPriority peak(current_index,pr_new);
+					boundary_.push(peak);	// add to boundary
+				}
+			}
+			/*else // already in boundary
         {
-            if (pr_new > priority_threshold_) // check if priority larger than threshold
-            {
-                priorities_[current_index] = pr_new;
-                IndexWithPriority peak(current_index,pr_new);
-                boundary_.push(peak);	// add to boundary
-            }
-        }
-        /*else // already in boundary
-        {
-        	double pr_curr = piter->second;
-        	if (pr_new > pr_curr) // update priority only if larger than old one.
-        	{
-        		priorities_[current_index] = pr_new;
-        		IndexWithPriority peak(current_index,pr_new);
-        		boundary_.update(peak);	 // update boundary
-        	} 
+				double pr_curr = piter->second;
+				if (pr_new > pr_curr) // update priority only if larger than old one.
+				{
+				priorities_[current_index] = pr_new;
+				IndexWithPriority peak(current_index,pr_new);
+				boundary_.update(peak);	 // update boundary
+				} 
         } // end if (piter == priorities_.end())
-        */
+			*/
     } // end if traits_->...
-}
+	}
 
 
 } // end of class SimpleExtender
