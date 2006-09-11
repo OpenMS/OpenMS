@@ -3932,7 +3932,7 @@ AC_DEFUN(CF_BOOST, [
 		  	BOOST_LIBDIR="${BOOST_LIB_DIR}/"
   		fi
   	fi	
-		CF_FIND_LIB(BOOST_LIBDIR, libboost_serialization-gcc, ${BOOST_LIBPATH})
+		CF_FIND_LIB(BOOST_LIBDIR, libboost_serialization-*, ${BOOST_LIBPATH})
 
   	if test "${BOOST_LIBDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
