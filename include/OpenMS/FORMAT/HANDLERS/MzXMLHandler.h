@@ -558,6 +558,10 @@ namespace OpenMS
 		
 		if (tag==PEAKS)
 		{
+			if (char_rest_=="") // no peaks
+			{
+				return;
+			}
 			if (precision_==DOUBLE)		//precision 64
 			{
 				double* data = decoder_.decodeDoubleCorrected(char_rest_.c_str(), char_rest_.size());

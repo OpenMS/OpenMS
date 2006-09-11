@@ -188,10 +188,10 @@ namespace OpenMS
 					}
 					catch(Exception::ParseError err)
 					{
-					const xercesc::Locator* loc;
-					setDocumentLocator(loc);
-					String message = String("DateTime conversion error of \"") + in + "\" parsed by " + file_;
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+						const xercesc::Locator* loc;
+						setDocumentLocator(loc);
+						String message = String("DateTime conversion error of \"") + in + "\" parsed by " + file_;
+						error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 					}
 				}
 				return res;
