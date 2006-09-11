@@ -53,15 +53,15 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		exp.set2DData(peaks_);
 		std::cout << "Copying of data finished..." << std::endl;
 		
-		IsotopeFinder<MSExperiment<DRawDataPoint<2> > > finder (exp);
-		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::WaveletCollection WaveletCollection;
+		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder (exp);
+		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2>  > >::WaveletCollection WaveletCollection;
 	
 		finder.setWtCutOff (500); //i.e. the seeding procedure ignores every intensity (of the wavelet transform) less then ...
 											//If this parameter is not set explicitly the cut off lies by 0.
 	 	
 		finder.setRTVotesCutOff(4); //i.e. we only consider a potential isotope coordinate (m/z) if it is supported by at least 5
 		finder.setScoreCutOff(1e6); //i.e. every potential isotope position is neglected if none of its scores exceeds 1e6
-		hash_ = finder.findFeatures(200,250, true);
+		hash_ = finder.findFeatures(400, 500, true);
 		
 		hash_iter = hash_.begin();		
 		is_initialized_ = true;	
@@ -97,6 +97,11 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				{
 					std::cout << "Searching for m/z in last scan => break;" << std::endl;
 					break;
+				}
+				
+				if (current_scan+1 >= scan_index_.size())
+				{
+					std::cout << "We are in the very last scan..." << std::endl;
 				}
 					
 				PeakIterator scan_begin = scan_index_[current_scan];

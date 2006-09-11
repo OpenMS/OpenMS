@@ -27,7 +27,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDERL_H
 
-
 #include <iostream>
 #include <fstream>
 #include <strstream>
@@ -38,18 +37,20 @@
 #include <values.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_gamma.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
+// #include <fftw3.h>
+// #include <OpenMS/FORMAT/MzXMLFile.h>
+// #include <OpenMS/FORMAT/DTA2DFile.h>
+// #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+// #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
+
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #ifndef PRECISION_CUT_OFF
 #define PRECISION_CUT_OFF 1e-10
-#endif
+#endif 
 
 #ifndef LAPLACE_SMOOTH_EPSILON
 #define LAPLACE_SMOOTH_EPSILON 1e-6
@@ -127,64 +128,64 @@ class IsotopeFinder
 		/** The integration_workspace is a parameter of the GNU scientifc library (GSL). For more information see GSL's 
 		 * documentation on integration. */
 		inline unsigned int getIntegrationWorkSpace () const throw ()
-			{ return (INTEGRATION_WORKSPACE); };
+			{ return (INTEGRATION_WORKSPACE); }
 				
 		/** The integration_workspace is a parameter of the GNU scientifc library (GSL). For more information see GSL's 
 		 * documentation on integration. */
 		inline void setIntegrationWorkSpace (const unsigned int integrationWorkspace) throw ()
-			{ INTEGRATION_WORKSPACE = integrationWorkspace; };
+			{ INTEGRATION_WORKSPACE = integrationWorkspace; }
 		
 		/** The integration_epsilon is a parameter of the GNU scientifc library (GSL). For more information see GSL's 
 		 * documentation on integration. */
 		inline double getIntegrationEpsilon () const throw ()
-			{ return (INTEGRATION_EPSILON); };
+			{ return (INTEGRATION_EPSILON); }
 		
 		/** The integration_epsilon is a parameter of the GNU scientifc library (GSL). For more information see GSL's 
 		 * documentation on integration. */
 		inline void setIntegrationEpsilon (const double integrationEpsilon) throw ()
-			{ INTEGRATION_EPSILON = integrationEpsilon; };
+			{ INTEGRATION_EPSILON = integrationEpsilon; }
 
 		/** The peak_cut parameter determines the number of isotope peaks a wavelet should contain. 
 		 * Since the wavelet function has been tuned to resemble specific peak probabilies 
 		 * (dependent on the mass and a binomial distribution e.g.) you should usually not change this parameter. */
 		inline unsigned int getPeakCutOff () const throw ()
-			{ return (PEAK_CUT_OFF); };
+			{ return (PEAK_CUT_OFF); }
 		
 		/** The peak_cut parameter determines the number of isotope peaks a wavelet should contain. 
 		 * Since the wavelet function has been tuned to resemble specific peak probabilies 
 		 * (dependent on the mass and a binomial distribution e.g.) you should usually not change this parameter. */
 		inline void setPeakCutOff (const unsigned int peakCutOff) throw ()
-			{ PEAK_CUT_OFF = peakCutOff; };
+			{ PEAK_CUT_OFF = peakCutOff; }
 
 		inline void setWtCutOff (const double wtCutOff) throw ()
-			{ WT_CUT_OFF = wtCutOff; };		
+			{ WT_CUT_OFF = wtCutOff; }		
 		
 		inline double getWtCutOff () throw ()
-			{ return(WT_CUT_OFF); };
+			{ return(WT_CUT_OFF); }
 
 		inline double getScoreCutOff () const throw ()
-			{ return (SCORE_CUT_OFF); };
+			{ return (SCORE_CUT_OFF); }
 		
 		inline void setScoreCutOff (const double peakScoreOff) throw ()
-			{ SCORE_CUT_OFF = peakScoreOff; };
+			{ SCORE_CUT_OFF = peakScoreOff; }
 
 		inline unsigned int getRTVotesCutOFF () const throw ()
-			{ return (RT_VOTES_CUT_OFF); };
+			{ return (RT_VOTES_CUT_OFF); }
 		
 		inline void setRTVotesCutOff (const unsigned int RTVotesCutOff) throw ()
-			{ RT_VOTES_CUT_OFF = RTVotesCutOff; };
+			{ RT_VOTES_CUT_OFF = RTVotesCutOff; }
 
 		inline unsigned int getNumScans () const throw ()
-			{ return (experiment_.size()); };	
+			{ return (experiment_.size()); }	
 			
-		inline double getAvMZSpacing() const
+		inline double getAvMZSpacing() const 
 			{ return avMZSpacing_; }
 		
 		
 		/** The common index operator. Returns the scan "index" (by index, not by RT).
 		 * @todo Do we have to throw something like e.g. OutOfBoundsError here? */
 		virtual inline MSSpectrum<DRawDataPoint<2> > operator[] (unsigned int index) const throw ()
-			{ return (experiment_[index]); };
+			{ return (experiment_[index]); }
 
 
 	protected:
@@ -210,14 +211,18 @@ class IsotopeFinder
 			int x0, x1; double f0, f1, fi;
 			x0 = (int) trunc ((t/a + 1)/min_spacing_);
 			x1 = x0+1;
+			
 			if ((unsigned int) x1 >= preComputedGamma_.size())
 			{ return (0); }; 
+			
 			f0 = preComputedGamma_[x0];
 			f1 = preComputedGamma_[x1];
 			fi = (f0 + (f1-f0)/((x1-x0)*min_spacing_) * ((t/a+1)-x0*min_spacing_));
 			double res = sin(2*M_PI*t/a) * exp(-lambda) * (pow(lambda,t)) / fi;
+			//return (res);
+			
 			return (res<PRECISION_CUT_OFF ? 0:res); 
-		};
+		}
 
 		/** Estimates the average spacing for the m/z dimension. 
 		 * Used internally to compute the circular convolution. */
@@ -227,7 +232,7 @@ class IsotopeFinder
 		 * Since isotope patterns depend on mass, the wavelet has the adapt its shape. 
 		 * For more insights look at the formula of the wavelet function. */
 		virtual inline double getLambda (const double realMass) const throw ()
-		{	return (0.035 + 0.000678*realMass); };
+		{	return (0.035 + 0.000678*realMass); }
 
 		/** The wavelet (mother) function 
 		 * Note the different semantics of gamma between C++ and R. */
@@ -286,9 +291,10 @@ class IsotopeFinder
 		SweepLineHash hash_;
 		hash_map<unsigned int, double> preComputedGamma_;
 		
+
 }; //class
 
-
+			
 
 template <typename MapType>
 IsotopeFinder<MapType>::IsotopeFinder () throw () : INTEGRATION_WORKSPACE(100), INTEGRATION_EPSILON (1e-6), 
@@ -340,7 +346,7 @@ void IsotopeFinder<MapType>::initializeMe () throw ()
 		tmp = signal[i+1].getPosition().Y() - signal[i].getPosition().Y();
 		if (fabs(tmp) < min_spacing_)
 			min_spacing_ = tmp;
-	};
+	}
 	generateGammaValues();
 }
 
@@ -357,7 +363,7 @@ void IsotopeFinder<MapType>::readTabFile (const string& filename) throw (Excepti
  	if (!ifile)
 	{
 		throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);				
-	};	
+	}	
 	double c_x, old_x=-1, c_y, c_intensity; 
 	while (ifile >> c_x)
 	{
@@ -372,14 +378,14 @@ void IsotopeFinder<MapType>::readTabFile (const string& filename) throw (Excepti
 			spec2.setRetentionTime(old_x);
 			experiment_.push_back(spec2);
 			spec.clear();	spec2.clear();	
-		};
+		}
 		
 		p.setIntensity (c_intensity);
 		p.getPosition()[0] = c_y;
 		p.getPosition()[1] = c_x; old_x = c_x;
 		
 		spec.push_back(p);
-	};
+	}
 	
 	ifile.close();		
 	initializeMe();	
@@ -410,8 +416,7 @@ typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatu
 	hash_.clear();			
 	experiment_.updateRanges(); //this needs identifyCharge
 	std::list<unsigned int> charges;
-	// check for charges up to for
-	charges.push_back(1); charges.push_back(2); charges.push_back(3); //charges.push_back(4); 
+	charges.push_back(1); charges.push_back(2); charges.push_back(3); charges.push_back(4); 
 	std::vector<MSSpectrum<DRawDataPoint<2> > > pwts;
 	std::vector<double> RTs (experiment_.size());
 	std::cout << std::endl;
@@ -421,7 +426,7 @@ typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatu
 		pwts = cwtMulti (i, charges);
 		identifyCharge (pwts);
 		RTs[i] = experiment_[i].getRetentionTime();
-	};	
+	}	
 	
 	
 	if (sweepLine)
@@ -438,27 +443,27 @@ typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatu
 			c_sum += *iter_s;
 		for (iter_s=c_entry.second.begin(); iter_s != c_entry.second.end(); ++iter_s)
 			*iter_s /= c_sum;
-	};	
+	}	
 
-// 	for (SweepLineHash::const_iterator iter = hash_.begin(); iter != hash_.end(); ++iter)
-// 	{
-// 		if (iter->first != 0)
-// 			std::cout << experiment_.getMin().Y()+(iter->first-1)*avMZSpacing_ << " : " 
-// 			<< experiment_.getMin().Y()+iter->first*avMZSpacing_ << "\t [ ";
-// 		else
-// 			std::cout << experiment_.getMin().Y() << " : " << experiment_.getMin().Y()+iter->first*avMZSpacing_ << "\t [ ";
-// 	 	for (std::list<double>::const_iterator iter_cl2=iter->second.first.begin(); 
-// 			iter_cl2 != iter->second.first.end(); ++iter_cl2)
-// 				std::cout	<< *iter_cl2 << " "; std::cout << "]  { ";	
-// 		for (std::list<double>::const_iterator iter_l=iter->second.second.begin();
-// 			iter_l != iter->second.second.end(); ++iter_l)
-// 				std::cout << *iter_l << " ";
-// 		std::cout << "}" << std::endl;
-// 	};
-	//DPeakArrayNonPolymorphic<1, DRawDataPoint<2> > data;
-	//experiment_.get2DData(data);
-// 	std::cout << std::endl << "Found " << hash_.size() << " potential isotope pattern(s) (out of " 
-// 	<< data.size() << " possible points)." << std::endl;	
+	for (SweepLineHash::const_iterator iter = hash_.begin(); iter != hash_.end(); ++iter)
+	{
+		if (iter->first != 0)
+			std::cout << experiment_.getMin().Y()+(iter->first-1)*avMZSpacing_ << " : " 
+			<< experiment_.getMin().Y()+iter->first*avMZSpacing_ << "\t [ ";
+		else
+			std::cout << experiment_.getMin().Y() << " : " << experiment_.getMin().Y()+iter->first*avMZSpacing_ << "\t [ ";
+	 	for (std::list<double>::const_iterator iter_cl2=iter->second.first.begin(); 
+			iter_cl2 != iter->second.first.end(); ++iter_cl2)
+				std::cout	<< *iter_cl2 << " "; std::cout << "]  { ";	
+		for (std::list<double>::const_iterator iter_l=iter->second.second.begin();
+			iter_l != iter->second.second.end(); ++iter_l)
+				std::cout << *iter_l << " ";
+		std::cout << "}" << std::endl;
+	}
+// 	DPeakArrayNonPolymorphic<1, DRawDataPoint<2> > data;
+// 	experiment_.get2DData(data);
+// 	std::cout << std::endl << "Found " << hash_.size() << " potential isotope pattern(s) (outof " 
+// 		<< data.size() << " possible points)." << std::endl;	
 
 	return (hash_);
 }
@@ -488,12 +493,12 @@ void IsotopeFinder<MapType>::filterHashByRTVotes () throw ()
 			{
 				delete_it = false;
 				break;
-			};
+			}
 		if (delete_it)
 			toDelete.push_back(iter);
 		else
 			delete_it = true;
-	};
+	}
 
 	for (unsigned int i=0; i<toDelete.size(); ++i)
 		hash_.erase (toDelete[i]);
@@ -516,7 +521,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 	std::vector<unsigned int> start_indices, end_indices;
 	//In order to determine the start and end indices, we first need to know the width of the region one should consider 
 	//to estimate the mean and the sd of the pattern candidate. 
-	//That region is defined by the position of the highest amplitude +/- waveletLength_.
+	//That region is defined by the position of the heighst amplitude +/- waveletLength_.
 	
 	typedef typeof(candidates[0].getContainer()) containerType;
 	typedef remove_ref<containerType>::type containerTypeCopy;
@@ -534,17 +539,17 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 		//Ugly, but do not how to do this in a better (and easy) way
 		for (unsigned int i=0; i<c_candidate.size(); ++i)
 			c_candidate[i].setPosition(DPosition<2>(c_candidate[i].getPosition().X(), i));
+			
+		sort (c_candidate.begin(), 
+					c_candidate.end(), 
+					ReverseComparator< DRawDataPoint<2>::IntensityLess >::ReverseComparator() );
 		
 		//sort (c_candidate.begin(), c_candidate.end(), comparator); 
-		sort (c_candidate.begin(), 
-				c_candidate.end(), 
-				ReverseComparator< DRawDataPoint<2>::IntensityLess >::ReverseComparator() );
-			
+	
 		i_iter=0;
 		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 		{
-			c_index = (int) (iter->getPosition().Y());		
-			/// start and end index for scoring	
+			c_index = (int) (iter->getPosition().Y());			
 			start_index = c_index-waveletLength_+1;
 			end_index = c_index+waveletLength_-1;		
 
@@ -566,7 +571,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 			{
 				std::cout << "SNR aborted! " << std::endl;
 				continue;
-			};*/
+			}*/
 
 	
 			//Mark as processed
@@ -580,8 +585,8 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 			sdsC[c][c_index] = getUpShiftedMoment (candidates[c], 2, start_index, end_index)
 				/ (getUpShiftedMoment (candidates[c], 3, start_index, end_index)+LAPLACE_SMOOTH_EPSILON);
 			scoresC[c][c_index] = meansC[c][c_index]*sdsC[c][c_index]*iter->getIntensity();
-		};	
-	};
+		}	
+	}
 
 	std::vector<int> positions (candidates.size(), 0); std::list<double> c_list;
 	double c_mz, c_fill_mz=experiment_.getMin().Y()+avMZSpacing_; //The first right boundary of the hash cell
@@ -599,8 +604,8 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 				if (++count_finished_charges >= candidates.size())
 					goto FINISHED_HASHING;
 				positions[c] = -1;
-			};
-		};
+			}
+		}
 						
 		for (unsigned int c=0; c<candidates.size(); ++c)		
 		{
@@ -614,8 +619,8 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 				if (++(positions[c]) >= (int) candidates[c].size())
 					break;
 				c_mz = candidates[c].getContainer()[positions[c]].getPos();				
-			};
-		};				
+			}
+		}				
 
 		allZero=true;	
 		for (iter_cl=c_list.begin(); iter_cl!=c_list.end(); ++iter_cl)
@@ -628,7 +633,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 			while (iter_hash.first != iter_hash.second)		
 			{
 				//std::cout << "M/Z already in hash table ... " << std::endl;
-				typename MapType::const_iterator beforeRT = experiment_.RTBegin(candidates[0].getRetentionTime()); 
+				typename MapType::const_iterator beforeRT = experiment_.RTBegin(candidates[0].getRetentionTime());
 				if (find(iter_hash.first->second.first.begin(), iter_hash.first->second.first.end(), 
 					(--beforeRT)->getRetentionTime()) == iter_hash.first->second.first.end())
 				{
@@ -636,7 +641,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 					//i.e. we can treat this case as if no entry is present in the hash
 					++iter_hash.first;
 					continue;
-				};
+				}
 				c_fill_list = iter_hash.first->second.first; c_fill_list.push_back(candidates[0].getRetentionTime());	
 				for (iter_cl = c_list.begin(), iter_cl_hash = iter_hash.first->second.second.begin(); iter_cl != c_list.end(); 
 					++iter_cl, ++iter_cl_hash)
@@ -644,7 +649,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 				hash_.erase (iter_hash.first);
 			  c_pair = DoubleList (c_fill_list, c_list);
 				goto FINISH;
-			};
+			}
 			
 			//std::cout << "New M/Z entry for hash table ..." << std::endl;
 			//Store RT and the corresponding score
@@ -654,12 +659,12 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 
 		FINISH:			
 			hash_.insert (SweepLineHash::value_type(c_fill_index, c_pair));
-		};
+		}
 
 		c_list.clear();
-	  	++c_fill_index; 
+	  ++c_fill_index; 
 		c_fill_mz += avMZSpacing_;
-	};
+	}
 
  FINISHED_HASHING:
 	
@@ -688,7 +693,7 @@ double  IsotopeFinder<MapType>::getWaveletPotential (const MSSpectrum<DRawDataPo
 		else //the "normal" case
 			cumSpacing += signal.getContainer()[(startIndex+j+1)%signal.size()].getPos() 
 				- signal.getContainer()[(startIndex+j)%signal.size()].getPos() ; 
-	};		
+	}		
 
 	double min=INT_MAX;
 	for (unsigned int i=0; i<phi.size(); ++i)
@@ -758,9 +763,9 @@ double IsotopeFinder<MapType>::getUpShiftedMoment (const MSSpectrum<DRawDataPoin
 		{
 			tmp = signal.getContainer()[i].getIntensity() + min - mean;
 			res += tmp*tmp;
-		};
+		}
 		return (sqrt(res/(double)(endIndex-startIndex)));
-	};
+	}
 	
 	//I.e. skewness
 	
@@ -769,7 +774,7 @@ double IsotopeFinder<MapType>::getUpShiftedMoment (const MSSpectrum<DRawDataPoin
 	{
 		tmp = signal.getContainer()[i].getIntensity() + min - mean;
 		res += tmp*tmp*tmp;
-	};
+	}
 
 	return ((pow(fabs(res/(double)(endIndex-startIndex+1)), 1.0/3.0)));
 }
@@ -829,7 +834,7 @@ MSSpectrum<DRawDataPoint<2> > IsotopeFinder<MapType>::fastCorrelate (const MSSpe
 				cumSpacing += avMZSpacing_;
 			else //the "normal" case
 				cumSpacing += signal[(i+j+1)%signal.size()].getPos() - signal[(i+j)%signal.size()].getPos() ; 
-		};			
+		}			
 					
 		sum=0;
 		k=0;
@@ -840,7 +845,7 @@ MSSpectrum<DRawDataPoint<2> > IsotopeFinder<MapType>::fastCorrelate (const MSSpe
 			sum += signal[l].getIntensity()*phi[k];
 
 		res[i].setIntensity(sum);
-	};
+	}
 
 	MSSpectrum<DRawDataPoint<2> > result (scan);
  	result.setContainer (res);
@@ -882,8 +887,8 @@ std::vector<MSSpectrum<DRawDataPoint<2> > > IsotopeFinder<MapType>::fastMultiCor
 					cumSpacing += avMZSpacing_;
 				else //The "normal" case
 					cumSpacing += signal[(i+j+1)%signal.size()].getPos() - signal[(i+j)%signal.size()].getPos(); 
-			};
-		};			
+			}
+		}			
 					
 		std::vector<double> sums (charges.size());
 		k=0;
@@ -892,19 +897,19 @@ std::vector<MSSpectrum<DRawDataPoint<2> > > IsotopeFinder<MapType>::fastMultiCor
 			
 			for (unsigned int m=0; m<charges.size(); ++m)
 				sums[m] += signal[j].getIntensity()*phis[m][k];
-		};
+		}
 
 		for (unsigned int l=0; l<i && k<phis[0].size(); ++l, ++k)
 		{	//Since all wavelet functions have the same length, we can simply use phis[0].size()
 	
 			for (unsigned int m=0; m<charges.size(); ++m)
 				sums[m] += signal[l].getIntensity()*phis[m][k];
-		};
+		}
 
 		//Store the current convolution result
 		for (unsigned int m=0; m<charges.size(); ++m)
 			res[m][i].setIntensity(sums[m]);
-	};
+	}
 
 	std::vector<MSSpectrum<DRawDataPoint<2> > > results (charges.size());
 	MSSpectrum<DRawDataPoint<2> > result (scan);
@@ -913,7 +918,7 @@ std::vector<MSSpectrum<DRawDataPoint<2> > > IsotopeFinder<MapType>::fastMultiCor
  		result.setContainer (res[i]);
 		result.setRetentionTime(scan.getRetentionTime());
 		results[i] = result;
-	};
+	}
 
 	return (results);
 }
@@ -931,9 +936,9 @@ double IsotopeFinder<MapType>::averageMZSpacing (const DPeakArrayNonPolymorphic<
 		{
 			++leftOuts;
 			continue;			
-		};
+		}
 		avMZspacing += MZspacing;
-	};
+	}
 	avMZspacing /= (double)(signal.size()-leftOuts-1); //-1, since there are n data points and hence n-1 spacings
 		
 	return (avMZspacing);		
@@ -960,7 +965,7 @@ void IsotopeFinder<MapType>::generateGammaValues () throw ()
 		preComputedGamma_[counter] = tgamma (query);
 		query += min_spacing_;			
 		++counter;
-	};
+	}
 }
 				
 
@@ -994,6 +999,7 @@ std::vector<double> IsotopeFinder<MapType>::phiA (const double lambda, const dou
 	return (res);				
 }
 
-} //namespace
+#endif 
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDER_H
+
+} //namespace

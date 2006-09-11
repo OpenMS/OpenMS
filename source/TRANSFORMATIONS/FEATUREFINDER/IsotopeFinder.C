@@ -21,19 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong $
+// $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFinder.h>
+
+
 		
-
-namespace OpenMS
-{
-
-bool comparator (const DRawDataPoint<2> a, const DRawDataPoint<2> b)
-{
-	return (a.getIntensity() > b.getIntensity());
-}	
+// bool comparator (const DRawDataPoint<2> a, const DRawDataPoint<2> b)
+// {
+// 	return (a.getIntensity() > b.getIntensity());
+// };	
 
 
 
-} // end of namespace OpenMS
