@@ -21,41 +21,19 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Rene Hussong $
 // --------------------------------------------------------------------------
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-// all from BaseExtender derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFinder.h>
+		
 
 namespace OpenMS
 {
-	void BaseExtender::registerChildren()
-	{
-		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
-		Factory<BaseExtender>::registerProduct(WaveletExtender::getName(), &WaveletExtender::create);
-	}	
 
-	BaseExtender::BaseExtender() : FeaFiModule() 
-	{
-	}
+bool comparator (const DRawDataPoint<2> a, const DRawDataPoint<2> b)
+{
+	return (a.getIntensity() > b.getIntensity());
+}	
 
 
-	BaseExtender::BaseExtender(const BaseExtender& source)
-		: FeaFiModule(source) {}
 
-	BaseExtender::~BaseExtender(){}
-	
-	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
-	{
-		FeaFiModule::operator = (source);
-		return *this;
-	}
-}
-
-
+} // end of namespace OpenMS

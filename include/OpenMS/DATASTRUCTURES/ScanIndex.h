@@ -67,7 +67,7 @@ namespace OpenMS
 		typedef std::vector < CoordinateType > ScanPositionContainerType;
 		typedef std::vector < typename PeakContainerType::iterator > ScanBeginContainerType;
 		typedef typename PeakType::template NthPositionLess<RT> RTless;
-    typedef typename PeakType::template NthPositionLess<MZ> MZless;
+    	typedef typename PeakType::template NthPositionLess<MZ> MZless;
     
 		using ScanBeginContainerType::clear;
 		using ScanBeginContainerType::begin;

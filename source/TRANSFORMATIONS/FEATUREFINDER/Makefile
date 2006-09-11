@@ -50,7 +50,9 @@ CPP_SOURCES=\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
-	SweepExtender.C
+	SweepExtender.C\
+	IsotopeFinder.C\
+	WaveletExtender.C
 
 ifeq ($(GSL_SUPPORT),true)
  GSL_SOURCES=\

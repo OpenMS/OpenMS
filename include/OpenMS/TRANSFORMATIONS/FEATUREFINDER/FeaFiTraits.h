@@ -145,6 +145,18 @@ namespace OpenMS
     {
 			return peaks_.size();
     }
+	
+	PeakVector& getAllPeaks() 
+	{
+		return peaks_;
+	}
+	
+	ScanIndex<PeakVector>& getScanIndex() 
+	{
+		return scan_index_;
+	}
+	
+	
 
     /// acess intensity of peak with index @p index.
     const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow)
@@ -162,10 +174,10 @@ namespace OpenMS
 			return peaks_.at(index).getPosition()[RT];
     }
     /// returns signal/noise ration of peak with index @p index
-    const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)
-    {
-			return sn_ratios_.at(index);
-    }
+//     const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)
+//     {
+// 			return sn_ratios_.at(index);
+//     }
     /// acess scan number of peak with index @p index
     const UnsignedInt getPeakScanNr(const UnsignedInt index) const throw (Exception::IndexOverflow);
 
@@ -243,7 +255,7 @@ namespace OpenMS
     ScanIndex<PeakVector> scan_index_;
 
     /// The (hopefully) found features in the LC/MS map
-		FeatureVector features_;
+	FeatureVector features_;
 
     /// Stores a the signal / noise ratio for each peak
     std::vector<double> sn_ratios_;

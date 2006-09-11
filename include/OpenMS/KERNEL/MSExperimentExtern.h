@@ -41,13 +41,13 @@
 namespace OpenMS
 {
 /**
-	@brief Representation of a mass spectrometry experiment using a temporary file  to store very large data sets.
+	@brief Representation of a mass spectrometry experiment using an external datastructure to store very large data sets.
 			
 	@ingroup Kernel
 **/
 template < typename PeakT = DPeak<1> >
 class MSExperimentExtern
-{
+	{
 public:
 
     ///ConstIterator
@@ -342,12 +342,13 @@ public:
 
     protected:
 
-    }
-    ;	// end of class MSExperimentExternIterator
+    } ;	// end of class MSExperimentExternIterator
 
 
     typedef PeakT PeakType;
-    typedef MSSpectrum<PeakT> SpectrumType;
+    typedef typename PeakT::IntensityType IntensityType;
+	typedef typename PeakT::PositionType PositionType;
+	typedef MSSpectrum<PeakT> SpectrumType;
     typedef typename SpectrumType::ContainerType ContainerType;
     typedef typename PeakType::CoordinateType CoordinateType;
     typedef MSExperiment<PeakType> ExperimentType;
@@ -456,12 +457,84 @@ public:
     {
         exp_.updateRanges();
     }
+	
+	/// Returns the minimum position
+	const PositionType& getMin() const	
+	{ 
+		return exp_.getMin(); 
+	}
+	
+	/// Returns the maximum position
+	const PositionType& getMax() const 
+	{ 
+		return exp_.getMax(); 
+	}
+	
+	/// Returns the minimum intensity
+	const IntensityType getMinInt() const	
+	{ 
+		return exp_.getMin()[0]; 
+	}
+	
+	/// Returns the maximum intensity
+	const IntensityType getMaxInt() const 
+	{ 
+	 	return exp_.getMax()[0]; 
+	}
 
     void sortSpectra(bool sort_mz)
     {
         exp_.sortSpectra(sort_mz);
     }
-
+	
+    /**
+    	@brief Fast search for spectrum range begin
+    	
+    	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+    */
+    ConstIterator RTBegin(double rt) const 
+	{  
+		SpectrumType s;
+        s.setRetentionTime(rt);
+        return lower_bound(begin(), end(), s, typename SpectrumType::RTLess());	
+	}
+   
+    /**
+    	@brief Fast search for spectrum range end (returns the past-the-end iterator)
+    	
+    	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+    */
+    ConstIterator RTEnd(double rt) const 
+	{ 
+		SpectrumType s;
+        s.setRetentionTime(rt);
+        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
+	}
+  
+    /**
+    	@brief Fast search for spectrum range begin
+    	
+    	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+    */
+    Iterator RTBegin(double rt) 
+	{ 
+		SpectrumType s;
+        s.setRetentionTime(rt);
+        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
+	}
+    
+	/**
+    	@brief Fast search for spectrum range end (returns the past-the-end iterator)
+    	
+    	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
+    */
+    Iterator RTEnd(double rt) 
+	{ 
+		SpectrumType s;
+        s.setRetentionTime(rt);
+        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
+	}
+   
     /// See std::vector documentation.
     Iterator begin()
     {

@@ -335,70 +335,70 @@ namespace OpenMS
 
     /// Estimates the signal to noise ratio
     /// TODO: Set parameters for noise estimator from outside
-    DSignalToNoiseEstimatorWindowing<2, std::vector<PeakType>::const_iterator > sn_estimator_;
+//     DSignalToNoiseEstimatorWindowing<2, std::vector<PeakType>::const_iterator > sn_estimator_;
 
 #ifdef DEBUG_FEATUREFINDER
-    String gp_fname("sn_ratios.txt");
-    ofstream outfile( gp_fname.c_str() );
+//     String gp_fname("sn_ratios.txt");
+//     ofstream outfile( gp_fname.c_str() );
 #endif
 
     // estimate s/n ratios
-    for(PeakVector::const_iterator citer = peaks_.begin();
-        citer != peaks_.end();
-        ++citer)
-    {
-      if (last_scan_.size() > 0)
-      {
-        // check whether retention time has changed (i.e. a new scan has begun)
-        if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
-        {
-          // estimate noise for last scan
-          sn_estimator_.init(last_scan_.begin(),last_scan_.end());
-
-          for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
-               cit != last_scan_.end();
-               ++cit)
-          {
-            // save s/n values
-           	double sn = sn_estimator_.getSignalToNoise(cit);
-			// Oles super bugfix !!
-            if (sn < 0)  sn = 1;
-            sn_ratios_.push_back(log10(sn));
+//     for(PeakVector::const_iterator citer = peaks_.begin();
+//         citer != peaks_.end();
+//         ++citer)
+//     {
+//       if (last_scan_.size() > 0)
+//       {
+//         // check whether retention time has changed (i.e. a new scan has begun)
+//         if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
+//         {
+//           // estimate noise for last scan
+//           sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+// 
+//           for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+//                cit != last_scan_.end();
+//                ++cit)
+//           {
+//             // save s/n values
+//            	double sn = sn_estimator_.getSignalToNoise(cit);
+// 			// Oles super bugfix !!
+//             if (sn < 0)  sn = 1;
+//             sn_ratios_.push_back(log10(sn));
+// 
+// #ifdef DEBUG_FEATUREFINDER
+//             outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+// #endif
+// 
+//           }
+//           // empty container
+//           last_scan_.clear();
+//         }
+//       }
+// 
+//       // store new peak
+//       last_scan_.push_back(*citer);
+//     }
+// 
+//     // estimate noise for last scan
+//     sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+// 
+//     for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+//          cit != last_scan_.end();
+//          ++cit)
+//     {
+//       // save s/n values
+//       sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
 
 #ifdef DEBUG_FEATUREFINDER
-            outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+//    outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
 #endif
 
-          }
-          // empty container
-          last_scan_.clear();
-        }
-      }
-
-      // store new peak
-      last_scan_.push_back(*citer);
-    }
-
-    // estimate noise for last scan
-    sn_estimator_.init(last_scan_.begin(),last_scan_.end());
-
-    for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
-         cit != last_scan_.end();
-         ++cit)
-    {
-      // save s/n values
-      sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
-
-#ifdef DEBUG_FEATUREFINDER
-      outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
-#endif
-
-    }
+    //}
     // empty container
-    last_scan_.clear();
+//     last_scan_.clear();
 
 #ifdef DEBUG_FEATUREFINDER
-    outfile.close();
+//     outfile.close();
 #endif
 
   }	// end sortData()
