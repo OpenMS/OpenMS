@@ -51,8 +51,12 @@ CPP_SOURCES=\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
 	SweepExtender.C\
-	IsotopeFinder.C\
+	IsotopeFinder.C
+
+ifeq ($(WAVELETS),true)
+WAV_SOURCES=\
 	WaveletExtender.C
+endif
 
 ifeq ($(GSL_SUPPORT),true)
  GSL_SOURCES=\
@@ -63,7 +67,7 @@ ifeq ($(GSL_SUPPORT),true)
 
 endif
 
-ADD_CPP_SOURCES = ${GSL_SOURCES}
+ADD_CPP_SOURCES = ${GSL_SOURCES} ${WAV_SOURCES}
 
 include ../../common.mak
 -include .Dependencies

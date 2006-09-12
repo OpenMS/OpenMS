@@ -183,7 +183,7 @@ namespace OpenMS
 	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
 	           or any other derived class of DRawDataPoint.
 	
-	     @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+	     @note You have to copy the ExperimentalSettings of the raw data on your own. 	
 	    */
 	    template <typename InputSpectrumIterator, typename OutputPeakType >
 	    void rasterExperiment(InputSpectrumIterator first,
