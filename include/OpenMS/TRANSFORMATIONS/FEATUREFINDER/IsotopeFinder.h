@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDERL_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFINDER_H
 
 #include <iostream>
 #include <fstream>
@@ -35,15 +35,13 @@
 #include <map.h>
 #include <math.h>
 #include <values.h>
+
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_gamma.h>
-// #include <fftw3.h>
-// #include <OpenMS/FORMAT/MzXMLFile.h>
-// #include <OpenMS/FORMAT/DTA2DFile.h>
-// #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
+
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
-// #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
