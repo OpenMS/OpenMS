@@ -56,15 +56,6 @@
 #define LAPLACE_SMOOTH_EPSILON 1e-6
 #endif
 
-template<typename T> 
-struct remove_ref 
-{ typedef T type; }; 
-
-template<typename T> 
-struct remove_ref<T&> 
-{ typedef T type; };
-
-
 namespace OpenMS
 {
 
@@ -523,8 +514,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 	//to estimate the mean and the sd of the pattern candidate. 
 	//That region is defined by the position of the heighst amplitude +/- waveletLength_.
 	
-	typedef typeof(candidates[0].getContainer()) containerType;
-	typedef remove_ref<containerType>::type containerTypeCopy;
+	typedef MSSpectrum<DRawDataPoint<2> >::ContainerType containerType;
 	containerType::iterator iter; 
 	unsigned int start_index, end_index, c_index, i_iter; //Helping variables
 	double abs_mean_threshold, sd, seed_mz; 
@@ -535,7 +525,7 @@ void IsotopeFinder<MapType>::identifyCharge (std::vector<MSSpectrum<DRawDataPoin
 	{
 		processed = std::vector<bool> (candidates[0].size(), false); //Reset
 		candidates[c].updateRanges();
-		containerTypeCopy c_candidate = candidates[c].getContainer();  
+		containerType c_candidate = candidates[c].getContainer();  
 		//Ugly, but do not how to do this in a better (and easy) way
 		for (unsigned int i=0; i<c_candidate.size(); ++i)
 			c_candidate[i].setPosition(DPosition<2>(c_candidate[i].getPosition().X(), i));
