@@ -267,7 +267,6 @@ namespace OpenMS
     SpectrumWindow* w;
 
     SpectrumCanvas::ExperimentType* exp = 0;
-    MSExperiment<>* exp2 = 0; //temporary data
 
     if (activeWindow_()==0)
     {
@@ -290,8 +289,8 @@ namespace OpenMS
 
         //load data
         exp = &(w->widget()->canvas()->addEmptyDataSet());
-        exp2 = new MSExperiment<>();
-        exp2->push_back(* (dba.loadSpectrum(spectrum_id)));
+        exp->resize(1);
+        dba.loadSpectrum(spectrum_id,(*exp)[0]);
       }
       //create 2D/3D view
       else
@@ -303,8 +302,8 @@ namespace OpenMS
           w = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
 
           //load spectrum
-          exp2 = dba.loadMSExperiment(db_id);
           exp = &(w->widget()->canvas()->addEmptyDataSet());
+          dba.loadExperiment(db_id, (*exp));
         }
         //create 3D view
         else
@@ -313,8 +312,8 @@ namespace OpenMS
           w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
 
           //load data
-          exp2 = dba.loadMSExperiment(db_id);
           exp = &(w->widget()->canvas()->addEmptyDataSet());
+          dba.loadExperiment(db_id, *exp);
         }
         w->setMainPreferences(prefs_);
       }
@@ -340,9 +339,9 @@ namespace OpenMS
           UID spectrum_id = con.lastResult().value(0).toInt();
 
           //load data
-          exp = &(w->widget()->canvas()->addEmptyDataSet());
-          exp2 = new MSExperiment<>();
-          exp2->push_back(*(dba.loadSpectrum(spectrum_id)));
+	        exp = &(w->widget()->canvas()->addEmptyDataSet());
+	        exp->resize(1);
+	        dba.loadSpectrum(spectrum_id,(*exp)[0]);
         }
       }
       //create 2D/3D view
@@ -362,10 +361,8 @@ namespace OpenMS
           w = w2;
 
           //load data
-          MSExperiment<>* exp = dba.loadMSExperiment(db_id);
           exp = &(w->widget()->canvas()->addEmptyDataSet());
-          *exp = *exp2;
-          delete(exp2);
+          dba.loadExperiment(db_id, (*exp));
         }
         //create 3D view
         else
@@ -373,13 +370,10 @@ namespace OpenMS
           w = w3;
 
           //load data
-          exp = dba.loadMSExperiment(db_id);
           exp = &(w->widget()->canvas()->addEmptyDataSet());
+          dba.loadExperiment(db_id, (*exp));
         }
       }
-
-      *exp = *exp2;
-      delete(exp2);
 
       //noise estimator
       float cutoff = 0;

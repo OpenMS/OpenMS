@@ -38,7 +38,6 @@ CPP_SOURCES= \
 	Base64.C\
 	DTAFile.C\
 	DTA2DFile.C\
-	PersistenceManager.C\
 	PersistentObject.C\
 	MascotInfile.C\
 	MascotOutfile.C\

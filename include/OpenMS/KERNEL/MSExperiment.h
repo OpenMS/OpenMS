@@ -632,32 +632,6 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
         return tmp;
     }
 
-    /// PersistentObject interface
-    virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
-    {
-        //std::cout << "--  MSExperiment Header --" << std::endl;
-        pm.writeObjectHeader(this,name);
-        //std::cout << "--  MSExperiment -> Spectrum Array --" << std::endl;
-        pm.writeObjectArray(*(dynamic_cast< const std::vector<MSSpectrum<PeakT> >* >(this)),"SpectrumArray",this->size());
-        //std::cout << "--  MSExperiment Tailer --" << std::endl<< std::endl<< std::endl;
-        pm.writeObjectTrailer(name);
-    }
-
-    /// PersistentObject interface
-    virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
-    {
-        pm.readPrimitive(getPersistenceId(),"id");
-
-        //spectra
-        UnsignedInt tmp;
-        pm.readPrimitive(tmp,"spectrum count");
-        this->resize(tmp);
-        for (UnsignedInt i=0; i<tmp; ++i)
-        {
-            pm.readObjectReference(this->operator[](i),"Spectrum");
-        }
-    }
-
     /// Comparator to sort spectra by retention time
     class RtComparator
     {

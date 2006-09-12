@@ -57,36 +57,90 @@ namespace OpenMS
 
   // intended for the use in Containers, like the stl
   ClusterSpectrum::ClusterSpectrum()
-    :specp_(0), binrepp_(0),adapterp_(0),binsize_(0),binspread_(0),id_(0),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+    : specp_(0),
+    	binrepp_(0),
+    	adapterp_(0),
+    	binsize_(0),
+    	binspread_(0),
+    	id_(0),
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
   }
   
-  ClusterSpectrum::ClusterSpectrum(long id, PersistenceManager* adapterp,double size,uint spread)
-    :specp_(0), binrepp_(0), adapterp_(adapterp), binsize_(size), binspread_(spread), id_(id),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+  ClusterSpectrum::ClusterSpectrum(long id, DBAdapter* adapterp,double size,uint spread)
+    : specp_(0),
+    	binrepp_(0),
+    	adapterp_(adapterp), 
+    	binsize_(size), 
+    	binspread_(spread), 
+    	id_(id),
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
   }
 
   ClusterSpectrum::ClusterSpectrum(const MSSpectrum< DPeak<1> >& spec,DBAdapter* adapterp, double binsize , uint binspread )
-    :specp_(new MSSpectrum< DPeak<1> >(spec)), binrepp_(0),adapterp_(adapterp),binsize_(binsize),binspread_(binspread),id_(spec.getPersistenceId()),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+    : specp_(new MSSpectrum< DPeak<1> >(spec)), 
+    	binrepp_(0),
+    	adapterp_(adapterp),
+    	binsize_(binsize),
+    	binspread_(binspread),
+    	id_(spec.getPersistenceId()),
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
     updatecache_();
   }
   
   
-  ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, PersistenceManager* adapterp, double binsize, uint binspread)
-    : specp_(specp),binrepp_(0),adapterp_(adapterp), binsize_(binsize), binspread_(binspread), id_(specp->getPersistenceId()),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+  ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, DBAdapter* adapterp, double binsize, uint binspread)
+    : specp_(specp),
+    	binrepp_(0),
+    	adapterp_(adapterp), 
+    	binsize_(binsize), 
+    	binspread_(binspread), 
+    	id_(specp->getPersistenceId()),
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
     updatecache_();
   }
 
-  ClusterSpectrum::ClusterSpectrum(BinnedRep* binrepp, PersistenceManager* adapterp)
-    : specp_(0), binrepp_(binrepp), adapterp_(adapterp), binsize_(binrepp->getBinSize()), binspread_(binrepp->getBinSpread()),id_(binrepp->id()), cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+  ClusterSpectrum::ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp)
+    : specp_(0), 
+    	binrepp_(binrepp), 
+    	adapterp_(adapterp), 
+    	binsize_(binrepp->getBinSize()), 
+    	binspread_(binrepp->getBinSpread()),
+    	id_(binrepp->id()), 
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
     updatecache_();
   }
 
   ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, BinnedRep* binrepp)
-    : specp_(specp),binrepp_(binrepp),adapterp_(0),binsize_(binrepp->getBinSize()), binspread_(binrepp->getBinSpread()),id_(binrepp->id()),cached_(0),retention_(0),parent_mass_(0),parentioncharge_(0)
+    : specp_(specp),
+    	binrepp_(binrepp),
+    	adapterp_(0),
+    	binsize_(binrepp->getBinSize()), 
+    	binspread_(binrepp->getBinSpread()),
+    	id_(binrepp->id()),
+    	cached_(0),
+    	retention_(0),
+    	parent_mass_(0),
+    	parentioncharge_(0)
   {
     if (specp->getPersistenceId() != binrepp->id())
     {
@@ -96,7 +150,16 @@ namespace OpenMS
   }
 
   ClusterSpectrum::ClusterSpectrum( const ClusterSpectrum& source)
-    :specp_(0),binrepp_(0),adapterp_(source.adapterp_),binsize_(source.binsize_),binspread_(source.binspread_),id_(source.id_),cached_(source.cached_),retention_(source.retention_),parent_mass_(source.parent_mass_),parentioncharge_(source.parentioncharge_)
+    : specp_(0),
+    	binrepp_(0),
+    	adapterp_(source.adapterp_),
+    	binsize_(source.binsize_),
+    	binspread_(source.binspread_),
+    	id_(source.id_),
+    	cached_(source.cached_),
+    	retention_(source.retention_),
+    	parent_mass_(source.parent_mass_),
+    	parentioncharge_(source.parentioncharge_)
   {
     if ( source.specp_ )
     {
@@ -253,7 +316,7 @@ namespace OpenMS
     }
   }
 
-  const std::vector<Identification>& ClusterSpectrum::getIdentification(PersistenceManager* /*adapterp*/) const
+  const std::vector<Identification>& ClusterSpectrum::getIdentification() const
   {
     //todo 
 

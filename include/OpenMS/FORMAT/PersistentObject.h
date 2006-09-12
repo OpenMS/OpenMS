@@ -34,13 +34,10 @@
 
 namespace OpenMS
 { 
-	class PersistenceManager;
-
   /**
   	@brief Base class for all persistent objects.
   	
-  	Interface for all classes that can be stored persistently e.g. in DB or text file.
-  	The storage itself is handled by a PersistenceManager.
+  	Interface for all classes that can be stored persistently in the OpenMS DB.
   	
   	@ingroup Format
   */
@@ -56,26 +53,11 @@ namespace OpenMS
 			
       /// Assignment operator
       PersistentObject& operator= (const PersistentObject& rhs);
-
-      /**
-      	@brief Method for writing an object to a stream
-      	
-      	
-      */
-      virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base) =0;
-
-      /**
-      	@brief Method for reading an object from a stream
-      	
-      	
-      */
-      virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base) =0;
 			
       /**
       	@brief Returns the persistence id
       	
-      	This id is only used by some kinds of PersistenceManagers.
-      	E.g. in the DBAdapter the id is used to connect the object to the data stored in the DB.
+      	This id is only used in the DBAdapter the id is used to connect the object to the data stored in the DB.
       */
       const UID& getPersistenceId() const;
 
@@ -85,8 +67,7 @@ namespace OpenMS
       /**
       	@brief Sets the persistence id
       	
-      	This id is only used by some kinds of PersistenceManagers.
-      	E.g. in the DBAdapter the id is used to connect the object to the data stored in the DB.
+      	This id is only used in the DBAdapter the id is used to connect the object to the data stored in the DB.
       	<BR>
       	Do not set the persistence id unless you know what you are doing!
       */

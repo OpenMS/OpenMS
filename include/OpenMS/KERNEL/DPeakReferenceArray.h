@@ -863,16 +863,6 @@ namespace OpenMS
   //  Implementation of the inline / template functions
   //---------------------------------------------------------------
 
-  //  // Partial specialization of DPeakReferenceArrayNonPolymorphic for use w/ DRawDataPoint.
-  //  // Specialization avoids issues with the missing PersistentObject of
-  //  // DRawDataPoint.
-  //  template <>
-  //  void DPeakReferenceArray<1, DRawDataPoint<1> >::serialize(PersistenceManager& /* f */);
-  //  template <>
-  //  void DPeakReferenceArray<2, DRawDataPoint<2> >::serialize(PersistenceManager& /* f */);
-  //  template <>
-  //  void DPeakReferenceArray<3, DRawDataPoint<3> >::serialize(PersistenceManager& /* f */);
-
   template <Size D, typename TraitsT, typename PeakT >
   void DPeakReferenceArray<D,TraitsT,PeakT>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
   {

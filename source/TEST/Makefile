@@ -153,7 +153,6 @@ EXECUTABLES_FORMAT = \
 	Base64_test\
 	UniqueIdGenerator_test\
 	PersistentObject_test\
-	PersistenceManager_test\
 	FASTAFile_test\
 	FileHandler_test\
 	MzDataExpSettHandler_test\

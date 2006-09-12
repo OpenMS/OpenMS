@@ -867,16 +867,6 @@ namespace OpenMS
   //  Implementation of the inline / template functions
   //---------------------------------------------------------------
 
-  //  // Partial specialization of DPeakConstReferenceArrayNonPolymorphic for use w/ DRawDataPoint.
-  //  // Specialization avoids issues with the missing PersistentObject of
-  //  // DRawDataPoint.
-  //  template <>
-  //  void DPeakConstReferenceArray<1, DRawDataPoint<1> >::serialize(PersistenceManager& /* f */);
-  //  template <>
-  //  void DPeakConstReferenceArray<2, DRawDataPoint<2> >::serialize(PersistenceManager& /* f */);
-  //  template <>
-  //  void DPeakConstReferenceArray<3, DRawDataPoint<3> >::serialize(PersistenceManager& /* f */);
-
   template <typename MapT>
   void DPeakConstReferenceArray<MapT>::sortByNthPosition(UnsignedInt i)
 		throw (Exception::NotImplemented)

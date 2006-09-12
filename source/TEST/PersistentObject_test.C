@@ -61,16 +61,6 @@ namespace OpenMS
 			{
 				return subobjects_clear_;
 			}
-			
-			void persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base)
-			{
-				
-			}
-			
-			void persistentRead(PersistenceManager& /*pm*/) throw (Exception::Base)
-			{
-				
-			}
 		
 		protected:
 			//emulation of subobjects

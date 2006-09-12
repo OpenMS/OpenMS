@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_FORMAT_DATASETINFO_H
 #define OPENMS_FORMAT_DATASETINFO_H
@@ -44,7 +43,8 @@ namespace OpenMS
 	  
 	  @todo remove
   */
-  class DataSetInfo : public PersistentObject
+  class DataSetInfo 
+  	: public PersistentObject
   {
   public:
     /** 
@@ -62,12 +62,6 @@ namespace OpenMS
     const std::vector<int>& contents(std::string type ) const;
     std::string info() const {return info_;}
     std::string name() const {return name_;}
-
-		// Docu in base class
-		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
-		
-		// Docu in base class
-		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
 
 	protected:
 		// Docu in base class

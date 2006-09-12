@@ -102,6 +102,7 @@
 #include <OpenMS/VISUAL/SpectrumMDIWindow.h>
 
 using namespace OpenMS;
+using namespace std;
 
 //STL
 #include <iostream.h>

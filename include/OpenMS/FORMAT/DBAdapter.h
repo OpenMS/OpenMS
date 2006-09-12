@@ -30,13 +30,13 @@
 //#include <OpenMS/config.h>
 
 //OpenMS includes
-#include <OpenMS/FORMAT/PersistenceManager.h>
 #include <OpenMS/FORMAT/DBConnection.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
 
 //QT includes
 #include <qsqlquery.h>
+#include <qdatetime.h>
 
 //std and STL includes
 #include <string>
@@ -47,134 +47,277 @@ namespace OpenMS
   	@brief A class for accessing and storing data in a SQL database
   	
     It can be used to create objects from the DB or store them in the DB.
-    In order to write an object call operator<<(const PersistentObject&) of the PersistenceManager.
     
     @ingroup DatabaseIO
     
-    @note This class will be reimplemented in the next version of OpenMS. We do not recommend using it!
-    
-    @todo speed up by implementing a not so generic version (Marc)
     @todo add setup and clear method for the DB (Marc)
-    @todo do not create a new entry when the object has a DB id already (Marc)
-    @todo support for metadata (Marc)
-    @todo loadMSSpectrum(id, spectrum) loadMSExperiment(id,experiment) (Marc)
+    @todo add missing members that are only in the DB schema (Marc)
+    @todo intensive testing: empty map, all members set, update only, ... (Marc)
+    @todo add support for missing classes and MetaInfo(Marc)
   */
+ 
   class DBAdapter
-        : public PersistenceManager
   {
     public:
-
-			/// Dimension order of a HPLC-MS experiment
-			enum DimensionId 
-			{ 
-				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ, 
-				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT 
-			};
-
-			/// Default constructor
+			/// Constructor
       DBAdapter(DBConnection& db_con);
 
       /// Destructor
       ~DBAdapter();
 
-			/**
-				@brief Sets the UID to read from the DB.
-				
-			*/
-			void readId(UID id);
-			
-			/// Reads a MSExperiment (for convenience)
-			MSExperiment<>* loadMSExperiment(UID id);
+			/// Stores a MSExperiment
+			template <class ExperimentType>
+			void storeExperiment(ExperimentType& exp);
 
-			/// Reads a MSSpectrum (for convenience)
-			MSSpectrum<>* loadSpectrum(UID id);
-			
-			/** 
-				@name Layer 0 Methods of the PersistenceManager
-			*/
-			//@{
-			//writing
-			virtual void writeTrailer (const char* name);
-			virtual void writeHeader (const char* signature, const char* name, const PersistentObject* object );
-      virtual void writePrimitiveHeader (const char* signature, const char* name);
-			virtual void writePrimitiveTrailer();
-			virtual void put(const SignedInt value);
-			virtual void put(const UnsignedInt value);
-			virtual void put(const double value);
-			virtual void put(const std::string& value);
-			//reading
-			virtual bool getObjectHeader(String& stream_name);
-			virtual bool objectsToDeserialize();
-			virtual bool checkPrimitiveHeader(const char* type_name, const char* name);
-			virtual bool checkPrimitiveTrailer();
-			virtual void get(double& d);
-			virtual void get(UnsignedInt& i);
-			virtual void get(SignedInt& i);
-			virtual void get(string& s);
-			virtual void get(UID& id);
-			virtual bool checkObjectReferenceHeader(const char* type_name, const char* name);
-			//both
-			virtual void clear();
-			//@}	
-						
+			/// Reads a MSExperiment
+			template <class ExperimentType>
+			void loadExperiment(UID id, ExperimentType& exp);
+
+			/// Reads a MSSpectrum
+			template <class SpectrumType>
+			void loadSpectrum(UID id, SpectrumType& spec);
+
     private:
     	///reference to the DB connection handed over in the constructor
     	DBConnection& db_con_;
-
-    	///Each object type that corresponds to a Table has to be registered in the constructor with this method
-    	void registerType_(const std::string& stream_name, const std::string& table, UnsignedInt table_id, const std::string& fields);
-
- 			///Mapping of signatures to a table name /table_id pair
- 			HashMap<std::string , std::pair<std::string , UnsignedInt> > signature_to_tablenameid_;
-
- 			///Mapping of table id to a signature
- 			HashMap<UnsignedInt, std::string > tableid_to_signature_;
-
- 			///Mapping of table id to a table name / field list pair
- 			HashMap<UnsignedInt, std::pair < std::string , std::string > > tableid_to_tablenamefields_;
-    	
-			/** 
-				@name Private members and functions for writing
-			*/
-			//@{		
-      ///high id for id generation
-      UnsignedInt high_id_;
-
-      ///low id for id generation
-      UnsignedInt low_id_;
-    	
-      /**
-      	@brief Generates a unique DB ID
-      	
-      	@param id the id of table the new object is stored in 
-      */
-      UID generateID_(UnsignedInt id) throw(DBConnection::InvalidQuery, DBConnection::NotConnected);
-  
-  		///The query constructed for the current object
-  		std::stringstream query_;
-  		
-  		///Mapping of UID to table name
- 			HashMap<UID , std::string > uid_to_tablename_;
- 			
- 			/// Last ID that was assigned from the DB
- 			UID last_id_;
-			//@}
-
-			/** 
-				@name Private members and functions for reading
-			*/
-			//@{		
-      /// UID to read from the DB
-      std::list<UID> read_ids_;
- 			
- 			///The id of the field for the current primitive
- 			SignedInt field_id_;
- 			
- 			///Pointer to the last query-result
- 			QSqlQuery* last_query_; 
- 			
-			//@}
+			
+			/// Not implemented, thus private
+			DBAdapter();
+			
+			UID storeMetaInfo(const String& parent_table, UID parent_id, const MetaInfoInterface& info);
   };
 
+	template <class ExperimentType>
+	void DBAdapter::storeExperiment(ExperimentType& exp)
+	{
+		std::stringstream query; // query to build
+		String end;              // end of the query that is added afer all fields
+		String tmp;              // temporary data
+		bool new_entry;          // stores if the current object is already in the DB
+		
+		//----------------------------------------------------------------------------------------
+		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		new_entry = (exp.getPersistenceId()==0);
+		if (new_entry)
+		{
+			query << "INSERT INTO META_MSExperiment SET ";
+			end = "'";
+		}
+		else
+		{
+			query << "UPDATE META_MSExperiment SET ";
+			end = "' WHERE id='" + String(exp.getPersistenceId()) + "'";
+		}
+		//type
+		query << "Type=" << (1u+exp.getType());
+		//date
+		exp.getDate().get(tmp);
+		query << ",Date='" << tmp;
+		
+		//TODO: Description
+		
+		query << end;
+		db_con_.executeQuery(query.str());
+		if (new_entry)
+		{
+			exp.setPersistenceId(db_con_.getAutoId());
+		}
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- SPECTRUM ---------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		for (typename ExperimentType::Iterator exp_it = exp.begin(); exp_it != exp.end(); ++exp_it)
+		{
+			query.str("");
+			new_entry = (exp_it->getPersistenceId()==0);
+			if (new_entry)
+			{
+				query << "INSERT INTO DATA_Spectrum SET ";
+				end = "'";
+			}
+			else
+			{
+				query << "UPDATE DATA_Spectrum SET ";
+				end = "' WHERE id='" + String(exp.getPersistenceId()) + "'";
+			}
+			//FC (MSExperiment)
+			query << "fid_MSExperiment='" << exp.getPersistenceId();
+			//type
+			query << "',Type=" << (1u+exp_it->getType());
+			//RT
+			query << ",RetentionTime='" << exp_it->getRetentionTime();
+			//MS-Level
+			query << "',MSLevel='" << exp_it->getMSLevel();
+			
+			//TODO: Description
+			//TODO: MassType (average/monoisotopic)
+			//TODO: TIC
+			
+			query << end;
+			db_con_.executeQuery(query.str());
+			if (new_entry)
+			{
+				exp_it->setPersistenceId(db_con_.getAutoId());
+			}
+			
+			//----------------------------------------------------------------------------------------
+			//-------------------------------------- PRECURSOR --------------------------------------- 
+			//----------------------------------------------------------------------------------------
+			
+			if (exp_it->getMSLevel()>1)
+			{
+				query.str("");
+				if (new_entry)
+				{
+					query << "INSERT INTO DATA_Precursor SET fid_Spectrum='" << exp_it->getPersistenceId();
+					end = "'";
+				}
+				else
+				{
+					query << "UPDATE DATA_Precursor SET ";
+					end = "' WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
+				}
+				//Intensity
+				query << "',Intensity='" << exp_it->getPrecursorPeak().getIntensity();
+				//mz
+				query << "',mz='" << exp_it->getPrecursorPeak().getPosition()[0];
+				//charge
+				query << "',Charge='" << exp_it->getPrecursorPeak().getCharge();				
+				//activation method
+				query << "',ActivationMethod=" << (1u+exp_it->getPrecursor().getActivationMethod());		
+				//activation energy unit
+				query << ",ActivationEnergyUnit=" << (1u+exp_it->getPrecursor().getActivationEnergyUnit());		
+				//activation energy
+				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy();		
+				
+				query << end;
+				db_con_.executeQuery(query.str());
+			}
+			//TODO MSLevel change from 2 to 1 => delete entry
+			
+			//----------------------------------------------------------------------------------------
+			//---------------------------------------- PEAKS ----------------------------------------- 
+			//----------------------------------------------------------------------------------------
+			query.str("");
+			tmp = String(exp_it->getPersistenceId());
+			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum='" + tmp + "'");
+			query << "INSERT INTO DATA_Peak (fid_Spectrum,Intensity,mz) VALUES ";
+			tmp = String("('")+tmp+"','";
+			for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
+			{
+				//FC (Spectrum)
+				query << tmp;
+				//Intensity
+				query << spec_it->getIntensity() << "','";
+				//mz
+				query << spec_it->getPosition()[0] << "'),";
+			}
+			db_con_.executeQuery(String(query.str()).substr(0,-1));					
+		}
+	}
+
+	template <class ExperimentType>
+	void DBAdapter::loadExperiment(UID id, ExperimentType& exp)
+	{
+		std::stringstream query; // query to build
+		String tmp;              // temporary data
+		
+		query << "SELECT Type-1,Date FROM META_MSExperiment WHERE id='" << id << "'";
+		db_con_.executeQuery(query.str());
+		//scope for res...
+		{ 		
+			QSqlQuery& res(db_con_.lastResult());
+			res.first();
+			
+			//Experiment meta info
+			exp.setType((ExperimentalSettings::ExperimentType)(res.value(0).toInt()));
+			if (res.value(1).asDate().isValid())
+			{
+				Date d;
+				d.set(res.value(1).asDate().toString(Qt::ISODate).ascii());
+				exp.setDate(d);
+			}
+		}
+		
+		//spectra
+		query.str("");
+		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment='" << id << "' ORDER BY id ASC";
+		db_con_.executeQuery(query.str());
+		//scope for res...
+		{ 
+			QSqlQuery res(db_con_.lastResult()); //copy as it is overwritten otherwise
+			exp.resize(res.size());
+			UnsignedInt i = 0;
+			res.first();
+			while (res.isValid())
+			{
+				loadSpectrum(res.value(0).toInt(),exp[i]);
+				++i;
+				res.next();
+			}
+		}
+		
+		//id
+		exp.setPersistenceId(id);
+	}
+
+	template <class SpectrumType>
+	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
+	{
+		std::stringstream query; // query to build
+		
+		query << "SELECT Type-1,RetentionTime,MSLevel FROM DATA_Spectrum WHERE id='" << id << "'";
+		db_con_.executeQuery(query.str());
+		//scope for res...
+		{
+			QSqlQuery& res(db_con_.lastResult());
+			res.first();
+			
+			//Spectrum meta info
+			spec.setType((SpectrumSettings::SpectrumType)(res.value(0).toInt()));
+			spec.setRetentionTime(res.value(1).toDouble());
+			spec.setMSLevel(res.value(2).toInt());
+		}
+		
+		//precursor
+		
+		if(spec.getMSLevel()>1)
+		{
+			query.str("");
+			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";		
+			db_con_.executeQuery(query.str());
+			QSqlQuery& res(db_con_.lastResult());
+			res.first();
+			spec.getPrecursorPeak().getPosition()[0] = (res.value(0).toDouble());
+			spec.getPrecursorPeak().setIntensity(res.value(1).toDouble());
+			spec.getPrecursorPeak().setCharge(res.value(2).toInt());
+			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(res.value(3).toInt()));
+			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(res.value(4).toInt()));
+			spec.getPrecursor().setActivationEnergy(res.value(5).toDouble());
+		}
+		
+		//Peaks
+		
+		query.str("");
+		query << "SELECT mz,Intensity FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ORDER BY mz ASC";
+		db_con_.executeQuery(query.str());
+		//scope for res...
+		{ 
+			QSqlQuery& res(db_con_.lastResult());
+			typename SpectrumType::PeakType p;
+			res.first();
+			while(res.isValid())
+			{
+				p.getPosition()[0] = res.value(0).toDouble();
+				p.setIntensity(res.value(1).toDouble());
+				spec.push_back(p);
+				res.next();
+			}
+		}
+		
+		//id
+		spec.setPersistenceId(id);
+	}
 }
 #endif

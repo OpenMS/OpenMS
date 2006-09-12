@@ -84,14 +84,16 @@ if (do_tests)
 	
 	DBAdapter* ptr = 0;
 
-CHECK(DBAdapter(DBConnection& db_con))
+	CHECK(DBAdapter(DBConnection& db_con))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 	RESULT
 		
-CHECK(~DBAdapter())
-			delete ptr;
+	CHECK(~DBAdapter())
+		delete ptr;
 	RESULT
+	
+	
 	
 	//create test data
 	MSExperiment<> exp_original;
@@ -113,14 +115,14 @@ CHECK(~DBAdapter())
 	
 	//MSMS spectrum
 	spec.getContainer().clear();
-	p.setIntensity(90);
-	p.getPosition()[0] = 300.5;
+	p.setIntensity(210);
+	p.getPosition()[0] = 100.155;
 	spec.getContainer().push_back(p);
 	p.setIntensity(101);
 	p.getPosition()[0] = 150.25;
 	spec.getContainer().push_back(p);
-	p.setIntensity(210);
-	p.getPosition()[0] = 100.155;
+	p.setIntensity(90);
+	p.getPosition()[0] = 300.5;
 	spec.getContainer().push_back(p);
 	spec.setRetentionTime(3.96);
 	spec.setMSLevel(2);
@@ -130,33 +132,45 @@ CHECK(~DBAdapter())
 	exp_original.push_back(spec);
 
 	// to store the id of reading and writing
-	UID tmp_id,tmp_id2,spec_tmp_id;
+	UID tmp_id,spec_tmp_id;
 	
-CHECK([EXTRA] operator<<)
+	
+	
+	CHECK(template <class ExperimentType> void DBAdapter::storeExperiment(ExperimentType& exp))
 	  DBAdapter a(con);
-	  a << exp_original;
+	  a.storeExperiment(exp_original);
 		tmp_id = exp_original.getPersistenceId();
-		//test a second time to check if initialization and cleanup are complete
-		a << exp_original;
-		tmp_id2 = exp_original.getPersistenceId();
-		spec_tmp_id = exp_original.begin()->getPersistenceId();
+		spec_tmp_id = exp_original[0].getPersistenceId();
+	RESULT		
+
+	CHECK(template <class SpectrumType> void DBAdapter::loadSpectrum(UID id, SpectrumType& spec))
+  	DBAdapter a(con);
+	  
+		MSSpectrum<> spec;
+		a.loadSpectrum(spec_tmp_id, spec);
+					
+	  TEST_EQUAL( spec.getRetentionTime() , exp_original.begin()->getRetentionTime() )
+		TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
+		TEST_EQUAL( spec.size() , exp_original.begin()->size() )
+		for (UnsignedInt i=0; i<3; ++i)
+		{
+			TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
+			TEST_REAL_EQUAL( spec.getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
+		}
 	RESULT
 	
-CHECK([EXTRA] operator>>)
+  CHECK(template <class ExperimentType> void DBAdapter::loadExperiment(UID id, ExperimentType& exp))
 	  DBAdapter a(con);
-	  PersistentObject* exp_new(0);
+	  MSExperiment<> exp_new;
 		
-		a.readId(tmp_id);
-		a >> exp_new;
-		TEST_NOT_EQUAL(exp_new,0)
-		TEST_NOT_EQUAL(dynamic_cast< MSExperiment<>* >(exp_new),0)
-		TEST_EQUAL(exp_new->getPersistenceId(), tmp_id)
+		a.loadExperiment(tmp_id, exp_new);
+		TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
 		
 		
 		//------ test if values are correct ------
 		
 		//SPECTRUM 1
-		MSExperiment<>::const_iterator itn((dynamic_cast< MSExperiment<>* >(exp_new))->begin());
+		MSExperiment<>::const_iterator itn(exp_new.begin());
 		MSExperiment<>::const_iterator ito(exp_original.begin());
 			
 	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
@@ -182,72 +196,6 @@ CHECK([EXTRA] operator>>)
 		{
 			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
-		}
-		
-		
-		//  ---- test a second time to check if initialization and cleanup are complete ------
-		
-		exp_new = 0;
-		a.readId(tmp_id2);
-		a >> exp_new;
-		TEST_NOT_EQUAL(exp_new,0)
-		TEST_NOT_EQUAL(dynamic_cast< MSExperiment<>* >(exp_new),0)
-		TEST_EQUAL(exp_new->getPersistenceId(), tmp_id2)
-		//-- test if values are correct --
-		//SPECTRUM 1
-		itn = (dynamic_cast< MSExperiment<>* >(exp_new))->begin();
-		ito = exp_original.begin();
-			
-	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
-		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-		TEST_EQUAL( itn->size() , ito->size() )
-		for (UnsignedInt i=0; i<3; ++i)
-		{
-			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
-		}
-	
-		//SPECTRUM 2
-		++itn;
-		++ito;
-			
-	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
-		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
-		TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
-		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
-		TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
-		TEST_EQUAL( itn->size() , ito->size() )
-		for (UnsignedInt i=0; i<3; ++i)
-		{
-			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
-		}
-	RESULT
-	
-CHECK(MSExperiment<>* loadMSExperiment(UID id))
-		DBAdapter a(con);
-	  
-		MSExperiment<>* ptr;
-		ptr = a.loadMSExperiment(tmp_id);
-		
-		TEST_EQUAL(ptr->size(),2)
-		TEST_EQUAL(ptr->begin()->getMSLevel(),1)
-		TEST_EQUAL((++(ptr->begin()))->getMSLevel(),2)
-	RESULT
-	
-CHECK(MSSpectrum<>* loadSpectrum(UID id))
-		DBAdapter a(con);
-	  
-		MSSpectrum<>* ptr;
-		ptr = a.loadSpectrum(spec_tmp_id);
-					
-	  TEST_EQUAL( ptr->getRetentionTime() , exp_original.begin()->getRetentionTime() )
-		TEST_EQUAL( ptr->getMSLevel() , exp_original.begin()->getMSLevel() )
-		TEST_EQUAL( ptr->size() , exp_original.begin()->size() )
-		for (UnsignedInt i=0; i<3; ++i)
-		{
-			TEST_REAL_EQUAL( ptr->getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
-			TEST_REAL_EQUAL( ptr->getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
 		}
 	RESULT
 

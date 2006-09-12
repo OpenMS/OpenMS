@@ -100,11 +100,11 @@ namespace OpenMS
     /** @brief maximum parent mass of spectra in cluster <br> */
     double getMaxParentMass() const { return minmass_;}
 
-		// Docu in base class
-		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
-		
-		// Docu in base class
-		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
+//		// Docu in base class
+//		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base);
+//		
+//		// Docu in base class
+//		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base);
 
     /** @brief standard constructor */
     Cluster(); //TODO Persistence : make private again

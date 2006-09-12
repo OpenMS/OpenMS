@@ -196,22 +196,6 @@ namespace OpenMS
 			return operator>(array) || operator==(array);
 		}
 
-		// Docu in base class
-		virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
-		{
-			pm.writeObjectHeader(this,name);
-			pm.writeObjectArray(*(dynamic_cast< const std::vector<PeakT>* >(this)),"PeakArray",this->size());
-			pm.writeObjectTrailer(name);
-		}
-		
-		// Docu in base class
-		virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
-		{
-			//TODO Persistence
-			int dummy;
-			pm.readPrimitive(dummy,"dummy_");
-		}
-
 		protected:
 			// Docu in base class
 	    virtual void clearChildIds_()
@@ -234,16 +218,6 @@ namespace OpenMS
 		friend class boost::serialization::access;
 			
 	};
-
-	// Partial specialization of DPeakArrayNonPolymorphic for use w/ DRawDataPoint.
-	// Specialization avoids issues with DRawDataPoint not being a PersistentObject.
-	template <> 
-  void DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base);
-	template <> 
-	void DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base);
-	template <> 
-	void DPeakArrayNonPolymorphic<3, DRawDataPoint<3> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base);
-
 
 	///Print the contents to a stream.
 	template <Size D, typename Peak>

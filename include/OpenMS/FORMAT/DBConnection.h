@@ -119,7 +119,7 @@ namespace OpenMS
       	@brief Executes a query
       	
       	The query string can be accesses via lastQuery().
-      	<BR>
+      	
       	The query result can be accessed via lastResult().
       	
       	@param query the query itself
@@ -169,7 +169,10 @@ namespace OpenMS
 				@param value The value the selected @p column has
 			*/
 			UnsignedInt getId(const std::string& table, const std::string& column, const std::string& value) throw (InvalidQuery,NotConnected);
-
+			
+			/// Returns the last auto_increment ID of the SQL database
+			UnsignedInt getAutoId();
+			
       /// Accessor for the last query result
       QSqlQuery& lastResult();
 
@@ -199,8 +202,8 @@ namespace OpenMS
 				@brief Executes all SQL queries from an container.
 				
 				Each line has to be a query or empty.
-				<BR>
-				<b>Hint:</b> This function can be used to create the database tables by reading the file 
+				
+				@note This function can be used to create the database tables by reading the file 
 				<tt>/data/OpenMS_DB.sql</tt> from the text file and executing the queries.
 				@param queries A STL-compliant container of OpenMS String objects 
 			*/
@@ -210,7 +213,8 @@ namespace OpenMS
     private:
 			
 			/**
-				Executes internal queries.
+				@brief Executes internal queries.
+				
 				This method does not change the last query and last result 
 			*/
 			QSqlQuery& executeQuery_(const std::string& query) throw(InvalidQuery,NotConnected);

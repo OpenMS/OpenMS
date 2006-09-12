@@ -34,7 +34,6 @@
 
 namespace OpenMS
 {
-	class PersistenceManager;
 	class DBAdapter;
 	
 /**
@@ -80,7 +79,7 @@ namespace OpenMS
     although it is more efficient to get the spectra in large chunks directly
         with DBAdapter (ca 5% in simple benchmarks(10k spectra)), getting them on demand allows using less memory<br>
     */
-    ClusterSpectrum(long id, PersistenceManager* adapterp , double binsize_ = 0 , uint binspread_ = 0);
+    ClusterSpectrum(long id, DBAdapter* adapterp , double binsize_ = 0 , uint binspread_ = 0);
 
     /** @brief standard constructor <br> */
     ClusterSpectrum();
@@ -89,10 +88,10 @@ namespace OpenMS
     ClusterSpectrum(const MSSpectrum< DPeak<1> >& spec, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
     /** @brief use specp <br> */
-    ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, PersistenceManager* adapterp = 0, double binsize = 0, uint binspread = 0);
+    ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
     /** @brief use binrepp <br> */
-    ClusterSpectrum(BinnedRep* binrepp, PersistenceManager* adapterp_ = 0);
+    ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp = 0);
 
     /** @brief use specp and binrepp <br> */
     ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, BinnedRep* binrepp);
@@ -126,7 +125,7 @@ namespace OpenMS
     void strip() const;
 
     /** @brief access to peptide annotations <br> */
-    const std::vector<Identification>& getIdentification(PersistenceManager* adapterp = 0) const;
+    const std::vector<Identification>& getIdentification() const;
   private:
 
     void updatecache_() const;
@@ -136,7 +135,7 @@ namespace OpenMS
     //const accessor
     mutable MSSpectrum< DPeak<1> >* specp_;
     mutable BinnedRep* binrepp_;
-    PersistenceManager* adapterp_;
+    DBAdapter* adapterp_;
     double binsize_;
     uint binspread_;
     long id_;

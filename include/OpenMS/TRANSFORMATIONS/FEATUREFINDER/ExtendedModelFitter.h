@@ -204,7 +204,7 @@ namespace OpenMS
 		double deviation_;
 
 		/// the name of the function
-		string profile_;
+		std::string profile_;
 
 		/** Test for the convergence of the sequence by comparing the last iteration step dx
     		with the absolute error epsabs and relative error epsrel to the current position x **/

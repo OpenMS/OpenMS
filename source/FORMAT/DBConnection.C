@@ -257,7 +257,7 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to double failed!");
 		}
-		return lir_->value(0).toInt();
+		return lir_->value(0).toDouble();
 	}
 
 	String DBConnection::getStringValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
@@ -283,6 +283,18 @@ namespace OpenMS
 		}
 		return lir_->value(0).toString().ascii();
 	}
+	
+	UnsignedInt DBConnection::getAutoId()
+	{
+		executeQuery_("SELECT LAST_INSERT_ID()");
+		lir_->first();
+		if (!lir_->value(0).canCast(QVariant::Int))
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed in DBConnection::getAutoId()!");
+		}
+		return lir_->value(0).toInt();
+	}
+	
 	
 	// ---------------------------------------------------------------
 	//

@@ -170,51 +170,6 @@ namespace OpenMS
 				PeakType p;
 				p.getPosition()[0] = mz;
 				return upper_bound(BaseSpectrum::begin(), BaseSpectrum::end(), p, typename PeakType::PositionLess());
-			}			
-			
-			// Docu in base class
-			virtual void persistentWrite(PersistenceManager& pm, const char* name=0) const throw (Exception::Base)
-			{
-				//std::cout << "--  MSSpectrum Header --" << std::endl;
-				pm.writeObjectHeader(this,name);
-				//std::cout << "--  MSSpectrum Info --" << std::endl;
-				pm.writePrimitive(this->getMSLevel(),"MS_Level");
-				pm.writePrimitive(this->getRetentionTimeStart(), "Retention_Start");
-				pm.writePrimitive(this->getRetentionTimeStop(),"Retention_Stop");
-				pm.writePrimitive(this->getRetentionTime(), "Retention_Time");
-				pm.writeObjectReference(this->getPrecursorPeak(), "PrecursorInfo");
-				//std::cout << "--  MSSpectrum Container --" << std::endl;
-				pm.writeObjectReference(this->getContainer(),"Container");
-				//std::cout << "--  MSSpectrum Trailer --" << std::endl<< std::endl<< std::endl;
-				pm.writeObjectTrailer(name);
-			}
-			
-			// Docu in base class
-			virtual void persistentRead(PersistenceManager& pm) throw (Exception::Base)
-			{
-				pm.readPrimitive(getPersistenceId(),"id");
-				double rt,start,stop;
-				UnsignedInt ms_level;
-				pm.readPrimitive(ms_level,"MS_Level");
-				pm.readPrimitive(start, "Retention_Start");
-				pm.readPrimitive(stop,"Retention_Stop");
-				this->setMSLevel(ms_level);
-				pm.readPrimitive(rt, "Retention_Time");
-				this->setRetentionTime(rt,start,stop);
-				
-				//peak count
-				UnsignedInt tmp;
-				pm.readPrimitive(tmp,"peak count");
-				this->getContainer().resize(tmp);
-
-				//precursor
-				pm.readObjectReference(this->getPrecursorPeak(),"Precursor");
-				
-				//peaks
-				for (UnsignedInt i=0; i<tmp; ++i)
-				{
-					pm.readObjectReference(this->getContainer()[i],"Peak");
-				}
 			}
 			
 		protected:

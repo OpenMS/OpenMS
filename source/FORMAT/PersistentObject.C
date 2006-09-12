@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PersistentObject.h>
-#include <OpenMS/FORMAT/PersistenceManager.h>
 
 namespace OpenMS
 {

@@ -25,26 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
-#include <OpenMS/KERNEL/DRawDataPoint.h>
 
 namespace OpenMS
 {	
-	template <> 
-  void DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base)
-	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-	}
-	template <> 
-	void DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base)
-	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-	}
-	template <> 
-	void DPeakArrayNonPolymorphic<3, DRawDataPoint<3> >::persistentWrite(PersistenceManager& /*pm*/, const char* /*name*/) const throw (Exception::Base)
-	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-	}
-
 	// Default instantiation of the class (forces complete compilation).
 	DPeakArrayNonPolymorphic<1> default_dpeakarraynonpolymorphic_1;
 	DPeakArrayNonPolymorphic<2> default_dpeakarraynonpolymorphic_2;

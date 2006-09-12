@@ -30,7 +30,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
-#include <OpenMS/FORMAT/PersistenceManager.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <functional>

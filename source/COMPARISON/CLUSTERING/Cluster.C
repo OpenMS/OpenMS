@@ -317,19 +317,19 @@ namespace OpenMS
     return sequence_;
   }
 
-	void Cluster::persistentWrite(PersistenceManager& pm, const char* name) const throw (Exception::Base)
-	{
-		pm.writeObjectHeader(this,name);
-		//TODO Persistence
-		pm.writeObjectTrailer(name);
-	}
-	
-	void Cluster::persistentRead(PersistenceManager& pm) throw (Exception::Base)
-	{
-		//TODO Persistence
-		int dummy;
-		pm.readPrimitive(dummy,"dummy_");
-	}
+//	void Cluster::persistentWrite(PersistenceManager& pm, const char* name) const throw (Exception::Base)
+//	{
+//		pm.writeObjectHeader(this,name);
+//		//TODO Persistence
+//		pm.writeObjectTrailer(name);
+//	}
+//	
+//	void Cluster::persistentRead(PersistenceManager& pm) throw (Exception::Base)
+//	{
+//		//TODO Persistence
+//		int dummy;
+//		pm.readPrimitive(dummy,"dummy_");
+//	}
 
 }
 

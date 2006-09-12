@@ -119,15 +119,15 @@ CHECK(void executeQuery(const std::string& query) throw(InvalidQuery, NotConnect
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy");
-	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5))");
+	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5),number float )");
 	RESULT
 	
 CHECK(std::string lastQuery() const)
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.lastQuery(),"");
-	  con.executeQuery("INSERT INTO Dummy values (5,'bla'),(4711,'bluff')");
-	  TEST_EQUAL(con.lastQuery(),"INSERT INTO Dummy values (5,'bla'),(4711,'bluff')");
+	  con.executeQuery("INSERT INTO Dummy values (5,'bla','45.11'),(4711,'bluff','471.123')");
+	  TEST_EQUAL(con.lastQuery(),"INSERT INTO Dummy values (5,'bla','45.11'),(4711,'bluff','471.123')");
 	RESULT
 
 CHECK(std::string lastError() const)
@@ -179,8 +179,8 @@ CHECK(SignedInt getIntValue(const std::string& table, const std::string& column,
 CHECK(double getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw(InvalidQuery, NotConnected, Exception::ConversionError))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-		TEST_REAL_EQUAL(5.0,con.getIntValue("Dummy","id","5"));
-		TEST_REAL_EQUAL(4711.0,con.getIntValue("Dummy","id","4711"));
+		TEST_REAL_EQUAL(45.11,con.getDoubleValue("Dummy","number","5"));
+		TEST_REAL_EQUAL(471.123,con.getDoubleValue("Dummy","number","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getIntValue("Dummy2","text56","4711"))
 		//TODO test ConversionError 
 	RESULT
@@ -199,10 +199,10 @@ CHECK(void render( std::ostream& out=std::cout, const std::string& separator=" |
 		con.executeQuery("SELECT * FROM Dummy");
 		stringstream s;
 		con.render(s,"|",">","<");
-		TEST_EQUAL(s.str(),">id|text<>5|bla<>4711|bluff<")
+		TEST_EQUAL(s.str(),">id|text|number<>5|bla|45.11<>4711|bluff|471.123<")
 		stringstream s2;
 		con.render(s2,"x","","; ");
-		TEST_EQUAL(s2.str(),"idxtext; 5xbla; 4711xbluff; ")
+		TEST_EQUAL(s2.str(),"idxtextxnumber; 5xblax45.11; 4711xbluffx471.123; ")
 	RESULT
 
 CHECK(template<class StringListType> void executeQueries(const StringListType& queries) throw(InvalidQuery, NotConnected))

@@ -114,6 +114,8 @@ namespace OpenMS
 		String(long int i);
 		/// Constructor from an unsigned integer
 		String(long unsigned int i);
+		/// Constructor from an unsigned integer
+		String(long long unsigned int i);
 		/// Constructor from float (precision is 7)
 		String(float f);
 		/// Constructor from double (precision is 10)

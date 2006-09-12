@@ -124,6 +124,14 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	String::String(long long unsigned int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
 	String::String(float f)
 		: string()
 	{

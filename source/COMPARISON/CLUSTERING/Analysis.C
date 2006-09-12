@@ -129,18 +129,18 @@ namespace OpenMS
     document << "</Results>\n";
   }
 
-	void ClusterExperiment::Analysis::persistentWrite(PersistenceManager& pm, const char* name) const throw (Exception::Base)
-	{
-		pm.writeObjectHeader(this,name);
-		//TODO Persistence
-		pm.writeObjectTrailer(name);
-	}
-	
-	void ClusterExperiment::Analysis::persistentRead(PersistenceManager& pm) throw (Exception::Base)
-	{
-		//TODO Persistence
-		int dummy;
-		pm.readPrimitive(dummy,"dummy_");
-	}
+//	void ClusterExperiment::Analysis::persistentWrite(PersistenceManager& pm, const char* name) const throw (Exception::Base)
+//	{
+//		pm.writeObjectHeader(this,name);
+//		//TODO Persistence
+//		pm.writeObjectTrailer(name);
+//	}
+//	
+//	void ClusterExperiment::Analysis::persistentRead(PersistenceManager& pm) throw (Exception::Base)
+//	{
+//		//TODO Persistence
+//		int dummy;
+//		pm.readPrimitive(dummy,"dummy_");
+//	}
  
 }
