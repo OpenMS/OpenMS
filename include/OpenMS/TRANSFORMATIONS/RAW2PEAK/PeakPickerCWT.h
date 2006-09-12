@@ -645,7 +645,7 @@ namespace OpenMS
          	      For the resulting peaks we recommend to use the DPickedPeak<1> because it stores important information gained during
          	      the peak picking algorithm.  
 
-             @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+             @note You have to copy the ExperimentalSettings of the raw data on your own. 	
          */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void pickExperiment(InputSpectrumIterator first,
@@ -658,8 +658,8 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-		  
-          // pick the peaks in scan i
+          
+					// pick the peaks in scan i
           pick(*input_it,spectrum,input_it->getMSLevel());
 
           // if any peaks are found copy the spectrum settings

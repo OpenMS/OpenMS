@@ -50,11 +50,11 @@ CPP_SOURCES=\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
-	SweepExtender.C\
-	IsotopeFinder.C
+	SweepExtender.C
 
 ifeq ($(WAVELETS),true)
 WAV_SOURCES=\
+	IsotopeFinder.C
 	WaveletExtender.C
 endif
 

@@ -145,8 +145,6 @@ void SweepExtender::sweep_()
                 std::vector<double>::iterator it = searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
                 double delta_mz = fabs(*it - curr_mz);
 				
-// 				std::cout << "Next peak in previous scan is at: " << delta_mz << std::endl;
-				
                 if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
                 {
 					mz_in_hash = curr_mz; // update current hash key
@@ -216,11 +214,11 @@ void SweepExtender::sweep_()
 			           &&  curr_peak < (nr_peaks-1) )
             {
           		iso_map_[mz_in_hash].peaks_.push_back(curr_peak);				// save peak in cluster
-				++curr_peak;			
+							++curr_peak;			
                	
-				dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
+							dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
 			 
-			} // end while(...)
+						} // end while(...)
 				
         } // end of if (charge > 0)
     
