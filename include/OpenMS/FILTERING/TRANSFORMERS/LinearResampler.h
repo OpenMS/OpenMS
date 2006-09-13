@@ -30,6 +30,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/Param.h>
 
+#include <limits.h>
+
 namespace OpenMS
 {
 	/**
@@ -232,6 +234,28 @@ namespace OpenMS
 	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
 	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
+		
+// 			// determine maximum spacing
+// 			typename InputPeakType::CoordinateType max_spacing = INT_MAX;
+// 						
+// 			for (typename MSExperiment< InputPeakType >::const_iterator citer = ms_exp_raw.begin();
+// 				  citer != ms_exp_raw.end();
+// 				  ++citer)
+// 			{
+// 				typename MSExperiment< InputPeakType >::SpectrumType spec = *citer;
+// 				
+// 				for (unsigned int i = 0; i < (spec.size()-1); ++i )
+// 				{
+// 					typename InputPeakType::CoordinateType temp = (spec.getContainer()[i+1].getPosition()[0] - spec.getContainer()[i].getPosition()[0]);
+// 					
+// 					if (temp < max_spacing)	max_spacing = temp;			
+// 				}			
+// 			} 
+// 				 
+// 			std::cout << "Detected resolution : " << max_spacing  << std::endl;
+// 			std::cout << "Resampling accordingly." << std::endl;
+// 			spacing_ = max_spacing;
+			
 	        // copy the experimental settings
 	        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
 	

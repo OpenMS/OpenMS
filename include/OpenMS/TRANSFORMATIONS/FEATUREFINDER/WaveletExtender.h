@@ -111,10 +111,8 @@ protected:
 	IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::SweepLineHash hash_;
 	
 	SweepLineHash::const_iterator hash_iter;
-	
-	DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_;
-	
-	ScanIndex<DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > > scan_index_;
+		
+	ScanIndex<DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >  > scan_index_;
 	
 	CoordinateType avMZSpacing_;
 	

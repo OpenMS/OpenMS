@@ -47,7 +47,8 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	{	
 		std::cout << "Starting WaveletExtender..." << std::endl;
 		/// Very ugly. Should be removed in final version (ost)
-		peaks_ = traits_->getAllPeaks();	
+		
+		DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
 		scan_index_ = traits_->getScanIndex();
 		MSExperiment<DRawDataPoint<2>  > exp;
 		exp.set2DData(peaks_);
@@ -56,12 +57,13 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder (exp);
 		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2>  > >::WaveletCollection WaveletCollection;
 	
-		finder.setWtCutOff (500); //i.e. the seeding procedure ignores every intensity (of the wavelet transform) less then ...
+		finder.setWtCutOff (100); //i.e. the seeding procedure ignores every intensity (of the wavelet transform) less then ...
 											//If this parameter is not set explicitly the cut off lies by 0.
 	 	
-		finder.setRTVotesCutOff(4); //i.e. we only consider a potential isotope coordinate (m/z) if it is supported by at least 5
+		std::cout << "Starting detection: " << std::endl;
+		finder.setRTVotesCutOff(5); //i.e. we only consider a potential isotope coordinate (m/z) if it is supported by at least 5
 		finder.setScoreCutOff(1e6); //i.e. every potential isotope position is neglected if none of its scores exceeds 1e6
-		hash_ = finder.findFeatures(400, 500, true);
+		hash_ = finder.findFeatures(0, (exp.size()-1), true);
 		
 		hash_iter = hash_.begin();		
 		is_initialized_ = true;	
@@ -70,6 +72,8 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		
 		 exp.updateRanges();
 		 min_mass_ = exp.getMin().Y();
+		 
+		 exp.clear();
 	}
 	
 	region_.clear();	// empty last region 
@@ -81,7 +85,8 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	 std::cout << (min_mass_ + (hash_iter->first)*avMZSpacing_) << " " << std::endl;
 			
 	CoordinateType mass_to_find = min_mass_ + (hash_iter->first-1)*avMZSpacing_;
-						
+	std::cout << "I am searching for m/z : " << 	mass_to_find << std::endl;
+	
 	// check all scans that support this isotopic pattern
 	for (std::list<double>::const_iterator iter_cl2 = hash_iter->second.first.begin(); 
 		  iter_cl2 != hash_iter->second.first.end(); 
@@ -93,32 +98,32 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				
 				unsigned int current_scan = scan_index_.getRank(rt_to_find);
 				
-				if (current_scan == (scan_index_.size()-1) )
+				if (current_scan >= (scan_index_.size()-1) )
 				{
-					std::cout << "Searching for m/z in last scan => break;" << std::endl;
+					std::cout << "Wrong scan number:" << current_scan  << std::endl;
 					break;
 				}
 				
-				if (current_scan+1 >= scan_index_.size())
-				{
-					std::cout << "We are in the very last scan..." << std::endl;
-				}
-					
+				std::cout << "Searching for " << current_scan << std::endl;
+				std::cout << "Scan index " << scan_index_.size() << std::endl;
+							
 				PeakIterator scan_begin = scan_index_[current_scan];
 				PeakIterator scan_end   = scan_index_[current_scan+1];				
 					
-				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,RTless());	
-				UnsignedInt peak_index = (insert_iter - peaks_.begin());		
+				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
+				UnsignedInt peak_index = (insert_iter - traits_->getAllPeaks().begin());		
 	
 				std::cout << "Adding peak " << peak_index << std::endl;
 				
-				if (peak_index > 0) region_.add(--peak_index);
+				if (peak_index > 0) region_.add(peak_index-1);
 						
 				region_.add(peak_index);
 				
-				if (peak_index +1 < peaks_.size()  ) region_.add(peak_index+1);
-				if (peak_index +2 < peaks_.size()  ) region_.add(peak_index+2);
-				if (peak_index +3  < peaks_.size() ) region_.add(peak_index+3);
+				unsigned int nr_peaks = traits_->getNumberOfPeaks();
+				
+				if (peak_index +1 <   nr_peaks) region_.add(peak_index+1);
+				if (peak_index +2 < nr_peaks  ) region_.add(peak_index+2);
+				if (peak_index +3  < nr_peaks ) region_.add(peak_index+3);
 									
 	}	// for (std::list...)
 			

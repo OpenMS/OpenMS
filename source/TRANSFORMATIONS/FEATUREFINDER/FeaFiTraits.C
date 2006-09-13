@@ -331,7 +331,7 @@ namespace OpenMS
     scan_index_.init ( peaks_.begin(), peaks_.end() );
 
     /// Temporal storage for the calculation of s/n ratios
-    std::vector<PeakType> last_scan_;
+    //std::vector<PeakType> last_scan_;
 
     /// Estimates the signal to noise ratio
     /// TODO: Set parameters for noise estimator from outside

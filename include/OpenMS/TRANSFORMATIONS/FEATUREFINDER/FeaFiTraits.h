@@ -151,7 +151,7 @@ namespace OpenMS
 		return peaks_;
 	}
 	
-	ScanIndex<PeakVector>& getScanIndex() 
+	ScanIndex<PeakVector> getScanIndex() 
 	{
 		return scan_index_;
 	}

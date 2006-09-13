@@ -224,7 +224,17 @@ namespace OpenMS
 			{ 
 				return container_.end(); 
 			}
-
+			
+			 reference operator[] (size_type n)
+    		{
+				return container_[n];
+			}
+			
+			 const_reference operator[] (size_type n) const
+    		{
+				return container_[n];
+			}
+						
 			/// returns the maxium size possbile (the number of peaks)
 			inline size_type max_size() const 
 			{ 

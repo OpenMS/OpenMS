@@ -110,7 +110,7 @@ namespace OpenMS
 		DPeakArrayNonPolymorphic& operator = (const DPeakArrayNonPolymorphic& rhs) 
 		{ 
 			if (this==&rhs) return *this;
-			
+								
 			Base::resize(rhs.size());
 			std::copy(rhs.begin(), rhs.end(), Base::begin());
 			
