@@ -141,6 +141,11 @@ namespace OpenMS
     	/// sets the date the experiment was performed
       void setDate(const Date& date);   
 
+			/// returns the free-text comment
+      const String& getComment() const;
+      /// sets the free-text comment
+      void setComment(const String& comment);
+
 		 	/// returns a const reference to the protein identification vector
 		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;		 		    	
 		 	/// returns a mutable reference to the protein identification vector
@@ -160,8 +165,8 @@ namespace OpenMS
 		  HPLC hplc_;
 		  ExperimentType type_;
 		  Date date_;
+			String comment_;
 			std::vector<ProteinIdentification> protein_identifications_;
-
   };
 
 	///Print the contents to a stream.

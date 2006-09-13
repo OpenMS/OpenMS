@@ -38,7 +38,10 @@ using namespace std;
 
 namespace OpenMS
 {
-	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UnsignedInt>& result,QWidget* parent, const char* name) :QDialog(parent,name), adapter_(adapter), result_(result)
+	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UnsignedInt>& result,QWidget* parent, const char* name) 
+	 : QDialog(parent,name), 
+	 	 adapter_(adapter), 
+	 	 result_(result)
 	{ 	
 		setCaption("Select spectra from DB to open");
 		
@@ -120,19 +123,20 @@ namespace OpenMS
 			query << " e.description like '%"<<search_string_->text().ascii()<<"%' and ";
 		}
 		query << " s.MS_Level='1' group by e.id order by e.Description";
-		adapter_.executeQuery(query.str());
-		table_->setNumRows(adapter_.lastResult().size());
+		QSqlQuery result;
+		adapter_.executeQuery(query.str(),result);
+		table_->setNumRows(result.size());
 	 	table_->setLeftMargin(0);
 	 	UnsignedInt row=0;
-	 	while(adapter_.lastResult().next())
+	 	while(result.next())
 		{
 			//id, description
 	 		for (unsigned int col = 0; col < 3; col++) 
 	 		{ 
-	      table_->setText(row,col+1,adapter_.lastResult().value(col).toString());
+	      table_->setText(row,col+1,result.value(col).toString());
 	    }
 	    //type
-	    if (adapter_.lastResult().value(2).toInt()==1)
+	    if (result.value(2).asInt()==1)
 	    {
 	    	table_->setText(row,3,"MS");
 	    }

@@ -61,11 +61,12 @@ EXECUTABLES=\
 	LabeledMatcher\
 	Dewarper\
 	FeaturePairSplitter\
-	DTAExtractor
+	DTAExtractor\
+	DBExporter\
+	DBImporter
 
 #	RawDataResampler\
-#	DBExporter\
-#	DBImporter\
+
 
 
 default:

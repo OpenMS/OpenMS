@@ -39,8 +39,6 @@ namespace OpenMS
 
 	DBConnection::DBConnection()
 		:db_handle_(0),
-		last_query_(""),
-		lr_(0),
 		lir_(0)
 	{
 		
@@ -79,8 +77,6 @@ namespace OpenMS
 		else
 		{
 			lir_ = new QSqlQuery();
-			lr_ = new QSqlQuery();
-			databasename_ = db;
 		}
 	}
 	
@@ -93,24 +89,21 @@ namespace OpenMS
 	{
 		db_handle_->disconnect();
 		db_handle_ = 0;
-		databasename_ = "";
 	}
 
-	void DBConnection::executeQuery(const string& query) throw(InvalidQuery,NotConnected)
+	void DBConnection::executeQuery(const string& query, QSqlQuery& result) throw(InvalidQuery,NotConnected)
 	{
-		//set last query string
-		last_query_ = query;
-	
 		if (db_handle_==0)
 		{
 			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
 		
 		//execute the query
-		if (!lr_->exec(query.c_str()))
+		if (!result.exec(query.c_str()))
 		{
 	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_->lastError().text().ascii() );
 		}
+		result.first();
 	}
 	
 	UnsignedInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery,NotConnected)
@@ -130,29 +123,13 @@ namespace OpenMS
 		}
 		
 		lir_->first();
-		return lir_->value(0).toInt();
-	}
-	
-	string DBConnection::lastError() const
-	{
-		if (lr_->lastError().type()==QSqlError::None) return "";
-		return lr_->lastError().text().ascii();
-	}
-
-	QSqlQuery& DBConnection::lastResult()
-	{
-		return *lr_;
-	}
-	
-	string DBConnection::lastQuery() const
-	{
-		if (lr_->lastQuery()==QString::null) return "";
-		return lr_->lastQuery().ascii();
+		return lir_->value(0).asInt();
 	}
 	
 	std::string DBConnection::DBName() const 
 	{ 
-		return databasename_;
+		if (db_handle_==0) return "";
+		return db_handle_->databaseName().ascii();
 	}
 
 	QSqlQuery& DBConnection::executeQuery_(const string& query) throw(InvalidQuery,NotConnected)
@@ -169,13 +146,13 @@ namespace OpenMS
 	  return *lir_;
 	}
 	
-		void DBConnection::render(ostream& out, const string& separator, const string& line_begin, const string& line_end)
+		void DBConnection::render(QSqlQuery& result, ostream& out, const string& separator, const string& line_begin, const string& line_end)
 	{
 		
 	 	//if res is still empty, do nothing
-	 	if (lr_->size()!=0)
+	 	if (result.size()!=0)
 	 	{
-	 		SignedInt col_count = db_handle_->record(*lr_).count();
+	 		SignedInt col_count = db_handle_->record(result).count();
 	 		
 	 		out << line_begin;
 	 		
@@ -187,16 +164,16 @@ namespace OpenMS
 	    		out << separator;
 	    	} 
 	
-	      out << db_handle_->record(*lr_).fieldName(i) ;
+	      out << db_handle_->record(result).fieldName(i) ;
 	    } 
 	    out << line_end;
 			
 			//set back internal pointer
-			lr_->first();
-			lr_->prev();
+			result.first();
+			result.prev();
 			
 			//render lines
-	 		while(lr_->next())
+	 		while(result.next())
 	 		{
 	 			out << line_begin;
 		 		for (SignedInt j = 0; j < col_count; j++) 
@@ -205,7 +182,7 @@ namespace OpenMS
 	    		{
 	    			out << separator;
 	    		}
-		      out << lr_->value(j).toString();
+		      out << result.value(j).toString();
 		    } 			
 	 			out << line_end;		
 	 		}
@@ -233,7 +210,7 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed!");
 		}
-		return lir_->value(0).toInt();
+		return lir_->value(0).asInt();
 	}
 
 	double DBConnection::getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
@@ -292,7 +269,7 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed in DBConnection::getAutoId()!");
 		}
-		return lir_->value(0).toInt();
+		return lir_->value(0).asInt();
 	}
 	
 	

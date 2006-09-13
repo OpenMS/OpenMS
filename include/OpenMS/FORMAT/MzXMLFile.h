@@ -44,7 +44,7 @@ namespace OpenMS
   /**
   	@brief File adapter for MzXML files
   
-  	
+  	@todo test all optional attributes (Marc)
   
   	@ingroup FileIO
   */

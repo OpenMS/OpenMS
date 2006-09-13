@@ -141,7 +141,6 @@ ifeq ($(LIBSVM_SUPPORT),true)
 endif
 
 EXECUTABLES_FORMAT = \
-	RTTI_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${DB_EXECUTABLES_FORMAT}\

@@ -97,6 +97,7 @@ if (do_tests)
 	
 	//create test data
 	MSExperiment<> exp_original;
+	exp_original.setComment("bla");
 	//MS spectrum
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::SpectrumType::PeakType p;
@@ -129,8 +130,18 @@ if (do_tests)
 	spec.getPrecursorPeak().getPosition()[0] = 600.1;
 	spec.getPrecursorPeak().setIntensity(4711);
 	spec.getPrecursorPeak().setCharge(2);
+	spec.getPrecursor().setMetaValue("icon",String("Precursor"));
+	spec.setComment("bla");
 	exp_original.push_back(spec);
-
+	
+	
+	//meta info
+	exp_original.setMetaValue("label",5.55);
+	exp_original.setMetaValue("icon",String("MSExperiment"));
+	exp_original.setMetaValue("color",5);
+	exp_original[0].setMetaValue("icon",String("Spectrum1"));
+	exp_original[1].setMetaValue("icon",String("Spectrum2"));
+	
 	// to store the id of reading and writing
 	UID tmp_id,spec_tmp_id;
 	
@@ -165,7 +176,7 @@ if (do_tests)
 		
 		a.loadExperiment(tmp_id, exp_new);
 		TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
-		
+		TEST_EQUAL(exp_new.getComment() , "bla" )
 		
 		//------ test if values are correct ------
 		
@@ -191,12 +202,29 @@ if (do_tests)
 		TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
 		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
 		TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
+		TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
+		TEST_EQUAL( itn->getComment() , "bla" )
 		TEST_EQUAL( itn->size() , ito->size() )
 		for (UnsignedInt i=0; i<3; ++i)
 		{
 			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
 			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
 		}
+		
+		//META INFO
+		TEST_REAL_EQUAL((double)exp_new.getMetaValue("label"),5.55)
+		TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
+		TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
+		TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
+		TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
+	RESULT
+
+	CHECK([EXTRA] load and store of empty map)
+  	DBAdapter a(con);
+	  MSExperiment<> in, out;
+	  a.storeExperiment(in);
+		a.loadExperiment(in.getPersistenceId(),out);
+		TEST_EQUAL(in==out, true)
 	RESULT
 
 }

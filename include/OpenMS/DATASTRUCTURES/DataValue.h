@@ -128,7 +128,7 @@ namespace OpenMS
 				<BR>
 				Else ConversionError is thrown.
 			*/	
-			char* toChar() throw(Exception::ConversionError);
+			const char* toChar() const throw(Exception::ConversionError);
 	
 			/** 
 				@brief Convert DataValues to String.

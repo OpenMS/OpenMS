@@ -50,6 +50,8 @@ namespace OpenMS
 		This makes the implementation independent	from the underlying xml scheme.
 		str2enum_() delivers the enum-value for a given string whereas enum2str_() returns
 		the string for a given enum-value.
+		
+		@todo take advantage of XERCES string handling (Marc)
   */
   class SchemaHandler
 		: public XMLHandler

@@ -321,11 +321,11 @@ namespace OpenMS
 	}
 	
 	// Convert DataValues to char*
-	char* DataValue::toChar() throw(Exception::ConversionError)
+	const char* DataValue::toChar() const throw(Exception::ConversionError)
 	{
 		switch(value_type_) 
 		{
-			case DataValue::STRVALUE: return const_cast<char*>( data_.str_->c_str() );
+			case DataValue::STRVALUE: return const_cast<const char*>( data_.str_->c_str() );
 			case DataValue::EMPTYVALUE: return NULL;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to char*");
 		};

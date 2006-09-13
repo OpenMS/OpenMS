@@ -76,9 +76,9 @@ namespace OpenMS
     bool operator!= (const MetaInfo& rhs) const;
 
 		/// returns the value corresponding to a string
-		DataValue getValue(const std::string& name) const;
+		const DataValue& getValue(const std::string& name) const;
 		/// returns the value corresponding to an index
-		DataValue getValue(UnsignedInt index) const;
+		const DataValue& getValue(UnsignedInt index) const;
 
 		/// returns if this MetaInfo is set
 		bool exists(const std::string& name) const;

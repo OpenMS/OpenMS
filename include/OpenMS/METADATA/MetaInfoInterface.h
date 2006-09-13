@@ -67,9 +67,9 @@ namespace OpenMS
       bool operator!= (const MetaInfoInterface& rhs) const;
 	
 			/// returns the value corresponding to a  string
-			DataValue getMetaValue(const std::string& name) const throw (Exception::InvalidValue);
+			const DataValue& getMetaValue(const std::string& name) const throw (Exception::InvalidValue);
 			/// returns the value corresponding to an index
-			DataValue getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue);
+			const DataValue& getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue);
 	
 			/// returns if this MetaInfo is set
 			bool metaValueExists(const std::string& name) const;

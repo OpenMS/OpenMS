@@ -43,6 +43,7 @@ namespace OpenMS
   	@brief File adapter for MzData files
   
   	@todo Add external CVs 
+  	@todo test all optional attributes (Marc)
   	
   	@ingroup FileIO
   */

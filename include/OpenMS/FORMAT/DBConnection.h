@@ -118,13 +118,11 @@ namespace OpenMS
       /**
       	@brief Executes a query
       	
-      	The query string can be accesses via lastQuery().
-      	
-      	The query result can be accessed via lastResult().
+      	@note Make sure that the result was created after connecting to the DB! Otherwise the query fails!
       	
       	@param query the query itself
       */
-      void executeQuery(const std::string& query) throw(InvalidQuery, NotConnected);
+      void executeQuery(const std::string& query, QSqlQuery& result) throw(InvalidQuery, NotConnected);
 
 			/**
 				@brief Returns a single field of a table as an integer
@@ -173,29 +171,21 @@ namespace OpenMS
 			/// Returns the last auto_increment ID of the SQL database
 			UnsignedInt getAutoId();
 			
-      /// Accessor for the last query result
-      QSqlQuery& lastResult();
-
-      /// Accessor for the query string used in the last query
-      std::string lastQuery() const;
-
-			/// Returns the last error message from the SQL DB.
-			std::string lastError() const;
-			
 			/// Returns the name of the connected DB
       std::string DBName() const;
       
 			/**
-				@brief Dumps the last query result in table format into a stream.
+				@brief Dumps a query result in table format into a stream.
 				
-				To dump a result as HTML table, use render(cout,"&lt;/td&gt;&lt;td&gt;","&lt;tr&gt;&lt;td&gt;","&lt;/td&gt;&lt;/tr&gt;");
+				To dump a result as HTML table, use render(result, cout,"&lt;/td&gt;&lt;td&gt;","&lt;tr&gt;&lt;td&gt;","&lt;/td&gt;&lt;/tr&gt;");
 				
+				@param resultThe result to render
 				@param out The output stream to use
 				@param separator The string between the fields
 				@param line_begin The string at the beginning of each line
 				@param line_end The string at the end of each line
 			*/
-			void render( std::ostream& out=std::cout , const std::string& separator=" | " , const std::string& line_begin="" , const std::string& line_end="\n");
+			void render(QSqlQuery& result, std::ostream& out=std::cout , const std::string& separator=" | " , const std::string& line_begin="" , const std::string& line_end="\n");
 
 
 			/**
@@ -221,19 +211,6 @@ namespace OpenMS
       
       /// The real database handle
       QSqlDatabase* db_handle_;
-
-      /// The last query
-      std::string last_query_;
-
-      /// The name of the db
-      std::string databasename_;
-
-      /**
-      	@brief A pointer to the result of the last query.
-      	
-      	The result will be overwritten by the next query executed with executeQuery.
-      */
-      QSqlQuery* lr_;
 
       /**
       	@brief A pointer to the result of the last query.

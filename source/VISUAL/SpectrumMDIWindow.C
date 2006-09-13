@@ -258,11 +258,12 @@ namespace OpenMS
     DBAdapter dba(con);
 
     String db_id_string(db_id);
-    con.executeQuery("SELECT count(id) from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'");
+    QSqlQuery result;
+    con.executeQuery("SELECT count(id) from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'",result);
 
     //tab caption
     String caption = "DB ("+db_id_string+")";
-    con.lastResult().first();
+    result.first();
 
     SpectrumWindow* w;
 
@@ -277,15 +278,15 @@ namespace OpenMS
     if (as_new_window)
     {
       //create 1D View
-      if (con.lastResult().value(0).toInt()==1)
+      if (result.value(0).toInt()==1)
       {
         // create 1D window
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
 
         //determine Spectrum id
-        con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'");
-        con.lastResult().first();
-        UID spectrum_id = con.lastResult().value(0).toInt();
+        con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'",result);
+        result.first();
+        UID spectrum_id = result.value(0).toInt();
 
         //load data
         exp = &(w->widget()->canvas()->addEmptyDataSet());
@@ -322,7 +323,7 @@ namespace OpenMS
     else
     {
       //create 1D View
-      if (con.lastResult().value(0).toInt()==1)
+      if (result.value(0).toInt()==1)
       {
         w = active1DWindow_();
         //wrong active window type
@@ -334,9 +335,9 @@ namespace OpenMS
         else //open it
         {
           //determine Spectrum id
-          con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'");
-          con.lastResult().first();
-          UID spectrum_id = con.lastResult().value(0).toInt();
+          con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'", result);
+          result.first();
+          UID spectrum_id = result.value(0).toInt();
 
           //load data
 	        exp = &(w->widget()->canvas()->addEmptyDataSet());

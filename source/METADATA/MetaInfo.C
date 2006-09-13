@@ -67,7 +67,7 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	DataValue MetaInfo::getValue(const std::string& name) const
+	const DataValue& MetaInfo::getValue(const std::string& name) const
 	{
 		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
 		if (it != index_to_value_.end())
@@ -77,7 +77,7 @@ namespace OpenMS
 		return DataValue::EMPTY;		
 	}
 	
-	DataValue MetaInfo::getValue(UnsignedInt index) const
+	const DataValue& MetaInfo::getValue(UnsignedInt index) const
 	{
 		map<UnsignedInt,DataValue>::const_iterator it = index_to_value_.find(index);
 		if (it != index_to_value_.end())

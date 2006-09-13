@@ -102,7 +102,7 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 
-	DataValue MetaInfoInterface::getMetaValue(const std::string& name) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(const std::string& name) const throw (Exception::InvalidValue)
 	{
 		if (meta_==0)
 		{
@@ -111,7 +111,7 @@ namespace OpenMS
 		return meta_->getValue(name); 
 	}
 
-	DataValue MetaInfoInterface::getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(UnsignedInt index) const throw (Exception::InvalidValue)
 	{
 		if (meta_==0)
 		{

@@ -41,6 +41,8 @@ namespace OpenMS
 	/**
 		@brief Base class for XML handlers.
 		
+		@todo take advantage of XERCES string handling: XMLCh (Marc)
+		@todo develop concept for optional attributes (Marc)
 	*/
   class XMLHandler
   	: public xercesc::DefaultHandler

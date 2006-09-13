@@ -44,6 +44,7 @@ namespace OpenMS
 		hplc_(),
 		type_(UNKNOWN),
 		date_(),
+		comment_(),
 		protein_identifications_()
 	{
 	  
@@ -60,6 +61,7 @@ namespace OpenMS
 	  hplc_(source.hplc_),
 	  type_(source.type_),
 	  date_(source.date_),
+	  comment_(source.comment_),
 		protein_identifications_(source.protein_identifications_)
 	{
 	  
@@ -83,6 +85,7 @@ namespace OpenMS
     hplc_ = source.hplc_;
     type_ = source.type_;
     date_ = source.date_;
+    comment_ = source.comment_;
     protein_identifications_ = source.protein_identifications_;
     MetaInfoInterface::operator=(source);
 	  
@@ -102,6 +105,7 @@ namespace OpenMS
 	    type_ == rhs.type_ &&
 	    date_ == rhs.date_ &&
     	protein_identifications_ == rhs.protein_identifications_ &&
+    	comment_ == rhs.comment_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -263,5 +267,15 @@ namespace OpenMS
   {
   	protein_identifications_.push_back(protein_identification);
   }
+
+	const String& ExperimentalSettings::getComment() const 
+	{
+	  return comment_; 
+	}
+	
+	void ExperimentalSettings::setComment(const String& comment)
+	{
+	  comment_ = comment; 
+	}
 }
 

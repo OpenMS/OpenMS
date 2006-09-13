@@ -90,6 +90,17 @@ CHECK(const SourceFile& getSourceFile() const)
   TEST_EQUAL(tmp.getSourceFile()==SourceFile(),true);
 RESULT
 
+CHECK((const String& getComment() const))
+	ExperimentalSettings tmp;
+	TEST_EQUAL(tmp.getComment(), "");
+RESULT
+
+CHECK((void setComment(const String& comment)))
+	ExperimentalSettings tmp;
+	tmp.setComment("bla");
+	TEST_EQUAL(tmp.getComment(), "bla");
+RESULT
+
 CHECK(const std::vector<ContactPerson>& getContacts() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getContacts().size(),0);
@@ -235,6 +246,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
 	id.insertProteinHit(protein_hit);
   
   tmp.getHPLC().setFlux(5);
+  tmp.setComment("bla");
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
   tmp.getSample().setName("bla2");
@@ -245,6 +257,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2(tmp);
+  TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
@@ -270,6 +283,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
 	id.insertProteinHit(protein_hit);
 
   tmp.getHPLC().setFlux(5);
+  tmp.setComment("bla");
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
   tmp.getSample().setName("bla2");
@@ -283,6 +297,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
+  TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
@@ -348,6 +363,10 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
 
   edit = empty;
 	edit.addProteinIdentification(id);
+  TEST_EQUAL(edit==empty, false);
+
+  edit = empty;
+	edit.setComment("bla");
   TEST_EQUAL(edit==empty, false);
 
 	edit = empty;

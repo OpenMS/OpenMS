@@ -51,9 +51,8 @@ namespace OpenMS
     @ingroup DatabaseIO
     
     @todo add setup and clear method for the DB (Marc)
-    @todo add missing members that are only in the DB schema (Marc)
-    @todo intensive testing: empty map, all members set, update only, ... (Marc)
-    @todo add support for missing classes and MetaInfo(Marc)
+    @todo test: update function (Marc)
+    @todo add support for missing classes / add missing members to classes(Marc)
   */
  
   class DBAdapter
@@ -78,14 +77,28 @@ namespace OpenMS
 			void loadSpectrum(UID id, SpectrumType& spec);
 
     private:
-    	///reference to the DB connection handed over in the constructor
+    	/// Reference to the DB connection handed over in the constructor
     	DBConnection& db_con_;
 			
 			/// Not implemented, thus private
 			DBAdapter();
 			
-			UID storeMetaInfo(const String& parent_table, UID parent_id, const MetaInfoInterface& info);
+			/**
+				@brief Stores, updates or deletes MetaInfo data
+				
+				@return the id of the new MetaInfo table raw
+			*/
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);
+			
+			/**
+				@brief Loads MetaInfo data
+				
+			*/
+			void loadMetaInfo_(UID id, MetaInfoInterface& info);
   };
+
+
+//------------------------------------------- IMPLEMENTATION OF TEMPLATE METHODS ----------------------------------
 
 	template <class ExperimentType>
 	void DBAdapter::storeExperiment(ExperimentType& exp)
@@ -94,6 +107,7 @@ namespace OpenMS
 		String end;              // end of the query that is added afer all fields
 		String tmp;              // temporary data
 		bool new_entry;          // stores if the current object is already in the DB
+		QSqlQuery result;         // place to store the query results in
 		
 		//----------------------------------------------------------------------------------------
 		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
@@ -115,15 +129,18 @@ namespace OpenMS
 		//date
 		exp.getDate().get(tmp);
 		query << ",Date='" << tmp;
-		
-		//TODO: Description
+		//description
+		query << "',Description='" << exp.getComment();
 		
 		query << end;
-		db_con_.executeQuery(query.str());
+		db_con_.executeQuery(query.str(),result);
 		if (new_entry)
 		{
 			exp.setPersistenceId(db_con_.getAutoId());
 		}
+		
+		storeMetaInfo_("META_MSExperiment",exp.getPersistenceId(), exp);
+		
 		//----------------------------------------------------------------------------------------
 		//-------------------------------------- SPECTRUM ---------------------------------------- 
 		//----------------------------------------------------------------------------------------
@@ -149,17 +166,19 @@ namespace OpenMS
 			query << ",RetentionTime='" << exp_it->getRetentionTime();
 			//MS-Level
 			query << "',MSLevel='" << exp_it->getMSLevel();
+			//Description
+			query << "',Description='" << exp_it->getComment();
 			
-			//TODO: Description
 			//TODO: MassType (average/monoisotopic)
 			//TODO: TIC
 			
 			query << end;
-			db_con_.executeQuery(query.str());
+			db_con_.executeQuery(query.str(),result);
 			if (new_entry)
 			{
 				exp_it->setPersistenceId(db_con_.getAutoId());
 			}
+			storeMetaInfo_("DATA_Spectrum",exp_it->getPersistenceId(), *exp_it);
 			
 			//----------------------------------------------------------------------------------------
 			//-------------------------------------- PRECURSOR --------------------------------------- 
@@ -192,16 +211,17 @@ namespace OpenMS
 				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy();		
 				
 				query << end;
-				db_con_.executeQuery(query.str());
+				db_con_.executeQuery(query.str(),result);
+				storeMetaInfo_("DATA_Precursor",db_con_.getAutoId(), exp_it->getPrecursor());
+				//TODO store persistence ID => Precusor class a persistent object
 			}
-			//TODO MSLevel change from 2 to 1 => delete entry
 			
 			//----------------------------------------------------------------------------------------
 			//---------------------------------------- PEAKS ----------------------------------------- 
 			//----------------------------------------------------------------------------------------
 			query.str("");
 			tmp = String(exp_it->getPersistenceId());
-			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum='" + tmp + "'");
+			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum='" + tmp + "'",result);
 			query << "INSERT INTO DATA_Peak (fid_Spectrum,Intensity,mz) VALUES ";
 			tmp = String("('")+tmp+"','";
 			for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
@@ -213,7 +233,7 @@ namespace OpenMS
 				//mz
 				query << spec_it->getPosition()[0] << "'),";
 			}
-			db_con_.executeQuery(String(query.str()).substr(0,-1));					
+			db_con_.executeQuery(String(query.str()).substr(0,-1),result);					
 		}
 	}
 
@@ -222,40 +242,36 @@ namespace OpenMS
 	{
 		std::stringstream query; // query to build
 		String tmp;              // temporary data
+		QSqlQuery result;        // place to store the query results in
 		
-		query << "SELECT Type-1,Date FROM META_MSExperiment WHERE id='" << id << "'";
-		db_con_.executeQuery(query.str());
-		//scope for res...
-		{ 		
-			QSqlQuery& res(db_con_.lastResult());
-			res.first();
-			
-			//Experiment meta info
-			exp.setType((ExperimentalSettings::ExperimentType)(res.value(0).toInt()));
-			if (res.value(1).asDate().isValid())
-			{
-				Date d;
-				d.set(res.value(1).asDate().toString(Qt::ISODate).ascii());
-				exp.setDate(d);
-			}
+		query << "SELECT Type-1,Date,fid_MetaInfo,Description FROM META_MSExperiment WHERE id='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		//Experiment meta info
+		exp.setType((ExperimentalSettings::ExperimentType)(result.value(0).asInt()));
+		if (result.value(1).asDate().isValid())
+		{
+			Date d;
+			d.set(result.value(1).asDate().toString(Qt::ISODate).ascii());
+			exp.setDate(d);
 		}
+		exp.setComment(result.value(3).asString().ascii());
+		loadMetaInfo_(result.value(2).asInt(),exp);
 		
 		//spectra
 		query.str("");
 		query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment='" << id << "' ORDER BY id ASC";
-		db_con_.executeQuery(query.str());
-		//scope for res...
-		{ 
-			QSqlQuery res(db_con_.lastResult()); //copy as it is overwritten otherwise
-			exp.resize(res.size());
-			UnsignedInt i = 0;
-			res.first();
-			while (res.isValid())
-			{
-				loadSpectrum(res.value(0).toInt(),exp[i]);
-				++i;
-				res.next();
-			}
+		
+		db_con_.executeQuery(query.str(),result);
+		exp.resize(result.size());
+		UnsignedInt i = 0;
+		result.first();
+		while (result.isValid())
+		{
+			loadSpectrum(result.value(0).asInt(),exp[i]);
+			++i;
+			result.next();
 		}
 		
 		//id
@@ -265,55 +281,53 @@ namespace OpenMS
 	template <class SpectrumType>
 	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
 	{
-		std::stringstream query; // query to build
+		spec = SpectrumType();
 		
-		query << "SELECT Type-1,RetentionTime,MSLevel FROM DATA_Spectrum WHERE id='" << id << "'";
-		db_con_.executeQuery(query.str());
-		//scope for res...
-		{
-			QSqlQuery& res(db_con_.lastResult());
-			res.first();
-			
-			//Spectrum meta info
-			spec.setType((SpectrumSettings::SpectrumType)(res.value(0).toInt()));
-			spec.setRetentionTime(res.value(1).toDouble());
-			spec.setMSLevel(res.value(2).toInt());
-		}
+		std::stringstream query; // query to build
+		QSqlQuery result;        // place to store the query results in
+		
+		query << "SELECT Type-1,RetentionTime,MSLevel,Description,fid_MetaInfo FROM DATA_Spectrum WHERE id='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		//Spectrum meta info
+		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).asInt()));
+		spec.setRetentionTime(result.value(1).toDouble());
+		spec.setMSLevel(result.value(2).asInt());
+		spec.setComment(result.value(3).asString().ascii());
+		loadMetaInfo_(result.value(4).asInt(),spec);
 		
 		//precursor
 		
 		if(spec.getMSLevel()>1)
 		{
 			query.str("");
-			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";		
-			db_con_.executeQuery(query.str());
-			QSqlQuery& res(db_con_.lastResult());
-			res.first();
-			spec.getPrecursorPeak().getPosition()[0] = (res.value(0).toDouble());
-			spec.getPrecursorPeak().setIntensity(res.value(1).toDouble());
-			spec.getPrecursorPeak().setCharge(res.value(2).toInt());
-			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(res.value(3).toInt()));
-			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(res.value(4).toInt()));
-			spec.getPrecursor().setActivationEnergy(res.value(5).toDouble());
+			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";		
+			db_con_.executeQuery(query.str(),result);
+			result.first();
+			spec.getPrecursorPeak().getPosition()[0] = (result.value(0).toDouble());
+			spec.getPrecursorPeak().setIntensity(result.value(1).toDouble());
+			spec.getPrecursorPeak().setCharge(result.value(2).asInt());
+			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).asInt()));
+			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(result.value(4).asInt()));
+			spec.getPrecursor().setActivationEnergy(result.value(5).toDouble());
+			loadMetaInfo_(result.value(6).asInt(),spec.getPrecursor());
 		}
 		
 		//Peaks
 		
 		query.str("");
 		query << "SELECT mz,Intensity FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ORDER BY mz ASC";
-		db_con_.executeQuery(query.str());
-		//scope for res...
-		{ 
-			QSqlQuery& res(db_con_.lastResult());
-			typename SpectrumType::PeakType p;
-			res.first();
-			while(res.isValid())
-			{
-				p.getPosition()[0] = res.value(0).toDouble();
-				p.setIntensity(res.value(1).toDouble());
-				spec.push_back(p);
-				res.next();
-			}
+		db_con_.executeQuery(query.str(),result);
+
+		typename SpectrumType::PeakType p;
+		result.first();
+		while(result.isValid())
+		{
+			p.getPosition()[0] = result.value(0).toDouble();
+			p.setIntensity(result.value(1).toDouble());
+			spec.push_back(p);
+			result.next();
 		}
 		
 		//id
