@@ -80,7 +80,7 @@ namespace OpenMS
 			/// Conversion of a String to an integer value
 			inline SignedInt asSignedInt_(const String& in)
 			{
-				SignedInt res;
+				SignedInt res = 0;
 				try
 				{
 					res = in.toInt();
@@ -119,7 +119,7 @@ namespace OpenMS
 			/// Conversion of a String to a double value
 	 		inline double asDouble_(const String& in)
 			{
-				double res;
+				double res = 0.0;
 				try
 				{
 					res = in.toDouble();
@@ -137,7 +137,7 @@ namespace OpenMS
 			/// Conversion of a String to a float value
 	 		inline float asFloat_(const String& in)
 			{
-				float res;
+				float res = 0.0;
 				try
 				{
 					res = in.toFloat();
