@@ -259,11 +259,10 @@ namespace OpenMS
 
     String db_id_string(db_id);
     QSqlQuery result;
-    con.executeQuery("SELECT count(id) from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'",result);
+    con.executeQuery("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
 
     //tab caption
     String caption = "DB ("+db_id_string+")";
-    result.first();
 
     SpectrumWindow* w;
 
@@ -280,12 +279,12 @@ namespace OpenMS
       //create 1D View
       if (result.value(0).toInt()==1)
       {
+      	//cout << "NEW 1D" << endl;
         // create 1D window
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
 
         //determine Spectrum id
-        con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'",result);
-        result.first();
+        con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
         UID spectrum_id = result.value(0).toInt();
 
         //load data
@@ -299,6 +298,7 @@ namespace OpenMS
         //create 2D view
         if (maps_as_2d)
         {
+          //cout << "NEW 2D" << endl;
           //create 2D window
           w = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
 
@@ -309,15 +309,16 @@ namespace OpenMS
         //create 3D view
         else
         {
-          // create 3D window
+          //cout << "NEW 3D" << endl;
+        	// create 3D window
           w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
 
           //load data
           exp = &(w->widget()->canvas()->addEmptyDataSet());
           dba.loadExperiment(db_id, *exp);
         }
-        w->setMainPreferences(prefs_);
       }
+      w->setMainPreferences(prefs_);
     }
     //open in active window
     else
@@ -325,6 +326,7 @@ namespace OpenMS
       //create 1D View
       if (result.value(0).toInt()==1)
       {
+      	//cout << "ACTIVE 1D" << endl;
         w = active1DWindow_();
         //wrong active window type
         if (w==0)
@@ -335,8 +337,7 @@ namespace OpenMS
         else //open it
         {
           //determine Spectrum id
-          con.executeQuery("SELECT id from Spectrum where MSExperiment_id='"+db_id_string+"' and MS_Level='1'", result);
-          result.first();
+          con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'", result);
           UID spectrum_id = result.value(0).toInt();
 
           //load data
@@ -359,6 +360,7 @@ namespace OpenMS
         //create 2D view
         if (w2!=0)
         {
+        	//cout << "ACTIVE 2D" << endl;
           w = w2;
 
           //load data
@@ -368,6 +370,7 @@ namespace OpenMS
         //create 3D view
         else
         {
+        	//cout << "ACTIVE 3D" << endl;
           w = w3;
 
           //load data
@@ -375,41 +378,39 @@ namespace OpenMS
           dba.loadExperiment(db_id, (*exp));
         }
       }
-
-      //noise estimator
-      float cutoff = 0;
-      if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
-      {
-        cutoff = estimateNoise_(*exp);
-        cout << "Estimated noise level: " << cutoff << endl;
-      }
-
-      exp->setName(caption);
-      w->widget()->canvas()->finishAdding();
-
-      //use_mower
-
-      //do for all windows
-      if (as_new_window)
-      {
-        w->widget()->canvas()->finishAdding(cutoff);
-        connectWindowSignals_(w);
-        w->setCaption(caption.c_str());
-        addClient(w,caption);
-        addTab_(w,caption);
-      }
-
-      //do for all (in active and in new window, 1D/2D/3D)
-      if(maximize)
-      {
-        w->showMaximized();
-      }
-
-      //do for all windows
-      updateLayerbar();
+		}
+		
+    //noise estimator
+    float cutoff = 0;
+    if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
+    {
+      cutoff = estimateNoise_(*exp);
+      cout << "Estimated noise level: " << cutoff << endl;
     }
-#endif
 
+    exp->setName(caption);
+    w->widget()->canvas()->finishAdding(cutoff);
+
+    //use_mower
+
+    //do for all windows
+    if (as_new_window)
+    {
+      connectWindowSignals_(w);
+      w->setCaption(caption.c_str());
+      addClient(w,caption);
+      addTab_(w,caption);
+    }
+
+    //do for all (in active and in new window, 1D/2D/3D)
+    if(maximize)
+    {
+      w->showMaximized();
+    }
+
+    //do for all windows
+    updateLayerbar();
+#endif
   }
 
   float SpectrumMDIWindow::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)

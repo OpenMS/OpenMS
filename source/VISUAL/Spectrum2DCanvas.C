@@ -1087,6 +1087,7 @@ namespace OpenMS
 
 		for (UnsignedInt i=0; i<getDataSetCount(); i++)
 		{
+			//cout << "Spec: " << i << endl;
 			if (layer_visible_[i])
 			{
 				if (type_[i]==DT_PEAK)

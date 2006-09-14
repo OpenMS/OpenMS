@@ -77,6 +77,7 @@ class TOPPDBExporter
 			 << "  -p <DB password>  password on the DB" << endl
 			 << "  -P <DB port>      port the DB server is running on (default: 3306)" << endl			 
 			 << "  -db <DB name>     DB name" << endl
+			 << "  -id <DB id>       id of the the map to export" << endl
 			 << "  -query <query>    a SQL query that returns one or several DB ids of the MSExperiment table" << endl
 			 << "  -out <file>       output file in mzData format (prefixed with DB id and '_' if several files are exported)" << endl;
 		}

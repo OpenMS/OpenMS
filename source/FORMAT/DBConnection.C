@@ -170,10 +170,9 @@ namespace OpenMS
 			
 			//set back internal pointer
 			result.first();
-			result.prev();
 			
 			//render lines
-	 		while(result.next())
+	 		while(result.isValid())
 	 		{
 	 			out << line_begin;
 		 		for (SignedInt j = 0; j < col_count; j++) 
@@ -184,7 +183,8 @@ namespace OpenMS
 	    		}
 		      out << result.value(j).toString();
 		    } 			
-	 			out << line_end;		
+	 			out << line_end;
+	 			result.next();	
 	 		}
 	 	}
 	}

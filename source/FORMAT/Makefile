@@ -46,7 +46,6 @@ CPP_SOURCES= \
 	InspectOutfile.C\
 	TextFile.C\
 	UniqueIdGenerator.C\
-	RTTI.C\
 	FASTAFile.C\
 	FileHandler.C\
 	MzXMLFile.C\

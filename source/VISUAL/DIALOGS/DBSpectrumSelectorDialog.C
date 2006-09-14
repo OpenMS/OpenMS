@@ -117,18 +117,18 @@ namespace OpenMS
 	void DBSpectrumSelectorDialog::loadSpectra()
 	{ 
 		stringstream query;
-		query << "SELECT e.id,e.Description, count(s.id) FROM MSExperiment e right join Spectrum s on e.id=s.MSExperiment_id WHERE";
+		query << "SELECT e.id,e.Description, count(s.id) FROM META_MSExperiment e right join DATA_Spectrum s on e.id=s.fid_MSExperiment WHERE";
 		if(search_string_->text()!="")
 		{
 			query << " e.description like '%"<<search_string_->text().ascii()<<"%' and ";
 		}
-		query << " s.MS_Level='1' group by e.id order by e.Description";
+		query << " s.MSLevel='1' GROUP BY e.id ORDER BY e.id ASC";
 		QSqlQuery result;
 		adapter_.executeQuery(query.str(),result);
 		table_->setNumRows(result.size());
 	 	table_->setLeftMargin(0);
 	 	UnsignedInt row=0;
-	 	while(result.next())
+	 	while(result.isValid())
 		{
 			//id, description
 	 		for (unsigned int col = 0; col < 3; col++) 
@@ -148,6 +148,7 @@ namespace OpenMS
 	    QCheckTableItem* checker = new QCheckTableItem(table_,QString());
 	    table_->setItem(row,0,checker);
 	    ++row;
+	    result.next();
 		}
 	}
 

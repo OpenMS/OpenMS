@@ -492,7 +492,6 @@ namespace OpenMS
 //      ss << " tmpDataSet.id = " << dsip->dataset_id() << " ORDER BY MSMSFraction.target_m_to_z";
 //      parentp_->adapterp_->executeQuery(ss.str(),false);
 //      QSqlQuery sqlres2 = parentp_->adapterp_->lastResult();
-//      sqlres2.first();
 //      int size = sqlres2.value(0).toInt();
 //      if ( size == sqlres.size() ) 
 //      {
@@ -511,7 +510,6 @@ namespace OpenMS
 //      ss << "SELECT target_m_to_z FROM MSMSFraction WHERE peak_list = " << (*cspectra->rbegin())->id();
 //      parentp_->adapterp_->executeQuery(ss.str(),false);
 //      sqlres = parentp_->adapterp_->lastResult();
-//      sqlres.first();
 //   
 //      if ( !finished && sqlres.value(0).toDouble() - overlapsize <= *startmz )
 //      {

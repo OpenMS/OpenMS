@@ -261,7 +261,6 @@ namespace OpenMS
 //        QSqlQuery sqlres = adapterp_->lastResult();
 //        
 //        if ( sqlres.size() <=0 ) throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ClusterExperiment::DataSetInfo",datasetname_.c_str());
-//        sqlres.first();
 //        
 //        //dsip_ = dynamic_cast<DataSetInfo*>(adapterp_->createObject(sqlres.value(0).toInt())); //TODO Persistence
 //        if ( !dsip_ ) throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ClusterExperiment::DataSetInfo",datasetname_.c_str());

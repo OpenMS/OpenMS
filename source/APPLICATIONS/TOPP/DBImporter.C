@@ -61,7 +61,7 @@ class TOPPDBImporter
 		void printToolUsage_()
 		{
 			cerr << endl
-		       << tool_name_ << " -- Extracts MS data from a OpenMS database." << endl
+		       << tool_name_ << " -- Imports an mzData file to an OpenMS database." << endl
 		       << endl
 		       << "Usage:" << endl
 					 << " " << tool_name_ << " [options]" << endl

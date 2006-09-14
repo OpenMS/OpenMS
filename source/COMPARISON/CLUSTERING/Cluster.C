@@ -117,7 +117,6 @@ namespace OpenMS
 //      ss << "SELECT DataSetInfo.id FROM DataSetInfo JOIN Cluster ON DataSetInfo.dataset_id = Cluster.dataset WHERE  Cluster.id = " << persistence_id_ ;
 //      adapterp->executeQuery(ss.str());
 //      QSqlQuery sqlres = adapterp->lastResult();
-//      sqlres.first();
 //      //int dsid = sqlres.value(0).toInt(); //TODO Persistence
 //      //DataSetInfo* dsi = dynamic_cast<DataSetInfo*>(adapterp->createObject(dsid)); //TODO Persistence
 //      DataSetInfo* dsi ;
