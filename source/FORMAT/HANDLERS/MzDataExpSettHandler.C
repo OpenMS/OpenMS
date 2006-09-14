@@ -77,7 +77,7 @@ namespace OpenMS
 						}
 						else
 						{
-							const Locator* loc;
+							const Locator* loc = 0;
 							setDocumentLocator(loc);
 							String tmp = String("Unhandled tag \"comments\" with content: ") + XMLString::transcode(chars);
 							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
@@ -94,7 +94,7 @@ namespace OpenMS
 						}
 						else
 						{
-							const Locator* loc;
+							const Locator* loc = 0;
 							setDocumentLocator(loc);
 							String tmp = String("Unhandled tag \"name\" with content: ") + XMLString::transcode(chars);
 							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
@@ -168,7 +168,7 @@ namespace OpenMS
 			setAddInfo(exp_->getProcessingMethod(), XMLString::transcode(name),XMLString::transcode(value),"DataProcessing.ProcessingMethod.UserParam");
 		else
 		{
-			const Locator* loc;
+			const Locator* loc = 0;
 			setDocumentLocator(loc);
 			String tmp = String("Invalid userParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
 			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
@@ -274,7 +274,7 @@ namespace OpenMS
 		}
 		else
 		{
-			const Locator* loc;
+			const Locator* loc = 0;
 			setDocumentLocator(loc);
 			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
 			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
@@ -282,7 +282,7 @@ namespace OpenMS
 		
 		if (error != "")
 		{
-			const Locator* loc;
+			const Locator* loc = 0;
 			setDocumentLocator(loc);
 			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) +"\", value=\"" + XMLString::transcode(value) +"\" in " + error;
 			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
