@@ -87,7 +87,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("SignedInt conversion error of \"") + in + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
@@ -109,7 +109,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("UnsignedInt conversion error of \"") + in + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
@@ -126,7 +126,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("Double conversion error of \"") + in + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
@@ -144,7 +144,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("Float conversion error of \"") + in + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
@@ -165,7 +165,7 @@ namespace OpenMS
 				}
 				else 
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("Boolean conversion error of \"") + in + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
@@ -190,7 +190,7 @@ namespace OpenMS
 					}
 					catch(Exception::ParseError err)
 					{
-						const xercesc::Locator* loc;
+						const xercesc::Locator* loc = 0;
 						setDocumentLocator(loc);
 						String message = String("DateTime conversion error of \"") + in + "\" parsed by " + file_;
 						error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));

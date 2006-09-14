@@ -142,7 +142,7 @@ namespace OpenMS
 		  				typename std::map<String,DBaseMapping<1>* >::const_iterator cit = mapping_instances.find(name);
 		  				if (cit == mapping_instances.end())
 		  				{
-								const xercesc::Locator* loc;
+								const xercesc::Locator* loc = 0;
 								setDocumentLocator(loc);
 								String message = String("Error! This mapping type has not been registred with the XML Handler: ")+name;
 								error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc));
@@ -319,14 +319,14 @@ namespace OpenMS
 			{
 				if (fatal)
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("Error in enumerated value \"") + value + "\" parsed by " + file_;
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				else if (message != "")
 				{
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					String message = String("Unhandled ") + message + "\"" + value + "\" parsed by " + file_;
 					warning(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));

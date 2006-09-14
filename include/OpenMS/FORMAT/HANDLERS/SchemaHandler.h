@@ -96,7 +96,7 @@ namespace OpenMS
 				String2EnumMap::const_iterator it =  str2enum_array_[index].find(value);
 				if (it == str2enum_array_[index].end()) // no enum-value for string defined
 				{  
-					const xercesc::Locator* loc;
+					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
 					std::cout << "Warning: Unhandled " << message << " \"" << value << "\" parsed by " << file_ << std::endl;
 				}	

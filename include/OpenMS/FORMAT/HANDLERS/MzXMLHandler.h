@@ -213,7 +213,7 @@ namespace OpenMS
 			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
 			if (value!=required && value!=required_alt)
 			{
-				const xercesc::Locator* loc;
+				const xercesc::Locator* loc = 0;
 				setDocumentLocator(loc);
 				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\" in file " + file_;
 				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
