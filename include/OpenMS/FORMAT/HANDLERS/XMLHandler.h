@@ -97,7 +97,7 @@ namespace OpenMS
 			/// Conversion of a String to an unsigned integer value
 			inline UnsignedInt asUnsignedInt_(const String& in)
 			{
-				UnsignedInt res;
+				UnsignedInt res = 0;
 				try
 				{
 					SignedInt tmp = in.toInt();
