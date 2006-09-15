@@ -41,7 +41,7 @@ namespace OpenMS
 	  circular inclusions are ignored but may lead to errors<br>
 	  DataSetInfo include information about Datasets<br>
 	  
-	  @todo remove
+	  @todo adapt to new DB schema (Marc)
   */
   class DataSetInfo 
   	: public PersistentObject
