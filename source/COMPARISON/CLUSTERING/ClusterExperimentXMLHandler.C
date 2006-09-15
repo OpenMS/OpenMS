@@ -42,8 +42,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  ClusterExperimentXMLHandler::ClusterExperimentXMLHandler(ClusterExperiment& crun)
-    : XMLHandler(),
+  ClusterExperimentXMLHandler::ClusterExperimentXMLHandler(ClusterExperiment& crun, const String& filename)
+    : XMLHandler(filename),
     	crun_(crun),
     	forwardconfigurablep_(0),
     	isclusterexperiment_(0),

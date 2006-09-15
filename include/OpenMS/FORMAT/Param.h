@@ -52,6 +52,8 @@ namespace OpenMS
  	
 	@todo Add support for inheritance using 'inherit' keyword as in TOPPBase::getParamCopy_(), and produce better error messages. (Clemens)
 
+	@note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
+	
  	@ingroup FileIO
 */
 class Param

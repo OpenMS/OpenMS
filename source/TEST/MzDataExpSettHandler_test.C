@@ -52,7 +52,7 @@ CHECK(MzDataExpSettHandler(ExperimentalSettings& exp))
 	parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 	
 	ExperimentalSettings e;
-	MzDataExpSettHandler handler(e);
+	MzDataExpSettHandler handler(e,"");
 	
 	parser->setContentHandler(&handler);
 	parser->setErrorHandler(&handler);
@@ -181,7 +181,7 @@ CHECK(MzDataExpSettHandler(const ExperimentalSettings& exp))
 	parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 	
 	ExperimentalSettings e1;
-	MzDataExpSettHandler handler(e1);
+	MzDataExpSettHandler handler(e1,"");
 	
 	parser->setContentHandler(&handler);
 	parser->setErrorHandler(&handler);
@@ -193,7 +193,7 @@ CHECK(MzDataExpSettHandler(const ExperimentalSettings& exp))
 	std::stringstream sstr;
 	//read data and close stream
 	const ExperimentalSettings& e2 = e1;
-	Internal::MzDataExpSettHandler handler2(e2);
+	Internal::MzDataExpSettHandler handler2(e2,"");
 	handler2.writeTo(sstr);
 
 	std::ifstream file("data/MzDataExpSett_test_1.xml");

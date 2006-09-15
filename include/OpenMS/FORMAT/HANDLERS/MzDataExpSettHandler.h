@@ -53,10 +53,10 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzDataExpSettHandler(ExperimentalSettings& exp);
+      MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename);
 
       /// Constructor for a read-only handler
-      MzDataExpSettHandler(const ExperimentalSettings& exp);
+      MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename);
 
       /// Destructor
       virtual ~MzDataExpSettHandler();

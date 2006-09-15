@@ -84,7 +84,7 @@ namespace OpenMS
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 				
 				map = MapType();  // clear map
-				Internal::MzDataHandler<MapType> handler(map);
+				Internal::MzDataHandler<MapType> handler(map,filename);
 				
 				parser->setContentHandler(&handler);
 				parser->setErrorHandler(&handler);
@@ -99,13 +99,9 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
         }
-        catch (const xercesc::SAXParseException& toCatch) 
+        catch (const xercesc::SAXException& toCatch) 
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
-        catch (...) 
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
         }
 			}
 
@@ -125,7 +121,7 @@ namespace OpenMS
 		    }
 
 				//read data and close stream
-				Internal::MzDataHandler<MapType> handler(map);
+				Internal::MzDataHandler<MapType> handler(map,filename);
 				handler.writeTo(os);
 				os.close();
   		}

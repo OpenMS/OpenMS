@@ -41,8 +41,9 @@ namespace OpenMS
   MascotXMLHandler::MascotXMLHandler(ProteinIdentification* protein_identification,
 								  									 vector<Identification>* identifications, 
 								   									 vector<float>* precursor_retention_times, 
-								   									 vector<float>* precursor_mz_values) :
-    XMLHandler(),
+								   									 vector<float>* precursor_mz_values,
+      								 							 const String& filename) :
+    XMLHandler(filename),
     protein_identification_(protein_identification),
     identifications_(identifications),
     precursor_retention_times_(precursor_retention_times),

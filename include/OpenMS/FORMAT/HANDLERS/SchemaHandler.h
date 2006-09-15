@@ -59,19 +59,23 @@ namespace OpenMS
     public:
       /**@name Constructors and destructor */
       //@{
-			///
-			SchemaHandler();
-      /** @brief constructor used to initialize all vectors to non-trivial sizes
+			
+			SchemaHandler(const String& filename);
+      /**
+      	@brief constructor used to initialize all vectors to non-trivial sizes
 
-				@p tag_num number of tags<br>
-				@p map_num number of maps
+				@param tag_num number of tags
+				@param map_num number of maps
 			*/
-      SchemaHandler(Size tag_num, Size map_num);
+      SchemaHandler(Size tag_num, Size map_num,const String& filename);
       ///
       virtual ~SchemaHandler();
       //@}
 
     protected:
+    	/// Default construtctor not implemented => protected
+    	SchemaHandler();
+    	
 			/// is parser currently in tag with given index?
 			std::vector<bool> is_parser_in_tag_;
 
@@ -98,7 +102,7 @@ namespace OpenMS
 				{  
 					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
-					std::cout << "Warning: Unhandled " << message << " \"" << value << "\" parsed by " << file_ << std::endl;
+					std::cout << "Warning: Unhandled " << message << " \"" << value << "\" parsed in " << file_ << std::endl;
 				}	
 				else
 				{

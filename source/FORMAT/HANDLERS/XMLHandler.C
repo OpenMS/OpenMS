@@ -40,8 +40,9 @@ namespace OpenMS
 	namespace Internal
 	{
 
-		XMLHandler::XMLHandler()
-		: error_message_("")
+		XMLHandler::XMLHandler(const String& filename)
+		: error_message_(""),
+			file_(filename)
 		{
 		}
 		
@@ -60,6 +61,7 @@ namespace OpenMS
 		{
 			error_message_ = String("Fatal error: ") + XMLString::transcode(exception.getMessage());
 			appendLocation_(exception, error_message_);
+			// Thow error here as well?????
 		}
 		
 		void XMLHandler::warning(const SAXParseException& exception)

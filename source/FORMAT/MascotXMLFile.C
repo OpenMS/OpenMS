@@ -86,7 +86,8 @@ namespace OpenMS
 		Internal::MascotXMLHandler handler(protein_identification, 
 																			 identifications,
 															 				 precursor_retention_times, 
-															 				 precursor_mz_values);
+															 				 precursor_mz_values,
+															 				 filename);
 
 
 		parser->setContentHandler(&handler);
@@ -102,13 +103,9 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
-    catch (const xercesc::SAXParseException& toCatch) 
+    catch (const xercesc::SAXException& toCatch) 
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-    }
-    catch (...) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
 
   	vector<PeptideHit> 									peptide_hits;

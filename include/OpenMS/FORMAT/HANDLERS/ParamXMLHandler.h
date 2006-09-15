@@ -46,7 +46,7 @@ namespace OpenMS
   {
     public:
     	/// Default constructor
-      ParamXMLHandler(std::map<std::string, DataValue>& values);
+      ParamXMLHandler(std::map<std::string, DataValue>& values, const String& filename);
 			/// Destructor
       virtual ~ParamXMLHandler();
 
@@ -56,7 +56,10 @@ namespace OpenMS
 			// Docu in base class
       virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
-    protected :
+    protected:
+    	/// Not implemented => protected
+    	ParamXMLHandler();
+    	
       std::vector<std::string> nodes_;
       std::string path_;
       std::map<std::string, DataValue>& values_;

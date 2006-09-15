@@ -34,8 +34,8 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	MzDataExpSettHandler::MzDataExpSettHandler(ExperimentalSettings& exp)
-		: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+	MzDataExpSettHandler::MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)
+		: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
   		exp_(&exp), 
   		cexp_(0)
 	{
@@ -43,8 +43,8 @@ namespace OpenMS
 		// fill maps with current schema
 	}
 
-   MzDataExpSettHandler::MzDataExpSettHandler(const ExperimentalSettings& exp)
-		: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+   MzDataExpSettHandler::MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename)
+		: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 			exp_(0), 
 			cexp_(&exp)
   {

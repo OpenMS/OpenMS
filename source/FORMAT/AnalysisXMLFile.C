@@ -87,7 +87,8 @@ namespace OpenMS
 															 identifications,
 															 precursor_retention_times, 
 															 precursor_mz_values,
-															 contact_person);
+															 contact_person,
+															 filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -102,13 +103,9 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
-    catch (const xercesc::SAXParseException& toCatch) 
+    catch (const xercesc::SAXException& toCatch) 
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-    }
-    catch (...) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
   }
   					 
@@ -157,7 +154,8 @@ namespace OpenMS
 															 precursor_mz_values,
 															 contact_person,
 															 predicted_retention_times,
-															 predicted_sigma);
+															 predicted_sigma,
+															 filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -172,13 +170,9 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
-    catch (const xercesc::SAXParseException& toCatch) 
+    catch (const xercesc::SAXException& toCatch) 
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-    }
-    catch (...) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
   }
   					 
@@ -198,7 +192,8 @@ namespace OpenMS
 		Internal::AnalysisXMLHandler handler(protein_identifications,
 															 					 identifications, 
 															 					 precursor_retention_times, 
-															 					 precursor_mz_values);
+															 					 precursor_mz_values,
+															 					 filename);
 		handler.writeTo(os);
 		os.close();
 
@@ -222,7 +217,8 @@ namespace OpenMS
 															 identifications,
 															 precursor_retention_times, 
 															 precursor_mz_values, 
-															 contact_person);
+															 contact_person,
+															 filename);
 		handler.writeTo(os);
 		os.close();
 
@@ -251,7 +247,8 @@ namespace OpenMS
 															 precursor_mz_values, 
 															 contact_person,
 															 predicted_retention_times,
-															 predicted_sigma);
+															 predicted_sigma,
+															 filename);
 		handler.writeTo(os);
 		os.close();
 

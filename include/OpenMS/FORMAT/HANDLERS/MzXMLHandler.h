@@ -54,8 +54,8 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzXMLHandler(MapType& exp)
-			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+      MzXMLHandler(MapType& exp, const String& filename)
+			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(&exp),	
 				cexp_(0),
 				peak_(),
@@ -70,8 +70,8 @@ namespace OpenMS
 			}
 
       /// Constructor for a read-only handler
-      MzXMLHandler(const MapType& exp)
-			: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+      MzXMLHandler(const MapType& exp, const String& filename)
+			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(0), 
 				cexp_(&exp),
 				peak_(),
@@ -215,7 +215,7 @@ namespace OpenMS
 			{
 				const xercesc::Locator* loc = 0;
 				setDocumentLocator(loc);
-				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\" in file " + file_;
+				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\"";
 				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
 			}
 		}

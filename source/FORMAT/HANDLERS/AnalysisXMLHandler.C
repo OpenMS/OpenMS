@@ -43,8 +43,9 @@ namespace OpenMS
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications,
   									 vector<Identification>& identifications, 
    									 vector<float>& precursor_retention_times, 
-   									 vector<float>& precursor_mz_values) :
-    XMLHandler(),
+   									 vector<float>& precursor_mz_values,
+   									 const String& filename ) :
+    XMLHandler(filename),
     protein_identifications_(&protein_identifications),
     identifications_(&identifications),
     precursor_retention_times_(&precursor_retention_times),
@@ -79,8 +80,9 @@ namespace OpenMS
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications,
   									 const vector<Identification>& identifications, 
    									 const vector<float>& precursor_retention_times, 
-   									 const vector<float>& precursor_mz_values) :
-    XMLHandler(),
+   									 const vector<float>& precursor_mz_values,
+   									 const String& filename) :
+    XMLHandler(filename),
     protein_identifications_(),
     identifications_(0),
     precursor_retention_times_(0),
@@ -116,8 +118,9 @@ namespace OpenMS
       									 vector<Identification>* identifications, 
       									 vector<float>* precursor_retention_times, 
       									 vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person) :
-    XMLHandler(),
+      									 ContactPerson* contact_person,
+   									 const String& filename) :
+    XMLHandler(filename),
     protein_identifications_(protein_identifications),
     identifications_(identifications),
     precursor_retention_times_(precursor_retention_times),
@@ -155,8 +158,9 @@ namespace OpenMS
       									 vector<float>* precursor_mz_values,
       									 ContactPerson* contact_person,
       									 map<String, double>* predicted_retention_times,
-      									 DoubleReal* predicted_sigma) :
-    XMLHandler(),
+      									 DoubleReal* predicted_sigma,
+   									 const String& filename) :
+    XMLHandler(filename),
     protein_identifications_(protein_identifications),
     identifications_(identifications),
     precursor_retention_times_(precursor_retention_times),
@@ -192,8 +196,9 @@ namespace OpenMS
       									 const vector<Identification>& identifications, 
       									 const vector<float>& precursor_retention_times, 
       									 const vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person) :
-    XMLHandler(),
+      									 const ContactPerson& contact_person,
+   									 const String& filename) :
+    XMLHandler(filename),
     protein_identifications_(0),
     identifications_(0),
     precursor_retention_times_(0),
@@ -231,8 +236,9 @@ namespace OpenMS
       									 const vector<float>& precursor_mz_values,
       									 const ContactPerson& contact_person,
       									 const map<String, double>& const_predicted_retention_times,
-      									 DoubleReal predicted_sigma) :
-    XMLHandler(),
+      									 DoubleReal predicted_sigma,
+   									 const String& filename) :
+    XMLHandler(filename),
     protein_identifications_(0),
     identifications_(0),
     precursor_retention_times_(0),

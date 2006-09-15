@@ -81,24 +81,22 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      DFeaturePairsHandler(DFeaturePairVector<D,FeatureType>& map)
-      : SchemaHandler(TAG_NUM,MAP_NUM),
+      DFeaturePairsHandler(DFeaturePairVector<D,FeatureType>& map, const String& filename)
+      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				pairs_(&map), cpairs_(0),
 				id_generator_(UniqueIdGenerator::instance()),
 				pair_(), feature_()		
   		{
-				file_ = __FILE__;
 				fillMaps_(Schemes::DFeaturePairs[schema_]);
 			}
       
       ///
-      DFeaturePairsHandler(const DFeaturePairVector<D,FeatureType>& map)
-      : SchemaHandler(TAG_NUM,MAP_NUM),
+      DFeaturePairsHandler(const DFeaturePairVector<D,FeatureType>& map, const String& filename)
+      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				pairs_(0), cpairs_(&map),
 				id_generator_(UniqueIdGenerator::instance()),
 				pair_(), feature_()	
   		{
-				file_ = __FILE__;
 				fillMaps_(Schemes::DFeaturePairs[schema_]);
 			}
       ///

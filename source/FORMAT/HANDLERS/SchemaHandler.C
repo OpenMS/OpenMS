@@ -30,24 +30,29 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-	SchemaHandler::SchemaHandler()
-  : is_parser_in_tag_(),
+	SchemaHandler::SchemaHandler(const String& filename)
+  : XMLHandler(filename),
+  	is_parser_in_tag_(),
 		str2enum_array_(), enum2str_array_(),
 		schema_(0)
 	{
-		file_ = __FILE__;
+
 	}
 
-	SchemaHandler::SchemaHandler(Size tag_num, Size map_num)
-  : is_parser_in_tag_(tag_num,false),
-		str2enum_array_(map_num), enum2str_array_(map_num),
+	SchemaHandler::SchemaHandler(Size tag_num, Size map_num, const String& filename)
+  : XMLHandler(filename),
+  	is_parser_in_tag_(tag_num,false),
+		str2enum_array_(map_num), 
+		enum2str_array_(map_num),
 		schema_(0)
 	{
-		file_ = __FILE__;
+
 	}
 
 	SchemaHandler::~SchemaHandler()
-	{}
+	{
+		
+	}
 
 	} // namespace Internal
 } // namespace OpenMS

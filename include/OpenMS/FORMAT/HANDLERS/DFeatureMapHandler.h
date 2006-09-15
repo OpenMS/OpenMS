@@ -102,26 +102,24 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      DFeatureMapHandler(DFeatureMap<D,FeatureType>& map) 
-      : SchemaHandler(TAG_NUM,MAP_NUM),
+      DFeatureMapHandler(DFeatureMap<D,FeatureType>& map, const String& filename) 
+      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 			 	map_(&map), 
 			 	cmap_(0),	
 			 	feature_(), 
 			 	exp_sett_()
   		{
-				file_ = __FILE__;
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
 			}
       
       ///
-      DFeatureMapHandler(const DFeatureMap<D,FeatureType>& map)
-      : SchemaHandler(TAG_NUM,MAP_NUM),
+      DFeatureMapHandler(const DFeatureMap<D,FeatureType>& map, const String& filename)
+      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				map_(0), 
 				cmap_(&map),	
 				feature_(), 
 				exp_sett_()
   		{
-				file_ = __FILE__;
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
 			}
 
@@ -216,7 +214,7 @@ namespace OpenMS
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 					
-					MzDataExpSettHandler handler( *((ExperimentalSettings*)map_));
+					MzDataExpSettHandler handler( *((ExperimentalSettings*)map_),file_);
 					handler.resetErrors();
 					parser->setContentHandler(&handler);
 					parser->setErrorHandler(&handler);
@@ -356,7 +354,7 @@ namespace OpenMS
 		   << "<featureMap>\n";
 
 		// delegate control to ExperimentalSettings handler
-		Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_));
+		Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_),"");
 		handler.writeTo(os);
 
 		os << "\t<featureList count=\"" << cmap_->size() << "\">\n";

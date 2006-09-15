@@ -96,7 +96,7 @@ namespace OpenMS
 				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-				Internal::DFeaturePairsHandler<D> handler(pairs);
+				Internal::DFeaturePairsHandler<D> handler(pairs,filename);
 				parser->setContentHandler(&handler);
 				parser->setErrorHandler(&handler);
 				
@@ -110,13 +110,9 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
         }
-        catch (const xercesc::SAXParseException& toCatch) 
+        catch (const xercesc::SAXException& toCatch) 
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXParseException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
-        catch (...) 
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Unexpexted parse exception!"));
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
         }
       }
 
@@ -133,7 +129,7 @@ namespace OpenMS
 					throw Exception::UnableToCreateFile(__FILE__,__LINE__,"DFeaturePairsFile::store()",filename);
 				}
 
-				Internal::DFeaturePairsHandler<D> handler(pairs);
+				Internal::DFeaturePairsHandler<D> handler(pairs,filename);
 				handler.writeTo(os);
 				os.close();
       }

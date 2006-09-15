@@ -38,13 +38,16 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(map<string,DataValue>& values): 	values_(values)
+	ParamXMLHandler::ParamXMLHandler(map<string,DataValue>& values, const String& filename)
+		: XMLHandler(filename),
+			values_(values)
 	{
-		file_ = __FILE__;
+
 	}
 	
 	ParamXMLHandler::~ParamXMLHandler()
 	{
+		
 	}
 
 	void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
@@ -60,7 +63,7 @@ namespace OpenMS
 			{
 				const Locator* loc = 0;
 				setDocumentLocator(loc);
-				String message = String("Missing attribure type or name in ITEM in ") + file_;
+				String message = String("Missing attribure type or name in ITEM");
 				error(SAXParseException(XMLString::transcode(message.c_str()), *loc ));
 			}		
 			
@@ -89,6 +92,10 @@ namespace OpenMS
 			else if (type == "double")
 			{
 				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asDouble_(value));
+			}
+			else
+			{
+				cout << "Warning: Ignoring entry '" << path_+XMLString::transcode(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
 			}
 		}
 		

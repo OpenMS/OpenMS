@@ -51,18 +51,21 @@ namespace OpenMS
       AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications,
       									 std::vector<Identification>& identifications, 
       									 std::vector<float>& precursor_retention_times, 
-      									 std::vector<float>& precursor_mz_values);
+      									 std::vector<float>& precursor_mz_values, 
+      									 const String& filename);
       /// Constructor
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
       									 const std::vector<float>& precursor_retention_times, 
-      									 const std::vector<float>& precursor_mz_values);
+      									 const std::vector<float>& precursor_mz_values, 
+      									 const String& filename);
       /// Constructor
       AnalysisXMLHandler(std::vector<ProteinIdentification>* protein_identifications,
       									 std::vector<Identification>* identifications, 
       									 std::vector<float>* precursor_retention_times, 
       									 std::vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person);
+      									 ContactPerson* contact_person, 
+      									 const String& filename);
       /// Constructor
       AnalysisXMLHandler(std::vector<ProteinIdentification>* protein_identifications,
       									 std::vector<Identification>* identifications, 
@@ -70,13 +73,15 @@ namespace OpenMS
       									 std::vector<float>* precursor_mz_values,
       									 ContactPerson* contact_person,
       									 std::map<String, double>* predicted_retention_times,
-      									 DoubleReal* predicted_sigma);
+      									 DoubleReal* predicted_sigma,
+      									 const String& filename);
       /// Constructor
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
       									 const std::vector<float>& precursor_retention_times, 
       									 const std::vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person);
+      									 const ContactPerson& contact_person, 
+      									 const String& filename);
       /// Constructor
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
@@ -84,7 +89,8 @@ namespace OpenMS
       									 const std::vector<float>& precursor_mz_values,
       									 const ContactPerson& contact_person,
       									 const std::map<String, double>& predicted_retention_times,
-      									 DoubleReal predicted_sigma);
+      									 DoubleReal predicted_sigma, 
+      									 const String& filename);
       
       /// Destructor
       ~AnalysisXMLHandler();

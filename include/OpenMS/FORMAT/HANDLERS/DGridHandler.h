@@ -60,7 +60,7 @@ namespace OpenMS
 	  	in the future in order to save meta information with the grid such as information
 	  	about the experiment etc.
 	  	
-	  	PLEASE NOTE: A grid cell can have different transformations for each dimension.
+	  	@note A grid cell can have different transformations for each dimension.
 	  	If you want this XML handler class to support other transformations than the
 	  	linear one, you must register this class with the handler. For details, have a look
 	  	at registerMappings_() .
@@ -80,15 +80,14 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///
-      DGridHandler(DGrid<D>& grid) 
-      : XMLHandler(),
+      DGridHandler(DGrid<D>& grid, const String& filename) 
+      : XMLHandler(filename),
       	grid_(&grid), 
       	cgrid_(0), 
 				cell_(), 
 				mapping_(), 
 				param_()
   		{
-				file_ = __FILE__;
 				for (Index i=0; i<TAG_NUM; i++)	in_tag_[i] = false;
 				for (Index i=0; i<MAP_NUM; i++)	maps[i] = Map();
 				setConstants_();
@@ -97,21 +96,22 @@ namespace OpenMS
 			}
       
       ///
-      DGridHandler(const DGrid<D>& grid)
-      : XMLHandler(),
+      DGridHandler(const DGrid<D>& grid, const String& filename)
+      : XMLHandler(filename),
       	grid_(0), 
       	cgrid_(&grid),
 				cell_(), 
 				mapping_(), 
 				param_()
   		{
-  			file_ = __FILE__;
 				setConstants_();
 				fillMaps_();
 				registerMappings_();
 			}
       ///
-      virtual ~DGridHandler()  { }     
+      virtual ~DGridHandler()  
+      {
+      }     
       //@}
 
 			// Docu in base class
@@ -321,14 +321,14 @@ namespace OpenMS
 				{
 					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
-					String message = String("Error in enumerated value \"") + value + "\" parsed by " + file_;
+					String message = String("Error in enumerated value \"") + value + "\"";
 					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 				else if (message != "")
 				{
 					const xercesc::Locator* loc = 0;
 					setDocumentLocator(loc);
-					String message = String("Unhandled ") + message + "\"" + value + "\" parsed by " + file_;
+					String message = String("Unhandled ") + message + "\"" + value + "\"";
 					warning(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
 				}
 			}	

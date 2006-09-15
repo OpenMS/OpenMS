@@ -39,7 +39,7 @@ namespace OpenMS
   {
 	  public:
 	  	//Constructor
-	    ClusterExperimentXMLHandler(ClusterExperiment&);
+	    ClusterExperimentXMLHandler(ClusterExperiment&, const String& filename);
 			
 			//Destructor
 	    virtual ~ClusterExperimentXMLHandler();

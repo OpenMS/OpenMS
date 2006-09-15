@@ -62,8 +62,8 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzDataHandler(MapType& exp)
-				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+      MzDataHandler(MapType& exp, const String& filename)
+				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
@@ -77,8 +77,8 @@ namespace OpenMS
 			}
 
       /// Constructor for a read-only handler
-      MzDataHandler(const MapType& exp)
-				: SchemaHandler(TAG_NUM,MAP_NUM), // number of tags, number of maps
+      MzDataHandler(const MapType& exp, const String& filename)
+				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),
@@ -485,7 +485,7 @@ namespace OpenMS
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 					
-					MzDataExpSettHandler handler( *((ExperimentalSettings*)exp_));
+					MzDataExpSettHandler handler( *((ExperimentalSettings*)exp_),file_);
 					handler.resetErrors();
 					parser->setContentHandler(&handler);
 					parser->setErrorHandler(&handler);
@@ -676,7 +676,7 @@ namespace OpenMS
 			os << "<!-- -*- Mode: XML; tab-width: 2; -*- -->\n<mzData version=\"1.05\" accessionNumber=\"OpenMS:\">\n";
 
 			// delegate control to ExperimentalSettings handler
-			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cexp_));
+			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cexp_),"");
 			handler.writeTo(os);
 
 			//determine how many spectra there are (count only those with peaks)
