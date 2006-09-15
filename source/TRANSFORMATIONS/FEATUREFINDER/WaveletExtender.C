@@ -46,23 +46,25 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	if (!is_initialized_)
 	{	
 		std::cout << "Starting WaveletExtender..." << std::endl;
-		/// Very ugly. Should be removed in final version (ost)
 		
+		/// Very ugly. Should be removed in final version (ost)
 		DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
 		scan_index_ = traits_->getScanIndex();
 		MSExperiment<DRawDataPoint<2>  > exp;
 		exp.set2DData(peaks_);
+		
 		std::cout << "Copying of data finished..." << std::endl;
 		
-		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder (exp);
-		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2>  > >::WaveletCollection WaveletCollection;
-	
-		finder.setWtCutOff (100); //i.e. the seeding procedure ignores every intensity (of the wavelet transform) less then ...
-											//If this parameter is not set explicitly the cut off lies by 0.
-	 	
+		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder;
+		finder.setData(exp);
+				
+		// setting params
+		finder.setWtCutOff (0);			// threshold for intensities in wavelet transform
+   		finder.setScoreCutOff (0);		// scores are ignored
+   		finder.setRTVotesCutOff (3); 	// we need isotopic patterns in at least six consecutive scans
+		
 		std::cout << "Starting detection: " << std::endl;
-		finder.setRTVotesCutOff(5); //i.e. we only consider a potential isotope coordinate (m/z) if it is supported by at least 5
-		finder.setScoreCutOff(1e6); //i.e. every potential isotope position is neglected if none of its scores exceeds 1e6
+		
 		hash_ = finder.findFeatures(0, (exp.size()-1), true);
 		
 		hash_iter = hash_.begin();		
@@ -104,8 +106,8 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 					break;
 				}
 				
-				std::cout << "Searching for " << current_scan << std::endl;
-				std::cout << "Scan index " << scan_index_.size() << std::endl;
+// 				std::cout << "Searching for " << current_scan << std::endl;
+// 				std::cout << "Scan index " << scan_index_.size() << std::endl;
 							
 				PeakIterator scan_begin = scan_index_[current_scan];
 				PeakIterator scan_end   = scan_index_[current_scan+1];				
@@ -113,23 +115,41 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
 				UnsignedInt peak_index = (insert_iter - traits_->getAllPeaks().begin());		
 	
-				std::cout << "Adding peak " << peak_index << std::endl;
+				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
 				
-				if (peak_index > 0) region_.add(peak_index-1);
+				if ( (peak_index-1 ) >= 0) region_.add(peak_index-1);
+				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-1) << std::endl;
+				if ( (peak_index-2 ) >= 0) region_.add(peak_index-2);
+				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-2) << std::endl;
 						
 				region_.add(peak_index);
 				
-				unsigned int nr_peaks = traits_->getNumberOfPeaks();
+				CoordinateType mass_distance = 0;
+				CoordinateType miso_mass      = traits_->getPeakMz(peak_index);
 				
-				if (peak_index +1 <   nr_peaks) region_.add(peak_index+1);
-				if (peak_index +2 < nr_peaks  ) region_.add(peak_index+2);
-				if (peak_index +3  < nr_peaks ) region_.add(peak_index+3);
-									
+				unsigned int nr_peaks = traits_->getNumberOfPeaks();
+				//we added the first peak (hopefully the monoisotopic one), now
+				// we want to walk for about 10 Thompson (or Dalton or whatever)
+				// into positive  (increasing) m/z direction
+				
+				while (mass_distance < 10 && peak_index < nr_peaks)
+				{
+					++peak_index;
+					region_.add(peak_index);
+					std::cout << "Adding peak " << peak_index << std::endl;
+					
+					mass_distance = (traits_->getPeakMz(peak_index) - miso_mass);
+					std::cout << "Current mass distance : " << mass_distance << std::endl;
+				} 
+				std::cout << "This scan is done." << std::endl;
+								
 	}	// for (std::list...)
 			
 	 ++hash_iter;
 	
+	 std::cout << "Extension done. Size of region: " << region_.size() << std::endl;
 	return region_;
 }
 
 } // end of namespace OpenMS
+
