@@ -152,17 +152,17 @@ namespace OpenMS
 
       m = l-1;
       n = 0;
-      for (i = middle; i<length; ++i)
+      for (i = middle; i<(length-middle); ++i)
       {
         if ((i%l)==(middle+1))
         {
           if (i==k)
           {
-            calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,false);
+					 calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,false);
           }
           else
           {
-            calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,true);
+						calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,true);
           }
           m=0;
         }
@@ -170,22 +170,32 @@ namespace OpenMS
         {
           if (i>k)
           {
-            calcHDilatation_<InputPeakIterator>(first,last,l,h,false);
+						calcHDilatation_<InputPeakIterator>(first,last,l,h,false); 
           }
           else
           {
-            calcHDilatation_<InputPeakIterator>((first-middle),(first+middle),l,h,true);
+						calcHDilatation_<InputPeakIterator>((first-middle),(first+middle),l,h,true);
           }
           n=0;
         }
 
         it->getIntensity() = std::max(g[m],h[n]);
-        it->getPos() = first->getPos();
+        it->getPos() = first->getPos();	
         ++it;
         ++first;
         ++m;
         ++n;
       }
+      
+			double last_int = (it-1)->getIntensity();
+			for (i=0; i<middle; ++i)
+      {
+        it->getIntensity() = last_int;
+        it->getPos() = first->getPos();
+        ++it;
+        ++first;
+      }
+
       delete [] g;
       delete [] h;
     }
@@ -229,7 +239,7 @@ namespace OpenMS
 
       m = l-1;
       n = 0;
-      for (i=middle; i<length; ++i)
+      for (i=middle; i<(length-middle); ++i)
       {
         if ((i%l)==(middle+1))
         {
@@ -257,11 +267,19 @@ namespace OpenMS
         }
 
         it->getIntensity() = std::min(g[m],h[n]);
-        it->getPosition() = first->getPos();
+        it->getPosition() = first->getPos();		
         ++it;
         ++first;
         ++m;
         ++n;
+      }  
+
+      for (i=0; i<middle; ++i)
+      {
+        it->getIntensity() = 0;
+        it->getPos() = first->getPos();
+        ++it;
+        ++first;
       }
 
       delete [] g;
