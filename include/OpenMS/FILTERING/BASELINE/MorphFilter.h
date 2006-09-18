@@ -158,7 +158,7 @@ namespace OpenMS
         {
           if (i==k)
           {
-					 calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,false);
+				    calcGDilatation_<InputPeakIterator>((first+middle),last,l,g,false);
           }
           else
           {
@@ -187,7 +187,7 @@ namespace OpenMS
         ++n;
       }
       
-			double last_int = (it-1)->getIntensity();
+			double last_int = (first-1)->getIntensity();
 			for (i=0; i<middle; ++i)
       {
         it->getIntensity() = last_int;
