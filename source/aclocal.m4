@@ -2709,7 +2709,7 @@ AC_DEFUN(CF_LIBSVM, [
 	dnl
 		AC_MSG_CHECKING(for LIBSVM object file)
 
-   	CF_FIND_LIB(LIBSVM_DIR2, svm.o, ${LIBSVM_LIBPATH})
+   	CF_FIND_LIB(LIBSVM_DIR2, svm, ${LIBSVM_LIBPATH})
 		if test "${LIBSVM_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()

@@ -19999,8 +19999,8 @@ echo "${ECHO_T}(${FFTW_LIB_L})" >&6
 			if test "${FFTW_LIB_F}" = "" -a "${FFTW_LIB_D}" = "" -a "${FFTW_LIB_L}" = "" ; then
 				echo "$as_me:$LINENO: result: Please install it in a standard location or specify the path" >&5
 echo "${ECHO_T}Please install it in a standard location or specify the path" >&6
-				echo "$as_me:$LINENO: result: with --with-fftw-lib=DIR on the command line." >&5
-echo "${ECHO_T}with --with-fftw-lib=DIR on the command line." >&6
+				echo "$as_me:$LINENO: result: with --with-fftw-libs=DIR on the command line." >&5
+echo "${ECHO_T}with --with-fftw-libs=DIR on the command line." >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -20635,7 +20635,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in ${LIBSVM_LIBPATH} /usr/lib /opt/lib ; do
-			for j in $i/svm.o.* ; do
+			for j in $i/svm.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -20645,7 +20645,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/svm.o.* ; do
+			for j in $i/svm.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -20655,7 +20655,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 
 	if test "${_LIBS}" = "" ; then
 		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/svm.o.* ; do
+			for j in $i/svm.* ; do
 				if test -f "$j" -a "${_LIBS}" = ""; then
 					_LIBS="$i"
 				fi
@@ -20667,10 +20667,10 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 		if test "${_LIBS}" = "" -a "${LIBSVM_LIBPATH}" != ""; then
 			for i in ${LIBSVM_LIBPATH} /dev/null; do
 				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "svm.o*" -print 2>/dev/null`
+					_TMP=`${FIND} $i -name "svm*" -print 2>/dev/null`
 					for j in ${_TMP} ; do
 						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+							_LIBS=`echo $j|${SED} "s/\/svm.*/\//"`
 						fi
 					done
 				fi
@@ -20678,19 +20678,19 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "svm.o*" -print 2>/dev/null`
+			_TMP=`${FIND} /opt -name "svm*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/svm.*/\//"`
 				fi
 			done
 		fi
 
 		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "svm.o*" -print 2>/dev/null`
+			_TMP=`${FIND} /usr -name "svm*" -print 2>/dev/null`
 			for j in ${_TMP} ; do
 				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/svm.o.*/\//"`
+					_LIBS=`echo $j|${SED} "s/\/svm.*/\//"`
 				fi
 			done
 		fi
@@ -20706,8 +20706,8 @@ echo "${ECHO_T}(not found!)" >&6
 echo "${ECHO_T}" >&6
 			echo "$as_me:$LINENO: result: The libSVM object file could not be found. Please specify the path to <svm.o>" >&5
 echo "${ECHO_T}The libSVM object file could not be found. Please specify the path to <svm.o>" >&6
-		  echo "$as_me:$LINENO: result: by passing the option --with-libsvm-lib=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-libsvm-lib=DIR to configure." >&6
+		  echo "$as_me:$LINENO: result: by passing the option --with-libsvm-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-libsvm-libs=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 		  echo "$as_me:$LINENO: result: LIBSVM is needed for retention time predition." >&5
@@ -21200,8 +21200,8 @@ echo "${ECHO_T}(not found!)" >&6
 echo "${ECHO_T}" >&6
 			echo "$as_me:$LINENO: result: The XERCES object file could not be found. Please specify the path to <libxerces-c.so>" >&5
 echo "${ECHO_T}The XERCES object file could not be found. Please specify the path to <libxerces-c.so>" >&6
-		  echo "$as_me:$LINENO: result: by passing the option --with-xerces-lib=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-xerces-lib=DIR to configure." >&6
+		  echo "$as_me:$LINENO: result: by passing the option --with-xerces-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-xerces-libs=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
