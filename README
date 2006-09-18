@@ -1,5 +1,4 @@
 
-
 ------------------------------
 --     OpenMS library       --
 ------------------------------
@@ -7,10 +6,13 @@
 
 This directory contains the sources of OpenMS.
 
-In order to build OpenMS, execute the following commands:
+In order to build OpenMS, execute the following commands in the 'source' directory:
 1) autoconf
 2) ./configure (see "./configure --help" for options)
 3) make
+
+More detailled installation instructions can be found in the documentation (doc/index.html).
+There you find the the installation instructions for the contrib package as well!
 
 NOTE:
 OpenMS depends on the following libraries: CGAL, GSL, Boost, netCDF, ANDI/MS, and QT.

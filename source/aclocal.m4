@@ -2536,7 +2536,7 @@ AC_DEFUN(CF_CHECK_FFTW_SUPPORT, [
 	
 			if test "${FFTW_LIB_F}" = "" -a "${FFTW_LIB_D}" = "" -a "${FFTW_LIB_L}" = "" ; then
 				AC_MSG_RESULT(Please install it in a standard location or specify the path)
-				AC_MSG_RESULT(with --with-fftw-lib=DIR on the command line.)
+				AC_MSG_RESULT(with --with-fftw-libs=DIR on the command line.)
 				CF_ERROR
 			fi
 	
@@ -2714,7 +2714,7 @@ AC_DEFUN(CF_LIBSVM, [
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()
 			AC_MSG_RESULT([The libSVM object file could not be found. Please specify the path to <svm.o>])
-		  AC_MSG_RESULT([by passing the option --with-libsvm-lib=DIR to configure.])
+		  AC_MSG_RESULT([by passing the option --with-libsvm-libs=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
 		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
@@ -2819,7 +2819,7 @@ AC_DEFUN(CF_XERCES, [
       AC_MSG_RESULT((not found!))
 		  AC_MSG_RESULT()
 			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.so>])
-		  AC_MSG_RESULT([by passing the option --with-xerces-lib=DIR to configure.])
+		  AC_MSG_RESULT([by passing the option --with-xerces-libs=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
 		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
