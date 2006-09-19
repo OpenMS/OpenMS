@@ -169,7 +169,7 @@ namespace OpenMS
 		{
 			throw UnableToFit(__FILE__, __LINE__,__PRETTY_FUNCTION__,
 										"UnableToFit-BadQuality","Zero quality after fitting. Skipping this feature");			
-			delete final;
+			delete final;   
 		}
 
 		// find peak with highest predicted intensity to use as cutoff

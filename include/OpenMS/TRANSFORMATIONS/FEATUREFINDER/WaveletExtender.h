@@ -118,6 +118,8 @@ protected:
 	
 	CoordinateType min_mass_;
 	
+	void copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >& peaks);
+	
 }; // end of class WaveletExtender
 
 } // end of namespace OpenMS

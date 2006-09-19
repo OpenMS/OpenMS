@@ -75,4 +75,4 @@ include ../../common.mak
 
 # Uncomment this line to get the FeaFi debug output
 #ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER -DWAV_SOURCES
-ADD_CXXFLAGS=-DWAV_SOURCES 
+#ADD_CXXFLAGS=-DWAV_SOURCES 

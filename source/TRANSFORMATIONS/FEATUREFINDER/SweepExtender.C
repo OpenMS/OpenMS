@@ -178,7 +178,7 @@ void SweepExtender::sweep_()
             {	
 				#ifdef DEBUG_FEATUREFINDER
                 std::cout << "Last scan was empty => creating new cluster." << std::endl;
-				std::cout << "Creating new cluster at m/z: " << cur_mz << std::endl;
+				std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
 				#endif
 				
 			    mz_in_hash = curr_mz; // update current hash key

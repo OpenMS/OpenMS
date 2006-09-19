@@ -51,18 +51,21 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
 		scan_index_ = traits_->getScanIndex();
 		MSExperiment<DRawDataPoint<2>  > exp;
+		//copyData_(exp,peaks_);
+		
 		exp.set2DData(peaks_);
 		
 		std::cout << "Copying of data finished..." << std::endl;
 		
-		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder;
-		finder.setData(exp);
+		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder(exp);
+		
+		//finder.setData(exp);
 				
 		// setting params
 		finder.setWtCutOff (0);			// threshold for intensities in wavelet transform
    		finder.setScoreCutOff (0);		// scores are ignored
    		finder.setRTVotesCutOff (3); 	// we need isotopic patterns in at least six consecutive scans
-		
+				
 		std::cout << "Starting detection: " << std::endl;
 		
 		hash_ = finder.findFeatures(7, (exp.size()-1), true);
@@ -113,13 +116,13 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				PeakIterator scan_end   = scan_index_[current_scan+1];				
 					
 				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
-				UnsignedInt peak_index = (insert_iter - traits_->getAllPeaks().begin());		
+				int peak_index = (insert_iter - traits_->getAllPeaks().begin());		
 	
 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
 				
-				if ( (peak_index-1 ) >= 0) region_.add(peak_index-1);
+				if ( (peak_index-1 ) >= 0  && (traits_->getPeakMz(peak_index-1) - traits_->getPeakMz(peak_index)) < 1.5  ) region_.add(peak_index-1);
 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-1) << std::endl;
-				if ( (peak_index-2 ) >= 0) region_.add(peak_index-2);
+				if ( (peak_index-2 ) >= 0  && (traits_->getPeakMz(peak_index-2) - traits_->getPeakMz(peak_index)) < 1.5  ) region_.add(peak_index-2);
 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-2) << std::endl;
 						
 				region_.add(peak_index);
@@ -127,18 +130,18 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				CoordinateType mass_distance = 0;
 				CoordinateType miso_mass      = traits_->getPeakMz(peak_index);
 				
-				unsigned int nr_peaks = traits_->getNumberOfPeaks();
+				int nr_peaks = traits_->getNumberOfPeaks();
 				//we added the first peak (hopefully the monoisotopic one), now
 				// we want to walk for about 10 Thompson (or Dalton or whatever)
 				// into positive  (increasing) m/z direction
 				
-				while (mass_distance < 10 && peak_index < nr_peaks)
+				while (mass_distance < 10 && peak_index < (nr_peaks-2))
 				{
 					++peak_index;
 					region_.add(peak_index);
 					std::cout << "Adding peak " << peak_index << std::endl;
 					
-					mass_distance = (traits_->getPeakMz(peak_index) - miso_mass);
+					mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
 					std::cout << "Current mass distance : " << mass_distance << std::endl;
 				} 
 				std::cout << "This scan is done." << std::endl;
@@ -148,7 +151,39 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	 ++hash_iter;
 	
 	 std::cout << "Extension done. Size of region: " << region_.size() << std::endl;
+	 
+	region_.sort();
+	 
 	return region_;
+}
+
+void WaveletExtender::copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >& peaks)
+{
+	CoordinateType current_rt = peaks[0].getPosition()[RT];
+	MSExperiment<DRawDataPoint<2> >::SpectrumType spec;
+	spec.setRetentionTime(current_rt);
+	
+	for (unsigned int i=0;i<peaks.size(); ++i)
+	{
+		if (current_rt != peaks[i].getPosition()[RT])
+		{
+			// new scan has started
+			exp.push_back(spec);
+			std::cout << "Size: " << spec.size() << std::endl;
+			spec.clear();
+			current_rt = peaks[i].getPosition()[RT];
+			std::cout << "Changing rt to : " << current_rt << std::endl;
+			
+			spec.setRetentionTime(current_rt);
+		}
+		DRawDataPoint<2> apoint;
+		apoint.getIntensity()  = peaks[i].getIntensity();
+		apoint.getPosition()  = peaks[i].getPosition();
+		spec.push_back(apoint);
+	
+	}
+	std::cout << "FeaFi : Copied " << exp.size() << " scans." << std::endl;	
+
 }
 
 } // end of namespace OpenMS
