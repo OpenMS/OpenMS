@@ -224,9 +224,29 @@ void SweepExtender::sweep_()
     
 		current_charge = 0; // reset charge
 	} // end for (...)
-		
+	
+	typedef std::map<CoordinateType,IsotopeCluster>::iterator HashIterator;
+	std::vector<HashIterator> toDelete;
+	
+	std::cout << iso_map_.size() << " isotopic clusters were found." << std::endl;
+	
+	// remove cluster having less than 6 peaks or less than 3 scans
+	for (HashIterator iter = iso_map_.begin(); iter != iso_map_.end(); ++iter)
+	{
+		if (iter->second.scans_.size() < 3 ||  iter->second.peaks_.size() < 6)
+		{
+			toDelete.push_back(iter);
+		}
+	
+	}
+	
+	for (unsigned int i=0; i<toDelete.size();++i)
+	{
+		iso_map_.erase(toDelete[i]);	
+	}
+	
 	curr_region_ = iso_map_.begin();
-	std::cout << iso_map_.size() << " isotopic clusters were found ! " << std::endl;
+	std::cout << iso_map_.size() << " clusters remained after filtering." << std::endl;
 		
 } // end of void sweep_()
 
