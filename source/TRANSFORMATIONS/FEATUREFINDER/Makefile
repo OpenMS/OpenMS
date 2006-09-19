@@ -27,7 +27,7 @@
 
 DIRECTORY=TRANSFORMATIONS/FEATUREFINDER
 
-#WAVELETS=true
+WAVELETS=true
 
 THISLIB=$(LIBNAME)
 
@@ -66,7 +66,6 @@ ifeq ($(GSL_SUPPORT),true)
 	ExtendedModelFitter.C\
 	LmaGaussModel.C\
 	LogNormalModel.C
-
 endif
 
 ADD_CPP_SOURCES = ${GSL_SOURCES} ${WAV_SOURCES}
@@ -76,4 +75,4 @@ include ../../common.mak
 
 # Uncomment this line to get the FeaFi debug output
 #ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER -DWAV_SOURCES
-#ADD_CXXFLAGS=-DWAV_SOURCES 
+ADD_CXXFLAGS=-DWAV_SOURCES 
