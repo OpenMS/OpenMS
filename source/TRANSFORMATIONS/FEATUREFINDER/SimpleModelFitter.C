@@ -55,6 +55,7 @@ namespace OpenMS
 	{
 		name_ = SimpleModelFitter::getName();
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
+		defaults_.setValue("feature_intensity_max",1);
 		defaults_.setValue("min_num_peaks:final",5);
 		defaults_.setValue("min_num_peaks:extended",10);
 		defaults_.setValue("intensity_cutoff_factor",0.05f);
@@ -269,13 +270,31 @@ namespace OpenMS
 				<< float(final->getModel(RT)->getParam().getValue("statistics:mean"))-rt_stat_.mean()
 				<< "\n";
 		#endif
-			
-		// calculate convex hull and peak sum of feature region
-		double peak_sum = 0.0;
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) {
-			peak_sum += traits_->getPeakIntensity(*it);
+		
+		int const intensity_choice = param_.getValue("feature_intensity_max");
+		double feature_intensity = 0.0;
+		
+		if (intensity_choice == 1)
+		{
+			// intensity of the feature is the sum of all included data points
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			{
+				feature_intensity += traits_->getPeakIntensity(*it);
+			}
 		}
-		f.setIntensity(peak_sum);
+		else
+		{
+			std::cout << "Max intensity is used ...." << std::endl;
+			// feature intensity is the maximum intensity of all peaks
+			double feature_intensity = 0;	
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			{
+				if (traits_->getPeakIntensity(*it) > feature_intensity)
+					feature_intensity = traits_->getPeakIntensity(*it);
+			}	
+		} 
+		
+		f.setIntensity(feature_intensity);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 		
 		std::cout << Date::now() << " Feature " << counter_  
@@ -283,7 +302,7 @@ namespace OpenMS
 							<< "," << f.getPosition()[MZ] << ") Qual.:"
 							<< max_quality << "\n";
 		
-		f.setIntensity(peak_sum);
+		f.setIntensity(feature_intensity);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 		
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
