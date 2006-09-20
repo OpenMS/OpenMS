@@ -73,7 +73,8 @@ namespace OpenMS
       typedef DBasePairFinder< D, Traits, MapT > Base;
 
       // The base knows it all...
-      typedef typename Base::TraitsType             TraitsType;
+      typedef typename Base::TraitsType             TraitsType; 
+		  typedef typename Base::QualityType            QualityType;
       typedef typename Base::PositionType           PositionType;
       typedef typename Base::FeatureType            FeatureType;
       typedef typename Base::FeatureMapType         FeatureMapType;
@@ -220,7 +221,9 @@ namespace OpenMS
 
       /** @name Data members
        */
-      //@{
+      //@{ 
+		  /// A parameter for similarity_().
+      QualityType diff_intercept_[2];
       // allowed distance from a feature neighbour
       PositionType max_pair_distance_;
       //@}
@@ -252,14 +255,14 @@ namespace OpenMS
       } // parseParam_
 
 
-      void findFeaturePairs()
+      void findFeaturePairs_()
       {
         parseParam_();
 
-        const PointMapType& reference_map = *(feature_map_[0]);
-        const PointMapType& transformed_map = *(feature_map_[1]);
+        const FeatureMapType& reference_map = *(feature_map_[0]);
+        const FeatureMapType& transformed_map = *(feature_map_[1]);
 
-#define V_findFeaturePairs_(bla) V_DelaunayPairFinder(bla)
+#define V_findFeaturePairs_(bla) V_DDelaunayPairFinder(bla)
 
         V_findFeaturePairs_("@@@ findFeaturePairs_()");
 
