@@ -251,23 +251,27 @@ namespace OpenMS
 
       } // parseParam_
 
-      /// The actual algorithm for finding feature pairs.
-      void findFeaturePairs_()
-      {
-        const FeatureMapType& reference_map = *(feature_map_[0]);
-        const FeatureMapType& transformed_map = *(feature_map_[1]);
 
-#define V_findFeaturePairs_(bla) V_DDelaunayPairFinder(bla)
+      void findFeaturePairs()
+      {
+        parseParam_();
+
+        const PointMapType& reference_map = *(feature_map_[0]);
+        const PointMapType& transformed_map = *(feature_map_[1]);
+
+#define V_findFeaturePairs_(bla) V_DelaunayPairFinder(bla)
 
         V_findFeaturePairs_("@@@ findFeaturePairs_()");
 
         Size n = reference_map.size();
 
         // Vector to fill the point set for triangulation
+        // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RT]) ~ deviation(diff_intercept_[MZ])
         std::vector< Point > positions_reference_map;
         for (Size i = 0; i < n; ++i)
         {
-          positions_reference_map.push_back(Point(reference_map[i].getPosition()[RT],reference_map[i].getPosition()[MZ],reference_map[i],i));
+          positions_reference_map.push_back(Point(reference_map[i].getPosition()[RT],
+                                                  reference_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
         }
 
         // compute the delaunay triangulation
@@ -286,9 +290,9 @@ namespace OpenMS
         {
           // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
           typename TraitsType::RealType rt_pos = transformed_map[fi1].getPosition()[RT];
-          typename TraitsType::RealType mz_pos = transformed_map[fi1].getPosition()[MZ];
+          typename TraitsType::RealType mz_pos = transformed_map[fi1].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]);
 
-          V_findFeaturePairs_("Search for two nearest neighbours of " << rt_pos << ' ' << mz_pos );
+          V_findFeaturePairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
           transformation_[RT]->apply(rt_pos);
           transformation_[MZ]->apply(mz_pos);
           Point transformed_pos(rt_pos,mz_pos);
@@ -302,6 +306,7 @@ namespace OpenMS
           for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
           {
             V_findFeaturePairs_((*it)->point());
+            V_findFeaturePairs_(*((*it)->point().feature));
           }
 
           UnsignedInt number_of_neighbours = resulting_range.size();
@@ -310,8 +315,11 @@ namespace OpenMS
             // if the first neighbour is close enough to act_pos and the second_nearest neighbour lies far enough from the nearest neighbour
             Point nearest = resulting_range[0]->point();
             Point second_nearest = resulting_range[1]->point();
-            if (((fabs(transformed_pos.hx() - nearest.hx())  < max_pair_distance_[RT]) &&  (fabs(transformed_pos.hy() - nearest.hy())  < max_pair_distance_[MZ]))
-                && ((fabs(second_nearest.hx() - nearest.hx())  < max_pair_distance_[RT]) ||  (fabs(second_nearest.hy() - nearest.hy())  < max_pair_distance_[MZ])))
+            // if the first neighbour is close enough to act_pos and the second_nearest neighbour lies far enough from the nearest neighbour
+            if (((fabs(transformed_map[fi1].getPosition()[RT] - nearest.feature->getPosition()[RT])  < max_pair_distance_[RT])
+                 &&  (fabs(transformed_map[fi1].getPosition()[MZ] - nearest.feature->getPosition()[MZ])  < max_pair_distance_[MZ]))
+                && ((fabs(second_nearest.feature->getPosition()[RT] - nearest.feature->getPosition()[RT])  < max_pair_distance_[RT])
+                    ||  (fabs(second_nearest.feature->getPosition()[MZ] - nearest.feature->getPosition()[MZ])  < max_pair_distance_[MZ])))
             {
               all_feature_pairs.push_back(FeaturePairType(*(nearest.feature),transformed_map[fi1]));
 
@@ -343,12 +351,10 @@ namespace OpenMS
             feature_pairs_->push_back(all_feature_pairs[pair_key]);
           }
         }
-        // this->dumpFeaturePairs();
 
 #undef V_findFeaturePairs_
 
       } // findFeaturePairs_
-
   }
   ; // DDelaunayPairFinder
 
