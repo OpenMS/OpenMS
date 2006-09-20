@@ -36,14 +36,14 @@ SweepExtender::SweepExtender()
 	
 	// lower and upper bounds for distances between isotopic peaks (defaults)
 	// charge 1
-	defaults_.setValue("charge1_ub",1.3f);
-	defaults_.setValue("charge1_lb",0.8f);
+	defaults_.setValue("charge1_ub",1.1f);
+	defaults_.setValue("charge1_lb",0.9f);
 	// charge 2
-	defaults_.setValue("charge2_ub",0.7f);
-	defaults_.setValue("charge2_lb",0.45f);
+	defaults_.setValue("charge2_ub",0.60f);
+	defaults_.setValue("charge2_lb",0.4f);
 	// charge 3
 	defaults_.setValue("charge3_ub",0.4f);
-	defaults_.setValue("charge3_lb",0.1f);
+	defaults_.setValue("charge3_lb",0.2f);
 	
 	// tolerance in m/z for an monoisotopic peak in the previous scan
 	defaults_.setValue("tolerance_mz",1.2f);
@@ -123,8 +123,8 @@ void SweepExtender::sweep_()
             iso_last_scan = iso_curr_scan;
             iso_curr_scan.clear();
 			last_rt = current_rt;
-			std::cout << "Next scan with rt: " << current_rt << std::endl;
-			std::cout << "---------------------------------------------------------------------------" << std::endl;
+// 			std::cout << "Next scan with rt: " << current_rt << std::endl;
+// 			std::cout << "---------------------------------------------------------------------------" << std::endl;
         }
         // store the m/z of the current peak
         CoordinateType curr_mz         = traits_->getPeakMz(curr_peak);
@@ -136,8 +136,8 @@ void SweepExtender::sweep_()
 		
         if (current_charge > 0) // charger = 0 => no isotope
         {
-      		std::cout << "Isotopic pattern found ! " << std::endl;
-			std::cout << "We are at: " << traits_->getPeakRt(curr_peak) << " " << curr_mz << std::endl;
+//       		std::cout << "Isotopic pattern found ! " << std::endl;
+// 			std::cout << "We are at: " << traits_->getPeakRt(curr_peak) << " " << curr_mz << std::endl;
 
             if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
             {
