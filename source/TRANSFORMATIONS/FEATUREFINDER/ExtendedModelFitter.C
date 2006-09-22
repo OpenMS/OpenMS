@@ -82,6 +82,7 @@ namespace OpenMS
 		defaults_.setValue("min_num_peaks:final",5);
 		defaults_.setValue("min_num_peaks:extended",10);
 		defaults_.setValue("intensity_cutoff_factor",0.05f);
+		defaults_.setValue("feature_intensity_sum",1);
 		defaults_.setValue("rt:interpolation_step",0.2f);
 		defaults_.setValue("rt:max_iteration",500);
 		defaults_.setValue("rt:deltaAbsError",1e-4);
@@ -103,6 +104,7 @@ namespace OpenMS
 		defaults_.setValue("isotope_model:isotope:trim_right_cutoff",0.001f);
 		defaults_.setValue("isotope_model:isotope:maximum",1000000);
 		defaults_.setValue("isotope_model:isotope:distance",1.000495f);
+		
 
 		param_ = defaults_;
 		quality_ = Factory<BaseQuality>::create(param_.getValue("quality:type"));
@@ -319,29 +321,36 @@ namespace OpenMS
 							<< "\n";
 #endif
 
-		// calculate convex hull and peak sum of feature region
-		double peak_sum = 0.0;
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) {
-			peak_sum += traits_->getPeakIntensity(*it);
+		int const intensity_choice = param_.getValue("feature_intensity_sum");
+		double feature_intensity = 0.0;
+		
+		if (intensity_choice == 1)
+		{
+			// intensity of the feature is the sum of all included data points
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			{
+				feature_intensity += traits_->getPeakIntensity(*it);
+			}
 		}
-		f.setIntensity(peak_sum);
+		else
+		{
+			// feature intensity is the maximum intensity of all peaks
+			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+			{
+				if (traits_->getPeakIntensity(*it) > feature_intensity)
+					feature_intensity = traits_->getPeakIntensity(*it);
+			}	
+		} 
+		
+		f.setIntensity(feature_intensity);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
-
+		
 #ifdef DEBUG_FEATUREFINDER
 		std::cout << Date::now() << " Feature " << counter_
 							<< ": (" << f.getPosition()[RT]
 							<< "," << f.getPosition()[MZ] << ") Qual.:"
 							<< max_quality << "\n";
 #endif
-
-		std::cout << " Feature " << counter_
-							<< ": (" << f.getPosition()[RT]
-							<< "," << f.getPosition()[MZ] << ") Qual.:"
-							<< max_quality << "\n";
-
-
-		f.setIntensity(peak_sum);
-		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
 		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );

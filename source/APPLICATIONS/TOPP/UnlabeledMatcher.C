@@ -52,23 +52,23 @@ typedef DGrid<2> GridType;
 //-------------------------------------------------------------
 
 /**
-	@page UnlabeledMatcher UnlabeledMatcher
-	
-	@brief For each feature in a given map, this
-	module tries to find its partner in the second map.
-	
-	This module is the first step in the map matching
-	workflow. It identifies pairs of features in two
-	feature map. Currently, two different approaches
-	can be used: if there is only a slight shift
-	between the feature positions in the two maps,
-	a simple pairwise matching procedure can be used.
-	For more complex situations, an algorithm based
-	on geometric hashing can be used to estimate
-	a transform and to compute feature pairs based
-	on this transform.	
-		
-	@ingroup TOPP
+  @page UnlabeledMatcher UnlabeledMatcher
+  
+  @brief For each feature in a given map, this
+  module tries to find its partner in the second map.
+  
+  This module is the first step in the map matching
+  workflow. It identifies pairs of features in two
+  feature map. Currently, two different approaches
+  can be used: if there is only a slight shift
+  between the feature positions in the two maps,
+  a simple pairwise matching procedure can be used.
+  For more complex situations, an algorithm based
+  on geometric hashing can be used to estimate
+  a transform and to compute feature pairs based
+  on this transform.  
+    
+  @ingroup TOPP
 */
 
 // We do not want this class to show up in the docu, thus:
@@ -77,138 +77,134 @@ typedef DGrid<2> GridType;
 class TOPPUnlabeledMatcher
       : public TOPPBase
 {
- public:
-  TOPPUnlabeledMatcher()
-		: TOPPBase("UnlabeledMatcher")
-  {}
+  public:
+    TOPPUnlabeledMatcher()
+        : TOPPBase("UnlabeledMatcher")
+    {}
 
- protected:
-  void printToolUsage_()
-  {
-    cerr << endl
-				 << tool_name_ << " -- match common two-dimensional features of two LC/MS data sets\n"
-			"\n"
-			"Usage:\n"
-			"  " << tool_name_ << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
-			"Options are:\n"
-			"  -in1 <file>   input feature file 1\n"
-			"  -in2 <file>   input feature file 2\n"
-			"  -pairs <file> output file: XML formatted list of feature pairs\n"
-			"  -grid <file>  output file: grid covering the feature map\n"
-				 << endl;
-  }
-
-  void printToolHelpOpt_()
-  {
-    cerr << "\n"
-				 << tool_name_ << "\n"
-			"\n"
-			"INI options:\n"
-			"  in1    input feature file 1\n"
-			"  in2 	  input feature file 2\n"
-			"  pairs  output file: XML formatted list of feature pairs\n"
-			"  grid   output file: grid covering the feature map\n"
-			"\n"
-			"INI File example section:\n"
-			"  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>\n"
-			"  <ITEM name=\"in2\" value=\"input_2.mzData\" type=\"string\"/>\n"
-			"  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
-			"  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
-			"Note: many more parameters can be set in the INI File.\n"
-			"See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
-			;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    options_["-in1"] = "in1";
-    options_["-in2"] = "in2";
-    options_["-grid"] = "grid";
-    options_["-pairs"] = "pairs";
-  }
-
-  ExitCodes main_(int , char**)
-  {
-
-		writeDebug_("--------------------------------------------------",1);
-		writeDebug_("Running UnlabeledMatcher.",1);
-
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-
-		String param_path = tool_name_ + ':' + String(instance_number_) + ':';
-		Param param = getParamCopy_(param_path,true);
-
-    // input files to be read
-    String inputfile[2];
-
-    /// determine names of input files
-    for ( Size index = 0; index < 2; ++index )
+  protected:
+    void printToolUsage_()
     {
-      String inputfile_key = String("in") + String('1' + index);
-      inputfile[index] = param.getValue(inputfile_key);
-      writeDebug_(String("Input file: ") + String(index) + ' ' + inputfile_key, 1);
+      cerr << endl
+      << tool_name_ << " -- match common two-dimensional features of two LC/MS data sets\n"
+      "\n"
+      "Usage:\n"
+      "  " << tool_name_ << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
+      "Options are:\n"
+      "  -in1 <file>   input feature file 1\n"
+      "  -in2 <file>   input feature file 2\n"
+      "  -pairs <file> output file: XML formatted list of feature pairs\n"
+      "  -grid <file>  output file: grid covering the feature map\n"
+      << endl;
     }
 
-    // determine name ouf grid file
-    String gridfilename = param.getValue("grid");
-    String pairsfile = param.getValue("pairs");
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-
-    // read input files
-    FeatureMapFile feature_file[2];
-    FeatureMap feature_map[2];
-    for ( Size index = 0; index < 2; ++index )
+    void printToolHelpOpt_()
     {
-      writeLog_(String("Reading input file ") + String(index+1) + String(", `") + inputfile[index]+'\'');
-      feature_file[index].load(inputfile[index],feature_map[index]);
+      cerr << "\n"
+      << tool_name_ << "\n"
+      "\n"
+      "INI options:\n"
+      "  in1    input feature file 1\n"
+      "  in2    input feature file 2\n"
+      "  pairs  output file: XML formatted list of feature pairs\n"
+      "  grid   output file: grid covering the feature map\n"
+      "\n"
+      "INI File example section:\n"
+      "  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>\n"
+      "  <ITEM name=\"in2\" value=\"input_2.mzData\" type=\"string\"/>\n"
+      "  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
+      "  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
+      "Note: many more parameters can be set in the INI File.\n"
+      "See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
+      ;
     }
 
-    //-------------------------------------------------------------
+    void setOptionsAndFlags_()
+    {
+      options_["-in1"] = "in1";
+      options_["-in2"] = "in2";
+      options_["-grid"] = "grid";
+      options_["-pairs"] = "pairs";
+    }
+
+    ExitCodes main_(int , char**)
+    {
+
+      writeDebug_("--------------------------------------------------",1);
+      writeDebug_("Running UnlabeledMatcher.",1);
+
+      //-------------------------------------------------------------
+      // parameter handling
+      //-------------------------------------------------------------
+
+      String param_path = tool_name_ + ':' + String(instance_number_) + ':';
+
+      String in = getParamAsString_("in1");
+      std::cout << in << std::endl;
+
+      Param param = getParamCopy_(param_path,true);
+      std::cout << param << std::endl;
+      // determine name ouf grid file
+      String gridfilename = param.getValue("grid");
+      String pairsfile = param.getValue("pairs");
+
+      // input files to be read
+      String inputfile[2];
+      // read input files
+      FeatureMapFile feature_file[2];
+      FeatureMap feature_map[2];
+
+      /// determine names of input files
+      for ( Size index = 0; index < 2; ++index )
+      {
+        String inputfile_key = String("in") + String(1 + index);
+        inputfile[index] = getParamAsString_(inputfile_key);
+        writeLog_(String("Reading input file ") + String(index+1) + String(", `") + inputfile[index]+'\'');
+        feature_file[index].load(inputfile[index],feature_map[index]);
+      }
+
+      //-------------------------------------------------------------
 
 
-		// the resulting feature pairs go here
-		FeaturePairVector feature_pair_vector;
+      // the resulting feature pairs go here
+      FeaturePairVector feature_pair_vector;
 
-		DGeomHashPairwiseMapMatcher<2> geomhash_feature_matcher;
-		
-		geomhash_feature_matcher.setParam(param);
-		
-		for ( Size index = 0; index < 2; ++index )
-		{
-			geomhash_feature_matcher.setFeatureMap(index,feature_map[index]);
-		}
-		
-		geomhash_feature_matcher.setFeaturePairs(feature_pair_vector);
-		
-		writeDebug_("Running algorithm.",1);
+      DGeomHashPairwiseMapMatcher<2> geomhash_feature_matcher;
 
-		geomhash_feature_matcher.run();
-				
-		writeDebug_("Running algorithm...done.",1);
+      geomhash_feature_matcher.setParam(param);
 
-		writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
-		writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
-	
-		FeaturePairVectorFile feature_pair_vector_file;
-		feature_pair_vector_file.store(pairsfile,geomhash_feature_matcher.getFeaturePairs());
-	
-		writeDebug_(String("Writing grid file `") + gridfilename + String("'."),1);
-	
-		DGridFile grid_file;
-		grid_file.store(gridfilename,geomhash_feature_matcher.getGrid());
+      for ( Size index = 0; index < 2; ++index )
+      {
+        geomhash_feature_matcher.setFeatureMap(index,feature_map[index]);
+      }
 
-		writeDebug_("Running UnlabeledMatcher...done.",1);
- 
-		return OK;
-	
-	} // main_()
+      geomhash_feature_matcher.setFeaturePairs(feature_pair_vector);
 
-}; // TOPPUnlabeledMatcher
+      writeDebug_("Running algorithm.",1);
+
+      geomhash_feature_matcher.run();
+
+      writeDebug_("Running algorithm...done.",1);
+
+      writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
+      writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
+
+      FeaturePairVectorFile feature_pair_vector_file;
+      feature_pair_vector_file.store(pairsfile,geomhash_feature_matcher.getFeaturePairs());
+
+      writeDebug_(String("Writing grid file `") + gridfilename + String("'."),1);
+
+      DGridFile grid_file;
+      grid_file.store(gridfilename,geomhash_feature_matcher.getGrid());
+
+      writeDebug_("Running UnlabeledMatcher...done.",1);
+
+      return OK;
+
+    } // main_()
+
+}
+; // TOPPUnlabeledMatcher
 
 
 int main( int argc, char ** argv )

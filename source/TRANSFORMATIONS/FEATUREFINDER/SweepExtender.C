@@ -178,7 +178,7 @@ void SweepExtender::sweep_()
             {	
 				#ifdef DEBUG_FEATUREFINDER
                 std::cout << "Last scan was empty => creating new cluster." << std::endl;
-				std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
+				std::cout << "Creating new cluster at m/z: " << cur_mz << std::endl;
 				#endif
 				
 			    mz_in_hash = curr_mz; // update current hash key
@@ -214,11 +214,10 @@ void SweepExtender::sweep_()
 			           &&  curr_peak < (nr_peaks-1) )
             {
           		iso_map_[mz_in_hash].peaks_.push_back(curr_peak);				// save peak in cluster
-							++curr_peak;			
-               	
-							dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
+				++curr_peak;			
+            	dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
 			 
-						} // end while(...)
+			} // end while(...)
 				
         } // end of if (charge > 0)
     

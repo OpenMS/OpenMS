@@ -144,6 +144,8 @@ namespace OpenMS
 		 by tolerance_stdev_bounding_box times the standard deviation of the data</td></tr>
 		 <tr><td></td><td></td><td>intensity_cutoff_factor</td>
 		 <td>cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model</td></tr>
+		 <tr><td></td><td></td><td>feature_intensity_sum</td>
+		 <td>estimate abundance of the compound as the sum of all contained peaks</td></tr>
 		 <tr><td colspan="2">rt</td><td>interpolation_step</td>
 		 <td>step size in seconds used to interpolate model for rt</td></tr>
 		 <tr><td rowspan="2">mz</td><td></td><td>interpolation_step</td>

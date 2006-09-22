@@ -135,7 +135,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				// we want to walk for about 10 Thompson (or Dalton or whatever)
 				// into positive  (increasing) m/z direction
 				
-				while (mass_distance < 10 && peak_index < (nr_peaks-2))
+				while (mass_distance < 5 && peak_index < (nr_peaks-2))
 				{
 					++peak_index;
 					region_.add(peak_index);

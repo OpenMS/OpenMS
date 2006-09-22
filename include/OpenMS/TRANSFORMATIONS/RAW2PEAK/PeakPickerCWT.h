@@ -337,7 +337,7 @@ namespace OpenMS
           wavelet_spacing = (double)dv;
 
         wt_.init(scale_, wavelet_spacing);
-
+			
 #ifdef DEBUG_PEAK_PICKING
 
         std::cout << "****************** PICK ******************" << std::endl;
@@ -612,7 +612,7 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-          //std::cout << "Pick Scan " << input_it->getRetentionTime()<< std::endl;
+          std::cout << "Pick Scan " << input_it->getRetentionTime()<< std::endl;
 
           // pick the peaks in scan i
           pick(*input_it,spectrum,input_it->getMSLevel());
