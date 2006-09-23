@@ -768,7 +768,7 @@ namespace OpenMS
           /** @brief Iterator defining a raw data peak.
              
              The left and right iterators delimit a range in the raw data which represents a raw peak.
-             They define the raw peak endpoints. Max points to the raw data point in [left, right] with the heighest intensity, the 
+             They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the 
              maximum of the raw peak. 
              
              Left_behind_centroid points to the raw data point next to the estimates centroid position.
@@ -796,7 +796,7 @@ namespace OpenMS
           
           If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
       	given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
-      	are relvant. If no peak is detected the method return false.
+      	are relevant. If no peak is detected the method return false.
       	For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
       */
       bool getMaxPosition_(RawDataPointIterator first,

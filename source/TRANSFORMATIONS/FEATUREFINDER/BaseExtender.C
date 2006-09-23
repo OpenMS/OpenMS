@@ -30,6 +30,7 @@
 // all from BaseExtender derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PPExtender.h>
 
 #ifdef WAV_SOURCES
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
@@ -41,6 +42,7 @@ namespace OpenMS
 	{
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
 		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
+		Factory<BaseExtender>::registerProduct(PPExtender::getName(), &PPExtender::create);
 		
 		#ifdef WAV_SOURCES
 		Factory<BaseExtender>::registerProduct(WaveletExtender::getName(), &WaveletExtender::create);

@@ -111,8 +111,7 @@ class Param
         (const std::string& prefix);
 
     ///Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
-    void setDefaults(const Param& para, const std::string& prefix="",
-                     bool showMessage=true);
+    void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=true);
 
     /**
     	@brief Returns a new Param object containing all entries that start with @p prefix.

@@ -123,8 +123,10 @@ void SweepExtender::sweep_()
             iso_last_scan = iso_curr_scan;
             iso_curr_scan.clear();
 			last_rt = current_rt;
-// 			std::cout << "Next scan with rt: " << current_rt << std::endl;
-// 			std::cout << "---------------------------------------------------------------------------" << std::endl;
+			#ifdef DEBUG_FEATUREFINDER
+			std::cout << "Next scan with rt: " << current_rt << std::endl;
+			std::cout << "---------------------------------------------------------------------------" << std::endl;
+			#endif
         }
         // store the m/z of the current peak
         CoordinateType curr_mz         = traits_->getPeakMz(curr_peak);
@@ -136,8 +138,11 @@ void SweepExtender::sweep_()
 		
         if (current_charge > 0) // charger = 0 => no isotope
         {
-//       		std::cout << "Isotopic pattern found ! " << std::endl;
-// 			std::cout << "We are at: " << traits_->getPeakRt(curr_peak) << " " << curr_mz << std::endl;
+		
+			#ifdef DEBUG_FEATUREFINDER
+			std::cout << "Isotopic pattern found ! " << std::endl;
+			std::cout << "We are at: " << traits_->getPeakRt(curr_peak) << " " << curr_mz << std::endl;
+			#endif
 
             if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
             {
@@ -178,7 +183,7 @@ void SweepExtender::sweep_()
             {	
 				#ifdef DEBUG_FEATUREFINDER
                 std::cout << "Last scan was empty => creating new cluster." << std::endl;
-				std::cout << "Creating new cluster at m/z: " << cur_mz << std::endl;
+				std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
 				#endif
 				
 			    mz_in_hash = curr_mz; // update current hash key

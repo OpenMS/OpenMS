@@ -142,6 +142,10 @@ namespace OpenMS
 		 <tr><td></td><td></td><td>tolerance_stdev_bounding_box</td>
 		 <td>bounding box has range [minimim of data, maximum of data] enlarged
 		 by tolerance_stdev_bounding_box times the standard deviation of the data</td></tr>
+		  <tr><td></td><td></td><td>feature_intensity_max</td>
+		 <td>If this parameter is set to one (default) the peptide abundance is estimated as the
+		 sum of all peak intensities within the feature region. Otherwise this abundance is
+		 estimated as the maximum intensity.</td></tr>
 		 <tr><td></td><td></td><td>intensity_cutoff_factor</td>
 		 <td>cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model</td></tr>
 		 <tr><td></td><td></td><td>feature_intensity_sum</td>

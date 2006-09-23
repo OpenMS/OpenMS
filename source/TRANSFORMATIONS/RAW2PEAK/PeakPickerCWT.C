@@ -104,7 +104,8 @@ namespace OpenMS
     int ms_level,
     int direction)
   {
-    // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1).
+    // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1). 
+	// Comment: Who cares ??
     double noise_level=0.;
     double noise_level_cwt=0.;
     if (ms_level==1)

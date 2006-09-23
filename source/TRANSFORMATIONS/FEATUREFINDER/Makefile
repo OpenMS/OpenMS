@@ -52,7 +52,8 @@ CPP_SOURCES=\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
-	SweepExtender.C
+	SweepExtender.C\
+	PPExtender.C
 
 ifeq ($(WAVELETS),true)
 WAV_SOURCES=\

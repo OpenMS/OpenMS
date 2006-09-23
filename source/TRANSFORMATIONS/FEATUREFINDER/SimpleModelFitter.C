@@ -185,7 +185,8 @@ namespace OpenMS
 
 		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
 		IndexSet model_set;
-		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) {
+		for (IndexSetIter it=set.begin(); it!=set.end(); ++it) 
+		{
 			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
 			{
 				model_set.add(*it);
