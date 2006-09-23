@@ -46,13 +46,15 @@ PPExtender::PPExtender()
     defaults_.setValue("charge3_lb",0.2f);
 
     // tolerance in m/z for an monoisotopic peak in the previous scan
-    defaults_.setValue("tolerance_mz",1.2f);
+    defaults_.setValue("tolerance_mz",1.5f);
 
     defaults_.setValue("cwt_scale",0.6f);
 
-    defaults_.setValue("noise_level_signal",500);
+    defaults_.setValue("noise_level_signal",1000);
 
     defaults_.setValue("noise_level_cwt",6000);
+	
+	defaults_.setValue("scans_to_sumup",5);
 
     param_ = defaults_;
 }
@@ -119,15 +121,15 @@ void PPExtender::sweep_()
 
     cwt_scale_     = param_.getValue("cwt_scale");
 
-    noise_level_signal_  = defaults_.getValue("noise_level_signal");
+    noise_level_signal_  = param_.getValue("noise_level_signal");
 
-    noise_level_cwt_ = defaults_.getValue("noise_level_cwt");
+    noise_level_cwt_ = param_.getValue("noise_level_cwt");
 
     UnsignedInt current_charge     = 0;			// charge state of the current isotopic cluster
     CoordinateType mz_in_hash   = 0;			// used as reference to the current isotopic peak
 
-    RawDataArrayType array;	// stores a scan of points
-
+    RawDataArrayType current_scan;	// stores the current scan of points
+	
     unsigned int first_peak_in_scan = 0;
 
     // sweep through scans
@@ -143,9 +145,12 @@ void PPExtender::sweep_()
             std::cout << "---------------------------------------------------------------------------" << std::endl;
             ////#endif
 
+			// sum scan
+			sumUp_(current_scan,curr_peak);
+			
             // compute cwt for this scan
             cwt_.init(cwt_scale_, 0.0001);
-            cwt_.transform(array.begin(), array.end(),1.);
+            cwt_.transform(current_scan.begin(), current_scan.end(),1.);
 
             // 			 std::ofstream gpfile( "cwt.out");
             // 			 for (int i=0;i<cwt_.getSize(); ++i)
@@ -163,7 +168,7 @@ void PPExtender::sweep_()
 			}
 			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
 			
-            getMaxPositions_(array.begin(), array.end(), cwt_, local_maxima,curr_peak);
+            getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 
             //   		std::ofstream peakfile( "scan.out");
             // 			for(unsigned k = 0; k<array.size();++k)
@@ -174,7 +179,7 @@ void PPExtender::sweep_()
             //if (current_rt == 1097.84) break;
             //std::remove("cwt_localmax.out");
 
-            array.clear();	// prepare for next scan
+            current_scan.clear();	// prepare for next scan
                         
 			int nr_maxima = local_maxima.size();
 			if (nr_maxima == 0)
@@ -191,7 +196,7 @@ void PPExtender::sweep_()
                 CoordinateType curr_mz         = traits_->getPeakMz(local_maxima[z]);
                 CoordinateType dist2nextpeak = ( traits_->getPeakMz( local_maxima[z + 1]) - curr_mz);
 				
-				std::cout << "Dist2nextPeak = " << dist2nextpeak  << std::endl;
+				//std::cout << "Dist2nextPeak = " << dist2nextpeak  << std::endl;
 
                 // test for different charge states
                 current_charge = testDistance2NextPeak_(dist2nextpeak);
@@ -199,10 +204,10 @@ void PPExtender::sweep_()
                 if (current_charge > 0) // charger = 0 <=> no isotope
                 {
 
-					////#ifdef DEBUG_FEATUREFINDER
-                    std::cout << "Isotopic pattern found ! " << std::endl;
-                    std::cout << "We are at: " << traits_->getPeakRt( local_maxima[z] ) << " " << curr_mz << std::endl;
-					////#endif
+					#ifdef DEBUG_FEATUREFINDER
+//                     std::cout << "Isotopic pattern found ! " << std::endl;
+//                     std::cout << "We are at: " << traits_->getPeakRt( local_maxima[z] ) << " " << curr_mz << std::endl;
+					#endif
 
                     if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
                     {
@@ -215,9 +220,9 @@ void PPExtender::sweep_()
                             mz_in_hash = curr_mz; // update current hash key
 
                             // create new isotopic cluster
-							//#ifdef DEBUG_FEATUREFINDER
-                            std::cout << "Last peak cluster too far, creating new cluster" << std::endl;
-							//#endif
+							#ifdef DEBUG_FEATUREFINDER
+//                             std::cout << "Last peak cluster too far, creating new cluster" << std::endl;
+							#endif
 
                             iso_map_[mz_in_hash] = IsotopeCluster();
 
@@ -226,27 +231,27 @@ void PPExtender::sweep_()
                         }
                         else
                         {
-							//#ifdef DEBUG_FEATUREFINDER
-                            std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
-							//#endif
+							#ifdef DEBUG_FEATUREFINDER
+                          	//std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
+							#endif
 
                             mz_in_hash = *it;	// retrieve new hash key
                             // save current rt and m/z
                             iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt( local_maxima[z] ) );
 
-							//#ifdef DEBUG_FEATUREFINDER
-                            std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
-							//#endif
+							#ifdef DEBUG_FEATUREFINDER
+                            //std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
+							#endif
 
                         }
 
                     }
                     else // last scan did not contain any isotopic cluster
                     {
-						//#ifdef DEBUG_FEATUREFINDER
-                        std::cout << "Last scan was empty => creating new cluster." << std::endl;
-                        std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
-						//#endif
+						#ifdef DEBUG_FEATUREFINDER
+//                         std::cout << "Last scan was empty => creating new cluster." << std::endl;
+//                         std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
+						#endif
 
                         mz_in_hash = curr_mz; // update current hash key
 
@@ -254,13 +259,22 @@ void PPExtender::sweep_()
                         iso_map_[mz_in_hash] = IsotopeCluster();
                         iso_map_[mz_in_hash].charge_  = current_charge;
                         iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt( local_maxima[z] ) );
+											
                     } // end if (iso_last_scan.size() > 0)
 
-					//#ifdef DEBUG_FEATUREFINDER
-                    std::cout << "Storing found peak in current isotopic cluster" << std::endl;
-					//#endif
-
-                    //iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
+					#ifdef DEBUG_FEATUREFINDER
+//                     std::cout << "Storing found peak in current isotopic cluster" << std::endl;
+					#endif
+					
+					// walk a bit to the left
+					int ind = local_maxima[z];
+					if ( ind-1 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-1);
+					if ( ind-2 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-2);
+					if ( ind-3 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-3);
+					if ( ind-4 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-4);	
+					if ( ind-5 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-5);	
+					
+                    iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
                     iso_curr_scan.push_back(  mz_in_hash );
                     ++z;
 					if ((local_maxima[z] - local_maxima[z-1]) > 1)
@@ -274,8 +288,9 @@ void PPExtender::sweep_()
 
                     // check distance to next peak
                     if ( (z+1) == nr_maxima) break;
+					
                     dist2nextpeak = ( traits_->getPeakMz( local_maxima[z+1] ) -  traits_->getPeakMz( local_maxima[z] ));
-
+								
                     if (testDistance2NextPeak_(dist2nextpeak) != current_charge)
                     {
 						// charge state has changed. Insert m/z of last maximum and continue.
@@ -288,9 +303,14 @@ void PPExtender::sweep_()
 						iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
                         continue;
                     }
+					
+					CoordinateType monoiso_mass = traits_->getPeakMz(local_maxima[z+1]);
+					CoordinateType mass_diff         = 0.0;
 
                     // loop until end of isotopic pattern in this scan
-                    while (testDistance2NextPeak_(dist2nextpeak) == current_charge &&  z != nr_maxima )
+                    while (testDistance2NextPeak_(dist2nextpeak) == current_charge && 
+					           z < (nr_maxima-2) &&
+							   mass_diff < 6)
                     {
                         iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );				// save peak in cluster
                         ++z;
@@ -300,8 +320,9 @@ void PPExtender::sweep_()
 							for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
 								iso_map_[mz_in_hash].peaks_.push_back( v );
 						}
-
+						
                         dist2nextpeak = ( traits_->getPeakMz( local_maxima[z+1] ) -  traits_->getPeakMz(local_maxima[z] )); // get distance to next peak
+						mass_diff       = ( traits_->getPeakMz( local_maxima[z+1] ) - monoiso_mass);
                     } // end while(...)
 
                 } // end of if (charge > 0)
@@ -320,7 +341,7 @@ void PPExtender::sweep_()
          DRawDataPoint<1> p;
          p.setIntensity( traits_->getPeakIntensity(curr_peak) );
          p.getPosition()[0] = traits_->getPeakMz(curr_peak);
-         array.push_back(p);
+         current_scan.push_back(p);
 
          first_peak_in_scan = curr_peak;
 			
@@ -350,6 +371,164 @@ void PPExtender::sweep_()
 
 } // end of void sweep_()
 
+void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, unsigned int curr_peak)
+{
+    	/// empirical values => check if this is a good idea
+		//double noise_level_signal        = peak_bound_;
+		//double noise_level_cwt       = 16000;   
+
+	    int zeros_left_index  = wt.getLeftPaddingIndex();
+    	int zeros_right_index = wt.getRightPaddingIndex();
+
+    	// Points to most intensive data point in the signal
+    	RawDataPointIterator it_max_pos;
+    	double max_value = 0.0;
+
+    	// Given direction, start the search from left or right
+    	int start = zeros_left_index + 2;
+    	int end  = zeros_right_index - 1;
+
+    	int i=0, j=0;
+    	for(i=start; i!=end; i+=1)
+    	{
+      		// Check for maximum in cwt at position i with cwt intensity > noise 
+     		if( ((wt[i-1] - wt[i]  ) < 0) &&
+			    ((wt[i] - wt[i+1]) > 0)  && 
+				( wt[i]  > noise_level_cwt_ ) ) 
+      			{					
+// 					 std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
+// 					 gpfile << (first + max_pos)->getPos()  << "  " << cwt_[max_pos] << std::endl;
+// 					 gpfile.close();
+//					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
+					max_value=(first +  i)->getIntensity();
+					
+					int radius = 3;  // search radius for peaks in data
+					
+        			// search for the corresponding maximum in the signal (consider the radius left and right adjacent points)
+        			int start_intervall = (( i - (int)radius) < 0 ) ? 0 : ( i - (int)radius);
+        			int end_intervall  = (( i + (int)radius) >= distance(first,last)) ? 0 : (i + (int)radius);
+
+        			for(j = start_intervall; j <= end_intervall; ++j)
+        			{
+          				if((first + j)->getIntensity() > max_value)
+         				{
+            				max_value = (first + j)->getIntensity();
+          				}
+        			}
+					
+					if (max_value > noise_level_signal_)
+					{
+						localmax.push_back(curr_peak + i);			
+					}
+
+      		}
+    	}
+	
+    
+ }
+
+
+void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
+{
+	unsigned int scans_to_collect = param_.getValue("scans_to_sumup");
+	
+	//std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
+	
+	unsigned int scans_collected  = 0;
+	
+	CoordinateType current_rt = traits_->getPeakRt(current_index);
+	CoordinateType last_rt      = current_rt;
+	
+	unsigned int nr_peaks      = traits_->getNumberOfPeaks();
+	
+	RawDataArrayType ascan;
+	
+	for (unsigned int j = current_index; j<nr_peaks; ++j)
+	{
+		current_rt = traits_->getPeakRt(j);
+		if (current_rt != last_rt)
+		{
+			// new scan; store collected peaks			
+			if (scans_collected == scans_to_collect)
+			{
+				// we have enough scans
+				//std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
+				break;
+			} 
+			// sum up the intensities of the neighbouring scan
+			AlignAndSum_(scan,ascan);		
+			
+			// prepare for next scan
+			ascan.clear();			
+			last_rt = current_rt;		
+			++scans_collected;	
+		} // end of if (new scan)
+		
+		// collect data points until new scan starts
+        DRawDataPoint<1> p;
+        p.setIntensity( traits_->getPeakIntensity(j) );
+        p.getPosition()[0] = traits_->getPeakMz(j);
+        ascan.push_back(p);
+		
+			
+	}	// end of for (all peaks)
+		
+	//std::cout << "End of data. Collected " << scans_collected << " scans." << std::endl;
+}
+
+
+
+
+void PPExtender::AlignAndSum_(RawDataArrayType& scan, RawDataArrayType& neighbour)
+{
+			double mass_tolerance = 0.2;
+			
+			unsigned int index_newscan = 0;
+			for (unsigned int k=0; k<neighbour.size(); ++k)
+			{
+				DRawDataPoint<1> p = neighbour[k];
+				double mass              = p.getPosition()[0];
+			
+				while (scan[index_newscan].getPosition()[0] < mass && index_newscan < scan.size()) ++index_newscan;
+	
+				if (index_newscan >= scan.size() ) 
+				{
+					//std::cout << "End of scan. Adding " << ( neighbour1.size() -k ) << " peaks." << std::endl;
+					// if the end of the scan is reached, add the remaining peaks
+					//// Check if this is really needed . ///////
+// 					while (k < neighbour1.size())
+// 					{
+// 						new_scan.push_back(neighbour1[k++]);
+// 					}
+					break;	// and quit the loop
+				}
+			
+				if (index_newscan > 0)
+				{
+					double left_diff   = fabs(scan[index_newscan-1].getPosition()[0] - mass);
+					double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);			
+
+					// check which neighbour is closer
+					if (left_diff < right_diff && (left_diff < mass_tolerance) )
+					{
+						scan[ (index_newscan-1) ].getIntensity() += p.getIntensity();
+					}
+					else if (right_diff < mass_tolerance)
+					{
+						scan[index_newscan].getIntensity() += p.getIntensity();;
+					}
+				} 
+				else // no left neighbour available
+				{
+					double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);		
+					if (right_diff < mass_tolerance)
+					{
+						scan[index_newscan].getIntensity() += p.getIntensity();
+					}					
+				} 
+								
+			} // end for (all peaks in neighbouring scan)
+}
 
 UnsignedInt PPExtender::testDistance2NextPeak_(CoordinateType dist2nextpeak)
 {

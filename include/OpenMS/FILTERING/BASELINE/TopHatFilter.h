@@ -167,7 +167,7 @@ public:
         	// if the scan contains enough raw data points filter the baseline
         	if ( struc_size_ < fabs((input_it->end()-1)->getPos()- input_it->begin()->getPos()))
         		{ 
-        			std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
+        		//std::cout << "filter " << input_it->getRetentionTime()<< std::endl;
 	            MSSpectrum< OutputPeakType > spectrum;
 	            
 	            // pick the peaks in scan i

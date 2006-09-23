@@ -159,61 +159,12 @@ protected:
     } // end of searchInScan_
 	
 	
-	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, unsigned int curr_peak)
-  	{
-    	/// empirical values => check if this is a good idea
-		//double noise_level_signal        = peak_bound_;
-		//double noise_level_cwt       = 16000;   
-
-	    int zeros_left_index  = wt.getLeftPaddingIndex();
-    	int zeros_right_index = wt.getRightPaddingIndex();
-
-    	// Points to most intensive data point in the signal
-    	RawDataPointIterator it_max_pos;
-    	double max_value;
-
-    	// Given direction, start the search from left or right
-    	int start = zeros_left_index + 2;
-    	int end  = zeros_right_index - 1;
-
-    	int i=0, j=0; // , max_pos = 0
-    	for(i=start; i!=end; i+=1)
-    	{
-      		// Check for maximum in cwt at position i
-      		if(((wt[i-1] - wt[i]  ) < 0)
-          		&& ((wt[i] - wt[i+1]) > 0)
-          		&& ( wt[i]  > noise_level_cwt_ )) 
-      			{
-       				//max_pos = i;
-        								
-// 					 std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
-// 					 gpfile << (first + max_pos)->getPos()  << "  " << cwt_[max_pos] << std::endl;
-// 					 gpfile.close();
-					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
-					localmax.push_back(curr_peak + i);					
-
-       				max_value=(first +  i)->getIntensity();
-					
-					int radius = 3;  // search radius for peaks in data
-					
-        			// search for the corresponding maximum in the signal (consider the radius left and right adjacent points)
-        			int start_intervall = (( i - (int)radius) < 0 ) ? 0 : ( i - (int)radius);
-        			int end_intervall  = (( i + (int)radius) >= distance(first,last)) ? 0 : (i + (int)radius);
-
-        			for(j = start_intervall; j <= end_intervall; ++j)
-        			{
-          				if((first + j)->getIntensity() > max_value)
-         				{
-            				//max_pos = j;
-            				max_value = (first + j)->getIntensity();
-          				}
-        			}
-
-      		}
-    	}
+	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, unsigned int curr_peak);
+ 
+  	/// Sums a scan
+  	void sumUp_(RawDataArrayType& scan, unsigned int current_index);
 	
-    
-  }
+	void AlignAndSum_(RawDataArrayType& scan, RawDataArrayType& neighbour);
  	
 	/// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
 	UnsignedInt testDistance2NextPeak_(CoordinateType dist2nextpeak);
