@@ -277,6 +277,7 @@ namespace OpenMS
 		
 		if (intensity_choice == 1)
 		{
+			std::cout << "Summing intensities...." << std::endl;
 			// intensity of the feature is the sum of all included data points
 			for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 			{

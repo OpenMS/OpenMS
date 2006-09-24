@@ -345,13 +345,12 @@ namespace OpenMS
 		
 		f.setIntensity(feature_intensity);
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
-		
-#ifdef DEBUG_FEATUREFINDER
+
 		std::cout << Date::now() << " Feature " << counter_
 							<< ": (" << f.getPosition()[RT]
 							<< "," << f.getPosition()[MZ] << ") Qual.:"
 							<< max_quality << "\n";
-#endif
+
 
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
 		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );

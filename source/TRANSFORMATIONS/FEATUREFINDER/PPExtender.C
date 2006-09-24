@@ -146,18 +146,18 @@ void PPExtender::sweep_()
             ////#endif
 
 			// sum scan
-			sumUp_(current_scan,curr_peak);
+			//sumUp_(current_scan,curr_peak);
 			
             // compute cwt for this scan
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
 
-//             std::ofstream gpfile( "cwt.out");
-//              for (int i=0;i<cwt_.getSize(); ++i)
-//              {
-//             	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
-//              }
-//              gpfile.close();
+            std::ofstream gpfile( "cwt.out");
+             for (int i=0;i<cwt_.getSize(); ++i)
+             {
+            	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
+             }
+             gpfile.close();
 
             // search for maximal positions in the cwt and extract potential peaks
             std::vector<int> local_maxima;
@@ -167,16 +167,21 @@ void PPExtender::sweep_()
 				cwt_sum += cwt_[k];
 			}
 			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
+			if  ( cwt_sum / cwt_.getSize() == 0) 
+			{
+				std::cout << "Empty cwt => continue." << std::endl;
+				continue;
+			} 
 			
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 
-//           	std::ofstream peakfile( "scan.out");
-//             for(unsigned k = 0; k<current_scan.size();++k)
-//             {
-//             	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
-//             }
-//             peakfile.close();
-			//if (current_rt > 1290) break;
+          	std::ofstream peakfile( "scan.out");
+            for(unsigned k = 0; k<current_scan.size();++k)
+            {
+            	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
+            }
+            peakfile.close();
+			if (current_rt > 1250) break;
 			
           	std::remove("cwt_localmax.out");
 
@@ -294,7 +299,7 @@ void PPExtender::sweep_()
                     iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
 					traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
 					
-                    //iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
+                    iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
 
                     // check distance to next peak
                     if ( (z+1) == nr_maxima) break;
@@ -303,7 +308,7 @@ void PPExtender::sweep_()
 								
                     if (testDistance2NextPeak_(dist2nextpeak) != current_charge)
                     {
-						// charge state has changed. Insert m/z of last maximum and continue.
+						// charge state has changed. Insert points until last maximum and stop.
 						++z; 
 						if ((local_maxima[z] - local_maxima[z-1]) > 1)
 						{
@@ -315,7 +320,7 @@ void PPExtender::sweep_()
 						}
 						iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
 						traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
-                        continue;
+                        //continue;
                     }
 					
 					CoordinateType monoiso_mass = traits_->getPeakMz(local_maxima[z+1]);
@@ -418,10 +423,10 @@ void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointItera
 			    ((wt[i] - wt[i+1]) > 0)  && 
 				( wt[i]  > noise_level_cwt_ ) ) 
       			{					
-// 					 std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
-// 					 gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
-// 					 gpfile.close();
-//					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
+					std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
+					gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
+					gpfile.close();
+					//std::cout << "Inserting : " << (curr_peak + i) << std::endl;
 					max_value=(first +  i)->getIntensity();
 					
 					int radius = 3;  // search radius for peaks in data
