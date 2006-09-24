@@ -50,7 +50,7 @@ PPExtender::PPExtender()
 
     defaults_.setValue("cwt_scale",0.6f);
 
-    defaults_.setValue("noise_level_signal",1000);
+    defaults_.setValue("noise_level_signal",750);
 
     defaults_.setValue("noise_level_cwt",6000);
 	
@@ -152,12 +152,12 @@ void PPExtender::sweep_()
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
 
-            // 			 std::ofstream gpfile( "cwt.out");
-            // 			 for (int i=0;i<cwt_.getSize(); ++i)
-            // 			 {
-            // 			 	gpfile << (it_pick_begin + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
-            // 			 }
-            // 			 gpfile.close();
+//             std::ofstream gpfile( "cwt.out");
+//              for (int i=0;i<cwt_.getSize(); ++i)
+//              {
+//             	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
+//              }
+//              gpfile.close();
 
             // search for maximal positions in the cwt and extract potential peaks
             std::vector<int> local_maxima;
@@ -170,14 +170,15 @@ void PPExtender::sweep_()
 			
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 
-            //   		std::ofstream peakfile( "scan.out");
-            // 			for(unsigned k = 0; k<array.size();++k)
-            // 			{
-            // 				peakfile << array[k].getPosition()[0] << " " << array[k].getIntensity() << std::endl;
-            // 			}
-            // 			peakfile.close();
-            //if (current_rt == 1097.84) break;
-            //std::remove("cwt_localmax.out");
+//           	std::ofstream peakfile( "scan.out");
+//             for(unsigned k = 0; k<current_scan.size();++k)
+//             {
+//             	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
+//             }
+//             peakfile.close();
+			//if (current_rt > 1290) break;
+			
+          	std::remove("cwt_localmax.out");
 
             current_scan.clear();	// prepare for next scan
                         
@@ -266,24 +267,33 @@ void PPExtender::sweep_()
 //                     std::cout << "Storing found peak in current isotopic cluster" << std::endl;
 					#endif
 					
-					// walk a bit to the left
+					// walk a bit to the left: we include the five peaks to the left of the
+					// monisotopic one into the feature region
 					int ind = local_maxima[z];
-					if ( ind-1 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-1);
-					if ( ind-2 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-2);
-					if ( ind-3 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-3);
-					if ( ind-4 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-4);	
-					if ( ind-5 > 0 ) iso_map_[mz_in_hash].peaks_.push_back( ind-5);	
-					
-                    iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
+					for (int p=0; p<=5; ++p)
+					{
+						if ( (ind-p) > 0 && traits_->getPeakFlag( (ind-p) ) == FeaFiTraits::UNUSED)
+						{
+						 	iso_map_[mz_in_hash].peaks_.push_back( ind-p );
+						 	traits_->getPeakFlag(ind-p) = FeaFiTraits::INSIDE_FEATURE;
+						}
+					}
+									
+                   // store position of detected  cluster
                     iso_curr_scan.push_back(  mz_in_hash );
                     ++z;
 					if ((local_maxima[z] - local_maxima[z-1]) > 1)
 					{
 						for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
+						{
 							iso_map_[mz_in_hash].peaks_.push_back( v );
+							traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+						}
 					}
 
                     iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
+					traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
+					
                     //iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
 
                     // check distance to next peak
@@ -298,9 +308,13 @@ void PPExtender::sweep_()
 						if ((local_maxima[z] - local_maxima[z-1]) > 1)
 						{
 							for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
+							{
 								iso_map_[mz_in_hash].peaks_.push_back( v );
+								traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+							}
 						}
 						iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
+						traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
                         continue;
                     }
 					
@@ -310,15 +324,21 @@ void PPExtender::sweep_()
                     // loop until end of isotopic pattern in this scan
                     while (testDistance2NextPeak_(dist2nextpeak) == current_charge && 
 					           z < (nr_maxima-2) &&
-							   mass_diff < 6)
+							   mass_diff < 6 &&
+							   traits_->getPeakFlag(local_maxima[z]) != FeaFiTraits::INSIDE_FEATURE)
                     {
                         iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );				// save peak in cluster
+						traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
                         ++z;
 						
+						// between two local maxima in the cwt there might be several raw data points
 						if ((local_maxima[z] - local_maxima[z-1]) > 1)
 						{
 							for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
+							{
 								iso_map_[mz_in_hash].peaks_.push_back( v );
+								traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+							}
 						}
 						
                         dist2nextpeak = ( traits_->getPeakMz( local_maxima[z+1] ) -  traits_->getPeakMz(local_maxima[z] )); // get distance to next peak
@@ -334,6 +354,8 @@ void PPExtender::sweep_()
             iso_last_scan = iso_curr_scan;
             iso_curr_scan.clear();
             last_rt = current_rt;
+			
+			
            
         } // end if (current_rt != last_rt) => current scan is finished
 		
@@ -397,7 +419,7 @@ void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointItera
 				( wt[i]  > noise_level_cwt_ ) ) 
       			{					
 // 					 std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
-// 					 gpfile << (first + max_pos)->getPos()  << "  " << cwt_[max_pos] << std::endl;
+// 					 gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
 // 					 gpfile.close();
 //					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
 					max_value=(first +  i)->getIntensity();
