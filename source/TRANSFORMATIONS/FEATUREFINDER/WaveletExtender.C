@@ -33,7 +33,11 @@ WaveletExtender::WaveletExtender()
 	: BaseExtender(), is_initialized_(false)
 {
     name_ = WaveletExtender::getName();
-		
+	
+	 defaults_.setValue("rt_votes_cutoff",6);
+	 defaults_.setValue("wt_cut_off",5000);
+	 defaults_.setValue("score_cut_off",0);
+	 	
     param_ = defaults_;
 }
 
@@ -60,11 +64,15 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder(exp);
 		
 		//finder.setData(exp);
+		
+		int votes_cutoff         = param_.getValue("rt_votes_cutoff");
+		double wt_cut_off      = param_.getValue("wt_cut_off");
+		double score_cut_off = param_.getValue("score_cut_off");
 				
 		// setting params
-		finder.setWtCutOff (0);			// threshold for intensities in wavelet transform
-   		finder.setScoreCutOff (0);		// scores are ignored
-   		finder.setRTVotesCutOff( 6); 	// we need isotopic patterns in at least six consecutive scans
+		finder.setWtCutOff (wt_cut_off);			// threshold for intensities in wavelet transform
+   	finder.setScoreCutOff (score_cut_off);		// scores are ignored
+   	finder.setRTVotesCutOff (votes_cutoff); 	// we need isotopic patterns in at least six consecutive scans
 				
 		std::cout << "Starting detection: " << std::endl;
 		
@@ -73,21 +81,21 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		hash_iter = hash_.begin();		
 		is_initialized_ = true;	
 		
-		 avMZSpacing_ = finder.getAvMZSpacing();	
+		avMZSpacing_ = finder.getAvMZSpacing();	
 		
-		 exp.updateRanges();
-		 min_mass_ = exp.getMin().Y();
+		exp.updateRanges();
+		min_mass_ = exp.getMin().Y();
 		 
-		 exp.clear();
+		exp.clear();
 	}
 	
 	region_.clear();	// empty last region 
 	
 	if (hash_iter == hash_.end() || hash_.size() == 0 ) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
 	 
-	 std::cout << "m/z range: ";
-	 std::cout << (min_mass_ + (hash_iter->first-1)*avMZSpacing_) << " ";
-	 std::cout << (min_mass_ + (hash_iter->first)*avMZSpacing_) << " " << std::endl;
+// 	 std::cout << "m/z range: ";
+// 	 std::cout << (min_mass_ + (hash_iter->first-1)*avMZSpacing_) << " ";
+// 	 std::cout << (min_mass_ + (hash_iter->first)*avMZSpacing_) << " " << std::endl;
 			
 	CoordinateType mass_to_find = min_mass_ + (hash_iter->first-1)*avMZSpacing_;
 	std::cout << "I am searching for m/z : " << 	mass_to_find << std::endl;
@@ -99,13 +107,13 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	{
 				CoordinateType rt_to_find = *iter_cl2;
 				
-				std::cout << "Searching for rt: " << rt_to_find << std::endl;
+// 				std::cout << "Searching for rt: " << rt_to_find << std::endl;
 				
 				unsigned int current_scan = scan_index_.getRank(rt_to_find);
 				
 				if (current_scan >= (scan_index_.size()-1) )
 				{
-					std::cout << "Wrong scan number:" << current_scan  << std::endl;
+// 					std::cout << "Wrong scan number:" << current_scan  << std::endl;
 					break;
 				}
 				
@@ -118,33 +126,47 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
 				int peak_index = (insert_iter - traits_->getAllPeaks().begin());		
 	
-				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
+// 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
 				
+				CoordinateType miso_mass = traits_->getPeakMz(peak_index);
+				CoordinateType miso_rt       =	traits_->getPeakRt(peak_index);			
+				
+				// walk a bit to the left from the monoisotopic peak
+				for (int p=0; p<=5; ++p)
+				{
+					if ( (peak_index - p) > 0 
+					     && traits_->getPeakFlag( (peak_index - p) ) == FeaFiTraits::UNUSED
+						 && traits_->getPeakRt( (peak_index - p) ) == miso_rt
+						 && traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < 1.5  )
+					{
+					 	region_.add( (peak_index - p) );
+					 	traits_->getPeakFlag(  (peak_index - p) ) = FeaFiTraits::INSIDE_FEATURE;
+					}
+				}
+			/*	
 				if ( (peak_index-1 ) >= 0  && (traits_->getPeakMz(peak_index-1) - traits_->getPeakMz(peak_index)) < 1.5  ) region_.add(peak_index-1);
 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-1) << std::endl;
 				if ( (peak_index-2 ) >= 0  && (traits_->getPeakMz(peak_index-2) - traits_->getPeakMz(peak_index)) < 1.5  ) region_.add(peak_index-2);
 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index-2) << std::endl;
-						
 				region_.add(peak_index);
-				
-				CoordinateType mass_distance = 0;
-				CoordinateType miso_mass      = traits_->getPeakMz(peak_index);
-				
+			*/
+				CoordinateType mass_distance = 0;							
 				int nr_peaks = traits_->getNumberOfPeaks();
+				
 				//we added the first peak (hopefully the monoisotopic one), now
 				// we want to walk for about 10 Thompson (or Dalton or whatever)
 				// into positive  (increasing) m/z direction
-				
-				while (mass_distance < 5 && peak_index < (nr_peaks-2))
+				while (mass_distance < 5 
+				           && peak_index < (nr_peaks-2)
+						   && traits_->getPeakRt(peak_index) == miso_rt)
 				{
 					++peak_index;
-					region_.add(peak_index);
-					std::cout << "Adding peak " << peak_index << std::endl;
-					
+					if (traits_->getPeakFlag(peak_index) == FeaFiTraits::UNUSED) region_.add(peak_index);
+// 					std::cout << "Adding peak " << peak_index << std::endl;
 					mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
-					std::cout << "Current mass distance : " << mass_distance << std::endl;
+// 					std::cout << "Current mass distance : " << mass_distance << std::endl;
 				} 
-				std::cout << "This scan is done." << std::endl;
+// 				std::cout << "This scan is done." << std::endl;
 								
 	}	// for (std::list...)
 			
@@ -169,10 +191,10 @@ void WaveletExtender::copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArra
 		{
 			// new scan has started
 			exp.push_back(spec);
-			std::cout << "Size: " << spec.size() << std::endl;
+// 			std::cout << "Size: " << spec.size() << std::endl;
 			spec.clear();
 			current_rt = peaks[i].getPosition()[RT];
-			std::cout << "Changing rt to : " << current_rt << std::endl;
+// 			std::cout << "Changing rt to : " << current_rt << std::endl;
 			
 			spec.setRetentionTime(current_rt);
 		}
@@ -182,7 +204,7 @@ void WaveletExtender::copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArra
 		spec.push_back(apoint);
 	
 	}
-	std::cout << "FeaFi : Copied " << exp.size() << " scans." << std::endl;	
+// 	std::cout << "FeaFi : Copied " << exp.size() << " scans." << std::endl;	
 
 }
 

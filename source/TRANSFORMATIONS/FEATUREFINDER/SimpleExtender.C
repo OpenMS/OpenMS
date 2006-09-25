@@ -85,8 +85,7 @@ namespace OpenMS
     // empty region and boundary datastructures
     region_.clear();
     //boundary_.clear(); // works only with mutable queue
-    while (boundary_.size() > 0)
-			boundary_.pop();
+    while (boundary_.size() > 0) boundary_.pop();
     priorities_.clear();
     running_avg_.clear();
 

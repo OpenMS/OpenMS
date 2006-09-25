@@ -146,12 +146,12 @@ void PPExtender::sweep_()
             ////#endif
 
 			// sum scan
-			//sumUp_(current_scan,curr_peak);
+			sumUp_(current_scan,curr_peak);
 			
             // compute cwt for this scan
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
-			
+		
 			String fname = "cwt_" + String(last_rt);
             std::ofstream gpfile( fname.c_str() );
              for (int i=0;i<cwt_.getSize(); ++i)
@@ -159,6 +159,12 @@ void PPExtender::sweep_()
             	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
              }
              gpfile.close();
+
+			if  ( cwt_.getSize() == 0) 
+			{
+				std::cout << "Empty cwt => continue." << std::endl;
+				continue;
+			} 
 
             // search for maximal positions in the cwt and extract potential peaks
             std::vector<int> local_maxima;
@@ -168,8 +174,9 @@ void PPExtender::sweep_()
 				cwt_sum += cwt_[k];
 			}
 			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
+
 			if (cwt_.size() == 0) continue;
-			
+
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 
 			fname = "scan_" + String(last_rt);
@@ -179,17 +186,10 @@ void PPExtender::sweep_()
             	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
             }
             peakfile.close();
-			
-            current_scan.clear();	// prepare for next scan
-                        
+
+            current_scan.clear();	// prepare for next scan                        
 			int nr_maxima = local_maxima.size();
-			if (nr_maxima == 0)
-			{
-				std::cout << "CWT found nothing." << std::endl;
-				//break;
-			}
-			
-			std::cout << "Local maxima in cwt : " << local_maxima.size() << std::endl;
+			std::cout << "Local maxima in cwt : " << nr_maxima << std::endl;
 			
             for (int z = 0; z< ( nr_maxima - 1); ++z)
 			{
@@ -297,7 +297,7 @@ void PPExtender::sweep_()
                     //iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
 
                     // check distance to next peak
-                    if ( (z+1) == nr_maxima) break;
+                    if ( (z+1) >= nr_maxima) break;
 					
                     dist2nextpeak = ( traits_->getPeakMz( local_maxima[z+1] ) -  traits_->getPeakMz( local_maxima[z] ));
 								
@@ -318,6 +318,7 @@ void PPExtender::sweep_()
                         continue;
                     }
 					
+					if ( (z+1) >= nr_maxima) break;
 					CoordinateType monoiso_mass = traits_->getPeakMz(local_maxima[z+1]);
 					CoordinateType mass_diff         = 0.0;
 
@@ -353,9 +354,7 @@ void PPExtender::sweep_()
 			// copy cluster information of least scan
             iso_last_scan = iso_curr_scan;
             iso_curr_scan.clear();
-            last_rt = current_rt;
-			
-			
+            last_rt = current_rt;		
            
         } // end if (current_rt != last_rt) => current scan is finished
 		
