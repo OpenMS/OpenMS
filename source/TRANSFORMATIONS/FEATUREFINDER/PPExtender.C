@@ -151,8 +151,9 @@ void PPExtender::sweep_()
             // compute cwt for this scan
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
-
-            std::ofstream gpfile( "cwt.out");
+			
+			String fname = "cwt_" + String(last_rt);
+            std::ofstream gpfile( fname.c_str() );
              for (int i=0;i<cwt_.getSize(); ++i)
              {
             	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
@@ -167,24 +168,18 @@ void PPExtender::sweep_()
 				cwt_sum += cwt_[k];
 			}
 			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
-			if  ( cwt_sum / cwt_.getSize() == 0) 
-			{
-				std::cout << "Empty cwt => continue." << std::endl;
-				continue;
-			} 
+			if (cwt_.size() == 0) continue;
 			
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 
-          	std::ofstream peakfile( "scan.out");
+			fname = "scan_" + String(last_rt);
+          	std::ofstream peakfile( fname.c_str() );
             for(unsigned k = 0; k<current_scan.size();++k)
             {
             	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
             }
             peakfile.close();
-			if (current_rt > 1250) break;
 			
-          	std::remove("cwt_localmax.out");
-
             current_scan.clear();	// prepare for next scan
                         
 			int nr_maxima = local_maxima.size();
@@ -299,7 +294,7 @@ void PPExtender::sweep_()
                     iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
 					traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
 					
-                    iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
+                    //iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
 
                     // check distance to next peak
                     if ( (z+1) == nr_maxima) break;
@@ -308,7 +303,7 @@ void PPExtender::sweep_()
 								
                     if (testDistance2NextPeak_(dist2nextpeak) != current_charge)
                     {
-						// charge state has changed. Insert points until last maximum and stop.
+						// charge state has changed. Insert m/z of last maximum and continue.
 						++z; 
 						if ((local_maxima[z] - local_maxima[z-1]) > 1)
 						{
@@ -320,7 +315,7 @@ void PPExtender::sweep_()
 						}
 						iso_map_[mz_in_hash].peaks_.push_back( local_maxima[z] );
 						traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
-                        //continue;
+                        continue;
                     }
 					
 					CoordinateType monoiso_mass = traits_->getPeakMz(local_maxima[z+1]);
@@ -400,6 +395,8 @@ void PPExtender::sweep_()
 
 void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, unsigned int curr_peak)
 {
+		if (wt.getSize() == 0) return;
+		
     	/// empirical values => check if this is a good idea
 		//double noise_level_signal        = peak_bound_;
 		//double noise_level_cwt       = 16000;   
@@ -416,17 +413,18 @@ void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointItera
     	int end  = zeros_right_index - 1;
 
     	int i=0, j=0;
-    	for(i=start; i!=end; i+=1)
+    	for(i=start; i<end; i+=1)
     	{
       		// Check for maximum in cwt at position i with cwt intensity > noise 
      		if( ((wt[i-1] - wt[i]  ) < 0) &&
 			    ((wt[i] - wt[i+1]) > 0)  && 
 				( wt[i]  > noise_level_cwt_ ) ) 
       			{					
-					std::ofstream gpfile( "cwt_localmax.out", std::ios_base::app); 
-					gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
-					gpfile.close();
-					//std::cout << "Inserting : " << (curr_peak + i) << std::endl;
+					 String fname = "cwt_localmax_" + String(traits_->getPeakRt(curr_peak));
+					 std::ofstream gpfile( fname.c_str(), std::ios_base::app); 
+					 gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
+					 gpfile.close();
+//					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
 					max_value=(first +  i)->getIntensity();
 					
 					int radius = 3;  // search radius for peaks in data
@@ -459,7 +457,7 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 {
 	unsigned int scans_to_collect = param_.getValue("scans_to_sumup");
 	
-	//std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
+	std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
 	
 	unsigned int scans_collected  = 0;
 	
@@ -479,7 +477,15 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 			if (scans_collected == scans_to_collect)
 			{
 				// we have enough scans
-				//std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
+				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
+				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
+				std::ofstream outfile( fname.c_str() );
+             	for (unsigned int i=0;i<scan.size(); ++i)
+            	 {
+            		outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
+             	}
+             	outfile.close();
+				
 				break;
 			} 
 			// sum up the intensities of the neighbouring scan

@@ -64,11 +64,11 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		// setting params
 		finder.setWtCutOff (0);			// threshold for intensities in wavelet transform
    		finder.setScoreCutOff (0);		// scores are ignored
-   		finder.setRTVotesCutOff (3); 	// we need isotopic patterns in at least six consecutive scans
+   		finder.setRTVotesCutOff( 6); 	// we need isotopic patterns in at least six consecutive scans
 				
 		std::cout << "Starting detection: " << std::endl;
 		
-		hash_ = finder.findFeatures(7, (exp.size()-1), true);
+		hash_ = finder.findFeatures(0, (exp.size()-1), true);
 		
 		hash_iter = hash_.begin();		
 		is_initialized_ = true;	

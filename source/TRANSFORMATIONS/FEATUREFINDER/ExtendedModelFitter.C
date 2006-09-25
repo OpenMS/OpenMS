@@ -312,8 +312,15 @@ namespace OpenMS
 		f.getPosition()[RT] = static_cast<InterpolationModel<>*>(final->getModel(RT))->getCenter();
 		f.getPosition()[MZ] = static_cast<InterpolationModel<>*>(final->getModel(MZ))->getCenter();
 		if (final->getModel(MZ)->getName() == "IsotopeModel")
+		{
 			f.setCharge(static_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
-
+		}
+		// if we used a simple Gaussian model to fit the feature, we can't say anything about
+		// its charge state. So we simply assume that it has charge one.
+		else 
+		{
+			f.setCharge(1);		
+		}
 #ifdef DEBUG_FEATUREFINDER
 		std::cout << " Offset: "
 							<< float(final->getModel(MZ)->getParam().getValue("statistics:mean"))-mz_stat_.mean()
