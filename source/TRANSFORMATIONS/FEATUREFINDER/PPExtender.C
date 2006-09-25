@@ -175,7 +175,7 @@ void PPExtender::sweep_()
 			}
 			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
 
-			if (cwt_.size() == 0) continue;
+			if (cwt_.getSize() == 0) continue;
 
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
 

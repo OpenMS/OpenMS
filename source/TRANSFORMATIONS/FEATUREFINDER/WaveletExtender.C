@@ -34,11 +34,11 @@ WaveletExtender::WaveletExtender()
 {
     name_ = WaveletExtender::getName();
 	
-	 defaults_.setValue("rt_votes_cutoff",6);
-	 defaults_.setValue("wt_cut_off",5000);
-	 defaults_.setValue("score_cut_off",0);
+	 defaults_.setValue("rtvotes_cutoff",6);
+	 defaults_.setValue("wt_cutoff",0.0);
+	 defaults_.setValue("score_cutoff",0.0);
 	 	
-    param_ = defaults_;
+     param_ = defaults_;
 }
 
 WaveletExtender::~WaveletExtender()
@@ -65,14 +65,16 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		
 		//finder.setData(exp);
 		
-		int votes_cutoff         = param_.getValue("rt_votes_cutoff");
-		double wt_cut_off      = param_.getValue("wt_cut_off");
-		double score_cut_off = param_.getValue("score_cut_off");
+		int votes_cutoff        = param_.getValue("rtvotes_cutoff");
+		double wt_cutoff      = param_.getValue("wt_cutoff");
+		double score_cutoff = param_.getValue("score_cutoff");
+		
+		std::cout << "RT votes cut off: " << votes_cutoff << std::endl;
 				
 		// setting params
-		finder.setWtCutOff (wt_cut_off);			// threshold for intensities in wavelet transform
-   	finder.setScoreCutOff (score_cut_off);		// scores are ignored
-   	finder.setRTVotesCutOff (votes_cutoff); 	// we need isotopic patterns in at least six consecutive scans
+		finder.setWtCutOff (wt_cutoff);			// threshold for intensities in wavelet transform
+   		finder.setScoreCutOff (score_cutoff);		// scores are ignored
+   		finder.setRTVotesCutOff (votes_cutoff); 	// we need isotopic patterns in at least six consecutive scans
 				
 		std::cout << "Starting detection: " << std::endl;
 		
@@ -107,8 +109,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	{
 				CoordinateType rt_to_find = *iter_cl2;
 				
-// 				std::cout << "Searching for rt: " << rt_to_find << std::endl;
-				
+				std::cout << "Searching for rt: " << rt_to_find << std::endl;
 				unsigned int current_scan = scan_index_.getRank(rt_to_find);
 				
 				if (current_scan >= (scan_index_.size()-1) )
