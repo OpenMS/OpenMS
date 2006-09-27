@@ -36,6 +36,22 @@ using namespace OpenMS;
 
 START_TEST(MaxReducer, "$Id: MaxReducer_test.C 463  $")
 
+MaxReducer * ptr = 0;
+
+CHECK(MaxReducer())
+ 	ptr  = new MaxReducer();
+  TEST_NOT_EQUAL(ptr,0)
+RESULT
+
+CHECK(~MaxReducer())
+			delete ptr;
+RESULT
+
+CHECK(static const  String getName())
+	 	MaxReducer m;
+    TEST_EQUAL(m.getName(),"MaxReducer")	
+RESULT
+
 CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
 	
   DTA2DFile dta;
@@ -53,62 +69,47 @@ CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
    TEST_EQUAL(out[0].size(),5)
    TEST_EQUAL(out[1].size(),5)
    TEST_EQUAL(out[2].size(),5)
-	 TEST_EQUAL(out[0].getRetentionTime(),1)
-   TEST_EQUAL(out[1].getRetentionTime(),2)
-   TEST_EQUAL(out[2].getRetentionTime(),3)
+	 TEST_REAL_EQUAL(out[0].getRetentionTime(),1)
+   TEST_REAL_EQUAL(out[1].getRetentionTime(),2)
+   TEST_REAL_EQUAL(out[2].getRetentionTime(),3)
 
-	 TEST_EQUAL(out[0].getContainer()[0].getPosition()[0],2)
-   TEST_EQUAL(out[0].getContainer()[1].getPosition()[0],4)
-   TEST_EQUAL(out[0].getContainer()[2].getPosition()[0],6)
-	 TEST_EQUAL(out[0].getContainer()[3].getPosition()[0],8)
-	 TEST_EQUAL(out[0].getContainer()[4].getPosition()[0],10)
+	 TEST_REAL_EQUAL(out[0].getContainer()[0].getPosition()[0],2)
+   TEST_REAL_EQUAL(out[0].getContainer()[1].getPosition()[0],4)
+   TEST_REAL_EQUAL(out[0].getContainer()[2].getPosition()[0],6)
+	 TEST_REAL_EQUAL(out[0].getContainer()[3].getPosition()[0],8)
+	 TEST_REAL_EQUAL(out[0].getContainer()[4].getPosition()[0],10)
    
-   TEST_EQUAL(out[1].getContainer()[0].getPosition()[0],2)
-   TEST_EQUAL(out[1].getContainer()[1].getPosition()[0],4)
-   TEST_EQUAL(out[1].getContainer()[2].getPosition()[0],6)
-	 TEST_EQUAL(out[1].getContainer()[3].getPosition()[0],8)
-	 TEST_EQUAL(out[1].getContainer()[4].getPosition()[0],10)
+   TEST_REAL_EQUAL(out[1].getContainer()[0].getPosition()[0],2)
+   TEST_REAL_EQUAL(out[1].getContainer()[1].getPosition()[0],4)
+   TEST_REAL_EQUAL(out[1].getContainer()[2].getPosition()[0],6)
+	 TEST_REAL_EQUAL(out[1].getContainer()[3].getPosition()[0],8)
+	 TEST_REAL_EQUAL(out[1].getContainer()[4].getPosition()[0],10)
    
-   TEST_EQUAL(out[2].getContainer()[0].getPosition()[0],2)
-   TEST_EQUAL(out[2].getContainer()[1].getPosition()[0],4)
-   TEST_EQUAL(out[2].getContainer()[2].getPosition()[0],6)
-	 TEST_EQUAL(out[2].getContainer()[3].getPosition()[0],8)
-	 TEST_EQUAL(out[2].getContainer()[4].getPosition()[0],10)
+   TEST_REAL_EQUAL(out[2].getContainer()[0].getPosition()[0],2)
+   TEST_REAL_EQUAL(out[2].getContainer()[1].getPosition()[0],4)
+   TEST_REAL_EQUAL(out[2].getContainer()[2].getPosition()[0],6)
+	 TEST_REAL_EQUAL(out[2].getContainer()[3].getPosition()[0],8)
+	 TEST_REAL_EQUAL(out[2].getContainer()[4].getPosition()[0],10)
 
-	 TEST_EQUAL(out[0].getContainer()[0].getIntensity(),2)
-   TEST_EQUAL(out[0].getContainer()[1].getIntensity(),4)
-   TEST_EQUAL(out[0].getContainer()[2].getIntensity(),6)
-	 TEST_EQUAL(out[0].getContainer()[3].getIntensity(),8)
-	 TEST_EQUAL(out[0].getContainer()[4].getIntensity(),10)
+	 TEST_REAL_EQUAL(out[0].getContainer()[0].getIntensity(),2)
+   TEST_REAL_EQUAL(out[0].getContainer()[1].getIntensity(),4)
+   TEST_REAL_EQUAL(out[0].getContainer()[2].getIntensity(),6)
+	 TEST_REAL_EQUAL(out[0].getContainer()[3].getIntensity(),8)
+	 TEST_REAL_EQUAL(out[0].getContainer()[4].getIntensity(),10)
    
-   TEST_EQUAL(out[1].getContainer()[0].getIntensity(),2)
-   TEST_EQUAL(out[1].getContainer()[1].getIntensity(),4)
-   TEST_EQUAL(out[1].getContainer()[2].getIntensity(),6)
-	 TEST_EQUAL(out[1].getContainer()[3].getIntensity(),8)
-	 TEST_EQUAL(out[1].getContainer()[4].getIntensity(),10)
+   TEST_REAL_EQUAL(out[1].getContainer()[0].getIntensity(),2)
+   TEST_REAL_EQUAL(out[1].getContainer()[1].getIntensity(),4)
+   TEST_REAL_EQUAL(out[1].getContainer()[2].getIntensity(),6)
+	 TEST_REAL_EQUAL(out[1].getContainer()[3].getIntensity(),8)
+	 TEST_REAL_EQUAL(out[1].getContainer()[4].getIntensity(),10)
    
-   TEST_EQUAL(out[2].getContainer()[0].getIntensity(),2)
-   TEST_EQUAL(out[2].getContainer()[1].getIntensity(),4)
-   TEST_EQUAL(out[2].getContainer()[2].getIntensity(),6)
-	 TEST_EQUAL(out[2].getContainer()[3].getIntensity(),8)
-	 TEST_EQUAL(out[2].getContainer()[4].getIntensity(),10)
+   TEST_REAL_EQUAL(out[2].getContainer()[0].getIntensity(),2)
+   TEST_REAL_EQUAL(out[2].getContainer()[1].getIntensity(),4)
+   TEST_REAL_EQUAL(out[2].getContainer()[2].getIntensity(),6)
+	 TEST_REAL_EQUAL(out[2].getContainer()[3].getIntensity(),8)
+	 TEST_REAL_EQUAL(out[2].getContainer()[4].getIntensity(),10)
 
 
-RESULT
-
-MaxReducer * ptr = 0;
-CHECK(static const  String getName())
-	 	ptr  = new MaxReducer();
-    TEST_EQUAL(ptr->getName(),"MaxReducer")	
-RESULT
-
-CHECK(MaxReducer())
- 	ptr  = new MaxReducer();
-  TEST_NOT_EQUAL(ptr,0)
-RESULT
-
-CHECK(~MaxReducer())
-			delete ptr;
 RESULT
 
 
