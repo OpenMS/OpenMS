@@ -175,16 +175,16 @@ protected:
         DFeatureMap<2> map;
         map_file.load(filename,map);
 
-//         DFeature<2>* feat1 = 0;
-//         DFeature<2>* feat2 = 0;
-		
+        DFeature<2>* feat1 = 0;
+        DFeature<2>* feat2 = 0;
+// 		
 // 		double f1_mz_diff  = 0;
 // 		double f1_rt_diff    = 0;
 // 		double f2_mz_diff  = 0;
 // 		double f2_rt_diff    = 0:
 
-		double f1_sum = 0;
-		double f2_sum = 0;
+// 		double f1_sum = 0;
+// 		double f2_sum = 0;
 
         DFeatureMap<2>::iterator iter = map.begin();
         while (iter!= map.end() )
@@ -200,9 +200,15 @@ protected:
 				std::cout << "Found feature1 at " << std::endl;
 				std::cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  std::endl;
                 // feature at correct position found, save intensity
-//                 if (!feat1)
-//                     feat1 = &(*iter);
-				f1_sum += iter->getIntensity(); 
+                if (!feat1)
+				{
+                    feat1 = &(*iter);
+				}
+				else if (feat1->getIntensity() <  iter->getIntensity() )
+				{
+					 feat1 = &(*iter);
+				}
+// 				f1_sum += iter->getIntensity(); 
 
             }
 
@@ -214,40 +220,46 @@ protected:
 				std::cout << "Found feature2 at " << std::endl;
 				std::cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  std::endl;
                 // same as above
-//                 if (!feat2)
-//                     feat2 = &(*iter);
+                 if (!feat2)
+				{
+                    feat2 = &(*iter);
+				}
+				else if (feat2->getIntensity() <  iter->getIntensity() )
+				{
+					 feat2 = &(*iter);
+				}
 					
-				f2_sum += iter->getIntensity(); 
+// 				f2_sum += iter->getIntensity(); 
             }
 
             iter++;
         }	// end of while
 
-        if (f1_sum != 0 && f2_sum != 0) //(feat1 != 0 && feat2 != 0) 
+        if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
         {
-// 			std::cout << "Feature 1: " << feat1->getIntensity() << std::endl;
-// 			std::cout << "Feature 2: " << feat2->getIntensity() << std::endl;
-// 			std::cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << std::endl;
-//             intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
+			std::cout << "Feature 1: " << feat1->getIntensity() << std::endl;
+			std::cout << "Feature 2: " << feat2->getIntensity() << std::endl;
+			std::cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << std::endl;
+            intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 		   	
-			std::cout << "Sum 1 " << f1_sum << std::endl;
-			std::cout << "Sum 2 " << f2_sum << std::endl;
-			std::cout << "Intensity ratio : " << ( f1_sum / f2_sum ) << std::endl;
-			intensities.push_back(  ( f1_sum / f2_sum )  );
+// 			std::cout << "Sum 1 " << f1_sum << std::endl;
+// 			std::cout << "Sum 2 " << f2_sum << std::endl;
+// 			std::cout << "Intensity ratio : " << ( f1_sum / f2_sum ) << std::endl;
+// 			intensities.push_back(  ( f1_sum / f2_sum )  );
 
             return true;
         } 
-// 		if (!feat1)
-// 			std::cout << "Feature 1 was not found. " << std::endl;
-// 			
-// 		if (!feat2) 
-// 			std::cout << "Feature 2 was not found. " << std::endl;	
-
-		if (f1_sum == 0 )
+		if (!feat1)
 			std::cout << "Feature 1 was not found. " << std::endl;
 			
-		if (f2_sum == 0) 
+		if (!feat2) 
 			std::cout << "Feature 2 was not found. " << std::endl;	
+
+// 		if (f1_sum == 0 )
+// 			std::cout << "Feature 1 was not found. " << std::endl;
+// 			
+// 		if (f2_sum == 0) 
+// 			std::cout << "Feature 2 was not found. " << std::endl;	
 			
         return false;
     }

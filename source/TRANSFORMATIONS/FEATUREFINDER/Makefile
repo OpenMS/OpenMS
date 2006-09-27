@@ -27,8 +27,6 @@
 
 DIRECTORY=TRANSFORMATIONS/FEATUREFINDER
 
-#WAVELETS=true
-
 THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
@@ -53,14 +51,9 @@ CPP_SOURCES=\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
 	SweepExtender.C\
-	PPExtender.C
-
-ifeq ($(WAVELETS),true)
-WAV_SOURCES=\
-	IsotopeFinder.C\
-	WaveletExtender.C\
-	WaveletSeeder.C
-endif
+	PPExtender.C\
+	WaveletSeeder.C\
+	WaveletExtender.C
 
 ifeq ($(GSL_SUPPORT),true)
  GSL_SOURCES=\
@@ -70,11 +63,10 @@ ifeq ($(GSL_SUPPORT),true)
 	LogNormalModel.C
 endif
 
-ADD_CPP_SOURCES = ${GSL_SOURCES}  ${WAV_SOURCES}
+ADD_CPP_SOURCES = ${GSL_SOURCES} 
 
 include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
-#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER -DWAV_SOURCES
-#ADD_CXXFLAGS=-DWAV_SOURCES 
+#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER

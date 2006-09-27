@@ -21,39 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
-#include <OpenMS/CONCEPT/Factory.h>
-
-// all from BaseSeeder derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
-
-
-
-namespace OpenMS
-{
-	void BaseSeeder::registerChildren()
-	{
-		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
-		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
-		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
-	}	
-	
-	BaseSeeder::BaseSeeder(): FeaFiModule(){}
-
-	BaseSeeder::BaseSeeder(const BaseSeeder& source)
-		: FeaFiModule(source)
-	{}
-
-	BaseSeeder::~BaseSeeder() {}
-
-    BaseSeeder& BaseSeeder::operator = (const BaseSeeder& source)
-	{
-		FeaFiModule::operator = (source);
-		return *this;
-	}
-}
+#include<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFinder.h>
