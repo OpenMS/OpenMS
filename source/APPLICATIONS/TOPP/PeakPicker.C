@@ -127,7 +127,7 @@ class TOPPPeakPicker
     writeDebug_(String("Output file: ") + out, 1);
 
     //optimze flag
-    bool optimize_peaks = getParam_("optimize_peaks")!=DataValue::EMPTY;
+    bool optimize_peaks = getParamAsBool_("optimize_peaks");
     if (optimize_peaks)
     {
     	writeDebug_(String("Optimization of peaks: ON"), 1);

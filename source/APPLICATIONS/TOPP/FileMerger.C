@@ -132,7 +132,7 @@ class TOPPFileMerger
 		writeDebug_(String("Output file: ") + out_file, 1);
 
 		//auto numbering
-		bool auto_number = getParam_("auto_number")!=DataValue::EMPTY;
+		bool auto_number = getParamAsBool_("auto_number",false);
 			
 		//-------------------------------------------------------------
 		// loading input

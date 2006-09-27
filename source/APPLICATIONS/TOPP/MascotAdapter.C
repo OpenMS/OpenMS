@@ -374,17 +374,12 @@ class TOPPMascotAdapter
 			mascotXML_file_name = getParamAsString_("additional_in");
 			writeDebug_(String("Additional input file: ") + mascotXML_file_name, 1);
 
-			if (!getParam_("log").isEmpty())
-			{
-				logfile = getParamAsString_("log");
-			}
-
-			if (getParamAsString_("mascot_in", "false") != "false")
+			if (getParamAsBool_("mascot_in", false))
 			{
 				mascot_in = true;
 			}
 			
-			if (getParamAsString_("mascot_out", "false") != "false")
+			if (getParamAsBool_("mascot_out", false))
 			{
 				mascot_out = true;
 				if (mascot_in)

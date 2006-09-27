@@ -338,16 +338,11 @@ class TOPPInspectAdapter
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
 			// (2.0) general variables
-			if ( getParamAsString_("Inspect_in", "false") != "false" ) Inspect_in = true;
-			if ( getParamAsString_("Inspect_out", "false") != "false" ) Inspect_out = true;
+			Inspect_in = getParamAsBool_("Inspect_in", false);
+			Inspect_out = getParamAsBool_("Inspect_out", false);
 			
 			// a 'normal' inspect run corresponds to both Inspect_in and Inspect_out set
 			if ( !Inspect_in && !Inspect_out ) Inspect_in = Inspect_out = true;
-			
-			if (!getParam_("log").isEmpty())
-			{
-				logfile = getParamAsString_("log");
-			}
 			
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
@@ -416,7 +411,7 @@ class TOPPInspectAdapter
 				else input_filename = buffer;
 			}
 			
-			if ( getParamAsString_("blind_only", "false") != "false" ) blind_only = true;
+			blind_only = getParamAsBool_("blind_only", false);
 			
 			// (2.1.1) Inspect_in - writing the inspect input file only and corresponding parameters
 			if ( Inspect_in )
@@ -473,8 +468,8 @@ class TOPPInspectAdapter
 				}
 				
 				// (2.1.6) no_common_contaminants - whether to include the proteins in commonContaminants.fasta
-				if ( getParamAsString_("cmn_conts", "true") != "true" ) no_common_contaminants = true;
-				if ( getParamAsString_("make_trie_db", "false") != "false" ) make_trie_db = true;
+				no_common_contaminants = !getParamAsBool_("cmn_conts", false);
+				make_trie_db = getParamAsBool_("make_trie_db", false);
 				if ( !make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
 				{
 					writeLog_("Too many databases (make_trie_db not set). Aborting!");
@@ -483,7 +478,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				if ( getParamAsString_("no_tmp_dbs", "false") != "false" ) no_tmp_dbs = true;
+				no_tmp_dbs = getParamAsBool_("no_tmp_dbs", false);
 				if ( !make_trie_db && !dbs.empty() ) db_filename = dbs[0];
 				else if ( make_trie_db )
 				{
@@ -534,7 +529,7 @@ class TOPPInspectAdapter
 					}
 				}
 				// (2.1.5) blind - running inspect in blind mode after running a normal mode to minimize the database
-				if ( getParamAsString_("blind", "false") != "false" )
+				if ( getParamAsBool_("blind", false) )
 				{
 					// a blind search with prior run to minimize the database can only be run in full mode
 					if ( Inspect_in && !Inspect_out )
@@ -649,7 +644,7 @@ class TOPPInspectAdapter
 					}
 				}
 
-				if ( getParamAsString_("mutlicharge", "false") != "false" ) inspect_infile.setMulticharge(1);
+				if ( getParamAsBool_("multicharge", false) ) inspect_infile.setMulticharge(1);
 
 				buffer = getParamAsString_("TagCountA");
 				if ( !buffer.empty() )
@@ -677,7 +672,7 @@ class TOPPInspectAdapter
 					}
 				}
 
-				if ( getParamAsString_("twopass", "false") != "false" ) inspect_infile.setTwopass(true);
+				if ( getParamAsBool_("twopass", false) ) inspect_infile.setTwopass(true);
 				
 				buffer = getParamAsString_("maxptmsize");
 				if ( !buffer.empty() )

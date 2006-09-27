@@ -150,7 +150,7 @@ protected:
         << endl
         << "INI options (excerpt):" << endl
         << endl
-        << " -write_gnuplot_output : True => write script with GNUplot commands" << endl
+        << " -write_gnuplot_output : Flag that writes a script with GNUplot commands" << endl
         << " -mz_tolerance         : m/z range for feature coordinates" << endl
         << " -rt_tolerance         : rt range for feature coordinates" << endl
         << endl
@@ -384,14 +384,14 @@ protected:
         CoordinateType tol_mz = (CoordinateType) add_param.getValue("mz_tolerance");
         CoordinateType tol_rt = (CoordinateType) add_param.getValue("rt_tolerance");
 
-        if (add_param.getValue("in").isEmpty() || add_param.getValue("out").isEmpty() )
+
+        String conc_f = getParamAsString_("in");
+        String out_f  = getParamAsString_("out");
+        if (conc_f=="" || out_f=="" )
         {
             writeDebug_(String("Input / outputfile not given. Aborting."),1);
             return ILLEGAL_PARAMETERS;
         }
-
-        String conc_f = (String) add_param.getValue("in");
-        String out_f  = (String) add_param.getValue("out");
 
         if (add_param.getValue("Feature:MZ").isEmpty() || add_param.getValue("Feature:RT").isEmpty() )
         {
@@ -482,10 +482,9 @@ protected:
         String filename_prefix = "gnuplot_";
         filename_prefix += String(title);
 
-        DataValue dv = add_param.getValue("write_gnuplot_output");
-        if (!dv.isEmpty() && dv.toString() != "false")
+        if (getParamAsBool_("write_gnuplot_output"))
         {
-			std::cout << "Writing gnuplot output" << std::endl;
+						std::cout << "Writing gnuplot output" << std::endl;
             // compute regression and write GNUplot files
             computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
                                                     intensities.begin(), 0.95, filename_prefix, out_f, "eps", true);

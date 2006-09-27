@@ -41,9 +41,9 @@ namespace OpenMS
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
 		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
-
+#ifdef WAV_SOURCES
 		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
-
+#endif 
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}
