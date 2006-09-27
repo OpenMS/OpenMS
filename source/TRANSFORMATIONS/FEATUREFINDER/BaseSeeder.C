@@ -30,7 +30,9 @@
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
+#ifdef WAV_SOURCES
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
+#endif 
 
 
 namespace OpenMS
