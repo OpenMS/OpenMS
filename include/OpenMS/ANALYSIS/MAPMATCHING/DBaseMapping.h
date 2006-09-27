@@ -83,9 +83,9 @@ namespace OpenMS
 		 */
 		//@{
 		/// set parameters
-		void setParam(const Param& p) { param_ = p; } 
+		virtual void setParam(const Param& p) { param_ = p; } 
 		/// get parameters
-		const Param& getParam() const { return param_; }
+		virtual const Param& getParam() const { return param_; }
 		//@}
 						
 		/// apply the transform to a feature

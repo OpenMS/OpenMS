@@ -115,6 +115,8 @@ protected:
     //-------------------------------------------------------------
 
     String gridfile, features_file, outfile;
+	
+	std::cout << param_ << std::endl;
 
     gridfile = getParamAsString_("grid");
     writeDebug_(String("Grid file: ") + gridfile,1);

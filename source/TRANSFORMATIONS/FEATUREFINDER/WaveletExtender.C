@@ -100,7 +100,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 // 	 std::cout << (min_mass_ + (hash_iter->first)*avMZSpacing_) << " " << std::endl;
 			
 	CoordinateType mass_to_find = min_mass_ + (hash_iter->first-1)*avMZSpacing_;
-	std::cout << "I am searching for m/z : " << 	mass_to_find << std::endl;
+// 	std::cout << "I am searching for m/z : " << 	mass_to_find << std::endl;
 	
 	// check all scans that support this isotopic pattern
 	for (std::list<double>::const_iterator iter_cl2 = hash_iter->second.first.begin(); 
@@ -109,7 +109,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	{
 				CoordinateType rt_to_find = *iter_cl2;
 				
-				std::cout << "Searching for rt: " << rt_to_find << std::endl;
+// 				std::cout << "Searching for rt: " << rt_to_find << std::endl;
 				unsigned int current_scan = scan_index_.getRank(rt_to_find);
 				
 				if (current_scan >= (scan_index_.size()-1) )
@@ -173,7 +173,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 			
 	 ++hash_iter;
 	
-	 std::cout << "Extension done. Size of region: " << region_.size() << std::endl;
+	std::cout << "Extension done. Size of region: " << region_.size() << std::endl;
 	 
 	region_.sort();
 	 

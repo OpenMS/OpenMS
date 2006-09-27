@@ -352,7 +352,7 @@ namespace OpenMS
 	
 	Param TOPPBase::getParamCopy_(const std::string& prefix, bool remove_prefix, const std::string& new_prefix)
 	{
-#if 1 // We support inheritance using "inherit" ITEMs
+#/*if 1 // We support inheritance using "inherit" ITEMs
 		Param param_copy = param_.copy(prefix,remove_prefix,new_prefix);
 
 		const int debug_level_min = 5;
@@ -392,10 +392,10 @@ namespace OpenMS
 			inherit_path_value = & param_copy.getValue("inherit");
 		}
 		return param_copy.copy("",true,new_prefix);
-#else
+#else*/
 		// old version, does not support "inherit" ITEMs
 		return param_.copy(prefix,remove_prefix,new_prefix);
-#endif
+// #endif
 	}
 
 

@@ -165,6 +165,9 @@ protected:
             return ILLEGAL_PARAMETERS;
         }
 
+		std::cout << "Reading grid file " << gridfile << std::endl;
+		std::cout << "Reading pairs file " << pairsfile << std::endl;
+		
         //-------------------------------------------------------------
         // reading input
         //-------------------------------------------------------------

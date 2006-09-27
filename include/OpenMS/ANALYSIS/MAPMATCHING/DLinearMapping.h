@@ -115,12 +115,20 @@ namespace OpenMS
 		{
 			slope_       = pa.getValue("DLinearMapping:slope");
 			intercept_   = pa.getValue("DLinearMapping:intercept");
+			
 			this->param_ = pa;
 		}
 		
 		// ok for D==1 but otherwise ????
+		// Who cares about D>1 anyway ? :-)
 		void apply(DPosition<D>& pos) const
 		{
+// 			std::cout << "DLinearMapping slope and intercept:  "
+// 								<< this 
+// 								<< ' ' << slope_
+// 								<< ' ' << intercept_
+// 								<< std::endl;
+								
 			for (UnsignedInt i=0; i < D; ++i)
 			{
 				pos[i] = intercept_ + slope_ * pos[i];
@@ -129,11 +137,11 @@ namespace OpenMS
 			
 		void apply( typename Traits::RealType & pos) const
 		{
-			// std::cout << "DLinearMapping slope and intercept:  "
-			// 					<< this 
-			// 					<< ' ' << slope_
-			// 					<< ' ' << intercept_
-			// 					<< std::endl;
+// 			std::cout << "DLinearMapping slope and intercept:  "
+// 								<< this 
+// 								<< ' ' << slope_
+// 								<< ' ' << intercept_
+// 								<< std::endl;
 			pos *= slope_;
 			pos += intercept_;
 		}

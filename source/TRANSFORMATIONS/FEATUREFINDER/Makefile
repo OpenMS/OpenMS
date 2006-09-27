@@ -53,12 +53,16 @@ CPP_SOURCES=\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
 	SweepExtender.C\
-	PPExtender.C
+	PPExtender.C\
+	IsotopeFinder.C\
+	WaveletExtender.C\
+	WaveletSeeder.C
 
 ifeq ($(WAVELETS),true)
 WAV_SOURCES=\
 	IsotopeFinder.C\
-	WaveletExtender.C
+	WaveletExtender.C\
+	WaveletSeeder.C
 endif
 
 ifeq ($(GSL_SUPPORT),true)
@@ -69,7 +73,7 @@ ifeq ($(GSL_SUPPORT),true)
 	LogNormalModel.C
 endif
 
-ADD_CPP_SOURCES = ${GSL_SOURCES} ${WAV_SOURCES}
+ADD_CPP_SOURCES = ${GSL_SOURCES}  ${WAV_SOURCES}
 
 include ../../common.mak
 -include .Dependencies
