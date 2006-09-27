@@ -175,7 +175,7 @@ class TOPPFileInfo
 					cout << ", " << *it;
 				}
 			}
-			cout << endl << endl; 				 
+			cout << endl << "Number of peaks: " << exp.getSize() << endl << endl; 		 
 	
 			//count how many spectra per MS level there are
 			vector<UnsignedInt> counts(5);
