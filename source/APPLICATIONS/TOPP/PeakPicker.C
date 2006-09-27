@@ -52,7 +52,9 @@ using namespace std;
    before a given asymmetric peak function is fitted to the raw data.
    In an optional third stage, the resulting fit can be further improved using
    techniques from nonlinear optimization.
- 
+ 	 
+ 	 @todo Add the three main parameters to the the command line / ini file (Eva)
+ 	 
    @ingroup TOPP
 */
 

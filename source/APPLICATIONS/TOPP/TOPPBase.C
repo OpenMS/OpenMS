@@ -269,7 +269,60 @@ namespace OpenMS
 		}
 	}
 
-	DataValue TOPPBase::getParam_(const String& key)
+	bool TOPPBase::getParamAsBool_(const String& key, bool default_value)
+	{
+		const DataValue& tmp = getParam_(key);
+		switch (tmp.valueType())
+		{
+			case DataValue::STRVALUE:
+				{
+					String tmp2 = (string)(tmp);
+					if (tmp2=="off" || tmp2=="false")
+					{
+						return false;
+					}
+					else if (tmp2=="on" || tmp2=="true")
+					{
+						return true;
+					}
+				}
+				break;
+			case DataValue::INTVALUE:
+			case DataValue::SHOVALUE:
+			case DataValue::LONVALUE:
+				{
+					SignedInt tmp2 = (SignedInt)(tmp);
+					if (tmp2==0)
+					{
+						return false;
+					}
+					else if (tmp2==1)
+					{
+						return true;
+					}
+				}
+				break;
+			case DataValue::FLOVALUE:
+			case DataValue::DOUVALUE:
+				{
+					float tmp2 = (float)(tmp);
+					if (tmp2==0.0)
+					{
+						return false;
+					}
+					else if (tmp2==1.0)
+					{
+						return true;
+					}
+				}
+				break;
+			case DataValue::EMPTYVALUE:
+			  break;
+		}
+		return default_value; 
+	}
+
+	const DataValue& TOPPBase::getParam_(const String& key)
 	{
 		//command line
 		String key_string = key;

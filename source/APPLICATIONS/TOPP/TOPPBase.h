@@ -139,32 +139,43 @@ namespace OpenMS
 		void writeDebug_(const String& text, UnsignedInt min_level);
 			
 		/**
-			 @brief Return a value of param_ as a string or @p default_value when this value is not set.
+			 @brief Return the value @key of param_ as a string or @p default_value when this value is not set.
 				
 			 Searches in the command line options, the instance section and common section (in that order).
 		*/
 		String getParamAsString_(const String& key, const String& default_value="");
 
 		/**
-			 @brief Return a value of param_ as an integer or @p default_value when this value is not set.
+			 @brief Return the value @key of param_ as an integer or @p default_value when this value is not set.
 				
 			 Searches in the command line options, the instance section and common section (in that order).
 		*/
 		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0);
 
 		/**
-			 @brief Return a value of param_ as a double or @p default_value when this value is not set.
+			 @brief Return the value @key of param_ as a double or @p default_value when this value is not set.
 				
 			 Searches in the command line options, the instance section and common section (in that order).
 		*/
 		double getParamAsDouble_(const String& key, double default_value=0);
 
 		/**
+			 @brief Return the value @key of param_ as a bool.
+			 
+			 If the DataValue is a string, the values 'off', 'on', 'true' and 'false' are interpreted. 
+			 If the DataValue is a numerical value, the values '0' and '1' interpreted.
+			 For all other values and when the value of key @p key is not set, the @p default_value is returned.
+			 
+			 Searches in the command line options, the instance section and common section (in that order).
+		*/
+		bool getParamAsBool_(const String& key, bool default_value=false);
+
+		/**
 			 @brief Return a value of param_ as DataValue.
 				
 			 Searches in the command line options, the instance section and common section (in that order).
 		*/
-		DataValue getParam_(const String& key);
+		const DataValue& getParam_(const String& key);
 						
 		/**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.

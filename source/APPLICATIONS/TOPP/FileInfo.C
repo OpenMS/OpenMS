@@ -193,7 +193,7 @@ class TOPPFileInfo
 			}		
 			
 			// '-m' show meta info
-			if (getParam_("m")!=DataValue::EMPTY)
+			if (getParamAsBool_("m"))
 			{
 				String date;
 				exp.getDate().get(date);
