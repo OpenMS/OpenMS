@@ -604,7 +604,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArrayNonPoly
 
 		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
 		{
-			if (iter->getIntensity() <= (*wt_thresholds)[c]*5*c_av_intens)
+			if (iter->getIntensity() <= (*wt_thresholds)[c]*1*c_av_intens)
 				break;
 		}
 
@@ -656,7 +656,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArrayNonPoly
 					scoresC[c][c_index] += c_val; 
 			}
 
-			if (scoresC[c][c_index] <= 1.5*iter->getIntensity())
+			if (scoresC[c][c_index] <= 1.1*iter->getIntensity())
 				scoresC[c][c_index] = 0;
 		}	
 	}
