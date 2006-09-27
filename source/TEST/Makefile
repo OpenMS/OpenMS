@@ -225,7 +225,9 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
 	SmoothFilter_test\
-	GaussFilter_test
+	GaussFilter_test\
+  MaxReducer_test\
+	SumReducer_test
 
 
 #COMPARISON

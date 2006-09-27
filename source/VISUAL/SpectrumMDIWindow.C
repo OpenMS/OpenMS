@@ -1930,6 +1930,8 @@ namespace OpenMS
     default_preferences.setValue("3D:IntMode",0);
     default_preferences.setValue("3D:Dot:LineWidth",2);
     default_preferences.setValue("3D:IntScale:Mode",0);
+		default_preferences.setValue("3D:Data:Mode",0);
+		default_preferences.setValue("3D:Data:Ratio",10);
     prefs_.setDefaults(default_preferences,"Preferences");
   }
 

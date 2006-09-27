@@ -273,7 +273,19 @@ namespace OpenMS
 			axes_color_3d_ = new ColorSelector(box);
 			
 			grid->addWidget(box,1,1);	
-			
+
+
+			box = new QGroupBox(2,Qt::Horizontal,"Data",background);
+			QVButtonGroup* data_group = new QVButtonGroup("DataReduction",box);
+			reduction_off_3d_ = new QRadioButton("Off",data_group);	
+			reduction_on_max_3d_ = new QRadioButton("Max-Reduction",data_group);
+			reduction_on_sum_3d_ = new QRadioButton("Sum-Reduction",data_group);
+			box->addSpace(0);
+			label = new QLabel("Reduction Ratio [%]: ",box);
+			reduction_ratio_3d_ = new QSpinBox(1,100,1,box,"");
+			grid->addWidget(box,2,1);	
+
+			grid->addWidget(box,2,1);	
 			grid->setRowStretch (2,2);
 			
 			tab->addTab(background,"3D View");
@@ -328,6 +340,22 @@ namespace OpenMS
 			axis_mapping_2d_->setCurrentText(manager_->getPrefAsString("Preferences:2D:Mapping:MappingOfMzTo").c_str());
 	
 			//3d
+
+			if (UnsignedInt(manager_->getPref("Preferences:3D:Data:Mode"))==Spectrum3DCanvas::REDUCTION_MAX)
+			{
+					reduction_on_max_3d_->setChecked(true);
+			}
+			else if (UnsignedInt(manager_->getPref("Preferences:3D:Data:Mode"))==Spectrum3DCanvas::REDUCTION_OFF)
+			{
+				reduction_off_3d_->setChecked(true);
+			}
+			else if(UnsignedInt(manager_->getPref("Preferences:3D:Data:Mode"))==Spectrum3DCanvas::REDUCTION_SUM)
+			{
+				reduction_on_sum_3d_->setChecked(true);
+			}
+			
+			reduction_ratio_3d_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Ratio")));
+		
 			if (UnsignedInt(manager_->getPref("Preferences:3D:Dot:Mode"))==Spectrum3DCanvas::DOT_GRADIENT)
 			{
 				dot_mode_gradient_3d_->setChecked(true);
@@ -417,6 +445,21 @@ namespace OpenMS
 		  manager_->setPref("Preferences:3D:BackgroundColor",back_color_3d_->getColor().name().ascii());
 			manager_->setPref("Preferences:3D:AxesColor",axes_color_3d_->getColor().name().ascii());
 			manager_->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
+
+			if(reduction_on_max_3d_->isChecked())
+			{
+				manager_->setPref("Preferences:3D:Data:Mode",	Spectrum3DCanvas::REDUCTION_MAX);
+			}
+			else if(reduction_off_3d_->isChecked())
+			{
+				manager_->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_OFF);
+			}
+			else if (reduction_on_sum_3d_->isChecked())
+			{
+				manager_->setPref("Preferences:3D:Data:Mode",	Spectrum3DCanvas::REDUCTION_SUM);
+			}
+			manager_->setPref("Preferences:3D:Data:Ratio",reduction_ratio_3d_->value());
+
 		}
 		
 		void SpectrumMDIWindowPDP::browseDefaultPath_()

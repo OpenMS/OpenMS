@@ -21,51 +21,27 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Marc Sturm $
+# $Maintainer: Cornelia Friedleh $
 # --------------------------------------------------------------------------
 
-all:	default
+include ../../config_defs.mak
 
-include ../config_defs.mak
-
-DIRECTORY=FILTERING
+DIRECTORY=FILTERING/DATAREDUCTION
 
 THISLIB=$(LIBNAME)
 
+
+ifeq ($(GSL_SUPPORT),true)
+  GSL_CPP_SOURCES = \
+  DataReducer.C\
+  MaxReducer.C\
+	SumReducer.C	
+endif
+
+CPP_SOURCES = \
+ $(GSL_CPP_SOURCES)
+
+include ../../common.mak
 -include .Dependencies
 
-# Take care of subdirectories
-
-SECOND_LEVEL_DIRS=\
-  BASELINE\
-  CALIBRATION\
-	ID\
-  NOISEESTIMATION\
-  SMOOTHING\
-  TRANSFORMERS\
-  DATAREDUCTION
-
-default:	dirs $(OBJECTS)
-
-dirs:	dummy
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET="default"
-
-subdirs:	dummy
-	@set -e; for i in $(SUBDIRS); do cd $$i; if $(MAKE) $(TARGET); then cd .. ; else cd .. ; exit 1 ; fi ; done
-
-dummy:
-
-depend:	dummy
-	@echo "" > .Dependencies
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=depend
-
-default_clean:
-	@-$(RM) -rf .Dependencies *~  core.*
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=default_clean
-
-collectlib:
-	@$(MAKE) subdirs SUBDIRS="$(SECOND_LEVEL_DIRS)" TARGET=collectlib
-
-
-include ../config.mak
 

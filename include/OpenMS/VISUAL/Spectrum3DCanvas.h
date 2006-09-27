@@ -31,6 +31,13 @@
 #include <qpoint.h>
 
 // STL
+//factory
+#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
+
+
+
+
+
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
@@ -74,6 +81,12 @@ namespace OpenMS
 			DOT_BLACK = 0,            ///< use black only
 			DOT_GRADIENT = 1          ///< use gradient
       };
+		enum DataModes 
+      {
+			REDUCTION_OFF = 0,          
+			REDUCTION_MAX = 1,
+			REDUCTION_SUM = 2
+      };
     ///
     enum ShadeModes 
       {
@@ -106,6 +119,8 @@ namespace OpenMS
 		virtual void intensityModeChange_();
     ///preferences
     SignedInt getDotMode();
+		SignedInt getDataMode();
+		void setDataMode(int);
     void setDotGradient(const std::string& gradient);
     SignedInt getShadeMode();
     UnsignedInt getDotInterpolationSteps();
@@ -115,9 +130,19 @@ namespace OpenMS
 	  void connectMouseEvents();
     void showLegend(bool);
     Spectrum3DOpenGLCanvas* openglcanvas_;
+
     int current_zoom_;
+
 		bool legend_shown_;
-    
+
+    void makeReducedDataSet();
+
+		DataModes data_mode_;
+
+		int current_data_mode_;
+
+		Param reduction_param_;
+
 public slots:
     ///shows the contextmenu at position p
     void showContextMenu(QPoint p);

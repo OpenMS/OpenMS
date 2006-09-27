@@ -34,6 +34,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
+#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 //STL
 #include <stack>
@@ -686,6 +687,8 @@ namespace OpenMS
 		
 		/// Stores whether or not to show a grid.
 		bool show_grid_;
+		///
+		bool show_reduced_;
 		
 		/// The zoom stack. This is dealt with in the changeVisibleArea_() and zoomBack_() functions.
 		std::stack<AreaType> zoom_stack_;
@@ -720,6 +723,11 @@ namespace OpenMS
 		
 		/// Array of datasets
 		std::vector<ExperimentType > datasets_;
+		/// Array of reduced datasets
+		std::vector<ExperimentType > reduced_datasets_;
+		
+		/// pointer of the used datareduction 
+		DataReducer * datareducer_;
 
 		/// Array of datasets
 		std::vector<FeatureMapType > features_;

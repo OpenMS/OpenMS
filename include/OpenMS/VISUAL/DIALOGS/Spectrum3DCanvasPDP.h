@@ -63,6 +63,12 @@ namespace OpenMS
       QSpinBox* dot_interpolation_steps_;
       QRadioButton* shade_mode_flat_;
       QRadioButton* shade_mode_smooth_;
+      
+      QRadioButton* reduction_on_max_;
+      QRadioButton* reduction_on_sum_;
+      QRadioButton* reduction_off_;
+      QSpinBox* reduction_ratio_;
+    
       ColorSelector* axes_color_;
       QSpinBox* dot_line_width_;
     };

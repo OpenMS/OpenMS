@@ -89,7 +89,18 @@ namespace OpenMS
 			label = new QLabel("Axes Color: ",box);
 			axes_color_ = new ColorSelector(box);
 			grid->addWidget(box,1,1);	
+
+			box = new QGroupBox(2,Qt::Horizontal,"Data",this);
+			QVButtonGroup* data_group = new QVButtonGroup("DataReduction",box);
+			reduction_off_ = new QRadioButton("Off",data_group);	
+			reduction_on_max_ = new QRadioButton("Max-Reduction",data_group);
+			reduction_on_sum_ = new QRadioButton("Sum-Reduction",data_group);			
+			box->addSpace(0);
 			
+			label = new QLabel("Reduction Ratio [%]: ",box);
+			reduction_ratio_ = new QSpinBox(1,100,1,box,"");
+			grid->addWidget(box,2,1);	
+
 			load();
 		}
 
@@ -113,6 +124,23 @@ namespace OpenMS
 					dot_mode_black_->setChecked(true);
 				}
 			}
+
+			if (man->getDataMode()==Spectrum3DCanvas::REDUCTION_MAX)
+			{
+				reduction_on_max_->setChecked(true);
+			}
+			else if (man->getDataMode()==Spectrum3DCanvas::REDUCTION_OFF)
+			{
+				reduction_off_->setChecked(true);
+			}
+			else if(man->getDataMode()==Spectrum3DCanvas::REDUCTION_SUM)
+			{
+				reduction_on_sum_->setChecked(true);
+				
+			}
+			reduction_ratio_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Ratio")));
+ 
+
 			if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
 			{
 				shade_mode_flat_->setChecked(true);
@@ -156,10 +184,25 @@ namespace OpenMS
 			else
 			{ 
 				if(dot_mode_black_->isChecked())
-					{
-						man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
-					}
+				{
+					man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
+				}
 			} 
+			if(reduction_on_max_->isChecked())
+			{
+				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_MAX);
+			}
+			else if(reduction_off_->isChecked())
+			{
+				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_OFF);
+			}
+			else if(reduction_on_sum_->isChecked())
+			{
+				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_SUM);
+			}
+			man->setPref("Preferences:3D:Data:Ratio",reduction_ratio_->value());
+			man->setDataMode(man->getPrefAsInt("Preferences:3D:Data:Mode"));
+			
 			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());

@@ -87,7 +87,7 @@ namespace OpenMS
 	Param defaults_;
 	bool check_defaults_;
     String name_;
-
+		
   };
 
 	/// Print the contents to a stream.

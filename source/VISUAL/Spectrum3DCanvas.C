@@ -34,7 +34,9 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DCanvasPDP.h>
-
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
 using namespace std;
 
 namespace OpenMS
@@ -49,6 +51,7 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
 	action_mode_ = AM_TRANSLATE;
 	legend_shown_ = true;
+	show_reduced_ = false;
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()
@@ -86,6 +89,10 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	currentDataSet_().sortSpectra(true);
 	currentDataSet_().updateRanges(1);	
 	recalculateRanges_(1,0,2);
+	if(getPrefAsInt("Preferences:3D:Data:Mode")!=0)
+	{
+		makeReducedDataSet();
+	}
 	visible_area_.assign(overall_data_range_);
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
@@ -94,7 +101,64 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
  	repaintAll();
 	return current_data_;
 }
+void Spectrum3DCanvas::makeReducedDataSet()
+{
+	reduction_param_.clear();
+	reduction_param_.setValue("Ratio", getPrefAsInt("Preferences:3D:Data:Ratio"));
+	switch(getPrefAsInt("Preferences:3D:Data:Mode"))
+	{
+	case 0:
+		current_data_mode_ = 0;
+		show_reduced_ = false;
+		recalculateRanges_(1,0,2);
+		disp_ints_.clear();
+		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
 	
+ 		break;
+
+	case 1:
+		{
+			show_reduced_ = true;
+			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
+			datareducer_ = Factory<DataReducer>::create("MaxReducer");
+			for(UnsignedInt i = 0; i<datasets_.size();i++)
+  		{
+				ExperimentType out_experiment;
+				datareducer_->setParameter(reduction_param_);
+				datareducer_->applyReduction(datasets_[current_data_],out_experiment);
+				reduced_datasets_.push_back(out_experiment);
+			}
+		}
+		current_data_mode_ = 1;
+		recalculateRanges_(1,0,2);
+		disp_ints_.clear();
+		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
+		break;
+		
+	case 2:
+		{	
+			show_reduced_ = true;
+			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
+			datareducer_ = Factory<DataReducer>::create("SumReducer");
+			for(UnsignedInt i = 0; i<datasets_.size();i++)
+				{
+					ExperimentType out_experiment;
+					datareducer_->setParameter(reduction_param_);
+					datasets_[current_data_].sortSpectra(true);
+					datareducer_->applyReduction(datasets_[current_data_],out_experiment);
+					reduced_datasets_.push_back(out_experiment);
+				}
+			
+		}
+		current_data_mode_ = 2;
+		recalculateRanges_(1,0,2);
+		disp_ints_.clear();
+		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
+		break;
+	}
+	
+
+}
 void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 {
 	SpectrumCanvas::setMainPreferences(prefs);
@@ -192,13 +256,35 @@ Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
 
 ////preferences////////////////////
   
+SignedInt Spectrum3DCanvas::getDataMode()
+{
+	if(prefs_.getValue("Preferences:3D:Data:Mode").isEmpty())
+	{
+		return 0;
+	}
+	return SignedInt(prefs_.getValue("Preferences:3D:Data:Mode"));
+}
+
+void Spectrum3DCanvas::setDataMode(int data_mode)
+{
+	if(current_data_mode_ != data_mode || reduction_param_.getValue("Ratio")!=getPref("Preferences:3D:Data:Ratio"))
+	{
+		makeReducedDataSet();
+	if (zoom_stack_.empty())
+	{
+ 			resetZoom();
+	}
+		repaintAll();
+	}
+}
+
+
 SignedInt Spectrum3DCanvas::getDotMode()
 {
 	if (prefs_.getValue("Preferences:3D:Dot:Mode").isEmpty())
 	{
 		return 0;
 	}
-	
 	return SignedInt(prefs_.getValue("Preferences:3D:Dot:Mode"));
 }
 

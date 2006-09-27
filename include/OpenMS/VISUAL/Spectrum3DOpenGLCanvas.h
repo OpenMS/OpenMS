@@ -190,6 +190,7 @@ namespace OpenMS
 		///
 		void resetTranslation();
 		///
+		void timeMessure();
 		ViewMode view_mode_;
 		/// displaylist
     GLuint stickdata_;
@@ -266,6 +267,9 @@ namespace OpenMS
 	// 	QPixmap *pix_;
 		QPainter paint_;
 		bool zoom_paint_;
+
+
+		
 public slots:
     /// first normalize the angel and then set xRot_ 
     void setRotationX(int angle);

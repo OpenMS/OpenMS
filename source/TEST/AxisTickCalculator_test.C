@@ -34,7 +34,7 @@
 
 using namespace OpenMS;
 
-START_TEST(AxisTickCalculator, "$Id:$")
+START_TEST(AxisTickCalculator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
