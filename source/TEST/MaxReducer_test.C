@@ -62,7 +62,7 @@ CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
   Param param;	
   MaxReducer maxreducer;
   param.setValue("Ratio",20);
-  maxreducer.setParameter(param);
+  maxreducer.setParam(param);
   in.updateRanges();
   maxreducer.applyReduction(in,out);
 

@@ -35,8 +35,10 @@ using namespace std;
 
 namespace OpenMS
 {
-	DataReducer::DataReducer(): FactoryProduct()
+	DataReducer::DataReducer()
+		: FactoryProduct()
 	{
+		defaults_.setValue("Ratio",20);
 	} 
 	
 	DataReducer::~DataReducer()
@@ -54,31 +56,6 @@ namespace OpenMS
    FactoryProduct::operator=(source);
 	 return *this;
   }
-	
-	void DataReducer::setParameter(const Param& p)
-	{
-		if(checkParameter(p))
-		{
-			param_ = p;
-		}
-		else
-		{
-			throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The Parmater is empty");
-		}
-		}
-	
-	bool DataReducer::checkParameter(const Param& p)
-	{
-		if(p.empty())
-		{
-			throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The Parmater is empty");
- 			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
 	
 	void DataReducer::registerChildren()
 	{

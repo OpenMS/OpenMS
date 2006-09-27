@@ -60,7 +60,7 @@ CHECK( virtual  void applyReduction(const  MSExperiment<>& , MSExperiment<>&  ))
   Param param;	
   SumReducer sumreducer;
   param.setValue("Ratio",20);
-  sumreducer.setParameter(param);
+  sumreducer.setParam(param);
   in.updateRanges();
   sumreducer.applyReduction(in,out);
 

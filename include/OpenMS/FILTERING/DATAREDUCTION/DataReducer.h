@@ -57,15 +57,8 @@ namespace OpenMS
  		/// calculates the reduced MSExperiment
 		virtual void applyReduction(const ExperimentType& in, ExperimentType& out )=0;
 
-		///sets the ReductionParameter
-		virtual void setParameter(const Param& p);
-
 		/// register all derived classes here 
 		static void registerChildren();
-		///parameter, wich contains the reduction-ratio
-		Param param_;
-	private:
-		bool checkParameter(const Param& p);
 	
 	};
 	

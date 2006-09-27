@@ -124,7 +124,7 @@ void Spectrum3DCanvas::makeReducedDataSet()
 			for(UnsignedInt i = 0; i<datasets_.size();i++)
   		{
 				ExperimentType out_experiment;
-				datareducer_->setParameter(reduction_param_);
+				datareducer_->setParam(reduction_param_);
 				datareducer_->applyReduction(datasets_[current_data_],out_experiment);
 				reduced_datasets_.push_back(out_experiment);
 			}
@@ -143,7 +143,7 @@ void Spectrum3DCanvas::makeReducedDataSet()
 			for(UnsignedInt i = 0; i<datasets_.size();i++)
 				{
 					ExperimentType out_experiment;
-					datareducer_->setParameter(reduction_param_);
+					datareducer_->setParam(reduction_param_);
 					datasets_[current_data_].sortSpectra(true);
 					datareducer_->applyReduction(datasets_[current_data_],out_experiment);
 					reduced_datasets_.push_back(out_experiment);

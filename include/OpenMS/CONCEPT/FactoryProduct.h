@@ -65,7 +65,7 @@ namespace OpenMS
     /// parameterized constructor
     FactoryProduct(const Param& p);
 
-    /// set parameters
+    /// set/checks parameters and applies defaults
     virtual void setParam(const Param& p);
 
     /// get parameters (const access)
@@ -79,13 +79,13 @@ namespace OpenMS
 
     bool operator == (const FactoryProduct& rhs) const;
 	
-	bool operator != (const FactoryProduct& rhs) const;
+		bool operator != (const FactoryProduct& rhs) const;
 
 	 protected:
     	
-	mutable Param param_;
-	Param defaults_;
-	bool check_defaults_;
+		mutable Param param_;
+		Param defaults_;
+		bool check_defaults_;
     String name_;
 		
   };
