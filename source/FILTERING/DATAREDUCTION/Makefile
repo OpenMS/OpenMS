@@ -34,8 +34,7 @@ THISLIB=$(LIBNAME)
 ifeq ($(GSL_SUPPORT),true)
   GSL_CPP_SOURCES = \
   DataReducer.C\
-  MaxReducer.C\
-	SumReducer.C	
+  MaxReducer.C
 endif
 
 CPP_SOURCES = \
@@ -44,4 +43,5 @@ CPP_SOURCES = \
 include ../../common.mak
 -include .Dependencies
 
+#SumReducer.C
 
