@@ -34,22 +34,24 @@ namespace OpenMS
   {
 		name_ = SumReducer::getName();
   }
+  
   SumReducer::~SumReducer()
   {
   }
+  
 	void SumReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
+		// set name
 		string name = "sum_reduced_";
 		name+=in.getName();
 		out.setName(name);
-		int ratio = param_.getValue("Ratio");
-		double reduction = (double)ratio * 0.01;
-		std::vector<PeakT> mz_values;
+		
+		
+		double reduction = (double)param_.getValue("Ratio") * 0.01;
+		std::vector<PeakType> mz_values;
 		SpectrumType base;
 		
-		for(ExperimentType::ConstIterator spec_it = in.RTBegin(in.getMinRT()); 
-				spec_it !=in.RTEnd(in.getMaxRT()); 
-				++spec_it)
+		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{
 			int mz_counter =1;
 			
@@ -59,9 +61,7 @@ namespace OpenMS
 			{
 				reduction1 = 1;
 			}
-			for(SpectrumType::ConstIterator it = spec_it->begin(); 
-					it!=spec_it->end(); 
-					++it)
+			for(SpectrumType::ConstIterator it = spec_it->begin(); it!=spec_it->end(); ++it)
 			{
 				mz_values.push_back(*it);
 				
@@ -72,10 +72,10 @@ namespace OpenMS
 					{
 						mz_values.push_back(*it);	
 					}
-					base.push_back(findSumIntensity(mz_values));		
+					base.push_back(findSumIntensity_(mz_values));		
 					base.setRetentionTime(spec_it->getRetentionTime(),0,0);
 					base.setMSLevel(spec_it->getMSLevel()); 						
-					mz_values.erase(mz_values.begin(),mz_values.end());
+					mz_values.clear();
 					mz_counter++;
 					
 				}
@@ -89,12 +89,12 @@ namespace OpenMS
 		out.updateRanges();
 	}
 
-	SumReducer::PeakT  SumReducer::findSumIntensity(std::vector<PeakT >& peaks)
+	SumReducer::PeakType SumReducer::findSumIntensity_(std::vector<PeakType>& peaks)
 	{
 	 	double sumintensity = 0;
- 		BaseSpectrum::Iterator it = peaks.begin();
-		std::vector<PeakT >::iterator i;
- 		for( i = peaks.begin();i!=peaks.end();i++)
+ 		SpectrumType::Iterator it = peaks.begin();
+		
+ 		for(std::vector<PeakType>::iterator i = peaks.begin();i!=peaks.end();i++)
  		{
  			sumintensity = sumintensity + i->getIntensity();
 			if(i->getIntensity()>=it->getIntensity())
@@ -104,7 +104,7 @@ namespace OpenMS
 		}
 		it->setIntensity(sumintensity);
 		return *it;
-}
+	}
 
 	
 }// namespace openms

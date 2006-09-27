@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
 using namespace std;
@@ -34,74 +33,66 @@ namespace OpenMS
   {	
 		name_= MaxReducer::getName();
   }
+  
   MaxReducer::~MaxReducer()
   {
   }
+  
  	void MaxReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
 		string name = "max_reduced_";
 		name+=in.getName();
 		out.setName(name);	
-		double ratio = param_.getValue("Ratio");
- 		ratio = ratio * 0.01;
-		std::vector<PeakT> mz_values;
-		SpectrumType base;
-		 for(ExperimentType::ConstIterator spec_it = in.RTBegin(in.getMinRT()); 
-				spec_it !=in.RTEnd(in.getMaxRT()); 
-				++spec_it)
-		 {
-			 UnsignedInt  mz_counter = 1;
-			 double ratio1 = (double)spec_it->size() * ratio;
-			 if(ratio1 <=1)
-			 {
-				 ratio1 = 1;
-			 }
-			 for(SpectrumType::ConstIterator it  = spec_it->begin(); 
-					 it!=spec_it->end(); 
-					 ++it)
-			 {
-				 mz_values.push_back(*it);
-				 if(mz_counter%(int)ratio1 ==0 ^ mz_counter == spec_it->size()+1)
-				 {
-					 if(mz_values.size() == 0)
-					 {
-						 mz_values.push_back(*it);	
-					 }
-					 BaseSpectrum::Iterator it1 = findMaxIntensity(mz_values);
-					 base.push_back(*it1);		
-					 base.setRetentionTime(spec_it->getRetentionTime(),0,0);
-					 base.setMSLevel(spec_it->getMSLevel()); 
-					 mz_values.erase(mz_values.begin(),mz_values.end());
-				 }
-				 mz_counter++;
-				 
-			 }
-			 
-			if(mz_values.size()!=0)
-			{
-				mz_values.erase(mz_values.begin(),mz_values.end());
-			}	
-			if(!base.empty())
-			{	
-				out.push_back(base);
-				base.erase(base.begin(),base.end());
-			}
-		 }
-		 out.updateRanges();
-		 
-	}
-	MaxReducer::BaseSpectrum::Iterator  MaxReducer::findMaxIntensity(std::vector<PeakT >& peaks)
-	{
-		BaseSpectrum::Iterator it = peaks.begin();
-		std::vector<PeakT >::iterator i;
-		for( i = peaks.begin();i!=peaks.end();i++)
+		
+		double ratio = (double)(param_.getValue("Ratio")) * 0.01;
+ 		
+		out.resize(in.size());
+		UnsignedInt out_spec = 0;
+
+		//variables
+		UnsignedInt peaks_per_bin;
+		UnsignedInt counter;
+		SpectrumType::ConstIterator begin;
+		SpectrumType::ConstIterator end;
+		SpectrumType::ConstIterator max;	
+
+		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{
-			if(i->getIntensity()>it->getIntensity())
+			out[out_spec].setRetentionTime(spec_it->getRetentionTime(),0,0);
+			out[out_spec].setMSLevel(spec_it->getMSLevel()); 
+			
+			//init
+			peaks_per_bin = std::max( (int)(spec_it->size() * ratio), 1);
+			begin  = spec_it->begin();
+			end  = begin;
+			while (end != spec_it->end())
 			{
-				it = i;
+				counter=0;
+				while (end != spec_it->end() && counter < peaks_per_bin)
+				{
+					++end;
+					++counter;
+				}
+				
+				max = begin;
+				while (begin != end)
+				{
+					if (begin->getIntensity() > max->getIntensity())
+					{
+						max = begin;
+					}
+					++begin;
+				}
+				out[out_spec].push_back(*max);
+			}
+
+			if(!out[out_spec].empty())
+			{	
+				++out_spec;
 			}
 		}
-		return it;
+		out.resize(out_spec);
+		out.updateRanges(); 
 	}
 	
 }// namespace openms

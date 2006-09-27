@@ -33,32 +33,38 @@
 #include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 namespace OpenMS
 {	
-/** @brief Abstract base class for different datareduction-methodes
-	every derived class has to implement the static functions
-	"DataReducer* create()" and "const String getName()" (see FactoryProduct for details)
+/** 
+	@brief Abstract base class for different datareduction-methodes
+
+	@note every derived class has to implement the static functions
+	      "DataReducer* create()" and "const String getName()" (see FactoryProduct for details)
 */ 
-	class DataReducer:public FactoryProduct
+	class DataReducer
+	  : public FactoryProduct
 	{	
-	public:
-		typedef MSExperiment<> ExperimentType;
+		public:
+			typedef MSExperiment<> ExperimentType;
+			typedef ExperimentType::SpectrumType SpectrumType;
+			typedef ExperimentType::PeakType PeakType;
 	
-		///constructor
-		DataReducer();
-
-		///destructor
-		~DataReducer();
-
-		/// assignment operator
-		DataReducer& operator = (const DataReducer& source);
-
-		///copyconstructor
-		DataReducer(const DataReducer& source);
-
- 		/// calculates the reduced MSExperiment
-		virtual void applyReduction(const ExperimentType& in, ExperimentType& out )=0;
-
-		/// register all derived classes here 
-		static void registerChildren();
+		
+			///constructor
+			DataReducer();
+	
+			///destructor
+			~DataReducer();
+	
+			/// assignment operator
+			DataReducer& operator = (const DataReducer& source);
+	
+			///copyconstructor
+			DataReducer(const DataReducer& source);
+	
+	 		/// calculates the reduced MSExperiment
+			virtual void applyReduction(const ExperimentType& in, ExperimentType& out )=0;
+	
+			/// register all derived classes here 
+			static void registerChildren();
 	
 	};
 	

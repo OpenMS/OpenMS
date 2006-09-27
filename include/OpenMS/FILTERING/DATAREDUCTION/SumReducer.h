@@ -31,41 +31,40 @@
 
 namespace OpenMS
 {
-	class SumReducer:public DataReducer
+	class SumReducer
+	  : public DataReducer
 	{
+		/**
+			@brief Reduces the amount of data in an experiment by summing the intensities of neighboring peaks.
+			
+		*/
+		public:
+		 	///constructor
+			SumReducer();
+	
+			///destructor
+			~SumReducer();
+	
+			/// calculates the reduced MSExperiment
+	 		virtual void applyReduction(const ExperimentType& in,ExperimentType& out );
+			
+			/// returns an instance of this class
+			static DataReducer* create()
+			{	
+				return new SumReducer();
+			}
+	
+			/// returns the name of this module
+			static const String getName()
+			{
+				return "SumReducer";
+			}
 
-		typedef DPeak<1> PeakT;
-
-		typedef MSSpectrum< PeakT > 	SpectrumType;
-
-		typedef DSpectrum< 1, DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
-
-	public:
-	 	///constructor
-		SumReducer();
-
-		///destructor
-		~SumReducer();
-
-		/// calculates the reduced MSExperiment
- 		virtual void applyReduction(const ExperimentType& in,ExperimentType& out );
-		
-		/// returns an instance of this class
-		static DataReducer* create()
-		{	
-			return new SumReducer();
-		}
-
-		/// returns the name of this module
-		static const String getName()
-		{
-			return "SumReducer";
-		}
-	private:
-		/// find the peak for the reduced MSExperiment  
-		PeakT findSumIntensity(std::vector<PeakT >& peaks);
+		private:
+			/// find the peak for the reduced MSExperiment  
+			PeakType findSumIntensity_(std::vector<PeakType>& peaks);
 
 
-};
+	};
 }
 #endif

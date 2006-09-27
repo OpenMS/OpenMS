@@ -31,39 +31,35 @@
 
 namespace OpenMS
 {	
-
-	class MaxReducer:public DataReducer
+	/**
+		@brief Reduces the amount of data in an experiment by extracting the maximum intensity peaks.
+		
+	*/
+	class MaxReducer
+	  : public DataReducer
 	{
-		typedef DPeak<1> PeakT;
-		typedef MSSpectrum< PeakT > 	SpectrumType;
-		typedef DSpectrum< 1, DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
+		public:
 
-	public:
-
-		///constructor
-		MaxReducer();
-
-		///destructor
-		~MaxReducer();
-
-		/// calculates the reduced MSExperiment
-	 	virtual  void applyReduction(const  ExperimentType& in,  ExperimentType& out );
+			///constructor
+			MaxReducer();
 	
-		/// returns an instance of this class
-		static DataReducer* create()
-		{
-			return new MaxReducer();
-		}
-
-		/// returns the name of this module
-		static const  String getName()
-		{
-			return "MaxReducer";
-		}
-	private:
-		/// find the peak for the reduced MSExperiment  
-		BaseSpectrum::Iterator findMaxIntensity(std::vector<PeakT >& peaks);
-
+			///destructor
+			~MaxReducer();
+	
+			/// calculates the reduced MSExperiment
+		 	virtual  void applyReduction(const  ExperimentType& in,  ExperimentType& out );
+		
+			/// returns an instance of this class
+			static DataReducer* create()
+			{
+				return new MaxReducer();
+			}
+	
+			/// returns the name of this module
+			static const  String getName()
+			{
+				return "MaxReducer";
+			}
 	};
 }
 #endif
