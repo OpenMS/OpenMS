@@ -46,8 +46,7 @@ using namespace std;
 /**
 	@page LabeledMatcher LabeledMatcher
  
-	@brief Executes the pair matching algorithm
-	for labeled peptides.
+	@brief Executes the pair matching algorithm for labeled peptides.
  
 	This module identifies pairs of labeled "features" in a LC/MS map.
 	By feature, we understand a peptide in a MS sample that
@@ -94,10 +93,10 @@ protected:
     << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
     << "  -in  <file>       input file" << endl
     << "  -out <file>  	    output file" << endl
-    << "  -vis_all <file>   output file of all pairs "
-    << "for visualisation in TOPPView " << endl
-    << "  -vis_best <file>  output file of the best pairs "
-    << "for visualisation in TOPPView" << endl
+    << "  -vis_all <file>   output file of all pairs for visualisation in TOPPView"
+    << "  -vis_best <file>  output file of the best pairs for visualisation in TOPPView"
+    << ""
+    << "The boundaries on m/z and RT dimension can be defined only in the INI file!"
     << endl;
   }
 
@@ -116,20 +115,14 @@ protected:
     << "  <ITEM name=\"in\" value=\"input.xml\" type=\"string\"/>" << endl
     << "  <ITEM name=\"out\" value=\"output.xml\" type=\"string\"/>" << endl
     << "  <ITEM name=\"vis_all\" value=\"output_all_pairs.xml\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"vis_best\" value=\"output_vis_best.xml\" type=\"string\"/>" << endl;
-
-    /*    cerr << endl
-        << tool_name << " -- find pairs of labeled features in LC/MS data" << endl
-        << endl
-        << "INI options:" << endl
-        << endl
-        << " min_rt : minimum difference in retention time of second peptide to first" << endl
-        << " max_rt : maximum difference in retention time of second peptide to first" << endl
-        << " max_mz : maximum deviation from optimal m/z-difference "
-        << "between the features of a pairs" << endl
-        << endl
-        << "For a detailled description, please have a look at the doxygen documentation." << endl
-        << endl ;*/
+    << "  <ITEM name=\"vis_best\" value=\"output_vis_best.xml\" type=\"string\"/>" << endl
+		<< "  <NODE name=\"algorithm\">" << endl
+		<< "    <ITEM name=\"rt_pair_dist\" value=\"0.5\" type=\"float\"/>" << endl
+		<< "    <ITEM name=\"rt_stdev_low\" value=\"0.22\" type=\"float\"/>" << endl
+		<< "    <ITEM name=\"rt_stdev_high\" value=\"0.65\" type=\"float\"/>" << endl
+		<< "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>" << endl
+		<< "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>" << endl
+		<< "  </NODE>" << endl;
   }
 
   void setOptionsAndFlags_()

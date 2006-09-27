@@ -220,7 +220,8 @@ class TOPPSpectraFilter
 			// for every filter
 			for (vector<FactoryProduct*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				Param filter_param = getParamCopy_("SpectraFilter:1:filters:" + (*it)->getName() + ":", true);
+				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":filters:";
+				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":", true);
 	
 				String filter_name = (*it)->getName();
 				if (filter_name == "NLargest")

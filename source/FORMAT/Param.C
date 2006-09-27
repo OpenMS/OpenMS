@@ -441,7 +441,7 @@ namespace OpenMS
 			//without argument
 			if (options_without_argument.find(arg)!=options_without_argument.end())
 			{
-				values_[options_without_argument.find(arg)->second] = "";
+				values_[options_without_argument.find(arg)->second] = "true";
 			}
 			//with argument
 			else if (options_with_argument.find(arg)!=options_with_argument.end())

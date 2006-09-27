@@ -333,7 +333,7 @@ protected:
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-		String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
         Param add_param =  getParamCopy_(ini_location,true);
 
         DPosition<2> feat_pos1;

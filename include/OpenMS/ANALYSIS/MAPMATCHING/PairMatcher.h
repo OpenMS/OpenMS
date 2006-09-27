@@ -51,9 +51,9 @@ namespace OpenMS
 					<td>optimal pair distance in [min]</td></tr>
 			<tr><td>mz_stdev</td>
 					<td>standard deviation from optimal m/z distance</td></tr>
-			<tr><td>rt_stdev1</td>
+			<tr><td>rt_stdev_low</td>
 					<td>standard deviation below optimal retention time distance</td></tr>
-			<tr><td>rt_stdev2</td>
+			<tr><td>rt_stdev_high</td>
 					<td>standard deviation above optimal retention time distance</td></tr>
 			</table>
 	 **/

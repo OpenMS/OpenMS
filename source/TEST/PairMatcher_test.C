@@ -87,8 +87,8 @@ RESULT
 
 CHECK((PairMatcher& operator = (const PairMatcher& source)))
   PairMatcher pm1(features);
-	pm1.getParam().setValue("rt_stdev1",0.1);
-	pm1.getParam().setValue("rt_stdev2",0.2);
+	pm1.getParam().setValue("rt_stdev_low",0.1);
+	pm1.getParam().setValue("rt_stdev_high",0.2);
 	pm1.getParam().setValue("mz_stdev",0.3);
 	pm1.getParam().setValue("mz_pair_dist",5.0);
 	pm1.getParam().setValue("rt_pair_dist",0.4);

@@ -360,7 +360,7 @@ CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::str
 	Param p40,p50;
 	p40.parseCommandLine(9,command_line,with,without,"misc__","unknown__");
 	p50.setValue("a","av");
-	p50.setValue("b","");
+	p50.setValue("b","true");
 	p50.setValue("misc__","bv cv rv1 rv2");
 	p50.setValue("unknown__","-c");
 	TEST_EQUAL(p40==p50,true)
@@ -369,7 +369,7 @@ CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::str
 	Param p400,p500;
 	p400.parseCommandLine(6,command_line2,with,without,"misc__","unknown__");
 	p500.setValue("a","av");
-	p500.setValue("b","");
+	p500.setValue("b","true");
 	p500.setValue("misc__","cv");
 	p500.setValue("unknown__","-c");
 	TEST_EQUAL(p400==p500,true)
@@ -378,7 +378,7 @@ CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::str
 	Param p4000,p5000;
 	p4000.parseCommandLine(6,command_line3,with,without,"misc__","unknown__");
 	p5000.setValue("a","");
-	p5000.setValue("b","");
+	p5000.setValue("b","true");
 	p5000.setValue("misc__","cv rv1");
 	p5000.setValue("unknown__","-c");
 	TEST_EQUAL(p4000==p5000,true)

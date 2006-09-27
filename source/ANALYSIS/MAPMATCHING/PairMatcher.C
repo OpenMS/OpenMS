@@ -38,8 +38,8 @@ namespace OpenMS
 		: FactoryProduct(), features_(features), pairs_(), best_pairs_()
 		{
 			name_ = PairMatcher::getName();
-			defaults_.setValue("rt_stdev1",0.22);
-			defaults_.setValue("rt_stdev2",0.65);
+			defaults_.setValue("rt_stdev_low",0.22);
+			defaults_.setValue("rt_stdev_high",0.65);
 			defaults_.setValue("mz_stdev",0.025);
 			defaults_.setValue("mz_pair_dist",4.0);
 			defaults_.setValue("rt_pair_dist",0.3);
@@ -62,14 +62,14 @@ namespace OpenMS
 
 		const PairMatcher::PairVectorType& PairMatcher::run()
 		{
-			double rt_stdev1 = param_.getValue("rt_stdev1");
-			double rt_stdev2 = param_.getValue("rt_stdev2");
+			double rt_stdev_low = param_.getValue("rt_stdev_low");
+			double rt_stdev_high = param_.getValue("rt_stdev_high");
 			double mz_stdev = param_.getValue("mz_stdev");
 			double mz_pair_dist = param_.getValue("mz_pair_dist");
 			double rt_pair_dist = param_.getValue("rt_pair_dist");
 
-			double rt_min = rt_pair_dist - 2.0*rt_stdev1;
-			double rt_max = rt_pair_dist + 2.0*rt_stdev2;
+			double rt_min = rt_pair_dist - 2.0*rt_stdev_low;
+			double rt_max = rt_pair_dist + 2.0*rt_stdev_high;
 			double mz_diff = 2.0*mz_stdev;
 
 			pairs_.clear();
@@ -130,7 +130,7 @@ namespace OpenMS
 						diff[RT] = it->getPosition()[RT] - check->second->getPosition()[RT];
 
 						double score =  p_value_(diff[MZ], mz_opt, mz_stdev, mz_stdev)
-													* p_value_(diff[RT],rt_pair_dist, rt_stdev1, rt_stdev2)
+													* p_value_(diff[RT],rt_pair_dist, rt_stdev_low, rt_stdev_high)
 													* check->second->getOverallQuality()
 													* it->getOverallQuality();
 

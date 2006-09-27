@@ -154,7 +154,7 @@ class Param
     	@param argc argc variable from command line
     	@param argv argv varaible from command line
     	@param options_with_argument a map of options that are followed by an argument (with key where they are stored)
-    	@param options_without_argument a map of options that are not followed by an argument (with key where they are stored)
+    	@param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
     	@param misc key where all non-option arguments are stored
     	@param unknown key where all unknown options are stored
     */

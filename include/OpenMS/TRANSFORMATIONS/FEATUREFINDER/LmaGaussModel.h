@@ -21,12 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl,Marcel Grunert $
 // --------------------------------------------------------------------------
-
-// author: Marcel Grunert
-// date: 7.7.2006
-// Implementation in context of the bachelor thesis.
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H

@@ -277,6 +277,7 @@ namespace OpenMS
 			case DataValue::STRVALUE:
 				{
 					String tmp2 = (string)(tmp);
+					tmp2.toLower();
 					if (tmp2=="off" || tmp2=="false")
 					{
 						return false;
