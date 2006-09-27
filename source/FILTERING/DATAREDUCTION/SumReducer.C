@@ -65,8 +65,7 @@ namespace OpenMS
 			{
 				mz_values.push_back(*it);
 				
-				if(it->getPosition()[0]>=(spec_it->begin()->getPosition()[0]+ (double)mz_counter * reduction1) ^ 
-					 it->getPosition()[0] == (spec_it->end()-1)->getPosition()[0])
+				if(it->getPosition()[0]>=(spec_it->begin()->getPosition()[0]+ (double)mz_counter * reduction1) || it->getPosition()[0] == (spec_it->end()-1)->getPosition()[0])
 				{
 					if(mz_values.size() == 0)
 					{
