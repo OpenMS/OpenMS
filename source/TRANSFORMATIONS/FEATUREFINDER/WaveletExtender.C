@@ -33,10 +33,10 @@ WaveletExtender::WaveletExtender()
 	: BaseExtender(), is_initialized_(false)
 {
     name_ = WaveletExtender::getName();
-	
-	 defaults_.setValue("rtvotes_cutoff",6);
-	 defaults_.setValue("wt_cutoff",0.0);
-	 defaults_.setValue("score_cutoff",0.0);
+
+	defaults_.setValue("rtvotes_cutoff",6);
+	defaults_.setValue("wt_cutoff",0.0);
+	defaults_.setValue("score_cutoff",0.0);
 	 	
      param_ = defaults_;
 }
@@ -133,12 +133,12 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 				CoordinateType miso_rt       =	traits_->getPeakRt(peak_index);			
 				
 				// walk a bit to the left from the monoisotopic peak
-				for (int p=0; p<=5; ++p)
+				for (int p=0; p<=10; ++p)
 				{
 					if ( (peak_index - p) > 0 
 					     && traits_->getPeakFlag( (peak_index - p) ) == FeaFiTraits::UNUSED
 						 && traits_->getPeakRt( (peak_index - p) ) == miso_rt
-						 && traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < 1.5  )
+						 && traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < 2  )
 					{
 					 	region_.add( (peak_index - p) );
 					 	traits_->getPeakFlag(  (peak_index - p) ) = FeaFiTraits::INSIDE_FEATURE;

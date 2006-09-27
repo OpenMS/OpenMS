@@ -144,7 +144,15 @@ void PPExtender::sweep_()
             std::cout << "Next scan with rt: " << current_rt << std::endl;
             std::cout << "---------------------------------------------------------------------------" << std::endl;
             ////#endif
-
+			
+			String fname = "scan_" + String(last_rt);
+          	std::ofstream peakfile( fname.c_str() );
+            for(unsigned k = 0; k<current_scan.size();++k)
+            {
+            	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
+            }
+            peakfile.close();
+			
 			// sum scan
 			sumUp_(current_scan,curr_peak);
 			
@@ -152,7 +160,7 @@ void PPExtender::sweep_()
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
 		
-			String fname = "cwt_" + String(last_rt);
+			fname = "cwt_" + String(last_rt);
             std::ofstream gpfile( fname.c_str() );
              for (int i=0;i<cwt_.getSize(); ++i)
              {
@@ -168,24 +176,17 @@ void PPExtender::sweep_()
 
             // search for maximal positions in the cwt and extract potential peaks
             std::vector<int> local_maxima;
-			double cwt_sum = 0.0;
+			double cwt_avg = 0.0;
 			for (int k = 0; k<cwt_.getSize();++k)
 			{
-				cwt_sum += cwt_[k];
+				cwt_avg += cwt_[k];
 			}
-			std::cout << "Average strength in cwt: " << ( cwt_sum / cwt_.getSize() ) << std::endl;
+			cwt_avg /= cwt_.getSize();
+			std::cout << "Average strength in cwt: " << cwt_avg<< std::endl;
 
 			if (cwt_.getSize() == 0) continue;
 
             getMaxPositions_(current_scan.begin(), current_scan.end(), cwt_, local_maxima,curr_peak);
-
-			fname = "scan_" + String(last_rt);
-          	std::ofstream peakfile( fname.c_str() );
-            for(unsigned k = 0; k<current_scan.size();++k)
-            {
-            	peakfile << current_scan[k].getPosition()[0] << " " << current_scan[k].getIntensity() << std::endl;
-            }
-            peakfile.close();
 
             current_scan.clear();	// prepare for next scan                        
 			int nr_maxima = local_maxima.size();
@@ -347,6 +348,51 @@ void PPExtender::sweep_()
                     } // end while(...)
 
                 } // end of if (charge > 0)
+				else if ( traits_->getPeakIntensity( local_maxima[z] ) > 1000 )
+				{
+					// We have reached a data point with a extremely high intensity in the wavelet
+					// transform. This might be an interesting signal even without isotopic pattern,
+					// so we collect some surrounding data points and see if we meet this point
+					// in the next scan again....
+					std::cout << "HIGH PEAK IN CWT !!! " << std::endl;
+					
+					 UnsignedInt this_peak = local_maxima[z];
+					
+					// extend this data point
+					CoordinateType this_mass     = traits_->getPeakMz(this_peak);
+					CoordinateType this_intensity = traits_->getPeakIntensity(this_peak);
+					
+					CoordinateType next_mass     = this_mass;
+					CoordinateType next_intensity = this_intensity;
+					
+					 iso_map_[this_mass].charge_  = 1;
+                     iso_map_[this_mass].scans_.push_back( traits_->getPeakRt( this_peak ) );
+					 iso_map_[this_mass].peaks_.push_back(this_peak);
+									
+					// walk to the left
+					while ( fabs(next_mass - this_mass) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak > 0)
+					{
+						--this_peak;
+						iso_map_[this_mass].peaks_.push_back(this_peak);
+						
+						next_mass     = traits_->getPeakMz(this_peak);
+						next_intensity = traits_->getPeakIntensity(this_peak);
+					}	
+					
+					UnsignedInt nr_peaks = traits_->getNumberOfPeaks();
+					
+					// walk to the right
+					while ( fabs(next_mass - this_mass) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak < nr_peaks)
+					{
+						++this_peak;
+						iso_map_[this_mass].peaks_.push_back(this_peak);
+						
+						next_mass     = traits_->getPeakMz(this_peak);
+						next_intensity = traits_->getPeakIntensity(this_peak);
+					}				
+				
+				}
+				
 
                 current_charge = 0; // reset charge
             } // end for (local maxima in cwt)
@@ -456,7 +502,7 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 {
 	unsigned int scans_to_collect = param_.getValue("scans_to_sumup");
 	
-	std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
+// std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
 	
 	unsigned int scans_collected  = 0;
 	
@@ -476,7 +522,7 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 			if (scans_collected == scans_to_collect)
 			{
 				// we have enough scans
-				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
+// 				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
 				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
 				std::ofstream outfile( fname.c_str() );
              	for (unsigned int i=0;i<scan.size(); ++i)
@@ -513,7 +559,7 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 
 void PPExtender::AlignAndSum_(RawDataArrayType& scan, RawDataArrayType& neighbour)
 {
-			double mass_tolerance = 0.2;
+			double mass_tolerance = 0.1;
 			
 			unsigned int index_newscan = 0;
 			for (unsigned int k=0; k<neighbour.size(); ++k)
@@ -539,15 +585,19 @@ void PPExtender::AlignAndSum_(RawDataArrayType& scan, RawDataArrayType& neighbou
 				{
 					double left_diff   = fabs(scan[index_newscan-1].getPosition()[0] - mass);
 					double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);			
-
+// 					std::cout << "Checking neighbours: " << left_diff << " " << right_diff << std::endl;
 					// check which neighbour is closer
 					if (left_diff < right_diff && (left_diff < mass_tolerance) )
 					{
-						scan[ (index_newscan-1) ].getIntensity() += p.getIntensity();
+// 						std::cout << "Left. Old intensity: " << scan[ (index_newscan-1) ].getIntensity() << std::endl;
+						scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
+// 						std::cout << "Left. New intensity: " << scan[ (index_newscan-1) ].getIntensity() << std::endl;
 					}
 					else if (right_diff < mass_tolerance)
 					{
-						scan[index_newscan].getIntensity() += p.getIntensity();;
+// 						std::cout << "Right. Old intensity: " << scan[ (index_newscan) ].getIntensity() << std::endl;
+						scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
+// 						std::cout << "Right. New intensity: " << scan[ (index_newscan) ].getIntensity() << std::endl;
 					}
 				} 
 				else // no left neighbour available
