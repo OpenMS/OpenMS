@@ -46,61 +46,65 @@ namespace OpenMS
 		name+=in.getName();
 		out.setName(name);
 		
-		
+		// variables
 		double reduction = (double)param_.getValue("Ratio") * 0.01;
-		std::vector<PeakType> mz_values;
-		SpectrumType base;
+		//cout << endl << "reduction: " << reduction << endl;
+		
+		double distance;
+		double sum;
+		SpectrumType::ConstIterator begin;
+		SpectrumType::ConstIterator end;
+		SpectrumType::ConstIterator max;
+		
+		//experiment size
+		out.resize(in.size());
+		UnsignedInt out_spec = 0;
 		
 		for(ExperimentType::ConstIterator spec_it = in.begin(); spec_it !=in.end(); ++spec_it)
 		{
-			int mz_counter =1;
+			out[out_spec].setRetentionTime(spec_it->getRetentionTime());
+			out[out_spec].setMSLevel(spec_it->getMSLevel()); 	
 			
-			double  distance = (spec_it->end()-1)->getPosition()[0]- spec_it->begin()->getPosition()[0];
-			double reduction1 = distance * reduction;
-			if(reduction1<=1)
+			//init
+			distance = std::max(((spec_it->end()-1)->getPos()- spec_it->begin()->getPos()) * reduction,1.0);
+			begin  = spec_it->begin();
+			end  = begin;
+			sum = 0.0;
+			//cout << "spec: " << spec_it->getRetentionTime()<< " dist: " << distance << endl;
+			
+			while (end != spec_it->end())
 			{
-				reduction1 = 1;
-			}
-			for(SpectrumType::ConstIterator it = spec_it->begin(); it!=spec_it->end(); ++it)
-			{
-				mz_values.push_back(*it);
-				
-				if(it->getPosition()[0]>=(spec_it->begin()->getPosition()[0]+ (double)mz_counter * reduction1) || it->getPosition()[0] == (spec_it->end()-1)->getPosition()[0])
+				while (end != spec_it->end() && end->getPos() <= begin->getPos()+distance )
 				{
-					base.push_back(findSumIntensity_(mz_values));		
-					base.setRetentionTime(spec_it->getRetentionTime(),0,0);
-					base.setMSLevel(spec_it->getMSLevel()); 						
-					mz_values.clear();
-					mz_counter++;
-					
+					++end;
 				}
+				if (begin==end)
+				{
+					continue;
+				}
+				//cout << begin->getPos() << " - " << end->getPos() << endl;
+				max = begin;
+				sum = 0;
+				while (begin != end)
+				{
+					sum += begin->getIntensity();
+					if (begin->getIntensity() > max->getIntensity())
+					{
+						max = begin;
+					}
+					++begin;
+				}
+				out[out_spec].push_back(*max);
+				out[out_spec].back().setIntensity(sum);
 			}
-			if(!base.empty())
-			{
-				out.push_back(base);
-				base.erase(base.begin(),base.end());
-			}
-		}
-		out.updateRanges();
-	}
-
-	SumReducer::PeakType SumReducer::findSumIntensity_(std::vector<PeakType>& peaks)
-	{
-	 	double sumintensity = 0;
- 		SpectrumType::Iterator it = peaks.begin();
-		
- 		for(std::vector<PeakType>::iterator i = peaks.begin();i!=peaks.end();i++)
- 		{
- 			sumintensity = sumintensity + i->getIntensity();
-			if(i->getIntensity()>=it->getIntensity())
+			if(!out[out_spec].empty())
 			{	
-				it = i;
+				++out_spec;
 			}
 		}
-		it->setIntensity(sumintensity);
-		return *it;
+		out.resize(out_spec);
+		out.updateRanges(); 
 	}
-
 	
 }// namespace openms
 
