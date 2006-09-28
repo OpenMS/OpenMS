@@ -1931,7 +1931,8 @@ namespace OpenMS
     default_preferences.setValue("3D:Dot:LineWidth",2);
     default_preferences.setValue("3D:IntScale:Mode",0);
 		default_preferences.setValue("3D:Data:Mode",0);
-		default_preferences.setValue("3D:Data:Ratio",10);
+		default_preferences.setValue("3D:Data:Reduction:Max",10);
+		default_preferences.setValue("3D:Data:Reduction:Sum",10);
     prefs_.setDefaults(default_preferences,"Preferences");
   }
 

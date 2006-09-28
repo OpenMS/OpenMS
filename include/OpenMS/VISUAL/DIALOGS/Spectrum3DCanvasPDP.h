@@ -67,7 +67,8 @@ namespace OpenMS
       QRadioButton* reduction_on_max_;
       QRadioButton* reduction_on_sum_;
       QRadioButton* reduction_off_;
-      QSpinBox* reduction_ratio_;
+      QSpinBox* reduction_ratio_max_;
+      QSpinBox* reduction_ratio_sum_;
     
       ColorSelector* axes_color_;
       QSpinBox* dot_line_width_;

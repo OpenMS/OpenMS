@@ -38,7 +38,8 @@ namespace OpenMS
 	DataReducer::DataReducer()
 		: FactoryProduct()
 	{
-		defaults_.setValue("Ratio",20);
+		defaults_.setValue("Peaksperstep",10);
+		defaults_.setValue("Rangeperstep",10);
 	} 
 	
 	DataReducer::~DataReducer()

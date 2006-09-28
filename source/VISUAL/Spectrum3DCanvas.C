@@ -104,7 +104,6 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 void Spectrum3DCanvas::makeReducedDataSet()
 {
 	reduction_param_.clear();
-	reduction_param_.setValue("Ratio", getPrefAsInt("Preferences:3D:Data:Ratio"));
 	switch(getPrefAsInt("Preferences:3D:Data:Mode"))
 	{
 	case 0:
@@ -117,7 +116,8 @@ void Spectrum3DCanvas::makeReducedDataSet()
  		break;
 
 	case 1:
-		{
+		{	
+			reduction_param_.setValue("Peaksperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Max"));
 			show_reduced_ = true;
 			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
 			datareducer_ = Factory<DataReducer>::create("MaxReducer");
@@ -137,6 +137,7 @@ void Spectrum3DCanvas::makeReducedDataSet()
 		
 	case 2:
 		{	
+			reduction_param_.setValue("Rangeperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Sum"));
 			show_reduced_ = true;
 			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
 			datareducer_ = Factory<DataReducer>::create("SumReducer");
@@ -267,13 +268,15 @@ SignedInt Spectrum3DCanvas::getDataMode()
 
 void Spectrum3DCanvas::setDataMode(int data_mode)
 {
-	if(current_data_mode_ != data_mode || reduction_param_.getValue("Ratio")!=getPref("Preferences:3D:Data:Ratio"))
+	if(current_data_mode_ != data_mode || 
+		(reduction_param_.getValue("Peaksperstep")!=getPref("Preferences:3D:Data:Reduction:Max") && data_mode == 1) ||
+		(reduction_param_.getValue("Rangeperstep")!=getPref("Preferences:3D:Data:Reduction:Sum") && data_mode == 2))
 	{
 		makeReducedDataSet();
-	if (zoom_stack_.empty())
-	{
- 			resetZoom();
-	}
+		if(zoom_stack_.empty())
+		{
+			resetZoom();
+		}
 		repaintAll();
 	}
 }

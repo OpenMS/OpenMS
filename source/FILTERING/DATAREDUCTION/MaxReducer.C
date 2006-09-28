@@ -44,7 +44,7 @@ namespace OpenMS
 		name+=in.getName();
 		out.setName(name);	
 		
-		double ratio = (double)(param_.getValue("Ratio")) * 0.01;
+		double ratio = (double)(param_.getValue("Peaksperstep")) * 0.01;
  		
 		out.resize(in.size());
 		UnsignedInt out_spec = 0;

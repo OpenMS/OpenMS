@@ -97,8 +97,11 @@ namespace OpenMS
 			reduction_on_sum_ = new QRadioButton("Sum-Reduction",data_group);			
 			box->addSpace(0);
 			
-			label = new QLabel("Reduction Ratio [%]: ",box);
-			reduction_ratio_ = new QSpinBox(1,100,1,box,"");
+			label = new QLabel("Number of peaks per Reductionstep:(Max-Red.) ",box);
+			reduction_ratio_max_ = new QSpinBox(10,100,1,box,"");
+		
+			label = new QLabel("m/z-Range per Reductionstep:(Sum-Red.) ",box);
+			reduction_ratio_sum_ = new QSpinBox(10,100,1,box,"");
 			grid->addWidget(box,2,1);	
 
 			load();
@@ -138,8 +141,8 @@ namespace OpenMS
 				reduction_on_sum_->setChecked(true);
 				
 			}
-			reduction_ratio_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Ratio")));
- 
+			reduction_ratio_max_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Reduction:Max")));
+			reduction_ratio_sum_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Reduction:Sum")));
 
 			if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
 			{
@@ -200,7 +203,8 @@ namespace OpenMS
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_SUM);
 			}
-			man->setPref("Preferences:3D:Data:Ratio",reduction_ratio_->value());
+			man->setPref("Preferences:3D:Data:Reduction:Max",reduction_ratio_max_->value());
+			man->setPref("Preferences:3D:Data:Reduction:Sum",reduction_ratio_sum_->value());
 			man->setDataMode(man->getPrefAsInt("Preferences:3D:Data:Mode"));
 			
 			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());

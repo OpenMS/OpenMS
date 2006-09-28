@@ -47,7 +47,7 @@ namespace OpenMS
 		out.setName(name);
 		
 		// variables
-		double reduction = (double)param_.getValue("Ratio") * 0.01;
+		double reduction = (double)param_.getValue("Rangeperstep") * 0.01;
 		//cout << endl << "reduction: " << reduction << endl;
 		
 		double distance;

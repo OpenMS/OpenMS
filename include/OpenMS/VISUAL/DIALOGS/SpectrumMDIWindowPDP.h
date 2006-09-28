@@ -111,7 +111,8 @@ namespace OpenMS
 			QRadioButton* reduction_on_max_3d_;
      	QRadioButton* reduction_on_sum_3d_;
 			QRadioButton* reduction_off_3d_;
-			QSpinBox* reduction_ratio_3d_;
+			QSpinBox* reduction_ratio_max_3d_;
+			QSpinBox* reduction_ratio_sum_3d_;
 			
       
 		};
