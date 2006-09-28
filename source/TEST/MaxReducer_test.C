@@ -61,7 +61,7 @@ CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
   in.setName("MaxReducer_test.dta2d");
   Param param;	
   MaxReducer maxreducer;
-  param.setValue("Ratio",20);
+  param.setValue("Peaksperstep",20);
   maxreducer.setParam(param);
   in.updateRanges();
   maxreducer.applyReduction(in,out);

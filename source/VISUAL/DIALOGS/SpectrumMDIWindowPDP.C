@@ -282,10 +282,10 @@ namespace OpenMS
 			reduction_on_sum_3d_ = new QRadioButton("Sum-Reduction",data_group);
 			box->addSpace(0);
 			label = new QLabel("Number of peaks per Reductionstep:(Max-Red.) ",box);
-			reduction_ratio_max_3d_ = new QSpinBox(10,100,1,box,"");
+			reduction_ratio_max_3d_ = new QSpinBox(1,100,1,box,"");
 
 			label = new QLabel("m/z-Range per Reductionstep:(Sum-Red.)",box);
-			reduction_ratio_sum_3d_ = new QSpinBox(10,100,1,box,"");
+			reduction_ratio_sum_3d_ = new QSpinBox(1,100,1,box,"");
 			grid->addWidget(box,2,1);	
 
 			grid->addWidget(box,2,1);	

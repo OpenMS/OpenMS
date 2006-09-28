@@ -246,7 +246,10 @@ void Spectrum3DOpenGLCanvas::timeMessure()
 		double tstart = 0.0;
 		tstart = clock();
 		double time = 0.0;
-		for (int i = 0;i<10;i++)
+		//	cout<<"Reduction Max:"<<canvas_3d_.reduction_param_.getValue("Peaksperstep")<<endl;
+		//	cout<<"Reduction Sum:"<<canvas_3d_.reduction_param_.getValue("Rangeperstep")<<endl;
+	
+	for (int i = 0;i<10;i++)
 			{
 				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_NONE;
 				canvas_3d_.repaintAll();
@@ -1160,7 +1163,7 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int data_set)
 		scaledintensity = ( scaledintensity * 2.0 * corner_)/(canvas_3d_.overall_data_range_.max_[2]-canvas_3d_.overall_data_range_.min_[2]);
 		break;
 	case  SpectrumCanvas::IM_PERCENTAGE: 
- 		scaledintensity =  intensity * 100.0 /canvas_3d_.datasets_[data_set].getMaxInt();
+ 		scaledintensity =  intensity * 100.0 /canvas_3d_.getDataSet(data_set).getMaxInt();
 		scaledintensity = scaledintensity * 2.0 * corner_/100.0;	
 		break;	
 	case SpectrumCanvas::IM_LOG:

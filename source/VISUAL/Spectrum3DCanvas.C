@@ -138,6 +138,7 @@ void Spectrum3DCanvas::makeReducedDataSet()
 	case 2:
 		{	
 			reduction_param_.setValue("Rangeperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Sum"));
+			//		cout<<reduction_param_.getValue("Rangeperstep")<<endl;
 			show_reduced_ = true;
 			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
 			datareducer_ = Factory<DataReducer>::create("SumReducer");
