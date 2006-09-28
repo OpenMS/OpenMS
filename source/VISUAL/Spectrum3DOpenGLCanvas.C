@@ -241,29 +241,29 @@ void Spectrum3DOpenGLCanvas::timeMessure()
 // 	cout<<"start: "<<tstart<<"     time:  :"<<time<<endl; 
 
 	// Zeitmessung umschalten zwischen einzelenen intensitymodes
-	for (int j = 1;j<6;j++)
-	{
-		double tstart = 0.0;
-		tstart = clock();
-		double time = 0.0;
-		//	cout<<"Reduction Max:"<<canvas_3d_.reduction_param_.getValue("Peaksperstep")<<endl;
-		//	cout<<"Reduction Sum:"<<canvas_3d_.reduction_param_.getValue("Rangeperstep")<<endl;
+// 	for (int j = 1;j<6;j++)
+// 	{
+// 		double tstart = 0.0;
+// 		tstart = clock();
+// 		double time = 0.0;
+// 		//	cout<<"Reduction Max:"<<canvas_3d_.reduction_param_.getValue("Peaksperstep")<<endl;
+// 		//	cout<<"Reduction Sum:"<<canvas_3d_.reduction_param_.getValue("Rangeperstep")<<endl;
 	
-	for (int i = 0;i<10;i++)
-			{
-				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_NONE;
-				canvas_3d_.repaintAll();
-				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_LOG;
-				canvas_3d_.repaintAll();
-				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_PERCENTAGE;
-				canvas_3d_.repaintAll();
-				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_SNAP;
-				canvas_3d_.repaintAll();
-			}
-		time = clock()-tstart;
-		double time1 = time / CLOCKS_PER_SEC;
-		cout<<"Durchlauf:"<<j<<"     time:  :"<<time<<" time in sec:"<<time1<<" sec."<<endl; 
-	}	
+// 	for (int i = 0;i<10;i++)
+// 			{
+// 				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_NONE;
+// 				canvas_3d_.repaintAll();
+// 				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_LOG;
+// 				canvas_3d_.repaintAll();
+// 				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_PERCENTAGE;
+// 				canvas_3d_.repaintAll();
+// 				canvas_3d_.intensity_mode_ = SpectrumCanvas::IM_SNAP;
+// 				canvas_3d_.repaintAll();
+// 			}
+// 		time = clock()-tstart;
+// 		double time1 = time / CLOCKS_PER_SEC;
+// 		cout<<"Durchlauf:"<<j<<"     time:  :"<<time<<" time in sec:"<<time1<<" sec."<<endl; 
+// 	}	
 }
 void Spectrum3DOpenGLCanvas::setAngels(int xrot, int yrot, int zrot)
 {
@@ -1328,7 +1328,7 @@ void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent * e)
 {
 	if(e->key()==Qt::Key_T)
 	{
-		cout<<"TimeMessure"<<endl; 
+		//	cout<<"TimeMessure"<<endl; 
 		timeMessure();
 	}
 	if(e->key()==Qt::Key_Control)
