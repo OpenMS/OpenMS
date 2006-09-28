@@ -97,10 +97,10 @@ namespace OpenMS
 			reduction_on_sum_ = new QRadioButton("Sum-Reduction",data_group);			
 			box->addSpace(0);
 			
-			label = new QLabel("Number of peaks per Reductionstep:(Max-Red.) ",box);
+			label = new QLabel("Max: Number of peaks per Reductionstep: ",box);
 			reduction_ratio_max_ = new QSpinBox(1,100,1,box,"");
 		
-			label = new QLabel("m/z-Range per Reductionstep:(Sum-Red.) ",box);
+			label = new QLabel("Sum: m/z-Range per Reductionstep: ",box);
 			reduction_ratio_sum_ = new QSpinBox(1,100,1,box,"");
 			grid->addWidget(box,2,1);	
 
