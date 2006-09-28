@@ -56,7 +56,7 @@ namespace OpenMS
 			int mz_counter =1;
 			
 			double  distance = (spec_it->end()-1)->getPosition()[0]- spec_it->begin()->getPosition()[0];
-			double reduction1 =distance * reduction;
+			double reduction1 = distance * reduction;
 			if(reduction1<=1)
 			{
 				reduction1 = 1;
@@ -67,10 +67,6 @@ namespace OpenMS
 				
 				if(it->getPosition()[0]>=(spec_it->begin()->getPosition()[0]+ (double)mz_counter * reduction1) || it->getPosition()[0] == (spec_it->end()-1)->getPosition()[0])
 				{
-					if(mz_values.size() == 0)
-					{
-						mz_values.push_back(*it);	
-					}
 					base.push_back(findSumIntensity_(mz_values));		
 					base.setRetentionTime(spec_it->getRetentionTime(),0,0);
 					base.setMSLevel(spec_it->getMSLevel()); 						
