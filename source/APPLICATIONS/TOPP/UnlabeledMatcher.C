@@ -139,17 +139,20 @@ class TOPPUnlabeledMatcher
 
       String param_path = tool_name_ + ':' + String(instance_number_) + ':';
 
-      String in = getParamAsString_("in1");
-      std::cout << in << std::endl;
-
       Param param = getParamCopy_(param_path,true);
-      std::cout << param << std::endl;
-      // determine name ouf grid file
-      String gridfilename = param.getValue("grid");
-      String pairsfile = param.getValue("pairs");
+      // std::cout << param << std::endl;
+
+      // determine name of grid file
+      String gridfilename = getParamAsString_("grid");
+			if ( gridfilename.empty() ) gridfilename = param.getValue("grid");
+
+      // determine name of pairs file
+      String pairsfile = getParamAsString_("pairs");
+			if ( pairsfile.empty() ) pairsfile = param.getValue("pairs");
 
       // input files to be read
       String inputfile[2];
+
       // read input files
       FeatureMapFile feature_file[2];
       FeatureMap feature_map[2];
