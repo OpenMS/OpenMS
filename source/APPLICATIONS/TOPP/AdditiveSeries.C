@@ -309,7 +309,7 @@ protected:
                 "set ylabel \"ion count\"\n"
                 "set xlabel \"concentration\"\n"
                 "set key left Left reverse\n"
-                "set title \"" << filename_prefix << "\"\n"
+//                 "set title \"" << filename_prefix << "\"\n"
                 ;
 
                 if ( ! format.empty() )

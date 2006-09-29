@@ -442,7 +442,7 @@ typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatu
 {
 	experiment_.updateRanges(); //this needs identifyCharge
 	std::list<unsigned int> charges;
-	charges.push_back(1); charges.push_back(2); 
+	charges.push_back(1); charges.push_back(2); charges.push_back(3); 
 	std::vector<DPeakArrayNonPolymorphic<1, DRawDataPoint<2> > >* pwts = NULL;
 	std::vector<double>* wt_thresholds = NULL;
 	for (unsigned int i=start_scan; i<=end_scan; ++i)
@@ -604,7 +604,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArrayNonPoly
 
 		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
 		{
-			if (iter->getIntensity() <= (*wt_thresholds)[c]*1*c_av_intens)
+			if (iter->getIntensity() <= (*wt_thresholds)[c]*0*c_av_intens)
 				break;
 		}
 
@@ -656,7 +656,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArrayNonPoly
 					scoresC[c][c_index] += c_val; 
 			}
 
-			if (scoresC[c][c_index] <= 1.1*iter->getIntensity())
+			if (scoresC[c][c_index] <= 1.0*iter->getIntensity())
 				scoresC[c][c_index] = 0;
 		}	
 	}
