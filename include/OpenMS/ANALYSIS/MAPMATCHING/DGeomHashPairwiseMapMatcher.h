@@ -57,7 +57,8 @@ namespace OpenMS
      If a piecewise shift is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension.     
      
-  **/
+     @todo Warn when Param values are given, that are not needed (Eva/Clemens) 
+  */
   template <Size D, typename Traits = KernelTraits, typename MapT = DFeatureMap< D, DFeature< D, Traits > > >
   class DGeomHashPairwiseMapMatcher : public DBasePairwiseMapMatcher<D,Traits,MapT>
   {

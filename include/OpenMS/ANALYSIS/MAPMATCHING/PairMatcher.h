@@ -56,6 +56,8 @@ namespace OpenMS
 			<tr><td>rt_stdev_high</td>
 					<td>standard deviation above optimal retention time distance</td></tr>
 			</table>
+		
+		@todo @todo Warn when Param values are given, that are not needed (Marc)
 	 **/
 
 	class PairMatcher: public FactoryProduct

@@ -140,7 +140,6 @@ class TOPPUnlabeledMatcher
       String param_path = tool_name_ + ':' + String(instance_number_) + ':';
 
       Param param = getParamCopy_(param_path,true);
-      // std::cout << param << std::endl;
 
       // determine name of grid file
       String gridfilename = getParamAsString_("grid");
@@ -166,6 +165,8 @@ class TOPPUnlabeledMatcher
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
 
+			writeDebug_("Parameters passed to DGeomHashPairwiseMapMatcher", param,3);
+			
       //-------------------------------------------------------------
 
 

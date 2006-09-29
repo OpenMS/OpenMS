@@ -64,8 +64,8 @@ namespace OpenMS
 		parseCommandLine_(argc,argv);
 		
 		//start logging to default location
-		log_.open(getParamAsString_("log","TOPP.log").c_str(), std::ofstream::out | std::ofstream::app);
-		log_ << "-----------------------------------------------------------" << std::endl;
+		log_.open(getParamAsString_("log","TOPP.log").c_str(), ofstream::out | ofstream::app);
+		log_ << "-----------------------------------------------------------" << endl;
 		//set debug level
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
@@ -133,7 +133,7 @@ namespace OpenMS
 			{
 				writeDebug_(String("Log file: ")+getParamAsString_("log"),1);
 				log_.close();
-				log_.open(getParamAsString_("log").c_str(), std::ofstream::out | std::ofstream::app);
+				log_.open(getParamAsString_("log").c_str(), ofstream::out | ofstream::app);
 			}
 			
 
@@ -189,15 +189,15 @@ namespace OpenMS
 	{
 		printToolUsage_();
 		
-		std::cerr << std::endl
-							<< "Common TOPP options are:" << std::endl
-							<< "  -ini <file>       Use the given TOPP INI file" << std::endl
-							<< "  -log <file>       log file (default: TOPP.log)" << std::endl
-							<< "  -n <int>          instance number (default: 1)" << std::endl
-							<< "  -d <level>        set debug level (default: 0)" << std::endl
-							<< "  --help            show this help" << std::endl
-							<< "  --help-opt        show help on the INI options accepted" << std::endl
-							<< std::endl ;	
+		cerr << endl
+							<< "Common TOPP options are:" << endl
+							<< "  -ini <file>       Use the given TOPP INI file" << endl
+							<< "  -log <file>       log file (default: TOPP.log)" << endl
+							<< "  -n <int>          instance number (default: 1)" << endl
+							<< "  -d <level>        set debug level (default: 0)" << endl
+							<< "  --help            show this help" << endl
+							<< "  --help-opt        show help on the INI options accepted" << endl
+							<< endl ;	
 	}
 
 
@@ -205,10 +205,10 @@ namespace OpenMS
 	{
 		printToolHelpOpt_();
 		
-		std::cerr << std::endl
-							<< "Common TOPP INI options are:" << std::endl
-							<< "  log       log file (default: TOPP.log)" << std::endl
-							<< std::endl ;	
+		cerr << endl
+							<< "Common TOPP INI options are:" << endl
+							<< "  log       log file (default: TOPP.log)" << endl
+							<< endl ;	
 	}
 
 	void TOPPBase::parseCommandLine_(int argc , char** argv)
@@ -218,15 +218,26 @@ namespace OpenMS
 	
 	void TOPPBase::writeLog_(const String& text)
 	{
-		std::cout << text << std::endl;
-		log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< std::endl;
+		cout << text << endl;
+		log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl;
 	}
 	
 	void TOPPBase::writeDebug_(const String& text, UnsignedInt min_level)
 	{
 		if (debug_level_>=(SignedInt)min_level)
 		{
-			log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< std::endl;
+			log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl;
+		}
+	}
+
+	void TOPPBase::writeDebug_(const String& text, const Param& param, UnsignedInt min_level)
+	{
+		if (debug_level_>=(SignedInt)min_level)
+		{
+			log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl
+					 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
+			     << param 
+			     << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 		}
 	}
 	
@@ -350,7 +361,7 @@ namespace OpenMS
 		return DataValue::EMPTY;
 	}
 	
-	Param TOPPBase::getParamCopy_(const std::string& prefix, bool remove_prefix, const std::string& new_prefix)
+	Param TOPPBase::getParamCopy_(const string& prefix, bool remove_prefix, const string& new_prefix)
 	{
 #/*if 1 // We support inheritance using "inherit" ITEMs
 		Param param_copy = param_.copy(prefix,remove_prefix,new_prefix);
@@ -358,8 +369,8 @@ namespace OpenMS
 		const int debug_level_min = 5;
 		if ( debug_level_ >= debug_level_min )
 		{
-			std::cout << "Parameters from `" << prefix << "' are:\n"
-								<< param_copy << std::endl;
+			cout << "Parameters from `" << prefix << "' are:\n"
+								<< param_copy << endl;
 		}
 
 		const int inheritance_steps_max = 15;
@@ -368,10 +379,10 @@ namespace OpenMS
 		DataValue const * inherit_path_value = & param_copy.getValue("inherit");
 		while ( ! inherit_path_value->isEmpty() )
 		{
-			std::string inherit_path = inherit_path_value->toString();
+			string inherit_path = inherit_path_value->toString();
 			if ( debug_level_ >= debug_level_min )
 			{
-				std::cout << "Inheriting from `" << inherit_path << "'.\n";
+				cout << "Inheriting from `" << inherit_path << "'.\n";
 			}
 			if ( ++inheritance_steps > inheritance_steps_max )
 			{
@@ -386,8 +397,8 @@ namespace OpenMS
 			param_copy.setDefaults( param_.copy(inherit_path+':',true,"" ),"",false);
 			if ( debug_level_ >= debug_level_min )
 			{
-				std::cout << "Parameters after inheriting from `" << inherit_path << "' are:\n"
-									<< param_copy << std::endl;
+				cout << "Parameters after inheriting from `" << inherit_path << "' are:\n"
+									<< param_copy << endl;
 			}
 			inherit_path_value = & param_copy.getValue("inherit");
 		}

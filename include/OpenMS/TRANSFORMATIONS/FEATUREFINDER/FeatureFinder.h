@@ -46,6 +46,8 @@ namespace OpenMS
 	
 	@brief The feature detection algorithm in OpenMS.
 	
+	@todo Warn when Param values are given, that are not needed (Ole)
+	
 	@ingroup Transformations
 	
 */

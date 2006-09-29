@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
@@ -49,7 +48,9 @@ namespace OpenMS
 
   /**
      @brief This class is the base class for every peak picker.
-
+     
+     @todo Warn when Param values are given, that are not needed (Eva)
+     
      @ingroup PeakPicking
   */
   class PeakPicker

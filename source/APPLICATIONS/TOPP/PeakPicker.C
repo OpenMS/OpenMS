@@ -136,19 +136,12 @@ class TOPPPeakPicker
 		{
 			writeDebug_(String("Optimization of peaks: OFF"), 1);
 		}
+		
     //-------------------------------------------------------------
-    // loading input
-    //-------------------------------------------------------------
-    MzDataFile mz_data_file;
-    MSExperiment<DRawDataPoint<1> > ms_exp_raw;
-    mz_data_file.load(in,ms_exp_raw);
-
-
-    //-------------------------------------------------------------
-    // calculations
+    // Init peak picker
     //-------------------------------------------------------------
     String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    Param pepi_param = getParamCopy_(ini_location);
+    Param pepi_param = getParamCopy_(ini_location,true);
 
     //optimization
     if (optimize_peaks)
@@ -159,12 +152,24 @@ class TOPPPeakPicker
     {
       pepi_param.setValue("Optimization:SkipOptimization","yes");
     }
-
+		
+		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);
     PeakPickerCWT peak_picker(pepi_param);
+
+    //-------------------------------------------------------------
+    // loading input
+    //-------------------------------------------------------------
+    MzDataFile mz_data_file;
+    MSExperiment<DRawDataPoint<1> > ms_exp_raw;
+    mz_data_file.load(in,ms_exp_raw);
+
+
+    //-------------------------------------------------------------
+    // pick
+    //-------------------------------------------------------------
 
     MSExperiment<DPickedPeak<1> > ms_exp_peaks;
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
-    
   
 		//-------------------------------------------------------------
 		// writing output

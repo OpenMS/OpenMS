@@ -161,13 +161,16 @@ class TOPPFeatureFinder
 			
 		FeatureFinder ff;
 		Param feafi_param = getParamCopy_(ini_location,true);
-				
+		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
+		
 		if (feafi_param.empty())
 		{
 			writeLog_("No params given, aborting.");
 			return ILLEGAL_PARAMETERS;
 		}
-			
+		
+		
+		
 		ff.setParam(feafi_param);
 		ff.setData(exp);
 	

@@ -222,7 +222,8 @@ class TOPPSpectraFilter
 			{
 				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":filters:";
 				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":", true);
-	
+				writeDebug_("Used filter parameters", filter_param, 3);
+				
 				String filter_name = (*it)->getName();
 				if (filter_name == "NLargest")
 				{

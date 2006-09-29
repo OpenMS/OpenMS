@@ -137,6 +137,9 @@ namespace OpenMS
 			
 		/// Writes a string to the log file if the debug level is at least @p min_level
 		void writeDebug_(const String& text, UnsignedInt min_level);
+
+		/// Writes a Param to the log file if the debug level is at least @p min_level
+		void writeDebug_(const String& text,const Param& param, UnsignedInt min_level);
 			
 		/**
 			 @brief Return the value @key of param_ as a string or @p default_value when this value is not set.

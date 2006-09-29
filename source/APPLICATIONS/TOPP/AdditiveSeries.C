@@ -383,7 +383,8 @@ protected:
         //-------------------------------------------------------------
 				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
         Param add_param =  getParamCopy_(ini_location,true);
-
+				writeDebug_("Used parameters", add_param, 3);
+				
         DPosition<2> feat_pos1;
         DPosition<2> feat_pos2;
 

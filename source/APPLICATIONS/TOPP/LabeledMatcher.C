@@ -181,7 +181,9 @@ protected:
     PairMatcher pm(features);
 
     String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    pm.setParam(getParamCopy_(ini_location+"algorithm:"));
+    Param pm_param = getParamCopy_(ini_location+"algorithm:");
+    writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
+    pm.setParam(pm_param);
 
     //pm.setDebugLevel(debug_level);
     //pm.setDebugStream(&log);
