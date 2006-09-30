@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include "TOPPBase.h"
 
@@ -88,12 +89,13 @@ class TOPPFeaturePairSplitter
 				 << tool_name_ << " -- split a feature pairs file into two feature files and a qualities file.\n"
 			"\n"
 			"Usage:\n"
-			"  " << tool_name_ << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
+			"  " << tool_name_ << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-dump <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
 			"Options are:\n"
 			"  -in <file>        input file\n"
 			"  -out1 <file>      first feature output file\n"
 			"  -out2 <file>      second feature output file\n"
 			"  -qual <file>      pair qualtities output file\n"
+			"  -dump <file>      pair dump output file\n"
 			"All output options are optional.\n"
 				 << endl;
   }
@@ -108,12 +110,14 @@ class TOPPFeaturePairSplitter
 			"  out1   first feature output file\n"
 			"  out2   second feature output file\n"
 			"  qual   pair qualtities output file\n"
+			"  dump   pair dump output file\n"
 			"\n"
 			"INI File example section:\n"
 			"  <ITEM name=\"in\" value=\"pairs.xml\" type=\"string\"/>\n"
 			"  <ITEM name=\"out1\" value=\"features1.xml\" type=\"string\"/>\n"
 			"  <ITEM name=\"out2\" value=\"features2.xml\" type=\"string\"/>\n"
 			"  <ITEM name=\"qual\" value=\"qualities.txt\" type=\"string\"/>\n"
+			"  <ITEM name=\"dump\" value=\"dump.txt\" type=\"string\"/>\n"
 			"\n"
 			"All output options are optional.\n"
 			;
@@ -125,6 +129,7 @@ class TOPPFeaturePairSplitter
     options_["-out1"] = "out1";
     options_["-out2"] = "out2";
     options_["-qual"] = "qual";
+    options_["-dump"] = "dump";
   }
 
   ExitCodes main_(int , char**)
@@ -152,6 +157,10 @@ class TOPPFeaturePairSplitter
 		String qual = getParamAsString_("qual");
 		writeDebug_(String("Pair qualities output file: ") + qual, 1);
 		bool const write_qual = !qual.empty();
+
+		String dump = getParamAsString_("dump");
+		writeDebug_(String("Pair dump output file: ") + dump, 1);
+		bool const write_dump = !dump.empty();
 
 		// load data from input file.
 		DFeaturePairVector<2> feature_pairs;
@@ -192,6 +201,34 @@ class TOPPFeaturePairSplitter
 			std::copy(qualities_vector.begin(),qualities_vector.end(),
 								std::ostream_iterator<double>(qualities_file,"\n")
 							 );
+		}
+		if ( write_dump )
+		{
+			enum DimensionId
+				{
+					RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+					MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+				};
+			
+			std::ofstream dump_file(dump.c_str());
+
+			dump_file << "# rt1 mz1 it1  rt2 mz2 it2  qual\n";
+
+			for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
+						iter != feature_pairs.end();
+						++iter
+					)
+			{
+				dump_file
+					<< iter -> getFirst() . getPosition()[RT] << ' '
+					<< iter -> getFirst() . getPosition()[MZ] << ' '
+					<< iter -> getFirst() . getIntensity() << "  "
+					<< iter -> getSecond() . getPosition()[RT] << ' '
+					<< iter -> getSecond() . getPosition()[MZ] << ' '
+					<< iter -> getSecond() . getIntensity() << "  "
+					<< iter -> getQuality() << '\n';
+			}
+
 		}
 
 		return OK;
