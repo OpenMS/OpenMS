@@ -179,6 +179,7 @@ namespace OpenMS
     std::vector<int> corrs(10);	//count correlations in an interval e.g. corr[4] -> [0.4,0.5]
 
     StopWatch watch;
+	unsigned int seed_count = 0;
     try
     {
       while (true)
@@ -192,6 +193,7 @@ namespace OpenMS
         watch.stop();
         std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;
         watch.reset();
+		++seed_count;
         try
         {
 
@@ -247,6 +249,8 @@ namespace OpenMS
     Size size = features_.size();
 
     std::cout << size << " features were found. " << std::endl;
+	
+	std::cout << "seed count " << seed_count << std::endl;
 
     std::cout << "FeatureFinder summary:\n"
     << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size

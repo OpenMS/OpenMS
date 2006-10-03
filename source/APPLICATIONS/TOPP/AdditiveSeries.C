@@ -73,8 +73,8 @@ enum DimensionId
 	
 	This module computes an additve series for an absolute
 	quantification of a peptide in a set of samples. The
-	output consisits of a GNUplot script which can be used
-	to visualise the results and the results in XML format.
+	output consists of a GNUplot script which can be used
+	to visualise the results and some XML output for further precessing.
 	
 	In this version, the application computes the additive
 	series as a ratio of the intensities of two different peptides.
@@ -166,7 +166,10 @@ protected:
     }
 
 
-    // searches for a features with coordinates within the tolerance in this map
+    /// searches for a features with coordinates within the tolerance in this map
+	/// NOTE: It might happen, that there are several features at similar coordinates.
+	/// In this case, the program cannot be sure which one is the correct. So we decided
+	/// to use the one with the strongest intensity.
     bool readMapFile_(String filename, vector<double>& intensities,
                       CoordinateType tol_mz, CoordinateType tol_rt,
                       DPosition<2> fpos1, DPosition<2> fpos2)
@@ -177,14 +180,6 @@ protected:
 
         DFeature<2>* feat1 = 0;
         DFeature<2>* feat2 = 0;
-// 		
-// 		double f1_mz_diff  = 0;
-// 		double f1_rt_diff    = 0;
-// 		double f2_mz_diff  = 0;
-// 		double f2_rt_diff    = 0:
-
-// 		double f1_sum = 0;
-// 		double f2_sum = 0;
 
         DFeatureMap<2>::iterator iter = map.begin();
         while (iter!= map.end() )
@@ -241,11 +236,6 @@ protected:
 			std::cout << "Feature 2: " << feat2->getIntensity() << std::endl;
 			std::cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << std::endl;
             intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
-		   	
-// 			std::cout << "Sum 1 " << f1_sum << std::endl;
-// 			std::cout << "Sum 2 " << f2_sum << std::endl;
-// 			std::cout << "Intensity ratio : " << ( f1_sum / f2_sum ) << std::endl;
-// 			intensities.push_back(  ( f1_sum / f2_sum )  );
 
             return true;
         } 
@@ -254,13 +244,7 @@ protected:
 			
 		if (!feat2) 
 			std::cout << "Feature 2 was not found. " << std::endl;	
-
-// 		if (f1_sum == 0 )
-// 			std::cout << "Feature 1 was not found. " << std::endl;
-// 			
-// 		if (f2_sum == 0) 
-// 			std::cout << "Feature 2 was not found. " << std::endl;	
-			
+		
         return false;
     }
 
@@ -309,7 +293,6 @@ protected:
                 "set ylabel \"ion count\"\n"
                 "set xlabel \"concentration\"\n"
                 "set key left Left reverse\n"
-//                 "set title \"" << filename_prefix << "\"\n"
                 ;
 
                 if ( ! format.empty() )

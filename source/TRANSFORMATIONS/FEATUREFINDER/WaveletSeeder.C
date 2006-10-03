@@ -157,11 +157,11 @@ namespace OpenMS
 					mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
 // 					std::cout << "Current mass distance : " << mass_distance << std::endl;
 				} 
-				std::cout << "This scan is done." << std::endl;
+// 				std::cout << "This scan is done." << std::endl;
 								
 	}	// for (std::list...)
 	
-	std::cout << "Done Size of region: " << region_.size() << std::endl;	
+// 	std::cout << "Done Size of region: " << region_.size() << std::endl;	
 	
 	region_.sort();
 	 
