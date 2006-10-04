@@ -114,7 +114,7 @@ class TOPPFileFilter
 			options_["-rt"] = "rt";
 			options_["-int"] = "int";
 			options_["-level"] = "level";
-			options_["-remove_zoom"] = "remove_zoom";
+			flags_["-remove_zoom"] = "remove_zoom";
 		}
 	
 		ExitCodes main_(int , char**)
@@ -246,9 +246,10 @@ class TOPPFileFilter
 			exp.erase(remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
 			
 			//remove zoom scan mode (might be a large amount of spectra)
-			if (getParamAsBool_("remove_zoom"))
+			bool rem_zoom = getParamAsBool_("remove_zoom");
+			writeDebug_(String("Remove zoom: ") + String(rem_zoom),3);
+			if (rem_zoom)
 			{
-				cout << "remove_zoom ACTIVATED" << endl;
 				exp.erase(remove_if(exp.begin(), exp.end(), ScanModePredicate<MSExperiment< >::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
 			}
 			

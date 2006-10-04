@@ -192,9 +192,9 @@ class TOPPIDFilter
 		options_["-in"] = "in";
 		options_["-pepfr"] = "peptide_significance_threshold_fraction";
 		options_["-protfr"] = "protein_significance_threshold_fraction";
-		options_["-strict"] = "strict";
 		options_["-sequences_file"] = "sequences_file";
 		options_["-exclusion_peptides_file"] = "exclusion_peptides_file";
+		flags_["-strict"] = "strict";
 	}
 
 	ExitCodes main_(int , char**)
