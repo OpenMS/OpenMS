@@ -111,7 +111,7 @@ RESULT
 
 CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, ConstPeakIterator end)))
   	
-	DPeakArrayNonPolymorphic<2> parray;
+	DPeakArray<2> parray;
 	
 	for (int i=0; i<10;++i)
 	{

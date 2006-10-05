@@ -52,7 +52,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 		std::cout << "Starting WaveletExtender..." << std::endl;
 		
 		/// Very ugly. Should be removed in final version (ost)
-		DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
+		DPeakArray<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
 		scan_index_ = traits_->getScanIndex();
 		MSExperiment<DRawDataPoint<2>  > exp;
 		//copyData_(exp,peaks_);
@@ -180,7 +180,7 @@ const IndexSet& WaveletExtender::extend(const UnsignedInt /*seed_index*/)
 	return region_;
 }
 
-void WaveletExtender::copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >& peaks)
+void WaveletExtender::copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArray<2, DRawDataPoint<2> >& peaks)
 {
 	CoordinateType current_rt = peaks[0].getPosition()[RT];
 	MSExperiment<DRawDataPoint<2> >::SpectrumType spec;

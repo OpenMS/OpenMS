@@ -27,7 +27,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 
 #include <vector>
@@ -93,17 +93,17 @@ public:
     }
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal() const
+    inline const DPeakArray<1, DRawDataPoint<1> >& getSignal() const
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& getSignal()
+    inline DPeakArray<1, DRawDataPoint<1> >& getSignal()
     {
         return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArrayNonPolymorphic<1, DRawDataPoint<1> >& signal)
+    inline void setSignal(const DPeakArray<1, DRawDataPoint<1> >& signal)
     {
         signal_ = signal;
     }
@@ -231,7 +231,7 @@ public:
 
 protected:
     /// The transformed signal
-    DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > signal_;
+    DPeakArray<1, DRawDataPoint<1> > signal_;
 
     /// The pretabulated wavelet used for the transform
     std::vector<double> wavelet_;

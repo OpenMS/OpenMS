@@ -29,7 +29,7 @@
 #define OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEDIAN_H
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -144,7 +144,7 @@ namespace OpenMS
       last_= it_end;
 	
       std::vector<IntensityType> intensities(window_size_);
-      DPeakArrayNonPolymorphic<D,PeakType> scan;
+      DPeakArray<D,PeakType> scan;
       // collect all intensities and compute the background noise as
 	  // the median of the intensities in a small window.
 	  while (it_begin != it_end)
@@ -172,13 +172,13 @@ namespace OpenMS
 
   protected:
 
-    void shiftWindow_(DPeakArrayNonPolymorphic<D,PeakType> current_scan)
+    void shiftWindow_(DPeakArray<D,PeakType> current_scan)
     {
       unsigned int left  = (int) floor(window_size_ / 2);
 
       for (unsigned int i=0; i<current_scan.size(); i++)
       {
-        DPeakArrayNonPolymorphic<D,PeakType> window(window_size_);
+        DPeakArray<D,PeakType> window(window_size_);
         // walk to the left and collect
         // and most (window_size_ / 2) peaks
         for (int j=i; j >= 0 && window.size() <= left; j--)

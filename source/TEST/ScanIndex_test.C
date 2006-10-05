@@ -31,7 +31,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ScanIndex.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 ///////////////////////////
 
@@ -43,7 +43,7 @@ START_TEST(ScanIndex, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-typedef DPeakArrayNonPolymorphic<2> PeakVector;
+typedef DPeakArray<2> PeakVector;
 
 /////////////////////////////////////////////////////////////
 

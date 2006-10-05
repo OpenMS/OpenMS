@@ -74,7 +74,7 @@ namespace OpenMS
       /// Raw data point type
       typedef DRawDataPoint<1> RawDataPointType;
       /// Raw data container type using for the temporary storage of the input data
-      typedef DPeakArrayNonPolymorphic<1, RawDataPointType > RawDataArrayType;
+      typedef DPeakArray<1, RawDataPointType > RawDataArrayType;
       /// Raw data iterator type
       typedef RawDataArrayType::iterator RawDataPointIterator;
       /// Position type
@@ -355,7 +355,7 @@ namespace OpenMS
         }
 #endif
 
-        // copy the raw data into a DPeakArrayNonPolymorphic<DRawDataPoint<D> >
+        // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
         DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;

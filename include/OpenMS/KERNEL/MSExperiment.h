@@ -143,7 +143,7 @@ public:
     /**
     	@brief Reads out a 2D Spectrum
       	
-      	Container is a DPeakArrayNonPolymorphic<2> or a STL container of DPeak<2> 
+      	Container is a DPeakArray<2> or a STL container of DPeak<2> 
       	or DRawDataPoint<2> which supports insert(), end() and back()
       */
     template <class Container>
@@ -174,7 +174,7 @@ public:
     /**
     	@brief Assignment of a 2D spectrum to MSExperiment
     	  	
-    	Container is a DPeakArrayNonPolymorphic<2> or a STL container of DPeak<2> or DRawDataPoint<2>
+    	Container is a DPeakArray<2> or a STL container of DPeak<2> or DRawDataPoint<2>
     	
     	@note The container has to be sorted according to retention time. Otherwise a Precondition exception is thrown.
     */
@@ -232,14 +232,14 @@ public:
     	This iterator allows us to move through the data structure in a linear
     	manner i.e. we don't need to jump to the next spectrum manually.
     	
-    	The class has a member  DPeakArrayNonPolymorphic<>::iterator pointing
+    	The class has a member  DPeakArray<>::iterator pointing
     	to the current peak. The class also remembers the retention time of the current 
     	scan.			
     */
 class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  PeakType>
     {
         typedef double CoordinateType;
-        typedef DPeakArrayNonPolymorphic<1, DPeak<1> >::iterator IteratorType;
+        typedef DPeakArray<1, DPeak<1> >::iterator IteratorType;
 
     public:
 

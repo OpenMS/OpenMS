@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 
 ///////////////////////////
@@ -109,7 +109,7 @@ CHECK(float& getStrucElemSize())
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > raw(5);
+  DPeakArray<1, DRawDataPoint<1> > raw(5);
   raw[0].getIntensity() = 0;
   raw[1].getIntensity() = 1;
   raw[2].getIntensity() = 1;
@@ -122,7 +122,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   raw[3].getPos() = 3;
   raw[4].getPos() = 4;
   
-  DPeakArrayNonPolymorphic< 1,DRawDataPoint<1> > filtered;
+  DPeakArray< 1,DRawDataPoint<1> > filtered;
   
   MorphFilter m;
   unsigned int struc_length = 3;
@@ -137,7 +137,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > raw(5);
+  DPeakArray<1, DRawDataPoint<1> > raw(5);
   raw[0].getIntensity() = 0;
   raw[1].getIntensity() = 1;
   raw[2].getIntensity() = 1;
@@ -150,7 +150,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   raw[3].getPos() = 3;
   raw[4].getPos() = 4;
   
-  DPeakArrayNonPolymorphic< 1,DRawDataPoint<1> > filtered;
+  DPeakArray< 1,DRawDataPoint<1> > filtered;
   
   MorphFilter m;
   unsigned int struc_length = 3;

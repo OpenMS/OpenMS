@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
@@ -55,7 +55,7 @@ namespace OpenMS
 	*/
 	template <typename PeakT = DPeak<1> >
   class MSSpectrum 
-  	: public DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> >,
+  	: public DSpectrum<1, DPeakArray<1, PeakT> >,
   		public SpectrumSettings,
   		public PersistentObject
   {
@@ -75,11 +75,11 @@ namespace OpenMS
 			typedef PeakT PeakType;
 			
 			/// Spectrum base type
-			typedef DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> > BaseSpectrum;
+			typedef DSpectrum<1, DPeakArray<1, PeakT> > BaseSpectrum;
     	
     	/// Constructor
       MSSpectrum():
-				DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> >(),
+				DSpectrum<1, DPeakArray<1, PeakT> >(),
 				SpectrumSettings(),
 				PersistentObject()
 			{
@@ -87,7 +87,7 @@ namespace OpenMS
 			}
       /// Copy constructor
       MSSpectrum(const MSSpectrum& source):
-				DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> >(source),
+				DSpectrum<1, DPeakArray<1, PeakT> >(source),
 				SpectrumSettings(source),
 				PersistentObject(source)
 			{
@@ -104,7 +104,7 @@ namespace OpenMS
 			{
 			  if (&source == this) return *this;
 			  
-		  	DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> >::operator=(source);
+		  	DSpectrum<1, DPeakArray<1, PeakT> >::operator=(source);
 		   	SpectrumSettings::operator=(source);
 		    PersistentObject::operator=(source);
 			  return *this;
@@ -115,7 +115,7 @@ namespace OpenMS
 		  {
 		  	return
 			   	SpectrumSettings::operator==(rhs) &&
-			    DSpectrum<1, DPeakArrayNonPolymorphic<1, PeakT> >::operator==(rhs)
+			    DSpectrum<1, DPeakArray<1, PeakT> >::operator==(rhs)
 		  		;
 		  }
       /// Equality operator
@@ -191,7 +191,7 @@ namespace OpenMS
 		os <<static_cast<const SpectrumSettings&>(spec);
 		
 		//peaklist
-		os <<static_cast<const DSpectrum<1, DPeakArrayNonPolymorphic<1,PeakT> >&>(spec);
+		os <<static_cast<const DSpectrum<1, DPeakArray<1,PeakT> >&>(spec);
 
 		os << "-- MSSPECTRUM END --"<<std::endl;
 	

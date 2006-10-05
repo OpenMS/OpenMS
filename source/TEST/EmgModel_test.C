@@ -113,8 +113,8 @@ CHECK(void setParam(Param param))
 	EmgModel em2;
 	em2.setParam(em1.getParam());
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	em1.getSamples(dpa1);
 	em2.getSamples(dpa2);
 
@@ -175,8 +175,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(em1.getCenter(), em2.getCenter())
 	TEST_REAL_EQUAL(em1.getCenter(), 682.1)
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	em1.getSamples(dpa1);
 	em2.getSamples(dpa2);
 

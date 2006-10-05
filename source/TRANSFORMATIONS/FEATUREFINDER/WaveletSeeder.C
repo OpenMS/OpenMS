@@ -54,7 +54,7 @@ namespace OpenMS
 			std::cout << "Initializing wavelet seeder..." << std::endl;
 		
 			/// Very ugly. Should be removed in final version (ost)
-			DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
+			DPeakArray<2, DRawDataPoint<2> > peaks_ = traits_->getAllPeaks();	
 			scan_index_ = traits_->getScanIndex();
 			MSExperiment<DRawDataPoint<2>  > exp;
 			

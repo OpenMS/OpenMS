@@ -110,8 +110,8 @@ CHECK(void setParam(Param param))
 
 	TEST_REAL_EQUAL(logm1.getCenter(), 680.1)
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	logm1.getSamples(dpa1);
 	logm2.getSamples(dpa2);
 
@@ -172,8 +172,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(logm1.getCenter(), logm2.getCenter())
 	TEST_REAL_EQUAL(logm1.getCenter(), 682.1)
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	logm1.getSamples(dpa1);
 	logm2.getSamples(dpa2);
 

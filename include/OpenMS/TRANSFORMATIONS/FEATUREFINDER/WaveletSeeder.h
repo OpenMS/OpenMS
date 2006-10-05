@@ -68,7 +68,7 @@ namespace OpenMS
 	typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::SweepLineHash SweepLineHash;
 	typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::DoubleList DoubleList;
 	
-	typedef DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >::iterator PeakIterator;
+	typedef DPeakArray<2, DRawDataPoint<2> >::iterator PeakIterator;
 		
     /// standard constructor
     WaveletSeeder();
@@ -97,7 +97,7 @@ namespace OpenMS
 	
 	SweepLineHash::const_iterator hash_iter;
 		
-	ScanIndex<DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >  > scan_index_;
+	ScanIndex<DPeakArray<2, DRawDataPoint<2> >  > scan_index_;
 	
 	CoordinateType avMZSpacing_;
 	

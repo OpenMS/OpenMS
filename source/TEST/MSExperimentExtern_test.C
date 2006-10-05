@@ -164,7 +164,7 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	exp.push_back(spec);	
 	
 	//Convert
-	DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > a;
+	DPeakArray<2, DRawDataPoint<2> > a;
 	exp.get2DData(a);
 
 	//Tests
@@ -183,12 +183,12 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	TEST_REAL_EQUAL(a[4].getPosition()[MZ],25);
 
 	//Convert
-	DPeakArrayNonPolymorphic<2> list;
+	DPeakArray<2> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakArrayNonPolymorphic<2>::const_iterator it = list.begin();
+	DPeakArray<2>::const_iterator it = list.begin();
 	TEST_REAL_EQUAL(it->getPosition()[RT],11.1);
 	TEST_REAL_EQUAL(it->getPosition()[MZ],5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
@@ -211,7 +211,7 @@ CHECK(template<class Container> void set2DData(Container& cont))
 	MSExperimentExtern<> exp;
 	
 	// create sample data
-	DPeakArrayNonPolymorphic<2> input;
+	DPeakArray<2> input;
 	
 	DPeak<2> p1;
 	p1.getIntensity()    = 1.0;
@@ -234,7 +234,7 @@ CHECK(template<class Container> void set2DData(Container& cont))
 	exp.set2DData(input);
 	
 	// retrieve data again and check for changes
-	DPeakArrayNonPolymorphic<2> output;
+	DPeakArray<2> output;
 	
 	exp.get2DData(output);
 	TEST_EQUAL(output,input);

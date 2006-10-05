@@ -41,7 +41,7 @@ START_TEST(GaussFilter<D>, "$Id$")
 using namespace OpenMS;
 
 
-typedef DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > RawDataArray1D;
+typedef DPeakArray<1,DRawDataPoint<1> > RawDataArray1D;
 typedef RawDataArray1D::Iterator RawDataIterator1D;
 typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
 

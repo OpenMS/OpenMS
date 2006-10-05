@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
@@ -75,7 +75,7 @@ RESULT
 CHECK(nextSeed())
   SimpleExtender extender;
   FeaFiTraits* traits = new FeaFiTraits();
-  DPeakArrayNonPolymorphic<2> peak_array;
+  DPeakArray<2> peak_array;
   
   double mzs[] = {675, 675.5, 676, 676.5, 677};
 	double rts[] = {1260, 1260, 1260, 1260, 1260};
@@ -92,8 +92,8 @@ CHECK(nextSeed())
 		peak_array.push_back(p);
 	}
 	
-	DPeakArrayNonPolymorphic<2>::const_iterator citer1 = peak_array.begin();
-	DPeakArrayNonPolymorphic<2>::const_iterator citer2 = peak_array.end();
+	DPeakArray<2>::const_iterator citer1 = peak_array.begin();
+	DPeakArray<2>::const_iterator citer2 = peak_array.end();
 	
 	traits->setData(citer1,citer2);
 	

@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_DSPECTRUM_H
 
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/KERNEL/DPickedPeak.h>
 #include <OpenMS/DATASTRUCTURES/RangeManager.h>
@@ -47,7 +47,7 @@ namespace OpenMS
 	/**	
 		@brief Representation of a D-dimensional spectrum.
 		
-		The peak data itself is stored in a container class, which can be a DPeakArrayNonpolymorphic
+		The peak data itself is stored in a container class, which can be a DPeakArray
 		or a STL container like std::list or std::vector.
 		
 		Some meta information about the spectrum (ms-level, precursor peak, ...) is 
@@ -62,7 +62,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <Size D, typename ContainerT = DPeakArrayNonPolymorphic<D> >
+	template <Size D, typename ContainerT = DPeakArray<D> >
 	class DSpectrum
 		: public MetaInfoInterface,
 			public RangeManager<D, typename ContainerT::PeakType::TraitsType>

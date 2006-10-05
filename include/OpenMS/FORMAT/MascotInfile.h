@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_MASCOTINFILE_H
 
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -55,7 +55,7 @@ namespace OpenMS
 			~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename, const DPeakArrayNonPolymorphic<1>& spec, double mz , double retention_time, std::string search_title);		
+			void store(const std::string& filename, const DPeakArray<1>& spec, double mz , double retention_time, std::string search_title);		
 
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const std::string& filename,
@@ -201,7 +201,7 @@ namespace OpenMS
 			/// writes the spectrum
 			void writeSpectrum_(FILE* fp,
 													const std::string& filename,
-													const DPeakArrayNonPolymorphic<1>& peaks);
+													const DPeakArray<1>& peaks);
 						
 			/// writes the MSExperiment
 			void writeMSExperiment_(FILE* fp, 

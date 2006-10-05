@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -72,9 +72,9 @@ RESULT
 
 CHECK((void init(ConstIterator it_begin, ConstIterator it_end)))
 
-  DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > raw_data(2);
+  DPeakArray<1,DRawDataPoint<1> > raw_data(2);
 
-  DSignalToNoiseEstimatorMedian<1,  DPeakArrayNonPolymorphic<1,DRawDataPoint<1> >::const_iterator > sne;
+  DSignalToNoiseEstimatorMedian<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne;
   sne.init(raw_data.begin(),raw_data.end());
 
   TEST_EQUAL((sne.getFirstDataPoint() == raw_data.begin()),true);
@@ -106,7 +106,7 @@ CHECK(const int getWindowSize() const)
 RESULT
 
 CHECK(double getSignalToNoise(ConstIterator data_point) throw(Exception::OutOfRange))
-  DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > raw_data;
+  DPeakArray<1,DRawDataPoint<1> > raw_data;
   int i;
   for (i=0; i < 6; ++i)
   {
@@ -124,14 +124,14 @@ CHECK(double getSignalToNoise(ConstIterator data_point) throw(Exception::OutOfRa
     raw_data.push_back(p);
   }
 
-  DSignalToNoiseEstimatorMedian<1,  DPeakArrayNonPolymorphic<1,DRawDataPoint<1> >::const_iterator > sne;
+  DSignalToNoiseEstimatorMedian<1,  DPeakArray<1,DRawDataPoint<1> >::const_iterator > sne;
   sne.setFactor(1);
   sne.setWindowSize(1);
   sne.init(raw_data.begin(),raw_data.end());
 
   for (i=0; i < (int)raw_data.size(); ++i)
   {
-    DPeakArrayNonPolymorphic<1,DRawDataPoint<1> >::const_iterator first = raw_data.begin() + i;
+    DPeakArray<1,DRawDataPoint<1> >::const_iterator first = raw_data.begin() + i;
 
     if ((i == 2) || (i == 4))
     {

@@ -37,7 +37,7 @@
 
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
@@ -86,7 +86,7 @@ namespace OpenMS
     typedef PeakType::NthPositionLess< RT > RTless;
     typedef PeakType::NthPositionLess< MZ > MZless;
 
-    typedef DPeakArrayNonPolymorphic<2, DRawDataPoint<2> > PeakVector;
+    typedef DPeakArray<2, DRawDataPoint<2> > PeakVector;
     typedef DFeatureMap<2> FeatureVector;
     typedef DFeature<2>::ConvexHullType ConvexHullType;
     typedef FeaFiModule::NoSuccessor NoSuccessor;

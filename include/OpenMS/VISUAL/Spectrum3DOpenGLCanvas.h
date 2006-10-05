@@ -42,7 +42,7 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include<OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
 {
@@ -78,7 +78,7 @@ namespace OpenMS
 		enum DimensionId { MZ = DimDesc::MZ, RT = DimDesc::RT };
 		
 		typedef DPeak<1> PeakT;
-		typedef DSpectrum< 1, DPeakArrayNonPolymorphic<1, PeakT > > 	BaseSpectrum;
+		typedef DSpectrum< 1, DPeakArray<1, PeakT > > 	BaseSpectrum;
 		//@}
 
  public:

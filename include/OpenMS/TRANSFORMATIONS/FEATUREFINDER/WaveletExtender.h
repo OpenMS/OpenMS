@@ -78,7 +78,7 @@ public:
 	typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::SweepLineHash SweepLineHash;
 	typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::DoubleList DoubleList;
 	
-	typedef DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >::iterator PeakIterator;
+	typedef DPeakArray<2, DRawDataPoint<2> >::iterator PeakIterator;
 	
     
 
@@ -112,13 +112,13 @@ protected:
 	
 	SweepLineHash::const_iterator hash_iter;
 		
-	ScanIndex<DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >  > scan_index_;
+	ScanIndex<DPeakArray<2, DRawDataPoint<2> >  > scan_index_;
 	
 	CoordinateType avMZSpacing_;
 	
 	CoordinateType min_mass_;
 	
-	void copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArrayNonPolymorphic<2, DRawDataPoint<2> >& peaks);
+	void copyData_(MSExperiment<DRawDataPoint<2> > & exp, DPeakArray<2, DRawDataPoint<2> >& peaks);
 	
 }; // end of class WaveletExtender
 

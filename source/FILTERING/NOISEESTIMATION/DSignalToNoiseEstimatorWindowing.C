@@ -26,10 +26,9 @@
 //
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
 
 namespace OpenMS
 {
   DSignalToNoiseEstimatorWindowing<> default_sn_1;
-  DSignalToNoiseEstimatorWindowing<2, DPeakArrayNonPolymorphic<2,DRawDataPoint<2> >::const_iterator > default_sn_2;
+  DSignalToNoiseEstimatorWindowing<2, DPeakArray<2,DRawDataPoint<2> >::const_iterator > default_sn_2;
 }

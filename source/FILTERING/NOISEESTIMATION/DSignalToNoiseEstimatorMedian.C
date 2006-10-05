@@ -26,10 +26,10 @@
 //
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
 {
   DSignalToNoiseEstimatorMedian<> default_sn_median1;
-  DSignalToNoiseEstimatorMedian<2, DPeakArrayNonPolymorphic<2,DRawDataPoint<2> >::const_iterator > default_sn_median2;
+  DSignalToNoiseEstimatorMedian<2, DPeakArray<2,DRawDataPoint<2> >::const_iterator > default_sn_median2;
 }

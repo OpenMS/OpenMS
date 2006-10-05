@@ -30,7 +30,7 @@
 #include<OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+
 namespace OpenMS
 {	
 /** 

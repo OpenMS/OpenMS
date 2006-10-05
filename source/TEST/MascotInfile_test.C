@@ -43,8 +43,8 @@ START_TEST(MascotInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-//DPeakArrayNonPolymorphic (dummy for spectrum)
-DPeakArrayNonPolymorphic<1> spec;
+//DPeakArray (dummy for spectrum)
+DPeakArray<1> spec;
 DPeak<1> tmp;
 vector<SignedInt> charges;
 charges.push_back(2);
@@ -77,7 +77,7 @@ CHECK((const std::string& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK((void store(const std::string& filename, const DPeakArrayNonPolymorphic<1>& spec, double mz, double retention_time, std::string search_title)))
+CHECK((void store(const std::string& filename, const DPeakArray<1>& spec, double mz, double retention_time, std::string search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
@@ -209,7 +209,7 @@ CHECK((const std::vector<String>& getVariableModifications()))
 	TEST_EQUAL(file.getVariableModifications() == vmods, true)
 RESULT
 
-CHECK((void store(const std::string& filename, const DPeakArrayNonPolymorphic<1>& spec, double mz, double retention_time, std::string search_title)))
+CHECK((void store(const std::string& filename, const DPeakArray<1>& spec, double mz, double retention_time, std::string search_title)))
 	// here a fixed name has to be used as it has to be in the tamplate
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");

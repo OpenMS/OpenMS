@@ -37,7 +37,7 @@ CPP_SOURCES= \
 	DPosition.C\
 	DPeak.C\
 	DPickedPeak.C\
-	DPeakArrayNonPolymorphic.C\
+	DPeakArray.C\
 	DRawDataPoint.C\
 	StandardTypes.C\
 	DFeatureMap.C\
@@ -48,7 +48,6 @@ CPP_SOURCES= \
 	DPeakReferenceArray.C
 
 #	DPeakList.C\
-#	DPeakArray.C\
 
 
 ADD_CPP_SOURCES = ${CGAL_SOURCES}

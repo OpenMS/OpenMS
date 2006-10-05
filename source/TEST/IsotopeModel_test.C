@@ -98,8 +98,8 @@ CHECK(void setParam(Param param))
 	IsotopeModel im2;
 	im2.setParam(im1.getParam());
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 
@@ -162,8 +162,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(im1.getCenter(), im2.getCenter())
 	TEST_REAL_EQUAL(im1.getCenter(), 671.909)
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 

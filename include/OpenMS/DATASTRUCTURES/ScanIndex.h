@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-	/** @brief This is an adaptor class for peak container such as DPeakArrayNonPolymorphic or DFeatureMap.
+	/** @brief This is an adaptor class for peak container such as DPeakArray or DFeatureMap.
 
 			This data structure allows us to move rapidly between
 			different scans by retrieving begin and end iterator

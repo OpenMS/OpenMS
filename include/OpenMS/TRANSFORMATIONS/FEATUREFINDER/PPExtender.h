@@ -33,7 +33,7 @@
 
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
 
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
@@ -75,8 +75,8 @@ public:
     };
 	
 	typedef DRawDataPoint<1> RawDataPointType;
-	typedef DPeakArrayNonPolymorphic<1, RawDataPointType > RawDataArrayType;
-	 typedef RawDataArrayType::iterator RawDataPointIterator;
+	typedef DPeakArray<1, RawDataPointType > RawDataArrayType;
+	typedef RawDataArrayType::iterator RawDataPointIterator;
 	
     /// standard constructor
     PPExtender();

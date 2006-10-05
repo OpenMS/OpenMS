@@ -97,7 +97,7 @@ EXECUTABLES_KERNEL =\
 	DRawDataPoint_test\
 	DPeak_test\
 	DPickedPeak_test\
-	DPeakArrayNonPolymorphic_test\
+	DPeakArray_test\
 	DSpectrum_test\
 	ComparatorUtils_test\
 	StandardTypes_test\

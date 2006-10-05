@@ -114,12 +114,12 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 
 
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
-	DPeakArrayNonPolymorphic<2> array;
+	DPeakArray<2> array;
 	e.get2DData(array);
 	TEST_EQUAL(array.size(), 9);
 	ABORT_IF(array.size() != 9)
 
-	DPeakArrayNonPolymorphic<2>::ConstIterator it2 = array.begin();
+	DPeakArray<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
@@ -230,12 +230,12 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 
 	MSExperiment<> e2;
 	f.load(tmp_filename,e2);
-	DPeakArrayNonPolymorphic<2> array;
+	DPeakArray<2> array;
 	e2.get2DData(array);
 	TEST_EQUAL(array.size(), 9);
 	ABORT_IF(array.size() != 9)
 
-	DPeakArrayNonPolymorphic<2>::ConstIterator it2 = array.begin();
+	DPeakArray<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
@@ -283,12 +283,12 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 
 	MSExperiment< DRawDataPoint<1> > e3;
 	f.load(tmp_filename,e3);
-	DPeakArrayNonPolymorphic<2,DRawDataPoint<2> > array2;
+	DPeakArray<2,DRawDataPoint<2> > array2;
 	e2.get2DData(array2);
 	TEST_EQUAL(array2.size(), 9);
 	ABORT_IF(array2.size() != 9)
 
-	DPeakArrayNonPolymorphic<2,DRawDataPoint<2> >::ConstIterator it3 = array2.begin();
+	DPeakArray<2,DRawDataPoint<2> >::ConstIterator it3 = array2.begin();
 
 	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)

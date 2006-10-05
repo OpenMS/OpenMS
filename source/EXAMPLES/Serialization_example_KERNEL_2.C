@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// // // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -87,7 +87,7 @@ int main() {
 	std::string blabla("blablablabla");
 	const RawSpectrum raw_spectrum;
 
-	DPeakArrayNonPolymorphic<2> dpeak_array;
+	DPeakArray<2> dpeak_array;
 	
 	Feature feature;
  	feature.setPos(0,178);
@@ -111,7 +111,7 @@ int main() {
   const Feature * feature0 = dynamic_cast<const Feature * const>(&dpeak_array[0]);
 	const Feature * feature2 = dynamic_cast<const Feature * const>(&dpeak_array[2]);
 	
-	DPeakArrayNonPolymorphic<2> dpeak_list(dpeak_array.begin(),dpeak_array.end());
+	DPeakArray<2> dpeak_list(dpeak_array.begin(),dpeak_array.end());
 	DPickedPeak<2> dpicked_peak;
 	
   // save data to archive
@@ -198,8 +198,8 @@ int main() {
 	RawSpectrum restored_xml_raw_spectrum;
 	Feature * restored_xml_feature0;
 	Feature * restored_xml_feature2;
-	DPeakArrayNonPolymorphic<2> restored_xml_dpeak_array;
-	DPeakArrayNonPolymorphic<2> restored_xml_dpeak_list;
+	DPeakArray<2> restored_xml_dpeak_array;
+	DPeakArray<2> restored_xml_dpeak_list;
 	DPickedPeak<2> restored_xml_dpicked_peak;
 	
 	try

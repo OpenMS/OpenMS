@@ -62,7 +62,7 @@ class ProductModel
 public:
     typedef typename DPeak<D,Traits>::IntensityType IntensityType;
     typedef DPosition<D,Traits> PositionType;
-    typedef DPeakArrayNonPolymorphic<D, DPeak<D,Traits> > SamplesType;
+    typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
 
     /// standard constructor
     ProductModel()

@@ -57,7 +57,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const std::string& filename,
-													const DPeakArrayNonPolymorphic<1>& spec, 
+													const DPeakArray<1>& spec, 
 													double mz ,
 													double retention_time, 
 													std::string search_title)		
@@ -227,7 +227,7 @@ namespace OpenMS
 	
 	void MascotInfile::writeSpectrum_(FILE* fp, 
 																		const std::string& filename,
-																		const DPeakArrayNonPolymorphic<1>& peaks)
+																		const DPeakArray<1>& peaks)
 	{
 		stringstream ss;
 
@@ -264,7 +264,7 @@ namespace OpenMS
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 			
-			for (DPeakArrayNonPolymorphic<1>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
+			for (DPeakArray<1>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
@@ -335,7 +335,7 @@ namespace OpenMS
 					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
 					fputs("\n",fp);
 							
-					for (DPeakArrayNonPolymorphic<1>::iterator it = peaks.begin(); 
+					for (DPeakArray<1>::iterator it = peaks.begin(); 
 							 it != peaks.end();
 							 ++it)
 					{

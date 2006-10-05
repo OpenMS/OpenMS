@@ -50,7 +50,7 @@ RESULT
 
 CHECK((ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWaveletTransformNumIntegration& cwt)))
   ContinuousWaveletTransformNumIntegration transformer;
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
+  DPeakArray<1, DRawDataPoint<1> > transform;
   vector<double> wavelet(0);
   transformer.getSignal() = transform;
   transformer.getWavelet() = wavelet;
@@ -62,7 +62,7 @@ CHECK((ContinuousWaveletTransformNumIntegration& operator=(const ContinuousWavel
   
   ContinuousWaveletTransformNumIntegration transformer_copy;
   transformer_copy = transformer;
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+  DPeakArray<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
   vector<double> wavelet_copy = transformer_copy.getWavelet();
   double scale = transformer_copy.getScale();
   double spacing = transformer_copy.getSpacing();
@@ -80,7 +80,7 @@ RESULT
 
 CHECK((ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransformNumIntegration& cwt)))
   ContinuousWaveletTransformNumIntegration transformer;
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform;
+  DPeakArray<1, DRawDataPoint<1> > transform;
   vector<double> wavelet(0);
   transformer.getSignal() = transform;
   transformer.getWavelet() = wavelet;
@@ -91,7 +91,7 @@ CHECK((ContinuousWaveletTransformNumIntegration(const ContinuousWaveletTransform
   transformer.getSignalLength() = 8;
   
   ContinuousWaveletTransformNumIntegration transformer_copy(transformer);
-  DPeakArrayNonPolymorphic<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
+  DPeakArray<1, DRawDataPoint<1> > transform_copy = transformer_copy.getSignal();
   vector<double> wavelet_copy = transformer_copy.getWavelet();
   double scale = transformer_copy.getScale();
   double spacing = transformer_copy.getSpacing();

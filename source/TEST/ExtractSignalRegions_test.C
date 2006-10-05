@@ -26,7 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ExtractSignalRegions.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 ///////////////////////////
 
@@ -134,7 +134,7 @@ CHECK((void setDaltonPerSplit(const float& dalton_per_split)))
 RESULT
 
 CHECK((template< typename InputPeakIterator > void splitScan(InputPeakIterator it_begin, InputPeakIterator it_end, double noise_level, std::vector<InputPeakIterator>& splitted_array)))
-  typedef DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > RawData;
+  typedef DPeakArray<1,DRawDataPoint<1> > RawData;
   ExtractSignalRegions esr;
   esr.setDaltonPerSplit(2);
   RawData raw;

@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArrayNonPolymorphic.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 
 ///////////////////////////
 
@@ -168,9 +168,9 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 
 
 
-	//TEST WITH DPeakArrayNonPolymorphic and DRawDataPoint
+	//TEST WITH DPeakArray and DRawDataPoint
 
-	DSpectrum<1, DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > s2;
+	DSpectrum<1, DPeakArray<1,DRawDataPoint<1> > > s2;
 	f1.load("data/DTAFile_test.dta",s2);
 	
 	TEST_EQUAL(s2.size(), 25);
@@ -178,7 +178,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 	TEST_REAL_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
-	DSpectrum<1, DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > >::ConstIterator it2(s2.begin());
+	DSpectrum<1, DPeakArray<1,DRawDataPoint<1> > >::ConstIterator it2(s2.begin());
 	
 	TEST_REAL_EQUAL(it2->getPosition()[0], 139.42)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
@@ -328,10 +328,10 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	TEST_REAL_EQUAL(it->getIntensity(), 13.5)
 
 
-	//TEST WITH DPeakArrayNonPolymorphic and DRawDataPoint
+	//TEST WITH DPeakArray and DRawDataPoint
 	
-	DSpectrum<1, DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > > raw_spec, raw_spec2;
-	DSpectrum<1, DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > >::PeakType raw_peak;
+	DSpectrum<1, DPeakArray<1,DRawDataPoint<1> > > raw_spec, raw_spec2;
+	DSpectrum<1, DPeakArray<1,DRawDataPoint<1> > >::PeakType raw_peak;
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
@@ -352,7 +352,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	ABORT_IF(raw_spec2.getContainer().size() != 3)
 	
-	DSpectrum<1, DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > >::ConstIterator it2 = raw_spec2.begin();
+	DSpectrum<1, DPeakArray<1,DRawDataPoint<1> > >::ConstIterator it2 = raw_spec2.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[0], 11.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 11.5)

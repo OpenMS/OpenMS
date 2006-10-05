@@ -841,7 +841,7 @@ namespace OpenMS
 		*/
 		template <>
 		template <>
-		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::writeDerivedPeakSupplementalData_ < DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > >( std::ostream& os, DPeakArrayNonPolymorphic<1, DPickedPeak<1,KernelTraits> > const & container);
+		void MzDataHandler <MSExperiment<DPickedPeak<1,KernelTraits> > >::writeDerivedPeakSupplementalData_ < DPeakArray<1, DPickedPeak<1,KernelTraits> > >( std::ostream& os, DPeakArray<1, DPickedPeak<1,KernelTraits> > const & container);
 
 		/**
 			 @brief Partial specialization that reads supplemental data for picked peaks.

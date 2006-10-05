@@ -110,8 +110,8 @@ CHECK(void setParam(Param param))
 	LmaGaussModel lm2;
 	lm2.setParam(lm1.getParam());
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 
@@ -181,8 +181,8 @@ CHECK(void setOffset(double offset))
 	TEST_REAL_EQUAL(lm1.getCenter(), lm2.getCenter())
 	TEST_REAL_EQUAL(lm1.getCenter(), 682.1)
 
-	DPeakArrayNonPolymorphic<1> dpa1;
-	DPeakArrayNonPolymorphic<1> dpa2;
+	DPeakArray<1> dpa1;
+	DPeakArray<1> dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 

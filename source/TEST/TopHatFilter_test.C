@@ -82,7 +82,7 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > raw_data;
+    DPeakArray<1,DRawDataPoint<1> > raw_data;
     int i;
     for (i=0; i < 24; ++i)
     {
@@ -100,12 +100,12 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
     }
 
-    DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > tophat_data;
+    DPeakArray<1,DRawDataPoint<1> > tophat_data;
     TopHatFilter tophat;
     tophat.setStrucElemSize(3);
     tophat.filter(raw_data,tophat_data);
 
-    DPeakArrayNonPolymorphic<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
+    DPeakArray<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
       TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -114,7 +114,7 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > raw_data;
+    DPeakArray<1,DRawDataPoint<1> > raw_data;
     int i;
     for (i=0; i<8; ++i)
     {
@@ -134,13 +134,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
      }
 
-     DPeakArrayNonPolymorphic<1,DRawDataPoint<1> > tophat_data;
+     DPeakArray<1,DRawDataPoint<1> > tophat_data;
 
      TopHatFilter tophat;
      tophat.setStrucElemSize(3);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
-     DPeakArrayNonPolymorphic<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
+     DPeakArray<1,DRawDataPoint<1> >::ConstIterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -151,7 +151,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   MSExperiment< DRawDataPoint<1> > ms_exp_raw;
   MSExperiment< DRawDataPoint<1> > ms_exp_filtered;
 
-  DPeakArrayNonPolymorphic<2,DRawDataPoint<2> > raw_data;
+  DPeakArray<2,DRawDataPoint<2> > raw_data;
   int i;
   for (i=0; i < 8; ++i)
   {
@@ -178,9 +178,9 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   
   tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
 
-  DPeakArrayNonPolymorphic<2> dpeak_arra_filtered;
+  DPeakArray<2> dpeak_arra_filtered;
   ms_exp_filtered.get2DData(dpeak_arra_filtered);
-  DPeakArrayNonPolymorphic<2>::iterator it = dpeak_arra_filtered.begin();
+  DPeakArray<2>::iterator it = dpeak_arra_filtered.begin();
   for (int i=0; i < 8; ++i)
   {
     TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -191,8 +191,8 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   MSExperiment<DRawDataPoint<1> > ms_exp_raw;
   MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
 
-  DPeakArrayNonPolymorphic<2,DRawDataPoint<2> > raw_data;
-  DPeakArrayNonPolymorphic<2,DRawDataPoint<2> > filtered_data;
+  DPeakArray<2,DRawDataPoint<2> > raw_data;
+  DPeakArray<2,DRawDataPoint<2> > filtered_data;
 
     int i;
     for (i=0; i<8; ++i)
@@ -220,7 +220,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
-    DPeakArrayNonPolymorphic<2,DRawDataPoint<2> >::iterator it = filtered_data.begin();
+    DPeakArray<2,DRawDataPoint<2> >::iterator it = filtered_data.begin();
     for (int i=0; i<8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
