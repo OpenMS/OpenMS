@@ -42,141 +42,145 @@
 namespace OpenMS
 {
 
-/**
- 	@brief The base class of the map matching algorithm.
- 	
- 	This class defines the basic interface for all mapmatching
- 	algorithms. It expects a list of feature pairs together
- 	with a quality value for each pair and the coordinates
- 	of a grid covering the map.
- 	
- 	It then estimates the parameters of a transformation
- 	describing the shift in retention time and m/z between
- 	the two maps.	 
- **/
-template <UnsignedInt D>
-class DBaseMapMatcher
-{
-public:
-    /// Defines the coordinates of peaks / features.
-    enum DimensionId
-    {
+  /**
+    @brief The base class of the map matching algorithm.
+    
+    This class defines the basic interface for all mapmatching
+    algorithms. It expects a list of feature pairs together
+    with a quality value for each pair and the coordinates
+    of a grid covering the map.
+    
+    It then estimates the parameters of a transformation
+    describing the shift in retention time and m/z between
+    the two maps.  
+   **/
+  template <typename ElementT = DFeature<2> >
+  class DBaseMapMatcher
+  {
+    public:
+      /// Defines the coordinates of peaks / features.
+      enum DimensionId
+      {
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
-    /** @name Type definitions
-    */
-    //@{
-    /// The grid is simply a vector of cells.
-    typedef DGrid<D> Grid;
-    /// The feature pairs are computed by the feature matching class
-    typedef DFeaturePairVector<D> FeaturePairVector;
-    ///
-    typedef DFeaturePair<2>::QualityType QualityType;
-    //@}
+      /** @name Type definitions
+      */
+      //@{
+      ///
+      typedef ElementT ElementType;
+      ///
+      typedef typename ElementType::TraitsType TraitsType;
+      /// The grid is simply a vector of cells.
+      typedef DGrid<2> Grid;
+      /// The feature pairs are computed by the feature matching class
+      typedef DFeaturePairVector< 2, ElementType > FeaturePairVector;
+      ///
+      typedef typename TraitsType::QualityType QualityType;
+      //@}
 
-    /// Constructor
-    DBaseMapMatcher() : min_quality_(-1)
-    {}
+      /// Constructor
+      DBaseMapMatcher() : min_quality_(-1)
+      {}
 
-    /// Copy constructor
-    DBaseMapMatcher(const DBaseMapMatcher& source)
-            : grid_(source.grid_),
-            feature_pairs_(source.feature_pairs_),
-            min_quality_(source.min_quality_)
-    {}
+      /// Copy constructor
+      DBaseMapMatcher(const DBaseMapMatcher& source)
+          : grid_(source.grid_),
+          feature_pairs_(source.feature_pairs_),
+          min_quality_(source.min_quality_)
+      {}
 
-    ///  Assignment operator
-    DBaseMapMatcher& operator = (const DBaseMapMatcher& source)
-    {
+      ///  Assignment operator
+      DBaseMapMatcher& operator = (const DBaseMapMatcher& source)
+      {
         if (&source==this)
-            return *this;
+          return *this;
 
         grid_          = source.grid_;
         feature_pairs_ = source.feature_pairs_;
         min_quality_   = source.min_quality_;
 
         return *this;
-    }
+      }
 
-    /// equality operator
-    bool operator == (const DBaseMapMatcher& rhs)
-    {
+      /// equality operator
+      bool operator == (const DBaseMapMatcher& rhs)
+      {
         return (grid_          == rhs.grid_ &&
                 feature_pairs_ == rhs.feature_pairs_ &&
                 min_quality_   == rhs.min_quality_);
-    }
+      }
 
-    /// Destructor
-    virtual ~DBaseMapMatcher()
-    {}
+      /// Destructor
+      virtual ~DBaseMapMatcher()
+      {}
 
-    /** @name Accesssor methods
-    */
-    //@{
-    /// Set grid
-    void setGrid(Grid& g)
-    {
+      /** @name Accesssor methods
+      */
+      //@{
+      /// Set grid
+      void setGrid(const Grid& g)
+      {
         grid_ = g;
-    }
-    /// Get grid
-    Grid& getGrid()
-    {
+      }
+      /// Get grid
+      Grid& getGrid()
+      {
         return grid_;
-    }
-    /// Get grid (non-mutable)
-    Grid& getGrid() const
-    {
+      }
+      /// Get grid (non-mutable)
+      Grid& getGrid() const
+      {
         return grid_;
-    }
-    /// Set feature pair list
-    void setFeaturePairs(FeaturePairVector& plist)
-    {
+      }
+      /// Set feature pair list
+      void setFeaturePairs(const FeaturePairVector& plist)
+      {
         feature_pairs_ = plist;
-    }
-    /// Get feature pair list
-    FeaturePairVector& getFeaturePairs()
-    {
+      }
+      /// Get feature pair list
+      FeaturePairVector& getFeaturePairs()
+      {
         return feature_pairs_;
-    }
-    /// Get feature pair list (non-mutable)
-    const FeaturePairVector& getFeaturePairs() const
-    {
+      }
+      /// Get feature pair list (non-mutable)
+      const FeaturePairVector& getFeaturePairs() const
+      {
         return feature_pairs_;
-    }
-    /// Set quality
-    void setMinQuality(QualityType& qu)
-    {
+      }
+      /// Set quality
+      void setMinQuality(const QualityType& qu)
+      {
         min_quality_ = qu;
-    }
-    /// Get quality
-    QualityType& getMinQuality()
-    {
+      }
+      /// Get quality
+      QualityType& getMinQuality()
+      {
         return min_quality_;
-    }
-    /// Get quality
-    const QualityType& getMinQuality() const
-    {
+      }
+      /// Get quality
+      const QualityType& getMinQuality() const
+      {
         return min_quality_;
-    }
-    //@}
+      }
+      //@}
 
-    /// estimates the transformation for each grid cell
-    virtual void estimateTransform() = 0;
+      /// estimates the transformation for each grid cell
+      virtual void estimateTransform() = 0;
 
-protected:
-    /// Vector of DRange instances defining a grid over the map
-    Grid grid_;
+    protected:
+      /// Vector of DRange instances defining a grid over the map
+      Grid grid_;
 
-    /// Vector of pairs of features that have been identified by the feature matcher
-    FeaturePairVector feature_pairs_;
+      /// Vector of pairs of features that have been identified by the feature matcher
+      FeaturePairVector feature_pairs_;
 
-    /// Minimum quality that we accept for feature pairs, defined in param class
-    QualityType min_quality_;
+      /// Minimum quality that we accept for feature pairs, defined in param class
+      QualityType min_quality_;
 
-}
-; // end of class BaseMapMatcher
+  }
+  ; // end of class BaseMapMatcher
 
 } // end of namespace OpenMS
 

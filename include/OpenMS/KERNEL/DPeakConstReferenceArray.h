@@ -355,7 +355,7 @@ namespace OpenMS
     typedef MapT BaseMapType;
     typedef typename BaseMapType::value_type PeakType;
 		enum { DIMENSION=PeakType::DIMENSION };
-    typedef typename BaseMapType::TraitsType TraitsType;
+    typedef typename PeakType::TraitsType TraitsType;
     typedef DPeakConstReferenceArrayIterator<const PeakType> Iterator;
     typedef DPeakConstReferenceArrayConstIterator<const PeakType> ConstIterator;
     typedef std::reverse_iterator<Iterator> ReverseIterator;

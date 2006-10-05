@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGeomHashShiftSuperimposer.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DSimplePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DDelaunayPairFinder.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 
 
@@ -193,7 +193,7 @@ namespace OpenMS
     /// This class computes the shift for the best mapping of one feature map to another
     DGeomHashShiftSuperimposer<PeakConstReferenceMapType> superimposer_;
     /// Given the shift, the pair_finder_ searches for corresponding features in the two maps
-    DSimplePairFinder<D,Traits,PeakConstReferenceMapType> pair_finder_;
+    DDelaunayPairFinder<D,Traits,PeakConstReferenceMapType> pair_finder_;
     /// Bounding box of the second map
     PositionBoundingBoxType bounding_box_scene_map_;
     /// Size of the grid cells

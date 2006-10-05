@@ -53,7 +53,8 @@ public:
     enum { DIMENSION = D };
     typedef FeatureT FeatureType;
     typedef std::pair<FeatureType,FeatureType> Base;
-    typedef	typename FeatureType::QualityType QualityType;
+    // CHANGED
+    typedef	typename FeatureType::TraitsType::QualityType QualityType;
 
     /** @name Constructors and Destructor
      */
