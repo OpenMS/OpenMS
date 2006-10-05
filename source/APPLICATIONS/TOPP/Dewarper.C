@@ -142,14 +142,14 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    DMapDewarper<2> map_dewarper;
-    map_dewarper.setFeatures(feature_map);
+    DMapDewarper<> map_dewarper;
+    map_dewarper.setMap(feature_map);
     map_dewarper.setGrid(the_grid);
 
     map_dewarper.dewarp();
 
     DFeatureMap<2> dewarped_features;
-    dewarped_features = map_dewarper.getFeatures();
+    dewarped_features = map_dewarper.getMap();
 
     //-------------------------------------------------------------
     // writing output

@@ -45,7 +45,14 @@ CPP_SOURCES=\
 	DMapDewarper.C\
 	$(GSL_SOURCES)\
 	DLinearMapping.C\
-	PairMatcher.C
+	PairMatcher.C\
+	BasePairwiseMapMatcher.C\
+	GeomHashPairwiseMapMatcher.C\
+	BaseSuperimposer.C\
+	GeomHashShiftSuperimposer.C\
+	BasePairFinder.C\
+	SimplePairFinder.C\
+	DelaunayPairFinder.C
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 

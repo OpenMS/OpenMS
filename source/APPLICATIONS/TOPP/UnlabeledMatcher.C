@@ -24,7 +24,7 @@
 // $Maintainer: Clemens Groepl, Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGeomHashPairwiseMapMatcher.h> // the new one
+#include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashPairwiseMapMatcher.h> // the new one
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
@@ -138,16 +138,22 @@ class TOPPUnlabeledMatcher
       //-------------------------------------------------------------
 
       String param_path = tool_name_ + ':' + String(instance_number_) + ':';
+      
+      std::cout << "param_path " << param_path << std::endl;
+      
+      std::cout << "TOPPBASE " << param_ << std::endl;
 
       Param param = getParamCopy_(param_path,true);
+      
+      std::cout << "INI " << param << std::endl;
 
       // determine name of grid file
       String gridfilename = getParamAsString_("grid");
-			if ( gridfilename.empty() ) gridfilename = param.getValue("grid");
+			//if ( gridfilename.empty() ) gridfilename = param_.getValue("grid");
 
       // determine name of pairs file
       String pairsfile = getParamAsString_("pairs");
-			if ( pairsfile.empty() ) pairsfile = param.getValue("pairs");
+			//if ( pairsfile.empty() ) pairsfile = param.getValue("pairs");
 
       // input files to be read
       String inputfile[2];
@@ -173,7 +179,7 @@ class TOPPUnlabeledMatcher
       // the resulting feature pairs go here
       FeaturePairVector feature_pair_vector;
 
-      DGeomHashPairwiseMapMatcher<2> geomhash_feature_matcher;
+      GeomHashPairwiseMapMatcher<> geomhash_feature_matcher;
 
       geomhash_feature_matcher.setParam(param);
 

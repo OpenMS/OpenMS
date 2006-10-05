@@ -59,23 +59,23 @@ enum DimensionId
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(DMapDewarper<D>, "$Id$")
+START_TEST(DMapDewarper<MapT>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 
-DMapDewarper<2>* pl_ptr = 0;
+DMapDewarper<>* pl_ptr = 0;
 CHECK(DFeatureMap<2>())
-	pl_ptr = new DMapDewarper<2>();
+	pl_ptr = new DMapDewarper<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK(~DMapDewarper<2>())
+CHECK(~DMapDewarper<>())
 	delete pl_ptr;
 RESULT
 
-CHECK(DMapDewarper<2>(const DMapDewarper& p))
+CHECK(DMapDewarper<>(const DMapDewarper& p))
 	
 	DFeature<2> feat1, feat2, feat3;
 	
@@ -95,13 +95,13 @@ CHECK(DMapDewarper<2>(const DMapDewarper& p))
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
 	
-	DMapDewarper<2> dewarper1;
-	dewarper1.setFeatures(feat_map);
+	DMapDewarper<> dewarper1;
+	dewarper1.setMap(feat_map);
 	dewarper1.setGrid(the_grid);
 	
-	DMapDewarper<2> dewarper2(dewarper1);
+	DMapDewarper<> dewarper2(dewarper1);
 	
-	TEST_EQUAL(dewarper1.getFeatures()==dewarper1.getFeatures(),true);
+	TEST_EQUAL(dewarper1.getMap()==dewarper1.getMap(),true);
 	TEST_EQUAL(dewarper1.getGrid()==dewarper1.getGrid(),true);
 				
 RESULT
@@ -126,13 +126,13 @@ CHECK(operator =)
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
 	
-	DMapDewarper<2> dewarper1;
-	dewarper1.setFeatures(feat_map);
+	DMapDewarper<> dewarper1;
+	dewarper1.setMap(feat_map);
 	dewarper1.setGrid(the_grid);
 	
-	DMapDewarper<2> dewarper2 = dewarper1;
+	DMapDewarper<> dewarper2 = dewarper1;
 	
-	TEST_EQUAL(dewarper1.getFeatures()==dewarper1.getFeatures(),true);
+	TEST_EQUAL(dewarper1.getMap()==dewarper1.getMap(),true);
 	TEST_EQUAL(dewarper1.getGrid()==dewarper1.getGrid(),true);
 				
 RESULT
@@ -158,12 +158,12 @@ CHECK(operator ==)
 	feat_map.push_back(feat2);
 	feat_map.push_back(feat3);
 	
-	DMapDewarper<2> dewarper1;
-	dewarper1.setFeatures(feat_map);
+	DMapDewarper<> dewarper1;
+	dewarper1.setMap(feat_map);
 	dewarper1.setGrid(the_grid);
 	
-	DMapDewarper<2> dewarper2;
-	dewarper2.setFeatures(feat_map);
+	DMapDewarper<> dewarper2;
+	dewarper2.setMap(feat_map);
 	dewarper2.setGrid(the_grid);
 	
 	TEST_EQUAL(dewarper1==dewarper2,true);
@@ -222,7 +222,7 @@ CHECK(dewarp())
 	Grid the_grid;
 	the_grid.push_back(cell1);
 	
-	DMapMatcherRegression<2> mmatcher;
+	DMapMatcherRegression<> mmatcher;
 	mmatcher.setGrid(the_grid);
 	mmatcher.setFeaturePairs(pairs);
 	
@@ -236,12 +236,12 @@ CHECK(dewarp())
 	feat_map.push_back(feat5);
 	
 	Grid grid2 = mmatcher.getGrid();
-	DMapDewarper<2> dewarper;
-	dewarper.setFeatures(feat_map);
+	DMapDewarper<> dewarper;
+	dewarper.setMap(feat_map);
 	dewarper.setGrid(grid2);
 	dewarper.dewarp();
 	
-	DFeatureMap<2> dewarped = dewarper.getFeatures();
+	DFeatureMap<2> dewarped = dewarper.getMap();
 	DFeatureMap<2>::const_iterator map_iter = dewarped.begin();
 	TEST_REAL_EQUAL(map_iter->getPosition()[0],5.0);
 	TEST_REAL_EQUAL(map_iter->getPosition()[1],2.0);

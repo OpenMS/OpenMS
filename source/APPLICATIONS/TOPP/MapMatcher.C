@@ -183,7 +183,7 @@ protected:
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
-        DMapMatcherRegression<2> map_matcher;
+        DMapMatcherRegression<> map_matcher;
         map_matcher.setFeaturePairs(pairs_vector);
         map_matcher.setGrid(the_grid);
         map_matcher.setMinQuality(min_quality);

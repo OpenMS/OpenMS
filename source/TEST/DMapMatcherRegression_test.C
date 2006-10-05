@@ -58,23 +58,23 @@ enum DimensionId
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(DMapMatcherRegression<D>, "$Id$")
+START_TEST(DMapMatcherRegression<ElementT>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 
-DMapMatcherRegression<2>* pl_ptr = 0;
+DMapMatcherRegression<>* pl_ptr = 0;
 CHECK(DFeatureMap<2>())
-	pl_ptr = new DMapMatcherRegression<2>();
+	pl_ptr = new DMapMatcherRegression<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK(~DMapMatcherRegression<2>())
+CHECK(~DMapMatcherRegression<>())
 	delete pl_ptr;
 RESULT
 
-CHECK(DMapMatcherRegression<2>(const DMapMatcherRegression& p))
+CHECK(DMapMatcherRegression<>(const DMapMatcherRegression& p))
 
 	// first pair
 	DFeaturePair<2> pair1;
@@ -111,11 +111,11 @@ CHECK(DMapMatcherRegression<2>(const DMapMatcherRegression& p))
 	Grid the_grid;
 	the_grid.push_back(cell1);
 	
-	DMapMatcherRegression<2> mmatcher;
+	DMapMatcherRegression<> mmatcher;
 	mmatcher.setGrid(the_grid);
 	mmatcher.setFeaturePairs(pairs);
 	
-	DMapMatcherRegression<2> mmatcher_copy(mmatcher);
+	DMapMatcherRegression<> mmatcher_copy(mmatcher);
 	Grid grid_copy = mmatcher_copy.getGrid();
 	FeaturePairVector pairs_copy = mmatcher_copy.getFeaturePairs();
 	
@@ -161,11 +161,11 @@ CHECK(operator =)
 	Grid the_grid;
 	the_grid.push_back(cell1);
 	
-	DMapMatcherRegression<2> mmatcher;
+	DMapMatcherRegression<> mmatcher;
 	mmatcher.setGrid(the_grid);
 	mmatcher.setFeaturePairs(pairs);
 	
-	DMapMatcherRegression<2> mmatcher_copy = mmatcher;
+	DMapMatcherRegression<> mmatcher_copy = mmatcher;
 	Grid grid_copy = mmatcher_copy.getGrid();
 	FeaturePairVector pairs_copy = mmatcher_copy.getFeaturePairs();
 	
@@ -212,11 +212,11 @@ CHECK(operator ==)
 	Grid the_grid;
 	the_grid.push_back(cell1);
 	
-	DMapMatcherRegression<2> mmatcher;
+	DMapMatcherRegression<> mmatcher;
 	mmatcher.setGrid(the_grid);
 	mmatcher.setFeaturePairs(pairs);
 	
-	DMapMatcherRegression<2> mmatcher2;
+	DMapMatcherRegression<> mmatcher2;
 	mmatcher2.setGrid(the_grid);
 	mmatcher2.setFeaturePairs(pairs);
 	
@@ -277,7 +277,7 @@ CHECK(estimateTransform() )
 	Grid the_grid;
 	the_grid.push_back(cell1);
 	
-	DMapMatcherRegression<2> mmatcher;
+	DMapMatcherRegression<> mmatcher;
 	mmatcher.setGrid(the_grid);
 	mmatcher.setFeaturePairs(pairs);
 	
