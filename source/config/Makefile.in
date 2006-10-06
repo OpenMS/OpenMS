@@ -134,12 +134,14 @@ install.static:
 	@$(ECHO) Installing static libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
 	@-mkdir $(OPENMS_PATH)/lib 2>/dev/null | cat >/dev/null
 	@-mkdir $(OPENMS_PATH)/lib/$(BINFMT) 2>/dev/null | cat >/dev/null
+	@-mkdir $(OPENMS_PATH)/bin 2>/dev/null | cat >/dev/null    
 	@$(MV) -f $(STATIC_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
 
 install.shared:	
 	@$(ECHO) Installing shared libraries under $(OPENMS_PATH)/lib/$(BINFMT)...
 	@-mkdir $(OPENMS_PATH)/lib 2>/dev/null | cat >/dev/null 
 	@-mkdir $(OPENMS_PATH)/lib/$(BINFMT) 2>/dev/null | cat >/dev/null
+	@-mkdir $(OPENMS_PATH)/bin 2>/dev/null | cat >/dev/null    
 	@$(MV) -f $(SHARED_LIBS) $(OPENMS_PATH)/lib/$(BINFMT)
 
 delete.static:	

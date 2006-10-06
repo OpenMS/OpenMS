@@ -67,12 +67,6 @@ EXECUTABLES=\
 
 #	RawDataResampler\
 
-
-
-default:
-	@-mkdir $(OPENMS_PATH)/bin 2>/dev/null | cat >/dev/null     
-	make all
-
 all: $(EXECUTABLES)
 
 # replace library-specific flags by application-
