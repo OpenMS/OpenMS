@@ -163,6 +163,13 @@ class TOPPNoiseFilter
       }
 
       //-------------------------------------------------------------
+      // Init noise filter
+      //-------------------------------------------------------------
+      String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+      Param noise_param = getParamCopy_(ini_location,true);
+
+
+      //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
 
@@ -177,8 +184,8 @@ class TOPPNoiseFilter
 
       if (filter_type == "sgolay")
       {
-#ifdef GSL_DEF   	
-        SavitzkyGolaySVDFilter sgolay(param_);
+#ifdef GSL_DEF
+        SavitzkyGolaySVDFilter sgolay(noise_param);
 
         LinearResampler lin_resampler;
         lin_resampler.setSpacing(spacing);
@@ -222,15 +229,16 @@ class TOPPNoiseFilter
           }
         }
 #else
-			writeLog_("Savitzky Golay filter is not available as GSL is deactivated. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-#endif   
+        writeLog_("Savitzky Golay filter is not available as GSL is deactivated. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+#endif
+
       }
       else
         if (filter_type == "gaussian")
         {
-          GaussFilter gauss(param_);
+          GaussFilter gauss(noise_param);
           gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
         }
         else
