@@ -33,111 +33,71 @@
   <br>
   <br>
   <font color="red"><b>All architectures:</b></font>
-
-    <li>Autoconf version 2.59 or higher is needed for the
-    installation of OpenMS and the contrib package. Autoconf can be
-    downloaded from <a target="blank"
-       href=
-       "http://www.gnu.org/software/autoconf/">http://www.gnu.org/software/autoconf/</a>.</li>
-
-
+  <ul>
+    <li>Autoconf version 2.59 or higher is needed for the installation of OpenMS and the contrib package. Autoconf can be downloaded from <a target="blank" href="http://www.gnu.org/software/autoconf/">http://www.gnu.org/software/autoconf/</a>.</li>
     <li>GCC 3.4.3 and lower will not work due to a bug.</li>
   </ul>
+
   <font color="red"><b>i386 architectures:</b></font>
-
   <ul>
-    <li>OpenMS is tested with GCC 3.4.x (x&gt;=4), 4.0 and
-    4.1.</li>
-
-
-    <li>Before you choose your compiler, see the notes on Qt
-    installation below.</li>
+    <li>OpenMS is tested with GCC 3.4.x (x&gt;=4), 4.0 and 4.1.</li>
+    <li>Before you choose your compiler, see the notes on Qt installation below.</li>
   </ul>
+  
   <font color="red"><b>x86_64 architectures:</b></font>
-
   <ul>
     <li>OpenMS is tested with GCC 4.0.</li>
-
-
-    <li>If the built aborts with errors concerning 'compound
-    literals' use <code>--disable-pedantic</code> in the OpenMS
-    configure.</li>
-
-
-    <li>If ANDI/MS tests fail, you can disable ANDI/MS using
-    <code>--disable-andims</code> in the OpenMS configure.</li>
+    <li>If the built aborts with errors concerning 'compound literals' use <code>--disable-pedantic</code> in the OpenMS configure.</li>
+    <li>If ANDI/MS tests fail, you can disable ANDI/MS using <code>--disable-andims</code> in the OpenMS configure.</li>
   </ul>
-  <a name="libraries"
-        id="libraries"></a>
-
+  
+  
+  <a name="libraries" id="libraries"></a>
   <h2>Installing required libraries</h2>
   OpenMS depends on several other libraries. Most of them are
   standard and should be present in many systems anyway. Some of
   those libraries again depend on others. Here is a little overview
   of the dependencies:
 
-  <table cellpadding="2"
-         cellspacing="0">
+  <table cellpadding="2" cellspacing="0">
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">ANDI/MS</td>
-
       <td align="left">(requires NetCDF)</td>
     </tr>
-
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">Boost</td>
-
       <td align="left">&nbsp;</td>
     </tr>
-
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">GSL</td>
-
       <td align="left">&nbsp;</td>
     </tr>
-
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">CGAL</td>
-
       <td align="left">&nbsp;</td>
     </tr>
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">XERCES-C</td>
-
       <td align="left">&nbsp;</td>
     </tr>
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">libSVM</td>
-
       <td align="left">&nbsp;</td>
     </tr>
-
     <tr>
       <td align="left">&nbsp;</td>
-
       <td align="left">Qt</td>
-
-      <td align="left">(requires other libraries for DB support,
-      e.g. MySQL)</td>
+      <td align="left">(requires other libraries for DB support e.g. MySQL)</td>
     </tr>
   </table>
+
+  <BR>
   <b><font color="red">Note:</font></b> In order to make the
   installation of the required libraries easier, we composed a
   package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, XERCES-C and
@@ -205,12 +165,12 @@
 &gt; gmake
 </pre>
 
-  <p><b>If OpenGL support is not enabled:</b> On some systems
-  OpenGL is only included in QT when you add the
+  <p><b>OpenGL support:</b> 
+  <BR>
+  On some systems OpenGL is only included in QT when you add the
   <code>-tread</code> flag to configure. Note that in that case you
   have to use the <code>--with-qt-mt</code> flag in the OpenMS
   configure.</p>
-
 
   <p><b>SQL support:</b>
   <br>
@@ -218,7 +178,6 @@
   -plugin-sql-&lt;driver&gt; to enable database support. There is a
   QT driver for a lot of SQL database provided by QT. Check the QT
   manual for details.</p>
-
 
   <p>If our mysql installation is not in the standard path, it was
   necessary to add <code>-I/&lt;path_to_mysql_includes&gt;</code>
@@ -229,9 +188,8 @@
   the rest of your system,</i> if possible. This applies in
   particular if your system already comes along with a Qt
   installation (which is usually the case for linux).</p>
-  <a name="contrib"
-        id="contrib"></a>
-
+  
+  <a name="contrib" id="contrib"></a>
   <h3>Installing the other required libraries (using the contrib package)</h3>
   <font color=red>Note:</font> If you do not want to use the contrib package, you can find installation instructions
   for the required libraries <a href="install_without_contrib.html">here</a>.
@@ -247,62 +205,38 @@
 &gt; ./configure
 </pre>The following configure options can be used:
 
-  <table border="0"
-         cellspacing="0"
-         cellpadding="0">
+  <table border="0"  cellspacing="0" cellpadding="0">
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
       <td>
-        <ul>
-          <li>--with-compiler=CXX</li>
-        </ul>
+        <li>--with-compiler=CXX</li>
       </td>
-
       <td>&nbsp;use CXX as C++ compiler (default: g++)</td>
     </tr>
-
-
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
       <td>
-        <ul>
-          <li>--with-c-compiler=CC&nbsp;&nbsp;</li>
-        </ul>
+        <li>--with-c-compiler=CC&nbsp;&nbsp;</li>
       </td>
-
       <td>&nbsp;use CC as C compiler (default: gcc)</td>
     </tr>
-
-
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
       <td>
-        <ul>
-          <li>--with-toolset=TS</li>
-        </ul>
+         <li>--with-toolset=TS</li>
       </td>
-
-      <td>&nbsp;use TS as boost toolset. make sure the compiler and
-      toolset match (default: gcc)</td>
+      <td>&nbsp;use TS as boost toolset. make sure the compiler and toolset match (default: gcc)</td>
     </tr>
-
-
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
       <td>
-        <ul>
-          <li>--with-libdir=LD</li>
-        </ul>
+        <li>--with-libdir=LD</li>
       </td>
-
-      <td>&nbsp;make install copies all libraries into LD (default:
-      lib/)</td>
+		  <td>&nbsp;make install copies all libraries into LD (default: lib/)</td>
     </tr>
   </table>
+  
+  <BR>
   If you do not give any configure options, it is assumed that you
   want to use 'gcc' as C-compiler, 'g++' as C++-compiler and the
   boost toolset 'gcc'.
