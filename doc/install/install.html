@@ -74,7 +74,7 @@
   OpenMS depends on several other libraries. Most of them are
   standard and should be present in many systems anyway. Some of
   those libraries again depend on others. Here is a little overview
-  of those dependencies:
+  of the dependencies:
 
   <table cellpadding="2"
          cellspacing="0">
@@ -124,6 +124,14 @@
     <tr>
       <td align="left">&nbsp;</td>
 
+      <td align="left">libSVM</td>
+
+      <td align="left">&nbsp;</td>
+    </tr>
+
+    <tr>
+      <td align="left">&nbsp;</td>
+
       <td align="left">Qt</td>
 
       <td align="left">(requires other libraries for DB support,
@@ -132,7 +140,7 @@
   </table>
   <b><font color="red">Note:</font></b> In order to make the
   installation of the required libraries easier, we composed a
-  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, XERCES-C and
+  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, XERCES-C and
   Boost. This contrib package has three advantages over manual
   installation
 
@@ -151,9 +159,9 @@
   We recommend using the contrib package! QT and MySQL are not
   contained in the contrib package as they are installed on most
   systems anyway. If they are not installed on your system, you
-  have to install those two libraries first. <a name="mysql"
-        id="mysql"></a>
-
+  have to install those two libraries first. 
+  
+  <a name="mysql" id="mysql"></a>
   <h3>MySQL</h3>
   The MySQL database is accessed by OpenMS through functionality
   provided by Qt. The MySQL versions 4.0.18 and 4.1.10a have been
@@ -176,11 +184,11 @@
 &gt; ./configure --prefix=&lt;prefix&gt;
 &gt; make
 &gt; make install
-</pre><a name="qt"
-        id="qt"></a>
+</pre>
 
+  <a name="qt" id="qt"></a>
   <h3>Qt</h3>
-  For GUI, database access and XML parsing we use Qt. The
+  For GUI, database access and visualisation we use Qt. The
   Qt-x11-free versions 3.3.2 and 3.3.4 have been tested and used
   with OpenMS. You can obtain the source from <a href=
   "http://www.trolltech.com/download/index.html"
@@ -224,7 +232,12 @@
   <a name="contrib"
         id="contrib"></a>
 
-  <h3>Using the contrib package (recommended)</h3>
+  <h3>Installing the other required libraries (using the contrib package)</h3>
+  <font color=red>Note:</font> If you do not want to use the contrib package, you can find installation instructions
+  for the required libraries <a href="install_without_contrib.html">here</a>.
+  <br>
+  <br>
+  
   First download the contrib package.
   <br>
   After extracting the package call the following commands:
@@ -320,196 +333,8 @@
     <br>
     It contains the header files needed for OpenMS.</li>
   </ul>
-  <a name="netcdf"
-        id="netcdf"></a>
-
-  <h3>NetCDF (if you do not use the contrib package)</h3>
-  NetCDF (network Common Data Form) is an interface for
-  array-oriented data access and a library that provides an
-  implementation of the interface. The NetCDF library also defines
-  a machine-independent format for representing scientific data.
-  Together, the interface, library, and format support the
-  creation, access, and sharing of scientific data.
-  <br>
-  The NetCDF versions 3.5.1 and 3.6.0 have been tested and used
-  with OpenMS. You can get the sources at <a href=
-  "http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget"
-        target=
-        "blank">http://www.unidata.ucar.edu/packages/netcdf/faq.html#howtoget</a>.
-  <br>
-  Installation instructions can be found at <a href=
-  "http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html"
-        target=
-        "blank">http://www.unidata.ucar.edu/packages/netcdf/INSTALL.html</a>.
-
-  <p>Since OpenMS has no need for the fortran interface to NetCDF,
-  it is probably best to disable it (unless you need it for some
-  other reasons) by setting the environment variables FC and F90 to
-  the empty string. The following environment has been applied
-  successfully:</p>
-
-  <pre>
-export CFLAGS="-O"
-export CXXFLAGS="-O"
-export CPPFLAGS="-DNDEBUG"
-export FC=""
-export F90=""
-</pre><a name="andims"
-        id="andims"></a>
-
-  <h3>ANDI/MS (if you do not use the contrib package)</h3>
-  ANDI is a NetCDF based analytical instrument data interchange
-  standard. This data standard primarily supports mass spectrometry
-  and chromatography.
-  <br>
-  The version AIA_MS10 has been tested and used with OpenMS. You
-  can get the source at <a href=
-  "http://sourceforge.net/projects/andi"
-        target="blank">http://sourceforge.net/projects/andi</a>.
-
-  <p>Due to its age, ANDIMS does not support comfortable install
-  mechanisms.</p>
-
-
-  <p>Download the file AIA_MS10.zip from sourceforge and unzip it
-  to a directory of your choice. Next, unzip the file in
-  andims/disk1/ANDI_1.ZIP. Now go into the SRC/ directory.</p>
-
-
-  <p>You have to edit the Makefile. Please note that if your
-  version of unzip creates all-uppercase filenames, you should
-  convert them manually to all-lowercase filenames, e.g. the
-  directory SRC should contain the file ms10aux.c, not
-  MS10AUX.C.</p>
-
-
-  <p>In the Makefile, you will have to edit the variable OS to
-  match your operating system, and you will have to include the
-  line</p>
-
-  <pre>
-NETCDF = path/to/your/netcdf/installation
-</pre>such that in $(NETCDF)/include you will find the file
-netcdf.h.
-
-  <p>Afterwards, you should edit the dependencies that are
-  specified in the end of the Makefile. Remove any dependency that
-  doesn't seem to work on your system, like e.g. all occurrences of
-  a nsi_compat.h Now, you can run</p>
-
-  <pre>
-&gt; make
-</pre>to compile the library. <a name="gsl"
-        id="gsl"></a>
-
-  <h3>GSL (if you do not use the contrib package)</h3>
-  The GNU scientific library is used by us for all kinds of
-  functionalities and calculations. Versions 1.4, 1.5 and 1.6 have
-  been tested and used with OpenMS.
-  <br>
-  <br>
-  Download the sources from <a href=
-  "http://www.gnu.org/software/gsl/"
-        target="blank">http://www.gnu.org/software/gsl/</a>.
-  <br>
-  <br>
-  We did not find a good installation documentation, but this
-  should do the job:
-
-  <pre>
-&gt; ./configure
-&gt; make
-&gt; make install
-</pre><a name="cgal"
-        id="cgal"></a>
-
-  <h3>CGAL (if you do not use the contrib package)</h3>
-  The computational geographic algorithms library offers
-  functionalities for many kinds of multidimensional search
-  problems. The CGAL versions 3.0.1 and 3.1.0 have been tested and
-  used with OpenMS.
-  <br>
-  <b><font color="red">Note:</font></b> If you want to use gcc 3.4
-  as compiler, you must use CGAL 3.1.0 or higher!
-  <br>
-  <br>
-  Get the source code from <a href="http://www.cgal.org/download/"
-        target="blank">http://www.cgal.org/download/</a>.
-  <br>
-  You can find the installation manual as pdf at <a href=
-  "http://www.cgal.org/Manual/3.2/doc_html/installation_manual/contents.html"
-        target=
-        "blank">http://www.cgal.org/Manual/3.2/doc_html/installation_manual/contents.html</a>.
-  <br>
-  <br>
-  <b><font color="red">Note:</font></b> During the installation of
-  CGAL the platform-specific header file 'compiler_config.h' is
-  created in a platform-specific directory in
-  'include/CGAL/config/'. You need to copy this file into the
-  'include/CGAL/' directory. 
-
-	<a name="xerces" id="xerces"></a>
-
-  <h3>XERCES-C (if you do not use the contrib package)</h3>
-  XERCES-C library offers functionality for XML parsing. Thus it can not be disabled in OpenMS configure!
-  <br>
-  You can find the installation instructions at <a target=_blank href="http://xml.apache.org/xerces-c/install.html">http://xml.apache.org/xerces-c/install.html</a>.
-	<BR>
-	<BR>
-	Installation is pretty straight forward, but you better use the script <i>runConfigure</i> instead of <i>configure</i>
-	itself!
-  <pre>
-&gt; autoconf
-&gt; export XERCESCROOT=&lt;path to the xerces-c source directory&gt;
-&gt; ./runConfigure -p linux -P &lt;prefix&gt; -x &lt;c++ compiler&gt;
-&gt; make
-&gt; make install
-</pre>  
-  
-  
-  <a name="boost"
-        id="boost"></a>
-
-  <h3>Boost (if you do not use the contrib package)</h3>
-  Boost is used for serialization, priority queues, smart pointers
-  and other things.
-  <br>
-  The Boost version 1.32.0 has been tested and used with OpenMS.
-  <br>
-  <br>
-  In order to install Boost, you need the boost installer bjam in
-  your path.
-  <br>
-  bjam can be downloaded as binary or source code from <a href=
-  "http://sourceforge.net/project/showfiles.php?group_id=7586&amp;package_id=72941">
-  sourceforge</a>
-  <br>
-  <br>
-  Installation of boost:
-  <br>
-  Get the source code from <a href=
-  "http://sourceforge.net/project/showfiles.php?group_id=7586"
-        target="blank">sourcefore</a> and untar it.
-  <br>
-  Installation instructions for boost can be found at <a href=
-  "http://www.boost.org/more/getting_started.html"
-        target=
-        "blank">http://www.boost.org/more/getting_started.html</a>.
-  <br>
-  <br>
-  <br>
-  When using gcc, the following steps should do the installation:
-  <br>
-
-  <pre>
-&gt; cd &lt;BOOSTDIR&gt;/libs/serialization/build/
-&gt; bjam -sTOOLS=gcc
-&gt; cd &lt;BOOSTDIR&gt;/
-&gt; bjam -sTOOLS=gcc --prefix=&lt;prefix&gt; install
-</pre>&lt;BOOSTDIR&gt; is the base directory of the boost sources.
-<a name="openms"
-        id="openms"></a>
-
+	
+  <a name="openms" id="openms"></a>
   <h2>Installing OpenMS</h2>
   If you have not installed the libraries which OpenMS requires,
   please refer to the section <a href="#libraries">required
