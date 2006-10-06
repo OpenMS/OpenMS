@@ -119,20 +119,20 @@ intersection and center.
   <br>
   One of the template arguments of <tt>DSpectrum</tt> is the
   Container the data is stored in. As container
-  <tt>DPeakArrayNonPolymorphic</tt> or a container with the same interface is used.
+  <tt>DPeakArray</tt> or a container with the same interface is used.
   <br>
-  <b>DPeakArrayNonPolymorphic</b> is vector of data points with a
+  <b>DPeakArray</b> is vector of data points with a
   more convenient interface for sorting of the data.
   <br>
   <br>
   The following example demonstrates the use of a 2-dimensional
-  spectrum of raw data with <tt>DPeakArrayNonPolymorphic</tt> as
+  spectrum of raw data with <tt>DPeakArray</tt> as
   container:
 
   <pre>
 // typedef to avoid too long names
 typedef DimensionDescription &lt; DimensionDescriptionTagLCMS &gt; DimDesc;
-typedef DSpectrum&lt;2, DPeakArrayNonPolymorphic&lt;2, DRawDataPoint&lt;2&gt; &gt; &gt; Spectrum2D;
+typedef DSpectrum&lt;2, DPeakArray&lt;2, DRawDataPoint&lt;2&gt; &gt; &gt; Spectrum2D;
 
 // create a spectrum
 Spectrum2D spectrum;

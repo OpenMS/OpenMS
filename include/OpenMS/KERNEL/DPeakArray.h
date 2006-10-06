@@ -260,4 +260,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DPEAKARRAYNONPOLYMORPHIC_H
+#endif // OPENMS_KERNEL_DPEAKARRAY_H
