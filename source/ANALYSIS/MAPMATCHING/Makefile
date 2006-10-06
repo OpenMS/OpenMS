@@ -52,7 +52,9 @@ CPP_SOURCES=\
 	GeomHashShiftSuperimposer.C\
 	BasePairFinder.C\
 	SimplePairFinder.C\
-	DelaunayPairFinder.C
+	DelaunayPairFinder.C\
+	Group.C\
+	IndexTuple.C
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 
