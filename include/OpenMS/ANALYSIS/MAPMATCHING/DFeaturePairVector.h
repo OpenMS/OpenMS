@@ -36,7 +36,7 @@ namespace OpenMS
 	
 	template <Size D, typename FeatureT = DFeature<D> >
 	class DFeaturePairVector
-		: public std::vector<DFeaturePair<D> >
+		: public std::vector< DFeaturePair<D, FeatureT > >
 	{
 	 public:
 			
