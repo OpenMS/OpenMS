@@ -124,7 +124,7 @@ namespace OpenMS
 	    switch(type)
 	    {
 				case(DEGREE):
-					param_->degree = value;
+					param_->degree = (int)value;
 				  break;
 				case(C):
 			    param_->C = value;
