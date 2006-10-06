@@ -88,7 +88,7 @@ class IsotopeFinder
 		 * usually not change this parameter. */
 		IsotopeFinder (const MapType& experiment, const unsigned int integration_workspace=100, 
 			double integration_epsilon=1e-6, unsigned int peak_cut_off=5, double score_cut_off=0, 
-			unsigned int rt_votes_cut_off=6	, double wtCutOff=0, double mz_interleave=3) throw ();
+			unsigned int rt_votes_cut_off=6	, double wtCutOff=0, unsigned int mz_interleave=3) throw ();
 
 		virtual void initializeMe () throw ();
 
@@ -309,10 +309,22 @@ inline bool comparator (const DRawDataPoint<2> a, const DRawDataPoint<2> b)
 
 
 template <typename MapType>
-IsotopeFinder<MapType>::IsotopeFinder () throw () : INTEGRATION_WORKSPACE(100), INTEGRATION_EPSILON (1e-6),
-  PEAK_CUT_OFF (5), SCORE_CUT_OFF (0), RT_VOTES_CUT_OFF (6), WT_CUT_OFF (0), MZ_INTERLEAVE (2), waveletLength_ (0),
-  avMZSpacing_ (0), avRTSpacing_ (0), min_spacing_ (0), max_spacing_ (1), av_intens_ (0), sd_intens_ (0), 
-	writtenGnuFiles_ (0) 
+IsotopeFinder<MapType>::IsotopeFinder () throw () 
+	: INTEGRATION_WORKSPACE(100), 
+		INTEGRATION_EPSILON (1e-6),
+  	PEAK_CUT_OFF (5), 
+  	SCORE_CUT_OFF (0), 
+  	RT_VOTES_CUT_OFF (6), 
+  	WT_CUT_OFF (0), 
+  	MZ_INTERLEAVE (2), 
+  	waveletLength_ (0),
+  	avMZSpacing_ (0), 
+  	avRTSpacing_ (0), 
+  	min_spacing_ (0), 
+  	max_spacing_ (1), 
+  	av_intens_ (0), 
+  	sd_intens_ (0), 
+		writtenGnuFiles_ (0) 
 {
 }
 
@@ -326,10 +338,21 @@ IsotopeFinder<MapType>::~IsotopeFinder () throw ()
 template <typename MapType>
 IsotopeFinder<MapType>::IsotopeFinder (const MapType& experiment, const unsigned int integration_workspace,
   double integration_epsilon, unsigned int peak_cut_off, double score_cut_off, unsigned int rt_votes_cut_off,
-  double wtCutOff, double mz_interleave) throw () : INTEGRATION_WORKSPACE (integration_workspace), 
-	INTEGRATION_EPSILON (integration_epsilon), PEAK_CUT_OFF (peak_cut_off), SCORE_CUT_OFF (score_cut_off), 
-	RT_VOTES_CUT_OFF (rt_votes_cut_off), WT_CUT_OFF (wtCutOff), MZ_INTERLEAVE (mz_interleave),waveletLength_(0), 
-	avMZSpacing_(0), min_spacing_ (0), max_spacing_ (1), av_intens_ (0), sd_intens_ (0), writtenGnuFiles_ (0)
+  double wtCutOff, unsigned int mz_interleave) throw () 
+  : INTEGRATION_WORKSPACE (integration_workspace), 
+	INTEGRATION_EPSILON (integration_epsilon), 
+	PEAK_CUT_OFF (peak_cut_off), 
+	SCORE_CUT_OFF (score_cut_off), 
+	RT_VOTES_CUT_OFF (rt_votes_cut_off), 
+	WT_CUT_OFF (wtCutOff), 
+	MZ_INTERLEAVE (mz_interleave),
+	waveletLength_(0), 
+	avMZSpacing_(0.0), 
+	min_spacing_ (0.0), 
+	max_spacing_ (1.0), 
+	av_intens_ (0.0), 
+	sd_intens_ (0.0), 
+	writtenGnuFiles_ (0u)
 {
 	experiment_ = experiment;
 	initializeMe();	

@@ -43,8 +43,8 @@
 #include <gsl/gsl_blas.h>
 #endif
 
-#include<iostream.h>
-#include<fstream.h>
+#include<iostream>
+#include<fstream>
 #include<sstream>
 #include<string>
 
