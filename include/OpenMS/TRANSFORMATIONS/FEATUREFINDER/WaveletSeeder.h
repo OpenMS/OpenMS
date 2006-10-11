@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-	/** @brief Seeding class
+	/** @brief Seeding module based on the wavelet class IsotopeFinder.
 	
 		@ingroup FeatureFinder
 		

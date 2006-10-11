@@ -55,6 +55,12 @@ namespace OpenMS
 /**
   @brief Implements the extension phase of the FeatureFinder.
   
+  The continuous wavelet transform (cwt) is applied to each scan and local maxima in the cwt
+  are searched. If a group of maxima has a distance similar to an isotopic pattern, this region
+  is declared as peptide candidate and carefully extended.
+  
+  @NOTE To be used with class DummySeeder.
+  
   @ingroup FeatureFinder
 	
  */

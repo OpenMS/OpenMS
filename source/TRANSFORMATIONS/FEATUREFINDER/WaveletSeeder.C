@@ -93,7 +93,10 @@ namespace OpenMS
 		} // end if(....)
 		
 		if (hash_iter == hash_.end() || hash_.size() == 0 ) throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
-	 		
+	 	
+		
+		
+		// compute mass we are searching for
 		CoordinateType mass_to_find = min_mass_ + (hash_iter->first-1)*avMZSpacing_;
 		IndexSet region_;		
 	
@@ -171,7 +174,7 @@ namespace OpenMS
 	 UnsignedInt max_index           = 0;
 	 CoordinateType max_intensity = 0.0;
 	 
-
+	// find maximum of region
 	for (IndexSet::const_iterator citer = region_.begin();
 	      citer != region_.end(); 
 		  ++citer)
@@ -183,7 +186,7 @@ namespace OpenMS
 		}	
 	
 	} // end of for (Index in region)
-	
+	traits_->getPeakFlag(max_index) = FeaFiTraits::SEED;
 	
 	return max_index;
 }

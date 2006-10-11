@@ -141,12 +141,13 @@ namespace OpenMS
 			moveRtUp_(current_index);
 			moveRtDown_(current_index);
 
-			// set flag
-			if (traits_->getPeakFlag(current_index) != FeaFiTraits::SEED)
+			// check peak flags (if data point is already inside a feature region or used as seed, 
+			// we discard it)
+			if (traits_->getPeakFlag(current_index) == FeaFiTraits::SEED || traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
-
-			region_.add(current_index);
-
+				region_.add(current_index);
+			}
     } // end of while ( !boundary_.empty() )
 
     std::cout << "Feature region size: " << region_.size() << std::endl;

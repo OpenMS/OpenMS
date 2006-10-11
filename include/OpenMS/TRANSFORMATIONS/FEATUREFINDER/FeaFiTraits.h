@@ -57,6 +57,9 @@ namespace OpenMS
 {
 	/**
 		 @brief Traits class for the feature finding algorithm.
+		 
+		 This class is rather an "umbrella" for the different modules / steps of the algorithm
+		 than a traits class in the traditional sense.
 		
 		 @ingroup FeatureFinder 	
 	**/

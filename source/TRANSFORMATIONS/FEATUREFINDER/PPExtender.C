@@ -160,13 +160,13 @@ void PPExtender::sweep_()
             cwt_.init(cwt_scale_, 0.0001);
             cwt_.transform(current_scan.begin(), current_scan.end(),1.);
 		
-			fname = "cwt_" + String(last_rt);
-            std::ofstream gpfile( fname.c_str() );
-             for (int i=0;i<cwt_.getSize(); ++i)
-             {
-            	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
-             }
-             gpfile.close();
+// 			fname = "cwt_" + String(last_rt);
+//             std::ofstream gpfile( fname.c_str() );
+//              for (int i=0;i<cwt_.getSize(); ++i)
+//              {
+//             	gpfile << (current_scan.begin() + i)->getPosition()[0] << "  " << cwt_[i] << std::endl;
+//              }
+//              gpfile.close();
 
 			if  ( cwt_.getSize() == 0) 
 			{
@@ -392,9 +392,7 @@ void PPExtender::sweep_()
 					}				
 				
 				}
-				
-
-                current_charge = 0; // reset charge
+				current_charge = 0; // reset charge
             } // end for (local maxima in cwt)
 			
 			// copy cluster information of least scan
@@ -465,10 +463,10 @@ void PPExtender::getMaxPositions_( RawDataPointIterator first, RawDataPointItera
 			    ((wt[i] - wt[i+1]) > 0)  && 
 				( wt[i]  > noise_level_cwt_ ) ) 
       			{					
-					 String fname = "cwt_localmax_" + String(traits_->getPeakRt(curr_peak));
-					 std::ofstream gpfile( fname.c_str(), std::ios_base::app); 
-					 gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
-					 gpfile.close();
+// 					 String fname = "cwt_localmax_" + String(traits_->getPeakRt(curr_peak));
+// 					 std::ofstream gpfile( fname.c_str(), std::ios_base::app); 
+// 					 gpfile << (first + i)->getPos()  << "  " << cwt_[i] << std::endl;
+// 					 gpfile.close();
 //					std::cout << "Inserting : " << (curr_peak + i) << std::endl;
 					max_value=(first +  i)->getIntensity();
 					
@@ -523,13 +521,13 @@ void PPExtender::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 			{
 				// we have enough scans
 // 				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
-				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
-				std::ofstream outfile( fname.c_str() );
-             	for (unsigned int i=0;i<scan.size(); ++i)
-            	 {
-            		outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
-             	}
-             	outfile.close();
+// 				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
+// 				std::ofstream outfile( fname.c_str() );
+//              	for (unsigned int i=0;i<scan.size(); ++i)
+//             	 {
+//             		outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
+//              	}
+//              	outfile.close();
 				
 				break;
 			} 

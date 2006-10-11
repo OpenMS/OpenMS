@@ -52,12 +52,15 @@ namespace OpenMS
 /**
   @brief Implements the extension phase of the FeatureFinder.
   
-  This extender module sweeps through the scans and detects
-  classifies cluster of peaks as candidate peptides if the distance
-  between successive peaks is 1 Da (charge 1) or 0.5 Da (for 
-  charge 2).
+  This extender module sweeps through the scans and classifies cluster 
+  of peaks as candidate peptides if the distance between successive peaks 
+  is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3).
   
-  @NOTE This module works only for picked peaks.
+  @NOTE This module works only for picked peaks. Used it in combination with class DummySeeder.
+  
+  @NOTE Experiments have shown that this extender produces a lot of false positive hits. It would be
+  better to take also the relaitive intensities between the peaks into consideration and to check if these
+  a similar to an isotopic pattern.
  
   @ingroup FeatureFinder
 	
