@@ -137,7 +137,7 @@ class TOPPUnlabeledMatcher
       // parameter handling
       //-------------------------------------------------------------
 
-      String param_path = tool_name_ + ':' + String(instance_number_) + ':';
+      String param_path = tool_name_ + ":default:";
       
       std::cout << "param_path " << param_path << std::endl;
       
