@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Cornelia Friedleh $
+# $Maintainer: Cornelia Friedle $
 # --------------------------------------------------------------------------
 
 include ../../config_defs.mak
@@ -32,14 +32,14 @@ THISLIB=$(LIBNAME)
 
 
 ifeq ($(GSL_SUPPORT),true)
-  GSL_CPP_SOURCES = \
-  DataReducer.C\
-  MaxReducer.C\
-	SumReducer.C
+  GSL_CPP_SOURCES =
 endif
 
 CPP_SOURCES = \
- $(GSL_CPP_SOURCES)
+ $(GSL_CPP_SOURCES)\
+  DataReducer.C\
+  MaxReducer.C\
+	SumReducer.C
 
 include ../../common.mak
 -include .Dependencies
