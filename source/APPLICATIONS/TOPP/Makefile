@@ -37,6 +37,12 @@ GSL_EXEC=\
 	SpectraFilter
 endif
 
+
+ifeq ($(CGAL_SUPPORT),true)
+CGAL_EXEC=\
+	UnlabeledMatcher
+endif
+
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_EXEC=\
 	RTModel\
@@ -44,6 +50,7 @@ LIBSVM_EXEC=\
 endif
 
 EXECUTABLES=\
+	$(CGAL_EXEC)\
 	$(GSL_EXEC)\
 	$(LIBSVM_EXEC)\
 	FileConverter\
@@ -57,7 +64,6 @@ EXECUTABLES=\
 	MascotAdapter\
 	InspectAdapter\
 	PeakPicker\
-	UnlabeledMatcher\
 	LabeledMatcher\
 	Dewarper\
 	FeaturePairSplitter\
