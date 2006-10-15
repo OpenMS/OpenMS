@@ -28,15 +28,16 @@
 #include <math.h>
 #include<iostream.h>
 
+//QT
 #include<qimage.h>
+
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DCanvasPDP.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -115,6 +116,8 @@ void Spectrum3DCanvas::makeReducedDataSet()
 	
  		break;
 
+#ifdef GSL_DEF
+
 	case 1:
 		{	
 			reduction_param_.setValue("Peaksperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Max"));
@@ -157,10 +160,11 @@ void Spectrum3DCanvas::makeReducedDataSet()
 		disp_ints_.clear();
 		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
 		break;
-	}
-	
+#endif
 
+	}
 }
+
 void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
 {
 	SpectrumCanvas::setMainPreferences(prefs);

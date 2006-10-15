@@ -31,13 +31,6 @@
 #include <qpoint.h>
 
 // STL
-//factory
-#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
-
-
-
-
-
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
