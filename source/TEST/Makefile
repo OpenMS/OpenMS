@@ -211,8 +211,10 @@ ifeq ($(GSL_SUPPORT),true)
 	PeakDiffBins_test\
 	IntensityDistBins_test\
 	KellerQuality_test\
-		SavitzkyGolayQRFilter_test\
-		SavitzkyGolaySVDFilter_test
+	SavitzkyGolayQRFilter_test\
+	SavitzkyGolaySVDFilter_test\
+  MaxReducer_test\
+	SumReducer_test
 endif
 
 
@@ -225,9 +227,7 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
 	SmoothFilter_test\
-	GaussFilter_test\
-  MaxReducer_test\
-	SumReducer_test
+	GaussFilter_test
 
 
 #COMPARISON
@@ -293,7 +293,7 @@ ifeq ($(GSL_SUPPORT),true)
 		LmaGaussModel_test\
 		LogNormalModel_test\
 		ExtendedModelFitter_test\
-
+		PeakPickerCWT_test
 endif
 
 EXECUTABLES_TRANSFORMATIONS = \
@@ -312,8 +312,7 @@ EXECUTABLES_TRANSFORMATIONS = \
 	PeakPicker_test\
 	ExtractSignalRegions_test\
 	Correlation_test\
-	FeatureFinder_test\
-	PeakPickerCWT_test\
+	FeatureFinder_test
 
 
 EXECUTABLES_ANALYSIS_ID =\
