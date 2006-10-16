@@ -31,8 +31,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PPExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
-
+#ifdef GSL_DEF
+	#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
+#endif
 
 namespace OpenMS
 {
@@ -41,8 +42,9 @@ namespace OpenMS
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
 		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
 		Factory<BaseExtender>::registerProduct(PPExtender::getName(), &PPExtender::create);
+#ifdef GSL_DEF
 		Factory<BaseExtender>::registerProduct(WaveletExtender::getName(), &WaveletExtender::create);
-	
+#endif
 	}	
 
 	BaseExtender::BaseExtender() : FeaFiModule() 

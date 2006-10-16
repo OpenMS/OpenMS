@@ -34,10 +34,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-
-#ifdef GSL_DEF
-	#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
-#endif
+#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 //STL
 #include <stack>
@@ -729,10 +726,8 @@ namespace OpenMS
 		/// Array of reduced datasets
 		std::vector<ExperimentType > reduced_datasets_;
 
-#ifdef GSL_DEF
 		/// pointer of the used datareduction 
 		DataReducer * datareducer_;
-#endif
 
 		/// Array of datasets
 		std::vector<FeatureMapType > features_;

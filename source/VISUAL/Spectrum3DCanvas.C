@@ -116,8 +116,6 @@ void Spectrum3DCanvas::makeReducedDataSet()
 	
  		break;
 
-#ifdef GSL_DEF
-
 	case 1:
 		{	
 			reduction_param_.setValue("Peaksperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Max"));
@@ -160,7 +158,6 @@ void Spectrum3DCanvas::makeReducedDataSet()
 		disp_ints_.clear();
 		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
 		break;
-#endif
 
 	}
 }

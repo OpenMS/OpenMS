@@ -212,9 +212,7 @@ ifeq ($(GSL_SUPPORT),true)
 	IntensityDistBins_test\
 	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
-	SavitzkyGolaySVDFilter_test\
-  MaxReducer_test\
-	SumReducer_test
+	SavitzkyGolaySVDFilter_test
 endif
 
 
@@ -227,7 +225,9 @@ EXECUTABLES_FILTERING = \
 	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
 	SmoothFilter_test\
-	GaussFilter_test
+	GaussFilter_test\
+  MaxReducer_test\
+	SumReducer_test
 
 
 #COMPARISON

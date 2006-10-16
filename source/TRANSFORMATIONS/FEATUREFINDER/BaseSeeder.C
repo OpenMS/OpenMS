@@ -30,7 +30,10 @@
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
+#ifdef GSL_DEF
+	#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
+#endif
+
 
 
 
@@ -40,7 +43,9 @@ namespace OpenMS
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
 		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
+#ifdef GSL_DEF
 		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
+#endif
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}
