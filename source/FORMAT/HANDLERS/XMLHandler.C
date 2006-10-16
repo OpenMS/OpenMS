@@ -70,6 +70,38 @@ namespace OpenMS
 			appendLocation_(exception, error_message_);
 		}
 		
+		void XMLHandler::fatalError(const String& msg)
+		{
+			error_message_ = "Fatal Error: " + msg;
+			
+			const xercesc::Locator* loc = 0;
+			setDocumentLocator(loc);
+			
+			appendLocation_(loc, error_message_);
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
+		}
+	
+		void XMLHandler::error(const String& msg)
+		{
+			error_message_ = "Error: " + msg;
+			
+			const xercesc::Locator* loc = 0;
+			setDocumentLocator(loc);
+			
+			appendLocation_(loc, error_message_);
+			// Thow error here as well?????
+		}
+		
+		void XMLHandler::warning(const String& msg)
+		{
+			error_message_ = "Warning: " + msg;
+			
+			const xercesc::Locator* loc = 0;
+			setDocumentLocator(loc);
+			
+			appendLocation_(loc, error_message_);
+		}
+		
 		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
 		{
 		}

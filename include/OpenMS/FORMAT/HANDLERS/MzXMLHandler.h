@@ -131,7 +131,7 @@ namespace OpenMS
 										 COMPLETION_TIME, PRECURSOR_INTENSITY, PRECURSOR_CHARGE,
 										 FIRST_NAME, LAST_NAME, EMAIL, PHONE, URI, VALUE, CATEGORY,
 										 PRECISION, BYTEORDER, PAIRORDER, SCHEMA, SPOT_INTEGRATION,
-										 INTENSITY_CUTOFF};
+										 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1};
 
 		/** @brief indices for enum2str-maps used by mzXML
 
@@ -213,10 +213,11 @@ namespace OpenMS
 			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
 			if (value!=required && value!=required_alt)
 			{
-				const xercesc::Locator* loc = 0;
-				setDocumentLocator(loc);
+// 				const xercesc::Locator* loc = 0;
+// 				setDocumentLocator(loc);
 				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\"";
-				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
+// 				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
+				error(tmp);
 			}
 		}
 
@@ -289,6 +290,10 @@ namespace OpenMS
   	//std::cout << " -- !Chars -- " << std::endl;
   }
 
+	/**
+	 * @todo msRun - add optional attributes "startTime" and "endTime" to DB / datastructures (TK / TS / Marc)
+	 * @todo parentFile - add required attribute "fileSha1" to DB / SourceFile class (TK / TS / Marc)
+	 */
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
@@ -307,6 +312,20 @@ namespace OpenMS
 				{  
 					exp_->reserve( asUnsignedInt_(tmp_str) );
 				}
+				
+				tmp_str = getAttributeAsString(STARTTIME);
+				if (tmp_str != "") // optional attribute
+				{
+				  // TODO
+				}
+				
+				tmp_str = getAttributeAsString(ENDTIME);
+				if (tmp_str != "") // optional attribute
+				{
+				  // TODO
+				}
+				
+				// fall through?
 			case MZXML:
 				// look for schema information
 				if (atts_->getIndex(xercesc::XMLString::transcode(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
@@ -329,18 +348,45 @@ namespace OpenMS
 						}
 					}
 				}
-				// Additional attributes: startTime, endTime
 				break;
 			case PARENTFILE:
-				exp_->getSourceFile().setNameOfFile( getAttributeAsString(FILENAME).c_str() );
-				exp_->getSourceFile().setFileType( getAttributeAsString(FILETYPE) );
-				// Additional attributes: fileSha1
+				tmp_str = getAttributeAsString(FILENAME);
+				if (tmp_str != "") // required attribute
+				{
+					exp_->getSourceFile().setNameOfFile( tmp_str.c_str() );
+				}
+				else
+				{
+					error("'fileName' attribute missing in 'parentFile' tag");
+				}
+				
+				tmp_str = getAttributeAsString(FILETYPE);
+				if (tmp_str != "") // required attribute
+				{
+					exp_->getSourceFile().setFileType( tmp_str );
+				}
+				else
+				{
+					error("'fileType' attribute missing in 'parentFile' tag");
+				}
+				
+				tmp_str = getAttributeAsString(FILESHA1);
+				if (tmp_str != "") // required attribute
+				{
+					// TODO: fileSha1 attribute
+				}
+				else
+				{
+					error("'fileSha1' attribute missing in 'parentFile' tag");
+				}
 				break;
 			case INSTRUMENT:
 				{
 					if (attributes.getLength()==0) break;  // attributes only in mzXML 1.0
+					
 					exp_->getInstrument().setModel( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MODEL).c_str()))));
 					exp_->getInstrument().setVendor( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MANUFACTURER).c_str()))));
+					
 					MassAnalyzer analyzer;
 					String str = enum2str_(TAGMAP,ANALYZER);
 					analyzer.setType((MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str()));

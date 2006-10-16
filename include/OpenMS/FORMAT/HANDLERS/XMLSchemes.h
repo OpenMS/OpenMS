@@ -83,7 +83,8 @@ namespace OpenMS
       	"totIonCurrent;peaksCount;num;msLevel;scanCount;fileName;fileType;"
 				"version;name;type;completionTime;precursorIntensity;precursorCharge;"
 				"first;last;email;phone;URI;value;category;precision;byteOrder;"
-				"pairOrder;xsi:schemaLocation;spotIntegration;intensityCutoff",
+				"pairOrder;xsi:schemaLocation;spotIntegration;intensityCutoff;"
+				"startTime;endTime;fileSha1",
 
 	      // Tag
       	";msRun;index;offset;sha1;parentFile;msInstrument;dataProcessing;"

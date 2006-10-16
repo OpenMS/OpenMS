@@ -33,6 +33,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <xercesc/sax2/DefaultHandler.hpp>
+#include <xercesc/sax/Locator.hpp>
 
 namespace OpenMS
 {
@@ -43,6 +44,7 @@ namespace OpenMS
 		
 		@todo take advantage of XERCES string handling: XMLCh (Marc)
 		@todo develop concept for optional attributes (Marc)
+		@todo throw out old error handlers? (TK)
 	*/
   class XMLHandler
   	: public xercesc::DefaultHandler
@@ -59,6 +61,14 @@ namespace OpenMS
       void error(const xercesc::SAXParseException& exception);
 			/// Warning handler.
       void warning(const xercesc::SAXParseException& exception);
+			
+			
+			/// Fatal error handler. Throws a ParseError exception
+			void fatalError(const String& msg);
+			/// Error handler.
+			void error(const String& msg);
+			/// Warning handler.
+			void warning(const String& msg);
 			
 			/// Parsing method for character data
 		  virtual void characters(const XMLCh* const chars, const unsigned int length);
@@ -213,6 +223,16 @@ namespace OpenMS
 					message = message + " at column " + String(exception.getColumnNumber());
 				}
 				message = message + " in file " + file_;
+			}
+			
+			inline void appendLocation_(const xercesc::Locator* loc, String& message)
+			{
+				if (loc)
+				{
+				  if (loc->getLineNumber() != -1) message += " at line " + String(loc->getLineNumber());
+				  if (loc->getColumnNumber() != -1) message += " at column " + String(loc->getColumnNumber());
+				}
+				message += " in file " + file_;
 			}
 
 	};
