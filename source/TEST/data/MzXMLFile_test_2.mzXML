@@ -1,4 +1,4 @@
-<!-- -*- Mode: XML; tab-width: 2; -*- -->
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.0 http://sashimi.sourceforge.net/schema_revision/mzXML_2.0/mzXML_idx_2.0.xsd">
 	<msRun scanCount="3">
 		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="0000000000000000000000000000000000000000"/>

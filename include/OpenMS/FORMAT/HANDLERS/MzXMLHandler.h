@@ -605,7 +605,7 @@ namespace OpenMS
 			if (spec.size()!=0) ++count_tmp_;
 		}
 
-		os << "<!-- -*- Mode: XML; tab-width: 2; -*- -->\n"
+		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0\" "
 		   << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
 			 << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0 "
