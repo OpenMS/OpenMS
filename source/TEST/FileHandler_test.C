@@ -47,7 +47,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("DTA2D", tmp.typeToName(FileHandler::DTA2D));
 	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
 	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
-	TEST_EQUAL("Feature file", tmp.typeToName(FileHandler::FEATURE));
+	TEST_EQUAL("FeatureFile", tmp.typeToName(FileHandler::FEATURE));
 	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
 RESULT
 
@@ -58,7 +58,7 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::DTA2D, tmp.nameToType("DTA2D"));
 	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
-	TEST_EQUAL(FileHandler::FEATURE, tmp.nameToType("Feature file"));
+	TEST_EQUAL(FileHandler::FEATURE, tmp.nameToType("FeatureFile"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
 RESULT

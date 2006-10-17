@@ -27,6 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 #include "TOPPBase.h"
 
@@ -50,8 +51,6 @@ using namespace std;
 	Additionally an overview of the metadata of the experiment can be displayed.
 	
 	@todo determine if raw or picked data is contained (Marc)
-	
-	@todo add Features (Marc)
 	
 	@ingroup TOPP
 */
@@ -83,7 +82,7 @@ class TOPPFileInfo
 					 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
 					 << "  -m                show meta information about the whole experiment" << endl
 					 << endl
-					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'cdf' (ANDI/MS)" << endl;
+					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'" << endl;
 		}
 	
 		void printToolHelpOpt_()
@@ -138,99 +137,132 @@ class TOPPFileInfo
 				in_type = fh.getTypeByContent(in);
 				writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
 			}
-			
-			
-			//-------------------------------------------------------------
-			// loading file
-			//-------------------------------------------------------------
-			MSExperiment< DPeak<1> > exp;
-			if (! fh.loadExperiment(in,exp,in_type) )
-			{
-				writeLog_("Unknown input file type given. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;			
-			}
-	
-			//-------------------------------------------------------------
-			// calculations
-			//-------------------------------------------------------------
-			
-			//basic info
-			exp.updateRanges();
-			vector<UnsignedInt> levels = exp.getMSLevels();
-									
+
 			cout << endl
+					 << "-- General information --" << endl
+				   << endl
 					 << "file name: " << in << endl
 					 << "file type: " <<  fh.typeToName(in_type) << endl
-					 << endl
-					 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
-					 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
-					 << "intensity range: " << exp.getMinInt() << " / " << exp.getMaxInt() << endl
-					 << "MS levels: ";
-		  if (levels.size()!=0)
-		  {
-		  	cout  << *(levels.begin());
-				for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
-				{
-					cout << ", " << *it;
-				}
-			}
-			cout << endl << "Number of peaks: " << exp.getSize() << endl << endl; 		 
-	
-			//count how many spectra per MS level there are
-			vector<UnsignedInt> counts(5);
-			for (MSExperiment< DPeak<1> >::iterator it = exp.begin(); it!=exp.end(); ++it)
+					 << endl;
+			
+			MSExperiment< DPeak<1> > exp;
+			DFeatureMap<2> feat;
+			ExperimentalSettings* exp_set;
+			//-------------------------------------------------------------
+			// MSExperiment
+			//-------------------------------------------------------------
+			if (in_type!=FileHandler::FEATURE)
 			{
-				counts[it->getMSLevel()]++;	
-			}
-			//output
-			for (UnsignedInt i = 0; i!=5; ++i)
-			{
-				if (counts[i]!=0)
+			
+				if (! fh.loadExperiment(in,exp,in_type) )
 				{
-					cout << "Spectra of MS Level " << i << ": " << counts[i] << endl;
+					writeLog_("Unsupported or corrupt input file. Aborting!");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;			
 				}
-			}		
+		
+				//basic info
+				exp.updateRanges();
+				vector<UnsignedInt> levels = exp.getMSLevels();
+										
+				cout << "Number of peaks: " << exp.getSize() << endl 
+						 << endl
+						 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
+						 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
+						 << "intensity range: " << exp.getMinInt() << " / " << exp.getMaxInt() << endl
+						 << "MS levels: ";
+			  if (levels.size()!=0)
+			  {
+			  	cout  << *(levels.begin());
+					for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+					{
+						cout << ", " << *it;
+					}
+				}	 
+				cout << endl << endl; 	
+		
+				//count how many spectra per MS level there are
+				vector<UnsignedInt> counts(5);
+				for (MSExperiment< DPeak<1> >::iterator it = exp.begin(); it!=exp.end(); ++it)
+				{
+					counts[it->getMSLevel()]++;	
+				}
+				//output
+				for (UnsignedInt i = 0; i!=5; ++i)
+				{
+					if (counts[i]!=0)
+					{
+						cout << "Spectra of MS Level " << i << ": " << counts[i] << endl;
+					}
+				}
+				cout << endl;
+				
+				exp_set = &exp;
+			}
+			//-------------------------------------------------------------
+			// Feature
+			//-------------------------------------------------------------
+			else
+			{
+				DFeatureMapFile().load(in,feat);
+				feat.updateRanges();
+				
+				UnsignedInt mz_dim = DimensionDescription< DimensionDescriptionTagLCMS >::MZ;
+				UnsignedInt rt_dim = DimensionDescription< DimensionDescriptionTagLCMS >::RT;	
+				
+				cout 
+						 << "Number of features: " << feat.size() << endl
+						 << endl
+						 << "retention time range: " << feat.getMin()[rt_dim] << " / " << feat.getMax()[rt_dim] << endl
+						 << "m/z range: " << feat.getMin()[mz_dim] << " / " << feat.getMax()[mz_dim] << endl
+						 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
+						 << endl; 
+		 
+				exp_set = &feat;
+			}
+			
 			
 			// '-m' show meta info
 			if (getParamAsBool_("m"))
 			{
 				String date;
-				exp.getDate().get(date);
+				exp_set->getDate().get(date);
 				//basic info
 				cout << endl
-				     << "Meta information" << endl
-				     << "  Experiment Type  : " << ExperimentalSettings::NamesOfExperimentType[exp.getType()] << endl
-				     << "  Date             : " <<  date << endl;		
+				     << "-- Meta information --" << endl
+				     << endl
+				     << "Experiment Type  : " << ExperimentalSettings::NamesOfExperimentType[exp_set->getType()] << endl
+				     << "Date             : " <<  date << endl;		
 				     
 				//basic info
 				cout << endl
 				     << "Sample" << endl
-				     << "  Name             : " << exp.getSample().getName() << endl
-				     << "  Organism         : " << exp.getSample().getOrganism()  << endl
-				     << "  Comment          : " << exp.getSample().getComment()  << endl;		
+				     << "  Name             : " << exp_set->getSample().getName() << endl
+				     << "  Organism         : " << exp_set->getSample().getOrganism()  << endl
+				     << "  Comment          : " << exp_set->getSample().getComment()  << endl;		
 
 				//instrument info
 				cout << endl
 				     << "Instument" << endl
-				     << "  Name             : " << exp.getInstrument().getName() << endl
-				     << "  Model            : " << exp.getInstrument().getModel()  << endl	
-				     << "  Vendor           : " << exp.getInstrument().getVendor()  << endl
-				     << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSource().getIonizationMethod()]  << endl
-				     << "  Detector         : " << IonDetector::NamesOfType[exp.getInstrument().getIonDetector().getType()]  << endl
+				     << "  Name             : " << exp_set->getInstrument().getName() << endl
+				     << "  Model            : " << exp_set->getInstrument().getModel()  << endl	
+				     << "  Vendor           : " << exp_set->getInstrument().getVendor()  << endl
+				     << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp_set->getInstrument().getIonSource().getIonizationMethod()]  << endl
+				     << "  Detector         : " << IonDetector::NamesOfType[exp_set->getInstrument().getIonDetector().getType()]  << endl
 						 << "  Mass Analyzer(s) : ";
-				for (UnsignedInt i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
+				
+				for (UnsignedInt i=0; i< exp_set->getInstrument().getMassAnalyzers().size(); ++i)
 				{
-					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()] << ", ";
+					cout  << MassAnalyzer::NamesOfAnalyzerType[exp_set->getInstrument().getMassAnalyzers()[i].getType()] << ", ";
 				}
 				cout << endl << endl;
 				
 				//contact persons
-				for (UnsignedInt i=0; i< exp.getContacts().size(); ++i)
+				for (UnsignedInt i=0; i< exp_set->getContacts().size(); ++i)
 				{
 					cout << "Contact Person" << endl
-					     << "  Name             : " << exp.getContacts()[i].getName() << endl
-					     << "  Email            : " << exp.getContacts()[i].getEmail() << endl
+					     << "  Name             : " << exp_set->getContacts()[i].getName() << endl
+					     << "  Email            : " << exp_set->getContacts()[i].getEmail() << endl
 					     << endl;
 				}
 			}

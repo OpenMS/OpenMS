@@ -83,7 +83,7 @@ class TOPPFileMerger
 					<< "  -out <file>       output mzData file name" << endl
 					<< "  -auto_number      automatically numbers the scans (starting at 1)." << endl
 					<< endl
-					<< "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'cdf' (ANDI/MS), 'DTA'" << endl;
+					<< "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'" << endl;
 	}
 	
 	void printToolHelpOpt_()
