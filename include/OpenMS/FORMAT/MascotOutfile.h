@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeiffer $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTOUTFILE_H

@@ -135,9 +135,11 @@ namespace OpenMS
     //@}
 
 
-    /// Initialisation of the raw data interval and estimation of noise and baseline levels
-	/// NOTE: Works only scanwise i.e. you have to pass your data to this function
-	/// scan by scan.
+    /**
+    	@brief Initialisation of the raw data interval and estimation of noise and baseline levels
+			
+			@note Works only scanwise i.e. you have to pass your data to this function scan by scan.
+    */
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
 	  first_= it_begin;

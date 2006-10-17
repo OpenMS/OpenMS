@@ -48,13 +48,10 @@ namespace OpenMS
     points intervall using the method of Roegnvaldsson et al. described in "Modular, Scriptable, and Automated
     Analysis Tools for High-Throughput Peptide Mass Fingerprinting".
 
-    NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
-    for each scan, and not for the whole map.
-
-  ???? (ost) This class returns occasionally negative (!) s/n ratios ?? I could not figure out why.
-  Please use it carefully.
+    @note This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
+          for each scan, and not for the whole map.
   
-  TODO: This class is not bug free. Maintainer should check this (Eva)
+  	@todo ost: This class returns occasionally negative (!) s/n ratios (Eva)
 
     @ingroup PeakPicking
   */
