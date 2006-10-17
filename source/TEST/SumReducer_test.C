@@ -59,53 +59,70 @@ CHECK( virtual  void applyReduction(const  MSExperiment<>& , MSExperiment<>&  ))
   in.setName("SumReducer_test.dta2d");
   Param param;	
   SumReducer sumreducer;
-  param.setValue("Rangeperstep",20);
+  param.setValue("Rangeperstep",0.5);
   sumreducer.setParam(param);
   in.updateRanges();
   sumreducer.applyReduction(in,out);
-	
-	TEST_EQUAL(in.size(),3)
+  TEST_EQUAL(in.size(),3)
 	TEST_EQUAL(out.size(),3)
-	TEST_EQUAL(out[0].size(),5)
-	TEST_EQUAL(out[1].size(),4)
-	TEST_EQUAL(out[2].size(),5)
-	TEST_REAL_EQUAL(out[0].getRetentionTime(),1)
-	TEST_REAL_EQUAL(out[1].getRetentionTime(),2)
-	TEST_REAL_EQUAL(out[2].getRetentionTime(),3)
-	
-	TEST_REAL_EQUAL(out[0].getContainer()[0].getPosition()[0],2)
-	TEST_REAL_EQUAL(out[0].getContainer()[1].getPosition()[0],4)
-	TEST_REAL_EQUAL(out[0].getContainer()[2].getPosition()[0],6)
-	TEST_REAL_EQUAL(out[0].getContainer()[3].getPosition()[0],8)
-	TEST_REAL_EQUAL(out[0].getContainer()[4].getPosition()[0],10)
-	
-	TEST_REAL_EQUAL(out[1].getContainer()[0].getPosition()[0],3)
-	TEST_REAL_EQUAL(out[1].getContainer()[1].getPosition()[0],6)
-	TEST_REAL_EQUAL(out[1].getContainer()[2].getPosition()[0],9)
-	TEST_REAL_EQUAL(out[1].getContainer()[3].getPosition()[0],11)
-	
-	TEST_REAL_EQUAL(out[2].getContainer()[0].getPosition()[0],7)
-	TEST_REAL_EQUAL(out[2].getContainer()[1].getPosition()[0],12)
-	TEST_REAL_EQUAL(out[2].getContainer()[2].getPosition()[0],20)
-	TEST_REAL_EQUAL(out[2].getContainer()[3].getPosition()[0],31)
-	TEST_REAL_EQUAL(out[2].getContainer()[4].getPosition()[0],35)
-	
-	TEST_REAL_EQUAL(out[0].getContainer()[0].getIntensity(),3)
-	TEST_REAL_EQUAL(out[0].getContainer()[1].getIntensity(),7)
-	TEST_REAL_EQUAL(out[0].getContainer()[2].getIntensity(),11)
-	TEST_REAL_EQUAL(out[0].getContainer()[3].getIntensity(),15)
-	TEST_REAL_EQUAL(out[0].getContainer()[4].getIntensity(),19)
+	TEST_EQUAL(out[0].size(),2)
+	TEST_EQUAL(out[1].size(),2)
+	TEST_EQUAL(out[2].size(),2)
+	TEST_REAL_EQUAL(out[0].getContainer()[0].getPosition()[0],5)
+	TEST_REAL_EQUAL(out[0].getContainer()[1].getPosition()[0],10)
+	TEST_REAL_EQUAL(out[1].getContainer()[0].getPosition()[0],6)
+	TEST_REAL_EQUAL(out[1].getContainer()[1].getPosition()[0],11)
+	TEST_REAL_EQUAL(out[2].getContainer()[0].getPosition()[0],12)
+	TEST_REAL_EQUAL(out[2].getContainer()[1].getPosition()[0],35)
+	TEST_EQUAL(out[0].getContainer()[0].getIntensity(),15)
+	TEST_EQUAL(out[0].getContainer()[1].getIntensity(),40)
+	TEST_REAL_EQUAL(out[1].getContainer()[0].getIntensity(),21)
+	TEST_REAL_EQUAL(out[1].getContainer()[1].getIntensity(),45)
+	TEST_REAL_EQUAL(out[2].getContainer()[0].getIntensity(),93)
+	TEST_REAL_EQUAL(out[2].getContainer()[1].getIntensity(),40)
 
-	TEST_REAL_EQUAL(out[1].getContainer()[0].getIntensity(),6)
-	TEST_REAL_EQUAL(out[1].getContainer()[1].getIntensity(),15)
-	TEST_REAL_EQUAL(out[1].getContainer()[2].getIntensity(),24)
-	TEST_REAL_EQUAL(out[1].getContainer()[3].getIntensity(),21)
+// 	TEST_EQUAL(in.size(),3)
+// 	TEST_EQUAL(out.size(),3)
+// 	TEST_EQUAL(out[0].size(),5)
+// 	TEST_EQUAL(out[1].size(),4)
+// 	TEST_EQUAL(out[2].size(),5)
+// 	TEST_REAL_EQUAL(out[0].getRetentionTime(),1)
+// 	TEST_REAL_EQUAL(out[1].getRetentionTime(),2)
+// 	TEST_REAL_EQUAL(out[2].getRetentionTime(),3)
 	
-	TEST_REAL_EQUAL(out[2].getContainer()[0].getIntensity(),28)
-	TEST_REAL_EQUAL(out[2].getContainer()[1].getIntensity(),53)
-	TEST_REAL_EQUAL(out[2].getContainer()[2].getIntensity(),18)
-	TEST_REAL_EQUAL(out[2].getContainer()[3].getIntensity(),24)
-	TEST_REAL_EQUAL(out[2].getContainer()[4].getIntensity(),10)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[0].getPosition()[0],2)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[1].getPosition()[0],4)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[2].getPosition()[0],6)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[3].getPosition()[0],8)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[4].getPosition()[0],10)
+	
+// 	TEST_REAL_EQUAL(out[1].getContainer()[0].getPosition()[0],3)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[1].getPosition()[0],6)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[2].getPosition()[0],9)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[3].getPosition()[0],11)
+	
+// 	TEST_REAL_EQUAL(out[2].getContainer()[0].getPosition()[0],7)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[1].getPosition()[0],12)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[2].getPosition()[0],20)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[3].getPosition()[0],31)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[4].getPosition()[0],35)
+	
+// 	TEST_REAL_EQUAL(out[0].getContainer()[0].getIntensity(),3)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[1].getIntensity(),7)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[2].getIntensity(),11)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[3].getIntensity(),15)
+// 	TEST_REAL_EQUAL(out[0].getContainer()[4].getIntensity(),19)
+
+// 	TEST_REAL_EQUAL(out[1].getContainer()[0].getIntensity(),6)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[1].getIntensity(),15)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[2].getIntensity(),24)
+// 	TEST_REAL_EQUAL(out[1].getContainer()[3].getIntensity(),21)
+	
+// 	TEST_REAL_EQUAL(out[2].getContainer()[0].getIntensity(),28)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[1].getIntensity(),53)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[2].getIntensity(),18)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[3].getIntensity(),24)
+// 	TEST_REAL_EQUAL(out[2].getContainer()[4].getIntensity(),10)
 		 
 RESULT
 

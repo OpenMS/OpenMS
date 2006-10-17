@@ -32,6 +32,7 @@
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
 #include <qradiobutton.h>
 class QSpinBox;
+class QComboBox;
 
 namespace OpenMS
 {
@@ -64,12 +65,9 @@ namespace OpenMS
       QRadioButton* shade_mode_flat_;
       QRadioButton* shade_mode_smooth_;
       
-      QRadioButton* reduction_on_max_;
-      QRadioButton* reduction_on_sum_;
-      QRadioButton* reduction_off_;
-      QSpinBox* reduction_ratio_max_;
-      QSpinBox* reduction_ratio_sum_;
-    
+      QComboBox* data_reduction_;
+      QSpinBox* reduction_diplay_peaks_;
+   
       ColorSelector* axes_color_;
       QSpinBox* dot_line_width_;
     };

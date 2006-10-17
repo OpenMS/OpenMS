@@ -40,6 +40,8 @@
 #include <qvbuttongroup.h>
 #include <qhbuttongroup.h>
 #include <qspinbox.h>
+#include <qcombobox.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -91,19 +93,16 @@ namespace OpenMS
 			grid->addWidget(box,1,1);	
 
 			box = new QGroupBox(2,Qt::Horizontal,"Data",this);
-			QVButtonGroup* data_group = new QVButtonGroup("DataReduction",box);
-			reduction_off_ = new QRadioButton("Off",data_group);	
-			reduction_on_max_ = new QRadioButton("Max-Reduction",data_group);
-			reduction_on_sum_ = new QRadioButton("Sum-Reduction",data_group);			
-			box->addSpace(0);
+			label = new QLabel("Reduction Mode:  ",box);
+			data_reduction_ = new QComboBox(false, box, "read-only combobox");
+			data_reduction_->insertItem("Reduction OFF");
+			data_reduction_->insertItem("MaxReduction");
+			data_reduction_->insertItem("SumReduction");
+			label = new QLabel("Displayed Peaks : ",box);
+			reduction_diplay_peaks_ = new QSpinBox(10000,50000,10000,box,"");
 			
-			label = new QLabel("Max: Number of peaks per Reductionstep: ",box);
-			reduction_ratio_max_ = new QSpinBox(1,100,1,box,"");
+			grid->addWidget(box,2,1);
 		
-			label = new QLabel("Sum: m/z-Range per Reductionstep: ",box);
-			reduction_ratio_sum_ = new QSpinBox(1,100,1,box,"");
-			grid->addWidget(box,2,1);	
-
 			load();
 		}
 
@@ -127,23 +126,6 @@ namespace OpenMS
 					dot_mode_black_->setChecked(true);
 				}
 			}
-
-			if (man->getDataMode()==Spectrum3DCanvas::REDUCTION_MAX)
-			{
-				reduction_on_max_->setChecked(true);
-			}
-			else if (man->getDataMode()==Spectrum3DCanvas::REDUCTION_OFF)
-			{
-				reduction_off_->setChecked(true);
-			}
-			else if(man->getDataMode()==Spectrum3DCanvas::REDUCTION_SUM)
-			{
-				reduction_on_sum_->setChecked(true);
-				
-			}
-			reduction_ratio_max_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Reduction:Max")));
-			reduction_ratio_sum_->setValue(UnsignedInt(manager_->getPref("Preferences:3D:Data:Reduction:Sum")));
-
 			if (man->getShadeMode()==Spectrum3DCanvas::SHADE_FLAT)
 			{
 				shade_mode_flat_->setChecked(true);
@@ -155,7 +137,9 @@ namespace OpenMS
 					shade_mode_smooth_->setChecked(true);
 				}
 			}
-			
+			data_reduction_->setCurrentText(man->getPrefAsString("Preferences:3D:Reduction:Mode").c_str());	
+			reduction_diplay_peaks_->setValue(UnsignedInt(man->getPrefAsInt("Preferences:3D:DisplayedPeaks")));
+		
 			background_color_->setColor(QColor(man->getPrefAsString("Preferences:3D:BackgroundColor").c_str()));
 			dot_gradient_->gradient().fromString(man->getPref("Preferences:3D:Dot:Gradient"));
 			dot_interpolation_steps_->setValue(UnsignedInt(man->getPref("Preferences:3D:Dot:InterpolationSteps")));
@@ -191,27 +175,31 @@ namespace OpenMS
 					man->setPref("Preferences:3D:Dot:Mode",Spectrum3DCanvas::DOT_BLACK);
 				}
 			} 
-			if(reduction_on_max_->isChecked())
+
+			if(data_reduction_->currentText().ascii()=="MaxReduction")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_MAX);
 			}
-			else if(reduction_off_->isChecked())
+			else if(data_reduction_->currentText().ascii()=="Reduction OFF")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_OFF);
 			}
-			else if(reduction_on_sum_->isChecked())
+			else if(data_reduction_->currentText().ascii()=="SumReduction")
 			{
 				man->setPref("Preferences:3D:Data:Mode",Spectrum3DCanvas::REDUCTION_SUM);
 			}
-			man->setPref("Preferences:3D:Data:Reduction:Max",reduction_ratio_max_->value());
-			man->setPref("Preferences:3D:Data:Reduction:Sum",reduction_ratio_sum_->value());
-			man->setDataMode(man->getPrefAsInt("Preferences:3D:Data:Mode"));
+			
+			man->setPref("Preferences:3D:Reduction:Mode", data_reduction_->currentText().ascii());
+			man->setPref("Preferences:3D:DisplayedPeaks",	reduction_diplay_peaks_->value());
 			
 			man->setPref("Preferences:3D:BackgroundColor",background_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:AxesColor",axes_color_->getColor().name().ascii());
 			man->setPref("Preferences:3D:Dot:LineWidth",dot_line_width_->value());
-			
-			man->repaintAll();
+		
+			man->setDataMode();
+			man->repaintAll();	
+		
+
 		}
 	} // namespace Internal
 } //namespace

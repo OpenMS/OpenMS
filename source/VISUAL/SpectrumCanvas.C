@@ -171,13 +171,11 @@ namespace OpenMS
 		{
 			return;
 		}
-		
 		//store old zoom state
 		if (add_to_stack)
 		{
 			zoom_stack_.push(visible_area_);
 		}
-		
 		visible_area_ = new_area;
 		
 		updateScrollbars_();

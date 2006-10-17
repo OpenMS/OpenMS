@@ -110,10 +110,21 @@ namespace OpenMS
     virtual void setMainPreferences(const Param& prefs);
 		// Docu in base class
 		virtual void intensityModeChange_();
+	/**
+			@brief Sets the visible area
+			
+			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
+			If parts of the area are outside of the data area, the new area will be adjusted.
+			
+			@param new_area The new visible area.
+			@param add_to_stack If the new area is to add to the zoom_stack_
+		*/
+		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+
     ///preferences
     SignedInt getDotMode();
 		SignedInt getDataMode();
-		void setDataMode(int);
+		void setDataMode();
     void setDotGradient(const std::string& gradient);
     SignedInt getShadeMode();
     UnsignedInt getDotInterpolationSteps();
@@ -123,8 +134,7 @@ namespace OpenMS
 	  void connectMouseEvents();
     void showLegend(bool);
     Spectrum3DOpenGLCanvas* openglcanvas_;
-
-    int current_zoom_;
+		int current_zoom_;
 
 		bool legend_shown_;
 
@@ -135,6 +145,13 @@ namespace OpenMS
 		int current_data_mode_;
 
 		Param reduction_param_;
+		//reduction
+		/// number of peaks in the dataset
+		int sum_of_peaks_;
+		/// area of the dataset
+		double area_;
+		///peak per RT
+		int peaks_per_rt_;
 
 public slots:
     ///shows the contextmenu at position p

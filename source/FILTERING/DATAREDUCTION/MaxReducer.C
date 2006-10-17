@@ -44,13 +44,13 @@ namespace OpenMS
 		name+=in.getName();
 		out.setName(name);	
 		
-		double ratio = (double)(param_.getValue("Peaksperstep")) * 0.01;
+		UnsignedInt peaks_per_bin = (UnsignedInt)(param_.getValue("Peaksperstep"));
  		
 		out.resize(in.size());
 		UnsignedInt out_spec = 0;
 
 		//variables
-		UnsignedInt peaks_per_bin;
+	// 	UnsignedInt peaks_per_bin;
 		UnsignedInt counter;
 		SpectrumType::ConstIterator begin;
 		SpectrumType::ConstIterator end;
@@ -62,7 +62,10 @@ namespace OpenMS
 			out[out_spec].setMSLevel(spec_it->getMSLevel()); 
 			
 			//init
-			peaks_per_bin = std::max( (int)(spec_it->size() * ratio), 1);
+// // 			peaks_per_bin = std::max( (int)(spec_it->size() * ratio), 1);
+// 			peaks_per_bin = ratio;
+// 			cout<<peaks_per_bin<<endl;
+
 			begin  = spec_it->begin();
 			end  = begin;
 			while (end != spec_it->end())

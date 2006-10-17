@@ -90,10 +90,16 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	currentDataSet_().sortSpectra(true);
 	currentDataSet_().updateRanges(1);	
 	recalculateRanges_(1,0,2);
-	if(getPrefAsInt("Preferences:3D:Data:Mode")!=0)
-	{
+	//values for datareduction
+	sum_of_peaks_ = currentDataSet().getSize();
+	area_ = (currentDataSet().getMaxRT()-currentDataSet().getMinRT())*(currentDataSet().getMaxMZ()-currentDataSet().getMinMZ());
+	peaks_per_rt_ = (int)floor(sum_of_peaks_/currentDataSet().size());
+
+ 	if(getPrefAsString("Preferences:3D:Reduction:Mode")!="Reduction OFF")
+ 	{
 		makeReducedDataSet();
-	}
+ 	}
+
 	visible_area_.assign(overall_data_range_);
 	disp_ints_.push_back(pair<float,float>(low_intensity_cutoff, overall_data_range_.max_[2]));
 	emit layerActivated(this);
@@ -102,64 +108,118 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
  	repaintAll();
 	return current_data_;
 }
+void Spectrum3DCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
+{
+	if (new_area==visible_area_)
+	{
+		return;
+	}
+	//store old zoom state
+	if (add_to_stack)
+	{
+		zoom_stack_.push(visible_area_);
+	}
+	visible_area_ = new_area;
+	
+	updateScrollbars_();
+	
+	emit visibleAreaChanged(new_area);
+	makeReducedDataSet();
+	recalculate_ = true;
+	invalidate_();
+}
 void Spectrum3DCanvas::makeReducedDataSet()
 {
 	reduction_param_.clear();
-	switch(getPrefAsInt("Preferences:3D:Data:Mode"))
-	{
-	case 0:
-		current_data_mode_ = 0;
-		show_reduced_ = false;
-		recalculateRanges_(1,0,2);
-		disp_ints_.clear();
-		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
-	
- 		break;
-
-	case 1:
+	if(sum_of_peaks_ < getPrefAsInt("Preferences:3D:DisplayedPeaks")||getPrefAsString("Preferences:3D:Reduction:Mode")=="Reduction OFF")
 		{	
-			reduction_param_.setValue("Peaksperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Max"));
-			show_reduced_ = true;
-			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
-			datareducer_ = Factory<DataReducer>::create("MaxReducer");
-			for(UnsignedInt i = 0; i<datasets_.size();i++)
-  		{
-				ExperimentType out_experiment;
-				datareducer_->setParam(reduction_param_);
-				datareducer_->applyReduction(datasets_[current_data_],out_experiment);
-				reduced_datasets_.push_back(out_experiment);
-			}
+			current_data_mode_ = 0;
+	 		show_reduced_ = false;
+	 		recalculateRanges_(1,0,2);
+	 		disp_ints_.clear();
+	 		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
 		}
-		current_data_mode_ = 1;
-		recalculateRanges_(1,0,2);
-		disp_ints_.clear();
-		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
-		break;
-		
-	case 2:
-		{	
-			reduction_param_.setValue("Rangeperstep", getPrefAsInt("Preferences:3D:Data:Reduction:Sum"));
-			//		cout<<reduction_param_.getValue("Rangeperstep")<<endl;
-			show_reduced_ = true;
-			reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
-			datareducer_ = Factory<DataReducer>::create("SumReducer");
-			for(UnsignedInt i = 0; i<datasets_.size();i++)
-				{
-					ExperimentType out_experiment;
-					datareducer_->setParam(reduction_param_);
-					datasets_[current_data_].sortSpectra(true);
-					datareducer_->applyReduction(datasets_[current_data_],out_experiment);
-					reduced_datasets_.push_back(out_experiment);
+	else 
+		{
+			if(getPrefAsString("Preferences:3D:Reduction:Mode")=="MaxReduction")
+				{	
+	 				show_reduced_ = true;
+					int  reduction;
+					if(zoom_stack_.empty())
+						{
+							 reduction = sum_of_peaks_/getPrefAsInt("Preferences:3D:DisplayedPeaks");
+						}
+					else
+						{
+							double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
+							int needed_peak_number = (int)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
+						if(needed_peak_number<sum_of_peaks_)
+								{
+									reduction = sum_of_peaks_/needed_peak_number;
+								}
+							else
+								{
+									show_reduced_= false;
+								}
+						}
+					if(show_reduced_)
+						{
+							reduction_param_.setValue("Peaksperstep", reduction);
+							reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
+							datareducer_ = Factory<DataReducer>::create("MaxReducer");
+							for(UnsignedInt i = 0; i<datasets_.size();i++)
+								{
+									ExperimentType out_experiment;
+									datareducer_->setParam(reduction_param_);
+									datareducer_->applyReduction(datasets_[current_data_],out_experiment);
+									reduced_datasets_.push_back(out_experiment);
+								}
+							current_data_mode_ = 1;
+							recalculateRanges_(1,0,2);
+							disp_ints_.clear();
+							disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
+						}
 				}
-			
+			else if(getPrefAsString("Preferences:3D:Reduction:Mode")=="SumReduction")
+				{	
+					double reduction;
+				 	show_reduced_ = true;
+					if(zoom_stack_.empty())
+						{
+							reduction = (double)sum_of_peaks_/(	(double)peaks_per_rt_*(double)getPrefAsInt("Preferences:3D:DisplayedPeaks"));
+						}
+					else
+						{
+							double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
+							int needed_peak_number = (int)(getPrefAsInt("Preferences:3D:DisplayedPeaks")* area_ / new_area);
+				 				if(needed_peak_number<sum_of_peaks_)
+								{
+									reduction = (double)sum_of_peaks_/(	(double)peaks_per_rt_* needed_peak_number);
+								}
+							else
+								{
+									show_reduced_= false;
+								}
+						}
+					if(show_reduced_ )
+						{
+							reduction_param_.setValue("Rangeperstep",reduction);
+							reduced_datasets_.erase(reduced_datasets_.begin(),reduced_datasets_.end());
+							datareducer_ = Factory<DataReducer>::create("SumReducer");
+							for(UnsignedInt i = 0; i<datasets_.size();i++)
+								{
+									ExperimentType out_experiment;
+									datareducer_->setParam(reduction_param_);
+									datareducer_->applyReduction(datasets_[current_data_],out_experiment);
+									reduced_datasets_.push_back(out_experiment);
+								}
+							current_data_mode_ = 2;
+							recalculateRanges_(1,0,2);
+							disp_ints_.clear();
+							disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
+						}
+				}
 		}
-		current_data_mode_ = 2;
-		recalculateRanges_(1,0,2);
-		disp_ints_.clear();
-		disp_ints_.push_back(pair<float,float>( overall_data_range_.min_[2], overall_data_range_.max_[2]));
-		break;
-
-	}
 }
 
 void Spectrum3DCanvas::setMainPreferences(const Param& prefs)
@@ -268,21 +328,15 @@ SignedInt Spectrum3DCanvas::getDataMode()
 	return SignedInt(prefs_.getValue("Preferences:3D:Data:Mode"));
 }
 
-void Spectrum3DCanvas::setDataMode(int data_mode)
+void Spectrum3DCanvas::setDataMode()
 {
-	if(current_data_mode_ != data_mode || 
-		(reduction_param_.getValue("Peaksperstep")!=getPref("Preferences:3D:Data:Reduction:Max") && data_mode == 1) ||
-		(reduction_param_.getValue("Rangeperstep")!=getPref("Preferences:3D:Data:Reduction:Sum") && data_mode == 2))
+	makeReducedDataSet();
+	if(zoom_stack_.empty())
 	{
-		makeReducedDataSet();
-		if(zoom_stack_.empty())
-		{
-			resetZoom();
-		}
-		repaintAll();
+		resetZoom();
 	}
+	repaintAll();
 }
-
 
 SignedInt Spectrum3DCanvas::getDotMode()
 {

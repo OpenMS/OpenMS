@@ -1933,6 +1933,9 @@ namespace OpenMS
 		default_preferences.setValue("3D:Data:Mode",0);
 		default_preferences.setValue("3D:Data:Reduction:Max",10);
 		default_preferences.setValue("3D:Data:Reduction:Sum",10);
+		default_preferences.setValue("3D:DisplayedPeaks",10000);
+		default_preferences.setValue("3D:Reduction:Mode","MaxReduction");
+
     prefs_.setDefaults(default_preferences,"Preferences");
   }
 

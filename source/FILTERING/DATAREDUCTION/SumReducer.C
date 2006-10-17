@@ -45,11 +45,9 @@ namespace OpenMS
 		string name = "sum_reduced_";
 		name+=in.getName();
 		out.setName(name);
-		
-		// variables
-		double reduction = (double)param_.getValue("Rangeperstep") * 0.01;
-		//cout << endl << "reduction: " << reduction << endl;
-		
+	
+		double reduction = (double)param_.getValue("Rangeperstep") ;
+	// 	cout<<reduction<<endl;
 		double distance;
 		double sum;
 		SpectrumType::ConstIterator begin;
@@ -65,12 +63,10 @@ namespace OpenMS
 			out[out_spec].setRetentionTime(spec_it->getRetentionTime());
 			out[out_spec].setMSLevel(spec_it->getMSLevel()); 	
 			
-			//init
-			distance = std::max(((spec_it->end()-1)->getPos()- spec_it->begin()->getPos()) * reduction,1.0);
+			distance  = std::max(((spec_it->end()-1)->getPos()- spec_it->begin()->getPos()) * reduction,0.01);
 			begin  = spec_it->begin();
 			end  = begin;
 			sum = 0.0;
-			//cout << "spec: " << spec_it->getRetentionTime()<< " dist: " << distance << endl;
 			
 			while (end != spec_it->end())
 			{
@@ -82,7 +78,6 @@ namespace OpenMS
 				{
 					continue;
 				}
-				//cout << begin->getPos() << " - " << end->getPos() << endl;
 				max = begin;
 				sum = 0;
 				while (begin != end)
@@ -95,6 +90,10 @@ namespace OpenMS
 					++begin;
 				}
 				out[out_spec].push_back(*max);
+			// 	cout<<*max<<endl;
+// 				cout<<sum<<endl;
+
+	// 			cout<<spec_it->getRetentionTime()<<endl;
 				out[out_spec].back().setIntensity(sum);
 			}
 			if(!out[out_spec].empty())
@@ -104,6 +103,7 @@ namespace OpenMS
 		}
 		out.resize(out_spec);
 		out.updateRanges(); 
+// 		cout<<param_.getValue("Rangeperstep")<<"\t"<<out.getSize()<<endl;
 	}
 	
 }// namespace openms
