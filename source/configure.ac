@@ -25,8 +25,8 @@ dnl
 dnl    Define command line arguments for compiler,
 dnl    compiler flags, includes and libraries.
 dnl
-AC_ARG_ENABLE(optimization,    [  --enable-optimization   optimize the library for speed. Omits debug info!])
-AC_ARG_ENABLE(debuginfo,       [  --enable-debuginfo      add -g to the compiler flags (to create debug information)])
+AC_ARG_ENABLE(optimization,    [  --disable-optimization  disables optimizing the library for speed.])
+AC_ARG_ENABLE(debuginfo,       [  --enable-debuginfo      add -g to the compiler flags (to create debug information). Disables optimization!])
 AC_ARG_ENABLE(pedantic,        [  --disable-pedantic      removes the '-pedantic' flag when using gcc])
 AC_ARG_ENABLE(db, 				     [  --disable-db            disable support for database connectivity])
 AC_ARG_ENABLE(db-driver,       [  --with-db-driver        set the SQL DB driver to use (default: QMYSQL3)])
@@ -91,14 +91,14 @@ OPENMS_PATH=`cd ..; pwd`
 dnl
 dnl    interpret switches...
 dnl
-if test "$enable_optimization" = "yes" ; then
-	DEBUG=false
-else
-	DEBUG=true
+
+if test "$with_optimization" = "no" -o "$enable_optimization" = "no"; then
+  OPTIMIZATION=false
 fi
 
 if test "$enable_debuginfo" = "yes" ; then
-	DEBUG_INFO=true
+  DEBUG_INFO=true
+  OPTIMIZATION=false
 else
 	DEBUG_INFO=false
 fi
@@ -490,9 +490,9 @@ CF_BUILD_FULL_CXX_NAME
 
 
 dnl
-dnl   checking for DEBUG-Flag
+dnl   checking for OPTIMIZATION-Flag
 dnl
-CF_CHECK_DEBUG_FLAG
+CF_CHECK_OPTIMIZATION_FLAG
 
 dnl
 dnl		checks for header files

@@ -1073,7 +1073,7 @@ AC_DEFUN(CF_MIPSPRO_OPTIONS, [
     dnl
     dnl  -O3 requires -IPA for linking
     dnl
-    if test "${DEBUG}" = yes ; then
+    if test "${OPTIMIZATION}" = true ; then
       DYNAROPTS="-IPA ${DYNAROPTS}"
     fi
 
@@ -1196,32 +1196,34 @@ AC_DEFUN(CF_BUILD_FULL_CXX_NAME, [
 
 dnl
 dnl
-dnl   checking for DEBUG-Flag
+dnl   checking for OPTIMIZATION-Flag
 dnl
-AC_DEFUN(CF_CHECK_DEBUG_FLAG, [
-	AC_MSG_CHECKING(for DEBUG flag)
-	if test "$DEBUG" != "" ; then
+AC_DEFUN(CF_CHECK_OPTIMIZATION_FLAG, [
+	AC_MSG_CHECKING(for OPTIMIZATION flag)
+	if test "$OPTIMIZATION" != "" ; then
 		dnl   define a debug flag and prevent the compilation of
 		dnl   inline functions by defining []PROJECTUPPER[]_NO_INLINE_FUNCTIONS
 		dnl   (see COMMON/debug.h)
-		if test "$DEBUG" = true ; then
-			dnl  if debug information is also required, add the corresponding flag
+		if test "$OPTIMIZATION" = false ; then
+			dnl  if debug information is required, add the corresponding flag
 			dnl
 			if test "${DEBUG_INFO}" = true -a "$CXXFLAGS_DI" != "" ; then
 				CXXFLAGS_D="${CXXFLAGS_D} ${CXXFLAGS_DI}"
+				AC_MSG_RESULT(disabled - additional debug info)
+			else
+				AC_MSG_RESULT(disabled)
 			fi
 			AC_DEFINE([]PROJECTUPPER[]_DEBUG,)
 			AC_DEFINE([]PROJECTUPPER[]_NO_INLINE_FUNCTIONS,)
-			AC_MSG_RESULT(enabled)
 			CPP_MODE_FLAGS="${CXXFLAGS_D}"
 			CPP_MODE_FLAGS_NO_OPTIMIZATION="${CXXFLAGS_D}"
 		else
-			AC_MSG_RESULT(disabled)
+			AC_MSG_RESULT(enabled)
 			CPP_MODE_FLAGS="${CXXFLAGS_O}"
 			CPP_MODE_FLAGS_NO_OPTIMIZATION=""
 		fi
 	else
-		AC_MSG_RESULT(disabled)
+		AC_MSG_RESULT(enabled)
 		CPP_MODE_FLAGS="${CXXFLAGS_O}"
 		CPP_MODE_FLAGS_NO_OPTIMIZATION=""
 	fi
