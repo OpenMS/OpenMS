@@ -581,36 +581,114 @@ namespace OpenMS
 				}
 				break;
 			case IONISATION:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,IONISATION))
-					exp_->getInstrument().getIonSource().setIonizationMethod(
-						(IonSource::IonizationMethod)
-						str2enum_(IONTYPEMAP,getAttributeAsString(VALUE),"ionization type")
-					);
+				{
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "") // required attribute
+					{
+						error("'ionization' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,IONISATION))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							exp_->getInstrument().getIonSource().setIonizationMethod(
+								(IonSource::IonizationMethod)
+								str2enum_(IONTYPEMAP, tmp_str, "ionization type")
+							);
+						}
+						else
+						{
+							error("'ionization' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'ionization' tag");
+					}
+				}
 				break;
 			case ANALYZER:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,ANALYZER))
 				{
-					exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
-					analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
-					analyzer_->setType( (MassAnalyzer::AnalyzerType)
-						str2enum_(ANALYZERTYPEMAP,getAttributeAsString(VALUE),"analyzer type")
-					);
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "")
+					{
+						error("'analyzer' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,ANALYZER))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
+							analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
+							analyzer_->setType( (MassAnalyzer::AnalyzerType)
+								str2enum_(ANALYZERTYPEMAP, tmp_str, "analyzer type")
+							);
+						}
+						else
+						{
+							error("'analyzer' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'analyzer' tag");
+					}
 				}
 				break;
 			case DETECTOR:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,DETECTOR))
 				{
-					IonDetector& ion_d = exp_->getInstrument().getIonDetector();
-					ion_d.setType( (IonDetector::Type) str2enum_(TYPEMAP,getAttributeAsString(VALUE),"detector type") );
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "")
+					{
+						error("'detector' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,DETECTOR))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							IonDetector& ion_d = exp_->getInstrument().getIonDetector();
+							ion_d.setType( (IonDetector::Type) str2enum_(TYPEMAP, tmp_str, "detector type") );
+						}
+						else
+						{
+							error("'detector' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'detector' tag");
+					}
 				}
 				break;
 			case RESOLUTION:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,RESOLUTION))
 				{
-					if (analyzer_ == 0) break;
-					analyzer_->setResolutionMethod(
-						(MassAnalyzer::ResolutionMethod)
-						str2enum_(RESMETHODMAP,getAttributeAsString(VALUE),"resolution method"));
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "")
+					{
+						error("'resolution' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,RESOLUTION))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							if (analyzer_ == 0) break;
+							analyzer_->setResolutionMethod(
+								(MassAnalyzer::ResolutionMethod)
+								str2enum_(RESMETHODMAP, tmp_str, "resolution method"));
+						}
+						else
+						{
+							error("'resolution' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'resolution' tag");
+					}
 				}
 				break;
 			case DATAPROCESSING:
