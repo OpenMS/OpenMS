@@ -1,0 +1,61 @@
+/// @cond INTERNAL_INFO
+
+/**
+	@page FAQ Internal FAQ
+	
+	<UL>
+	
+	
+		<LI><B>Wie update ich die Website?</B>
+			<OL>
+				<LI> Das Modul web auschecken:
+				<BR>
+				<TT>cvs -d:ext:login@cvs.sf.net:/cvsroot/open-ms co web</TT>
+				<LI> Die Website editieren
+				<LI> Änderungen einchecken
+				<LI> Auf shell.sourceforge.net das Skript <TT>/home/groups/o/op/open-ms/scripts/webupdate.sh</TT> ausführen. 
+			</OL>
+			
+			
+		<LI><B>Wie ist die URL der testbuilts?</B>
+		<BR>
+		http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/
+	
+		
+		<LI><B>Wie kann ich mir anzeigen lassen welche shared libraries eine Applikation benutzt?</B>
+		<BR>
+		ldd <application>
+		
+		<LI><B>Wie kann ich mir die Symbole in einer shared library anzeigen lassen?</B>
+		<BR>
+		nm <library>
+		<BR>
+		Mit nm -C wird demangling eingeschaltet. (Decode low-level symbol names into user-level names.) nm akzeptiert auch .a und .o files.
+		
+		<LI><B>Welche Datei muß man editieren, um die Compiler-Flags zu ändern?</B>
+		<BR>
+		config_defs.mak (CXXFLAGS_D und CXXFLAGS_O).
+		<BR>
+		Achtung: Wird vom nächsten configure wieder überschrieben!
+		
+		<LI><B>Add a new release to Sourceforge</B>
+			<OL>
+			<LI> Remove all svn directories in the release directory
+			<LI> Generate a compressed tarball
+			<BR>
+			(naming convention: For the OpenMS release use "OpenMS-´version-number´.tar.gz" and for the contrib release "OpenMS_contrib-´version-number´.tar.gz).
+			<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
+			<LI> Login as "anonymous"
+			<LI> Use your e-mail address as the password for this login
+			<LI> Set your client to binary mode ("bin" on command-line clients)
+			<LI> Change your current directory to /incoming ("cd /incoming")
+			<LI> Upload the desired tarball file for the release ("put filename")
+			<LI> Login in the "Admin" section on http://sourceforge.net/project/showfiles.php?group_id=90558
+			<LI> Go to "File Releases"
+			<LI> Now you can add your release
+			<LI> Go to "Edit Releases" to change the status of the old release to "hidden" 
+		</OL>
+	</UL>
+*/
+
+/// @endcond

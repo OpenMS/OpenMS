@@ -45,36 +45,29 @@
 */
 
 /*
-	Klassen Jens:
-  - ANALYSIS\MAPMATCHING\LabeledMatcher.h
-  - DATASTRUCTURES\IndexSet.h
-  - FORMAT\ANDIFile.h
-  - FORMAT\Base64.h
-  - FORMAT\MzDataFile.h
-  - FORMAT\MzXMLFile.h
-  - FORMAT\HANDLERS\ANDIHandler.h
-  - FORMAT\HANDLERS\MzDataExpSettHandler.h
-  - FORMAT\HANDLERS\MzDataHandler.h
-  - FORMAT\HANDLERS\MzXMLHandler.h
-  - FORMAT\HANDLERS\SchemaHandler.h
-  - FORMAT\HANDLERS\XMLSchemes.h
-  - VISUAL\AxisWidget.h
-  - VISUAL\DIALOGS\FeaFiDialog.h
-
-	Nach dem Release:
-	- Vereinfachung des Kernels: DPeakArray + DPeakList weg -> Peak nicht mehr virtuell
-	- PersistentObject nur noch bei Spectrum / Experiment?
-	- DB-Zeugs neu machen
-	- Umstieg auf XERCES oder so
-	- AdaptiveSeeder (Gradient)
+	TODO (Marc):
 	- Deisotoping / Decharging
 	- 2DView: schneller mit geometric hashing? scrollbars immer anzeigen? Preferences für Layers
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Klassen für Tryptischen Verdau und Theoretische Spektren
 	- Rohdaten-Erkenner schreiben
+	- Tryptischer Verdau
+	- Rohdatenerkenner
 	
 	- Clustering
 	- SpecAnnotate
+	
+	TODO (Hiwis):
+	- XML:
+		- Base 64
+		- XERCES speedup
+		- optional XML attributes
+		- Einschränkungen: Metadata, RT, m/z,
+		- keine Zusatz-Peaktdaten (DPickedPeak) schreiben
+	- Viewer ohne quadtree
+	- DB
+	- Debug stream
+	
 
 */

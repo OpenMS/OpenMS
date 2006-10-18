@@ -37,11 +37,8 @@ namespace OpenMS
 	/**
 		 @brief Base class for TOPP Applications.
 		
-		 You have to implement the virtual methods printToolUsage_, printToolHelpOpt_, setOptionsAndFlags_ and main_ only.
-		
-		 In order to access the preferences, use the getParamAsInt_, getParamAsString_ or getParam_ methods.
-		
-		 Log and debug output is written with the writeLog_ and writeDebug_ methods.
+		 You have to implement the virtual methods @ref printToolUsage_, @ref printToolHelpOpt_, @ref setOptionsAndFlags_ 
+		 and @ref main_ only.
 	*/
   class TOPPBase
   {
@@ -122,7 +119,7 @@ namespace OpenMS
 			 flags_["--help-opt"] = "helpopt";<BR>
 			 
 			 @note Make sure the name command line name and the internal name are the same!
-			 Otherwise the lookup from the ini file does not work!
+			       Otherwise the lookup from the ini file does not work!
 		*/
 		virtual void setOptionsAndFlags_()=0;
 			
@@ -131,37 +128,40 @@ namespace OpenMS
 			
 		/// Parses the command line.
 		void parseCommandLine_(int argc , char** argv);
-			
+		
+		/** @name Debug and Log output
+		 */
+		//@{
 		/// Writes a string to the log file and to std::out
 		void writeLog_(const String& text);
-			
 		/// Writes a string to the log file if the debug level is at least @p min_level
 		void writeDebug_(const String& text, UnsignedInt min_level);
-
 		/// Writes a Param to the log file if the debug level is at least @p min_level
 		void writeDebug_(const String& text,const Param& param, UnsignedInt min_level);
-			
+		//@}
+
+		/** 
+			@name Parameter lookup (command line and ini file)
+		 */
+		//@{
 		/**
 			 @brief Return the value @key of param_ as a string or @p default_value when this value is not set.
 				
-			 Searches in the command line options, the instance section and common section (in that order).
+			 @note See @ref getParam_ for the order of the lookup.
 		*/
 		String getParamAsString_(const String& key, const String& default_value="");
-
 		/**
 			 @brief Return the value @key of param_ as an integer or @p default_value when this value is not set.
 				
-			 Searches in the command line options, the instance section and common section (in that order).
+			 @note See @ref getParam_ for the order of the lookup.
 		*/
 		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0);
-
 		/**
 			 @brief Return the value @key of param_ as a double or @p default_value when this value is not set.
 				
-			 Searches in the command line options, the instance section and common section (in that order).
+			 @note See @ref getParam_ for the order of the lookup.
 		*/
 		double getParamAsDouble_(const String& key, double default_value=0);
-
 		/**
 			 @brief Return the value @key of param_ as a bool.
 			 
@@ -169,17 +169,26 @@ namespace OpenMS
 			 If the DataValue is a numerical value, the values '0' and '1' interpreted.
 			 For all other values and when the value of key @p key is not set, the @p default_value is returned.
 			 
-			 Searches in the command line options, the instance section and common section (in that order).
+			 @note See @ref getParam_ for the order of the lookup.
 		*/
 		bool getParamAsBool_(const String& key, bool default_value=false);
-
 		/**
 			 @brief Return a value of param_ as DataValue.
-				
-			 Searches in the command line options, the instance section and common section (in that order).
+	
+			 All methods in this section search for the paramters in the following order:
+			 <UL>
+			 	<LI>bla (command line)
+				<LI>&lt;toolname&gt;:&lt;instance&gt;:bla
+				<LI>common:&lt;toolname&gt;:bla
+				<LI>common:bla
+			 </UL>
+			 
+			 @note The search key for the commandline command parameter is the internal name! See @ref setOptionsAndFlags_.
+
 		*/
 		const DataValue& getParam_(const String& key);
-						
+		//@}
+		
 		/**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.
   	
@@ -201,7 +210,6 @@ namespace OpenMS
 
 		*/
 		Param getParamCopy_(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="");
-
   };
 
 } // namespace OpenMS

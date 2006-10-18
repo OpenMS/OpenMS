@@ -65,7 +65,7 @@ namespace OpenMS
 		
 		//start logging to default location
 		log_.open(getParamAsString_("log","TOPP.log").c_str(), ofstream::out | ofstream::app);
-		log_ << "-----------------------------------------------------------" << endl;
+		log_ << endl << "-------------------------------------------------------------------------------------" << endl << endl;
 		//set debug level
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
@@ -124,7 +124,6 @@ namespace OpenMS
 				writeDebug_(String("INI file: ") + getParamAsString_("ini"),1);
 				param_.load((String)(param_.getValue("ini")));
 			}
-
 			
 			//-------------------------------------------------------------
 			// determine and open the real log file
@@ -135,7 +134,12 @@ namespace OpenMS
 				log_.close();
 				log_.open(getParamAsString_("log").c_str(), ofstream::out | ofstream::app);
 			}
-			
+
+			//-------------------------------------------------------------
+			// debug level
+			//-------------------------------------------------------------
+			debug_level_ = getParamAsInt_("debug",0);
+			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),0);	
 
 			
 			//----------------------------------------------------------
@@ -350,11 +354,18 @@ namespace OpenMS
 			writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION: ")+(String)(param_.getValue(key_string)),3);
 			return param_.getValue(key_string);
 		}
-		//common secion
+		//common tool secion
 		key_string = String("common:")+String(tool_name_)+":"+key;
 		if (!param_.getValue(key_string).isEmpty())
 		{
-			writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION: ")+(String)(param_.getValue(key_string)),3);
+			writeDebug_(String("Parameter '")+key+String("' from COMMON TOOL SECTION: ")+(String)(param_.getValue(key_string)),3);
+			return param_.getValue(key_string);
+		}
+		//common tool secion
+		key_string = String("common:")+key;
+		if (!param_.getValue(key_string).isEmpty())
+		{
+			writeDebug_(String("Parameter '")+key+String("' from BASIC COMMON SECTION: ")+(String)(param_.getValue(key_string)),3);
 			return param_.getValue(key_string);
 		}
 		writeDebug_(String("Parameter '")+key+String("' NOT FOUND!"),3);
