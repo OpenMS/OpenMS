@@ -15,7 +15,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 PROJECT_NAME           = OpenMS
-PROJECT_NUMBER         = "Version: 0.55"
+PROJECT_NUMBER         = "Version: 0.90"
 OUTPUT_DIRECTORY       = 
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -94,7 +94,8 @@ WARN_LOGFILE           = @OPENMS_PATH@/doc/doxygen-error.log
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT                  = ../include/OpenMS/ \
-                         ../source/
+                         ../source/ \
+												 ../doc/misc/
 FILE_PATTERNS          = *.C \
                          *.h \
                          *.doxygen
