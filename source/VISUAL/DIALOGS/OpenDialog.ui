@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>529</width>
-            <height>311</height>
+            <height>319</height>
         </rect>
     </property>
     <property name="caption">
@@ -276,7 +276,7 @@
                         <cstring>use_mower</cstring>
                     </property>
                     <property name="title">
-                        <string>Low intenity cutoff</string>
+                        <string>Low intensity cutoff</string>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Sets the lower boundary of the displayed intensity range in 2D/3D mode</string>
