@@ -415,11 +415,39 @@ namespace OpenMS
 					registry.registerName(swv,swv_d);
 					registry.registerName(swt,swt_d);
 					registry.registerName(cmpl,cmpl_d);
-					exp_->getInstrument().setMetaValue(swn,getAttributeAsString(NAME));
-					exp_->getInstrument().setMetaValue(swv,getAttributeAsString(SOFTWAREVERSION));
-					exp_->getInstrument().setMetaValue(swt,getAttributeAsString(TYPE));
+					
+					tmp_str = getAttributeAsString(NAME);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getInstrument().setMetaValue(swn, tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'instrument' tag misses required attribute 'name'");
+					}
+					
+					tmp_str = getAttributeAsString(SOFTWAREVERSION);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getInstrument().setMetaValue(swv, tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'instrument' tag misses required attribute 'version'");
+					}
+					
+					tmp_str = getAttributeAsString(TYPE);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getInstrument().setMetaValue(swt, tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'instrument' tag misses required attribute 'type'");
+					}
+					
 					tmp_str = getAttributeAsString(COMPLETION_TIME);
-					if  (tmp_str!="")
+					if  (tmp_str != "") // optional attribute
 					{
 						DateTime time = asDateTime_(tmp_str);
 						time.get(tmp_str);
@@ -503,12 +531,54 @@ namespace OpenMS
 				}
 				break;
 			case MANUFACTURER:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,MANUFACTURER))
-					exp_->getInstrument().setVendor( getAttributeAsString(VALUE) );
+				{
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "") // required attribute
+					{
+						error("'manufacturer' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,MANUFACTURER))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							exp_->getInstrument().setVendor(tmp_str);
+						}
+						else
+						{
+							error("'manufacturer' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'manufacturer' tag");
+					}
+				}
 				break;
 			case MODEL:
-				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,MODEL))
-					exp_->getInstrument().setModel( getAttributeAsString(VALUE) );
+				{
+					tmp_str = getAttributeAsString(CATEGORY);
+					if (tmp_str == "") // required attribute
+					{
+						error("'model' tag misses required attribute 'category'");
+					}
+					else if (tmp_str == enum2str_(TAGMAP,MODEL))
+					{
+						tmp_str = getAttributeAsString(VALUE);
+						if (tmp_str != "")
+						{
+							exp_->getInstrument().setModel(tmp_str);
+						}
+						else
+						{
+							error("'model' tag misses required attribute 'value'");
+						}
+					}
+					else
+					{
+						error("unknown category in 'model' tag");
+					}
+				}
 				break;
 			case IONISATION:
 				if (getAttributeAsString(CATEGORY)==enum2str_(TAGMAP,IONISATION))
