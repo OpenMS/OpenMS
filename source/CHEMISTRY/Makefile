@@ -38,7 +38,8 @@ ADD_CPP_SOURCES=\
 		EmpiricalFormula.C\
 		Residue.C\
 		ResidueDB.C\
-		PeptideSequence.C
+		PeptideSequence.C\
+		TheoreticalSpectrumGenerator.C
 
 include ../common.mak
 -include .Dependencies
