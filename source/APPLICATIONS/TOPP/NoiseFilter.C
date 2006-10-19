@@ -138,7 +138,7 @@ class TOPPNoiseFilter
       //filter type
       String filter_type = getParamAsString_("filter_type");
       writeDebug_(String("Filter type: ") + filter_type, 1);
-
+      
       //spacing for resampling process
       String resampling = getParamAsString_("resampling");
       writeDebug_(String("Resampling: ") + resampling, 1);
@@ -152,7 +152,7 @@ class TOPPNoiseFilter
         if (resampling != "")
         {
           spacing = resampling.toFloat();
-          resampling = true;
+          resampling_flag = true;
         }
       }
       catch(Exception::ConversionError& e)
@@ -167,7 +167,6 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
       Param noise_param = getParamCopy_(ini_location,true);
-
 
       //-------------------------------------------------------------
       // loading input
@@ -195,8 +194,9 @@ class TOPPNoiseFilter
 
         // no resampling of the data
         if (!resampling_flag)
-        {
-          sgolay.filterExperiment(ms_exp_raw,ms_exp_filtered);
+        { 
+           sgolay.filterExperiment(ms_exp_raw,ms_exp_filtered);
+
         }
         else
         {
@@ -208,8 +208,17 @@ class TOPPNoiseFilter
             MSSpectrum< DRawDataPoint<1> > resampled_data;
             lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
+					
             MSSpectrum< DRawDataPoint<1> > spectrum;
-            sgolay.filter(resampled_data, spectrum);
+						
+						if (resampled_data.size() == 1)
+						{
+							ms_exp_filtered.push_back(resampled_data);
+						}
+						else
+						{
+							sgolay.filter(resampled_data, spectrum);
+						}
 
             // if any peaks are found copy the spectrum settings
             if (spectrum.size() > 0)
