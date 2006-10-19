@@ -79,11 +79,11 @@ namespace OpenMS
       //@{
       /// Base
       typedef BasePairwiseMapMatcher<MapT> Base;
-      
+
       typedef typename Base::PointMapType PointMapType;
       typedef typename Base::FeatureType FeatureType;
       typedef typename Base::TraitsType TraitsType;
-      
+
       /// Coordinate
       typedef typename TraitsType::CoordinateType CoordinateType;
 
@@ -120,7 +120,7 @@ namespace OpenMS
           box_size_(source.box_size_),
           number_buckets_(source.number_buckets_)
       {
-	        pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
+        pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
       }
 
       ///  Assignment operator
@@ -143,6 +143,20 @@ namespace OpenMS
     {}
       //@}
 
+      /// returns an instance of this class
+      static BasePairwiseMapMatcher<MapT>* create()
+      {
+        return new GeomHashPairwiseMapMatcher();
+      }
+
+      
+      /// returns the name of this module
+      static const String getName()
+      {
+        return "geomHashPairwise";
+      }
+
+
       /** @name Accesssor methods
        */
       //@{
@@ -154,7 +168,7 @@ namespace OpenMS
       {
         grid_.clear();
         superimposer_.setParam(param_);
-        
+
         DataValue data_value = param_.getValue("pair_finder");
         pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
         pair_finder_->setParam(param_);
@@ -217,10 +231,10 @@ namespace OpenMS
         for (Size i = 0; i < scene_grid_maps.size(); ++i)
         {
 
-          String algorithm = param_.getValue("algorithm");
+          String algorithm = param_.getValue("superimposer");
           if ( algorithm == "geomhash_shift" )
           {
-            V_computeMatching_("GeomHashPairwiseMapMatcher:  algorithm \"geomhash_shift\", start superimposer");
+            V_computeMatching_("GeomHashPairwiseMapMatcher:  superimposer \"geomhash_shift\", start superimposer");
 
             superimposer_.setFeatureMap(1, scene_grid_maps[i]);
 

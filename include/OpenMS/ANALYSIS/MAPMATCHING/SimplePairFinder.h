@@ -63,9 +63,9 @@ namespace OpenMS
         RT = DimensionDescriptionType::RT,
         MZ = DimensionDescriptionType::MZ
     };
-    
-     /** @name Type definitions
-      */
+
+      /** @name Type definitions
+       */
       //@{
       typedef BasePairFinder< MapT > Base;
       typedef typename Base::TraitsType             TraitsType;
@@ -78,7 +78,7 @@ namespace OpenMS
       typedef typename Base::FeaturePairType        FeaturePairType;
       typedef typename Base::FeaturePairVectorType  FeaturePairVectorType;
       typedef typename Base::TransformationType     TransformationType;
-        
+
       using Base::param_;
       using Base::feature_map_;
       using Base::feature_pairs_;
@@ -133,16 +133,18 @@ namespace OpenMS
       /// returns the name of this module
       static const String getName()
       {
-        return "Simple";
+        return "simple";
       }
 
+      template < typename ResultMapType >
+      void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map){}
 
       /// Estimates the transformation for each grid cell
       virtual void run()
       {
 #define V_run(bla) V_SimplePairFinder(bla)
         V_run("@@@ run()");
-       
+
         parseParam_();
 
         Size n = feature_map_[1]->size();
@@ -388,7 +390,8 @@ namespace OpenMS
         return intensity_ratio / position_difference[RT] / position_difference[MZ];
       }
 
-  }; // SimplePairFinder
+  }
+  ; // SimplePairFinder
 
 } // namespace OpenMS
 

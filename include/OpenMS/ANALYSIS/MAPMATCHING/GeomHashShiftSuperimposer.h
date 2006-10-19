@@ -298,7 +298,7 @@ namespace OpenMS
             final_transformation_[dim] = 0;
           }
         }
-        
+
         if ( !this->feature_map_[0]->empty() && !this->feature_map_[1]->empty() )
         {
           parseParam_();
@@ -652,8 +652,6 @@ namespace OpenMS
                     ++model_bucket_index_MZ
                   )
               {
-
-
                 // iterate over pairs of features for this pair of buckets
                 int number_of_considered_feature_pairs_for_this_pair_of_buckets = 0;
                 FeatureBucketType const & model_feature_bucket
@@ -674,7 +672,8 @@ namespace OpenMS
                     // Compute the shift corresponding to a pair of features.
                     ShiftType shift = shift_( getFeatureMap(0)[*model_iter],
                                               getFeatureMap(1)[*scene_iter] );
-                    // V_computeShiftBuckets_enumeration("shift: "<<shift.getPosition());
+//                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
+//                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
 
                     PositionType tpwm = shift.getPosition();
                     tpwm -= tbbe_min;
@@ -717,7 +716,7 @@ namespace OpenMS
                          ! (number_of_considered_feature_pairs_for_this_pair_of_buckets % progress_dots)
                        )
                     {
-//                       std::cout << 'H' << std::flush;
+                      //                       std::cout << 'H' << std::flush;
                     }
 
                   } // for scene_iter
@@ -847,12 +846,10 @@ namespace OpenMS
           FinalShiftType *f = dynamic_cast<FinalShiftType*>( final_transformation_[dim] );
           // set slope and intercept
           f->setParam( 1.0, shift.getPosition()[dim] );
-          // V_computeShift_(f);
-          // V_computeShift_(f->getSlope());
-          // V_computeShift_(f->getIntercept());
+          V_computeShift_("computeShift_() hat geklappt: " << shift.getPosition());
         }
 
-        V_computeShift_("computeShift_() hat geklappt: " << shift.getPosition());
+
 
 #undef V_computeShift_
 

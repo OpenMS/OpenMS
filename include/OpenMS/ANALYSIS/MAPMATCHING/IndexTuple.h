@@ -60,14 +60,14 @@ namespace OpenMS
       //@{
       /// Default constructor
       IndexTuple()
-          : map_pointer_(0),
+          : map_index_(0),
           element_pointer_(0)
       {}
 
       /// Constructor
-      inline IndexTuple(const ContainerType& container, const ElementType& element)
+      inline IndexTuple(const UnsignedInt& map_index, const ElementType& element)
       {
-        map_pointer_ = const_cast<ContainerType*>(&container);
+        map_index_ = map_index;
         element_pointer_ = const_cast<ElementType*>(&element);
         transformed_position_ = element_pointer_->getPosition();
       }
@@ -75,7 +75,7 @@ namespace OpenMS
       /// Copy constructor
       inline IndexTuple(const IndexTuple& source)
       {
-        map_pointer_ = source.map_pointer_;
+        map_index_ = source.map_index_;
         element_pointer_ = source.element_pointer_;
         transformed_position_ = source.transformed_position_;
       }
@@ -86,7 +86,7 @@ namespace OpenMS
         if (&source == this)
           return *this;
 
-        map_pointer_ = source.map_pointer_;
+        map_index_ = source.map_index_;
         element_pointer_ = source.element_pointer_;
         transformed_position_ = source.transformed_position_;
         return *this;
@@ -100,14 +100,14 @@ namespace OpenMS
       /** @name Accessors */
       //@{
       /// Non-mutable access to the container
-      inline const ContainerType& getContainer() const
+      inline const UnsignedInt& getMapIndex() const
       {
-        return *map_pointer_;
+        return map_index_;
       }
       /// Set the container
-      inline void setContainer(const ContainerType& c)
+      inline void setMapIndex(const UnsignedInt& c)
       {
-        map_pointer_ = &c;
+        map_index_ = c;
       }
 
       /// Non-mutable access to the element
@@ -142,30 +142,42 @@ namespace OpenMS
       /// Equality operator
       virtual bool operator == (const IndexTuple& i) const
       {
-        return ((map_pointer_ == i.map_pointer_) && (element_pointer_ == i.element_pointer_));
+        return ((map_index_ == i.map_index_) && (element_pointer_ == i.element_pointer_));
       }
 
       /// Equality operator
       virtual bool operator != (const IndexTuple& i) const
       {
-        return !((map_pointer_ == i.map_pointer_) && (element_pointer_ == i.element_pointer_));
+        return !((map_index_ == i.map_index_) && (element_pointer_ == i.element_pointer_));
       }
 
       /// Compare by getOverallQuality()
-      struct MapAdressLesser
+      struct IndexLess
             : std::binary_function < IndexTuple, IndexTuple, bool >
       {
         bool operator () ( IndexTuple const & left, IndexTuple const & right ) const
         {
-          return ( left.map_pointer_ < right.map_pointer_ );
+          return ( left.map_index_ < right.map_index_ );
         }
       };
 
     protected:
       PositionType transformed_position_;
-      ContainerType* map_pointer_;
+      UnsignedInt map_index_;
       ElementType* element_pointer_;
   };
+
+  ///Print the contents to a stream.
+  template < typename ContainerT >
+  std::ostream& operator << (std::ostream& os, const IndexTuple<ContainerT>& cons)
+  {
+    os << "---------- IndexTuple -----------------\n"
+    << "Transformed Position: " << cons.getTransformedPosition() << '\n'
+    << "Original Position: " << cons.getElement() << std::endl;
+
+    return os;
+  }
+
 
 } // namespace OpenMS
 

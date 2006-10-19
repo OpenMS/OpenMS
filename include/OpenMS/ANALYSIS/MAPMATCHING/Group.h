@@ -43,7 +43,7 @@ namespace OpenMS
   */
   template < typename ContainerType >
   class Group : public std::set
-          < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::MapAdressLesser >
+          < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess >
     {
     public:
 
@@ -52,10 +52,10 @@ namespace OpenMS
       */
       //@{
       typedef std::set
-        < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::MapAdressLesser > Base;
-        
+        < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess > Base;
+
       /** @name STL-compliance type definitions of the container interface*/
-      //@{            
+      //@{
       typedef typename Base::iterator iterator;
       typedef typename Base::const_iterator const_iterator;
       typedef typename Base::reverse_iterator reverse_iterator;
@@ -81,8 +81,7 @@ namespace OpenMS
       /// Copy constructor
       inline Group(const Group& source)
           : Base(source)
-      {
-      }
+      {}
 
       /// Assignment operator
       Group& operator= (const Group& source)
@@ -162,6 +161,20 @@ namespace OpenMS
       //     friend class boost::serialization::access;
 
     };
+
+  ///Print the contents to a stream.
+  template < typename ContainerT >
+  std::ostream& operator << (std::ostream& os, const Group<ContainerT>& cons)
+  {
+    os << "---------- GROUP BEGIN -----------------\n";
+    unsigned int i=0;
+    for (typename Group<ContainerT>::const_iterator it = cons.begin(); it != cons.end(); ++it,i)
+    {
+      os  << "Element: " << i << '\n'
+      << it << std::endl;
+    }
+    return os;
+  }
 
 } // namespace OpenMS
 
