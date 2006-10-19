@@ -191,7 +191,11 @@ namespace OpenMS
 			
 		/// The actual "main" method.  main_() is invoked by main().
 		virtual ExitCodes main_(int argc , char** argv)=0;
-			
+		
+		
+		/** @name Debug and Log output
+		 */
+		//@{			
 		/// Writes a string to the log file and to std::cout
 		void writeLog_(const String& text) const;
 		
@@ -210,21 +214,20 @@ namespace OpenMS
 		//@{
 		/**
 			 @brief Return the value of parameter @p key as a string or @p
-			 default_value if this value is not set.
 				
-			 See getParam_(const String&) for the order in which parameters are searched.
+			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/
 		String getParamAsString_(const String& key, const String& default_value="") const;
 		/**
 			 @brief Return the value of parameter @p key as an integer or @p default_value if this value is not set.
 				
-			 See getParam_(const String&) for the order in which parameters are searched.
+			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/
 		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0) const;
 		/**
 			 @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
 				
-			 See getParam_(const String&) for the order in which parameters are searched.
+			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/
 		double getParamAsDouble_(const String& key, double default_value=0) const;
 		/**
@@ -234,7 +237,7 @@ namespace OpenMS
 			 If the DataValue is a numerical value, the values '0' and '1' interpreted.
 			 For all other values and when the value of key @p key is not set, the @p default_value is returned.
 			 
-			 See getParam_(const String&) for the order in which parameters are searched.
+			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/
 		bool getParamAsBool_(const String& key, bool default_value=false) const;
 		/**
@@ -249,6 +252,8 @@ namespace OpenMS
 			 -# common section without tool name,  e.g. "common:some_key"
 			 .
 			 where "some_key" == key in the examples.
+			 
+			 @note The search key for the commandline command parameter is the internal name! See @ref setOptionsAndFlags_.
 		*/
 		DataValue const& getParam_(const String& key) const;
 
@@ -278,10 +283,6 @@ namespace OpenMS
 
 		*/
 		Param getParamCopy_( const std::string& prefix ) const;
-
-		/**@brief Like getParamCopy_(), but ignore "inherit" tags.  Deprecated.
-		 */
-		Param getParamCopyNoInherit_( const std::string& prefix ) const;
 
   };
 

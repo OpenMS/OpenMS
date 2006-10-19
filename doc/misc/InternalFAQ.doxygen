@@ -42,15 +42,15 @@
 			<OL>
 			<LI> Prepare the release file (OpenMS):
 				<OL>
-					<LI> Update Version number in <tt>srouce/configure.ac</tt> (AC_INIT macro)
+					<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 					<LI> Run autoconf
 					<LI> SVN commit
-					<LI> Run the script <tt>srouce/config/tools/make_dist.sh</tt>
+					<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
 				</OL>
 			<LI> Prepare the release file (contrib):
 				<OL>
 					<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
-					<LI> <LI> Remove the <tt>.svn</tt> directory
+					<LI> Remove the <tt>.svn</tt> directory
 					<LI> Generate a compressed tarball (naming convention: OpenMS_contrib-´version-number´.tar.gz)
 				</OL>
 			<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)

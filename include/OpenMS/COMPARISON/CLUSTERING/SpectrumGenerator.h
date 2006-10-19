@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_COMPARISON_CLUSTERING_SPECTRUMGENERATOR_H
 #define OPENMS_COMPARISON_CLUSTERING_SPECTRUMGENERATOR_H
 
@@ -35,43 +35,57 @@
 namespace OpenMS
 {
   /**
-  SpectrumGenerator creates a theoretical MSMS spectrum<br>
+  	@brief SpectrumGenerator creates theoretical tandem-MS spectra
   */
   class SpectrumGenerator
   {
   public:
-    /** @brief access to instance <br> */
+    /// Access to instance 
     static SpectrumGenerator* instance(); 
     
     /**
-    \param csit iterator to amno acid character (possibly with modification)
-    \param seq sequence
-    \return residuemass
+    	@brief 
+    	
+    	The modifications list is possibly not complete!
+  		
+  		Here is only what was encountered during minimal usage.
+    	
+	    @param csit iterator to amno acid character (possibly with modification)
+	    @param seq amino acid sequence where @p csit points to
+	    @return residuemass (considers modifications)
     */
     double residuemass(String::const_iterator& csit, const String& seq) const ;
     
     /**
-    \param seq peptide sequence
-    \return mass of peptide
+    	@brief 
+    	
+			@param seq peptide sequence
+    	@return mass of peptide
     */
     double getPeptidemass(const String& seq) const;
     
-    /** @brief create simple theoretical spectrum */
-    /**
-    \param seq peptide sequence
-    \return theoretical spectrum
+    /** 
+    	@brief create simple theoretical spectrum
+    	
+    	@param seq peptide sequence
+    	@return theoretical stick spectrum
     */
-    MSSpectrum< DPeak<1> >* getspectrum(const String& seq) const;
+    MSSpectrum< DPeak<1> >* getSpectrum(const String& seq) const;
 
     /**
-    \param mz position of peak
-    \param intensity of peak
-    \return simple polynomial approximation for isotope peaks
+    	@brief 
+    	
+    	@param mz position of peak
+    	@param intensity of peak
+    	@return theoretical isotope peaks, based on the probability of atom isotopes and a the medium atom composition of an amino acid
     */
     std::vector<std::pair<double,double> > isotopepeaks(double mz, double intensity) const;
+  
   private:
-    /** @brief use instance<br> */
+    ///@brief use instance
     SpectrumGenerator();
+    
+    
     static SpectrumGenerator* instance_;
 
     /// create isotope peaks?

@@ -423,53 +423,9 @@ namespace OpenMS
 		return param_;
 	}
 
-	Param TOPPBase::getParamCopyNoInherit_(const string& prefix) const
-	{
-		// old version, does not support "inherit" ITEMs
-		return param_inifile_.copy(prefix,true,"");
-	}
-
 	Param TOPPBase::getParamCopy_(const string& prefix) const
 	{
-
-#if 1
-
 		return param_inifile_.copyWithInherit(prefix,true,"");
-
-#else // the following code has been moved to the Param class now, see the line above!
-		
-		// new_prefix will be added later.  We just don't care about running times here.
-		// The whole Param stuff is ridiculously slow anyway...   (cg) 2006-10-18
-		Param param_copy = param_inifile_.copy(prefix,true,"");
-
-		const int debug_level_min = 10;
-		if ( debug_level_ >= debug_level_min ) {cout << "Parameters from '" << prefix << "' are:\n" << param_copy << endl;}
-
-		const int inheritance_steps_max = 15;
-		int inheritance_steps = 0;
-
-		DataValue const * inherit_path_value = & param_copy.getValue("inherit");
-		while ( ! inherit_path_value->isEmpty() )
-		{
-			string inherit_path = inherit_path_value->toString();
-			if ( debug_level_ >= debug_level_min ) {writeDebug_("Inheriting parameters from '"+inherit_path+'\'',debug_level_min);}
-			if ( ++inheritance_steps > inheritance_steps_max )
-			{
-				String message = String("Too many inheritance steps (")+String(inheritance_steps_max)+String(" allowed).  Perhaps there is a cycle?");
-				writeLog_(message);
-				// Give up.
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"<ITEM name=\"inherit\" ... />",message);
-				break;
-			}
-			// remove the "inherit" location and go for another round
-			param_copy.remove("inherit");
-			param_copy.setDefaults( param_inifile_.copy(inherit_path+':',true,"" ),"",false);
-			if ( debug_level_ >= debug_level_min ) {writeDebug_("Parameters after inheriting from '"+inherit_path+"' are:", param_copy, debug_level_min);}
-			inherit_path_value = & param_copy.getValue("inherit");
-		}
-		return param_copy;
-#endif
-
 	}
 
 	void TOPPBase::enableLogging_() const

@@ -52,7 +52,7 @@ namespace OpenMS
  	
 		 @note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
 	
-		 @todo Produce better error messages
+		 @todo Produce better error messages and test inheritence (Clemens)
 
 		 @ingroup FileIO
 	*/
@@ -110,7 +110,13 @@ namespace OpenMS
     void remove
 		(const std::string& prefix);
 
-    ///Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
+    /**
+    	@brief Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
+    	
+    	@param para The default values. 
+    	@param prefix The prefix to add to all defaults. 
+    	@param showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
+    */
     void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=false);
 
     /**

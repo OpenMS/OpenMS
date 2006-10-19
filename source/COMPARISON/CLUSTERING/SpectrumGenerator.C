@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 
 #include <OpenMS/METADATA/Identification.h>
@@ -255,10 +255,6 @@ namespace OpenMS
     return instance_;
   }
 
-  /**
-  \param seq peptide sequence
-  \return peptidemass
-  */
   double SpectrumGenerator::getPeptidemass(const String& seq) const
   {
     double mass = 18; // C and N- Terminal H and OH 
@@ -270,13 +266,6 @@ namespace OpenMS
     return mass;
   }
           
-  /**
-  the modifications list is possibly not complete! <br>
-  here is only what was encountered during minimal usage <br>
-  \param sit iterator where amino acid lies
-  \param seq String where sit points to
-  \return mass ( considers modifications which are )
-  */
   double SpectrumGenerator::residuemass(String::const_iterator& sit, const String& seq) const
   {
 
@@ -306,11 +295,7 @@ namespace OpenMS
     return mass;
   }
 
-  /**
-  \param seq peptide sequence
-  \return theoretical stick spectrum
-  */
-  MSSpectrum< DPeak<1> >* SpectrumGenerator::getspectrum(const String& seq) const
+  MSSpectrum< DPeak<1> >* SpectrumGenerator::getSpectrum(const String& seq) const
   {
     // current method only for tryptic digest, creates spectra from peptides
     // with charge state 2, 1 H+ C-Terminal, 1 mobile
@@ -394,12 +379,7 @@ namespace OpenMS
     return specp;
   }
   
-  /**
-  \param mz position of the peak
-  \param intensity of the peak
-  \return theoretical isotope peaks, based on the probability of atom isotopes and a the medium atom composition of an amino acid
-  */
-  std::vector<std::pair<double,double> > SpectrumGenerator::isotopepeaks(double mz, double intensity) const
+  vector<pair<double,double> > SpectrumGenerator::isotopepeaks(double mz, double intensity) const
   {
     // how many median AAs 'u' fit into the fragment?
     double nru = mz/residuemasses_.find('u')->second;
