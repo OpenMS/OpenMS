@@ -71,12 +71,12 @@ namespace OpenMS
       //@{
       typedef DFeature<2,KernelTraits> ElementType;
       typedef ContainerT ContainerType;
+      typedef Group< ContainerType > Group;
 
       typedef typename ElementType::TraitsType TraitsType;
       typedef DPosition < 2, TraitsType > PositionType;
       typedef typename TraitsType::IntensityType IntensityType;
       typedef IndexTuple< ContainerType > IndexTuple;
-      typedef Group< ContainerType > Group;
       typedef DRange<2, TraitsType> PositionBoundingBoxType;
       typedef DRange<1, TraitsType> IntensityBoundingBoxType;
       //@}
@@ -94,21 +94,22 @@ namespace OpenMS
       {}
 
       ///
-      ConsensusFeature(const PositionType& pos)
+      ConsensusFeature(const PositionType& pos, const IntensityType& i)
           : ElementType(),
           Group(),
           position_range_(),
           intensity_range_()
       {
         this->getPosition() = pos;
+        this->getIntensity() = i;
       }
 
       /// Constructor for a singleton consensus feature
-      ConsensusFeature(const ContainerType& map, const ElementType& feature)
+      ConsensusFeature(const UnsignedInt& map_index, const ElementType& feature)
       {
         try
         {
-          this->insert(IndexTuple(map,feature));
+          this->insert(IndexTuple(map_index,feature));
         }
         catch(Exception::InvalidValue)
         {}
@@ -121,12 +122,12 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const ContainerType& map_1, const ElementType& feature_1, const ContainerType& map_2, const ElementType& feature_2)
+      ConsensusFeature(const UnsignedInt& map_1_index, const ElementType& feature_1, const UnsignedInt& map_2_index, const ElementType& feature_2)
       {
         try
         {
-          this->insert(IndexTuple(map_1,feature_1));
-          this->insert(IndexTuple(map_2,feature_2));
+          this->insert(IndexTuple(map_1_index,feature_1));
+          this->insert(IndexTuple(map_2_index,feature_2));
         }
         catch(Exception::InvalidValue)
         {}
@@ -135,10 +136,10 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const ContainerType& map, const ElementType& feature, const ConsensusFeature& c_feature)
+      ConsensusFeature(const UnsignedInt& map_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
-        this->insert(IndexTuple(map,feature));
+        this->insert(IndexTuple(map_index,feature));
 
         computeConsensus_();
       }
@@ -190,7 +191,7 @@ namespace OpenMS
       //@}
 
 
-      void insert(const IndexTuple& tuple) 
+      void insert(const IndexTuple& tuple)
       {
         Group::insert(tuple);
 
@@ -301,20 +302,20 @@ namespace OpenMS
   template < typename ContainerT >
   std::ostream& operator << (std::ostream& os, const ConsensusFeature<ContainerT>& cons)
   {
-    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n"
-    << "Position: " << cons.getPosition()<< std::endl
-    << "Intensity " << cons.getIntensity() << std::endl
-    << "Position range " << cons.getPositionRange() << std::endl
-    << "Intensity range " << cons.getIntensityRange() << std::endl
-    << "Grouped elements: " << std::endl;
+    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
+    os << "Position: " << cons.getPosition()<< std::endl;
+    os << "Intensity " << cons.getIntensity() << std::endl;
+    os << "Position range " << cons.getPositionRange() << std::endl;
+    os << "Intensity range " << cons.getIntensityRange() << std::endl;
+    os << "Grouped elements: " << std::endl;
 
     unsigned int i = 1;
     os << "Size " << cons.count() << std::endl;
     for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it, ++i)
     {
-      os  << "Element: " << i << '\n'
-      << "Transformed Position: " << it->getTransformedPosition() << '\n'
-      << "Original Position: " << it->getElement() << '\n';
+      os  << "Element: " << i << std::endl;
+      os << "Transformed Position: " << it->getTransformedPosition() << std::endl;
+      os << "Original Position: " << it->getElement() << std::endl;
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 
