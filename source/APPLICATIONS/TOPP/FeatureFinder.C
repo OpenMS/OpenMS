@@ -103,25 +103,25 @@ class TOPPFeatureFinder
 	}
 	
  protected:
-	void printToolUsage_()
+	void printToolUsage_() const
 	{
 		cerr << endl
-				 << tool_name_ << " -- detects two-dimensional features in LC/MS data" << endl
+				 << getToolName() << " -- detects two-dimensional features in LC/MS data" << endl
 				 << "This application implements an algorithm for peptide feature detection " << endl
 				 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
 				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
-				 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
+				 << " " << getToolName() << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
 				 << "  -in <file>   input file in mzData format" << endl
 				 << "  -out <file>  output file in feature format" << endl
 				 << endl;
 	}
 	
-	void printToolHelpOpt_()
+	void printToolHelpOpt_() const
 	{
 		cerr << endl
-				 << tool_name_ << " -- find two-dimensional features in LC/MS data" << endl
+				 << getToolName() << " -- find two-dimensional features in LC/MS data" << endl
 				 << "This application implements an algorithm for peptide feature detection " << endl
 				 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
 				 << endl
@@ -158,10 +158,12 @@ class TOPPFeatureFinder
 		MSExperiment<DPeak<1> > exp;
 		mzdata_file.load(in,exp);
 
-		String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+		// ???? old		String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
 			
 		FeatureFinder ff;
-		Param feafi_param = getParamCopy_(ini_location,true);
+		Param const& feafi_param = getParam_();
+
+		// ???? old Param feafi_param = getParam_(ini_location,true);
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 		
 		if (feafi_param.empty())

@@ -63,14 +63,14 @@ class TOPPDBExporter
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr << endl
-       << tool_name_ << " -- Extracts MS data from a OpenMS database." << endl
+       << getToolName() << " -- Extracts MS data from a OpenMS database." << endl
        << "Version: " << VersionInfo::getVersion() << endl
        << endl
        << "Usage:" << endl
-			 << " " << tool_name_ << " [options]" << endl
+			 << " " << getToolName() << " [options]" << endl
 			 << endl
 			 << "Options are:" << endl
 			 << "  -u <DB user>      user/login of the DB" << endl
@@ -83,10 +83,10 @@ class TOPPDBExporter
 			 << "  -out <file>       output file in mzData format (prefixed with DB id and '_' if several files are exported)" << endl;
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  user     user/login of the DB" << endl

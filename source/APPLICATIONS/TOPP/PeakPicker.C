@@ -70,17 +70,17 @@ class TOPPPeakPicker
   {}
 
  protected:
-  void printToolUsage_()
+  void printToolUsage_() const
   {
 
     cerr << endl
-				 << tool_name_ << " -- find mass spectrometric peaks in LC/MC experiments." << endl
+				 << getToolName() << " -- find mass spectrometric peaks in LC/MC experiments." << endl
 				 << "This application implements an algorithm for peak picking as " << endl
 				 << "described in Lange et al. (2006) Proc. PSB-06. "<< endl
 				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
-				 << " " << tool_name_ << " [options]" << endl
+				 << " " << getToolName() << " [options]" << endl
 				 << endl
 				 << "Options are:" << endl
 				 << "  -optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
@@ -89,10 +89,10 @@ class TOPPPeakPicker
 				 << endl;
   }
 
-  void printToolHelpOpt_()
+  void printToolHelpOpt_() const
   {
     cerr << endl
-				 << tool_name_ << endl
+				 << getToolName() << endl
 				 << endl
 				 << "INI options:" << endl
 				 << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
@@ -141,9 +141,10 @@ class TOPPPeakPicker
     //-------------------------------------------------------------
     // Init peak picker
     //-------------------------------------------------------------
-    String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    Param pepi_param = getParamCopy_(ini_location,true);
-
+    // ???? old String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+    // ???? old Param pepi_param = getParamCopy_(ini_location,true);
+		Param pepi_param = getParam_();
+		
     //optimization
     if (optimize_peaks)
     {

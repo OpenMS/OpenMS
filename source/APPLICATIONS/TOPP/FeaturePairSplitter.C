@@ -83,14 +83,14 @@ class TOPPFeaturePairSplitter
   {}
 
  protected:
-  void printToolUsage_()
+  void printToolUsage_() const
   {
     cerr << endl
-				 << tool_name_ << " -- split a feature pairs file into two feature files and a qualities file." << endl
+				 << getToolName() << " -- split a feature pairs file into two feature files and a qualities file." << endl
 				 << "Version: " << VersionInfo::getVersion() << endl << 
 			"\n"
 			"Usage:\n"
-			"  " << tool_name_ << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-dump <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
+			"  " << getToolName() << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-dump <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
 			"Options are:\n"
 			"  -in <file>        input file\n"
 			"  -out1 <file>      first feature output file\n"
@@ -101,10 +101,10 @@ class TOPPFeaturePairSplitter
 				 << endl;
   }
 
-  void printToolHelpOpt_()
+  void printToolHelpOpt_() const
   {
     cerr << "\n"
-				 << tool_name_ << "\n"
+				 << getToolName() << "\n"
 			"\n"
 			"INI options:\n"
 			"  in     input feature pairs file\n"

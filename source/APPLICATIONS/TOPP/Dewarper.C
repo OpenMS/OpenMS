@@ -69,14 +69,14 @@ public:
   {}
 
 protected:
-  void printToolUsage_()
+  void printToolUsage_() const
   {
     cerr << endl
-    << tool_name_ << " -- dewarps a feature map" << endl
+    << getToolName() << " -- dewarps a feature map" << endl
     << "Version: " << VersionInfo::getVersion() << endl
     << endl
     << "Usage:" << endl
-    << " " << tool_name_ << " [options]" << endl
+    << " " << getToolName() << " [options]" << endl
     << endl
     << "Options are:" << endl
     << "  -grid <file>   grid covering the map to be transformed" << endl
@@ -85,10 +85,10 @@ protected:
     << endl;
   }
 
-  void printToolHelpOpt_()
+  void printToolHelpOpt_() const
   {
     cerr << endl
-    << tool_name_ << endl
+    << getToolName() << endl
     << endl
     << "INI options:" << endl
     << "grid  grid covering the map to be transformed" << endl

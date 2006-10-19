@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
@@ -60,53 +60,118 @@ namespace OpenMS
 				PARSE_ERROR
 			};
 			
-		/// Default construtor
+		/// Construtor
 		TOPPBase(const String& tool_name);
 
 		/// Destructor
-		~TOPPBase();
+		virtual ~TOPPBase();
 		
 		/// Main routine of all TOPP applications
 		ExitCodes main(int argc , char** argv);
+
+	 public:
+		
+		/**@brief Returns the name of the tool, e.g. "TOPPTool".
+
+			 This is assigned once and for all in the constructor.
+		*/
+		String const& getToolName() const { return tool_name_; }
+
+		/**@brief Returns the location of the ini file where parameters are taken
+			 from.  E.g. if the command line was <code>TOPPTool -n 17</code>, then
+			 this will be <code>"TOPPTool:17:"</code>.  Note the ':' at the end.
+
+			 This is assigned during tool startup, depending on the command line but
+			 (of course) not depending on ini files.
+		*/
+		String const& getIniLocation() const { return ini_location_; }
+
+	 private:
+
+		/**@brief Tool name.  This is assigned once and for all in the constructor.
+		 */
+		String const tool_name_;
+
+		/**@brief Instance number
+		 */
+		SignedInt const instance_number_;
+
+		/**@brief Location in the ini file where to look for parameters.
+		*/
+		String const ini_location_;
+		
+		/// No default constructor.  It is "declared away".
+		TOPPBase();
+		
+		/// No default copy constructor.  It is "declared away".
+		TOPPBase(const TOPPBase&);
 			
-	 protected:
-
-		/// Tool name
-		String tool_name_;
-
 		/// Debug level
 		SignedInt debug_level_;
 
-		/// Settings
+		/// All parameters relevant to this invocation of the program.
 		Param param_;
 
-		/// Log file stream
-		std::ofstream log_;
+		/// All parameters specified in the ini file
+		Param param_inifile_;
 
+		/// Parameters from command line
+		Param param_cmdline_;
+
+		/**@brief Parameters from instance section
+
+		   @note We might as well skip this (since the instance section with
+			 inheritance contains a superset of it) but I leave it so that we can
+			 trace where the parameters were obtained from. -- (cg) 2006-10-05
+		*/
+		Param param_instance_;
+
+		/// Parameters from instance section, including inherited ones
+		Param param_instance_inherited_;
+
+		/// Parameters from common section with tool name.
+		Param param_common_tool_;
+
+		/// Parameters from common section without tool name.
+		Param param_common_;
+
+		/** @brief Log file stream.  Use the writeLog_() and writeDebug_() methods
+				to access it.
+		*/
+		mutable std::ofstream log_;
+		
+		/** @brief Ensures that at least some default logging destination is
+				opened for writing in append mode.
+
+				@note This might be invoked at various places early in the startup
+				process of the TOPP tool.  Thus we cannot consider the ini file here.
+				The final logging destination is determined in main().
+		*/
+		void enableLogging_() const;
+
+	 protected:
+		
 		/// Command line options with argument (options)
 		std::map<std::string,std::string> options_;
 
 		/// Command line options without argument (flags)
 		std::map<std::string,std::string> flags_;
 
-		/// Current Instance number
-		SignedInt instance_number_;
-
-		/// Prints the help for the command line options and usage. Do not list the common options.
-		virtual void printToolUsage_()=0;
+		/// Prints the help for the command line options and usage.  Do not list the common options here.
+		virtual void printToolUsage_() const =0 ; 
 			
-		/// Prints the tool-specific command line options and appends the common options.
-		void printUsage_();
+		/// Prints the tool-specific command line options <b>and</b> appends the common options.
+		void printUsage_() const;
 			
 		/**
 			 @brief Prints the help for the INI-File options and a sample entry.
 			
-			 Be carefull the types of the sample entries. Do not list the common options.
+			 Be careful the types of the sample entries. Do not list the common options.
 		*/
-		virtual void printToolHelpOpt_()=0;			
+		virtual void printToolHelpOpt_() const =0;			
 
 		/// Prints the tool-specific INI options and flags and appends the common options and flags.
-		void printHelpOpt_();
+		void printHelpOpt_() const;
 
 		/**
 			 @brief Sets the valid commannd line options (with argument) and flags (without argument).
@@ -124,21 +189,19 @@ namespace OpenMS
 		*/
 		virtual void setOptionsAndFlags_()=0;
 			
-		/// Actual main method.
+		/// The actual "main" method.  main_() is invoked by main().
 		virtual ExitCodes main_(int argc , char** argv)=0;
 			
-		/// Parses the command line.
-		void parseCommandLine_(int argc , char** argv);
+		/// Writes a string to the log file and to std::cout
+		void writeLog_(const String& text) const;
 		
-		/** @name Debug and Log output
-		 */
-		//@{
-		/// Writes a string to the log file and to std::out
-		void writeLog_(const String& text);
-		/// Writes a string to the log file if the debug level is at least @p min_level
-		void writeDebug_(const String& text, UnsignedInt min_level);
-		/// Writes a Param to the log file if the debug level is at least @p min_level
-		void writeDebug_(const String& text,const Param& param, UnsignedInt min_level);
+		/// Writes a @p text to the log file and to std::cout if the debug level is at least @p min_level
+		void writeDebug_(const String& text, UnsignedInt min_level) const;
+
+		/**@brief Writes a String followed by a Param to the log file and to
+			 std::cout if the debug level is at least @p min_level
+		*/
+		void writeDebug_(const String& text, const Param& param, UnsignedInt min_level) const;
 		//@}
 
 		/** 
@@ -146,71 +209,80 @@ namespace OpenMS
 		 */
 		//@{
 		/**
-			 @brief Return the value @key of param_ as a string or @p default_value when this value is not set.
+			 @brief Return the value of parameter @p key as a string or @p
+			 default_value if this value is not set.
 				
-			 @note See @ref getParam_ for the order of the lookup.
+			 See getParam_(const String&) for the order in which parameters are searched.
 		*/
-		String getParamAsString_(const String& key, const String& default_value="");
+		String getParamAsString_(const String& key, const String& default_value="") const;
 		/**
-			 @brief Return the value @key of param_ as an integer or @p default_value when this value is not set.
+			 @brief Return the value of parameter @p key as an integer or @p default_value if this value is not set.
 				
-			 @note See @ref getParam_ for the order of the lookup.
+			 See getParam_(const String&) for the order in which parameters are searched.
 		*/
-		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0);
+		SignedInt getParamAsInt_(const String& key, SignedInt default_value=0) const;
 		/**
-			 @brief Return the value @key of param_ as a double or @p default_value when this value is not set.
+			 @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
 				
-			 @note See @ref getParam_ for the order of the lookup.
+			 See getParam_(const String&) for the order in which parameters are searched.
 		*/
-		double getParamAsDouble_(const String& key, double default_value=0);
+		double getParamAsDouble_(const String& key, double default_value=0) const;
 		/**
-			 @brief Return the value @key of param_ as a bool.
+			 @brief Return the value of parameter @p key as a bool or @p default_value if this value is not set.
 			 
 			 If the DataValue is a string, the values 'off', 'on', 'true' and 'false' are interpreted. 
 			 If the DataValue is a numerical value, the values '0' and '1' interpreted.
 			 For all other values and when the value of key @p key is not set, the @p default_value is returned.
 			 
-			 @note See @ref getParam_ for the order of the lookup.
+			 See getParam_(const String&) for the order in which parameters are searched.
 		*/
-		bool getParamAsBool_(const String& key, bool default_value=false);
+		bool getParamAsBool_(const String& key, bool default_value=false) const;
 		/**
-			 @brief Return a value of param_ as DataValue.
-	
-			 All methods in this section search for the paramters in the following order:
-			 <UL>
-			 	<LI>bla (command line)
-				<LI>&lt;toolname&gt;:&lt;instance&gt;:bla
-				<LI>common:&lt;toolname&gt;:bla
-				<LI>common:bla
-			 </UL>
-			 
-			 @note The search key for the commandline command parameter is the internal name! See @ref setOptionsAndFlags_.
-
+			 @brief Return the value @p key of parameters as DataValue.
+			 DataValue::EMPTY indicates that a parameter was not found.
+				
+			 Parameters are searched in this order:
+			 -# command line
+			 -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation().
+			 -# inherited from instance section
+			 -# common section with tool name,  e.g. "common:ToolName:some_key"
+			 -# common section without tool name,  e.g. "common:some_key"
+			 .
+			 where "some_key" == key in the examples.
 		*/
-		const DataValue& getParam_(const String& key);
-		//@}
-		
+		DataValue const& getParam_(const String& key) const;
+
+		/**@brief Return <em>all</em> parameters relevant to this TOPP tool.
+			 Returns a Param that contains everything you can get by the
+			 getParamAs...() methods.
+		 */
+		Param const& getParam_() const;
+
 		/**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.
   	
-			 @param prefix should contain a ':' at the end if you want to extract a subtree.
-			 Otherwise not only nodes, but as well values with that prefix are copied.
-			 @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
-			 @param new_prefix is added to the front of all keys
+			 @p prefix should contain a ':' at the end if you want to extract a
+			 subtree.  In this case, "inherit" tags are supported.
+			 This agrees with the convention that getIniLocation() ends with a ':'.
 
 			 Inheritance of parameters is supported as follows: If the subtree
 			 specified by prefix contains an <code>&lt;ITEM name="inherit"
 			 value="other:place" type="string"/&gt;</code>, then everything from
 			 <code>other:place</code> is inherited.  This works recursively, but at
 			 most 15 steps.  Otherwise an exception is thrown (e.g. to detect
-			 cycles).  It is not an error if <code>other:place</code> is not an
-			 existing <code>&lt;NODE&gt;</code> - we just won't inherit anything
-			 from there in this case.
+			 cycles).  (BTW, it is not an error if <code>other:place</code> is not an
+			 existing <code>&lt;NODE&gt;</code>)
 
-			 @todo Support for new_prefix is not fully tested and should be considered experimental. (Clemens)
+			 Otherwise not only nodes, but as well values with that prefix are
+			 copied.  (I am yet to see a useful application for this...)
 
 		*/
-		Param getParamCopy_(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="");
+		Param getParamCopy_( const std::string& prefix ) const;
+
+		/**@brief Like getParamCopy_(), but ignore "inherit" tags.  Deprecated.
+		 */
+		Param getParamCopyNoInherit_( const std::string& prefix ) const;
+
   };
 
 } // namespace OpenMS

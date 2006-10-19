@@ -69,14 +69,14 @@ class TOPPFileInfo
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr << endl
-		       << tool_name_ << " -- shows basic information about the file e.g. data ranges and file type." << endl
+		       << getToolName() << " -- shows basic information about the file e.g. data ranges and file type." << endl
 		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
-					 << "  " << tool_name_ << " [options]" << endl
+					 << "  " << getToolName() << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
 					 << "  -in <file>        input file" << endl
@@ -86,10 +86,10 @@ class TOPPFileInfo
 					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'" << endl;
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  in        input file name" << endl

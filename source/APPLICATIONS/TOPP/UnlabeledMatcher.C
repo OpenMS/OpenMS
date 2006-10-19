@@ -83,41 +83,41 @@ class TOPPUnlabeledMatcher
     {}
 
   protected:
-    void printToolUsage_()
+    void printToolUsage_() const
     {
-      cerr << endl
-      << tool_name_ << " -- match common two-dimensional features of two LC/MS data sets\n"
-      << "Version: " << VersionInfo::getVersion() << endl <<
-      "\n"
-      "Usage:\n"
-      "  " << tool_name_ << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
-      "Options are:\n"
-      "  -in1 <file>   input feature file 1\n"
-      "  -in2 <file>   input feature file 2\n"
-      "  -pairs <file> output file: XML formatted list of feature pairs\n"
-      "  -grid <file>  output file: grid covering the feature map\n"
-      << endl;
+      cerr << '\n' <<
+				getToolName() << " -- match common two-dimensional features of two LC/MS data sets\n"
+      	"Version: " << VersionInfo::getVersion() << "\n" 
+				"\n"
+				"Usage:\n"
+				"  " << getToolName() << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
+				"Options are:\n"
+				"  -in1 <file>   input feature file 1\n"
+				"  -in2 <file>   input feature file 2\n"
+				"  -pairs <file> output file: XML formatted list of feature pairs\n"
+				"  -grid <file>  output file: grid covering the feature map\n"
+					 << endl;
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
-      cerr << "\n"
-      << tool_name_ << "\n"
-      "\n"
-      "INI options:\n"
-      "  in1    input feature file 1\n"
-      "  in2    input feature file 2\n"
-      "  pairs  output file: XML formatted list of feature pairs\n"
-      "  grid   output file: grid covering the feature map\n"
-      "\n"
-      "INI File example section:\n"
-      "  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>\n"
-      "  <ITEM name=\"in2\" value=\"input_2.mzData\" type=\"string\"/>\n"
-      "  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
-      "  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
-      "Note: many more parameters can be set in the INI File.\n"
-      "See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
-      ;
+      cerr << '\n'
+					 << getToolName() << "\n"
+				"\n"
+				"INI options:\n"
+				"  in1    input feature file 1\n"
+				"  in2    input feature file 2\n"
+				"  pairs  output file: XML formatted list of feature pairs\n"
+				"  grid   output file: grid covering the feature map\n"
+				"\n"
+				"INI File example section:\n"
+				"  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>\n"
+				"  <ITEM name=\"in2\" value=\"input_2.mzData\" type=\"string\"/>\n"
+				"  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
+				"  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
+				"Note: many more parameters can be set in the INI File.\n"
+				"See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
+				;
     }
 
     void setOptionsAndFlags_()
@@ -138,23 +138,11 @@ class TOPPUnlabeledMatcher
       // parameter handling
       //-------------------------------------------------------------
 
-      String param_path = tool_name_ + ":default:";
-      
-      cout << "param_path " << param_path << endl;
-      
-      cout << "TOPPBASE " << param_ << endl;
-
-      Param param = getParamCopy_(param_path,true);
-      
-      cout << "INI " << param << endl;
-
       // determine name of grid file
       String gridfilename = getParamAsString_("grid");
-			//if ( gridfilename.empty() ) gridfilename = param_.getValue("grid");
 
       // determine name of pairs file
       String pairsfile = getParamAsString_("pairs");
-			//if ( pairsfile.empty() ) pairsfile = param.getValue("pairs");
 
       // input files to be read
       String inputfile[2];
@@ -172,7 +160,7 @@ class TOPPUnlabeledMatcher
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
 
-			writeDebug_("Parameters passed to DGeomHashPairwiseMapMatcher", param,3);
+			writeDebug_("Parameters passed to DGeomHashPairwiseMapMatcher", getParam_(),3);
 			
       //-------------------------------------------------------------
 
@@ -182,7 +170,7 @@ class TOPPUnlabeledMatcher
 
       GeomHashPairwiseMapMatcher<> geomhash_feature_matcher;
 
-      geomhash_feature_matcher.setParam(param);
+      geomhash_feature_matcher.setParam(getParam_());
 
       for ( Size index = 0; index < 2; ++index )
       {

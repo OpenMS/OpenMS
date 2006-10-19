@@ -60,14 +60,14 @@ class TOPPDTAExtractor
 		}
 
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr  << endl
-						<< tool_name_ << " -- extracts scans of an mzData file to several files in DTA format." << endl
+						<< getToolName() << " -- extracts scans of an mzData file to several files in DTA format." << endl
 						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
-						<< " " << tool_name_ << " [options]" << endl
+						<< " " << getToolName() << " [options]" << endl
 						<< endl
 						<< "Options are:" << endl
 						<< "  -in <file>        input mzData file name" << endl
@@ -78,10 +78,10 @@ class TOPPDTAExtractor
 						
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  in      input mzData file name" << endl

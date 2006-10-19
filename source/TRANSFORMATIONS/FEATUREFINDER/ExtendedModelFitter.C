@@ -376,19 +376,40 @@ namespace OpenMS
 		DPeakArray<2> dpa;
 		final->getSamples(dpa);
 		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
-			if (it->getIntensity()>0.1)
+			if (it->getIntensity()>0.9)
 				file << it->getPosition()[RT] << "	" << it->getPosition()[MZ] << "	"
 						 << it->getIntensity() << "\n";
 		
 		fname = "cut"+String(counter_);
 		ofstream file2(fname.c_str()); // gnuplot file with peaks after cutoff
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) {
+		file2 << "# RT MZ IT_orig IT_model isContained \n";
+		double last_rt = -100000;
+		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
+		{
+#if 1 // cool style output
+			const DRawDataPoint<2>& p = traits_->getPeak(*it);
+			// extra linefeed for gnuplot's "with lines"
+			if ( p. getPosition()[RT] != last_rt )
+			{
+				last_rt = p.getPosition()[RT];
+				file2 << '\n';
+			}
+			file2 << p.getPosition()[RT] << ' '
+						<< p.getPosition()[MZ] << ' '
+						<< p.getIntensity() << ' '
+						<< final->getIntensity(p.getPosition())
+						<< ( final->isContained( traits_->getPeak(*it).getPosition() ) ? " 1 " : " 0 " )
+						<< '\n';
+#else // old style output
 			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
 			{
 				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " "
-							<< final->getIntensity(p.getPosition()) << "\n";
+				file2 << p.getPosition()[RT] << ' '
+							<< p.getPosition()[MZ] << ' '
+							<< p.getIntensity() << ' '
+							<< final->getIntensity(p.getPosition()) << '\n';
 			}
+#endif
 		}
 #endif
 		++counter_;

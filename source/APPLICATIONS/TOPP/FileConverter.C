@@ -66,14 +66,14 @@ class TOPPFileConverter
 	}
 	
  protected:
-	void printToolUsage_()
+	void printToolUsage_() const
 	{
 		cerr << endl
-				 << tool_name_ << " -- converts between different MS file formats." << endl
+				 << getToolName() << " -- converts between different MS file formats." << endl
 				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
-				 << "  " << tool_name_ << " [options]" << endl
+				 << "  " << getToolName() << " [options]" << endl
 				 << endl
 				 << "Options are:" << endl
 				 << "  -in <file>        input file" << endl
@@ -86,10 +86,10 @@ class TOPPFileConverter
 				 << "Valid output types are: 'mzData', 'mzXML', 'DTA2D'" << endl;	
 	}
 	
-	void printToolHelpOpt_()
+	void printToolHelpOpt_() const
 	{
 		cerr << endl
-				 << tool_name_ << endl
+				 << getToolName() << endl
 				 << endl
 				 << "INI options:" << endl
 				 << "  in         input file" << endl

@@ -149,16 +149,16 @@ class TOPPRTModel
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr << endl
-		       << tool_name_ << " -- Builds a model for retention time" 
+		       << getToolName() << " -- Builds a model for retention time" 
 		       << " prediction of peptides. Peptides with the associated"
 		       << " retention times are used to train the model."
 		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
-					 << " " << tool_name_ << " [options]" << endl
+					 << " " << getToolName() << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
 					 << "  -in <file>              input file in analysisXML format (default read from INI file)" << endl
@@ -187,10 +187,10 @@ class TOPPRTModel
 			options_["--help"] = "help";
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  in                        input file" << endl

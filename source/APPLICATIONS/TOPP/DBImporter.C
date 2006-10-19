@@ -58,14 +58,14 @@ class TOPPDBImporter
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr << endl
-		       << tool_name_ << " -- Imports an mzData file to an OpenMS database." << endl
+		       << getToolName() << " -- Imports an mzData file to an OpenMS database." << endl
 		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
-					 << " " << tool_name_ << " [options]" << endl
+					 << " " << getToolName() << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
 					 << "  -u <DB user>      user/login of the DB" << endl
@@ -76,10 +76,10 @@ class TOPPDBImporter
 					 << "  -in <file>        input file in mzData format" << endl;
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  user      user/login of the DB" << endl

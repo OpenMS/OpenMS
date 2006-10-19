@@ -84,14 +84,14 @@ public:
   {}
 
 protected:
-  void printToolUsage_()
+  void printToolUsage_() const
   {
     cerr << endl
-    << tool_name_ << " -- find pairs of labeled features in LC/MS data" << endl
+    << getToolName() << " -- find pairs of labeled features in LC/MS data" << endl
     << "Version: " << VersionInfo::getVersion() << endl
     << endl
     << "Usage:" << endl
-    << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
+    << " " << getToolName() << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
     << "  -in  <file>       input file" << endl
     << "  -out <file>  	    output file" << endl
     << "  -vis_all <file>   output file of all pairs for visualisation in TOPPView"
@@ -101,10 +101,10 @@ protected:
     << endl;
   }
 
-   void printToolHelpOpt_()
+   void printToolHelpOpt_() const
   {
     cerr << endl
-    << tool_name_ << endl
+    << getToolName() << endl
     << endl
     << "INI options:" << endl
     << "in        input file in mzData format (default read from INI file)" << endl
@@ -181,8 +181,8 @@ protected:
 
     PairMatcher pm(features);
 
-    String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    Param pm_param = getParamCopy_(ini_location+"algorithm:");
+    // String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+    Param pm_param = getParamCopy_(getIniLocation()+"algorithm:");
     writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
     pm.setParam(pm_param);
 

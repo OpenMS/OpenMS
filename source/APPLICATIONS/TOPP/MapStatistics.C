@@ -83,15 +83,15 @@ public:
     {}
 
 protected:
-    void printToolUsage_()
+    void printToolUsage_() const
     {
         cerr << endl
-        << tool_name_ << " -- Computes a five-number summary for " << endl
+        << getToolName() << " -- Computes a five-number summary for " << endl
         << "features / raw data intensities and qualities in a map." << endl
         << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
-        << " " << tool_name_ << " [options]" << endl
+        << " " << getToolName() << " [options]" << endl
         << endl
         << "Options are:" << endl
         << "  -in <file>                   feature or raw data map (default read from INI file)" << endl
@@ -100,10 +100,10 @@ protected:
         << endl ;
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
         cerr << endl
-        << tool_name_ << endl
+        << getToolName() << endl
         << endl
         << "INI options:" << endl
         << "  in <file>                  either feat or mzData (default read from INI file)" << endl

@@ -84,14 +84,14 @@ public:
 
 protected:
 
-    void printToolUsage_()
+    void printToolUsage_() const
     {
         cerr << endl
-        << tool_name_ << " -- estimates a transformation for pairs of features in different LC/MS maps" << endl
+        << getToolName() << " -- estimates a transformation for pairs of features in different LC/MS maps" << endl
         << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
-        << " " << tool_name_ << " [options]" << endl
+        << " " << getToolName() << " [options]" << endl
         << endl
         << "Options are:" << endl
         << " -grid <file>   grid covering the map to be transformed (default read from INI file)" << endl
@@ -102,10 +102,10 @@ protected:
 
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
         cerr << endl
-        << tool_name_ << endl
+        << getToolName() << endl
         << endl
         << "INI options:" << endl
         << "  in <file>                  either feat or mzData (default read from INI file)" << endl

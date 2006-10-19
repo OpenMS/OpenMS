@@ -68,10 +68,10 @@ public:
     {}
 
 protected:
-    void printToolUsage_()
+    void printToolUsage_() const
     {
         cerr << endl
-        << tool_name_ << " -- remove the baseline in a LC/MS experiment" << endl
+        << getToolName() << " -- remove the baseline in a LC/MS experiment" << endl
         << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "This application implements a morpholgical approach called top-hat filter." << endl
@@ -79,7 +79,7 @@ protected:
         << "Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling flag!)." << endl
         << endl
         << "Usage:" << endl
-        << " " << tool_name_ << " [options]" << endl
+        << " " << getToolName() << " [options]" << endl
         << "  -in <file>                input mzData file name" << endl
         << "  -out <file>               output mzData file name" << endl
         << "  -struc_elem_length <size> length of the structuring element (default is 2.5Th)" << endl
@@ -87,10 +87,10 @@ protected:
         << endl;
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
         cerr << endl
-        << tool_name_ << endl
+        << getToolName() << endl
         << endl
         << "INI options:" << endl
         << "  in <file>                input mzData file name" << endl

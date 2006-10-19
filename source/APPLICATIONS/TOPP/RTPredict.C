@@ -84,15 +84,15 @@ class TOPPRTPredict
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr << endl
-       << tool_name_ << " -- Predicts retention times for peptides"
+       << getToolName() << " -- Predicts retention times for peptides"
        << " via the svm_model that is trained by RTModel."
        << "Version: " << VersionInfo::getVersion() << endl
        << endl
        << "Usage:" << endl
-			 << " " << tool_name_ << " [options]" << endl
+			 << " " << getToolName() << " [options]" << endl
 			 << endl
 			 << "Options are:" << endl
 			 << "  -in <file>              input file in analysisXML format (default read from INI file)" << endl
@@ -112,10 +112,10 @@ class TOPPRTPredict
 			options_["-total_gradient_time"] = "total_gradient_time";
 		}
 
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  in                        input file" << endl

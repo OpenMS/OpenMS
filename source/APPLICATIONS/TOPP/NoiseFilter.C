@@ -75,10 +75,10 @@ class TOPPNoiseFilter
     {}
 
   protected:
-    void printToolUsage_()
+    void printToolUsage_() const
     {
       cerr << endl
-      << tool_name_ << " -- remove the noise in a LC/MS experiment" << endl
+      << getToolName() << " -- remove the noise in a LC/MS experiment" << endl
       << "It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
       << "Version: " << VersionInfo::getVersion() << endl
       << endl
@@ -86,7 +86,7 @@ class TOPPNoiseFilter
       << "      The Gaussian filter works for uniform as well as for non-uniform data." << endl
       << endl
       << "Usage:" << endl
-      << " " << tool_name_ << " [options]" << endl
+      << " " << getToolName() << " [options]" << endl
       << endl
       << "Options are:" << endl
       << "  -filter_type <type>   smoothing filter type. Valid filter options are: 'sgolay' or 'gaussian'." << endl
@@ -96,10 +96,10 @@ class TOPPNoiseFilter
       << endl;
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
       cerr << endl
-      << tool_name_ << endl
+      << getToolName() << endl
       << endl
       << "INI options:" << endl
       << "  in <file>            input mzData file name" << endl
@@ -165,8 +165,8 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // Init noise filter
       //-------------------------------------------------------------
-      String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-      Param noise_param = getParamCopy_(ini_location,true);
+      // ???? old String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
+      // ???? old Param noise_param = getParamCopy_(ini_location,true);
 
       //-------------------------------------------------------------
       // loading input
@@ -183,8 +183,9 @@ class TOPPNoiseFilter
 
       if (filter_type == "sgolay")
       {
-#ifdef GSL_DEF
-        SavitzkyGolaySVDFilter sgolay(noise_param);
+#ifdef GSL_DEF   	
+        SavitzkyGolaySVDFilter sgolay( getParam_() );
+        // ???? old SavitzkyGolaySVDFilter sgolay(noise_param);
 
         LinearResampler lin_resampler;
         lin_resampler.setSpacing(spacing);
@@ -247,7 +248,8 @@ class TOPPNoiseFilter
       else
         if (filter_type == "gaussian")
         {
-          GaussFilter gauss(noise_param);
+          GaussFilter gauss( getParam_() );
+          // ???? old GaussFilter gauss(noise_param);
           gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
         }
         else

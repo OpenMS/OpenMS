@@ -68,14 +68,14 @@ class TOPPFileMerger
 	}
 	
  protected:
-	void printToolUsage_()
+	void printToolUsage_() const
 	{
 		cerr  << endl
-					<< tool_name_ << " -- Merges several single scan files into a mzData file." << endl
+					<< getToolName() << " -- Merges several single scan files into a mzData file." << endl
 					<< "Version: " << VersionInfo::getVersion() << endl
 					<< endl
 					<< "Usage:" << endl
-					<< " " << tool_name_ << " [options]" << endl
+					<< " " << getToolName() << " [options]" << endl
 					<< endl
 					<< "Options are:" << endl
 					<< "  -file_list <file> a text file containing file names and retention times sparated by tab." << endl
@@ -87,10 +87,10 @@ class TOPPFileMerger
 					<< "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'" << endl;
 	}
 	
-	void printToolHelpOpt_()
+	void printToolHelpOpt_() const
 	{
 		cerr << endl
-				 << tool_name_ << endl
+				 << getToolName() << endl
 				 << endl
 				 << "INI options:" << endl
 				 << "  file_list <file> a text file containing file names and retention times sparated by tab" << endl

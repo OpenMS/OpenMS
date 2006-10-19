@@ -43,14 +43,12 @@ namespace OpenMS
 
 	using namespace Exception;
 
-	Param::Param(): values_()
+	Param::Param(): values_(), inheritance_steps_max(15)
 	{
-
 	}
 
 	Param::Param(const Param& rhs): values_(rhs.values_)
 	{
-		
 	}
 
 	Param::~Param()
@@ -192,6 +190,37 @@ namespace OpenMS
 		}
 		return out;
 	}
+
+	Param Param::copyWithInherit(const std::string& prefix, bool remove_prefix, const std::string& new_prefix) const
+	{
+		if ( *prefix.rbegin() != ':' )
+		{
+			return copy( prefix, remove_prefix, new_prefix );
+		}
+		else
+		{
+			Param result = copy( prefix, remove_prefix, "" );
+			int inheritance_steps = 0;
+			DataValue const * inherit_path_value = & result.getValue("inherit");
+			while ( ! inherit_path_value->isEmpty() )
+			{
+				string inherit_path = inherit_path_value->toString();
+				if ( ++inheritance_steps > inheritance_steps_max )
+				{
+					throw Exception::ParseError
+						( __FILE__, __LINE__, __PRETTY_FUNCTION__,
+							"<ITEM name=\"inherit\" ... />",
+							String("Too many inheritance steps (")+String(inheritance_steps_max)+String(" allowed).  Perhaps there is a cycle?")
+						);
+				}
+				result.remove("inherit");
+				result.setDefaults( copy(inherit_path+':',true,"" ), "", false);
+				inherit_path_value = & result.getValue("inherit");
+			}
+			return result.copy("",true,new_prefix);
+		}
+	}
+
 
 	void Param::store(const string& filename) const throw (Exception::UnableToCreateFile)
 	{

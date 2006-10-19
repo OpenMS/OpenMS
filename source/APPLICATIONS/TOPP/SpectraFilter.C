@@ -74,14 +74,14 @@ class TOPPSpectraFilter
 		}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr  << endl
-						<< tool_name_ << " -- applies different spectrum modification filters to the data." << endl
+						<< getToolName() << " -- applies different spectrum modification filters to the data." << endl
 						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
-						<< " " << tool_name_ << " [options]" << endl
+						<< " " << getToolName() << " [options]" << endl
 						<< endl
 						<< "Options are:" << endl
 						<< "  -in <file>                   input mzData file name" << endl
@@ -90,10 +90,10 @@ class TOPPSpectraFilter
 						<< "  -filters <name>[,<name>,...] filters to apply (see --help-opt for complete list)" << endl;
 		}
 	
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr << endl
-		       << tool_name_ << endl
+		       << getToolName() << endl
 		       << endl
 		       << "INI options:" << endl
 					 << "  in        input mzData file name" << endl
@@ -221,8 +221,8 @@ class TOPPSpectraFilter
 			// for every filter
 			for (vector<FactoryProduct*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":filters:";
-				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":", true);
+				String ini_location = getIniLocation() + "filters:";
+				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":");
 				writeDebug_("Used filter parameters", filter_param, 3);
 				
 				String filter_name = (*it)->getName();

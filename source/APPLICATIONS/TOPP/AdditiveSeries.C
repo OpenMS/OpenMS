@@ -118,15 +118,15 @@ public:
     {}
 
 protected:
-    void printToolUsage_()
+    void printToolUsage_() const
     {
         cerr << endl
-        << tool_name_ << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
+        << getToolName() << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
         << "Detailed procedure is described in Groepl et. (2005) Proc. CompLife-05 ." << endl
         << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
-        << " " << tool_name_ << " [options]" << endl
+        << " " << getToolName() << " [options]" << endl
         << endl
         << "Options are:" << endl
         << "  -in <file>   input file containing the spiked concentrations (default read from INI file)" << endl
@@ -142,10 +142,10 @@ protected:
         << endl ;
     }
 
-    void printToolHelpOpt_()
+    void printToolHelpOpt_() const
     {
         cerr << endl
-        << tool_name_ << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
+        << getToolName() << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
         << "Detailed procedure is described in Groepl et. (2005) Proc. CompLife-05 ." << endl
         << endl
         << "INI options (excerpt):" << endl
@@ -364,8 +364,7 @@ protected:
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-				String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-        Param add_param =  getParamCopy_(ini_location,true);
+        Param const& add_param =  getParam_();
 				writeDebug_("Used parameters", add_param, 3);
 				
         DPosition<2> feat_pos1;

@@ -116,14 +116,14 @@ class TOPPInspectAdapter
 		{}
 	
 	protected:
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			cerr	<< endl
-						<< tool_name_ << " -- annotates MS/MS spectra using Inspect" << endl
+						<< getToolName() << " -- annotates MS/MS spectra using Inspect" << endl
 						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
-						<< " " << tool_name_ << " [options]" << endl
+						<< " " << getToolName() << " [options]" << endl
 						<< endl
 						<< "Options are:" << endl
 						<< "  -in <file>          Inspect input file" << endl
@@ -153,7 +153,7 @@ class TOPPInspectAdapter
 		}
 
 
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			cerr	<< endl
 						<< "  -instr              the instrument that was used to measure the spectra (default read from INI file)" << endl

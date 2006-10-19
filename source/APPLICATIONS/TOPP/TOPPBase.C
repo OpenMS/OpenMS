@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include "TOPPBase.h"
@@ -30,21 +30,21 @@ using namespace std;
 
 namespace OpenMS
 {
+
+	namespace
+	{
+		char const log_separator_[] = "================================================================================";
+	}
+
   TOPPBase::TOPPBase(const String& tool_name)
   	: tool_name_(tool_name),
-		debug_level_(-1),
-		param_(),
-		log_(),
-		options_(), 
-		flags_(),
-		instance_number_(-1)
+			instance_number_(-1),
+			debug_level_(-1)
 	{
-		
 	}
 
 	TOPPBase::~TOPPBase()
   {
-  	
   }
 
 	TOPPBase::ExitCodes TOPPBase::main(int argc , char** argv)
@@ -61,19 +61,20 @@ namespace OpenMS
 		flags_["--help"] = "help";
 		flags_["--help-opt"] = "helpopt";		
 		
-		parseCommandLine_(argc,argv);
+		param_cmdline_.parseCommandLine(argc,argv,options_,flags_,"misc","unknown");
+
+		// assign instance number
+		*const_cast<int*>(&instance_number_) = getParamAsInt_("instance",1);
+		writeDebug_(String("Instance: ")+String(instance_number_),1);
+
+		// assign ini location
+		*const_cast<String*>(&ini_location_) = tool_name_+':'+String(instance_number_)+':';
+		writeDebug_(String("Ini_location: ")+String(ini_location_),1);
 		
-		//start logging to default location
-		log_.open(getParamAsString_("log","TOPP.log").c_str(), ofstream::out | ofstream::app);
-		log_ << endl << "-------------------------------------------------------------------------------------" << endl << endl;
 		//set debug level
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
 		
-		//set instance number
-		instance_number_ = getParamAsInt_("instance",1);
-		writeDebug_(String("Instance: ")+String(instance_number_),1);
-
 		// test if no options were given
 		if (argc==1)
 		{
@@ -83,21 +84,21 @@ namespace OpenMS
 		}
 
 		// '--help' given
-		if (!(param_.getValue("help").isEmpty()))
+		if (!(param_cmdline_.getValue("help").isEmpty()))
 		{
 			printUsage_();
 			return OK;
 		}
 	
 		// '--help-opt' given
-		if (!(param_.getValue("helpopt").isEmpty()))
+		if (!(param_cmdline_.getValue("helpopt").isEmpty()))
 		{
 			printHelpOpt_();
 			return OK;
 		}
 			
 		// test if unknown options were given
-		if (!param_.getValue("unknown").isEmpty())
+		if (!param_cmdline_.getValue("unknown").isEmpty())
 		{
 
 			writeLog_(String("Unknown option(s) '") + getParamAsString_("unknown") + "' given. Aborting!");
@@ -106,7 +107,7 @@ namespace OpenMS
 		}
 		
 		// test if unknown text argument were given (we do not use them)
-		if (!param_.getValue("misc").isEmpty())
+		if (!param_cmdline_.getValue("misc").isEmpty())
 		{
 			writeLog_(String("Trailing text argument(s) '") + getParamAsString_("misc") + "' given. Aborting!");
 			printUsage_();
@@ -117,22 +118,43 @@ namespace OpenMS
 		try
 		{
 			//-------------------------------------------------------------
-			// loading INI file
+			// load INI file
 			//-------------------------------------------------------------
-			if (!param_.getValue("ini").isEmpty())
 			{
-				writeDebug_(String("INI file: ") + getParamAsString_("ini"),1);
-				param_.load((String)(param_.getValue("ini")));
+				DataValue const & value_ini = param_cmdline_.getValue("ini");
+				if (!value_ini.isEmpty())
+				{
+					writeDebug_( "INI file: " + (String)value_ini, 1 );
+					param_inifile_.load( (String)value_ini );
+					param_instance_ = param_inifile_.copy( getIniLocation(), true, "" );
+					writeDebug_("Parameters from instance section:",param_instance_,2);
+					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation(), true, "" );
+					writeDebug_("Parameters from instance section, including inherited ones:",param_instance_inherited_,2);
+					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true, "" );
+					writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
+					param_common_ = param_inifile_.copy( "common:", true, "" );
+					writeDebug_("Parameters from common section without tool name:",param_common_,2);
+				}
+				param_ = param_cmdline_;
+				param_.setDefaults( param_instance_inherited_ );
+				param_.setDefaults( param_common_tool_ );
+				param_.setDefaults( param_common_ );
 			}
 			
 			//-------------------------------------------------------------
 			// determine and open the real log file
 			//-------------------------------------------------------------
-			if (!getParam_("log").isEmpty())
+
 			{
-				writeDebug_(String("Log file: ")+getParamAsString_("log"),1);
-				log_.close();
-				log_.open(getParamAsString_("log").c_str(), ofstream::out | ofstream::app);
+				DataValue const & value_log = getParam_("log");
+				if (!value_log.isEmpty())
+				{
+					writeDebug_( "Log file: " + (String)value_log, 1 );
+					log_.close();
+					log_.open( ((String)value_log) .c_str(), ofstream::out | ofstream::app);
+					log_ << log_separator_ << endl;
+					writeDebug_("Writing to '"+(String)value_log+'\'',1);
+				}
 			}
 
 			//-------------------------------------------------------------
@@ -189,7 +211,7 @@ namespace OpenMS
 		return result;
 	}
 
-	void TOPPBase::printUsage_()
+	void TOPPBase::printUsage_() const
 	{
 		printToolUsage_();
 		
@@ -205,7 +227,7 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::printHelpOpt_()
+	void TOPPBase::printHelpOpt_() const
 	{
 		printToolHelpOpt_();
 		
@@ -215,37 +237,38 @@ namespace OpenMS
 							<< endl ;	
 	}
 
-	void TOPPBase::parseCommandLine_(int argc , char** argv)
-	{
-		param_.parseCommandLine(argc,argv,options_,flags_,"misc","unknown");
-	}
-	
-	void TOPPBase::writeLog_(const String& text)
+	void TOPPBase::writeLog_(const String& text) const
 	{
 		cout << text << endl;
-		log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl;
+		enableLogging_();
+		log_ << Date::now() << ' ' << getIniLocation() << ": " << text<< endl;
 	}
 	
-	void TOPPBase::writeDebug_(const String& text, UnsignedInt min_level)
+	void TOPPBase::writeDebug_(const String& text, UnsignedInt min_level) const
 	{
 		if (debug_level_>=(SignedInt)min_level)
 		{
-			log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl;
+			cout << text << endl;
+			enableLogging_();
+			log_ << Date::now() << ' ' << getIniLocation() << ": " << text<< endl;
 		}
 	}
 
-	void TOPPBase::writeDebug_(const String& text, const Param& param, UnsignedInt min_level)
+	void TOPPBase::writeDebug_(const String& text, const Param& param, UnsignedInt min_level) const
 	{
 		if (debug_level_>=(SignedInt)min_level)
 		{
-			log_ << Date::now() << " " << tool_name_ << ":" << instance_number_ << ": " << text<< endl
-					 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-			     << param 
-			     << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+			cout << text << endl << param;
+			enableLogging_();
+			log_ 
+				<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
+				<< Date::now() << ' ' << getIniLocation() << ": " << text<< endl
+				<< param 
+				<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 		}
 	}
 	
-	String TOPPBase::getParamAsString_(const String& key, const String& default_value)
+	String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
@@ -258,7 +281,7 @@ namespace OpenMS
 		}
 	}
 
-	SignedInt TOPPBase::getParamAsInt_(const String& key, SignedInt default_value)
+	SignedInt TOPPBase::getParamAsInt_(const String& key, SignedInt default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
@@ -271,7 +294,7 @@ namespace OpenMS
 		}
 	}
 
-	double TOPPBase::getParamAsDouble_(const String& key, double default_value)
+	double TOPPBase::getParamAsDouble_(const String& key, double default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
@@ -284,7 +307,7 @@ namespace OpenMS
 		}
 	}
 
-	bool TOPPBase::getParamAsBool_(const String& key, bool default_value)
+	bool TOPPBase::getParamAsBool_(const String& key, bool default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
 		switch (tmp.valueType())
@@ -338,51 +361,89 @@ namespace OpenMS
 		return default_value; 
 	}
 
-	const DataValue& TOPPBase::getParam_(const String& key)
+	DataValue const& TOPPBase::getParam_(const String& key) const
 	{
-		//command line
-		String key_string = key;
-		if (!param_.getValue(key_string).isEmpty())
+		// look up in command line
 		{
-			writeDebug_(String("Parameter '")+key+String("' from COMMAND LINE: ")+(String)(param_.getValue(key_string)),3);
-			return param_.getValue(key_string);
+			DataValue const & value = param_cmdline_.getValue( key );
+			if (!value.isEmpty())
+			{
+				writeDebug_(String("Parameter '")+key+String("' from COMMAND LINE: ")+(String)(value),3);
+				return value;
+			}
 		}
-		//instance section
-		key_string = String(tool_name_) + ":" + String(instance_number_) + ":" + key;
-		if (!param_.getValue(key_string).isEmpty())
+
+		// look up in instance section
 		{
-			writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION: ")+(String)(param_.getValue(key_string)),3);
-			return param_.getValue(key_string);
+			DataValue const & value = param_instance_.getValue( key );
+			if (!value.isEmpty())
+			{
+				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION: ")+(String)(value),3);
+				return value;
+			}
 		}
-		//common tool secion
-		key_string = String("common:")+String(tool_name_)+":"+key;
-		if (!param_.getValue(key_string).isEmpty())
+
+		// look up in instance section, with inheritance
 		{
-			writeDebug_(String("Parameter '")+key+String("' from COMMON TOOL SECTION: ")+(String)(param_.getValue(key_string)),3);
-			return param_.getValue(key_string);
+			DataValue const & value = param_instance_inherited_.getValue( key );
+			if (!value.isEmpty())
+			{
+				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION (INHERITED): ")+(String)(value),3);
+				return value;
+			}
 		}
-		//common tool secion
-		key_string = String("common:")+key;
-		if (!param_.getValue(key_string).isEmpty())
+
+		// look up in common secion with tool name
 		{
-			writeDebug_(String("Parameter '")+key+String("' from BASIC COMMON SECTION: ")+(String)(param_.getValue(key_string)),3);
-			return param_.getValue(key_string);
+			DataValue const & value = param_common_tool_.getValue( key );
+			if (!value.isEmpty())
+			{
+				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION (TOOL SPECIFIC): ")+(String)(value),3);
+				return value;
+			}
 		}
-		writeDebug_(String("Parameter '")+key+String("' NOT FOUND!"),3);
+
+		// look up in common secion without tool name
+		{
+			DataValue const & value = param_common_.getValue( key );
+			if (!value.isEmpty())
+			{
+				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION: ")+(String)(value),3);
+				return value;
+			}
+		}
+
+		// if look up fails everywhere, return EMPTY
+		writeDebug_( String("Parameter '")+key+String("' not found."), 1 );
 		return DataValue::EMPTY;
 	}
-	
-	Param TOPPBase::getParamCopy_(const string& prefix, bool remove_prefix, const string& new_prefix)
-	{
-#/*if 1 // We support inheritance using "inherit" ITEMs
-		Param param_copy = param_.copy(prefix,remove_prefix,new_prefix);
 
-		const int debug_level_min = 5;
-		if ( debug_level_ >= debug_level_min )
-		{
-			cout << "Parameters from `" << prefix << "' are:\n"
-								<< param_copy << endl;
-		}
+	Param const& TOPPBase::getParam_() const
+	{
+		return param_;
+	}
+
+	Param TOPPBase::getParamCopyNoInherit_(const string& prefix) const
+	{
+		// old version, does not support "inherit" ITEMs
+		return param_inifile_.copy(prefix,true,"");
+	}
+
+	Param TOPPBase::getParamCopy_(const string& prefix) const
+	{
+
+#if 1
+
+		return param_inifile_.copyWithInherit(prefix,true,"");
+
+#else // the following code has been moved to the Param class now, see the line above!
+		
+		// new_prefix will be added later.  We just don't care about running times here.
+		// The whole Param stuff is ridiculously slow anyway...   (cg) 2006-10-18
+		Param param_copy = param_inifile_.copy(prefix,true,"");
+
+		const int debug_level_min = 10;
+		if ( debug_level_ >= debug_level_min ) {cout << "Parameters from '" << prefix << "' are:\n" << param_copy << endl;}
 
 		const int inheritance_steps_max = 15;
 		int inheritance_steps = 0;
@@ -391,34 +452,45 @@ namespace OpenMS
 		while ( ! inherit_path_value->isEmpty() )
 		{
 			string inherit_path = inherit_path_value->toString();
-			if ( debug_level_ >= debug_level_min )
-			{
-				cout << "Inheriting from `" << inherit_path << "'.\n";
-			}
+			if ( debug_level_ >= debug_level_min ) {writeDebug_("Inheriting parameters from '"+inherit_path+'\'',debug_level_min);}
 			if ( ++inheritance_steps > inheritance_steps_max )
 			{
 				String message = String("Too many inheritance steps (")+String(inheritance_steps_max)+String(" allowed).  Perhaps there is a cycle?");
 				writeLog_(message);
-				// We just cannot go on in this case, better throw an informative message
+				// Give up.
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"<ITEM name=\"inherit\" ... />",message);
 				break;
 			}
-			// remove
+			// remove the "inherit" location and go for another round
 			param_copy.remove("inherit");
-			param_copy.setDefaults( param_.copy(inherit_path+':',true,"" ),"",false);
-			if ( debug_level_ >= debug_level_min )
-			{
-				cout << "Parameters after inheriting from `" << inherit_path << "' are:\n"
-									<< param_copy << endl;
-			}
+			param_copy.setDefaults( param_inifile_.copy(inherit_path+':',true,"" ),"",false);
+			if ( debug_level_ >= debug_level_min ) {writeDebug_("Parameters after inheriting from '"+inherit_path+"' are:", param_copy, debug_level_min);}
 			inherit_path_value = & param_copy.getValue("inherit");
 		}
-		return param_copy.copy("",true,new_prefix);
-#else*/
-		// old version, does not support "inherit" ITEMs
-		return param_.copy(prefix,remove_prefix,new_prefix);
-// #endif
+		return param_copy;
+#endif
+
 	}
 
+	void TOPPBase::enableLogging_() const
+	{
+		if ( !log_ )
+		{
+			DataValue const & log_destination = param_cmdline_.getValue("log");
+			if ( log_destination.isEmpty() )
+			{
+				log_.open("TOPP.log", ofstream::out | ofstream::app);
+				log_ << log_separator_ << endl;
+				writeDebug_("Writing to 'TOPP.log'",1);
+			}
+			else
+			{
+				log_.open( ((String)log_destination) .c_str(), ofstream::out | ofstream::app);
+				log_ << log_separator_ << endl;
+				writeDebug_("Writing to '"+(String)log_destination+'\'',1);
+			}
+		}
+		return;
+	}
 
 } // namespace OpenMS

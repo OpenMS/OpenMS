@@ -152,6 +152,9 @@ NONLIB_CXXFLAGS = @NONLIB_CXXFLAGS@
 # can be controlled by specifying the configure switch 
 # --enable-optimization
 CPP_MODE_FLAGS  = @CPP_MODE_FLAGS@
+# If you change your mind later, you might instead uncomment one of the following lines:
+# CPP_MODE_FLAGS  = $(CXXFLAGS_D)
+# CPP_MODE_FLAGS  = $(CXXFLAGS_O)
 
 # CPP_MODE_FLAGS_NO_OPTIMIZATION is used in the (luckily quite rare!)
 # cases where the compiler crashes when performing optimization.
