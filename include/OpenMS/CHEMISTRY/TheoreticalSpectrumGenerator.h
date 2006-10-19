@@ -30,13 +30,8 @@
 #ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 
-#ifndef OPENMS_KERNEL_DDISCRETESPECTRUM_H
-	#include <OpenMS/KERNEL/DSpectrum.h>
-#endif
-
-#ifndef OPENMS_CHMISTRY_PEPTIDESEQUENCE_H
-	#include <OpenMS/CHEMISTRY/PeptideSequence.h>
-#endif
+#include <OpenMS/CHEMISTRY/PeptideSequence.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
 
@@ -65,10 +60,10 @@ namespace OpenMS
 			TheoreticalSpectrumGenerator operator = (const TheoreticalSpectrumGenerator& tsg);
 
 			/// returns a spectrum with b and y peaks
-			DSpectrum<1> getSpectrum(const PeptideSequence& peptide);
+			PeakSpectrum getSpectrum(const PeptideSequence& peptide);
 
 			/// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-			void addPeaks(DSpectrum<1>& spectrum, const PeptideSequence& peptide,
+			void addPeaks(PeakSpectrum& spectrum, const PeptideSequence& peptide,
 														Residue::ResidueType res_type, SignedInt charge = 1, double intensity = 1);
 
 			/// returns a vector with sequences of the ions

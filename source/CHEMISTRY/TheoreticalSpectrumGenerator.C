@@ -28,16 +28,16 @@ namespace OpenMS
 	{
 	}
 
-	DSpectrum<1> TheoreticalSpectrumGenerator::getSpectrum(const PeptideSequence& peptide)
+	PeakSpectrum TheoreticalSpectrumGenerator::getSpectrum(const PeptideSequence& peptide)
 	{
 		ions_.clear();
-		DSpectrum<1> spec;
+		PeakSpectrum spec;
 		addPeaks(spec, peptide, Residue::BIon, 1, 1);
 		addPeaks(spec, peptide, Residue::YIon, 1, 1);
 		return spec;
 	}
 
-	void TheoreticalSpectrumGenerator::addPeaks(DSpectrum<1>& spectrum, const PeptideSequence& peptide,
+	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const PeptideSequence& peptide,
 																							Residue::ResidueType res_type, SignedInt charge, double intensity)
 	{
 		DPeak<1> p;
