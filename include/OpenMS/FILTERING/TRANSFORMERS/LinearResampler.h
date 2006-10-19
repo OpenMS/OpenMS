@@ -44,7 +44,7 @@ namespace OpenMS
 	 Therefore it is recommended for quantitation as well as for identification experiments.
 	 
 	 @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
-	       The resampling rate should be >= the accuracy.
+	       The resampling rate should be >= the precision.
 	 	 
 	*/
 	class LinearResampler
