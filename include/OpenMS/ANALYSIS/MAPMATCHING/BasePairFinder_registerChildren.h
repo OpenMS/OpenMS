@@ -21,9 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: BasePairFinder.h,v 1.6 2006/05/02 09:39:07 ole_st Exp $
-// $Author: ole_st $
-// $Maintainer: Eva Lange $
+// Maintainer: Eva Lange
 // --------------------------------------------------------------------------
 
 
