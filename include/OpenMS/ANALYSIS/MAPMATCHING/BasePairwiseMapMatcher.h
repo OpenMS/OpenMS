@@ -34,6 +34,8 @@
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
+#include <OpenMS/CONCEPT/FactoryProduct.h>
+
 #include <utility>
 #include <fstream>
 
@@ -56,7 +58,7 @@ namespace OpenMS
 
   **/
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class BasePairwiseMapMatcher
+  class BasePairwiseMapMatcher : public FactoryProduct
   {
     public:
       /// Defines the coordinates of peaks / features.
@@ -74,8 +76,8 @@ namespace OpenMS
 
       /// Type of features considered here
       typedef typename PointMapType::value_type FeatureType;
-      
-       /// Traits type
+
+      /// Traits type
       typedef typename FeatureType::TraitsType TraitsType;
 
       /// Type of feature pairs
@@ -93,7 +95,8 @@ namespace OpenMS
       //@{
       /// Constructor
       BasePairwiseMapMatcher()
-          : param_()
+          : FactoryProduct(),
+          param_()
       {
         feature_map_[0] = 0;
         feature_map_[1] = 0;
@@ -101,7 +104,8 @@ namespace OpenMS
 
       /// Copy constructor
       BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-          : param_(source.param_)
+          : FactoryProduct(source),
+          param_(source.param_)
       {
         feature_map_[0] = source.feature_map_[0];
         feature_map_[1] = source.feature_map_[1];
@@ -111,6 +115,7 @@ namespace OpenMS
       ///  Assignment operator
       virtual BasePairwiseMapMatcher& operator = (BasePairwiseMapMatcher source)
       {
+        FactoryProduct::operator = (source);
         param_ = source.param_;
         feature_map_[0] = source.feature_map_[0];
         feature_map_[1] = source.feature_map_[1];
@@ -159,7 +164,6 @@ namespace OpenMS
         return *feature_map_[index];
       }
 
-
       /// Set feature pair list
       void setFeaturePairs(FeaturePairVectorType& feature_pairs)
       {
@@ -172,21 +176,21 @@ namespace OpenMS
         return *all_feature_pairs_;
       }
 
-
       /// Get grid
       const GridType& getGrid() const
       {
         return grid_;
       }
-
       //@}
+
+      /// register all derived classes here
+      static void registerChildren();
 
       /// Estimates the transformation for each grid cell
       virtual void run()
-      {
-      }
+      {}
 
-    //  int dumpFeaturePairs(const String& filename); // code is below
+      //  int dumpFeaturePairs(const String& filename); // code is below
 
     protected:
 
@@ -211,47 +215,47 @@ namespace OpenMS
   ; // BasePairwiseMapMatcher
 
 
-//   template < typename MapT >
-//   int BasePairwiseMapMatcher<MapT>::dumpFeaturePairs(const String& filename)
-//   {
-//     // V_dumpFeaturePairs() is used for a few comments about the files being
-//     // written.
-// #define V_dumpFeaturePairs(bla) std::cerr << bla << std::endl;
-//     V_dumpFeaturePairs("### Writing "<<filename);
-//     std::ofstream dump_file(filename.c_str());
-//     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
-//     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-//     for ( Size fp = 0; fp < getFeaturePairs().size(); ++fp )
-//     {
-//       dump_file << fp << ' '
-//       << getFeaturePairs()[fp].getQuality() << ' '
-//       << getFeaturePairs()[fp].getFirst().getPosition()[RT] << ' '
-//       << getFeaturePairs()[fp].getFirst().getPosition()[MZ] << ' '
-//       << getFeaturePairs()[fp].getFirst().getIntensity() << ' '
-//       << getFeaturePairs()[fp].getFirst().getOverallQuality() << ' '
-//       << getFeaturePairs()[fp].getSecond().getPosition()[RT] << ' '
-//       << getFeaturePairs()[fp].getSecond().getPosition()[MZ] << ' '
-//       << getFeaturePairs()[fp].getSecond().getIntensity() << ' '
-//       << getFeaturePairs()[fp].getSecond().getOverallQuality() << ' '
-//       << std::endl;
-//     }
-//     dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
-//     std::string dump_filename_gp = filename + ".gp";
-//     V_dumpFeaturePairs("### Writing "<<dump_filename_gp);
-//     std::ofstream dump_file_gp(dump_filename_gp.c_str());
-//     dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
-//     dump_file_gp <<
-//     "# Gnuplot script to view feature pairs\n"
-//     "plot   \"" << filename <<"\" using 3:4 title \"map 1\"\n"
-//     "replot \"" << filename <<"\" using 7:8 title \"map 2\"\n"
-//     "replot \"" << filename <<"\" using 3:4:($7-$3):($8-$4) w vectors nohead title \"pairs\"\n"
-//     ;
-//     dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
-//     V_dumpFeaturePairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
-// #undef V_dumpFeaturePairs
-// 
-//     return 0;
-//   }
+  //   template < typename MapT >
+  //   int BasePairwiseMapMatcher<MapT>::dumpFeaturePairs(const String& filename)
+  //   {
+  //     // V_dumpFeaturePairs() is used for a few comments about the files being
+  //     // written.
+  // #define V_dumpFeaturePairs(bla) std::cerr << bla << std::endl;
+  //     V_dumpFeaturePairs("### Writing "<<filename);
+  //     std::ofstream dump_file(filename.c_str());
+  //     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
+  //     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
+  //     for ( Size fp = 0; fp < getFeaturePairs().size(); ++fp )
+  //     {
+  //       dump_file << fp << ' '
+  //       << getFeaturePairs()[fp].getQuality() << ' '
+  //       << getFeaturePairs()[fp].getFirst().getPosition()[RT] << ' '
+  //       << getFeaturePairs()[fp].getFirst().getPosition()[MZ] << ' '
+  //       << getFeaturePairs()[fp].getFirst().getIntensity() << ' '
+  //       << getFeaturePairs()[fp].getFirst().getOverallQuality() << ' '
+  //       << getFeaturePairs()[fp].getSecond().getPosition()[RT] << ' '
+  //       << getFeaturePairs()[fp].getSecond().getPosition()[MZ] << ' '
+  //       << getFeaturePairs()[fp].getSecond().getIntensity() << ' '
+  //       << getFeaturePairs()[fp].getSecond().getOverallQuality() << ' '
+  //       << std::endl;
+  //     }
+  //     dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
+  //     std::string dump_filename_gp = filename + ".gp";
+  //     V_dumpFeaturePairs("### Writing "<<dump_filename_gp);
+  //     std::ofstream dump_file_gp(dump_filename_gp.c_str());
+  //     dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
+  //     dump_file_gp <<
+  //     "# Gnuplot script to view feature pairs\n"
+  //     "plot   \"" << filename <<"\" using 3:4 title \"map 1\"\n"
+  //     "replot \"" << filename <<"\" using 7:8 title \"map 2\"\n"
+  //     "replot \"" << filename <<"\" using 3:4:($7-$3):($8-$4) w vectors nohead title \"pairs\"\n"
+  //     ;
+  //     dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
+  //     V_dumpFeaturePairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
+  // #undef V_dumpFeaturePairs
+  //
+  //     return 0;
+  //   }
 
 } // namespace OpenMS
 
