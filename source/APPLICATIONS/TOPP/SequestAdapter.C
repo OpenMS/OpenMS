@@ -139,7 +139,8 @@ class TOPPSequestAdapter
 						<< "  [the _win parameters correspond to path of the linux directory when mounted under windows. NO SPACE ALLOWED!;" << std::endl
 						<< "   the _network paramters correspond to the path network path of the directory when mounting the under windows;" << std::endl
 						<< "   as Sequest runs on windows, all the files and directories used have to be mounted on the corresponding computer!" << std::endl
-						<< "   rdesktop is used to connect to this computer]" << std::endl << std::endl
+						<< "   rdesktop is used to connect to this computer" << std::endl << std::endl
+						<< "   Sequest writes a file named 'sequest.log' into the out_dir, so you must not name the log file alike]" << std::endl
 						<< "  -Sequest_in           if this flag is set the SequestAdapter will create a sequest input file" << std::endl
 						<< "                        and create dta files from the given mzXML files" << std::endl
 						<< "  -Sequest_out          if this flag is set the SequestAdapter will read in Sequest out files and write an analysis XML file" << std::endl
@@ -476,6 +477,8 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 
 			// (2.0) variables for running the program
+			logfile = getParamAsString_("log", "temp.sequest.log");
+			
 			if ( !getParamAsString_("show_enzyme_numbers").empty() )
 			{
 				writeLog_("Option show_enzyme_numbers chosen. Aborting.");
@@ -487,7 +490,6 @@ class TOPPSequestAdapter
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
 			contact_person.setContactInfo(getParamAsString_("contactInfo"));
-			logfile = getParamAsString_("log", "temp.sequest.log");
 
 			Sequest_in = getParamAsBool_("Sequest_in");
 			Sequest_out = getParamAsBool_("Sequest_out");
@@ -652,6 +654,15 @@ class TOPPSequestAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
+			}
+
+			
+			if ( logfile == out_dir + "sequest.log")
+			{
+				writeLog_("The logfile must not be named " + out_dir + "sequest.log. Aborting!");
+				std::cout << "The logfile must not be named " + out_dir + "sequest.log. Aborting!" << std::endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
 			}
 
 			batch_filename = getParamAsString_("batchfile");
