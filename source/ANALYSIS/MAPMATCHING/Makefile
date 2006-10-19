@@ -54,7 +54,9 @@ CPP_SOURCES=\
 	SimplePairFinder.C\
 	DelaunayPairFinder.C\
 	Group.C\
-	IndexTuple.C
+	IndexTuple.C\
+	BaseAlignment.C\
+	StarAlignment.C
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 

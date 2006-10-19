@@ -55,7 +55,8 @@ CPP_SOURCES= \
 	DFeatureMapFile.C\
 	DFeaturePairsFile.C\
 	MascotXMLFile.C\
-	DGridFile.C
+	DGridFile.C\
+	ConsensusXMLFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

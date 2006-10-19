@@ -52,7 +52,8 @@ HANDLER_SOURCES=\
 	DFeaturePairsHandler.C\
 	DGridHandler.C\
 	MzDataExpSettHandler.C\
-	MascotXMLHandler.C
+	MascotXMLHandler.C\
+	ConsensusXMLHandler.C
 
 ADD_CPP_SOURCES = $(ANDI_SOURCES) $(HANDLER_SOURCES)
 ADD_INCLUDES=$(GUI_INCLUDES)
