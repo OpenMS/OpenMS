@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_PARAM_H
@@ -38,32 +38,32 @@
 
 namespace OpenMS
 {
-/**
-	@brief Management and storage of INI files.
+	/**
+		 @brief Management and storage of INI files.
 	
-	This class provides a means to associate string names to int/double/string values.
+		 This class provides a means to associate string names to int/double/string values.
 	
-	It is similar to a map<string,DataValue> but it also supports hierarchical 
-	data and to save/load the contained data as XML.
+		 It is similar to a map<string,DataValue> but it also supports hierarchical 
+		 data and to save/load the contained data as XML.
 	
-	Hierachy levels are separated from each other and from the name by colons.
+		 Hierachy levels are separated from each other and from the name by colons.
 	
-	Example: 'GeneralOptions:FileOptions:DefaultFileOpenPath = /share/'
+		 Example: 'common:file_options:default_file_open_path = /share/'
  	
-	@todo Add support for inheritance using 'inherit' keyword as in TOPPBase::getParamCopy_(), and produce better error messages. (Clemens)
-
-	@note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
+		 @note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
 	
- 	@ingroup FileIO
-*/
-class Param
-{
-	public:
+		 @todo Produce better error messages
+
+		 @ingroup FileIO
+	*/
+	class Param
+	{
+	 public:
     /// Const iterator
     typedef std::map<std::string, DataValue>::const_iterator ConstIterator;
 
     /** @name Constructors and Destructors
-    */
+		 */
     //@{
     /// Default construtor
     Param();
@@ -91,9 +91,9 @@ class Param
     void setValue(const std::string& key, const std::string& value);
 
     /**
-    	@brief Get a value by it's key.
+			 @brief Get a value by it's key.
 
-    	To check if there is no value for the given key, compare the return value with DataValue::EMPTY
+			 To check if there is no value for the given key, compare the return value with DataValue::EMPTY
     */
     const DataValue& getValue(const std::string& key) const;
 
@@ -108,20 +108,25 @@ class Param
     void insert(const std::string& prefix, const Param& para);
     ///Remove all entries that start with @p prefix.
     void remove
-        (const std::string& prefix);
+		(const std::string& prefix);
 
     ///Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
-    void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=true);
+    void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=false);
 
     /**
-    	@brief Returns a new Param object containing all entries that start with @p prefix.
+			 @brief Returns a new Param object containing all entries that start with @p prefix.
     	
-    	@param prefix should contain a ':' at the end if you want to extract a subtree.
-    	Otherwise not only nodes, but as well values with that prefix are copied.
-    	@param remove_prefix indicates if the prefix is removed before adding entries to the new Param
-    	@param new_prefix is added to the front of all keys
+			 @param prefix should contain a ':' at the end if you want to extract a subtree.
+			 Otherwise not only nodes, but as well values with that prefix are copied.
+			 @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
+			 @param new_prefix is added to the front of all keys
     */
-    Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
+		Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
+	
+		/** @brief Like copy(), but with support for "inherit" items.  These are
+				 only considered for nodes, i.e. if the @p prefix ends with a ':'.
+		 */
+    Param copyWithInherit(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
 
     ///Write XML file.
     void store(const std::string& filename) const throw (Exception::UnableToCreateFile);
@@ -129,34 +134,34 @@ class Param
     void load(const std::string& filename) throw (Exception::FileNotFound,Exception::ParseError);
 
     /**
-    	@brief Parses command line arguments.
+			 @brief Parses command line arguments.
     	
-    	This method discriminates three types of arguments:<BR>
-    	(1) options (starting with '-') that have a text argument<BR>
-    	(2) options (starting with '-') that have no text argument<BR>
-    	(3) text arguments (not starting with '-')
+			 This method discriminates three types of arguments:<BR>
+			 (1) options (starting with '-') that have a text argument<BR>
+			 (2) options (starting with '-') that have no text argument<BR>
+			 (3) text arguments (not starting with '-')
     	
-    	Command line arguments '-a avalue -b -c bvalue misc1 misc2' would be stored like this:<BR>
-    	"prefix:-a" -> "avalue"<BR>
-    	"prefix:-b" -> ""<BR>
-    	"prefix:-c" -> "bvalue"<BR>
-    	"prefix:misc" -> "misc1 misc2"<BR>
+			 Command line arguments '-a avalue -b -c bvalue misc1 misc2' would be stored like this:<BR>
+			 "prefix:-a" -> "avalue"<BR>
+			 "prefix:-b" -> ""<BR>
+			 "prefix:-c" -> "bvalue"<BR>
+			 "prefix:misc" -> "misc1 misc2"<BR>
 
-    	@param argc argc variable from command line
-    	@param argv argv varaible from command line
-    	@param prefix prefix for all options
+			 @param argc argc variable from command line
+			 @param argv argv varaible from command line
+			 @param prefix prefix for all options
     */
     void parseCommandLine(const int argc , char** argv, const std::string& prefix = "");
 
     /**
-    	@brief Parses command line arguments to specified key locations.
+			 @brief Parses command line arguments to specified key locations.
     	
-    	@param argc argc variable from command line
-    	@param argv argv varaible from command line
-    	@param options_with_argument a map of options that are followed by an argument (with key where they are stored)
-    	@param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
-    	@param misc key where all non-option arguments are stored
-    	@param unknown key where all unknown options are stored
+			 @param argc argc variable from command line
+			 @param argv argv varaible from command line
+			 @param options_with_argument a map of options that are followed by an argument (with key where they are stored)
+			 @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
+			 @param misc key where all non-option arguments are stored
+			 @param unknown key where all unknown options are stored
     */
     void parseCommandLine(const int argc , char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown");
 
@@ -164,26 +169,33 @@ class Param
     /// Returns a constant iterator to the begin of the stored values.
     inline ConstIterator begin() const
     {
-        return values_.begin();
+			return values_.begin();
     }
 
     /// Returns a constant iterator to the end of the stored values.
     inline ConstIterator end() const
     {
-        return values_.end();
+			return values_.end();
     }
 
     /// Output of the object to a spream.
     friend std::ostream& operator << (std::ostream& os, const Param& param);
 
-	protected:
+	 protected:
     /// internal storage container
     std::map<std::string, DataValue> values_;
 
-};
+	 public:
+		/**@brief Maximum number of inheritance steps allowed.
+			 
+		Usually you really won't care about this, thus I don't provide accessor functions. (Clemens)
+		*/
+		int inheritance_steps_max;
 
-///Print the contents of a Param object to a stream.
-std::ostream& operator << (std::ostream& os, const Param& param);
+	};
+
+	///Print the contents of a Param object to a stream.
+	std::ostream& operator << (std::ostream& os, const Param& param);
 
 } // namespace OpenMS
 
