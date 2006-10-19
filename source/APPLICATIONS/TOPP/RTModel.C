@@ -155,6 +155,7 @@ class TOPPRTModel
 		       << tool_name_ << " -- Builds a model for retention time" 
 		       << " prediction of peptides. Peptides with the associated"
 		       << " retention times are used to train the model."
+		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
 					 << " " << tool_name_ << " [options]" << endl
@@ -277,8 +278,8 @@ class TOPPRTModel
 			DoubleReal p_start = 0;
 			DoubleReal p_step_size = 0;
 			DoubleReal p_stop = 0;
-			std::map<SVM_parameter_type, DoubleReal>* optimized_parameters;
-			std::map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
+			map<SVM_parameter_type, DoubleReal>* optimized_parameters;
+			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
 			String start;
 			String stop;
 			String step_size;

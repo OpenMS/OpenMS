@@ -70,6 +70,7 @@ class TOPPFileConverter
 	{
 		cerr << endl
 				 << tool_name_ << " -- converts between different MS file formats." << endl
+				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
 				 << "  " << tool_name_ << " [options]" << endl

@@ -73,6 +73,7 @@ protected:
   {
     cerr << endl
     << tool_name_ << " -- dewarps a feature map" << endl
+    << "Version: " << VersionInfo::getVersion() << endl
     << endl
     << "Usage:" << endl
     << " " << tool_name_ << " [options]" << endl

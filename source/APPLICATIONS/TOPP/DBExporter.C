@@ -67,6 +67,7 @@ class TOPPDBExporter
 		{
 			cerr << endl
        << tool_name_ << " -- Extracts MS data from a OpenMS database." << endl
+       << "Version: " << VersionInfo::getVersion() << endl
        << endl
        << "Usage:" << endl
 			 << " " << tool_name_ << " [options]" << endl

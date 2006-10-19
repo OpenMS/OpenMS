@@ -89,6 +89,7 @@ class TOPPRTPredict
 			cerr << endl
        << tool_name_ << " -- Predicts retention times for peptides"
        << " via the svm_model that is trained by RTModel."
+       << "Version: " << VersionInfo::getVersion() << endl
        << endl
        << "Usage:" << endl
 			 << " " << tool_name_ << " [options]" << endl

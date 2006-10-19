@@ -77,6 +77,7 @@ class TOPPPeakPicker
 				 << tool_name_ << " -- find mass spectrometric peaks in LC/MC experiments." << endl
 				 << "This application implements an algorithm for peak picking as " << endl
 				 << "described in Lange et al. (2006) Proc. PSB-06. "<< endl
+				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
 				 << " " << tool_name_ << " [options]" << endl

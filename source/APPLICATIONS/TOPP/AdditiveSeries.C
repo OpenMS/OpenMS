@@ -121,9 +121,9 @@ protected:
     void printToolUsage_()
     {
         cerr << endl
-        << tool_name_ << " -- Computes an additive series to quantify" << endl
-        << "a peptide in a set of samples." << endl
+        << tool_name_ << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
         << "Detailed procedure is described in Groepl et. (2005) Proc. CompLife-05 ." << endl
+        << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
         << " " << tool_name_ << " [options]" << endl
@@ -185,15 +185,15 @@ protected:
         while (iter!= map.end() )
         {
 
-			//std::cout << "Read: " << *iter << std::endl;
+			//cout << "Read: " << *iter << endl;
 			
             if ( (iter->getPosition()[RT] <  fpos1[RT] + tol_rt) &&
                     (iter->getPosition()[RT] >  fpos1[RT] - tol_rt) &&
                     (iter->getPosition()[MZ] <  fpos1[MZ] + tol_mz) &&
                     (iter->getPosition()[MZ] >  fpos1[MZ] - tol_mz) )
             {
-				std::cout << "Found feature1 at " << std::endl;
-				std::cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  std::endl;
+				cout << "Found feature1 at " << endl;
+				cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  endl;
                 // feature at correct position found, save intensity
                 if (!feat1)
 				{
@@ -212,8 +212,8 @@ protected:
                     (iter->getPosition()[MZ] <  fpos2[MZ] + tol_mz) &&
                     (iter->getPosition()[MZ] >  fpos2[MZ] - tol_mz) )
             {
-				std::cout << "Found feature2 at " << std::endl;
-				std::cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  std::endl;
+				cout << "Found feature2 at " << endl;
+				cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  endl;
                 // same as above
                  if (!feat2)
 				{
@@ -232,18 +232,18 @@ protected:
 
         if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
         {
-			std::cout << "Feature 1: " << feat1->getIntensity() << std::endl;
-			std::cout << "Feature 2: " << feat2->getIntensity() << std::endl;
-			std::cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << std::endl;
+			cout << "Feature 1: " << feat1->getIntensity() << endl;
+			cout << "Feature 2: " << feat2->getIntensity() << endl;
+			cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
             intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
             return true;
         } 
 		if (!feat1)
-			std::cout << "Feature 1 was not found. " << std::endl;
+			cout << "Feature 1 was not found. " << endl;
 			
 		if (!feat2) 
-			std::cout << "Feature 2 was not found. " << std::endl;	
+			cout << "Feature 2 was not found. " << endl;	
 		
         return false;
     }
@@ -253,9 +253,9 @@ protected:
     	 writes a couple of files from which a nice plot of all this can be
     	 generated using the gnuplot program.
      */
-    bool computeRegressionAndWriteGnuplotFiles_ ( std::vector<double>::const_iterator const conc_vec_begin,
-            std::vector<double>::const_iterator const conc_vec_end,
-            std::vector<double>::const_iterator const area_vec_begin,
+    bool computeRegressionAndWriteGnuplotFiles_ ( vector<double>::const_iterator const conc_vec_begin,
+            vector<double>::const_iterator const conc_vec_end,
+            vector<double>::const_iterator const area_vec_begin,
             double const confidence_p,
             String const filename_prefix,
             String const output_filename,
@@ -350,7 +350,7 @@ protected:
 
             results.close();
         }
-        catch (std::string s)
+        catch (string s)
         {
             cout << s <<  endl;
             return 1;
@@ -480,7 +480,7 @@ protected:
 
         if (getParamAsBool_("write_gnuplot_output"))
         {
-						std::cout << "Writing gnuplot output" << std::endl;
+						cout << "Writing gnuplot output" << endl;
             // compute regression and write GNUplot files
             computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
                                                     intensities.begin(), 0.95, filename_prefix, out_f, "eps", true);

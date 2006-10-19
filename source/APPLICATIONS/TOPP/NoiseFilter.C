@@ -79,8 +79,8 @@ class TOPPNoiseFilter
     {
       cerr << endl
       << tool_name_ << " -- remove the noise in a LC/MS experiment" << endl
-      << endl
-      << "This application implements a smoothing filter. It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
+      << "It executes a Savitzky Golay or alternatively a Gaussian filter." << endl
+      << "Version: " << VersionInfo::getVersion() << endl
       << endl
       << "Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option)." << endl
       << "      The Gaussian filter works for uniform as well as for non-uniform data." << endl

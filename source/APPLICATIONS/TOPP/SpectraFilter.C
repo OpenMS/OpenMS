@@ -78,6 +78,7 @@ class TOPPSpectraFilter
 		{
 			cerr  << endl
 						<< tool_name_ << " -- applies different spectrum modification filters to the data." << endl
+						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
 						<< " " << tool_name_ << " [options]" << endl

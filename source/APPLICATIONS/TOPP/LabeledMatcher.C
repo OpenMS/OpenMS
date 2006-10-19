@@ -88,6 +88,7 @@ protected:
   {
     cerr << endl
     << tool_name_ << " -- find pairs of labeled features in LC/MS data" << endl
+    << "Version: " << VersionInfo::getVersion() << endl
     << endl
     << "Usage:" << endl
     << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
@@ -176,7 +177,7 @@ protected:
 
     typedef DFeature<2>::NthPositionLess< RT > RTless;
     typedef DFeature<2>::NthPositionLess<MZ> MZless;
-    std::sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
+    sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
 
     PairMatcher pm(features);
 

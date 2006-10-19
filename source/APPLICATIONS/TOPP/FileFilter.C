@@ -66,6 +66,7 @@ class TOPPFileFilter
 		{
 			cerr  << endl
 						<< tool_name_ << " -- extracts portions of the data from an mzData file." << endl
+						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
 						<< " " << tool_name_ << " [options]" << endl

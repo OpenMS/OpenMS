@@ -86,7 +86,8 @@ class TOPPFeaturePairSplitter
   void printToolUsage_()
   {
     cerr << endl
-				 << tool_name_ << " -- split a feature pairs file into two feature files and a qualities file.\n"
+				 << tool_name_ << " -- split a feature pairs file into two feature files and a qualities file." << endl
+				 << "Version: " << VersionInfo::getVersion() << endl << 
 			"\n"
 			"Usage:\n"
 			"  " << tool_name_ << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-dump <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
@@ -169,7 +170,7 @@ class TOPPFeaturePairSplitter
 
 		// store the data
 		DFeatureMap<2> first_feature_map, second_feature_map;
-		std::vector<double> qualities_vector;
+		vector<double> qualities_vector;
 		for ( DFeaturePairVector<2>::ConstIterator iter = feature_pairs.begin();
 					iter != feature_pairs.end();
 					++iter
@@ -197,9 +198,9 @@ class TOPPFeaturePairSplitter
 		}
 		if ( write_qual )
 		{
-			std::ofstream qualities_file(qual.c_str());
-			std::copy(qualities_vector.begin(),qualities_vector.end(),
-								std::ostream_iterator<double>(qualities_file,"\n")
+			ofstream qualities_file(qual.c_str());
+			copy(qualities_vector.begin(),qualities_vector.end(),
+								ostream_iterator<double>(qualities_file,"\n")
 							 );
 		}
 		if ( write_dump )
@@ -210,7 +211,7 @@ class TOPPFeaturePairSplitter
 					MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
 				};
 			
-			std::ofstream dump_file(dump.c_str());
+			ofstream dump_file(dump.c_str());
 
 			dump_file << "# rt1 mz1 it1  rt2 mz2 it2  qual\n";
 

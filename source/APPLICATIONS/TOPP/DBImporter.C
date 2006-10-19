@@ -62,6 +62,7 @@ class TOPPDBImporter
 		{
 			cerr << endl
 		       << tool_name_ << " -- Imports an mzData file to an OpenMS database." << endl
+		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
 					 << " " << tool_name_ << " [options]" << endl

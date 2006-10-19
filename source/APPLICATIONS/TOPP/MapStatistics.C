@@ -87,7 +87,8 @@ protected:
     {
         cerr << endl
         << tool_name_ << " -- Computes a five-number summary for " << endl
-        << " features / raw data intensities and qualities in a map." << endl
+        << "features / raw data intensities and qualities in a map." << endl
+        << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
         << " " << tool_name_ << " [options]" << endl

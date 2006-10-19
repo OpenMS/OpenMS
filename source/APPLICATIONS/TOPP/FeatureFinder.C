@@ -109,6 +109,7 @@ class TOPPFeatureFinder
 				 << tool_name_ << " -- detects two-dimensional features in LC/MS data" << endl
 				 << "This application implements an algorithm for peptide feature detection " << endl
 				 << "as described in Groepl et al. (2005) Proc. CompLife 05" << endl
+				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
 				 << " " << tool_name_ << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl

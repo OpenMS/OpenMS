@@ -30,38 +30,38 @@ namespace OpenMS
 
 	const char* VersionInfo::getVersion() throw()
 	{
-		return OPENMS_RELEASE_STRING " ("__DATE__", " __TIME__ ")";
+		return PACKAGE_VERSION " ("__DATE__", " __TIME__ ")";
 	}
 
-	int VersionInfo::getMinorRevision()
-	{
-		static std::string release(OPENMS_RELEASE_STRING);
-		static int minor = -1;
-		if (minor < 0)
-		{
-			size_t first_dot = release.find(".");
-			std::string minor_str(release, first_dot);
-			minor = atoi(minor_str.c_str());
-		}
-		return minor;
-	}
-	
 	int VersionInfo::getMajorRevision()
 	{
-		static std::string release(OPENMS_RELEASE_STRING);
+		static std::string release(PACKAGE_VERSION);
 		static int major = -1;
 		if (major < 0)
 		{
 			size_t first_dot = release.find(".");
-			size_t second_dot = release.find(".", first_dot + 1);
-			std::string major_str(release, first_dot + 1, second_dot - first_dot - 1);
+			std::string major_str(release, first_dot);
 			major = atoi(major_str.c_str());
 		}
 		return major;
 	}
 	
+	int VersionInfo::getMinorRevision()
+	{
+		static std::string release(PACKAGE_VERSION);
+		static int minor = -1;
+		if (minor < 0)
+		{
+			size_t first_dot = release.find(".");
+			size_t second_dot = release.find(".", first_dot + 1);
+			std::string minor_str(release, first_dot + 1, second_dot - first_dot - 1);
+			minor = atoi(minor_str.c_str());
+		}
+		return minor;
+	}
+	
 	const char* VersionInfo::RELEASE_DATE_AND_TIME = "@(#)OpenMS kernel compiled on: " __DATE__ ", " __TIME__;
 
-	const char* VersionInfo::RELEASE_WHAT_STRING = "@(#)OpenMS kernel version: V." OPENMS_RELEASE_STRING;					  
+	const char* VersionInfo::RELEASE_WHAT_STRING = "@(#)OpenMS kernel version: V." PACKAGE_VERSION;					  
 
 }

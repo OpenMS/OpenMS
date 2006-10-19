@@ -29,11 +29,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-//
-//  master data for all revisions is stored in this define!
-//
-#define OPENMS_RELEASE_STRING             "0.9.0"
-
 namespace OpenMS
 {
 
@@ -51,7 +46,7 @@ namespace OpenMS
 	{
 		public:
 
-		/** Return the version number, which is defined in OPENMS_RELEASE_STRING
+		/** Return the version number, which is defined in PACKAGE_VERSION
 		*/
 		static const char* getVersion() throw();
 

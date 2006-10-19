@@ -53,6 +53,7 @@
 
 // The path to the directory where OpenMS is installed
 #define OPENMS_PATH "OpenMS"
+#define PACKAGE_VERSION "0.00"
 
 // The string describing the binary format
 #define OPENMS_BINFMT "(unknown)"

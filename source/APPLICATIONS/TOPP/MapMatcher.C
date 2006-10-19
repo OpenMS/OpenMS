@@ -88,6 +88,7 @@ protected:
     {
         cerr << endl
         << tool_name_ << " -- estimates a transformation for pairs of features in different LC/MS maps" << endl
+        << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "Usage:" << endl
         << " " << tool_name_ << " [options]" << endl
@@ -165,8 +166,8 @@ protected:
             return ILLEGAL_PARAMETERS;
         }
 
-		std::cout << "Reading grid file " << gridfile << std::endl;
-		std::cout << "Reading pairs file " << pairsfile << std::endl;
+		cout << "Reading grid file " << gridfile << endl;
+		cout << "Reading pairs file " << pairsfile << endl;
 		
         //-------------------------------------------------------------
         // reading input

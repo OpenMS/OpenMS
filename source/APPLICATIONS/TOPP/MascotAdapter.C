@@ -195,6 +195,7 @@ class TOPPMascotAdapter
 		{
 			cerr << endl
 		       << tool_name_ << " -- annotates MS/MS spectra using Mascot" << endl
+		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
 					 << " " << tool_name_ << " [options]" << endl

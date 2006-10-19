@@ -64,6 +64,7 @@ class TOPPDTAExtractor
 		{
 			cerr  << endl
 						<< tool_name_ << " -- extracts scans of an mzData file to several files in DTA format." << endl
+						<< "Version: " << VersionInfo::getVersion() << endl
 						<< endl
 						<< "Usage:" << endl
 						<< " " << tool_name_ << " [options]" << endl

@@ -41,7 +41,7 @@ using namespace OpenMS;
 
 CHECK(static const char* getVersion() throw())
 	TEST_NOT_EQUAL(VersionInfo::getVersion(), 0)
-	TEST_EQUAL(std::string(VersionInfo::getVersion(), strlen(OPENMS_RELEASE_STRING)), OPENMS_RELEASE_STRING)
+	TEST_EQUAL(std::string(VersionInfo::getVersion(), strlen(PACKAGE_VERSION)), PACKAGE_VERSION)
 RESULT
 
 CHECK(static int getMajorRevision())

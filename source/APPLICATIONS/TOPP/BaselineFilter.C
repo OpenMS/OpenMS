@@ -72,6 +72,7 @@ protected:
     {
         cerr << endl
         << tool_name_ << " -- remove the baseline in a LC/MS experiment" << endl
+        << "Version: " << VersionInfo::getVersion() << endl
         << endl
         << "This application implements a morpholgical approach called top-hat filter." << endl
         << endl

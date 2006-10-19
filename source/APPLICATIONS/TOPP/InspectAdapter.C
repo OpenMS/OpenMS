@@ -41,6 +41,7 @@
 #include <qfileinfo.h>
 
 using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -117,78 +118,79 @@ class TOPPInspectAdapter
 	protected:
 		void printToolUsage_()
 		{
-			std::cerr	<< std::endl
-						<< tool_name_ << " -- annotates MS/MS spectra using Inspect" << std::endl
-						<< std::endl
-						<< "Usage:" << std::endl
-						<< " " << tool_name_ << " [options]" << std::endl
-						<< std::endl
-						<< "Options are:" << std::endl
-						<< "  -in <file>          Inspect input file" << std::endl
-						<< "  -out <file>         output file in analysisXML" << std::endl
-						<< "  -o <file>           direct output file from inspect" << std::endl
-						<< "  -Inspect_in         if this flag is set the InspectAdapter will create an Inspect Input file" << std::endl
-						<< "                      if only Inspect_in is set, a name for the trie database (see below) has to be given!" << std::endl
-						<< "  -Inspect_out        if this flag is set the InspectAdapter will read in an Inspect Input file and write an analysisXML file." << std::endl
-						<< "  -inspect_dir        the name of the InsPecT directory." << std::endl
-						<< "  -temp_data_dir      the name of the directory where the temporary data will be stored." << std::endl
-						<< "  -spectra <file>     the spectrum file OR directory to search (every file in that directory will be searched(non-recursively)" << std::endl
-						<< "                      supported spectrum file formats are .mzXML, .mzData, .ms2, dta, and .pkl" << std::endl
-						<< "                      multiple spectra in one .dta file are not supported" << std::endl
-						<< "  -trie_dbs <file1>,<file2>,...      names of a databases (.trie file) to search ()" << std::endl
-						<< "  -dbs <file>;tax1,<file2>;tax2,...  names of a other databases to search (currently FASTA and SwissProt are supported)" << std::endl
-						<< "                                     tax - the desired taxonomy, if not given for a database, all entries are taken." << std::endl
-						<< "  -make_trie_db       if set, the InspectAdapter will generate one trie database from all given databases." << std::endl
-						<< "                      if you do not use this switch you may only use one FASTA database XOR one trie database" << std::endl
-						<< "  -mods [<MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>];[<MASS2>,<RESIDUES2>,<TYPE2>,<NAME2>]" << std::endl
-						<< "                      modifications i.e. [80,STY,opt,phosphorylation] (default read from INI file)" << std::endl
-						<< "                      MASS and RESIDUES are mandatory, make sure the modifications are seperated by a semicolon!" << std::endl
-						<< "                      Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << std::endl
-						<< "  -blind              perform a blind search (allowing arbitrary modification masses), as this is slower than the normal search" << std::endl
-						<< "                      A normal search is performed in advance to gain a smaller database." << std::endl
-						<< "                      This search can only be run in full mode." << std::endl
-						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << std::endl;
+			cerr	<< endl
+						<< tool_name_ << " -- annotates MS/MS spectra using Inspect" << endl
+						<< "Version: " << VersionInfo::getVersion() << endl
+						<< endl
+						<< "Usage:" << endl
+						<< " " << tool_name_ << " [options]" << endl
+						<< endl
+						<< "Options are:" << endl
+						<< "  -in <file>          Inspect input file" << endl
+						<< "  -out <file>         output file in analysisXML" << endl
+						<< "  -o <file>           direct output file from inspect" << endl
+						<< "  -Inspect_in         if this flag is set the InspectAdapter will create an Inspect Input file" << endl
+						<< "                      if only Inspect_in is set, a name for the trie database (see below) has to be given!" << endl
+						<< "  -Inspect_out        if this flag is set the InspectAdapter will read in an Inspect Input file and write an analysisXML file." << endl
+						<< "  -inspect_dir        the name of the InsPecT directory." << endl
+						<< "  -temp_data_dir      the name of the directory where the temporary data will be stored." << endl
+						<< "  -spectra <file>     the spectrum file OR directory to search (every file in that directory will be searched(non-recursively)" << endl
+						<< "                      supported spectrum file formats are .mzXML, .mzData, .ms2, dta, and .pkl" << endl
+						<< "                      multiple spectra in one .dta file are not supported" << endl
+						<< "  -trie_dbs <file1>,<file2>,...      names of a databases (.trie file) to search ()" << endl
+						<< "  -dbs <file>;tax1,<file2>;tax2,...  names of a other databases to search (currently FASTA and SwissProt are supported)" << endl
+						<< "                                     tax - the desired taxonomy, if not given for a database, all entries are taken." << endl
+						<< "  -make_trie_db       if set, the InspectAdapter will generate one trie database from all given databases." << endl
+						<< "                      if you do not use this switch you may only use one FASTA database XOR one trie database" << endl
+						<< "  -mods [<MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>];[<MASS2>,<RESIDUES2>,<TYPE2>,<NAME2>]" << endl
+						<< "                      modifications i.e. [80,STY,opt,phosphorylation] (default read from INI file)" << endl
+						<< "                      MASS and RESIDUES are mandatory, make sure the modifications are seperated by a semicolon!" << endl
+						<< "                      Valid values for \"type\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << endl
+						<< "  -blind              perform a blind search (allowing arbitrary modification masses), as this is slower than the normal search" << endl
+						<< "                      A normal search is performed in advance to gain a smaller database." << endl
+						<< "                      This search can only be run in full mode." << endl
+						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << endl;
 		}
 
 
 		void printToolHelpOpt_()
 		{
-			std::cerr	<< std::endl
-						<< "  -instr              the instrument that was used to measure the spectra (default read from INI file)" << std::endl
-						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << std::endl
-						<< "  -PM_tol             the precursor mass tolerance (default read from INI file)" << std::endl
-						<< "  -ion_tol            the peak mass tolerance (default read from INI file)" << std::endl
-						<< "  -protease           the name of a protease. \"Trypsin\", \"None\", and \"Chymotrypsin\" are the available values." << std::endl
-						<< "                      The first four	characters of the name should be unique." << std::endl
-						<< "  -max_mods_pp        number of PTMs permitted in a single peptide. (default: read from INI file)" << std::endl
+			cerr	<< endl
+						<< "  -instr              the instrument that was used to measure the spectra (default read from INI file)" << endl
+						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << endl
+						<< "  -PM_tol             the precursor mass tolerance (default read from INI file)" << endl
+						<< "  -ion_tol            the peak mass tolerance (default read from INI file)" << endl
+						<< "  -protease           the name of a protease. \"Trypsin\", \"None\", and \"Chymotrypsin\" are the available values." << endl
+						<< "                      The first four	characters of the name should be unique." << endl
+						<< "  -max_mods_pp        number of PTMs permitted in a single peptide. (default: read from INI file)" << endl
 						
-						<< "  -p_value            annotations with inferior p-value are ignored. Default is 0.05" << std::endl
-						<< "  -score_value        annotations with inferior score-value are ignored. Default is 1." << std::endl
-						<< "                      (this is a workaround because sometimes inspect produces only nan as p-value;" << std::endl
-						<< "                      a hit with score of >=1 is supposed to be good)" << std::endl
-						<< "  -p_value_blind      used when generating the minimized database for blind search" << std::endl
-						<< "  -score_value_blind  annotations with inferior score-value are ignored. Default is 1 (see score_value)." << std::endl
-						<< "  -min_spp            used when generating the minimized database for blind search " << std::endl
-						<< "                      the minimum number of spectra a protein has to annotate in order to add it to the filtered database " << std::endl
-						<< "                      default is #spectra / #proteins * 2" << std::endl
-						<< "  -maxptmsize         for blind search, specifies the maximum modification size (in Da) to consider (default read from INI file)" << std::endl
-						<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << std::endl
-						<< "                      default behavior (where tags can contain any PTM), but requires the creation of the jump frequency file" << std::endl
-						<< "  -multicharge        attempt to guess the precursor charge and mass, and consider multiple charge states if feasible" << std::endl
-						<< "  -twopass            use two-pass search. The first pass uses fewer tags, and produces a list of proteins" << std::endl
-						<< "                      which are re-searched in the second pass" << std::endl
-						<< "  -TagCountA          number of tags to generate for the first pass of a two-pass search" << std::endl
-						<< "  -TagCountB          number of tags to generate for the second pass of a two-pass search" << std::endl
-						<< "                      OR the number of tags to use in a one-pass search" << std::endl
-						<< "  -cmn_conts          add the proteins from CommonContaminents.fasta (in inspect path) to the search database" << std::endl
-						<< "  -no_tmp_dbs         no temporary databases are used" << std::endl
-						<< "  -new_db             name of the trie database (given databases are converted and merged to one trie database)." << std::endl
-						<< "                      This has to be set if no_tmp_dbs is set! If the name does not end with \".trie\"" << std::endl
-						<< "                      it is extended accordingly." << std::endl
-						<< "                      An index file with the same name but extension \".index\" will be created." << std::endl
-						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << std::endl
-						<< "                      This has to be set if no_tmp_dbs is set!" << std::endl;
-						//<< "  -contact		 name of the contact person" << std::endl
+						<< "  -p_value            annotations with inferior p-value are ignored. Default is 0.05" << endl
+						<< "  -score_value        annotations with inferior score-value are ignored. Default is 1." << endl
+						<< "                      (this is a workaround because sometimes inspect produces only nan as p-value;" << endl
+						<< "                      a hit with score of >=1 is supposed to be good)" << endl
+						<< "  -p_value_blind      used when generating the minimized database for blind search" << endl
+						<< "  -score_value_blind  annotations with inferior score-value are ignored. Default is 1 (see score_value)." << endl
+						<< "  -min_spp            used when generating the minimized database for blind search " << endl
+						<< "                      the minimum number of spectra a protein has to annotate in order to add it to the filtered database " << endl
+						<< "                      default is #spectra / #proteins * 2" << endl
+						<< "  -maxptmsize         for blind search, specifies the maximum modification size (in Da) to consider (default read from INI file)" << endl
+						<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << endl
+						<< "                      default behavior (where tags can contain any PTM), but requires the creation of the jump frequency file" << endl
+						<< "  -multicharge        attempt to guess the precursor charge and mass, and consider multiple charge states if feasible" << endl
+						<< "  -twopass            use two-pass search. The first pass uses fewer tags, and produces a list of proteins" << endl
+						<< "                      which are re-searched in the second pass" << endl
+						<< "  -TagCountA          number of tags to generate for the first pass of a two-pass search" << endl
+						<< "  -TagCountB          number of tags to generate for the second pass of a two-pass search" << endl
+						<< "                      OR the number of tags to use in a one-pass search" << endl
+						<< "  -cmn_conts          add the proteins from CommonContaminents.fasta (in inspect path) to the search database" << endl
+						<< "  -no_tmp_dbs         no temporary databases are used" << endl
+						<< "  -new_db             name of the trie database (given databases are converted and merged to one trie database)." << endl
+						<< "                      This has to be set if no_tmp_dbs is set! If the name does not end with \".trie\"" << endl
+						<< "                      it is extended accordingly." << endl
+						<< "                      An index file with the same name but extension \".index\" will be created." << endl
+						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << endl
+						<< "                      This has to be set if no_tmp_dbs is set!" << endl;
+						//<< "  -contact		 name of the contact person" << endl
 		}
 
 
@@ -232,7 +234,7 @@ class TOPPInspectAdapter
 			//options_["-contact"] = "contact_person";
 		}
 
-		long fsize(const std::string& filename)
+		long fsize(const string& filename)
 		{
 			FILE* file = fopen(filename.c_str(), "r");
 			long size = 0;
@@ -246,12 +248,12 @@ class TOPPInspectAdapter
 			return -1;
 		}
 		
-		inline bool emptyFile(const std::string& filename)
+		inline bool emptyFile(const string& filename)
 		{
 			return ( fsize(filename) == 0 );
 		}
 
-		std::string fileContent(const std::string& filename)
+		string fileContent(const string& filename)
 		{
 			long size = fsize(filename);
 			if ( size != -1 )
@@ -261,11 +263,11 @@ class TOPPInspectAdapter
 				buffer[size] = 0;
 				fread (buffer, size, 1, file);
 				fclose(file);
-				std::string sbuffer = buffer;
+				string sbuffer = buffer;
 				delete(buffer);
 				return sbuffer;
 			}
-			else return std::string();
+			else return string();
 		}
 		
 		// deleting all temporary files
@@ -290,7 +292,7 @@ class TOPPInspectAdapter
 			InspectInfile inspect_infile;
 
 			// (1.0) general variables
-			std::vector< String > substrings;
+			vector< String > substrings;
 			String buffer, db_filename, idx_filename, snd_db_filename, snd_index_filename, common_contaminants_filename, inspect_logfile, logfile;
 			ContactPerson contact_person;
 
@@ -302,12 +304,12 @@ class TOPPInspectAdapter
 			bool Inspect_in = false;
 			// (1.1.1.0) mandatory parameters
 			String snd_db, snd_db_dir; // at least one of the parameters db or seq_file has to be set
-			std::vector< String >dbs, seq_files, tax; // if several dbs are given, they are merged into one, that is then processed
+			vector< String >dbs, seq_files, tax; // if several dbs are given, they are merged into one, that is then processed
 
 			// (1.1.1.1) optional parameters
 			bool make_trie_db = false;
 			
-			std::vector < std::vector< String > > mod; // some from ini file
+			vector < vector< String > > mod; // some from ini file
 
 			// (1.1.2) Inspect_out - executing the program only and writing xml analysis file and corresponding parameters
 			double p_value_threshold = 1.0;
@@ -354,7 +356,7 @@ class TOPPInspectAdapter
 			if ( ((Inspect_in && Inspect_out) || (Inspect_in && blind)) && inspect_dir.empty() )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
-				std::cout << "No inspect directory specified. Aborting!" << std::endl;
+				cout << "No inspect directory specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -366,7 +368,7 @@ class TOPPInspectAdapter
 			if ( ((Inspect_in && Inspect_out) || (Inspect_in && blind)) && temp_data_dir.empty() )
 			{
 				writeLog_("No directory for temporary files specified. Aborting!");
-				std::cout << "No directory for temporary files specified. Aborting!" << std::endl;
+				cout << "No directory for temporary files specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -379,7 +381,7 @@ class TOPPInspectAdapter
 				if ( buffer.empty() )
 				{
 					writeLog_("No InsPecT output file specified. Aborting!");
-					std::cout << "No InsPecT output file specified. Aborting!" << std::endl;
+					cout << "No InsPecT output file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -398,7 +400,7 @@ class TOPPInspectAdapter
 				if ( buffer.empty() )
 				{
 					writeLog_("No input file specified. Aborting!");
-					std::cout << "No input file specified. Aborting!" << std::endl;
+					cout << "No input file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -421,7 +423,7 @@ class TOPPInspectAdapter
 				if ( inspect_infile.getSpectra().empty() )
 				{
 					writeLog_("No spectrum file specified. Aborting!");
-					std::cout << "No spectrum file specified. Aborting!" << std::endl;
+					cout << "No spectrum file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -442,7 +444,7 @@ class TOPPInspectAdapter
 					if ( seq_files.empty() ) seq_files.push_back(buffer);
 					
 					// get the corresponding taxonomies
-					for ( std::vector< String >::iterator i = seq_files.begin(); i != seq_files.end(); ++i)
+					for ( vector< String >::iterator i = seq_files.begin(); i != seq_files.end(); ++i)
 					{
 						substrings.clear();
 						i->split(';', substrings);
@@ -462,7 +464,7 @@ class TOPPInspectAdapter
 				if ( dbs.empty() && seq_files.empty() )
 				{
 					writeLog_("No database or sequence file specified. Aborting!");
-					std::cout << "No database or sequence file specified. Aborting!" << std::endl;
+					cout << "No database or sequence file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -473,7 +475,7 @@ class TOPPInspectAdapter
 				if ( !make_trie_db && ((!dbs.empty()) + (!seq_files.empty()) + (!no_common_contaminants) >1) )
 				{
 					writeLog_("Too many databases (make_trie_db not set). Aborting!");
-					std::cout << "Too many databases (make_trie_db not set). Aborting!" << std::endl;
+					cout << "Too many databases (make_trie_db not set). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -489,7 +491,7 @@ class TOPPInspectAdapter
 						if ( db_filename.empty() )
 						{
 							writeLog_("No_tmp_dbs flag set but no name for database given. Aborting!");
-							std::cout << "No_tmp_dbs flag set but no name for database given. Aborting!" << std::endl;
+							cout << "No_tmp_dbs flag set but no name for database given. Aborting!" << endl;
 							return ILLEGAL_PARAMETERS;
 						}
 					}
@@ -501,7 +503,7 @@ class TOPPInspectAdapter
 							if ( !Inspect_out && !blind )
 							{
 								writeLog_("No name for new trie database given. Aborting!");
-								std::cout << "No name for new trie database given. Aborting!" << std::endl;
+								cout << "No name for new trie database given. Aborting!" << endl;
 								return ILLEGAL_PARAMETERS;
 							}
 							else
@@ -535,7 +537,7 @@ class TOPPInspectAdapter
 					if ( Inspect_in && !Inspect_out )
 					{
 						writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!");
-						std::cout << "a blind search with prior run to minimize the database can only be run in full mode. Aborting!" << std::endl;
+						cout << "a blind search with prior run to minimize the database can only be run in full mode. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -545,7 +547,7 @@ class TOPPInspectAdapter
 				if ( blind && blind_only )
 				{
 					writeLog_("Both blind flags set. Aborting!");
-					std::cout << "Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set" << std::endl;
+					cout << "Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				
@@ -554,7 +556,7 @@ class TOPPInspectAdapter
 				if ( no_tmp_dbs && blind && snd_db.empty() )
 				{
 					writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
-					std::cout << "No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!" << std::endl;
+					cout << "No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( blind && snd_db.empty() )
@@ -582,9 +584,9 @@ class TOPPInspectAdapter
 				
 				if ( substrings.empty() && !buffer.empty() ) substrings.push_back(buffer);
 				// for each modification get the mass, residues, type (optional) and name (optional)
-				for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
+				for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); ++i)
 				{
-					mod.push_back(std::vector< String >());
+					mod.push_back(vector< String >());
 					if ( i->hasPrefix("[") ) i->erase(0, 1);
 					if ( i->hasSuffix("]") ) i->erase(i->length()-1, 1);
 					i->split(',', mod.back());
@@ -592,7 +594,7 @@ class TOPPInspectAdapter
 				if ( !blind_only && mod.empty() )
 				{
 					writeLog_("No modifications specified. Aborting!");
-					std::cout << "No modifications specified. Aborting!" << std::endl;
+					cout << "No modifications specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -612,7 +614,7 @@ class TOPPInspectAdapter
 					if ( (inspect_infile.getMods() < 0) )
 					{
 						writeLog_("Illegal number of modifications (<0) given. Aborting!");
-						std::cout << "Illegal number of modifications (<0) given. Aborting!" << std::endl;
+						cout << "Illegal number of modifications (<0) given. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -625,7 +627,7 @@ class TOPPInspectAdapter
 					if ( (inspect_infile.getPMTolerance() < 0) )
 					{
 						writeLog_("Illegal parent mass tolerance (<0) given. Aborting!");
-						std::cout << "Illegal parent mass tolerance (<0) given. Aborting!" << std::endl;
+						cout << "Illegal parent mass tolerance (<0) given. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -638,7 +640,7 @@ class TOPPInspectAdapter
 					if ( (inspect_infile.getIonTolerance() < 0) )
 					{
 						writeLog_("Illegal ion mass tolerance (<0) given. Aborting!");
-						std::cout << "Illegal ion mass tolerance (<0) given. Aborting!" << std::endl;
+						cout << "Illegal ion mass tolerance (<0) given. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -653,7 +655,7 @@ class TOPPInspectAdapter
 					if ( (inspect_infile.getTagCountA() < 0) )
 					{
 						writeLog_("Illegal number of tags (TagCountA <0) given. Aborting!");
-						std::cout << "Illegal number of tags (TagCountA <0) given. Aborting!" << std::endl;
+						cout << "Illegal number of tags (TagCountA <0) given. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -666,7 +668,7 @@ class TOPPInspectAdapter
 					if ( (inspect_infile.getTagCountB() < 0) )
 					{
 						writeLog_("Illegal number of tags (TagCountB <0) given. Aborting!");
-						std::cout << "Illegal number of tags (TagCountB <0) given. Aborting!" << std::endl;
+						cout << "Illegal number of tags (TagCountB <0) given. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -681,7 +683,7 @@ class TOPPInspectAdapter
 					if ( inspect_infile.getMaxPTMsize() < 0 )
 					{
 						writeLog_("Illegal maximum modification size (<0). Aborting!");
-						std::cout << "Illegal maximum modification size (<0). Aborting!" << std::endl;
+						cout << "Illegal maximum modification size (<0). Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -692,7 +694,7 @@ class TOPPInspectAdapter
 				if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
 				{
 					writeLog_("Illegal p-value for blind search. Aborting!");
-					std::cout << "Illegal p-value for blind search. Aborting!" << std::endl;
+					cout << "Illegal p-value for blind search. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -716,7 +718,7 @@ class TOPPInspectAdapter
 					if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 					{
 						writeLog_("Illegal p-value. Aborting!");
-						std::cout << "Illegal p-value. Aborting!" << std::endl;
+						cout << "Illegal p-value. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -732,7 +734,7 @@ class TOPPInspectAdapter
 				if ( output_filename.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
-					std::cout << "No output file specified. Aborting!" << std::endl;
+					cout << "No output file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -780,7 +782,7 @@ class TOPPInspectAdapter
 			{
 				String line;
 				inspect_infile.setDb("");
-				std::ifstream get_db_names(input_filename.c_str());
+				ifstream get_db_names(input_filename.c_str());
 				String db = "db,";
 				String seq = "sequence_file,";
 				while ( getline(get_db_names, line) && inspect_infile.getDb().empty() && inspect_infile.getSequenceFile().empty() )
@@ -835,8 +837,8 @@ class TOPPInspectAdapter
 			}
 			
 			// (3.1.3) given databases and sequence files
-			std::vector< String > not_accessable;
-			for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i )
+			vector< String > not_accessable;
+			for ( vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i )
 			{
 				file_info.setFile(i->c_str());
 				if ( !file_info.exists() ) not_accessable.push_back(*i);
@@ -844,7 +846,7 @@ class TOPPInspectAdapter
 				else if ( emptyFile(*i) ) not_accessable.push_back(*i);
 			}
 			
-			for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i )
+			for ( vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i )
 			{
 				file_info.setFile(i->c_str());
 				if ( !file_info.exists() ) not_accessable.push_back(*i);
@@ -854,7 +856,7 @@ class TOPPInspectAdapter
 			if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
 			{
 				writeLog_("All of the given databases and sequence files are either not existent, not readable or empty. Aborting!");
-				std::cout << "All of the given databases and sequence files are either not existent, not readable or empty. Aborting!" << std::endl;
+				cout << "All of the given databases and sequence files are either not existent, not readable or empty. Aborting!" << endl;
 				if ( dbs.empty() ) throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, seq_files.front());
 				else throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, dbs.front());
 			}
@@ -865,7 +867,7 @@ class TOPPInspectAdapter
 				buffer.append(String( dbs.size()+seq_files.size()-not_accessable.size() ));
 				buffer.append(" databases/sequences files only!");
 				writeLog_(buffer.c_str());
-				std::cout << buffer << std::endl;
+				cout << buffer << endl;
 			}
 			
 			if ( Inspect_in )
@@ -938,7 +940,7 @@ class TOPPInspectAdapter
 			String database_filename = file_info.fileName().ascii();
 			file_info.setFile(idx_filename.c_str());
 			String index_filename = file_info.fileName().ascii();
-			std::vector< unsigned int > wanted_records;
+			vector< unsigned int > wanted_records;
 			
 			// (3.2.1) creating the input file and converting and merging the databases
 			if ( Inspect_in )
@@ -952,15 +954,15 @@ class TOPPInspectAdapter
 				if ( make_trie_db )
 				{
 					// merging the trie databases (all but the first databases are appended)
-					for ( std::vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
+					for ( vector< String >::const_iterator i = dbs.begin(); i != dbs.end(); ++i)
 					{
 						file_info.setFile(i->c_str());
 						inspect_infile.compressTrieDB(file_info.fileName().ascii(), "", file_info.dirPath().ascii(), wanted_records, database_filename, index_filename, database_path, i != dbs.begin());
 					}
 					
 					// converting and merging the other databases (all but the first databases are appended)
-					std::vector< String >::const_iterator tax_i = tax.begin();
-					for ( std::vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
+					vector< String >::const_iterator tax_i = tax.begin();
+					for ( vector< String >::const_iterator i = seq_files.begin(); i != seq_files.end(); ++i, ++tax_i)
 					{
 						file_info.setFile(i->c_str());
 						inspect_infile.generateTrieDB(file_info.fileName().ascii(), file_info.dirPath().ascii(), database_path, wanted_records, database_filename, index_filename, ( (i != seq_files.begin()) || (!dbs.empty()) ), *tax_i);
@@ -1004,7 +1006,7 @@ class TOPPInspectAdapter
 				else
 				{
 					writeLog_("inspect working directory not given. Aborting!");
-					std::cout << "inspect working directory not given. Aborting!" << std::endl;
+					cout << "inspect working directory not given. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				call.append(" -i ");
@@ -1021,7 +1023,7 @@ class TOPPInspectAdapter
 				
 				if (status != 0)
 				{
-					std::cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << std::endl;
+					cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << endl;
 					writeLog_("Inspect problem. Aborting!");
 					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
@@ -1046,10 +1048,10 @@ class TOPPInspectAdapter
 				if ( emptyFile(snd_db_filename) )
 				{
 					AnalysisXMLFile analysisXML_file;
-					analysisXML_file.store(output_filename, std::vector< ProteinIdentification >(), std::vector< Identification >(), std::vector< float >(), std::vector< float >(), contact_person);
+					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< float >(), vector< float >(), contact_person);
 					Inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
-					std::cout << "No proteins matching criteria for generating minimized database for blind search!" << std::endl;
+					cout << "No proteins matching criteria for generating minimized database for blind search!" << endl;
 				}
 				
 				// (3.2.3) setting the database name to the new database
@@ -1075,7 +1077,7 @@ class TOPPInspectAdapter
 				else
 				{
 					writeLog_("inspect working directory not given. Aborting!");
-					std::cout << "inspect working directory not given. Aborting!" << std::endl;
+					cout << "inspect working directory not given. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				call.append(" -i ");
@@ -1091,7 +1093,7 @@ class TOPPInspectAdapter
 				writeLog_(fileContent(inspect_logfile));
 				if (status != 0)
 				{
-					std::cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << std::endl;
+					cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << endl;
 					writeLog_("Inspect problem. Aborting!");
 					deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
@@ -1104,9 +1106,9 @@ class TOPPInspectAdapter
 				
 				if ( !emptyFile(inspect_output_filename) )
 				{
-					std::vector< Identification >	identifications;
+					vector< Identification >	identifications;
 					ProteinIdentification protein_identification;
-					std::vector< float >	precursor_retention_times, precursor_mz_values;
+					vector< float >	precursor_retention_times, precursor_mz_values;
 					
 					InspectOutfile inspect_outfile;
 					
@@ -1114,16 +1116,16 @@ class TOPPInspectAdapter
 					
 					inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold, score_value_threshold, file_info.fileName().ascii(), file_info.dirPath().ascii(), inspect_infile.getSequenceFile());
 					
-					std::vector<ProteinIdentification> protein_identifications;
+					vector<ProteinIdentification> protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
 					analysisXML_file.store(output_filename, protein_identifications, identifications, precursor_retention_times, precursor_mz_values, contact_person);
 				}
 				else
 				{
-					analysisXML_file.store(output_filename, std::vector< ProteinIdentification >(), std::vector< Identification >(), std::vector< float >(), std::vector< float >(), contact_person);
+					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< float >(), vector< float >(), contact_person);
 					writeLog_("No proteins identified!");
-					std::cout << "No proteins identified!" << std::endl;
+					cout << "No proteins identified!" << endl;
 				}
 			}
 			

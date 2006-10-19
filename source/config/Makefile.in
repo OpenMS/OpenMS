@@ -36,7 +36,7 @@
 include config.mak
 
 # 	library version number
-LIB_VERSION	= 0.90
+LIB_VERSION	= @PACKAGE_VERSION@
 
 #	default library name
 LIBNAME = libOpenMS
@@ -177,10 +177,12 @@ bench:	dummy
 
 # creates the documentation
 doc:
+	@test -f ../doc/Doxyfile || $(CP) config/Doxyfile.in ../doc/Doxyfile
 	@cd ../doc/ && doxygen ../doc/Doxyfile
 
 # creates the internal documentation
 idoc:
+	@test -f ../doc/Doxyfile || $(CP) config/Doxyfile.in ../doc/Doxyfile
 	@cd ../doc/ && doxygen ../doc/Doxyfile_internal
 
 # creates the coding conventions

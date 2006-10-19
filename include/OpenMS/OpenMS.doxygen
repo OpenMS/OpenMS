@@ -26,7 +26,6 @@
 
 /**
 	@mainpage OpenMS
-	@version  0.90
 	@author   Oliver Kohlbacher
 	@author   Knut Reinert
 	
@@ -47,13 +46,11 @@
 /*
 	TODO (Marc):
 	- Deisotoping / Decharging
-	- 2DView: schneller mit geometric hashing? scrollbars immer anzeigen? Preferences für Layers
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
-	- Klassen für Tryptischen Verdau und Theoretische Spektren
-	- Rohdaten-Erkenner schreiben
+	- Theoretische Spektren
+	- Rohdaten-Erkenner
 	- Tryptischer Verdau
-	- Rohdatenerkenner
 	
 	- Clustering
 	- SpecAnnotate
@@ -65,7 +62,9 @@
 		- optional XML attributes
 		- Einschränkungen: Metadata, RT, m/z,
 		- keine Zusatz-Peaktdaten (DPickedPeak) schreiben
-	- Viewer ohne quadtree
+	- TOPPView:
+		- ohne quadtree
+		- Preferences für Layers
 	- DB
 	- Debug stream
 	

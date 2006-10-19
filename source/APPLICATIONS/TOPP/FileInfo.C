@@ -73,6 +73,7 @@ class TOPPFileInfo
 		{
 			cerr << endl
 		       << tool_name_ << " -- shows basic information about the file e.g. data ranges and file type." << endl
+		       << "Version: " << VersionInfo::getVersion() << endl
 		       << endl
 		       << "Usage:" << endl
 					 << "  " << tool_name_ << " [options]" << endl

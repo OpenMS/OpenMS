@@ -87,6 +87,7 @@ class TOPPUnlabeledMatcher
     {
       cerr << endl
       << tool_name_ << " -- match common two-dimensional features of two LC/MS data sets\n"
+      << "Version: " << VersionInfo::getVersion() << endl <<
       "\n"
       "Usage:\n"
       "  " << tool_name_ << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
@@ -139,13 +140,13 @@ class TOPPUnlabeledMatcher
 
       String param_path = tool_name_ + ":default:";
       
-      std::cout << "param_path " << param_path << std::endl;
+      cout << "param_path " << param_path << endl;
       
-      std::cout << "TOPPBASE " << param_ << std::endl;
+      cout << "TOPPBASE " << param_ << endl;
 
       Param param = getParamCopy_(param_path,true);
       
-      std::cout << "INI " << param << std::endl;
+      cout << "INI " << param << endl;
 
       // determine name of grid file
       String gridfilename = getParamAsString_("grid");
