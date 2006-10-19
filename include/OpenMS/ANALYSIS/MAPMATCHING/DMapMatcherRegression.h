@@ -39,6 +39,7 @@
 #include<gsl/gsl_fit.h>
 
 #define DEBUG_MAPMATCHING
+#undef DEBUG_MAPMATCHING
 
 namespace OpenMS
 {
@@ -95,12 +96,18 @@ namespace OpenMS
       /// estimates the transformation for each grid cell
       void estimateTransform()
       {
+
         for ( typename Grid::iterator grid_iter = this->grid_.begin();
               grid_iter != this->grid_.end();
               ++grid_iter
             )
         {
           FeaturePairVector selection; // stores the pairs contained in the current cell
+
+#ifdef DEBUG_MAPMATCHING
+
+          std::cout << "Estimate the transformation with :" << std::endl;
+#endif
 
           for (typename FeaturePairVector::iterator pair_iter = this->feature_pairs_.begin();
                pair_iter != this->feature_pairs_.end();
@@ -112,6 +119,10 @@ namespace OpenMS
                 && pair_iter->getQuality() > this->min_quality_ )
             {
               selection.push_back(*pair_iter);
+#ifdef DEBUG_MAPMATCHING
+
+              std::cout << "Pair " << pair_iter->first.getPosition() << " " << pair_iter->second.getPosition() << std::endl;
+#endif
             }
 
           } // end for (pair_iter)
@@ -135,12 +146,6 @@ namespace OpenMS
             {
               x[i] = selection[i].getFirst().getPosition()[d];
               y[i] = selection[i].getSecond().getPosition()[d];
-#ifdef DEBUG_MAPMATCHING
-
-              /*              std::cout << "x[" << i << "] = " << x[i] << std::endl;
-                            std::cout << "y[" << i << "] = " << y[i] << std::endl;*/
-#endif
-
             }
 
             // estimate the transform for this dimension
