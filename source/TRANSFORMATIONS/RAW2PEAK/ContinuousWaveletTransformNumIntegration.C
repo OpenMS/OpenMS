@@ -79,7 +79,7 @@ namespace OpenMS
     std::cout << "WAVELET" << std::endl;
     for (int i=0; i<number_of_points; i++)
     {
-      std::cout <<  i*spacing_ << " " << wavelet_[i] << std::endl;
+      std::cout << i << ' '  <<   i*spacing_ << " " << wavelet_[i] << std::endl;
     }
 #endif
 
