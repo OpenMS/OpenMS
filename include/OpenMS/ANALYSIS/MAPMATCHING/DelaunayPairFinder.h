@@ -384,7 +384,6 @@ namespace OpenMS
             V_computeConsenusMap(*((*it)->point().feature));
           }
 
-          UnsignedInt number_of_neighbours = resulting_range.size();
           Point nearest = resulting_range[0]->point();
           Point second_nearest = resulting_range[1]->point();
           if (((fabs(transformed_pos[RT] - nearest.hx())  < max_pair_distance_[RT])
@@ -395,10 +394,11 @@ namespace OpenMS
             all_feature_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.feature,&(second_map[fi1])));
 
             SignedInt feature_key = resulting_range[0]->point().key;
-            // if the feature a already part of a FeaturePair (a,b) do:
-            //  if (the feature c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
-            //    push (a,c)
-            //  else the value in the lookup_table becomes -2 because the mapping is not unique
+            // if the feature a is already part of a FeaturePair (a,b) do:
+            //    if (the feature c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
+            //    --> push (a,c)
+            //    else 
+            //    --> the value in the lookup_table becomes -2 because the mapping is not unique
             if ( lookup_table[feature_key] > -1)
             {
               SignedInt pair_key = lookup_table[feature_key];

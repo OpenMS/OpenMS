@@ -40,7 +40,6 @@
 
 namespace OpenMS
 {
-
   /**
      @brief 
      
@@ -77,7 +76,7 @@ namespace OpenMS
       /// Constructor
       BaseAlignment()
           : param_(),
-          reference_map_index_(-1)
+          reference_map_index_(0)
       {}
 
       /// Copy constructor
@@ -114,7 +113,7 @@ namespace OpenMS
 
         DataValue data_value = param_.getValue("matchingAlgorithm");
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
-        
+
         data_value = param_.getValue("consensusAlgorithm");
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create(data_value);
       }
@@ -128,7 +127,6 @@ namespace OpenMS
       void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector)
       {
         element_map_vector_ = element_map_vector;
-
       }
       /// Mutable access to the vector of maps
       std::vector< ElementContainerType* >& getElementMapVector()
@@ -200,7 +198,7 @@ namespace OpenMS
         return file_names_;
       }
 
-       /// Mutable access to the final consensus map
+      /// Mutable access to the final consensus map
       void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus)
       {
         final_consensus_map_ = final_consensus;
@@ -215,7 +213,7 @@ namespace OpenMS
       {
         return final_consensus_map_;
       }
-      
+
       /// Start the alignment
       virtual void run() throw (Exception::InvalidValue) = 0;
 
@@ -226,6 +224,12 @@ namespace OpenMS
       /** @name Data members
        */
       //@{
+      /// Parameter
+      Param param_;
+      
+      /// Final consensus map
+      std::vector < ConsensusElementType > final_consensus_map_;
+      
       /// File names of the maps to be aligned
       std::vector< String > file_names_;
 
@@ -235,15 +239,9 @@ namespace OpenMS
       /// Index of the reference map
       UnsignedInt reference_map_index_;
 
-      /// Parameter
-      Param param_;
-
-      /// Final consensus map
-      std::vector < ConsensusElementType > final_consensus_map_;
-
       /// Pairwise map matcher
       BasePairwiseMapMatcher< ConsensusMapType >* pairwise_matcher_;
-      
+
       /// Pairfinder used to find corresponding elements (consensus)
       BasePairFinder< ConsensusMapType >* pair_finder_;
       //@}
@@ -255,11 +253,11 @@ namespace OpenMS
         UnsignedInt ref_index = 0;
         UnsignedInt max_number = element_map_vector_[ref_index]->size();
 
-        for (UnsignedInt i = 1; i < element_map_vector_.size(); ++i)
+        for (UnsignedInt i = 1; i < n; ++i)
         {
-          if (element_map_vector_[i]->size() > max_number)
+          if (n > max_number)
           {
-            max_number = element_map_vector_[i]->size();
+            max_number = n;
             ref_index = i;
           }
         }
@@ -271,7 +269,8 @@ namespace OpenMS
       void buildConsensusMapTypeInsertInGroup_(UnsignedInt map_index, std::vector< ConsensusElementType >& cons_map)
       {
         const ElementContainerType& map = *(element_map_vector_[map_index]);
-        for (int i=0; i < map.size(); ++i)
+        UnsignedInt n = map.size();
+        for (UnsignedInt i=0; i < n; ++i)
         {
           ConsensusElementType c(map_index,map[i]);
           cons_map.push_back(c);
@@ -284,7 +283,8 @@ namespace OpenMS
       void buildConsensusMapType_(UnsignedInt map_index, std::vector< ConsensusElementType >& cons_map)
       {
         const ElementContainerType& map = *(element_map_vector_[map_index]);
-        for (int i=0; i < map.size(); ++i)
+        UnsignedInt n = map.size();
+        for (UnsignedInt i=0; i < n; ++i)
         {
           ConsensusElementType c(map[i].getPosition(),map[i].getIntensity());
           cons_map.push_back(c);
