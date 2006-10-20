@@ -69,7 +69,8 @@ EXECUTABLES=\
 	FeaturePairSplitter\
 	DTAExtractor\
 	DBExporter\
-	DBImporter
+	DBImporter\
+	MapAlignment
 
 #	RawDataResampler\
 
@@ -209,4 +210,9 @@ SpectraFilter: SpectraFilter.o TOPPBase.o
 
 DTAExtractor: DTAExtractor.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/
+
+MapAlignment: MapAlignment.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
+
