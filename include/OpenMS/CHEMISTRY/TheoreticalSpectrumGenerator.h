@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2004 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,11 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id:$
-// $Author:$
-// $Maintainer:$
+// $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
@@ -37,7 +34,13 @@
 
 namespace OpenMS
 {
-	/** \brief Generates theoretical spectra with various options
+	/** 
+		@brief Generates theoretical spectra with various options
+		
+		@todo write tests (Andreas)
+		@todo replace SpectrumGenerator in CLUSTERING (Andreas)
+		
+		@ingroup Chemistry
 	*/
 	class TheoreticalSpectrumGenerator
 	{

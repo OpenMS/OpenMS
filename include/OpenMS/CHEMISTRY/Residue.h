@@ -515,6 +515,12 @@ namespace OpenMS
 			/// inequality operator
 			bool operator != (const Residue& residue) const;
 
+			/// equality operator for one letter code
+			bool operator == (char one_letter_code) const;
+
+			/// equality operator for one letter code
+			bool operator != (char one_letter_code) const;
+
 			/// true if the residue is a modified one
 			bool isModified() const;
 			//@}

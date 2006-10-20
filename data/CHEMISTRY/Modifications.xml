@@ -95,7 +95,7 @@
 					</NODE>
 					<ITEM name="UnmodifiedName" value="Cys" type="string" />
 					<ITEM name="LossName" value="" type="string" />
-					<ITEM name="LossFormula" value="" type="" />
+					<ITEM name="LossFormula" value="" type="string" />
 					<NODE name="LowMassIons">
 					</NODE>
 				</NODE>

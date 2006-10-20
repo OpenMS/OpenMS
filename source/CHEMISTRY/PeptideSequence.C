@@ -730,4 +730,13 @@ namespace OpenMS
 			return custom_res_db_;
 		}
 	}	
+
+	PeptideSequence::PeptideSequence(ConstIterator begin, ConstIterator end)
+	{
+		while (begin!=end)
+		{
+			peptide_.push_back(*begin);
+			++begin;
+		}
+	}
 }

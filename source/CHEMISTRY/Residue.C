@@ -664,6 +664,16 @@ namespace OpenMS
 						low_mass_ions_ == residue.low_mass_ions_);
 	}
 
+	bool Residue::operator == (char one_letter_code) const
+	{
+		return one_letter_code_[0] == one_letter_code;
+	}
+
+	bool Residue::operator != (char one_letter_code) const
+	{
+		return one_letter_code_[0] != one_letter_code;
+	}
+
 	bool Residue::operator != (const Residue& residue) const
 	{
 		return !(*this == residue);

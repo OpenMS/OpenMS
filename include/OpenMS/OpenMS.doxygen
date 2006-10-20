@@ -48,9 +48,10 @@
 	- Deisotoping / Decharging
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
-	- Theoretische Spektren
 	- Rohdaten-Erkenner
-	- Tryptischer Verdau
+	- EnzymaticDigestion-Klasse
+	- TOPPBase in lib => tests
+	- Tests TOPP
 	
 	- Clustering
 	- SpecAnnotate

@@ -74,7 +74,10 @@ namespace OpenMS
 
 			/// constructor with given residue db pointer
 			PeptideSequence(ResidueDB* res_db);
-
+			
+			/// constructor with given a residue range
+			PeptideSequence(ConstIterator begin, ConstIterator end);
+			
 			/// destructor
 			virtual ~PeptideSequence();
 			//@}

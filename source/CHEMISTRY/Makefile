@@ -39,7 +39,8 @@ ADD_CPP_SOURCES=\
 		Residue.C\
 		ResidueDB.C\
 		PeptideSequence.C\
-		TheoreticalSpectrumGenerator.C
+		TheoreticalSpectrumGenerator.C\
+		EnzymaticDigestion.C
 
 include ../common.mak
 -include .Dependencies

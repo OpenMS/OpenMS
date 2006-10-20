@@ -1,0 +1,201 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(EnzymaticDigestion, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+EnzymaticDigestion* e_ptr = 0;
+CHECK(EnzymaticDigestion())
+	e_ptr = new EnzymaticDigestion;
+	TEST_NOT_EQUAL(e_ptr, 0)
+RESULT
+
+CHECK(~EnzymaticDigestion())
+	delete e_ptr;
+RESULT
+
+CHECK(UnsignedInt getMissedCleavages() const)
+	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
+RESULT
+
+CHECK(Enzyme getEnzyme() const)
+	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
+RESULT
+
+CHECK(void setMissedCleavages(UnsignedInt missed_cleavages))
+	EnzymaticDigestion ed;
+	ed.setMissedCleavages(5);
+	TEST_EQUAL(ed.getMissedCleavages(),5)
+RESULT
+
+CHECK(void setEnzyme(Enzyme enzyme))
+	///TODO ?????? as soon as there is a second enzyme
+RESULT
+
+CHECK(UnsignedInt peptideCount(const PeptideSequence& protein))
+	EnzymaticDigestion ed;
+	UnsignedInt tmp = ed.peptideCount(String("ACDE"));
+	TEST_EQUAL(tmp,1)
+	tmp = ed.peptideCount(String("ACKDE"));
+	TEST_EQUAL(tmp,2)
+	tmp = ed.peptideCount(String("ACRDE"));
+	TEST_EQUAL(tmp,2)
+	tmp = ed.peptideCount(String("ACKPDE"));
+	TEST_EQUAL(tmp,1)
+	tmp = ed.peptideCount(String("ACRPDE"));
+	TEST_EQUAL(tmp,1)
+	tmp = ed.peptideCount(String("ARCRDRE"));
+	TEST_EQUAL(tmp,4)
+	tmp = ed.peptideCount(String("RKR"));
+	TEST_EQUAL(tmp,3)
+	ed.setMissedCleavages(1);
+	TEST_EQUAL(ed.peptideCount(String("ACDE")),1)
+	TEST_EQUAL(ed.peptideCount(String("ACRDE")),3)
+	TEST_EQUAL(ed.peptideCount(String("ARCDRE")),5)
+	TEST_EQUAL(ed.peptideCount(String("RKR")),5)
+	ed.setMissedCleavages(3);
+	TEST_EQUAL(ed.peptideCount(String("ACDE")),1)
+	TEST_EQUAL(ed.peptideCount(String("ACRDE")),3)
+	TEST_EQUAL(ed.peptideCount(String("ARCDRE")),6)
+	TEST_EQUAL(ed.peptideCount(String("RKR")),6)
+RESULT
+
+CHECK(void digest(const PeptideSequence& protein, std::vector<PeptideSequence>& output))
+	EnzymaticDigestion ed;
+	vector<PeptideSequence> out;
+	
+	ed.digest(String("ACDE"),out);
+	TEST_EQUAL(out.size(),1)
+	TEST_EQUAL(out[0],"ACDE")
+
+	ed.digest(String("ACKDE"),out);
+	TEST_EQUAL(out.size(),2)
+	TEST_EQUAL(out[0],"ACK")
+	TEST_EQUAL(out[1],"DE")
+	
+	ed.digest(String("ACRDE"),out);
+	TEST_EQUAL(out.size(),2)
+	TEST_EQUAL(out[0],"ACR")
+	TEST_EQUAL(out[1],"DE")
+
+	ed.digest(String("ACKPDE"),out);
+	TEST_EQUAL(out.size(),1)
+	TEST_EQUAL(out[0],"ACKPDE")
+	
+	ed.digest(String("ACRPDE"),out);
+	TEST_EQUAL(out.size(),1)
+	TEST_EQUAL(out[0],"ACRPDE")
+	
+	ed.digest(String("ARCRDRE"),out);
+	TEST_EQUAL(out.size(),4)
+	TEST_EQUAL(out[0],"AR")
+	TEST_EQUAL(out[1],"CR")
+	TEST_EQUAL(out[2],"DR")
+	TEST_EQUAL(out[3],"E")
+
+	ed.digest(String("RKR"),out);
+	TEST_EQUAL(out.size(),3)
+	TEST_EQUAL(out[0],"R")
+	TEST_EQUAL(out[1],"K")
+	TEST_EQUAL(out[2],"R")
+
+	ed.setMissedCleavages(1);
+	
+	ed.digest(String("ACDE"),out);
+	TEST_EQUAL(out.size(),1)
+	TEST_EQUAL(out[0],"ACDE")
+	
+	ed.digest(String("ACRDE"),out);
+	TEST_EQUAL(out.size(),3)
+	TEST_EQUAL(out[0],"ACR")
+	TEST_EQUAL(out[1],"DE")
+	TEST_EQUAL(out[2],"ACRDE")
+	
+	ed.digest(String("ARCDRE"),out);
+	TEST_EQUAL(out.size(),5)
+	TEST_EQUAL(out[0],"AR")
+	TEST_EQUAL(out[1],"CDR")
+	TEST_EQUAL(out[2],"E")
+	TEST_EQUAL(out[3],"ARCDR")
+	TEST_EQUAL(out[4],"CDRE")
+	
+	ed.digest(String("RKR"),out);
+	TEST_EQUAL(out.size(),5)
+	TEST_EQUAL(out[0],"R")
+	TEST_EQUAL(out[1],"K")
+	TEST_EQUAL(out[2],"R")
+	TEST_EQUAL(out[3],"RK")
+	TEST_EQUAL(out[4],"KR")
+	
+//	ed.setMissedCleavages(3);
+//	
+//	ed.digest(String("ACDE"),out);
+//	TEST_EQUAL(out.size(),1)
+//	TEST_EQUAL(out[0],"ACDE")
+//	
+//	ed.digest(String("ACRDE"),out);
+//	TEST_EQUAL(out.size(),3)
+//	TEST_EQUAL(out[0],"ACR")
+//	TEST_EQUAL(out[1],"DE")
+//	TEST_EQUAL(out[2],"ACRDE")
+//	
+//	ed.digest(String("ARCDRE"),out);
+//	TEST_EQUAL(out.size(),6)
+//	TEST_EQUAL(out[0],"AR")
+//	TEST_EQUAL(out[1],"CDR")
+//	TEST_EQUAL(out[2],"E")
+//	TEST_EQUAL(out[3],"ARCDR")
+//	TEST_EQUAL(out[4],"CDRE")
+//	TEST_EQUAL(out[5],"ARCDRE")
+//	
+//	ed.digest(String("RKR"),out);
+//	TEST_EQUAL(out.size(),6)
+//	TEST_EQUAL(out[0],"R")
+//	TEST_EQUAL(out[1],"K")
+//	TEST_EQUAL(out[2],"R")
+//	TEST_EQUAL(out[3],"RK")
+//	TEST_EQUAL(out[4],"KR")
+//	TEST_EQUAL(out[5],"RKR")
+
+
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

@@ -62,7 +62,7 @@ class TOPPFileMerger
 {
  public:
 	TOPPFileMerger()
-		: TOPPBase("FileFilter")
+		: TOPPBase("FileMerger")
 	{
 			
 	}
