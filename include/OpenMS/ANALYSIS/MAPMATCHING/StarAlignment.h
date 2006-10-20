@@ -289,7 +289,7 @@ namespace OpenMS
                   DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
 
                   // apply transform for the singleton group element
-                  IndexTuple< ElementContainerType > index_tuple(i,(*(element_map_vector_[i]))[j]);
+                  IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
                   PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
 
                   mapping_rt->apply(pos[RT]);

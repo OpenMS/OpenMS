@@ -402,9 +402,7 @@ namespace OpenMS
         }
       }
       os << "\t</transformationList>\n";
-
-      UniqueIdGenerator id_generator_elements = UniqueIdGenerator::instance();
-
+      
       const std::vector < ConsensusElementType >& final_consensus_map = calignment_->getFinalConsensusMap();
       n=final_consensus_map.size();
       os << "\t<consensusElementList>\n";
@@ -424,7 +422,7 @@ namespace OpenMS
         os << "\t\t\t<groupedElementList>\n";
         for (typename ConsensusElementType::Group::const_iterator it = final_consensus_map[i].begin(); it != final_consensus_map[i].end(); ++it)
         {
-          os  << "\t\t\t\t<element id=\"" << id_generator_elements.getUID()
+          os  << "\t\t\t\t<element id=\"" << it->getElementIndex()
           << "\" map=\"" << it->getMapIndex()
           << "\" rt=\"" << it->getElement().getPosition()[0]
           << "\" mz=\"" << it->getElement().getPosition()[1]

@@ -105,11 +105,11 @@ namespace OpenMS
       }
 
       /// Constructor for a singleton consensus feature
-      ConsensusFeature(const UnsignedInt& map_index, const ElementType& feature)
+      ConsensusFeature(const UnsignedInt& map_index,  const UnsignedInt& feature_index, const ElementType& feature)
       {
         try
         {
-          this->insert(IndexTuple(map_index,feature));
+          this->insert(IndexTuple(map_index,feature_index,feature));
         }
         catch(Exception::InvalidValue)
         {}
@@ -122,12 +122,13 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const UnsignedInt& map_1_index, const ElementType& feature_1, const UnsignedInt& map_2_index, const ElementType& feature_2)
+      ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& feature_index_1, const ElementType& feature_1,
+                       const UnsignedInt& map_2_index, const UnsignedInt& feature_index_2, const ElementType& feature_2)
       {
         try
         {
-          this->insert(IndexTuple(map_1_index,feature_1));
-          this->insert(IndexTuple(map_2_index,feature_2));
+          this->insert(IndexTuple(map_1_index,feature_index_1, feature_1));
+          this->insert(IndexTuple(map_2_index,feature_index_2, feature_2));
         }
         catch(Exception::InvalidValue)
         {}
@@ -136,10 +137,10 @@ namespace OpenMS
       }
 
       /// Constructor
-      ConsensusFeature(const UnsignedInt& map_index, const ElementType& feature, const ConsensusFeature& c_feature)
+      ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
-        this->insert(IndexTuple(map_index,feature));
+        this->insert(IndexTuple(map_index,feature_index,feature));
 
         computeConsensus_();
       }
