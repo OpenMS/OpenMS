@@ -131,7 +131,9 @@ namespace OpenMS
 										 COMPLETION_TIME, PRECURSOR_INTENSITY, PRECURSOR_CHARGE,
 										 FIRST_NAME, LAST_NAME, EMAIL, PHONE, URI, VALUE, CATEGORY,
 										 PRECISION, BYTEORDER, PAIRORDER, SCHEMA, SPOT_INTEGRATION,
-										 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1};
+										 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1, PARENTFILEID,
+										 PRECURSOR_SCANNUM, WINDOW_WIDENESS, PLATEID, SPOTID,
+										 LASER_SHOOT_COUNT, LASER_FREQUENCY, LASER_INTESITY};
 
 		/** @brief indices for enum2str-maps used by mzXML
 
@@ -291,8 +293,17 @@ namespace OpenMS
   }
 
 	/**
+	 * MzXML parsing routine. Source: http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/Doc/mzXML_2.1_tutorial.pdf
+	 *
+	 * @todo implement section 4.4 and 4.5 of MzXML spec.
+	 *
 	 * @todo msRun - add optional attributes "startTime" and "endTime" to DB / datastructures (TK / TS / Marc)
 	 * @todo parentFile - add required attribute "fileSha1" to DB / SourceFile class (TK / TS / Marc)
+	 * @todo dataProcessing - add support for optional attribute "intensityCutOff" to DB / ProcessingMethod class (TK / TS / Marc)
+	 * @todo dataProcessing - add support for optional attribute "spotIntegration" to DB / ProcessingMethod class (TK / TS / Marc)
+	 * @todo scan - add support for a bunch of optional attributes (see comment in MsXMLHandler.h, function "startElement", case SCAN:) to DB / datastructures (TK / TS / Marc)
+	 * @todo scanOrigin - add support for "parentFileID" and "num" attributes to DB / datastructures (TK / TS / Marc)
+	 * @todo precursorMZ - add support for "precursorScanNum" and "windowWideness" attributes to DB / datastructures (TK / TS / Marc)
 	 */
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -398,10 +409,41 @@ namespace OpenMS
 			case SOFTWARE:
 				if (is_parser_in_tag_[DATAPROCESSING])
 				{
-					exp_->getSoftware().setVersion( getAttributeAsString(SOFTWAREVERSION) );
-					exp_->getSoftware().setName( getAttributeAsString(NAME) );
-					exp_->getSoftware().setComment( getAttributeAsString(TYPE) );
-					exp_->getSoftware().setCompletionTime( asDateTime_(getAttributeAsString(COMPLETION_TIME)) );
+					tmp_str = getAttributeAsString(SOFTWAREVERSION);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getSoftware().setVersion(tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
+					}
+					
+					tmp_str = getAttributeAsString(NAME);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getSoftware().setName(tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'dataProcessing' tag misses required attribute 'name'");
+					}
+					
+					tmp_str = getAttributeAsString(TYPE);
+					if (tmp_str != "") // required attribute
+					{
+						exp_->getSoftware().setComment(tmp_str);
+					}
+					else
+					{
+						error("'software' tag below 'dataProcessing' tag misses required attribute 'version'");
+					}
+					
+					tmp_str = getAttributeAsString(COMPLETION_TIME);
+					if (tmp_str != "") // optional attribute
+					{
+						exp_->getSoftware().setCompletionTime( asDateTime_(tmp_str) );
+					}
 				}
 				else if (is_parser_in_tag_[INSTRUMENT])
 				{
@@ -469,26 +511,117 @@ namespace OpenMS
 				{
 					PrecursorPeakType& peak
 						= spec_->getPrecursorPeak();
-					peak.setIntensity( asFloat_(getAttributeAsString(PRECURSOR_INTENSITY)) );
-					// optional attribute
-					if (!(getAttributeAsString(PRECURSOR_CHARGE)==""))
-						peak.setCharge(asSignedInt_(getAttributeAsString(PRECURSOR_CHARGE)));
-					// Unhandled: windowWideness, precursorScanNum (optinal)
+					
+					tmp_str = getAttributeAsString(PRECURSOR_INTENSITY);
+					if (tmp_str != "") // optional attribute
+					{
+						peak.setIntensity( asFloat_(tmp_str) );
+					}
+					
+					tmp_str = getAttributeAsString(PRECURSOR_CHARGE);
+					if (tmp_str != "") // optional attribute
+					{
+						peak.setCharge(asSignedInt_(tmp_str));
+					}
+					
+					tmp_str = getAttributeAsString(PRECURSOR_SCANNUM);
+					if (tmp_str != "") // optional attribute
+					{
+						// TODO
+					}
+					
+					tmp_str = getAttributeAsString(WINDOW_WIDENESS);
+					if (tmp_str != "") // optional attribute
+					{
+						// TODO
+					}
+				}
+				break;
+			case MALDI:
+				{
+					tmp_str = getAttributeAsString(PLATEID);
+					if (tmp_str != "") // required attribute
+					{
+						// TODO
+					}
+					else
+					{
+						error("'maldi' tag misses required attribute 'plateID'");
+					}
+					
+					tmp_str = getAttributeAsString(SPOTID);
+					if (tmp_str != "") // required attribute
+					{
+						// TODO
+					}
+					else
+					{
+						error("'maldi' tag misses required attribute 'spotID'");
+					}
+					
+					tmp_str = getAttributeAsString(LASER_SHOOT_COUNT);
+					if (tmp_str != "") // optional attribute
+					{
+						// TODO
+					}
+					
+					tmp_str = getAttributeAsString(LASER_FREQUENCY);
+					if (tmp_str != "") // optional attribute
+					{
+						// TODO
+					}
+					
+					tmp_str = getAttributeAsString(LASER_INTESITY);
+					if (tmp_str != "") // optional attribute
+					{
+						// TODO
+					}
 				}
 				break;
 			case SCAN:
 				{
 					//exp_->insert(exp_->end(), SpectrumType() );
-					exp_->push_back(SpectrumType() );
+					tmp_str = getAttributeAsString(NUM);
+					if (tmp_str == "")
+					{
+						error("'scan' tag misses required attribute 'num'");
+						break;
+					}
+					if (asUnsignedInt_(tmp_str) != exp_->size() + 1)
+					{
+						// num tag starts from 1 and must be consecutive
+						error("non-consecutive numbers in 'scan' tags");
+						break;
+					}
+					
+					exp_->push_back(SpectrumType());
 					spec_ = &(exp_->back());
 					
 					// required attributes
-					spec_->setMSLevel( asSignedInt_(getAttributeAsString(MSLEVEL)) );
-					peak_count_ = asSignedInt_( getAttributeAsString(PEAKSCOUNT) );
+					tmp_str = getAttributeAsString(MSLEVEL);
+					if (tmp_str != "")
+					{
+						spec_->setMSLevel(asSignedInt_(tmp_str));
+					}
+					else
+					{
+						error("'scan' tag misses required attribute 'msLevel'");
+						break;
+					}
+					
+					tmp_str = getAttributeAsString(getAttributeAsString(PEAKSCOUNT));
+					if (tmp_str != "")
+					{
+						peak_count_ = asSignedInt_(tmp_str);
+					}
+					else
+					{
+						error("'scan' tag misses required attribute 'peaksCount'");
+					}
 					spec_->resize(peak_count_);
 					peak_ = spec_->begin();
 
-					//optinal attributes
+					// optional attributes
 					for (UnsignedInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
@@ -507,27 +640,89 @@ namespace OpenMS
 								spec_->setRetentionTime( asFloat_(value.substr(2,value.size()-3)));
 								//std::cout << spec_->getRetentionTime() << std::endl;
 								break;
-							case STARTMZ:      sett.setMzRangeStart( asDouble_(value)); break;
-							case ENDMZ:				 sett.setMzRangeStop( asDouble_(value)); break;
+							case STARTMZ:
+								sett.setMzRangeStart( asDouble_(value));
+								break;
+							case ENDMZ:
+								sett.setMzRangeStop( asDouble_(value));
+								break;
 							case DEISOTOPED:
-							  exp_->getProcessingMethod().setDeisotoping(asBool_(value));	break;
+							  exp_->getProcessingMethod().setDeisotoping(asBool_(value));
+							  break;
 							case DECONVOLUTED:
-								exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));	break;
+								exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
+								break;
 							//	case CENTROIDED: case IONENERGY:	case COLLENERGY: 	case PRESSURE: case LOWMZ:
 							//	case HIGHMZ: case BASEPEAKMZ:	case BASEPEAKINT:	case TOTIONCURRENT
+							// still missing: collisionGas, collisionGasPressure
 							}
 					}
 				}
 				break;
+			case SCANORIGIN:
+				tmp_str = getAttributeAsString(PARENTFILEID);
+				if (tmp_str != "") // required attribute
+				{
+					// TODO
+				}
+				else
+				{
+					error("'parentFileID' attribute missing in 'scanOrigin' tag");
+				}
+				
+				tmp_str = getAttributeAsString(NUM);
+				if (tmp_str != "") // required attribute
+				{
+					// TODO
+				}
+				else
+				{
+					error("'num' attribute missing in 'scanOrigin' tag");
+				}
+				break;
 			case OPERATOR:
 				{
-					exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
-					exp_->getContacts().back().setName( getAttributeAsString(FIRST_NAME) + " " +getAttributeAsString(LAST_NAME));
-					if (!(getAttributeAsString(EMAIL)==""))
+					String first = getAttributeAsString(FIRST_NAME);  // required attribute
+					String last = getAttributeAsString(LAST_NAME);    // required attribute
+					
+					if (first == "")
 					{
-						exp_->getContacts().back().setEmail(getAttributeAsString(EMAIL));
+						error("'operator' tag misses required attribute 'first'");
 					}
-					exp_->getContacts().back().setContactInfo( String("PHONE: ")+getAttributeAsString(PHONE)+" URI: " + getAttributeAsString(URI));
+					else if (last == "")
+					{
+						error("'operator' tag misses required attribute 'last'");
+					}
+					else
+					{
+						exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
+						exp_->getContacts().back().setName(first + " " + last);
+						
+						tmp_str = getAttributeAsString(EMAIL);
+						if (tmp_str != "") // optional attribute
+						{
+							exp_->getContacts().back().setEmail(tmp_str);
+						}
+						
+						String contact_info;
+						tmp_str = getAttributeAsString(PHONE);
+						if (tmp_str != "") // optional attribute
+						{
+							contact_info = "PHONE: " + tmp_str;
+						}
+						
+						tmp_str = getAttributeAsString(URI);
+						if (tmp_str != "") // optional attribute
+						{
+							contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp_str;
+						}
+						
+						// if either one of phone or uri was specified
+						if (contact_info != "")
+						{
+							exp_->getContacts().back().setContactInfo(contact_info);
+						}
+					}
 				}
 				break;
 			case MANUFACTURER:
@@ -692,7 +887,7 @@ namespace OpenMS
 				}
 				break;
 			case DATAPROCESSING:
-					//optinal attributes
+					// optional attributes
 					for (UnsignedInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"dataprocessing attribute");
@@ -709,28 +904,65 @@ namespace OpenMS
 									exp_->getProcessingMethod().setSpectrumType((SpectrumSettings::SpectrumType)
 										str2enum_(PEAKPROCMAP,value,"peak processing"));
 									break;
-								//UNHANDLED: spotIntegration, intensityCutoff
+								case SPOT_INTEGRATION:
+									// TODO
+									break;
+								case INTENSITY_CUTOFF:
+									// TODO
+									break;
 							}
 					}
 					break;
 			case NAMEVALUE:
-				if (is_parser_in_tag_[INSTRUMENT])
 				{
-					setAddInfo(	exp_->getInstrument(), getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
-				}
-				else if (is_parser_in_tag_[SCAN])
-				{
-					setAddInfo(	*spec_, getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
-				}
-				else
-				{
-					std::cout << " Warning Unhandled tag: \"" << enum2str_(TAGMAP,NAMEVALUE) << "\"" << std::endl;
+					if (is_parser_in_tag_[INSTRUMENT])
+					{
+						String name = getAttributeAsString(NAME);
+						String value = getAttributeAsString(VALUE);
+						
+						if (name == "")
+						{
+							error("'nameValue' tag misses required attribute 'name'");
+						}
+						else if (value == "")
+						{
+							error("'nameValue' tag misses required attribute 'value'");
+						}
+						else
+						{
+							setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
+						}
+					}
+					else if (is_parser_in_tag_[SCAN])
+					{
+						setAddInfo(	*spec_, getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
+					}
+					else
+					{
+						std::cout << " Warning Unhandled tag: \"" << enum2str_(TAGMAP,NAMEVALUE) << "\"" << std::endl;
+					}
 				}
 				break;
 			case PROCESSING:
-				setAddInfo(exp_->getProcessingMethod(), getAttributeAsString(NAME) + "#" + getAttributeAsString(TYPE),
-						getAttributeAsString(VALUE), "Processing.Comment");
-
+				{
+					String name = getAttributeAsString(NAME);
+					String value = getAttributeAsString(TYPE);
+					
+					if (name == "")
+					{
+						error("'processingOperation' tag misses required attribute 'name'");
+					}
+					else if (value == "")
+					{
+						error("'processingOperation' tag misses required attribute 'value'");
+					}
+					else
+					{
+						setAddInfo(exp_->getProcessingMethod(), name + "#" + value,
+							getAttributeAsString(VALUE), "Processing.Comment");
+					}
+				}
+				break;
 		}
 		
 		//std::cout << " -- !Start -- " << std::endl;

@@ -84,7 +84,9 @@ namespace OpenMS
 				"version;name;type;completionTime;precursorIntensity;precursorCharge;"
 				"first;last;email;phone;URI;value;category;precision;byteOrder;"
 				"pairOrder;xsi:schemaLocation;spotIntegration;intensityCutoff;"
-				"startTime;endTime;fileSha1",
+				"startTime;endTime;fileSha1;parentFileID;precursorScanNum;"
+				"windowWideness;plateID;spotID;laserShootCount;laserFrequency;"
+				"laserIntesity",
 
 	      // Tag
       	";msRun;index;offset;sha1;parentFile;msInstrument;dataProcessing;"
@@ -130,7 +132,10 @@ namespace OpenMS
       	"totIonCurrent;peaksCount;num;msLevel;scanCount;fileName;fileType;"
 				"version;name;type;completionTime;precursorIntensity;precursorCharge;"
 				"first;last;email;phone;URI;value;category;precision;byteOrder;"
-				"pairOrder;xsi:schemaLocation;spotIntegration;intensityCutoff",
+				"pairOrder;xsi:schemaLocation;spotIntegration;intensityCutoff;"
+				"startTime;endTime;fileSha1;parentFileID;precursorScanNum;"
+				"windowWideness;plateID;spotID;laserShootCount;laserFrequency;"
+				"laserIntesity",
 
       	// Tag
 	      ";msRun;index;offset;sha1;parentFile;instrument;dataProcessing;"
