@@ -609,7 +609,7 @@ namespace OpenMS
 						break;
 					}
 					
-					tmp_str = getAttributeAsString(getAttributeAsString(PEAKSCOUNT));
+					tmp_str = getAttributeAsString(PEAKSCOUNT);
 					if (tmp_str != "")
 					{
 						peak_count_ = asSignedInt_(tmp_str);
