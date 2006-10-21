@@ -908,12 +908,16 @@ protected:
 
 	/// The internal ms experiment instance.
     mutable ExperimentType exp_;
+	
+	/// File handle (to store the peak data)
+	mutable FILE * pFile_;
 
     /// reads a scan from the temp file and stores it in the buffer
     void storeInBuffer(const size_type& n)
     {
         //std::cout << "spectra at: " << n << " is not in buffer. " << std::endl;
-        SpectrumType spec = readScan(n);
+        SpectrumType spec;
+		readScan(n,spec);
 
         // check if buffer is full
         if (buffer_index_ < buffer_size_)
@@ -950,7 +954,8 @@ protected:
 
     void storeInBuffer(const size_type& n) const
     {
-        SpectrumType spec = readScan(n);
+        SpectrumType spec;
+		readScan(n,spec);
 
         // check if buffer is full
         if (buffer_index_ < buffer_size_)
@@ -987,39 +992,38 @@ protected:
     /// format: rt_of_scan first_mz first_intensity second_mz ... last_intensity n
     void writeScan(const SpectrumType& spec)
     {
-        FILE * pFile = fopen (file_name_.c_str(),"a");
+        pFile_ = fopen (file_name_.c_str(),"a");
         float rt = spec.getRetentionTime();
-        scan_location_.push_back( ftell(pFile) );
+        scan_location_.push_back( ftell(pFile_) );
 
-
-        fwrite(&rt,sizeof(rt),1,pFile);
+        fwrite(&rt,sizeof(rt),1,pFile_);
 
         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
                 cit != spec.getContainer().end(); ++cit)
         {
-            fwrite(&(*cit),sizeof(*cit),1,pFile);
+            fwrite(&(*cit),sizeof(*cit),1,pFile_);
         }
-        fclose (pFile);
+        fclose (pFile_);
 
         scan_sizes_.push_back(spec.getContainer().size());
 
     } // end of write(spectrum)
 
     /// Reads a spectrum from a file
-    SpectrumType readScan(const size_type& index) const
+    void readScan(const size_type& index, SpectrumType& spec) const
     {
-        SpectrumType spec;
+        //SpectrumType spec;
 
-        FILE * pFile = fopen (file_name_.c_str(),"r");
+        pFile_ = fopen (file_name_.c_str(),"r");
 
         // set stream to starting point of last writing action
         size_type pos = scan_location_.at(index);
         //std::cout << "Reading from " << pos << std::endl;
-        fseek(pFile,pos,SEEK_SET);
+        fseek(pFile_,pos,SEEK_SET);
 
         // read retention time
         float rt = 0;
-        fread(&rt,sizeof(rt),1,pFile);
+        fread(&rt,sizeof(rt),1,pFile_);
         spec.setRetentionTime(rt);
 
         // read coordinates of each peak and skip
@@ -1027,12 +1031,12 @@ protected:
         for (unsigned int i=0; i<scan_sizes_.at(index); ++i)
         {
             PeakType point;
-            fread(&point,sizeof(point),1,pFile);
+            fread(&point,sizeof(point),1,pFile_);
             spec.getContainer().push_back(point);
         }
-        fclose (pFile);
+        fclose (pFile_);
 
-        return spec;
+        //return spec;
     }	// end of read const
 
     /// copies the content of the tempory file
