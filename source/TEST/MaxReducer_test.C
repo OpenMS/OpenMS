@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;
 
-START_TEST(MaxReducer, "$Id: MaxReducer_test.C 463  $")
+START_TEST(MaxReducer, "$Id$")
 
 MaxReducer * ptr = 0;
 

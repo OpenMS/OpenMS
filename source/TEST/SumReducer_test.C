@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;
 
-START_TEST(SumReducer, "$Id: SumReducer_test.C 463 $")
+START_TEST(SumReducer, "$Id$")
 
 SumReducer * ptr = 0;
 CHECK(SumReducer())
