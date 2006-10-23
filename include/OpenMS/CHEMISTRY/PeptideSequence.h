@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_CHEMISTRY_PEPTIDESEQUENCE_H
 #define OPENMS_CHEMISTRY_PEPTIDESEQUENCE_H
@@ -43,9 +42,11 @@ namespace OpenMS
 	class Residue;
 
 	/** 
-		@ingroup Chemistry
-
 		@brief Representation of a peptide
+		
+		@todo rename to AASequence (Andreas)
+		
+		@ingroup Chemistry
 	*/
 	class PeptideSequence
 	{

@@ -733,10 +733,12 @@ namespace OpenMS
 
 	PeptideSequence::PeptideSequence(ConstIterator begin, ConstIterator end)
 	{
-		while (begin!=end)
-		{
-			peptide_.push_back(*begin);
-			++begin;
-		}
+		peptide_.resize(end-begin);
+		copy(begin,end,peptide_.begin());
+//		while (begin!=end)
+//		{
+//			peptide_.push_back(*begin);
+//			++begin;
+//		}
 	}
 }
