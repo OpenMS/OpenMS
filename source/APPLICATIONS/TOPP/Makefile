@@ -216,6 +216,6 @@ MapAlignment: MapAlignment.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-AnalysisXMLMerger: AnalysisXMLMerger.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+AnalysisXMLMerger: AnalysisXMLMerger.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   

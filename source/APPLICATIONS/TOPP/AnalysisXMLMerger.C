@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
@@ -32,7 +32,7 @@
 #include <qfileinfo.h>
 #include <qfile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -213,7 +213,7 @@ class TOPPAnalysisXMLMerger
 													retention_times, 
 													mz_values);
 			
-		return OK;
+		return EXECUTION_OK;
 	}
 };
 
