@@ -70,7 +70,8 @@ EXECUTABLES=\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
-	MapAlignment
+	MapAlignment\
+	AnalysisXMLMerger
 
 #	RawDataResampler\
 
@@ -216,3 +217,6 @@ MapAlignment: MapAlignment.o TOPPBase.o
 	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
+AnalysisXMLMerger: AnalysisXMLMerger.o TOPPBase.o
+	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
