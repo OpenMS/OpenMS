@@ -33,7 +33,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <stdlib.h>
 #include <vector>
@@ -1132,7 +1132,7 @@ class TOPPInspectAdapter
 			// (3.3) deleting all temporary files
 			deleteTempFiles(input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_index_filename, inspect_logfile);
 
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

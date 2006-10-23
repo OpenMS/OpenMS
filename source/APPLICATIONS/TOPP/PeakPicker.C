@@ -28,7 +28,7 @@
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -180,7 +180,7 @@ class TOPPPeakPicker
 
 		mz_data_file.store(out,ms_exp_peaks);
 
-		return OK;
+		return EXECUTION_OK;
 	}
 };
 

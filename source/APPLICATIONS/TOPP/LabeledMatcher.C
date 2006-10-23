@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <iostream>
 #include <fstream>
@@ -224,7 +224,7 @@ protected:
     writeLog_(String(" Writing results to ") + outputfile);
     DFeaturePairsFile().store(outputfile,*pairs);
 
-    return OK;
+    return EXECUTION_OK;
   }
 };
 

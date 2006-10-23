@@ -49,7 +49,6 @@
   - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Rohdaten-Erkenner
-	- TOPPBase in lib => tests
 	- Tests TOPP
 	
 	- Clustering

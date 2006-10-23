@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
@@ -362,7 +362,7 @@ class TOPPSpectraFilter
 			
 			f.store(out, exp);
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

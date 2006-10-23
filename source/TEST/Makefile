@@ -284,6 +284,11 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PairMatcher_test\
 	$(GSL_EXECUTABLES_ANALYSIS_MAPMATCHING)
 
+# APPLICATIONS
+
+EXECUTABLES_APPLICATIONS = \
+	TOPPBase_test
+
 # TRANSFORMATIONS
 
 ifeq ($(GSL_SUPPORT),true)
@@ -335,7 +340,8 @@ EXECUTABLES = \
 	$(EXECUTABLES_TRANSFORMATIONS)\
 	$(EXECUTABLES_ANALYSIS_ID)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
-	$(EXECUTABLES_ANALYSIS_MAPMATCHING)
+	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
+	$(EXECUTABLES_APPLICATIONS)
 
 
 # default target
@@ -375,7 +381,7 @@ endif
 dummy:
 
 # concept_test should be the first one, because it tests the testing ...
-test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_mapmatching_test
+test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_mapmatching_test applications_test
 	@./runtests -success
 
 info:
@@ -422,6 +428,9 @@ analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 
 analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING)
+
+applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
+	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
 
 clean:	default_clean
 	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache _*.TMP core a.out $(EXECUTABLES)

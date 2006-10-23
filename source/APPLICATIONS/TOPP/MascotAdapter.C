@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qfileinfo.h>
 #include <qfile.h>
@@ -710,7 +710,7 @@ class TOPPMascotAdapter
 				}
 			
 			} // from if(!mascot_in)
-			return OK;	
+			return EXECUTION_OK;	
 		}
 };
 

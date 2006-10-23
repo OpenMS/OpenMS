@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
 using namespace OpenMS;
@@ -270,7 +270,7 @@ class TOPPFileInfo
 			
 			cout << endl << endl;			
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

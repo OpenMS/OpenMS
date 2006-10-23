@@ -40,6 +40,8 @@ namespace OpenMS
 		
 		 You have to implement the virtual methods @ref printToolUsage_, @ref printToolHelpOpt_, @ref setOptionsAndFlags_ 
 		 and @ref main_ only.
+		 
+		 @todo complete the tests (Clemens)
 	*/
   class TOPPBase
   {
@@ -48,7 +50,7 @@ namespace OpenMS
 		/// Exit codes
 		enum ExitCodes
 			{
-				OK,
+				EXECUTION_OK,
 				INPUT_FILE_NOT_FOUND,
 				INPUT_FILE_NOT_READABLE,
 				INPUT_FILE_CORRUPT,

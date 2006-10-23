@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qapplication.h>
 
@@ -163,7 +163,7 @@ class TOPPDBImporter
 			
 			writeLog_( String(" written file to DB (id: ") + String((double)(exp.getPersistenceId())) + ")");	
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

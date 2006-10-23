@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -207,7 +207,7 @@ class TOPPFileConverter
 			return ILLEGAL_PARAMETERS;					
 		}
 			
-		return OK;
+		return EXECUTION_OK;
 	}
 };
 

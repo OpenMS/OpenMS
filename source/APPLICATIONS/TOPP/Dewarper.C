@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -157,7 +157,7 @@ protected:
     //-------------------------------------------------------------
     fmap_file.store(outfile,dewarped_features);
 
-    return OK;
+    return EXECUTION_OK;
   }
 };
 

@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -232,7 +232,7 @@ class TOPPFeaturePairSplitter
 
 		}
 
-		return OK;
+		return EXECUTION_OK;
 
 	} // main_()
 	

@@ -38,7 +38,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <stdlib.h>
 #include <vector>
@@ -1431,7 +1431,7 @@ class TOPPSequestAdapter
 			// (3.3) deleting all temporary files
 			deleteTempFiles(input_filename, logfile);
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

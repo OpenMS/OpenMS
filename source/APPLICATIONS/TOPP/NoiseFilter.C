@@ -34,7 +34,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -265,7 +265,7 @@ class TOPPNoiseFilter
 
       mz_data_file.store(out,ms_exp_filtered);
 
-      return OK;
+      return EXECUTION_OK;
     }
 };
 

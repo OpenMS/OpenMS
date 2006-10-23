@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -225,7 +225,7 @@ class TOPPFileMerger
 			
 		MzDataFile().store(out_file,out);
 			
-		return OK;
+		return EXECUTION_OK;
 	}
 };
 

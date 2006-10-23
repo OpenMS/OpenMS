@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -253,7 +253,7 @@ class TOPPDTAExtractor
 				}
 			}
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

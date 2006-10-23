@@ -38,7 +38,7 @@
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 
-#include <TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -200,7 +200,7 @@ protected:
 
         grid_file.store(outfile,grid_with_transform);
 
-        return OK;
+        return EXECUTION_OK;
 
     }
 };

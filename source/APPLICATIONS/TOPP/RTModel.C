@@ -34,7 +34,7 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qfileinfo.h>
 #include <qfile.h>
@@ -592,7 +592,7 @@ class TOPPRTModel
 			
 			svm.saveModel(outputfile_name);
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

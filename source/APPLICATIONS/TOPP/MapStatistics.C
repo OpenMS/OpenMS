@@ -44,7 +44,7 @@
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_statistics.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -293,7 +293,7 @@ protected:
             return ILLEGAL_PARAMETERS;
         }
 
-        return OK;
+        return EXECUTION_OK;
 
     }
 };

@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <sstream>
 
@@ -198,7 +198,7 @@ class TOPPUnlabeledMatcher
 
       writeDebug_("Running UnlabeledMatcher...done.",1);
 
-      return OK;
+      return EXECUTION_OK;
 
     } // main_()
 

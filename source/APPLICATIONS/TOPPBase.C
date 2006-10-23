@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace std;
 
@@ -87,14 +87,14 @@ namespace OpenMS
 		if (!(param_cmdline_.getValue("help").isEmpty()))
 		{
 			printUsage_();
-			return OK;
+			return EXECUTION_OK;
 		}
 	
 		// '--help-opt' given
 		if (!(param_cmdline_.getValue("helpopt").isEmpty()))
 		{
 			printHelpOpt_();
-			return OK;
+			return EXECUTION_OK;
 		}
 			
 		// test if unknown options were given

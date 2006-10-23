@@ -34,7 +34,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qfileinfo.h>
 #include <qfile.h>
@@ -295,7 +295,7 @@ class TOPPRTPredict
 														 contact_person,
 														 predicted_data,
 														 svm.getSVRProbability());
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

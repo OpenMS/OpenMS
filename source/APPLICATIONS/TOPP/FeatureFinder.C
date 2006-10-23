@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -189,7 +189,7 @@ class TOPPFeatureFinder
 		DFeatureMapFile map_file;
 		map_file.store(out,features);			
 			
-		return OK;
+		return EXECUTION_OK;
 
 	}
 };

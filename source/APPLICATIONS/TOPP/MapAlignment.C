@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -150,7 +150,7 @@ class TOPPMapAlignment
       ConsensusXMLFile cons_file;
       cons_file.store(out,alignment);
 
-      return OK;
+      return EXECUTION_OK;
     }
 };
 

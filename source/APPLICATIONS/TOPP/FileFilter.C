@@ -27,7 +27,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -273,7 +273,7 @@ class TOPPFileFilter
 			
 			f.store(out,exp);
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

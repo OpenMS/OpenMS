@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qapplication.h>
 
@@ -232,7 +232,7 @@ class TOPPDBExporter
 				}		
 			}		
 			
-			return OK;
+			return EXECUTION_OK;
 		}
 };
 

@@ -90,131 +90,130 @@ clean: default_clean
 
 ADD_CXXFLAGS=  -pg  -D_REENTRANT  -DQT_THREAD_SUPPORT -DQT_SHARED -DQT_NO_DEBUG 
 
-OPENMS_INCLUDES=$(GUI_INCLUDES) -I./
+OPENMS_INCLUDES=$(GUI_INCLUDES)
 LIBS=$(GUI_LIBS)
 
 CPP_SOURCES =\
-	TOPPBase.C\
 	$(EXECUTABLES:=.C)
 
-MapStatistics: MapStatistics.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+MapStatistics: MapStatistics.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/             
 
-MapMatcher: MapMatcher.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+MapMatcher: MapMatcher.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-NoiseFilter: NoiseFilter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+NoiseFilter: NoiseFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-BaselineFilter: BaselineFilter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+BaselineFilter: BaselineFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-AdditiveSeries: AdditiveSeries.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+AdditiveSeries: AdditiveSeries.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-RTModel: RTModel.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+RTModel: RTModel.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-RTPredict: RTPredict.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+RTPredict: RTPredict.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FileConverter: FileConverter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FileConverter: FileConverter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FileInfo: FileInfo.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FileInfo: FileInfo.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FileFilter: FileFilter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FileFilter: FileFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
 TOPPView: TOPPView.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FeatureFinder: FeatureFinder.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FeatureFinder: FeatureFinder.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-SpectrumComparator: SpectrumComparator.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+SpectrumComparator: SpectrumComparator.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-SpectrumLibBuilder: SpectrumLibBuilder.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+SpectrumLibBuilder: SpectrumLibBuilder.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-SpectrumLibMatcher: SpectrumLibMatcher.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+SpectrumLibMatcher: SpectrumLibMatcher.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-Dewarper: Dewarper.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+Dewarper: Dewarper.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-PeakPicker: PeakPicker.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+PeakPicker: PeakPicker.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-IDFilter: IDFilter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+IDFilter: IDFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FeaturePairSplitter: FeaturePairSplitter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FeaturePairSplitter: FeaturePairSplitter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-DBExporter: DBExporter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+DBExporter: DBExporter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-DBImporter: DBImporter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+DBImporter: DBImporter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-LabeledMatcher: LabeledMatcher.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+LabeledMatcher: LabeledMatcher.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-MascotAdapter: MascotAdapter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+MascotAdapter: MascotAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-InspectAdapter: InspectAdapter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+InspectAdapter: InspectAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-RawDataResampler: RawDataResampler.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+RawDataResampler: RawDataResampler.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-UnlabeledMatcher: UnlabeledMatcher.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+UnlabeledMatcher: UnlabeledMatcher.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-FileMerger: FileMerger.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+FileMerger: FileMerger.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-SpectraFilter: SpectraFilter.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+SpectraFilter: SpectraFilter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-DTAExtractor: DTAExtractor.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+DTAExtractor: DTAExtractor.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/
 
-MapAlignment: MapAlignment.o TOPPBase.o
-	$(CXX) $(LDFLAGS) -o $@ $< TOPPBase.o $(LIBS)
+MapAlignment: MapAlignment.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
 AnalysisXMLMerger: AnalysisXMLMerger.o TOPPBase.o

@@ -33,7 +33,7 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qfileinfo.h>
 #include <qfile.h>
@@ -490,7 +490,7 @@ class TOPPIDFilter
 												 		 filtered_precursor_mz_values,
 												 		 contact_person);
 		}
-		return OK;
+		return EXECUTION_OK;
 	}
 };
 

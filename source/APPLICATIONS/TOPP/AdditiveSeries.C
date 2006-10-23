@@ -35,7 +35,7 @@
 #include<OpenMS/KERNEL/DPosition.h>
 #include<OpenMS/KERNEL/DimensionDescription.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -492,7 +492,7 @@ protected:
                                                     intensities.begin(), 0.95, filename_prefix, out_f, "eps", false);
         }
 
-        return OK;
+        return EXECUTION_OK;
     }
 
 };

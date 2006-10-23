@@ -28,7 +28,7 @@
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -230,7 +230,7 @@ protected:
 
         mz_data_file.store(out,ms_exp_filtered);
 
-        return OK;
+        return EXECUTION_OK;
     }
 };
 
