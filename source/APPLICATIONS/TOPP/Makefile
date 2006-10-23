@@ -63,6 +63,7 @@ EXECUTABLES=\
 	IDFilter\
 	MascotAdapter\
 	InspectAdapter\
+	SequestAdapter\
 	PeakPicker\
 	LabeledMatcher\
 	Dewarper\
@@ -191,6 +192,10 @@ MascotAdapter: MascotAdapter.o
 InspectAdapter: InspectAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
+
+SequestAdapter: SequestAdapter.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/
 
 RawDataResampler: RawDataResampler.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)

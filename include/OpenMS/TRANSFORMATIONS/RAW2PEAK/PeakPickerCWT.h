@@ -32,7 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -359,7 +359,8 @@ namespace OpenMS
         // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
-        DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
+        DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
+		sne.setWindowSize(50);
 
         unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
@@ -717,7 +718,39 @@ namespace OpenMS
       template <typename InputPeakType, typename OutputPeakType >
       void pickExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
       {
-        pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
+	  	for (unsigned int i=0; i<ms_exp_raw.size();++i)
+		{
+		  MSSpectrum< OutputPeakType > out_spec;
+		  MSSpectrum< InputPeakType > inspec = ms_exp_raw[i];
+         
+		  std::cout << "Picking scan " << i << std::endl;
+		  std::cout << "Size: " << inspec.size() << std::endl;;
+          // pick the peaks in scan i
+          pick(inspec.begin(),inspec.end(),out_spec,inspec.getMSLevel());
+
+          // if any peaks are found copy the spectrum settings
+          if (out_spec.size() > 0)
+          {
+            // copy the spectrum settings
+            //static_cast<SpectrumSettings&>(spectrum) = *input_it;
+            out_spec.setType(SpectrumSettings::PEAKS);
+
+            // copy the spectrum information
+            out_spec.getPrecursorPeak() = inspec.getPrecursorPeak();
+            out_spec.setRetentionTime(inspec.getRetentionTime());
+            out_spec.setMSLevel(inspec.getMSLevel());
+            out_spec.getName() = inspec.getName();
+
+            ms_exp_peaks.push_back(out_spec);
+			std::cout << "Stored new spectrum. New size: " << ms_exp_peaks.size() << std::endl;
+		  } 
+		  else
+		  {
+		  	std::cout << "No peaks found in this spectrum. " << std::endl;
+		  }
+		}
+        
+		//pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
       }
 
 

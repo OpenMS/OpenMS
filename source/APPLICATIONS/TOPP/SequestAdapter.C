@@ -21,23 +21,26 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SequestAdapter.C, 2006/10/19 13:16 martinlangwisch Exp $
-// $Author: martinlangwisch $
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
+
 #include <OpenMS/METADATA/ContactPerson.h>
+
 #include <OpenMS/FORMAT/SequestInfile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/FORMAT/AnalysisXMLFile.h>
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <stdlib.h>
@@ -127,10 +130,10 @@ class TOPPSequestAdapter
 			}
 		};
 	
-		void printToolUsage_()
+		void printToolUsage_() const
 		{
 			std::cerr	<< std::endl
-						<< tool_name_ << " -- annotates MS/MS spectra using Sequest" << std::endl
+						<< getToolName() << " -- annotates MS/MS spectra using Sequest" << std::endl
 						<< std::endl
 						<< "Usage:" << std::endl
 						<< " " << tool_name_ << " [options]" << std::endl
@@ -187,7 +190,7 @@ class TOPPSequestAdapter
 		}
 
 
-		void printToolHelpOpt_()
+		void printToolHelpOpt_() const
 		{
 			std::cerr	<< std::endl
 			<< "  -ion_cutoff                    This value selects a cut-off below which a matching peptide is rejected." << std::endl
