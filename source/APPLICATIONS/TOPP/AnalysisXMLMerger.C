@@ -129,6 +129,7 @@ class TOPPAnalysisXMLMerger
 		//file list
 		file_list = getParamAsString_("in");
 		file_list.split(',', file_names);
+
 		if (file_names.size() < 2)
 		{
 			writeLog_("Less than two filenames given. Aborting!");
@@ -154,9 +155,9 @@ class TOPPAnalysisXMLMerger
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
 
-		for(UnsignedInt i = 0; i < file_list.size(); ++i)
+		for(UnsignedInt i = 0; i < file_names.size(); ++i)
 		{
-			actual_file_name = file_list[i];
+			actual_file_name = file_names[i];
 			file_info.setFile(actual_file_name.c_str());
 			if (!file_info.exists())
 			{
@@ -182,16 +183,15 @@ class TOPPAnalysisXMLMerger
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		actual_file_name = file_names[0];
-		analysisXML_file.load(file_list[0],
+		analysisXML_file.load(file_names[0],
 													&protein_identifications,
 													&identifications, 
 													&retention_times,
 													&mz_values,
 													&contact_person);
-		for(counter = 1; counter < file_list.size(); ++counter)
+		for(counter = 1; counter < file_names.size(); ++counter)
 		{
-			analysisXML_file.load(file_list[counter],
+			analysisXML_file.load(file_names[counter],
 														&protein_identifications,
 														&identifications, 
 														&retention_times,
