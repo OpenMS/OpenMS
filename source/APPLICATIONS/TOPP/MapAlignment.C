@@ -32,7 +32,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
-#include "TOPPBase.h"
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -108,16 +108,16 @@ class TOPPMapAlignment
       
       //map type
       String map_type = getParamAsString_("map_type");
-      std::cout << "Map type " << map_type << std::endl;
+      cout << "Map type " << map_type << endl;
 
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
       Param mapali_param = getParam_();
-      std::cout << "Param \n" << mapali_param << std::endl;
+      cout << "Param \n" << mapali_param << endl;
 
       Param files_param = mapali_param.copy("Files:",true);
-      std::cout << "Param \n" << files_param << std::endl;
+      cout << "Param \n" << files_param << endl;
       //-------------------------------------------------------------
       // loading input and initialize the alignment object
       //-------------------------------------------------------------
@@ -126,12 +126,12 @@ class TOPPMapAlignment
       alignment.setParam(mapali_param);
       
       DFeatureMapFile feature_file;
-      std::vector< String > file_names;
+      vector< String > file_names;
       // Vector for the feature maps
-      std::vector< FeatureMapType > feature_maps(distance(pit,files_param.end()));
+      vector< FeatureMapType > feature_maps(distance(pit,files_param.end()));
 
       // Reference to the map vector of the alignment object
-      std::vector< FeatureMapType* >& map_vector = alignment.getElementMapVector();
+      vector< FeatureMapType* >& map_vector = alignment.getElementMapVector();
       unsigned int i=0;
       while (pit != files_param.end())
       {

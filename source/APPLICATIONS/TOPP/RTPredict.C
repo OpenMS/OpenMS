@@ -87,8 +87,7 @@ class TOPPRTPredict
 		void printToolUsage_() const
 		{
 			cerr << endl
-       << getToolName() << " -- Predicts retention times for peptides"
-       << " via the svm_model that is trained by RTModel."
+       << getToolName() << " -- Predicts retention times for peptides via the svm_model that is trained by RTModel." << endl
        << "Version: " << VersionInfo::getVersion() << endl
        << endl
        << "Usage:" << endl

@@ -28,24 +28,27 @@ include ../../config_defs.mak
 
 DIRECTORY=TEST/TOPP
 
-# Diff that ignores whitespaces and empty lines
-# Unless in debug mode it does not report the differences but only that the files are different
-ifeq ("$(DEBUG)","")
-	DIFF_WITH_OPT = ${DIFF} -bB --brief
-else
-	DIFF_WITH_OPT = ${DIFF} -bBu
-endif
-
+# ATTENTION: DEBUG MODE
+# You can activate the degub mode with 'make DEGUB=1 <target>':
+# - diff reports the differences (not only if files are different)
+# - temporary files (*.tmp) are not deleted after the execution
 
 
 # DEFAULT TARGET 
 # Here all TOPP tool tests are executed. Afterwards all temporary data files are removed (*.tmp)
-# You can disable removing the tmp files by calling 'make DEGUB=1 <target>'
-default: FileInfo_test FileFilter_test DTAExtractor_test FileConverter_test FileMerger_test
+default:  FileInfo_test FileFilter_test DTAExtractor_test FileConverter_test FileMerger_test
 	@${ECHO} ""
 	@${ECHO} "All TOPP tests executed successfully"
 	@${ECHO} ""
 	@ if test -z ${DEBUG}; then ${RM} -f *.tmp; fi 
+
+
+# Diff that ignores whitespaces and empty lines
+ifeq ("$(DEBUG)","")
+  DIFF_WITH_OPT = ${DIFF} -bB --brief
+else
+  DIFF_WITH_OPT = ${DIFF} -bBu
+endif
 
 
 FileInfo_test:
@@ -98,6 +101,20 @@ DTAExtractor_test:
 	@${ECHO} ""
 	@${ECHO} "DTAExtractor:"
 
+	@${ECHO} "- Test 1: rt"
+	@${OPENMS_PATH}/bin/DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -rt :61
+	@${MV} DTAExtractor_RT60.dta DTAExtractor.tmp
+	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_1_output.dta
+
+	@${ECHO} "- Test 2: level"
+	@${OPENMS_PATH}/bin/DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -level 1
+	@${MV} DTAExtractor_RT60.dta DTAExtractor.tmp
+	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_2_output.dta
+
+	@${ECHO} "- Test 3: precursor mz, level"
+	@${OPENMS_PATH}/bin/DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -level 2 -mz :1000
+	@${MV} DTAExtractor_RT140_MZ5.dta DTAExtractor.tmp
+	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_3_output.dta
 
 FileConverter_test:
 	@${ECHO} ""

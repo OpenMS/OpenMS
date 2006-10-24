@@ -47,6 +47,7 @@
 #include <qstringlist.h>
 
 using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -117,9 +118,9 @@ class TOPPSequestAdapter
 		static const int max_peptide_mass_units = 2;
 		
 		struct SortRetentionTimes:
-				public std::binary_function<const std::pair< String, std::vector< double > >, const std::pair< String, std::vector< double > >, bool>
+				public binary_function<const pair< String, vector< double > >, const pair< String, vector< double > >, bool>
 		{
-			bool operator()(const std::pair< String, std::vector< double > >& x, const std::pair< String, std::vector< double > >& y)
+			bool operator()(const pair< String, vector< double > >& x, const pair< String, vector< double > >& y)
 			{
 				return ( x.first < y.first );
 			}
@@ -127,132 +128,133 @@ class TOPPSequestAdapter
 	
 		void printToolUsage_() const
 		{
-			std::cerr	<< std::endl
-						<< getToolName() << " -- annotates MS/MS spectra using Sequest" << std::endl
-						<< std::endl
-						<< "Usage:" << std::endl
-						<< " " << getToolName() << " [options]" << std::endl
-						<< std::endl
-						<< "Options are:" << std::endl
-						<< "  [the _win parameters correspond to path of the linux directory when mounted under windows. NO SPACE ALLOWED!;" << std::endl
-						<< "   the _network paramters correspond to the path network path of the directory when mounting the under windows;" << std::endl
-						<< "   as Sequest runs on windows, all the files and directories used have to be mounted on the corresponding computer!" << std::endl
-						<< "   rdesktop is used to connect to this computer" << std::endl << std::endl
-						<< "   Sequest writes a file named 'sequest.log' into the out_dir, so you must not name the log file alike]" << std::endl
-						<< "  -Sequest_in           if this flag is set the SequestAdapter will create a sequest input file" << std::endl
-						<< "                        and create dta files from the given mzXML files" << std::endl
-						<< "  -Sequest_out          if this flag is set the SequestAdapter will read in Sequest out files and write an analysis XML file" << std::endl
-						<< "  -spectra              the names of the mzXML files" << std::endl
-						<< "  -out                  the name of the analysis XML file" << std::endl
-						<< "  -sequest_dir_win      the windows path where sequest.exe is located" << std::endl
-						<< "  -sequest_computer     the name of the computer in the network that hosts Sequest" << std::endl
-						<< "  -user                 user name for the sequest computer (has to have access to network!)" << std::endl
-						<< "  -password             password for this user (if not given, you have to enter it at promt)" << std::endl
-						<< "  -p_value              annotations with inferior p-value are ignored (default is 0.05)" << std::endl
-						<< "  -show_enzyme_numbers  show a list with enzymes and corresponding numbers to choose from" << std::endl
-						<< "  -num_results          the maximal number of results (peptides) to show" << std::endl
-						<< "  -max_num_dif_AA_per_mod  limits the maximum total number of each single variable modification in one peptide" << std::endl
-						<< "  -max_num_dif_mods_per_peptide  limits the maximum total number of each single variable modification in one peptide" << std::endl
-						<< "  -prob_charge          the number of charge states that are used if it is unknown for a scan" << std::endl
-						<< "  -pep_mass_tol         tolerance for a peptide ion" << std::endl
-						<< "  -frag_ion_tol         tolerance for a fragment ion" << std::endl
-						<< "  -match_peak_tol       the minimal space between two peaks" << std::endl
-						<< "  -enzyme_info          <name>,<cut direction: N to C?>,<cuts after>,<doesn't cut before>;" << std::endl
-						<< "                        cuts after, doesn't cut before: amino acids in 1-letter code or '-' for unspecific cleavage" << std::endl
-						<< "  -enzyme_number        a number from the list (show_enzyme_numbers); if enzyme_info is used, this value is set accordingly" << std::endl
-						<< "  -neutral_loss_ABY     ABY: 0 or 1 whether neutral losses of the series should be honored, eg: 011" << std::endl
-						<< "  -ion_series_weights   abcdvwxyz: [0.0, 1.0] factor for the series, eg: 0,0.5,0,0,0,0,0,1.0,0" << std::endl
-						<< "  -dta_dir              the directory to store the dta files" << std::endl
-						<< "  -dta_dir_win          " << std::endl
-						<< "  -out_dir              the directory to store the sequest output files" << std::endl
-						<< "  -out_dir_win          " << std::endl
-						<< "  -in                   the name of the sequest input file" << std::endl
-						<< "  -in_win               " << std::endl
-						<< "  -db                   the name of the database file" << std::endl
-						<< "  -db_win               " << std::endl
-						<< "  -snd_db               the name of the second database file" << std::endl
-						<< "  -snd_db_win           " << std::endl
-						<< "  -temp_data_dir        the directory to store temporary data" << std::endl
-						<< "  -temp_data_dir_win    " << std::endl
-						<< std::endl
-						<< "  For each windows drive, one corresponding network drive has to be given, so maybe you don't need to set all the parameters below" << std::endl
-						<< "  -temp_data_dir_network" << std::endl
-						<< "  -out_dir_network" << std::endl
-						<< "  -dta_dir_network" << std::endl
-						<< "  -db_dir_network" << std::endl
-						<< "  -snd_db_dir_network" << std::endl
-						<< "  -in_dir_network" << std::endl;
+			cerr	<< endl
+						<< getToolName() << " -- annotates MS/MS spectra using Sequest" << endl
+						<< "Version: " << VersionInfo::getVersion() << endl
+						<< endl
+						<< "Usage:" << endl
+						<< " " << getToolName() << " [options]" << endl
+						<< endl
+						<< "Options are:" << endl
+						<< "  [the _win parameters correspond to path of the linux directory when mounted under windows. NO SPACE ALLOWED!;" << endl
+						<< "   the _network paramters correspond to the path network path of the directory when mounting the under windows;" << endl
+						<< "   as Sequest runs on windows, all the files and directories used have to be mounted on the corresponding computer!" << endl
+						<< "   rdesktop is used to connect to this computer" << endl << endl
+						<< "   Sequest writes a file named 'sequest.log' into the out_dir, so you must not name the log file alike]" << endl
+						<< "  -Sequest_in           if this flag is set the SequestAdapter will create a sequest input file" << endl
+						<< "                        and create dta files from the given mzXML files" << endl
+						<< "  -Sequest_out          if this flag is set the SequestAdapter will read in Sequest out files and write an analysis XML file" << endl
+						<< "  -spectra              the names of the mzXML files" << endl
+						<< "  -out                  the name of the analysis XML file" << endl
+						<< "  -sequest_dir_win      the windows path where sequest.exe is located" << endl
+						<< "  -sequest_computer     the name of the computer in the network that hosts Sequest" << endl
+						<< "  -user                 user name for the sequest computer (has to have access to network!)" << endl
+						<< "  -password             password for this user (if not given, you have to enter it at promt)" << endl
+						<< "  -p_value              annotations with inferior p-value are ignored (default is 0.05)" << endl
+						<< "  -show_enzyme_numbers  show a list with enzymes and corresponding numbers to choose from" << endl
+						<< "  -num_results          the maximal number of results (peptides) to show" << endl
+						<< "  -max_num_dif_AA_per_mod  limits the maximum total number of each single variable modification in one peptide" << endl
+						<< "  -max_num_dif_mods_per_peptide  limits the maximum total number of each single variable modification in one peptide" << endl
+						<< "  -prob_charge          the number of charge states that are used if it is unknown for a scan" << endl
+						<< "  -pep_mass_tol         tolerance for a peptide ion" << endl
+						<< "  -frag_ion_tol         tolerance for a fragment ion" << endl
+						<< "  -match_peak_tol       the minimal space between two peaks" << endl
+						<< "  -enzyme_info          <name>,<cut direction: N to C?>,<cuts after>,<doesn't cut before>;" << endl
+						<< "                        cuts after, doesn't cut before: amino acids in 1-letter code or '-' for unspecific cleavage" << endl
+						<< "  -enzyme_number        a number from the list (show_enzyme_numbers); if enzyme_info is used, this value is set accordingly" << endl
+						<< "  -neutral_loss_ABY     ABY: 0 or 1 whether neutral losses of the series should be honored, eg: 011" << endl
+						<< "  -ion_series_weights   abcdvwxyz: [0.0, 1.0] factor for the series, eg: 0,0.5,0,0,0,0,0,1.0,0" << endl
+						<< "  -dta_dir              the directory to store the dta files" << endl
+						<< "  -dta_dir_win          " << endl
+						<< "  -out_dir              the directory to store the sequest output files" << endl
+						<< "  -out_dir_win          " << endl
+						<< "  -in                   the name of the sequest input file" << endl
+						<< "  -in_win               " << endl
+						<< "  -db                   the name of the database file" << endl
+						<< "  -db_win               " << endl
+						<< "  -snd_db               the name of the second database file" << endl
+						<< "  -snd_db_win           " << endl
+						<< "  -temp_data_dir        the directory to store temporary data" << endl
+						<< "  -temp_data_dir_win    " << endl
+						<< endl
+						<< "  For each windows drive, one corresponding network drive has to be given, so maybe you don't need to set all the parameters below" << endl
+						<< "  -temp_data_dir_network" << endl
+						<< "  -out_dir_network" << endl
+						<< "  -dta_dir_network" << endl
+						<< "  -db_dir_network" << endl
+						<< "  -snd_db_dir_network" << endl
+						<< "  -in_dir_network" << endl;
 		}
 
 
 		void printToolHelpOpt_() const
 		{
-			std::cerr	<< std::endl
-			<< "  -ion_cutoff                    This value selects a cut-off below which a matching peptide is rejected." << std::endl
-			<< "                                 The value compared with this value is the ratio" << std::endl
-			<< "                                 (# matching theoretical fragment peaks) / (# total theoretical fragment peaks)" << std::endl
-			<< "                                 which means that the user can select a minimum coverage of matching peaks." << std::endl
-			<< "  -pep_mass_unit                 peptide mass unit: 0=amu (atomic mass unit), 1=mmu (millimass unit), 2=ppm (parts per million)" << std::endl
-			<< "  -min_prot_mass                 minimal protein mass" << std::endl
-			<< "  -max_prot_mass                 maximal protein mass" << std::endl
-			<< "  -nuc_reading_frame             Format of the FASTA database:" << std::endl
-			<< "                                 0  The FASTA file contains amino acid codes. No translation is needed." << std::endl
-			<< "                                 1  The DNA sequence is scanned left to right (forward direction)." << std::endl
-			<< "                                    The amino acid code starts with the first DNA code." << std::cout
-			<< "                                 2  The DNA sequence is scanned left to right (forward direction)." << std::cout
-			<< "                                    The amino acid code starts with the second DNA code." << std::endl
-			<< "                                 3  The DNA sequence is scanned left to right (forward direction)." << std::cout
-			<< "                                    The amino acid code starts with the third DNA code." << std::cout
-			<< "                                 4  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << std::cout
-			<< "                                    The amino acid code starts with the first DNA code." << std::cout
-			<< "                                 5  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << std::cout
-			<< "                                    The amino acid code starts with the second DNA code." << std::cout
-			<< "                                 6  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << std::cout
-			<< "                                    The amino acid code starts with the third DNA code." << std::cout
-			<< "                                 7  Use each of the DNA translations of the codes 1, 2, 3." << std::cout
-			<< "                                 8  Use each of the DNA translations of the codes 4, 5, 6." << std::cout
-			<< "                                 9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6." << std::cout
-			<< std::cout
-			<< "  -max_num_int_cleav_sites       This value is the number of cleavage positions that may have been ignored by the enzyme." << std::endl
-			<< "  -match_peak_count              The highest abundant experimental peaks are checked whether they are matched by the" << std::endl
-			<< "                                 theoretical ones. match_peak_count is the number of the top abundant peaks to check." << std::endl
-			<< "                                 A maximum of match_peak_allowed_error may lack this test." << std::endl
-			<< "  -match_peak_allowed_error      see match_peak_count" << std::endl
-			<< "  -show_fragment_ions            If set to 1 the fragment peaks of the top scored peptide are listed at the end of the output" << std::endl
-			<< "  -use_phospho_fragmentation     ???" << std::endl
-			<< "  -remove_precursor_peak         If set to 1 the peaks near (15 amu) the precursor are removed." << std::endl
-			<< "  -mass_type_parent              A value of 1 selects monoisotopic masses, 0 selects average masses for calculating precursor peaks." << std::endl
-			<< "  -mass_type_fragment            A value of 1 selects monoisotopic masses, 0 selects average masses for calculating fragment peaks." << std::endl
-			<< "  -normalize_xcorr               Whether to use normalized xcorr values in the out files." << std::endl
-			<< "  -residues_in_upper_case        Whether the residues in the FASTA database are in upper case." << std::endl
-			<< "  -dyn_mods                      This value consists of semicolon-seperated pairs of variable modifications." << std::endl
-			<< "                                 Each pair has two comma-seperated elements: A mass and a list of amino acids." << std::endl
-			<< "                                 Sequest only applies the last modification character without warning." << std::endl
-			<< "                                 Don't use \"44 S 80 ST\". It is interpreted as \"80 ST\"!." << std::endl
-			<< "                                 Sequest won't apply any modification if the first two are null." << std::endl
-			<< "                                 Always put valid modifications first. Don't use \"0 X 0 X 16 M\"" << std::endl
-			<< "                                 Up to six modifications are allowed, if more are given, they are ignored." << std::endl
-			<< "  -dyn_N_term_mod                This is the modification (mass that may be added to each N-terminus)" << std::endl
-			<< "  -dyn_C_term_mod                This is the modification (mass that may be added to each C-terminus" << std::endl
-			<< "  -stat_N_term_mod               This value is the mass that is added to each peptide N-terminus" << std::endl
-			<< "  -stat_C_term_mod               This value is the mass that is added to each peptide C-terminus" << std::endl
-			<< "  -stat_N_term_prot_mod          This value is the mass that is added to each protein N-terminus" << std::endl
-			<< "  -stat_C_term_prot_mod          This value is the mass that is added to each protein C-terminus" << std::endl
-			<< "  -stat_mods                     This value consists of a semicolon-seperated list of amino acids in one letter code" << std::endl
-			<< "                                 and their corrpesponding mass: <AA_1>,<mass_1>;<AA_2>,<mass_2>;..." << std::endl
-			<< "  -partial_sequence              A comma delimited list of amino acid sequences that must occur in the theoretical spectra." << std::endl
-			<< "  -header_filter                 Several elements can be splitted by commas. Each element can be introduced" << std::endl
-			<< "                                 by an exclamation mark (!) meaning that this element must not appear" << std::endl
-			<< "                                 in the header of a protein or the protein will be skipped. This test is done first." << std::endl
-			<< "                                 Next, all other elements are tested. The protein is processed" << std::endl
-			<< "                                 if one filter string matches the header string." << std::endl
-			<< "                                 A filter string may contain a tilde (~). This is replaced by a blank during comparison." << std::endl
-			<< "  -keep_out_files                If set to 1, the Seuest .out-files are not removed (default for -Sequest_out)" << std::endl
-			<< "  -keep_dta_files                If set to 1, the dta-files that were created from the mzXML-files are not removed" << std::endl
-			<< "                                 (default for -Sequest_in)" << std::endl
-			<< "  -contactName                   " << std::endl
-			<< "  -contactInstitution            " << std::endl
-			<< "  -contactInfo                   " << std::endl;
+			cerr	<< endl
+			<< "  -ion_cutoff                    This value selects a cut-off below which a matching peptide is rejected." << endl
+			<< "                                 The value compared with this value is the ratio" << endl
+			<< "                                 (# matching theoretical fragment peaks) / (# total theoretical fragment peaks)" << endl
+			<< "                                 which means that the user can select a minimum coverage of matching peaks." << endl
+			<< "  -pep_mass_unit                 peptide mass unit: 0=amu (atomic mass unit), 1=mmu (millimass unit), 2=ppm (parts per million)" << endl
+			<< "  -min_prot_mass                 minimal protein mass" << endl
+			<< "  -max_prot_mass                 maximal protein mass" << endl
+			<< "  -nuc_reading_frame             Format of the FASTA database:" << endl
+			<< "                                 0  The FASTA file contains amino acid codes. No translation is needed." << endl
+			<< "                                 1  The DNA sequence is scanned left to right (forward direction)." << endl
+			<< "                                    The amino acid code starts with the first DNA code." << cout
+			<< "                                 2  The DNA sequence is scanned left to right (forward direction)." << cout
+			<< "                                    The amino acid code starts with the second DNA code." << endl
+			<< "                                 3  The DNA sequence is scanned left to right (forward direction)." << cout
+			<< "                                    The amino acid code starts with the third DNA code." << cout
+			<< "                                 4  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
+			<< "                                    The amino acid code starts with the first DNA code." << cout
+			<< "                                 5  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
+			<< "                                    The amino acid code starts with the second DNA code." << cout
+			<< "                                 6  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
+			<< "                                    The amino acid code starts with the third DNA code." << cout
+			<< "                                 7  Use each of the DNA translations of the codes 1, 2, 3." << cout
+			<< "                                 8  Use each of the DNA translations of the codes 4, 5, 6." << cout
+			<< "                                 9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6." << cout
+			<< cout
+			<< "  -max_num_int_cleav_sites       This value is the number of cleavage positions that may have been ignored by the enzyme." << endl
+			<< "  -match_peak_count              The highest abundant experimental peaks are checked whether they are matched by the" << endl
+			<< "                                 theoretical ones. match_peak_count is the number of the top abundant peaks to check." << endl
+			<< "                                 A maximum of match_peak_allowed_error may lack this test." << endl
+			<< "  -match_peak_allowed_error      see match_peak_count" << endl
+			<< "  -show_fragment_ions            If set to 1 the fragment peaks of the top scored peptide are listed at the end of the output" << endl
+			<< "  -use_phospho_fragmentation     ???" << endl
+			<< "  -remove_precursor_peak         If set to 1 the peaks near (15 amu) the precursor are removed." << endl
+			<< "  -mass_type_parent              A value of 1 selects monoisotopic masses, 0 selects average masses for calculating precursor peaks." << endl
+			<< "  -mass_type_fragment            A value of 1 selects monoisotopic masses, 0 selects average masses for calculating fragment peaks." << endl
+			<< "  -normalize_xcorr               Whether to use normalized xcorr values in the out files." << endl
+			<< "  -residues_in_upper_case        Whether the residues in the FASTA database are in upper case." << endl
+			<< "  -dyn_mods                      This value consists of semicolon-seperated pairs of variable modifications." << endl
+			<< "                                 Each pair has two comma-seperated elements: A mass and a list of amino acids." << endl
+			<< "                                 Sequest only applies the last modification character without warning." << endl
+			<< "                                 Don't use \"44 S 80 ST\". It is interpreted as \"80 ST\"!." << endl
+			<< "                                 Sequest won't apply any modification if the first two are null." << endl
+			<< "                                 Always put valid modifications first. Don't use \"0 X 0 X 16 M\"" << endl
+			<< "                                 Up to six modifications are allowed, if more are given, they are ignored." << endl
+			<< "  -dyn_N_term_mod                This is the modification (mass that may be added to each N-terminus)" << endl
+			<< "  -dyn_C_term_mod                This is the modification (mass that may be added to each C-terminus" << endl
+			<< "  -stat_N_term_mod               This value is the mass that is added to each peptide N-terminus" << endl
+			<< "  -stat_C_term_mod               This value is the mass that is added to each peptide C-terminus" << endl
+			<< "  -stat_N_term_prot_mod          This value is the mass that is added to each protein N-terminus" << endl
+			<< "  -stat_C_term_prot_mod          This value is the mass that is added to each protein C-terminus" << endl
+			<< "  -stat_mods                     This value consists of a semicolon-seperated list of amino acids in one letter code" << endl
+			<< "                                 and their corrpesponding mass: <AA_1>,<mass_1>;<AA_2>,<mass_2>;..." << endl
+			<< "  -partial_sequence              A comma delimited list of amino acid sequences that must occur in the theoretical spectra." << endl
+			<< "  -header_filter                 Several elements can be splitted by commas. Each element can be introduced" << endl
+			<< "                                 by an exclamation mark (!) meaning that this element must not appear" << endl
+			<< "                                 in the header of a protein or the protein will be skipped. This test is done first." << endl
+			<< "                                 Next, all other elements are tested. The protein is processed" << endl
+			<< "                                 if one filter string matches the header string." << endl
+			<< "                                 A filter string may contain a tilde (~). This is replaced by a blank during comparison." << endl
+			<< "  -keep_out_files                If set to 1, the Seuest .out-files are not removed (default for -Sequest_out)" << endl
+			<< "  -keep_dta_files                If set to 1, the dta-files that were created from the mzXML-files are not removed" << endl
+			<< "                                 (default for -Sequest_in)" << endl
+			<< "  -contactName                   " << endl
+			<< "  -contactInstitution            " << endl
+			<< "  -contactInfo                   " << endl;
 		}
 
 
@@ -326,12 +328,12 @@ class TOPPSequestAdapter
 			flags_["-keep_dta_files"] = "keep_dta_files";
 		}
 
-		inline void ensurePathChar(std::string& path, char path_char = '/')
+		inline void ensurePathChar(string& path, char path_char = '/')
 		{
-			if ( !path.empty() && (std::string("/\\").find(path[path.length()-1], 0) == std::string::npos) ) path.append(1, path_char);
+			if ( !path.empty() && (string("/\\").find(path[path.length()-1], 0) == string::npos) ) path.append(1, path_char);
 		}
 
-		bool isWinFormat(const std::string& name)
+		bool isWinFormat(const string& name)
 		{
 			// check for the directory and the backslash afterwards
 			if ( name.length() > 1 )
@@ -343,7 +345,7 @@ class TOPPSequestAdapter
 						if ( name[2] == '\\' )
 						{
 							// make sure there's no space within the name, as in windows 'cmd /C "command"' is used, so there's no possibility to use any more ""
-							if ( name.find(" ") == std::string::npos ) return true;
+							if ( name.find(" ") == string::npos ) return true;
 							else return false;
 						}
 						else return false;
@@ -359,7 +361,7 @@ class TOPPSequestAdapter
 			if ( network_path.hasSuffix("\\") ) network_path.erase(--network_path.end());
 		}
 		
-		long fsize(const std::string& filename)
+		long fsize(const string& filename)
 		{
 			FILE* file = fopen(filename.c_str(), "r");
 			long size = 0;
@@ -375,7 +377,7 @@ class TOPPSequestAdapter
 		
 		inline bool
 		emptyFile(
-			const std::string& filename)
+			const string& filename)
 		{
 			return ( fsize(filename) == 0 );
 		}
@@ -394,7 +396,7 @@ class TOPPSequestAdapter
 			MSExperiment<>& msexperiment,
 			const String& common_name,
 			unsigned int prob_charge,
-			std::vector< std::pair< String, std::vector< double > > >& filenames_and_precursor_retention_times,
+			vector< pair< String, vector< double > > >& filenames_and_precursor_retention_times,
 			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
@@ -402,7 +404,7 @@ class TOPPSequestAdapter
 			String filename;
 			unsigned int scan_number = 0;
 			unsigned int msms_spectra = 0;
-			std::vector< double > retention_times;
+			vector< double > retention_times;
 			
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
@@ -436,7 +438,7 @@ class TOPPSequestAdapter
 				}
 			}
 			
-			filenames_and_precursor_retention_times.push_back(std::make_pair(filename, retention_times));
+			filenames_and_precursor_retention_times.push_back(make_pair(filename, retention_times));
 			
 			return msms_spectra;
 		}
@@ -455,7 +457,7 @@ class TOPPSequestAdapter
 			bool Sequest_in, Sequest_out, keep_out_files, keep_dta_files;
 			String temp_data_dir, temp_data_dir_win, temp_data_dir_network, sequest_dir_win, database, database_win, database_dir_network, snd_database, snd_database_win, snd_database_dir_network, dta_dir, dta_dir_win, dta_dir_network, out_dir, out_dir_win, out_dir_network, batch_filename;
 			
-			std::vector< String > substrings, spectra;
+			vector< String > substrings, spectra;
 			String string_buffer, string_buffer2;
 			double double_buffer;
 			int	int_buffer;
@@ -464,7 +466,7 @@ class TOPPSequestAdapter
 			float p_value = 0.05;
 			unsigned int prob_charge = 1;
 			
-			std::vector< std::pair< String, std::vector< double > > > filenames_and_precursor_retention_times;
+			vector< pair< String, vector< double > > > filenames_and_precursor_retention_times;
 
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
@@ -476,7 +478,7 @@ class TOPPSequestAdapter
 			if ( !getParamAsString_("show_enzyme_numbers").empty() )
 			{
 				writeLog_("Option show_enzyme_numbers chosen. Aborting.");
-				std::cout << "Enzyme numers:" << std::endl << sequest_infile.getEnzymeInfo();
+				cout << "Enzyme numers:" << endl << sequest_infile.getEnzymeInfo();
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -497,7 +499,7 @@ class TOPPSequestAdapter
 				if ( user.empty() )
 				{
 					writeLog_("No user name for Sequest computer given. Aborting!");
-					std::cout << "No user name for Sequest computer given. Aborting!" << std::endl;
+					cout << "No user name for Sequest computer given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -506,7 +508,7 @@ class TOPPSequestAdapter
 				/*if ( password.empty() )
 				{
 					writeLog_("No password for user name for Sequest computer given. Aborting!");
-					std::cout << "No password for user name for Sequest computer given. Aborting!" << std::endl;
+					cout << "No password for user name for Sequest computer given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}*/
@@ -516,7 +518,7 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(sequest_dir_win) && !sequest_dir_win.empty() )
 				{
 					writeLog_("Windows path for the SEQUEST working directory has wrong format. Aborting!");
-					std::cout << "Windows path for the SEQUEST working directory has wrong format. Aborting!" << std::endl;
+					cout << "Windows path for the SEQUEST working directory has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -530,7 +532,7 @@ class TOPPSequestAdapter
 				if ( sequest_computer.empty() )
 				{
 					writeLog_("No sequest computer name given. Aborting!");
-					std::cout << "No sequest computer name given. Aborting!" << std::endl;
+					cout << "No sequest computer name given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -571,7 +573,7 @@ class TOPPSequestAdapter
 				if ( !Sequest_out ) // if only Sequest_in is set, a name has to be given
 				{
 					writeLog_("No input file specified. Aborting!");
-					std::cout << "No input file specified. Aborting!" << std::endl;
+					cout << "No input file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -588,7 +590,7 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(input_filename_win) )
 				{
 					writeLog_("Windows path for input file has wrong format. Aborting!");
-					std::cout << "Windows path for input file has wrong format. Aborting!" << std::endl;
+					cout << "Windows path for input file has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 					}
@@ -598,7 +600,7 @@ class TOPPSequestAdapter
 			if ( temp_data_dir.empty() && !(out_dir.empty() || dta_dir.empty()) )
 			{
 				writeLog_("No directory for temporary files given. Aborting!");
-				std::cout << "No directory for temporary files given. Aborting!" << std::endl;
+				cout << "No directory for temporary files given. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -613,14 +615,14 @@ class TOPPSequestAdapter
 							if ( !isWinFormat(temp_data_dir_win) )
 							{
 								writeLog_("Windows path for the directory for temporary files has wrong format. Aborting!");
-								std::cout << "Windows path for the directory for temporary files has wrong format. Aborting!" << std::endl;
+								cout << "Windows path for the directory for temporary files has wrong format. Aborting!" << endl;
 								printUsage_();
 								return ILLEGAL_PARAMETERS;
 							}
 							if ( temp_data_dir_network.empty() )
 							{
 								writeLog_("Network path for the directory for temporary files is empty. Aborting!");
-								std::cout << "Network path for the directory for temporary files is empty. Aborting!" << std::endl;
+								cout << "Network path for the directory for temporary files is empty. Aborting!" << endl;
 								printUsage_();
 								return ILLEGAL_PARAMETERS;
 							}
@@ -644,7 +646,7 @@ class TOPPSequestAdapter
 				else if ( Sequest_in && Sequest_out )
 				{
 					writeLog_("No directory for temporary files given. Aborting!");
-					std::cout << "No directory for temporary files given. Aborting!" << std::endl;
+					cout << "No directory for temporary files given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -654,7 +656,7 @@ class TOPPSequestAdapter
 			if ( logfile == out_dir + "sequest.log")
 			{
 				writeLog_("The logfile must not be named " + out_dir + "sequest.log. Aborting!");
-				std::cout << "The logfile must not be named " + out_dir + "sequest.log. Aborting!" << std::endl;
+				cout << "The logfile must not be named " + out_dir + "sequest.log. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -667,7 +669,7 @@ class TOPPSequestAdapter
 			if ( database.empty() )
 			{
 				writeLog_("No database specified. Aborting!");
-				std::cout << "No database specified. Aborting!" << std::endl;
+				cout << "No database specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -678,7 +680,7 @@ class TOPPSequestAdapter
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No spectrum file specified. Aborting!");
-				std::cout << "No spectrum file specified. Aborting!" << std::endl;
+				cout << "No spectrum file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -694,7 +696,7 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(database_win) )
 				{
 					writeLog_("Windows path for database has wrong format. Aborting!");
-					std::cout << "Windows path for database has wrong format. Aborting!" << std::endl;
+					cout << "Windows path for database has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -706,7 +708,7 @@ class TOPPSequestAdapter
 					if ( !isWinFormat(database_win) )
 					{
 						writeLog_("Windows path for database has wrong format. Aborting!");
-						std::cout << "Windows path for database has wrong format. Aborting!" << std::endl;
+						cout << "Windows path for database has wrong format. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -717,14 +719,14 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No peptide mass tolerance specified. Aborting!");
-					std::cout << "No peptide mass tolerance specified. Aborting!" << std::endl;
+					cout << "No peptide mass tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Peptide mass tolerance < 0. Aborting!");
-					std::cout << "Peptide mass tolerance < 0. Aborting!" << std::endl;
+					cout << "Peptide mass tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -734,14 +736,14 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No fragment ion tolerance specified. Aborting!");
-					std::cout << "No fragment ion tolerance specified. Aborting!" << std::endl;
+					cout << "No fragment ion tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Fragment ion tolerance < 0. Aborting!");
-					std::cout << "Fragment ion tolerance < 0. Aborting!" << std::endl;
+					cout << "Fragment ion tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -751,14 +753,14 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No match peak tolerance specified. Aborting!");
-					std::cout << "No match peak tolerance specified. Aborting!" << std::endl;
+					cout << "No match peak tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Match peak tolerance < 0. Aborting!");
-					std::cout << "Match peak tolerance < 0. Aborting!" << std::endl;
+					cout << "Match peak tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -768,7 +770,7 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Ion cutoff < 0. Aborting!");
-					std::cout << "Ion cutoff < 0. Aborting!" << std::endl;
+					cout << "Ion cutoff < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -778,7 +780,7 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) || (int_buffer > max_peptide_mass_units) )
 				{
 					writeLog_("Illegal peptide mass unit (not in [0,2]). Aborting!");
-					std::cout << "Illegal peptide mass unit (not in [0,2]). Aborting!" << std::endl;
+					cout << "Illegal peptide mass unit (not in [0,2]). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -788,7 +790,7 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 1) )
 				{
 					writeLog_("Illegal number of results (< 1). Aborting!");
-					std::cout << "Illegal number of results (< 1). Aborting!" << std::endl;
+					cout << "Illegal number of results (< 1). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -800,21 +802,21 @@ class TOPPSequestAdapter
 					string_buffer.split(';', substrings);
 					if ( substrings.empty() ) substrings.push_back(string_buffer);
 					
-					std::vector< String > enzyme_info;
-					for ( std::vector< String >::iterator einfo_i = substrings.begin(); einfo_i != substrings.end(); ++ einfo_i )
+					vector< String > enzyme_info;
+					for ( vector< String >::iterator einfo_i = substrings.begin(); einfo_i != substrings.end(); ++ einfo_i )
 					{
 						einfo_i->split(',', enzyme_info);
 						if ( (enzyme_info.size() < 3) || (enzyme_info.size() > 4) )
 						{
 							writeLog_("Illegal number of informations for enzyme (not in [3,4]). Aborting!");
-							std::cout << "Illegal number of informations for enzyme (not in [3,4]). Aborting!" << std::endl;
+							cout << "Illegal number of informations for enzyme (not in [3,4]). Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
 						if ( !((enzyme_info[1] == "0") || (enzyme_info[1] == "1"))  )
 						{
 							writeLog_("Cut direction for enzyme not specified correctly (has to be 1 (N to C)) or 0 (C to N))). Aborting!");
-							std::cout << "Cut direction for enzyme not specified correctly (has to be 1 (N to C) or 0 (C to N)). Aborting!" << std::endl;
+							cout << "Cut direction for enzyme not specified correctly (has to be 1 (N to C) or 0 (C to N)). Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -832,7 +834,7 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Illegal minimum protein mass (< 0). Aborting!");
-					std::cout << "Illegal minimum protein mass (< 0). Aborting!" << std::endl;
+					cout << "Illegal minimum protein mass (< 0). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -842,7 +844,7 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Illegal maximum protein mass (< 0). Aborting!");
-					std::cout << "Illegal maximum protein mass (< 0). Aborting!" << std::endl;
+					cout << "Illegal maximum protein mass (< 0). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -852,7 +854,7 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of modified amino acids per different modification. Aborting!");
-					std::cout << "No maximum number of modified amino acids per different modification. Aborting!" << std::endl;
+					cout << "No maximum number of modified amino acids per different modification. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -862,7 +864,7 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of differential modifications per peptide. Aborting!");
-					std::cout << "No maximum number of differential modifications per peptide. Aborting!" << std::endl;
+					cout << "No maximum number of differential modifications per peptide. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -872,7 +874,7 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) || (int_buffer > 9) )
 				{
 					writeLog_("Illegal number for nucleotide reading frame. Aborting!");
-					std::cout << "Illegal number for nucleotide reading frame. Aborting!" << std::endl;
+					cout << "Illegal number for nucleotide reading frame. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -882,7 +884,7 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of maximum internal cleavage sites. Aborting!");
-					std::cout << "Illegal number of maximum internal cleavage sites. Aborting!" << std::endl;
+					cout << "Illegal number of maximum internal cleavage sites. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -892,7 +894,7 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) && (int_buffer > 5) )
 				{
 					writeLog_("Illegal number of auto-detected peaks to try matching. Aborting!");
-					std::cout << "Illegal number of auto-detected peaks to try matching. Aborting!" << std::endl;
+					cout << "Illegal number of auto-detected peaks to try matching. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -902,7 +904,7 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of allowed errors in matching auto-detected peaks. Aborting!");
-					std::cout << "Illegal number of allowed errors in matching auto-detected peaks. Aborting!" << std::endl;
+					cout << "Illegal number of allowed errors in matching auto-detected peaks. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -918,10 +920,10 @@ class TOPPSequestAdapter
 				
 				string_buffer = getParamAsString_("neutral_loss_ABY");
 				string_buffer2 = "01";
-				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == std::string::npos) || (string_buffer2.find(string_buffer[1], 0) == std::string::npos) || (string_buffer2.find(string_buffer[2], 0) == std::string::npos) )
+				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == string::npos) || (string_buffer2.find(string_buffer[1], 0) == string::npos) || (string_buffer2.find(string_buffer[2], 0) == string::npos) )
 				{
 					writeLog_("Neutral losses for ABY-ions not given (or illegal values given). Aborting!");
-					std::cout << "Neutral losses for ABY-ions not given (or illegal values given). Aborting!" << std::endl;
+					cout << "Neutral losses for ABY-ions not given (or illegal values given). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -932,20 +934,20 @@ class TOPPSequestAdapter
 				if ( substrings.size() != 9 )
 				{
 					writeLog_("Weights for ion series not given (or illegal values given). Aborting!");
-					std::cout << "Weights for ion series not given (or illegal values given). Aborting!" << std::endl;
+					cout << "Weights for ion series not given (or illegal values given). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else
 				{
-					for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
+					for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						// the values are expected to be float, otherwise they will be seen as 0!
 						double_buffer = atof(s_i->c_str());
 						if ( (double_buffer < 0) || (double_buffer > 1) )
 						{
 							writeLog_("Illegal weights for ion series given. Aborting!");
-							std::cout << "Illegal weights for ion series given. Aborting!" << std::endl;
+							cout << "Illegal weights for ion series given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -962,12 +964,12 @@ class TOPPSequestAdapter
 					if ( substrings.empty() ) substrings.push_back(string_buffer);
 					float f_buffer;
 					char c_buffer[41]; c_buffer[40] = 0;
-					for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
+					for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						if ( sscanf(s_i->c_str(), "%f,%40s", &f_buffer, c_buffer) != 2 )
 						{
 							writeLog_("Illegal number of parameters for dynamic modification given. Aborting!");
-							std::cout << "Illegal number of parameters for dynamic modification given. Aborting!" << std::endl;
+							cout << "Illegal number of parameters for dynamic modification given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -992,12 +994,12 @@ class TOPPSequestAdapter
 					string_buffer.split(';', substrings);
 					if ( substrings.empty() ) substrings.push_back(string_buffer);
 					
-					for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
+					for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
 					{
 						if ( (*s_i)[1] != ',' )
 						{
 							writeLog_("Unexpected format for static modification found. Aborting!");
-							std::cout << "Unexpected format for static modification found. Aborting!" << std::endl;
+							cout << "Unexpected format for static modification found. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -1022,7 +1024,7 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Maximal charge to test is less than zero. Aborting!");
-					std::cout << "Maximal charge to test is less than zero. Aborting!" << std::endl;
+					cout << "Maximal charge to test is less than zero. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1033,7 +1035,7 @@ class TOPPSequestAdapter
 				if ( string_buffer.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
-					std::cout << "No output file specified. Aborting!" << std::endl;
+					cout << "No output file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1044,20 +1046,20 @@ class TOPPSequestAdapter
 				if ( (p_value <= 0) || (p_value > 1) )
 				{
 					writeLog_("P-value not in (0,1]. Aborting!");
-					std::cout << "P-value not in (0,1]. Aborting!" << std::endl;
+					cout << "P-value not in (0,1]. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 			}
 
-			std::vector< String > drive_letters;
-			std::vector< String > network_paths;
+			vector< String > drive_letters;
+			vector< String > network_paths;
 			if ( Sequest_in && Sequest_out )
 			{
 				if ( !isWinFormat(out_dir_win) )
 				{
 					writeLog_("Windows path for the directory for .out files has wrong format. Aborting!");
-					std::cout << "Windows path for the directory for .out files has wrong format. Aborting!" << std::endl;
+					cout << "Windows path for the directory for .out files has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1065,7 +1067,7 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(dta_dir_win) )
 				{
 					writeLog_("Windows path for the directory for .dta files has wrong format. Aborting!");
-					std::cout << "Windows path for the directory for .dta files has wrong format. Aborting!" << std::endl;
+					cout << "Windows path for the directory for .dta files has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1078,8 +1080,8 @@ class TOPPSequestAdapter
 				correctNetworkPath(input_file_dir_network);
 
 				// make a list of the directories that have to be mounted
-				std::vector< String > drive_letters_all;
-				std::vector< String > network_paths_all;
+				vector< String > drive_letters_all;
+				vector< String > network_paths_all;
 
 				drive_letters_all.push_back(out_dir_win.substr(0,2));
 				network_paths_all.push_back(out_dir_network);
@@ -1096,52 +1098,52 @@ class TOPPSequestAdapter
 				network_paths_all.push_back(input_file_dir_network);
 
 				// go through the lists and search for any drive letter that has a corresponding network path
-				std::vector< String >::const_iterator network_i = network_paths_all.begin();
-				for ( std::vector< String >::const_iterator drive_i = drive_letters_all.begin(); drive_i != drive_letters_all.end(); ++drive_i, ++network_i )
+				vector< String >::const_iterator network_i = network_paths_all.begin();
+				for ( vector< String >::const_iterator drive_i = drive_letters_all.begin(); drive_i != drive_letters_all.end(); ++drive_i, ++network_i )
 				{
-				//std::cout << *drive_i << "\t" << *network_i << std::endl;
+				//cout << *drive_i << "\t" << *network_i << endl;
 					if ( network_i->empty() )
 					{
-						std::vector< String >::const_iterator network_i2 = network_paths_all.begin();
-						for ( std::vector< String >::const_iterator drive_i2 = drive_letters_all.begin(); drive_i2 != drive_letters_all.end(); ++drive_i2, ++network_i2 )
+						vector< String >::const_iterator network_i2 = network_paths_all.begin();
+						for ( vector< String >::const_iterator drive_i2 = drive_letters_all.begin(); drive_i2 != drive_letters_all.end(); ++drive_i2, ++network_i2 )
 						{
 							if ( (*drive_i == *drive_i2) && !network_i2->empty() ) break;
 						}
 						if ( network_i2 == network_paths_all.end() )
 						{
-						//std::cout << *drive_i << "\t" << *network_i << std::endl;
+						//cout << *drive_i << "\t" << *network_i << endl;
 							writeLog_("No network path for windows directory " + *drive_i +" given. Aborting!");
-							std::cout << "No network path for windows directory " + *drive_i +" given. Aborting!" << std::endl;
+							cout << "No network path for windows directory " + *drive_i +" given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
-						//std::cout << "emtpy" << std::endl;
+						//cout << "emtpy" << endl;
 					}
 					else
 					{
 						drive_letters.push_back(*drive_i);
 						network_paths.push_back(*network_i);
-						//std::cout << "\t\t" <<*drive_i << "\t" << *network_i << std::endl;
+						//cout << "\t\t" <<*drive_i << "\t" << *network_i << endl;
 					}
 				}
 				// now check whether there are drive letters with more than one network paths
-				for ( std::vector< String >::iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end() - 1; ++drive_i )
+				for ( vector< String >::iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end() - 1; ++drive_i )
 				{
-/*std::cout << *drive_i << "\t" << *(drive_i+1) <<  std::endl;
-					for ( std::vector< String >::iterator drive_i2 = drive_i+1; drive_i2 != drive_letters.end(); ++drive_i2 )
+/*cout << *drive_i << "\t" << *(drive_i+1) <<  endl;
+					for ( vector< String >::iterator drive_i2 = drive_i+1; drive_i2 != drive_letters.end(); ++drive_i2 )
 					{
-					std::cout << *drive_i2 << std::endl;
+					cout << *drive_i2 << endl;
 						if ( *drive_i == *drive_i2 )
 					}*/
-						if ( std::find(drive_i+1, drive_letters.end(), *drive_i) != drive_letters.end() )
+						if ( find(drive_i+1, drive_letters.end(), *drive_i) != drive_letters.end() )
 						{
 							writeLog_("More than one network path for windows directory " + *drive_i +" given. Aborting!");
-							std::cout << "More than one network path for windows directory " + *drive_i +" given. Aborting!" << std::endl;
+							cout << "More than one network path for windows directory " + *drive_i +" given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
 					//}
-					//std::cout << "1099" << std::endl;
+					//cout << "1099" << endl;
 				}
 			}
 			
@@ -1225,11 +1227,11 @@ class TOPPSequestAdapter
 			MSExperiment<> msexperiment;
 			unsigned int msms_spectra_in_file;
 			unsigned int msms_spectra_altogether = 0;
-			if ( make_dtas ) std::cout << "creating dta files" << std::endl;
-			for ( std::vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+			if ( make_dtas ) cout << "creating dta files" << endl;
+			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
 				file_info.setFile(*spec_i);
-				String common_name = dta_dir + std::string(file_info.fileName().ascii());
+				String common_name = dta_dir + string(file_info.fileName().ascii());
 				
 				try
 				{
@@ -1238,7 +1240,7 @@ class TOPPSequestAdapter
 				catch ( Exception::ParseError pe )
 				{
 					writeLog_("Error loading mzXML file. Aborting!");
-					std::cout << "Error loading mzXML file. Aborting!" << std::endl;
+					cout << "Error loading mzXML file. Aborting!" << endl;
 					printUsage_();
 					return PARSE_ERROR;
 				}
@@ -1253,7 +1255,7 @@ class TOPPSequestAdapter
 			if ( !msms_spectra_altogether )
 			{
 				writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
-				std::cout << "No MS/MS spectra found in any of the mzXML files. Aborting!" << std::endl;
+				cout << "No MS/MS spectra found in any of the mzXML files. Aborting!" << endl;
 				printUsage_();
 				return UNKNOWN_ERROR;
 			}
@@ -1262,15 +1264,15 @@ class TOPPSequestAdapter
 			if ( Sequest_in && Sequest_out )
 			{
 				// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
-				std::ofstream batchfile(String(out_dir + batch_filename).c_str());
+				ofstream batchfile(String(out_dir + batch_filename).c_str());
 				if ( !batchfile )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_dir + batch_filename);
 				}
 
 				// get the drive and network path of out_dir
-				std::vector< String >::iterator drive_i = std::find(drive_letters.begin(), drive_letters.end(), out_dir_win.substr(0,2));
-				std::vector< String >::iterator network_i = network_paths.begin() + (drive_i - drive_letters.begin());
+				vector< String >::iterator drive_i = find(drive_letters.begin(), drive_letters.end(), out_dir_win.substr(0,2));
+				vector< String >::iterator network_i = network_paths.begin() + (drive_i - drive_letters.begin());
 				
 				String call = "rdesktop -u ";
 				call.append(user);
@@ -1287,7 +1289,7 @@ class TOPPSequestAdapter
 				batchfile << String(" cd " + out_dir_win + " && " + out_dir_win.substr(0,2));
 				batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_filename_win + " " + dta_dir_win + "*.dta");
 				batchfile << String(" && " + sequest_dir_win.substr(0,2) + " &&");
-				for ( std::vector< String >::const_iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end(); ++drive_i, ++network_i )
+				for ( vector< String >::const_iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end(); ++drive_i, ++network_i )
 				{
 					batchfile << String(" net use /delete " + *drive_i + " &&");
 				}
@@ -1297,36 +1299,36 @@ class TOPPSequestAdapter
 				batchfile.clear();
 				
 				call.append(out_dir_win + batch_filename + "\" " + sequest_computer);
-				std::cout << call << std::endl;
+				cout << call << endl;
 				int status = system(call.c_str());
 				
 				if ( status != 0 )
 				{
-					std::cout << "Sequest problem. Aborting! (Details can be seen " 
-					<< " in the logfile: \"" << logfile << "\")" << std::endl;
+					cout << "Sequest problem. Aborting! (Details can be seen " 
+					<< " in the logfile: \"" << logfile << "\")" << endl;
 					writeLog_("Sequest problem. Aborting!");
 					deleteTempFiles(input_filename, logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 
-				std::ifstream sequest_log(std::string(out_dir + "sequest.log").c_str()); // write sequest log to logfile
+				ifstream sequest_log(string(out_dir + "sequest.log").c_str()); // write sequest log to logfile
 				if ( !sequest_log )
 				{
-					std::cout << "No Sequest log found!" << std::endl;
+					cout << "No Sequest log found!" << endl;
 					writeLog_("No Sequest log found!");
 				}
 				else
 				{
-					sequest_log.seekg (0, std::ios::end);
-					std::streampos length = sequest_log.tellg();
-					sequest_log.seekg (0, std::ios::beg);
+					sequest_log.seekg (0, ios::end);
+					streampos length = sequest_log.tellg();
+					sequest_log.seekg (0, ios::beg);
 					char * buffer = new char[length];
 					sequest_log.read (buffer, length);
 					sequest_log.close();
 					sequest_log.clear();
 					writeLog_(buffer);
 					delete(buffer);
-					remove(std::string(out_dir + "sequest.log").c_str());
+					remove(string(out_dir + "sequest.log").c_str());
 				}
 
 				if ( !keep_dta_files ) // remove all dtas
@@ -1339,8 +1341,8 @@ class TOPPSequestAdapter
 					{
 						if ( !qfile.remove(QString(dta_dir.c_str() + *i)) )
 						{
-							std::cout << std::string((*i).ascii()) << "could not be removed!" << std::endl;
-							writeLog_(std::string((*i).ascii()) + "could not be removed!");
+							cout << string((*i).ascii()) << "could not be removed!" << endl;
+							writeLog_(string((*i).ascii()) + "could not be removed!");
 						}
 					}
 				}
@@ -1358,8 +1360,8 @@ class TOPPSequestAdapter
 					{
 						if ( !qfile.remove(QString(dta_dir.c_str() + *i)) )
 						{
-							std::cout << std::string((*i).ascii()) << "could not be removed!" << std::endl;
-							writeLog_(std::string((*i).ascii()) + "could not be removed!");
+							cout << string((*i).ascii()) << "could not be removed!" << endl;
+							writeLog_(string((*i).ascii()) + "could not be removed!");
 						}
 					}
 				}
@@ -1367,9 +1369,9 @@ class TOPPSequestAdapter
 				AnalysisXMLFile analysisXML_file;
 				
 				SequestOutfile sequest_outfile;
-				std::vector< Identification > identifications;
+				vector< Identification > identifications;
 				ProteinIdentification protein_identification;
-				std::vector< float > precursor_retention_times, precursor_mz_values;
+				vector< float > precursor_retention_times, precursor_mz_values;
 				
 				QDir qdir(dta_dir, "*.out", QDir::Name, QDir::Files);
 				QStringList qlist = qdir.entryList();
@@ -1377,7 +1379,7 @@ class TOPPSequestAdapter
 				if ( qlist.isEmpty() )
 				{
 					writeLog_("No .out identified. Aborting!");
-					std::cout << "No .out identified. Aborting!" << std::endl;
+					cout << "No .out identified. Aborting!" << endl;
 					qlist.clear();
 					deleteTempFiles(input_filename, logfile);
 					return UNKNOWN_ERROR;
@@ -1385,19 +1387,19 @@ class TOPPSequestAdapter
 
 				for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 				{
-					sequest_outfile.load(out_dir + std::string((*i).ascii()), identifications, protein_identification, precursor_retention_times, precursor_mz_values,  p_value, database, snd_database);
+					sequest_outfile.load(out_dir + string((*i).ascii()), identifications, protein_identification, precursor_retention_times, precursor_mz_values,  p_value, database, snd_database);
 				}
 
-				std::sort(filenames_and_precursor_retention_times.begin(), filenames_and_precursor_retention_times.end(), SortRetentionTimes()); // sort the retention times, so they have the same order like the corresponding .out files
+				sort(filenames_and_precursor_retention_times.begin(), filenames_and_precursor_retention_times.end(), SortRetentionTimes()); // sort the retention times, so they have the same order like the corresponding .out files
 
 				// save the retention times in precursor_retention_times
-				for( std::vector< std::pair< String, std::vector< double > > >::iterator pairs_i = filenames_and_precursor_retention_times.begin(); pairs_i != filenames_and_precursor_retention_times.end(); ++pairs_i )
+				for( vector< pair< String, vector< double > > >::iterator pairs_i = filenames_and_precursor_retention_times.begin(); pairs_i != filenames_and_precursor_retention_times.end(); ++pairs_i )
 				{
 					precursor_retention_times.insert(precursor_retention_times.end(), pairs_i->second.begin(), pairs_i->second.end());
 					pairs_i->second.clear();
 				}
 				
-				std::vector< ProteinIdentification > pis;
+				vector< ProteinIdentification > pis;
 				pis.push_back(protein_identification);
 
 				analysisXML_file.store(output_filename, pis, identifications, precursor_retention_times, precursor_mz_values, contact_person);
@@ -1413,8 +1415,8 @@ class TOPPSequestAdapter
 					{
 						if ( !qfile.remove(QString(out_dir.c_str() + *i)) )
 						{
-							std::cout << std::string((*i).ascii()) << "could not be removed!" << std::endl;
-							writeLog_(std::string((*i).ascii()) + "could not be removed!");
+							cout << string((*i).ascii()) << "could not be removed!" << endl;
+							writeLog_(string((*i).ascii()) + "could not be removed!");
 						}
 					}
 				}
