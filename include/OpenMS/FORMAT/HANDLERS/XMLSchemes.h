@@ -310,6 +310,26 @@ namespace OpenMS
 	  	}
 		};
 
+		 /// Number of available consensusXML schemata
+    const UnsignedInt ConsensusXML_num = 1;
+
+    ///Schemata for the consensusXML
+    const String ConsensusXML[][2] =
+      {
+        ///---------------- consensusXML 1.0 --------------------------
+        {
+          // name of scheme
+          "1.0",
+
+          // Tags
+          ";consensusXML;mapList;map;alignment;alignmentMethod;"
+          "matchingAlgorithm;consensusAlgorithm;alignmentNewickTree;transformationList;"
+          "transformation;cell;range;parameters;consensusElementList;consensusElement;"
+          "centroid;groupedElementList;element"
+
+        }
+      };
+
   }
 }
 

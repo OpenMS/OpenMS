@@ -30,10 +30,12 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -61,6 +63,14 @@ namespace OpenMS
           : public SchemaHandler
     {
       public:
+
+        /// Defines the coordinates of peaks / features.
+        enum DimensionId
+        {
+          RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+          MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+      };
+
         /**
         @name Type definitions
         */
@@ -79,19 +89,26 @@ namespace OpenMS
         /**@name Constructors and destructor */
         //@{
         ///
-        ConsensusXMLHandler(StarAlignment< ConsensusElementType >& alignment, const String& filename)
+        ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-            alignment_(&alignment),
-            calignment_(0)
+            consensus_map_(&consensus_map),
+            calignment_(0),
+            act_cons_element_(0),
+            act_index_tuple_(0),
+            consensus_element_range_(false)
         {
+          fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
         }
 
         ///
         ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-            alignment_(0),
-            calignment_(&alignment)
+            calignment_(&alignment),
+            act_cons_element_(0),
+            act_index_tuple_(0),
+            consensus_element_range_(false)
         {
+          fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
         }
 
         ///
@@ -112,10 +129,16 @@ namespace OpenMS
         void writeTo(std::ostream& os);
 
       protected:
-        // Feature map pointer for reading
-        StarAlignment< ConsensusElementType >* alignment_;
-        // Feature map pointer for writing
+        ConsensusElementType* act_cons_element_;
+        ConsensusMap<ConsensusElementType>* consensus_map_;
+        IndexTuple< ElementContainerType >* act_index_tuple_;
+        // StartAlignment pointer for writing
         const StarAlignment< ConsensusElementType >* calignment_;
+        bool consensus_element_range_;
+        typename ConsensusElementType::PositionType pos_;
+        typename ConsensusElementType::IntensityType it_;
+				typename ConsensusElementType::PositionBoundingBoxType pos_range_;
+				typename ConsensusElementType::IntensityBoundingBoxType it_range_;
 
         /** @brief indices for tags used by StarAlignment
 
@@ -123,9 +146,9 @@ namespace OpenMS
           If you add tags, also add them to XMLSchemes.h.
           Add no elements to the enum after TAG_NUM.
         */
-        enum Tags { TAGNULL, MAPLIST, MAP, ALIGNMENT, ALIGNMENTMETHOD, MATCHINGALGORITHM, CONSENSUSALGORITHM,
-                    ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION, CELL, RANGE, PARAMETERS,
-                    CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT, TAG_NUM};
+        enum Tags { TAGNULL, CONSENSUSXML, MAPLIST, MAP, ALIGNMENT, ALIGNMENTMETHOD,
+                    MATCHINGALGORITHM, CONSENSUSALGORITHM, ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION,
+                    CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT, TAG_NUM};
 
         /** @brief indices for enum2str-maps used by DFeatureMapFile
 
@@ -202,160 +225,143 @@ namespace OpenMS
     template < typename  ConsensusElementT >
     void ConsensusXMLHandler<ConsensusElementT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      //       if (is_parser_in_tag_[DESCRIPTION]) // collect Experimental Settings
-      //       {
-      //         exp_sett_ << "</" << xercesc::XMLString::transcode(qname) << ">\n";
-      //         if (String(xercesc::XMLString::transcode(qname)) != enum2str_(TAGMAP,DESCRIPTION))
-      //         {
-      //           return;
-      //         }
-      //       }
-      //
-      //       int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
-      //       is_parser_in_tag_[tag] = false;
-      //
-      //       // Do something depending on the tag
-      //       switch(tag)
-      //       {
-      //           case DESCRIPTION:
-      //           // delegate control to ExperimentalSettings handler
-      //           {
-      //             // initialize parser
-      //             xercesc::XMLPlatformUtils::Initialize();
-      //             xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-      //             parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-      //             parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-      //
-      //             MzDataExpSettHandler handler( *((ExperimentalSettings*)map_),file_);
-      //             handler.resetErrors();
-      //             parser->setContentHandler(&handler);
-      //             parser->setErrorHandler(&handler);
-      //
-      //             String tmp(exp_sett_.str().c_str());
-      //
-      //             xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
-      //             parser->parse(source);
-      //             delete(parser);
-      //           }
-      //           break;
-      //           case FEATURE:
-      //           map_->push_back(*feature_);
-      //           delete feature_;
-      //           break;
-      //           case FEATMODEL:
-      //           model_desc_->setParam(*param_);
-      //           feature_->setModelDescription(*model_desc_);
-      //           delete param_;
-      //           delete model_desc_;
-      //           break;
-      //           case HULLPOINT:
-      //           current_chull_->push_back(*hull_position_);
-      //           delete hull_position_;
-      //           break;
-      //           case CONVEXHULL:
-      //           feature_->getConvexHulls().push_back(*current_chull_);
-      //           delete current_chull_;
-      //           break;
-      //       }
+      int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
+      is_parser_in_tag_[tag] = false;
+
+      // Do something depending on the tag
+      switch(tag)
+      {
+          case CONSENSUSELEMENT:
+          consensus_map_->push_back(*act_cons_element_);
+          delete act_cons_element_;
+          break;     	
+      }
     }
+
 
     template < typename  ConsensusElementT >
     void ConsensusXMLHandler<ConsensusElementT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      //       if (is_parser_in_tag_[DESCRIPTION]) // collect Experimental Settings
-      //       {
-      //         exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
-      //         Size n=attributes.getLength();
-      //         for (Size i=0; i<n; ++i)
-      //         {
-      //           exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""  << xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
-      //         }
-      //         exp_sett_ << '>';
-      //         return;
-      //       }
-      //
-      //       int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag"); // index of current tag
-      //       is_parser_in_tag_[tag] = true;
-      //
-      //       // Do something depending on the tag
-      //       switch(tag)
-      //       {
-      //           case DESCRIPTION:
-      //           exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>';
-      //           break;
-      //           case FEATURE:
-      //           feature_        = new DFeature<D>();
-      //           break;
-      //           case QUALITY:
-      //           current_qcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim"))));
-      //           break;
-      //           case POSITION:
-      //           current_pcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim"))));
-      //           break;
-      //           case CONVEXHULL:
-      //           current_chull_  = new ConvexHullType();
-      //           break;
-      //           case HULLPOINT:
-      //           hull_position_  = new DPosition<D>();
-      //           break;
-      //           case HPOSITION:
-      //           current_hcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim"))));
-      //           break;
-      //           case FEATMODEL:
-      //           model_desc_ = new ModelDescription<D>();
-      //           param_ = new Param();
-      //           if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1)
-      //           {
-      //             model_desc_->setName(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))));
-      //           }
-      //           break;
-      //           case PARAM:
-      //           if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1 && attributes.getIndex(xercesc::XMLString::transcode("value"))!=-1 )
-      //             param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))),xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("value"))));
-      //           break;
-      //       }
+      int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag"); // index of current tag
+      is_parser_in_tag_[tag] = true;
+
+      // Do something depending on the tag
+      switch(tag)
+      {
+          case MAPLIST:    
+          if (attributes.getIndex(xercesc::XMLString::transcode("count")) != -1)
+          	{
+          		UnsignedInt count = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count"))));
+            	consensus_map_->getMapVector().resize(count);
+            	consensus_map_->getFilenames().resize(count);
+            }
+          break;
+          case MAP:
+          if (attributes.getIndex(xercesc::XMLString::transcode("id")) != -1)
+          	{
+          		UnsignedInt id = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
+          		if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
+          			{
+          				String act_filename = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
+         					DFeatureMapFile feature_file;
+          				feature_file.load(act_filename,(consensus_map_->getMapVector())[id]);
+          				consensus_map_->getFilenames()[id]=act_filename;
+          			}
+        		}
+          break;
+          case CONSENSUSELEMENT:
+          act_cons_element_ = new ConsensusElementType;
+          consensus_element_range_ = true;
+          break;
+          case CENTROID:
+          if (attributes.getIndex(xercesc::XMLString::transcode("rt"))!=-1)
+          {
+            pos_[RT] = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rt"))));
+          }
+
+          if (attributes.getIndex(xercesc::XMLString::transcode("mz"))!=-1)
+          {
+            pos_[MZ] = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mz"))));
+          }
+
+          if (attributes.getIndex(xercesc::XMLString::transcode("it")) != -1)
+          {
+            it_ = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("it"))));
+          }
+          break;
+          case RANGE:
+          if (consensus_element_range_)
+          {
+            if (attributes.getIndex(xercesc::XMLString::transcode("rtMin")) != -1)
+            {
+              pos_range_.setMinX(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rtMin")))));
+
+              if (attributes.getIndex(xercesc::XMLString::transcode("rtMax")) != -1)
+              {
+                pos_range_.setMaxX(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rtMax")))));
+
+                if (attributes.getIndex(xercesc::XMLString::transcode("mzMin")) != -1)
+                {
+                  pos_range_.setMinY(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzMin")))));
+
+                  if (attributes.getIndex(xercesc::XMLString::transcode("mzMax")) != -1)
+                  {
+                    pos_range_.setMaxY(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzMax")))));
+
+                    if (attributes.getIndex(xercesc::XMLString::transcode("itMin")) != -1)
+                    {
+                      it_range_.setMin(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("itMin")))));
+
+                      if (attributes.getIndex(xercesc::XMLString::transcode("itMax")) != -1)
+                      {
+                        it_range_.setMax(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("itMax")))));
+
+                        consensus_element_range_ = false;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          break;
+          case ELEMENT:
+          act_index_tuple_ = new IndexTuple< ElementContainerType >;
+          if (attributes.getIndex(xercesc::XMLString::transcode("map")) != -1)
+          {
+            UnsignedInt map_index = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("map"))));
+            if (attributes.getIndex(xercesc::XMLString::transcode("id")) != -1)
+            {
+              UnsignedInt element_index = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
+
+              act_index_tuple_->getMapIndex() = map_index;
+              act_index_tuple_->getElementIndex() = element_index;
+              act_index_tuple_->setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
+              act_cons_element_->insert(*act_index_tuple_);
+              act_cons_element_->getPosition() = pos_;
+              act_cons_element_->getPositionRange() = pos_range_;
+              act_cons_element_->getIntensity() = it_;
+              act_cons_element_->getIntensityRange() = it_range_;
+            }
+          }
+          break;
+      }
     }
 
-    template < typename  ConsensusElementT >
+    template < typename ConsensusElementT >
     void ConsensusXMLHandler<ConsensusElementT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
     {
-      //       if (is_parser_in_tag_[DESCRIPTION]) // collect Experimental Settings
-      //       {
-      //         exp_sett_ << xercesc::XMLString::transcode(chars);
-      //         return;
-      //       }
-      //
-      //       // find the tag that the parser is in right now
-      //       for (Size i=0; i<is_parser_in_tag_.size(); i++)
-      //       {
-      //         if (is_parser_in_tag_[i])
-      //         {
-      //           switch(i)
-      //           {
-      //               case FEATINTENSITY:
-      //               feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars)));
-      //               break;
-      //               case POSITION:
-      //               feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
-      //               break;
-      //               case QUALITY:
-      //               feature_->getQuality(current_qcoord_) = asDouble_(xercesc::XMLString::transcode(chars));
-      //               break;
-      //               case OVERALLQUALITY:
-      //               feature_->getOverallQuality() = asDouble_(xercesc::XMLString::transcode(chars));
-      //               break;
-      //               case CHARGE:
-      //               feature_->setCharge(asSignedInt_(xercesc::XMLString::transcode(chars)));
-      //               break;
-      //               case HPOSITION:
-      //               (*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
-      //               break;
-      //               case META:
-      //               feature_->setMetaValue(3,String(xercesc::XMLString::transcode(chars)));
-      //               break;
-      //           }
-      //         }
-      //       }
+      // find the tag that the parser is in right now
+      for (Size i=0; i<is_parser_in_tag_.size(); i++)
+      {
+        if (is_parser_in_tag_[i])
+        {
+          switch(i)
+          {
+              
+          }
+        }
+      }
     }
 
 
@@ -402,7 +408,7 @@ namespace OpenMS
         }
       }
       os << "\t</transformationList>\n";
-      
+
       const std::vector < ConsensusElementType >& final_consensus_map = calignment_->getFinalConsensusMap();
       n=final_consensus_map.size();
       os << "\t<consensusElementList>\n";
@@ -429,6 +435,7 @@ namespace OpenMS
           << "\" it=\"" << it->getElement().getIntensity() << "\"/>\n";
         }
         os << "\t\t\t</groupedElementList>\n";
+        os << "\t\t</consensusElement>\n";
       }
       os << "\t</consensusElementList>\n";
       os << "</consensusXML>"<< std::endl;

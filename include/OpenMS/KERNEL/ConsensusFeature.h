@@ -70,13 +70,13 @@ namespace OpenMS
       */
       //@{
       typedef DFeature<2,KernelTraits> ElementType;
-      typedef ContainerT ContainerType;
-      typedef Group< ContainerType > Group;
+      typedef ContainerT ElementContainerType;
+      typedef Group< ElementContainerType > Group;
 
       typedef typename ElementType::TraitsType TraitsType;
       typedef DPosition < 2, TraitsType > PositionType;
       typedef typename TraitsType::IntensityType IntensityType;
-      typedef IndexTuple< ContainerType > IndexTuple;
+      typedef IndexTuple< ElementContainerType > IndexTuple;
       typedef DRange<2, TraitsType> PositionBoundingBoxType;
       typedef DRange<1, TraitsType> IntensityBoundingBoxType;
       //@}

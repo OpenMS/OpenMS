@@ -65,7 +65,7 @@ namespace OpenMS
 
       /// ContainerType
       typedef typename ConsensusElementType::ElementType ElementType;
-      typedef typename ConsensusElementType::ContainerType ElementContainerType;
+      typedef typename ConsensusElementType::ElementContainerType ElementContainerType;
 
       typedef std::vector< ConsensusElementType > ConsensusMapType;
       //@}

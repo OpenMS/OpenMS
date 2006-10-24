@@ -106,7 +106,7 @@ namespace OpenMS
       {
         return map_index_;
       }
-      /// mutable access to the container index
+      /// Mutable access to the container index
       inline UnsignedInt& getMapIndex()
       {
         return map_index_;
@@ -119,6 +119,11 @@ namespace OpenMS
 
       /// Non-mutable access to the element index
       inline const UnsignedInt& getElementIndex() const
+      {
+        return feature_index_;
+      }
+      /// Mutable access to the element index
+      inline UnsignedInt& getElementIndex()
       {
         return feature_index_;
       }
@@ -183,7 +188,7 @@ namespace OpenMS
       PositionType transformed_position_;
       UnsignedInt map_index_;
       UnsignedInt feature_index_;
-      ElementType* element_pointer_;
+      const ElementType* element_pointer_;
   };
 
   ///Print the contents to a stream.
