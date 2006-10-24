@@ -98,6 +98,9 @@ LIBS=$(GUI_LIBS)
 CPP_SOURCES =\
 	$(EXECUTABLES:=.C)
 
+test:
+	cd ${OPENMS_PATH}/source/TEST/TOPP/ && make
+
 MapStatistics: MapStatistics.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/             

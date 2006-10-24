@@ -39,6 +39,12 @@
 # gmake
 MAKE  =@MAKE@
 
+# diff
+DIFF  =@DIFF@
+
+# grep
+GREP  =@GREP@
+
 # archiver ar (to create static libraries)
 AR  =@AR@
 
