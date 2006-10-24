@@ -29,7 +29,8 @@ include ../../config_defs.mak
 DIRECTORY=TEST/TOPP
 
 # ATTENTION: DEBUG MODE
-# You can activate the debug mode with 'make debug':
+# You can activate the debug mode with 'make debug'.
+# Changes in debug mode are:
 # - diff reports the differences (not only if files are different)
 # - temporary files (*.tmp) are not deleted after the execution
 
@@ -42,8 +43,9 @@ default:  FileInfo_test FileFilter_test DTAExtractor_test FileConverter_test Fil
 	@${ECHO} ""
 	@ if test -z ${DEBUG}; then ${RM} -f *.tmp; fi 
 
+# Activate debug mode
 debug:
-	@make DEBUG=1 default
+	@${MAKE} DEBUG=1 default
 
 # Diff that ignores whitespaces and empty lines
 ifeq ("$(DEBUG)","")
