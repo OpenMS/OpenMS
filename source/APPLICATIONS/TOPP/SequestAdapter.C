@@ -184,6 +184,7 @@ class TOPPSequestAdapter
 						<< "  -db_dir_network" << endl
 						<< "  -snd_db_dir_network" << endl
 						<< "  -in_dir_network" << endl;
+
 		}
 
 
@@ -261,6 +262,10 @@ class TOPPSequestAdapter
 		void setOptionsAndFlags_()
 		{
 			flags_["-show_enzyme_numbers"] = "show_enzyme_numbers";
+			options_["-contactName"] = "contactName";
+			options_["-contactInstitution"] = "contactInstitution";
+			options_["-contactInfo"] = "contactInfo";
+			options_["-log"] = "log";
 			options_["-sequest_dir_win"] = "sequest_dir_win";
 			options_["-user"] = "user";
 			options_["-password"] = "password";
@@ -273,9 +278,9 @@ class TOPPSequestAdapter
 			options_["-out_dir"] = "out_dir";
 			options_["-out_dir_win"] = "out_dir_win";
 			options_["-out_dir_network"] = "out_dir_network";
-			options_["-in"] = "in";
-			options_["-in_win"] = "in_win";
-			options_["-in_dir_network"] = "in_dir_network";
+			options_["-sequest_in"] = "sequest_in";
+			options_["-sequest_in_win"] = "sequest_in_win";
+			options_["-sequest_in_dir_network"] = "sequest_in_dir_network";
 			options_["-db"] = "db";
 			options_["-db_win"] = "db_win";
 			options_["-db_dir_network"] = "db_dir_network";
@@ -285,7 +290,7 @@ class TOPPSequestAdapter
 			options_["-sequest_computer"] = "sequest_computer";
 			flags_["-Sequest_in"] = "Sequest_in";
 			flags_["-Sequest_out"] = "Sequest_out";
-			options_["-spectra"] = "spectra";
+			options_["-in"] = "in";
 			options_["-pep_mass_tol"] = "pep_mass_tol";
 			options_["-frag_ion_tol"] = "frag_ion_tol";
 			options_["-match_peak_tol"] = "match_peak_tol";
@@ -483,9 +488,9 @@ class TOPPSequestAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 			
-			/*contact_person.setName(getParamAsString_("contactName", "unknown"));
+			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));*/
+			contact_person.setContactInfo(getParamAsString_("contactInfo"));
 
 			Sequest_in = getParamAsBool_("Sequest_in");
 			Sequest_out = getParamAsBool_("Sequest_out");
@@ -505,14 +510,7 @@ class TOPPSequestAdapter
 				}
 				
 				password = getParamAsString_("password");
-				/*if ( password.empty() )
-				{
-					writeLog_("No password for user name for Sequest computer given. Aborting!");
-					cout << "No password for user name for Sequest computer given. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}*/
-			
+
 				sequest_dir_win = getParamAsString_("sequest_dir_win");
 				ensurePathChar(sequest_dir_win, '\\');
 				if ( !isWinFormat(sequest_dir_win) && !sequest_dir_win.empty() )
@@ -567,7 +565,7 @@ class TOPPSequestAdapter
 
 			bool in_uses_temp_data_dir = false;
 			
-			input_filename = getParamAsString_("in");
+			input_filename = getParamAsString_("sequest_in");
 			if ( input_filename.empty() )
 			{
 				if ( !Sequest_out ) // if only Sequest_in is set, a name has to be given
@@ -586,14 +584,20 @@ class TOPPSequestAdapter
 			}
 			else if ( Sequest_out )
 			{
-				input_filename_win = getParamAsString_("in_win");
+				input_filename_win = getParamAsString_("sequest_in_win");
 				if ( !isWinFormat(input_filename_win) )
 				{
 					writeLog_("Windows path for input file has wrong format. Aborting!");
 					cout << "Windows path for input file has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
-					}
+				}
+				else if ( input_filename_win.hasPrefix('\\') )
+				{
+					std::size_t pos = input_filename.find_last_of('/');
+					if ( pos == std::string::npos ) pos = 0;
+					input_filename_win.append(input_filename.substr(pos));
+				}
 			}
 
 			
@@ -676,7 +680,7 @@ class TOPPSequestAdapter
 
 			snd_database = getParamAsString_("snd_db");
 			
-			string_buffer = getParamAsString_("spectra");
+			string_buffer = getParamAsString_("in");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No spectrum file specified. Aborting!");
@@ -700,6 +704,12 @@ class TOPPSequestAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
+				else if ( input_filename_win.hasPrefix('\\') )
+				{
+					std::size_t pos = input_filename.find_last_of('/');
+					if ( pos == std::string::npos ) pos = 0;
+					input_filename_win.append(input_filename.substr(pos));
+				}
 				sequest_infile.setDatabase(database_win);
 
 				if ( !snd_database.empty() )
@@ -711,6 +721,12 @@ class TOPPSequestAdapter
 						cout << "Windows path for database has wrong format. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
+					}
+					else if ( input_filename_win.hasPrefix('\\') )
+					{
+						std::size_t pos = input_filename.find_last_of('/');
+						if ( pos == std::string::npos ) pos = 0;
+						input_filename_win.append(input_filename.substr(pos));
 					}
 					sequest_infile.setSndDatabase(snd_database_win);
 				}
@@ -1076,7 +1092,7 @@ class TOPPSequestAdapter
 				correctNetworkPath(database_dir_network);
 				snd_database_dir_network = getParamAsString_("snd_db_dir_network");
 				correctNetworkPath(snd_database_dir_network);
-				input_file_dir_network = getParamAsString_("in_dir_network");
+				input_file_dir_network = getParamAsString_("sequest_in_dir_network");
 				correctNetworkPath(input_file_dir_network);
 
 				// make a list of the directories that have to be mounted
