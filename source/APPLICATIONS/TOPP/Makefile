@@ -63,7 +63,6 @@ EXECUTABLES=\
 	IDFilter\
 	MascotAdapter\
 	InspectAdapter\
-	SequestAdapter\
 	PeakPicker\
 	LabeledMatcher\
 	Dewarper\
@@ -74,6 +73,7 @@ EXECUTABLES=\
 	MapAlignment\
 	AnalysisXMLMerger
 
+#	SequestAdapter\
 #	RawDataResampler\
 
 all: $(EXECUTABLES)

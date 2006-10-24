@@ -27,20 +27,15 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
-
 #include <OpenMS/METADATA/ContactPerson.h>
-
 #include <OpenMS/FORMAT/SequestInfile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <stdlib.h>
@@ -136,7 +131,7 @@ class TOPPSequestAdapter
 						<< getToolName() << " -- annotates MS/MS spectra using Sequest" << std::endl
 						<< std::endl
 						<< "Usage:" << std::endl
-						<< " " << tool_name_ << " [options]" << std::endl
+						<< " " << getToolName() << " [options]" << std::endl
 						<< std::endl
 						<< "Options are:" << std::endl
 						<< "  [the _win parameters correspond to path of the linux directory when mounted under windows. NO SPACE ALLOWED!;" << std::endl

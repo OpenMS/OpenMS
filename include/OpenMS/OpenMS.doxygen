@@ -46,7 +46,6 @@
 /*
 	TODO (Marc):
 	- Deisotoping / Decharging
-  - CONCEPT: Architektur-unabhängige Typen UInt64 Int64
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Rohdaten-Erkenner
 	- Tests TOPP
