@@ -31,7 +31,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include "TOPPBase.h"
 
 using namespace OpenMS;
 using namespace std;
@@ -104,6 +105,10 @@ class TOPPMapAlignment
     {
       //output file name
       String out = getParamAsString_("out");
+      
+      //map type
+      String map_type = getParamAsString_("map_type");
+      std::cout << "Map type " << map_type << std::endl;
 
       //-------------------------------------------------------------
       // parameter handling
