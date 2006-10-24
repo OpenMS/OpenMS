@@ -28,8 +28,14 @@ include ../../config_defs.mak
 
 DIRECTORY=TEST/TOPP
 
-#diff that ignores whitespaces and empty lines
-DIFF_WITH_OPT = ${DIFF} -bB --brief
+# Diff that ignores whitespaces and empty lines
+# Unless in debug mode it does not report the differences but only that the files are different
+ifeq ("$(DEBUG)","")
+	DIFF_WITH_OPT = ${DIFF} -bB --brief
+else
+	DIFF_WITH_OPT = ${DIFF} -bBu
+endif
+
 
 # default target 
 # Here all TOPP tool tests are executed. Afterwards all temporary data files are removed (*.tmp)
