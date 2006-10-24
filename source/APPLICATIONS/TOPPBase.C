@@ -161,7 +161,7 @@ namespace OpenMS
 			// debug level
 			//-------------------------------------------------------------
 			debug_level_ = getParamAsInt_("debug",0);
-			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),0);	
+			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),1);	
 
 			
 			//----------------------------------------------------------

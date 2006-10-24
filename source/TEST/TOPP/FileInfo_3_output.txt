@@ -1,0 +1,37 @@
+-- General information --
+
+file name: FileInfo_3_input.feat
+file type: FeatureFile
+
+Number of features: 10
+
+retention time range: 537.41 / 539.232
+m/z range: 407.581 / 648.388
+intensity range: 1376 / 6712
+
+
+-- Meta information --
+
+Experiment Type  : Unknown
+Date             : 0000-00-00
+
+Sample
+  Name             : MS-Sample
+  Organism         : 
+  Comment          : 
+
+Instument
+  Name             : MS-Instrument
+  Model            : MS 1
+  Vendor           : MS-Vendor
+  Ion source       : ESI (electrospray ionisation)
+  Detector         : FARADAYCUP
+  Mass Analyzer(s) : PAULIONTRAP, QUADRUPOLE, 
+
+Contact Person
+  Name             : John Doe
+  Email            : 
+
+Contact Person
+  Name             : Jane Doe
+  Email            : 
