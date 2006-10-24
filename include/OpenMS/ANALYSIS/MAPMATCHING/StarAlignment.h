@@ -41,9 +41,13 @@ namespace OpenMS
 {
 
   /**
-     @brief 
-   
-
+     @brief A star alignment class.
+     
+     This class aligns elements of multiple element maps (e.g. feature maps). 
+     Corresponding elements (e.g. features) are grouped together and stored as a consensus
+     element (e.g. consensus feature). This class computes a star-alignment, that means 
+     a reference map is chosen and the other maps are aligned to the reference map.
+          
   **/
   template < typename ConsensusElementT = ConsensusFeature<> >
   class StarAlignment : public BaseAlignment< ConsensusElementT >

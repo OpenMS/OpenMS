@@ -103,7 +103,7 @@ namespace OpenMS
       }
 
       /**
-        @brief Stores an alignment object in consensusXML format.
+        @brief Stores a staralignment object into consensusXML format.
 
         @p 
       */

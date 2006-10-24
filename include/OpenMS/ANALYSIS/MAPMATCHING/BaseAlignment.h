@@ -41,7 +41,11 @@
 namespace OpenMS
 {
   /**
-     @brief 
+     @brief Base alignment class.
+     
+     This class is the base class for the alignment of multiple element maps (e.g. feature maps). 
+     Corresponding elements (e.g. features) are grouped together and stored as a consensus
+     element (e.g. consensus feature). 
      
      @todo default values e.g. for the pairfinder...
    

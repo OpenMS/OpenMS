@@ -36,27 +36,9 @@ namespace OpenMS
 {
 
   /**
-    @brief A D-dimensional feature.
+    @brief A 2-dimensional consensus feature.
     
-    A feature represents a subset of peaks in a map.  In general, it
-    summarizes all peaks related to a specific peptide or chemical entity and
-    thus reduces partitions of the LCMS dataset to a more meaningful entity.
-    Peaks can be converted to features through the FeatureFinder.
-
-    Features are usually contained in ConsensusFeatureMap.  Features themselves can
-    either contain features again (composite design pattern) or their
-    constituent peaks.
-
-    Hierarchical relationships in features (i.e. features containing features
-    containing features...) can be used to express group relationships.  For
-    example, one might group the features corresponding to an ICAT pair into
-    an aggregate ICAT feature.
-
-    Features are derived from DPeak, as they inherit most of their properties.
-    In particular, a feature has a position and an intensity (area).  The
-    position of a feature is defined as maximum position of the model for the
-    retention time dimension and the mass of the monoisotopic peak for the m/z
-    dimension.
+    A consenus feature represents corresponding features in multiple featuremaps.
     
     @ingroup Kernel, Serialization
   */
