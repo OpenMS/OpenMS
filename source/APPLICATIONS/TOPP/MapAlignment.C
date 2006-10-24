@@ -46,9 +46,9 @@ typedef ConsensusFeature< FeatureMapType > ConsensusFeatureType;
 /**
    @page MapAlignment MapAlignment
  
-   @brief Aligns point maps (e.g. feature or peak maps) to one consensus map.
+   @brief Aligns multiple element maps (e.g. feature or peak maps) to one consensus map.
    
-   @todo Type (mzData or featureXML), remove compiler warnings
+   @todo Type (mzData or featureXML)
    
    @ingroup TOPP
 */
@@ -69,7 +69,7 @@ class TOPPMapAlignment
     void printToolUsage_() const
     {
       cerr << endl
-      << getToolName() << " -- aligns a number of point (e.g. feature or peak) maps" << endl
+      << getToolName() << " -- aligns multiple element (e.g. feature or peak) maps" << endl
       << "Version: " << VersionInfo::getVersion() << endl
       << endl
       << "Usage:" << endl
