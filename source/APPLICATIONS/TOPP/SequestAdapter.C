@@ -259,10 +259,6 @@ class TOPPSequestAdapter
 		void setOptionsAndFlags_()
 		{
 			flags_["-show_enzyme_numbers"] = "show_enzyme_numbers";
-			options_["-contactName"] = "contactName";
-			options_["-contactInstitution"] = "contactInstitution";
-			options_["-contactInfo"] = "contactInfo";
-			options_["-log"] = "log";
 			options_["-sequest_dir_win"] = "sequest_dir_win";
 			options_["-user"] = "user";
 			options_["-password"] = "password";
@@ -485,9 +481,9 @@ class TOPPSequestAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 			
-			contact_person.setName(getParamAsString_("contactName", "unknown"));
+			/*contact_person.setName(getParamAsString_("contactName", "unknown"));
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));
+			contact_person.setContactInfo(getParamAsString_("contactInfo"));*/
 
 			Sequest_in = getParamAsBool_("Sequest_in");
 			Sequest_out = getParamAsBool_("Sequest_out");
@@ -507,13 +503,13 @@ class TOPPSequestAdapter
 				}
 				
 				password = getParamAsString_("password");
-				if ( password.empty() )
+				/*if ( password.empty() )
 				{
 					writeLog_("No password for user name for Sequest computer given. Aborting!");
 					std::cout << "No password for user name for Sequest computer given. Aborting!" << std::endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
-				}
+				}*/
 			
 				sequest_dir_win = getParamAsString_("sequest_dir_win");
 				ensurePathChar(sequest_dir_win, '\\');
