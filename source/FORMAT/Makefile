@@ -34,7 +34,7 @@ THISLIB=$(LIBNAME)
 
 -include .Dependencies
 
-CPP_SOURCES= \
+CPP_SOURCES=\
 	Base64.C\
 	DTAFile.C\
 	DTA2DFile.C\
@@ -56,7 +56,9 @@ CPP_SOURCES= \
 	DFeaturePairsFile.C\
 	MascotXMLFile.C\
 	DGridFile.C\
-	ConsensusXMLFile.C
+	ConsensusXMLFile.C\
+	SequestInfile.C\
+	SequestOutfile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

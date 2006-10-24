@@ -71,9 +71,10 @@ EXECUTABLES=\
 	DBExporter\
 	DBImporter\
 	MapAlignment\
+	SequestAdapter\
 	AnalysisXMLMerger
 
-#	SequestAdapter\
+#	
 #	RawDataResampler\
 
 all: $(EXECUTABLES)
