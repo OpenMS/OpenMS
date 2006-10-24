@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: SequestOutfile.C, 2006/10/19 13:16 martinlangwisch Exp $
-// $Author: martinlangwisch $
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 

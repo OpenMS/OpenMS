@@ -21,8 +21,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Id: InspectInfile.h,v 1.0 2006/07/12 15:58:59 martinlangwisch Exp $
-// $Author: martinlangwisch $
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
