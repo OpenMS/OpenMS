@@ -35,9 +35,7 @@ namespace OpenMS
 {
   /**
     @brief A Group of D-dimensional elements.
-            
-    @ingroup 
-
+    
   */
   template < typename ContainerType >
   class Group : public std::set

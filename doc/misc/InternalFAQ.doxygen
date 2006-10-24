@@ -24,11 +24,11 @@
 		
 		<LI><B>Wie kann ich mir anzeigen lassen welche shared libraries eine Applikation benutzt?</B>
 		<BR>
-		ldd <application>
+		ldd &lt;application&gt;
 		
 		<LI><B>Wie kann ich mir die Symbole in einer shared library anzeigen lassen?</B>
 		<BR>
-		nm <library>
+		nm &lt;library&gt;
 		<BR>
 		Mit nm -C wird demangling eingeschaltet. (Decode low-level symbol names into user-level names.) nm akzeptiert auch .a und .o files.
 		

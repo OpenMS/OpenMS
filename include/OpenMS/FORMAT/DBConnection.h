@@ -121,6 +121,7 @@ namespace OpenMS
       	@note Make sure that the result was created after connecting to the DB! Otherwise the query fails!
       	
       	@param query the query itself
+      	@param result the results are written to this object
       */
       void executeQuery(const std::string& query, QSqlQuery& result) throw(InvalidQuery, NotConnected);
 
@@ -179,7 +180,7 @@ namespace OpenMS
 				
 				To dump a result as HTML table, use render(result, cout,"&lt;/td&gt;&lt;td&gt;","&lt;tr&gt;&lt;td&gt;","&lt;/td&gt;&lt;/tr&gt;");
 				
-				@param resultThe result to render
+				@param result The result to render
 				@param out The output stream to use
 				@param separator The string between the fields
 				@param line_begin The string at the beginning of each line

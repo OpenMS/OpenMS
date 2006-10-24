@@ -215,7 +215,7 @@ namespace OpenMS
 		 */
 		//@{
 		/**
-			 @brief Return the value of parameter @p key as a string or @p
+			 @brief Return the value of parameter @p key as a string or @p default_value if this value is not set.
 				
 			 @note See getParam_(const String&) const for the order in which parameters are searched.
 		*/

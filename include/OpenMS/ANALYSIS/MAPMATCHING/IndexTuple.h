@@ -37,8 +37,6 @@ namespace OpenMS
 {
   /**
     @brief 
-            
-    @ingroup 
   */
 
   template < typename ContainerType >

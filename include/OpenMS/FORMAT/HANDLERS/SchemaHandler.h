@@ -66,6 +66,7 @@ namespace OpenMS
 
 				@param tag_num number of tags
 				@param map_num number of maps
+				@param filename the file name to handle
 			*/
       SchemaHandler(Size tag_num, Size map_num,const String& filename);
       ///
