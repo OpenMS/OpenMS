@@ -36,7 +36,12 @@ namespace OpenMS
   void BasePairFinder<MapT>::registerChildren()
   {
     Factory< BasePairFinder<PointMapType> >::registerProduct(SimplePairFinder<PointMapType>::getName(), &SimplePairFinder<PointMapType>::create);
-    Factory< BasePairFinder<PointMapType> >::registerProduct(DelaunayPairFinder<PointMapType>::getName(), &DelaunayPairFinder<PointMapType>::create);
+
+#if CGAL_DEF
+    Factory< BasePairFinder<PointMapType> >::registerProduct(DelaunayPairFinder<PointMapType>::getName(),
+                                                             &DelaunayPairFinder<PointMapType>::create);
+#endif
+
   }
 
 } // namespace OpenMS

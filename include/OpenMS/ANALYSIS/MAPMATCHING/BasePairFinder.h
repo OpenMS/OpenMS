@@ -227,7 +227,7 @@ namespace OpenMS
          string, namely the filename for the feature pair data and append ".gp"
          to that filename for a gnuplot script.
        */
-      virtual int dumpFeaturePairs(const String& filename); // code is below
+  //    virtual int dumpFeaturePairs(const String& filename); // code is below
 
       /// Estimates the transformation for each grid cell
       virtual void run()

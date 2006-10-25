@@ -322,7 +322,7 @@ namespace OpenMS
           "1.0",
 
           // Tags
-          ";consensusXML;mapList;map;alignment;alignmentMethod;"
+          ";consensusXML;mapList;mapType;map;alignment;alignmentMethod;"
           "matchingAlgorithm;consensusAlgorithm;alignmentNewickTree;transformationList;"
           "transformation;cell;range;parameters;consensusElementList;consensusElement;"
           "centroid;groupedElementList;element"

@@ -38,7 +38,7 @@ namespace OpenMS
   /**
     @brief A 2-dimensional consensus feature.
     
-    A consenus feature represents corresponding features in multiple featuremaps.
+    A consensus feature represents corresponding features in multiple featuremaps.
     
     @ingroup Kernel, Serialization
   */

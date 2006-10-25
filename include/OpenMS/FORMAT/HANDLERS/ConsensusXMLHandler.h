@@ -31,11 +31,13 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -89,13 +91,15 @@ namespace OpenMS
         /**@name Constructors and destructor */
         //@{
         ///
+
         ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(&consensus_map),
-            calignment_(0),
             act_cons_element_(0),
             act_index_tuple_(0),
-            consensus_element_range_(false)
+            calignment_(0),
+            consensus_element_range_(false),
+            feature_map_flag_(true)
         {
           fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
         }
@@ -103,10 +107,12 @@ namespace OpenMS
         ///
         ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-            calignment_(&alignment),
+            consensus_map_(0),
             act_cons_element_(0),
             act_index_tuple_(0),
-            consensus_element_range_(false)
+            calignment_(&alignment),
+            consensus_element_range_(false),
+            feature_map_flag_(true)
         {
           fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
         }
@@ -129,16 +135,17 @@ namespace OpenMS
         void writeTo(std::ostream& os);
 
       protected:
-        ConsensusElementType* act_cons_element_;
         ConsensusMap<ConsensusElementType>* consensus_map_;
+        ConsensusElementType* act_cons_element_;
         IndexTuple< ElementContainerType >* act_index_tuple_;
         // StartAlignment pointer for writing
         const StarAlignment< ConsensusElementType >* calignment_;
         bool consensus_element_range_;
+        bool feature_map_flag_;
         typename ConsensusElementType::PositionType pos_;
         typename ConsensusElementType::IntensityType it_;
-				typename ConsensusElementType::PositionBoundingBoxType pos_range_;
-				typename ConsensusElementType::IntensityBoundingBoxType it_range_;
+        typename ConsensusElementType::PositionBoundingBoxType pos_range_;
+        typename ConsensusElementType::IntensityBoundingBoxType it_range_;
 
         /** @brief indices for tags used by StarAlignment
 
@@ -146,7 +153,7 @@ namespace OpenMS
           If you add tags, also add them to XMLSchemes.h.
           Add no elements to the enum after TAG_NUM.
         */
-        enum Tags { TAGNULL, CONSENSUSXML, MAPLIST, MAP, ALIGNMENT, ALIGNMENTMETHOD,
+        enum Tags { TAGNULL, CONSENSUSXML, MAPLIST, MAPTYPE, MAP, ALIGNMENT, ALIGNMENTMETHOD,
                     MATCHINGALGORITHM, CONSENSUSALGORITHM, ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION,
                     CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT, TAG_NUM};
 
@@ -234,7 +241,7 @@ namespace OpenMS
           case CONSENSUSELEMENT:
           consensus_map_->push_back(*act_cons_element_);
           delete act_cons_element_;
-          break;     	
+          break;
       }
     }
 
@@ -248,26 +255,47 @@ namespace OpenMS
       // Do something depending on the tag
       switch(tag)
       {
-          case MAPLIST:    
+          case MAPLIST:
           if (attributes.getIndex(xercesc::XMLString::transcode("count")) != -1)
-          	{
-          		UnsignedInt count = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count"))));
-            	consensus_map_->getMapVector().resize(count);
-            	consensus_map_->getFilenames().resize(count);
+          {
+            UnsignedInt count = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count"))));
+            consensus_map_->getMapVector().resize(count);
+            consensus_map_->getFilenames().resize(count);
+          }
+          break;
+          case MAPTYPE:
+          if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
+          {
+            if (xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))) == "featureMap")
+            {
+              feature_map_flag_ = true;
             }
+          }
           break;
           case MAP:
           if (attributes.getIndex(xercesc::XMLString::transcode("id")) != -1)
-          	{
-          		UnsignedInt id = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
-          		if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
-          			{
-          				String act_filename = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
-         					DFeatureMapFile feature_file;
-          				feature_file.load(act_filename,(consensus_map_->getMapVector())[id]);
-          				consensus_map_->getFilenames()[id]=act_filename;
-          			}
-        		}
+          {
+            UnsignedInt id = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
+            if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
+            {
+              String act_filename = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
+              // load FeatureMapXML
+              if (feature_map_flag_)
+              {
+                DFeatureMapFile feature_file;
+                feature_file.load(act_filename,(consensus_map_->getMapVector())[id]);
+              }
+              // load MzData
+              else
+              {
+                MzDataFile mzdata_file;
+                MSExperiment< Peak > ms_exp;
+                mzdata_file.load(act_filename,ms_exp);
+                ms_exp.get2DData((consensus_map_->getMapVector())[id]);
+              }
+              consensus_map_->getFilenames()[id]=act_filename;
+            }
+          }
           break;
           case CONSENSUSELEMENT:
           act_cons_element_ = new ConsensusElementType;
@@ -357,9 +385,7 @@ namespace OpenMS
         if (is_parser_in_tag_[i])
         {
           switch(i)
-          {
-              
-          }
+          {}
         }
       }
     }
@@ -374,6 +400,7 @@ namespace OpenMS
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();
       os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
+      os << "\t<mapType name=\"" << calignment_->getMapType() << "\">\n";
 
       // write aligned maps (mapList)
       UnsignedInt n = map_vector.size();

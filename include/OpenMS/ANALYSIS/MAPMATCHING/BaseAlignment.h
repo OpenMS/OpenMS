@@ -28,7 +28,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 
-#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
@@ -50,7 +49,7 @@ namespace OpenMS
      @todo default values e.g. for the pairfinder...
    
   **/
-  template < typename ConsensusElementT = ConsensusFeature<> >
+  template < typename ConsensusElementT >
   class BaseAlignment
   {
     public:
@@ -120,6 +119,8 @@ namespace OpenMS
 
         data_value = param_.getValue("consensusAlgorithm");
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create(data_value);
+
+        map_type_ = param_.getValue("mapType");
       }
       /// Non-mutable access to the param object
       const Param& getParam() const
@@ -202,6 +203,22 @@ namespace OpenMS
         return file_names_;
       }
 
+      /// Mutable access to the map type
+      void setMapType(const String& map_type)
+      {
+        map_type_ = map_type;
+      }
+      /// Mutable access to the map type
+      String& getMapType()
+      {
+        return map_type_;
+      }
+      /// Non-mutable access to the map type
+      const String& getMapType() const
+      {
+        return map_type_;
+      }
+      
       /// Mutable access to the final consensus map
       void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus)
       {
@@ -230,15 +247,18 @@ namespace OpenMS
       //@{
       /// Parameter
       Param param_;
-      
+
       /// Final consensus map
       std::vector < ConsensusElementType > final_consensus_map_;
-      
+
       /// File names of the maps to be aligned
       std::vector< String > file_names_;
 
       /// The maps to be aligned
       std::vector< ElementContainerType* > element_map_vector_;
+
+      /// The map type
+      String map_type_;
 
       /// Index of the reference map
       UnsignedInt reference_map_index_;

@@ -202,10 +202,10 @@ namespace OpenMS
 
         String all_feature_pairs_gnuplot_file =
           param_.getValue("debug:all_feature_pairs_gnuplot_file");
-        if ( !all_feature_pairs_gnuplot_file.empty() )
-        {
-          pair_finder_->dumpFeaturePairs(all_feature_pairs_gnuplot_file);
-        }
+//         if ( !all_feature_pairs_gnuplot_file.empty() )
+//         {
+//           pair_finder_->dumpFeaturePairs(all_feature_pairs_gnuplot_file);
+//         }
       }
 
     protected:
