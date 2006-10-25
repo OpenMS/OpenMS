@@ -32,7 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -324,6 +324,8 @@ namespace OpenMS
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
       {
+				// empty spectra shouldn't be picked
+				if(first == last) return;
         typedef typename OutputPeakContainer::value_type OutputPeakType;
 
         //clear the peak shapes vector
@@ -359,7 +361,7 @@ namespace OpenMS
         // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
-        DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
+        DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
 		sne.setWindowSize(50);
 
         unsigned int n = distance(first, last);
@@ -373,9 +375,12 @@ namespace OpenMS
           raw_peak_array[i] = raw_data_point;
         }
 
+				
         RawDataPointIterator it_pick_begin = raw_peak_array.begin();
         RawDataPointIterator it_pick_end   = raw_peak_array.end();
-        sne.init(it_pick_begin,it_pick_end);
+
+				if(it_pick_begin == it_pick_end) return;
+				sne.init(it_pick_begin,it_pick_end);
 
 #ifdef GSL_DEF
 
