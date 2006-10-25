@@ -51,10 +51,14 @@ namespace OpenMS
      Policy for copy constructor and assignment: grid_, feature_map_, and
      feature_pairs_ are maintained as pointers and taken shallow copies.  But
      param_ is deep.
+     
+     The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
 
   **/
-  template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > >, typename ConsensusFeatureMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
-  class DelaunayPairFinder : public BasePairFinder<MapT>
+
+
+  template < typename ConsensusMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > >, typename ElementMapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
+  class DelaunayPairFinder : public BasePairFinder<ConsensusMapT>
   {
     public:
       typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
@@ -63,7 +67,17 @@ namespace OpenMS
         RT = DimensionDescriptionType::RT,
         MZ = DimensionDescriptionType::MZ
     };
-      typedef BasePairFinder< MapT > Base;
+
+      /** Symbolic names for indices of feature maps etc.
+            This should make things more understandable and maintainable.
+             */
+      enum Maps
+      {
+        MODEL = 0,
+        SCENE = 1
+    };
+
+      typedef BasePairFinder< ConsensusMapT > Base;
 
       // The base knows it all...
       typedef typename Base::TraitsType             TraitsType;
@@ -88,16 +102,16 @@ namespace OpenMS
       DelaunayPairFinder()
           : Base()
       {
-        max_pair_distance_[0] = 0;
-        max_pair_distance_[1] = 0;
+        max_pair_distance_[RT] = 0;
+        max_pair_distance_[MZ] = 0;
       }
 
       /// Copy constructor
       DelaunayPairFinder(const DelaunayPairFinder& source)
           : Base(source)
       {
-        max_pair_distance_[0] = source.max_pair_distance_[0];
-        max_pair_distance_[1] = source.max_pair_distance_[1];
+        max_pair_distance_[RT] = source.max_pair_distance_[RT];
+        max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
       }
 
       ///  Assignment operator
@@ -107,12 +121,12 @@ namespace OpenMS
           return *this;
 
         //Base::operator = (source);  FactoryProduct::operator = (source);
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
-        transformation_[0] = source.transformation_[0];
-        transformation_[1] = source.transformation_[1];
-        max_pair_distance_[0] = source.max_pair_distance_[0];
-        max_pair_distance_[1] = source.max_pair_distance_[1];
+        feature_map_[MODEL] = source.feature_map_[MODEL];
+        feature_map_[SCENE] = source.feature_map_[SCENE];
+        transformation_[RT] = source.transformation_[RT];
+        transformation_[MZ] = source.transformation_[MZ];
+        max_pair_distance_[RT] = source.max_pair_distance_[RT];
+        max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
         return *this;
       }
 
@@ -236,8 +250,8 @@ namespace OpenMS
       {
         parseParam_();
 
-        const PointMapType& reference_map = *(feature_map_[0]);
-        const PointMapType& transformed_map = *(feature_map_[1]);
+        const PointMapType& reference_map = *(feature_map_[MODEL]);
+        const PointMapType& transformed_map = *(feature_map_[SCENE]);
 
 #define V_findFeaturePairs_(bla) V_DelaunayPairFinder(bla)
 
@@ -397,7 +411,7 @@ namespace OpenMS
             // if the feature a is already part of a FeaturePair (a,b) do:
             //    if (the feature c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
             //    --> push (a,c)
-            //    else 
+            //    else
             //    --> the value in the lookup_table becomes -2 because the mapping is not unique
             if ( lookup_table[feature_key] > -1)
             {
@@ -469,7 +483,7 @@ namespace OpenMS
           SignedInt pair_key = lookup_table[i];
           if ( pair_key > -1 )
           {
-            IndexTuple< ConsensusFeatureMapT > index_tuple(*((all_feature_pairs[pair_key].first)->begin()));
+            IndexTuple< ElementMapT > index_tuple(*((all_feature_pairs[pair_key].first)->begin()));
             (all_feature_pairs[pair_key].second)->insert(index_tuple);
             ++pairs;
           }
@@ -549,6 +563,7 @@ namespace OpenMS
           }
         }
 #undef V_parseParam_
+
       } // parseParam_
   }
   ; // DelaunayPairFinder

@@ -64,6 +64,16 @@ namespace OpenMS
         MZ = DimensionDescriptionType::MZ
     };
 
+      /** Symbolic names for indices of feature maps etc.
+            This should make things more understandable and maintainable.
+             */
+      enum Maps
+      {
+        MODEL = 0,
+        SCENE = 1
+    };
+
+
       /** @name Type definitions
        */
       //@{
@@ -107,13 +117,13 @@ namespace OpenMS
       virtual SimplePairFinder& operator = (SimplePairFinder source)
       {
         param_ = source.param_;
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
+        feature_map_[MODEL] = source.feature_map_[MODEL];
+        feature_map_[SCENE] = source.feature_map_[SCENE];
         feature_pairs_ = source.feature_pairs_;
-        diff_intercept_[0] = source.diff_intercept_[0];
-        diff_intercept_[1] = source.diff_intercept_[1];
-        diff_exponent_[0] = source.diff_exponent_[0];
-        diff_exponent_[1] = source.diff_exponent_[1];
+        diff_intercept_[RT] = source.diff_intercept_[RT];
+        diff_intercept_[MZ] = source.diff_intercept_[MZ];
+        diff_exponent_[RT] = source.diff_exponent_[RT];
+        diff_exponent_[MZ] = source.diff_exponent_[MZ];
         pair_min_quality_ = source.pair_min_quality_;
         transformed_positions_second_map_ = source.transformed_positions_second_map_;
         return *this;
@@ -137,7 +147,8 @@ namespace OpenMS
       }
 
       template < typename ResultMapType >
-      void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map){}
+      void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
+      {}
 
       /// Estimates the transformation for each grid cell
       virtual void run()
@@ -147,14 +158,14 @@ namespace OpenMS
 
         parseParam_();
 
-        Size n = feature_map_[1]->size();
+        Size n = feature_map_[SCENE]->size();
 
         transformed_positions_second_map_.clear();
         transformed_positions_second_map_.resize(n);
 
         for (Size i = 0; i < n; ++i)
         {
-          transformed_positions_second_map_[i] = (*feature_map_[1])[i].getPosition();
+          transformed_positions_second_map_[i] = (*feature_map_[SCENE])[i].getPosition();
         }
 
         V_run("SimplePairFinder::run(): apply transformation");
@@ -273,14 +284,14 @@ namespace OpenMS
         int number_of_considered_feature_pairs = 0;
 
         // For each feature in map 0, find his/her best friend in map 1
-        std::vector<Size>        best_companion_index_0(feature_map_[0]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_0(feature_map_[0]->size(),0);
-        for ( Size fi0 = 0; fi0 < feature_map_[0]->size(); ++fi0 )
+        std::vector<Size>        best_companion_index_0(feature_map_[MODEL]->size(),Size(-1));
+        std::vector<QualityType> best_companion_quality_0(feature_map_[MODEL]->size(),0);
+        for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++fi0 )
         {
           QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi1 = 0; fi1 < feature_map_[1]->size(); ++ fi1 )
+          for ( Size fi1 = 0; fi1 < feature_map_[SCENE]->size(); ++ fi1 )
           {
-            QualityType quality = similarity_( (*feature_map_[0])[fi0], (*feature_map_[1])[fi1], transformed_positions_second_map_[fi1]);
+            QualityType quality = similarity_( (*feature_map_[MODEL])[fi0], (*feature_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
             if ( quality > best_quality )
             {
               best_quality = quality;
@@ -300,14 +311,14 @@ namespace OpenMS
         }
 
         // For each feature in map 1, find his/her best friend in map 0
-        std::vector<Size>        best_companion_index_1(feature_map_[1]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_1(feature_map_[1]->size(),0);
-        for ( Size fi1 = 0; fi1 < feature_map_[1]->size(); ++fi1 )
+        std::vector<Size>        best_companion_index_1(feature_map_[SCENE]->size(),Size(-1));
+        std::vector<QualityType> best_companion_quality_1(feature_map_[SCENE]->size(),0);
+        for ( Size fi1 = 0; fi1 < feature_map_[SCENE]->size(); ++fi1 )
         {
           QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi0 = 0; fi0 < feature_map_[0]->size(); ++ fi0 )
+          for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++ fi0 )
           {
-            QualityType quality = similarity_ ( (*feature_map_[0])[fi0], (*feature_map_[1])[fi1], transformed_positions_second_map_[fi1]);
+            QualityType quality = similarity_ ( (*feature_map_[MODEL])[fi0], (*feature_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
             if ( quality > best_quality )
             {
               best_quality = quality;
@@ -328,7 +339,7 @@ namespace OpenMS
 
         // And if both like each other, they become a pair.
         // feature_pairs_->clear();
-        for ( Size fi0 = 0; fi0 < feature_map_[0]->size(); ++fi0 )
+        for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++fi0 )
         {
           // fi0 likes someone ...
           if ( best_companion_quality_0[fi0] > pair_min_quality_ )
@@ -340,8 +351,8 @@ namespace OpenMS
                )
             {
               feature_pairs_->push_back
-              ( FeaturePairType ( (*feature_map_[0])[fi0],
-                                  (*feature_map_[1])[best_companion_of_fi0],
+              ( FeaturePairType ( (*feature_map_[MODEL])[fi0],
+                                  (*feature_map_[SCENE])[best_companion_of_fi0],
                                   best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
                                 )
               );
