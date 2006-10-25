@@ -153,7 +153,7 @@ namespace OpenMS
       last_=it_end;
       float intervall_origin  = first_->getPos();//ition()[mz_dim_];
       float intervall_end = (last_-1)->getPos();//ition()[mz_dim_];
-			if(intervall_origin != intervall_end)			std::cout << intervall_end << "\t" << intervall_origin << std::endl;
+			//if(intervall_origin != intervall_end)			std::cout << intervall_end << "\t" << intervall_origin << std::endl;
       int number_of_buckets = (int)floor(fabs(intervall_origin - intervall_end) / bucket_size_) + 1;
       int buckets_per_win = (int)(window_size_ / bucket_size_);
 
