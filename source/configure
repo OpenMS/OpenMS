@@ -20926,8 +20926,6 @@ echo "${ECHO_T}by passing the option --with-xerces-incl=DIR to configure." >&6
 echo "${ECHO_T}" >&6
 		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
 echo "${ECHO_T}XERCES is needed for XML parsing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 
@@ -21050,8 +21048,6 @@ echo "${ECHO_T}by passing the option --with-xerces-incl=DIR to configure." >&6
 echo "${ECHO_T}" >&6
 		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
 echo "${ECHO_T}XERCES is needed for XML parsing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 
@@ -21209,8 +21205,6 @@ echo "${ECHO_T}by passing the option --with-xerces-libs=DIR to configure." >&6
 echo "${ECHO_T}" >&6
 		  echo "$as_me:$LINENO: result: XERCES is needed for XML parsing." >&5
 echo "${ECHO_T}XERCES is needed for XML parsing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-xerces." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-xerces." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 

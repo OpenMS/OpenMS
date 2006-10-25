@@ -105,16 +105,11 @@
   installation
 
   <ul>
-    <li>you get all the libraries in versions tested with
-    OpenMS.</li>
-
-
-    <li>it contains a configure script that builds all the
-    libraries in one step.</li>
-
-
-    <li>you don't have to spend hours reading installation
-    instructions of all the libraries.</li>
+    <li>you get all the libraries in versions tested with OpenMS.</li>
+    <li>it contains a configure script that builds all the libraries in one step.</li>
+    <li>you don't have to spend hours reading installation instructions of all the libraries.</li>
+    <li>we applied some patches the the libraries to fix some bugs. 
+    		<BR><b> These bugs may be fatal if you do not use the contrib package.</b></li>
   </ul>
   We recommend using the contrib package! QT and MySQL are not
   contained in the contrib package as they are installed on most
@@ -227,13 +222,6 @@
       </td>
       <td>&nbsp;use TS as boost toolset. make sure the compiler and toolset match (default: gcc)</td>
     </tr>
-    <tr>
-      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-      <td>
-        <li>--with-libdir=LD</li>
-      </td>
-		  <td>&nbsp;make install copies all libraries into LD (default: lib/)</td>
-    </tr>
   </table>
   
   <BR>
@@ -245,13 +233,8 @@
 
   <pre>
 &gt; make
-</pre>If you have given a libdir other than 'lib/' call
+</pre>
 
-  <pre>
-&gt; make install
-</pre>in order to copy the libraries to the specified location.
-  <br>
-  <br>
   If everything worked, the following directories were created:
 
   <ul>
@@ -267,7 +250,11 @@
     <br>
     It contains the header files needed for OpenMS.</li>
   </ul>
-	
+
+	In order to point the OpenMS configure to the contrib libraries you can use the
+	configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
+	so you can move the contrib package there to make OpenMS find them automatically.
+
   <a name="openms" id="openms"></a>
   <h2>Installing OpenMS</h2>
   If you have not installed the libraries which OpenMS requires,

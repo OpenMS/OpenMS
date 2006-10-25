@@ -2789,7 +2789,6 @@ AC_DEFUN(CF_XERCES, [
 		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
 		fi
@@ -2802,7 +2801,6 @@ AC_DEFUN(CF_XERCES, [
 		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
 		  CF_ERROR
@@ -2824,7 +2822,6 @@ AC_DEFUN(CF_XERCES, [
 		  AC_MSG_RESULT([by passing the option --with-xerces-libs=DIR to configure.])
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-xerces.])
 		  AC_MSG_RESULT()
 			CF_ERROR
 		  CF_ERROR
