@@ -31,13 +31,14 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#ifdef CGAL_DEF
+  #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#endif
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_registerChildren.h>
-
-
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/CONCEPT/Factory.h>
+
 
 #if defined OPENMS_DEBUG && ! defined GeomHashPairwiseMapMatcher
 #define V_GeomHashPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
@@ -73,6 +74,16 @@ namespace OpenMS
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
+
+      /** Symbolic names for indices of feature maps etc.
+            This should make things more understandable and maintainable.
+             */
+      enum Maps
+      {
+        MODEL = 0,
+        SCENE = 1
+    };
+
 
       /** @name Type definitions
        */
@@ -149,7 +160,7 @@ namespace OpenMS
         return new GeomHashPairwiseMapMatcher();
       }
 
-      
+
       /// returns the name of this module
       static const String getName()
       {
@@ -178,13 +189,13 @@ namespace OpenMS
         initGridTransformation_();
 
         // assign each feature of the scene map to the grid cells and build a pointer map for each grid cell
-        PeakConstReferenceMapType scene_pointer_map(feature_map_[1]->begin(), feature_map_[1]->end());
+        PeakConstReferenceMapType scene_pointer_map(feature_map_[SCENE]->begin(), feature_map_[SCENE]->end());
         Size number_grid_cells = grid_.size();
         std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
         buildGrid_(scene_pointer_map,scene_grid_maps);
 
         // initialize a pointer map with the features of the first (model or reference) map
-        PeakConstReferenceMapType model_pointer_map(feature_map_[0]->begin(), feature_map_[0]->end());
+        PeakConstReferenceMapType model_pointer_map(feature_map_[MODEL]->begin(), feature_map_[MODEL]->end());
 
         // compute the matching of each scene's grid cell features and all the features of the model map
         computeMatching_(model_pointer_map,scene_grid_maps);
@@ -293,10 +304,10 @@ namespace OpenMS
 
         for (Size i = 0; i < scene_map.size(); ++i)
         {
-          CoordinateType x = scene_map[i].getPosition()[0] - bounding_box_scene_map_.min()[0];
-          CoordinateType y = scene_map[i].getPosition()[1] - bounding_box_scene_map_.min()[1];
+          CoordinateType x = scene_map[i].getPosition()[RT] - bounding_box_scene_map_.min()[RT];
+          CoordinateType y = scene_map[i].getPosition()[MZ] - bounding_box_scene_map_.min()[MZ];
 
-          Size grid_index = (int)(x / box_size_[0]) + (int)(y / box_size_[1]) * (int)(number_buckets_[0]);
+          Size grid_index = (int)(x / box_size_[RT]) + (int)(y / box_size_[MZ]) * (int)(number_buckets_[RT]);
           scene_grid_maps[grid_index].push_back(scene_map[i]);
         }
 
@@ -354,8 +365,8 @@ namespace OpenMS
         V_initGridTransformation_("@@@ initGridTransformation_()");
 
         // compute the minimal and maximal positions of the second map (the map, which should be transformed)
-        for ( typename PointMapType::const_iterator fm_iter = feature_map_[1]->begin();
-              fm_iter != feature_map_[1]->end();
+        for ( typename PointMapType::const_iterator fm_iter = feature_map_[SCENE]->begin();
+              fm_iter != feature_map_[SCENE]->end();
               ++fm_iter
             )
         {
@@ -372,14 +383,14 @@ namespace OpenMS
         }
 
         // initialize the grid cells of the grid_
-        for (Size x_index = 0; x_index < number_buckets_[0]; ++x_index)
+        for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
         {
-          for (Size y_index = 0; y_index < number_buckets_[1]; ++y_index)
+          for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
           {
-            CoordinateType x_min = (bounding_box_scene_map_.min())[0] + box_size_[0]*x_index;
-            CoordinateType x_max = (bounding_box_scene_map_.min())[0] + box_size_[0]*(x_index+1);
-            CoordinateType y_min = (bounding_box_scene_map_.min())[1] + box_size_[1]*y_index;
-            CoordinateType y_max = (bounding_box_scene_map_.min())[1] + box_size_[1]*(y_index+1);
+            CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
+            CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
+            CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
+            CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
 
             DGridCell<2,TraitsType> cell(x_min, y_min, x_max, y_max);
             grid_.push_back(cell);
