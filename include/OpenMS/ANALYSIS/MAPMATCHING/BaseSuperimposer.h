@@ -63,12 +63,21 @@ namespace OpenMS
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
+      /** Symbolic names for indices of feature maps etc.
+      This should make things more understandable and maintainable. 
+      */
+      enum Maps
+      {
+        MODEL = 0,
+        SCENE = 1
+    };
+
       /** @name Type definitions
        */
       //@{
       /// Container for input features
-      typedef MapT PointMapType; 
-      
+      typedef MapT PointMapType;
+
       /// Type of features considered here
       typedef typename PointMapType::value_type PointType;
 
@@ -97,10 +106,10 @@ namespace OpenMS
           : param_(),
           final_transformation_()
       {
-        feature_map_[0] = 0;
-        feature_map_[1] = 0;
-        final_transformation_[0] = 0;
-        final_transformation_[1] = 0;
+        feature_map_[MODEL] = 0;
+        feature_map_[SCENE] = 0;
+        final_transformation_[RT] = 0;
+        final_transformation_[MZ] = 0;
       }
 
       /** @brief Copy constructor
@@ -110,10 +119,10 @@ namespace OpenMS
       BaseSuperimposer(const BaseSuperimposer& source)
           : param_(source.param_)
       {
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
-        final_transformation_[0] = source.final_transformation_[0];
-        final_transformation_[1] = source.final_transformation_[1];
+        feature_map_[MODEL] = source.feature_map_[MODEL];
+        feature_map_[SCENE] = source.feature_map_[SCENE];
+        final_transformation_[RT] = source.final_transformation_[RT];
+        final_transformation_[MZ] = source.final_transformation_[MZ];
       }
 
       /** @brief  Assignment operator
@@ -123,10 +132,10 @@ namespace OpenMS
       virtual BaseSuperimposer& operator = (BaseSuperimposer source)
       {
         param_ = source.param_;
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
-        final_transformation_[0] = source.final_transformation_[0];
-        final_transformation_[1] = source.final_transformation_[1];
+        feature_map_[MODEL] = source.feature_map_[MODEL];
+        feature_map_[SCENE] = source.feature_map_[SCENE];
+        final_transformation_[RT] = source.final_transformation_[RT];
+        final_transformation_[MZ] = source.final_transformation_[MZ];
         return *this;
       }
 

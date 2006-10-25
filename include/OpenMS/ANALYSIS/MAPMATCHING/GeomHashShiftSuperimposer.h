@@ -71,10 +71,8 @@ namespace OpenMS
     };
 
       /** Symbolic names for indices of feature maps etc.
-
-      @todo Use MODEL and SCENE instead of o and 1 throughout the whole code.
-      This should make things more understandable and maintainable.  (Eva, post-release)
-      */
+          This should make things more understandable and maintainable.
+           */
       enum Maps
       {
         MODEL = 0,
@@ -214,16 +212,16 @@ namespace OpenMS
       GeomHashShiftSuperimposer()
           : Base()
       {
-        final_transformation_[0] = new FinalShiftType();
-        final_transformation_[1] = new FinalShiftType();
+        final_transformation_[RT] = new FinalShiftType();
+        final_transformation_[MZ] = new FinalShiftType();
       }
 
       /// Copy constructor
       GeomHashShiftSuperimposer(const GeomHashShiftSuperimposer& source)
           : Base(source)
       {
-        final_transformation_[0] = new FinalShiftType(source.final_transformation_[0]);
-        final_transformation_[1] = new FinalShiftType(source.final_transformation_[1]);
+        final_transformation_[RT] = new FinalShiftType(source.final_transformation_[RT]);
+        final_transformation_[MZ] = new FinalShiftType(source.final_transformation_[MZ]);
       }
 
       ///  Assignment operator
@@ -285,8 +283,8 @@ namespace OpenMS
       virtual void run()
       {
         /// clear the member
-        feature_bucket_[0].clear();
-        feature_bucket_[1].clear();
+        feature_bucket_[RT].clear();
+        feature_bucket_[MZ].clear();
         shift_bucket_.clear();
         shift_matrix_.clear();
 
@@ -299,7 +297,7 @@ namespace OpenMS
           }
         }
 
-        if ( !this->feature_map_[0]->empty() && !this->feature_map_[1]->empty() )
+        if ( !this->feature_map_[MODEL]->empty() && !this->feature_map_[SCENE]->empty() )
         {
           parseParam_();
           computeFeatureBuckets_();
@@ -467,7 +465,7 @@ namespace OpenMS
             num_buckets[dimension] = int(1.1 + diagonal[dimension]/fbs[dimension]);
             diagonal_enlarged[dimension] = fbs[dimension] * num_buckets[dimension];
           }
-          V_computeFeatureBuckets_("num_buckets: "<<num_buckets[0]<<' '<<num_buckets[1]);
+          V_computeFeatureBuckets_("num_buckets: "<<num_buckets[RT]<<' '<<num_buckets[MZ]);
           V_computeFeatureBuckets_("diagonal_enlarged: "<<diagonal_enlarged);
 
           // The extra margin.
@@ -482,7 +480,7 @@ namespace OpenMS
           V_computeFeatureBuckets_("fmpbbe: "<<fmpbbe);
 
           // Resize feature_bucket_[map_index] accordingly.
-          fb.resize(num_buckets[0],num_buckets[1]);
+          fb.resize(num_buckets[RT],num_buckets[MZ]);
           V_computeFeatureBuckets_("rows: "<<fb.rows()<<"  cols: "<<fb.cols());
 
           // Now, finally, we store the indices of the features in their
@@ -491,7 +489,7 @@ namespace OpenMS
           for ( Size index= 0; index < fm.size(); ++index )
           {
             PositionType position = fm[index].getPosition() - fmpbbe_min;
-            fb ( Size(position[0]/fbs[0]), Size(position[1]/fbs[1]) ).push_back(index);
+            fb ( Size(position[RT]/fbs[RT]), Size(position[MZ]/fbs[MZ]) ).push_back(index);
           }
 
           // Optionally, write debug output as specified in param.
@@ -511,7 +509,7 @@ namespace OpenMS
               dump_file << row_col.first << ' ' << row_col.second << " #bucket" << std::endl;
               for ( FeatureBucketType::const_iterator viter = iter->begin(); viter != iter->end(); ++viter)
               {
-                dump_file << fm[*viter].getPosition()[0] <<' '<<fm[*viter].getPosition()[1] << std::endl;
+                dump_file << fm[*viter].getPosition()[RT] <<' '<<fm[*viter].getPosition()[MZ] << std::endl;
               }
               dump_file << std::endl;
             }
@@ -549,10 +547,10 @@ namespace OpenMS
         // Compute the bounding box for the shift map
         {
           tbb.clear();
-          tbb.enlarge ( feature_map_position_bounding_box_[1].min() - feature_map_position_bounding_box_[0].min() );
-          tbb.enlarge ( feature_map_position_bounding_box_[1].min() - feature_map_position_bounding_box_[0].max() );
-          tbb.enlarge ( feature_map_position_bounding_box_[1].max() - feature_map_position_bounding_box_[0].min() );
-          tbb.enlarge ( feature_map_position_bounding_box_[1].max() - feature_map_position_bounding_box_[0].max() );
+          tbb.enlarge ( feature_map_position_bounding_box_[MZ].min() - feature_map_position_bounding_box_[RT].min() );
+          tbb.enlarge ( feature_map_position_bounding_box_[MZ].min() - feature_map_position_bounding_box_[RT].max() );
+          tbb.enlarge ( feature_map_position_bounding_box_[MZ].max() - feature_map_position_bounding_box_[RT].min() );
+          tbb.enlarge ( feature_map_position_bounding_box_[MZ].max() - feature_map_position_bounding_box_[RT].max() );
         }
         V_computeShiftBuckets_("tbb: "<<tbb);
 
@@ -585,21 +583,21 @@ namespace OpenMS
         V_computeShiftBuckets_("tbs: "<<tbs);
 
         // Resize shift_bucket_ accordingly.
-        tb.resize(num_buckets[0]+1,num_buckets[1]+1);
+        tb.resize(num_buckets[RT]+1,num_buckets[MZ]+1);
         V_computeShiftBuckets_("rows: "<<tb.rows()<<"  cols: "<<tb.cols());
 
         // Clear the shift buckets.
         std::fill(tb.begin(),tb.end(),QualityType(0));
 
 
-        // Resize shift_matrix_ according to feature_bucket_[1]
-        tm.resize(feature_bucket_[1].sizePair());
+        // Resize shift_matrix_ according to feature_bucket_[MZ]
+        tm.resize(feature_bucket_[MZ].sizePair());
 
         // Now we store the shifts for all relevant feature pairs in their
         // corresponding buckets.  Each shift is distributed among its
         // four neighboring "buckets", with weights according to the distances
         // from these corner points.  Note that the outer two loops (over i and
-        // j) enumerate the "image" (feature_bucket_[1]), then we search for
+        // j) enumerate the "image" (feature_bucket_[MZ]), then we search for
         // "pre-images" (feature_bucket_[0}) in the two inner loops (over k and
         // l).  (And of course, finally, we enumerate all feature pairs.)  This
         // way we can associate the shifts vectors to buckets of the
@@ -672,8 +670,8 @@ namespace OpenMS
                     // Compute the shift corresponding to a pair of features.
                     ShiftType shift = shift_( getFeatureMap(0)[*model_iter],
                                               getFeatureMap(1)[*scene_iter] );
-//                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
-//                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
+                    //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
+                    //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
 
                     PositionType tpwm = shift.getPosition();
                     tpwm -= tbbe_min;
@@ -757,8 +755,8 @@ namespace OpenMS
             std::pair<Size,Size> row_col = tb.indexPair(iter-tb.begin());
             if ( *iter )
             {
-              dump_file << tbbe_min[0] + tbs[0] * row_col.first << ' '
-              << tbbe_min[1] + tbs[1] * row_col.second << ' '
+              dump_file << tbbe_min[RT] + tbs[RT] * row_col.first << ' '
+              << tbbe_min[MZ] + tbs[MZ] * row_col.second << ' '
               << *iter << ' '
               << row_col.first << ' '
               << row_col.second
@@ -795,23 +793,23 @@ namespace OpenMS
         // Find the transformation bucket with highest impact (quality).
         Size tb_max_element_index = std::max_element(tb.begin(),tb.end()) - tb.begin();
         Size tb_max_indices[2];
-        tb_max_indices[0] = tb.rowIndex(tb_max_element_index);
-        tb_max_indices[1] = tb.colIndex(tb_max_element_index);
-        V_computeShift_("tb_max: "<<tb_max_indices[0]<<' '<<tb_max_indices[1]<<" quality="<<tb(tb_max_indices[0],tb_max_indices[1]));
+        tb_max_indices[RT] = tb.rowIndex(tb_max_element_index);
+        tb_max_indices[MZ] = tb.colIndex(tb_max_element_index);
+        V_computeShift_("tb_max: "<<tb_max_indices[RT]<<' '<<tb_max_indices[MZ]<<" quality="<<tb(tb_max_indices[RT],tb_max_indices[MZ]));
 
         // Compute a weighted average of the shifts nearby the tb_max_element.
         //ShiftType result; // initially zero
 
         PositionType const& tbbe_min = shift_bounding_box_enlarged_.min();
         int tb_run_indices[2];
-        for ( tb_run_indices[0]  = std::max ( int (tb_max_indices[0] - tbw[0]), 0 );
-              tb_run_indices[0] <= std::min ( int (tb_max_indices[0] + tbw[0]), int (tb.rows()) - 1 );
-              ++tb_run_indices[0]
+        for ( tb_run_indices[RT]  = std::max ( int (tb_max_indices[RT] - tbw[RT]), 0 );
+              tb_run_indices[RT] <= std::min ( int (tb_max_indices[RT] + tbw[RT]), int (tb.rows()) - 1 );
+              ++tb_run_indices[RT]
             )
         {
-          for ( tb_run_indices[1]  = std::max ( int (tb_max_indices[1] - tbw[1]), 0 );
-                tb_run_indices[1] <= std::min ( int (tb_max_indices[1] + tbw[1]), int (tb.cols()) - 1 );
-                ++tb_run_indices[1]
+          for ( tb_run_indices[MZ]  = std::max ( int (tb_max_indices[MZ] - tbw[MZ]), 0 );
+                tb_run_indices[MZ] <= std::min ( int (tb_max_indices[MZ] + tbw[MZ]), int (tb.cols()) - 1 );
+                ++tb_run_indices[MZ]
               )
           {
             PositionType contribution_position(tbs);
@@ -820,7 +818,7 @@ namespace OpenMS
               contribution_position[dimension] *= tb_run_indices[dimension];
             }
             contribution_position += tbbe_min;
-            QualityType contribution_quality = tb( tb_run_indices[0], tb_run_indices[1] );
+            QualityType contribution_quality = tb( tb_run_indices[RT], tb_run_indices[MZ] );
             shift.getQuality() += contribution_quality;
             contribution_position *= contribution_quality;
             shift.getPosition() += contribution_position;
@@ -928,7 +926,7 @@ namespace OpenMS
       /// computing shifts.
       Size shift_bucket_window_[2];
 
-      /// Matrix of shifts associated with buckets of feature_map_[1].
+      /// Matrix of shifts associated with buckets of feature_map_[SCENE].
       ShiftMatrixType shift_matrix_;
       //@}
 
