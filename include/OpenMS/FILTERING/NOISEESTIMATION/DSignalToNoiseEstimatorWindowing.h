@@ -222,7 +222,7 @@ namespace OpenMS
           y_noise_value += w[start] * Y[start]; 
         }
 
-        y_base_[i]  = y_base_value - minZ;
+        y_base_[i]  = y_base_value;
         y_noise_[i] = y_noise_value;
       }
     }
@@ -252,7 +252,7 @@ namespace OpenMS
 				} 
 
       float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001) 
-                 ? (data_point->getIntensity() + minZ - y_base_[bucket]) / (y_noise_[bucket] - y_base_[bucket])
+                 ? (data_point->getIntensity()   - y_base_[bucket]) / (y_noise_[bucket] - y_base_[bucket])
                  : 0.; // something went wrong!
 
       return sn;
