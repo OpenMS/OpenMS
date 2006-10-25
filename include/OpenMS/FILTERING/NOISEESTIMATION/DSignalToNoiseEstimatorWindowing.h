@@ -150,11 +150,12 @@ namespace OpenMS
     //@{
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
+			if(it_begin == it_end) return;
       first_=it_begin;
       last_=it_end;
-      float intervall_origin = first_->getPosition()[mz_dim_];
-      float intervall_end = (last_-1)->getPosition()[mz_dim_];
-
+      float intervall_origin  = first_->getPos();//ition()[mz_dim_];
+      float intervall_end = (last_-1)->getPos();//ition()[mz_dim_];
+			if(intervall_origin != intervall_end)			std::cout << intervall_end << "\t" << intervall_origin << std::endl;
       int number_of_buckets = (int)floor(fabs(intervall_origin - intervall_end) / bucket_size_) + 1;
       int buckets_per_win = (int)(window_size_ / bucket_size_);
 
@@ -163,7 +164,7 @@ namespace OpenMS
       std::vector<float> Y(number_of_buckets, -1.*(std::numeric_limits<float>::max() - 10));
       std::vector<float> W(number_of_buckets, 0);
       std::vector<float> w(number_of_buckets, 0);
-
+ 
       y_base_.resize(number_of_buckets, 0);
       y_noise_.resize(number_of_buckets, 0);
 
@@ -171,14 +172,16 @@ namespace OpenMS
 
       for (int i = 0; i < length; i++)
       {
-        int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+        int bucket = (int)floor(fabs(it_help->getPos()/*ition()[mz_dim_]*/-intervall_origin) / bucket_size_);
         float value = it_help->getIntensity();
 
         if (value > Y[bucket])
           Y[bucket] = value;
 
         if (value < Z[bucket])
-          Z[bucket] = value;
+					{
+						Z[bucket] = value;
+					}
 
         it_help++;
       }
@@ -216,10 +219,10 @@ namespace OpenMS
         for (; start < end; ++start)
         {
           y_base_value += w[start] * Z[start];
-          y_noise_value += w[start] * Y[start];
+          y_noise_value += w[start] * Y[start]; 
         }
 
-        y_base_[i]  = y_base_value;
+        y_base_[i]  = y_base_value - minZ;
         y_noise_[i] = y_noise_value;
       }
     }
@@ -231,21 +234,25 @@ namespace OpenMS
     ///
     double getSignalToNoise(PeakIterator data_point) throw (Exception::OutOfRange)
     {
-      if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) && (data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
+      if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) &&
+					(data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
       {
         throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
-      int bucket = (int)floor((data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
+      int bucket = (int)floor( (data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
 
       // TODO: Remove this workaround.
       // if the s/n ratio for the first peak in a scan
       // is request, bucket is set to -1 which results
       // in meaningless results further below. (ost)
-      if (bucket < 0) bucket = 0;
+      if (bucket < 0)
+				{
+					bucket = 0;
+				} 
 
-      float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001)
-                 ? (data_point->getIntensity() - y_base_[bucket]) / (y_noise_[bucket] - y_base_[bucket])
+      float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001) 
+                 ? (data_point->getIntensity() + minZ - y_base_[bucket]) / (y_noise_[bucket] - y_base_[bucket])
                  : 0.; // something went wrong!
 
       return sn;
@@ -261,6 +268,7 @@ namespace OpenMS
     int bucket_size_;
     /// Number of data points which belong to the window
     int window_size_;
+		
   };
 
 }// namespace OpenMS
