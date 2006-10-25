@@ -50,8 +50,6 @@ namespace OpenMS
 
     @note This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
           for each scan, and not for the whole map.
-  
-  	@todo ost: This class returns occasionally negative (!) s/n ratios (Eva)
 
     @ingroup PeakPicking
   */
