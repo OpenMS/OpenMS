@@ -67,7 +67,7 @@ TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
 #files to remove
-CLEANUP = ${RM} -f *.tmp *.log
+CLEANUP = ${RM} -f *.tmp  *.rounded_tmp *.log
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
@@ -76,7 +76,7 @@ TOPP = ${OPENMS_PATH}/bin/
 # DEFAULT TARGET
 # Here all TOPP tool tests are executed.
 # Afterwards all temporary data files are removed (*.tmp)
-default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
+default:  help RoundCat $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
 	@$(ECHO) ""
@@ -110,9 +110,20 @@ help:
 # - temporary files (*.tmp) are not deleted after the execution
 debug: DEBUG=1 default
 
+# TODO: read from environment _and_ provide a default ????
+PRECISION = 3
+
+ROUNDCAT = RoundCat
+
+# Diff that rounds numbers before comparing the files.
+DIFF_ROUNDCAT = \
+	$(ROUNDCAT) $(1) $(1).rounded_tmp $(PRECISION) && \
+	$(ROUNDCAT) $(2) $(2).rounded_tmp $(PRECISION) && \
+	$(DIFF) $(1).rounded_tmp $(2).rounded_tmp $(3)
+
 # Diff that ignores whitespaces and empty lines
-DIFF_QUIET = $(DIFF) -bB -t --brief
-DIFF_DEBUG = $(DIFF) -bB --initial-tab -u
+DIFF_DEBUG = $(call DIFF_ROUNDCAT,$1,$2,-bB --initial-tab -u)
+DIFF_QUIET = $(call DIFF_ROUNDCAT,$1,$2,-bB -t --brief)
 
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef DEBUG
@@ -148,8 +159,8 @@ endif
 # argument with a suffix '.tmp' appended.  To override the default, you can
 # specify a third argument.  Thus '$(call TEST_FILE_EQUAL,file.xtn)' is
 # equivalent to '$(call TEST_FILE_EQUAL,file.xtn,file.tmp)'.
-TEST_FILE_EQUAL = \
-	if $(DIFF_WITH_OPT) $(if $2,$2,$(basename $1).tmp) $1; \
+TEST_FILE_EQUAL =  \
+	if $(call DIFF_WITH_OPT,$(if $2,$2,$(basename $1).tmp),$1); \
 	then \
 		$(ECHO) "	File $1: OK"; \
 	else \
@@ -157,7 +168,12 @@ TEST_FILE_EQUAL = \
 		exit 1; \
 	fi;
 
+# A simple minded cat-like application that reads the input file and writes it
+# to the output file, but with all numbers rounded to precision digits.
+$(ROUNDCAT): $(ROUNDCAT).C
 
+###########################################################################################
+# Tests for individual TOPP tools.
 
 AdditiveSeries_test:
 	@$(ECHO) ""
