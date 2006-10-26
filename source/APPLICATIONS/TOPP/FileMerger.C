@@ -78,7 +78,7 @@ class TOPPFileMerger
 					<< " " << getToolName() << " [options]" << endl
 					<< endl
 					<< "Options are:" << endl
-					<< "  -file_list <file> a text file containing file names and retention times sparated by tab." << endl
+					<< "  -file_list <file> a text file containing file names and retention times separated by tab." << endl
 					<< "                    If no retention time is given, it is taken from the input file." << endl
 					<< "  -in_type <type>   input file type (default: determined from input file extension)." << endl
 					<< "  -out <file>       output mzData file name" << endl
@@ -189,7 +189,7 @@ class TOPPFileMerger
 			}
 			else if (in.size()>1)
 			{
-				writeLog_(String("Warning: More than one scan in file '") + filename +"'!");
+				writeLog_(String("Warning: More than one scan in file '") + filename +"'! Extracting only the first scan!");
 			}
 				
 			//handle rt
