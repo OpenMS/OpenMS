@@ -421,7 +421,8 @@ class TOPPSequestAdapter
 			const String& common_name,
 			unsigned int prob_charge,
 			vector< pair< String, vector< double > > >& filenames_and_precursor_retention_times,
-			bool make_dtas = true)
+			bool make_dtas = true,
+			unsigned int parts = 1000)
 		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
@@ -668,9 +669,9 @@ class TOPPSequestAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				size_t pos = input_filename.find_last_of('/');
-				if ( pos == string::npos ) pos = 0;
-				if ( !input_file_dir_network.hasSuffix(input_filename.substr(pos)) ) input_file_dir_network.append("\\" + input_filename.substr(++pos));
+				QFileInfo file_info(input_filename);
+				string_buffer = file_info.fileName().ascii();
+				if ( !input_file_dir_network.hasSuffix(string_buffer) ) input_file_dir_network.append("\\" + string_buffer);
 				
 				user = getParamAsString_("user");
 				if ( user.empty() )
@@ -741,9 +742,9 @@ class TOPPSequestAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				size_t pos = database.find_last_of('/');
-				if ( pos == string::npos ) pos = 0;
-				if ( !database_dir_network.hasSuffix(database.substr(pos)) ) database_dir_network.append("\\" + database.substr(++pos));
+				QFileInfo file_info(database);
+				string_buffer = file_info.fileName().ascii();
+				if ( !database_dir_network.hasSuffix(string_buffer) ) database_dir_network.append("\\" + string_buffer);
 				sequest_infile.setDatabase(database_dir_network);
 
 				if ( !snd_database.empty() )
@@ -756,9 +757,9 @@ class TOPPSequestAdapter
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
-					size_t pos = snd_database.find_last_of('/');
-					if ( pos == string::npos ) pos = 0;
-					if ( !snd_database_dir_network.hasSuffix(snd_database.substr(pos)) ) snd_database_dir_network.append("\\" + snd_database.substr(++pos));
+					QFileInfo file_info(snd_database);
+					string_buffer = file_info.fileName().ascii();
+// 					if ( !snd_database_dir_network.hasSuffix(string_buffer) ) snd_database_dir_network.append("\\" + string_buffer);
 					sequest_infile.setSndDatabase(snd_database_dir_network);
 				}
 				
