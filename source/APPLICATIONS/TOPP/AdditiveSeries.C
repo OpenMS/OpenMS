@@ -25,15 +25,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
-#include<OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
-#include<OpenMS/KERNEL/DFeatureMap.h>
-#include<OpenMS/KERNEL/DFeature.h>
-#include<OpenMS/KERNEL/DPosition.h>
-#include<OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -41,8 +41,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include<vector>
-#include<algorithm>
+#include <vector>
+#include <algorithm>
 
 #include <gsl/gsl_math.h>
 
@@ -343,6 +343,8 @@ protected:
 
             results << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
             results << "<results_additiveseries>" << endl;
+            results << "\t<slope>" << linreg.getSlope() << "</slope>" << endl;
+            results << "\t<intercept>" << linreg.getIntercept() << "</intercept>" << endl;
             results << "\t<x_intercept>" << linreg.getXIntercept() << "</x_intercept>" << endl;
             results << "\t<confidence_lowerlimit>" << linreg.getLower() << "</confidence_lowerlimit>" << endl;
             results << "\t<confidence_upperlimit>" << linreg.getUpper() << "</confidence_upperlimit>" << endl;
@@ -417,9 +419,13 @@ protected:
         vector<double> sp_concentrations;
         while (conc_file.getline(line,256))
         {
-            String line_str(line);
-            line_str.trim();
-            sp_concentrations.push_back(line_str.toDouble());
+					string line_str(line);
+					std::istringstream line_stream(line_str);
+					double conc = 0;
+					line_stream >> conc;
+					sp_concentrations.push_back(conc);
+					// line_str.trim();
+					// sp_concentrations.push_back(line_str.toDouble());
         }
 
         // introduce a flag for each concetration
@@ -474,8 +480,10 @@ protected:
         }
 
         // set prefix of gnuplot output
-        String filename_prefix = "gnuplot_";
-        filename_prefix += String(title);
+        String filename_prefix = title;
+				// // // Formerly (until 2006-10-26) :
+        // // // String filename_prefix = "gnuplot_";
+        // // // filename_prefix += String(title);
 
         if (getParamAsBool_("write_gnuplot_output"))
         {

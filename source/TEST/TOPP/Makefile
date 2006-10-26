@@ -28,8 +28,9 @@ include ../../config_defs.mak
 
 DIRECTORY=TEST/TOPP
 
-# tool tests in alphabetical order
-TOPP_TESTS= \
+# Tests for individual tools.
+# (in alphabetical order)
+TOPP_TOOL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
@@ -60,35 +61,107 @@ TOPP_TESTS= \
 	UnlabeledMatcher_test \
 
 
-# DEFAULT TARGET
-# Here all TOPP tool tests are executed. Afterwards all temporary data files are removed (*.tmp)
-default:  $(TOPP_TESTS)
-	@${ECHO} ""
-	@${ECHO} "All TOPP tests executed successfully"
-	@${ECHO} ""
-	@ if test -z ${DEBUG}; then ${RM} -f *.tmp; fi
+# Tests for processing pipelines using several tools.
+# (in alphabetical order)
+TOPP_PIPELINE_TESTS = \
+	MyoQuant_test \
 
+
+CLEANUP = ${RM} -f *.tmp *.log
+
+#######################################################################
+# DEFAULT TARGET
+# Here all TOPP tool tests are executed.
+# Afterwards all temporary data files are removed (*.tmp)
+default:  $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
+	@$(ECHO) ""
+	@$(ECHO) "-------------------------------------------------------"
+	@$(ECHO) ""
+	@$(ECHO) "Congratulations!  All TOPP tests executed successfully."
+	@$(ECHO) ""
+	@ if test -z ${DEBUG}; then $(CLEANUP); fi
+
+clean:
+	$(CLEANUP)
+
+#######################################################################
 # DEBUG MODE
-# You can activate the debug mode with 'make debug'.
+# You can run the tests in debug mode with 'make debug'.
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
 # - temporary files (*.tmp) are not deleted after the execution
-debug:
-	@${MAKE} DEBUG=1 default
-
+# 'make debug' will run all tests.  Use 'make set-debug Tool_test' to run an individual test in debug mode.
+debug: set-debug default
 
 # Diff that ignores whitespaces and empty lines
-ifeq ("$(DEBUG)","")
-  DIFF_WITH_OPT = ${DIFF} -bB --brief
+DIFF_QUIET = $(DIFF) -bB -t --brief
+DIFF_DEBUG = $(DIFF) -bB --initial-tab -u
+
+# You can use 'make DEBUG=1' for the same effect.
+# [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
+ifdef DEBUG
+DIFF_WITH_OPT = $(DIFF_QUIET)
 else
-  DIFF_WITH_OPT = ${DIFF} -bBu
+DIFF_WITH_OPT = $(DIFF_DEBUG)
 endif
 
-# Shortcut to TOPP bin path
+set-debug:
+	$(eval DEBUG=1)
+	$(eval DIFF_WITH_OPT = $(DIFF_DEBUG))
+	@$(ECHO) "DEBUG mode is on.  Comparing with '$(DIFF_WITH_OPT)'"
+
+
+#######################################################################
+# SILENT MODE
+# You can run the tests in silent mode with 'make silent'
+# Changes in silent mode are:
+# - RUN_PROG_OPT will redirect the console output (stdout) of the program to /dev/null
+# 'make silent' will run all tests.  Use 'make set-silent Tool_test' to run an individual test in silent mode.
+silent: set-silent default
+
+# Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
 
 
-##  Tool tests coming up soon...
+# This function runs a TOPP tool with given options.  To invoke the program,
+# write '$(call RUN_PROG_OPT,Toolname,options)'.  [ Don't use RUN_PROG_OPT_INTERNAL
+# directly, use RUN_PROG_OPT instead.  Depending on the SILENT settings,
+# RUN_PROG_OPT will append a redirection or not. ]
+RUN_PROG_OPT_INTERNAL = $(TOPP)$(1) $(2)
+
+# You can use 'make SILENT=1' for the same effect as 'make set-silent'.
+# [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
+ifdef SILENT
+# extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
+RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null )
+else
+RUN_PROG_OPT = $(RUN_PROG_OPT_INTERNAL)
+endif
+
+set-silent:
+	$(eval SILENT=1)
+	$(eval RUN_PROG_OPT = ( $$(RUN_PROG_OPT_INTERNAL) ) > /dev/null )
+	@$(ECHO) "SILENT mode is on.  Redirecting stdout to /dev/null"
+
+
+# This function checks whether two files are equal (up to whitespace).  To
+# invoke the test, write '$(call TEST_FILE_EQUAL,file.xtn)'.  The name of the
+# other file is 'file.tmp' by default, i.e. the basename of the second
+# argument with a suffix '.tmp' appended.  To override the default, you can
+# specify a third argument.  Thus '$(call TEST_FILE_EQUAL,file.xtn)' is
+# equivalent to '$(call TEST_FILE_EQUAL,file.xtn,file.tmp)'.
+TEST_FILE_EQUAL = \
+	if $(DIFF_WITH_OPT) $(if $2,$2,$(basename $1).tmp) $1; \
+	then \
+		$(ECHO) "	File $1: OK"; \
+	else \
+		$(ECHO) "	$@ failed.  File: $1"; \
+		exit 1; \
+	fi;
+
+
+###########################################################################################
+##  More tool tests coming soon...  // TODO list
 #
 ##  Marc (?) :
 # DBImporter_test
@@ -96,199 +169,265 @@ TOPP = ${OPENMS_PATH}/bin/
 # LabeledMatcher_test
 #
 ##  Clemens:
-# FeatureFinder_test
-# UnlabeledMatcher_test
 # AdditiveSeries_test
 
-
 AdditiveSeries_test:
-	@${ECHO} ""
-	@${ECHO} "AdditiveSeries:"
+	@$(ECHO) ""
+	@$(ECHO) "AdditiveSeries:"
+	@$(call RUN_PROG_OPT,AdditiveSeries,-ini AdditiveSeries_1_parameters.ini)
+	@$(MV) AdditiveSeries_1_gnuplot_tmp.cmd AdditiveSeries_1_gnuplot_cmd.tmp
+	@$(MV) AdditiveSeries_1_gnuplot_tmp.dat AdditiveSeries_1_gnuplot_dat.tmp
+	@$(MV) AdditiveSeries_1_gnuplot_tmp.err AdditiveSeries_1_gnuplot_err.tmp
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_output.txt)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.cmd,AdditiveSeries_1_gnuplot_cmd.tmp)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.dat,AdditiveSeries_1_gnuplot_dat.tmp)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.err,AdditiveSeries_1_gnuplot_err.tmp)
 
 
 AnalysisXMLMerger_test:
-	@${ECHO} ""
-	@${ECHO} "AnalysisXMLMerger:"
+	@$(ECHO) ""
+	@$(ECHO) "AnalysisXMLMerger:"
+	@$(ECHO) "	... todo ..."
 
 
 BaselineFilter_test:
-	@${ECHO} ""
-	@${ECHO} "BaselineFilter:"
+	@$(ECHO) ""
+	@$(ECHO) "BaselineFilter:"
+	@$(ECHO) "	... todo ..."
 
 
 DBExporter_test:
-	@${ECHO} ""
-	@${ECHO} "DBExporter:"
+	@$(ECHO) ""
+	@$(ECHO) "DBExporter:"
+	@$(ECHO) "	... todo ..."
 
 
 DBImporter_test:
-	@${ECHO} ""
-	@${ECHO} "DBImporter:"
+	@$(ECHO) ""
+	@$(ECHO) "DBImporter:"
+	@$(ECHO) "	... todo ..."
 
 
 DTAExtractor_test:
-	@${ECHO} ""
-	@${ECHO} "DTAExtractor:"
+	@$(ECHO) ""
+	@$(ECHO) "DTAExtractor:"
 
-	@${ECHO} "- Test 1: rt"
-	@${TOPP}DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -rt :61
-	@${MV} DTAExtractor_RT60.dta DTAExtractor.tmp
-	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_1_output.dta
+	@$(ECHO) "- Test 1: rt"
+	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -rt :61)
+	@$(MV) DTAExtractor_RT60.dta DTAExtractor.tmp
+	@$(call TEST_FILE_EQUAL,DTAExtractor_1_output.dta,DTAExtractor.tmp)
 
-	@${ECHO} "- Test 2: level"
-	@${TOPP}DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -level 1
-	@${MV} DTAExtractor_RT60.dta DTAExtractor.tmp
-	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_2_output.dta
+	@$(ECHO) "- Test 2: level"
+	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -level 1)
+	@$(MV) DTAExtractor_RT60.dta DTAExtractor.tmp
+	@$(call TEST_FILE_EQUAL,DTAExtractor_2_output.dta,DTAExtractor.tmp)
 
-	@${ECHO} "- Test 3: precursor mz, level"
-	@${TOPP}DTAExtractor -in DTAExtractor_1_input.mzData -out DTAExtractor -level 2 -mz :1000
-	@${MV} DTAExtractor_RT140_MZ5.dta DTAExtractor.tmp
-	@${DIFF_WITH_OPT} DTAExtractor.tmp DTAExtractor_3_output.dta
+	@$(ECHO) "- Test 3: precursor mz, level"
+	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -level 2 -mz :1000)
+	@$(MV) DTAExtractor_RT140_MZ5.dta DTAExtractor.tmp
+	@$(call TEST_FILE_EQUAL,DTAExtractor_3_output.dta,DTAExtractor.tmp)
 
 
 Dewarper_test:
-	@${ECHO} ""
-	@${ECHO} "Dewarper:"
+	@$(ECHO) ""
+	@$(ECHO) "Dewarper:"
+	@$(ECHO) "	... todo ..."
 
 
 FeatureFinder_test:
-	@${ECHO} ""
-	@${ECHO} "FeatureFinder:"
+	@$(ECHO) ""
+	@$(ECHO) "FeatureFinder:"
+
+	@$(ECHO) "- Test 1:"
+	@$(call RUN_PROG_OPT,FeatureFinder,\
+	-ini FeatureFinder_1_parameters.ini \
+	-in FeatureFinder_1_input.mzData \
+	-out FeatureFinder_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
 
 
 FeaturePairSplitter_test:
-	@${ECHO} ""
-	@${ECHO} "FeaturePairSplitter:"
-
+	@$(ECHO) ""
+	@$(ECHO) "FeaturePairSplitter:"
+	@$(call RUN_PROG_OPT,FeaturePairSplitter,\
+	-in FeaturePairSplitter_1_pairs.xml \
+	-out1 FeaturePairSplitter_1_out1.tmp \
+	-out2 FeaturePairSplitter_1_out2.tmp \
+	-qual FeaturePairSplitter_1_qual.tmp \
+	-dump FeaturePairSplitter_1_dump.tmp)
+	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
+	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
+	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
+	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.wsv)
 
 FileConverter_test:
-	@${ECHO} ""
-	@${ECHO} "FileConverter:"
+	@$(ECHO) ""
+	@$(ECHO) "FileConverter:"
+	@$(ECHO) "	... todo ..."
 
 
 FileFilter_test:
-	@${ECHO} ""
-	@${ECHO} "FileFilter:"
+	@$(ECHO) ""
+	@$(ECHO) "FileFilter:"
 
-	@${ECHO} "- Test 1: RT, m/z test, int (upper bound)"
-	@${TOPP}FileFilter -in FileFilter_1_input.mzData -out FileFilter.tmp -rt :30 -mz :1000 -int :20000
-	@${DIFF_WITH_OPT} FileFilter.tmp FileFilter_1_output.mzData
+	@$(ECHO) "- Test 1: RT, m/z test, int (upper bound)"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -rt :30 -mz :1000 -int :20000)
+	@$(call TEST_FILE_EQUAL,FileFilter_1_output.mzData,FileFilter.tmp)
 
-	@${ECHO} "- Test 2: RT, m/z test, int (lower bound)"
-	@${TOPP}FileFilter -in FileFilter_1_input.mzData -out FileFilter.tmp -rt 30: -mz 1000: -int 100:
-	@${DIFF_WITH_OPT} FileFilter.tmp FileFilter_2_output.mzData
+	@$(ECHO) "- Test 2: RT, m/z test, int (lower bound)"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -rt 30: -mz 1000: -int 100:)
+	@$(call TEST_FILE_EQUAL,FileFilter_2_output.mzData,FileFilter.tmp)
 
-	@${ECHO} "- Test 3: level"
-	@${TOPP}FileFilter -in FileFilter_1_input.mzData -out FileFilter.tmp -level 2
-	@${DIFF_WITH_OPT} FileFilter.tmp FileFilter_3_output.mzData
+	@$(ECHO) "- Test 3: level"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -level 2)
+	@$(call TEST_FILE_EQUAL,FileFilter_3_output.mzData,FileFilter.tmp)
 
-	@${ECHO} "- Test 4: remove_zoom"
-	@${TOPP}FileFilter -in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom
-	@${DIFF_WITH_OPT} FileFilter.tmp FileFilter_4_output.mzData
+	@$(ECHO) "- Test 4: remove_zoom"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom)
+	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter.tmp)
 
 
 FileInfo_test:
-	@${ECHO} ""
-	@${ECHO} "FileInfo:"
+	@$(ECHO) ""
+	@$(ECHO) "FileInfo:"
 
-	@${ECHO} "- Test 1: DTA file test"
-	@${TOPP}FileInfo -in FileInfo_1_input.txt -in_type DTa > FileInfo.tmp
-	@${DIFF_WITH_OPT} FileInfo.tmp FileInfo_1_output.txt
+	@$(ECHO) "- Test 1: DTA file test"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_1_output.txt,FileInfo.tmp)
 
-	@${ECHO} "- Test 2: DTA2D file test"
-	@${TOPP}FileInfo -in FileInfo_2_input.dta2d > FileInfo.tmp
-	@${DIFF_WITH_OPT} FileInfo.tmp FileInfo_2_output.txt
+	@$(ECHO) "- Test 2: DTA2D file test"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
 
-	@${ECHO} "- Test 3: feature file test (with meta info)"
-	@${TOPP}FileInfo -in FileInfo_3_input.feat -m > FileInfo.tmp
-	@${DIFF_WITH_OPT} FileInfo.tmp FileInfo_3_output.txt
+	@$(ECHO) "- Test 3: feature file test (with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.feat -m > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
 
-	@${ECHO} "- Test 4: MzXML file test (with meta info)"
-	@${TOPP}FileInfo -in FileInfo_4_input.mzXML -m > FileInfo.tmp
-	@${DIFF_WITH_OPT} FileInfo.tmp FileInfo_4_output.txt
+	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_4_output.txt,FileInfo.tmp)
 
-	@${ECHO} "- Test 5: MzData file test (with meta info)"
-	@${TOPP}FileInfo -in FileInfo_5_input.txt -in_type MzDaTa -m > FileInfo.tmp
-	@${DIFF_WITH_OPT} FileInfo.tmp FileInfo_5_output.txt
-
+	@$(ECHO) "- Test 5: MzData file test (with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
 
 FileMerger_test:
-	@${ECHO} ""
-	@${ECHO} "FileMerger:"
+	@$(ECHO) ""
+	@$(ECHO) "FileMerger:"
+	@$(ECHO) "	... todo ..."
 
 
 IDFilter_test:
-	@${ECHO} ""
-	@${ECHO} "IDFilter:"
+	@$(ECHO) ""
+	@$(ECHO) "IDFilter:"
+	@$(ECHO) "	... todo ..."
 
 
 InspectAdapter_test:
-	@${ECHO} ""
-	@${ECHO} "InspectAdapter:"
+	@$(ECHO) ""
+	@$(ECHO) "InspectAdapter:"
+	@$(ECHO) "	... todo ..."
 
 
 LabeledMatcher_test:
-	@${ECHO} ""
-	@${ECHO} "LabeledMatcher:"
+	@$(ECHO) ""
+	@$(ECHO) "LabeledMatcher:"
+	@$(ECHO) "	... todo ..."
 
 
 MapAlignment_test:
-	@${ECHO} ""
-	@${ECHO} "MapAlignment:"
+	@$(ECHO) ""
+	@$(ECHO) "MapAlignment:"
+	@$(ECHO) "	... todo ..."
 
 
 MapMatcher_test:
-	@${ECHO} ""
-	@${ECHO} "MapMatcher:"
+	@$(ECHO) ""
+	@$(ECHO) "MapMatcher:"
+	@$(ECHO) "	... todo ..."
 
 
 MapStatistics_test:
-	@${ECHO} ""
-	@${ECHO} "MapStatistics:"
+	@$(ECHO) ""
+	@$(ECHO) "MapStatistics:"
+	@$(ECHO) "	... todo ..."
 
 
 MascotAdapter_test:
-	@${ECHO} ""
-	@${ECHO} "MascotAdapter:"
+	@$(ECHO) ""
+	@$(ECHO) "MascotAdapter:"
+	@$(ECHO) "	... todo ..."
 
 
 NoiseFilter_test:
-	@${ECHO} ""
-	@${ECHO} "NoiseFilter:"
+	@$(ECHO) ""
+	@$(ECHO) "NoiseFilter:"
+	@$(ECHO) "	... todo ..."
 
 
 PeakPicker_test:
-	@${ECHO} ""
-	@${ECHO} "PeakPicker:"
+	@$(ECHO) ""
+	@$(ECHO) "PeakPicker:"
+	@$(ECHO) "	... todo ..."
 
 
 RTModel_test:
-	@${ECHO} ""
-	@${ECHO} "RTModel:"
+	@$(ECHO) ""
+	@$(ECHO) "RTModel:"
+	@$(ECHO) "	... todo ..."
 
 
 RTPredict_test:
-	@${ECHO} ""
-	@${ECHO} "RTPredict:"
+	@$(ECHO) ""
+	@$(ECHO) "RTPredict:"
+	@$(ECHO) "	... todo ..."
 
 
 SequestAdapter_test:
-	@${ECHO} ""
-	@${ECHO} "SequestAdapter:"
+	@$(ECHO) ""
+	@$(ECHO) "SequestAdapter:"
+	@$(ECHO) "	... todo ..."
 
 
 SpectraFilter_test:
-	@${ECHO} ""
-	@${ECHO} "SpectraFilter:"
+	@$(ECHO) ""
+	@$(ECHO) "SpectraFilter:"
+	@$(ECHO) "	... todo ..."
 
 
 TOPPView_test:
-	@${ECHO} ""
-	@${ECHO} "TOPPView:"
+	@$(ECHO) ""
+	@$(ECHO) "TOPPView:"
+	@$(ECHO) "	... todo ..."
 
 
 UnlabeledMatcher_test:
-	@${ECHO} ""
-	@${ECHO} "UnlabeledMatcher:"
+	@$(ECHO) ""
+	@$(ECHO) "UnlabeledMatcher:"
+	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini UnlabeledMatcher_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
+	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
+
+
+###########################################################################################
+## Tests for processing pipelines.
+#
+
+MyoQuant_test:
+	@$(ECHO) ""
+	@$(ECHO) "MyoQuant_test:"
+
+	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
+	@ for i in 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37; do \
+		$(ECHO) "	Finding features in LC-MS map $$i"; \
+		$(call RUN_PROG_OPT,FeatureFinder,-ini MyoQuant_1_parameters.ini -in MyoQuant_1_input$${i}.mzData -out MyoQuant_1_feat$${i}_xml.tmp); \
+	done;
+	@$(ECHO) "	AdditiveSeries, linear regression";
+	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
+
+	@$(ECHO) ""
+	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"
+	@$(ECHO) "	... todo ..."
 
 

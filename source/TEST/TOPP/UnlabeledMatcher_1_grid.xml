@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?><!-- -*- mode: nxml; tab-width: 2 -*- -->
+<celllist>
+<cell nr="0">
+	<first>
+		<fposition dim="0">1226.08</fposition>
+		<fposition dim="1">661.699</fposition>
+	</first>
+	<second>
+		<sposition dim="0">1285.84</sposition>
+		<sposition dim="1">712.891</sposition>
+	</second>
+	<mappinglist>
+	</mappinglist>
+</cell>
+</celllist>
