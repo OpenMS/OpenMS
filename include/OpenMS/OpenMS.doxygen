@@ -48,7 +48,6 @@
 	- Deisotoping / Decharging
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Rohdaten-Erkenner
-	- Tests TOPP
 	
 	- Clustering
 	- SpecAnnotate
@@ -64,7 +63,7 @@
 		- ohne quadtree
 		- Preferences für Layers
 	- DB
-	- Debug stream
+	- Debug streams (status, debug, error, warning)
 	
 
 */

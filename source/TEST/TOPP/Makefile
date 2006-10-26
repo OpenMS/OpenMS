@@ -57,7 +57,6 @@ TOPP_TOOL_TESTS = \
 	RTPredict_test \
 	SequestAdapter_test \
 	SpectraFilter_test \
-	TOPPView_test \
 	UnlabeledMatcher_test \
 
 
@@ -267,7 +266,36 @@ FeaturePairSplitter_test:
 FileConverter_test:
 	@$(ECHO) ""
 	@$(ECHO) "FileConverter:"
-	@$(ECHO) "	... todo ..."
+
+	@$(ECHO) "- Test 1: MzData -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_1_input.txt -in_type MZDaTa -out FileConverter.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_1_output.dta2d,FileConverter.tmp)
+	
+	@$(ECHO) "- Test 2: DTA2D -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_2_input.txt -in_type DTA2d -out FileConverter.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_2_output.dta2d,FileConverter.tmp)
+	
+	@$(ECHO) "- Test 3: FeatureFile -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_3_input.txt -in_type FeatureFile -out FileConverter.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_3_output.dta2d,FileConverter.tmp)
+	
+	@$(ECHO) "- Test 4: MzXML -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type MZxml -out FileConverter.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_4_output.dta2d,FileConverter.tmp)
+
+	@$(ECHO) "- Test 5: netCDF -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type ANDIMS -out FileConverter.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_5_output.dta2d,FileConverter.tmp)
+
+	@$(ECHO) "- Test 6: DTA2D -> MzXML -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzxml)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzxml -out FileConverter2.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
+
+	@$(ECHO) "- Test 7: DTA2D -> MzData -> DTA2D"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzData)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzdata -out FileConverter2.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
 
 
 FileFilter_test:
@@ -289,7 +317,6 @@ FileFilter_test:
 	@$(ECHO) "- Test 4: remove_zoom"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom)
 	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter.tmp)
-
 
 FileInfo_test:
 	@$(ECHO) ""
@@ -314,6 +341,10 @@ FileInfo_test:
 	@$(ECHO) "- Test 5: MzData file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
+
+	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
 
 FileMerger_test:
 	@$(ECHO) ""
@@ -396,12 +427,6 @@ SequestAdapter_test:
 SpectraFilter_test:
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
-	@$(ECHO) "	... todo ..."
-
-
-TOPPView_test:
-	@$(ECHO) ""
-	@$(ECHO) "TOPPView:"
 	@$(ECHO) "	... todo ..."
 
 
