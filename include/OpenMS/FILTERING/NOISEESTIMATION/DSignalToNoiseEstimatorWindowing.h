@@ -36,8 +36,8 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-
 #include <fstream>
+
 
 namespace OpenMS
 {
@@ -48,8 +48,11 @@ namespace OpenMS
     points intervall using the method of Roegnvaldsson et al. described in "Modular, Scriptable, and Automated
     Analysis Tools for High-Throughput Peptide Mass Fingerprinting".
 
-    @note This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
-          for each scan, and not for the whole map.
+    NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
+    for each scan, and not for the whole map.
+
+  
+		TODO: This class is not bug free. Maintainer should check this (Eva)
 
     @ingroup PeakPicking
   */
@@ -151,9 +154,9 @@ namespace OpenMS
 			if(it_begin == it_end) return;
       first_=it_begin;
       last_=it_end;
-      float intervall_origin  = first_->getPos();//ition()[mz_dim_];
-      float intervall_end = (last_-1)->getPos();//ition()[mz_dim_];
-			//if(intervall_origin != intervall_end)			std::cout << intervall_end << "\t" << intervall_origin << std::endl;
+
+      float intervall_origin = first_->getPosition()[mz_dim_];
+      float intervall_end = (last_-1)->getPosition()[mz_dim_];
       int number_of_buckets = (int)floor(fabs(intervall_origin - intervall_end) / bucket_size_) + 1;
       int buckets_per_win = (int)(window_size_ / bucket_size_);
 
@@ -162,7 +165,7 @@ namespace OpenMS
       std::vector<float> Y(number_of_buckets, -1.*(std::numeric_limits<float>::max() - 10));
       std::vector<float> W(number_of_buckets, 0);
       std::vector<float> w(number_of_buckets, 0);
- 
+			minZ_ = 0;
       y_base_.resize(number_of_buckets, 0);
       y_noise_.resize(number_of_buckets, 0);
 
@@ -170,30 +173,33 @@ namespace OpenMS
 
       for (int i = 0; i < length; i++)
       {
-        int bucket = (int)floor(fabs(it_help->getPos()/*ition()[mz_dim_]*/-intervall_origin) / bucket_size_);
+        int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
         float value = it_help->getIntensity();
 
-        if (value > Y[bucket])
+				// maxima
+        if (value > Y[bucket]) 
           Y[bucket] = value;
 
+				// minima
         if (value < Z[bucket])
-					{
-						Z[bucket] = value;
-					}
+          Z[bucket] = value;
 
         it_help++;
       }
 
+		
+			
       // Now iterate over all buckets and compute their W values
       for (int i = 0; i < number_of_buckets; i++)
       {
         W[i] = Y[i] - Z[i];
       }
 
-      // Iterate again over all buckets and compute their w - values and their
+			// Iterate again over all buckets and compute their w - values and their
       // baseline and noise contribution
       for (int i = 0; i < number_of_buckets; i++)
       {
+				
         // starting from this bucket, sum up buckets_per_win to the left and right
         float w_value = 0;
 
@@ -206,10 +212,9 @@ namespace OpenMS
         }
 
 
-        // now we can compute w_i
-        w[i] = ( (W[i] * w_value) != 0.) ? 1. / (W[i] * W[i] * w_value) : 0;
-
-        // and finally we can iterate over the buckets again to build y_base and y_noise
+        // now we can compute w_i 
+				w[i] = ( (W[i] * w_value) != 0.) ? 1. / (W[i] * W[i] * w_value) : 0;
+        // and finally we can iterate over the buckets again to build y_base and y_noise 
         float y_base_value  = 0.;
         float y_noise_value = 0.;
 
@@ -217,12 +222,31 @@ namespace OpenMS
         for (; start < end; ++start)
         {
           y_base_value += w[start] * Z[start];
-          y_noise_value += w[start] * Y[start]; 
+					y_noise_value += w[start] * Y[start];
         }
-
         y_base_[i]  = y_base_value;
-        y_noise_[i] = y_noise_value;
+				y_noise_[i] = y_noise_value;
       }
+			// search for the greatest amount of difference between signal intensity and baseline
+			// this is needed to avoid negative s/n-values
+			it_help = first_;
+			for(; it_help != last_; ++it_help)
+				{
+					
+					int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+					if( (it_help->getIntensity() - y_base_[bucket]) < minZ_)
+						{
+							minZ_ = it_help->getIntensity() - y_base_[bucket];
+						}
+				}
+			it_help = first_;
+			for(; it_help != last_; ++it_help)
+				{
+					
+					int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+					y_base_[bucket] += minZ_;
+				}
+	
     }
     //@}
 
@@ -232,13 +256,12 @@ namespace OpenMS
     ///
     double getSignalToNoise(PeakIterator data_point) throw (Exception::OutOfRange)
     {
-      if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) &&
-					(data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
+      if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) && (data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
       {
         throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
-      int bucket = (int)floor( (data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
+      int bucket = (int)floor(fabs(data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
 
       // TODO: Remove this workaround.
       // if the s/n ratio for the first peak in a scan
@@ -247,13 +270,11 @@ namespace OpenMS
       if (bucket < 0)
 				{
 					bucket = 0;
-				} 
-
-      float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001) 
-                 ? (data_point->getIntensity()   - y_base_[bucket]) / (y_noise_[bucket] - y_base_[bucket])
-                 : 0.; // something went wrong!
-
-      return sn;
+				}
+      float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001)
+				? (data_point->getIntensity()  - y_base_[bucket]) / (y_noise_[bucket]  - y_base_[bucket])
+				: 0.; // something went wrong!
+	      return sn;
     }
     //@}
 
@@ -266,7 +287,9 @@ namespace OpenMS
     int bucket_size_;
     /// Number of data points which belong to the window
     int window_size_;
-		
+		/// Smallest distance between signal intensity and baseline (usually zero, if there are data points with a smaller intensity than the baseline, minZ gets negative)
+		double minZ_;
+	
   };
 
 }// namespace OpenMS
