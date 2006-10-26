@@ -85,7 +85,6 @@ namespace OpenMS
       /// Copy constructor
       BaseAlignment(const BaseAlignment& source)
       {
-        pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create((source.pairwise_matcher_)->getName());
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create((source.pair_finder_)->getName());
       }
 
@@ -95,7 +94,6 @@ namespace OpenMS
         if (&source==this)
           return *this;
 
-        pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType> >::create((source.pairwise_matcher_)->getName());
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create((source.pair_finder_)->getName());
         return *this;
       }
@@ -114,10 +112,7 @@ namespace OpenMS
       {
         param_ = param;
 
-        DataValue data_value = param_.getValue("matchingAlgorithm");
-        pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
-
-        data_value = param_.getValue("consensusAlgorithm");
+        DataValue data_value = param_.getValue("consensusAlgorithm");
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create(data_value);
 
         map_type_ = param_.getValue("mapType");
@@ -263,8 +258,6 @@ namespace OpenMS
       /// Index of the reference map
       UnsignedInt reference_map_index_;
 
-      /// Pairwise map matcher
-      BasePairwiseMapMatcher< ConsensusMapType >* pairwise_matcher_;
 
       /// Pairfinder used to find corresponding elements (consensus)
       BasePairFinder< ConsensusMapType >* pair_finder_;
