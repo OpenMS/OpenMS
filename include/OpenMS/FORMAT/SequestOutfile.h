@@ -74,7 +74,7 @@ namespace OpenMS
 			bool split(const String& s, const String& splitter, std::vector<String>& substrings);
 			
 			// retrieve columns from a Sequest Outfile line
-			bool getColumns(std::ifstream& result_file, std::vector< String >& substrings, const std::string& result_filename);
+			bool getColumns(const String& line, std::vector< String >& substrings, unsigned int number_of_columns, unsigned int reference_column);
 			
 			// retrieve sequences from a FASTA database
 			void getSequences(const String& database_filename, std::map< String, unsigned int > ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, unsigned int > >& found, std::map< String, unsigned int >& not_found) throw (Exception::FileNotFound);

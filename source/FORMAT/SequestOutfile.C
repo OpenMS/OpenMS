@@ -115,88 +115,36 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no precursor mass found!" , result_filename);
 		}
 		
-		/*enum columns
-		{
-			number_column,
-			rank_Sp_column,
-			id_column,
-			MH_column,
-			delt_Cn_column,
-			XCorr_column,
-			Sp_column,
-			Sf_column,
-			P_column,
-			ions_column,
-			reference_column,
-			peptide_column
-		};
-		unsigned int number_of_columns = 12;*/
-		
-		// skip the next line
-		//for ( unsigned int i = 0; i < 2; ++i)
-		//{
-			if ( !getline(result_file, line) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-			}
-		//}
-		
-		// get the databases names
 		std::vector< String > databases;
-		/*if ( database.empty() )
+		
+		databases.push_back(database);
+		if ( !snd_database.empty() ) databases.push_back(snd_database);
+
+		while ( getline(result_file, line) ) // skip all lines until the one with 'display top'
 		{
 			if ( !line.empty() ) line.resize(line.length()-1);
 			line.trim();
-			line.split(',', substrings);
-			if ( (!substrings[0].hasPrefix("# amino acids")) || (substrings.size() < 3) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no database names!" , result_filename);
-			}
-			for ( std::vector< String >::iterator db_i = substrings.begin()+2; db_i != substrings.end(); ++db_i )
-			{
-				db_i->trim();
-				databases.push_back(*db_i);
-			}
+			if ( line.hasPrefix("display top") ) break;
 		}
-		else*/
-		{
-			databases.push_back(database);
-			if ( !snd_database.empty() ) databases.push_back(snd_database);
-
-			// skip one line
-			if ( !getline(result_file, line) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-			}
-		}
-		
-		// skip the next two lines
-		for ( unsigned int i = 0; i < 2; ++i)
-		{
-			if ( !getline(result_file, line) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-			}
-		}
-		
 		// get the number of peptides displayed
-		if ( !line.empty() ) line.resize(line.length()-1);
-		line.trim();
 		line.split(',', substrings);
 		if ( !substrings[0].hasPrefix("display top ") )
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no number of displayed peptides found!" , result_filename);
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No number of displayed peptides found!" , result_filename);
 		}
 		unsigned int displayed_peptides = String("display top ").length();
 		displayed_peptides = atoi(substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).c_str());
 		
 		// skip the next three lines
-		for ( unsigned int i = 0; i < 3; ++i)
+		while ( getline(result_file, line) )
 		{
-			if ( !getline(result_file, line) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-			}
+			if ( !line.empty() ) line.resize(line.length()-1);
+			line.trim();
+			if ( line.hasPrefix("#") ) break;
+		}
+		if ( !line.hasPrefix("#") )
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough lines in file (no table header found)!" , result_filename);
 		}
 		
 		// retrieve the number of lines and get the needed column numbers
@@ -214,7 +162,6 @@ namespace OpenMS
 		int peptide_column = -1;
 		
 		// get the single columns (seperated by "  ")
-		if ( !line.empty() ) line.resize(line.length()-1);
 		split(line, "  ", substrings);
 		
 		// remove the empty strings
@@ -284,6 +231,7 @@ namespace OpenMS
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
 		}
+		if ( !line.empty() ) line.resize(line.length()-1);
 		
 		PeptideHit peptide_hit;
 		ProteinHit protein_hit;
@@ -296,7 +244,13 @@ namespace OpenMS
 		
 		for ( unsigned int i = 0; i < displayed_peptides; ++i )
 		{
-			if ( !getColumns(result_file, substrings, result_filename) ) break; // if less peptides were found than may be displayed, break
+			if ( !getline(result_file, line) )
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
+			}
+			if ( !line.empty() ) line.resize(line.length()-1);
+			
+			if ( !getColumns(line, substrings, number_of_columns, reference_column) ) break; // if less peptides were found than may be displayed, break
 			++line_number;
 			
 			// check whether the line has enough columns
@@ -306,6 +260,7 @@ namespace OpenMS
 				sprintf(buffer, "%i", line_number);
 				std::string error_message = "wrong number of columns in row ";
 				error_message.append(buffer);
+				error_message.append(" " + line + " ");
 				error_message.append("! (");
 				sprintf(buffer, "%i", substrings.size());
 				error_message.append(buffer);
@@ -325,6 +280,17 @@ namespace OpenMS
 			peptide_hit.setRank(atoi(substrings[rank_Sp_column].substr(0, substrings[rank_Sp_column].find('/')).c_str()));
 			
 			// get the protein information
+			
+			// check whether there are multiple proteins that belong to this peptide
+			if ( substrings[reference_column].find_last_of('+') != std::string::npos )
+			{
+				// save the number of multiple proteins
+				proteins_per_peptide = atoi(substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).c_str());
+				// and remove this number from the string
+				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
+			}
+			else proteins_per_peptide = 0;
+			
 			protein_hit.clear();
 			getACAndACType(substrings[reference_column], accession, accession_type);
 			protein_hit.setAccession(accession);
@@ -337,10 +303,6 @@ namespace OpenMS
 			if ( ac_position_map.insert(std::make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
 			
 			peptide_hit.addProteinIndex(datetime, accession);
-			
-			// check whether there are multiple proteins that belong to this peptide
-			if ( substrings[reference_column].find_last_of('+') != std::string::npos ) proteins_per_peptide = atoi(substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).c_str());
-			else proteins_per_peptide = 0;
 			
 			for ( int i = 0; i < proteins_per_peptide; ++i )
 			{
@@ -377,7 +339,6 @@ namespace OpenMS
 			
 			if ( db_i != databases.begin() ) ac_position_map = not_found;
 		}
-//###std::cout << found.size() << "\t" << not_found.size() << std::endl;
 		
 		std::vector< String >::const_iterator seq_i = sequences.begin();
 		for ( std::vector< std::pair< String, unsigned int > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i) protein_hits[protein_i->second].setSequence(*seq_i);
@@ -427,77 +388,68 @@ namespace OpenMS
 	}
 	
 	// get the columns from a line
-	bool SequestOutfile::getColumns(std::ifstream& result_file, std::vector< String >& substrings, const std::string& result_filename)
+	bool SequestOutfile::getColumns(const String& line, std::vector< String >& substrings, unsigned int number_of_columns, unsigned int reference_column)
 	{
-		String line, buffer;
-		
-		if ( !getline(result_file, line) )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-		}
-		if ( !line.empty() ) line.resize(line.length()-1);
-		
-		line.trim();
+		String buffer;
 
 		if ( line.empty() ) return false;
 		
-		split(line, "  ", substrings);
-		
-		std::vector< String > substrings2;
-		char* cp = new char[line.length()+1];
-		float f1, f2;
-		int i_buffer;
-		bool multiple_columns;
-		
-		// remove the empty substrings or merge substrings if one ends with '/' or the next starts with +[integer]
-		for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
-		{
-			i->trim();
-			if ( i->empty() ) i = substrings.erase(i);
-			else
-			{
-				// if two numbers are seperated by one whitespace only, they are assumed to belong to seperate columns
-				i->split(' ', substrings2);
-				multiple_columns = false;
-				std::vector< String >::iterator i2 = i;
-				buffer.clear();
-				
-				for ( std::vector< String >::const_iterator j = substrings2.begin(); ( (j != (substrings2.end())) && (j != (substrings2.end()-1)) ); ++j)
-				{
-					if( sscanf(String((*j)+" "+(*(j+1))).c_str(), "%f %f%s", &f1, &f2, cp) == 2 )
-					{
-						if ( !buffer.empty() ) i2 = substrings.insert(++i2, buffer);
-						if ( (*i2) != *j ) i2 = substrings.insert(++i2, *j);
-						i2 = substrings.insert(++i2, *(j+1));
-						buffer.clear();
-						multiple_columns = true;
-					}
-					else buffer.append(*j);
-				}
-				if ( multiple_columns ) i = substrings.erase(i);
-				
-				// merge substrings if one is a '+' with a succeeding integer
-				if ( (i != substrings.begin()) && ((*i)[0] == '+') && (sscanf(i->substr(1).c_str(), "%i%s", &i_buffer, cp) == 1) )
-				{
-					(i-1)->append(*i);
-					i = substrings.erase(i);
-				}
-				else
-				{
-					// merge substrings if one ends with / and both are numbers
-					if ( ((*i)[i->length()-1] == '/') && (i != substrings.end()-1) && (sscanf(String(i->substr(0, i->length()-1)+" "+(*(i+1))).c_str(), "%f %f%s", &f1, &f2, cp)  == 2) )
-					{
-						(i+1)->trim();
-						i->append(*(i+1));
-						substrings.erase(i+1);
-					}
-					
-					++i;
-				}
-			}
-		}
-		delete(cp);
+		line.split(' ', substrings);
 
+		// remove any empty strings
+		for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+		{
+			s_i->trim();
+			if ( s_i->empty() ) substrings.erase(s_i);
+			else ++s_i;
+		}
+
+		for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+		{
+		// if there are three columns, the middle one being a '/', they are merged
+			if ( s_i+1 != substrings.end() )
+			{
+				if ( ((*(s_i+1)) == "/") && (s_i+2 != substrings.end()) )
+				{
+					s_i->append(*(s_i+1));
+					s_i->append(*(s_i+2));
+					substrings.erase(s_i+2);
+					substrings.erase(s_i+1);
+				}
+				// if there are two columns, and the first ends with, or the second starts with a '/', they are merged
+				else if ( (*(s_i+1))[0] == '/' )
+				{
+					s_i->append(*(s_i+1));
+					substrings.erase(s_i+1);
+				}
+				else if ( (*(s_i))[s_i->length()-1] == '/' )
+				{
+					s_i->append(*(s_i+1));
+					substrings.erase(s_i+1);
+				}
+			// if there are two columns and the second is a number preceeded by a '+', they are merged
+				else if ( (*(s_i+1))[0] == '+' )
+				{
+					bool is_digit = true;
+					for ( unsigned int i = 1; i < (s_i+1)->length(); ++i ) is_digit &= std::isdigit((*(s_i+1))[i]);
+					if ( is_digit && ((s_i+1)->length()-1) )
+					{
+						s_i->append(*(s_i+1));
+						substrings.erase(s_i+1);
+					}
+				}
+				else ++s_i;
+			}
+			else ++s_i;
+		}
+
+		// if there are more columns than should be, there were spaces in the protein column
+		for ( std::vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
+		{
+			s_i->append(*(s_i+1));
+			substrings.erase(s_i+1);
+		}
+		
 		return true;
 	}
 
