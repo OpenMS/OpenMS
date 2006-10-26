@@ -116,6 +116,8 @@ class TOPPSequestAdapter
 	
 	protected:
 		static const int max_peptide_mass_units = 2;
+		static const unsigned int max_dtas_per_run = 1000;
+		unsigned long long int dtas;
 		
 		struct SortRetentionTimes:
 				public binary_function<const pair< String, vector< double > >, const pair< String, vector< double > >, bool>
@@ -421,8 +423,7 @@ class TOPPSequestAdapter
 			const String& common_name,
 			unsigned int prob_charge,
 			vector< pair< String, vector< double > > >& filenames_and_precursor_retention_times,
-			bool make_dtas = true,
-			unsigned int parts = 1000)
+			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
@@ -441,7 +442,8 @@ class TOPPSequestAdapter
 					{
 						if ( make_dtas )
 						{
-							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta";
+							++dtas;
+							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (unsigned long long int) (dtas / max_dtas_per_run) );
 							dtafile.store(filename, *spec_i);
 						}
 						retention_times.push_back(spec_i->getRetentionTime());
@@ -452,8 +454,9 @@ class TOPPSequestAdapter
 						{
 							if ( make_dtas )
 							{
+								++dtas;
 								spec_i->getPrecursorPeak().setCharge(i);
-								filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta";
+								filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (unsigned long long int) (dtas / max_dtas_per_run) );
 								dtafile.store(filename, *spec_i);
 							}
 							retention_times.push_back(spec_i->getRetentionTime());
@@ -575,6 +578,7 @@ class TOPPSequestAdapter
 				unsigned int msms_spectra_in_file;
 				unsigned int msms_spectra_altogether = 0;
 				if ( make_dtas ) cout << "creating dta files" << endl;
+				dtas = 0;
 				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 				{
 					file_info.setFile(*spec_i);
@@ -1188,6 +1192,7 @@ class TOPPSequestAdapter
 			unsigned int msms_spectra_in_file;
 			unsigned int msms_spectra_altogether = 0;
 			if ( make_dtas ) cout << "creating dta files" << endl;
+			dtas = 0;
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
 				file_info.setFile(*spec_i);
@@ -1237,7 +1242,11 @@ class TOPPSequestAdapter
 				call.append(" net use " + temp_data_dir_win.substr(0,2) + " \\\\" + temp_data_dir_network + " && ");
 
 				batchfile << String(" cd " + temp_data_dir_win + " && " + temp_data_dir_win.substr(0,2));
-				batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_file_dir_network + " " + temp_data_dir_network + "\\*.dta >  " +  temp_data_dir_network +"\\" + sequest_screen_output);
+				
+				for ( unsigned long long int i = 0; i <= (unsigned long long int) (dtas / max_dtas_per_run); ++i )
+				{
+					batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_file_dir_network + " " + temp_data_dir_network + "\\*.dta" + String(i) + " >  " +  temp_data_dir_network +"\\" + sequest_screen_output + " && move sequest.log sequest.log" + String(i));
+				}
 				batchfile << String(" && " + sequest_dir_win.substr(0,2) + " &&");
 				batchfile << String(" net use /delete " + temp_data_dir_win.substr(0,2));
 				batchfile << " && logoff";
@@ -1258,24 +1267,27 @@ class TOPPSequestAdapter
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 
-				ifstream sequest_log(string(temp_data_dir + "sequest.log").c_str()); // write sequest log to logfile
-				if ( !sequest_log )
+				for ( unsigned long long int i = 0; i <= (unsigned long long int) (dtas / max_dtas_per_run); ++i )
 				{
-					cout << "No Sequest log found!" << endl;
-					writeLog_("No Sequest log found!");
-				}
-				else
-				{
-					sequest_log.seekg (0, ios::end);
-					streampos length = sequest_log.tellg();
-					sequest_log.seekg (0, ios::beg);
-					char * buffer = new char[length];
-					sequest_log.read (buffer, length);
-					sequest_log.close();
-					sequest_log.clear();
-					writeLog_(buffer);
-					delete(buffer);
-					remove(string(temp_data_dir + "sequest.log").c_str());
+					ifstream sequest_log(string(temp_data_dir + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
+					if ( !sequest_log )
+					{
+						cout << "No Sequest log found!" << endl;
+						writeLog_("No Sequest log found!");
+					}
+					else
+					{
+						sequest_log.seekg (0, ios::end);
+						streampos length = sequest_log.tellg();
+						sequest_log.seekg (0, ios::beg);
+						char * buffer = new char[length];
+						sequest_log.read (buffer, length);
+						sequest_log.close();
+						sequest_log.clear();
+						writeLog_(buffer);
+						delete(buffer);
+						remove(string(temp_data_dir + "sequest.log" + String(i)).c_str());
+					}
 				}
 			}
 			
@@ -1283,17 +1295,20 @@ class TOPPSequestAdapter
 			{
 				if ( !keep_dta_files ) // remove all dtas
 				{
-					cout << "removing dta files" << endl;
-					QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
-					QStringList qlist = qdir.entryList();
-					QFile qfile;
-					
-					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+					for ( unsigned long long int i = 0; i <= (unsigned long long int) (dtas / max_dtas_per_run); ++i )
 					{
-						if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
+						cout << "removing dta files" << endl;
+						QDir qdir(temp_data_dir, "*.dta" + String(i) , QDir::Name, QDir::Files);
+						QStringList qlist = qdir.entryList();
+						QFile qfile;
+						
+						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 						{
-							cout << string((*i).ascii()) << "could not be removed!" << endl;
-							writeLog_(string((*i).ascii()) + "could not be removed!");
+							if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
+							{
+								cout << string((*i).ascii()) << "could not be removed!" << endl;
+								writeLog_(string((*i).ascii()) + "could not be removed!");
+							}
 						}
 					}
 				}
