@@ -66,14 +66,17 @@ TOPP_TOOL_TESTS = \
 TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
-
+#files to remove
 CLEANUP = ${RM} -f *.tmp *.log
+
+# Shortcut to TOPP bin path.
+TOPP = ${OPENMS_PATH}/bin/
 
 #######################################################################
 # DEFAULT TARGET
 # Here all TOPP tool tests are executed.
 # Afterwards all temporary data files are removed (*.tmp)
-default:  $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
+default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
 	@$(ECHO) ""
@@ -85,65 +88,60 @@ clean:
 	$(CLEANUP)
 
 #######################################################################
+# HELP TARGET
+help:
+	@$(ECHO) ""
+	@$(ECHO) "Main targets are:"
+	@$(ECHO) "  - 'make [default]' normal execution"
+	@$(ECHO) "  - 'make debug'     debug mode (no deletion of tmp/log files and diff output)"
+	@$(ECHO) "  - 'make verbose'   verbose mode (activates tool output to stdout and stderr)"
+	@$(ECHO) ""
+	@$(ECHO) "To execute only single tests with special modes use:"
+	@$(ECHO) "  - 'make DEBUG=1 <target>' activates debug mode"
+	@$(ECHO) "  - 'make VERBOSE=1 <target>' activates verbose mode"
+	@$(ECHO) ""
+	@$(ECHO) "-------------------------------------------------------"
+	@$(ECHO) ""
+
+#######################################################################
 # DEBUG MODE
-# You can run the tests in debug mode with 'make debug'.
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
 # - temporary files (*.tmp) are not deleted after the execution
-# 'make debug' will run all tests.  Use 'make set-debug Tool_test' to run an individual test in debug mode.
-debug: set-debug default
+debug: DEBUG=1 default
 
 # Diff that ignores whitespaces and empty lines
 DIFF_QUIET = $(DIFF) -bB -t --brief
 DIFF_DEBUG = $(DIFF) -bB --initial-tab -u
 
-# You can use 'make DEBUG=1' for the same effect.
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef DEBUG
-DIFF_WITH_OPT = $(DIFF_QUIET)
-else
 DIFF_WITH_OPT = $(DIFF_DEBUG)
+else
+DIFF_WITH_OPT = $(DIFF_QUIET)
 endif
 
-set-debug:
-	$(eval DEBUG=1)
-	$(eval DIFF_WITH_OPT = $(DIFF_DEBUG))
-	@$(ECHO) "DEBUG mode is on.  Comparing with '$(DIFF_WITH_OPT)'"
-
-
 #######################################################################
-# SILENT MODE
-# You can run the tests in silent mode with 'make silent'
-# Changes in silent mode are:
-# - RUN_PROG_OPT will redirect the console output (stdout) of the program to /dev/null
-# 'make silent' will run all tests.  Use 'make set-silent Tool_test' to run an individual test in silent mode.
-silent: set-silent default
-
-# Shortcut to TOPP bin path.
-TOPP = ${OPENMS_PATH}/bin/
-
+# VERBOSE MODE
+# Changes in verbose mode are:
+# - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
+verbose: VERBOSE=1 default
 
 # This function runs a TOPP tool with given options.  To invoke the program,
 # write '$(call RUN_PROG_OPT,Toolname,options)'.  [ Don't use RUN_PROG_OPT_INTERNAL
-# directly, use RUN_PROG_OPT instead.  Depending on the SILENT settings,
+# directly, use RUN_PROG_OPT instead.  Depending on the VERBOSE settings,
 # RUN_PROG_OPT will append a redirection or not. ]
 RUN_PROG_OPT_INTERNAL = $(TOPP)$(1) $(2)
 
-# You can use 'make SILENT=1' for the same effect as 'make set-silent'.
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
-ifdef SILENT
-# extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
-RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null )
-else
+ifdef VERBOSE
 RUN_PROG_OPT = $(RUN_PROG_OPT_INTERNAL)
+else
+# extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
+RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null 2>&1
 endif
 
-set-silent:
-	$(eval SILENT=1)
-	$(eval RUN_PROG_OPT = ( $$(RUN_PROG_OPT_INTERNAL) ) > /dev/null )
-	@$(ECHO) "SILENT mode is on.  Redirecting stdout to /dev/null"
-
-
+###########################################################################################
 # This function checks whether two files are equal (up to whitespace).  To
 # invoke the test, write '$(call TEST_FILE_EQUAL,file.xtn)'.  The name of the
 # other file is 'file.tmp' by default, i.e. the basename of the second
@@ -160,16 +158,6 @@ TEST_FILE_EQUAL = \
 	fi;
 
 
-###########################################################################################
-##  More tool tests coming soon...  // TODO list
-#
-##  Marc (?) :
-# DBImporter_test
-# DBExporter_test
-# LabeledMatcher_test
-#
-##  Clemens:
-# AdditiveSeries_test
 
 AdditiveSeries_test:
 	@$(ECHO) ""
