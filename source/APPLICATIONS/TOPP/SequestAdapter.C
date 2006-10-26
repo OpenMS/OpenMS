@@ -144,15 +144,16 @@ class TOPPSequestAdapter
 						<< "  -Sequest_in           if this flag is set the SequestAdapter will create a sequest input file" << endl
 						<< "                        and create dta files from the given mzXML files" << endl
 						<< "  -Sequest_out          if this flag is set the SequestAdapter will read in Sequest out files and write an analysis XML file" << endl
-						<< "  -spectra              the names of the mzXML files" << endl
+						<< "  -in                   the comma-seperated names of the mzXML files" << endl
 						<< "  -out                  the name of the analysis XML file" << endl
+						<< "  -show_enzyme_numbers  show a list with enzymes and corresponding numbers to choose from" << endl
+						<< "  -create_dtas          creates dta files from the mzXML files" << endl
 						<< "  -sequest_dir_win      the windows path where sequest.exe is located" << endl
 						<< "  -sequest_computer     the name of the computer in the network that hosts Sequest" << endl
 						<< "  -user                 user name for the sequest computer (has to have access to network!)" << endl
 						<< "  -password             password for this user (if not given, you have to enter it at promt)" << endl
 						<< "  -p_value              annotations with inferior p-value are ignored (default is 0.05)" << endl
-						<< "  -show_enzyme_numbers  show a list with enzymes and corresponding numbers to choose from" << endl
-						<< "  -num_results          the maximal number of results (peptides) to show" << endl
+						<< "  -num_results          the maximal number of results (peptides) to show (per scan/dta)" << endl
 						<< "  -max_num_dif_AA_per_mod  limits the maximum total number of each single variable modification in one peptide" << endl
 						<< "  -max_num_dif_mods_per_peptide  limits the maximum total number of each single variable modification in one peptide" << endl
 						<< "  -prob_charge          the number of charge states that are used if it is unknown for a scan" << endl
@@ -164,27 +165,17 @@ class TOPPSequestAdapter
 						<< "  -enzyme_number        a number from the list (show_enzyme_numbers); if enzyme_info is used, this value is set accordingly" << endl
 						<< "  -neutral_loss_ABY     ABY: 0 or 1 whether neutral losses of the series should be honored, eg: 011" << endl
 						<< "  -ion_series_weights   abcdvwxyz: [0.0, 1.0] factor for the series, eg: 0,0.5,0,0,0,0,0,1.0,0" << endl
-						<< "  -dta_dir              the directory to store the dta files" << endl
-						<< "  -dta_dir_win          " << endl
-						<< "  -out_dir              the directory to store the sequest output files" << endl
-						<< "  -out_dir_win          " << endl
-						<< "  -in                   the name of the sequest input file" << endl
-						<< "  -in_win               " << endl
+						<< "  -sequest_in           the name of the sequest input file" << endl
 						<< "  -db                   the name of the database file" << endl
-						<< "  -db_win               " << endl
 						<< "  -snd_db               the name of the second database file" << endl
-						<< "  -snd_db_win           " << endl
 						<< "  -temp_data_dir        the directory to store temporary data" << endl
 						<< "  -temp_data_dir_win    " << endl
 						<< endl
 						<< "  For each windows drive, one corresponding network drive has to be given, so maybe you don't need to set all the parameters below" << endl
 						<< "  -temp_data_dir_network" << endl
-						<< "  -out_dir_network" << endl
-						<< "  -dta_dir_network" << endl
 						<< "  -db_dir_network" << endl
 						<< "  -snd_db_dir_network" << endl
-						<< "  -in_dir_network" << endl;
-
+						<< "  -sequest_in_dir_network" << endl;
 		}
 
 
@@ -262,6 +253,7 @@ class TOPPSequestAdapter
 		void setOptionsAndFlags_()
 		{
 			flags_["-show_enzyme_numbers"] = "show_enzyme_numbers";
+			flags_["-create_dtas"] = "create_dtas";
 			options_["-contactName"] = "contactName";
 			options_["-contactInstitution"] = "contactInstitution";
 			options_["-contactInfo"] = "contactInfo";
@@ -272,20 +264,11 @@ class TOPPSequestAdapter
 			options_["-temp_data_dir"] = "temp_data_dir";
 			options_["-temp_data_dir_win"] = "temp_data_dir_win";
 			options_["-temp_data_dir_network"] = "temp_data_dir_network";
-			options_["-dta_dir"] = "dta_dir";
-			options_["-dta_dir_win"] = "dta_dir_win";
-			options_["-dta_dir_network"] = "dta_dir_network";
-			options_["-out_dir"] = "out_dir";
-			options_["-out_dir_win"] = "out_dir_win";
-			options_["-out_dir_network"] = "out_dir_network";
 			options_["-sequest_in"] = "sequest_in";
-			options_["-sequest_in_win"] = "sequest_in_win";
 			options_["-sequest_in_dir_network"] = "sequest_in_dir_network";
 			options_["-db"] = "db";
-			options_["-db_win"] = "db_win";
 			options_["-db_dir_network"] = "db_dir_network";
 			options_["-snd_db"] = "snd_db";
-			options_["-snd_db_win"] = "snd_db_win";
 			options_["-snd_db_dir_network"] = "snd_db_dir_network";
 			options_["-sequest_computer"] = "sequest_computer";
 			flags_["-Sequest_in"] = "Sequest_in";
@@ -361,9 +344,14 @@ class TOPPSequestAdapter
 			return false;
 		}
 
-		void correctNetworkPath(String& network_path)
+		bool correctNetworkPath(String& network_path, unsigned int backslashes = 2)
 		{
-			if ( network_path.hasSuffix("\\") ) network_path.erase(--network_path.end());
+			unsigned int pos = 0;
+			while ( (pos < network_path.length()) && (network_path[pos] == '\\') ) ++pos;
+			if ( pos < backslashes ) network_path.insert(network_path.begin(), backslashes-pos, '\\');
+			else network_path.erase(0, pos-backslashes);
+			if ( network_path.length() < backslashes+1 ) return false;
+			return true;
 		}
 		
 		long fsize(const string& filename)
@@ -385,6 +373,37 @@ class TOPPSequestAdapter
 			const string& filename)
 		{
 			return ( fsize(filename) == 0 );
+		}
+
+		String getRandomFilename()
+		{
+			String s;
+			char c = 0;
+			/*
+			48-57 numbers
+			65-90 capitals
+			97-122 lower case
+			*/
+
+			QFileInfo file_info;
+			do
+			{
+				if ( (c > 47 && c < 58 ) || (c > 64 && c < 91 ) || (c > 96 && c < 123 ) ) ++c;
+				else if ( c < 48 ) c = 48;
+				else if ( c > 57 && c < 65 ) c = 65;
+				else if ( c > 90 && c < 97 ) c = 97;
+				else if ( c > 122 )
+				{
+					s.append("Z");
+					c = 48;
+				}
+				
+				file_info.setFile(String(s + String(c)));
+			}
+			while ( file_info.exists() );
+
+			s.append(1, c);
+			return s;
 		}
 		
 		void
@@ -414,7 +433,7 @@ class TOPPSequestAdapter
 			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
 			{
 				++scan_number;
-				if ( spec_i ->getMSLevel() == 2 )
+				if ( (spec_i->getMSLevel() == 2) && (!spec_i->empty()) )
 				{
 					++msms_spectra;
 					if ( spec_i->getPrecursorPeak().getCharge() )
@@ -478,12 +497,139 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 
 			// (2.0) variables for running the program
-			logfile = getParamAsString_("log", "temp.sequest.log");
+			Sequest_in = getParamAsBool_("Sequest_in");
+			Sequest_out = getParamAsBool_("Sequest_out");
+
+			// a 'normal' sequest run corresponds to both Sequest_in and Sequest_out set
+			if ( !Sequest_in && !Sequest_out ) Sequest_in = Sequest_out = true;
 			
-			if ( !getParamAsString_("show_enzyme_numbers").empty() )
+			logfile = getParamAsString_("log", "temp.sequest.log");
+
+			int_buffer = getParamAsInt_("prob_charge");
+			if ( int_buffer < 0 )
+			{
+				writeLog_("Maximal charge to test is less than zero. Aborting!");
+				cout << "Maximal charge to test is less than zero. Aborting!" << endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+			else if ( int_buffer ) prob_charge = int_buffer;
+			else prob_charge = 1;
+
+			// only show the available enzymes, then quit
+			if ( getParamAsBool_("show_enzyme_numbers") )
 			{
 				writeLog_("Option show_enzyme_numbers chosen. Aborting.");
 				cout << "Enzyme numers:" << endl << sequest_infile.getEnzymeInfo();
+				return EXECUTION_OK;
+			}
+
+			// the spectra
+			string_buffer = getParamAsString_("in");
+			if ( string_buffer.empty() )
+			{
+				writeLog_("No spectrum file specified. Aborting!");
+				cout << "No spectrum file specified. Aborting!" << endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+			else
+			{
+				string_buffer.split(',', spectra);
+				if ( spectra.empty() ) spectra.push_back(string_buffer);
+			}
+
+			keep_out_files = getParamAsBool_("keep_out_files");
+			if ( Sequest_out && !Sequest_in ) keep_out_files = true;
+
+			keep_dta_files = getParamAsBool_("keep_dta_files");
+			if ( Sequest_in && !Sequest_out ) keep_dta_files = true;
+			
+			temp_data_dir = getParamAsString_("temp_data_dir");
+			ensurePathChar(temp_data_dir);
+			if ( temp_data_dir.empty() )
+			{
+				writeLog_("No directory for temporary files given. Aborting!");
+				cout << "No directory for temporary files given. Aborting!" << endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+
+			// only create dta files from the mzXML files, then quit
+			if ( getParamAsBool_("create_dtas") )
+			{
+				bool make_dtas = true;
+				// if there are already .dta files in the folder, stop the adapter
+				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
+				if ( !qdir.entryList().empty() )
+				{
+					cout << "There are already dta files in directory " + temp_data_dir + ". Aborting!" << endl;
+					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
+					deleteTempFiles(input_filename, logfile);
+					return UNKNOWN_ERROR;
+				}
+				
+				MSExperiment<> msexperiment;
+				QFileInfo file_info;
+				unsigned int msms_spectra_in_file;
+				unsigned int msms_spectra_altogether = 0;
+				if ( make_dtas ) cout << "creating dta files" << endl;
+				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+				{
+					file_info.setFile(*spec_i);
+					String common_name = temp_data_dir + string(file_info.fileName().ascii());
+					
+					try
+					{
+						MzXMLFile().load(*spec_i, msexperiment);
+					}
+					catch ( Exception::ParseError pe )
+					{
+						writeLog_("Error loading mzXML file. Aborting!");
+						cout << "Error loading mzXML file. Aborting!" << endl;
+						printUsage_();
+						return PARSE_ERROR;
+					}
+					
+					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, prob_charge, filenames_and_precursor_retention_times, make_dtas);
+					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + file_info.fileName().ascii());
+	
+					msms_spectra_altogether += msms_spectra_in_file;
+				}
+	
+				if ( !msms_spectra_altogether )
+				{
+					writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
+					cout << "No MS/MS spectra found in any of the mzXML files. Aborting!" << endl;
+					printUsage_();
+					return UNKNOWN_ERROR;
+				}
+
+				return EXECUTION_OK;
+			}
+			
+			temp_data_dir_win = getParamAsString_("temp_data_dir_win");
+			ensurePathChar(temp_data_dir_win, '\\');
+			
+			if ( !isWinFormat(temp_data_dir_win) )
+			{
+				writeLog_("Windows path for the directory for temporary files has wrong format. Aborting!");
+				cout << "Windows path for the directory for temporary files has wrong format. Aborting!" << endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+			temp_data_dir_network = getParamAsString_("temp_data_dir_network");
+			if ( temp_data_dir_network.empty() )
+			{
+				writeLog_("Network path for the directory for temporary files is empty. Aborting!");
+				cout << "Network path for the directory for temporary files is empty. Aborting!" << endl;
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+				if ( !correctNetworkPath(temp_data_dir_network) )
+			{
+				writeLog_(temp_data_dir_network + "is no network path. Aborting!");
+				cout << temp_data_dir_network + "is no network path. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -492,14 +638,40 @@ class TOPPSequestAdapter
 			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
 			contact_person.setContactInfo(getParamAsString_("contactInfo"));
 
-			Sequest_in = getParamAsBool_("Sequest_in");
-			Sequest_out = getParamAsBool_("Sequest_out");
-
-			// a 'normal' sequest run corresponds to both Sequest_in and Sequest_out set
-			if ( !Sequest_in && !Sequest_out ) Sequest_in = Sequest_out = true;
+			if ( Sequest_in )
+			{
+				input_filename = getParamAsString_("sequest_in");
+				if ( input_filename.empty() )
+				{
+					if ( !Sequest_out ) // if only Sequest_in is set, a name has to be given
+					{
+						writeLog_("No input file specified. Aborting!");
+						cout << "No input file specified. Aborting!" << endl;
+						printUsage_();
+						return ILLEGAL_PARAMETERS;
+					}
+					else
+					{
+						input_filename = temp_data_dir + "temp.sequest.in";
+						input_file_dir_network = temp_data_dir_network;
+					}
+				}
+				else input_file_dir_network = getParamAsString_("sequest_in_dir_network");
+			}
 			
 			if ( Sequest_in && Sequest_out )
 			{
+				if ( !correctNetworkPath(input_file_dir_network) )
+				{
+					writeLog_(input_file_dir_network + "is no network path. Aborting!");
+					cout << input_file_dir_network + "is no network path. Aborting!" << endl;
+					printUsage_();
+					return ILLEGAL_PARAMETERS;
+				}
+				size_t pos = input_filename.find_last_of('/');
+				if ( pos == string::npos ) pos = 0;
+				if ( !input_file_dir_network.hasSuffix(input_filename.substr(pos)) ) input_file_dir_network.append("\\" + input_filename.substr(++pos));
+				
 				user = getParamAsString_("user");
 				if ( user.empty() )
 				{
@@ -510,7 +682,7 @@ class TOPPSequestAdapter
 				}
 				
 				password = getParamAsString_("password");
-
+			
 				sequest_dir_win = getParamAsString_("sequest_dir_win");
 				ensurePathChar(sequest_dir_win, '\\');
 				if ( !isWinFormat(sequest_dir_win) && !sequest_dir_win.empty() )
@@ -536,131 +708,10 @@ class TOPPSequestAdapter
 				}
 			}
 			
-			keep_out_files = getParamAsBool_("keep_out_files");
-			if ( Sequest_out && !Sequest_in ) keep_out_files = true;
-
-			keep_dta_files = getParamAsBool_("keep_dta_files");
-			if ( Sequest_in && !Sequest_out ) keep_dta_files = true;
-			
-			temp_data_dir = getParamAsString_("temp_data_dir");
-			ensurePathChar(temp_data_dir);
-			temp_data_dir_win = getParamAsString_("temp_data_dir_win");
-			ensurePathChar(temp_data_dir_win, '\\');
-			temp_data_dir_network = getParamAsString_("temp_data_dir_network");
-			correctNetworkPath(temp_data_dir_network);
-			
-			dta_dir = getParamAsString_("dta_dir");
-			ensurePathChar(dta_dir);
-			dta_dir_win = getParamAsString_("dta_dir_win");
-			ensurePathChar(dta_dir_win, '\\');
-			dta_dir_network = getParamAsString_("dta_dir_network");
-			correctNetworkPath(dta_dir_network);
-			
-			out_dir = getParamAsString_("out_dir");
-			ensurePathChar(out_dir);
-			out_dir_win = getParamAsString_("out_dir_win");
-			ensurePathChar(out_dir_win, '\\');
-			out_dir_network = getParamAsString_("out_dir_network");
-			correctNetworkPath(out_dir_network);
-
-			bool in_uses_temp_data_dir = false;
-			
-			input_filename = getParamAsString_("sequest_in");
-			if ( input_filename.empty() )
+			if ( logfile == temp_data_dir + "sequest.log")
 			{
-				if ( !Sequest_out ) // if only Sequest_in is set, a name has to be given
-				{
-					writeLog_("No input file specified. Aborting!");
-					cout << "No input file specified. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-				else
-				{
-					temp_data_dir = true;
-					input_filename = temp_data_dir + "temp.sequest.in";
-					input_filename_win = temp_data_dir_win + "temp.sequest.in";
-				}
-			}
-			else if ( Sequest_out )
-			{
-				input_filename_win = getParamAsString_("sequest_in_win");
-				if ( !isWinFormat(input_filename_win) )
-				{
-					writeLog_("Windows path for input file has wrong format. Aborting!");
-					cout << "Windows path for input file has wrong format. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-				else if ( input_filename_win.hasPrefix('\\') )
-				{
-					std::size_t pos = input_filename.find_last_of('/');
-					if ( pos == std::string::npos ) pos = 0;
-					input_filename_win.append(input_filename.substr(pos));
-				}
-			}
-
-			
-			if ( temp_data_dir.empty() && !(out_dir.empty() || dta_dir.empty()) )
-			{
-				writeLog_("No directory for temporary files given. Aborting!");
-				cout << "No directory for temporary files given. Aborting!" << endl;
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-			else
-			{
-				if ( !temp_data_dir.empty() )
-				{
-					if ( Sequest_in && Sequest_out )
-					{
-						if ( (in_uses_temp_data_dir || out_dir.empty() || dta_dir.empty()) )
-						{
-							if ( !isWinFormat(temp_data_dir_win) )
-							{
-								writeLog_("Windows path for the directory for temporary files has wrong format. Aborting!");
-								cout << "Windows path for the directory for temporary files has wrong format. Aborting!" << endl;
-								printUsage_();
-								return ILLEGAL_PARAMETERS;
-							}
-							if ( temp_data_dir_network.empty() )
-							{
-								writeLog_("Network path for the directory for temporary files is empty. Aborting!");
-								cout << "Network path for the directory for temporary files is empty. Aborting!" << endl;
-								printUsage_();
-								return ILLEGAL_PARAMETERS;
-							}
-						}
-					}
-					
-					if ( out_dir.empty() )
-					{
-						out_dir = temp_data_dir;
-						out_dir_win = temp_data_dir_win;
-						out_dir_network = temp_data_dir_network;
-					}
-					
-					if ( dta_dir.empty() )
-					{
-						dta_dir = temp_data_dir;
-						dta_dir_win = temp_data_dir_win;
-						dta_dir_network = temp_data_dir_network;
-					}
-				}
-				else if ( Sequest_in && Sequest_out )
-				{
-					writeLog_("No directory for temporary files given. Aborting!");
-					cout << "No directory for temporary files given. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-
-			
-			if ( logfile == out_dir + "sequest.log")
-			{
-				writeLog_("The logfile must not be named " + out_dir + "sequest.log. Aborting!");
-				cout << "The logfile must not be named " + out_dir + "sequest.log. Aborting!" << endl;
+				writeLog_("The logfile must not be named " + temp_data_dir + "sequest.log. Aborting!");
+				cout << "The logfile must not be named " + temp_data_dir + "sequest.log. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -680,55 +731,35 @@ class TOPPSequestAdapter
 
 			snd_database = getParamAsString_("snd_db");
 			
-			string_buffer = getParamAsString_("in");
-			if ( string_buffer.empty() )
-			{
-				writeLog_("No spectrum file specified. Aborting!");
-				cout << "No spectrum file specified. Aborting!" << endl;
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-			else
-			{
-				string_buffer.split(',', spectra);
-				if ( spectra.empty() ) spectra.push_back(string_buffer);
-			}
-			
 			if ( Sequest_in )
 			{
-				database_win = getParamAsString_("db_win");
-				if ( !isWinFormat(database_win) )
+				database_dir_network = getParamAsString_("db_dir_network");
+				if ( !correctNetworkPath(database_dir_network) )
 				{
-					writeLog_("Windows path for database has wrong format. Aborting!");
-					cout << "Windows path for database has wrong format. Aborting!" << endl;
+					writeLog_(database_dir_network + "is no network path. Aborting!");
+					cout << database_dir_network + "is no network path. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				else if ( input_filename_win.hasPrefix('\\') )
-				{
-					std::size_t pos = input_filename.find_last_of('/');
-					if ( pos == std::string::npos ) pos = 0;
-					input_filename_win.append(input_filename.substr(pos));
-				}
-				sequest_infile.setDatabase(database_win);
+				size_t pos = database.find_last_of('/');
+				if ( pos == string::npos ) pos = 0;
+				if ( !database_dir_network.hasSuffix(database.substr(pos)) ) database_dir_network.append("\\" + database.substr(++pos));
+				sequest_infile.setDatabase(database_dir_network);
 
 				if ( !snd_database.empty() )
 				{
-					snd_database_win = getParamAsString_("snd_db_win");
-					if ( !isWinFormat(database_win) )
+					snd_database_dir_network = getParamAsString_("snd_db_dir_network");
+					if ( !correctNetworkPath(snd_database_dir_network) )
 					{
-						writeLog_("Windows path for database has wrong format. Aborting!");
-						cout << "Windows path for database has wrong format. Aborting!" << endl;
+						writeLog_(snd_database_dir_network + "is no network path. Aborting!");
+						cout << snd_database_dir_network + "is no network path. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
-					else if ( input_filename_win.hasPrefix('\\') )
-					{
-						std::size_t pos = input_filename.find_last_of('/');
-						if ( pos == std::string::npos ) pos = 0;
-						input_filename_win.append(input_filename.substr(pos));
-					}
-					sequest_infile.setSndDatabase(snd_database_win);
+					size_t pos = snd_database.find_last_of('/');
+					if ( pos == string::npos ) pos = 0;
+					if ( !snd_database_dir_network.hasSuffix(snd_database.substr(pos)) ) snd_database_dir_network.append("\\" + snd_database.substr(++pos));
+					sequest_infile.setSndDatabase(snd_database_dir_network);
 				}
 				
 				double_buffer = getParamAsDouble_("pep_mass_tol", -1);
@@ -943,7 +974,12 @@ class TOPPSequestAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				else sequest_infile.setNeutralLossesForIons(string_buffer);
+				else
+				{
+					string_buffer.insert(2, 1, ' ');
+					string_buffer.insert(1, 1, ' ');
+					sequest_infile.setNeutralLossesForIons(string_buffer);
+				}
 				
 				string_buffer = getParamAsString_("ion_series_weights");
 				string_buffer.split(',', substrings);
@@ -1036,17 +1072,6 @@ class TOPPSequestAdapter
 			
 			if ( Sequest_out )
 			{
-				int_buffer = getParamAsInt_("prob_charge");
-				if ( int_buffer < 0 )
-				{
-					writeLog_("Maximal charge to test is less than zero. Aborting!");
-					cout << "Maximal charge to test is less than zero. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-				else if ( int_buffer ) prob_charge = int_buffer;
-				else prob_charge = 1;
-				
 				string_buffer = getParamAsString_("out");
 				if ( string_buffer.empty() )
 				{
@@ -1067,101 +1092,6 @@ class TOPPSequestAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 			}
-
-			vector< String > drive_letters;
-			vector< String > network_paths;
-			if ( Sequest_in && Sequest_out )
-			{
-				if ( !isWinFormat(out_dir_win) )
-				{
-					writeLog_("Windows path for the directory for .out files has wrong format. Aborting!");
-					cout << "Windows path for the directory for .out files has wrong format. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-				
-				if ( !isWinFormat(dta_dir_win) )
-				{
-					writeLog_("Windows path for the directory for .dta files has wrong format. Aborting!");
-					cout << "Windows path for the directory for .dta files has wrong format. Aborting!" << endl;
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
-
-				database_dir_network = getParamAsString_("db_dir_network");
-				correctNetworkPath(database_dir_network);
-				snd_database_dir_network = getParamAsString_("snd_db_dir_network");
-				correctNetworkPath(snd_database_dir_network);
-				input_file_dir_network = getParamAsString_("sequest_in_dir_network");
-				correctNetworkPath(input_file_dir_network);
-
-				// make a list of the directories that have to be mounted
-				vector< String > drive_letters_all;
-				vector< String > network_paths_all;
-
-				drive_letters_all.push_back(out_dir_win.substr(0,2));
-				network_paths_all.push_back(out_dir_network);
-				drive_letters_all.push_back(dta_dir_win.substr(0,2));
-				network_paths_all.push_back(dta_dir_network);
-				drive_letters_all.push_back(database_win.substr(0,2));
-				network_paths_all.push_back(database_dir_network);
-				if ( !snd_database.empty() )
-				{
-					drive_letters_all.push_back(snd_database_win.substr(0,2));
-					network_paths_all.push_back(snd_database_dir_network);
-				}
-				drive_letters_all.push_back(input_filename_win.substr(0,2));
-				network_paths_all.push_back(input_file_dir_network);
-
-				// go through the lists and search for any drive letter that has a corresponding network path
-				vector< String >::const_iterator network_i = network_paths_all.begin();
-				for ( vector< String >::const_iterator drive_i = drive_letters_all.begin(); drive_i != drive_letters_all.end(); ++drive_i, ++network_i )
-				{
-				//cout << *drive_i << "\t" << *network_i << endl;
-					if ( network_i->empty() )
-					{
-						vector< String >::const_iterator network_i2 = network_paths_all.begin();
-						for ( vector< String >::const_iterator drive_i2 = drive_letters_all.begin(); drive_i2 != drive_letters_all.end(); ++drive_i2, ++network_i2 )
-						{
-							if ( (*drive_i == *drive_i2) && !network_i2->empty() ) break;
-						}
-						if ( network_i2 == network_paths_all.end() )
-						{
-						//cout << *drive_i << "\t" << *network_i << endl;
-							writeLog_("No network path for windows directory " + *drive_i +" given. Aborting!");
-							cout << "No network path for windows directory " + *drive_i +" given. Aborting!" << endl;
-							printUsage_();
-							return ILLEGAL_PARAMETERS;
-						}
-						//cout << "emtpy" << endl;
-					}
-					else
-					{
-						drive_letters.push_back(*drive_i);
-						network_paths.push_back(*network_i);
-						//cout << "\t\t" <<*drive_i << "\t" << *network_i << endl;
-					}
-				}
-				// now check whether there are drive letters with more than one network paths
-				for ( vector< String >::iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end() - 1; ++drive_i )
-				{
-/*cout << *drive_i << "\t" << *(drive_i+1) <<  endl;
-					for ( vector< String >::iterator drive_i2 = drive_i+1; drive_i2 != drive_letters.end(); ++drive_i2 )
-					{
-					cout << *drive_i2 << endl;
-						if ( *drive_i == *drive_i2 )
-					}*/
-						if ( find(drive_i+1, drive_letters.end(), *drive_i) != drive_letters.end() )
-						{
-							writeLog_("More than one network path for windows directory " + *drive_i +" given. Aborting!");
-							cout << "More than one network path for windows directory " + *drive_i +" given. Aborting!" << endl;
-							printUsage_();
-							return ILLEGAL_PARAMETERS;
-						}
-					//}
-					//cout << "1099" << endl;
-				}
-			}
 			
 			//-------------------------------------------------------------
 			// (3) running program according to parameters
@@ -1180,11 +1110,11 @@ class TOPPSequestAdapter
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
 				}
 
-				file.setName(out_dir + batch_filename);
+				file.setName(temp_data_dir + batch_filename);
 				file.open(IO_WriteOnly);
 				if ( !file.isWritable() )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_dir + batch_filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_dir + batch_filename);
 				}
 			}
 			
@@ -1240,6 +1170,19 @@ class TOPPSequestAdapter
 
 			bool make_dtas = ( Sequest_out && !Sequest_in ) ? false : true; // if only Sequest_out is set, just get the retention times
 			// creating the dta files
+
+			if ( make_dtas ) // if there are already .dta files in the folder, stop the adapter
+			{
+				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
+				if ( !qdir.entryList().empty() )
+				{
+					cout << "There are already dta files in directory " + temp_data_dir + ". Aborting!" << endl;
+					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
+					deleteTempFiles(input_filename, logfile);
+					return UNKNOWN_ERROR;
+				}
+			}
+			
 			MSExperiment<> msexperiment;
 			unsigned int msms_spectra_in_file;
 			unsigned int msms_spectra_altogether = 0;
@@ -1247,7 +1190,7 @@ class TOPPSequestAdapter
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
 				file_info.setFile(*spec_i);
-				String common_name = dta_dir + string(file_info.fileName().ascii());
+				String common_name = temp_data_dir + string(file_info.fileName().ascii());
 				
 				try
 				{
@@ -1280,54 +1223,41 @@ class TOPPSequestAdapter
 			if ( Sequest_in && Sequest_out )
 			{
 				// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
-				ofstream batchfile(String(out_dir + batch_filename).c_str());
+				String sequest_screen_output = getRandomFilename(); // direct the screen-output to a file
+				ofstream batchfile(String(temp_data_dir + batch_filename).c_str());
 				if ( !batchfile )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_dir + batch_filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_dir + batch_filename);
 				}
-
-				// get the drive and network path of out_dir
-				vector< String >::iterator drive_i = find(drive_letters.begin(), drive_letters.end(), out_dir_win.substr(0,2));
-				vector< String >::iterator network_i = network_paths.begin() + (drive_i - drive_letters.begin());
-				
 				String call = "rdesktop -u ";
 				call.append(user);
 				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
 				call.append(" -s cmd\\ /C\\ \"");
-				call.append(" net use " + *drive_i + " \\\\" + *network_i + " && ");
+				call.append(" net use " + temp_data_dir_win.substr(0,2) + " \\\\" + temp_data_dir_network + " && ");
 
-				drive_letters.erase(drive_i);
-				network_paths.erase(network_i);
-				for ( drive_i = drive_letters.begin(), network_i = network_paths.begin(); drive_i != drive_letters.end(); ++drive_i, ++network_i )
-				{
-					batchfile << String(" net use " + *drive_i + " " + *network_i + " &&");
-				}
-				batchfile << String(" cd " + out_dir_win + " && " + out_dir_win.substr(0,2));
-				batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_filename_win + " " + dta_dir_win + "*.dta");
+				batchfile << String(" cd " + temp_data_dir_win + " && " + temp_data_dir_win.substr(0,2));
+				batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_file_dir_network + " " + temp_data_dir_network + "\\*.dta >  " +  temp_data_dir_network +"\\" + sequest_screen_output);
 				batchfile << String(" && " + sequest_dir_win.substr(0,2) + " &&");
-				for ( vector< String >::const_iterator drive_i = drive_letters.begin(); drive_i != drive_letters.end(); ++drive_i, ++network_i )
-				{
-					batchfile << String(" net use /delete " + *drive_i + " &&");
-				}
-				batchfile << String(" net use /delete " + out_dir_win.substr(0,2));
+				batchfile << String(" net use /delete " + temp_data_dir_win.substr(0,2));
 				batchfile << " && logoff";
 				batchfile.close();
 				batchfile.clear();
 				
-				call.append(out_dir_win + batch_filename + "\" " + sequest_computer);
+				call.append(temp_data_dir_win + batch_filename + "\" " + sequest_computer);
 				cout << call << endl;
 				int status = system(call.c_str());
+				remove(sequest_screen_output.c_str());
 				
 				if ( status != 0 )
 				{
-					cout << "Sequest problem. Aborting! (Details can be seen " 
+					cout << "Sequest problem. Aborting! (Details can be seen "
 					<< " in the logfile: \"" << logfile << "\")" << endl;
 					writeLog_("Sequest problem. Aborting!");
 					deleteTempFiles(input_filename, logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 
-				ifstream sequest_log(string(out_dir + "sequest.log").c_str()); // write sequest log to logfile
+				ifstream sequest_log(string(temp_data_dir + "sequest.log").c_str()); // write sequest log to logfile
 				if ( !sequest_log )
 				{
 					cout << "No Sequest log found!" << endl;
@@ -1344,23 +1274,7 @@ class TOPPSequestAdapter
 					sequest_log.clear();
 					writeLog_(buffer);
 					delete(buffer);
-					remove(string(out_dir + "sequest.log").c_str());
-				}
-
-				if ( !keep_dta_files ) // remove all dtas
-				{
-					QDir qdir(dta_dir, "*.dta", QDir::Name, QDir::Files);
-					QStringList qlist = qdir.entryList();
-					QFile qfile;
-					
-					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
-					{
-						if ( !qfile.remove(QString(dta_dir.c_str() + *i)) )
-						{
-							cout << string((*i).ascii()) << "could not be removed!" << endl;
-							writeLog_(string((*i).ascii()) + "could not be removed!");
-						}
-					}
+					remove(string(temp_data_dir + "sequest.log").c_str());
 				}
 			}
 			
@@ -1368,13 +1282,14 @@ class TOPPSequestAdapter
 			{
 				if ( !keep_dta_files ) // remove all dtas
 				{
-					QDir qdir(dta_dir, "*.dta", QDir::Name, QDir::Files);
+					cout << "removing dta files" << endl;
+					QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
 					QStringList qlist = qdir.entryList();
 					QFile qfile;
 					
 					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 					{
-						if ( !qfile.remove(QString(dta_dir.c_str() + *i)) )
+						if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
 						{
 							cout << string((*i).ascii()) << "could not be removed!" << endl;
 							writeLog_(string((*i).ascii()) + "could not be removed!");
@@ -1389,7 +1304,7 @@ class TOPPSequestAdapter
 				ProteinIdentification protein_identification;
 				vector< float > precursor_retention_times, precursor_mz_values;
 				
-				QDir qdir(dta_dir, "*.out", QDir::Name, QDir::Files);
+				QDir qdir(temp_data_dir, "*.out", QDir::Name, QDir::Files);
 				QStringList qlist = qdir.entryList();
 
 				if ( qlist.isEmpty() )
@@ -1403,7 +1318,7 @@ class TOPPSequestAdapter
 
 				for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 				{
-					sequest_outfile.load(out_dir + string((*i).ascii()), identifications, protein_identification, precursor_retention_times, precursor_mz_values,  p_value, database, snd_database);
+					sequest_outfile.load(temp_data_dir + string((*i).ascii()), identifications, protein_identification, precursor_retention_times, precursor_mz_values,  p_value, database, snd_database);
 				}
 
 				sort(filenames_and_precursor_retention_times.begin(), filenames_and_precursor_retention_times.end(), SortRetentionTimes()); // sort the retention times, so they have the same order like the corresponding .out files
@@ -1423,13 +1338,14 @@ class TOPPSequestAdapter
 				// remove all outs
 				if ( !keep_out_files )
 				{
-					qdir.setPath(out_dir);
+					cout << "removing out files" << endl;
+					qdir.setPath(temp_data_dir);
 					qlist = qdir.entryList("*.out", QDir::Files, QDir::Name);
 					QFile qfile;
 					
 					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 					{
-						if ( !qfile.remove(QString(out_dir.c_str() + *i)) )
+						if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
 						{
 							cout << string((*i).ascii()) << "could not be removed!" << endl;
 							writeLog_(string((*i).ascii()) + "could not be removed!");
