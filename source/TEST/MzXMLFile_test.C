@@ -260,8 +260,8 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzXMLFile_test_2.mzXML",e);
-	f.store(tmp_filename,e);
-	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
+	f.store("test.mzXML",e);
+	TEST_FILE("test.mzXML","data/MzXMLFile_test_2.mzXML");
 RESULT
 
 CHECK((load/store for Float Kernel Traits))
