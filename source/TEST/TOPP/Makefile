@@ -66,16 +66,20 @@ TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
 #files to remove
-CLEANUP = ${RM} -f *.tmp  *.rounded_tmp *.log
+CLEANUP = ${RM} -f *.tmp  *.rounded_tmp *.log ${ROUNDCAT}
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
+
+# TODO: read from environment _and_ provide a default ????
+PRECISION = 3
+ROUNDCAT = RoundCat
 
 #######################################################################
 # DEFAULT TARGET
 # Here all TOPP tool tests are executed.
 # Afterwards all temporary data files are removed (*.tmp)
-default:  help RoundCat $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
+default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
 	@$(ECHO) ""
@@ -109,15 +113,10 @@ help:
 # - temporary files (*.tmp) are not deleted after the execution
 debug: DEBUG=1 default
 
-# TODO: read from environment _and_ provide a default ????
-PRECISION = 3
-
-ROUNDCAT = RoundCat
-
 # Diff that rounds numbers before comparing the files.
 DIFF_ROUNDCAT = \
-	$(ROUNDCAT) $(1) $(1).rounded_tmp $(PRECISION) && \
-	$(ROUNDCAT) $(2) $(2).rounded_tmp $(PRECISION) && \
+	./$(ROUNDCAT) $(1) $(1).rounded_tmp $(PRECISION) && \
+	./$(ROUNDCAT) $(2) $(2).rounded_tmp $(PRECISION) && \
 	$(DIFF) $(1).rounded_tmp $(2).rounded_tmp $(3)
 
 # Diff that ignores whitespaces and empty lines
@@ -169,12 +168,12 @@ TEST_FILE_EQUAL =  \
 
 # A simple minded cat-like application that reads the input file and writes it
 # to the output file, but with all numbers rounded to precision digits.
-$(ROUNDCAT): $(ROUNDCAT).C
+${ROUNDCAT}:  RoundCat.C
 
 ###########################################################################################
 # Tests for individual TOPP tools.
 
-AdditiveSeries_test:
+AdditiveSeries_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "AdditiveSeries:"
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini AdditiveSeries_1_parameters.ini)
@@ -187,31 +186,31 @@ AdditiveSeries_test:
 	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.err,AdditiveSeries_1_gnuplot_err.tmp)
 
 
-AnalysisXMLMerger_test:
+AnalysisXMLMerger_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "AnalysisXMLMerger:"
 	@$(ECHO) "	... todo ..."
 
 
-BaselineFilter_test:
+BaselineFilter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-DBExporter_test:
+DBExporter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
 	@$(ECHO) "	... todo ..."
 
 
-DBImporter_test:
+DBImporter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
 	@$(ECHO) "	... todo ..."
 
 
-DTAExtractor_test:
+DTAExtractor_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "DTAExtractor:"
 
@@ -231,13 +230,13 @@ DTAExtractor_test:
 	@$(call TEST_FILE_EQUAL,DTAExtractor_3_output.dta,DTAExtractor.tmp)
 
 
-Dewarper_test:
+Dewarper_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "Dewarper:"
 	@$(ECHO) "	... todo ..."
 
 
-FeatureFinder_test:
+FeatureFinder_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
@@ -249,7 +248,7 @@ FeatureFinder_test:
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
 
 
-FeaturePairSplitter_test:
+FeaturePairSplitter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FeaturePairSplitter:"
 	@$(call RUN_PROG_OPT,FeaturePairSplitter,\
@@ -263,7 +262,7 @@ FeaturePairSplitter_test:
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.wsv)
 
-FileConverter_test:
+FileConverter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FileConverter:"
 
@@ -298,7 +297,7 @@ FileConverter_test:
 	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
 
 
-FileFilter_test:
+FileFilter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FileFilter:"
 
@@ -318,7 +317,7 @@ FileFilter_test:
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom)
 	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter.tmp)
 
-FileInfo_test:
+FileInfo_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"
 
@@ -346,7 +345,7 @@ FileInfo_test:
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
 
-FileMerger_test:
+FileMerger_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
 	
@@ -365,85 +364,85 @@ FileMerger_test:
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_3_output.txt,FileMerger2.tmp)
 
-IDFilter_test:
+IDFilter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-InspectAdapter_test:
+InspectAdapter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-LabeledMatcher_test:
+LabeledMatcher_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
 	@$(ECHO) "	... todo ..."
 
 
-MapAlignment_test:
+MapAlignment_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "MapAlignment:"
 	@$(ECHO) "	... todo ..."
 
 
-MapMatcher_test:
+MapMatcher_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
 	@$(ECHO) "	... todo ..."
 
 
-MapStatistics_test:
+MapStatistics_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "MapStatistics:"
 	@$(ECHO) "	... todo ..."
 
 
-MascotAdapter_test:
+MascotAdapter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-NoiseFilter_test:
+NoiseFilter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-PeakPicker_test:
+PeakPicker_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
 	@$(ECHO) "	... todo ..."
 
 
-RTModel_test:
+RTModel_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
 	@$(ECHO) "	... todo ..."
 
 
-RTPredict_test:
+RTPredict_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
 	@$(ECHO) "	... todo ..."
 
 
-SequestAdapter_test:
+SequestAdapter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-SpectraFilter_test:
+SpectraFilter_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-UnlabeledMatcher_test:
+UnlabeledMatcher_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "UnlabeledMatcher:"
 	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini UnlabeledMatcher_1_parameters.ini)
@@ -456,7 +455,7 @@ UnlabeledMatcher_test:
 
 PRECISION=2
 
-MyoQuant_test:
+MyoQuant_test: $(ROUNDCAT)
 	@$(ECHO) ""
 	@$(ECHO) "MyoQuant_test:"
 
