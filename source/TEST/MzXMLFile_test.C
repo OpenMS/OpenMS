@@ -247,7 +247,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
-  f.load("data/MzXMLFile_test_1.mzXML",e);
+ 	 f.load("data/MzXMLFile_test_1.mzXML",e);
 	//test if empty spectra are skipped
 	e.push_back(MSSpectrum< DRawDataPoint<1> >());
 	e.push_back(MSSpectrum< DRawDataPoint<1> >());

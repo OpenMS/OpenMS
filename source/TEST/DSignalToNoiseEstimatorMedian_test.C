@@ -135,7 +135,7 @@ CHECK(double getSignalToNoise(ConstIterator data_point) throw(Exception::OutOfRa
 
     if ((i == 2) || (i == 4))
     {
-      TEST_REAL_EQUAL(sne.getSignalToNoise(first),50);
+      TEST_REAL_EQUAL(sne.getSignalToNoise(first),1);
     }
     else
     {

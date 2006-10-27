@@ -83,7 +83,9 @@ namespace OpenMS
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 				
-				map.clear();
+				map = MapType();
+				
+//				map.clear();
 // 				map = ExperimentalSettings();
 // 				map.setName("");		// to be continued
 				
