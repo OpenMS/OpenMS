@@ -27,21 +27,38 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 #define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
+#define _FILE_OFFSET_BITS 64
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include<vector>
 #include<algorithm>
 #include<limits>
 
-#include <cstdlib>
+//#include <cstdlib>
 #include <iostream>
+
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/types.h>
 
 namespace OpenMS
 {
 /**
-	@brief Representation of a mass spectrometry experiment using an external datastructure to store very large data sets.
+	@brief Representation of a mass spectrometry experiment using an external datastructure to store large data sets.
+	
+	This data structures has the same interface as MSExperiment but uses a ring buffer and stores only a subset of
+	all scans in the RAM. Scans are dynamically written to the hard disk and re-loaded if needed.
+	
+	NOTE: If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
+	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
+	
+	NOTE: (part 2) This class is not completely tested. It should work fine with PeakPicker, MzXMLFile and MzDataFile.
+	Use it at your own risk.
 			
 	@ingroup Kernel
 **/
@@ -370,12 +387,12 @@ public:
     typedef ReverseIterator reverse_iterator;
     typedef ConstReverseIterator const_reverse_iterator;
 
-    /// Standard constructor, allocates a buffer of size 1500
+    /// Standard constructor, allocates a buffer of size 400
     MSExperimentExtern()
-            : buffer_size_(1500),
+            : buffer_size_(400),
             scan_location_(), current_scan_(0),
             buffer_index_(0), scan2buffer_(),
-            buffer2scan_(), exp_()
+            buffer2scan_(), exp_(), pFile_(0)
     {
         file_name_ = "msexp_" + String(std::rand());
 		exp_.resize(buffer_size_);
@@ -386,10 +403,10 @@ public:
             : buffer_size_(source.buffer_size_),
             scan_location_(source.scan_location_), current_scan_(source.current_scan_),
             buffer_index_(source.buffer_index_),  scan2buffer_(source.scan2buffer_),
-            buffer2scan_(source.buffer2scan_), exp_(source.exp_)
+            buffer2scan_(source.buffer2scan_), exp_(source.exp_), pFile_(source.pFile_)
     {
         file_name_ = "msexp_" + String(std::rand());
-		copyTmpFile_(source.file_name_);
+		copyTmpFile__(source.file_name_);
         exp_.resize(buffer_size_);
     }
 
@@ -398,7 +415,7 @@ public:
     {
         // delete temporary file
         std::remove ( file_name_ .c_str());
-    }
+	}
 
     /// Assignment operator
     MSExperimentExtern & operator= (const MSExperimentExtern& source)
@@ -417,22 +434,23 @@ public:
 		std::remove ( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
 		// and copy the old one
-        copyTmpFile_(source.file_name_);
+        copyTmpFile__(source.file_name_);
 
-        exp_.resize(buffer_size_);
-
+        exp_.resize(buffer2scan_);
+		buffer2scan_.resize(buffer2scan_);
         return *this;
     }
 
     /// Equality operator
     bool operator== (const MSExperimentExtern& rhs) const
     {
-        return (buffer_size_     == rhs.buffer_size_ &&
+        return (buffer_size_   == rhs.buffer_size_ &&
                 scan_location_ == rhs.scan_location_ &&
                 buffer_index_    == rhs.buffer_index_ &&
                 scan2buffer_    == rhs.scan2buffer_ &&
                 buffer2scan_    == rhs.buffer2scan_ &&
-                exp_				  == rhs.exp_);
+                exp_				  == rhs.exp_             &&
+				pFile_			  == rhs.pFile_);
     }
 
     /// Equality operator
@@ -607,10 +625,10 @@ public:
 	/// See std::vector documentation.
 	reference back()
 	{
-		return *(exp_.end()-1);
+		return  this->at( (scan2buffer_.size() -1) ) ;
 	}
 	
-	/// See std::vector documentation.
+	/// TODO: Implement this
 	Iterator insert(Iterator pos, const SpectrumType& spec)
 	{
 		return pos;
@@ -618,20 +636,22 @@ public:
 
     void push_back(const SpectrumType& spec)
     {
-        //std::cout << "Inserting scan " << current_scan_ << std::endl;
-        //std::cout << "size: " << buffer_size_ << " index: " << buffer_index_ << std::endl;
+        std::cout << "Inserting scan " << current_scan_ << std::endl;
+        std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
         if (buffer_index_ < buffer_size_)
         {
-            //std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
+            std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
             exp_[buffer_index_] = spec;
             scan2buffer_.push_back(buffer_index_++);
-            buffer2scan_.push_back(current_scan_++);
+            buffer2scan_[current_scan_++];
         }
         else
         {
-            //std::cout << "Inserting dummy values: " << buffer_index_ << std::endl;
-            scan2buffer_.push_back(buffer_index_);
-            buffer2scan_.push_back(++buffer_index_);
+            std::cout << "Buffer full. Overwriting buffer."   << std::endl;
+			buffer_index_ = 0; // resetting buffer index
+			exp_[buffer_index_] = spec;			
+            scan2buffer_.push_back(buffer_index_++);
+            buffer2scan_[current_scan_++];
         }
         writeScan(spec);
     }
@@ -640,7 +660,7 @@ public:
     reference operator[] (size_type n)
     {
 
-        //std::cout << "operator[" << n << "]" << std::endl;
+        std::cout << "operator[" << n << "]" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
@@ -653,12 +673,14 @@ public:
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference operator[] (size_type n) const
     {
-        //std::cout << "operator[" << n << "] const" << std::endl;
+        std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
-            storeInBuffer(n);	// scan is not in buffer, needs to be read from file
-
+		{
+            std::cout << "scan not in buffer." << std::endl;
+			storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+		}
         b = scan2buffer_[n];
         return exp_[b];
     }
@@ -709,6 +731,7 @@ public:
     void updateBuffer()
     {
         exp_.resize(buffer_size_);
+		buffer2scan_.resize(buffer_size_);
     }
 
     /// See std::vector documentation.
@@ -721,7 +744,8 @@ public:
 
     void clear() const
     {
-        exp_.clear();
+        for (unsigned int i=0; i<exp_.size();++i)
+			exp_[i].clear();
     }
 
     /// See MSExperiment documentation.
@@ -875,7 +899,7 @@ public:
         exp_.setDate(date);
     }
 
-    void deleteTempFile()
+    void deleteTempFile_()
     {
         std::remove( file_name_ .c_str());
     }
@@ -886,7 +910,7 @@ protected:
     UnsignedInt buffer_size_;
 
     /// stores the location of the scan in the file
-    mutable std::vector<size_type> scan_location_;
+    mutable std::vector<off_t> scan_location_;
 
     /// number of scans added so far
     mutable UnsignedInt current_scan_;
@@ -894,13 +918,13 @@ protected:
     /// index in buffer
     mutable UnsignedInt buffer_index_;
 
-    /// The index of each scan in the buffer
+    /// Maps scan index to index in buffer
     mutable std::vector<size_type> scan2buffer_;
 
-    /// The index of each scan in the buffer
+    /// Maps buffer index to scan number
     mutable std::vector<size_type> buffer2scan_;
 
-    /// The index of each scan in the buffer
+    /// Size of all scans
     mutable std::vector<size_type> scan_sizes_;
 
     /// Name of the temporary file to store the peak data
@@ -909,40 +933,41 @@ protected:
 	/// The internal ms experiment instance.
     mutable ExperimentType exp_;
 	
-	/// File handle (to store the peak data)
+	/// File descriptor for temporary file
 	mutable FILE * pFile_;
-
+	
     /// reads a scan from the temp file and stores it in the buffer
     void storeInBuffer(const size_type& n)
     {
-        //std::cout << "spectra at: " << n << " is not in buffer. " << std::endl;
-        SpectrumType spec;
-		readScan(n,spec);
+        std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
+//         SpectrumType spec;
+// 		readScan(n,spec);
 
         // check if buffer is full
         if (buffer_index_ < buffer_size_)
         {
-            //std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+            std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
             // not full, add scan to buffer
-            exp_[buffer_index_] = spec;
-            scan2buffer_[n] = buffer_index_;
+            //exp_[buffer_index_] = spec;
+            
+			readScan(n,exp_[buffer_index_]);
+			
+			scan2buffer_[n] = buffer_index_;
             buffer2scan_[buffer_index_++] = n;
         }
         else
         {
+			std::cout << "buffer is full, inserting scan at first position " << std::endl;
             // buffer is full, therefore we overwrite the first entry
             buffer_index_ = 0;
 
             // check if size of buffer is set to zero
             if (buffer_size_ > 0 )
             {
-                // if this entry is already occupied by a scan, save it before overwriting
-                if (exp_[buffer_index_].getRetentionTime() > 0)
-                {
-                    writeScan(exp_[buffer_index_]);
-                }
-                exp_[buffer_index_] = spec;
-                scan2buffer_[n] = buffer_index_;
+                //exp_[buffer_index_]                = spec;
+				readScan(n,exp_[buffer_index_]);
+                scan2buffer_[n]                      = buffer_index_;
                 buffer2scan_[buffer_index_++] = n;
             }
             else // buffer size is set to zero
@@ -973,17 +998,13 @@ protected:
             // check if size of buffer is set to zero
             if (buffer_size_ > 0 )
             {
-                exp_[buffer_index_] = spec;
-                scan2buffer_[n] = buffer_index_;
+                exp_[buffer_index_]                = spec;
+                scan2buffer_[n]                      = buffer_index_;
                 buffer2scan_[buffer_index_++] = n;
             }
-            else
+            else // zero-sized buffer
             {
-                // if we are working on a zero-sized buffer, we need
-                // append the current scan
-                exp_.push_back(spec);
-                scan2buffer_[n] = buffer_index_;
-                buffer2scan_[buffer_index_++] = n;
+				 throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer()");		
             }
         }
     }
@@ -992,10 +1013,26 @@ protected:
     /// format: rt_of_scan first_mz first_intensity second_mz ... last_intensity n
     void writeScan(const SpectrumType& spec)
     {
-        pFile_ = fopen (file_name_.c_str(),"a");
+       	pFile_ = fopen(file_name_.c_str(),"a");
         float rt = spec.getRetentionTime();
-        scan_location_.push_back( ftell(pFile_) );
-
+		
+		// determine position in file and store it
+		off_t pos;
+		if ( ( pos = ftello(pFile_) ) < 0) 
+		{
+			std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
+			std::cout << "Error code: " << errno << std::endl;	
+			if (errno == EOVERFLOW)
+			{
+				std::cout << "An overflow of the position index was encountered." << std::endl;
+				std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
+				std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+				std::cout << "file became too large." << std::endl;
+				throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan()",pos,sizeof(off_t)); 
+			}
+			
+		}
+	    scan_location_.push_back( pos );
         fwrite(&rt,sizeof(rt),1,pFile_);
 
         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
@@ -1003,44 +1040,77 @@ protected:
         {
             fwrite(&(*cit),sizeof(*cit),1,pFile_);
         }
-        fclose (pFile_);
+        fclose(pFile_);
 
         scan_sizes_.push_back(spec.getContainer().size());
-
+		// we store the number of floats that later need to be read: it, m/z for each point + rt for the whole scan
+		//scan_sizes_.push_back( (spec.getContainer().size() )*2 + 1);
+		
     } // end of write(spectrum)
 
     /// Reads a spectrum from a file
-    void readScan(const size_type& index, SpectrumType& spec) const
-    {
-        //SpectrumType spec;
+    void readScan(const size_type& index, SpectrumType& spec)  const
+	{
+        pFile_ = fopen(file_name_.c_str(),"r");
+		
+		// set stream to starting point of last writing action
+        off_t pos = scan_location_.at(index);
+        if ( fseeko(pFile_,pos,SEEK_SET) != 0) 
+		{	
+			std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;  
+			std::cout << "Error code: " << errno << std::endl;	
+			if (errno == EOVERFLOW)
+			{
+				std::cout << "An overflow of the position index was encountered." << std::endl;
+				std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
+				std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+				std::cout << "file became too large." << std::endl;
+				throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan()",pos,sizeof(off_t)); 
+			}
+		}
 
-        pFile_ = fopen (file_name_.c_str(),"r");
-
-        // set stream to starting point of last writing action
-        size_type pos = scan_location_.at(index);
-        //std::cout << "Reading from " << pos << std::endl;
-        fseek(pFile_,pos,SEEK_SET);
-
+		std::cout << "Reading rt. " << std::endl;
         // read retention time
-        float rt = 0;
-        fread(&rt,sizeof(rt),1,pFile_);
+        CoordinateType rt = 0;
+ 		fread(&rt,sizeof(rt),1,pFile_);
         spec.setRetentionTime(rt);
 
-        // read coordinates of each peak and skip
-        // spaces in between
-        for (unsigned int i=0; i<scan_sizes_.at(index); ++i)
-        {
-            PeakType point;
-            fread(&point,sizeof(point),1,pFile_);
-            spec.getContainer().push_back(point);
-        }
-        fclose (pFile_);
+		unsigned int nr_peaks = scan_sizes_.at(index);
+		std::cout << "Reading peaks: " << nr_peaks << std::endl;
+		spec.resize(nr_peaks);
+		typename SpectrumType::Iterator peak_iter = spec.begin();
+		size_t sizeof_peak =  sizeof(PeakType);
+		
+        //read coordinates of each peak 
+		for (unsigned int i=0; i<nr_peaks; ++i)
+        {            
+			PeakType peak;
+//             if (fread(&(*peak_iter),sizeof_peak,1,pFile_) == 0)
+// 				std::cout << "Error reading peak data" << std::endl;
+			std::cout << "Reading peak " << i << std::endl;	
 
-        //return spec;
+			if (fread(&peak,sizeof_peak,1,pFile_) == 0)
+				std::cout << "Error reading peak data" << std::endl;		
+			
+			std::cout << "I am at " << i << std::endl;
+			std::cout << peak.getIntensity() << " " << peak.getPosition()[0] << std::endl;
+			spec[i] = peak;
+							
+			//++peak_iter;
+            //spec.getContainer().push_back(point);
+        }
+		std::cout << "Done."<< std::endl;
+        fclose(pFile_);
+		
+	
+	// determine length of window for memory mapping (in bytes)
+// 	size_t length = scan_sizes_.at(index) * sizeof(Coordinatype) * 1024;
+// 	void * pregion = mmap(NULL, (sizeof(p1) * 1024), PROT_READ,MAP_SHARED,file,0);
+
     }	// end of read const
 
     /// copies the content of the tempory file
-    void copyTmpFile_(String source)
+    void copyTmpFile__(String source)
     {
         //std::cout << "Copying temporary file: " << file << std::endl;
         FILE * outFile = fopen(file_name_.c_str(),"w");

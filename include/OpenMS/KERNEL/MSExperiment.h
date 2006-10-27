@@ -530,15 +530,8 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
                     RangeManagerType::pos_range_.setMaxX(it->getRetentionTime());
 
                 it->updateRanges();
-
-                //						std::cout << "---------------------------------------------"<< std::endl;
-                //						std::cout << "Int: "<< std::endl;
-                //						std::cout << it->getMinInt() << it->getMaxInt() << std::endl << std::endl;
-                //						std::cout << "mz/RT:" << std::endl;
-                //						std::cout << it->getMin() << it->getMax() << std::endl << std::endl;
-
-
-                //mz
+                
+				//mz
                 if (it->getMin()[0] < RangeManagerType::pos_range_.minY())
                     RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
                 if (it->getMax()[0] > RangeManagerType::pos_range_.maxY())

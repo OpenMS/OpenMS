@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
-
+// 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
@@ -729,10 +729,15 @@ namespace OpenMS
 		  MSSpectrum< InputPeakType > inspec = ms_exp_raw[i];
          
 		  std::cout << "Picking scan " << i << std::endl;
-		  std::cout << "Size: " << inspec.size() << std::endl;;
+		  std::cout << "Size of input: " << inspec.size() << std::endl;
+		  StopWatch watch;
+		  watch.start();
           // pick the peaks in scan i
           pick(inspec.begin(),inspec.end(),out_spec,inspec.getMSLevel());
-
+		  watch.stop();
+		
+		  std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;
+		  
           // if any peaks are found copy the spectrum settings
           if (out_spec.size() > 0)
           {

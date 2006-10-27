@@ -34,6 +34,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include<OpenMS/FORMAT/DTAFile.h>
+
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 #include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
@@ -59,13 +63,14 @@ namespace OpenMS
 				exp_(&exp),	
 				cexp_(0),
 				peak_(),
-				spec_(0),
+				spec_(),
 				analyzer_(0),
 				decoder_(),
 				peak_count_(0),
 				char_rest_(),
 				spec_write_counter_(1)
   		{
+// 				spec_ = new SpectrumType();
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
 			}
 
@@ -81,11 +86,15 @@ namespace OpenMS
 				char_rest_(),
 				spec_write_counter_(1)
   		{
-				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
-			}
+// 			spec_ = new SpectrumType();
+			fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
+		}
 
   		/// Destructor
-      virtual ~MzXMLHandler(){}
+      virtual ~MzXMLHandler()
+	  {
+	  	delete spec_;
+	  }
       //@}
 			
 			// Docu in base class
@@ -155,7 +164,7 @@ namespace OpenMS
 
 		/**@name temporary datastructures to hold parsed data */
     //@{
-   	PeakIterator peak_;
+   		PeakIterator peak_;
 		SpectrumType* spec_;
 		MassAnalyzer* analyzer_;
 		MetaInfoDescription* meta_;
@@ -308,9 +317,7 @@ namespace OpenMS
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-  	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
-  	
-  	String tmp_str;
+   	String tmp_str;
   	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 		atts_ = &attributes;
@@ -580,7 +587,6 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
-					//exp_->insert(exp_->end(), SpectrumType() );
 					tmp_str = getAttributeAsString(NUM);
 					if (tmp_str == "")
 					{
@@ -594,9 +600,13 @@ namespace OpenMS
 						break;
 					}
 					
-					exp_->push_back(SpectrumType());
+					// (ost) That's not possible if you work on external DS. If its internal buffer is full,
+					// MSExperimentExtern might throw this spectrum away and the pointer will be non-sense.
+					exp_->push_back(SpectrumType()); 
 					spec_ = &(exp_->back());
 					
+// 					spec_->getContainer().clear();
+										
 					// required attributes
 					tmp_str = getAttributeAsString(MSLEVEL);
 					if (tmp_str != "")
@@ -935,7 +945,7 @@ namespace OpenMS
 					}
 					else if (is_parser_in_tag_[SCAN])
 					{
-						setAddInfo(	*spec_, getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
+						setAddInfo(exp_->getInstrument(), getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
 					}
 					else
 					{
@@ -972,9 +982,7 @@ namespace OpenMS
 	template <typename MapType>
 	void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-  	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
-  	
-		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
+  		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
 		is_parser_in_tag_[tag] = false;
 
 		if (tag==INSTRUMENT && analyzer_)
@@ -1001,23 +1009,28 @@ namespace OpenMS
  					++peak_;
  				}
 			}
-			else											//precision 32
+			else	//precision 32
 			{
 				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
 				char_rest_ = "";
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					//std::cout << "n  : " << n  << " -> " << data[n] << std::endl;
-					//std::cout << "n+1: " << n+1  << " -> " << data[n+1] << std::endl;
-					
 					peak_->getPosition()[0] = data[n];
 					peak_->setIntensity(data[n+1]);
-     			++peak_;
+     				++peak_;
 				}
 			}
 		}
-		//std::cout << " -- Ende -- " << std::endl;
+// 		if (tag == SCAN)
+// 		{
+// 			//exp_->push_back(*spec_);
+// 			if (spec_) {
+// 				std::cout << "Writing scan" << std::endl;
+// 				String filename = "scan_" + String(spec_->getRetentionTime());
+// 				DTAFile().store(filename,*spec_);
+// 			}
+// 		}
   }
 
 	template <typename MapType>

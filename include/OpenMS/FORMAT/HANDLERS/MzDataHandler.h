@@ -374,9 +374,13 @@ namespace OpenMS
 				meta_id_ = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id")));
 				break;
 			case SPECTRUM:
-				exp_->insert(exp_->end(),SpectrumType());
-				//std::cout << "Capacity: " << exp_->capacity() << std::endl;
+			
+				// (ost) That's not possible if you work on external DS. If its internal buffer is full,
+				// MSExperimentExtern might throw this spectrum away and the pointer will be non-sense.
+				exp_->push_back(SpectrumType());
 				spec_ = &(exp_->back());
+				
+				//spec_->getContainer().clear(); 	// spectrum is inserted if element ends
 				break;
 		  case SPECTRUMLIST:
 		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
@@ -503,6 +507,7 @@ namespace OpenMS
 				array_name_.clear();
 				precisions_.clear();
 				endians_.clear();
+				//exp_->push_back(*spec_);
 				break;
 			}
 		}

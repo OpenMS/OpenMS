@@ -176,12 +176,7 @@ namespace OpenMS
     {
 			return peaks_.at(index).getPosition()[RT];
     }
-    /// returns signal/noise ration of peak with index @p index
-//     const double& getPeakSN(const UnsignedInt index) const throw (Exception::IndexOverflow)
-//     {
-// 			return sn_ratios_.at(index);
-//     }
-    /// acess scan number of peak with index @p index
+     /// acess scan number of peak with index @p index
     const UnsignedInt getPeakScanNr(const UnsignedInt index) const throw (Exception::IndexOverflow);
 
     /** @brief get index of next peak in m/z dimensio.

@@ -180,7 +180,7 @@ namespace OpenMS
 
       for (unsigned int i=0; i<current_scan.size(); i++)
       {
-        DPeakArray<D,PeakType> window(window_size_);
+        DPeakArray<D,PeakType> window;
         // walk to the left and collect
         // and most (window_size_ / 2) peaks
         for (int j=i; j >= 0 && window.size() <= left; j--)

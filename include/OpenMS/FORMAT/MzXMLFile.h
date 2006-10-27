@@ -84,7 +84,12 @@ namespace OpenMS
 				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-				map = MapType();  // clear map
+
+				map.clear();
+// 				map = ExperimentalSettings();
+// 				map.setName("");		// to be continued
+				
+				
 				Internal::MzXMLHandler<MapType> handler(map,filename);
 				parser->setContentHandler(&handler);
 				parser->setErrorHandler(&handler);
