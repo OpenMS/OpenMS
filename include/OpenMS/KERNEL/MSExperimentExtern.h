@@ -396,6 +396,7 @@ public:
     {
         file_name_ = "msexp_" + String(std::rand());
 		exp_.resize(buffer_size_);
+		buffer2scan_.resize(buffer_size_);
     }
 
     /// Copy constructor: copies the content of the temporary file as well (slow !)
@@ -408,6 +409,7 @@ public:
         file_name_ = "msexp_" + String(std::rand());
 		copyTmpFile__(source.file_name_);
         exp_.resize(buffer_size_);
+		buffer2scan_.resize(buffer_size_);
     }
 
     /// Destructor
@@ -436,8 +438,8 @@ public:
 		// and copy the old one
         copyTmpFile__(source.file_name_);
 
-        exp_.resize(buffer2scan_);
-		buffer2scan_.resize(buffer2scan_);
+        exp_.resize(buffer_size_);
+		buffer2scan_.resize(buffer_size_);
         return *this;
     }
 
