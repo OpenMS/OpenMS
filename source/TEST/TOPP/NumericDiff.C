@@ -67,7 +67,11 @@ int line_num_2_max = -1;
 
 int verbose = 2; // default == 2,  -q == 1,  -Q == 0
 
-std::string tmp;
+std::string line_str_1;
+std::string line_str_2;
+
+std::string line_str_1_max;
+std::string line_str_2_max;
 
 /// Write out usage information.
 void usage()
@@ -196,26 +200,26 @@ int main ( int main_argc, char ** main_argv)
 
 		{ // read the next line in both files, skip empty lines and lines consisting of whitespace only
 
-			for ( tmp.clear(); ++line_num_1, std::getline(input_1,tmp); )
+			for ( line_str_1.clear(); ++line_num_1, std::getline(input_1,line_str_1); )
 			{
-				if ( tmp.empty() ) continue; // shortcut
-				std::string::const_iterator iter = tmp.begin(); // loop initialization
-				for ( ; iter != tmp.end() && isspace(*iter); ++iter ) ; // skip over whitespace
-				if ( iter != tmp.end() ) break; // line is not empty or whitespace only
+				if ( line_str_1.empty() ) continue; // shortcut
+				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
+				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
-			line_1.str(tmp);
+			line_1.str(line_str_1);
 			line_1.seekp(0);
 			line_1.clear();
 			// std::cout << line_1.str() << std::endl; // debug
 
-			for ( tmp.clear(); ++line_num_2, std::getline(input_2,tmp); )
+			for ( line_str_2.clear(); ++line_num_2, std::getline(input_2,line_str_2); )
 			{
-				if ( tmp.empty() ) continue; // shortcut
-				std::string::const_iterator iter = tmp.begin(); // loop initialization
-				for ( ; iter != tmp.end() && isspace(*iter); ++iter ) ; // skip over whitespace
-				if ( iter != tmp.end() ) break; // line is not empty or whitespace only
+				if ( line_str_2.empty() ) continue; // shortcut
+				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
+				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
-			line_2.str(tmp);
+			line_2.str(line_str_2);
 			line_2.seekp(0);
 			line_2.clear();
 			// std::cout << line_2.str() << std::endl; // debug
@@ -307,6 +311,8 @@ int main ( int main_argc, char ** main_argv)
 									ratio_max = ratio;
 									line_num_1_max = line_num_1;
 									line_num_2_max = line_num_2;
+									line_str_1_max = line_str_1;
+									line_str_2_max = line_str_2;
 									if ( ratio_max > ratio_max_allowed )
 									{
 										report("ratio of numbers is too large");
@@ -377,16 +383,27 @@ int main ( int main_argc, char ** main_argv)
 		std::cout <<
 			argv[0] << ":  Success.\n"
 			"  ratio_max: " << ratio_max << "\n"
-		"  ratio_max_allowed: " << ratio_max_allowed << "\n"
-			"Maximum relative error was attained at these lines:\n" <<
-			"  " << argv[1] << ':' << line_num_1_max << "\n"
-			"  " << argv[2] << ':' << line_num_2_max << '\n' <<
+			"  ratio_max_allowed: " << ratio_max_allowed << "\n" <<
 			std::endl;
 
-		if ( line_num_1_max == -1 || line_num_2_max == -2 )
+		if ( line_num_1_max == -1 && line_num_2_max == -1 )
 		{
-			std::cout << "A line number of '-1' indicates that no numberic differences were found.\n" << std::endl;
+			std::cout << "No numberic differences were found.\n" << std::endl;
 		}
+		else
+		{
+			std::cout <<
+				"Maximum relative error was attained at these lines:\n"
+				"(lines are enclosed in ^$)\n" <<
+				"\n" <<
+				argv[1] << ':' << line_num_1_max << ":\n" <<
+				"^"<< line_str_1_max << "$\n"
+				"\n"
+				"  " << argv[2] << ':' << line_num_2_max << ":\n" <<
+				"^"<< line_str_2_max << "$\n" <<
+				std::endl;
+		}
+
 	}
 
   return 0;
