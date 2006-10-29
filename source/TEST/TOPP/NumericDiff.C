@@ -40,11 +40,14 @@ std::ifstream input_2;
 std::stringstream line_1;
 std::stringstream line_2;
 
+std::ios::pos_type line_1_pos;
+std::ios::pos_type line_2_pos;
+
 /// Maximum ratio of numbers allowed
-double ratio_max_allowed = 0;
+double ratio_max_allowed = 1.0;
 
 /// Maximum ratio of numbers observed so far
-double ratio_max = 0;
+double ratio_max = 1.0;
 
 double number_1 = 0;
 char letter_1 = 0;
@@ -59,8 +62,10 @@ bool is_space_2 = 0;
 int line_num_1 = 0;
 int line_num_2 = 0;
 
-int line_num_1_max = 0;
-int line_num_2_max = 0;
+int line_num_1_max = -1;
+int line_num_2_max = -1;
+
+int verbose = 2; // default == 2,  -q == 1,  -Q == 0
 
 std::string tmp;
 
@@ -68,12 +73,16 @@ std::string tmp;
 void usage()
 {
   std::cerr <<
-    "Usage: " << argv[0] << " file1 file2 ratio \n"
+    "Usage: " << argv[0] << " file1 file2 ratio [ -q | -Q ]\n"
     "\n"
     "where\n"
     "\tfile1:      first input file\n"
     "\tfile2:      second input file\n"
     "\tratio:      acceptable relative error (a number >= 1.0)\n"
+		"\t-q:         quiet mode (no output unless differences detected)\n"
+		"\t-Q:         very quiet mode (absolutely no output)\n"
+		"\n"
+		"A non-zero exit status indicates that errors were found."
     "\n";
   exit(1);
   return;
@@ -81,38 +90,52 @@ void usage()
 
 void report ( char* message = "<no message>" )
 {
-	std::cout <<
-		std::boolalpha <<
-		"\n"
-		"Error: '" << message << "'\n"
-		"  line_num:\t" << line_num_1 << '\t' << line_num_2 << "\n"
-		"  is_number:\t" << is_number_1 << '\t' << is_number_2 << "\n"
-		"  is_space:\t" << is_space_1 << '\t' << is_space_2 << "\n"
-		"  letters:\t\"" << letter_1 << "\"\t\"" << letter_2 << "\"\n"
-		"  numbers:\t" << number_1 << '\t' << number_2 << "\n"
-		"  ratio_max: " << ratio_max << "  ratio_max_allowed: " << ratio_max_allowed <<
-		"\n\n" <<
-		argv[1] << ':' << line_num_1 << ":\n" <<
-		'^' << line_1.str() << "$\n"
-		"\n" <<
-		argv[2] << ':' << line_num_2 << ":\n" <<
-		'^' << line_2.str() << "$\n"
-		"\n" <<
-		std::endl;
+	if ( verbose >= 1 )
+	{
+		std::cout <<
+			std::boolalpha <<
+			"\n"
+			"Error: '" << message << "'\n\n"
+			"  file:\t\tinput_1\tinput_2\n"
+			" --------------------------------\n"
+			"  line_num:\t" << line_num_1 << '\t' << line_num_2 << "\n"
+			"  is_number:\t" << is_number_1 << '\t' << is_number_2 << "\n"
+			"  is_space:\t" << is_space_1 << '\t' << is_space_2 << "\n"
+			"  letters:\t\"" << letter_1 << "\"\t\"" << letter_2 << "\"\n"
+			"  numbers:\t" << number_1 << '\t' << number_2 << "\n"
+			"\n"
+			"  ratio_max: " << ratio_max << "\n"
+			"  ratio_max_allowed: " << ratio_max_allowed <<
+			"\n\n"
+			"The offending lines (enclosed in ^$) are:\n"
+			"\n" <<
+			argv[1] << ':' << line_num_1 << ":\n" <<
+			'^' << line_1.str() << "$\n"
+			"\n" <<
+			argv[2] << ':' << line_num_2 << ":\n" <<
+			'^' << line_2.str() << "$\n"
+			"\n" <<
+			std::endl;
+	}
 	exit(100);
 }
 
 
 /**@brief Simple diff-like application to compare two input files.
 	 Numeric differences are tolerated up to a certain ratio.
-   
+
    <pre>
 	 Usage: NumericDiff file1 file2 ratio
-	 
+
 	 where
 	   file1:      first input file
 	   file2:      second input file
 	   ratio:      acceptable relative error (a number >= 1.0)
+
+     -q:         quiet mode (no output unless differences detected)
+     -Q:         very quiet mode (absolutely no output)
+
+	 A non-zero exit status indicates that errors were found.
    </pre>
 */
 int main ( int main_argc, char ** main_argv)
@@ -120,7 +143,25 @@ int main ( int main_argc, char ** main_argv)
 	argc = main_argc;
 	argv = main_argv;
 
-  if ( argc != 4 ) usage();
+	switch ( argc )
+	{
+	case 4:
+		break;
+	case 5:
+		if ( argv[4] == std::string("-q") )
+		{
+			verbose = 1;
+			break;
+		}
+		if ( argv[4] == std::string("-Q") )
+		{
+			verbose = 0;
+			break;
+		}
+	default:
+		usage();
+		return 1;
+	}
 
 	input_1.open(argv[1]);
 	if ( !input_1 )
@@ -147,27 +188,37 @@ int main ( int main_argc, char ** main_argv)
 
 	if ( ratio_max_allowed < 1.0 ) ratio_max_allowed = 1/ratio_max_allowed;
 
-	ratio_max = 0;
-
 	//------------------------------------------------------------
 	// main loop
 
   while ( input_1 || input_2 )
   {
 
-		{ // there should be a better way to do this
+		{ // read the next line in both files, skip empty lines and lines consisting of whitespace only
 
-			for ( tmp.clear(); ++line_num_1, std::getline(input_1,tmp) && tmp.empty(); ) ;
+			for ( tmp.clear(); ++line_num_1, std::getline(input_1,tmp); )
+			{
+				if ( tmp.empty() ) continue; // shortcut
+				std::string::const_iterator iter = tmp.begin(); // loop initialization
+				for ( ; iter != tmp.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				if ( iter != tmp.end() ) break; // line is not empty or whitespace only
+			}
 			line_1.str(tmp);
 			line_1.seekp(0);
 			line_1.clear();
-			// std::cout << line_1.str() << std::endl;
+			// std::cout << line_1.str() << std::endl; // debug
 
-			for ( tmp.clear(); ++line_num_2, std::getline(input_2,tmp) && tmp.empty(); ) ;
+			for ( tmp.clear(); ++line_num_2, std::getline(input_2,tmp); )
+			{
+				if ( tmp.empty() ) continue; // shortcut
+				std::string::const_iterator iter = tmp.begin(); // loop initialization
+				for ( ; iter != tmp.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				if ( iter != tmp.end() ) break; // line is not empty or whitespace only
+			}
 			line_2.str(tmp);
 			line_2.seekp(0);
 			line_2.clear();
-			// std::cout << line_2.str() << std::endl;
+			// std::cout << line_2.str() << std::endl; // debug
 
 		}
 
@@ -182,12 +233,14 @@ int main ( int main_argc, char ** main_argv)
 			number_1 = std::numeric_limits<double>::quiet_NaN();
 			number_2 = std::numeric_limits<double>::quiet_NaN();
 
+			line_1_pos = line_1.tellg();
 			line_1 >> number_1;
 			is_number_1 = line_1;
 
 			if ( !is_number_1 )
 			{
 				line_1.clear();
+				line_1.seekg(line_1_pos);
 				line_1 >> letter_1;
 			}
 
@@ -197,12 +250,14 @@ int main ( int main_argc, char ** main_argv)
 				line_1 >> std::ws;
 			}
 
+			line_2_pos = line_2.tellg();
 			line_2 >> number_2;
 			is_number_2 = line_2;
 
 			if ( !is_number_2 )
 			{
 				line_2.clear();
+				line_2.seekg(line_2_pos);
 				line_2 >> letter_2;
 			}
 
@@ -211,7 +266,7 @@ int main ( int main_argc, char ** main_argv)
 			{
 				line_2 >> std::ws;
 			}
-		
+
 			if ( is_number_1 )
 			{
 				if ( is_number_2 )
@@ -307,6 +362,8 @@ int main ( int main_argc, char ** main_argv)
 					}
 				}
 			}
+
+			verbose = 10000;
 			report
 				("This cannot happen.  You should never get here ... "
 				 "please report this bug along with the data that produced it."
@@ -315,14 +372,22 @@ int main ( int main_argc, char ** main_argv)
 
 	}
 
-	std::cout <<
-		argv[0] << ":  Success.\n"
-		"  ratio_max_allowed: " << ratio_max_allowed << "\n" 
-		"  ratio_max: " << ratio_max << "\n"
-		"Maximum relative error was attained at these lines:\n" << 
-		"  " << argv[1] << ':' << line_num_1_max << "\n"
-		"  " << argv[2] << ':' << line_num_2_max << '\n' <<
-		std::endl;
+	if ( verbose >= 2 )
+	{
+		std::cout <<
+			argv[0] << ":  Success.\n"
+			"  ratio_max: " << ratio_max << "\n"
+		"  ratio_max_allowed: " << ratio_max_allowed << "\n"
+			"Maximum relative error was attained at these lines:\n" <<
+			"  " << argv[1] << ':' << line_num_1_max << "\n"
+			"  " << argv[2] << ':' << line_num_2_max << '\n' <<
+			std::endl;
+
+		if ( line_num_1_max == -1 || line_num_2_max == -2 )
+		{
+			std::cout << "A line number of '-1' indicates that no numberic differences were found.\n" << std::endl;
+		}
+	}
 
   return 0;
 }
