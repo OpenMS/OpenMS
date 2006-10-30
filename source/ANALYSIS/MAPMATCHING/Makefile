@@ -35,6 +35,12 @@ GSL_SOURCES=\
 	DMapMatcherRegression.C
 endif
 
+ifeq ($(CGAL_SUPPORT),true)
+GSL_SOURCES=\
+	StarAlignment.C
+endif
+
+
 CPP_SOURCES=\
   DBaseMapMatcher.C\
 	DBaseMapping.C\
@@ -55,8 +61,8 @@ CPP_SOURCES=\
 	DelaunayPairFinder.C\
 	Group.C\
 	IndexTuple.C\
-	BaseAlignment.C\
-	StarAlignment.C
+	BaseAlignment.C
+	
 
 ADD_INCLUDES=$(GUI_INCLUDES)
 
