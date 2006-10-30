@@ -94,14 +94,8 @@ namespace OpenMS
       typedef typename Base::PointMapType PointMapType;
       typedef typename Base::FeatureType FeatureType;
       typedef typename Base::TraitsType TraitsType;
-
-      /// Coordinate
-      typedef typename TraitsType::CoordinateType CoordinateType;
-
-      /// Position
-      typedef DPosition < 2, TraitsType > PositionType;
-
-      typedef DBoundingBox< 2, TraitsType>  PositionBoundingBoxType;
+      typedef typename Base::PositionType PositionType;
+      typedef typename Base::CoordinateType CoordinateType;
 
       typedef DLinearMapping<1, TraitsType> ShiftType;
 
@@ -111,6 +105,9 @@ namespace OpenMS
       using Base::feature_map_;
       using Base::grid_;
       using Base::all_feature_pairs_;
+      using Base::bounding_box_scene_map_;
+      using Base::box_size_;
+      using Base::number_buckets_;
       //@}
 
 
@@ -126,16 +123,13 @@ namespace OpenMS
       /// Copy constructor
       GeomHashPairwiseMapMatcher(const GeomHashPairwiseMapMatcher& source)
           : Base(source),
-          superimposer_(source.superimposer_),
-          bounding_box_scene_map_(source.bounding_box_scene_map_),
-          box_size_(source.box_size_),
-          number_buckets_(source.number_buckets_)
+          superimposer_(source.superimposer_)
       {
         pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
       }
 
       ///  Assignment operator
-      virtual GeomHashPairwiseMapMatcher& operator= (const GeomHashPairwiseMapMatcher& source)
+      GeomHashPairwiseMapMatcher& operator= (const GeomHashPairwiseMapMatcher& source)
       {
         if (&source==this)
           return *this;
@@ -143,9 +137,7 @@ namespace OpenMS
         Base::operator = (source);
         pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
 
-        bounding_box_scene_map_ = source.bounding_box_scene_map_;
-        box_size_ = source.box_size_;
-        number_buckets_ = source.number_buckets_;
+       
         return *this;
       }
 
@@ -174,19 +166,21 @@ namespace OpenMS
       /// TODO get and set feature pairs of a given grid cell?, and all feature pairs
       //@}
 
+      
       /// Estimates the transformation for each grid cell
       virtual void run()
       {
-        grid_.clear();
         superimposer_.setParam(param_);
 
         DataValue data_value = param_.getValue("pair_finder");
         pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
         pair_finder_->setParam(param_);
-        parseParam_();
-
+        
         // compute the bounding boxes of the grid cells and initialize the grid transformation
-        initGridTransformation_();
+        if (grid_.size() == 0)
+        {
+          initGridTransformation(*(feature_map_[SCENE]));
+        }
 
         // assign each feature of the scene map to the grid cells and build a pointer map for each grid cell
         PeakConstReferenceMapType scene_pointer_map(feature_map_[SCENE]->begin(), feature_map_[SCENE]->end());
@@ -200,12 +194,12 @@ namespace OpenMS
         // compute the matching of each scene's grid cell features and all the features of the model map
         computeMatching_(model_pointer_map,scene_grid_maps);
 
-        String all_feature_pairs_gnuplot_file =
-          param_.getValue("debug:all_feature_pairs_gnuplot_file");
-//         if ( !all_feature_pairs_gnuplot_file.empty() )
-//         {
-//           pair_finder_->dumpFeaturePairs(all_feature_pairs_gnuplot_file);
-//         }
+        //         String all_feature_pairs_gnuplot_file =
+        //           param_.getValue("debug:all_feature_pairs_gnuplot_file");
+        //         if ( !all_feature_pairs_gnuplot_file.empty() )
+        //         {
+        //           pair_finder_->dumpFeaturePairs(all_feature_pairs_gnuplot_file);
+        //         }
       }
 
     protected:
@@ -217,12 +211,6 @@ namespace OpenMS
       GeomHashShiftSuperimposer<PeakConstReferenceMapType> superimposer_;
       /// Given the shift, the pair_finder_ searches for corresponding features in the two maps
       BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
-      /// Bounding box of the second map
-      PositionBoundingBoxType bounding_box_scene_map_;
-      /// Size of the grid cells
-      PositionType box_size_;
-      /// Number of buckets in each dimension
-      PositionType number_buckets_;
       //@}
 
       /// compute the matching of each grid cell
@@ -359,49 +347,6 @@ namespace OpenMS
 
       } // parseParam_
 
-      virtual void initGridTransformation_()
-      {
-#define V_initGridTransformation_(bla) V_GeomHashPairwiseMapMatcher(bla)
-        V_initGridTransformation_("@@@ initGridTransformation_()");
-
-        // compute the minimal and maximal positions of the second map (the map, which should be transformed)
-        for ( typename PointMapType::const_iterator fm_iter = feature_map_[SCENE]->begin();
-              fm_iter != feature_map_[SCENE]->end();
-              ++fm_iter
-            )
-        {
-          bounding_box_scene_map_.enlarge(fm_iter->getPosition());
-        }
-        V_initGridTransformation_(bounding_box_scene_map_);
-
-        // compute the grid sizes in each dimension
-        // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
-        // TODO: find a better way that does not use a magic constant
-        for (Size i = 0; i < 2; ++i)
-        {
-          box_size_[i] = (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) / ( number_buckets_[i] - 0.01 );
-        }
-
-        // initialize the grid cells of the grid_
-        for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
-        {
-          for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
-          {
-            CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
-            CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
-            CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
-            CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
-
-            DGridCell<2,TraitsType> cell(x_min, y_min, x_max, y_max);
-            grid_.push_back(cell);
-          }
-        }
-
-        // V_initGridTransformation_(grid_);
-
-#undef V_initGridTransformation_
-
-      } // initGridTransformation_
 
   }
   ; // GeomHashPairwiseMapMatcher

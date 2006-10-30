@@ -28,6 +28,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_GROUP_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/IndexTuple.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <set>
 
@@ -120,7 +121,8 @@ namespace OpenMS
 
         if (pr.second == false)
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.","") ;
+          std::cout << "Can not insert " << elem << std::endl;
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",(String)(elem.getMapIndex())) ;
         }
         else
         {

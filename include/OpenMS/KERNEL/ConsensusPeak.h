@@ -299,9 +299,12 @@ namespace OpenMS
     os << "Size " << cons.count() << std::endl;
     for (typename ConsensusPeak<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it, ++i)
     {
-      os  << "Element: " << i << std::endl;
-      os << "Transformed Position: " << it->getTransformedPosition() << std::endl;
-      os << "Original Position: " << it->getElement() << std::endl;
+      os  << "Element: " << i << '\n'
+          << "Transformed Position: " << it->getTransformedPosition() << '\n'
+          << "Original Position: " << it->getElement() << '\n'
+          << "Element index " << it->getElementIndex() << '\n'
+          << "Map index " << it->getMapIndex() << std::endl;
+      
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 

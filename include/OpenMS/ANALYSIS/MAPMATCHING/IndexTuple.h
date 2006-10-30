@@ -198,7 +198,8 @@ namespace OpenMS
     os << "---------- IndexTuple -----------------\n"
     << "Transformed Position: " << cons.getTransformedPosition() << '\n'
     << "Original Position: " << cons.getElement() << '\n'
-    << "Index: " << cons.getElementIndex() << std::endl;
+    << "Element Index: " << cons.getElementIndex() << '\n'
+    << "Map Index: " << cons.getMapIndex() << std::endl;
     return os;
   }
 

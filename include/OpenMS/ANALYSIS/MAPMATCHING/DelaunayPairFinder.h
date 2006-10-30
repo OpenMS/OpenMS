@@ -29,11 +29,13 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRPFINDER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
 #define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -351,9 +353,9 @@ namespace OpenMS
       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
       {
 
-#define V_computeConsenusMap(bla) V_DelaunayConsenus(bla)
+#define V_computeConsensusMap(bla) V_DelaunayConsenus(bla)
 
-        V_computeConsenusMap("@@@ computeConsensusMap()");
+        V_computeConsensusMap("@@@ computeConsensusMap()");
 
         parseParam_();
 
@@ -365,10 +367,14 @@ namespace OpenMS
           positions_reference_map.push_back(Point((double)(first_map[i].getPosition()[RT]),
                                                   (double)(first_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT])),first_map[i],i));
         }
-
+        StopWatch timer;
+        V_computeConsensusMap("Start delaunay triangulation for " << positions_reference_map.size() << " elements");
         // compute the delaunay triangulation
+        timer.start();
         Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
-
+        timer.stop();
+        V_computeConsensusMap("End delaunay triangulation after " << timer.getCPUTime() << "s");
+        
         // Initialize a hash map for the features of reference_map to avoid that features of the reference map occur in several feature pairs
         std::vector< SignedInt > lookup_table(n,-1);
         std::vector< std::pair< const PointType*, PointType*> > all_feature_pairs;
@@ -384,19 +390,19 @@ namespace OpenMS
           double rt_pos = (double)(second_map[fi1].getPosition()[RT]);
           double mz_pos = (double)(second_map[fi1].getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]));
 
-          V_computeConsenusMap("Search for two nearest neighbours of " << rt_pos << ' ' << second_map[fi1].getPosition()[MZ] );
+          V_computeConsensusMap("Search for two nearest neighbours of " << rt_pos << ' ' << second_map[fi1].getPosition()[MZ] );
           Point transformed_pos(rt_pos,mz_pos,second_map[fi1]);
 
-          V_computeConsenusMap("Transformed Position is : " << transformed_pos );
+          V_computeConsensusMap("Transformed Position is : " << transformed_pos );
           std::vector< Vertex_handle > resulting_range;
           p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
 
-          V_computeConsenusMap("Neighbouring points : ");
-          for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
-          {
-            V_computeConsenusMap((*it)->point());
-            V_computeConsenusMap(*((*it)->point().feature));
-          }
+          //           V_computeConsensusMap("Neighbouring points : ");
+          //           for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
+          //           {
+          //             V_computeConsensusMap((*it)->point());
+          //             V_computeConsensusMap(*((*it)->point().feature));
+          //           }
 
           Point nearest = resulting_range[0]->point();
           Point second_nearest = resulting_range[1]->point();
@@ -406,6 +412,8 @@ namespace OpenMS
                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
           {
             all_feature_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.feature,&(second_map[fi1])));
+            V_computeConsensusMap("Push first: " << *(nearest.feature))
+            V_computeConsensusMap("Push second: " << second_map[fi1])
 
             SignedInt feature_key = resulting_range[0]->point().key;
             // if the feature a is already part of a FeaturePair (a,b) do:
@@ -420,10 +428,10 @@ namespace OpenMS
               PointType& second_map_b = *(all_feature_pairs[pair_key].second);
               PointType& second_map_c = second_map[fi1];
 
-              V_computeConsenusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
-              V_computeConsenusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
+              //               V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
+              //               V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
 
-              V_computeConsenusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
+              V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
 
               if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
                   && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
@@ -476,7 +484,7 @@ namespace OpenMS
             ++trans_single;
           }
         }
-
+        V_computeConsensusMap("Insert elements ");
         std::vector< const PointType* > single_elements_first_map;
         for (Size i = 0; i < n; ++i)
         {
@@ -484,6 +492,8 @@ namespace OpenMS
           if ( pair_key > -1 )
           {
             IndexTuple< ElementMapT > index_tuple(*((all_feature_pairs[pair_key].first)->begin()));
+            V_computeConsensusMap("First: " << *((all_feature_pairs[pair_key].first)))
+            V_computeConsensusMap("Second: " << *((all_feature_pairs[pair_key].second)))
             (all_feature_pairs[pair_key].second)->insert(index_tuple);
             ++pairs;
           }
@@ -501,9 +511,9 @@ namespace OpenMS
           second_map.push_back(*(single_elements_first_map[i]));
         }
 
-        V_computeConsenusMap("SINGLE TRANS: " << trans_single);
-        V_computeConsenusMap("SINGLE REF: " << ref_single);
-        V_computeConsenusMap("PAIRS: " << pairs);
+        V_computeConsensusMap("SINGLE TRANS: " << trans_single);
+        V_computeConsensusMap("SINGLE REF: " << ref_single);
+        V_computeConsensusMap("PAIRS: " << pairs);
 
 #undef V_computeConsensusMap
 

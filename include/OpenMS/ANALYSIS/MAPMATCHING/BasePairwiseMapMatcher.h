@@ -33,6 +33,7 @@
 
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
@@ -88,6 +89,15 @@ namespace OpenMS
 
       /// Grid
       typedef DGrid<2> GridType;
+
+      /// Position
+      typedef DPosition < 2, TraitsType > PositionType;
+
+      ///
+      typedef DBoundingBox< 2, TraitsType>  PositionBoundingBoxType;
+
+      /// Coordinate
+      typedef typename TraitsType::CoordinateType CoordinateType;
       //@}
 
 
@@ -105,7 +115,10 @@ namespace OpenMS
       /// Copy constructor
       BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
           : FactoryProduct(source),
-          param_(source.param_)
+          param_(source.param_),
+          bounding_box_scene_map_(source.bounding_box_scene_map_),
+          box_size_(source.box_size_),
+          number_buckets_(source.number_buckets_)
       {
         feature_map_[0] = source.feature_map_[0];
         feature_map_[1] = source.feature_map_[1];
@@ -113,13 +126,17 @@ namespace OpenMS
       }
 
       ///  Assignment operator
-      virtual BasePairwiseMapMatcher& operator = (BasePairwiseMapMatcher source)
+      BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
       {
         FactoryProduct::operator = (source);
+
         param_ = source.param_;
         feature_map_[0] = source.feature_map_[0];
         feature_map_[1] = source.feature_map_[1];
         grid_ = source.grid_;
+        bounding_box_scene_map_ = source.bounding_box_scene_map_;
+        box_size_ = source.box_size_;
+        number_buckets_ = source.number_buckets_;
         return *this;
       }
 
@@ -136,13 +153,7 @@ namespace OpenMS
       void setParam(const Param& param)
       {
         param_ = param;
-        // std::cout << param_ << std::endl; // debugging
-      }
-
-      /// Get param
-      Param& getParam()
-      {
-        return param_;
+        parseParam_();
       }
 
       /// Get param (non-mutable)
@@ -181,14 +192,63 @@ namespace OpenMS
       {
         return grid_;
       }
+
+      /// Get grid
+      GridType& getGrid()
+      {
+        return grid_;
+      }
+
+      /// Set grid
+      void setGrid(const GridType& grid)
+      {
+        grid_ = grid;
+      }
       //@}
 
       /// register all derived classes here
       static void registerChildren();
 
       /// Estimates the transformation for each grid cell
-      virtual void run()
-      {}
+      virtual void run() = 0;
+
+      /// Initializes the grid for the scene map given the number of buckets in rt and mz
+      void initGridTransformation(const PointMapType& scene_map)
+      {
+        // compute the minimal and maximal positions of the second map (the map, which should be transformed)
+        for ( typename PointMapType::const_iterator fm_iter = scene_map.begin();
+              fm_iter != scene_map.end();
+              ++fm_iter
+            )
+        {
+          bounding_box_scene_map_.enlarge(fm_iter->getPosition());
+        }
+
+        // compute the grid sizes in each dimension
+        // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
+        // TODO: find a better way that does not use a magic constant
+        for (Size i = 0; i < 2; ++i)
+        {
+          box_size_[i] = (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) / ( number_buckets_[i] - 0.01 );
+        }
+
+        // initialize the grid cells of the grid_
+        for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
+        {
+          for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
+          {
+            CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
+            CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
+            CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
+            CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
+
+            DGridCell<2,TraitsType> cell(x_min, y_min, x_max, y_max);
+            grid_.push_back(cell);
+          }
+        }
+      } // initGridTransformation_
+
+
 
       //  int dumpFeaturePairs(const String& filename); // code is below
 
@@ -209,7 +269,19 @@ namespace OpenMS
 
       /// The estimated transformation between the two feature maps
       GridType grid_;
+
+      /// Bounding box of the second map
+      PositionBoundingBoxType bounding_box_scene_map_;
+
+      /// Size of the grid cells
+      PositionType box_size_;
+
+      /// Number of buckets in each dimension
+      PositionType number_buckets_;
       //@}
+
+      /// Parse the parameter
+      virtual void parseParam_() = 0;
 
   }
   ; // BasePairwiseMapMatcher

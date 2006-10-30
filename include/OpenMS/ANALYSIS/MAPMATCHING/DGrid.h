@@ -107,6 +107,19 @@ namespace OpenMS
 		}
 						
 	}; // end of class DGrid
+  
+  ///Print the contents to a stream.
+  template < Size D >
+  std::ostream& operator << (std::ostream& os, const DGrid<D>& grid)
+  {
+    os << "---------- Grid BEGIN -----------------\n";
+    for (typename DGrid<D>::const_iterator it = grid.begin(); it != grid.end(); ++it)
+    {
+      os  << "GridCell: " <<  *it << std::endl;
+    }
+    os << "---------- Grid END -----------------\n";
+    return os;
+  }
 	
 } // end of namespace OpenMS
 
