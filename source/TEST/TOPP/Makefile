@@ -65,14 +65,14 @@ TOPP_TOOL_TESTS = \
 TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
-#files to remove
+# Files to remove
 CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF}
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
 
 # Diff that allows for slight numeric differences
-DEVIATION = 1.1
+DEVIATION = 1.001
 NUMERICDIFF = NumericDiff
 
 #######################################################################
@@ -100,7 +100,8 @@ help:
 	@$(ECHO) "  - 'make verbose'   verbose mode (activates tool output to stdout and stderr)"
 	@$(ECHO) ""
 	@$(ECHO) "To execute only single tests with special modes use:"
-	@$(ECHO) "  - 'make DEBUG=1 <target>' activates debug mode"
+	@$(ECHO) "  - 'make <target>'           normal execution"
+	@$(ECHO) "  - 'make DEBUG=1 <target>'   activates debug mode"
 	@$(ECHO) "  - 'make VERBOSE=1 <target>' activates verbose mode"
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
@@ -266,15 +267,15 @@ FileConverter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 1: MzData -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_1_input.txt -in_type MZDaTa -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_1_output.dta2d,FileConverter.tmp)
-	
+
 	@$(ECHO) "- Test 2: DTA2D -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_2_input.txt -in_type DTA2d -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_2_output.dta2d,FileConverter.tmp)
-	
+
 	@$(ECHO) "- Test 3: FeatureFile -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_3_input.txt -in_type FeatureFile -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_3_output.dta2d,FileConverter.tmp)
-	
+
 	@$(ECHO) "- Test 4: MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type MZxml -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_4_output.dta2d,FileConverter.tmp)
@@ -345,7 +346,7 @@ FileInfo_test: $(NUMERICDIFF)
 FileMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
-	
+
 	@$(ECHO) "- Test 1: 3 Files"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_ini.txt -out FileMerger.tmp)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
@@ -450,8 +451,6 @@ UnlabeledMatcher_test: $(NUMERICDIFF)
 ###########################################################################################
 ## Tests for processing pipelines.
 
-PRECISION=2
-
 MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MyoQuant_test:"
@@ -468,5 +467,3 @@ MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"
 	@$(ECHO) "	... todo ..."
-
-
