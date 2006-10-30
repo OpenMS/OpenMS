@@ -40,6 +40,11 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	endif
 endif
 
+ifeq ($(CGAL_SUPPORT),true)
+	CGAL_SOURCES=\
+		ConsensusXMLHandler.C
+endif
+
 HANDLER_SOURCES=\
 	XMLHandler.C\
 	SchemaHandler.C\
@@ -55,7 +60,7 @@ HANDLER_SOURCES=\
 	MascotXMLHandler.C\
 	ConsensusXMLHandler.C
 
-ADD_CPP_SOURCES = $(ANDI_SOURCES) $(HANDLER_SOURCES)
+ADD_CPP_SOURCES = $(ANDI_SOURCES) $(CGAL_SOURCES) $(HANDLER_SOURCES)
 ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak

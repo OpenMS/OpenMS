@@ -56,7 +56,6 @@ CPP_SOURCES=\
 	DFeaturePairsFile.C\
 	MascotXMLFile.C\
 	DGridFile.C\
-	ConsensusXMLFile.C\
 	SequestInfile.C\
 	SequestOutfile.C
 
@@ -78,6 +77,12 @@ ifeq ($(LIBSVM_SUPPORT),true)
 	LIBSVM_SOURCES=\
 		LibSVMEncoder.C
 endif
+
+ifeq ($(CGAL_SUPPORT),true)
+	CGAL_SOURCES=\
+		ConsensusXMLFile.C
+endif
+
 
 # Take care of subdirectories of FORMAT
 
