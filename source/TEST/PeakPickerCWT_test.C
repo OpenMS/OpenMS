@@ -170,10 +170,11 @@ RESULT
 CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
   MSExperiment<DPickedPeak<1> > peaks;
   PeakPickerCWT pp;
+  pp.setPeakBound(1500);
    
   pp.pickExperiment(exp_raw,peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 800)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
   ExperimentalSettings e = peaks;
   TEST_EQUAL(e == exp_raw, true)
 RESULT
@@ -181,10 +182,11 @@ RESULT
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
   MSExperiment<DPickedPeak<1> > peaks;
   PeakPickerCWT pp;
+  pp.setPeakBound(1500);
    
   pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()),800)
+  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
 RESULT
 
 CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
@@ -209,14 +211,14 @@ CHECK((const float& getPeakBoundCWT() const))
   PeakPickerCWT pp;
   PRECISION(0.001)
   
-  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),5.25617)
+  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),59.5499)
 RESULT
 
 CHECK((const float& getPeakBoundMs2LevelCWT() const))
   PeakPickerCWT pp;
   PRECISION(0.001)
   
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),1.31404)
+  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),14.8875)
 RESULT
 
 CHECK((const float& getPeakCorrBound() const))
