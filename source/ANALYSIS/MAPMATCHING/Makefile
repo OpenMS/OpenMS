@@ -37,7 +37,8 @@ endif
 
 ifeq ($(CGAL_SUPPORT),true)
 GSL_SOURCES=\
-	StarAlignment.C
+	StarAlignment.C\
+	DelaunayPairFinder.C\
 endif
 
 
@@ -57,8 +58,7 @@ CPP_SOURCES=\
 	BaseSuperimposer.C\
 	GeomHashShiftSuperimposer.C\
 	BasePairFinder.C\
-	SimplePairFinder.C\
-	DelaunayPairFinder.C\
+	SimplePairFinder.C\	
 	Group.C\
 	IndexTuple.C\
 	BaseAlignment.C
