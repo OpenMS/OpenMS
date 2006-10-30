@@ -34,6 +34,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include<OpenMS/FORMAT/DTAFile.h>
+
 #include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
@@ -150,12 +152,12 @@ namespace OpenMS
 
 		typedef typename MapType::SpectrumType SpectrumType;
 		typedef typename SpectrumType::PeakType PeakType;
-		typedef typename SpectrumType::Iterator PeakIterator;
+		typedef typename SpectrumType::Iterator  PeakIterator;
 		typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
 
 		/**@name temporary datastructures to hold parsed data */
     //@{
-   	PeakIterator peak_;
+   		PeakIterator peak_;
 		SpectrumType* spec_;
 		MassAnalyzer* analyzer_;
 		MetaInfoDescription* meta_;
@@ -580,7 +582,6 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
-					//exp_->insert(exp_->end(), SpectrumType() );
 					tmp_str = getAttributeAsString(NUM);
 					if (tmp_str == "")
 					{
@@ -1001,16 +1002,13 @@ namespace OpenMS
  					++peak_;
  				}
 			}
-			else											//precision 32
+			else	//precision 32
 			{
 				float* data = decoder_.decodeFloatCorrected(char_rest_.c_str(), char_rest_.size());
 				char_rest_ = "";
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					//std::cout << "n  : " << n  << " -> " << data[n] << std::endl;
-					//std::cout << "n+1: " << n+1  << " -> " << data[n+1] << std::endl;
-					
 					peak_->getPosition()[0] = data[n];
 					peak_->setIntensity(data[n+1]);
      			++peak_;
@@ -1181,7 +1179,12 @@ namespace OpenMS
 			const SpectrumType& spec = (*cexp_)[s];
 			
 			int MSLevel = spec.getMSLevel();
-
+			
+			std::cout << "Yuppie ! " << std::endl;
+			std::cout << "Scan: " << s << std::endl;
+			std::cout << "rt: " << (*cexp_)[s].getRetentionTime() << std::endl;
+			std::cout << "size : " << (*cexp_)[s].size() << std::endl;
+			
 			os << String(MSLevel+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
 				 << MSLevel << "\" peaksCount=\""
@@ -1221,8 +1224,11 @@ namespace OpenMS
 				tmp[2*i]   = spec.getContainer()[i].getPosition()[0];
 				tmp[2*i+1] = spec.getContainer()[i].getIntensity();
 			}
-			os << decoder_.encodeFloatCorrected() << "</peaks>\n";
-
+			if (spec.size() > 0)
+				os << decoder_.encodeFloatCorrected() << "</peaks>\n";
+			else
+				os  << "</peaks>\n";
+// 				
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
