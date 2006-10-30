@@ -66,7 +66,7 @@ TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
 #files to remove
-CLEANUP = ${RM} -f *.tmp  *.rounded_tmp *.log ${ROUNDCAT}
+CLEANUP = ${RM} -f *.tmp  *.rounded_tmp *.log ${ROUNDCAT} ${NUMERICDIFF}
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
@@ -74,6 +74,9 @@ TOPP = ${OPENMS_PATH}/bin/
 # TODO: read from environment _and_ provide a default ????
 PRECISION = 3
 ROUNDCAT = RoundCat
+
+DEVIATION = 1.5
+NUMERICDIFF = NumericDiff
 
 #######################################################################
 # DEFAULT TARGET
@@ -111,7 +114,6 @@ help:
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
 # - temporary files (*.tmp) are not deleted after the execution
-debug: DEBUG=1 default
 
 # Diff that rounds numbers before comparing the files.
 DIFF_ROUNDCAT = \
@@ -119,9 +121,17 @@ DIFF_ROUNDCAT = \
 	./$(ROUNDCAT) $(2) $(2).rounded_tmp $(PRECISION) && \
 	$(DIFF) $(1).rounded_tmp $(2).rounded_tmp $(3)
 
+# Diff that allows for slight numeric differences
+DIFF_NUMERIC = \
+	$(NUMERICDIFF) $(1) $(2) $(3)
+
 # Diff that ignores whitespaces and empty lines
-DIFF_DEBUG = $(call DIFF_ROUNDCAT,$1,$2,-bB --initial-tab -u)
-DIFF_QUIET = $(call DIFF_ROUNDCAT,$1,$2,-bB -t --brief)
+#DIFF_DEBUG = $(call DIFF_ROUNDCAT,$1,$2,-bB --initial-tab -u)
+#DIFF_QUIET = $(call DIFF_ROUNDCAT,$1,$2,-bB -t --brief)
+
+# Diff that ignores whitespaces and empty lines
+DIFF_DEBUG = $(call DIFF_NUMERIC,$1,$2,$(DEVIATION))
+DIFF_QUIET = $(call DIFF_NUMERIC,$1,$2,$(DEVIATION) -Q)
 
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef DEBUG
@@ -134,7 +144,6 @@ endif
 # VERBOSE MODE
 # Changes in verbose mode are:
 # - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
-verbose: VERBOSE=1 default
 
 # This function runs a TOPP tool with given options.  To invoke the program,
 # write '$(call RUN_PROG_OPT,Toolname,options)'.  [ Don't use RUN_PROG_OPT_INTERNAL
@@ -170,10 +179,13 @@ TEST_FILE_EQUAL =  \
 # to the output file, but with all numbers rounded to precision digits.
 ${ROUNDCAT}:  RoundCat.C
 
+# 'diff' that allows for slight deviation of numbers
+${NUMERICDIFF}:  NumericDiff.C
+
 ###########################################################################################
 # Tests for individual TOPP tools.
 
-AdditiveSeries_test: $(ROUNDCAT)
+AdditiveSeries_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "AdditiveSeries:"
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini AdditiveSeries_1_parameters.ini)
@@ -186,31 +198,31 @@ AdditiveSeries_test: $(ROUNDCAT)
 	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.err,AdditiveSeries_1_gnuplot_err.tmp)
 
 
-AnalysisXMLMerger_test: $(ROUNDCAT)
+AnalysisXMLMerger_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "AnalysisXMLMerger:"
 	@$(ECHO) "	... todo ..."
 
 
-BaselineFilter_test: $(ROUNDCAT)
+BaselineFilter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-DBExporter_test: $(ROUNDCAT)
+DBExporter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
 	@$(ECHO) "	... todo ..."
 
 
-DBImporter_test: $(ROUNDCAT)
+DBImporter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
 	@$(ECHO) "	... todo ..."
 
 
-DTAExtractor_test: $(ROUNDCAT)
+DTAExtractor_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "DTAExtractor:"
 
@@ -230,13 +242,13 @@ DTAExtractor_test: $(ROUNDCAT)
 	@$(call TEST_FILE_EQUAL,DTAExtractor_3_output.dta,DTAExtractor.tmp)
 
 
-Dewarper_test: $(ROUNDCAT)
+Dewarper_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "Dewarper:"
 	@$(ECHO) "	... todo ..."
 
 
-FeatureFinder_test: $(ROUNDCAT)
+FeatureFinder_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
@@ -248,7 +260,7 @@ FeatureFinder_test: $(ROUNDCAT)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
 
 
-FeaturePairSplitter_test: $(ROUNDCAT)
+FeaturePairSplitter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FeaturePairSplitter:"
 	@$(call RUN_PROG_OPT,FeaturePairSplitter,\
@@ -262,7 +274,7 @@ FeaturePairSplitter_test: $(ROUNDCAT)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.wsv)
 
-FileConverter_test: $(ROUNDCAT)
+FileConverter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FileConverter:"
 
@@ -297,7 +309,7 @@ FileConverter_test: $(ROUNDCAT)
 	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
 
 
-FileFilter_test: $(ROUNDCAT)
+FileFilter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FileFilter:"
 
@@ -317,7 +329,7 @@ FileFilter_test: $(ROUNDCAT)
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom)
 	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter.tmp)
 
-FileInfo_test: $(ROUNDCAT)
+FileInfo_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"
 
@@ -345,7 +357,7 @@ FileInfo_test: $(ROUNDCAT)
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
 
-FileMerger_test: $(ROUNDCAT)
+FileMerger_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
 	
@@ -364,85 +376,85 @@ FileMerger_test: $(ROUNDCAT)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_3_output.txt,FileMerger2.tmp)
 
-IDFilter_test: $(ROUNDCAT)
+IDFilter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-InspectAdapter_test: $(ROUNDCAT)
+InspectAdapter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-LabeledMatcher_test: $(ROUNDCAT)
+LabeledMatcher_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
 	@$(ECHO) "	... todo ..."
 
 
-MapAlignment_test: $(ROUNDCAT)
+MapAlignment_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "MapAlignment:"
 	@$(ECHO) "	... todo ..."
 
 
-MapMatcher_test: $(ROUNDCAT)
+MapMatcher_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
 	@$(ECHO) "	... todo ..."
 
 
-MapStatistics_test: $(ROUNDCAT)
+MapStatistics_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "MapStatistics:"
 	@$(ECHO) "	... todo ..."
 
 
-MascotAdapter_test: $(ROUNDCAT)
+MascotAdapter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-NoiseFilter_test: $(ROUNDCAT)
+NoiseFilter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-PeakPicker_test: $(ROUNDCAT)
+PeakPicker_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
 	@$(ECHO) "	... todo ..."
 
 
-RTModel_test: $(ROUNDCAT)
+RTModel_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
 	@$(ECHO) "	... todo ..."
 
 
-RTPredict_test: $(ROUNDCAT)
+RTPredict_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
 	@$(ECHO) "	... todo ..."
 
 
-SequestAdapter_test: $(ROUNDCAT)
+SequestAdapter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
 	@$(ECHO) "	... todo ..."
 
 
-SpectraFilter_test: $(ROUNDCAT)
+SpectraFilter_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
 	@$(ECHO) "	... todo ..."
 
 
-UnlabeledMatcher_test: $(ROUNDCAT)
+UnlabeledMatcher_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "UnlabeledMatcher:"
 	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini UnlabeledMatcher_1_parameters.ini)
@@ -455,7 +467,7 @@ UnlabeledMatcher_test: $(ROUNDCAT)
 
 PRECISION=2
 
-MyoQuant_test: $(ROUNDCAT)
+MyoQuant_test: $(ROUNDCAT) $(NUMERICDIFF) 
 	@$(ECHO) ""
 	@$(ECHO) "MyoQuant_test:"
 
