@@ -604,27 +604,33 @@ functions using substitution capabilities of the (GNU) make program itself.
 
   \texttt{@\$(call TEST\_FILE\_EQUAL,correct.xtn,computed.tmp)}
   
-  This will compare two files for equality using \texttt{\$(DIFF)} (among other
-  things).  In the first form, the other file defaults to
-  \texttt{correct.tmp}, that is, the basename of the second argument
-  (\texttt{correct.xtn}) extended by \texttt{.tmp}.  Be careful not to insert
-  any whitespace around the arguments of \texttt{call}.  Depending on the
-  \texttt{DEBUG} settings, this macro is expanded in different ways by
-  \texttt{make} program.
-
-  \textbf{Numerical inaccuracy} is an important issue since the TOPP tests
-  will be run on 32 bit and 64 bit platforms.  Therefore the actual test
-  filters the files using a small program called \texttt{RoundCat} which
-  rounds all numbers to a fixed number of digits.  The value of
-  \texttt{PRECISION} defaults to 3.  The 'rounded' files have the suffix
-  \texttt{.rounded\_tmp}.  This is the reason why the diff programm will print
-  filenames like \texttt{correct.xtn.rounded\_tmp} or
-  \texttt{correct.tmp.rounded\_tmp} on the console if a comparison fails.
-
-
+  This will compare two files using a small diff-like application called
+  \texttt{NumericDiff} (explained in the next section).  In the first form,
+  the 'other' file defaults to \texttt{correct.tmp}, that is, the basename of
+  the second argument (\texttt{correct.xtn}) extended by \texttt{.tmp}.  Be
+  careful not to insert any whitespace around the arguments of \texttt{call}.
+  Depending on the \texttt{DEBUG} settings, this macro is expanded in
+  different ways by \texttt{make} program.
+  
 \end{itemize}
 
-\subsection{Is this really necessary?}
+\subsubsection{Numerical inaccuracy}
+
+The TOPP tests will be run on 32 bit and 64 bit platforms.  Therefore a purely
+character-based comparison of computed and expected result files might fail
+although the results are in fact numerically correct -- think of cases like
+\texttt{9.999e+3} vs.\ \texttt{1.0001e+4}.  Instead we provide a small program
+\texttt{NumericDiff} in \texttt{OpenMS/source/TEST/TOPP}.  This program steps
+through both inputs simultaneously and classifies each position into 3
+categories: \emph{numbers}, \emph{characters}, \emph{whitespace}.  Within each
+line of input, numbers are compared with respect to their ratio (i.e.,
+relative error), characters must match exactly (e.g.\ case is significant) and
+all whitespace is considered equal.  Empty lines or lines containing only
+whitespace are skipped, but extra linebreaks 'within' lines will result in error
+messages.  For more details and verbosity options, see the built-in help
+message and the source code.
+
+\subsection{Is testing really necessary?}
 
 Yes. Testing is crucial to verify the correctness of the library -- especially when
 using C++. But why has it to be {\em so} complicated, using all these macros
