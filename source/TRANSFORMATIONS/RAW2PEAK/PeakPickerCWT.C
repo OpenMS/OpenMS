@@ -39,14 +39,18 @@ namespace OpenMS
   {
     double precision;
     DataValue dv = param_.getValue("Thresholds:Precision");
-    if (dv.isEmpty() || dv.toString() == "") precision = 1e-5;
-    else precision = (double)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      precision = 1e-5;
+    else
+      precision = (double)dv;
 
     /** Initialize the Wavelet Transform **/
     double wavelet_spacing;
     dv = param_.getValue("WaveletTransform:Spacing");
-    if (dv.isEmpty() || dv.toString() == "") wavelet_spacing= 0.001;
-    else wavelet_spacing = (double)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      wavelet_spacing= 0.001;
+    else
+      wavelet_spacing = (double)dv;
 
     // estimate the peak bound in the wavelet transform concerning the peak bound in the original signal
     calculatePeakBoundCWT_();
@@ -68,32 +72,41 @@ namespace OpenMS
     //std::cout << param_ << std::endl;
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
     DataValue dv =  param_.getValue("Thresholds:Correlation");
-    if (dv.isEmpty() || dv.toString() == "") peak_corr_bound_ = 0.5;
-    else peak_corr_bound_ = (float)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      peak_corr_bound_ = 0.5;
+    else
+      peak_corr_bound_ = (float)dv;
 
     dv = (param_.getValue("Optimization:SkipOptimization"));
-    if (dv.isEmpty() || dv.toString() == "") optimization_ = false;
-    else optimization_ = (dv.toString() == "no");
+    if (dv.isEmpty() || dv.toString() == "")
+      optimization_ = false;
+    else
+      optimization_ = (dv.toString() == "no");
 
     dv = param_.getValue("WaveletTransform:Scale");
-    if (dv.isEmpty() || dv.toString() == "") scale_ = 0.15;
-    else scale_ = (float)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      scale_ = 0.15;
+    else
+      scale_ = (float)dv;
 
     dv = param_.getValue("Thresholds:NoiseLevel");
-    if (dv.isEmpty() || dv.toString() == "") noise_level_ = 0.1;
-    else noise_level_ = (float)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      noise_level_ = 0.1;
+    else
+      noise_level_ = (float)dv;
 
     dv =param_.getValue("Thresholds:SearchRadius");
-    if (dv.isEmpty() || dv.toString() == "") radius_ = 3;
-    else radius_ = (int)dv;
+    if (dv.isEmpty() || dv.toString() == "")
+      radius_ = 3;
+    else
+      radius_ = (int)dv;
 
     // estimate the peak bound in the wavelet transform concerning the peak bound in the original signal
     calculatePeakBoundCWT_();
   }
 
   PeakPickerCWT::~PeakPickerCWT()
-  {
-  }
+{}
 
   bool PeakPickerCWT::getMaxPosition_
   ( RawDataPointIterator first,
@@ -104,8 +117,8 @@ namespace OpenMS
     int ms_level,
     int direction)
   {
-    // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1). 
-	// Comment: Who cares ??
+    // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1).
+    // Comment: Who cares ??
     double noise_level=0.;
     double noise_level_cwt=0.;
     if (ms_level==1)
@@ -140,9 +153,11 @@ namespace OpenMS
       {
         max_pos = (direction > 0) ? (i - distance_from_scan_border)  : i;
 #ifdef DEBUG_PEAK_PICKING
+
         std::cout << "MAX in CWT at " << (first + max_pos)->getPos()<< " with " << wt[i]
         << std::endl;
 #endif
+
         max_value=(first + max_pos)->getIntensity();
 
 
@@ -167,9 +182,11 @@ namespace OpenMS
         {
           area.max = first + max_pos;
 #ifdef DEBUG_PEAK_PICKING
+
           std::cout << "_________Max in data at__________ " << area.max->getPos()
           << std::endl;
 #endif
+
           return true;
         }
 
@@ -213,33 +230,37 @@ namespace OpenMS
     while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
     {
 #ifdef DEBUG_PEAK_PICKING
-    	std::cout << "while left endpoint " << std::endl;
+      std::cout << "while left endpoint " << std::endl;
 #endif
       // if the values are still falling to the left, everything is ok.
       if ((it_help-1)->getIntensity() < it_help->getIntensity())
       {
         --it_help;
-      
+
 #ifdef DEBUG_PEAK_PICKING
+
         std::cout << "it_help " << it_help->getPos() << std::endl;
 #endif
+
       }
       // if the values are _rising_, we have to check the cwt
       else
       {
         if ((it_help-2) <= first)
         {
-#ifdef DEBUG_PEAK_PICKING        	
-        	std::cout << "it_help-2) <= first"  << std::endl;
-#endif      
+#ifdef DEBUG_PEAK_PICKING
+          std::cout << "it_help-2) <= first"  << std::endl;
+#endif
+
           break;
         }
         // now check the value to the left of the problematic value
         if ((it_help-2)->getIntensity() > (it_help-1)->getIntensity()) // we probably ran into another peak
         {
-#ifdef DEBUG_PEAK_PICKING        	
-        	std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
-#endif        		
+#ifdef DEBUG_PEAK_PICKING
+          std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
+#endif
+
           break;
         }
 
@@ -255,28 +276,31 @@ namespace OpenMS
         // if the cwt is monotonous in this region
         // TODO: better monotonicity test... say two or three points more
         monoton=true;
-      
-				start   =   (cwt_pos < ep_radius)
-                    ? (distance_from_scan_border + zeros_left_index) + 2 
+
+        start   =   (cwt_pos < ep_radius)
+                    ? (distance_from_scan_border + zeros_left_index) + 2
                     : cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
         stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
                     ?  (wt_.getSize() - 2)
                     : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
-				std::cout << "start " << start << " stop " << stop << std::endl;
-#endif					
+
+        std::cout << "start " << start << " stop " << stop << std::endl;
+#endif
+
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start]  )
                  * (wt_[start]   - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING            
-            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
-            					<< " " <<  wt_.getSignal()[start].getPos()
-            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
-#endif            						
+#ifdef DEBUG_PEAK_PICKING
+            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()
+            << " " <<  wt_.getSignal()[start].getPos()
+            << " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif
+
             monoton=false;
             break;
           }
@@ -295,33 +319,37 @@ namespace OpenMS
     // search for the right endpoint ???
     while (((it_help+1) < last) && (it_help->getIntensity() > noise_level_))
     {
-#ifdef DEBUG_PEAK_PICKING    	
-    	std::cout << "while right endpoint " << std::endl;
-#endif    		
+#ifdef DEBUG_PEAK_PICKING
+      std::cout << "while right endpoint " << std::endl;
+#endif
       // if the values are still falling to the right, everything is ok.
       if (it_help->getIntensity() > (it_help+1)->getIntensity())
       {
         ++it_help;
-#ifdef DEBUG_PEAK_PICKING        
-         std::cout << "it_help " << it_help->getPos() << std::endl;
-#endif         	
+#ifdef DEBUG_PEAK_PICKING
+
+        std::cout << "it_help " << it_help->getPos() << std::endl;
+#endif
+
       }
       // if the values are _rising_, we have to check the cwt
       else
       {
         if ((it_help+2) >= last)
         {
-#ifdef DEBUG_PEAK_PICKING        	
-        	std::cout << "it_help+2) <= first"  << std::endl;
-#endif        		
+#ifdef DEBUG_PEAK_PICKING
+          std::cout << "it_help+2) <= first"  << std::endl;
+#endif
+
           break;
         }
         // now check the value to the right of the problematic value
         if ((it_help+2)->getIntensity() > (it_help+1)->getIntensity()) // we probably ran into another peak
         {
-#ifdef DEBUG_PEAK_PICKING        	
-        	std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
-#endif        		
+#ifdef DEBUG_PEAK_PICKING
+          std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
+#endif
+
           break;
         }
 
@@ -336,28 +364,31 @@ namespace OpenMS
         // if the cwt is monotonous in this region
         // TODO: better monotonicity test... say two or three points more
         monoton = true;
-              	
+
         start   =   (cwt_pos < ep_radius)
-                    ? (distance_from_scan_border + zeros_left_index) + 2 
+                    ? (distance_from_scan_border + zeros_left_index) + 2
                     : cwt_pos - ep_radius + (distance_from_scan_border + zeros_left_index + 2);
         stop    =   ((cwt_pos + ep_radius) > distance(it_help,last))
                     ?  (wt_.getSize() - 2)
                     : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
-				std::cout << "start " << start << " stop " << stop << std::endl;
-#endif					
+
+        std::cout << "start " << start << " stop " << stop << std::endl;
+#endif
+
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start])
                  * (wt_[start]  - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING            
-             std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
-            					<< " " <<  wt_.getSignal()[start].getPos()
-            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
-#endif            						
+#ifdef DEBUG_PEAK_PICKING
+            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()
+            << " " <<  wt_.getSignal()[start].getPos()
+            << " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif
+
             monoton=false;
             break;
           }
@@ -378,8 +409,23 @@ namespace OpenMS
     // The minimal raw data points per peak should be 2
     if ((distance(area.left,area.max) > 0) && (distance(area.max,area.right) > 0))
     {
+#ifdef DEBUG_PEAK_PICKING
+      std::cout << "OK !!!! The endpoints are "
+      << area.left->getPosition()
+      << " and "
+      << area.right->getPosition()
+      << std::endl;
+#endif
+
       return true;
     }
+#ifdef DEBUG_PEAK_PICKING
+    std::cout << "NO!!! The endpoints are "
+    << area.left->getPosition()
+    << " and "
+    << area.right->getPosition()
+    << std::endl;
+#endif
 
     return false;
   }
@@ -416,6 +462,7 @@ namespace OpenMS
     area.centroid_position = w / sum;
 
 #ifdef DEBUG_PEAK_PICKING
+
     std::cout << "________Centroid is___________ " << area.centroid_position << std::endl;
 #endif
 
@@ -441,9 +488,10 @@ namespace OpenMS
     double spacing=0.001;
     int n = (int)((4*scale_)/spacing)+1;
 
+    double lambda = 2. / scale_;
     // compute the width parameter using height=peak_bound_ and the peak endpoints should be -scale and +scale, so at
     // positions -scale and +scale the peak value should correspond to the noise_level_
-    double lambda = sqrt((-noise_level_*(-peak_bound_+noise_level_)))/(noise_level_*scale_);
+    //double lambda = sqrt((-noise_level_*(-peak_bound_+noise_level_)))/(noise_level_*scale_);
 
     RawDataArrayType lorentz_peak(n);
     RawDataArrayType lorentz_peak2(n);
@@ -488,9 +536,11 @@ namespace OpenMS
     peak_bound_cwt_ = peak_max;
     peak_bound_ms2_level_cwt_ = peak_max2;
 #ifdef DEBUG_PEAK_PICKING
+
     std::cout << "PEAK BOUND IN CWT " << peak_bound_cwt_ << std::endl;
     std::cout << "PEAK BOUND IN CWT (MS 2 Level)" << peak_bound_ms2_level_cwt_ << std::endl;
 #endif
+
   }
 
   void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
@@ -522,6 +572,7 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "Left end point: " << area.left->getPos() << std::endl;
 #endif
+
     double max_intensity   =   area.max->getIntensity();
     double left_intensity  =  area.left->getIntensity();
     double right_intensity = area.right->getIntensity();
@@ -534,6 +585,7 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "The distance between centroid and the endpoints is too small!" << std::endl;
 #endif
+
       return PeakShape();
     }
 
@@ -547,6 +599,7 @@ namespace OpenMS
       // TODO: avoid zero width!
 
 #ifdef DEBUG_PEAK_PICKING
+
       std::cout << "Left end point: "         << area.left->getPos()
       << " centroid: "              << area.centroid_position
       << " right end point: "       << area.right->getPos()
@@ -628,10 +681,12 @@ namespace OpenMS
       lorentz.r_value = correlate_(lorentz, area);
 
 #ifdef DEBUG_PEAK_PICKING
+
       std::cout << "lorentz r: " << lorentz.r_value << " " << "pos: " << lorentz.mz_position << std::endl;
       std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << std::endl;
       std::cout << "h: " << lorentz.height << std::endl;
 #endif
+
       return lorentz;
     }
 
@@ -687,6 +742,7 @@ namespace OpenMS
       sech.r_value = correlate_(sech, area);
 
 #ifdef DEBUG_PEAK_PICKING
+
       std::cout << "r: " << lorentz.r_value << " " << sech.r_value << std::endl;
       std::cout << "pos: " << lorentz.mz_position <<  " " << sech.mz_position << std::endl;
       std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << " "
