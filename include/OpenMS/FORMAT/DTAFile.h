@@ -67,7 +67,7 @@ namespace OpenMS
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
 		
-				// Remove the old stuff from the spectrum
+				//  Delete old spectrum
 				spectrum.getContainer().clear();
 				
 				//temporary variables

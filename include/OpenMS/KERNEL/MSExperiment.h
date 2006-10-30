@@ -641,7 +641,7 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
     					
     	@p sort_mz : indicates whether the points should be sorted by m/z as well			
     */
-    void sortSpectra(bool sort_mz)
+    void sortSpectra(bool sort_mz = true)
     {
 
         RtComparator comp;

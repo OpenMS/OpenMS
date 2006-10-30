@@ -39,13 +39,11 @@
 #include<algorithm>
 #include<limits>
 
-//#include <cstdlib>
 #include <iostream>
 
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#include <sys/errno.h>
 
 namespace OpenMS
 {
@@ -59,7 +57,7 @@ namespace OpenMS
 	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
 	
 	NOTE: (part 2) This class is not completely tested. It should work fine with PeakPicker, MzXMLFile and MzDataFile.
-	Use it at your own risk.
+	But use it at your own risk. :-)
 			
 	@ingroup Kernel
 **/
@@ -639,31 +637,47 @@ public:
 
     void push_back(const SpectrumType& spec)
     {
-        std::cout << "Inserting scan " << current_scan_ << std::endl;
-        std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
+//         std::cout << "Inserting scan " << current_scan_ << std::endl;
+//         std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
+		
         if (buffer_index_ < buffer_size_)
         {
-            std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
-            exp_[buffer_index_] = spec;
-            scan2buffer_.push_back(buffer_index_++);
-            buffer2scan_[current_scan_++];
+// 			std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
+		
+			// test if we already wrote at this buffer position
+			if (current_scan_ > buffer_size_)
+			{
+				// yes => store scan at current buffer position and then overwrite
+				writeScan(current_scan_, exp_[buffer_index_] );
+			}
+			
+			exp_[buffer_index_] = spec;
+           	scan2buffer_.push_back(buffer_index_);
+            buffer2scan_[buffer_index_++] = current_scan_++;			
         }
         else
         {
-            std::cout << "Buffer full. Overwriting buffer."   << std::endl;
-			buffer_index_ = 0; // resetting buffer index
-			exp_[buffer_index_] = spec;			
-            scan2buffer_.push_back(buffer_index_++);
-            buffer2scan_[current_scan_++];
-        }
-        writeScan(spec);
+//             std::cout << "Buffer full. Overwriting buffer at pos 0."   << std::endl;
+			
+			buffer_index_ = 0; 																		// reset buffer index
+			writeScan(buffer2scan_[buffer_index_],  exp_[buffer_index_] ); 		// write content of buffer to temp. file
+			exp_[buffer_index_] = spec;														// store new spectrum 
+			
+            scan2buffer_.push_back(buffer_index_);
+            buffer2scan_[buffer_index_++] = current_scan_++;
+		}
+		
+// 		std::cout << "scan2buffer : " << scan2buffer_[ (current_scan_-1)] << std::endl;
+// 		std::cout << "buffer2scan: " << buffer2scan_[ ( scan2buffer_[ (current_scan_-1)]  )] << std::endl;
+		
+        //writeScan(spec);
     }
 
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     reference operator[] (size_type n)
     {
 
-        std::cout << "operator[" << n << "]" << std::endl;
+//         std::cout << "operator[" << n << "]" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
@@ -676,12 +690,12 @@ public:
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference operator[] (size_type n) const
     {
-        std::cout << "operator[" << n << "] const" << std::endl;
+//         std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
 		{
-            std::cout << "scan not in buffer." << std::endl;
+//             std::cout << "scan not in buffer." << std::endl;
 			storeInBuffer(n);	// scan is not in buffer, needs to be read from file
 		}
         b = scan2buffer_[n];
@@ -942,34 +956,36 @@ protected:
     /// reads a scan from the temp file and stores it in the buffer
     void storeInBuffer(const size_type& n)
     {
-        std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
-//         SpectrumType spec;
-// 		readScan(n,spec);
-
-        // check if buffer is full
+//         std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
+        
+		// check if buffer is full
         if (buffer_index_ < buffer_size_)
         {
-            std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
-            // not full, add scan to buffer
-            //exp_[buffer_index_] = spec;
-            
-			readScan(n,exp_[buffer_index_]);
+//             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+// 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
 			
+			// test if we already wrote at this buffer position
+			if (current_scan_ > buffer_size_)
+			{
+				// yes => store scan at current buffer position and then overwrite
+				writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+			}
+			
+			readScan(n,exp_[buffer_index_]);         	
 			scan2buffer_[n] = buffer_index_;
             buffer2scan_[buffer_index_++] = n;
         }
         else
         {
-			std::cout << "buffer is full, inserting scan at first position " << std::endl;
+// 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
             // buffer is full, therefore we overwrite the first entry
             buffer_index_ = 0;
 
             // check if size of buffer is set to zero
             if (buffer_size_ > 0 )
             {
-                //exp_[buffer_index_]                = spec;
-				readScan(n,exp_[buffer_index_]);
+				writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+               	readScan(n,exp_[buffer_index_]);
                 scan2buffer_[n]                      = buffer_index_;
                 buffer2scan_[buffer_index_++] = n;
             }
@@ -982,45 +998,54 @@ protected:
 
     void storeInBuffer(const size_type& n) const
     {
-        SpectrumType spec;
-		readScan(n,spec);
-
-        // check if buffer is full
+// 		std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
+        
+		// check if buffer is full
         if (buffer_index_ < buffer_size_)
         {
-            // not full, add scan to buffer
-            exp_[buffer_index_] = spec;
-            scan2buffer_[n] = buffer_index_;
+//             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
+			
+			// test if we already wrote at this buffer position
+			if (current_scan_ > buffer_size_)
+			{
+				// yes => store scan at current buffer position and then overwrite
+				writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+			}
+			
+			readScan(n,exp_[buffer_index_]);         	
+			scan2buffer_[n] = buffer_index_;
             buffer2scan_[buffer_index_++] = n;
         }
         else
         {
-            // buffer is full and we overwrite the first entry
+// 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
+            // buffer is full, therefore we overwrite the first entry
             buffer_index_ = 0;
 
             // check if size of buffer is set to zero
             if (buffer_size_ > 0 )
             {
-                exp_[buffer_index_]                = spec;
+				writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+               	readScan(n,exp_[buffer_index_]);
                 scan2buffer_[n]                      = buffer_index_;
                 buffer2scan_[buffer_index_++] = n;
             }
-            else // zero-sized buffer
+            else // buffer size is set to zero
             {
-				 throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer()");		
+                throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer()");
             }
         }
     }
 
     /// write spectrum to file
-    /// format: rt_of_scan first_mz first_intensity second_mz ... last_intensity n
-    void writeScan(const SpectrumType& spec)
+    void writeScan(const size_type& index, const SpectrumType& spec) const
     {
        	pFile_ = fopen(file_name_.c_str(),"a");
-        float rt = spec.getRetentionTime();
-		
-		// determine position in file and store it
+        CoordinateType rt = spec.getRetentionTime();
+				
 		off_t pos;
+		// determine position in file and store it
 		if ( ( pos = ftello(pFile_) ) < 0) 
 		{
 			std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
@@ -1035,19 +1060,56 @@ protected:
 			}
 			
 		}
-	    scan_location_.push_back( pos );
-        fwrite(&rt,sizeof(rt),1,pFile_);
-
+				
+		// test if this scan was already written and store its offset
+		if (index >= scan_sizes_.size() )
+		{
+        	scan_location_.push_back( pos );
+		}
+		else
+		{
+			// scan has already been written, check if size has changed			
+			if (scan_sizes_[index] == spec.size() )
+			{
+				// write at old position
+				pos = scan_location_[index];
+				fseeko(pFile_,pos,SEEK_SET);		
+			}
+			else
+			{
+				// size has changed, forget old position and append
+				scan_location_[index] = pos;
+			}
+				
+		}
+				
+// 		std::cout << "writeScan: writing scan " << index << " at " << ftello(pFile_) << std::endl;
+		
+        fwrite(&rt,sizeof(CoordinateType),1,pFile_);
+		size_t sizeof_peak =  sizeof(PeakType);
+		
         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
                 cit != spec.getContainer().end(); ++cit)
         {
-            fwrite(&(*cit),sizeof(*cit),1,pFile_);
+            fwrite(&(*cit),sizeof_peak,1,pFile_);
+			
+// 			CoordinateType it    = cit->getIntensity();
+// 			CoordinateType mz = cit->getPosition()[0];
+// 			fwrite(&it,sizeof(CoordinateType),1,pFile_);
+// 			fwrite(&mz,sizeof(CoordinateType),1,pFile_);
+			
         }
         fclose(pFile_);
 
-        scan_sizes_.push_back(spec.getContainer().size());
-		// we store the number of floats that later need to be read: it, m/z for each point + rt for the whole scan
-		//scan_sizes_.push_back( (spec.getContainer().size() )*2 + 1);
+		// test if this scan was already written and store its size
+		if (index >= scan_sizes_.size() )
+		{
+        	scan_sizes_.push_back(spec.getContainer().size());
+		}
+		else
+		{
+			scan_sizes_[index] = spec.getContainer().size();
+		}
 		
     } // end of write(spectrum)
 
@@ -1058,6 +1120,7 @@ protected:
 		
 		// set stream to starting point of last writing action
         off_t pos = scan_location_.at(index);
+// 		std::cout << " readScan: reading scan " << index << " from " << pos << std::endl;
         if ( fseeko(pFile_,pos,SEEK_SET) != 0) 
 		{	
 			std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;  
@@ -1068,47 +1131,37 @@ protected:
 				std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
 				std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
 				std::cout << "file became too large." << std::endl;
-				throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan()",pos,sizeof(off_t)); 
+				throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan()",pos,sizeof(off_t)); 
 			}
 		}
 
-		std::cout << "Reading rt. " << std::endl;
+// 		std::cout << "Reading rt. " << std::endl;
         // read retention time
         CoordinateType rt = 0;
- 		fread(&rt,sizeof(rt),1,pFile_);
+ 		fread(&rt,sizeof(CoordinateType),1,pFile_);
         spec.setRetentionTime(rt);
 
 		unsigned int nr_peaks = scan_sizes_.at(index);
-		std::cout << "Reading peaks: " << nr_peaks << std::endl;
-		spec.resize(nr_peaks);
-		typename SpectrumType::Iterator peak_iter = spec.begin();
-		size_t sizeof_peak =  sizeof(PeakType);
+// 		std::cout << "Reading peaks: " << nr_peaks << std::endl;
 		
+		spec.getContainer().clear();
+		spec.resize(nr_peaks);
+		
+		size_t sizeof_peak =  sizeof(PeakType);
+				
         //read coordinates of each peak 
-		for (unsigned int i=0; i<nr_peaks; ++i)
-        {            
-			PeakType peak;
-//             if (fread(&(*peak_iter),sizeof_peak,1,pFile_) == 0)
-// 				std::cout << "Error reading peak data" << std::endl;
-			std::cout << "Reading peak " << i << std::endl;	
-
-			if (fread(&peak,sizeof_peak,1,pFile_) == 0)
+		for (typename SpectrumType::Iterator piter = spec.begin(); piter != spec.end(); ++piter)
+        {    
+			if (fread(&(*piter),sizeof_peak,1,pFile_) == 0)
 				std::cout << "Error reading peak data" << std::endl;		
-			
-			std::cout << "I am at " << i << std::endl;
-			std::cout << peak.getIntensity() << " " << peak.getPosition()[0] << std::endl;
-			spec[i] = peak;
+
+// 			spec[i] = peak;
 							
 			//++peak_iter;
             //spec.getContainer().push_back(point);
         }
-		std::cout << "Done."<< std::endl;
+// 		std::cout << "Done."<< std::endl;
         fclose(pFile_);
-		
-	
-	// determine length of window for memory mapping (in bytes)
-// 	size_t length = scan_sizes_.at(index) * sizeof(Coordinatype) * 1024;
-// 	void * pregion = mmap(NULL, (sizeof(p1) * 1024), PROT_READ,MAP_SHARED,file,0);
 
     }	// end of read const
 
