@@ -1174,23 +1174,17 @@ namespace OpenMS
 		}
 
 		os << "\t\t</dataProcessing>\n";
-
+		
 		// write scans
 		for (UnsignedInt s=0; s<cexp_->size(); s++)
 		{
 			const SpectrumType& spec = (*cexp_)[s];
-
-			//do not write empty spectra
-			if (spec.size()==0) continue;
 			
 			int MSLevel = spec.getMSLevel();
 
-			if (MSLevel==1 && s!=0)
-				os << String(MSLevel+1,'\t') << "</scan>\n";
-
 			os << String(MSLevel+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
-				 << spec.getMSLevel() << "\" peaksCount=\""
+				 << MSLevel << "\" peaksCount=\""
 				 << spec.size() << "\" polarity=\""
 				 << enum2str_(POLARITYMAP,spec.getInstrumentSettings().getPolarity());
 
@@ -1232,12 +1226,23 @@ namespace OpenMS
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
-
-			if (MSLevel==2)
-				os << String(MSLevel+1,'\t') << "</scan>\n";
+			
+			//check MS level of next scan and close scans (scans can be nested)
+			int next_MSLevel = 1;
+			if (s < cexp_->size()-1)
+			{
+				next_MSLevel = ((*cexp_)[s+1]).getMSLevel();
+			}
+			//std::cout << "scan: " << s << " this: " << MSLevel << " next: " << next_MSLevel << std::endl;
+			if (next_MSLevel <= MSLevel)
+			{
+				for (SignedInt i = 0; i<= MSLevel-next_MSLevel; ++i)
+				{
+					os << String(MSLevel-i+1,'\t') << "</scan>\n";
+				}
+			}
 		}
 
-		if (cexp_->size()) os << "\t\t</scan>\n";
 		os << "\t</msRun>\n"
 			 << "\t<indexOffset>0</indexOffset>\n"
 			 << "</mzXML>\n";

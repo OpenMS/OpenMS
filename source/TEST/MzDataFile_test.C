@@ -447,11 +447,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
  	NEW_TMP_FILE(tmp_filename);
   f.load("data/MzDataFile_test_1.mzData",e);
 
-	//test if empty spectra are skipped
-	e.push_back(MSSpectrum< DPickedPeak<1> >());
-	e.push_back(MSSpectrum< DPickedPeak<1> >());
-	e.push_back(MSSpectrum< DPickedPeak<1> >());
-	TEST_EQUAL(e.size(), 6)
+	TEST_EQUAL(e.size(), 3)
 
 	f.store(tmp_filename,e);
 	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_1.mzData");

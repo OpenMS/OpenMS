@@ -700,9 +700,6 @@ namespace OpenMS
 			{
 				const SpectrumType& spec = (*cexp_)[s];
 
-				//do not write empty spectra
-				if (spec.size()==0) continue;
-
 				os << "\t\t<spectrum id=\"" << spec_write_counter_++ << "\">\n"
 					 << "\t\t\t<spectrumDesc>\n"
 					 << "\t\t\t\t<spectrumSettings>\n";
