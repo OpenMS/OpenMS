@@ -40,7 +40,8 @@ endif
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_EXEC=\
-	UnlabeledMatcher
+	UnlabeledMatcher\
+	MapAlignment\
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -70,7 +71,6 @@ EXECUTABLES=\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
-	MapAlignment\
 	SequestAdapter\
 	AnalysisXMLMerger
 
