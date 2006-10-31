@@ -32,7 +32,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #ifdef CGAL_DEF
-  #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#  include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #endif
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_registerChildren.h>

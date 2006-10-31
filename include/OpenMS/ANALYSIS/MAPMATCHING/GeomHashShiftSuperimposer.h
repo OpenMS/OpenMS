@@ -636,17 +636,17 @@ namespace OpenMS
             int const model_bucket_index_center_MZ = scene_bucket_index_MZ + feature_buckets_index_offset_MZ;
 
             // iterate over buckets of model
-            for ( Size model_bucket_index_RT
+            for ( int model_bucket_index_RT
                   =  std::max<int>( model_bucket_index_center_RT - fbw[RT], 0 );
                   model_bucket_index_RT
-                  <= Size(std::min<int>( model_bucket_index_center_RT + fbw[RT], feature_bucket_[MODEL].rows()-1 ));
+                  <= std::min<int>( model_bucket_index_center_RT + fbw[RT], feature_bucket_[MODEL].rows()-1 );
                   ++model_bucket_index_RT
                 )
             {
-              for ( Size model_bucket_index_MZ
+              for ( int model_bucket_index_MZ
                     =  std::max<int>( model_bucket_index_center_MZ - fbw[MZ], 0 );
                     model_bucket_index_MZ
-                    <= Size(std::min<int>( model_bucket_index_center_MZ + fbw[MZ], feature_bucket_[MODEL].cols()-1 ));
+                    <= std::min<int>( model_bucket_index_center_MZ + fbw[MZ], feature_bucket_[MODEL].cols()-1 );
                     ++model_bucket_index_MZ
                   )
               {
@@ -714,7 +714,7 @@ namespace OpenMS
                          ! (number_of_considered_feature_pairs_for_this_pair_of_buckets % progress_dots)
                        )
                     {
-                      //                       std::cout << 'H' << std::flush;
+											std::cout << 'H' << std::flush;
                     }
 
                   } // for scene_iter
