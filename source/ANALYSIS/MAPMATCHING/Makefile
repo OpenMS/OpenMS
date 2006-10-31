@@ -36,7 +36,7 @@ GSL_SOURCES=\
 endif
 
 ifeq ($(CGAL_SUPPORT),true)
-GSL_SOURCES=\
+CGAL_SOURCES=\
 	StarAlignment.C\
 	DelaunayPairFinder.C
 endif
@@ -63,7 +63,7 @@ CPP_SOURCES=\
 	IndexTuple.C\
 	BaseAlignment.C
 	
-
+ADD_CPP_SOURCES = $(GSL_SOURCES) $(CGAL_SOURCES)
 ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak
