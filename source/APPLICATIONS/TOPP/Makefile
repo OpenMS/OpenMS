@@ -41,7 +41,7 @@ endif
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_EXEC=\
 	UnlabeledMatcher\
-	MapAlignment\
+	MapAlignment
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
