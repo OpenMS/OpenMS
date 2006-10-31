@@ -402,7 +402,7 @@ CHECK(friend std::ostream& operator << (std::ostream& os, const Param& param))
 	p.setValue("key",17.4);
 	stringstream ss;
 	ss << p;
-	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\"\n")
+	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\"\n")
 RESULT
 
 CHECK(ConstIterator begin() const)
