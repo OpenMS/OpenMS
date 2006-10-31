@@ -184,12 +184,11 @@ namespace OpenMS
 			return values_.end();
     }
 
-    /// Output of the object to a spream.
-    friend std::ostream& operator << (std::ostream& os, const Param& param);
-
 	 protected:
     /// internal storage container
     std::map<std::string, DataValue> values_;
+
+		friend std::ostream& operator << (std::ostream& os, const Param& param);
 
 	 public:
 		/**@brief Maximum number of inheritance steps allowed.
@@ -200,7 +199,10 @@ namespace OpenMS
 
 	};
 
-	///Print the contents of a Param object to a stream.
+	/**@brief Output of the object to a spream.
+		 
+	@relatesalso Param
+	*/
 	std::ostream& operator << (std::ostream& os, const Param& param);
 
 } // namespace OpenMS

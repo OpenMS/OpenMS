@@ -518,7 +518,7 @@ namespace OpenMS
  	{
 		for (map<string,DataValue>::const_iterator it = param.values_.begin(); it != param.values_.end();++it)
 		{
-		 os << "\""<<it->first<< "\"" << " -> " << "\""<< it->second.toString()<< "\"" << endl;
+		 os << "\""<<it->first<< "\"  ->  \""<< it->second.toString()<< "\"" << endl;
 		}
 		return os;
 	}
