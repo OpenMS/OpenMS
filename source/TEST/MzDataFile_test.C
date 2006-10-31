@@ -511,7 +511,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 RESULT
 
 // check for Float Kernel traits
-CHECK((load/store for Float Kernel Traits))
+CHECK([EXTRA] load/store for Float Kernel Traits)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 
@@ -521,6 +521,27 @@ CHECK((load/store for Float Kernel Traits))
 	f.load("data/MzDataFile_test_2.mzData",e2);
 	f.store(tmp_filename,e2);
 	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");
+RESULT
+
+// check for Float Kernel traits
+CHECK([EXTRA]  load/store for empty scans)
+	std::string tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+
+  MzDataFile f;
+	MSExperiment<> e2;
+	e2.resize(5);
+
+	cout << "TEST1" << endl;
+	f.store(tmp_filename,e2);
+	cout << "TEST2" << endl;
+	f.load(tmp_filename,e2);
+	cout << "TEST3" << endl;
+	
+	e2.updateRanges();
+	
+	TEST_EQUAL(e2.size(),5);
+	TEST_EQUAL(e2.getSize(),0);
 RESULT
 
 /////////////////////////////////////////////////////////////

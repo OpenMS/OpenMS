@@ -51,10 +51,5 @@ CPP_SOURCES= \
 	ConsensusFeature.C\
 	ConsensusPeak.C
 
-#	DPeakList.C\
-
-
-ADD_CPP_SOURCES = ${CGAL_SOURCES}
-
 include ../common.mak
 -include .Dependencies

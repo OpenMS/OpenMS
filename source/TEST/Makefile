@@ -39,7 +39,6 @@ EXECUTABLES_CONCEPT = \
 	Factory_test
 
 EXECUTABLES_DATASTRUCTURES = \
-	${CGAL_EXECUTABLES_DATASTRUCTURES}\
 	String_test\
 	Date_test\
 	HashMap_test\

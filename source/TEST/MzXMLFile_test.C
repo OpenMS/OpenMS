@@ -259,7 +259,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
 RESULT
 
-CHECK((load/store for Float Kernel Traits))
+CHECK([EXTRA] load/store for Float Kernel Traits)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
@@ -269,6 +269,27 @@ CHECK((load/store for Float Kernel Traits))
 	f.load("data/MzXMLFile_test_2.mzXML",e);
 	f.store(tmp_filename,e);
 	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
+RESULT
+
+// check for Float Kernel traits
+CHECK([EXTRA] load/store for empty scans)
+	std::string tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+
+  MzXMLFile f;
+	MSExperiment<> e2;
+	e2.resize(5);
+	
+	cout << "TEST1" << endl;
+	f.store(tmp_filename,e2);
+	cout << "TEST2" << endl;
+	f.load(tmp_filename,e2);
+	cout << "TEST3" << endl;
+	
+	e2.updateRanges();
+	
+	TEST_EQUAL(e2.size(),5);
+	TEST_EQUAL(e2.getSize(),0);
 RESULT
 
 /////////////////////////////////////////////////////////////

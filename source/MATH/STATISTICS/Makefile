@@ -41,13 +41,9 @@ ifeq ($(GSL_SUPPORT),true)
 	LinearRegression.C
 endif
 
-CGAL_SOURCES=\
-	ROCCurve.C
-			
-
 ADD_CPP_SOURCES = \
 	${GSL_SOURCES}\
-	${CGAL_SOURCES}
+	ROCCurve.C
 
 include ../../common.mak
 -include .Dependencies

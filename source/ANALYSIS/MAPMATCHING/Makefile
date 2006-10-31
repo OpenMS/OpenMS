@@ -41,7 +41,6 @@ CGAL_SOURCES=\
 	DelaunayPairFinder.C
 endif
 
-
 CPP_SOURCES=\
   DBaseMapMatcher.C\
 	DBaseMapping.C\
@@ -50,7 +49,6 @@ CPP_SOURCES=\
 	DGridCell.C\
 	DGrid.C\
 	DMapDewarper.C\
-	$(GSL_SOURCES)\
 	DLinearMapping.C\
 	PairMatcher.C\
 	BasePairwiseMapMatcher.C\

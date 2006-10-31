@@ -80,7 +80,7 @@ CHECK((Size getOutputBufferSize()))
   TEST_EQUAL(b64.getOutputBufferSize(), 18)
 RESULT
 
-CHECK((void setOutputBufferSize(Size s)))
+CHECK((void setOutputBufferSize(Size num_char)))
 	Base64 b64;
   b64.setOutputBufferSize(22);
   string src = "SGFsbG8gV29ybGQ=";  //"Hallo World"
@@ -130,8 +130,12 @@ CHECK((float* decodeFloatCorrected(const char* src, const Size size)))
 	TEST_REAL_EQUAL(res[3], 123815)
 	TEST_REAL_EQUAL(res[4], 475.715)
 	TEST_REAL_EQUAL(res[5], 33733)
+	
+	src = "QvAAAELIAA==";
+  res = b64.decodeFloatCorrected(src.c_str() ,src.size());
+	TEST_REAL_EQUAL(res[0], 120)
+	TEST_REAL_EQUAL(res[1], 100)
 RESULT
-
 
 CHECK((char* encode(const char* src, const Size size)))
 	Base64 b64;
@@ -156,6 +160,12 @@ CHECK((char* encode(const char* src, const Size size)))
 	dest = b64.encode(src.c_str() ,src.size());
 	dest = b64.encode(dest.c_str(), dest.size());
 	TEST_EQUAL(dest, src)
+RESULT
+
+CHECK(float* getFloatBuffer(Size num_values))
+	Base64 b64;
+  float* data = b64.getFloatBuffer(3);
+	TEST_NOT_EQUAL(data,0);
 RESULT
 
 CHECK((char* encodeFloat()))
@@ -198,6 +208,12 @@ CHECK((char* encodeFloatCorrected()))
 	TEST_REAL_EQUAL(res[0], 300.15)
 	TEST_REAL_EQUAL(res[1], 303.998)
 	TEST_REAL_EQUAL(res[2], 304.6)
+RESULT
+
+CHECK(double* getDoubleBuffer(Size num_values))
+	Base64 b64;
+  double* data = b64.getDoubleBuffer(3);
+	TEST_NOT_EQUAL(data,0);
 RESULT
 
 CHECK((char* encodeDouble()))
@@ -246,7 +262,6 @@ CHECK((char* encodeDoubleCorrected()))
   res = b64.decodeDoubleCorrected(dest.c_str() ,dest.size());
 	TEST_REAL_EQUAL(res[0], 4711.08)
 RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

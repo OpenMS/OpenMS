@@ -1180,10 +1180,9 @@ namespace OpenMS
 						
 			int MSLevel = spec.getMSLevel();
 			
-			std::cout << "Yuppie ! " << std::endl;
-			std::cout << "Scan: " << s << std::endl;
-			std::cout << "rt: " << (*cexp_)[s].getRetentionTime() << std::endl;
-			std::cout << "size : " << (*cexp_)[s].size() << std::endl;
+//			std::cout << "Scan: " << s << std::endl;
+//			std::cout << "rt: " << (*cexp_)[s].getRetentionTime() << std::endl;
+//			std::cout << "size : " << (*cexp_)[s].size() << std::endl;
 			
 			os << String(MSLevel+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
@@ -1224,11 +1223,9 @@ namespace OpenMS
 				tmp[2*i]   = spec.getContainer()[i].getPosition()[0];
 				tmp[2*i+1] = spec.getContainer()[i].getIntensity();
 			}
-			if (spec.size() > 0)
-				os << decoder_.encodeFloatCorrected() << "</peaks>\n";
-			else
-				os  << "</peaks>\n";
 			
+			os << decoder_.encodeFloatCorrected() << "</peaks>\n";
+
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
