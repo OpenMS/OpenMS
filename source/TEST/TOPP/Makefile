@@ -112,7 +112,8 @@ help:
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
 # - temporary files (*.tmp) are not deleted after the execution
-debug: DEBUG=1 default
+debug: 
+	@$(MAKE) DEBUG=1 default
 
 # Diff that allows for slight numeric differences
 DIFF_NUMERIC = \
@@ -133,7 +134,8 @@ endif
 # VERBOSE MODE
 # Changes in verbose mode are:
 # - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
-verbose: VERBOSE=1 default
+verbose: 
+	@$(MAKE) VERBOSE=1 default
 
 # This function runs a TOPP tool with given options.  To invoke the program,
 # write '$(call RUN_PROG_OPT,Toolname,options)'.  [ Don't use RUN_PROG_OPT_INTERNAL
