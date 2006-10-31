@@ -136,6 +136,17 @@ void SweepExtender::sweep_()
 		// test for different charge states
 		current_charge = testDistance2NextPeak_(dist2nextpeak);
 		
+		IntensityType first_it = traits_->getPeakIntensity(curr_peak);
+		IntensityType sec_it = traits_->getPeakIntensity(curr_peak+1);
+		
+		IntensityType ratio = (first_it / sec_it);
+		
+		if (ratio < 1.2 && ratio > 0.8)
+		{
+			current_charge = 0;	
+			std::cout << "Setting charge to 0";
+		}
+				
         if (current_charge > 0) // charger = 0 => no isotope
         {
 		

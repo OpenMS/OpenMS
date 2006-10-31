@@ -293,7 +293,16 @@ namespace OpenMS
     IndexSet empty;
     writeGnuPlotFile_(empty,true,nr_feat);
 #endif
-
+	std::cout << "# features: " << features_.size() << std::endl;
+	ofstream ffile( "features_");
+	for (DFeatureMap<2>::const_iterator cit = features_.begin();
+			cit != features_.end();
+			++cit)
+	{
+		ffile<< *cit << std::endl;
+	}
+	ffile.close();
+	
     return features_;
   } // end of run()
 

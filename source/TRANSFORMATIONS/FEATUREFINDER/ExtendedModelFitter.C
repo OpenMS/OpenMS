@@ -76,7 +76,7 @@ namespace OpenMS
 	{
 		name_ = ExtendedModelFitter::getName();
 		defaults_.setValue("tolerance_stdev_bounding_box",3.0f);
-		defaults_.setValue("feature_intensity_max",1);
+		defaults_.setValue("feature_intensity_sum",1);
 		defaults_.setValue("min_num_peaks:final",5);
 		defaults_.setValue("min_num_peaks:extended",10);
 		defaults_.setValue("intensity_cutoff_factor",0.05f);

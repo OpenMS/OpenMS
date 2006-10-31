@@ -1228,7 +1228,7 @@ namespace OpenMS
 				os << decoder_.encodeFloatCorrected() << "</peaks>\n";
 			else
 				os  << "</peaks>\n";
-// 				
+			
 			writeUserParam_(os,spec,MSLevel+2);
 			if (spec.getComment() != "")
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";

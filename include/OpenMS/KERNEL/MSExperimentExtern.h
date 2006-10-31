@@ -775,6 +775,7 @@ public:
 	void resize(UnsignedInt new_size) 
 	{
 		exp_.resize(new_size);
+		buffer2scan_.resize(buffer_size_);
 	}
 
     /// See std::vector documentation.
@@ -1005,7 +1006,7 @@ protected:
         if (buffer_index_ < buffer_size_)
         {
 //             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
+// 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
 			
 			// test if we already wrote at this buffer position
 			if (current_scan_ > buffer_size_)

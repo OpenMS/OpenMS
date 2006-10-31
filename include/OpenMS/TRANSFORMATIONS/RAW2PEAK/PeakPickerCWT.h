@@ -628,7 +628,7 @@ namespace OpenMS
           // pick the peaks in scan i
           pick(*input_it,spectrum,input_it->getMSLevel());
           timer.stop();
-          std::cout << timer.getCPUTime() << std::endl;
+          std::cout << "Picking took " << timer.getClockTime()  << std::endl;
 
           // if any peaks are found copy the spectrum settings
           if (spectrum.size() > 0)
@@ -726,38 +726,27 @@ namespace OpenMS
 	  	for (unsigned int i=0; i<ms_exp_raw.size();++i)
 		{
 		  MSSpectrum< OutputPeakType > out_spec;
-		  MSSpectrum< InputPeakType > inspec = ms_exp_raw[i];
-         
+		 
 		  std::cout << "Picking scan " << i << std::endl;
-		  std::cout << "Size of input: " << inspec.size() << std::endl;
+		  std::cout << "Size of input: " << ms_exp_raw[i].size() << std::endl;
 		  StopWatch watch;
 		  watch.start();
           // pick the peaks in scan i
-          pick(inspec.begin(),inspec.end(),out_spec,inspec.getMSLevel());
+          pick(ms_exp_raw[i].begin(),ms_exp_raw[i].end(),out_spec,ms_exp_raw[i].getMSLevel());
 		  watch.stop();
 		
 		  std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;
 		  
-          // if any peaks are found copy the spectrum settings
-          if (out_spec.size() > 0)
-          {
-            // copy the spectrum settings
-            //static_cast<SpectrumSettings&>(spectrum) = *input_it;
-            out_spec.setType(SpectrumSettings::PEAKS);
+		  // copy spectrum settings
+          out_spec.setType(SpectrumSettings::PEAKS);
 
-            // copy the spectrum information
-            out_spec.getPrecursorPeak() = inspec.getPrecursorPeak();
-            out_spec.setRetentionTime(inspec.getRetentionTime());
-            out_spec.setMSLevel(inspec.getMSLevel());
-            out_spec.getName() = inspec.getName();
+          // copy the spectrum information
+          out_spec.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
+          out_spec.setRetentionTime(ms_exp_raw[i].getRetentionTime());
+          out_spec.setMSLevel(ms_exp_raw[i].getMSLevel());
+          out_spec.getName() = ms_exp_raw[i].getName();
 
-            ms_exp_peaks.push_back(out_spec);
-			std::cout << "Stored new spectrum. New size: " << ms_exp_peaks.size() << std::endl;
-		  } 
-		  else
-		  {
-		  	std::cout << "No peaks found in this spectrum. " << std::endl;
-		  }
+          ms_exp_peaks.push_back(out_spec);		            
 		}
         
 		//pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
