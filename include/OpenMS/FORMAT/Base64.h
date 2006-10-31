@@ -71,22 +71,22 @@ namespace OpenMS
 
 
     /// Decode given Base64-String of size @p size
-		char* decode(const char* src, const Size size);
+		char* decode(const char* src, Size size);
 		
     /// Dncode given Base64-String of size @p size
-		char* encode(const char* src, const Size size);
+		char* encode(const char* src, Size size);
 
 		/**@name Handling of 32 bit real type */
     //@{
 
     /// Decode given Base64-String of size @p size to array of floats, each float corrected from network to host byte order
-		float* decodeFloatCorrected(const char* src, const Size size);
+		float* decodeFloatCorrected(const char* src, Size size);
 
     /// decode given Base64-String of size @p size to array of floats
-		float* decodeFloat(const char* src, const Size size);
+		float* decodeFloat(const char* src, Size size);
 
     /// return internal input buffer to fill with @p size floats
-		float* getFloatBuffer(const Size size);
+		float* getFloatBuffer(Size size);
 
     /// encode internal input buffer (fill with getFloatBuffer()) to Base64-String after conversion to network byte order
 		char* encodeFloatCorrected();
@@ -100,13 +100,13 @@ namespace OpenMS
     //@{
 
     /// decode given Base64-String of size @p size to array of doubles, each double corrected from network to host byte order
-		double* decodeDoubleCorrected(const char* src, const Size size);
+		double* decodeDoubleCorrected(const char* src, Size size);
 
     /// decode given Base64-String of size @p size to array of doubles
-		double* decodeDouble(const char* src, const Size size);
+		double* decodeDouble(const char* src, Size size);
 
     /// return internal input buffer to fill with @p size doubles
-		double* getDoubleBuffer(const Size size);
+		double* getDoubleBuffer(Size size);
 
     /// encode internal input buffer (fill with getDoubleBuffer()) to Base64-String after conversion to network byte order
 		char* encodeDoubleCorrected();
@@ -120,11 +120,16 @@ namespace OpenMS
 		char* in_buffer_;
 		/// output buffer
 		char* out_buffer_;
-		/// actual length of input buffer in Bytes
+		/// Length of input buffer
 		Size in_length_;
-		/// actual length of output buffer in Bytes
+		/// Length of output buffer
 		Size out_length_;
-
+		/// Length of input buffer
+		Size ibuffer_size_;
+		
+		/// Adapts input buffer size to new value of in_length_.
+		void adaptInputBuffer_();
+		
 		static const char encoder_[];
 		static const char decoder_[];
   };

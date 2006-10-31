@@ -207,6 +207,42 @@ namespace OpenMS
 	};
 
 	/**
+		@brief Predicate that determines if a spectrum is empty.
+		
+		SpectrumType must have a size() member function
+		
+		@ingroup RangeUtils
+	*/	
+	template <class SpectrumType>
+	class SpectrumEmptyPredicate
+		: std::unary_function<SpectrumType, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param reverse if @p reverse is true, operator() return true if the spectrum is not empty
+			*/
+			SpectrumEmptyPredicate(bool reverse = false)
+				: reverse_(reverse)
+			{
+				
+			}
+		
+			inline bool operator()(const SpectrumType& s) const
+			{
+				if (reverse_)
+				{
+					return s.size() != 0 ; 
+				}
+				return s.size() == 0 ; 
+			}
+		
+		protected:
+			bool reverse_;
+	};
+
+	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		
 		PeakType must be a DRawDataPoint or have the same interface.

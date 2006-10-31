@@ -39,14 +39,16 @@ namespace OpenMS
 		: in_buffer_(0), 
 			out_buffer_(0), 
 			in_length_(0), 
-			out_length_(0)
+			out_length_(0),
+			ibuffer_size_(0)
 	{
 		
 	}
 
 	Base64::~Base64()
   {
-		if (out_length_!=0)	delete [] out_buffer_;
+		delete [] out_buffer_;
+		delete [] in_buffer_;
 	}
 
 	Size Base64::getOutputBufferSize()
@@ -56,7 +58,7 @@ namespace OpenMS
 
 	void Base64::setOutputBufferSize(Size s)
 	{
-		if (out_length_!=0) delete [] out_buffer_;
+		delete [] out_buffer_;
 		out_length_ = int(ceil(s/3.0))*3+1;  // add 1 for '\0'
 		try
 		{
@@ -69,14 +71,12 @@ namespace OpenMS
 		}
 	}
 
-	//--------- 32 bit precision -------------------------------
-	float* Base64::decodeFloatCorrected(const char* src, const Size size)
+	float* Base64::decodeFloatCorrected(const char* src, Size size)
 	{
 		decode(src,size);
-		Size n = out_length_/4;
 
 		u_int32_t tmp;
-		for (UnsignedInt i=0; i<n; i++)
+		for (UnsignedInt i=0; i<out_length_/4; i++)
 		{
 			//byte order correction
 			tmp = ntohl( (u_int32_t) ((u_int32_t *)out_buffer_)[i]);
@@ -85,35 +85,50 @@ namespace OpenMS
 		return (float*) out_buffer_;
 	}
 
-	float* Base64::decodeFloat(const char* src, const Size size)
+	float* Base64::decodeFloat(const char* src, Size size)
 	{
 		return (float*) decode(src,size);
 	}
 
-	float* Base64::getFloatBuffer(const Size size)
+	float* Base64::getFloatBuffer(Size size)
 	{
-		// increase buffer if necessary
-		if (in_length_!=0 && 4*size > in_length_) delete [] in_buffer_;
-		in_length_ = 4*size+1;
-		try
-		{
-			in_buffer_ = (char*) new char[in_length_];
-			in_buffer_[in_length_-1] = '\0';
-			--in_length_;
-		}
-		catch(bad_alloc)
-		{
-			throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, in_length_);
-		}
+		in_length_ = 4*size;
+		adaptInputBuffer_();
 		return (float*)in_buffer_;
 	}
 
+	double* Base64::getDoubleBuffer(Size size)
+	{
+		in_length_ = 8*size;
+		adaptInputBuffer_();
+		return (double*)in_buffer_;
+	}
+
+	void Base64::adaptInputBuffer_()
+	{
+		// increase buffer if necessary
+		if (in_length_ > ibuffer_size_)
+		{
+			ibuffer_size_ = in_length_+1;
+			delete [] in_buffer_;
+			try
+			{
+				in_buffer_ = (char*) new char[ibuffer_size_];
+			}
+			catch(bad_alloc)
+			{
+				throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, in_length_);
+			}
+			in_buffer_[in_length_] = '\0';
+		}
+	}
+
+
 	char* Base64::encodeFloatCorrected()
 	{
-		Size n = in_length_/4;
 		u_int32_t tmp;
 
-		for (UnsignedInt i=0; i<n; i++)
+		for (UnsignedInt i=0; i<in_length_/4; i++)
 		{
 			//byte order correction
 			tmp = htonl( (u_int32_t) ((u_int32_t *)in_buffer_)[i]);
@@ -128,14 +143,12 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	//--------- 64 bit precision -------------------------------
-	double* Base64::decodeDoubleCorrected(const char* src, const Size size)
+	double* Base64::decodeDoubleCorrected(const char* src, Size size)
 	{
 		decode(src,size*2);
-		Size n = out_length_/8;
 
 		u_int32_t tmp1, tmp2;
-		for (UnsignedInt i=0; i<n; i++)
+		for (UnsignedInt i=0; i<out_length_/8; i++)
 		{
 			//byte order correction
 			tmp1 = ntohl( (u_int32_t) ((u_int32_t *)out_buffer_)[2*i]);
@@ -146,36 +159,17 @@ namespace OpenMS
 		return (double*) out_buffer_;
 	}
 
-	double* Base64::decodeDouble(const char* src, const Size size)
+	double* Base64::decodeDouble(const char* src, Size size)
 	{
 		return (double*) decode(src,size);
 	}
 
-	double* Base64::getDoubleBuffer(const Size size)
-	{
-		// increase buffer if necessary
-		if (in_length_!=0 && 8*size > in_length_) delete [] in_buffer_;
-		in_length_ = 8*size+1;
-		try
-		{
-			in_buffer_ = (char*) new char[in_length_];
-			in_buffer_[in_length_-1] = '\0';
-			--in_length_;				
-		}
-		catch(bad_alloc)
-		{
-			throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, in_length_);
-		}
-		return (double*)in_buffer_;
-	}
-
 	char* Base64::encodeDoubleCorrected()
 	{
-		Size n = in_length_/8;
 		u_int32_t tmp1;
 		u_int32_t tmp2;
 
-		for (UnsignedInt i=0; i<n; i++)
+		for (UnsignedInt i=0; i<in_length_/8; i++)
 		{
 			//byte order correction
 			tmp1 = htonl( (u_int32_t) ((u_int32_t *)in_buffer_)[2*i]);
@@ -191,7 +185,7 @@ namespace OpenMS
 		return encode(in_buffer_,in_length_);
 	}
 
-	char* Base64::encode(const char* src, const Size size)
+	char* Base64::encode(const char* src, Size size)
 	{
 		UnsignedInt padding = 0;
 		if (size%3 == 2) padding=1; 
@@ -256,7 +250,7 @@ namespace OpenMS
 		return out_buffer_;
 	}
 
-	char* Base64::decode(const char* src, const Size size)
+	char* Base64::decode(const char* src, Size size)
 	{
 		Size src_size = size;
 		// remove last one or two '=' if contained

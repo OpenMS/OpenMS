@@ -267,6 +267,9 @@ class TOPPFileFilter
 				it->getContainer().erase(remove_if(it->begin(), it->end(), MzRange<MSExperiment< >::PeakType>(mz_l, mz_u, true)), it->end());
 			}
 			
+			//remove empty scans
+			exp.erase(remove_if(exp.begin(), exp.end(), SpectrumEmptyPredicate<MSExperiment< >::SpectrumType>()), exp.end());
+			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
