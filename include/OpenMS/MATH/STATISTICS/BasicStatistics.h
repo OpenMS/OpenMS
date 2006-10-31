@@ -239,7 +239,10 @@ namespace OpenMS
 				return;
 			}
 
-			/// A convenient overload for debugging purposes.
+			/**@brief A convenient overload for debugging purposes.
+
+			@relatesalso BasicStatistics
+			*/
 			friend std::ostream & operator << ( std::ostream & os, BasicStatistics & arg )
 			{
 				os << "BasicStatistics:  mean=" << arg.mean() << "  variance=" << arg.variance() << "  sum=" << arg.sum();

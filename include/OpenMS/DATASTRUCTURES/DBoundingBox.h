@@ -193,7 +193,10 @@ namespace OpenMS
 
 	};
 	
-	///Print the contents to a stream.
+	/**@brief Print the contents to a stream.
+
+	@relatesalso DBoundingBox
+	*/
 	template <Size D, typename Traits>
 	std::ostream& operator << (std::ostream& os, const DBoundingBox<D,Traits>& bounding_box)
 	{
