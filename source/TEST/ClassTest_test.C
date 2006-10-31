@@ -74,6 +74,15 @@ CHECK()
 RESULT
 
 CHECK()
+	struct Dummy
+	{
+		std::string f_dummy( double d, float f, int i, unsigned u, long l, unsigned long ul, char c) { return __PRETTY_FUNCTION__; }
+	} dummy;
+
+STATUS("\n\n\tExample for usage of __PRETTY_FUNCTION__ inside a member function of a nested class in main():\n\t" << dummy.f_dummy(1., 2.F, 3, 4U, 5L, 6UL, '\008') << '\n')
+RESULT
+
+CHECK()
 	STATUS("status message")
 RESULT
 

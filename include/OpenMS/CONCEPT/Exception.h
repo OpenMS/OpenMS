@@ -81,6 +81,8 @@ namespace OpenMS
 			should set the environment variable <tt> OPENMS_DUMP_CORE</tt> to any
 			(non empty) value.
 
+			@todo __PRETTY_FUNCTION__ is not a compiler macro!  See info:gcc
+
 			@ingroup Exceptions
 		*/
 		
