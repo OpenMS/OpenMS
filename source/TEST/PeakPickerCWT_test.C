@@ -86,8 +86,8 @@ CHECK((PeakPickerCWT(const Param& parameters)))
   TEST_EQUAL(pp.getParam() == param, true)
 RESULT
 
-CHECK((Continuouswavelet_transformNumIntegration& getWaveletTransform()))
-  Continuouswavelet_transformNumIntegration cwt;
+CHECK((ContinuousWaveletTransformNumIntegration& getWaveletTransform()))
+  ContinuousWaveletTransformNumIntegration cwt;
   cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
@@ -189,7 +189,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
 RESULT
 
-CHECK((const Continuouswavelet_transformNumIntegration& getWaveletTransform() const))
+CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0)
@@ -310,10 +310,10 @@ CHECK((void setNoiseLevel(const float& noise_level)))
   TEST_REAL_EQUAL(pp.getNoiseLevel(),12)
 RESULT
 
-CHECK((void setoptimizationFlag(const bool& optimization)))
+CHECK((void setOptimizationFlag(const bool& optimization)))
   PeakPickerCWT pp;
   
-  pp.setoptimizationFlag(true);
+  pp.setOptimizationFlag(true);
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
 RESULT
 
@@ -360,12 +360,12 @@ CHECK((void setWaveletScale(const float& scale)))
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.1)
 RESULT
 
-CHECK((void setwavelet_transform(const Continuouswavelet_transformNumIntegration& wt)))
-  Continuouswavelet_transformNumIntegration cwt;
+CHECK((void setWaveletTransform(const ContinuousWaveletTransformNumIntegration& wt)))
+  ContinuousWaveletTransformNumIntegration cwt;
   cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
-  pp.setwavelet_transform(cwt);
+  pp.setWaveletTransform(cwt);
   
   TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
 RESULT
