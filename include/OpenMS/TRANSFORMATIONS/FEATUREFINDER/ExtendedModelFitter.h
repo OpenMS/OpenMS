@@ -35,13 +35,11 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 
-#ifdef GSL_DEF
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
-#endif
 
 #include<iostream>
 #include<fstream>

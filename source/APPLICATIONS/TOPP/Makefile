@@ -28,16 +28,6 @@ include ../../config_defs.mak
 
 DIRECTORY=APPLICATIONS/TOPP
 
-ifeq ($(GSL_SUPPORT),true)
-GSL_EXEC=\
-	MapStatistics\
-	AdditiveSeries\
-	MapMatcher\
-	NoiseFilter\
-	SpectraFilter
-endif
-
-
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_EXEC=\
 	UnlabeledMatcher\
@@ -52,7 +42,6 @@ endif
 
 EXECUTABLES=\
 	$(CGAL_EXEC)\
-	$(GSL_EXEC)\
 	$(LIBSVM_EXEC)\
 	FileConverter\
 	FileInfo\
@@ -72,7 +61,12 @@ EXECUTABLES=\
 	DBExporter\
 	DBImporter\
 	SequestAdapter\
-	AnalysisXMLMerger
+	AnalysisXMLMerger\
+	MapStatistics\
+	AdditiveSeries\
+	MapMatcher\
+	NoiseFilter\
+	SpectraFilter
 
 #	
 #	RawDataResampler\

@@ -33,11 +33,8 @@
 #include <OpenMS/KERNEL/DPickedPeak.h>
 #include <OpenMS/DATASTRUCTURES/RangeManager.h>
 
-#ifdef GSL_DEF
 #include <gsl/gsl_randist.h>
-#else
-#define gsl_ran_gaussian_pdf(a,b) b
-#endif
+
 
 #include <list>
 

@@ -51,10 +51,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-
-#ifdef GSL_DEF
-	#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
-#endif
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
 
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
@@ -1352,20 +1349,9 @@ namespace OpenMS
     if (dialog.exec())
     {
       float kernel_width = dialog.getKernelWidth();
-#ifdef GSL_DEF
 			float spacing = dialog.getSpacing();
 			bool resampling_flag = dialog.getResampling();
-#endif
-      
       bool sgolay_flag = dialog.getSGolay();
-			
-			if (sgolay_flag)
-			{
-#ifndef GSL_DEF
-				QMessageBox::warning(this,"Filter not available!","Savitzky Golay is not available as GSL is deactivated.");
-				return;
-#endif
-			}
       
       // 1D smoothing
       Spectrum1DWindow* w = active1DWindow_();
@@ -1383,7 +1369,6 @@ namespace OpenMS
         exp_smoothed.resize(1);
       	if (sgolay_flag)
         {
-#ifdef GSL_DEF
         	SavitzkyGolaySVDFilter sgolay;
         	try
 	        {
@@ -1434,7 +1419,6 @@ namespace OpenMS
 	        	
 						return;
 	        }
-#endif
         }
         // gaussian smoothing
         else
@@ -1476,7 +1460,6 @@ namespace OpenMS
 
 					if (sgolay_flag)
         	{
-#ifdef GSL_DEF
 	        	SavitzkyGolaySVDFilter sgolay;
 	        	try
 	        	{
@@ -1542,7 +1525,6 @@ namespace OpenMS
 	        		delete w_smoothed;
 							return;
 	        	}
-#endif
           }
 
           // gaussian filtering

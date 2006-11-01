@@ -37,15 +37,8 @@ CPP_SOURCES= \
 	PeakPickerCWT.C\
 	ContinuousWaveletTransform.C\
 	ContinuousWaveletTransformNumIntegration.C\
-	PeakShape.C
-
-
-ifeq ($(GSL_SUPPORT),true)
- GSL_SOURCES=\
+	PeakShape.C\
 	OptimizePick.C
-endif
-
-ADD_CPP_SOURCES = ${FFTW_SOURCES} ${GSL_SOURCES}
 
 include ../../common.mak
 -include .Dependencies

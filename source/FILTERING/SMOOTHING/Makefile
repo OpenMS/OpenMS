@@ -33,13 +33,9 @@ include ../../config_defs.mak
 CPP_SOURCES= \
 	SmoothFilter.C\
 	GaussFilter.C\
-
-#conditional compiles
-ifeq ($(GSL_SUPPORT),true)
-	ADD_CPP_SOURCES=\
 	SavitzkyGolayQRFilter.C\
 	SavitzkyGolaySVDFilter.C
-endif
+
 
 include ../../common.mak
 -include .Dependencies

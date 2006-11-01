@@ -36,9 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#ifdef GSL_DEF
  #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-#endif
 
 #include <math.h>
 #include <vector>
@@ -349,14 +347,11 @@ namespace OpenMS
         // vector of peak endpoint positions
         std::vector<double> peak_endpoints;
 
-#ifdef GSL_DEF
-
         if (optimization_)
         {
           OptimizationFunctions::positions_.clear();
           OptimizationFunctions::signal_.clear();
         }
-#endif
 
         // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
@@ -382,8 +377,6 @@ namespace OpenMS
 				if(it_pick_begin == it_pick_end) return;
 				sne.init(it_pick_begin,it_pick_end);
 
-#ifdef GSL_DEF
-
         if (optimization_)
         {
           unsigned int l=raw_peak_array.size();
@@ -397,7 +390,6 @@ namespace OpenMS
             OptimizationFunctions::signal_[i] = raw_peak_array[i].getIntensity();
           }
         }
-#endif
 
         // Points to the actual maximum position in the raw data
         RawDataPointIterator it_max_pos;
@@ -502,7 +494,6 @@ namespace OpenMS
 
         if (peak_shapes_.size() > 0)
         {
-#ifdef GSL_DEF
           if (optimization_)
           {
             struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
@@ -555,7 +546,6 @@ namespace OpenMS
               peak_shapes_[i].r_value=opt.correlate(peak_shapes_[i],peak_endpoints[j], peak_endpoints[j+1]);
             }
           } // if optimization
-#endif
 
           // write the picked peaks to the outputcontainer
           for (unsigned int i = 0; i < peak_shapes_.size(); ++i)

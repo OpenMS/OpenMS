@@ -29,23 +29,14 @@
 
 // all from BaseModelFitter derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
-
-#ifdef GSL_DEF
-#  include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
-#endif
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
 
 namespace OpenMS
 {
 	void BaseModelFitter::registerChildren()
 	{
-
 		Factory<BaseModelFitter>::registerProduct(SimpleModelFitter::getName(), &SimpleModelFitter::create);
-
-#ifdef GSL_DEF
 		Factory<BaseModelFitter>::registerProduct(ExtendedModelFitter::getName(), &ExtendedModelFitter::create);
-#endif
-
-		return;
 	}	
 
 	BaseModelFitter::BaseModelFitter() : FeaFiModule() {}

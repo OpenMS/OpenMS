@@ -31,12 +31,9 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 
-#ifdef GSL_DEF
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
-#endif
-
 
 #include <iostream>
 #include <fstream>

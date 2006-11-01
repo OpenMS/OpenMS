@@ -51,19 +51,13 @@ CPP_SOURCES=\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
 	SweepExtender.C\
-	PPExtender.C
-
-ifeq ($(GSL_SUPPORT),true)
- GSL_SOURCES=\
+	PPExtender.C\
 	EmgModel.C\
 	ExtendedModelFitter.C\
 	LmaGaussModel.C\
 	LogNormalModel.C\
 	WaveletSeeder.C\
 	WaveletExtender.C
-endif
-
-ADD_CPP_SOURCES = ${GSL_SOURCES} 
 
 include ../../common.mak
 -include .Dependencies

@@ -164,23 +164,27 @@ EXECUTABLES_FORMAT = \
 
 #MATH
 
-ifeq ($(GSL_SUPPORT),true)
-	GSL_EXECUTABLES_MATH = \
-		LinearRegression_test
-endif
-
 EXECUTABLES_MATH = \
 	LinearInterpolation_test\
 	BasicStatistics_test\
 	ROCCurve_test\
 	Histogram_test\
 	MathFunctions_test\
-	${GSL_EXECUTABLES_MATH}
+	LinearRegression_test
 
 #FILTERING
 
-ifeq ($(GSL_SUPPORT),true)
-	GSL_EXECUTABLES_FILTERING = \
+EXECUTABLES_FILTERING = \
+	IDFilter_test\
+	LinearResampler_test\
+	TopHatFilter_test\
+	MorphFilter_test\
+	DSignalToNoiseEstimatorWindowing_test\
+	DSignalToNoiseEstimatorMedian_test\
+	SmoothFilter_test\
+	GaussFilter_test\
+  MaxReducer_test\
+	SumReducer_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\
@@ -211,27 +215,11 @@ ifeq ($(GSL_SUPPORT),true)
 	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test
-endif
-
-
-EXECUTABLES_FILTERING = \
-	$(GSL_EXECUTABLES_FILTERING)\
-	IDFilter_test\
-	LinearResampler_test\
-	TopHatFilter_test\
-	MorphFilter_test\
-	DSignalToNoiseEstimatorWindowing_test\
-	DSignalToNoiseEstimatorMedian_test\
-	SmoothFilter_test\
-	GaussFilter_test\
-  MaxReducer_test\
-	SumReducer_test
 
 
 #COMPARISON
 
-ifeq ($(GSL_SUPPORT),true)
-	GSL_EXECUTABLES_COMPARISON = \
+EXECUTABLES_COMPARISON=\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
 	ClNode_test\
@@ -246,11 +234,6 @@ ifeq ($(GSL_SUPPORT),true)
 	BinnedRepSumAgreeingIntensities_test\
 	SequestCompareFunctor_test\
   SpectrumPrecursorComparator_test
-endif
-
-
-EXECUTABLES_COMPARISON = \
-	$(GSL_EXECUTABLES_COMPARISON)
 
 EXECUTABLES_CHEMISTRY = \
 	IsotopeDistribution_test\
@@ -261,13 +244,6 @@ EXECUTABLES_CHEMISTRY = \
 	ResidueDB_test\
 	PeptideSequence_test\
 	EnzymaticDigestion_test
-
-
-ifeq ($(GSL_SUPPORT),true)
-	GSL_EXECUTABLES_ANALYSIS_MAPMATCHING = \
-		DMapMatcherRegression_test\
-		DMapDewarper_test
-endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
 	EXECUTABLES_ANALYSIS_SVM = SVMWrapper_test
@@ -280,7 +256,8 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DGrid_test\
 	DLinearMapping_test\
 	PairMatcher_test\
-	$(GSL_EXECUTABLES_ANALYSIS_MAPMATCHING)
+	DMapMatcherRegression_test\
+	DMapDewarper_test
 
 # APPLICATIONS
 
@@ -289,19 +266,7 @@ EXECUTABLES_APPLICATIONS = \
 
 # TRANSFORMATIONS
 
-ifeq ($(GSL_SUPPORT),true)
-	GSL_EXECUTABLES_TRANSFORMATIONS = \
-		ContinuousWaveletTransformNumIntegration_test\
-		OptimizePick_test\
-		EmgModel_test\
-		LmaGaussModel_test\
-		LogNormalModel_test\
-		ExtendedModelFitter_test\
-		PeakPickerCWT_test
-endif
-
 EXECUTABLES_TRANSFORMATIONS = \
-	${GSL_EXECUTABLES_TRANSFORMATIONS}\
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	BaseModel_test\
@@ -316,7 +281,14 @@ EXECUTABLES_TRANSFORMATIONS = \
 	PeakPicker_test\
 	ExtractSignalRegions_test\
 	Correlation_test\
-	FeatureFinder_test
+	FeatureFinder_test\
+	ContinuousWaveletTransformNumIntegration_test\
+	OptimizePick_test\
+	EmgModel_test\
+	LmaGaussModel_test\
+	LogNormalModel_test\
+	ExtendedModelFitter_test\
+	PeakPickerCWT_test
 
 
 EXECUTABLES_ANALYSIS_ID =\

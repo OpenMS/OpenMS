@@ -31,8 +31,7 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-ifeq ($(GSL_SUPPORT),true)
-	GSL_CPP_SOURCES = \
+CPP_SOURCES=\
 	SpectrumCheapDPCorr.C\
 	BinnedRepSpectrumContrastAngle.C\
 	BinnedRepMutualInformation.C\
@@ -41,10 +40,6 @@ ifeq ($(GSL_SUPPORT),true)
 	SequestCompareFunctor.C\
 	SpectrumPrecursorComparator.C\
 	CompareFunctor.C
-endif
-
-CPP_SOURCES=\
-	$(GSL_CPP_SOURCES)
 
 ADD_CPP_SOURCES = 
 

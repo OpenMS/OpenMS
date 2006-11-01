@@ -54,7 +54,6 @@ AC_ARG_WITH(netcdf-libs,       [  --with-netcdf-libs=DIR  specify the location o
 AC_ARG_ENABLE(andims,          [  --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)])
 AC_ARG_WITH(andims-incl,       [  --with-andims-incl=DIR  specify the location of the ANDI/MS header file "ms10.h"])
 AC_ARG_WITH(andims-libs,       [  --with-andims-libs=DIR  specify the location of the ANDI/MS archive file "ms10lib.a"])
-AC_ARG_ENABLE(gsl,             [  --disable-gsl           disable the use of GSL (a scientific library)])
 AC_ARG_WITH(gsl-incl,          [  --with-gsl-incl=DIR     specify the location of the directory containing "gsl/gsl_version.h"])
 AC_ARG_WITH(gsl-libs,          [  --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"])
 AC_ARG_ENABLE(boost,           [  --disable-boost         disable the use of the Boost library (used for persitence)])
@@ -192,12 +191,9 @@ else
   BOOST_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
-if test "$with_gsl" = "no" -o "$enable_gsl" = "no"; then
-  GSL_SUPPORT=false
-else
-  GSL_SUPPORT=true
-  AC_DEFINE(GSL_DEF)
-fi
+#GSL is always on
+GSL_SUPPORT=true
+AC_DEFINE(GSL_DEF)
 
 if test "$with_gsl_incl" != "" ; then
   GSL_INCPATH="${with_gsl_incl}"

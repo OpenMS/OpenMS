@@ -33,16 +33,10 @@ THISLIB=$(LIBNAME)
 CPP_SOURCES= \
 	BasicStatistics.C\
 	AsymmetricStatistics.C\
-	Histogram.C
-
-#conditional compiles
-ifeq ($(GSL_SUPPORT),true)
-  GSL_SOURCES=\
+	Histogram.C\
 	LinearRegression.C
-endif
 
 ADD_CPP_SOURCES = \
-	${GSL_SOURCES}\
 	ROCCurve.C
 
 include ../../common.mak

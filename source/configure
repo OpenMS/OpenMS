@@ -856,7 +856,6 @@ Optional Features:
   --disable-cgal          disable the use of CGAL (for advanced d-dimensional geometry)
   --disable-netcdf        disable the use of NetCDF (a library for a data format)
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
-  --disable-gsl           disable the use of GSL (a scientific library)
   --disable-boost         disable the use of the Boost library (used for persitence)
   --enable-python         enable Python support and search for executable
   --enable-fftw           enable the build of OpenMS with support for FFTW (a FFT library)
@@ -1646,11 +1645,6 @@ if test "${with_andims_libs+set}" = set; then
   withval="$with_andims_libs"
 
 fi;
-# Check whether --enable-gsl or --disable-gsl was given.
-if test "${enable_gsl+set}" = set; then
-  enableval="$enable_gsl"
-
-fi;
 
 # Check whether --with-gsl-incl or --without-gsl-incl was given.
 if test "${with_gsl_incl+set}" = set; then
@@ -1910,15 +1904,12 @@ else
   BOOST_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
-if test "$with_gsl" = "no" -o "$enable_gsl" = "no"; then
-  GSL_SUPPORT=false
-else
-  GSL_SUPPORT=true
-  cat >>confdefs.h <<\_ACEOF
+#GSL is always on
+GSL_SUPPORT=true
+cat >>confdefs.h <<\_ACEOF
 #define GSL_DEF 1
 _ACEOF
 
-fi
 
 if test "$with_gsl_incl" != "" ; then
   GSL_INCPATH="${with_gsl_incl}"
@@ -18594,12 +18585,6 @@ echo "${ECHO_T}Please specify the path to <gsl/gsl_version.h>" >&6
 echo "${ECHO_T}by passing the option --with-gsl-incl=DIR to configure." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: GSL is needed for signal processing." >&5
-echo "${ECHO_T}GSL is needed for signal processing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-gsl." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-gsl." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
 
 	echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -18716,12 +18701,6 @@ echo "${ECHO_T}" >&6
 echo "${ECHO_T}The GSL headers could not be found. Please specify the path to <gsl/gsl_version.h>" >&6
 		  echo "$as_me:$LINENO: result: by passing the option --with-gsl-incl=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-gsl-incl=DIR to configure." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: GSL is needed for signal processing." >&5
-echo "${ECHO_T}GSL is needed for signal processing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-gsl." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-gsl." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 
@@ -18885,12 +18864,6 @@ echo "${ECHO_T}by passing the option --with-gsl-libs=DIR to configure." >&6
 echo "${ECHO_T}You may also set the environment variable GSL_LIB_DIR to the correct" >&6
 		  echo "$as_me:$LINENO: result: path - configure will recognize this, too." >&5
 echo "${ECHO_T}path - configure will recognize this, too." >&6
-		  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-		  echo "$as_me:$LINENO: result: GSL is needed for signal processing." >&5
-echo "${ECHO_T}GSL is needed for signal processing." >&6
-		  echo "$as_me:$LINENO: result: Please install the library on your system, or disable it with --disable-gsl." >&5
-echo "${ECHO_T}Please install the library on your system, or disable it with --disable-gsl." >&6
 		  echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
 
@@ -21485,7 +21458,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Intrinsic.h.
+  # Guess where to find include files, by looking for Xlib.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21493,7 +21466,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -21520,7 +21493,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Intrinsic.h"; then
+  if test -r "$ac_dir/X11/Xlib.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -21541,11 +21514,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Intrinsic.h>
+#include <X11/Xlib.h>
 int
 main ()
 {
-XtMalloc (0)
+XrmInitialize ()
   ;
   return 0;
 }

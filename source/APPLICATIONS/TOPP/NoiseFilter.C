@@ -25,10 +25,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#ifdef GSL_DEF
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
-#endif
-
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -182,8 +179,7 @@ class TOPPNoiseFilter
       MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
 
       if (filter_type == "sgolay")
-      {
-#ifdef GSL_DEF   	
+      {	
         SavitzkyGolaySVDFilter sgolay( getParam_() );
         // ???? old SavitzkyGolaySVDFilter sgolay(noise_param);
 
@@ -238,12 +234,6 @@ class TOPPNoiseFilter
             }
           }
         }
-#else
-        writeLog_("Savitzky Golay filter is not available as GSL is deactivated. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-#endif
-
       }
       else
         if (filter_type == "gaussian")

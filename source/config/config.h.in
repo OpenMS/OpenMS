@@ -275,9 +275,7 @@
 #undef ANDIMS_DEF
 #undef FFTW_DEF
 #undef LIBSVM_DEF
-#undef XERCES_DEF
 #undef NETCDF_DEF
-#undef GSL_DEF
 #undef BOOST_DEF
 #undef CGAL_DEF
 #undef DB_DEF

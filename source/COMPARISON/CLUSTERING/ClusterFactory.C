@@ -173,9 +173,7 @@ namespace OpenMS
     registerfp(BinnedRepMutualInformation::getName(),&BinnedRepMutualInformation::create);
     registerfp(BinnedRepSumAgreeingIntensities::getName(),&BinnedRepSumAgreeingIntensities::create);
     registerfp(BinnedRepSharedPeakCount::getName(),&BinnedRepSharedPeakCount::create);
-		#ifdef GSL_DEF
     registerfp(SpectrumCheapDPCorr::getName(),&SpectrumCheapDPCorr::create);
-		#endif
     registerfp(SpectrumPrecursorComparator::getName(),&SpectrumPrecursorComparator::create);
     registerfp(SequestCompareFunctor::getName(),&SequestCompareFunctor::create);
     

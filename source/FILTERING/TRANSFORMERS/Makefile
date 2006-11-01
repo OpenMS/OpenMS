@@ -30,8 +30,7 @@ DIRECTORY=FILTERING/TRANSFORMERS
 
 THISLIB=$(LIBNAME)
 
-ifeq ($(GSL_SUPPORT),true)
-  GSL_CPP_SOURCES = \
+CPP_SOURCES = \
   BernNorm.C\
   GoodDiffFilter.C\
   NLargest.C\
@@ -61,10 +60,6 @@ ifeq ($(GSL_SUPPORT),true)
   TradSeqQuality.C\
   IntensityDistBins.C\
   LinearResampler.C
-endif
-
-CPP_SOURCES = \
-	$(GSL_CPP_SOURCES)
 
 include ../../common.mak
 -include .Dependencies

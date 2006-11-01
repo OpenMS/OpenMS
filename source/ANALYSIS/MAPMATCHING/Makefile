@@ -30,11 +30,6 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-ifeq ($(GSL_SUPPORT),true)
-GSL_SOURCES=\
-	DMapMatcherRegression.C
-endif
-
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_SOURCES=\
 	StarAlignment.C\
@@ -59,9 +54,10 @@ CPP_SOURCES=\
 	SimplePairFinder.C\
 	Group.C\
 	IndexTuple.C\
-	BaseAlignment.C
-	
-ADD_CPP_SOURCES = $(GSL_SOURCES) $(CGAL_SOURCES)
+	BaseAlignment.C\
+	DMapMatcherRegression.C
+
+ADD_CPP_SOURCES = $(CGAL_SOURCES)
 ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak

@@ -31,13 +31,9 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-CPP_SOURCES= \
-#conditional compiles
-ifeq ($(GSL_SUPPORT),true)
-	ADD_CPP_SOURCES=\
+CPP_SOURCES=\
 	MorphFilter.C\
 	TopHatFilter.C
-endif
 
 include ../../common.mak
 -include .Dependencies

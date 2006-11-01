@@ -4010,9 +4010,6 @@ AC_DEFUN(CF_GSL, [
 			AC_MSG_RESULT([Please specify the path to <gsl/gsl_version.h>])
 		  AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
 		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([GSL is needed for signal processing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-gsl.])
-		  AC_MSG_RESULT()
 			CF_ERROR
 		fi
 
@@ -4022,9 +4019,6 @@ AC_DEFUN(CF_GSL, [
 		  AC_MSG_RESULT()
 		  AC_MSG_RESULT([The GSL headers could not be found. Please specify the path to <gsl/gsl_version.h>])
 		  AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([GSL is needed for signal processing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-gsl.])
 		  AC_MSG_RESULT()
 			CF_ERROR
 		  CF_ERROR
@@ -4052,9 +4046,6 @@ AC_DEFUN(CF_GSL, [
 		  AC_MSG_RESULT([by passing the option --with-gsl-libs=DIR to configure.])
 		  AC_MSG_RESULT([You may also set the environment variable GSL_LIB_DIR to the correct])
 		  AC_MSG_RESULT([path - configure will recognize this, too.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([GSL is needed for signal processing.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-gsl.])
 		  AC_MSG_RESULT()
 			CF_ERROR
 		  CF_ERROR
