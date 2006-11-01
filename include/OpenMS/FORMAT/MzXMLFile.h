@@ -84,8 +84,9 @@ namespace OpenMS
 				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-	
-				map = MapType();
+				
+				// If anyone removes these '//', Ole is going to have a heartattack.
+				//map = MapType();
 				Internal::MzXMLHandler<MapType> handler(map,filename);
 				parser->setContentHandler(&handler);
 				parser->setErrorHandler(&handler);
