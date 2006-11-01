@@ -330,16 +330,6 @@ namespace OpenMS
         //clear the peak shapes vector
         peak_shapes_.clear();
 
-        /// Initialize the wavelet transform
-        double wavelet_spacing;
-        DataValue dv = param_.getValue("WaveletTransform:Spacing");
-        if (dv.isEmpty() || dv.toString() == "")
-          wavelet_spacing= 0.0001;
-        else
-          wavelet_spacing = (double)dv;
-
-        wt_.init(scale_, wavelet_spacing);
-
 #ifdef DEBUG_PEAK_PICKING
 
         std::cout << "****************** PICK ******************" << std::endl;
@@ -414,7 +404,6 @@ namespace OpenMS
           timer.stop();
           std::cout << "TRANSFORM " << timer.getCPUTime() << std::endl;
 
-
           PeakArea_ area;
           bool centroid_fit=false;
           bool regular_endpoints=true;
@@ -460,8 +449,8 @@ namespace OpenMS
 
               // TEST!!!!!
               if ( (shape.r_value > peak_corr_bound_)
-                   && (shape.getFWHM() >= fwhm_bound_)
-                   && (sne.getSignalToNoise(area.max) >= signal_to_noise_))
+                   && (shape.getFWHM() >= fwhm_bound_))
+                   //&& (sne.getSignalToNoise(area.max) >= signal_to_noise_))
               {
                 shape.getSymmetricMeasure();
                 shape.signal_to_noise = sne.getSignalToNoise(area.max);
