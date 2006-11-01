@@ -73,7 +73,7 @@ CHECK((PeakPickerCWT(const Param& parameters)))
   Param param;
   param.setValue("thresholds:correlation",0.8);
   param.setValue("optimization:skip_optimization","yes");
-  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
   
@@ -100,7 +100,7 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   Param param;
   param.setValue("thresholds:correlation",0.8);
   param.setValue("optimization:skip_optimization","yes");
-  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
   
@@ -119,7 +119,7 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   Param param;
   param.setValue("thresholds:correlation",0.8);
   param.setValue("optimization:skip_optimization","yes");
-  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
   
@@ -136,7 +136,6 @@ RESULT
 MzDataFile mz_data_file;
 MSExperiment<DRawDataPoint<1> > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);
-
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
   MSSpectrum<DPeak<1> > peaks;
   PeakPickerCWT pp;
@@ -153,7 +152,6 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   PeakPickerCWT pp;
   
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
-  
   MSSpectrum<DPickedPeak<1> >::const_iterator it = peaks.begin();
   TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)   
   TEST_REAL_EQUAL(it->getPos(),pp.getPeakShapes()[0].mz_position)
@@ -192,7 +190,7 @@ RESULT
 CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
   PeakPickerCWT pp;
   
-  TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0)
+  TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0.001)
 RESULT
 
 CHECK((const bool& getOptimizationFlag() const))
