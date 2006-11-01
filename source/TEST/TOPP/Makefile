@@ -117,7 +117,7 @@ debug:
 
 # Diff that allows for slight numeric differences
 DIFF_NUMERIC = \
-	$(NUMERICDIFF) $(1) $(2) $(3)
+	./$(NUMERICDIFF) $(1) $(2) $(3)
 
 # Diff that ignores whitespaces and empty lines
 DIFF_DEBUG = $(call DIFF_NUMERIC,$1,$2,$(DEVIATION))
