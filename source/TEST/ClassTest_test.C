@@ -76,7 +76,7 @@ RESULT
 CHECK()
 	struct Dummy
 	{
-		std::string f_dummy( double d, float f, int i, unsigned u, long l, unsigned long ul, char c) { return __PRETTY_FUNCTION__; }
+		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return __PRETTY_FUNCTION__; }
 	} dummy;
 
 	STATUS("\n\n\tExample for usage of __PRETTY_FUNCTION__ inside a member function of a nested class in main():\n\t" << dummy.f_dummy(0,0,0,0,0,0,0) << '\n')
