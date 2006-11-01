@@ -283,7 +283,7 @@
 
 #define ENABLE_GUI 1
 
-// Define if compiler does not suppot __PRETTY_FUNCTION__
+// __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
 #ifndef OPENMS_COMPILER_GXX 
 #  define __PRETTY_FUNCTION__ "<unknown>"
 #endif
