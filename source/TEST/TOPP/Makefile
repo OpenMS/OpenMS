@@ -257,10 +257,14 @@ FeaturePairSplitter_test: $(NUMERICDIFF)
 	-out2 FeaturePairSplitter_1_out2.tmp \
 	-qual FeaturePairSplitter_1_qual.tmp \
 	-dump FeaturePairSplitter_1_dump.tmp)
+	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp 
+	$(SED) -i 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp FeaturePairSplitter_1_dump.tmp
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.wsv)
+	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump_gp.gp)
+
 
 FileConverter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
