@@ -52,6 +52,8 @@ namespace OpenMS
     else
       wavelet_spacing = (double)dv;
 
+    wt_.init(scale_, wavelet_spacing);
+
     // estimate the peak bound in the wavelet transform concerning the peak bound in the original signal
     calculatePeakBoundCWT_();
 
@@ -89,6 +91,16 @@ namespace OpenMS
     else
       scale_ = (float)dv;
 
+    /** Initialize the Wavelet Transform **/
+    double wavelet_spacing;
+    dv = param_.getValue("wavelet_transform:spacing");
+    if (dv.isEmpty() || dv.toString() == "")
+      wavelet_spacing= 0.001;
+    else
+      wavelet_spacing = (double)dv;
+
+    wt_.init(scale_, wavelet_spacing);
+
     dv = param_.getValue("thresholds:noise_level");
     if (dv.isEmpty() || dv.toString() == "")
       noise_level_ = 0.1;
@@ -100,6 +112,7 @@ namespace OpenMS
       radius_ = 3;
     else
       radius_ = (int)dv;
+
 
     // estimate the peak bound in the wavelet transform concerning the peak bound in the original signal
     calculatePeakBoundCWT_();
@@ -146,6 +159,9 @@ namespace OpenMS
     int i=0, j=0, k, max_pos;
     for(i=start, k=0; i!=end; i+=direction, ++k)
     {
+#ifdef DEBUG_PEAK_PICKING
+      std::cout << "Search for max pos in cwt " << std::endl;
+#endif
       // Check for maximum in cwt at position i
       if(((wt[i-1] - wt[i]  ) < 0)
           && ((wt[i] - wt[i+1]) > 0)
@@ -811,7 +827,7 @@ namespace OpenMS
 
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
-  
+
   template <>
   void PeakPickerCWT::fillPeak_< DPickedPeak<1> >(const PeakShape& peak_shape, DPickedPeak<1>& picked_peak)
   {
