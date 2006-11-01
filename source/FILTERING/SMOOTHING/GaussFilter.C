@@ -37,7 +37,7 @@ GaussFilter::GaussFilter(const Param& param) throw (Exception::InvalidValue)
     DataValue dv;
     float kernel_width = 0.;
 
-    dv = param_.getValue("GaussianWidth");
+    dv = param_.getValue("gaussian_width");
     if (dv.isEmpty() || dv.toString() == "")
         kernel_width = .8;
     else

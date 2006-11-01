@@ -151,7 +151,7 @@ namespace OpenMS
       inline void setParam(const Param& param) throw (Exception::InvalidValue)
       {
         param_ = param;
-        DataValue dv = param_.getValue("GaussianWidth");
+        DataValue dv = param_.getValue("gaussian_width");
 
         if (!(dv.isEmpty() || dv.toString() == ""))
         {

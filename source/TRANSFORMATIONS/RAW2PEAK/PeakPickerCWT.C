@@ -38,7 +38,7 @@ namespace OpenMS
       optimization_(false)
   {
     double precision;
-    DataValue dv = param_.getValue("Thresholds:Precision");
+    DataValue dv = param_.getValue("thresholds:precision");
     if (dv.isEmpty() || dv.toString() == "")
       precision = 1e-5;
     else
@@ -46,7 +46,7 @@ namespace OpenMS
 
     /** Initialize the Wavelet Transform **/
     double wavelet_spacing;
-    dv = param_.getValue("WaveletTransform:Spacing");
+    dv = param_.getValue("wavelet_transform:spacing");
     if (dv.isEmpty() || dv.toString() == "")
       wavelet_spacing= 0.001;
     else
@@ -71,31 +71,31 @@ namespace OpenMS
   {
     //std::cout << param_ << std::endl;
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-    DataValue dv =  param_.getValue("Thresholds:Correlation");
+    DataValue dv =  param_.getValue("thresholds:correlation");
     if (dv.isEmpty() || dv.toString() == "")
       peak_corr_bound_ = 0.5;
     else
       peak_corr_bound_ = (float)dv;
 
-    dv = (param_.getValue("Optimization:SkipOptimization"));
+    dv = (param_.getValue("optimization:skip_optimization"));
     if (dv.isEmpty() || dv.toString() == "")
       optimization_ = false;
     else
       optimization_ = (dv.toString() == "no");
 
-    dv = param_.getValue("WaveletTransform:Scale");
+    dv = param_.getValue("wavelet_transform:scale");
     if (dv.isEmpty() || dv.toString() == "")
       scale_ = 0.15;
     else
       scale_ = (float)dv;
 
-    dv = param_.getValue("Thresholds:NoiseLevel");
+    dv = param_.getValue("thresholds:noise_level");
     if (dv.isEmpty() || dv.toString() == "")
       noise_level_ = 0.1;
     else
       noise_level_ = (float)dv;
 
-    dv =param_.getValue("Thresholds:SearchRadius");
+    dv =param_.getValue("thresholds:search_radius");
     if (dv.isEmpty() || dv.toString() == "")
       radius_ = 3;
     else

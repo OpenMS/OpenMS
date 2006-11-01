@@ -51,8 +51,8 @@ namespace OpenMS
     NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
     for each scan, and not for the whole map.
 
-  
-		TODO: This class is not bug free. Maintainer should check this (Eva)
+
+  TODO: This class is not bug free. Maintainer should check this (Eva)
 
     @ingroup PeakPicking
   */
@@ -60,236 +60,262 @@ namespace OpenMS
   class DSignalToNoiseEstimatorWindowing : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
-  public:
-    /** @name Type definitions
-     */
-    //@{
-    //@}
+    public:
+      /** @name Type definitions
+       */
+      //@{
+      //@}
 
-    using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
-    using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
-    using DSignalToNoiseEstimator<D, PeakIterator>::param_;
-    using DSignalToNoiseEstimator<D, PeakIterator>::first_;
-    using DSignalToNoiseEstimator<D, PeakIterator>::last_;
-
-
-    /** @name Constructors and Destructor
-     */
-    //@{
-    inline DSignalToNoiseEstimatorWindowing()
-        : DSignalToNoiseEstimator<D,PeakIterator>(),
-        bucket_size_(10),
-        window_size_(700)
-    {}
-    ///
-    inline DSignalToNoiseEstimatorWindowing(const Param& parameters)
-        : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
-    {
-      // if a parameter is missing in the param object, the value is substituted by a default value
-      DataValue dv = param_.getValue("SignalToNoiseEstimationParameter:Bucket");
-      if (dv.isEmpty() || dv.toString() == "") bucket_size_ = 10;
-      else bucket_size_ = (int)dv;
-
-      dv = param_.getValue("SignalToNoiseEstimationParameter:Window");
-      if (dv.isEmpty() || dv.toString() == "") window_size_ = 700;
-      else window_size_ = (int)dv;
-    }
-
-    ///
-    inline DSignalToNoiseEstimatorWindowing(const DSignalToNoiseEstimatorWindowing&  ne)
-        : DSignalToNoiseEstimator<D,PeakIterator>(ne),
-        bucket_size_(ne.bucket_size_),
-        window_size_(ne.window_size_)
-    {
-      param_ = ne.param_;
-
-    }
-    ///
-    virtual ~DSignalToNoiseEstimatorWindowing() {}
-    //@}
+      using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
+      using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
+      using DSignalToNoiseEstimator<D, PeakIterator>::param_;
+      using DSignalToNoiseEstimator<D, PeakIterator>::first_;
+      using DSignalToNoiseEstimator<D, PeakIterator>::last_;
 
 
-    /** @name Assignement
-     */
-    //@{
-    ///
-    inline DSignalToNoiseEstimatorWindowing& operator=(const DSignalToNoiseEstimatorWindowing& ne)
-    {
-      bucket_size_= ne.bucket_size_;
-      window_size_=ne.window_size_;
-      mz_dim_=ne.mz_dim_;
-      rt_dim_=ne.rt_dim_;
-      param_=ne.param_;
-      first_=ne.first_;
-      last_=ne.last_;
-      return *this;
-    }
-    //@}
-
-
-    /** Accessors
-     */
-    //@{
-    /// Non-mutable access to the bucket size
-    inline const int& getBucketSize() const { return bucket_size_; }
-    /// Mutable access to the bucket size
-    inline int& getBucketSize() { return bucket_size_; }
-    /// Mutable access to bucket size
-    inline void setBucketSize(const int& bucket_size) { bucket_size_ = bucket_size; }
-
-    /// Non-mutable access to the window size
-    inline const int& getWindowSize() const { return window_size_; }
-    /// Mutable access to the bucket size
-    inline int& getWindowSize() { return window_size_; }
-    /// Mutable access to the window size
-    inline void setWindowSize(const int& window_size) { window_size_ = window_size; }
-    //@}
-
-
-    /** @name Initialisation of the raw data intervall and estimation of noise and baseline levels
-     */
-    //@{
-    void init(PeakIterator it_begin, PeakIterator it_end)
-    {
-			if(it_begin == it_end) return;
-      first_=it_begin;
-      last_=it_end;
-
-      float intervall_origin = first_->getPosition()[mz_dim_];
-      float intervall_end = (last_-1)->getPosition()[mz_dim_];
-      int number_of_buckets = (int)floor(fabs(intervall_origin - intervall_end) / bucket_size_) + 1;
-      int buckets_per_win = (int)(window_size_ / bucket_size_);
-
-      int length = distance(first_, last_);
-      std::vector<float> Z(number_of_buckets, std::numeric_limits<float>::max());
-      std::vector<float> Y(number_of_buckets, -1.*(std::numeric_limits<float>::max() - 10));
-      std::vector<float> W(number_of_buckets, 0);
-      std::vector<float> w(number_of_buckets, 0);
-			minZ_ = 0;
-      y_base_.resize(number_of_buckets, 0);
-      y_noise_.resize(number_of_buckets, 0);
-
-      PeakIterator it_help = first_;
-
-      for (int i = 0; i < length; i++)
+      /** @name Constructors and Destructor
+       */
+      //@{
+      inline DSignalToNoiseEstimatorWindowing()
+          : DSignalToNoiseEstimator<D,PeakIterator>(),
+          bucket_size_(10),
+          window_size_(700)
+      {}
+      ///
+      inline DSignalToNoiseEstimatorWindowing(const Param& parameters)
+          : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
       {
-        int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
-        float value = it_help->getIntensity();
+        // if a parameter is missing in the param object, the value is substituted by a default value
+        DataValue dv = param_.getValue("signal_to_noise_estimation:bucket");
+        if (dv.isEmpty() || dv.toString() == "")
+          bucket_size_ = 10;
+        else
+          bucket_size_ = (int)dv;
 
-				// maxima
-        if (value > Y[bucket]) 
-          Y[bucket] = value;
-
-				// minima
-        if (value < Z[bucket])
-          Z[bucket] = value;
-
-        it_help++;
+        dv = param_.getValue("signal_to_noise_estimation:window");
+        if (dv.isEmpty() || dv.toString() == "")
+          window_size_ = 700;
+        else
+          window_size_ = (int)dv;
+          
+        std::cout << "SNE: bucket = " << bucket_size_ << " window = " << window_size_ << std::endl;
       }
 
-		
-			
-      // Now iterate over all buckets and compute their W values
-      for (int i = 0; i < number_of_buckets; i++)
+      ///
+      inline DSignalToNoiseEstimatorWindowing(const DSignalToNoiseEstimatorWindowing&  ne)
+          : DSignalToNoiseEstimator<D,PeakIterator>(ne),
+          bucket_size_(ne.bucket_size_),
+          window_size_(ne.window_size_)
       {
-        W[i] = Y[i] - Z[i];
+        param_ = ne.param_;
+
+      }
+      ///
+      virtual ~DSignalToNoiseEstimatorWindowing()
+      {}
+      //@}
+
+
+      /** @name Assignement
+       */
+      //@{
+      ///
+      inline DSignalToNoiseEstimatorWindowing& operator=(const DSignalToNoiseEstimatorWindowing& ne)
+      {
+        bucket_size_= ne.bucket_size_;
+        window_size_=ne.window_size_;
+        mz_dim_=ne.mz_dim_;
+        rt_dim_=ne.rt_dim_;
+        param_=ne.param_;
+        first_=ne.first_;
+        last_=ne.last_;
+        return *this;
+      }
+      //@}
+
+
+      /** Accessors
+       */
+      //@{
+      /// Non-mutable access to the bucket size
+      inline const int& getBucketSize() const
+      {
+        return bucket_size_;
+      }
+      /// Mutable access to the bucket size
+      inline int& getBucketSize()
+      {
+        return bucket_size_;
+      }
+      /// Mutable access to bucket size
+      inline void setBucketSize(const int& bucket_size)
+      {
+        bucket_size_ = bucket_size;
       }
 
-			// Iterate again over all buckets and compute their w - values and their
-      // baseline and noise contribution
-      for (int i = 0; i < number_of_buckets; i++)
+      /// Non-mutable access to the window size
+      inline const int& getWindowSize() const
       {
-				
-        // starting from this bucket, sum up buckets_per_win to the left and right
-        float w_value = 0;
+        return window_size_;
+      }
+      /// Mutable access to the bucket size
+      inline int& getWindowSize()
+      {
+        return window_size_;
+      }
+      /// Mutable access to the window size
+      inline void setWindowSize(const int& window_size)
+      {
+        window_size_ = window_size;
+      }
+      //@}
 
-        int start = ((i-buckets_per_win) < 0) ? 0 : (i-buckets_per_win);
-        int end = ((i+buckets_per_win) >= number_of_buckets) ? number_of_buckets-1 : (i+buckets_per_win);
 
-        for (; start < end; ++start)
+      /** @name Initialisation of the raw data intervall and estimation of noise and baseline levels
+       */
+      //@{
+      void init(PeakIterator it_begin, PeakIterator it_end)
+      {
+        if(it_begin == it_end)
+          return;
+        first_=it_begin;
+        last_=it_end;
+
+        float intervall_origin = first_->getPosition()[mz_dim_];
+        float intervall_end = (last_-1)->getPosition()[mz_dim_];
+        int number_of_buckets = (int)floor(fabs(intervall_origin - intervall_end) / bucket_size_) + 1;
+        int buckets_per_win = (int)(window_size_ / bucket_size_);
+
+        int length = distance(first_, last_);
+        std::vector<float> Z(number_of_buckets, std::numeric_limits<float>::max());
+        std::vector<float> Y(number_of_buckets, -1.*(std::numeric_limits<float>::max() - 10));
+        std::vector<float> W(number_of_buckets, 0);
+        std::vector<float> w(number_of_buckets, 0);
+        minZ_ = 0;
+        y_base_.resize(number_of_buckets, 0);
+        y_noise_.resize(number_of_buckets, 0);
+
+        PeakIterator it_help = first_;
+
+        for (int i = 0; i < length; i++)
         {
-          w_value += (W[start] != 0) ? 1./(W[start]*W[start]) : 0.;
+          int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+          float value = it_help->getIntensity();
+
+          // maxima
+          if (value > Y[bucket])
+            Y[bucket] = value;
+
+          // minima
+          if (value < Z[bucket])
+            Z[bucket] = value;
+
+          it_help++;
         }
 
 
-        // now we can compute w_i 
-				w[i] = ( (W[i] * w_value) != 0.) ? 1. / (W[i] * W[i] * w_value) : 0;
-        // and finally we can iterate over the buckets again to build y_base and y_noise 
-        float y_base_value  = 0.;
-        float y_noise_value = 0.;
 
-        start = ((i-buckets_per_win) < 0) ? 0 : (i-buckets_per_win);
-        for (; start < end; ++start)
+        // Now iterate over all buckets and compute their W values
+        for (int i = 0; i < number_of_buckets; i++)
         {
-          y_base_value += w[start] * Z[start];
-					y_noise_value += w[start] * Y[start];
+          W[i] = Y[i] - Z[i];
         }
-        y_base_[i]  = y_base_value;
-				y_noise_[i] = y_noise_value;
-      }
-			// search for the greatest amount of difference between signal intensity and baseline
-			// this is needed to avoid negative s/n-values
-			it_help = first_;
-			for(; it_help != last_; ++it_help)
-				{
-					
-					int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
-					if( (it_help->getIntensity() - y_base_[bucket]) < minZ_)
-						{
-							minZ_ = it_help->getIntensity() - y_base_[bucket];
-						}
-				}
-			it_help = first_;
-			for(; it_help != last_; ++it_help)
-				{
-					
-					int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
-					y_base_[bucket] += minZ_;
-				}
-	
-    }
-    //@}
 
-    /** @name Signal To Noise Estimation
-     */
-    //@{
-    ///
-    double getSignalToNoise(PeakIterator data_point) throw (Exception::OutOfRange)
-    {
-      if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) && (data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
+        // Iterate again over all buckets and compute their w - values and their
+        // baseline and noise contribution
+        for (int i = 0; i < number_of_buckets; i++)
+        {
+
+          // starting from this bucket, sum up buckets_per_win to the left and right
+          float w_value = 0;
+
+          int start = ((i-buckets_per_win) < 0) ? 0 : (i-buckets_per_win);
+          int end = ((i+buckets_per_win) >= number_of_buckets) ? number_of_buckets-1 : (i+buckets_per_win);
+
+          for (; start < end; ++start)
+          {
+            w_value += (W[start] != 0) ? 1./(W[start]*W[start]) : 0.;
+          }
+
+
+          // now we can compute w_i
+          w[i] = ( (W[i] * w_value) != 0.) ? 1. / (W[i] * W[i] * w_value) : 0;
+          // and finally we can iterate over the buckets again to build y_base and y_noise
+          float y_base_value  = 0.;
+          float y_noise_value = 0.;
+
+          start = ((i-buckets_per_win) < 0) ? 0 : (i-buckets_per_win);
+          for (; start < end; ++start)
+          {
+            y_base_value += w[start] * Z[start];
+            y_noise_value += w[start] * Y[start];
+          }
+          y_base_[i]  = y_base_value;
+          y_noise_[i] = y_noise_value;
+        }
+        // search for the greatest amount of difference between signal intensity and baseline
+        // this is needed to avoid negative s/n-values
+        it_help = first_;
+        for(; it_help != last_; ++it_help)
+        {
+
+          int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+          if( (it_help->getIntensity() - y_base_[bucket]) < minZ_)
+          {
+            minZ_ = it_help->getIntensity() - y_base_[bucket];
+          }
+        }
+        it_help = first_;
+        for(; it_help != last_; ++it_help)
+        {
+
+          int bucket = (int)floor(fabs(it_help->getPosition()[mz_dim_]-intervall_origin) / bucket_size_);
+          y_base_[bucket] += minZ_;
+        }
+
+      }
+      //@}
+
+      /** @name Signal To Noise Estimation
+       */
+      //@{
+      ///
+      double getSignalToNoise(PeakIterator data_point) throw (Exception::OutOfRange)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        if ((data_point->getPosition()[mz_dim_] < first_->getPosition()[mz_dim_]) && (data_point->getPosition()[mz_dim_] <= (last_-1)->getPosition()[mz_dim_]))
+        {
+          throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        }
+
+        int bucket = (int)floor(fabs(data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
+
+        // TODO: Remove this workaround.
+        // if the s/n ratio for the first peak in a scan
+        // is request, bucket is set to -1 which results
+        // in meaningless results further below. (ost)
+        if (bucket < 0)
+        {
+          bucket = 0;
+        }
+        float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001)
+                   ? (data_point->getIntensity()  - y_base_[bucket]) / (y_noise_[bucket]  - y_base_[bucket])
+                   : 0.; // something went wrong!
+        return sn;
       }
+      //@}
 
-      int bucket = (int)floor(fabs(data_point->getPosition()[mz_dim_]-first_->getPosition()[mz_dim_])/bucket_size_);
+    protected:
+      /// Baseline levels for every bucket in the intervall
+      std::vector<float> y_base_;
+      /// Noise level for every bucket in the intervall
+      std::vector<float> y_noise_;
+      /// Number of data points which belong to one bucket
+      int bucket_size_;
+      /// Number of data points which belong to the window
+      int window_size_;
+      /// Smallest distance between signal intensity and baseline (usually zero, if there are data points with a smaller intensity than the baseline, minZ gets negative)
+      double minZ_;
 
-      // TODO: Remove this workaround.
-      // if the s/n ratio for the first peak in a scan
-      // is request, bucket is set to -1 which results
-      // in meaningless results further below. (ost)
-      if (bucket < 0)
-				{
-					bucket = 0;
-				}
-      float sn = (fabs(y_noise_[bucket] - y_base_[bucket]) > 0.0001)
-				? (data_point->getIntensity()  - y_base_[bucket]) / (y_noise_[bucket]  - y_base_[bucket])
-				: 0.; // something went wrong!
-	      return sn;
-    }
-    //@}
-
-  protected:
-    /// Baseline levels for every bucket in the intervall
-    std::vector<float> y_base_;
-    /// Noise level for every bucket in the intervall
-    std::vector<float> y_noise_;
-    /// Number of data points which belong to one bucket
-    int bucket_size_;
-    /// Number of data points which belong to the window
-    int window_size_;
-		/// Smallest distance between signal intensity and baseline (usually zero, if there are data points with a smaller intensity than the baseline, minZ gets negative)
-		double minZ_;
-	
   };
 
 }// namespace OpenMS

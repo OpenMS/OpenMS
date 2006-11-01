@@ -53,7 +53,7 @@ RESULT
 
 CHECK((LinearResampler(const Param& parameters)))
   Param p;
-  p.setValue("ResamplingWidth",0.5);
+  p.setValue("resampling_width",0.5);
   LinearResampler lr(p);
 
   TEST_REAL_EQUAL(lr.getSpacing(),0.5);
@@ -61,7 +61,7 @@ RESULT
 
 CHECK((LinearResampler( LinearResampler const & lr )))
   Param p;
-  p.setValue("ResamplingWidth",0.5);
+  p.setValue("resampling_width",0.5);
   LinearResampler tmp(p);
 
   LinearResampler tmp2(tmp);
@@ -71,7 +71,7 @@ RESULT
 
 CHECK((LinearResampler& operator= (const LinearResampler& source)))
   Param p;
-  p.setValue("ResamplingWidth",0.5);
+  p.setValue("resampling_width",0.5);
   LinearResampler tmp(p);
 
   LinearResampler tmp2;
@@ -148,7 +148,7 @@ RESULT
 
 CHECK((const Param& getParam() const))
   Param p;
-  p.setValue("ResamplingWidth",0.5);
+  p.setValue("resampling_width",0.5);
   const LinearResampler tmp(p);
 
   TEST_EQUAL(tmp.getParam(),p);
@@ -169,7 +169,7 @@ RESULT
 
 CHECK((void setParam(const Param& param)))
   Param p;
-  p.setValue("ResamplingWidth",0.5);
+  p.setValue("resampling_width",0.5);
   LinearResampler tmp;
   tmp.setParam(p);
 

@@ -64,7 +64,7 @@ namespace OpenMS
       param_ = parameters;
 
       // if a parameter is missed in the param object the value should be substituted by a dv value
-      DataValue dv = param_.getValue("StrucElementLength");
+      DataValue dv = param_.getValue("struc_elem_length");
       if (dv.isEmpty() || dv.toString() == "") struc_size_ = 3;
       else struc_size_ = (float)dv;
     }
@@ -111,7 +111,7 @@ namespace OpenMS
       param_ = param;
 
       // read the new parameter
-      DataValue dv = param_.getValue("StrucElementLength");
+      DataValue dv = param_.getValue("struc_elem_length");
       if (!(dv.isEmpty() || dv.toString() == "")) struc_size_ = (float)dv;
     }
 

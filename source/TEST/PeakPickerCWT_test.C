@@ -51,11 +51,11 @@ RESULT
 
 CHECK((PeakPickerCWT(const String& filename)))
   Param param;
-  param.setValue("Thresholds:Correlation",0.8);
-  param.setValue("Optimization:SkipOptimization","yes");
-  param.setValue("WaveletTransform:Scale",0.3);
-  param.setValue("Thresholds:NoiseLevel",9);
-  param.setValue("Thresholds:SearchRadius",2);
+  param.setValue("thresholds:correlation",0.8);
+  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("wavelet_transform:scale",0.3);
+  param.setValue("thresholds:noise_level",9);
+  param.setValue("thresholds:search_radius",2);
   
   String file("bla.xml");
   NEW_TMP_FILE(file)
@@ -71,11 +71,11 @@ RESULT
 
 CHECK((PeakPickerCWT(const Param& parameters)))
   Param param;
-  param.setValue("Thresholds:Correlation",0.8);
-  param.setValue("Optimization:SkipOptimization","yes");
-  param.setValue("WaveletTransform:Scale",0.3);
-  param.setValue("Thresholds:NoiseLevel",9);
-  param.setValue("Thresholds:SearchRadius",2);
+  param.setValue("thresholds:correlation",0.8);
+  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("thresholds:noise_level",9);
+  param.setValue("thresholds:search_radius",2);
   
   PeakPickerCWT pp(param);
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
@@ -86,8 +86,8 @@ CHECK((PeakPickerCWT(const Param& parameters)))
   TEST_EQUAL(pp.getParam() == param, true)
 RESULT
 
-CHECK((ContinuousWaveletTransformNumIntegration& getWaveletTransform()))
-  ContinuousWaveletTransformNumIntegration cwt;
+CHECK((Continuouswavelet_transformNumIntegration& getWaveletTransform()))
+  Continuouswavelet_transformNumIntegration cwt;
   cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
@@ -98,11 +98,11 @@ RESULT
 
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   Param param;
-  param.setValue("Thresholds:Correlation",0.8);
-  param.setValue("Optimization:SkipOptimization","yes");
-  param.setValue("WaveletTransform:Scale",0.3);
-  param.setValue("Thresholds:NoiseLevel",9);
-  param.setValue("Thresholds:SearchRadius",2);
+  param.setValue("thresholds:correlation",0.8);
+  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("thresholds:noise_level",9);
+  param.setValue("thresholds:search_radius",2);
   
   PeakPickerCWT pp(param);
   PeakPickerCWT pp_copy;
@@ -117,11 +117,11 @@ RESULT
 
 CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   Param param;
-  param.setValue("Thresholds:Correlation",0.8);
-  param.setValue("Optimization:SkipOptimization","yes");
-  param.setValue("WaveletTransform:Scale",0.3);
-  param.setValue("Thresholds:NoiseLevel",9);
-  param.setValue("Thresholds:SearchRadius",2);
+  param.setValue("thresholds:correlation",0.8);
+  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("wavelet_transform:Scale",0.3);
+  param.setValue("thresholds:noise_level",9);
+  param.setValue("thresholds:search_radius",2);
   
   PeakPickerCWT pp(param);
   PeakPickerCWT pp_copy(pp);
@@ -189,7 +189,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
 RESULT
 
-CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
+CHECK((const Continuouswavelet_transformNumIntegration& getWaveletTransform() const))
   PeakPickerCWT pp;
   
   TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0)
@@ -310,10 +310,10 @@ CHECK((void setNoiseLevel(const float& noise_level)))
   TEST_REAL_EQUAL(pp.getNoiseLevel(),12)
 RESULT
 
-CHECK((void setOptimizationFlag(const bool& optimization)))
+CHECK((void setoptimizationFlag(const bool& optimization)))
   PeakPickerCWT pp;
   
-  pp.setOptimizationFlag(true);
+  pp.setoptimizationFlag(true);
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
 RESULT
 
@@ -360,12 +360,12 @@ CHECK((void setWaveletScale(const float& scale)))
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.1)
 RESULT
 
-CHECK((void setWaveletTransform(const ContinuousWaveletTransformNumIntegration& wt)))
-  ContinuousWaveletTransformNumIntegration cwt;
+CHECK((void setwavelet_transform(const Continuouswavelet_transformNumIntegration& wt)))
+  Continuouswavelet_transformNumIntegration cwt;
   cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
-  pp.setWaveletTransform(cwt);
+  pp.setwavelet_transform(cwt);
   
   TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
 RESULT

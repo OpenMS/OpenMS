@@ -178,7 +178,7 @@ namespace OpenMS
         std::cout << "*** Reference Map is " << file_names_[reference_map_index_] << " ***" <<  std::endl;
 #endif
 
-        if (map_type_ == "featureMap")
+        if (map_type_ == "feature_map")
         {
           alignMultipleFeatureMaps_();
         }
@@ -251,7 +251,7 @@ namespace OpenMS
         /// Pairwise map matcher
 
         BasePairwiseMapMatcher< ConsensusMapType >* pairwise_matcher_;
-        DataValue data_value = param_.getValue("matchingAlgorithm");
+        DataValue data_value = param_.getValue("matching_algorithm");
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
         pairwise_matcher_->setParam(param_matcher);
         pairwise_matcher_->setFeatureMap(MODEL,cons_ref_map);
@@ -435,7 +435,7 @@ namespace OpenMS
         PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
         BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-        DataValue data_value = param_.getValue("matchingAlgorithm");
+        DataValue data_value = param_.getValue("matching_algorithm");
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
         pairwise_matcher_->setParam(param_matcher);
         pairwise_matcher_->setFeatureMap(MODEL,reference_most_intense);

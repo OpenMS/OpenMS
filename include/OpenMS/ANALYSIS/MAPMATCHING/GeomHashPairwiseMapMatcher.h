@@ -156,7 +156,7 @@ namespace OpenMS
       /// returns the name of this module
       static const String getName()
       {
-        return "geomHashPairwise";
+        return "geomHash_pairwise";
       }
 
 

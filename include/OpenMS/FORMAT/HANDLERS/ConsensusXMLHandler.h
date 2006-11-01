@@ -266,7 +266,7 @@ namespace OpenMS
           case MAPTYPE:
           if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
           {
-            if (xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))) == "featureMap")
+            if (xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))) == "feature_map")
             {
               feature_map_flag_ = true;
             }
@@ -400,7 +400,7 @@ namespace OpenMS
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();
       os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
-      os << "\t<mapType name=\"" << calignment_->getMapType() << "\">\n";
+      os << "\t<map_type name=\"" << calignment_->getMapType() << "\">\n";
 
       // write aligned maps (mapList)
       UnsignedInt n = map_vector.size();
@@ -411,8 +411,8 @@ namespace OpenMS
       os << "\t</mapList>\n";
 
       os << "\t<alignmentMethod name=\"StarAlignmemt\">\n";
-      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParam().getValue("matchingAlgorithm") << "\"/>\n";
-      os << "\t\t<consensusAlgorithm name=\"" << calignment_->getParam().getValue("consensusAlgorithm") << "\"/>\n";
+      os << "\t\t<matching_algorithm name=\"" << calignment_->getParam().getValue("matching_algorithm") << "\"/>\n";
+      os << "\t\t<consensus_algorithm name=\"" << calignment_->getParam().getValue("consensus_algorithm") << "\"/>\n";
       os << "\t</alignmentMethod>\n";
 
       UnsignedInt ref_index = calignment_->getReferenceMapIndex();

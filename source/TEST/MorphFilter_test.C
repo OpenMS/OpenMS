@@ -52,7 +52,7 @@ RESULT
 
 CHECK(MorphFilter& operator=(const MorphFilter& m))
   Param p;
-  p.setValue("StrucElementLength", 3);
+  p.setValue("struc_elem_length", 3);
   
   MorphFilter m;
   m.setParam(p);
@@ -67,7 +67,7 @@ RESULT
 
 CHECK(MorphFilter(const MorphFilter& m))
   Param p;
-  p.setValue("StrucElementLength", 3);
+  p.setValue("struc_elem_length", 3);
   
   MorphFilter m;
   m.setParam(p);
@@ -81,7 +81,7 @@ RESULT
 
 CHECK(MorphFilter(const Param& parameters))
   Param p;
-  p.setValue("StrucElementLength", 3);
+  p.setValue("struc_elem_length", 3);
   MorphFilter m(p);
   
   TEST_EQUAL(p == m.getParam(), true)
@@ -89,7 +89,7 @@ RESULT
 
 CHECK(const Param& getParam() const)
   Param p;
-  p.setValue("StrucElementLength", 3);
+  p.setValue("struc_elem_length", 3);
   MorphFilter m(p);
   
   TEST_EQUAL(p == m.getParam(), true)
@@ -166,7 +166,7 @@ RESULT
 
 CHECK(void setParam(const Param& param))
   Param p;
-  p.setValue("StrucElementLength", 3);
+  p.setValue("struc_elem_length", 3);
   MorphFilter m;
   m.setParam(p);
   

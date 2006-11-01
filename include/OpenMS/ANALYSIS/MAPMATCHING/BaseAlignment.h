@@ -112,10 +112,10 @@ namespace OpenMS
       {
         param_ = param;
 
-        DataValue data_value = param_.getValue("consensusAlgorithm");
+        DataValue data_value = param_.getValue("consensus_algorithm");
         pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create(data_value);
 
-        map_type_ = param_.getValue("mapType");
+        map_type_ = param_.getValue("map_type");
       }
       /// Non-mutable access to the param object
       const Param& getParam() const

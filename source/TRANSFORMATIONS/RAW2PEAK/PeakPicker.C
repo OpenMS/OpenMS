@@ -35,19 +35,19 @@ namespace OpenMS
 
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
     DataValue dv;
-    dv = param_.getValue("Thresholds:SignalToNoise");
+    dv = param_.getValue("thresholds:signal_to_noise");
     if (dv.isEmpty() || dv.toString() == "") signal_to_noise_ = 5;
     else signal_to_noise_ = (float)dv;
 
-    dv = param_.getValue("Thresholds:PeakBound");
+    dv = param_.getValue("thresholds:peak_bound");
     if (dv.isEmpty() || dv.toString() == "") peak_bound_ = 200;
     else peak_bound_ = (float)dv;
 
-    dv = param_.getValue("Thresholds:PeakBoundMs2Level");
+    dv = param_.getValue("thresholds:peak_bound_ms2_level");
     if (dv.isEmpty() || dv.toString() == "") peak_bound_ms2_level_ = 30;
     else peak_bound_ms2_level_ = (float)dv;
     	
-    dv = param_.getValue("Thresholds:FwhmBound");
+    dv = param_.getValue("thresholds:fwhm_bound");
     if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
     else fwhm_bound_ = (float)dv;
   }
@@ -58,19 +58,19 @@ namespace OpenMS
 
     // if a peak picking parameter is missed in the param object the value should be substituted by a dv value
     DataValue dv;
-    dv = param_.getValue("Thresholds:SignalToNoise");
+    dv = param_.getValue("thresholds:signal_to_noise");
     if (dv.isEmpty() || dv.toString() == "") signal_to_noise_ = 3;
     else signal_to_noise_ = (float)dv;
 
-    dv = param_.getValue("Thresholds:PeakBound");
+    dv = param_.getValue("thresholds:peak_bound");
     if (dv.isEmpty() || dv.toString() == "") peak_bound_ = 200;
     else peak_bound_ = (float)dv;
 
-    dv = param_.getValue("Thresholds:PeakBoundMs2Level");
+    dv = param_.getValue("thresholds:peak_bound_ms2_level");
     if (dv.isEmpty() || dv.toString() == "") peak_bound_ms2_level_ = 30;
     else peak_bound_ms2_level_ = (float)dv;
     	
-    dv = param_.getValue("Thresholds:FwhmBound");
+    dv = param_.getValue("thresholds:fwhm_bound");
     if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
     else fwhm_bound_ = (float)dv;
   }

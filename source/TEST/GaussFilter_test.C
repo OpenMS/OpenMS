@@ -81,7 +81,7 @@ RESULT
 
 CHECK((GaussFilter(const Param& parameters) throw(Exception::InvalidValue)))
   Param p;
-  p.setValue("GaussianWidth",1.6);
+  p.setValue("gaussian_width",1.6);
   GaussFilter gauss(p);
   
   TEST_REAL_EQUAL(gauss.getSigma(),.2);
@@ -90,7 +90,7 @@ RESULT
 
 CHECK((const Param& getParam() const))
   Param p;
-  p.setValue("GaussianWidth",1.6);
+  p.setValue("gaussian_width",1.6);
   const GaussFilter gauss(p);
 
   TEST_EQUAL(gauss.getParam() == p, true);
@@ -132,7 +132,7 @@ RESULT
 
 CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
   Param p;
-  p.setValue("GaussianWidth",1.6);
+  p.setValue("gaussian_width",1.6);
   GaussFilter gaussian(p);
 
   TEST_REAL_EQUAL(gaussian.getSigma(),0.2);

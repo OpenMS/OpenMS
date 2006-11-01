@@ -65,7 +65,7 @@ namespace OpenMS
 	        param_ = parameters;
 	
 	        // if a parameter is missed in the param object the value should be substituted by a dv value
-	        DataValue dv = param_.getValue("ResamplingWidth");
+	        DataValue dv = param_.getValue("resampling_width");
 	        if (dv.isEmpty() || dv.toString() == "")
 	            spacing_ = 0.05;
 	        else
@@ -292,7 +292,7 @@ namespace OpenMS
 	        param_ = param;
 	
 	        // set the new values
-	        DataValue dv = param_.getValue("ResamplingWidth");
+	        DataValue dv = param_.getValue("resampling_width");
 	        if (!(dv.isEmpty() || dv.toString() == ""))
 	            spacing_ = (double)dv;
 	    }

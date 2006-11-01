@@ -45,7 +45,7 @@ namespace OpenMS
     param_ = parameters;
 
     // if a smoothing parameter is missed in the param object the value should be substituted by a dv value
-    DataValue dv = param_.getValue("FrameLength");
+    DataValue dv = param_.getValue("frame_length");
     if (dv.isEmpty() || dv.toString() == "")
       frame_size_ = 17;
     else
@@ -56,7 +56,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size hast to be an odd integer!", String(frame_size_));
     }
 
-    dv = param_.getValue("PolynomialOrder");
+    dv = param_.getValue("polynomial_order");
     if (dv.isEmpty() || dv.toString() == "")
       order_ = 4;
     else
@@ -79,7 +79,7 @@ namespace OpenMS
     param_ = param;
 
     // read the new parameter
-    DataValue dv = param_.getValue("FrameLength");
+    DataValue dv = param_.getValue("frame_length");
     if (!(dv.isEmpty() || dv.toString() == ""))
       frame_size_ = (int)dv;
 
@@ -88,7 +88,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size must be an odd integer!", String(frame_size_));
     }
 
-    dv = param_.getValue("PolynomialOrder");
+    dv = param_.getValue("polynomial_order");
     if (!(dv.isEmpty() || dv.toString() == ""))
       order_ = (unsigned int)dv;
 

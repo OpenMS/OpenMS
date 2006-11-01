@@ -57,8 +57,8 @@ RESULT
 
 CHECK((SavitzkyGolayQRFilter(const Param& parameters) throw(Exception::InvalidValue)))
   Param p;
-  p.setValue("PolynomialOrder",2);
-  p.setValue("FrameLength",3);
+  p.setValue("polynomial_order",2);
+  p.setValue("frame_length",3);
   SavitzkyGolayQRFilter sgolay(p);
 
   TEST_EQUAL(sgolay.getOrder(), 2)
@@ -88,12 +88,12 @@ RESULT
 
 CHECK((const Param& getParam() const))
   Param p;
-  p.setValue("PolynomialOrder",2);
-  p.setValue("FrameLength",3);
+  p.setValue("polynomial_order",2);
+  p.setValue("frame_length",3);
   const SavitzkyGolayQRFilter sgolay(p);
 
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("PolynomialOrder"),2);
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("FrameLength"),3);
+  TEST_REAL_EQUAL(sgolay.getParam().getValue("polynomial_order"),2);
+  TEST_REAL_EQUAL(sgolay.getParam().getValue("frame_length"),3);
 RESULT
 
 CHECK((const unsigned int& getOrder() const))
@@ -123,13 +123,13 @@ RESULT
 
 CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
   Param p;
-  p.setValue("PolynomialOrder",2);
-  p.setValue("FrameLength",3);
+  p.setValue("polynomial_order",2);
+  p.setValue("frame_length",3);
   SavitzkyGolayQRFilter sgolay;
   sgolay.setParam(p);
 
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("PolynomialOrder"),2);
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("FrameLength"),3);
+  TEST_REAL_EQUAL(sgolay.getParam().getValue("polynomial_order"),2);
+  TEST_REAL_EQUAL(sgolay.getParam().getValue("frame_length"),3);
 RESULT
 
 CHECK((void setWindowSize(const unsigned int& frame_size)))

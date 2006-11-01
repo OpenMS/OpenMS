@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
-// 
+//
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
@@ -322,8 +322,9 @@ namespace OpenMS
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
       {
-				// empty spectra shouldn't be picked
-				if(first == last) return;
+        // empty spectra shouldn't be picked
+        if(first == last)
+          return;
         typedef typename OutputPeakContainer::value_type OutputPeakType;
 
         //clear the peak shapes vector
@@ -357,7 +358,7 @@ namespace OpenMS
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
         DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
-		sne.setWindowSize(50);
+        sne.setParam(param_);
 
         unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
@@ -370,12 +371,17 @@ namespace OpenMS
           raw_peak_array[i] = raw_data_point;
         }
 
-				
+
         RawDataPointIterator it_pick_begin = raw_peak_array.begin();
         RawDataPointIterator it_pick_end   = raw_peak_array.end();
 
-				if(it_pick_begin == it_pick_end) return;
-				sne.init(it_pick_begin,it_pick_end);
+        if(it_pick_begin == it_pick_end)
+          return;
+        StopWatch timer;
+        timer.start();
+        sne.init(it_pick_begin,it_pick_end);
+        timer.stop();
+        std::cout << "SNE init " << timer.getCPUTime() << std::endl;
 
         if (optimization_)
         {
@@ -402,7 +408,12 @@ namespace OpenMS
           int peak_left_index, peak_right_index;
 
           // compute the continious wavelet transform with resolution 1
+          timer.reset();
+          timer.start();
           wt_.transform(it_pick_begin, it_pick_end,1.);
+          timer.stop();
+          std::cout << "TRANSFORM " << timer.getCPUTime() << std::endl;
+
 
           PeakArea_ area;
           bool centroid_fit=false;
@@ -449,8 +460,8 @@ namespace OpenMS
 
               // TEST!!!!!
               if ( (shape.r_value > peak_corr_bound_)
-                   && (shape.getFWHM() >= fwhm_bound_))
-                //&& (sne.getSignalToNoise(area.max) >= signal_to_noise_))
+                   && (shape.getFWHM() >= fwhm_bound_)
+                   && (sne.getSignalToNoise(area.max) >= signal_to_noise_))
               {
                 shape.getSymmetricMeasure();
                 shape.signal_to_noise = sne.getSignalToNoise(area.max);
@@ -480,7 +491,6 @@ namespace OpenMS
             // search for the next peak
             it_pick_begin = area.right;
             distance_from_scan_border = distance(raw_peak_array.begin(),it_pick_begin);
-
           } //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt_, area, distance_from_scan_border, ms_level, direction))
           it_pick_begin = raw_peak_array.begin();
         }
@@ -713,21 +723,21 @@ namespace OpenMS
       template <typename InputPeakType, typename OutputPeakType >
       void pickExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
       {
-	  	for (unsigned int i=0; i<ms_exp_raw.size();++i)
-		{
-		  MSSpectrum< OutputPeakType > out_spec;
-		 
-		  std::cout << "Picking scan " << i << std::endl;
-		  std::cout << "Size of input: " << ms_exp_raw[i].size() << std::endl;
-		  StopWatch watch;
-		  watch.start();
+        for (unsigned int i=0; i<ms_exp_raw.size();++i)
+        {
+          MSSpectrum< OutputPeakType > out_spec;
+
+          std::cout << "Picking scan " << i << std::endl;
+          std::cout << "Size of input: " << ms_exp_raw[i].size() << std::endl;
+          StopWatch watch;
+          watch.start();
           // pick the peaks in scan i
           pick(ms_exp_raw[i].begin(),ms_exp_raw[i].end(),out_spec,ms_exp_raw[i].getMSLevel());
-		  watch.stop();
-		
-		  std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;
-		  
-		  // copy spectrum settings
+          watch.stop();
+
+          std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;
+
+          // copy spectrum settings
           out_spec.setType(SpectrumSettings::PEAKS);
 
           // copy the spectrum information
@@ -736,10 +746,10 @@ namespace OpenMS
           out_spec.setMSLevel(ms_exp_raw[i].getMSLevel());
           out_spec.getName() = ms_exp_raw[i].getName();
 
-          ms_exp_peaks.push_back(out_spec);		            
-		}
-        
-		//pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
+          ms_exp_peaks.push_back(out_spec);
+        }
+
+        //pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
       }
 
 

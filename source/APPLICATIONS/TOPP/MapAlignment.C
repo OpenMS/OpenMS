@@ -120,13 +120,13 @@ class TOPPMapAlignment
       cout << "Param \n" << files_param << endl;
       Param::ConstIterator pit = files_param.begin();
 
-      String map_type = mapali_param.getValue("mapType");
+      String map_type = mapali_param.getValue("map_type");
       std::cout << "Map type " << map_type << std::endl;
 
       //-------------------------------------------------------------
       // loading input and initialize the alignment object
       //-------------------------------------------------------------
-      if (map_type == "featureMap")
+      if (map_type == "feature_map")
       {
         StarAlignment< ConsensusFeatureType > alignment;
         alignment.setParam(mapali_param);
