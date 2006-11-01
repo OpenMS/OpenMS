@@ -50,10 +50,10 @@ RESULT
 
 CHECK((PeakPicker& operator=(const PeakPicker& pp)))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2Level",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_bound_ms2_level",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   PeakPicker p(param);
   
   PeakPicker p_copy;
@@ -67,10 +67,10 @@ RESULT
 
 CHECK((PeakPicker(const Param& parameters)))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2Level",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_bound_ms2_level",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   
   PeakPicker pp(param);
   TEST_REAL_EQUAL(pp.getPeakBound(),100)
@@ -82,10 +82,10 @@ RESULT
 
 CHECK((PeakPicker(const PeakPicker& pp)))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2Level",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_bound_ms2_level",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   PeakPicker p(param);
   
   PeakPicker p_copy(p);
@@ -98,10 +98,10 @@ RESULT
 
 CHECK((PeakPicker(const String& param_filename)))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2Level",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_bound_ms2_level",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   
   String file("bla.xml");
   NEW_TMP_FILE(file)
@@ -118,10 +118,10 @@ RESULT
 
 CHECK((const Param& getParam() const))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_boundMs2",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   
   PeakPicker pp(param);
   TEST_EQUAL(param == pp.getParam(),true)
@@ -150,10 +150,10 @@ RESULT
 
 CHECK((Param& getParam()))
   Param param;
-  param.setValue("Thresholds:SignalToNoise",7);
-  param.setValue("Thresholds:PeakBound",100);
-  param.setValue("Thresholds:PeakBoundMs2",10);
-  param.setValue("Thresholds:FwhmBound",0.5);
+  param.setValue("thresholds:signal_to_noise",7);
+  param.setValue("thresholds:peak_bound",100);
+  param.setValue("thresholds:peak_boundMs2",10);
+  param.setValue("thresholds:fwhm_bound",0.5);
   
   PeakPicker pp;
   
