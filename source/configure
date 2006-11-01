@@ -858,10 +858,6 @@ Optional Features:
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
   --disable-boost         disable the use of the Boost library (used for persitence)
   --enable-python         enable Python support and search for executable
-  --enable-fftw           enable the build of OpenMS with support for FFTW (a FFT library)
-  --disable-fftw-float    disable support for float precision in FFT code
-  --disable-fftw-double   disable support for double precision in FFT code
-  --disable-fftw-longdbl  disable support for long double precision in FFT code
   --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)
 
 Optional Packages:
@@ -899,8 +895,6 @@ Optional Packages:
   --with-sip=DIR          the SIP executable resides in DIR
   --with-sip-lib=DIR      the SIP library resides in DIR
   --with-sip-incl=DIR     the SIP header file resides in DIR
-  --with-fftw-incl=DIR    fftw includes are in DIR
-  --with-fftw-lib=DIR     libfftw is in DIR
   --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"
   --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"
   --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"
@@ -1719,38 +1713,6 @@ fi;
 # Check whether --with-sip-incl or --without-sip-incl was given.
 if test "${with_sip_incl+set}" = set; then
   withval="$with_sip_incl"
-
-fi;
-# Check whether --enable-fftw or --disable-fftw was given.
-if test "${enable_fftw+set}" = set; then
-  enableval="$enable_fftw"
-
-fi;
-
-# Check whether --with-fftw-incl or --without-fftw-incl was given.
-if test "${with_fftw_incl+set}" = set; then
-  withval="$with_fftw_incl"
-
-fi;
-
-# Check whether --with-fftw-lib or --without-fftw-lib was given.
-if test "${with_fftw_lib+set}" = set; then
-  withval="$with_fftw_lib"
-
-fi;
-# Check whether --enable-fftw-float or --disable-fftw-float was given.
-if test "${enable_fftw_float+set}" = set; then
-  enableval="$enable_fftw_float"
-
-fi;
-# Check whether --enable-fftw-double or --disable-fftw-double was given.
-if test "${enable_fftw_double+set}" = set; then
-  enableval="$enable_fftw_double"
-
-fi;
-# Check whether --enable-fftw-longdbl or --disable-fftw-longdbl was given.
-if test "${enable_fftw_longdbl+set}" = set; then
-  enableval="$enable_fftw_longdbl"
 
 fi;
 # Check whether --enable-libsvm or --disable-libsvm was given.

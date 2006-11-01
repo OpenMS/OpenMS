@@ -27,6 +27,8 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -58,6 +60,7 @@ namespace OpenMS
 
 	void Base64::setOutputBufferSize(Size s)
 	{
+		//cout << "adpting output buffer " << out_length_ << " -> " << s << endl;
 		delete [] out_buffer_;
 		out_length_ = int(ceil(s/3.0))*3+1;  // add 1 for '\0'
 		try
@@ -109,6 +112,7 @@ namespace OpenMS
 		// increase buffer if necessary
 		if (in_length_ > ibuffer_size_)
 		{
+			//cout << "adpting input buffer " << ibuffer_size_ << " -> " << in_length_ << endl;
 			ibuffer_size_ = in_length_+1;
 			delete [] in_buffer_;
 			try

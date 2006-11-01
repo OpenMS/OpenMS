@@ -985,6 +985,7 @@ namespace OpenMS
 		
 		if (tag==PEAKS)
 		{
+			//std::cout << "reading scan" << std::endl;
 			if (char_rest_=="") // no peaks
 			{
 				return;
@@ -1216,7 +1217,9 @@ namespace OpenMS
 
 			os << String(MSLevel+2,'\t') << "<peaks precision=\"32\""
 				 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
-
+			
+			
+			//std::cout << "Writing scan" << std::endl;
 			float* tmp = decoder_.getFloatBuffer(spec.size()*2);
 			for (UnsignedInt i=0; i<spec.size(); i++)
 			{

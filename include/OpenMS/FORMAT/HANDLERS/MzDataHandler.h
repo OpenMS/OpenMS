@@ -628,6 +628,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::fillData_()
 		{
+			//std::cout << "reading scan" << std::endl;
 			if (data_.size() > decoder_.size()) // not enough decoder
 				decoder_.resize(data_.size());
 
@@ -698,6 +699,8 @@ namespace OpenMS
 			int spectrum_ref = -1;
 			for (UnsignedInt s=0; s<cexp_->size(); s++)
 			{
+				//std::cout << "writing scan" << std::endl;
+				
 				const SpectrumType& spec = (*cexp_)[s];
 
 				os << "\t\t<spectrum id=\"" << spec_write_counter_++ << "\">\n"
