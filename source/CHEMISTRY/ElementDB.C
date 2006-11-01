@@ -157,6 +157,7 @@ namespace OpenMS
 				{
 					if (key == "Isotopes")
 					{
+						std::cout << "split[3]: " << split[3] << std::endl;
 						distribution[UnsignedInt(split[3].toInt())] = double(value.toFloat()/100);
 					}
 					else

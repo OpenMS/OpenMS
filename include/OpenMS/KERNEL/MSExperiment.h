@@ -582,7 +582,7 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
         return RangeManagerType::pos_range_;
     }
 
-    /// returns the number of peaks in all spectra
+    /// returns the total number of peaks 
     UnsignedInt getSize() const
     {
         return nr_dpoints_;

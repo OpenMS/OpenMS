@@ -144,7 +144,6 @@ void SweepExtender::sweep_()
 		if (ratio < 1.2 && ratio > 0.8)
 		{
 			current_charge = 0;	
-			std::cout << "Setting charge to 0";
 		}
 				
         if (current_charge > 0) // charger = 0 => no isotope

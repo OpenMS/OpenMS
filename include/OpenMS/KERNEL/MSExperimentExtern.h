@@ -65,7 +65,7 @@ namespace OpenMS
 template < typename PeakT = DPeak<1> >
 class MSExperimentExtern
 	{
-public:
+	public:
 
     ///ConstIterator
     template <class IteratorPeakT>
@@ -369,6 +369,7 @@ public:
     typedef typename SpectrumType::ContainerType ContainerType;
     typedef typename PeakType::CoordinateType CoordinateType;
     typedef MSExperiment<PeakType> ExperimentType;
+	
 
     typedef MSExperimentExternIterator<PeakType> Iterator;
     typedef MSExperimentExternConstIterator<PeakType> ConstIterator;
@@ -390,7 +391,7 @@ public:
     /// Standard constructor, allocates a buffer of size 400
     MSExperimentExtern()
             : buffer_size_(400),
-            scan_location_(), current_scan_(0),
+			scan_location_(), current_scan_(0),
             buffer_index_(0), scan2buffer_(),
             buffer2scan_(), exp_(), pFile_(0)
     {
@@ -540,7 +541,7 @@ public:
 	{ 
 		SpectrumType s;
         s.setRetentionTime(rt);
-        return upper_bound(begin(),end(), s, typename SpectrumType::RTLess());
+        return lower_bound(begin(),end(), s, typename SpectrumType::RTLess());
 	}
     
 	/**
@@ -631,10 +632,10 @@ public:
 	}
 	
 	/// TODO: Implement this
-	Iterator insert(Iterator pos, const SpectrumType& spec)
-	{
-		return pos;
-	}
+// 	Iterator insert(Iterator pos, const SpectrumType& spec)
+// 	{
+// 		return pos;
+// 	}
 
     void push_back(const SpectrumType& spec)
     {
@@ -772,6 +773,7 @@ public:
         return exp_.getSize();
     }
 	
+	/// Same effect as updateBuffer()
 	void resize(UnsignedInt new_size) 
 	{
 		exp_.resize(new_size);
