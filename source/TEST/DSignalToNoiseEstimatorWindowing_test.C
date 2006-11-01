@@ -52,8 +52,8 @@ RESULT
 
 CHECK(DSignalToNoiseEstimatorWindowing(const Param& parameters))
   Param p;
-  p.setValue("SignalToNoiseEstimationParameter:bucket",6);
-  p.setValue("SignalToNoiseEstimationParameter:window",20);
+  p.setValue("signal_to_noise_estimation:bucket",6);
+  p.setValue("signal_to_noise_estimation:window",20);
 
   DSignalToNoiseEstimatorWindowing<1> sne(p);
   TEST_REAL_EQUAL(sne.getBucketSize(),6);
