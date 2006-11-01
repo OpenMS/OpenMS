@@ -284,8 +284,8 @@
 #define ENABLE_GUI 1
 
 // Define if compiler does not suppot __PRETTY_FUNCTION__
-#ifndef __PRETTY_FUNCTION__
-	#define __PRETTY_FUNCTION__ "<unknown>"
+#ifndef OPENMS_COMPILER_GXX 
+#  define __PRETTY_FUNCTION__ "<unknown>"
 #endif
 
 #endif // OPENMS_CONFIG_H
