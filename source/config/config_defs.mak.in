@@ -37,22 +37,25 @@
 # First, some basic unix commands, including the C++ compiler
 
 # gmake
-MAKE  =@MAKE@
+MAKE = @MAKE@
 
 # diff
-DIFF  =@DIFF@
+DIFF = @DIFF@
 
 # grep
-GREP  =@GREP@
+GREP = @GREP@
+
+# sed
+SED = @SED@
 
 # archiver ar (to create static libraries)
-AR  =@AR@
+AR = @AR@
 
 # dynamic archiver (to create shared libraries)
 DYNAR = @DYNAR@
 
 # options for library generation
-AROPTS  = @AROPTS@
+AROPTS = @AROPTS@
 
 # options for shared library generation
 DYNAROPTS = @DYNAROPTS@
@@ -61,25 +64,25 @@ DYNAROPTS = @DYNAROPTS@
 SHARED_LIB_SUFFIX = @SHARED_LIB_SUFFIX@
 
 # C++ compiler
-CXX=@CXX@
+CXX = @CXX@
 # unix command rm, used to remove obsolete files (target clean)
-RM=@RM@
+RM = @RM@
 # unix command cp, used to copy files
-CP=@CP@
+CP = @CP@
 # unix command mv, used to install libraries (target install.*)
-MV=@MV@
+MV = @MV@
 # unix command strip, used to strip away unused stuff from object files
-STRIP=@STRIP@
+STRIP = @STRIP@
 # the echo command (on some platforms with an additional -e to expand '\n')
-ECHO=@ECHO_COMMAND@
+ECHO = @ECHO_COMMAND@
 
-OS       =@OS@
+OS       = @OS@
 # name of your OS
-OSREV    =@OSREV@
+OSREV    = @OSREV@
 # full revision number
-OSMAJOR  =@OSMAJOR@
+OSMAJOR  = @OSMAJOR@
 # major revision number (full revision number cut at the first dot)
-BINFMT   =@BINFMT@
+BINFMT   = @BINFMT@
 # binary format type (platform-architecture-compiler)
 
 # OPENMS_PATH is the OPENMS root directory (the directory in which include and source reside)
@@ -117,8 +120,8 @@ PYTHON_LIBS       = @PYTHON_LIBS@
 # Support for valgrind, a memory leak checker.
 # Try "make valgrind" in source/TEST.
 #
-VALGRIND=@VALGRIND@
-VALGRIND_OPTS=@VALGRIND_OPTS@
+VALGRIND = @VALGRIND@
+VALGRIND_OPTS = @VALGRIND_OPTS@
 
 
 # These are standard flags. CXXFLAGS to compile, LDFLAGS to link programs
