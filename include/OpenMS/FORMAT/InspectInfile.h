@@ -40,7 +40,9 @@ namespace OpenMS
 		@brief Inspect input file adapter.
 		
 		Creates a file that can be used for Inspect search from a peak list.
-  
+  	
+  	@todo write test(Martin)
+  	
   	@ingroup FileIO
 	*/
   class InspectInfile:

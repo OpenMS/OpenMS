@@ -85,7 +85,7 @@ namespace OpenMS
 		// map the protein hits according to their record number in the result file
 		//					record number			position in protein_hits
 		std::map< std::pair< bool, int >, int > rn_position_map;
-		Identification* query;
+		Identification* query = 0;
 		PeptideHit peptide_hit;
 		std::vector< PeptideHit >::iterator pep_hit_i;
 		DateTime datetime;
@@ -211,7 +211,7 @@ namespace OpenMS
 		// to get the precursor retention time and mz values
 		//                      filename     scan numbers
 		std::vector< std::pair< String, std::vector< unsigned int > > > files_and_scan_numbers;
-		std::vector< unsigned int >* scan_numbers;
+		std::vector< unsigned int >* scan_numbers = 0;
 		while ( getline(result_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);

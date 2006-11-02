@@ -44,13 +44,15 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of an Sequest outfile
-    
-    This class serves to read in an Sequest outfile. The information can be 
-    retrieved via the >> operator. 
+    @brief Representation of an Sequest outfile.
 		
-	@todo move split to String, check whether every getline may throw an exception, better solution where to add ensurePathChar, what to do when sequences cannot be found (right now: return empty sequence)
-  
+		@todo move ensurePathChar (rename to 'ensurePathEnding') to String and add test(Martin)
+		@todo use split of OpenMS::String instead of own version (Martin)
+		@todo check whether every getline may throw an exception (Martin)
+		@todo what to do when sequences cannot be found (right now: return empty sequence) (Martin)
+		@todo make conform with coding convention (Martin)
+  	@todo write test(Martin)
+  	
   	@ingroup FileIO
   */
   class SequestOutfile
@@ -58,14 +60,6 @@ namespace OpenMS
     public:
       // Constructor
       SequestOutfile();
-			
-			SequestOutfile(const SequestOutfile& sequest_outfile);
-			
-			// destructor
-			//virtual ~SequestOutfile();
-
-			// assignment operator
-			SequestOutfile& operator=(const SequestOutfile& sequest_outfile);
 			
 			void load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
 			

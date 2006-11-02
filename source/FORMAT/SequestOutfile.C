@@ -26,34 +26,35 @@
 
 #include <OpenMS/FORMAT/SequestOutfile.h>
 
+using namespace std;
+
 namespace OpenMS 
 {
-	SequestOutfile::SequestOutfile(){}
 	
-	SequestOutfile::SequestOutfile(const SequestOutfile& sequest_outfile){}
+	SequestOutfile::SequestOutfile()
+	{
+	}
 
-	SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile){return *this;}
-
-  void SequestOutfile::load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database, const std::string& snd_database) throw (Exception::FileNotFound, Exception::ParseError)
+  void SequestOutfile::load(const string& result_filename, vector< Identification >&	identifications, ProteinIdentification&	protein_identification, vector< float >& precursor_retention_times, vector< float >& precursor_mz_values, const double& p_value_threshold, const string& database, const string& snd_database) throw (Exception::FileNotFound, Exception::ParseError)
   {
   	// generally used variables
 		String line, buffer;
-		std::vector< String > substrings;
+		vector< String > substrings;
 		
 		// map the protein hits according to their accession number in the result file
-		std::map< String, unsigned int > ac_position_map;
+		map< String, unsigned int > ac_position_map;
 		
 		// get the protein hits that have already been found in another out-file
-		std::vector< ProteinHit > protein_hits = protein_identification.getProteinHits();
+		vector< ProteinHit > protein_hits = protein_identification.getProteinHits();
 		// and insert them into the map
-		for ( std::vector< ProteinHit >::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i )
+		for ( vector< ProteinHit >::const_iterator phit_i = protein_hits.begin(); phit_i != protein_hits.end(); ++phit_i )
 		{
-			ac_position_map.insert(std::make_pair(phit_i->getAccession(), ac_position_map.size()));
+			ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
 		}
 		
 		// (0) preparations
 		// open the result
-		std::ifstream result_file( result_filename.c_str());
+		ifstream result_file( result_filename.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
@@ -78,13 +79,13 @@ namespace OpenMS
 				buffer.split(' ', substrings);
 				// 12:00 = 12:00 PM; 24:00 = 12:00 AM
 				int hour = atoi(substrings[0].substr(0,2).c_str());
-				if ( (hour == 12) && (substrings[1] == "AM") ) substrings[0].std::string::replace(0, 2, "00");
+				if ( (hour == 12) && (substrings[1] == "AM") ) substrings[0].string::replace(0, 2, "00");
 				else if ( (hour != 12) && (substrings[1] == "PM") )
 				{
 					hour += 12;
-					substrings[0].std::string::replace(0, 2, String(hour));
-					std::string x = "abc";
-					x.std::string::replace(0,3, "def");
+					substrings[0].string::replace(0, 2, String(hour));
+					string x = "abc";
+					x.string::replace(0,3, "def");
 				}
 				substrings[0].append(":00");
 				datetime.setTime(substrings[0]);
@@ -115,7 +116,7 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no precursor mass found!" , result_filename);
 		}
 		
-		std::vector< String > databases;
+		vector< String > databases;
 		
 		databases.push_back(database);
 		if ( !snd_database.empty() ) databases.push_back(snd_database);
@@ -165,7 +166,7 @@ namespace OpenMS
 		split(line, "  ", substrings);
 		
 		// remove the empty strings
-		for ( std::vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
+		for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
 		{
 			i->trim();
 			if ( i->empty() ) i = substrings.erase(i);
@@ -174,7 +175,7 @@ namespace OpenMS
 		unsigned int number_of_columns = substrings.size();
 		
 		// get the numbers of the columns
-		for ( std::vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
+		for ( vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
 		{
 			if ( !iter->compare("#") )
 			{
@@ -235,7 +236,7 @@ namespace OpenMS
 		
 		PeptideHit peptide_hit;
 		ProteinHit protein_hit;
-		std::string accession, accession_type;
+		string accession, accession_type;
 		unsigned int line_number = 0; // used to report in which line an error occured
 		
 		int proteins_per_peptide;
@@ -256,19 +257,10 @@ namespace OpenMS
 			// check whether the line has enough columns
 			if (substrings.size() < number_of_columns )
 			{
-				char buffer[10];
-				sprintf(buffer, "%i", line_number);
-				std::string error_message = "wrong number of columns in row ";
-				error_message.append(buffer);
-				error_message.append(" " + line + " ");
-				error_message.append("! (");
-				sprintf(buffer, "%i", substrings.size());
-				error_message.append(buffer);
-				error_message.append(" present, should be ");
-				sprintf(buffer, "%i", number_of_columns);
-				error_message.append(buffer);
-				error_message.append(")");
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
+				stringstream error_message;
+				error_message << "wrong number of columns in row " << line_number << " " << line << " " << "! (" 
+											<< substrings.size() << " present, should be " << number_of_columns << ")";
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 			}
 			
 			// get the peptide information and insert it
@@ -282,7 +274,7 @@ namespace OpenMS
 			// get the protein information
 			
 			// check whether there are multiple proteins that belong to this peptide
-			if ( substrings[reference_column].find_last_of('+') != std::string::npos )
+			if ( substrings[reference_column].find_last_of('+') != string::npos )
 			{
 				// save the number of multiple proteins
 				proteins_per_peptide = atoi(substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).c_str());
@@ -300,7 +292,7 @@ namespace OpenMS
 			//protein_hit.setScore(0.0);
 			//protein_hit.setScoreType(score_type);
 			
-			if ( ac_position_map.insert(std::make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
+			if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
 			
 			peptide_hit.addProteinIndex(datetime, accession);
 			
@@ -320,7 +312,7 @@ namespace OpenMS
 				//protein_hit.setScore(0.0);
 				//protein_hit.setScoreType(score_type);
 				
-				if ( ac_position_map.insert(std::make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
+				if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
 				
 				peptide_hit.addProteinIndex(datetime, accession);
 			}
@@ -330,18 +322,18 @@ namespace OpenMS
 		result_file.close();
 		
 		// get the sequences of the protein
-		std::vector< String > sequences;
-		std::map< String, unsigned int > not_found;
-		std::vector< std::pair< String, unsigned int > > found;
-		for ( std::vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
+		vector< String > sequences;
+		map< String, unsigned int > not_found;
+		vector< pair< String, unsigned int > > found;
+		for ( vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
 		{
 			getSequences(*db_i, ac_position_map, sequences, found, not_found);
 			
 			if ( db_i != databases.begin() ) ac_position_map = not_found;
 		}
 		
-		std::vector< String >::const_iterator seq_i = sequences.begin();
-		for ( std::vector< std::pair< String, unsigned int > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i) protein_hits[protein_i->second].setSequence(*seq_i);
+		vector< String >::const_iterator seq_i = sequences.begin();
+		for ( vector< pair< String, unsigned int > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i) protein_hits[protein_i->second].setSequence(*seq_i);
 		
 		protein_identification.setProteinHits(protein_hits);
 		protein_identification.setDateTime(datetime);
@@ -360,7 +352,7 @@ namespace OpenMS
 		}
 		else // if several out-files were used, the first query owns a vector with protein hits
 		{
-			identifications.front().setProteinHits(std::vector< ProteinHit >());
+			identifications.front().setProteinHits(vector< ProteinHit >());
 		}
 		
 		peptide_hit.clear();
@@ -369,14 +361,14 @@ namespace OpenMS
 		ac_position_map.clear();
   }
 	
-	bool SequestOutfile::split(const String& s, const String& splitter, std::vector<String>& substrings)
+	bool SequestOutfile::split(const String& s, const String& splitter, vector<String>& substrings)
 	{
 		substrings.clear();
 		
-		unsigned int start = 0;
-		unsigned int end = s.find(splitter, start);
+		string::size_type start = 0;
+		string::size_type end = s.find(splitter, start);
 		
-		while ( end != std::string::npos )
+		while ( end != string::npos )
 		{
 			substrings.push_back(s.substr(start, end-start));
 			start = end + splitter.length();
@@ -388,7 +380,7 @@ namespace OpenMS
 	}
 	
 	// get the columns from a line
-	bool SequestOutfile::getColumns(const String& line, std::vector< String >& substrings, unsigned int number_of_columns, unsigned int reference_column)
+	bool SequestOutfile::getColumns(const String& line, vector< String >& substrings, unsigned int number_of_columns, unsigned int reference_column)
 	{
 		String buffer;
 
@@ -397,14 +389,14 @@ namespace OpenMS
 		line.split(' ', substrings);
 
 		// remove any empty strings
-		for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
 			s_i->trim();
 			if ( s_i->empty() ) substrings.erase(s_i);
 			else ++s_i;
 		}
 
-		for ( std::vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
 		// if there are three columns, the middle one being a '/', they are merged
 			if ( s_i+1 != substrings.end() )
@@ -431,7 +423,7 @@ namespace OpenMS
 				else if ( (*(s_i+1))[0] == '+' )
 				{
 					bool is_digit = true;
-					for ( unsigned int i = 1; i < (s_i+1)->length(); ++i ) is_digit &= std::isdigit((*(s_i+1))[i]);
+					for ( unsigned int i = 1; i < (s_i+1)->length(); ++i ) is_digit &= isdigit((*(s_i+1))[i]);
 					if ( is_digit && ((s_i+1)->length()-1) )
 					{
 						s_i->append(*(s_i+1));
@@ -444,7 +436,7 @@ namespace OpenMS
 		}
 
 		// if there are more columns than should be, there were spaces in the protein column
-		for ( std::vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
+		for ( vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
 		{
 			s_i->append(*(s_i+1));
 			substrings.erase(s_i+1);
@@ -454,10 +446,10 @@ namespace OpenMS
 	}
 
 	// retrieve the sequences
-	void SequestOutfile::getSequences(const String& database_filename, std::map< String, unsigned int > ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, unsigned int > >& found, std::map< String, unsigned int >& not_found) throw (Exception::FileNotFound)
+	void SequestOutfile::getSequences(const String& database_filename, map< String, unsigned int > ac_position_map, vector< String >& sequences, vector< pair< String, unsigned int > >& found, map< String, unsigned int >& not_found) throw (Exception::FileNotFound)
 	{
 		sequences.clear();
-		std::ifstream ifs(database_filename.c_str());
+		ifstream ifs(database_filename.c_str());
 		if ( !ifs )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
@@ -466,7 +458,7 @@ namespace OpenMS
 		String line, accession, accession_type, sequence;
 		
 		not_found = ac_position_map;
-		std::map< String, unsigned int >::iterator i = not_found.begin();
+		map< String, unsigned int >::iterator i = not_found.begin();
 		while ( getline(ifs, line) && !not_found.empty() )
 		{
 			if ( line.hasPrefix(">") )
@@ -513,9 +505,9 @@ namespace OpenMS
 		ifs.clear();
 	}
 	
-	void SequestOutfile::getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError)
+	void SequestOutfile::getACAndACType(String line, string& accession, string& accession_type) throw (Exception::ParseError)
 	{
-		std::pair<std::string, std::string> p;
+		pair<string, string> p;
 		// if it's a FASTA line
 		if ( line.hasPrefix(">") ) line.erase(0,1);
 		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -529,9 +521,9 @@ namespace OpenMS
 		}
 		else if ( line.hasPrefix("gi") )
 		{
-			std::size_t snd = line.find('|', 3);
-			std::size_t third;
-			if ( snd != std::string::npos )
+			string::size_type snd = line.find('|', 3);
+			string::size_type third = 0;
+			if ( snd != string::npos )
 			{
 				third = line.find('|', ++snd) + 1;
 				
@@ -548,22 +540,22 @@ namespace OpenMS
 				accession_type = accession;
 				snd = line.find('|', third);
 				third = line.find('|', ++snd);
-				if ( third != std::string::npos ) accession = line.substr(snd, third-snd);
+				if ( third != string::npos ) accession = line.substr(snd, third-snd);
 				else
 				{
 					third = line.find(' ', snd);
-					if ( third != std::string::npos ) accession = line.substr(snd, third-snd);
+					if ( third != string::npos ) accession = line.substr(snd, third-snd);
 					else accession = line.substr(snd);
 				}
 			}
 			else
 			{
 				accession_type = "gi";
-				if ( snd != std::string::npos ) accession = line.substr(3, snd-4);
+				if ( snd != string::npos ) accession = line.substr(3, snd-4);
 				else
 				{
-					if ( snd == std::string::npos ) snd = line.find(' ', 3);
-					if ( snd != std::string::npos ) accession = line.substr(3, snd-3);
+					if ( snd == string::npos ) snd = line.find(' ', 3);
+					if ( snd != string::npos ) accession = line.substr(3, snd-3);
 					else accession = line.substr(3);
 				}
 			}
@@ -594,15 +586,15 @@ namespace OpenMS
 		}
 		else
 		{
-			unsigned int pos1 = line.find('(', 0);
-			unsigned int pos2;
-			if ( pos1 != std::string::npos )
+			string::size_type pos1 = line.find('(', 0);
+			string::size_type pos2;
+			if ( pos1 != string::npos )
 			{
 				pos2 = line.find(')', ++pos1);
-				if ( pos2 != std::string::npos )
+				if ( pos2 != string::npos )
 				{
 					accession = line.substr(pos1, pos2 - pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != std::string::npos) ) accession_type = "SwissProt";
+					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
 					else accession.clear();
 				}
 			}
@@ -614,9 +606,9 @@ namespace OpenMS
 		}
 	}
 	
-	bool SequestOutfile::updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits)
+	bool SequestOutfile::updatePeptideHits(PeptideHit& peptide_hit, vector< PeptideHit >& peptide_hits)
 	{
-		std::vector< PeptideHit >::iterator pep_hit_i;
+		vector< PeptideHit >::iterator pep_hit_i;
 		for ( pep_hit_i = peptide_hits.begin(); pep_hit_i != peptide_hits.end(); ++pep_hit_i)
 		{
 			if ( (pep_hit_i->getSequence() == peptide_hit.getSequence()) && (pep_hit_i->getScore() == peptide_hit.getScore()) ) break;
@@ -634,11 +626,11 @@ namespace OpenMS
 			// if the peptide has already been inserted, insert additional protein hits
 			else
 			{
-				std::vector< std::pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
+				vector< pair< String, String > >::iterator prot_hit_i1, prot_hit_i2;
 				// remove all protein hits from the peptide that are already in the list
 				for ( prot_hit_i1 = peptide_hit.getProteinIndices().begin(); prot_hit_i1 != peptide_hit.getProteinIndices().end(); )
 				{
-					prot_hit_i2 = std::find(pep_hit_i->getProteinIndices().begin(), pep_hit_i->getProteinIndices().end(), *prot_hit_i1);
+					prot_hit_i2 = find(pep_hit_i->getProteinIndices().begin(), pep_hit_i->getProteinIndices().end(), *prot_hit_i1);
 					if ( prot_hit_i2 != pep_hit_i->getProteinIndices().end() ) peptide_hit.getProteinIndices().erase(prot_hit_i1);
 					else ++prot_hit_i1;
 				}

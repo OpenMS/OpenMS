@@ -44,7 +44,9 @@ namespace OpenMS
     
     This class serves to read in an Inspect outfile. The information can be 
     retrieved via the >> operator. 
-  
+  	
+  	@todo write test(Martin)
+  	
   	@ingroup FileIO
   */
   class InspectOutfile: 

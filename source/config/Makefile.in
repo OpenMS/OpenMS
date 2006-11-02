@@ -65,9 +65,10 @@ install:	install.shared
 
 clean:
 	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
-	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS) APPLICATIONS TEST BENCHMARKS EXAMPLES" TARGET=default_clean
+	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES" TARGET=default_clean
 	@-$(RM) -f  $(STATIC_LIBS) $(SHARED_LIBS)
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
+	@cd APPLICATIONS && make -f Makefile_SUBDIRS default_clean
 
 distclean:	clean
 	@-$(RM) -rf autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin
@@ -159,8 +160,8 @@ depend:
 	@$(ECHO) "Creating dependencies..."
 	@$(ECHO) "" >.Dependencies
 	@for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; echo "" >.Dependencies; cd .. ) ; done
-	@set -e; for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES APPLICATIONS ; do ( cd $$i; $(MAKE) depend; cd .. ) ; done
-
+	@set -e; for i in $(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES ; do ( cd $$i; $(MAKE) depend; cd .. ) ; done
+	@cd APPLICATIONS && make -f Makefile_SUBDIRS depend
 
 dirs:		dummy
 	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS)" TARGET=default

@@ -41,7 +41,9 @@ namespace OpenMS
 		@brief Sequest input file adapter.
 		
 		Creates a sequest.params file for Sequest search from a peak list.
-  
+  	
+  	@todo write test(Martin)
+  	
   	@ingroup FileIO
 	*/
   class SequestInfile

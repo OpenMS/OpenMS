@@ -295,10 +295,11 @@ FileConverter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type MZxml -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_4_output.dta2d,FileConverter.tmp)
 
+ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 5: netCDF -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type ANDIMS -out FileConverter.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileConverter_5_output.dta2d,FileConverter.tmp)
-
+endif
 	@$(ECHO) "- Test 6: DTA2D -> MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzxml)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzxml -out FileConverter2.tmp -out_type dta2d)
@@ -354,9 +355,11 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
 
+ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
+endif
 
 FileMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""

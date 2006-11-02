@@ -38,17 +38,20 @@
 
 namespace OpenMS
 {
+	/**
+		@brief 
+		
+		@todo add docu
+		@todo write test(Martin)
+	*/
 	class InspectFile
 	{
 		public:
-			
-			/// erase all given characters in a string
-			
-			/// @todo move to String
+			/// @todo move to String (Martin)
 			void remove(std::string& s, const std::string& unwanted_character);
 			
 			/// erase all whitespaces in a string
-			/// @todo move to String
+			/// @todo move to String (Martin)
 			void removeWhitespaces(std::string& s);
 			
 			/// used to generate a trie database from another kind of database

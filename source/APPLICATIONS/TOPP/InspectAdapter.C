@@ -94,7 +94,7 @@ using namespace std;
 				</li>
 	</ol>
 	
-	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?, catch exceptions to close files
+	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?, catch exceptions to close files (Martin)
 	
 	@ingroup TOPP
 */

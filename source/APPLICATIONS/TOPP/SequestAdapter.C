@@ -98,7 +98,7 @@ using namespace std;
 				</li>
 	</ol>
 	
-	@todo look for possible crash codes of sequest and catching them
+	@todo look for possible crash codes of sequest and catching them (Martin)
 	
 	@ingroup TOPP
 */

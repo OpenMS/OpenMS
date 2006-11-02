@@ -44,6 +44,8 @@ namespace OpenMS
     This class serves to read in a Mascot outfile. The information can be 
     retrieved via the load function.
   	
+  	@todo write test(Martin)
+  	
   	@ingroup FileIO
   */
   class MascotOutfile
