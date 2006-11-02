@@ -30,7 +30,7 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools.
 # (in alphabetical order)
-TOPP_TOOL_TESTS = \
+UNCONDITIONAL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
@@ -47,18 +47,27 @@ TOPP_TOOL_TESTS = \
 	IDFilter_test \
 	InspectAdapter_test \
 	LabeledMatcher_test \
-	MapAlignment_test \
 	MapMatcher_test \
 	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
 	PeakPicker_test \
-	RTModel_test \
-	RTPredict_test \
 	SequestAdapter_test \
-	SpectraFilter_test \
-	UnlabeledMatcher_test \
+	SpectraFilter_test
 
+ifeq ($(CGAL_SUPPORT),true)
+CGAL_TESTS=\
+	UnlabeledMatcher_test\
+	MapAlignment_test
+endif
+
+ifeq ($(LIBSVM_SUPPORT),true)
+LIBSVM_TESTS=\
+	RTModel_test\
+	RTPredict_test
+endif
+
+TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${CGAL_TESTS} ${LIBSVM_TESTS}
 
 # Tests for processing pipelines using several tools.
 # (in alphabetical order)
