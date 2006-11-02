@@ -768,7 +768,7 @@ CHECK(void setName(const String& name))
 	TEST_EQUAL("bla",exp.getName());
 RESULT
 
-CHECK(void rest())
+CHECK(void reset())
 	DPeakArray<2> plist;
 	
 	DPeak<2> p;
