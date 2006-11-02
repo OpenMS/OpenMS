@@ -493,7 +493,7 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
         spectra_lengths_.reserve(this->size());
 
         //reset mz/rt/int range
-        this->clear_();
+        this->clearRanges();
         //reset point count
         nr_dpoints_ = 0;
 

@@ -197,7 +197,7 @@ namespace OpenMS
 			// Docu in base class
 			void updateRanges()
 			{
-				this->clear_();
+				this->clearRanges();
 				updateRanges_(this->begin(),this->end());
 			}
 			

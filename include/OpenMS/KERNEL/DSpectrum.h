@@ -397,7 +397,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void updateRanges()
 			{
-				this->clear_();
+				this->clearRanges();
 				updateRanges_(container_.begin(),container_.end());
 			}
 

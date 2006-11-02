@@ -93,7 +93,7 @@ class RM
 			tmp.setIntensity(1.0);
 			vec.push_back(tmp);
 			
-			clear_();
+			clearRanges();
 			updateRanges_(vec.begin(), vec.end());
 		}
 
@@ -107,13 +107,8 @@ class RM
 			tmp.setIntensity(1.0);
 			vec.push_back(tmp);
 			
-			clear_();
+			clearRanges();
 			updateRanges_(vec.begin(), vec.end());
-		}
-		
-		void clear()
-		{
-			clear_();
 		}
 		
 }; // class RM
@@ -172,7 +167,7 @@ CHECK(void updateRanges())
 	TEST_REAL_EQUAL(rm.getMaxInt(), 1.0)	
 RESULT
 
-CHECK([EXTRA] void clear_())
+CHECK(void clearRanges())
 	RM rm;
 	rm.updateRanges();
 	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
@@ -182,7 +177,7 @@ CHECK([EXTRA] void clear_())
 	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
 	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)
 	
-	rm.clear();
+	rm.clearRanges();
 	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
 	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<RM::IntensityType>::max())

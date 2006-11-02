@@ -134,11 +134,18 @@ namespace OpenMS
 			/**
 				@brief Updates minimum and maximum position/intensity.
 				
-				This method is usually implemented by calling clear_() and
+				This method is usually implemented by calling clearRanges() and
 				updateRanges_(const PeakIteratorType&, const PeakIteratorType&).
 			*/
 			virtual void updateRanges() = 0;
-	
+
+			/// Resets the ranges
+			void clearRanges()
+			{
+				int_range_ = IntensityRangeType::empty;
+				pos_range_ = PositionRangeType::empty;
+			}
+
 			//@}
 
 		protected:
@@ -146,13 +153,6 @@ namespace OpenMS
 			IntensityRangeType int_range_;
 			/// Position range (D-dimensional)
 			PositionRangeType pos_range_;
-			
-			/// Resets the ranges
-			void clear_()
-			{
-				int_range_ = IntensityRangeType::empty;
-				pos_range_ = PositionRangeType::empty;
-			}
 			
 			/// Updates the range with the peaks in iterator range
 			template <class PeakIteratorType>
