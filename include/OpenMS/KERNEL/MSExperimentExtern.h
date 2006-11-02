@@ -56,14 +56,14 @@ namespace OpenMS
 	
 	NOTE: If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
 	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
-	
-	NOTE: (part 2) This class is not completely tested. It should work fine with PeakPicker, MzXMLFile and MzDataFile.
-	But use it at your own risk. :-)
+		
+	TODO: Implement range informations.
 			
 	@ingroup Kernel
 **/
 template < typename PeakT = DPeak<1> >
 class MSExperimentExtern
+	: public RangeManager<2, typename PeakT::TraitsType>
 	{
 	public:
 
@@ -79,7 +79,7 @@ class MSExperimentExtern
         //@{
         typedef IteratorPeakT IteratorPeakType;
         typedef MSSpectrum<IteratorPeakType> value_type;
-        typedef MSExperimentExtern<IteratorPeakType> IterExperimentType;
+        typedef MSExperimentExtern<IteratorPeakType> ExperimentType;
         typedef const value_type& reference;
         typedef const value_type* pointer;
         typedef std::random_access_iterator_tag iterator_category;
@@ -90,17 +90,17 @@ class MSExperimentExtern
                 : exp_(0), position_(0)
         {}
 
-        MSExperimentExternConstIterator(const IterExperimentType * exp , unsigned int pos)
+        MSExperimentExternConstIterator(const ExperimentType * exp , unsigned int pos)
         {
-            exp_       =  (IterExperimentType* ) exp;
+            exp_       =  (ExperimentType* ) exp;
             position_ = pos;
         }
 
-        MSExperimentExternConstIterator(IterExperimentType * exp , unsigned int pos)
+        MSExperimentExternConstIterator(ExperimentType * exp , unsigned int pos)
                 : exp_(exp), position_(pos)
         {}
 
-        MSExperimentExternConstIterator(const IterExperimentType& source)
+        MSExperimentExternConstIterator(const ExperimentType& source)
                 : exp_(source.exp_), position_(source.position_)
         {}
 
@@ -234,7 +234,7 @@ class MSExperimentExtern
 
     protected:
 
-        IterExperimentType * exp_;
+        ExperimentType * exp_;
         unsigned int position_;
     };
 
@@ -249,7 +249,7 @@ class MSExperimentExtern
         typedef IteratorPeakT IteratorPeakType;
         typedef typename MSExperimentExternConstIterator<IteratorPeakType>::value_type& reference;
         typedef typename MSExperimentExternConstIterator<IteratorPeakType>::value_type* pointer;
-        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::IterExperimentType IterExperimentType;
+        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::ExperimentType ExperimentType;
         typedef typename MSExperimentExternConstIterator<IteratorPeakType>::difference_type difference_type;
 
         using MSExperimentExternConstIterator<IteratorPeakType>::exp_;
@@ -260,7 +260,7 @@ class MSExperimentExtern
                 : MSExperimentExternConstIterator<IteratorPeakType>()
         {}
 
-        MSExperimentExternIterator(IterExperimentType * exp, unsigned int position)
+        MSExperimentExternIterator(ExperimentType * exp, unsigned int position)
                 : MSExperimentExternConstIterator<IteratorPeakType>(exp,position)
         {}
 
@@ -443,6 +443,16 @@ class MSExperimentExtern
 		buffer2scan_.resize(buffer_size_);
         return *this;
     }
+	
+	MSExperimentExtern & operator= (const ExperimentalSettings& source)
+	{
+		if (&source == &exp_)
+			return *this;
+			
+		exp_ = source;
+	
+		return;
+	}
 
     /// Equality operator
     bool operator== (const MSExperimentExtern& rhs) const
@@ -533,7 +543,7 @@ class MSExperimentExtern
 	}
   
     /**
-    	@brief Fast search for spectrum range begin
+    	@brief Binary search for rt range begin
     	
     	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
     */
@@ -545,7 +555,7 @@ class MSExperimentExtern
 	}
     
 	/**
-    	@brief Fast search for spectrum range end (returns the past-the-end iterator)
+    	@brief Binary search for rt range end (returns the past-the-end iterator)
     	
     	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
     */
@@ -605,37 +615,12 @@ class MSExperimentExtern
     {
         return ConstReverseIterator(begin());
     }
-
-    /// See std::vector documentation.
-    Iterator erase(Iterator pos)
-    {
-        delete(&(*pos));
-        exp_.erase(exp_.begin()+pos.position_);
-        return pos;
-    }
-
-    /// See std::vector documentation.
-    Iterator erase(Iterator first,Iterator last)
-    {
-        for (Iterator it=first;it!=last;++it)
-        {
-            delete(&(*it));
-        }
-        exp_.erase(exp_.begin()+first.position_,exp_.begin()+last.position_);
-        return first;
-    }
-	
+   	
 	/// See std::vector documentation.
 	reference back()
 	{
 		return  this->at( (scan2buffer_.size() -1) ) ;
 	}
-	
-	/// TODO: Implement this
-// 	Iterator insert(Iterator pos, const SpectrumType& spec)
-// 	{
-// 		return pos;
-// 	}
 
     void push_back(const SpectrumType& spec)
     {
@@ -761,10 +746,23 @@ class MSExperimentExtern
         return scan2buffer_.size();
     }
 
+	/// empties buffer and removes temporary file
     void clear() const
     {
-        for (unsigned int i=0; i<exp_.size();++i)
-			exp_[i].clear();
+		// empty buffer
+//         for (unsigned int i=0; i<exp_.size();++i)
+// 			exp_[i].clear();
+			
+		scan_location_.clear(); 
+		buffer_index_    = 0;
+        scan2buffer_.clear();   
+        buffer2scan_.clear();    
+		exp_.clear();
+
+        // generate new name for temp file
+		std::remove ( file_name_ .c_str());
+        file_name_ = "msexp_" + String(std::rand());		
+
     }
 
     /// See MSExperiment documentation.

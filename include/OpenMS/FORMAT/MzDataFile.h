@@ -83,11 +83,9 @@ namespace OpenMS
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 				
-				map = MapType();
-				
-//				map.clear();
-// 				map = ExperimentalSettings();
-// 				map.setName("");		// to be continued
+				map = ExperimentalSettings();	// delete meta information
+				map.clear();								// delete peak data
+				map.clearRanges();					// update range information	
 				
 				Internal::MzDataHandler<MapType> handler(map,filename);
 				

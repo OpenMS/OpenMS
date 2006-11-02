@@ -128,6 +128,14 @@ public:
         name_ = source.name_;
         return *this;
     }
+	
+	/// Assignment operator
+    MSExperiment& operator= (const ExperimentalSettings& source)
+    {
+        ExperimentalSettings::operator=(source);
+        
+        return *this;
+    }
 
     /// Equality operator
     bool operator== (const MSExperiment& rhs) const

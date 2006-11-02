@@ -85,8 +85,10 @@ namespace OpenMS
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 				
-				// If anyone removes these '//', Ole is going to have a heartattack.
-				//map = MapType();
+				map = ExperimentalSettings();	// delete meta information
+				map.clear();								// delete peak data
+				map.clearRanges();					// update range information
+				
 				Internal::MzXMLHandler<MapType> handler(map,filename);
 				parser->setContentHandler(&handler);
 				parser->setErrorHandler(&handler);
