@@ -666,7 +666,15 @@ class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  Peak
             }
         }
     }
-
+		
+		/// Resets all internal values
+		void reset()
+		{
+			Base::clear(); //remove data
+			RangeManagerType::clearRanges(); //reset range manager
+			ExperimentalSettings::operator=(ExperimentalSettings()); //reset meta info
+		}
+		
 protected:
 
     // Docu in base class

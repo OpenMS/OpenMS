@@ -55,6 +55,7 @@ namespace OpenMS
 			mz_to_x_axis_(true),
 			pen_width_(0),
 			show_grid_(true),
+			show_reduced_(false),
 			recalculate_(false),
 			current_data_(0),
 			spectrum_widget_(0),
@@ -310,26 +311,25 @@ namespace OpenMS
 	
 	UnsignedInt SpectrumCanvas::getDataSetCount() const
 	{
- 		 if(show_reduced_)
-			{
-  			return reduced_datasets_.size();
-			}
+ 		if(show_reduced_)
+		{
+			return reduced_datasets_.size();
+		}
 		 
 		return datasets_.size();
 	}
 		
 	const String& SpectrumCanvas::getDataSetName(UnsignedInt index) const
 	{
- 		if(show_reduced_)
- 		{
-			reduced_datasets_[index].getName();
- 		}
-		
 		if (index >= getDataSetCount())
 		{
 			return String::EMPTY;
 		}
-		if (type_[index] == DT_PEAK)
+ 		else if(show_reduced_)
+ 		{
+			return reduced_datasets_[index].getName();
+ 		}
+		else if (type_[index] == DT_PEAK)
 		{
 			return datasets_[index].getName();
 		}
@@ -346,10 +346,11 @@ namespace OpenMS
 
 	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyDataSet()
 	{
-		datasets_.push_back(ExperimentType());
-		features_.push_back(FeatureMapType());
+		UnsignedInt newcount = getDataSetCount()+1;
+		datasets_.resize(newcount);
+		features_.resize(newcount);
 		type_.push_back(DT_PEAK);
-		return datasets_[getDataSetCount()-1];
+		return datasets_[newcount-1];
 	}
 
 	SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet_(UnsignedInt index) throw (Exception::IndexOverflow)

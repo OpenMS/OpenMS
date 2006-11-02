@@ -364,12 +364,14 @@ class MSExperimentExtern
 
     typedef PeakT PeakType;
     typedef typename PeakT::IntensityType IntensityType;
-	typedef typename PeakT::PositionType PositionType;
-	typedef MSSpectrum<PeakT> SpectrumType;
+		typedef typename PeakT::PositionType PositionType;
+		typedef MSSpectrum<PeakT> SpectrumType;
     typedef typename SpectrumType::ContainerType ContainerType;
     typedef typename PeakType::CoordinateType CoordinateType;
     typedef MSExperiment<PeakType> ExperimentType;
-	
+
+    typedef typename PeakType::TraitsType TraitsType;
+    typedef RangeManager<2, TraitsType> RangeManagerType;	
 
     typedef MSExperimentExternIterator<PeakType> Iterator;
     typedef MSExperimentExternConstIterator<PeakType> ConstIterator;
@@ -443,16 +445,6 @@ class MSExperimentExtern
 		buffer2scan_.resize(buffer_size_);
         return *this;
     }
-	
-	MSExperimentExtern & operator= (const ExperimentalSettings& source)
-	{
-		if (&source == &exp_)
-			return *this;
-			
-		exp_ = source;
-	
-		return;
-	}
 
     /// Equality operator
     bool operator== (const MSExperimentExtern& rhs) const
@@ -921,6 +913,14 @@ class MSExperimentExtern
     void deleteTempFile_()
     {
         std::remove( file_name_ .c_str());
+    }
+		
+		/// resets the internal data
+    void reset()
+    {
+    	clear(); //remove data
+    	exp_ = ExperimentalSettings(); //remove meta data
+      RangeManagerType::clearRanges(); // clear RangeManager
     }
 
 

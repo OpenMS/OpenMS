@@ -80,14 +80,14 @@ namespace OpenMS
       template <typename MapType>
       void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
-      		//try to open file
+      //try to open file
 			std::ifstream is(filename.c_str());
-		    if (!is)
-		    {
-		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		    }
+	    if (!is)
+	    {
+	      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+	    }
 		
-			map = MapType();  // clear map
+			map.reset();
 		
 			// temporary variables to store the data in
 			std::vector<String> strings(3);

@@ -52,7 +52,6 @@ Spectrum3DCanvas::Spectrum3DCanvas(QWidget* parent, const char* name, WFlags f)
 	connect(openglcanvas_, SIGNAL(rightButton(QPoint)), this,SLOT(showContextMenu(QPoint)) );
 	action_mode_ = AM_TRANSLATE;
 	legend_shown_ = true;
-	show_reduced_ = false;
 }
 	
 Spectrum3DCanvas::~Spectrum3DCanvas()

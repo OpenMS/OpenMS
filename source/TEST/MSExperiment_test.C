@@ -768,6 +768,27 @@ CHECK(void setName(const String& name))
 	TEST_EQUAL("bla",exp.getName());
 RESULT
 
+CHECK(void rest())
+	DPeakArray<2> plist;
+	
+	DPeak<2> p;
+	p.getPosition()[0] = 1.0;
+	p.getPosition()[1] = 5.0;
+	plist.push_back(p);
+	p.getPosition()[0] = 2.0;
+	p.getPosition()[1] = 3.0;
+	plist.push_back(p);
+		
+	MSExperiment<> exp;
+	exp.set2DData(plist);
+	exp.setName("bla");
+	exp.updateRanges();
+	
+	exp.reset();
+	
+	TEST_EQUAL(exp==MSExperiment<>(),true);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

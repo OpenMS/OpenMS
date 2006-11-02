@@ -98,9 +98,6 @@ namespace OpenMS
 			*/
 			template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN)
 			{
-				//reset
-				exp = MSExperiment<PeakType>();
-				
 				Type type = getTypeByFileName(filename);
 				try
 				{
@@ -123,6 +120,7 @@ namespace OpenMS
 				switch(type)
 				{
 					case DTA:
+						exp.reset();
 						exp.resize(1);
 					  DTAFile().load(filename,exp[0]);
 					  return true;

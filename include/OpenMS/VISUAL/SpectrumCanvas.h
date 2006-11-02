@@ -687,7 +687,8 @@ namespace OpenMS
 		
 		/// Stores whether or not to show a grid.
 		bool show_grid_;
-		///
+		
+		/// Flag for reduced data sets
 		bool show_reduced_;
 		
 		/// The zoom stack. This is dealt with in the changeVisibleArea_() and zoomBack_() functions.
