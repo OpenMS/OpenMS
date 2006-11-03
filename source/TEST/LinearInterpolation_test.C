@@ -286,6 +286,99 @@ CHECK( setMapping() and getInsideReferencePoint() and getOutsideReferencePoint()
 }
 RESULT
 //-----------------------------------------------------------
+CHECK( addValue )
+{
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(2.3,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[2],7);
+		TEST_REAL_EQUAL(lininterpol.getData()[3],3);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(0.3,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[0],7);
+		TEST_REAL_EQUAL(lininterpol.getData()[1],3);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(-0.7,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[0],3);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(-1.7,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[0],0);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(3.3,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i])
+				}
+		TEST_REAL_EQUAL(lininterpol.getData()[3],7);
+		TEST_REAL_EQUAL(lininterpol.getData()[4],3);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(4.3,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[4],7);
+	}
+
+	{
+		LinearInterpolation < double, double > lininterpol;
+
+		lininterpol.getData().resize(5);
+		lininterpol.addValue(5.3,10);
+		for ( Size i = 0; i != lininterpol.getData().size(); ++i )
+		{
+			STATUS(i << ": " << lininterpol.getData()[i]);
+		}
+		TEST_REAL_EQUAL(lininterpol.getData()[4],0);
+	}
+
+}
+RESULT
+//-----------------------------------------------------------
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

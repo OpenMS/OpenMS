@@ -136,6 +136,51 @@ namespace OpenMS
 			}
 
 
+			/**@brief Performs linear resampling.  The arg_value is split up and
+				 added to the data points around arg_pos.
+			 */
+			void addValue ( KeyType arg_pos, ValueType arg_value ) throw()
+			{
+
+				// apply the key transformation
+				KeyType const pos = key2index(arg_pos);
+
+				int const size_ = data_.size();
+				int const left = int(pos); // this rounds towards zero
+
+				// lower margin
+				if ( pos <= 0 )
+					if ( left != 0 )
+					{ // pos <= -1
+						return;
+					}
+					else
+					{ // -1 < pos <= 0
+						data_[ 0 ] += ( 1. + pos ) * arg_value;
+						return ;
+					}
+
+				// upper margin
+				if ( left >= size_ - 1 )
+				{
+					if ( left != size_ - 1 )
+					{
+						return;
+					}
+					else
+					{
+						data_[ left ] += ( size_ - pos ) * arg_value;
+						return;
+					}
+				}
+
+				// in between
+				KeyType factor = pos - KeyType(left);
+				data_[ left + 1 ] += factor * arg_value;
+				data_[ left ] += ( 1. - factor ) * arg_value;
+				return;
+			}
+
 			/// Returns the interpolated derivative.
 			ValueType derivative ( KeyType arg_pos ) const throw()
 			{
