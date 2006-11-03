@@ -474,10 +474,11 @@ MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) "MyoQuant_test:"
 
 	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
-	@ for i in 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37; do \
-		$(ECHO) "	Finding features in LC-MS map $$i"; \
-		$(call RUN_PROG_OPT,FeatureFinder,-ini MyoQuant_1_parameters.ini -in MyoQuant_1_input$${i}.mzData -out MyoQuant_1_feat$${i}_xml.tmp); \
-	done;
+
+	@$(foreach number, 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 , \
+	  ${ECHO} Finding features in LC-MS map ${number}; \
+	  $(call RUN_PROG_OPT,FeatureFinder,-ini MyoQuant_1_parameters.ini -in MyoQuant_1_input${number}.mzData -out MyoQuant_1_feat${number}_xml.tmp); \
+	  )
 	@$(ECHO) "	AdditiveSeries, linear regression";
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
 	@ $(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
