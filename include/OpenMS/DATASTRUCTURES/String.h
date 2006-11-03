@@ -248,11 +248,16 @@ namespace OpenMS
 			
 			If the @p splitter is not found, @p substrings is empty.
 			@return if the splitter was found (once or multiple times) in the string
+
+			See also @seealso implode().
 		*/
 		bool split(char splitter, std::vector<String>& substrings) const;
 		
 		
-		///convatenates all elements from @p first to @p last-1 and inserts @p glue between the elements
+		/**@brief Concatenates all elements from @p first to @p last-1 and inserts @p glue between the elements
+
+		See also @seealso split().
+		*/
 		void implode(std::vector<String>::iterator first, std::vector<String>::iterator last, const std::string& glue = "");
 		
 	};
