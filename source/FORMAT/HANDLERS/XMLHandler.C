@@ -52,22 +52,17 @@ namespace OpenMS
 	
 		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
-			error_message_ = String("Error: ") + XMLString::transcode(exception.getMessage());
-			appendLocation_(exception, error_message_);
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
+			fatalError(String(XMLString::transcode(exception.getMessage())));
 		}
 	
 		void XMLHandler::error(const SAXParseException& exception)
 		{
-			error_message_ = String("Fatal error: ") + XMLString::transcode(exception.getMessage());
-			appendLocation_(exception, error_message_);
-			// Thow error here as well?????
+			error(String(XMLString::transcode(exception.getMessage())));
 		}
 		
 		void XMLHandler::warning(const SAXParseException& exception)
 		{
-			error_message_ = String("Warning: ") + XMLString::transcode(exception.getMessage());
-			appendLocation_(exception, error_message_);
+			warning(String(XMLString::transcode(exception.getMessage())));
 		}
 		
 		void XMLHandler::fatalError(const String& msg)

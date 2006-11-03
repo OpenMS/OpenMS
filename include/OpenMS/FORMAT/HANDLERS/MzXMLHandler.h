@@ -916,27 +916,27 @@ namespace OpenMS
 					break;
 			case NAMEVALUE:
 				{
+					String name = getAttributeAsString(NAME);
+					String value = getAttributeAsString(VALUE);
+					
+					if (name == "")
+					{
+						error("'nameValue' tag misses required attribute 'name'");
+						break;
+					}
+					else if (value == "")
+					{
+						error("'nameValue' tag misses required attribute 'value'");
+						break;
+					}
+					
 					if (is_parser_in_tag_[INSTRUMENT])
 					{
-						String name = getAttributeAsString(NAME);
-						String value = getAttributeAsString(VALUE);
-						
-						if (name == "")
-						{
-							error("'nameValue' tag misses required attribute 'name'");
-						}
-						else if (value == "")
-						{
-							error("'nameValue' tag misses required attribute 'value'");
-						}
-						else
-						{
-							setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
-						}
+						setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
 					}
 					else if (is_parser_in_tag_[SCAN])
 					{
-						setAddInfo(	*spec_, getAttributeAsString(NAME), getAttributeAsString(VALUE), "Instrument.Comment");
+						setAddInfo(	*spec_, name, value, "Instrument.Comment");
 					}
 					else
 					{

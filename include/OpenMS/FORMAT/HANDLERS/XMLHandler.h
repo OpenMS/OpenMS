@@ -55,6 +55,8 @@ namespace OpenMS
 			/// Destructor
       virtual ~XMLHandler();
 
+			// the following three methods are reimplemented from Xerces' DefaultHandler
+			// class. They forward the error message to our own error handlers below.
 			/// Fatal error handler. Throws a ParseError exception
       void fatalError(const xercesc::SAXParseException& exception);
 			/// Error handler. Currently always returns false, so the parsing stops
