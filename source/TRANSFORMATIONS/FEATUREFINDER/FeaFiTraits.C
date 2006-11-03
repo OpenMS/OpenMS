@@ -174,7 +174,7 @@ namespace OpenMS
     int no_exceptions = 0;
     std::map<String,int> mz_model;			//count used mz models
     std::map<float,int> mz_stdev;			//count used mz standard deviations
-    std::vector<int> charge(5);				//count used charges
+    std::vector<int> charge(10);				//count used charges
     double corr_mean=0.0, corr_max=0.0, corr_min=1.0; //boxplot for correlation
     std::vector<int> corrs(10);	//count correlations in an interval e.g. corr[4] -> [0.4,0.5]
 
@@ -216,12 +216,19 @@ namespace OpenMS
           if (corr>corr_max) corr_max = corr;
           ++corrs[ int(corr*10) ];
 
-          charge[f.getCharge()]++;
+		  // count estimated charge states
+		  unsigned int ch = f.getCharge();
+          if (ch>= charge.size())
+		  {
+		  	charge.resize(ch);
+		  }
+		  charge.at(ch)++;
+		  
           const Param& p = f.getModelDescription().getParam();
           ++mz_model[ p.getValue("MZ") ];
 
           DataValue dp = p.getValue("MZ:isotope:stdev");
-          if (!dp.isEmpty() && dp.toString() != "")
+          if (dp != DataValue::EMPTY)
           {
             ++mz_stdev[p.getValue("MZ:isotope:stdev")];
           }
@@ -229,6 +236,7 @@ namespace OpenMS
         }
         catch( BaseModelFitter::UnableToFit ex)
         {
+			// set unused flag for all data points
           for (IndexSet::ConstIterator it=peaks.begin(); it!=peaks.end(); ++it)
           {
             getPeakFlag(*it) = FeaFiTraits::UNUSED;
