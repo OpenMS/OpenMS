@@ -1,4 +1,3 @@
-
 // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
@@ -35,22 +34,25 @@ namespace OpenMS
 
 	namespace Math
 	{
- 
+
 		/**
-			 @brief Linear interpolation.
+			 @brief Provides access to linearly interpolated values (and
+			 derivatives) from discrete data points.  Values beyond the given range
+			 of data points are implicitly taken as zero.
 
-			 The input consists of a vector of values ("Data").  These values are
-			 considered to be the y-coordinates at the x-coordinate positions
-			 0,...,data_.size-1.  The interpolation is done linearly.  Values beyond
-			 the x-coordinate boundaries are implicitly taken as zero.
+			 The input is just a vector of values ("Data").  These are interpreted
+			 as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
 
-			 The interpolated data can be <i>scaled</i> and <i>shifted</i> in the
-			 x-dimension by an affine mapping.  That is, we have "inside" and
-			 "outside" x-coordinates.  The affine mapping can be specified in two ways:
-			 -# using setScale() and setOffset(),
-			 -# using setMapping().
+			 The interpolated data can also be <i>scaled</i> and <i>shifted</i> in
+			 the x-dimension by an <em>affine mapping</em>.  That is, we have "inside" and
+			 "outside" x-coordinates.  The affine mapping can be specified in two
+			 ways:
+			 - using setScale() and setOffset(),
+			 - using setMapping()
+			 .
+			 By defaults the identity mapping (scale=1, offset=0) is used.
 
-			 By the value() and derivative() methods you can sample linearly
+			 Using the value() and derivative() methods you can sample linearly
 			 interpolated values for a given x-coordinate position of the data and
 			 the derivative of the data.
 
@@ -99,23 +101,10 @@ namespace OpenMS
 			/// Destructor.
 			~LinearInterpolation () {}
 
+			// ----------------------------------------------------------------------
 
-			/// The transformation from "outside" to "inside" coordinates.
-			KeyType key2index ( KeyType pos ) const throw()
-			{
-				pos -= offset_;
-				pos /= scale_;
-				return pos;
-			}
-
-			/// The transformation from "inside" to "outside" coordinates.
-			KeyType index2key ( KeyType pos ) const throw()
-			{
-				pos *= scale_;
-				pos += offset_;
-				return pos;
-			}
-
+			///@name Interpolated data
+			//@{
 
 			/// Returns the interpolated value.
 			ValueType value ( KeyType arg_pos ) const throw()
@@ -196,24 +185,77 @@ namespace OpenMS
 
 			}
 
+			//@}
 
-			///\name Accessors
+			// ----------------------------------------------------------------------
+
+			///@name Discrete (non-interpolated) data
 			//@{
+
+			/// Returns the internal random access container from which interpolated values are being sampled.
+			ContainerType & getData () throw()
+			{
+				return data_;
+			}
+			
+			/// Returns the internal random access container from which interpolated values are being sampled.
+			ContainerType const & getData () const throw()
+			{
+				return data_;
+			}
+
+			/**@brief Assigns data to the internal random access container from
+				 which interpolated values are being sampled.
+
+				 SourceContainer must be assignable to ContainerType.
+			*/
+			template < typename SourceContainer >
+			void setData ( SourceContainer const & data ) throw()
+			{
+				data_ = data;
+			}
+
+
+			/// Returns \c true if getData() is empty.
+			bool empty () const throw() { return data_.empty(); }
+
+			//@}
+
+			// ----------------------------------------------------------------------
+
+			///\name Transformation
+			//@{
+
+			/// The transformation from "outside" to "inside" coordinates.
+			KeyType key2index ( KeyType pos ) const throw()
+			{
+				pos -= offset_;
+				pos /= scale_;
+				return pos;
+			}
+
+			/// The transformation from "inside" to "outside" coordinates.
+			KeyType index2key ( KeyType pos ) const throw()
+			{
+				pos *= scale_;
+				pos += offset_;
+				return pos;
+			}
 
 			/// Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
 			KeyType const & getScale () const throw(){ return scale_; }
 
 			/**@brief Accessor.  "Scale" is the difference (in "outside" units) between consecutive entries in "Data".
 
-				 <b>Note:</b> Using this invalidates the inside and outside reference
-				 points.
+			<b>Note:</b> Using this invalidates the inside and outside reference
+			points.
 			*/
 			void setScale ( KeyType const & scale ) throw() { scale_ = scale; }
 
 			/// Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data[0]".
 			KeyType const & getOffset () const throw() { return offset_; }
 
-			/**@brief Accessor.  "Offset" is the point (in "outside" units) which 
+			/**@brief Accessor.  "Offset" is the point (in "outside" units) which
 				 corresponds to "Data[0]".
 
 				 <b>Note:</b> Using this invalidates the inside and outside reference
@@ -221,29 +263,17 @@ namespace OpenMS
 			*/
 			void setOffset ( KeyType const & offset ) throw() { offset_ = offset; }
 
-			/// Accessor.  "Data" is the random access container from which interpolated values will be sampled.
-			ContainerType & getData () throw() { return data_; }
-
-			/// Accessor.  "Data" is the random access container from which interpolated values will be sampled.
-			ContainerType const & getData () const throw() { return data_; }
-
-			/**@brief Accessor.  "Data" is the random access container from which interpolated values will be sampled.
-
-			  The data is copied (deep).
-			*/
-			void setData ( ContainerType const & data ) throw() { data_ = data; }
-
 			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
 				 - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
-				 - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other. 
+				 - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
 
-				For example, when you have a complicated probability distribution
-				which is in fact centered around zero (but you cannot have negative
-				indices in the data vector), then you can arrange things such that
-				inside is the mean of the pre-computed, shifted density values of that
-				distribution and outside is the centroid position of, say, a peak in
-				the real world which you want to model by a scaled and shifted version
-				of the probability distribution.
+				 For example, when you have a complicated probability distribution
+				 which is in fact centered around zero (but you cannot have negative
+				 indices in the data vector), then you can arrange things such that
+				 inside is the mean of the pre-computed, shifted density values of that
+				 distribution and outside is the centroid position of, say, a peak in
+				 the real world which you want to model by a scaled and shifted version
+				 of the probability distribution.
 
 			*/
 			void setMapping ( KeyType const & scale, KeyType const & inside, KeyType const & outside )
@@ -260,14 +290,6 @@ namespace OpenMS
 			/// Accessor.  See setMapping().
 			KeyType const & getOutsideReferencePoint () const throw() { return outside_; }
 
-
-			//@}
-
-
-			/// Returns \c true if getData() is empty.
-			bool empty () const throw() { return data_.empty(); }
-
-
 			/// Lower boundary of the support, in "outside" coordinates.
 			KeyType supportMin() const throw()
 			{ return index2key ( empty() ? 0 : -1 ); }
@@ -275,6 +297,8 @@ namespace OpenMS
 			/// Upper boundary of the support, in "outside" coordinates.
 			KeyType supportMax() const throw()
 			{ return index2key ( data_.size() ); }
+
+			//@}
 
 		 protected:
 
