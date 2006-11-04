@@ -36,8 +36,6 @@
 
 #include<OpenMS/FORMAT/DTAFile.h>
 
-#include <xercesc/sax2/Attributes.hpp>
-
 namespace OpenMS
 {
 	namespace Internal
@@ -69,6 +67,7 @@ namespace OpenMS
 				spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Constructor for a read-only handler
@@ -84,6 +83,7 @@ namespace OpenMS
 				spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
 
   		/// Destructor
@@ -205,32 +205,6 @@ namespace OpenMS
 					 << meta.getMetaValue(*it) << "\"/>\n";
 			}
 		}
-
-		/// check if value of attribute equals the required value, otherwise throw error
-		inline void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="")
-		{
-			//TODO improve performace
-			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(ATTMAP,attribute).c_str());
-			if (tmp==0) return;
-			if (atts_->getIndex(tmp)==-1) return;
-			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
-			if (value!=required && value!=required_alt)
-			{
-				error("Invalid value \"" + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\"");
-			}
-		}
-
-		/// return value of attribute as String
-		inline String getAttributeAsString(UnsignedInt attribute)
-		{
-			//TODO improve performace
-			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(ATTMAP,attribute).c_str());
-			if (atts_->getIndex(tmp)==-1) 
-			{
-				return "";
-			}
-			return xercesc::XMLString::transcode(atts_->getValue(tmp));
-		}
   };
 
 
@@ -307,11 +281,7 @@ namespace OpenMS
   {
   	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
-		int tag = enterTag(TAGMAP, qname, attributes);
-/*  	String tmp_str;
-  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
-		is_parser_in_tag_[tag] = true;
-		atts_ = &attributes;*/
+		int tag = enterTag(qname, attributes);
 		
 		String tmp_str;
 		switch(tag)
@@ -972,9 +942,7 @@ namespace OpenMS
   {
   	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
-		int tag = leaveTag(TAGMAP, qname);
-// 		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
-// 		is_parser_in_tag_[tag] = false;
+		int tag = leaveTag(qname);
 
 		if (tag==INSTRUMENT && analyzer_)
 		{

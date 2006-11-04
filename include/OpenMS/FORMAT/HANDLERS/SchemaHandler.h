@@ -33,6 +33,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
+#include <xercesc/sax2/Attributes.hpp>
+
 #include <map>
 
 namespace OpenMS
@@ -74,11 +76,11 @@ namespace OpenMS
       //@}
 
 			/// Finalizes members after handling a tag. Call this in your endElement() reimplementation.
-			UnsignedInt leaveTag(UnsignedInt tagmap, const XMLCh* const qname);
+			UnsignedInt leaveTag(const XMLCh* const qname);
 			
 			/// Sets up members for handling the current tag. Call this in your startElement() reimplementation.
 			/// @returns a numerical value representing the tag.
-			UnsignedInt enterTag(UnsignedInt tagmap, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			UnsignedInt enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     protected:
     	/// Default construtctor not implemented => protected
@@ -233,6 +235,40 @@ namespace OpenMS
 						 << meta.getMetaValue(*it) << "\"/>\n";
 		}
 
+		/// check if value of attribute equals the required value, otherwise throw error
+		inline void checkAttribute_(UnsignedInt attribute, const String& required, const String& required_alt="")
+		{
+			//TODO improve performace
+			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
+			if (tmp==0) return;
+			if (atts_->getIndex(tmp)==-1) return;
+			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
+			if (value!=required && value!=required_alt)
+			{
+				error("Invalid value \"" + value + "\" for attribute \"" + enum2str_(att_map_, attribute) + "\"");
+			}
+		}
+
+		/// return value of attribute as String
+		inline String getAttributeAsString(UnsignedInt attribute)
+		{
+			//TODO improve performace
+			const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
+			if (atts_->getIndex(tmp)==-1) 
+			{
+				return "";
+			}
+			return xercesc::XMLString::transcode(atts_->getValue(tmp));
+		}
+		
+		inline void setMaps_(UnsignedInt tagmap, UnsignedInt attmap)
+		{
+			tag_map_ = tagmap;
+			att_map_ = attmap;
+		}
+		
+	private:
+		UnsignedInt tag_map_, att_map_;
   };
 
 	} // namespace Internal

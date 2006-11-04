@@ -74,6 +74,7 @@ namespace OpenMS
 					spec_write_counter_(1)
 	  	{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Constructor for a read-only handler
@@ -89,6 +90,7 @@ namespace OpenMS
 					spec_write_counter_(1)
   		{
 				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
 
       /// Destructor
@@ -130,6 +132,14 @@ namespace OpenMS
 								NAMEOFFILE,	PATHTOFILE, FILETYPE, TAG_NUM};
 
 
+			/** @brief indices for attributes used by mzData
+
+			If you add attributes, also add them to XMLSchemes.h
+			*/
+			enum Attributes {NAME, VALUE, ID, COUNT, SPECTRUMTYPE, METHOD_OF_COMBINATION,
+			                 ACQNUMBER, MSLEVEL, MZRANGE_START, MZRANGE_STOP,
+			                 SUP_DATA_ARRAY_REF, ATT_PRECISION, ATT_ENDIAN, LENGTH, VERSION, ATT_NUM};
+			
 			/** @brief indices for ontology terms used by mzData
 
 			If you add terms, also add them to XMLSchemes.h
@@ -145,7 +155,7 @@ namespace OpenMS
 			Each map corresponds to a string in XMLSchemes.h.
 			*/
 			enum MapTypes {	PRECISION, ENDIAN, EUNITSMAP,
-				SCANMODEMAP, POLARITYMAP, ACTMETHODMAP, ONTOLOGYMAP, TAGMAP, MAP_NUM};
+				SCANMODEMAP, POLARITYMAP, ACTMETHODMAP, ONTOLOGYMAP, TAGMAP, ATTMAP, MAP_NUM};
 
 			/// Possible precisions for Base64 data encoding
 			enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
@@ -188,7 +198,7 @@ namespace OpenMS
 			&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
 			@p name and sometimes @p value are defined in the MzData ontology.
 			*/
-			void cvParam_(const XMLCh* name, const XMLCh* value);
+			void cvParam_(const String& name, const String& value);
 
 			/** @brief read attributes of MzData's userParamType
 
@@ -196,7 +206,7 @@ namespace OpenMS
 			&lt;userParam name="@p name" value="@p value"/&gt;
 			@p name and @p value are stored as MetaValues
 			*/
-			void userParam_(const XMLCh* name, const XMLCh* value);
+			void userParam_(const String& name, const String& value);
 
 			/// write binary data to stream using the first decoder_ (previously filled)
 			inline void writeBinary(std::ostream& os, Size size, const String& tag, const String& desc="", int id=-1)
@@ -342,9 +352,7 @@ namespace OpenMS
 				return;
 			}
 
-			int tag = enterTag(TAGMAP, qname, attributes);
-// 			int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
-// 			is_parser_in_tag_[tag] = true;
+			int tag = enterTag(qname, attributes);
 
 			// Do something depending on the tag
 			String tmp_type;
@@ -353,14 +361,33 @@ namespace OpenMS
 			case DESCRIPTION: 
 				exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
 				break;
-			case CVPARAM:	
-				cvParam_(attributes.getValue(xercesc::XMLString::transcode("name")),attributes.getValue(xercesc::XMLString::transcode("value"))); 
+			case CVPARAM: case USERPARAM:
+			{
+				String name = getAttributeAsString(NAME);
+				String value = getAttributeAsString(VALUE);
+				
+				if (name == "")
+				{
+					error("missing required attribute 'name'");
+				}
+				else if  (value == "")
+				{
+					error("missing required attribute 'value'");
+				}
+				else {
+					if (tag == USERPARAM)
+					{
+						cvParam_(name, value);
+					}
+					else
+					{
+						userParam_(name, value);
+					}
+				}
 				break;
-		  case USERPARAM:	
-		  	userParam_(attributes.getValue(xercesc::XMLString::transcode("name")),attributes.getValue(xercesc::XMLString::transcode("value"))); 
-		  	break;
+		  }
 			case SUPARRAYBINARY:
-				meta_id_ = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id")));
+				meta_id_ = getAttributeAsString(ID);
 				break;
 			case SPECTRUM:
 			
@@ -373,11 +400,11 @@ namespace OpenMS
 				break;
 		  case SPECTRUMLIST:
 		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-		  	exp_->reserve( asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count")))) );
+		  	exp_->reserve( asSignedInt_(getAttributeAsString(COUNT)) );
 		  	//std::cout << Date::now() << " done" << std::endl;
 		  	break;
 			case ACQSPEC:
-				tmp_type = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("spectrumType")));
+				tmp_type = getAttributeAsString(SPECTRUMTYPE);
 				if  (tmp_type == "CentroidMassSpectrum")
 				{
 					spec_->setType(SpectrumSettings::PEAKS);
@@ -391,47 +418,52 @@ namespace OpenMS
 					spec_->setType(SpectrumSettings::UNKNOWN);
 				}
 				
-				spec_->getAcquisitionInfo().setMethodOfCombination( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("methodOfCombination"))) );
+				spec_->getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
 				break;
 			case ACQUISITION:
 				{
 					spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
 					acq_ = &(spec_->getAcquisitionInfo().back());
-					acq_->setNumber(asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("acqNumber")))));
+					acq_->setNumber(asSignedInt_(getAttributeAsString(ACQNUMBER)));
 				}	
 				break;
 			case SPECTRUMINSTRUMENT: case ACQINSTRUMENT:
-				spec_->setMSLevel(asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("msLevel")))));
-				if  (attributes.getIndex(xercesc::XMLString::transcode("mzRangeStart"))!=-1)
+			{
+				spec_->setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
+				String start = getAttributeAsString(MZRANGE_START);
+				String stop = getAttributeAsString(MZRANGE_STOP);
+				
+				if  (start != "")
 				{
-					spec_->getInstrumentSettings().setMzRangeStart( asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzRangeStart"))) ));
+					spec_->getInstrumentSettings().setMzRangeStart(asDouble_(start));
 				}
-				if  (attributes.getIndex(xercesc::XMLString::transcode("mzRangeStop"))!=-1)
+				if  (stop != "")
 				{
-					spec_->getInstrumentSettings().setMzRangeStop( asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzRangeStop"))) ));
+					spec_->getInstrumentSettings().setMzRangeStop(asDouble_(stop));
 				}
 				break;
+			}
 			case PRECURSOR:
 				prec_ = &(spec_->getPrecursor());
 				//UNHANDLED: "spectrumRef";
 				break;
 			case SUPDESC:
-				meta_id_ = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("supDataArrayRef")));
+				meta_id_ = getAttributeAsString(SUP_DATA_ARRAY_REF);
 				break;
 			case DATA:
 				// store precision for later
-				precisions_.push_back((Precision)str2enum_(PRECISION,xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("precision")))));
-				endians_.push_back((Endian)str2enum_(ENDIAN,xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("endian")))));
+				precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString(ATT_PRECISION)));
+				endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString(ATT_ENDIAN)));
 				if (is_parser_in_tag_[MZARRAYBINARY])
 				{
-					peak_count_ = asSignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("length"))));
+					peak_count_ = asSignedInt_(getAttributeAsString(LENGTH));
 					//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
 					spec_->getContainer().reserve(peak_count_);
 				}
 				break;
 			case MZDATA:
 				{
-					String s = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("version")));
+					String s = getAttributeAsString(VERSION);
 					for (UnsignedInt index=0; index<Schemes::MzData_num; ++index)
 					{
 						if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
@@ -464,9 +496,7 @@ namespace OpenMS
 				}
 			}
 
-			int tag = leaveTag(TAGMAP, qname);
-// 	  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
-// 			is_parser_in_tag_[tag] = false;
+			int tag = leaveTag(qname);
 
 			// Do something depending on the tag
 			switch(tag) {
@@ -503,38 +533,38 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::userParam_(const XMLCh* name, const XMLCh* value)
+		void MzDataHandler<MapType>::userParam_(const String& name, const String& value)
 		{
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
-				setAddInfo(spec_->getInstrumentSettings(), xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"SpectrumSettings.SpectrumInstrument.UserParam");
+				setAddInfo(spec_->getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
 			}
 			else if(is_parser_in_tag_[ACQUISITION])
 			{
-				setAddInfo(*acq_,xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"SpectrumSettings.AcqSpecification.Acquisition.UserParam");
+				setAddInfo(*acq_, name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
 			}
 			else if (is_parser_in_tag_[IONSELECTION])
 			{
-				setAddInfo(spec_->getPrecursorPeak(),xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value), "PrecursorList.Precursor.IonSelection.UserParam");
+				setAddInfo(spec_->getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
 			}
 			else if (is_parser_in_tag_[ACTIVATION])
 			{
-				setAddInfo(*prec_,xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"PrecursorList.Precursor.Activation.UserParam");
+				setAddInfo(*prec_, name, value, "PrecursorList.Precursor.Activation.UserParam");
 			}
 			else if (is_parser_in_tag_[SUPDATADESC])
 			{
-				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_], xercesc::XMLString::transcode(name),xercesc::XMLString::transcode(value),"Spectrum.SupDesc.SupDataDesc.UserParam");
+				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
 			}
 			else
 			{
-				warning(String("Invalid userParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"");
+				warning("Invalid userParam: name=\"" + name + ", value=\"" + value + "\"");
 			}
 		}
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::cvParam_(const XMLCh* name, const XMLCh* value)
+		void MzDataHandler<MapType>::cvParam_(const String& name, const String& value)
 		{
-			int ont = str2enum_(ONTOLOGYMAP,xercesc::XMLString::transcode(name),"cvParam elment"); // index of current ontology term
+			int ont = str2enum_(ONTOLOGYMAP, name, "cvParam elment"); // index of current ontology term
 
 			std::string error = "";
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
@@ -543,16 +573,16 @@ namespace OpenMS
 				switch (ont)
 				{
 					case SCANMODE:
-						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP,xercesc::XMLString::transcode(value)) );
+						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value) );
 						break;
 					case TIMEMIN:
-						spec_->setRetentionTime(asFloat_(xercesc::XMLString::transcode(value))*60); //Minutes to seconds
+						spec_->setRetentionTime(asFloat_(value)*60); //Minutes to seconds
 						break;
 					case TIMESEC:
-						spec_->setRetentionTime(asFloat_(xercesc::XMLString::transcode(value)));
+						spec_->setRetentionTime(asFloat_(value));
 						break;
 					case POLARITY:
-						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP,xercesc::XMLString::transcode(value)) );
+						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP, value) );
 						break;
 				  default:      
 				  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
@@ -563,16 +593,16 @@ namespace OpenMS
 				switch (ont)
 				{
 					case MZ_ONT:
-						spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(value));
+						spec_->getPrecursorPeak().getPosition()[0] = asFloat_(value);
 						break;
 					case CHARGESTATE:
-						spec_->getPrecursorPeak().setCharge(asSignedInt_(xercesc::XMLString::transcode(value)));
+						spec_->getPrecursorPeak().setCharge(asSignedInt_(value));
 						break;
 					case INTENSITY:
-						spec_->getPrecursorPeak().getIntensity() = asFloat_(xercesc::XMLString::transcode(value));
+						spec_->getPrecursorPeak().getIntensity() = asFloat_(value);
 						break;
 					case IUNITS:
-						setAddInfo(spec_->getPrecursorPeak(),"#IntensityUnits",xercesc::XMLString::transcode(value), "Precursor.IonSelection.IntensityUnits");
+						setAddInfo(spec_->getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
 						break;
 					default:
 						error = "PrecursorList.Precursor.IonSelection.UserParam";
@@ -583,13 +613,13 @@ namespace OpenMS
 				switch (ont)
 				{
 					case METHOD:
-						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP,xercesc::XMLString::transcode(value)));
+						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP, value));
 						break;
 					case ENERGY: 
-						prec_->setActivationEnergy( asFloat_(xercesc::XMLString::transcode(value)) );
+						prec_->setActivationEnergy( asFloat_(value) );
 						break;
 					case EUNITS:
-						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP,xercesc::XMLString::transcode(value)));
+						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP, value));
 						break;
 					default:
 						error = "PrecursorList.Precursor.Activation.UserParam";
@@ -597,12 +627,12 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"");
+				warning(String("Invalid cvParam: name=\"") + name + ", value=\"" + value + "\"");
 			}
 
 			if (error != "")
 			{
-				warning(String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\" in " + error);
+				warning(String("Invalid cvParam: name=\"") + name + ", value=\"" + value + "\" in " + error);
 			}
 		}
 

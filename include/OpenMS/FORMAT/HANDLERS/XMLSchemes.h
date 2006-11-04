@@ -160,7 +160,7 @@ namespace OpenMS
 		const UnsignedInt MzData_num = 1;
 
     ///Schemata for MzData
-    const String MzData[][9] = {
+    const String MzData[][10] = {
 			///---------------- MzData Version 1.05 --------------------------
 			{
 				// name of scheme
@@ -195,6 +195,10 @@ namespace OpenMS
 				"intenArrayBinary;mzArrayBinary;cvParam;userParam;acqInstrument;acqSettings;"
 				"acqDesc;cvLookup;supDataArrayBinary;supDataArray;arrayName;comments;"
 				"nameOfFile;pathToFile;fileType",
+				
+				// Attributes
+				"name;value;id;count;spectrumType;methodOfCombination;acqNumber;msLevel;"
+				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version",
 	  	}
 		};
 
