@@ -73,6 +73,13 @@ namespace OpenMS
       virtual ~SchemaHandler();
       //@}
 
+			/// Finalizes members after handling a tag. Call this in your endElement() reimplementation.
+			UnsignedInt leaveTag(UnsignedInt tagmap, const XMLCh* const qname);
+			
+			/// Sets up members for handling the current tag. Call this in your startElement() reimplementation.
+			/// @returns a numerical value representing the tag.
+			UnsignedInt enterTag(UnsignedInt tagmap, const XMLCh* const qname, const xercesc::Attributes& attributes);
+
     protected:
     	/// Default construtctor not implemented => protected
     	SchemaHandler();
@@ -94,6 +101,9 @@ namespace OpenMS
 
 			/// index of schema from XMLSchemes.h used for Handler
 			UnsignedInt schema_;
+
+			/// pointer to attributes of current tag
+			const xercesc::Attributes* atts_;
 
 			/// Find the enum-value that corresponds to the string @p value in map with index @p index
 			inline UnsignedInt str2enum_(UnsignedInt index, const String& value, const char* message="")

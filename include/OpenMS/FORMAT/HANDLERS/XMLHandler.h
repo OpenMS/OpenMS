@@ -101,10 +101,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc = 0;
-					setDocumentLocator(loc);
-					String message = String("SignedInt conversion error of \"") + in + "\"";
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					error(String("SignedInt conversion error of \"") + in + "\"");
 				}
 				return res;
 			}
@@ -123,10 +120,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc = 0;
-					setDocumentLocator(loc);
-					String message = String("UnsignedInt conversion error of \"") + in + "\"";
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					error(String("UnsignedInt conversion error of \"") + in + "\"");
 				}
 				return res;
 			}
@@ -140,10 +134,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc = 0;
-					setDocumentLocator(loc);
-					String message = String("Double conversion error of \"") + in + "\"";
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					error(String("Double conversion error of \"") + in + "\"");
 				}
 				return res;
 			}
@@ -158,10 +149,7 @@ namespace OpenMS
 				}
 				catch (Exception::ConversionError)
 				{
-					const xercesc::Locator* loc = 0;
-					setDocumentLocator(loc);
-					String message = String("Float conversion error of \"") + in + "\"";
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					error(String("Float conversion error of \"") + in + "\"");
 				}
 				return res;
 			}
@@ -179,10 +167,7 @@ namespace OpenMS
 				}
 				else 
 				{
-					const xercesc::Locator* loc = 0;
-					setDocumentLocator(loc);
-					String message = String("Boolean conversion error of \"") + in + "\"";
-					error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+					error(String("Boolean conversion error of \"") + in + "\"");
 				}
 				return false;
 			}
@@ -204,10 +189,7 @@ namespace OpenMS
 					}
 					catch(Exception::ParseError err)
 					{
-						const xercesc::Locator* loc = 0;
-						setDocumentLocator(loc);
-						String message = String("DateTime conversion error of \"") + in + "\"";
-						error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+						error(String("DateTime conversion error of \"") + in + "\"");
 					}
 				}
 				return res;

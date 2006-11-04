@@ -274,10 +274,7 @@ namespace OpenMS
 							}
 							else
 							{
-								const xercesc::Locator* loc = 0;
-								setDocumentLocator(loc);
-								String tmp = String("Unhandled tag \"comments\" with content:") + xercesc::XMLString::transcode(chars);
-								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
+								warning(String("Unhandled tag \"comments\" with content:") + xercesc::XMLString::transcode(chars));
 							}
 							break;
 						case DATA:
@@ -299,10 +296,7 @@ namespace OpenMS
 							}
 							else
 							{
-								const xercesc::Locator* loc = 0;
-								setDocumentLocator(loc);
-								String tmp = String("Unhandled tag \"nameOfFile\" with content: ") + xercesc::XMLString::transcode(chars);
-								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
+								warning(String("Unhandled tag \"nameOfFile\" with content: ") + xercesc::XMLString::transcode(chars));
 							}
 							break;
 						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
@@ -312,10 +306,7 @@ namespace OpenMS
 							}
 							else
 							{
-								const xercesc::Locator* loc = 0;
-								setDocumentLocator(loc);
-								String tmp = String("Unhandled tag \"pathToFile\" with content: ") + xercesc::XMLString::transcode(chars);
-								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
+								warning(String("Unhandled tag \"pathToFile\" with content: ") + xercesc::XMLString::transcode(chars));
 							}
 							break;
 						case FILETYPE: // <fileType> is child of more than one other tags
@@ -325,11 +316,8 @@ namespace OpenMS
 							}
 							else
 							{
-								const xercesc::Locator* loc = 0;
-								setDocumentLocator(loc);
-								String tmp = String("Unhandled tag \"fileType\" with content: ") + xercesc::XMLString::transcode(chars);
-								warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));						 
-							}				 
+								warning(String("Unhandled tag \"fileType\" with content: ") + xercesc::XMLString::transcode(chars));
+							}
 							break;	
 					}
 				}
@@ -354,8 +342,9 @@ namespace OpenMS
 				return;
 			}
 
-			int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
-			is_parser_in_tag_[tag] = true;
+			int tag = enterTag(TAGMAP, qname, attributes);
+// 			int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
+// 			is_parser_in_tag_[tag] = true;
 
 			// Do something depending on the tag
 			String tmp_type;
@@ -475,8 +464,9 @@ namespace OpenMS
 				}
 			}
 
-	  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
-			is_parser_in_tag_[tag] = false;
+			int tag = leaveTag(TAGMAP, qname);
+// 	  	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
+// 			is_parser_in_tag_[tag] = false;
 
 			// Do something depending on the tag
 			switch(tag) {
@@ -537,11 +527,8 @@ namespace OpenMS
 			}
 			else
 			{
-				const xercesc::Locator* loc = 0;
-				setDocumentLocator(loc);
-				String tmp = String("Invalid userParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"";
-				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));		
-			}													 
+				warning(String("Invalid userParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"");
+			}
 		}
 
 		template <typename MapType>
@@ -610,18 +597,12 @@ namespace OpenMS
 			}
 			else
 			{
-				const xercesc::Locator* loc = 0;
-				setDocumentLocator(loc);
-				String tmp = String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"";
-				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));		
+				warning(String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\"");
 			}
 
 			if (error != "")
 			{
-				const xercesc::Locator* loc = 0;
-				setDocumentLocator(loc);
-				String tmp = String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\" in " + error;
-				warning(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc ));	
+				warning(String("Invalid cvParam: name=\"") +xercesc:: XMLString::transcode(name) + ", value=\"" +xercesc:: XMLString::transcode(value) + "\" in " + error);
 			}
 		}
 

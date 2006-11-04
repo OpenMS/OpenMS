@@ -54,6 +54,23 @@ namespace OpenMS
 		
 	}
 
+	UnsignedInt SchemaHandler::leaveTag(UnsignedInt tagmap, const XMLCh* const qname)
+	{
+		int tag = str2enum_(tagmap, xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
+		is_parser_in_tag_[tag] = false;
+		atts_ = 0;
+		return tag;
+	}
+	
+	UnsignedInt SchemaHandler::enterTag(UnsignedInt tagmap, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	{
+		String tmp_str;
+		int tag = str2enum_(tagmap, xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
+		is_parser_in_tag_[tag] = true;
+		atts_ = &attributes;
+		return tag;
+	}
+	
 	} // namespace Internal
 } // namespace OpenMS
 

@@ -166,7 +166,6 @@ namespace OpenMS
 		Size peak_count_;
 		Precision precision_;
 		String char_rest_;
-		const xercesc::Attributes* atts_;
 
 		//@}
 
@@ -217,11 +216,7 @@ namespace OpenMS
 			String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
 			if (value!=required && value!=required_alt)
 			{
-// 				const xercesc::Locator* loc = 0;
-// 				setDocumentLocator(loc);
-				String tmp = String("Invalid value \"") + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\"";
-// 				error(xercesc::SAXParseException(xercesc::XMLString::transcode(tmp.c_str()), *loc )); 
-				error(tmp);
+				error("Invalid value \"" + value + "\" for attribute \"" + enum2str_(ATTMAP,attribute) + "\"");
 			}
 		}
 
@@ -312,11 +307,13 @@ namespace OpenMS
   {
   	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
-  	String tmp_str;
+		int tag = enterTag(TAGMAP, qname, attributes);
+/*  	String tmp_str;
   	int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
-		atts_ = &attributes;
+		atts_ = &attributes;*/
 		
+		String tmp_str;
 		switch(tag)
 		{
 			case MSRUN:
@@ -975,8 +972,9 @@ namespace OpenMS
   {
   	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
-		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
-		is_parser_in_tag_[tag] = false;
+		int tag = leaveTag(TAGMAP, qname);
+// 		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
+// 		is_parser_in_tag_[tag] = false;
 
 		if (tag==INSTRUMENT && analyzer_)
 		{
