@@ -135,7 +135,14 @@ namespace OpenMS
 
 	bool MetaInfo::exists(const std::string& name) const
 	{
-		if (index_to_value_.find(registry_.getIndex(name))==index_to_value_.end())
+		try
+		{
+			if (index_to_value_.find(registry_.getIndex(name))==index_to_value_.end())
+			{
+				return false;
+			}
+		}
+		catch (Exception::InvalidValue)
 		{
 			return false;
 		}

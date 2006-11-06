@@ -157,8 +157,7 @@ namespace OpenMS
 		/// Add name, value and description to a given MetaInfo object
 		inline void setAddInfo(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
 		{
-			info.metaRegistry().registerName(name, description);
-			info.setMetaValue(name,value);
+			info.setMetaValue(info.metaRegistry().registerName(name, description),value);
 		}
 
 		/**  @brief write cvsParamType element containing floats to stream */
