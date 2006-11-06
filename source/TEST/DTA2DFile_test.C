@@ -216,6 +216,17 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 219.72)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.9)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 73629.98)
+
+
+  MSExperiment<> e4;
+
+  dta.load("data/DTA2DFile_test_3.dta2d",e4);
+	TEST_REAL_EQUAL(e4[0].getRetentionTime(), 282666)
+	TEST_REAL_EQUAL(e4[1].getRetentionTime(), 282672)
+	TEST_REAL_EQUAL(e4[2].getRetentionTime(), 282678)
+	TEST_REAL_EQUAL(e4[3].getRetentionTime(), 282684)
+	TEST_REAL_EQUAL(e4[4].getRetentionTime(), 282690)
+	
 RESULT
 
 CHECK(template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile))
