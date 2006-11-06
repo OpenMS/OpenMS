@@ -42,13 +42,12 @@ namespace OpenMS
 	  
 	  File adapter for files with three tab/space-separated columns.
 	  
-	  The default format is: RETENTION_TIME , MASS-TO-CHARGE , INTENSITY.
+	  The default format is: retention time (seconds) , m/z , intensity.
 		
 	  If the first line starts with '#', a different order is defined by the 
-	  the order of the keywords 'RETENTION_TIME', 'MASS-TO-CHARGE', 'INTENSITY'. 
-	  The keywords can be abbreviated as 'RT', 'MZ' and 'IT'.
+	  the order of the keywords 'MIN' (retention time in minutes) or 'SEC' (retention time in seconds), 'MZ', and 'INT'.
 	  <BR>
-	  Example: '\#MZ INTENSITY RETENTION_TIME'
+	  Example: '\#MZ MIN INT'
   
   	@ingroup FileIO
   */
@@ -80,29 +79,32 @@ namespace OpenMS
       template <typename MapType>
       void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
-      //try to open file
-			std::ifstream is(filename.c_str());
-	    if (!is)
-	    {
-	      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-	    }
-		
-			map.reset();
-		
-			// temporary variables to store the data in
-			std::vector<String> strings(3);
-			typename MapType::SpectrumType spec;
-			spec.setRetentionTime(-1.0);
-			typename MapType::SpectrumType::PeakType p;
-			typename MapType::SpectrumType::PeakType::CoordinateType rt(0.0);
-			char delimiter;
-		
-			// default dimension of the data
-			UnsignedInt rt_dim = 0;
-			UnsignedInt mz_dim = 1;
-			UnsignedInt int_dim = 2;
-		
-			// string to store the current line in
+	      //try to open file
+				std::ifstream is(filename.c_str());
+		    if (!is)
+		    {
+		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		    }
+			
+				map.reset();
+			
+				// temporary variables to store the data in
+				std::vector<String> strings(3);
+				typename MapType::SpectrumType spec;
+				spec.setRetentionTime(-1.0);
+				typename MapType::SpectrumType::PeakType p;
+				typename MapType::SpectrumType::PeakType::CoordinateType rt(0.0);
+				char delimiter;
+			
+				// default dimension of the data
+				UnsignedInt rt_dim = 0;
+				UnsignedInt mz_dim = 1;
+				UnsignedInt int_dim = 2;
+				
+				//RT unit (default is seconds)
+				bool time_in_minutes = false;
+				
+				// string to store the current line in
 		    String line;
 		
 		    while (getline(is,line,'\n'))
@@ -135,17 +137,28 @@ namespace OpenMS
 			    	//assign new order
 			    	for (UnsignedInt i = 0 ; i<3;++i)
 			    	{
-			    		if ( ( strings[i]=="RT" || strings[i]=="RETENTION_TIME" ) && rt_set==false)
+			    		if ( strings[i]=="RT" || strings[i]=="RETENTION_TIME" || strings[i]=="MASS-TO-CHARGE" || strings[i]=="IT" || strings[i]=="INTENSITY")
+			    		{
+			    			std::cerr << "Warning: This file contains the deprecated keyword '" << strings[i] << "'." << std::endl;
+			    			std::cerr << "         Please use only the new keywords SEC/MIN, MZ, INT." << std::endl;
+			    		}
+			    		else if ( ( strings[i]=="SEC" || strings[i]=="RT" || strings[i]=="RETENTION_TIME" ) && rt_set==false)
 			    		{
 			    			rt_dim = i;
 			    			rt_set = true;
+			    		}
+			    		else if ( ( strings[i]=="MIN") && rt_set==false)
+			    		{
+			    			rt_dim = i;
+			    			rt_set = true;
+			    			time_in_minutes = true;
 			    		}
 			    		else if ( ( strings[i]=="MZ" || strings[i]=="MASS-TO-CHARGE" ) && mz_set==false)
 			    		{
 			    			mz_dim = i;
 			    			mz_set = true;
 			    		}
-			    		else if ( ( strings[i]=="IT" || strings[i]=="INTENSITY" ) && int_set==false )
+			    		else if ( ( strings[i]=="INT" || strings[i]=="IT" || strings[i]=="INTENSITY" ) && int_set==false )
 			    		{
 			    			int_dim = i;
 			    			int_set = true;
@@ -185,7 +198,14 @@ namespace OpenMS
 							map.push_back(spec);  // if not initial Spectrum
 						}
 						spec.getContainer().clear();
-						spec.setRetentionTime(rt);
+						if (time_in_minutes)
+						{
+							spec.setRetentionTime(rt*60.0);
+						}
+						else
+						{
+							spec.setRetentionTime(rt);
+						}
 					}
 					//insert peak into the spectrum
 					spec.getContainer().push_back(p);
