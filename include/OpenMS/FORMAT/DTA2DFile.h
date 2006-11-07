@@ -142,7 +142,7 @@ namespace OpenMS
 			    			std::cerr << "Warning: This file contains the deprecated keyword '" << strings[i] << "'." << std::endl;
 			    			std::cerr << "         Please use only the new keywords SEC/MIN, MZ, INT." << std::endl;
 			    		}
-			    		else if ( ( strings[i]=="SEC" || strings[i]=="RT" || strings[i]=="RETENTION_TIME" ) && rt_set==false)
+			    		if ( ( strings[i]=="SEC" || strings[i]=="RT" || strings[i]=="RETENTION_TIME" ) && rt_set==false)
 			    		{
 			    			rt_dim = i;
 			    			rt_set = true;

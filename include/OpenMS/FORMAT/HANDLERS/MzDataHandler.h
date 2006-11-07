@@ -358,125 +358,127 @@ namespace OpenMS
 			String tmp_type;
 			switch(tag) 
 			{
-			case DESCRIPTION: 
-				exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
-				break;
-			case CVPARAM: case USERPARAM:
-			{
-				String name = getAttributeAsString(NAME);
-				String value = getAttributeAsString(VALUE);
-				
-				if (name == "")
+				case DESCRIPTION: 
+					exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
+					break;
+				case CVPARAM: 
+				case USERPARAM:
 				{
-					error("missing required attribute 'name'");
-				}
-				else if  (value == "")
-				{
-					error("missing required attribute 'value'");
-				}
-				else {
-					if (tag == USERPARAM)
+					String name = getAttributeAsString(NAME);
+					String value = getAttributeAsString(VALUE);
+					
+					if (name == "")
 					{
-						cvParam_(name, value);
+						error("missing required attribute 'name'");
+					}
+					else if  (value == "")
+					{
+						error("missing required attribute 'value'");
+					}
+					else 
+					{
+						if (tag == USERPARAM)
+						{
+							userParam_(name, value);
+						}
+						else
+						{
+							cvParam_(name, value);
+						}
+					}
+					break;
+			  }
+				case SUPARRAYBINARY:
+					meta_id_ = getAttributeAsString(ID);
+					break;
+				case SPECTRUM:
+				
+					// (ost) That's not possible if you work on external DS. If its internal buffer is full,
+					// MSExperimentExtern might throw this spectrum away and the pointer will be non-sense.
+					exp_->push_back(SpectrumType());
+					spec_ = &(exp_->back());
+					
+					//spec_->getContainer().clear(); 	// spectrum is inserted if element ends
+					break;
+			  case SPECTRUMLIST:
+			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
+			  	exp_->reserve( asSignedInt_(getAttributeAsString(COUNT)) );
+			  	//std::cout << Date::now() << " done" << std::endl;
+			  	break;
+				case ACQSPEC:
+					tmp_type = getAttributeAsString(SPECTRUMTYPE);
+					if  (tmp_type == "CentroidMassSpectrum")
+					{
+						spec_->setType(SpectrumSettings::PEAKS);
+					}
+					else if (tmp_type == "ContinuumMassSpectrum")
+					{
+						spec_->setType(SpectrumSettings::RAWDATA);
 					}
 					else
 					{
-						userParam_(name, value);
+						spec_->setType(SpectrumSettings::UNKNOWN);
 					}
-				}
-				break;
-		  }
-			case SUPARRAYBINARY:
-				meta_id_ = getAttributeAsString(ID);
-				break;
-			case SPECTRUM:
-			
-				// (ost) That's not possible if you work on external DS. If its internal buffer is full,
-				// MSExperimentExtern might throw this spectrum away and the pointer will be non-sense.
-				exp_->push_back(SpectrumType());
-				spec_ = &(exp_->back());
-				
-				//spec_->getContainer().clear(); 	// spectrum is inserted if element ends
-				break;
-		  case SPECTRUMLIST:
-		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-		  	exp_->reserve( asSignedInt_(getAttributeAsString(COUNT)) );
-		  	//std::cout << Date::now() << " done" << std::endl;
-		  	break;
-			case ACQSPEC:
-				tmp_type = getAttributeAsString(SPECTRUMTYPE);
-				if  (tmp_type == "CentroidMassSpectrum")
-				{
-					spec_->setType(SpectrumSettings::PEAKS);
-				}
-				else if (tmp_type == "ContinuumMassSpectrum")
-				{
-					spec_->setType(SpectrumSettings::RAWDATA);
-				}
-				else
-				{
-					spec_->setType(SpectrumSettings::UNKNOWN);
-				}
-				
-				spec_->getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
-				break;
-			case ACQUISITION:
-				{
-					spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
-					acq_ = &(spec_->getAcquisitionInfo().back());
-					acq_->setNumber(asSignedInt_(getAttributeAsString(ACQNUMBER)));
-				}	
-				break;
-			case SPECTRUMINSTRUMENT: case ACQINSTRUMENT:
-			{
-				spec_->setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
-				String start = getAttributeAsString(MZRANGE_START);
-				String stop = getAttributeAsString(MZRANGE_STOP);
-				
-				if  (start != "")
-				{
-					spec_->getInstrumentSettings().setMzRangeStart(asDouble_(start));
-				}
-				if  (stop != "")
-				{
-					spec_->getInstrumentSettings().setMzRangeStop(asDouble_(stop));
-				}
-				break;
-			}
-			case PRECURSOR:
-				prec_ = &(spec_->getPrecursor());
-				//UNHANDLED: "spectrumRef";
-				break;
-			case SUPDESC:
-				meta_id_ = getAttributeAsString(SUP_DATA_ARRAY_REF);
-				break;
-			case DATA:
-				// store precision for later
-				precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString(ATT_PRECISION)));
-				endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString(ATT_ENDIAN)));
-				if (is_parser_in_tag_[MZARRAYBINARY])
-				{
-					peak_count_ = asSignedInt_(getAttributeAsString(LENGTH));
-					//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
-					spec_->getContainer().reserve(peak_count_);
-				}
-				break;
-			case MZDATA:
-				{
-					String s = getAttributeAsString(VERSION);
-					for (UnsignedInt index=0; index<Schemes::MzData_num; ++index)
+					
+					spec_->getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
+					break;
+				case ACQUISITION:
 					{
-						if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
+						spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
+						acq_ = &(spec_->getAcquisitionInfo().back());
+						acq_->setNumber(asSignedInt_(getAttributeAsString(ACQNUMBER)));
+					}	
+					break;
+				case SPECTRUMINSTRUMENT: case ACQINSTRUMENT:
+				{
+					spec_->setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
+					String start = getAttributeAsString(MZRANGE_START);
+					String stop = getAttributeAsString(MZRANGE_STOP);
+					
+					if  (start != "")
+					{
+						spec_->getInstrumentSettings().setMzRangeStart(asDouble_(start));
+					}
+					if  (stop != "")
+					{
+						spec_->getInstrumentSettings().setMzRangeStop(asDouble_(stop));
+					}
+					break;
+				}
+				case PRECURSOR:
+					prec_ = &(spec_->getPrecursor());
+					//UNHANDLED: "spectrumRef";
+					break;
+				case SUPDESC:
+					meta_id_ = getAttributeAsString(SUP_DATA_ARRAY_REF);
+					break;
+				case DATA:
+					// store precision for later
+					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString(ATT_PRECISION)));
+					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString(ATT_ENDIAN)));
+					if (is_parser_in_tag_[MZARRAYBINARY])
+					{
+						peak_count_ = asSignedInt_(getAttributeAsString(LENGTH));
+						//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
+						spec_->getContainer().reserve(peak_count_);
+					}
+					break;
+				case MZDATA:
+					{
+						String s = getAttributeAsString(VERSION);
+						for (UnsignedInt index=0; index<Schemes::MzData_num; ++index)
 						{
-							schema_ = index;
-							// refill maps with older schema
-							for (Size i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-							for (Size i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
-							fillMaps_(Schemes::MzData[schema_]);
+							if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
+							{
+								schema_ = index;
+								// refill maps with older schema
+								for (Size i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
+								for (Size i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
+								fillMaps_(Schemes::MzData[schema_]);
+							}
 						}
 					}
-				}
-				break;
+					break;
 			}
 		}
 
@@ -564,8 +566,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::cvParam_(const String& name, const String& value)
 		{
-			int ont = str2enum_(ONTOLOGYMAP, name, "cvParam elment"); // index of current ontology term
-
+			int ont = str2enum_(ONTOLOGYMAP, name, "cvParam element"); // index of current ontology term
 			std::string error = "";
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
