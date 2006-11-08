@@ -110,6 +110,7 @@ namespace OpenMS
 			 	exp_sett_()
   		{
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
       
       ///
@@ -121,6 +122,7 @@ namespace OpenMS
 				exp_sett_()
   		{
 				fillMaps_(Schemes::DFeatureMap[schema_]);	// fill maps with current schema
+				setMaps_(TAGMAP, ATTMAP);
 			}
 
       ///
@@ -155,6 +157,13 @@ namespace OpenMS
 								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
 								HULLPOINT, HPOSITION, META, DESCRIPTION, FEATUREMAP, TAG_NUM};
 
+		/** @brief indices for attributes used by DFeatureMapFile
+
+			If you add tags, also add them to XMLSchemes.h.
+			Add no elements to the enum after TAG_NUM.
+		*/
+		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
+
 		/** @brief indices for enum2str-maps used by DFeatureMapFile
 
 			Used to access enum2str_().
@@ -162,7 +171,7 @@ namespace OpenMS
 			Add no elements to the enum after MAP_NUM.
 			Each map corresponds to a string in XMLSchemes.h.
 		*/
-		enum MapTypes {	TAGMAP, MAP_NUM };
+		enum MapTypes {	TAGMAP, ATTMAP, MAP_NUM };
 
 		/**@name temporary datastructures to hold parsed data */
     //@{
@@ -200,8 +209,7 @@ namespace OpenMS
 			}
 		}
 
-	  int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
-		is_parser_in_tag_[tag] = false;
+		int tag = leaveTag(qname);
 
 		// Do something depending on the tag
 		switch(tag) {
@@ -262,9 +270,9 @@ namespace OpenMS
 			return;
 		}
 
-		int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
-		is_parser_in_tag_[tag] = true;
+		int tag = enterTag(qname, attributes);
 
+		String tmp_str;
 		// Do something depending on the tag
 		switch(tag) {
 			case DESCRIPTION: 
@@ -273,11 +281,13 @@ namespace OpenMS
    		case FEATURE: 	 
    			feature_        = new DFeature<D>();
    			break;
-			case QUALITY:    
-				current_qcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+			case QUALITY:
+				tmp_str = getAttributeAsString(DIM);
+				current_qcoord_ = asUnsignedInt_(tmp_str); 
 				break;
-			case POSITION:   
-				current_pcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+			case POSITION:
+				tmp_str = getAttributeAsString(DIM);
+				current_pcoord_ = asUnsignedInt_(tmp_str); 
 				break;
 			case CONVEXHULL: 
 				current_chull_  = new ConvexHullType(); 
@@ -286,20 +296,26 @@ namespace OpenMS
 				hull_position_  = new DPosition<D>(); 
 				break;
 			case HPOSITION:  
-				current_hcoord_ = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); 
+				tmp_str = getAttributeAsString(DIM);
+				current_hcoord_ = asUnsignedInt_(tmp_str); 
 				break;
 			case FEATMODEL:
 				model_desc_ = new ModelDescription<D>();
 		  	param_ = new Param();
-		  	if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1)
+				tmp_str = getAttributeAsString(NAME);
+		  	if (tmp_str != "")
 		  	{
-		  		model_desc_->setName(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))));
+		  		model_desc_->setName(tmp_str);
 		  	}
 		  	break;
 		  case PARAM:
-		  	if (attributes.getIndex(xercesc::XMLString::transcode("name"))!=-1 && attributes.getIndex(xercesc::XMLString::transcode("value"))!=-1 )
-		  		param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name"))),xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("value"))));
+		  {
+		  	String name = getAttributeAsString(NAME);
+				String value = getAttributeAsString(VALUE);
+		  	if (name != "" && value != "")
+		  		param_->setValue(name, value);
 		  	break;
+		  }
 		}
 	}
 

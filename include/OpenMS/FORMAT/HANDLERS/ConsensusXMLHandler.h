@@ -241,8 +241,7 @@ namespace OpenMS
     template < typename  ConsensusElementT >
     void ConsensusXMLHandler<ConsensusElementT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"closing tag");  // index of current tag
-      is_parser_in_tag_[tag] = false;
+      int tag = leaveTag(qname);
 
       // Do something depending on the tag
       switch(tag)
@@ -258,8 +257,7 @@ namespace OpenMS
     template < typename  ConsensusElementT >
     void ConsensusXMLHandler<ConsensusElementT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag"); // index of current tag
-      is_parser_in_tag_[tag] = true;
+      int tag = enterTag(qname, attributes);
 
       String tmp_str;
       // Do something depending on the tag

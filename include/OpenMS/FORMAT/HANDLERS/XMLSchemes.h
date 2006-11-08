@@ -286,7 +286,7 @@ namespace OpenMS
 		const UnsignedInt DFeatureMap_num = 1;
 
     ///Schemata for the DFeatureMap
-    const String DFeatureMap[][2] = {
+    const String DFeatureMap[][3] = {
 			///---------------- DFeatureMap 1.0 --------------------------
 			{
 				// name of scheme
@@ -294,7 +294,10 @@ namespace OpenMS
 
 				// Tags
 	 			";featureList;feature;position;intensity;quality;acquisition;overallquality;"
-				"charge;model;param;convexhull;hullpoint;hposition;meta;description;featureMap"
+				"charge;model;param;convexhull;hullpoint;hposition;meta;description;featureMap",
+				
+				// Attributes
+				";dim;name;value"
 	  	}
 		};
 
@@ -302,7 +305,7 @@ namespace OpenMS
 		const UnsignedInt DFeaturePairs_num = 1;
 
     ///Schemata for the DFeatureMap
-    const String DFeaturePairs[][2] = {
+    const String DFeaturePairs[][3] = {
 			///---------------- DFeaturePairs 1.0 --------------------------
 			{
 				// name of scheme
@@ -310,7 +313,10 @@ namespace OpenMS
 
 				// Tags
 				";pairlist;pair;pairquality;first;second;feature;position;intensity;quality;"
-				"overallquality;charge;model;param;convexhull;hullpoint;hposition"
+				"overallquality;charge;model;param;convexhull;hullpoint;hposition",
+				
+				// Attributes
+				";dim;name;value"
 	  	}
 		};
 
