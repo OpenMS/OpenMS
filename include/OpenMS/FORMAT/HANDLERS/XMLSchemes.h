@@ -197,7 +197,7 @@ namespace OpenMS
 				"nameOfFile;pathToFile;fileType",
 				
 				// Attributes
-				"name;value;id;count;spectrumType;methodOfCombination;acqNumber;msLevel;"
+				";name;value;id;count;spectrumType;methodOfCombination;acqNumber;msLevel;"
 				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version",
 	  	}
 		};
@@ -318,7 +318,7 @@ namespace OpenMS
     const UnsignedInt ConsensusXML_num = 1;
 
     ///Schemata for the consensusXML
-    const String ConsensusXML[][2] =
+    const String ConsensusXML[][3] =
       {
         ///---------------- consensusXML 1.0 --------------------------
         {
@@ -329,7 +329,10 @@ namespace OpenMS
           ";consensusXML;mapList;mapType;map;alignment;alignmentMethod;"
           "matchingAlgorithm;consensusAlgorithm;alignmentNewickTree;transformationList;"
           "transformation;cell;range;parameters;consensusElementList;consensusElement;"
-          "centroid;groupedElementList;element"
+          "centroid;groupedElementList;element",
+          
+          // Attributes
+          ";count;name;id;rt;mz;it;rtMin;rtMax;mzMin;mzMax;itMin;itMax;map"
 
         }
       };

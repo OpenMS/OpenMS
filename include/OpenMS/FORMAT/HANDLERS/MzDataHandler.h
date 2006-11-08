@@ -136,7 +136,7 @@ namespace OpenMS
 
 			If you add attributes, also add them to XMLSchemes.h
 			*/
-			enum Attributes {NAME, VALUE, ID, COUNT, SPECTRUMTYPE, METHOD_OF_COMBINATION,
+			enum Attributes { ATTNULL, NAME, VALUE, ID, COUNT, SPECTRUMTYPE, METHOD_OF_COMBINATION,
 			                 ACQNUMBER, MSLEVEL, MZRANGE_START, MZRANGE_STOP,
 			                 SUP_DATA_ARRAY_REF, ATT_PRECISION, ATT_ENDIAN, LENGTH, VERSION, ATT_NUM};
 			

@@ -102,6 +102,7 @@ namespace OpenMS
             feature_map_flag_(true)
         {
           fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
+          setMaps_(TAGMAP, ATTMAP);
         }
 
         ///
@@ -115,6 +116,7 @@ namespace OpenMS
             feature_map_flag_(true)
         {
           fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
+          setMaps_(TAGMAP, ATTMAP);
         }
 
         ///
@@ -157,6 +159,13 @@ namespace OpenMS
                     MATCHINGALGORITHM, CONSENSUSALGORITHM, ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION,
                     CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT, TAG_NUM};
 
+        /** @brief indices for attributes used by StarAlignment
+
+          If you add attributes, also add them to XMLSchemes.h.
+          Add no elements to the enum after ATT_NUM.
+        */
+        enum Attributes { ATTNULL, COUNT, NAME, ID, RT_ATT, MZ_ATT, IT, RTMIN, RTMAX, MZMIN, MZMAX, ITMIN, ITMAX, MAP_ATT, ATT_NUM};
+
         /** @brief indices for enum2str-maps used by DFeatureMapFile
 
           Used to access enum2str_().
@@ -164,7 +173,7 @@ namespace OpenMS
           Add no elements to the enum after MAP_NUM.
           Each map corresponds to a string in XMLSchemes.h.
         */
-        enum MapTypes { TAGMAP, MAP_NUM };
+        enum MapTypes { TAGMAP, ATTMAP, MAP_NUM };
 
 
         void writeCellList_(std::ostream& os, const GridType& grid)
@@ -252,33 +261,38 @@ namespace OpenMS
       int tag = str2enum_(TAGMAP,xercesc::XMLString::transcode(qname),"opening tag"); // index of current tag
       is_parser_in_tag_[tag] = true;
 
+      String tmp_str;
       // Do something depending on the tag
       switch(tag)
       {
           case MAPLIST:
-          if (attributes.getIndex(xercesc::XMLString::transcode("count")) != -1)
+          tmp_str = getAttributeAsString(COUNT);
+          if (tmp_str != "")
           {
-            UnsignedInt count = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("count"))));
+            UnsignedInt count = asUnsignedInt_(tmp_str);
             consensus_map_->getMapVector().resize(count);
             consensus_map_->getFilenames().resize(count);
           }
           break;
           case MAPTYPE:
-          if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
+          tmp_str = getAttributeAsString(NAME);
+          if (tmp_str != "")
           {
-            if (xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))) == "feature_map")
+            if (getAttributeAsString(ID) == "feature_map")
             {
               feature_map_flag_ = true;
             }
           }
           break;
           case MAP:
-          if (attributes.getIndex(xercesc::XMLString::transcode("id")) != -1)
+          tmp_str = getAttributeAsString(ID);
+          if (tmp_str != "")
           {
-            UnsignedInt id = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
-            if (attributes.getIndex(xercesc::XMLString::transcode("name")) != -1)
+            UnsignedInt id = asUnsignedInt_(tmp_str);
+            tmp_str = getAttributeAsString(NAME);
+            if (tmp_str != "")
             {
-              String act_filename = xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("name")));
+              String act_filename = tmp_str;
               // load FeatureMapXML
               if (feature_map_flag_)
               {
@@ -302,47 +316,56 @@ namespace OpenMS
           consensus_element_range_ = true;
           break;
           case CENTROID:
-          if (attributes.getIndex(xercesc::XMLString::transcode("rt"))!=-1)
+          tmp_str = getAttributeAsString(RT_ATT);
+          if (tmp_str != "")
           {
-            pos_[RT] = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rt"))));
+            pos_[RT] = asDouble_(tmp_str);
           }
 
-          if (attributes.getIndex(xercesc::XMLString::transcode("mz"))!=-1)
+          tmp_str = getAttributeAsString(MZ_ATT);
+          if (tmp_str != "")
           {
-            pos_[MZ] = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mz"))));
+            pos_[MZ] = asDouble_(tmp_str);
           }
 
-          if (attributes.getIndex(xercesc::XMLString::transcode("it")) != -1)
+          tmp_str = getAttributeAsString(IT);
+          if (tmp_str != "")
           {
-            it_ = asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("it"))));
+            it_ = asDouble_(tmp_str);
           }
           break;
           case RANGE:
           if (consensus_element_range_)
           {
-            if (attributes.getIndex(xercesc::XMLString::transcode("rtMin")) != -1)
+            tmp_str = getAttributeAsString(RTMIN);
+            if (tmp_str != "")
             {
-              pos_range_.setMinX(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rtMin")))));
+              pos_range_.setMinX(asDouble_(tmp_str));
 
-              if (attributes.getIndex(xercesc::XMLString::transcode("rtMax")) != -1)
+              tmp_str = getAttributeAsString(RTMAX);
+              if (tmp_str != "")
               {
-                pos_range_.setMaxX(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("rtMax")))));
+                pos_range_.setMaxX(asDouble_(tmp_str));
 
-                if (attributes.getIndex(xercesc::XMLString::transcode("mzMin")) != -1)
+                tmp_str = getAttributeAsString(MZMIN);
+                if (tmp_str != "")
                 {
-                  pos_range_.setMinY(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzMin")))));
+                  pos_range_.setMinY(asDouble_(tmp_str));
 
-                  if (attributes.getIndex(xercesc::XMLString::transcode("mzMax")) != -1)
+                  tmp_str = getAttributeAsString(MZMAX);
+                  if (tmp_str != "")
                   {
-                    pos_range_.setMaxY(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("mzMax")))));
+                    pos_range_.setMaxY(asDouble_(tmp_str));
 
-                    if (attributes.getIndex(xercesc::XMLString::transcode("itMin")) != -1)
+                    tmp_str = getAttributeAsString(ITMIN);
+                    if (tmp_str != "")
                     {
-                      it_range_.setMin(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("itMin")))));
+                      it_range_.setMin(asDouble_(tmp_str));
 
-                      if (attributes.getIndex(xercesc::XMLString::transcode("itMax")) != -1)
+                      tmp_str = getAttributeAsString(ITMAX);
+                      if (tmp_str != "")
                       {
-                        it_range_.setMax(asDouble_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("itMax")))));
+                        it_range_.setMax(asDouble_(tmp_str));
 
                         consensus_element_range_ = false;
                       }
@@ -355,12 +378,14 @@ namespace OpenMS
           break;
           case ELEMENT:
           act_index_tuple_ = new IndexTuple< ElementContainerType >;
-          if (attributes.getIndex(xercesc::XMLString::transcode("map")) != -1)
+          tmp_str = getAttributeAsString(MAP_ATT);
+          if (tmp_str != "")
           {
-            UnsignedInt map_index = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("map"))));
-            if (attributes.getIndex(xercesc::XMLString::transcode("id")) != -1)
+            UnsignedInt map_index = asUnsignedInt_(tmp_str);
+            tmp_str = getAttributeAsString(ID);
+            if (tmp_str)
             {
-              UnsignedInt element_index = asUnsignedInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("id"))));
+              UnsignedInt element_index = asUnsignedInt_(tmp_str);
 
               act_index_tuple_->getMapIndex() = map_index;
               act_index_tuple_->getElementIndex() = element_index;
