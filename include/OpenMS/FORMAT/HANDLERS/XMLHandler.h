@@ -183,7 +183,7 @@ namespace OpenMS
 					{
 						// xs::DateTime to OpenMS::DateTime
 						String tmp(in);
-						tmp.replace('T', ' ');
+						tmp.substitute('T', ' ');
 						tmp = tmp.substr(0,19);
 						res.set(tmp);
 					}

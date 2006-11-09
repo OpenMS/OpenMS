@@ -395,7 +395,7 @@ namespace OpenMS
 				String tmp;
 				cexp_->getSoftware().getCompletionTime().get(tmp);
 				String time(tmp);
-				time.replace(' ','T');
+				time.substitute(' ','T');
 				os << " completionTime=\"" << time << "\"";
 			}
 			os << ">\n"

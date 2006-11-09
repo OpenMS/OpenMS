@@ -997,7 +997,7 @@ namespace OpenMS
 		}
 		os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0\" "
-		     << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+			 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
 			 << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0 "
 			 << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.0/mzXML_idx_2.0.xsd\">\n"
 			 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
@@ -1036,7 +1036,7 @@ namespace OpenMS
 				version = inst.getMetaValue("#InstSoftwareVersion").toString();
 				String str = inst.getMetaValue("#InstSoftwareTime").toString();
 				String time(str);
-				time.replace(' ', 'T');
+				time.substitute(' ', 'T');
 				os << "\t\t\t<software type=\"" << type
 					 << "\" name=\"" << name
 					 << "\" version=\"" << version
@@ -1122,7 +1122,7 @@ namespace OpenMS
 			String tmp;
 			software.getCompletionTime().get(tmp);
 			String qtmp(tmp);
-			qtmp.replace(' ', 'T');
+			qtmp.substitute(' ', 'T');
 			os << "\" completionTime=\"" << qtmp;
 		}
 		os << "\"/>\n";
