@@ -422,11 +422,13 @@ int main(int argc, char **argv)\
 	TEST::all_tests = TEST::all_tests && TEST::test;\
 	if (TEST::verbose > 0){\
 		if (TEST::test){\
-			std::cout << "passed\n" << std::endl;\
+			std::cout << (TEST::verbose > 1 ? "passed\n" : "passed") << std::endl;\
 		} else {\
 			std::cout << \
-      "##############################################################################\n" \
-      "failed\n" << std::endl;\
+			(TEST::verbose > 1 ? \
+				"##############################################################################\nfailed\n" : \
+				"failed" \
+			) << std::endl;\
 		}\
 	}\
 
