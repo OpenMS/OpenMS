@@ -789,6 +789,12 @@ CHECK(void reset())
 	TEST_EQUAL(exp==MSExperiment<>(),true);
 RESULT
 
+CHECK(const ExperimentalSettings& getExperimentalSettings() const)
+	MSExperiment<> exp;
+	exp.setComment("test");
+	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -720,9 +720,9 @@ public:
 	}
 	
 	/// returns the meta information of this experiment
-	const ExperimentalSettings getExperimentalSettings() const 
+	const ExperimentalSettings& getExperimentalSettings() const 
 	{
-		return ((ExperimentalSettings) *this);
+		return *this;
 	}
 		
 protected:

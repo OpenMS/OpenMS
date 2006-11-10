@@ -766,7 +766,7 @@ namespace OpenMS
       std::cout << "h: " << lorentz.height << std::endl;
 #endif
 
-      if ((lorentz.r_value > sech.r_value) && isnan(sech.r_value))
+      if ((lorentz.r_value > sech.r_value) && std::isnan(sech.r_value))
       {
         return lorentz;
       }

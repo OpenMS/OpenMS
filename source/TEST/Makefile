@@ -154,15 +154,13 @@ EXECUTABLES_FORMAT = \
 	FileHandler_test\
 	MzDataExpSettHandler_test\
 	MzXMLFile_test\
+	MzDataFile_test\
 	Param_test\
 	DFeatureMapFile_test\
 	DFeaturePairsFile_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
 	DGridFile_test
-
-
-#	MzDataFile_test\
 
 #MATH
 

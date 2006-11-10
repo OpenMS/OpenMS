@@ -381,7 +381,7 @@ namespace OpenMS
           {
             UnsignedInt map_index = asUnsignedInt_(tmp_str);
             tmp_str = getAttributeAsString(ID);
-            if (tmp_str)
+            if (tmp_str != "")
             {
               UnsignedInt element_index = asUnsignedInt_(tmp_str);
 

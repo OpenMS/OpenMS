@@ -1111,9 +1111,9 @@ class MSExperimentExtern
     }
 	
 	/// returns the meta information of this experiment
-	const ExperimentalSettings getExperimentalSettings() const 
+	const ExperimentalSettings& getExperimentalSettings() const 
 	{
-		return ((ExperimentalSettings) exp_);
+		return exp_;
 	}
 	
 	/// Mutable access to peak with index @p  

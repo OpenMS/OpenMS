@@ -440,15 +440,13 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
-	std::string tmp_filename;
-  	MSExperiment< DPickedPeak<1> > e;
-  	MzDataFile f;
-
- 	NEW_TMP_FILE(tmp_filename);
-  	f.load("data/MzDataFile_test_1.mzData",e);
-
+  MSExperiment< DPickedPeak<1> > e;
+  MzDataFile f;
+  f.load("data/MzDataFile_test_1.mzData",e);
 	TEST_EQUAL(e.size(), 3)
 
+	std::string tmp_filename;
+ 	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e);
 	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_1.mzData");
 

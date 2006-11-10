@@ -257,6 +257,12 @@ CHECK(UnsignedInt getSize() const)
 		
 RESULT
 
+CHECK(const MSExperimentExtern& getExperimentalSettings() const)
+	MSExperimentExtern<> exp;
+	exp.setComment("test");
+	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

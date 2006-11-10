@@ -214,13 +214,14 @@ namespace OpenMS
 			writeCVS_(os, enum2str_(map,value), acc, name, indent);
 		}
 
-		/**  @brief write multiple userParam elements containing MetaInfo to stream */
-		/**
-				 @p meta interface to access all meta info
-				 @p indent number of tabs used in front of tag
-
-					Example:
-					&lt;userParam name="??" value="??"/&gt;
+		/**  
+			@brief write multiple userParam elements containing MetaInfo to stream
+			
+			@p meta interface to access all meta info
+			@p indent number of tabs used in front of tag
+			
+			Example:
+			&lt;userParam name="??" value="??"/&gt;
 		*/
 		inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
 		{
