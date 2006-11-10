@@ -421,14 +421,15 @@ int main(int argc, char **argv)\
 \
 	TEST::all_tests = TEST::all_tests && TEST::test;\
 	if (TEST::verbose > 0){\
-		if (TEST::newline)\
-			std::cout << "    ";\
 		if (TEST::test){\
-			std::cout << "passed" << std::endl;\
+			std::cout << "passed\n" << std::endl;\
 		} else {\
-			std::cout << "FAILED" << std::endl;\
+			std::cout << \
+      "##############################################################################\n" \
+      "failed\n" << std::endl;\
 		}\
 	}\
+
 
 /** @brief Create a temporary filename.
 

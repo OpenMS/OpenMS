@@ -42,8 +42,6 @@ START_TEST(Matrix, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-STATUS("\n\nDISCLAIMER: This ist not really a full test, but it shows that the thing compiles and you may inspect the STATUS() output manually ...\n\n\n")
-
 Matrix<int>* ptr = 0;
 CHECK(Matrix<int>())
 	ptr = new Matrix<int>;
@@ -55,65 +53,119 @@ CHECK(~Matrix<int>())
 RESULT
 
 CHECK(Matrix())
+{
   Matrix<int> mi1;
-  STATUS("mi1:\n"<< mi1)
+	TEST_EQUAL(mi1.size(),0);
+	TEST_EQUAL(mi1.cols(),0);
+	TEST_EQUAL(mi1.rows(),0);
+	TEST_EQUAL(mi1.empty(),true);
+  STATUS("mi1:\n"<< mi1);
+}
 RESULT
 
 Matrix<int> mi;
 
 CHECK((void resize(size_type i, size_type j, value_type value = value_type())))
+{
 	mi.resize(2,2,3);
-  STATUS("mi1:\n"<< mi)
+  STATUS("mi1:\n"<< mi);
 	mi.resize(2,3,7);
-  STATUS("mi1:\n"<< mi)
+  STATUS("mi1:\n"<< mi);
+	TEST_EQUAL(mi(0,0),3);
+	TEST_EQUAL(mi(0,1),3);
+	TEST_EQUAL(mi(0,2),3);
+	TEST_EQUAL(mi(1,0),3);
+	TEST_EQUAL(mi(1,1),7);
+	TEST_EQUAL(mi(1,2),7);
+}
 RESULT
 
 CHECK(Matrix(const Matrix & source))
+{
   Matrix<int> mi2(mi);
-  STATUS("mi2:\n"<< mi2)
+  STATUS("mi2:\n"<< mi2);
+	TEST_EQUAL(mi2.cols(),3);
+	TEST_EQUAL(mi2.rows(),2);
+	TEST_EQUAL(mi2(0,0),3);
+	TEST_EQUAL(mi2(0,1),3);
+	TEST_EQUAL(mi2(0,2),3);
+	TEST_EQUAL(mi2(1,0),3);
+	TEST_EQUAL(mi2(1,1),7);
+	TEST_EQUAL(mi2(1,2),7);
+}
 RESULT
 
 CHECK(Matrix& operator = (const Matrix & rhs))
+{
 	Matrix<int> mi3;
-  STATUS("mi3:\n"<<mi3)
+  STATUS("mi3:\n"<<mi3);
 	mi3=mi;
-  STATUS("mi3:\n"<<mi3)
+  STATUS("mi3:\n"<<mi3);
+	TEST_EQUAL(mi3.cols(),3);
+	TEST_EQUAL(mi3.rows(),2);
+	TEST_EQUAL(mi3(0,0),3);
+	TEST_EQUAL(mi3(0,1),3);
+	TEST_EQUAL(mi3(0,2),3);
+	TEST_EQUAL(mi3(1,0),3);
+	TEST_EQUAL(mi3(1,1),7);
+	TEST_EQUAL(mi3(1,2),7);
+}
 RESULT
 
+mi(1,1)=17;
+
 CHECK((const_reference getValue(size_type const i, size_type const j) const))
- 	mi(1,1)=17;
-  STATUS("mi:\n"<<mi)
+{
+	Matrix<int> const & micr = mi;
+  STATUS("micr:\n"<<micr);
+	TEST_EQUAL(micr.getValue(1,1),17);
+}
 RESULT
 
 CHECK((const_reference operator() (size_type const i, size_type const j) const))
+{
 	Matrix<int> const & micr = mi;
-  STATUS(micr(1,2));
-	Matrix<int> & mir = mi;
-  mir(1,2) = 22;
-  STATUS(mir(1,2));
+  STATUS("micr:\n"<<micr);
+	TEST_EQUAL(micr(1,1),17);
+}
 RESULT
 
 CHECK((reference getValue(size_type const i, size_type const j)))
-		STATUS(mi.getValue(1,2));
+{
+	STATUS(mi.getValue(1,2));
+	mi.getValue(1,2)=33;
+	STATUS(mi.getValue(1,2));
+	Matrix<int> const & micr = mi;
+	TEST_EQUAL(micr.getValue(1,2),33);
+}
 RESULT
 
 CHECK((reference operator() (size_type const i, size_type const j)))
-  // ???
+{
+	STATUS(mi.getValue(1,0));
+	mi.getValue(1,0)=44;
+	STATUS(mi.getValue(1,0));
+	Matrix<int> const & micr = mi;
+	TEST_EQUAL(micr.getValue(1,0),44);
+}
 RESULT
 
 CHECK(void clear())
+{
 	Matrix<int> mi4(mi);
-  STATUS("mi4:\n"<<mi4)
+  STATUS("mi4:\n"<<mi4);
 	mi4.clear();
+  STATUS("mi4:\n"<<mi4);
   TEST_EQUAL(mi4.empty(),true);
-  STATUS("mi4:\n"<<mi4)
-	mi4 = mi;
-  STATUS("mi4:\n"<<mi4)
+}
 RESULT
 
 CHECK((void setValue(size_type const i, size_type const j, value_type value)))
+{
 	mi.setValue(1,1,18);
-STATUS("mi:\n"<<mi)
+	STATUS("mi:\n"<<mi);
+	TEST_EQUAL(mi(1,1),18);
+}
 RESULT
 
 Matrix<int> mi5(4,5,6);
@@ -131,8 +183,6 @@ CHECK(SizeType rows() const throw())
 	TEST_EQUAL(mi5.cols(),5)
 RESULT
 
-
-
 Matrix<float> mf(6,7,8);
 
 CHECK(SizeType colIndex(SizeType index) const)
@@ -148,17 +198,99 @@ CHECK(SizeType rowIndex(SizeType index) const)
 RESULT
 
 CHECK((std::pair<Size,Size> const indexPair(Size index) const))
+{
 	std::pair<Size,Size> result = mf.indexPair(30);
-  TEST_EQUAL(result.first,4)
-	TEST_EQUAL(result.second,2)
+  TEST_EQUAL(result.first,4);
+	TEST_EQUAL(result.second,2);
+}
 RESULT
+	
+CHECK(toPGM())
+{
+	int feep[] =
+		{ // The "feep" image is from http://netpbm.sourceforge.net/doc/pgm.html
+			0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, //
+			0,  3,  3,  3,  3,  0,  0,  7,  7,  7,  7,  0,  0, 11, 11, 11, 11,  0,  0, 15, 15, 15, 15,  0, //
+			0,  3,  0,  0,  0,  0,  0,  7,  0,  0,  0,  0,  0, 11,  0,  0,  0,  0,  0, 15,  0,  0, 15,  0, //
+			0,  3,  3,  3,  0,  0,  0,  7,  7,  7,  0,  0,  0, 11, 11, 11,  0,  0,  0, 15, 15, 15, 15,  0, //
+			0,  3,  0,  0,  0,  0,  0,  7,  0,  0,  0,  0,  0, 11,  0,  0,  0,  0,  0, 15,  0,  0,  0,  0, //
+			0,  3,  0,  0,  0,  0,  0,  7,  7,  7,  7,  0,  0, 11, 11, 11, 11,  0,  0, 15,  0,  0,  0,  0, //
+			0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0  //
+		};
 
-CHECK(~Matrix())
-  // yeah, see above
+	Matrix<int> matrix;
+	matrix.resize(7,24);
+	matrix.assign( feep, feep + 24*7 );
+	Matrix<int> const & matrixcr(matrix);
+	
+	{ // using defaults (black background, no scaling)
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "0.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output);
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_d.pgm");
+	}
+	{ // black background, with comment
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "1.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,15,0,"One comment line\nAnother comment line.");
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_c.pgm");
+	}
+	{ // white background, reduced gray scale
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "2a.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,-4);
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_r.pgm");
+	}
+	{ // using 1 bit (get "  ep" only)
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "4.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,1,1./15,"binary feep (is \"  ep\" only)");
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_1.pgm");
+	}
+	{ // using 1 bit, reverse video (get "  ep" only)
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "4r.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,-1,1./15,"binary feep (is \"  ep\" only)");
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_1r.pgm");
+	}
+	{ // no scaling, but reverse video
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "2.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,0,-1);
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_nr.pgm");
+	}
+	{ // using 16 bit
+		std::string feep_pgm;
+		NEW_TMP_FILE(feep_pgm);
+		feep_pgm = "3.TMP";
+		std::ofstream output (feep_pgm.c_str());
+		matrixcr.writePGM(output,(1<<16)-1);
+		output.close();
+		TEST_FILE(feep_pgm.c_str(),"data/feep_16.pgm");
+	}
+#if 0
+#endif
+}
 RESULT
-
-STATUS("\n\nDISCLAIMER: This ist not really a full test, but it shows that the thing compiles and you may inspect the STATUS() output manually ...\n\n\n")
-
+	
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

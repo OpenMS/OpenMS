@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -28,30 +28,48 @@
 #define OPENMS_DATASTRUCTURES_MATRIX_H
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iomanip>
 #include <vector>
 
 namespace OpenMS
 {
-  
+
   /**
-     @brief A two-dimensional matrix.  Similar to std::vector, but uses
-     operator() for element access.
-      
-     This is not intended to be used for linear algebra.  Think of it as a
-     random access container.
+     @brief A two-dimensional matrix.  Similar to std::vector, but uses a binary
+     operator(,) for element access.
 
-		 (Yes, one could overload operator[] to make things like mat[i][j] work.
-		 But mat(i,j) isn't so bad, either.)
+		 Think of it as a random access container.  You can also generate gray
+     scale images.  This is not designed to be used for linear algebra.
 
+		 The following member functions of the base class std::vector<ValueType>
+		 can also be used:
+		 
+		 - begin
+		 - end
+		 - rbegin
+		 - rend
+		 - front
+		 - back
+		 - assign
+		 - empty
+		 - size
+		 - capacity
+		 - max_size
+		 .
+
+		 (It seems that Doxygen does not parse pure access declarations, so we
+		 list them here.)
+
+		 @ingroup Datastructures
   */
   template <typename Value>
 	class Matrix : protected std::vector < Value >
 	{
 	 protected:
 		typedef std::vector < Value > Base;
-		
+
 	 public:
 
 		///@name STL compliance type definitions
@@ -156,7 +174,7 @@ namespace OpenMS
 
 		/**
 			 @name Pure access declarations
-			 
+
 			 These make begin(), end() etc. from container_type accessible.
 
 			 @todo Fix check_test so that it will parse Matrix.h !  Workaround: To
@@ -173,7 +191,8 @@ namespace OpenMS
 
 		Base::front;
 		Base::back;
-	
+		Base::assign;
+
 		Base::empty;
 		Base::size;
 
@@ -221,7 +240,7 @@ namespace OpenMS
 		}
 
 		/**@brief Calculate the index into the underlying vector from row and
-			 column.  Note that Matrix uses the (row,columnm) lexicographic ordering
+			 column.  Note that Matrix uses the (row,column) lexicographic ordering
 			 for indexing.
 		*/
 		SizeType const index(SizeType row, SizeType col) const
@@ -234,7 +253,7 @@ namespace OpenMS
 		}
 
 		/**@brief Calculate the row and column from an index into the underlying
-			 vector.  Note that Matrix uses the (row,columnm) lexicographic ordering
+			 vector.  Note that Matrix uses the (row,column) lexicographic ordering
 			 for indexing.
 		*/
 		std::pair<Size,Size> const indexPair(Size index) const
@@ -246,7 +265,7 @@ namespace OpenMS
 		}
 
 		/**@brief Calculate the column from an index into the underlying vector.
-			 Note that Matrix uses the (row,columnm) lexicographic ordering for
+			 Note that Matrix uses the (row,column) lexicographic ordering for
 			 indexing.
 		*/
 		SizeType colIndex(SizeType index) const
@@ -258,7 +277,7 @@ namespace OpenMS
 		}
 
 		/**@brief Calculate the row from an index into the underlying vector.
-			 Note that Matrix uses the (row,columnm) lexicographic ordering for
+			 Note that Matrix uses the (row,column) lexicographic ordering for
 			 indexing.
 		*/
 		SizeType rowIndex(SizeType index) const
@@ -269,19 +288,206 @@ namespace OpenMS
 			return index/cols_;
 		}
 
+		/**@brief Output content of Matrix as a grayscale image in plain PGM
+			 format.
+
+
+			 The abbreviation (and file extension) PGM stands for "portable
+			 graymap".  PGM is one of the "portable pixmap" formats.  PGM was
+			 designed to serve as a least-common-denominator for converting pixmap,
+			 graymap, or bitmap files between different platforms.  It is a rather
+			 stupid image format and very inefficient, but it has the advantage of
+			 simplicity.  The "plain" variant of PGM even uses ASCII encoded decimal
+			 numbers (as opposed to the raw format, which uses binary).  See
+			 http://netpbm.sourceforge.net/doc/pgm.html or Wikipedia for further
+			 info about PGM.
+
+			 @param os The stream to write to.
+
+			 @param maxval The maximal intensity of a pixel.  Values outside
+			 [0:maxval] are truncated.  Note that 65535 ( == (1<<16)-1 ) is the
+			 maximum for PGM (16 Bit), and values greater than 255 are not supported
+			 by some older pieces of software.  The default is 0., which means to
+			 set maxval to the maximum matrix entry, but of course never smaller
+			 than 1.
+
+			 @param scale A factor which is applied before rounding to
+			 gray levels.  The default is 0., which means automatic scaling such
+			 that the full dynamic range is used.
+
+			 @param comment A comment which will be embedded in the output. It can
+			 consist of several lines separated by '\\n'.  By default, <i>no</i>
+			 comment is written (not even an empty one). 
+
+			 If scale is negative or maxval is negative (or both), the output is in
+			 <i>reverse video</i>.  Actually, this might be what you want in most
+			 cases - large matrix entries show up dark.
+
+			 Negative matrix entries are <i>never</i> mapped into the dynamic range.
+			 
+			 The ValueType must be "numeric" (or at least convertible to double and
+			 int, comparable, etc.) for all this to work.
+
+		*/
+		std::ostream& writePGM ( std::ostream& os,
+														 int maxval = 0,
+														 double scale = 0,
+														 std::string const& comment = String::EMPTY
+													 ) const
+		{
+
+			bool reverse_video = false;
+
+			// detect if reverse video was requested
+			if ( maxval < 0 )
+			{
+				maxval *= -1;
+				reverse_video = true;
+			}
+			if ( scale < 0 )
+			{
+				scale *= -1;
+				reverse_video = true;
+			}
+
+			// set automatic maxval and automatic scale, if requested
+			if ( !maxval )
+			{ // no maxval supplied, set default
+				maxval = std::max<int>( 1 , *std::max_element( begin(), end() ) );
+				if ( !scale )
+				{ // automatic scale
+					scale = 1.0;
+				}
+			}
+			else
+			{ // maxval supplied
+				if ( !scale )
+				{ // automatic scale
+					ValueType max_entry = *std::max_element( begin(), end() );
+					if ( max_entry <= ValueType(0) )
+					{ // All entries non-positive!  These are outside the dynamic range, so we can dump zeroes as well...
+						scale = 0;
+					}
+					else
+					{
+						scale =  double(maxval) / double( max_entry);
+					}
+				}
+			}
+
+			// write PGM header
+			os <<
+				"P2\n"
+				"# columns rows\n"
+				 << cols() << ' ' << rows() << "\n"
+				"# maxval\n"
+				 << maxval << '\n' <<
+				"# scaling factor is " << scale << "\n"
+				"# reverse video is " << ( reverse_video ? "on\n" : "off\n" )
+				;
+			// Write out the comment, with "# " before each line.
+			if ( ! comment.empty() )
+			{
+				os << "#----------\n";
+				String quoted_comment(comment);
+				std::vector<String> pieces;
+				if ( quoted_comment.split('\n',pieces) )
+				{
+					quoted_comment.implode(pieces.begin(),pieces.end(),"\n# ");
+					os << "# " << quoted_comment << '\n';
+				}
+				else
+				{
+					os << "# " << comment << '\n';
+				}
+				os << "#----------\n";
+			}
+
+			// write data
+			const_iterator iter = begin();
+			// Number of columns (per line) in the output file.  Note that we must
+			// not exceed 70 chars per line, according to the specification of the
+			// PGM format. Since 65535 takes six chars, ten seems a good choice.
+			const unsigned int cols_output = 10;
+
+			// We'll have this for normal and reverse video.  For ease of
+			// maintenance I use a macro here to keep both versions in sync.
+			// ((( Templates, the HARD way ;-) )))
+#define PGM_DATA_LOOP \
+			for ( size_type i = 0; i < rows(); ++i )								\
+			{																												\
+				if ( cols() > cols_output )														\
+				{																											\
+					os << "# row " << i << '\n';												\
+				}																											\
+				Size count = 0;																				\
+				for ( size_type j = 0; j < cols(); ++j, ++iter )			\
+				{																											\
+					/* output gray value, rounded to nearest int */			\
+					int gray = int( *iter * scale + 0.5 );							\
+					if ( gray < 0 )																			\
+					{																										\
+						os << PGM_MAYBE_REVERSE_VIDEO(0,maxval);					\
+					}																										\
+					else if ( gray > maxval )														\
+					{																										\
+						os << PGM_MAYBE_REVERSE_VIDEO(maxval,0);					\
+					}																										\
+					else																								\
+					{																										\
+						os << PGM_MAYBE_REVERSE_VIDEO(gray,maxval-gray);	\
+					}																										\
+					/* output whitespace */															\
+					if ( ++count == cols_output )												\
+					{																										\
+						os << '\n';																				\
+						count = 0;																				\
+					}																										\
+					else																								\
+					{																										\
+						os << ' ';																				\
+					}																										\
+				}																											\
+				os << '\n';																						\
+			}
+
+			// Now here comes the "real" code.
+			if ( reverse_video )
+			{
+#define PGM_MAYBE_REVERSE_VIDEO(a,b) b
+				PGM_DATA_LOOP;
+#undef PGM_MAYBE_REVERSE_VIDEO
+			}
+			else
+			{
+#define PGM_MAYBE_REVERSE_VIDEO(a,b) a
+				PGM_DATA_LOOP;
+#undef PGM_MAYBE_REVERSE_VIDEO
+			}
+#undef PGM_DATA_LOOP
+
+			return os;
+		}
 
 	 protected:
 
 		///@name Data members
 		//@{
 		/// Number of rows (height of a column)
-		SizeType rows_; 
+		SizeType rows_;
 		/// Number of columns (width of a row)
 		SizeType cols_;
 		//@}
 
 	}; // class Matrix
 
+
+	/**@brief Equality comparator.
+
+	If matrices have different row or colmn numbers, throws a precondition exception.
+
+	@relatesalso Matrix
+	*/
 	template <typename Value>
 	bool operator == (Matrix<Value> const & left, Matrix<Value> const & right)
 		throw (Exception::Precondition)
@@ -292,7 +498,13 @@ namespace OpenMS
 												"Matrices have different column sizes.");
 		return left.operator==(right);
 	}
-	
+
+	/**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
+
+	If matrices have different row or colmn numbers, throws a precondition exception.
+
+	@relatesalso Matrix
+	*/
 	template <typename Value>
 	bool operator < (Matrix<Value> const & left, Matrix<Value> const & right)
 		throw (Exception::Precondition)
@@ -303,8 +515,11 @@ namespace OpenMS
 												"Matrices have different column sizes.");
 		return left.operator<(right);
 	}
-	
-	///Print the contents to a stream.
+
+	/**@brief Print the contents to a stream.
+
+	@relatesalso Matrix
+	*/
 	template <typename Value>
 	std::ostream& operator << (std::ostream& os, const Matrix<Value>& matrix)
 	{
@@ -322,4 +537,3 @@ namespace OpenMS
 } // namespace OpenMS
 
 #endif // OPENMS_DATASTRUCTURES_MATRIX_H
-
