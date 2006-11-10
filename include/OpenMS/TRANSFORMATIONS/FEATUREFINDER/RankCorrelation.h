@@ -24,8 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_CORRELATION_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_CORRELATION_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_RANKCORRELATION_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_RANKCORRELATION_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 
@@ -34,31 +34,58 @@ namespace OpenMS
 	/** @brief Measures the quality of a modelfit to some realworld data. 
 	  
 	 		Implementation of class BaseQuality. The quality is measured as
-	 		the (squared) Pearson cross correlation of data and model.
+	 		the (squared) Spearman correlation coefficent between data and model.
+			
+			The Spearman correlation coefficient is a non-parametric measure of
+			correlation.
 	 		
 	 		@ingroup FeatureFinder
 	 	*/
-  class Correlation 
+  class RankCorrelation 
     : public BaseQuality
   {
 
+  typedef BaseModel<2>::IntensityType IntensityType;
+  typedef BaseModel<2>::CoordinateType CoordinateType;
+  typedef std::vector<IntensityType> IntensityVector;
+  
   public:
     /// standard constructor
-    Correlation();
+    RankCorrelation();
 
     /// destructor 
-    virtual ~Correlation();
+    virtual ~RankCorrelation();
 
     /// evaluates the quality of the fit of @p model to @p set
     double evaluate(const IndexSet& set, const BaseModel<2>& model);
     
     /// evaluates the quality of the fit of @p model to @p set along dimension @p dim
     double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
-	
-	/// creates instance of this class (function is called by factory).
-    static BaseQuality* create() { return new Correlation(); }
 
-    static const String getName() { return "Correlation"; }		
+	/// creates instance of this class (function is called by factory).
+    static BaseQuality* create()  { return new RankCorrelation(); }
+
+    static const String getName() { return "RankCorrelation"; }
+	
+	class RankComp 
+  	{
+  	
+  		public:
+  			/// Construtor
+  			RankComp(IntensityVector & intensities)
+  				: intensities_(intensities) 
+  			{}
+  			
+  			/// Overloaded () operator that allows to treat this class as a functor.
+  			bool operator() (const UnsignedInt& x, const UnsignedInt& y)
+			{
+    			return intensities_[x] < intensities_[y];
+			}
+  			
+  		protected:
+  			IntensityVector intensities_;
+  	};
+
   };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_CORRELATION_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_RANKCORRELATION_H

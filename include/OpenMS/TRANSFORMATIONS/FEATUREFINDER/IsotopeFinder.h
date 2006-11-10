@@ -97,7 +97,7 @@ class IsotopeFinder
 
 		/** Reads in a DTA2D file. There is already a class named DTA2D, implemented exactly for the same purpose. 
 		 * Unfortunately, reading-in a file by this class takes much longer than by this simple function here. */  		
-		virtual void readTabFile (const std::string& filename) throw (Exception::FileNotFound);
+// 		virtual void readTabFile (const std::string& filename) throw (Exception::FileNotFound);
 
 		/** Essentially the same function as cwt.
 		 * Computes the wavelet transform for several charges in nearly the same time. */
@@ -245,7 +245,7 @@ class IsotopeFinder
 		virtual double averageRTSpacing (const DPeakArray<1, DRawDataPoint<2> >& signal) const throw ();
 		
 		/** The lambda parameter essentially influences the shape of the wavelet.
-		 * Since isotope patterns depend on mass, the wavelet has the adapt its shape. 
+		 * Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 * For more insights look at the formula of the wavelet function. */
 		virtual inline double getLambda (const double realMass) const throw ()
 		{	return (0.035 + 0.000678*realMass); }
@@ -283,7 +283,7 @@ class IsotopeFinder
 		unsigned int PEAK_CUT_OFF;
 		double SCORE_CUT_OFF;
 		unsigned int RT_VOTES_CUT_OFF;
-    double WT_CUT_OFF;
+    	double WT_CUT_OFF;
 		unsigned int MZ_INTERLEAVE;
 		
 		unsigned int waveletLength_; //Will be initialized with -1 and therefore it should be a signed integer	
@@ -395,7 +395,7 @@ void IsotopeFinder<MapType>::initializeMe () throw ()
 	generateGammaValues();
 	prepareGNUplotFiles();
 }
-
+/*
 
 template <typename MapType>
 void IsotopeFinder<MapType>::readTabFile (const std::string& filename) throw (Exception::FileNotFound)
@@ -447,7 +447,7 @@ void IsotopeFinder<MapType>::readTabFile (const std::string& filename) throw (Ex
 	
 	ifile.close();		
 	initializeMe();	
-}
+}*/
 
 
 template <typename MapType>
@@ -603,7 +603,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 	std::vector<unsigned int> start_indices, end_indices;
 	//In order to determine the start and end indices, we first need to know the width of the region one should consider 
 	//to estimate the mean and the sd of the pattern candidate. 
-	//That region is defined by the position of the heighst amplitude +/- waveletLength_.
+	//That region is defined by the position of the heighest amplitude +/- waveletLength_.
 	
 	typedef MSSpectrum<DRawDataPoint<2> >::ContainerType containerType;
 	containerType::iterator iter; 

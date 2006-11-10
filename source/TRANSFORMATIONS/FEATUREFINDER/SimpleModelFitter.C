@@ -304,7 +304,7 @@ namespace OpenMS
 		f.getConvexHulls().push_back(traits_->calculateConvexHull(model_set));
 		
 		f.getQuality(RT) = quality_->evaluate(model_set, *final->getModel(RT), RT );
-		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );
+		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ),MZ );
 
 		// save meta data in feature for TOPPView
 		String meta = "Feature #" + String(counter_)

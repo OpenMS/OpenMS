@@ -170,14 +170,13 @@ namespace OpenMS
     }
 
     // gather information for fitting summary
-    std::map<String,int> exception;		//count exceptions
+    std::map<String,int> exception;									//count exceptions
     int no_exceptions = 0;
-    std::map<String,int> mz_model;			//count used mz models
-    std::map<float,int> mz_stdev;			//count used mz standard deviations
-    std::vector<int> charge(10);				//count used charges
-    double corr_mean=0.0, corr_max=0.0, corr_min=1.0; //boxplot for correlation
-    std::vector<int> corrs(10);	//count correlations in an interval e.g. corr[4] -> [0.4,0.5]
-
+    std::map<String,int> mz_model;									//count used mz models
+    std::map<float,int> mz_stdev;										//count used mz standard deviations
+    std::vector<int> charge(10);											//count used charges
+    double corr_mean=0.0, corr_max=0.0, corr_min=1.0; 	//boxplot for correlation
+   
     StopWatch watch;
 	unsigned int seed_count = 0;
     try
@@ -214,7 +213,6 @@ namespace OpenMS
           corr_mean += corr;
           if (corr<corr_min) corr_min = corr;
           if (corr>corr_max) corr_max = corr;
-          ++corrs[ int(corr*10) ];
 
 		  // count estimated charge states
 		  unsigned int ch = f.getCharge();
@@ -263,11 +261,6 @@ namespace OpenMS
     std::cout << "FeatureFinder summary:\n"
     << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size
     << "\n\tmaximum: " << corr_max << std::endl;
-    for (int i=0; i<10; ++i) if (corrs[i]!=0)
-      {
-        std::cout << "\t[" << i/10.0 << "," << (i+1)/10.0 << "]: " << corrs[i]*100/size
-        << "% (" << corrs[i] << ")\n";
-      }
 
     std::cout << "Exceptions:\n";
     for (std::map<String,int>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
@@ -291,7 +284,7 @@ namespace OpenMS
     }
 
     std::cout << "Charges:\n";
-    for (int i=1; i<5; ++i) if (charge[i]!=0)
+    for (unsigned int i=1; i<charge.size(); ++i) if (charge[i]!=0)
       {
         std::cout << "\t+" << i << ": " << charge[i]*100/(size-charge[0])
         << "% (" << charge[i] << ")\n";
@@ -363,64 +356,64 @@ namespace OpenMS
     ofstream outfile( gp_fname.c_str() );
 #endif
 
-    // estimate s/n ratios
-    for(PeakVector::const_iterator citer = peaks_.begin();
-         citer != peaks_.end();
-        ++citer)
-    {
-    	if (last_scan_.size() > 0)
-      	{
-        	// check whether retention time has changed (i.e. a new scan has begun)
-        	if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
-        	{
-          		// estimate noise for last scan
-          		sn_estimator_.init(last_scan_.begin(),last_scan_.end());
-
-          		for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
-               			cit != last_scan_.end();
-               			++cit)
-          		{
-           		 // save s/n values
-           		double sn = sn_estimator_.getSignalToNoise(cit);
-				// Oles super bugfix !!
-            	if (sn < 0)  sn = 1;
-            	sn_ratios_.push_back(log10(sn));
-
-#ifdef DEBUG_FEATUREFINDER
-            	outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
-#endif
-
-          		}
-          		// empty container
-          		last_scan_.clear();
-        	}
-     	 }
-
-    // store new peak
-    last_scan_.push_back(*citer);
-    } // end for (PeakVector...)
-
-    // estimate noise for last scan
-    sn_estimator_.init(last_scan_.begin(),last_scan_.end());
-
-    for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
-         cit != last_scan_.end();
-         ++cit)
-    {
-      // save s/n values
-      sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
-
-#ifdef DEBUG_FEATUREFINDER
-   		outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
-#endif
-
-    }
-    //empty container
-    last_scan_.clear();
-
-#ifdef DEBUG_FEATUREFINDER
-    outfile.close();
-#endif
+//     // estimate s/n ratios
+//     for(PeakVector::const_iterator citer = peaks_.begin();
+//          citer != peaks_.end();
+//         ++citer)
+//     {
+//     	if (last_scan_.size() > 0)
+//       	{
+//         	// check whether retention time has changed (i.e. a new scan has begun)
+//         	if (citer->getPosition()[0] != last_scan_.back().getPosition()[0])
+//         	{
+//           		// estimate noise for last scan
+//           		sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+// 
+//           		for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+//                			cit != last_scan_.end();
+//                			++cit)
+//           		{
+//            		 // save s/n values
+//            		double sn = sn_estimator_.getSignalToNoise(cit);
+// 				// Oles super bugfix !!
+//             	if (sn < 0)  sn = 1;
+//             	sn_ratios_.push_back(log10(sn));
+// 
+// #ifdef DEBUG_FEATUREFINDER
+//             	outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+// #endif
+// 
+//           		}
+//           		// empty container
+//           		last_scan_.clear();
+//         	}
+//      	 }
+// 
+//     // store new peak
+//     last_scan_.push_back(*citer);
+//     } // end for (PeakVector...)
+// 
+//     // estimate noise for last scan
+//     sn_estimator_.init(last_scan_.begin(),last_scan_.end());
+// 
+//     for (std::vector<PeakType>::const_iterator cit = last_scan_.begin();
+//          cit != last_scan_.end();
+//          ++cit)
+//     {
+//       // save s/n values
+//       sn_ratios_.push_back(sn_estimator_.getSignalToNoise(cit));
+// 
+// #ifdef DEBUG_FEATUREFINDER
+//    		outfile << cit->getPosition()[0] << " " << cit->getPosition()[1] << " "  << sn_estimator_.getSignalToNoise(cit) << std::endl;
+// #endif
+// 
+//     }
+//     //empty container
+//     last_scan_.clear();
+// 
+// #ifdef DEBUG_FEATUREFINDER
+//     outfile.close();
+// #endif
 
   }	// end sortData()
 

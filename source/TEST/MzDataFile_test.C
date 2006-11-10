@@ -441,11 +441,11 @@ RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
-  MSExperiment< DPickedPeak<1> > e;
-  MzDataFile f;
+  	MSExperiment< DPickedPeak<1> > e;
+  	MzDataFile f;
 
  	NEW_TMP_FILE(tmp_filename);
-  f.load("data/MzDataFile_test_1.mzData",e);
+  	f.load("data/MzDataFile_test_1.mzData",e);
 
 	TEST_EQUAL(e.size(), 3)
 
@@ -515,7 +515,7 @@ CHECK([EXTRA] load/store for Float Kernel Traits)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 
-  MzDataFile f;
+  	MzDataFile f;
 	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e2;
 
 	f.load("data/MzDataFile_test_2.mzData",e2);
@@ -528,7 +528,7 @@ CHECK([EXTRA]  load/store for empty scans)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 
-  MzDataFile f;
+  	MzDataFile f;
 	MSExperiment<> e2;
 	e2.resize(5);
 

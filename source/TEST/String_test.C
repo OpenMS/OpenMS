@@ -426,9 +426,12 @@ CHECK(void toLower())
 	TEST_EQUAL(s,"test45%#.,");
 RESULT
 
+// Method does not exist ?? (ost)
+/*
 CHECK(void replace(char from, char to))
 	String s = "abcdefg";
 	
+
 	s.replace('a','x');
 	TEST_EQUAL(s,"xbcdefg")
 
@@ -445,7 +448,7 @@ CHECK(void replace(char from, char to))
 	s = ".....";
 	s.replace(',','.');
 	TEST_EQUAL(s,".....")
-RESULT
+RESULT*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

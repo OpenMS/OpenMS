@@ -51,8 +51,8 @@ namespace OpenMS
 		also stored. If you want to store more meta information 
 		see the MSSpectrum and MSExperiment classes.
 		
-		The interface to the container is wrapped for convenience. Of cause only the 
-		members and type that are containes in  both std::list and std::vector are available.
+		The interface to the container is wrapped for convenience. Only  members 
+		and types contained in both std::list and std::vector are available.
 		
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		intensity of the peaks is provided by RangeManager.
@@ -72,6 +72,8 @@ namespace OpenMS
 			typedef ContainerT ContainerType;
 			/// Peak type
 			typedef typename ContainerType::PeakType PeakType;
+			/// Peak type
+			typedef typename PeakType::CoordinateType CoordinateType;
 			/// Precursor peak type
 			typedef DPickedPeak<D> PrecursorPeakType;
 			/// Rangemanger type
@@ -421,31 +423,38 @@ namespace OpenMS
 				precursor_peak_ = peak; 
 			}
 			
-			/** 
-				@brief accessor for the normalized retention time
+		/** 
+			@brief accessor for the normalized retention time
 				
-				Returns the normalized retention time, if the gradient start and stop time are known.
-				Otherwise the absolut retention time is returned.
-			*/
-	    double getNormalizedRetentionTime() const 
+			Returns the normalized retention time, if the gradient start and stop time are known.
+			Otherwise the absolut retention time is returned.
+		*/
+	    CoordinateType getNormalizedRetentionTime() const 
 	    { 
 	    	return (retention_stop_==0)? retention_time_: (retention_time_-retention_start_)/(retention_stop_-retention_start_); 
 	    }
 			
-			/// returns the absolute retention time (unit is seconds)
-	    double getRetentionTime() const 
+		/// returns the absolute retention time (unit is seconds)
+	    const CoordinateType& getRetentionTime() const 
 	    { 
 	    	return retention_time_; 
 	    }
+		
+		/// returns the absolute retention time (unit is seconds)
+	    CoordinateType& getRetentionTime()  
+	    { 
+	    	return retention_time_; 
+	    }
+		
 
 			/// returns the retention time interval start (unit is seconds)
-	    double getRetentionTimeStart() const 
+	    CoordinateType getRetentionTimeStart() const 
 	    { 
 	    	return retention_start_; 
 	    }
 
 			/// returns the retention time interval stop (unit is seconds)
-	    double getRetentionTimeStop() const 
+	    CoordinateType getRetentionTimeStop() const 
 	    { 
 	    	return retention_stop_; 
 	    }
@@ -454,11 +463,11 @@ namespace OpenMS
 	    	Sets the retention time and the start/stop time of the gradient.
 	    	The latter two are needed for calculating the normalized retention time
 	    */
-	    void setRetentionTime(double rt, double start=0, double stop=0) 
+	    void setRetentionTime(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0) 
 	    { 
 	    	retention_time_= rt; 
-				retention_start_ = start;
-				retention_stop_ = stop;
+			retention_start_ = start;
+			retention_stop_ = stop;
 	    }
 	    
 	    /**
@@ -500,11 +509,11 @@ namespace OpenMS
 			PrecursorPeakType precursor_peak_;
 			
 			/// retention time
-	    double retention_time_;
+	    CoordinateType retention_time_;
 	    /// retention time interval begin (for the calculation of the normalized RT)
-	    double retention_start_;
+	    CoordinateType retention_start_;
 	    /// retention time interval end (for the calculation of the normalized RT)
-	    double retention_stop_;
+	    CoordinateType retention_stop_;
 			
 			/// MS level
 			UnsignedInt ms_level_;

@@ -529,7 +529,6 @@ namespace OpenMS
 				array_name_.clear();
 				precisions_.clear();
 				endians_.clear();
-				//exp_->push_back(*spec_);
 				break;
 			}
 		}
@@ -695,7 +694,7 @@ namespace OpenMS
 				 << "<mzData version=\"1.05\" accessionNumber=\"OpenMS:\">\n";
 
 			// delegate control to ExperimentalSettings handler
-			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cexp_),"");
+			Internal::MzDataExpSettHandler handler( cexp_->getExperimentalSettings(),"");
 			handler.writeTo(os);
 
 			//determine how many spectra there are (count only those with peaks)

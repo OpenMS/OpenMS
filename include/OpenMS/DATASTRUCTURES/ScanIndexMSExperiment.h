@@ -21,12 +21,12 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_DATASTRUCTURES_SCANINDEX_H
-#define OPENMS_DATASTRUCTURES_SCANINDEX_H
+#ifndef OPENMS_DATASTRUCTURES_SCANINDEXMSEXPERIMENT_H
+#define OPENMS_DATASTRUCTURES_SCANINDEXMSEXPERIMENT_H
 
 #include <vector>
 
@@ -41,35 +41,34 @@
 namespace OpenMS
 {
 
-	/** @brief This is an adaptor class for peak container such as DPeakArray or DFeatureMap.
+	/** @brief Adaptor class for peak container for rapid navigation between scans.
+	
+		This class supports class MSExperiment and all OpenMS datastructures with
+		the same (or similar interfaces).
 
-			This data structure allows us to move rapidly between
-			different scans by retrieving begin and end iterator
-			of a scan and performing a binary search for the m/z
-			between them.
+		This data structure allows us to move rapidly between different scans by storing begin and end iterator
+		of a scan and performing a binary search for the m/z of the interator range.
 	*/
-	template < typename PeakContainer_, typename PeakContainerIterator_ = typename PeakContainer_::iterator >
-	class ScanIndex : public std::vector < PeakContainerIterator_ >
+	template < typename PeakContainer_, typename PeakContainerIterator_ = typename PeakContainer_::PIterator >
+	class ScanIndexMSExperiment : public std::vector < PeakContainerIterator_ >
 	{
 	 public:
 	 
-	 	enum DimensionId
-			{ 
-				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-			};
+// 	 	enum DimensionId
+// 			{ 
+// 				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+// 				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+// 			};
 
 		typedef PeakContainer_ PeakContainerType;
 		typedef typename PeakContainerType::PeakType PeakType;			
 		typedef typename PeakType::CoordinateType CoordinateType;
-		//typedef typename PeakContainerType::iterator PeakIterator;		
 		typedef PeakContainerIterator_ PeakIterator;
 		
 		typedef std::vector < CoordinateType > ScanPositionContainerType;
 		typedef std::vector < PeakIterator > ScanBeginContainerType;
-		typedef typename PeakType::template NthPositionLess<RT> RTless;
-    	typedef typename PeakType::template NthPositionLess<MZ> MZless;
-    
+		typedef typename PeakType::template NthPositionLess<0> MZless;
+    	    
 		using ScanBeginContainerType::clear;
 		using ScanBeginContainerType::begin;
 		using ScanBeginContainerType::end;
@@ -108,12 +107,12 @@ namespace OpenMS
 			clear();
 			push_back ( _begin );
       
-      // iterate over range, save the iterator if
-      // a new scan starts.
-      while ( ++_begin != _end )
-				if ( RTless() ( *back(), *_begin ) )
-					push_back ( _begin );
-					
+      		// iterate over range, save the iterator if
+      		// a new scan starts.
+      		while ( ++_begin != _end )
+	  		{
+				if (  back().getRt() < _begin.getRt() ) push_back ( _begin );
+			}		
 			scan_position_.clear();
 			scan_position_.reserve ( size() );
 			
@@ -122,7 +121,8 @@ namespace OpenMS
 						++peak1
 					)
 			{
-				scan_position_.push_back ( (*peak1) -> getPosition() [ RTless::DIMENSION ] );
+				std::cout << "Storing rt: " << (*peak1) .getRt() << std::endl;
+				scan_position_.push_back ( (*peak1) .getRt() );
 			}
 			
 			push_back ( _end ); // we will need the end() of the last scan as well
@@ -133,10 +133,10 @@ namespace OpenMS
 		    Retrieves the peak in the next scan whose m/z is closest
 		    to @p peak.
 		*/
-		PeakIterator getNextRt(PeakType const & peak) const throw (NoSuccessor)
+		PeakIterator getNextRt( CoordinateType& current_rt, CoordinateType& current_mz) const throw (NoSuccessor)
 		{
-			CoordinateType current_rt = peak.getPosition()[RT];
-			CoordinateType current_mz = peak.getPosition()[MZ];
+// 			CoordinateType current_rt = peak.getPosition()[RT];
+// 			CoordinateType current_mz = peak.getPosition()[MZ];
 			
 			int const current_scan    = getRank(current_rt);
 			if (current_scan >= int(size()-2)) throw NoSuccessor(__FILE__, __LINE__, "getNextRt()", current_scan);
@@ -154,10 +154,10 @@ namespace OpenMS
 		    Retrieves the peak in the previous scan whose m/z is closest
 		    to @p peak.
 		*/
-		PeakIterator getPrevRt(PeakType const & peak) const throw (NoSuccessor)
+		PeakIterator getPrevRt(CoordinateType& current_rt, CoordinateType& current_mz) const throw (NoSuccessor)
 		{			
-			CoordinateType current_rt = peak.getPosition()[RT];
-			CoordinateType current_mz = peak.getPosition()[MZ];
+// 			CoordinateType current_rt = peak.getPosition()[RT];
+// 			CoordinateType current_mz = peak.getPosition()[MZ];
 			
 			int const current_scan    = getRank(current_rt);
 			// if we are already in the first scan, there will be no predeccessor....
@@ -177,8 +177,7 @@ namespace OpenMS
 			return std::lower_bound
 				( scan_position_.begin(),
 					scan_position_.end(),
-					coord,
-					RTless() 
+					coord
 				) - scan_position_.begin();
 		}
 		
@@ -188,8 +187,8 @@ namespace OpenMS
 		/// Performs binary search on an iterator range to find the
 		/// peak with the m/z coordinate that comes closest to the starting peak.
 		PeakIterator searchInScan_(PeakIterator scan_begin, 
-															 PeakIterator scan_end , 
-															 CoordinateType current_mz) const
+												 PeakIterator scan_end , 
+												 CoordinateType current_mz) const
 		{
 		
 			// perform binary search to find the neighbour in rt dimension
@@ -213,10 +212,10 @@ namespace OpenMS
 				}
 				else // see if the next smaller one fits better
 				{
-					CoordinateType delta_mz = (insert_iter->getPosition()[MZ] - current_mz);
+					CoordinateType delta_mz = (insert_iter->getPosition()[0] - current_mz);
 					--insert_iter;
 									
-					if ( current_mz - insert_iter->getPosition()[MZ] > delta_mz )
+					if ( current_mz - insert_iter->getPosition()[0] > delta_mz )
 					{
 						return insert_iter; // peak to the right is closer (in m/z dimension)
 					}
@@ -235,4 +234,4 @@ namespace OpenMS
 	  
 } // namespace OpenMS
 
-#endif //  OPENMS_DATASTRUCTURES_SCANINDEX_H
+#endif //  OPENMS_DATASTRUCTURES_SCANINDEXMSEXPERIMENT_H

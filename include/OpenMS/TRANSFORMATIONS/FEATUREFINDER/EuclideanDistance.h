@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- C++: make; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,36 +21,46 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff  $
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EUCLIDEANDISTANCE_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EUCLIDEANDISTANCE_H
 
-// all from BaseQuality derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
+
+#include <math.h>
 
 namespace OpenMS
 {
-	void BaseQuality::registerChildren()
-	{
-		Factory<BaseQuality>::registerProduct("Correlation", &Correlation::create);
-		Factory<BaseQuality>::registerProduct("EuclideanDistance", &EuclideanDistance::create);
-	}
+	/** @brief Measures the quality of a modelfit to some realworld data. 
+	  
+	 		Quality is measured as the euclidean distance between model and data.
+	 		
+	 		@ingroup FeatureFinder
+	 	*/
+  class EuclideanDistance 
+    : public BaseQuality
+  {
 
-	BaseQuality::BaseQuality(): FeaFiModule(){}
+  public:
+    /// standard constructor
+    EuclideanDistance();
 
-	BaseQuality::BaseQuality(const BaseQuality& source)
-		: FeaFiModule(source)
-	{}
+    /// destructor 
+    virtual ~EuclideanDistance();
 
-	BaseQuality::~BaseQuality() {}
+    /// evaluates the quality of the fit of @p model to @p set
+    double evaluate(const IndexSet& set, const BaseModel<2>& model);
+    
+    /// evaluates the quality of the fit of @p model to @p set along dimension @p dim
+    double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
 
-  BaseQuality& BaseQuality::operator = (const BaseQuality& source)
-	{
-		FeaFiModule::operator = (source);
-		return *this;
-	}
+	/// creates instance of this class (function is called by factory).
+    static BaseQuality* create() { return new EuclideanDistance(); }
+
+    static const String getName() { return "EuclideanDistance"; }
+	
+  };
 }
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EUCLIDEANDISTANCE_H

@@ -155,12 +155,14 @@ EXECUTABLES_FORMAT = \
 	MzDataExpSettHandler_test\
 	MzXMLFile_test\
 	Param_test\
-	MzDataFile_test\
 	DFeatureMapFile_test\
 	DFeaturePairsFile_test\
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
 	DGridFile_test
+
+
+#	MzDataFile_test\
 
 #MATH
 
@@ -334,7 +336,7 @@ include ../common.mak
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 
 # do not optimize tests (reduces compile time drastically)
-CPP_MODE_FLAGS=$(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
+CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0 
 
 #add libraries for GUI to LIBS
 ifeq ($(ENABLE_GUI),true)

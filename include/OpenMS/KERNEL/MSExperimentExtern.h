@@ -57,7 +57,9 @@ namespace OpenMS
 	NOTE: If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
 	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
 		
-	TODO: Implement range informations.
+	TODO: Implement range informations. (ole)
+	
+	TODO: Remember last scan accessed in getPeak(unsigned int) and getPeakRt(unsigned int) (ole)
 			
 	@ingroup Kernel
 **/
@@ -360,12 +362,177 @@ class MSExperimentExtern
     protected:
 
     } ;	// end of class MSExperimentExternIterator
+	
+	    /**
+    	@brief Adaptor class for linear iterator on objects of DPeak<1>  
+    	
+    	This iterator allows us to move through the data structure in a linear
+    	manner i.e. we don't need to jump to the next spectrum manually.
+    	
+    */
+	template <class IteratorPeakT >
+ 	class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  IteratorPeakT>
+    {
+        typedef double CoordinateType;
+        typedef IteratorPeakT IteratorPeakType;
+		
+    public:
+
+        /// Default constructor
+        PeakIterator()
+                : peak_index_(), rt_(), scan_index_(), exp_()
+        {
+        }
+
+        /// Constructor
+        PeakIterator(unsigned int pind, CoordinateType & co, unsigned int sind, MSExperimentExtern<IteratorPeakType>& exp)
+                : peak_index_(pind), rt_(co), scan_index_(sind), exp_(&exp)
+        {
+        }
+
+        /// Destructor
+        ~PeakIterator()
+        {
+        }
+
+        /// Copy constructor
+        PeakIterator(const PeakIterator& rhs)
+                : peak_index_(rhs.peak_index_), rt_(rhs.rt_),
+                scan_index_(rhs.scan_index_), exp_(rhs.exp_)
+        { }
+
+        /// Assignment operator
+        PeakIterator& operator=(const PeakIterator& rhs)
+        {
+            if (&rhs == this)
+                return *this;
+
+            peak_index_    = rhs.peak_index_;
+            rt_                   = rhs.rt_;
+            scan_index_    = rhs.scan_index_;
+            exp_               = rhs.exp_;
+
+            return (*this);
+        }
+
+        /// Test for equality
+        friend bool operator==(const PeakIterator& lhs, const PeakIterator& rhs)
+        {
+            return ( lhs.peak_index_     == rhs.peak_index_ &&
+                     				 lhs.rt_       == rhs.rt_       &&
+                     	    lhs.scan_index_  == rhs.scan_index_ );
+        }
+
+        /// Test for inequality
+        bool operator!=(const PeakIterator& rhs)
+        {
+            return !(*this  == rhs);
+        }
+
+        /// Step forward by one (prefix operator)
+        PeakIterator& operator++()
+        {
+            ++peak_index_;
+			// test whether we arrived at the end of the current scan
+            if ( peak_index_ ==   (*exp_)[scan_index_].size() && scan_index_ !=  ( (*exp_).size() - 1) )
+            {
+               // we are at the end of a scan, but this scan is not the very last one
+			   // so we can jump into the next scan
+               peak_index_ = 0;
+			   ++scan_index_; 
+                rt_   = (*exp_)[scan_index_].getRetentionTime();
+            }
+            return (*this);
+        }
+
+        /// Step backward by one (prefix operator)
+       PeakIterator& operator--()
+        {
+             // test whether we are at the start of a scan
+            if (peak_index_  == 0)
+            {
+				// update scan index and move to end of previous scan
+                if (scan_index_ == 0)
+				{
+					std::cout << "In first scan and moving backwards ! " << std::endl;
+					return (*this);
+				}
+				--scan_index_;
+                peak_index_  =  ( (*exp_)[scan_index_].size() -1) ;
+                rt_                = (*exp_)[scan_index_].getRetentionTime();
+            } 
+			else
+			{
+				// simply one step backwards
+				--peak_index_;			
+			}
+            return (*this);
+        }
+
+        /// Step forward by one (postfix operator)
+        PeakIterator operator++(int)
+        {
+            PeakIterator tmp(*this);
+            ++(*this);
+            return tmp;
+        }
 
 
-    typedef PeakT PeakType;
+        /// Step backward by one (postfix operator)
+        PeakIterator operator--(int)
+        {
+            PeakIterator tmp(*this);
+            --(*this);
+            return tmp;
+        }
+
+        /// Dereferencing of this pointer yields the underlying peak
+        PeakT& operator * ()
+        {
+            return (*exp_)[scan_index_][peak_index_ ];
+        }
+
+        /// Dereferencing of this pointer yields the underlying peak
+        PeakT* operator-> ()
+        {
+            return &((*exp_)[scan_index_][peak_index_ ]);
+        }
+     
+
+        /** @name Accesssors
+        */
+        //@{
+        /// Returns the current retention time (mutable)
+        CoordinateType& getRt()  { return rt_; }
+        /// Returns the current retention time (not mutable)
+        const CoordinateType& getRt() const  {  return rt_; }
+        ///Returns the current retention time (mutable)
+        unsigned int& getPeakIndex() { return peak_index_; }
+        /// Returns the current retention time (not mutable)
+        const unsigned int& getPeakIndex() const { return peak_index_; }
+		/// Mutable access to current scan
+		unsigned int& getScanIndex() { return scan_index_;}
+		/// Const access to  current scan
+		const unsigned int& getScanIndex() const { return scan_index_; } 
+        //@}
+
+    private:
+        /// Points to the current peak
+        unsigned int peak_index_;
+        /// Retention time of the current spectrum
+        CoordinateType rt_;
+        /// Index of the current spectrum
+        unsigned int scan_index_;
+        /// Pointer to the experiment
+        MSExperimentExtern<IteratorPeakType> * exp_;
+
+    }
+    ; // end of inner class PeakIterator
+    
+	typedef PeakT PeakType;
     typedef typename PeakT::IntensityType IntensityType;
-		typedef typename PeakT::PositionType PositionType;
-		typedef MSSpectrum<PeakT> SpectrumType;
+	typedef typename PeakT::PositionType PositionType;
+	typedef MSSpectrum<PeakT> SpectrumType;
     typedef typename SpectrumType::ContainerType ContainerType;
     typedef typename PeakType::CoordinateType CoordinateType;
     typedef MSExperiment<PeakType> ExperimentType;
@@ -375,6 +542,7 @@ class MSExperimentExtern
 
     typedef MSExperimentExternIterator<PeakType> Iterator;
     typedef MSExperimentExternConstIterator<PeakType> ConstIterator;
+	typedef PeakIterator<PeakType> PIterator;
     typedef std::reverse_iterator<Iterator> ReverseIterator;
     typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 
@@ -384,18 +552,24 @@ class MSExperimentExtern
     typedef typename ExperimentType::reference reference;
     typedef typename ExperimentType::const_reference const_reference;
     typedef typename ExperimentType::pointer pointer;
+	
+	/// const reference to peak type
+	 typedef typename SpectrumType::const_reference const_preference;
+	 /// mutable reference to peak type
+	 typedef typename SpectrumType::reference preference;
 
     typedef Iterator iterator;
     typedef ConstIterator const_iterator;
     typedef ReverseIterator reverse_iterator;
     typedef ConstReverseIterator const_reverse_iterator;
 
-    /// Standard constructor, allocates a buffer of size 400
+    /// Standard constructor, allocates a buffer of size 100
     MSExperimentExtern()
-            : buffer_size_(400),
+            : buffer_size_(100),
 			scan_location_(), current_scan_(0),
             buffer_index_(0), scan2buffer_(),
-            buffer2scan_(), exp_(), pFile_(0)
+            buffer2scan_(), exp_(), pFile_(0),
+			nr_dpoints_(0)
     {
         file_name_ = "msexp_" + String(std::rand());
 		exp_.resize(buffer_size_);
@@ -407,12 +581,12 @@ class MSExperimentExtern
             : buffer_size_(source.buffer_size_),
             scan_location_(source.scan_location_), current_scan_(source.current_scan_),
             buffer_index_(source.buffer_index_),  scan2buffer_(source.scan2buffer_),
-            buffer2scan_(source.buffer2scan_), exp_(source.exp_), pFile_(source.pFile_)
-    {
+            buffer2scan_(source.buffer2scan_), exp_(source.exp_),
+			scan_sizes_(source.scan_sizes_), nr_dpoints_(source.nr_dpoints_)
+	 {
+	 	// genarete new temp file and copy the old one
         file_name_ = "msexp_" + String(std::rand());
 		copyTmpFile__(source.file_name_);
-        exp_.resize(buffer_size_);
-		buffer2scan_.resize(buffer_size_);
     }
 
     /// Destructor
@@ -431,9 +605,12 @@ class MSExperimentExtern
         buffer_size_      = source.buffer_size_;
         scan_location_ = source.scan_location_;
         buffer_index_    = source.buffer_index_;
+		current_scan_  = source.current_scan_;
         scan2buffer_    = source.scan2buffer_;
         buffer2scan_    = source.buffer2scan_;
+		scan_sizes_   = source.scan_sizes_;
         exp_				  = source.exp_;
+		nr_dpoints_    = source.nr_dpoints_;
 
         // generate new name for temp file
 		std::remove ( file_name_ .c_str());
@@ -441,8 +618,6 @@ class MSExperimentExtern
 		// and copy the old one
         copyTmpFile__(source.file_name_);
 
-        exp_.resize(buffer_size_);
-		buffer2scan_.resize(buffer_size_);
         return *this;
     }
 
@@ -455,6 +630,7 @@ class MSExperimentExtern
                 scan2buffer_    == rhs.scan2buffer_ &&
                 buffer2scan_    == rhs.buffer2scan_ &&
                 exp_				  == rhs.exp_             &&
+				scan_sizes_   == rhs.scan_sizes_ &&
 				pFile_			  == rhs.pFile_);
     }
 
@@ -476,9 +652,21 @@ class MSExperimentExtern
         exp_.set2DData(cont);
     }
 
+	/// Updates the range information 
     void updateRanges()
     {
-        exp_.updateRanges();
+       // exp_.updateRanges();
+	   	   
+	   nr_dpoints_ = 0;
+	   spectra_lengths_.clear();
+       	   
+	   for (unsigned int i =0; i< scan2buffer_.size(); ++i)
+	   {
+	   		nr_dpoints_ += (*this)[i].size();
+// 	   		std::cout << "Accumulated size: " << nr_dpoints_ << std::endl;
+			spectra_lengths_.push_back(nr_dpoints_);
+	   }
+	   
     }
 	
 	/// Returns the minimum position
@@ -616,12 +804,12 @@ class MSExperimentExtern
 
     void push_back(const SpectrumType& spec)
     {
-//         std::cout << "Inserting scan " << current_scan_ << std::endl;
-//         std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
+        std::cout << "Inserting scan " << current_scan_ << std::endl;
+        std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
 		
         if (buffer_index_ < buffer_size_)
         {
-// 			std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
+			std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
 		
 			// test if we already wrote at this buffer position
 			if (current_scan_ > buffer_size_)
@@ -731,7 +919,7 @@ class MSExperimentExtern
     }
 
     /// See std::vector documentation.
-    /// Note: the internal vector is of size 1000 by default but this
+    /// Note: the internal vector is of size 100 by default but this
     /// function returns the number of scans stored so far
     size_type size() const
     {
@@ -739,17 +927,15 @@ class MSExperimentExtern
     }
 
 	/// empties buffer and removes temporary file
-    void clear() const
+    void clear() 
     {
-		// empty buffer
-//         for (unsigned int i=0; i<exp_.size();++i)
-// 			exp_[i].clear();
 			
 		scan_location_.clear(); 
 		buffer_index_    = 0;
         scan2buffer_.clear();   
         buffer2scan_.clear();    
 		exp_.clear();
+		exp_.resize(buffer_size_);
 
         // generate new name for temp file
 		std::remove ( file_name_ .c_str());
@@ -910,25 +1096,116 @@ class MSExperimentExtern
         exp_.setDate(date);
     }
 
+	/// deletes the temporary file (or what did you expect ?)
     void deleteTempFile_()
     {
         std::remove( file_name_ .c_str());
     }
 		
-		/// resets the internal data
+	/// resets the internal data
     void reset()
     {
     	clear(); //remove data
     	exp_ = ExperimentalSettings(); //remove meta data
-      RangeManagerType::clearRanges(); // clear RangeManager
+      	RangeManagerType::clearRanges(); // clear RangeManager
+    }
+	
+	/// returns the meta information of this experiment
+	const ExperimentalSettings getExperimentalSettings() const 
+	{
+		return ((ExperimentalSettings) exp_);
+	}
+	
+	/// Mutable access to peak with index @p  
+   	preference getPeak(UnsignedInt index) throw (Exception::IndexOverflow)
+    {
+        if (index > nr_dpoints_)
+            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+
+		std::vector<UnsignedInt>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+	
+		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+		unsigned int peak_index = 0;
+	
+		if (scan_index == 0)
+		{
+			peak_index  =  index;
+		}
+		else
+		{
+			--it;
+			peak_index = (index - *it);
+		}		
+		
+		return (*this)[scan_index][peak_index];
+    }
+	
+	/// const access to peak with index @p  
+   	const_preference getPeak(UnsignedInt index) const throw (Exception::IndexOverflow) 
+    {
+        if (index > nr_dpoints_)
+            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+
+		std::vector<UnsignedInt>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+	
+		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+		unsigned int peak_index = 0;
+	
+		if (scan_index == 0)
+		{
+			peak_index  =  index;
+		}
+		else
+		{
+			--it;
+			peak_index = (index - *it);
+		}		
+		
+		return (*this)[scan_index][peak_index];
+    }
+	
+	/// Mutable access to retention time of peak @p
+	CoordinateType& getPeakRt(UnsignedInt index) throw (Exception::IndexOverflow) 
+	{
+		if (index > nr_dpoints_)
+            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+			
+		std::vector<unsigned int>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+		return ((*this)[scan_index]).getRetentionTime();
+		
+	}
+	
+	/// Const access to retention time of peak @p
+	const CoordinateType& getPeakRt(UnsignedInt index) const throw (Exception::IndexOverflow) 
+	{
+		if (index > nr_dpoints_)
+            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+			
+		std::vector<unsigned int>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+		return (*this)[scan_index].getRetentionTime();
+		
+	}
+	
+	/// Returns an iterator pointing at the first peak
+    PIterator peakBegin()
+    {
+        return PIterator( (unsigned int) 0 , this->at(0).getRetentionTime(), (unsigned int) 0 , *this) ;
     }
 
+    /// Returns an iterator pointing at the last peak
+    PIterator peakEnd()
+    {
+		unsigned int sz = (this->size() - 1);
+        return(PIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz), *this ) );
+    }
 
 protected:
     /// size of the internal buffer
     UnsignedInt buffer_size_;
 
-    /// stores the location of the scan in the file
+    /// stores the offset of each scan on the hard disk
     mutable std::vector<off_t> scan_location_;
 
     /// number of scans added so far
@@ -954,6 +1231,12 @@ protected:
 	
 	/// File descriptor for temporary file
 	mutable FILE * pFile_;
+	
+	/// The number of data points (peaks) in spectra of all MS levels (!)
+	UnsignedInt nr_dpoints_;
+	
+	/// Sums of consecutive spectrum lengths 
+	std::vector<UnsignedInt> spectra_lengths_; 
 	
     /// reads a scan from the temp file and stores it in the buffer
     void storeInBuffer(const size_type& n)

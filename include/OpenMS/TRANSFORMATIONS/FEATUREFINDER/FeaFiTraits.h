@@ -157,8 +157,7 @@ namespace OpenMS
 	ScanIndex<PeakVector> getScanIndex() 
 	{
 		return scan_index_;
-	}
-	
+	}	
 	
 
     /// acess intensity of peak with index @p index.

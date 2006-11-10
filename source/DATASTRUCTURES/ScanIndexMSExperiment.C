@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,36 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff  $
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
-// all from BaseQuality derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
-
-namespace OpenMS
-{
-	void BaseQuality::registerChildren()
-	{
-		Factory<BaseQuality>::registerProduct("Correlation", &Correlation::create);
-		Factory<BaseQuality>::registerProduct("EuclideanDistance", &EuclideanDistance::create);
-	}
-
-	BaseQuality::BaseQuality(): FeaFiModule(){}
-
-	BaseQuality::BaseQuality(const BaseQuality& source)
-		: FeaFiModule(source)
-	{}
-
-	BaseQuality::~BaseQuality() {}
-
-  BaseQuality& BaseQuality::operator = (const BaseQuality& source)
-	{
-		FeaFiModule::operator = (source);
-		return *this;
-	}
-}
+#include<OpenMS/DATASTRUCTURES/ScanIndexMSExperiment.h>

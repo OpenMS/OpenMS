@@ -44,7 +44,8 @@ CPP_SOURCES=\
 	BinnedSparseVector.C\
 	DateTime.C\
 	QuadTree.C\
-	RangeManager.C
+	RangeManager.C\
+	ScanIndexMSExperiment.C
 
 include ../common.mak
 -include .Dependencies

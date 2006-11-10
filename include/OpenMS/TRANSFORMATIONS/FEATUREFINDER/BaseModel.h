@@ -60,6 +60,7 @@ namespace OpenMS
       typedef std::vector<Flag> Flags;
 
       typedef typename DPeak<D,Traits>::IntensityType IntensityType;
+	  typedef typename DPeak<D,Traits>::CoordinateType CoordinateType;
       typedef DPosition<D,Traits> PositionType;
       typedef DPeak<D,Traits> PeakType;
 	  typedef DPeakArray<D, DPeak<D,Traits> > SamplesType;
