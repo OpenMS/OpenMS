@@ -64,16 +64,16 @@ class MSExperiment
 {
 public:
 
-	 /**
-    	@brief Adaptor class for bidirectional iterator on objects of DPeak<1>  
-    	
-    	This iterator allows us to move through the data structure in a linear
-    	manner i.e. we don't need to jump to the next spectrum manually.
-    	
-    	The class has a member  DPeakArray<>::iterator pointing
-    	to the current peak. The class also remembers the retention time of the current 
-    	scan.			
-    */
+ /**
+  	@brief Adaptor class for bidirectional iterator on objects of DPeak<1>  
+  	
+  	This iterator allows us to move through the data structure in a linear
+  	manner i.e. we don't need to jump to the next spectrum manually.
+  	
+  	The class has a member  DPeakArray<>::iterator pointing
+  	to the current peak. The class also remembers the retention time of the current 
+  	scan.			
+  */
 	template <class IteratorPeakT >
 	class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  IteratorPeakT>
     {
@@ -101,7 +101,8 @@ public:
         PeakIterator(const PeakIterator& rhs)
                 : peak_index_(rhs.peak_index_), rt_(rhs.rt_),
                 scan_index_(rhs.scan_index_), exp_(rhs.exp_)
-        { }
+        { 
+        }
 
         /// Assignment operator
         PeakIterator& operator=(const PeakIterator& rhs)
@@ -135,11 +136,11 @@ public:
         PeakIterator& operator++()
         {
             ++peak_index_;
-			// test whether we arrived at the end of the current scan
+						// test whether we arrived at the end of the current scan
             if ( peak_index_ ==   (*exp_)[scan_index_].size() && scan_index_ !=  ( (*exp_).size() - 1) )
             {
                // we are at the end of a scan, but this scan is not the very last one
-			   // so we can jump into the next scan
+			   			 // so we can jump into the next scan
                peak_index_ = 0;
 			   ++scan_index_; 
                 rt_   = (*exp_)[scan_index_].getRetentionTime();
@@ -150,54 +151,53 @@ public:
         /// Step backward by one (prefix operator)
         PeakIterator& operator--()
         {
-            // test whether we are at the start of a scan
-            if (peak_index_  == 0)
-            {
-				// update scan index and move to end of previous scan
-                if (scan_index_ == 0)
-				{
-					std::cout << "In first scan and moving backwards ! " << std::endl;
-					return (*this);
-				}
-				--scan_index_;
-                peak_index_  =  ( (*exp_)[scan_index_].size() -1) ;
-                rt_                = (*exp_)[scan_index_].getRetentionTime();
-            } 
-			else
-			{
-				// simply one step backwards
-				--peak_index_;			
-			}
-            return (*this);
-        }
+          // test whether we are at the start of a scan
+          if (peak_index_  == 0)
+          {
+						// update scan index and move to end of previous scan
+		        if (scan_index_ == 0)
+						{
+							std::cout << "In first scan and moving backwards ! " << std::endl;
+							return (*this);
+						}
+						--scan_index_;
+            peak_index_  =  ( (*exp_)[scan_index_].size() -1) ;
+            rt_                = (*exp_)[scan_index_].getRetentionTime();
+           } 
+					else
+					{
+						// simply one step backwards
+						--peak_index_;			
+					}
+          return (*this);
+      	}
 
-         /// Step forward by one (postfix operator)
+        /// Step forward by one (postfix operator)
         PeakIterator operator++(int)
         {
-            PeakIterator tmp(*this);
-            ++(*this);
-            return tmp;
+          PeakIterator tmp(*this);
+          ++(*this);
+          return tmp;
         }
-
 
         /// Step backward by one (postfix operator)
         PeakIterator operator--(int)
         {
-            PeakIterator tmp(*this);
-            --(*this);
-            return tmp;
+          PeakIterator tmp(*this);
+          --(*this);
+          return tmp;
         }
 
         /// Dereferencing of this pointer yields the underlying peak
         PeakT& operator * ()
         {
-            return (*exp_)[scan_index_][peak_index_ ];
+          return (*exp_)[scan_index_][peak_index_ ];
         }
 
         /// Dereferencing of this pointer yields the underlying peak
         PeakT* operator-> ()
         {
-            return &((*exp_)[scan_index_][peak_index_ ]);
+          return &((*exp_)[scan_index_][peak_index_ ]);
         }
      
 
@@ -212,13 +212,13 @@ public:
         unsigned int& getPeakIndex() { return peak_index_; }
         /// Returns the current retention time (not mutable)
         const unsigned int& getPeakIndex() const { return peak_index_; }
-		/// Mutable access to current scan
-		unsigned int& getScanIndex() { return scan_index_;}
-		/// Const access to  current scan
-		const unsigned int& getScanIndex() const { return scan_index_; } 
+				/// Mutable access to current scan
+				unsigned int& getScanIndex() { return scan_index_;}
+				/// Const access to  current scan
+				const unsigned int& getScanIndex() const { return scan_index_; } 
         //@}
 
-    private:
+    	private:
         /// Points to the current peak
         unsigned int peak_index_;
         /// Retention time of the current spectrum
@@ -239,7 +239,7 @@ public:
     typedef typename std::vector<SpectrumType>::iterator Iterator;
     /// Non-mutable iterator
     typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
-	typedef PeakIterator< PeakT> PIterator;
+	  typedef PeakIterator<PeakT> PIterator;
 	
     /// Peak type
     typedef PeakT PeakType;
@@ -253,10 +253,10 @@ public:
     typedef typename TraitsType::IntensityType IntensityType;
     /// RangeManager type
     typedef RangeManager<2, TraitsType> RangeManagerType;
-	/// const peak reference type
-	 typedef typename SpectrumType::const_reference const_preference;
-	 /// peak reference type
-	 typedef typename SpectrumType::reference preference;
+		/// const peak reference type
+		typedef typename SpectrumType::const_reference ConstPeakReference;
+		/// peak reference type
+		typedef typename SpectrumType::reference PeakReference;
 
     /// Constructor
     MSExperiment()
@@ -281,7 +281,8 @@ public:
             nr_dpoints_(source.nr_dpoints_),
             spectra_lengths_(source.spectra_lengths_),
             name_(source.name_)
-    {}
+    {
+    }
 
     /// Destructor
     ~MSExperiment()
@@ -301,7 +302,7 @@ public:
         return *this;
     }
 	
-	/// Assignment operator
+		/// Assignment operator
     MSExperiment& operator= (const ExperimentalSettings& source)
     {
         ExperimentalSettings::operator=(source);
@@ -325,7 +326,7 @@ public:
       	
       	Container is a DPeakArray<2> or a STL container of DPeak<2> 
       	or DRawDataPoint<2> which supports insert(), end() and back()
-      */
+    */
     template <class Container>
     void get2DData(Container& cont) const
     {
@@ -339,14 +340,14 @@ public:
                 continue;
             }
             for (typename MSSpectrum<PeakT>::const_iterator it = spec->
-                    begin();
-                    it!=spec->end();
-                    ++it)
+              begin();
+              it!=spec->end();
+              ++it)
             {
-                cont.insert(cont.end(), typename Container::value_type());
-                cont.back().getPosition()[RT] = spec->getRetentionTime();
-                cont.back().setIntensity(it->getIntensity());
-                cont.back().getPosition()[MZ] = it->getPosition()[0];
+              cont.insert(cont.end(), typename Container::value_type());
+              cont.back().getPosition()[RT] = spec->getRetentionTime();
+              cont.back().setIntensity(it->getIntensity());
+              cont.back().getPosition()[MZ] = it->getPosition()[0];
             }
         }
     }
@@ -363,8 +364,7 @@ public:
     {
         SpectrumType* spectrum = 0;
         /// If the container is emptry, nothing will happen
-        if (cont.size() == 0)
-            return;
+        if (cont.size() == 0) return;
 
         const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
         const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
@@ -373,50 +373,50 @@ public:
 
         for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); iter++)
         {
-            // check if the retentime time has changed
-            if (current_rt != iter->getPosition()[RT] || spectrum == 0)
+          // check if the retentime time has changed
+          if (current_rt != iter->getPosition()[RT] || spectrum == 0)
+          {
+            if (current_rt > iter->getPosition()[RT])
             {
-                if (current_rt > iter->getPosition()[RT])
-                {
-                    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
-                }
-                current_rt =  iter->getPosition()[RT];
-                Base_::insert(Base_::end(),SpectrumType());
-                spectrum = &(Base_::back());
-                spectrum->setRetentionTime(current_rt);
-                spectrum->setMSLevel(1);
+              throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
             }
+            current_rt =  iter->getPosition()[RT];
+            Base_::insert(Base_::end(),SpectrumType());
+            spectrum = &(Base_::back());
+            spectrum->setRetentionTime(current_rt);
+            spectrum->setMSLevel(1);
+          }
 
-            // create temporary peak and insert it into spectrum
-            spectrum->insert(spectrum->end(), PeakType());
-            spectrum->back().setIntensity(iter->getIntensity());
-            spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
+          // create temporary peak and insert it into spectrum
+          spectrum->insert(spectrum->end(), PeakType());
+          spectrum->back().setIntensity(iter->getIntensity());
+          spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
         }
     }
 
     /// Returns the name
     const String& getName() const
     {
-        return name_;
+      return name_;
     }
 
     /// Sets the name
     void setName(const String& name)
     {
-        name_ = name;
+      name_ = name;
     }
 
    /// Returns an iterator pointing at the first peak
     PIterator peakBegin()
     {
-        return PIterator( (unsigned int) 0 , this->at(0).getRetentionTime(), (unsigned int) 0 , *this) ;
+      return PIterator( (unsigned int) 0 , this->at(0).getRetentionTime(), (unsigned int) 0 , *this) ;
     }
 
     /// Returns an iterator pointing at the last peak
     PIterator peakEnd()
     {
-		unsigned int sz = (this->size() - 1);
-        return(PIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz), *this ) );
+			unsigned int sz = (this->size() - 1);
+      return(PIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz), *this ) );
     }
 
     /**
@@ -426,9 +426,9 @@ public:
     */
     ConstIterator RTBegin(double rt) const
     {
-        SpectrumType s;
-        s.setRetentionTime(rt);
-        return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+      SpectrumType s;
+      s.setRetentionTime(rt);
+      return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -438,9 +438,9 @@ public:
     */
     ConstIterator RTEnd(double rt) const
     {
-        SpectrumType s;
-        s.setRetentionTime(rt);
-        return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+      SpectrumType s;
+      s.setRetentionTime(rt);
+      return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -450,9 +450,9 @@ public:
     */
     Iterator RTBegin(double rt)
     {
-        SpectrumType s;
-        s.setRetentionTime(rt);
-        return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+      SpectrumType s;
+      s.setRetentionTime(rt);
+      return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -462,9 +462,9 @@ public:
     */
     Iterator RTEnd(double rt)
     {
-        SpectrumType s;
-        s.setRetentionTime(rt);
-        return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+      SpectrumType s;
+      s.setRetentionTime(rt);
+      return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
     }
 
 
@@ -477,103 +477,96 @@ public:
     // Docu in base class
     virtual void updateRanges()
     {
-        updateRanges(-1);
+      updateRanges(-1);
     }
 
     /**
     	@brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
     	
-    	@param ms_level MS level to consider for m/z range , RT range 
-    	       and intensity range (All MS levels if negative)
-			   
-		@NOTE: Member nr_dpoints_ always contains the number of all data points (i.e. points in spectra of all levels).
+    	@param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
     */
     void updateRanges(SignedInt ms_level)
     {
-        //clear MS levels
-        ms_levels_.clear();
-        // clear spectra lengths
-        spectra_lengths_.clear();
-        spectra_lengths_.reserve(this->size());
+      //clear MS levels
+      ms_levels_.clear();
+      // clear spectra lengths
+      spectra_lengths_.clear();
+      spectra_lengths_.reserve(this->size());
 
-        //reset mz/rt/int range
-        this->clearRanges();
-        //reset point count
-        nr_dpoints_ = 0;
+      //reset mz/rt/int range
+      this->clearRanges();
+      //reset point count
+      nr_dpoints_ = 0;
+	
+      //empty
+      if (this->size()==0)
+      {
+      	return;
+      }
+
+      //update
+      for (typename std::vector<MSSpectrum<PeakT> >::iterator it = this->
+        begin();
+        it!=this->end();
+        ++it)
+      {
+        if (ms_level < SignedInt(0) || SignedInt(it->getMSLevel())==ms_level)
+        {  
+	        //ms levels
+	        if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
+	        {
+	        	ms_levels_.push_back(it->getMSLevel());
+	        }
 		
-        //empty
-        if (this->size()==0)
-        {
-            return;
+					// calculate size
+	        nr_dpoints_ += it->size();
+		
+	        //spectrum lengths
+	        spectra_lengths_.push_back( nr_dpoints_ );
+              
+          //rt
+          if (it->getRetentionTime() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRetentionTime());
+          if (it->getRetentionTime() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRetentionTime());
+					
+					//do not update mz and int when the spectrum is empty
+					if (it->size()==0) continue;
+					
+          it->updateRanges();
+          
+					//mz
+          if (it->getMin()[0] < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
+          if (it->getMax()[0] > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
+
+          //int
+          if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
+          if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
         }
-
-        //update
-        for (typename std::vector<MSSpectrum<PeakT> >::iterator it = this->
-                begin();
-                it!=this->end();
-                ++it)
-        {
-            //ms levels
-            if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
-            {
-                ms_levels_.push_back(it->getMSLevel());
-            }
-			
-			// calculate size
-            nr_dpoints_ += it->size();
-			
-            //spectrum lengths
-            spectra_lengths_.push_back( nr_dpoints_ );
-
-            if (ms_level < SignedInt(0) || SignedInt(it->getMSLevel())==ms_level)
-            {                
-                //rt
-                if (it->getRetentionTime() < RangeManagerType::pos_range_.minX())
-                    RangeManagerType::pos_range_.setMinX(it->getRetentionTime());
-                if (it->getRetentionTime() > RangeManagerType::pos_range_.maxX())
-                    RangeManagerType::pos_range_.setMaxX(it->getRetentionTime());
-
-                it->updateRanges();
-                
-				//mz
-                if (it->getMin()[0] < RangeManagerType::pos_range_.minY())
-                    RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
-                if (it->getMax()[0] > RangeManagerType::pos_range_.maxY())
-                    RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
-
-                //int
-                if (it->getMinInt() < RangeManagerType::int_range_.minX())
-                    RangeManagerType::int_range_.setMinX(it->getMinInt());
-                if (it->getMaxInt() > RangeManagerType::int_range_.maxX())
-                    RangeManagerType::int_range_.setMaxX(it->getMaxInt());
-            }
-
-        }
-        std::sort(ms_levels_.begin(), ms_levels_.end());
+      }
+      std::sort(ms_levels_.begin(), ms_levels_.end());
     }
 
     /// returns the minimal m/z value
     CoordinateType getMinMZ() const
     {
-        return RangeManagerType::pos_range_.min()[1];
+      return RangeManagerType::pos_range_.min()[1];
     }
 
     /// returns the maximal m/z value
     CoordinateType getMaxMZ() const
     {
-        return RangeManagerType::pos_range_.max()[1];
+      return RangeManagerType::pos_range_.max()[1];
     }
 
     /// returns the minimal retention time value
     CoordinateType getMinRT() const
     {
-        return RangeManagerType::pos_range_.min()[0];
+      return RangeManagerType::pos_range_.min()[0];
     }
 
     /// returns the maximal retention time value
     CoordinateType getMaxRT() const
     {
-        return RangeManagerType::pos_range_.max()[0];
+      return RangeManagerType::pos_range_.max()[0];
     }
 
     /**
@@ -583,104 +576,94 @@ public:
     */
     const AreaType& getDataRange() const
     {
-        return RangeManagerType::pos_range_;
+      return RangeManagerType::pos_range_;
     }
 
-    /// returns the total number of peaks ( all ms level)
+    /// returns the total number of peaks
     UnsignedInt getSize() const
     {
-        return nr_dpoints_;
-    }
-
-    /// returns an array of the spectrum lengths (all ms level)
-    const std::vector<UnsignedInt>& getSpectraLengths() const
-    {
-        return spectra_lengths_;
+      return nr_dpoints_;
     }
 
     /// returns an array of MS levels
     const std::vector<UnsignedInt>& getMSLevels() const
     {
-        return ms_levels_;
+      return ms_levels_;
     }
     //@}
 
     /// Mutable access to peak with index @p  
-   	preference getPeak(UnsignedInt index) throw (Exception::IndexOverflow)
+   	PeakReference getPeak(UnsignedInt index) throw (Exception::IndexOverflow)
     {
-        if (index > nr_dpoints_)
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+      if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
 
-		std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-	
-		unsigned int scan_index =  (it - spectra_lengths_.begin() );
-		unsigned int peak_index = 0;
-	
-		if (scan_index == 0)
-		{
-			peak_index  =  index;
-		}
-		else
-		{
-			--it;
-			peak_index = (index - *it);
-		}		
+			std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
 		
-		return (*this)[scan_index][peak_index];
+			unsigned int scan_index =  (it - spectra_lengths_.begin() );
+			unsigned int peak_index = 0;
+		
+			if (scan_index == 0)
+			{
+				peak_index  =  index;
+			}
+			else
+			{
+				--it;
+				peak_index = (index - *it);
+			}		
+			
+			return (*this)[scan_index][peak_index];
+	    }
+	
+		/// Const access to peak with index @p  
+   	ConstPeakReference getPeak(UnsignedInt index) const throw (Exception::IndexOverflow) 
+    {
+        if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+
+			std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+		
+			unsigned int scan_index =  (it - spectra_lengths_.begin() );
+			unsigned int peak_index = 0;
+		
+			if (scan_index == 0)
+			{
+				peak_index  =  index;
+			}
+			else
+			{
+				--it;
+				peak_index = (index - *it);
+			}		
+			
+			return (*this)[scan_index][peak_index];
     }
 	
-	/// Const access to peak with index @p  
-   	const_preference getPeak(UnsignedInt index) const throw (Exception::IndexOverflow) 
-    {
-        if (index > nr_dpoints_)
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-
-		std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-	
-		unsigned int scan_index =  (it - spectra_lengths_.begin() );
-		unsigned int peak_index = 0;
-	
-		if (scan_index == 0)
+		/// Mutable access to retention time of peak with index @p index
+		CoordinateType& getPeakRt(UnsignedInt index) throw (Exception::IndexOverflow) 
 		{
-			peak_index  =  index;
+			if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				
+			std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+			unsigned int scan_index =  (it - spectra_lengths_.begin() );
+			return ((*this)[scan_index]).getRetentionTime();
+			
 		}
-		else
+		
+		/// Const access to retention time of peak with index @p index
+		const CoordinateType& getPeakRt(UnsignedInt index) const throw (Exception::IndexOverflow) 
 		{
-			--it;
-			peak_index = (index - *it);
-		}		
-		
-		return (*this)[scan_index][peak_index];
-    }
-	
-	/// Mutable access to retention time of peak with index @p index
-	CoordinateType& getPeakRt(UnsignedInt index) throw (Exception::IndexOverflow) 
-	{
-		if (index > nr_dpoints_)
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+			if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				
+			std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+			unsigned int scan_index =  (it - spectra_lengths_.begin() );
+			return (*this)[scan_index].getRetentionTime();
 			
-		std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-		unsigned int scan_index =  (it - spectra_lengths_.begin() );
-		return ((*this)[scan_index]).getRetentionTime();
-		
-	}
-	
-	/// Const access to retention time of peak with index @p index
-	const CoordinateType& getPeakRt(UnsignedInt index) const throw (Exception::IndexOverflow) 
-	{
-		if (index > nr_dpoints_)
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-			
-		std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-		unsigned int scan_index =  (it - spectra_lengths_.begin() );
-		return (*this)[scan_index].getRetentionTime();
-		
-	}
+		}
 
     /// Comparator to sort spectra by retention time
     class RtComparator
     {
-    public :
+   		public :
         template<typename SpectrumT>
         bool 	operator () (SpectrumT& left, SpectrumT& right) const
         {
@@ -695,20 +678,19 @@ public:
     */
     void sortSpectra(bool sort_mz = true)
     {
+      RtComparator comp;
+      std::sort(this->begin(),this->end(),comp);
 
-        RtComparator comp;
-        std::sort(this->begin(),this->end(),comp);
-
-        if (sort_mz)
+      if (sort_mz)
+      {
+        // sort each spectrum by m/z
+        for (Iterator iter = this->begin();
+                iter != this->end();
+                ++iter)
         {
-            // sort each spectrum by m/z
-            for (Iterator iter = this->begin();
-                    iter != this->end();
-                    ++iter)
-            {
-                iter->getContainer().sortByPosition();
-            }
+            iter->getContainer().sortByPosition();
         }
+      }
     }
 		
 	/// Resets all internal values
