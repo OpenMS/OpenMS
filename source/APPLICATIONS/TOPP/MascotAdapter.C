@@ -201,19 +201,19 @@ class TOPPMascotAdapter
 					 << " " << getToolName() << " [options]" << endl
 					 << endl
 					 << "Options are:" << endl
-					 << "  -in <file>           input file in mzData format."
-					 << "                       Note: In mode 'mascot_out' a Mascot results file is read." 
-					 << "  -out <file>          output file in analysisXML format."
-					 << "                       Note: In mode 'mascot_in' Mascot generic format is written."
+					 << "  -in <file>           input file in mzData format." << endl
+					 << "                       Note: In mode 'mascot_out' a Mascot results file is read."  << endl
+					 << "  -out <file>          output file in analysisXML format." << endl
+					 << "                       Note: In mode 'mascot_in' Mascot generic format is written." << endl
 					 << "  -mascot_in           if this flag is set the MascotAdapter will read in mzData and write Mascot generic format." << endl
 					 << "  -mascot_out          if this flag is set the MascotAdapter will read in a Mascot resultsfile and write analysisXML." << endl
-					 << "  -instr               the instrument that was used to measure the spectra (default read from INI file)" << endl
-					 <<	"  -prcr_m_tol          the precursor mass tolerance (default read from INI file)" << endl
-					 << "  -pk_m_tol            the peak mass tolerance (default read from INI file)" << endl
-					 << "  -tax                 the taxonomy (default read from INI file)" << endl
-					 << "  -mods                the modifications i.e. Carboxymethyl (C) (default read from INI file)" << endl
-					 << "  -vmods               the variable modifications i.e. Carboxymethyl (C) (default read from INI file)" << endl
-					 << "  -charges             the different charge states separated by comma ( (default read from INI file)" << endl
+					 << "  -instr               the instrument that was used to measure the spectra" << endl
+					 <<	"  -prcr_m_tol          the precursor mass tolerance" << endl
+					 << "  -pk_m_tol            the peak mass tolerance" << endl
+					 << "  -tax                 the taxonomy" << endl
+					 << "  -mods                the modifications i.e. Carboxymethyl (C)" << endl
+					 << "  -vmods               the variable modifications i.e. Carboxymethyl (C)" << endl
+					 << "  -charges             the different charge states separated by comma" << endl
 					 << "  -mascot_directory    the directory in which mascot is located" << endl
 					 << "  -temp_data_directory a directory in which some temporary files can be stored" << endl
 					 << endl ;
