@@ -481,6 +481,11 @@ public:
     }
 
 		/**
+		  @brief Returns an array with the accumulated spectra lengths
+
+      The first entry contains the number of peaks in the first spectrum.
+			The second entry contains the number of peaks in the first and second spectrum.
+			And so on!
 		*/
     const std::vector<UnsignedInt>& getSpectraLengths()
 		{
