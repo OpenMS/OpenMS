@@ -480,7 +480,14 @@ public:
       updateRanges(-1);
     }
 
-    /**
+		/**
+		*/
+    const std::vector<UnsignedInt>& getSpectraLengths()
+		{
+			return spectra_lengths_;
+		}
+
+		/**
     	@brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
     	
     	@param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
