@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 ///////////////////////////
 
@@ -87,10 +88,10 @@ CHECK(nextSeed())
 		peak_array.push_back(p);
 	}
 	
-	DPeakArray<2>::const_iterator citer1 = peak_array.begin();
-	DPeakArray<2>::const_iterator citer2 = peak_array.end();
+	MSExperiment<DPeak<1> > exp;
+	exp.set2DData(peak_array);
 	
-	traits->setData(citer1,citer2);
+	traits->setData(exp);
 	
 	seeder.setTraits(traits);
 	

@@ -53,12 +53,6 @@ namespace OpenMS
 	class ScanIndexMSExperiment : public std::vector < PeakContainerIterator_ >
 	{
 	 public:
-	 
-// 	 	enum DimensionId
-// 			{ 
-// 				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-// 				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-// 			};
 
 		typedef PeakContainer_ PeakContainerType;
 		typedef typename PeakContainerType::PeakType PeakType;			
@@ -75,6 +69,51 @@ namespace OpenMS
 		using ScanBeginContainerType::size;
 		using ScanBeginContainerType::back;
 		using ScanBeginContainerType::push_back;
+		
+		/// Constructor
+		ScanIndexMSExperiment()
+			:  std::vector < PeakContainerIterator_ >(),
+				last_rt_(), last_rank_()
+		{
+		}
+		
+		/// Copy Constructor
+		ScanIndexMSExperiment(const ScanIndexMSExperiment& rhs )
+			:  std::vector < PeakContainerIterator_ >(rhs),
+				last_rt_(rhs.last_rt_), last_rank_(rhs.last_rank_)
+		{
+		}
+		
+		/// Destructor
+		~ScanIndexMSExperiment() 
+		{
+		}	
+		
+		/// Assignment 
+		ScanIndexMSExperiment& operator = (const ScanIndexMSExperiment& rhs)
+		{
+			if (this==&rhs) return *this;
+			
+			std::vector < PeakContainerIterator_ >::operator = (rhs);
+			last_rt_     = rhs.last_rt_;
+			last_rank_ = rhs.last_rank_;
+			
+			return *this;
+		}
+
+		/// Test for equality 
+		bool operator == (const ScanIndexMSExperiment& rhs) const
+		{
+			return (std::vector < PeakContainerIterator_ >::operator == (rhs) &&
+					    		last_rt_     == rhs.last_rt_ &&
+									last_rank_ == rhs.last_rank_);	
+		}
+
+		/// Test for inequality
+		bool operator != (const ScanIndexMSExperiment& rhs) const
+		{
+			return !(operator == (rhs));
+		}	
 		
 		/// We throw this exception if the next (previous) peak is requested for a peak in the last (first) scan.
 		class NoSuccessor
@@ -104,14 +143,19 @@ namespace OpenMS
 		*/
 		void init ( PeakIterator _begin, PeakIterator const _end ) throw ()
 		{
-			clear();
-			push_back ( _begin );
+				clear();
+				push_back ( _begin );
       
-      		// iterate over range, save the iterator if
-      		// a new scan starts.
-      		while ( ++_begin != _end )
+      	// iterate over range, save the iterator if
+      	// a new scan starts.
+      	while ( ++_begin != _end )
 	  		{
-				if (  back().getRt() < _begin.getRt() ) push_back ( _begin );
+				std::cout << "ScanIndexMSExp : at rt " << _begin.getRt() << std::endl;
+				if (  back().getRt() < _begin.getRt() ) 
+				{
+					std::cout << "Pushing back" << std::endl;
+					push_back ( _begin );
+				}
 			}		
 			scan_position_.clear();
 			scan_position_.reserve ( size() );
@@ -133,20 +177,25 @@ namespace OpenMS
 		    Retrieves the peak in the next scan whose m/z is closest
 		    to @p peak.
 		*/
-		PeakIterator getNextRt( CoordinateType& current_rt, CoordinateType& current_mz) const throw (NoSuccessor)
+		PeakIterator getNextRt(const CoordinateType& current_rt, const CoordinateType& current_mz) throw (NoSuccessor)
 		{
-// 			CoordinateType current_rt = peak.getPosition()[RT];
-// 			CoordinateType current_mz = peak.getPosition()[MZ];
-			
-			int const current_scan    = getRank(current_rt);
+			int current_scan = 0;
+			if (current_rt == last_rt_)
+			{
+				current_scan =   last_rank_;
+			}
+			else
+			{
+				current_scan	= getRank(current_rt);
+				last_rank_     = current_scan;
+			}
 			if (current_scan >= int(size()-2)) throw NoSuccessor(__FILE__, __LINE__, "getNextRt()", current_scan);
 		
 			// determine start and end of the next scan
 			PeakIterator scan_begin = (*this)[current_scan+1];
 	 		PeakIterator scan_end   = (*this)[current_scan+2];	// Seems to be dangerous, but does work.
 	 		
-			return searchInScan_(scan_begin,scan_end,current_mz);
-			
+			return searchInScan_(scan_begin,scan_end,current_mz);			
 		}
 		
 		/** @brief Moves to the previous scan.
@@ -154,12 +203,19 @@ namespace OpenMS
 		    Retrieves the peak in the previous scan whose m/z is closest
 		    to @p peak.
 		*/
-		PeakIterator getPrevRt(CoordinateType& current_rt, CoordinateType& current_mz) const throw (NoSuccessor)
+		PeakIterator getPrevRt(const CoordinateType& current_rt, const CoordinateType& current_mz) throw (NoSuccessor)
 		{			
-// 			CoordinateType current_rt = peak.getPosition()[RT];
-// 			CoordinateType current_mz = peak.getPosition()[MZ];
 			
-			int const current_scan    = getRank(current_rt);
+			int current_scan = 0;
+			if (current_rt == last_rt_)
+			{
+				current_scan =   last_rank_;
+			}
+			else
+			{
+				current_scan	= getRank(current_rt);
+				last_rank_     = current_scan;
+			}
 			// if we are already in the first scan, there will be no predeccessor....
 			if (current_scan == 0) throw NoSuccessor(__FILE__, __LINE__, "getPrevRt()", current_scan);
 		
@@ -171,9 +227,10 @@ namespace OpenMS
 			return searchInScan_(scan_begin,scan_end,current_mz);
 		}
 		     
-     /// Returns the rank of position \p coord, starting with 0, usually this will give us the scan number.	 
+    	 /// Returns the rank of position \p coord, starting with 0, usually this will give us the scan number.	 
 		typename ScanPositionContainerType::size_type getRank ( CoordinateType const & coord ) const throw()
 		{
+			// perform binary search to retreive rank of this retention time
 			return std::lower_bound
 				( scan_position_.begin(),
 					scan_position_.end(),
@@ -185,10 +242,8 @@ namespace OpenMS
 		protected:	
 		
 		/// Performs binary search on an iterator range to find the
-		/// peak with the m/z coordinate that comes closest to the starting peak.
-		PeakIterator searchInScan_(PeakIterator scan_begin, 
-												 PeakIterator scan_end , 
-												 CoordinateType current_mz) const
+		/// peak with m/z that comes closest to peak at @p current_mz.
+		PeakIterator searchInScan_(PeakIterator scan_begin, PeakIterator scan_end, CoordinateType current_mz) const
 		{
 		
 			// perform binary search to find the neighbour in rt dimension
@@ -229,7 +284,9 @@ namespace OpenMS
 		
 		/// Records the retention time for a given scan
 		ScanPositionContainerType scan_position_;  	
-
+		CoordinateType last_rt_;
+		int last_rank_;
+		
 	};
 	  
 } // namespace OpenMS

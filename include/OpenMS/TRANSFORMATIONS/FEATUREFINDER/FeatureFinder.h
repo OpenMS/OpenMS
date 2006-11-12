@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <vector>
 #include <ostream>
@@ -45,8 +46,6 @@ namespace OpenMS
 	@defgroup FeatureFinder FeatureFinder
 	
 	@brief The feature detection algorithm in OpenMS.
-	
-	@todo Warn when Param values are given, that are not needed (Ole)
 	
 	@ingroup Transformations
 	
@@ -78,10 +77,13 @@ namespace OpenMS
   	This class reads the parameters from the Param class,
   	initialises the traits class and the seeder, extender and
   	model fitting classes.
+		
+		@NOTE: The input data should be sorted and not contain any tandem spectra.
  	  	
   	@ingroup FeatureFinder
   
 */
+
 
 class FeatureFinder
 {
@@ -91,6 +93,7 @@ public:
     typedef std::vector<BaseSeeder*> SeederVector;
     typedef std::vector<BaseExtender*> ExtenderVector;
     typedef std::vector<BaseModelFitter*> FitterVector;
+		typedef FeaFiTraits::MapType MapType;
 
     /// standard constructor.
     FeatureFinder();
@@ -102,7 +105,6 @@ public:
     FeatureFinder& operator = (const FeatureFinder& source);
     /// test for equality
     bool operator == (const FeatureFinder& rhs) const;
-
 
     /**
 			@brief add seeder to FeatureFinder  
@@ -127,7 +129,6 @@ public:
     */
     void addFitter(const String& name, const Param* param=0);
 
-
     ///	 remove first seeder with name @p name
     void removeSeeder(const String& name);
     /// remove first extender with name @p name
@@ -136,28 +137,18 @@ public:
     void removeFitter(const String& name);
 
     /**
-      	 @brief set FeatureFinder param file  
-       	\return false if param file is not valid 
+      	@brief set FeatureFinder param file  
+       	@return false if param file is not valid 
       */
     bool setParam(const Param& param);
 
-    /// set iterator range as data for FeatureFinder
-    template <class ConstPeakIterator>
-    void setData(ConstPeakIterator begin, ConstPeakIterator end)
-    {
-        traits_->setData(begin,end);
-    }
 
-    /**
-    	@brief Set data contained in an instance of MSExperiment.
-    	
-    	@note Low intensity data points are deleted in the dataset!
-    */
-    void setData(MSExperiment<DPeak<1> >& exp)
-    {
-        traits_->setData(exp);
-    }
-
+    /// Sets data using instance of MSExperimentExtern.
+    void setData(MapType& exp) { traits_->setData(exp); }
+		
+		/// Sets data using instance of MSExperiment
+    void setData(MSExperiment<DPeak<1> >& exp) { traits_->setData(exp); }
+	
     /// start feature finding
     const FeatureVector& run();
 

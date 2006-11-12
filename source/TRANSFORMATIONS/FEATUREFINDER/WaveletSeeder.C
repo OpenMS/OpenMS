@@ -72,8 +72,8 @@ namespace OpenMS
 				
 			// setting params
 			finder.setWtCutOff (wt_cutoff);			// threshold for intensities in wavelet transform
-   			finder.setScoreCutOff (score_cutoff);		// scores are ignored
-   			finder.setRTVotesCutOff (votes_cutoff); 	// we need isotopic patterns in at least six consecutive scans
+   		finder.setScoreCutOff (score_cutoff);		// scores are ignored
+   		finder.setRTVotesCutOff (votes_cutoff); 	// we need isotopic patterns in at least six consecutive scans
 				
 			std::cout << "Starting detection: " << std::endl;
 		

@@ -50,7 +50,7 @@ namespace OpenMS
 			
 			int endIndex = traits_->getNumberOfPeaks();
 			for (int i=0;i<endIndex;i++) indizes_.push_back(i);
-						
+			std::cout << "Number of peaks: " << endIndex << std::endl;
 			sort_(); // sort index vector by intensity of peaks
 			
 			current_peak_ = indizes_.begin();

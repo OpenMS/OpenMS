@@ -77,6 +77,45 @@ namespace OpenMS
 		using ScanBeginContainerType::back;
 		using ScanBeginContainerType::push_back;
 		
+		/// Constructor
+		ScanIndex()
+			:  std::vector < PeakContainerIterator_ >()
+		{
+		}
+		
+		/// Copy Constructor
+		ScanIndex(const ScanIndex& rhs )
+			:  std::vector < PeakContainerIterator_ >(rhs)
+		{
+		}
+		
+		/// Destructor
+		~ScanIndex() 
+		{
+		}	
+		
+		/// Assignment 
+		ScanIndex& operator = (const ScanIndex& rhs)
+		{
+			if (this==&rhs) return *this;
+			
+			std::vector < PeakContainerIterator_ >::operator = (rhs);
+					
+			return *this;
+		}
+
+		/// Test for equality 
+		bool operator == (const ScanIndex& rhs) const
+		{
+			return (std::vector < PeakContainerIterator_ >::operator == (rhs) );	
+		}
+
+		/// Test for inequality
+		bool operator != (const ScanIndex& rhs) const
+		{
+			return !(operator == (rhs));
+		}	
+		
 		/// We throw this exception if the next (previous) peak is requested for a peak in the last (first) scan.
 		class NoSuccessor
      : public Exception::Base

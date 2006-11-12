@@ -31,7 +31,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SweepExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PPExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
+// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletExtender.h>
 
 namespace OpenMS
 {
@@ -40,13 +40,10 @@ namespace OpenMS
 		Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
 		Factory<BaseExtender>::registerProduct(SweepExtender::getName(), &SweepExtender::create);
 		Factory<BaseExtender>::registerProduct(PPExtender::getName(), &PPExtender::create);
-		Factory<BaseExtender>::registerProduct(WaveletExtender::getName(), &WaveletExtender::create);
+// 		Factory<BaseExtender>::registerProduct(WaveletExtender::getName(), &WaveletExtender::create);
 	}	
 
-	BaseExtender::BaseExtender() : FeaFiModule() 
-	{
-	}
-
+	BaseExtender::BaseExtender() : FeaFiModule() { }
 
 	BaseExtender::BaseExtender(const BaseExtender& source)
 		: FeaFiModule(source) {}

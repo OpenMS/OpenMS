@@ -162,7 +162,7 @@ namespace OpenMS
 
 		rt_stat_.update ( IntensityIterator(set.begin(),traits_),
 											IntensityIterator(set.end(),traits_),
-											PeakIterator(set.begin(),traits_) );
+											RtIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
 		IndexSetIter it=set.begin();
@@ -436,16 +436,6 @@ namespace OpenMS
 		}
 		else
 		{
-			// old model (The model are used for test data in the bachelor thesis.)
-			/*
-				mz_model = new IsotopeModel();
-				mz_model->setInterpolationStep(interpolation_step_mz);
-				Param iso_param = param_.copy("isotope_model:",true);
-				iso_param.remove("stdev");
-				static_cast<IsotopeModel*>(mz_model)->getParam().insert("",iso_param);
-				static_cast<IsotopeModel*>(mz_model)->setParam(mz_stat_.mean(), mz_fit, isotope_stdev);
-			*/
-
 			// new model
 			mz_model = new IsotopeModel();
 			Param iso_param = param_.copy("isotope_model:",true);

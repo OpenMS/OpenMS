@@ -120,7 +120,7 @@ namespace OpenMS
 
 		rt_stat_.update ( IntensityIterator(set.begin(),traits_),
 										 IntensityIterator(set.end(),traits_),
-										 PeakIterator(set.begin(),traits_) );
+										 RtIterator(set.begin(),traits_) );
 
 		// Calculate bounding box
 		IndexSetIter it=set.begin();

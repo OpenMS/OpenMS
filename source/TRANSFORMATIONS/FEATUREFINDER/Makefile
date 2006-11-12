@@ -50,14 +50,11 @@ CPP_SOURCES=\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
-	SweepExtender.C\
 	PPExtender.C\
 	EmgModel.C\
 	ExtendedModelFitter.C\
 	LmaGaussModel.C\
 	LogNormalModel.C\
-	WaveletSeeder.C\
-	WaveletExtender.C\
 	EuclideanDistance.C\
 	RankCorrelation.C
 
@@ -65,4 +62,4 @@ include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
-ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
+#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER

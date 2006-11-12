@@ -71,36 +71,41 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	gm1.setParam(stat,1,5);
 	
 	FeaFiTraits traits;
-		
+	DPeakArray<2> peak_array;
+	
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1;
 	p1.getPosition()[1] = 1;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p1);
+	peak_array.push_back(p1);
 	
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p2);
+	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
 	p3.getPosition()[0] = 3;
 	p3.getPosition()[1] = 3;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p3);
+	peak_array.push_back(p3);
 	
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p4);
+	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
 	p5.getPosition()[0] = 5;
 	p5.getPosition()[1] = 5;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p5);
+	peak_array.push_back(p5);
+	
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	traits.setData(exp);
 		
 	corr.setTraits(&traits);
 	
@@ -139,36 +144,41 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	pm1.setModel(1,gm2);
 	
 	FeaFiTraits traits;
+	DPeakArray<2> peak_array;
 	
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1;
 	p1.getPosition()[1] = 1;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p1);
+	peak_array.push_back(p1);
 	
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p2);
+	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
 	p3.getPosition()[0] = 3;
 	p3.getPosition()[1] = 3;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p3);
+	peak_array.push_back(p3);
 	
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p4);
+	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
 	p5.getPosition()[0] = 5;
 	p5.getPosition()[1] = 5;
 	p1.getIntensity()    = 5;
-	traits.addSinglePeak(p5);
+	peak_array.push_back(p5);
+	
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	traits.setData(exp);
 	
 	corr.setTraits(&traits);
 	

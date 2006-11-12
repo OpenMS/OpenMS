@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
@@ -155,7 +155,7 @@ class TOPPFeatureFinder
 		writeLog_(String(" Reading input file ") + in);
 			
 		MzDataFile mzdata_file;
-		MSExperiment<DPeak<1> > exp;
+		MSExperimentExtern<DPeak<1> > exp;
 		mzdata_file.load(in,exp);
 
 		// ???? old		String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";

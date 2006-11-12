@@ -31,17 +31,20 @@
 
 namespace OpenMS
 {
-  class FeaFiTraits;
+	// forward declaration of traits class
+	class FeaFiTraits;
 
   /** @brief Class to hold a module of the FeatureFinder algorithm 
       module accesses datastructures using BaseFeaFiTraits.
       
       @ingroup FeatureFinder
     */
-  class FeaFiModule 
+	class FeaFiModule 
     : public FactoryProduct
   {
 
+	
+	
   public:
     /** @brief Inner Classes for Exception handling
       

@@ -97,7 +97,7 @@ namespace OpenMS
 	
 	SweepLineHash::const_iterator hash_iter;
 		
-	ScanIndex<DPeakArray<2, DRawDataPoint<2> >  > scan_index_;
+	ScanIndexMSExperiment<MSExperimentExtern< > > scan_index_;
 	
 	CoordinateType avMZSpacing_;
 	

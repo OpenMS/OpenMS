@@ -526,7 +526,7 @@ CHECK(void updateRanges(SignedInt ms_level))
 	
 RESULT
 
-CHECK(DPeak<1> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
+CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p1;
@@ -554,13 +554,13 @@ CHECK(DPeak<1> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
 	
 	exp.updateRanges();
 	 	
-	TEST_EQUAL(exp.getPeak(0).getPosition()[0],2.0);
+	TEST_EQUAL(exp.getPeak(0).getPosition()[1],2.0);
 	
-	TEST_EQUAL(exp.getPeak(1).getPosition()[0],3.0);
+	TEST_EQUAL(exp.getPeak(1).getPosition()[1],3.0);
 	
-	TEST_EQUAL(exp.getPeak(2).getPosition()[0],10.0);
+	TEST_EQUAL(exp.getPeak(2).getPosition()[1],10.0);
 	
-	TEST_EQUAL(exp.getPeak(3).getPosition()[0],11.0);
+	TEST_EQUAL(exp.getPeak(3).getPosition()[1],11.0);
 	
 
 RESULT

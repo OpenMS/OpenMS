@@ -92,21 +92,21 @@ CHECK(nextSeed())
 		peak_array.push_back(p);
 	}
 	
-	DPeakArray<2>::const_iterator citer1 = peak_array.begin();
-	DPeakArray<2>::const_iterator citer2 = peak_array.end();
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
 	
-	traits->setData(citer1,citer2);
+	traits->setData(exp);
 	
 	extender.setTraits(traits);
 
-	Param param;
-	param.setValue("dist_mz_up",10);
-	param.setValue("dist_mz_down",10);
-	param.setValue("dist_rt_down",10);
-	param.setValue("dist_rt_up",10);
-	param.setValue("priority_thr",-5);
-	
-  extender.setParam(param);
+// 	Param param;
+// 	param.setValue("dist_mz_up",10);
+// 	param.setValue("dist_mz_down",10);
+// 	param.setValue("dist_rt_down",10);
+// 	param.setValue("dist_rt_up",10);
+// 	param.setValue("priority_thr",-5);
+// 	
+//   extender.setParam(param);
   IndexSet region = extender.extend(4);
   
   TEST_NOT_EQUAL(region.size(),0);

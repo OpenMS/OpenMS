@@ -36,6 +36,12 @@
 		<BR>
 		Mit den configure Optionen --with-cxxflags bzw. --with-ldflags.
 		
+		<LI><B>MSExperimentExtern stürzt ab mit der Fehlermeldung "file size limit exceeded"</B>
+		<BR>
+		Dies ist ein Problem mit der maximalen Dateigröße unter Linux. LSF (large file support)
+		muss unter vielen Distributionen explizit aktiviert werden. Das geht mit 
+		dem configure flag --with-cxxflags=-D_FILE_OFFSET_BITS=64.
+		
 		
 		<LI><B>Add a new release to Sourceforge</B>
 			<OL>

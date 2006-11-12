@@ -58,37 +58,43 @@ RESULT
 
 CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set))
 	FeaFiTraits t;
-	DRawDataPoint<2> p;
+	DPeak<2> p;
+	DPeakArray<2> peak_array;
 
-	p.getPosition()[0] = 1240.54; p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1241.81; p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.8;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 693.8;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 695.2;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1251.07;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1247.09;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1248.41;	p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1249.76;	p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 687.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 689.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.6;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 694.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1247.75;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1249.12;	p.getPosition()[1] = 688;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 689.8;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 691;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 693.8;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 695.2;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1248.41;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1243.78;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1239.9;	p.getPosition()[1] = 695.4;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1237.27;	p.getPosition()[1] = 692;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1237.27;	p.getPosition()[1] = 691;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1237.93;	p.getPosition()[1] = 688.4;	t.addSinglePeak(p);
+	p.getPosition()[0] = 1240.54; p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1241.81; p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.8;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 693.8;	peak_array.push_back(p);
+	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 695.2;	peak_array.push_back(p);
+	p.getPosition()[0] = 1251.07;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1247.09;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1248.41;	p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1249.76;	p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 687.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 689.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.6;	peak_array.push_back(p);
+	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 694.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1247.75;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1249.12;	p.getPosition()[1] = 688;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 689.8;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 691;	peak_array.push_back(p);
+	p.getPosition()[0] = 1252.39;	p.getPosition()[1] = 692.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1251.73;	p.getPosition()[1] = 693.8;	peak_array.push_back(p);
+	p.getPosition()[0] = 1250.41;	p.getPosition()[1] = 695.2;	peak_array.push_back(p);
+	p.getPosition()[0] = 1248.41;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1243.78;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1239.9;	p.getPosition()[1] = 695.4;	peak_array.push_back(p);
+	p.getPosition()[0] = 1237.27;	p.getPosition()[1] = 692;	peak_array.push_back(p);
+	p.getPosition()[0] = 1237.27;	p.getPosition()[1] = 691;	peak_array.push_back(p);
+	p.getPosition()[0] = 1237.93;	p.getPosition()[1] = 688.4;	peak_array.push_back(p);
 
+	peak_array.sortByPosition();
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	t.setData(exp);
+	
 	IndexSet set;
 	set.add(0,27);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
@@ -115,16 +121,22 @@ RESULT
 
 CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set))
 	FeaFiTraits t;
-	DRawDataPoint<2> p;
-	p.getPosition()[0] = 61.14; p.getPosition()[1] = 429.242;	t.addSinglePeak(p);
-	p.getPosition()[0] = 61.14; p.getPosition()[1] = 429.266;	t.addSinglePeak(p);
-	p.getPosition()[0] = 61.14;	p.getPosition()[1] = 429.291;	t.addSinglePeak(p);
-	p.getPosition()[0] = 61.14;	p.getPosition()[1] = 429.315;	t.addSinglePeak(p);
-	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.242;	t.addSinglePeak(p);
-	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.266;	t.addSinglePeak(p);
-	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.315;	t.addSinglePeak(p);
-	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.389;	t.addSinglePeak(p);
-	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.437;	t.addSinglePeak(p);
+	DPeak<2> p;
+	DPeakArray<2> peak_array;
+	p.getPosition()[0] = 61.14; p.getPosition()[1] = 429.242;	peak_array.push_back(p);
+	p.getPosition()[0] = 61.14; p.getPosition()[1] = 429.266;	peak_array.push_back(p);
+	p.getPosition()[0] = 61.14;	p.getPosition()[1] = 429.291;	peak_array.push_back(p);
+	p.getPosition()[0] = 61.14;	p.getPosition()[1] = 429.315;	peak_array.push_back(p);
+	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.242;	peak_array.push_back(p);
+	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.266;	peak_array.push_back(p);
+	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.315;	peak_array.push_back(p);
+	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.389;	peak_array.push_back(p);
+	p.getPosition()[0] = 64.36;	p.getPosition()[1] = 429.437;	peak_array.push_back(p);
+	
+	peak_array.sortByPosition();
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	t.setData(exp);
 
 	IndexSet set;
 	set.add(0,8);
@@ -146,25 +158,31 @@ RESULT
 
 CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set))
 	FeaFiTraits t;
-	DRawDataPoint<2> p;
-	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.778;	t.addSinglePeak(p);
-	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.802;	t.addSinglePeak(p);
-	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.851;	t.addSinglePeak(p);
-	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.876;	t.addSinglePeak(p);
-	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.9;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.729;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.754;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.778;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.827;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.876;	t.addSinglePeak(p);
-	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.924;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.754;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.778;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.802;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.827;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.851;	t.addSinglePeak(p);
-	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.9;	t.addSinglePeak(p);
+	DPeak<2> p;
+	DPeakArray<2> peak_array;
+	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.778;	peak_array.push_back(p);
+	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.802;	peak_array.push_back(p);
+	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.851;	peak_array.push_back(p);
+	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.876;	peak_array.push_back(p);
+	p.getPosition()[0] = 51.51; p.getPosition()[1] = 428.9;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.729;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.754;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.778;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.827;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.876;	peak_array.push_back(p);
+	p.getPosition()[0] = 54.72; p.getPosition()[1] = 428.924;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.754;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.778;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.802;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.827;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.851;	peak_array.push_back(p);
+	p.getPosition()[0] = 57.93; p.getPosition()[1] = 428.9;	peak_array.push_back(p);
 
+	peak_array.sortByPosition();
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	t.setData(exp);
+	
 	IndexSet set;
 	set.add(0,16);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
@@ -190,12 +208,18 @@ RESULT
 
 CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet& set))
 	FeaFiTraits t;
-	DRawDataPoint<2> p;
-	p.getPosition()[0] = 1.0; p.getPosition()[1] = 3.0;	t.addSinglePeak(p);
-	p.getPosition()[0] = 1.0; p.getPosition()[1] = 0.0;	t.addSinglePeak(p);
-	p.getPosition()[0] = 0.0;	p.getPosition()[1] = 1.0;	t.addSinglePeak(p);
-	p.getPosition()[0] = 2.0;	p.getPosition()[1] = 0.0;	t.addSinglePeak(p);
-	p.getPosition()[0] = 2.0;	p.getPosition()[1] = 2.0;	t.addSinglePeak(p);
+	DPeak<2> p;
+	DPeakArray<2> peak_array;
+	p.getPosition()[0] = 1.0; p.getPosition()[1] = 3.0;	peak_array.push_back(p);
+	p.getPosition()[0] = 1.0; p.getPosition()[1] = 0.0;	peak_array.push_back(p);
+	p.getPosition()[0] = 0.0;	p.getPosition()[1] = 1.0;	peak_array.push_back(p);
+	p.getPosition()[0] = 2.0;	p.getPosition()[1] = 0.0;	peak_array.push_back(p);
+	p.getPosition()[0] = 2.0;	p.getPosition()[1] = 2.0;	peak_array.push_back(p);
+	
+	peak_array.sortByPosition();
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(peak_array);
+	t.setData(exp);
 
 	IndexSet set;
 	set.add(0,4);

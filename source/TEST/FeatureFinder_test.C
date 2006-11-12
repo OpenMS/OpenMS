@@ -125,7 +125,10 @@ CHECK((template<class ConstPeakIterator> void setData(ConstPeakIterator begin, C
 	
 	FeatureFinder ff;
 	
-	ff.setData(parray.begin(),parray.end());
+	MSExperimentExtern<DPeak<1> > exp;
+	exp.set2DData(parray);
+	ff.setData(exp);
+	
 		
 	
 RESULT

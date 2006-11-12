@@ -478,8 +478,7 @@ namespace OpenMS
 				break;
 			case PRECURSORMZ:
 				{
-					PrecursorPeakType& peak
-						= spec_->getPrecursorPeak();
+					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
 					tmp_str = getAttributeAsString(PRECURSOR_INTENSITY);
 					if (tmp_str != "") // optional attribute

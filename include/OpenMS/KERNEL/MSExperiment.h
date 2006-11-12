@@ -78,7 +78,7 @@ public:
 	class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  IteratorPeakT>
     {
         typedef double CoordinateType;
-		typedef IteratorPeakT IteratorPeakType;
+				typedef IteratorPeakT IteratorPeakType;
 
     public:
 
@@ -206,17 +206,19 @@ public:
         //@{
         /// Returns the current retention time (mutable)
         CoordinateType& getRt()  { return rt_; }
-        /// Returns the current retention time (not mutable)
+        /// Returns the current retention time (const access)
         const CoordinateType& getRt() const  {  return rt_; }
-        ///Returns the current retention time (mutable)
-        unsigned int& getPeakIndex() { return peak_index_; }
-        /// Returns the current retention time (not mutable)
-        const unsigned int& getPeakIndex() const { return peak_index_; }
-				/// Mutable access to current scan
-				unsigned int& getScanIndex() { return scan_index_;}
-				/// Const access to  current scan
-				const unsigned int& getScanIndex() const { return scan_index_; } 
-        //@}
+
+				/// Returns the index of the peak this iterator points to 
+				/// NOTE: Call updateRanges() before using this function
+				UnsignedInt getPeakNumber()  
+				{ 
+					if (scan_index_ > 0)
+						return (exp_->spectra_lengths_[ (scan_index_-1) ] + peak_index_);
+					else
+						return peak_index_;
+				}
+         //@}
 
     	private:
         /// Points to the current peak
@@ -239,7 +241,8 @@ public:
     typedef typename std::vector<SpectrumType>::iterator Iterator;
     /// Non-mutable iterator
     typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
-	  typedef PeakIterator<PeakT> PIterator;
+		/// Peak iterator type (for a linear traversal of the data structure)
+		typedef PeakIterator< PeakT> PIterator;
 	
     /// Peak type
     typedef PeakT PeakType;
@@ -257,7 +260,7 @@ public:
 		typedef typename SpectrumType::const_reference ConstPeakReference;
 		/// peak reference type
 		typedef typename SpectrumType::reference PeakReference;
-
+			 
     /// Constructor
     MSExperiment()
             : std::vector<MSSpectrum<PeakT> >(),
@@ -267,7 +270,8 @@ public:
             ms_levels_(),
             nr_dpoints_(0),
             spectra_lengths_(),
-            name_()
+            name_(),
+						last_scan_index_(0)
     {
     }
 
@@ -280,7 +284,8 @@ public:
             ms_levels_(source.ms_levels_),
             nr_dpoints_(source.nr_dpoints_),
             spectra_lengths_(source.spectra_lengths_),
-            name_(source.name_)
+            name_(source.name_),
+						last_scan_index_(source.last_scan_index_)
     {
     }
 
@@ -298,7 +303,13 @@ public:
         std::vector<MSSpectrum<PeakT> >::operator=(source);
         ExperimentalSettings::operator=(source);
         PersistentObject::operator=(source);
-        name_ = source.name_;
+				
+				ms_levels_           = source.ms_levels_;
+        nr_dpoints_					 = source.nr_dpoints_;
+				spectra_lengths_	 = source.spectra_lengths_;
+				name_                 = source.name_;
+				last_scan_index_ = source.last_scan_index_;
+				
         return *this;
     }
 	
@@ -371,7 +382,7 @@ public:
 
         typename PeakType::CoordinateType current_rt = -1.0*std::numeric_limits<typename PeakType::CoordinateType>::max();
 
-        for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); iter++)
+        for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
         {
           // check if the retentime time has changed
           if (current_rt != iter->getPosition()[RT] || spectrum == 0)
@@ -487,10 +498,7 @@ public:
 			The second entry contains the number of peaks in the first and second spectrum.
 			And so on!
 		*/
-    const std::vector<UnsignedInt>& getSpectraLengths()
-		{
-			return spectra_lengths_;
-		}
+    const std::vector<UnsignedInt>& getSpectraLengths() { return spectra_lengths_; }
 
 		/**
     	@brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
@@ -552,6 +560,7 @@ public:
           //int
           if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
           if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
+
         }
       }
       std::sort(ms_levels_.begin(), ms_levels_.end());
@@ -592,96 +601,146 @@ public:
     }
 
     /// returns the total number of peaks
-    UnsignedInt getSize() const
-    {
-      return nr_dpoints_;
-    }
+    UnsignedInt getSize() const { return nr_dpoints_; }
+
+    /// returns an array of the spectrum lengths (all ms level)
+    const std::vector<UnsignedInt>& getSpectraLengths() const { return spectra_lengths_; }
 
     /// returns an array of MS levels
-    const std::vector<UnsignedInt>& getMSLevels() const
-    {
-      return ms_levels_;
-    }
+    const std::vector<UnsignedInt>& getMSLevels() const { return ms_levels_; }
     //@}
 
-    /// Mutable access to peak with index @p  
-   	PeakReference getPeak(UnsignedInt index) throw (Exception::IndexOverflow)
+
+    /// Mutable access to peak with index @p
+    DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
     {
       if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				
+				UnsignedInt scan_index = 0;
+				UnsignedInt peak_index = 0;
+				
+				// test if requested peak is in the same scan as the last one requested
+				UnsignedInt test_offset = 0;
+				if (last_scan_index_ == 0)
+					test_offset = index;
+				else
+					test_offset = (index - spectra_lengths_[last_scan_index_]);
+				
+				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
+				{
+						// good, no binary search necessary
+						scan_index = last_scan_index_;
+						peak_index = test_offset;
+				}
+				else
+				{
+					// bad luck, perform binary search
+        	std::vector<UnsignedInt>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
 
-			std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-		
-			unsigned int scan_index =  (it - spectra_lengths_.begin() );
-			unsigned int peak_index = 0;
-		
-			if (scan_index == 0)
-			{
-				peak_index  =  index;
-			}
-			else
-			{
-				--it;
-				peak_index = (index - *it);
-			}		
-			
-			return (*this)[scan_index][peak_index];
-	    }
-	
-		/// Const access to peak with index @p  
-   	ConstPeakReference getPeak(UnsignedInt index) const throw (Exception::IndexOverflow) 
+        	// index of scan is simply the distance to the begin() iterator
+        	scan_index =  (it - spectra_lengths_.begin() );        
+
+        	// determine index of peak
+        	if (scan_index == 0)
+        	{
+						last_scan_index_ = 0;
+            peak_index          =  index;
+        	}
+        	else
+        	{
+          	// upper_bound gives last iterator (if several equal values occur),
+            // so we have to walk back one step.
+            --it;
+            peak_index = (index - *it);
+        	}
+				}
+				
+				// all information was  collected, compile peak and continue
+				DRawDataPoint<2> rp;
+				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();
+				rp.getPosition()[1] = (*this)[scan_index][peak_index].getPosition()[0];
+				rp.getIntensity()    = (*this)[scan_index][peak_index].getIntensity();
+				
+        return rp;
+    }
+
+    /// const access to peak with index @p (call updateRanges() before using this method)
+    const DRawDataPoint<2> getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow)
     {
         if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				
+				UnsignedInt scan_index = 0;
+				UnsignedInt peak_index = 0;
+				
+				// test if requested peak is in the same scan as the last one requested
+				UnsignedInt test_offset = 0;
+				if (last_scan_index_ == 0)
+					test_offset = index;
+				else
+					test_offset = (index - spectra_lengths_[last_scan_index_]);
+				
+				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
+				{
+						// good, no binary search necessary
+						scan_index = last_scan_index_;
+						peak_index = test_offset;
+				}
+				else
+				{
+					// bad luck, perform binary search
+        	std::vector<UnsignedInt>::const_iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
 
-			std::vector<UnsignedInt>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-		
-			unsigned int scan_index =  (it - spectra_lengths_.begin() );
-			unsigned int peak_index = 0;
-		
-			if (scan_index == 0)
-			{
-				peak_index  =  index;
-			}
-			else
-			{
-				--it;
-				peak_index = (index - *it);
-			}		
-			
-			return (*this)[scan_index][peak_index];
+        	// index of scan is simply the distance to the begin() iterator
+        	scan_index =  (it - spectra_lengths_.begin() );        
+
+        	// determine index of peak
+        	if (scan_index == 0)
+        	{
+						last_scan_index_ = 0;
+            peak_index          =  index;
+        	}
+        	else
+        	{
+          	// upper_bound gives last iterator (if several equal values occur),
+            // so we have to walk back one step.
+            --it;
+            peak_index = (index - *it);
+        	}
+				}
+				
+				// all information was  collected, compile peak and continue
+				DRawDataPoint<2> rp;
+				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();
+				rp.getPosition()[1] = (*this)[scan_index][peak_index].getPosition()[0];
+				rp.getIntensity()    = (*this)[scan_index][peak_index].getIntensity();
+				
+        return rp;
     }
-	
-		/// Mutable access to retention time of peak with index @p index
-		CoordinateType& getPeakRt(UnsignedInt index) throw (Exception::IndexOverflow) 
-		{
-			if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
-			std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-			unsigned int scan_index =  (it - spectra_lengths_.begin() );
-			return ((*this)[scan_index]).getRetentionTime();
-			
-		}
-		
-		/// Const access to retention time of peak with index @p index
-		const CoordinateType& getPeakRt(UnsignedInt index) const throw (Exception::IndexOverflow) 
-		{
-			if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
-			std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
-			unsigned int scan_index =  (it - spectra_lengths_.begin() );
-			return (*this)[scan_index].getRetentionTime();
-			
-		}
 
-    /// Comparator to sort spectra by retention time
-    class RtComparator
-    {
-   		public :
-        template<typename SpectrumT>
-        bool 	operator () (SpectrumT& left, SpectrumT& right) const
-        {
-            return left.getRetentionTime() < right.getRetentionTime();
-        }
-    };
+	/// Mutable access to retention time of peak with index @p index
+// 	CoordinateType& getPeakRt(UnsignedInt index) throw (Exception::IndexOverflow) 
+// 	{
+// 		if (index > nr_dpoints_)
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+// 			
+// 		std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+// 		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+// 		return ((*this)[scan_index]).getRetentionTime();
+// 		
+// 	}
+	
+	/// Const access to retention time of peak with index @p index
+//	const CoordinateType& getPeakRt(UnsignedInt index) const throw (Exception::IndexOverflow) 
+// 	{
+// 		if (index > nr_dpoints_)
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+// 			
+// 		std::vector<unsigned int>::iterator it = upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
+// 		unsigned int scan_index =  (it - spectra_lengths_.begin() );
+// 		return (*this)[scan_index].getRetentionTime();
+// 		
+// 	}
+
 
     /**
     	@brief Sorts the data points by retention time
@@ -690,19 +749,18 @@ public:
     */
     void sortSpectra(bool sort_mz = true)
     {
-      RtComparator comp;
-      std::sort(this->begin(),this->end(),comp);
 
-      if (sort_mz)
-      {
-        // sort each spectrum by m/z
-        for (Iterator iter = this->begin();
-                iter != this->end();
-                ++iter)
-        {
-            iter->getContainer().sortByPosition();
+        std::sort(this->begin(),this->end(),typename SpectrumType::RTLess());
+
+	      if (sort_mz)
+      	{
+            // sort each spectrum by m/z
+            for (Iterator iter = this->begin(); iter != this->end(); ++iter)
+            {
+							iter->getContainer().sortByPosition();
+            }
         }
-      }
+      
     }
 		
 	/// Resets all internal values
@@ -714,10 +772,7 @@ public:
 	}
 	
 	/// returns the meta information of this experiment
-	const ExperimentalSettings& getExperimentalSettings() const 
-	{
-		return *this;
-	}
+	const ExperimentalSettings& getExperimentalSettings() const { return *this; }
 		
 protected:
 
@@ -734,12 +789,13 @@ protected:
     /// MS levels of the data
     std::vector<UnsignedInt> ms_levels_;
     /// Number of all data points
-    unsigned int nr_dpoints_;
+    UnsignedInt nr_dpoints_;
     /// Sums of consecutive spectrum lengths
     std::vector<UnsignedInt> spectra_lengths_;
     /// Name string
     String name_;
-
+		/// Index of last scan retrieved
+		mutable UnsignedInt last_scan_index_;
 };
 
 ///Print the contents to a stream.
