@@ -51,6 +51,7 @@ CPP_SOURCES=\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
 	PPExtender.C\
+	SweepExtender.C\
 	EmgModel.C\
 	ExtendedModelFitter.C\
 	LmaGaussModel.C\
