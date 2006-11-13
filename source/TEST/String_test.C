@@ -426,7 +426,7 @@ CHECK(void toLower())
 	TEST_EQUAL(s,"test45%#.,");
 RESULT
 
-CHECK(void replace(char from, char to))
+CHECK(void substitute(char from, char to))
 	String s = "abcdefg";
 
 	s.substitute('a','x');
@@ -446,6 +446,20 @@ CHECK(void replace(char from, char to))
 	s.substitute(',','.');
 	TEST_EQUAL(s,".....")
 RESULT
+
+CHECK(void remove(char what))
+{
+	String s = "abcabc";
+
+	s.remove('a');
+	TEST_EQUAL(s, "bcbc");
+	
+	s.remove('c');
+	TEST_EQUAL(s, "bb");
+	
+	s.remove('b');
+	TEST_EQUAL(s, "");
+}
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

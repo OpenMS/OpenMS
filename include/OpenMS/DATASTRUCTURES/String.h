@@ -214,6 +214,9 @@ namespace OpenMS
 
 		///Replaces all occurences of the character @p from by the character @p to.
 		void substitute(char from, char to);
+
+		///Remove all occurences of the character @p what.
+		void remove(char what);
 		//@}
 
 		/** @name Converters

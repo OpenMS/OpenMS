@@ -555,14 +555,15 @@ namespace OpenMS
 	{
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) tolower);
 	}
-/*
-	XMLHandler.h
-	MzXMLHandler.h
-	MzDataExpSettHandler.C
-*/
+	
 	void String::substitute(char from, char to)
 	{
 		std::replace(this->begin(), this->end(), from, to);
+	}
+
+	void String::remove(char what)
+	{
+		std::remove(this->begin(), this->end(), what);
 	}
 
 } // namespace OpenMS
