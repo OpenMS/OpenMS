@@ -563,7 +563,7 @@ namespace OpenMS
 
 	void String::remove(char what)
 	{
-		std::remove(this->begin(), this->end(), what);
+		this->erase(std::remove(this->begin(), this->end(), what),this->end());
 	}
 
 } // namespace OpenMS

@@ -75,7 +75,7 @@ TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF}
+CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.*
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/

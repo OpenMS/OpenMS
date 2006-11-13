@@ -448,7 +448,6 @@ CHECK(void substitute(char from, char to))
 RESULT
 
 CHECK(void remove(char what))
-{
 	String s = "abcabc";
 
 	s.remove('a');
@@ -459,7 +458,7 @@ CHECK(void remove(char what))
 	
 	s.remove('b');
 	TEST_EQUAL(s, "");
-}
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
