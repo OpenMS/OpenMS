@@ -275,22 +275,22 @@ EXECUTABLES_TRANSFORMATIONS = \
 	BiGaussModel_test\
 	IsotopeModel_test\
 	ProductModel_test\
-	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\
 	FeaFiTraits_test\
 	PeakPicker_test\
 	ExtractSignalRegions_test\
 	Correlation_test\
-	FeatureFinder_test\
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
 	EmgModel_test\
 	LmaGaussModel_test\
 	LogNormalModel_test\
 	ExtendedModelFitter_test\
-	PeakPickerCWT_test
+	PeakPickerCWT_test\
+	FeatureFinder_test
 
+# SimpleSeeder_test\
 
 EXECUTABLES_ANALYSIS_ID =\
 	MSExperimentAnnotator_test

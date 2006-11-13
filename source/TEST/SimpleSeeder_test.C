@@ -90,6 +90,8 @@ CHECK(nextSeed())
 	
 	MSExperiment<DPeak<1> > exp;
 	exp.set2DData(peak_array);
+
+	std::cout << "Size of experiment: " << exp.size() << std::endl;
 	
 	traits->setData(exp);
 	

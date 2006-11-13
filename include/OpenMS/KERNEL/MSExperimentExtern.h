@@ -40,6 +40,7 @@
 #include<limits>
 
 #include <iostream>
+#include <fstream>
 
 #include <stdio.h>
 #include <sys/mman.h>
@@ -56,11 +57,7 @@ namespace OpenMS
 	
 	NOTE: If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
 	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
-		
-	TODO: Implement range informations. (ole)
-	
-	TODO: Remember last scan accessed in getPeak(unsigned int) and getPeakRt(unsigned int) (ole)
-			
+				
 	@ingroup Kernel
 **/
 template < typename PeakT = DPeak<1> >
@@ -243,7 +240,7 @@ public:
 
     /// Mutable iterator
     template <class IteratorPeakT>
-class MSExperimentExternIterator : public MSExperimentExternConstIterator<IteratorPeakT>
+		class MSExperimentExternIterator : public MSExperimentExternConstIterator<IteratorPeakT>
     {
         friend class MSExperimentExtern;
 
@@ -453,7 +450,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
                 // update scan index and move to end of previous scan
                 if (scan_index_ == 0)
                 {
-                    std::cout << "In first scan and moving backwards ! " << std::endl;
+                    std::cout << "PeakIterator: In first scan and moving backwards ! " << std::endl;
                     return (*this);
                 }
                 --scan_index_;
@@ -567,7 +564,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
             buffer_index_(0), scan2buffer_(),
             buffer2scan_(), exp_(), pFile_(0),
             nr_dpoints_(0), spectra_lengths_(0),
-						last_scan_index_(0)
+						last_scan_index_(0), ms_levels_()
     { 
         file_name_ = "msexp_" + String(std::rand());
         exp_.resize(buffer_size_);
@@ -581,9 +578,11 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
             buffer_index_(source.buffer_index_),  scan2buffer_(source.scan2buffer_),
             buffer2scan_(source.buffer2scan_), scan_sizes_(source.scan_sizes_), 
 						exp_(source.exp_), nr_dpoints_(source.nr_dpoints_), 
-						spectra_lengths_(source.last_scan_index_), last_scan_index_(source.last_scan_index_)
+						spectra_lengths_(source.last_scan_index_), last_scan_index_(source.last_scan_index_),
+						ms_levels_(source.ms_levels_)
     {
         // genarete new temp file and copy the old one
+				std::remove( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
         copyTmpFile__(source.file_name_);
     }
@@ -603,22 +602,23 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
 
         buffer_size_         = source.buffer_size_;
         scan_location_     = source.scan_location_;
-        buffer_index_        = source.buffer_index_;
         current_scan_      = source.current_scan_;
-        scan2buffer_        = source.scan2buffer_;
+        buffer_index_        = source.buffer_index_;
+				scan2buffer_        = source.scan2buffer_;
         buffer2scan_        = source.buffer2scan_;
         scan_sizes_        = source.scan_sizes_;
         exp_				            = source.exp_;
         nr_dpoints_         = source.nr_dpoints_;
 				spectra_lengths_ = source.spectra_lengths_;
 				last_scan_index_= source.last_scan_index_;
+				ms_levels_         = source.ms_levels_;
 
         // generate new name for temp file
         std::remove( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
         // and copy the old one
         copyTmpFile__(source.file_name_);
-
+				
         return *this;
     }
 
@@ -630,10 +630,13 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
                 buffer_index_        == rhs.buffer_index_ &&
                 scan2buffer_         == rhs.scan2buffer_ &&
                 buffer2scan_         == rhs.buffer2scan_ &&
+								scan_sizes_         == rhs.scan_sizes_ &&
                 exp_				             == rhs.exp_             &&
+								nr_dpoints_					 == rhs.nr_dpoints_ &&
                 spectra_lengths_   == rhs.spectra_lengths_ &&
 								last_scan_index_  == rhs.last_scan_index_ &&
-                pFile_			             == rhs.pFile_);
+                current_scan_       == rhs.current_scan_ &&
+								ms_levels_           == rhs.ms_levels_);
     }
 
     /// Equality operator
@@ -703,34 +706,80 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
         }
     }
 
-    /// Updates the range information
-    void updateRanges()
+    /// Update the range informations
+		virtual void updateRanges()
     {
-        nr_dpoints_ = 0;
-        spectra_lengths_.clear();
-			
-				std::cout << "Scan2buffer size: " << scan2buffer_.size() << std::endl;
-				
-        for (unsigned int i =0; i< scan2buffer_.size(); ++i)
-        {
-            nr_dpoints_ += (*this)[i].size();
-         		std::cout << "Accumulated size: " << nr_dpoints_ << std::endl;
-            spectra_lengths_.push_back(nr_dpoints_);
-        }
-
+      updateRanges(-1);
     }
+		
+		/**
+    	@brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
+    	
+    	@param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
+    */
+    void updateRanges(SignedInt ms_level)
+    {
+			//clear MS levels
+      ms_levels_.clear();
+      // clear spectra lengths
+      spectra_lengths_.clear();
+      spectra_lengths_.reserve( scan2buffer_.size() );
 
-    /// Returns the minimum position
-    const PositionType& getMin() const { return exp_.getMin(); }
+      //reset mz/rt/int range
+      this->clearRanges();
+      //reset point count
+      nr_dpoints_ = 0;
+	
+      //empty
+      if (this->size()==0)
+      {
+      	return;
+      }
 
-    /// Returns the maximum position
-    const PositionType& getMax() const  { return exp_.getMax(); }
+      //update
+      for (UnsignedInt i=0;i<scan2buffer_.size();++i)
+      {
+				SpectrumType spec_temp = (*this)[i];
+				
+        if (ms_level < SignedInt(0) || SignedInt(spec_temp.getMSLevel())==ms_level)
+        {  
+	        //ms levels
+	        if (std::find(ms_levels_.begin(),ms_levels_.end(),spec_temp.getMSLevel())==ms_levels_.end())
+	        {
+	        	ms_levels_.push_back(spec_temp.getMSLevel());
+	        }
+		
+					// calculate size
+	        nr_dpoints_ += spec_temp.size();
+					
+// 					std::cout << "Accumulated size: " << nr_dpoints_ << std::endl;
+// 					std::cout << "Scan: " << i << " of " << scan2buffer_.size() << std::endl;
+		
+	        //spectrum lengths
+	        spectra_lengths_.push_back( nr_dpoints_ );
+              
+          //rt
+          if (spec_temp.getRetentionTime() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(spec_temp.getRetentionTime());
+          if (spec_temp.getRetentionTime() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(spec_temp.getRetentionTime());
+					
+					//do not update mz and int when the spectrum is empty
+					if (spec_temp.size()==0) continue;
+					
+          spec_temp.updateRanges();
+          
+					//mz
+          if (spec_temp.getMin()[0] < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(spec_temp.getMin()[0]);
+          if (spec_temp.getMax()[0] > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(spec_temp.getMax()[0]);
 
-    /// Returns the minimum intensity
-    const IntensityType getMinInt() const { return exp_.getMin()[0]; }
+          //int
+          if (spec_temp.getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(spec_temp.getMinInt());
+          if (spec_temp.getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(spec_temp.getMaxInt());
 
-    /// Returns the maximum intensity
-    const IntensityType getMaxInt() const { return exp_.getMax()[0]; }
+        }
+      }
+      std::sort(ms_levels_.begin(), ms_levels_.end());
+    
+    }
 
     /// Sorts the spectra (if @p sort_mz is set to true, the data points are sorted by m/z as well)
     void sortSpectra(bool sort_mz = true)
@@ -826,16 +875,17 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
 
     void push_back(const SpectrumType& spec)
     {
-         std::cout << "Inserting scan " << current_scan_ << std::endl;
-         std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
+//          std::cout << "Inserting scan " << current_scan_ << std::endl;
+//          std::cout << "buffer capacity: " << buffer_size_ << " buffer index: " << buffer_index_ << " buffer size: " << exp_.size() << std::endl;
         if (buffer_index_ < buffer_size_)
         {
-     			std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
+//      				std::cout << "Writing in buffer at pos: " << buffer_index_ << std::endl;
             // test if we already wrote at this buffer position
-            if (current_scan_ > buffer_size_)
+            if (current_scan_ >= buffer_size_)
             {
                 // yes => store scan at current buffer position and then overwrite
-                writeScan(current_scan_, exp_[buffer_index_] );
+// 								std::cout << "Position in buffer occupied. Writing to hard disk and then overwrite." << std::endl;
+                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
             }
 
             exp_[buffer_index_] = spec;
@@ -844,7 +894,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
         }
         else
         {
-           	std::cout << "Buffer full. Overwriting buffer at pos 0."   << std::endl;
+// 	         	std::cout << "Buffer full. Overwriting buffer at pos 0."   << std::endl;
             buffer_index_ = 0; 																		// reset buffer index
             writeScan(buffer2scan_[buffer_index_],  exp_[buffer_index_] ); 		// write content of buffer to temp. file
             exp_[buffer_index_] = spec;														// store new spectrum
@@ -852,19 +902,19 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
             scan2buffer_.push_back(buffer_index_);
             buffer2scan_[buffer_index_++] = current_scan_++;
         }
-        std::cout << "scan2buffer : " << scan2buffer_[ (current_scan_-1)] << std::endl;
-        std::cout << "buffer2scan: " << buffer2scan_[ ( scan2buffer_[ (current_scan_-1)]  )] << std::endl;
+//         std::cout << "scan2buffer : " << scan2buffer_[ (current_scan_-1)] << std::endl;
+//         std::cout << "buffer2scan: " << buffer2scan_[ ( scan2buffer_[ (current_scan_-1)]  )] << std::endl;
     }
 
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     reference operator[] (size_type n)
     {
-        std::cout << "operator[" << n << "]" << std::endl;
+//         std::cout << "operator[" << n << "]" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
 				{	
-						std::cout << "scan not in buffer." << std::endl;
+// 						std::cout << "scan not in buffer." << std::endl;
             storeInBuffer(n);	// scan is not in buffer, needs to be read from file
 				 }
         b = scan2buffer_[n];
@@ -874,12 +924,12 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference operator[] (size_type n) const
     {
-				std::cout << "operator[" << n << "] const" << std::endl;
+// 				std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
         {
-            std::cout << "scan not in buffer." << std::endl;
+//             std::cout << "scan not in buffer." << std::endl;
             storeInBuffer(n);	// scan is not in buffer, needs to be read from file
         }
         b = scan2buffer_[n];
@@ -889,12 +939,13 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     reference at(size_type n)
     {
-        //std::cout << "at(" << n << ")" << std::endl;
+//         std::cout << "at(" << n << ")" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n) 
 				{
-            storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+// 					std::cout << "scan not in buffer." << std::endl;
+           storeInBuffer(n);	// scan is not in buffer, needs to be read from file
 				}
         b = scan2buffer_[n];
         return exp_.at(b);
@@ -903,12 +954,13 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference at(size_type n) const
     {
-        //std::cout << "at(" << n << ") const" << std::endl;
+//         std::cout << "at(" << n << ") const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
         if (buffer2scan_[b] != n)
         {    
-						storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+// 					std::cout << "scan not in buffer." << std::endl;
+					storeInBuffer(n);	// scan is not in buffer, needs to be read from file
 				}
         b = scan2buffer_[n];
         return exp_.at(b);
@@ -1169,8 +1221,7 @@ class MSExperimentExternIterator : public MSExperimentExternConstIterator<Iterat
 				else
 				{
         	UnsignedInt sz = (this->size() - 1);
-					std::cout << "In peakEnd() : " << sz << std::endl;
-        	return(PIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz),*this ) );
+				 	return(PIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz),*this ) );
     		}
 		}
 
@@ -1213,6 +1264,9 @@ protected:
 				
 		/// Index of last scan retrieved
 		mutable UnsignedInt last_scan_index_;
+		
+		/// MS levels of the data
+    std::vector<UnsignedInt> ms_levels_;
 
     /// reads a scan from the temp file and stores it in the buffer
     void storeInBuffer(const size_type& n)
@@ -1302,9 +1356,11 @@ protected:
     /// write spectrum to file
     void writeScan(const size_type& index, const SpectrumType& spec) const
     {
+// 				std::cout << "Writing at " << index << std::endl;
         pFile_ = fopen(file_name_.c_str(),"a");
-        CoordinateType rt = spec.getRetentionTime();
-
+        CoordinateType rt  = spec.getRetentionTime();
+				UnsignedInt  mslvl = spec.getMSLevel();
+				
         off_t pos;
         // determine position in file and store it
         if ( ( pos = ftello(pFile_) ) < 0)
@@ -1325,6 +1381,7 @@ protected:
         // test if this scan was already written and store its offset
         if (index >= scan_sizes_.size() )
         {
+						// scan was not written yet => append writing position
             scan_location_.push_back( pos );
         }
         else
@@ -1345,20 +1402,15 @@ protected:
         }
 
         // 		std::cout << "writeScan: writing scan " << index << " at " << ftello(pFile_) << std::endl;
-
+				// store retention time and ms level first
         fwrite(&rt,sizeof(CoordinateType),1,pFile_);
+				fwrite(&mslvl,sizeof(UnsignedInt),1,pFile_);
+				
         size_t sizeof_peak =  sizeof(PeakType);
-
         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
                 cit != spec.getContainer().end(); ++cit)
         {
             fwrite(&(*cit),sizeof_peak,1,pFile_);
-
-            // 			CoordinateType it    = cit->getIntensity();
-            // 			CoordinateType mz = cit->getPosition()[0];
-            // 			fwrite(&it,sizeof(CoordinateType),1,pFile_);
-            // 			fwrite(&mz,sizeof(CoordinateType),1,pFile_);
-
         }
         fclose(pFile_);
 
@@ -1380,8 +1432,10 @@ protected:
         pFile_ = fopen(file_name_.c_str(),"r");
 
         // set stream to starting point of last writing action
+// 				std::cout << "Reading from " << file_name_ << std::endl;
+// 				std::cout << "Retrieving reading offset: " << scan_location_.size() << " " << index << std::endl;
         off_t pos = scan_location_.at(index);
-        // 		std::cout << " readScan: reading scan " << index << " from " << pos << std::endl;
+//         std::cout << " readScan: reading scan " << index << " from " << pos << std::endl;
         if ( fseeko(pFile_,pos,SEEK_SET) != 0)
         {
             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
@@ -1399,10 +1453,13 @@ protected:
         // 		std::cout << "Reading rt. " << std::endl;
         // read retention time
         CoordinateType rt = 0;
+				UnsignedInt mslvl = 0;
         fread(&rt,sizeof(CoordinateType),1,pFile_);
+				fread(&mslvl,sizeof(UnsignedInt),1,pFile_);
+	
         spec.setRetentionTime(rt);
-
-        unsigned int nr_peaks = scan_sizes_.at(index);
+				spec.setMSLevel(mslvl);
+				unsigned int nr_peaks = scan_sizes_.at(index);
         // 		std::cout << "Reading peaks: " << nr_peaks << std::endl;
 
         spec.getContainer().clear();
@@ -1415,7 +1472,6 @@ protected:
         {
             if (fread(&(*piter),sizeof_peak,1,pFile_) == 0)
                 std::cout << "Error reading peak data" << std::endl;
-
         }
         // 		std::cout << "Done."<< std::endl;
         fclose(pFile_);
@@ -1425,21 +1481,15 @@ protected:
     /// copies the content of the tempory file
     void copyTmpFile__(String source)
     {
-        //std::cout << "Copying temporary file: " << file << std::endl;
-        FILE * outFile = fopen(file_name_.c_str(),"w");
-        FILE * inFile   = fopen(source.c_str(),"r");
-
-        // check if source file exists
-        if (inFile == NULL)
-            return;
-
-        // copy file
-        while( !feof(inFile) && !ferror(inFile))
-            putc( fgetc(inFile), outFile);
-
-        fclose(inFile);
-        fclose(outFile);
-    }
+//     		std::cout << "Copying temporary file " << source << std::endl;
+				std::ifstream input(source.c_str());
+   			std::ofstream output(file_name_.c_str()); 
+				
+				output << input.rdbuf();
+		
+				input.close();
+				output.close();
+		}
 
 
 };  // end of class MSExperimentExtern

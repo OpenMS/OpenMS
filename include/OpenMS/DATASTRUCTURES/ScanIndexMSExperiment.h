@@ -150,12 +150,10 @@ namespace OpenMS
       	// a new scan starts.
       	while ( ++_begin != _end )
 	  		{
-				std::cout << "ScanIndexMSExp : at rt " << _begin.getRt() << std::endl;
-				if (  back().getRt() < _begin.getRt() ) 
-				{
-					std::cout << "Pushing back" << std::endl;
-					push_back ( _begin );
-				}
+					if (  back().getRt() < _begin.getRt() ) 
+					{
+						push_back ( _begin );
+					}
 			}		
 			scan_position_.clear();
 			scan_position_.reserve ( size() );
@@ -165,7 +163,6 @@ namespace OpenMS
 						++peak1
 					)
 			{
-				std::cout << "Storing rt: " << (*peak1) .getRt() << std::endl;
 				scan_position_.push_back ( (*peak1) .getRt() );
 			}
 			

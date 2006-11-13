@@ -246,7 +246,7 @@ class TOPPFileFilter
 			//remove ms level first (might be a large amount of spectra)
 			exp.erase(remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
 			
-			//remove zoom scan mode (might be a large amount of spectra)
+			//remove zoom scan mode (might be a lot of spectra)
 			bool rem_zoom = getParamAsBool_("remove_zoom");
 			writeDebug_(String("Remove zoom: ") + String(rem_zoom),3);
 			if (rem_zoom)

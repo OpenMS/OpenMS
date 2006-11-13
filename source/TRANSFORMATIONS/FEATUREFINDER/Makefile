@@ -57,7 +57,8 @@ CPP_SOURCES=\
 	LmaGaussModel.C\
 	LogNormalModel.C\
 	EuclideanDistance.C\
-	RankCorrelation.C
+	RankCorrelation.C\
+	IsotopeFinder.C
 
 include ../../common.mak
 -include .Dependencies

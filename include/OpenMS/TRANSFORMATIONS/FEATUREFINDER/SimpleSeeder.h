@@ -62,31 +62,32 @@ namespace OpenMS
   {
 
   public:
-		/** @brief Functor that allows to compare the indizes 
-				of two peaks by their intensity.
+		/** @brief Functor that allows to compare the indizes of two peaks by their intensity.
 
-				\internal (cg) Note that std::sort() will copy the comparator object
-				over and over again, hence a comparator without data members is
-				preferable.
-				(ost) But in this context not feasible...
 		*/
   	class IntensityLess 
   	{
-  	
+  		typedef FeaFiTraits::IntensityType IntensityType;
+			
   		public:
   			/// Construtor
   			IntensityLess(FeaFiTraits* traits)
   				: traits_(traits) 
-  			{}
+  			{
+					intensities_.reserve(	traits_->getNumberOfPeaks()	);
+					for (UnsignedInt i=0; i<traits_->getNumberOfPeaks();++i)
+						intensities_.push_back(traits_->getPeakIntensity(i));
+				}
   			
   			/// Overloaded () operator that allows to treat this class as a functor.
   			bool operator() (const Index& x, const Index& y)
 				{
-    			return traits_->getPeakIntensity(x) < traits_->getPeakIntensity(y);
+    			return intensities_[x] < intensities_[y];
 				}
   			
   		protected:
   			FeaFiTraits* traits_;
+				std::vector<IntensityType> intensities_;
   	};
   	
     /// standard constructor

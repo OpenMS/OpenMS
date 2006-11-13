@@ -134,7 +134,12 @@ public:
 				std::cout << "Storing MSExperimentExtern " << std::endl;
 				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
 				
-				map_ = exp;
+// 				map_ = exp;	This does not work, => check operator= in MSExperiment
+				for (UnsignedInt i=0; i<exp.size(); ++i)
+				{
+					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+				}	
+		 
         // update range informations
         map_.updateRanges();
 
@@ -160,13 +165,16 @@ public:
     {
 				std::cout << "Storing MSExperiment " << std::endl;
 				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
-				map_ = MapType();
 				for (UnsignedInt i=0; i<exp.size(); ++i)
-					map_.push_back(exp[i]);
-					
+				{
+					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
+				}	
+				
+				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
 
+				std::cout << "Setting flags. " << std::endl;
         // resize internal data structures
         flags_.reserve(map_.getSize());
 
@@ -179,7 +187,7 @@ public:
 					std::cout << "No data provided. Aborting. " << std::endl;
 					return;
 				}
-				std::cout << "FeaFi map contains now : " << map_.getSize() << std::endl;
+				std::cout << "Initialising scan index DS. FeaFi map contains now : " << map_.getSize() << std::endl;
         scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			

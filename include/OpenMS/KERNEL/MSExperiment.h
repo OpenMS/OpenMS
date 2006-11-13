@@ -111,7 +111,7 @@ public:
                 return *this;
 
             peak_index_  = rhs.peak_index_;
-            rt_       			= rhs.rt_;
+            rt_       					= rhs.rt_;
             scan_index_  = rhs.scan_index_;
             exp_             = rhs.exp_;
 
@@ -135,15 +135,15 @@ public:
         /// Step forward by one (prefix operator)
         PeakIterator& operator++()
         {
-            ++peak_index_;
+						++peak_index_;
 						// test whether we arrived at the end of the current scan
             if ( peak_index_ ==   (*exp_)[scan_index_].size() && scan_index_ !=  ( (*exp_).size() - 1) )
             {
                // we are at the end of a scan, but this scan is not the very last one
 			   			 // so we can jump into the next scan
                peak_index_ = 0;
-			   ++scan_index_; 
-                rt_   = (*exp_)[scan_index_].getRetentionTime();
+			   			++scan_index_; 
+              rt_   = (*exp_)[scan_index_].getRetentionTime();
             }
             return (*this);
         }
@@ -157,7 +157,7 @@ public:
 						// update scan index and move to end of previous scan
 		        if (scan_index_ == 0)
 						{
-							std::cout << "In first scan and moving backwards ! " << std::endl;
+							std::cout << "PeakIterator: In first scan and moving backwards ! " << std::endl;
 							return (*this);
 						}
 						--scan_index_;
