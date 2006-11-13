@@ -80,11 +80,29 @@ namespace OpenMS
 	
 	UID DBAdapter::storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info)
 	{
+		/* All MetaInfo data in META_TypeNameValue needs to be connected to entries in parent tables in an 1:n fashion.
+		   The additional table META_MetaInfo forces links between META_TypeNameValue and the parent table to have
+		     a globally unique ID.
+		 	These links logically consist of the following structures:
+		  - the parent table has a field called fid_MetaInfo (foreign key to id-field in table META_MetaInfo)
+		  - table MetaInfo links parent_table in a 1:n-fashion to META_TypeNameValue:
+		  	parent_table.fid_MetaInfo       -> META_MetaInfo.id
+		  	META_TypeNameValue.fid_MetaInfo -> META_MetaInfo.id
+		  
+		  This is implemented in the following way:
+		  - saving meta information needs the parent table's name and the id of the associated entry of the parent table
+		  - As soon as meta information is to be saved:
+		  	- the MetaInfo-ID is retrieved (if already existing)
+		  	- all existing TypeNameValue entries are deleted
+		  	- references (MetaInfo.id and parent_table.fid_MetaInfo) are deleted or created (if necessary)
+		  	- new TypeNameValue entries are created 
+		*/
+
 		//init
 		QSqlQuery result;
 		stringstream query;
 		
-		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE id='" << parent_id << "' AND fid_MetaInfo!=NULL";
+		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE id='" << parent_id << "' AND fid_MetaInfo IS NOT NULL";
 		db_con_.executeQuery(query.str(),result);
 		
 		
@@ -92,7 +110,8 @@ namespace OpenMS
 		UID meta_id = 0;
 		if (result.size()==1)
 		{
-			//cout << "Entry present => deleting TNVs!" << endl;
+			// information exists in DB -> clearing content to replace with more recent information
+			// cout << "MetaInfo for entry '" << parent_id << "' in table '" << parent_table << "' already exists => deleting TypeNameValues..." << endl;
 			meta_id = result.value(0).asInt();
 			query.str("");
 			query << "DELETE FROM META_TypeNameValue WHERE fid_MetaInfo='" << meta_id << "'";
@@ -102,7 +121,8 @@ namespace OpenMS
 		//connection between metainfo and object
 		if (info.isMetaEmpty() && meta_id!=0)
 		{
-			//cout << "No meta info => clearing reference!" << endl;
+			// information exists in DB, but new information is empty -> reference to old information needs to be deleted
+			// cout << "Nothing to save for entry '" << parent_id << "' in table '" << parent_table << "' => clearing reference..." << endl;
 			query.str("");
 			query << "DELETE FROM META_MetaInfo WHERE id='" << meta_id << "'";
 			db_con_.executeQuery(query.str(),result);
@@ -110,9 +130,11 @@ namespace OpenMS
 			query << "UPDATE " << parent_table << " SET fid_MetaInfo=NULL WHERE id='" << parent_id << "'";
 			db_con_.executeQuery(query.str(),result);
 		}
+		
 		if ((!info.isMetaEmpty()) && meta_id==0)
 		{
-			//cout << "meta info => creating reference!" << endl;
+			// information does not exist in DB, but there is new information to save -> create reference
+			// cout << "Unsaved MetaInfo to save, saving to entry '" << parent_id << "' in table '" << parent_table << "' => creating reference..." << endl;
 			db_con_.executeQuery("INSERT INTO META_MetaInfo () VALUES ()",result);
 			meta_id = db_con_.getAutoId();
 			query.str("");
@@ -122,7 +144,8 @@ namespace OpenMS
 
 		if (!info.isMetaEmpty())
 		{
-			//cout << "writing meta values!" << endl;
+			// there is new information to save -> create contents
+			// cout << "writing meta values..." << endl;
 			
 			query.str("");
 			query << "INSERT INTO META_TypeNameValue (fid_MetaInfo,Name,Type,Value) VALUES ";
@@ -134,6 +157,7 @@ namespace OpenMS
 			{
 				query << "('" << meta_id << "','" << *it;
 				val = &info.getMetaValue(*it);
+				// cout << *it << "=" << *val << endl;
 				switch (val->valueType())
 				{
 					case DataValue::STRVALUE:

@@ -95,10 +95,11 @@ if (do_tests)
 	
 	
 	
-	//create test data
+	// create test data - one experiment containing 2 spectra.
 	MSExperiment<> exp_original;
+	InstrumentSettings settings;
 	exp_original.setComment("bla");
-	//MS spectrum
+	// MS spectrum
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::SpectrumType::PeakType p;
 	p.setIntensity(565);
@@ -111,7 +112,12 @@ if (do_tests)
 	p.getPosition()[0] = 800.1;
 	spec.getContainer().push_back(p);
 	spec.setRetentionTime(1.98);
-	spec.setMSLevel(1);
+	spec.setMSLevel(1);	
+	settings.setMzRangeStart(3.456);
+	settings.setMzRangeStop(7.89);
+	settings.setPolarity(IonSource::NEGATIVE);
+	settings.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+	spec.setInstrumentSettings (settings);
 	exp_original.push_back(spec);
 	
 	//MSMS spectrum
@@ -145,8 +151,9 @@ if (do_tests)
 	// to store the id of reading and writing
 	UID tmp_id,spec_tmp_id;
 	
-	
-	
+		
+	// save newly created experiment - should be added to database.
+	// success is implicitly checked later when loading from database.
 	CHECK(template <class ExperimentType> void DBAdapter::storeExperiment(ExperimentType& exp))
 	  DBAdapter a(con);
 	  a.storeExperiment(exp_original);
@@ -154,6 +161,7 @@ if (do_tests)
 		spec_tmp_id = exp_original[0].getPersistenceId();
 	RESULT		
 
+	// check if first spectrum of saved experiment can be loaded correctly
 	CHECK(template <class SpectrumType> void DBAdapter::loadSpectrum(UID id, SpectrumType& spec))
   	DBAdapter a(con);
 	  
@@ -163,6 +171,11 @@ if (do_tests)
 	  TEST_EQUAL( spec.getRetentionTime() , exp_original.begin()->getRetentionTime() )
 		TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
 		TEST_EQUAL( spec.size() , exp_original.begin()->size() )
+		TEST_EQUAL( spec.getInstrumentSettings().getMzRangeStart() , exp_original.begin()->getInstrumentSettings().getMzRangeStart() )
+		TEST_EQUAL( spec.getInstrumentSettings().getMzRangeStop() , exp_original.begin()->getInstrumentSettings().getMzRangeStop() )
+		TEST_EQUAL( spec.getInstrumentSettings().getPolarity() , exp_original.begin()->getInstrumentSettings().getPolarity() )
+		TEST_EQUAL( spec.getInstrumentSettings().getScanMode() , exp_original.begin()->getInstrumentSettings().getScanMode() )
+
 		for (UnsignedInt i=0; i<3; ++i)
 		{
 			TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
@@ -170,6 +183,8 @@ if (do_tests)
 		}
 	RESULT
 	
+  // load experiment from database
+	// (this implicitly checks if the new experiment was stored correctly)
   CHECK(template <class ExperimentType> void DBAdapter::loadExperiment(UID id, ExperimentType& exp))
 	  DBAdapter a(con);
 	  MSExperiment<> exp_new;
@@ -203,6 +218,86 @@ if (do_tests)
 		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
 		TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
 		TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
+		TEST_EQUAL( itn->getComment() , "bla" )
+		TEST_EQUAL( itn->size() , ito->size() )
+		for (UnsignedInt i=0; i<3; ++i)
+		{
+			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
+			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+		}
+		
+		//META INFO
+		TEST_REAL_EQUAL((double)exp_new.getMetaValue("label"),5.55)
+		TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
+		TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
+		TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
+		TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
+	RESULT
+
+	// save modified version of already existing experiment - old records should be updated.
+	// no checks are run, results are implicitly checked later when loading
+	CHECK(template <class ExperimentType> void DBAdapter::storeExperiment(ExperimentType& exp))
+		exp_original.setComment("blubb");
+
+		// modify first spectrum
+		MSExperiment<>::SpectrumType & modified_spec = exp_original[0];
+		modified_spec[0].setIntensity(566);
+		modified_spec[0].getPosition()[0] = 612.1;
+		modified_spec[1].setIntensity(620);
+		modified_spec[1].getPosition()[0] = 712.1;
+		modified_spec[2].setIntensity(701);
+		modified_spec[2].getPosition()[0] = 812.1;
+		modified_spec.setRetentionTime(1.88);
+		modified_spec.setMSLevel(1);
+		modified_spec.getInstrumentSettings().setMzRangeStart(3.567);
+		modified_spec.getInstrumentSettings().setMzRangeStop(7.91);
+		modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+		modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+		modified_spec.getInstrumentSettings().setMetaValue("label",String("please bite here"));
+		
+		// modify 2nd spectrum
+		exp_original[1].getPrecursor().setMetaValue("icon",String("NewPrecursor"));
+
+	  DBAdapter a(con);
+	  a.storeExperiment(exp_original);
+	RESULT
+
+  // load experiment from database
+	// (this implicitly checks if the existing experiment was updated correctly)
+  CHECK(template <class ExperimentType> void DBAdapter::loadExperiment(UID id, ExperimentType& exp))
+	  DBAdapter a(con);
+	  MSExperiment<> exp_new;
+		
+		a.loadExperiment(tmp_id, exp_new);
+		TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
+		TEST_EQUAL(exp_new.getComment() , "blubb" )
+		
+		//------ test if values are correct ------
+		
+		//SPECTRUM 1
+		MSExperiment<>::const_iterator itn(exp_new.begin());
+		MSExperiment<>::const_iterator ito(exp_original.begin());
+			
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
+		TEST_EQUAL( itn->size() , ito->size() )
+		TEST_EQUAL( itn->getInstrumentSettings().getMetaValue("label") , "please bite here" )
+		for (UnsignedInt i=0; i<3; ++i)
+		{
+			TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
+			TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+		}
+	
+		//SPECTRUM 2
+		++itn;
+		++ito;
+			
+	  TEST_EQUAL( itn->getRetentionTime() , ito->getRetentionTime() )
+		TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
+		TEST_EQUAL( itn->getPrecursorPeak().getPosition()[0] , ito->getPrecursorPeak().getPosition()[0] )
+		TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
+		TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
+		TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
 		TEST_EQUAL( itn->getComment() , "bla" )
 		TEST_EQUAL( itn->size() , ito->size() )
 		for (UnsignedInt i=0; i<3; ++i)

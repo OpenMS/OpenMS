@@ -107,7 +107,8 @@ namespace OpenMS
 		String end;              // end of the query that is added afer all fields
 		String tmp;              // temporary data
 		bool new_entry;          // stores if the current object is already in the DB
-		QSqlQuery result;         // place to store the query results in
+		QSqlQuery result;        // place to store the query results in
+		int parent_id;           // stores parent_id of meta information
 		
 		//----------------------------------------------------------------------------------------
 		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
@@ -117,20 +118,20 @@ namespace OpenMS
 		if (new_entry)
 		{
 			query << "INSERT INTO META_MSExperiment SET ";
-			end = "'";
+			end = "";
 		}
 		else
 		{
 			query << "UPDATE META_MSExperiment SET ";
-			end = "' WHERE id='" + String(exp.getPersistenceId()) + "'";
+			end = " WHERE id='" + String(exp.getPersistenceId()) + "'";
 		}
 		//type
 		query << "Type=" << (1u+exp.getType());
 		//date
 		exp.getDate().get(tmp);
-		query << ",Date='" << tmp;
+		query << ",Date='" << tmp << "'";
 		//description
-		query << "',Description='" << exp.getComment();
+		query << ",Description='" << exp.getComment() << "'";
 		
 		query << end;
 		db_con_.executeQuery(query.str(),result);
@@ -151,23 +152,23 @@ namespace OpenMS
 			if (new_entry)
 			{
 				query << "INSERT INTO DATA_Spectrum SET ";
-				end = "'";
+				end = "";
 			}
 			else
 			{
 				query << "UPDATE DATA_Spectrum SET ";
-				end = "' WHERE id='" + String(exp.getPersistenceId()) + "'";
+				end = " WHERE id='" + String (exp_it->getPersistenceId()) + "'";
 			}
 			//FC (MSExperiment)
-			query << "fid_MSExperiment='" << exp.getPersistenceId();
+			query << "fid_MSExperiment='" << exp.getPersistenceId() << "'";
 			//type
-			query << "',Type=" << (1u+exp_it->getType());
+			query << ",Type=" << (1u+exp_it->getType());
 			//RT
-			query << ",RetentionTime='" << exp_it->getRetentionTime();
+			query << ",RetentionTime='" << exp_it->getRetentionTime() << "'";
 			//MS-Level
-			query << "',MSLevel='" << exp_it->getMSLevel();
+			query << ",MSLevel='" << exp_it->getMSLevel() << "'";
 			//Description
-			query << "',Description='" << exp_it->getComment();
+			query << ",Description='" << exp_it->getComment() << "'";
 			
 			//TODO: MassType (average/monoisotopic)
 			//TODO: TIC
@@ -189,30 +190,39 @@ namespace OpenMS
 				query.str("");
 				if (new_entry)
 				{
-					query << "INSERT INTO DATA_Precursor SET fid_Spectrum='" << exp_it->getPersistenceId();
-					end = "'";
+					query << "INSERT INTO DATA_Precursor SET fid_Spectrum='" << exp_it->getPersistenceId() << "',";
+					end = "";
 				}
 				else
 				{
+					// first determine parent_id for meta information.
+					// TODO: determination of parent_id can be optimized as soon as precursor becomes a PersistentObject
+					query << "SELECT id FROM DATA_Precursor WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
+					db_con_.executeQuery(query.str(),result);
+					result.first();
+					parent_id = result.value(0).asInt();
+					
+					query.str("");
 					query << "UPDATE DATA_Precursor SET ";
-					end = "' WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
+					end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
 				}
 				//Intensity
-				query << "',Intensity='" << exp_it->getPrecursorPeak().getIntensity();
+				query << "Intensity='" << exp_it->getPrecursorPeak().getIntensity() << "'";
 				//mz
-				query << "',mz='" << exp_it->getPrecursorPeak().getPosition()[0];
+				query << ",mz='" << exp_it->getPrecursorPeak().getPosition()[0] << "'";
 				//charge
-				query << "',Charge='" << exp_it->getPrecursorPeak().getCharge();				
+				query << ",Charge='" << exp_it->getPrecursorPeak().getCharge() << "'";
 				//activation method
-				query << "',ActivationMethod=" << (1u+exp_it->getPrecursor().getActivationMethod());		
+				query << ",ActivationMethod=" << (1u+exp_it->getPrecursor().getActivationMethod());		
 				//activation energy unit
 				query << ",ActivationEnergyUnit=" << (1u+exp_it->getPrecursor().getActivationEnergyUnit());		
 				//activation energy
-				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy();		
+				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy() << "'";
 				
 				query << end;
 				db_con_.executeQuery(query.str(),result);
-				storeMetaInfo_("DATA_Precursor",db_con_.getAutoId(), exp_it->getPrecursor());
+				if (new_entry) parent_id = db_con_.getAutoId();
+				storeMetaInfo_("DATA_Precursor",parent_id, exp_it->getPrecursor());
 				//TODO store persistence ID => Precusor class a persistent object
 			}
 			
@@ -233,7 +243,45 @@ namespace OpenMS
 				//mz
 				query << spec_it->getPosition()[0] << "'),";
 			}
-			db_con_.executeQuery(String(query.str()).substr(0,-1),result);					
+			db_con_.executeQuery(String(query.str()).substr(0,-1),result);
+			// TODO: call storeMetaInfo_() and loadMetaInfo_() for each Peak
+			// storeMetaInfo_("DATA_Peak", parent_id, spec_it);
+			
+			//----------------------------------------------------------------------------------------
+			//---------------------------------- INSTRUMENT SETTINGS --------------------------------- 
+			//----------------------------------------------------------------------------------------
+			
+			const InstrumentSettings & settings = exp_it->getInstrumentSettings();
+			
+			query.str("");
+			
+			if (new_entry)
+			{
+				query << "INSERT INTO META_InstrumentSettings SET fid_Spectrum=" << exp_it->getPersistenceId() << ",";
+				end = "";
+			}
+			else
+			{
+				query << "SELECT id FROM META_InstrumentSettings WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
+				db_con_.executeQuery(query.str(),result);
+				result.first();
+				parent_id = result.value(0).asInt();
+					
+				query.str("");
+				query << "UPDATE META_InstrumentSettings SET ";
+				end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
+			}
+
+			query << "MZRangeBegin=" << settings.getMzRangeStart() << ",";
+			query << "MZRangeEnd=" << settings.getMzRangeStop() << ",";
+			query << "Polarity=" << (1u+settings.getPolarity()) << ",";
+			query << "ScanMode=" << (1u+settings.getScanMode());
+			query << end;
+			
+			db_con_.executeQuery(query.str(),result);
+		
+			if (new_entry) parent_id = db_con_.getAutoId();
+			storeMetaInfo_("META_InstrumentSettings", parent_id, exp_it->getInstrumentSettings());
 		}
 	}
 
@@ -285,6 +333,7 @@ namespace OpenMS
 		
 		std::stringstream query; // query to build
 		QSqlQuery result;        // place to store the query results in
+		InstrumentSettings settings; // stores settings that are read from DB
 		
 		query << "SELECT Type-1,RetentionTime,MSLevel,Description,fid_MetaInfo FROM DATA_Spectrum WHERE id='" << id << "'";
 		db_con_.executeQuery(query.str(),result);
@@ -297,12 +346,25 @@ namespace OpenMS
 		spec.setComment(result.value(3).asString().ascii());
 		loadMetaInfo_(result.value(4).asInt(),spec);
 		
+		// Instrument settings
+		query.str("");
+		query << "SELECT MZRangeBegin, MZRangeEnd, Polarity-1, ScanMode-1, fid_MetaInfo FROM META_InstrumentSettings WHERE id='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		settings.setMzRangeStart(result.value(0).toDouble());
+		settings.setMzRangeStop(result.value(1).toDouble());
+		settings.setPolarity((IonSource::Polarity) (result.value(2).asInt()));
+		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(3).asInt()));
+		spec.setInstrumentSettings(settings);
+		loadMetaInfo_(result.value(4).asInt(),spec.getInstrumentSettings());
+
 		//precursor
 		
 		if(spec.getMSLevel()>1)
 		{
 			query.str("");
-			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";		
+			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
 			spec.getPrecursorPeak().getPosition()[0] = (result.value(0).toDouble());
