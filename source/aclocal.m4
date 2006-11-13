@@ -366,6 +366,10 @@ AC_DEFUN(CF_DETECT_OS,[
 	if test "$OS" = Linux ; then
 		PROCESSOR=`${UNAME} -m`
 		ARCHITECTURE=unknown
+		if test "${PROCESSOR}" = ppc ; then
+			ARCHITECTURE=ppc
+			BINFMT=Linux-ppc
+		fi
 		if test "${PROCESSOR}" = sparc -o "${PROCESSOR}" = SPARC ; then
 			ARCHITECTURE=sparc
 			BINFMT=Linux-sparc
