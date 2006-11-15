@@ -311,49 +311,48 @@ namespace OpenMS
 			 set maxval to the maximum matrix entry, but of course never smaller
 			 than 1.
 
-			 @param scale A factor which is applied before rounding to
-			 gray levels.  The default is 0., which means automatic scaling such
-			 that the full dynamic range is used.
+			 @param scale A factor which is applied before rounding to gray levels.
+			 The default is 0., which means automatic scaling such that the full
+			 dynamic range is used.
+
+			 @param reverse_video If @c true, the output is in <i>reverse video</i>.
+			 Actually, this might be what you want in most cases - large matrix
+			 entries show up dark.
 
 			 @param comment A comment which will be embedded in the output. It can
 			 consist of several lines separated by '\\n'.  By default, <i>no</i>
 			 comment is written (not even an empty one). 
 
-			 If scale is negative or maxval is negative (or both), the output is in
-			 <i>reverse video</i>.  Actually, this might be what you want in most
-			 cases - large matrix entries show up dark.
-
 			 Negative matrix entries are <i>never</i> mapped into the dynamic range.
+
+			 Negative values for maxval or scale work like their absolute values.
 			 
-			 The ValueType must be "numeric" (or at least convertible to double and
-			 int, comparable, etc.) for all this to work.
+			 Final remark: The ValueType must be "numeric" (or at least convertible
+			 to double and int, comparable, etc.) for all this to work.
 
 		*/
 		std::ostream& writePGM ( std::ostream& os,
 														 int maxval = 0,
 														 double scale = 0,
+														 bool reverse_video = false,
 														 std::string const& comment = String::EMPTY
 													 ) const
 		{
-
-			bool reverse_video = false;
 
 			// detect if reverse video was requested
 			if ( maxval < 0 )
 			{
 				maxval *= -1;
-				reverse_video = true;
 			}
 			if ( scale < 0 )
 			{
 				scale *= -1;
-				reverse_video = true;
 			}
 
 			// set automatic maxval and automatic scale, if requested
 			if ( !maxval )
 			{ // no maxval supplied, set default
-				maxval = std::max<int>( 1 , *std::max_element( begin(), end() ) );
+				maxval = int( std::max( ValueType(1) , *std::max_element( begin(), end() ) ) );
 				if ( !scale )
 				{ // automatic scale
 					scale = 1.0;
@@ -410,9 +409,9 @@ namespace OpenMS
 			// PGM format. Since 65535 takes six chars, ten seems a good choice.
 			const unsigned int cols_output = 10;
 
-			// We'll have this for normal and reverse video.  For ease of
+			// We'll have similar stuff for normal and reverse video.  For ease of
 			// maintenance I use a macro here to keep both versions in sync.
-			// ((( Templates, the HARD way ;-) )))
+			// ((( Template programming, the HARD way ;-) )))
 #define PGM_DATA_LOOP \
 			for ( size_type i = 0; i < rows(); ++i )								\
 			{																												\

@@ -50,11 +50,13 @@ namespace OpenMS
 			 - using setScale() and setOffset(),
 			 - using setMapping()
 			 .
-			 By defaults the identity mapping (scale=1, offset=0) is used.
+			 By default the identity mapping (scale=1, offset=0) is used.
 
 			 Using the value() and derivative() methods you can sample linearly
 			 interpolated values for a given x-coordinate position of the data and
 			 the derivative of the data.
+
+			 See also @seealso class BilinearInterpolation.
 
 			 @ingroup Math
 		*/
@@ -78,7 +80,7 @@ namespace OpenMS
 
 		 public:
 
-			/**@brief Constructor.
+			/**@brief Constructors and destructor.
 
 			The first argument is the scale which is applied to the arguments of
 			value() and derivative() before looking up the interpolated values in
@@ -88,15 +90,29 @@ namespace OpenMS
 			LinearInterpolation ( KeyType scale = 1., KeyType offset = 0. )
 				: scale_  ( scale ),
 					offset_ ( offset ),
-					data_   ( )
+					inside_ (),
+					outside_(),
+					data_   ()
 			{}
 
 			/// Copy constructor.
 			LinearInterpolation ( LinearInterpolation const & arg )
 				: scale_  ( arg.scale_ ),
 					offset_ ( arg.offset_ ),
+					inside_ ( arg.inside_ ),
+					outside_ (arg.outside_ ),
 					data_   ( arg.data_ )
 			{}
+
+			/// Assignment operator.
+			LinearInterpolation & operator= ( LinearInterpolation const & arg )
+			{
+				scale_   = arg.scale_;
+				offset_  = arg.offset_;
+				inside_  = arg.inside_;
+				outside_ = arg.outside_;
+				data_    = arg.data_;
+			}
 
 			/// Destructor.
 			~LinearInterpolation () {}

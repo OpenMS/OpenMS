@@ -66,7 +66,8 @@ EXECUTABLES=\
 	AdditiveSeries\
 	MapMatcher\
 	NoiseFilter\
-	SpectraFilter
+	SpectraFilter\
+	Resampler
 
 #	
 #	RawDataResampler\
@@ -84,7 +85,7 @@ clean: default_clean
 	@-$(RM) -rf .Dependencies html 
 	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(EXECUTABLES)
 
-ADD_CXXFLAGS=  -pg  -D_REENTRANT  -DQT_THREAD_SUPPORT -DQT_SHARED -DQT_NO_DEBUG 
+ADD_CXXFLAGS=  -pg  -D_REENTRANT  -DQT_THREAD_SUPPORT -DQT_SHARED -DQT_NO_DEBUG
 
 OPENMS_INCLUDES=$(GUI_INCLUDES)
 LIBS=$(GUI_LIBS)
@@ -196,6 +197,10 @@ SequestAdapter: SequestAdapter.o
 	cp $@ $(OPENMS_PATH)/bin/
 
 RawDataResampler: RawDataResampler.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/   
+
+Resampler: Resampler.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
