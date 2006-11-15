@@ -53,9 +53,8 @@
 		BinnedSparseVector_test\
 		DateTime_test\
 		QuadTree_test\
-		RangeManager_test
-
-	#	Matrix_test\
+		RangeManager_test\
+		Matrix_test\
 		
 
 	EXECUTABLES_METADATA = \
