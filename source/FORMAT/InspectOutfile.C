@@ -408,7 +408,22 @@ namespace OpenMS
 		
 		for ( vector< pair< String, vector< UnsignedInt > > >::const_iterator fs_i = files_and_scan_numbers.begin(); fs_i != files_and_scan_numbers.end(); ++fs_i )
 		{
-			MzXMLFile().load(fs_i->first, experiment);
+			try
+			{
+				MzXMLFile().load(fs_i->first, experiment);
+			}
+			catch (Exception::ParseError pe) // if it's not a MzXML, it's supposed to be an MzData
+			{
+				try
+				{
+					MzDataFile().load(fs_i->first, experiment);
+				}
+				catch (Exception::ParseError pe) // other formats are not supported (yet)
+				{
+					precursor_mz_values.insert(precursor_mz_values.end(), fs_i->second.size(), 0.0);
+					precursor_retention_times.insert(precursor_retention_times.end(), fs_i->second.size(), 0.0);
+				}
+			}
 			
 			if ( experiment.size() < fs_i->second.back() )
 			{

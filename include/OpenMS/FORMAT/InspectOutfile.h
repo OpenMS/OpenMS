@@ -30,6 +30,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Identification.h>
@@ -48,8 +49,7 @@ namespace OpenMS
 	/**
 		@brief Representation of an Inspect outfile
 		
-		This class serves to read in an Inspect outfile. The information can be
-		retrieved via the >> operator.
+		This class serves to read in an Inspect outfile and write an AnalysisXML file
 		
 		@todo write test(Martin)
 		

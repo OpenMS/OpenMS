@@ -58,8 +58,7 @@ using namespace std;
 				<li>
 				The whole process of identification via Inspect is executed. 
 				Inputfile is a file (or directory with files) containing the MS/MS spectra
-				(Supported spectrum file formats are .mzXML, .mzData, .ms2, .mgf, .dta,
-				and .pkl. Note that multiple spectra in a single .pkl or .dta file are not supported.)
+				(Supported spectrum file formats are .mzXML, .mzData)
 				for which identifications are to be found
 				and one ore more databases in either trie, FASTA or Swissprot format containing
 				the possible proteins.
@@ -131,51 +130,50 @@ class TOPPInspectAdapter
 						<< endl
 						<< "Options are:" << endl
 						<< "  -in <file>          the input file OR directory to search (every file in that directory will be searched (non-recursively)" << endl
-						<< "                      supported file formats are .mzXML, .mzData, .ms2, dta, and .pkl" << endl
-						<< "                      (multiple spectra in one .dta file are not supported)" << endl
+						<< "                      supported file formats are .mzXML, .mzData" << endl
 						<< "                      Note: In mode 'inspect_out' an Inspect result file is read" << endl
 						<< "  -out <file>         output file in analysisXML" << endl
 						<< "  -inspect_in         if this flag is set the InspectAdapter will write an Inspect input file and generate a trie database" << endl
 						<< "  -inspect_out        if this flag is set the InspectAdapter will read an Inspect result  file and write an analysisXML file." << endl
 						<< "  -inspect_dir        the Inspect directory." << endl
 						<< "  -temp_data_dir      a directory in which some temporary files can be stored" << endl
-						<< "  -dbs <file1>,...      names of databases(s) (FASTA and SwissProt supported)" << endl
-						<< "  -inspect_input <file> name for the Inspect input file" << endl
+						<< "  -dbs <file1>,...    names of databases(s) (FASTA and SwissProt supported)" << endl
 						<< endl
-					<< "  OPTIONAL PARAMETERS" << endl
-					<< "  -instr              the instrument that was used to measure the spectra" << endl
-					<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << endl
-					<< "  -prcr_m_tol         the precursor mass tolerance" << endl
-					<< "  -pk_m_tol           the peak mass tolerance" << endl
-					<< "  -mods <MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>;..." << endl
-					<< "                      modifications i.e. [80,STY,opt,phosphorylation]" << endl
-					<< "                      MASS and RESIDUES are mandatory" << endl
-					<< "                      Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << endl
-					<< "  -multicharge        attempt to guess the precursor charge and mass, and consider multiple charge states if feasible" << endl
-					<< "  -protease           the name of a protease. (\"Trypsin\", \"None\", or \"Chymotrypsin\")" << endl
-					<< "  -o <file>           direct output file from inspect" << endl
-					<< "  -trie_dbs <file1>,... names of database(s) in trie format" << endl
-					<< "  -max_mods_pp        number of PTMs permitted in a single peptide." << endl
-//					<< "  -twopass            use two-pass search: first pass uses fewer tags, produces list of proteins" << endl
-					<< "                      to be re-searched in second pass" << endl
-// 					<< "  -TagCountA          number of tags for the first pass" << endl
-// 					<< "  -TagCountB          number of tags for the second pass OR number of tags to use in a one-pass search" << endl
-					<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << endl
-					<< "  -no_tmp_dbs         no temporary databases are used" << endl
-					<< "  -new_db             name of the merged trie database" << endl
-					<< "                      an index file with extension \".index\" will be created." << endl
-					<< "  -p_value            annotations with inferior p-value are ignored" << endl
-					<< endl
-					<< "  BLIND SEARCH" << endl
-					<< "  -blind              perform a blind search (allowing arbitrary modification masses), is preceeded by a normal search to gain a smaller database." << endl
-					<< "                      (can only be used in full mode)" << endl
-					<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << endl
-					<< "  -p_value_blind      used for generating the minimized database" << endl
-					<< "  -min_spp            minimum number of spectra a protein has to annotate to be added to the database" << endl
-					<< "  -snd_db             name of the minimized trie database generated when using blind mode." << endl
-					<< "                      (-1 is #spectra / #proteins * 2)" << endl
-					<< "  -maxptmsize         maximum modification size (in Da) to consider" << endl
-					<< "                      default behavior (where tags can contain any PTM), but requires the creation of the jump frequency file" << endl;
+						<< "  OPTIONAL PARAMETERS" << endl
+						<< "  -inspect_output <file>  name for the output file of Inspect (may only be used in a full run)" << endl
+						<< "  -instr              the instrument that was used to measure the spectra" << endl
+						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << endl
+						<< "  -prcr_m_tol         the precursor mass tolerance" << endl
+						<< "  -pk_m_tol           the peak mass tolerance" << endl
+						<< "  -mods <MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>;..." << endl
+						<< "                      modifications i.e. [80,STY,opt,phosphorylation]" << endl
+						<< "                      MASS and RESIDUES are mandatory" << endl
+						<< "                      Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << endl
+						<< "  -multicharge        attempt to guess the precursor charge and mass, and consider multiple charge states if feasible" << endl
+						<< "  -protease           the name of a protease. (\"Trypsin\", \"None\", or \"Chymotrypsin\")" << endl
+						<< "  -o <file>           direct output file from inspect" << endl
+						<< "  -trie_dbs <file1>,... names of database(s) in trie format" << endl
+						<< "  -max_mods_pp        number of PTMs permitted in a single peptide." << endl
+//						<< "  -twopass            use two-pass search: first pass uses fewer tags, produces list of proteins" << endl
+						<< "                      to be re-searched in second pass" << endl
+//						<< "  -TagCountA          number of tags for the first pass" << endl
+//						<< "  -TagCountB          number of tags for the second pass OR number of tags to use in a one-pass search" << endl
+						<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << endl
+						<< "  -no_tmp_dbs         no temporary databases are used" << endl
+						<< "  -new_db             name of the merged trie database" << endl
+						<< "                      an index file with extension \".index\" will be created." << endl
+						<< "  -p_value            annotations with inferior p-value are ignored" << endl
+						<< endl
+						<< "  BLIND SEARCH" << endl
+						<< "  -blind              perform a blind search (allowing arbitrary modification masses), is preceeded by a normal search to gain a smaller database." << endl
+						<< "                      (can only be used in full mode)" << endl
+						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << endl
+						<< "  -p_value_blind      used for generating the minimized database" << endl
+						<< "  -min_spp            minimum number of spectra a protein has to annotate to be added to the database" << endl
+						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << endl
+						<< "                      (-1 is #spectra / #proteins * 2)" << endl
+						<< "  -maxptmsize         maximum modification size (in Da) to consider" << endl
+						<< "                      default behavior (where tags can contain any PTM), but requires the creation of the jump frequency file" << endl;
 		}
 
 
@@ -207,9 +205,8 @@ class TOPPInspectAdapter
 // 			options_["-TagCountA"] = "TagCountA";
 // 			options_["-TagCountB"] = "TagCountB";
 //			flags_["-twopass"] = "twopass";
-			options_["-inspect_input"] = "inspect_input";
 			options_["-out"] = "out";
-			options_["-o"] = "o";
+			options_["-inspect_output"] = "inspect_output";
 			flags_["-blind_only"] = "blind_only";
 			options_["-p_value"] = "p_value";
 			options_["-p_value_blind"] = "p_value_blind";
@@ -344,7 +341,7 @@ class TOPPInspectAdapter
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
 			if ( !inspect_in && !inspect_out ) inspect_in = inspect_out = true;
 			
-			if ( !(inspect_out && !inspect_in) )
+			if ( inspect_out && inspect_in )
 			{
 				temp_data_dir = getParamAsString_("temp_data_dir");
 				if ( temp_data_dir.empty() )
@@ -370,26 +367,41 @@ class TOPPInspectAdapter
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
-					inspect_output_filename = temp_data_dir + "tmp.direct.inspect.output";
+					if ( inspect_out ) inspect_output_filename = temp_data_dir + "tmp.direct.inspect.output";
 				}
 				else inspect_output_filename = string_buffer;
 			}
-			
 			if ( string_buffer != inspect_output_filename )
 			{
-				string_buffer = getParamAsString_("o");
+				string_buffer = getParamAsString_("inspect_output");
 				if ( !string_buffer.empty() ) inspect_output_filename = string_buffer;
 			}
 			
-			inspect_input_filename = getParamAsString_("inspect_input");
-			if ( inspect_input_filename.empty() )
+			string_buffer = getParamAsString_("out");
+			if ( string_buffer.empty() )
 			{
-				if ( inspect_in && inspect_out ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
-				else if ( inspect_in )
+				writeLog_("No output file specified. Aborting!");
+				cout << "No output file specified. Aborting!" << endl;
+				return ILLEGAL_PARAMETERS;
+			}
+			else
+			{
+				if ( inspect_out ) output_filename = string_buffer;
+				else inspect_input_filename = string_buffer;
+			}
+			
+			if ( inspect_in && inspect_out )
+			{
+				inspect_input_filename = getParamAsString_("inspect_input");
+				if ( inspect_input_filename.empty() )
 				{
-					writeLog_("No name for the inspect input file specified. Aborting!");
-					cout << "No name for the inspect input file specified. Aborting!" << endl;
-					return ILLEGAL_PARAMETERS;
+					if ( inspect_in && inspect_out ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
+					else if ( inspect_in )
+					{
+						writeLog_("No name for the inspect input file specified. Aborting!");
+						cout << "No name for the inspect input file specified. Aborting!" << endl;
+						return ILLEGAL_PARAMETERS;
+					}
 				}
 			}
 			
@@ -401,7 +413,7 @@ class TOPPInspectAdapter
 			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
 			
 			inspect_dir = getParamAsString_("inspect_dir");
-			if ( inspect_in && inspect_dir.empty() )
+			if ( inspect_in && inspect_dir.empty() && inspect_out )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
 				cout << "No inspect directory specified. Aborting!" << endl;
@@ -410,7 +422,6 @@ class TOPPInspectAdapter
 			ensurePathChar(inspect_dir);
 			
 			blind_only = getParamAsBool_("blind_only");
-			inspect_logfile = temp_data_dir + "tmp.inspect.log";
 			
 			if ( inspect_in )
 			{
@@ -652,13 +663,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				output_filename = getParamAsString_("out");
-				if ( output_filename.empty() )
-				{
-					writeLog_("No output file specified. Aborting!");
-					cout << "No output file specified. Aborting!" << endl;
-					return ILLEGAL_PARAMETERS;
-				}
+				inspect_logfile = temp_data_dir + "tmp.inspect.log";
 			}
 			
 			if ( blind && inspect_in )
@@ -814,21 +819,24 @@ class TOPPInspectAdapter
 				}
 				
 				// the on-screen output of inspect
-				file.setName(inspect_logfile);
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( inspect_out )
 				{
-					writeLog_(String(" Could not write in temp data directory: ")
-							+ temp_data_dir + inspect_logfile
-							+ String(" Aborting!"));
-					cout << "Could not write in temp data directory: "
-							<< temp_data_dir
-							<< " Aborting!"
-							<< endl;
+					file.setName(inspect_logfile);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
+					{
+						writeLog_(String(" Could not write in temp data directory: ")
+								+ temp_data_dir + inspect_logfile
+								+ String(" Aborting!"));
+						cout << "Could not write in temp data directory: "
+								<< temp_data_dir
+								<< " Aborting!"
+								<< endl;
+						file.close();
+						return ILLEGAL_PARAMETERS;
+					}
 					file.close();
-					return ILLEGAL_PARAMETERS;
 				}
-				file.close();
 			}
 			
 			vector< unsigned int > wanted_records;
