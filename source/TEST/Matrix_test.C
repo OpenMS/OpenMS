@@ -205,7 +205,7 @@ CHECK((std::pair<Size,Size> const indexPair(Size index) const))
 }
 RESULT
 	
-CHECK(toPGM())
+CHECK(writePGM())
 {
 	int feep[] =
 		{ // The "feep" image is from http://netpbm.sourceforge.net/doc/pgm.html
@@ -237,7 +237,7 @@ CHECK(toPGM())
 		NEW_TMP_FILE(feep_pgm);
 		feep_pgm = "1.TMP";
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,15,0,"One comment line\nAnother comment line.");
+		matrixcr.writePGM(output,15,0,false,"One comment line\nAnother comment line.");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/feep_c.pgm");
 	}
@@ -246,7 +246,7 @@ CHECK(toPGM())
 		NEW_TMP_FILE(feep_pgm);
 		feep_pgm = "2a.TMP";
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,-4);
+		matrixcr.writePGM(output,4,0,true);
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/feep_r.pgm");
 	}
@@ -255,7 +255,7 @@ CHECK(toPGM())
 		NEW_TMP_FILE(feep_pgm);
 		feep_pgm = "4.TMP";
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,1,1./15,"binary feep (is \"  ep\" only)");
+		matrixcr.writePGM(output,1,1./15,false,"binary feep (is \"  ep\" only)");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/feep_1.pgm");
 	}
@@ -264,7 +264,7 @@ CHECK(toPGM())
 		NEW_TMP_FILE(feep_pgm);
 		feep_pgm = "4r.TMP";
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,-1,1./15,"binary feep (is \"  ep\" only)");
+		matrixcr.writePGM(output,1,1./15,true,"binary feep (is \"  ep\" only)");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/feep_1r.pgm");
 	}
@@ -273,7 +273,7 @@ CHECK(toPGM())
 		NEW_TMP_FILE(feep_pgm);
 		feep_pgm = "2.TMP";
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,0,-1);
+		matrixcr.writePGM(output,0,1,true);
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/feep_nr.pgm");
 	}
