@@ -665,8 +665,8 @@ public:
             {
               cont.insert(cont.end(), typename Container::value_type());
               cont.back().getPosition()[RT] = spec.getRetentionTime();
-              cont.back().setIntensity(it.getIntensity());
-              cont.back().getPosition()[MZ] = it.getPosition()[0];
+              cont.back().setIntensity(it->getIntensity());
+              cont.back().getPosition()[MZ] = it->getPosition()[0];
             }
         }
     }
@@ -1091,6 +1091,8 @@ public:
     /// Mutable access to peak with index @p
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
     {
+// 				std::cout << "getPeak(" << index << ")" << std::endl;
+				
 				if (index > nr_dpoints_)
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
 				
@@ -1102,22 +1104,28 @@ public:
 				if (last_scan_index_ == 0)
 					test_offset = index;
 				else
-					test_offset = (index - spectra_lengths_[last_scan_index_]);
+					test_offset = (index - spectra_lengths_[(last_scan_index_ - 1)]);
+					
+// 				std::cout << "test offset: " << test_offset << std::endl;
+// 				std::cout << "last scan: " << last_scan_index_ << std::endl;
 				
 				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
 				{
+// 						std::cout << "Old peak. " << std::endl;
 						// good, no binary search necessary
 						scan_index = last_scan_index_;
 						peak_index = test_offset;
 				}
 				else
 				{
+// 					std::cout << "New peak. " << std::endl;
 					// bad luck, perform binary search
         	std::vector<UnsignedInt>::iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
 
         	// index of scan is simply the distance to the begin() iterator
         	scan_index =  (it - spectra_lengths_.begin() );        
-
+					last_scan_index_ = scan_index;
+					
         	// determine index of peak
         	if (scan_index == 0)
         	{
@@ -1131,8 +1139,10 @@ public:
             --it;
             peak_index = (index - *it);
         	}
+					
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
-				
+								
 				// all information was  collected, compile peak and continue
 				DRawDataPoint<2> rp;
 				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();
@@ -1145,6 +1155,8 @@ public:
     /// const access to peak with index @p (call updateRanges() before using this method)
     const DRawDataPoint<2> getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow)
     {
+// 				std::cout << "getPeak(" << index << ") const" << std::endl;
+				
 				if (index > nr_dpoints_)
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
 				
@@ -1156,36 +1168,45 @@ public:
 				if (last_scan_index_ == 0)
 					test_offset = index;
 				else
-					test_offset = (index - spectra_lengths_[last_scan_index_]);
+					test_offset = (index - spectra_lengths_[ (last_scan_index_ - 1)]);
+					
+// 				std::cout << "test offset: " << test_offset << std::endl;
+// 				std::cout << "last scan: " << last_scan_index_ << std::endl;
 				
 				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
 				{
+// 						std::cout << "Old peak. " << std::endl;
 						// good, no binary search necessary
 						scan_index = last_scan_index_;
 						peak_index = test_offset;
 				}
 				else
 				{
+// 					std::cout << "New peak. " << std::endl;
 					// bad luck, perform binary search
         	std::vector<UnsignedInt>::const_iterator it = std::upper_bound(spectra_lengths_.begin(),spectra_lengths_.end(),index);
 
         	// index of scan is simply the distance to the begin() iterator
-        	scan_index =  (it - spectra_lengths_.begin() );        
-
+        	scan_index          =  (it - spectra_lengths_.begin() );        
+					last_scan_index_ = scan_index;
+									
         	// determine index of peak
         	if (scan_index == 0)
-        	{
-						last_scan_index_ = 0;
-            peak_index          =  index;
+        	{						
+            peak_index =  index;
         	}
         	else
         	{
           	// upper_bound gives last iterator (if several equal values occur),
             // so we have to walk back one step.
             --it;
-            peak_index = (index - *it);
-        	}
+            peak_index          = (index - *it);
+					}
+					
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
+				
+				
 				
 				// all information was  collected, compile peak and continue
 				DRawDataPoint<2> rp;

@@ -49,12 +49,14 @@
 		DRange_test\
 		DBoundingBox_test\
 		DataValue_test\
-		Matrix_test\
 		SparseVector_test\
 		BinnedSparseVector_test\
 		DateTime_test\
 		QuadTree_test\
 		RangeManager_test
+
+	#	Matrix_test\
+		
 
 	EXECUTABLES_METADATA = \
 		MetaInfoRegistry_test\
@@ -288,9 +290,8 @@ EXECUTABLES_TRANSFORMATIONS = \
 	LogNormalModel_test\
 	ExtendedModelFitter_test\
 	PeakPickerCWT_test\
-	FeatureFinder_test
-
-# SimpleSeeder_test\
+	FeatureFinder_test\
+	SimpleSeeder_test
 
 EXECUTABLES_ANALYSIS_ID =\
 	MSExperimentAnnotator_test

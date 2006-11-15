@@ -32,6 +32,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
 // #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
 
 
 
@@ -41,6 +42,7 @@ namespace OpenMS
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
 		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
+		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
 // 		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
 	}	
 	

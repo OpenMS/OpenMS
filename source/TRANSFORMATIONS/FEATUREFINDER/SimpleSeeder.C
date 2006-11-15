@@ -48,16 +48,26 @@ namespace OpenMS
 		if (!is_initialised_) 
 		{
 			
-			int endIndex = traits_->getNumberOfPeaks();
-			for (int i=0;i<endIndex;i++) indizes_.push_back(i);
-			std::cout << "Number of peaks: " << endIndex << std::endl;
+			UnsignedInt endIndex = traits_->getNumberOfPeaks();
+			for (UnsignedInt i=0;i<endIndex;++i) indizes_.push_back(i);
+			std::cout << "SimpleSeeder: Number of peaks: " << endIndex << std::endl;
 			sort_(); // sort index vector by intensity of peaks
-			
+		
 			current_peak_ = indizes_.begin();
 			is_initialised_ = true;
 			
+			// determine mininum intensity for last seed
+			noise_threshold_  = param_.getValue("min_intensity");
+			if (noise_threshold_ == -1)	// -1 is default value
+			{
+				IntensityType int_perc = param_.getValue("intensity_perc");;
+				noise_threshold_ = int_perc * traits_->getPeakIntensity(*current_peak_);			
+			}
+			
 		}
-				
+	
+		std::cout << "SimpleSeeder: current peak " << 	*current_peak_ << std::endl;
+	
 		// while the current peak is either already used or in a feature
 		// jump to next peak...
 		while (current_peak_ != indizes_.end() 
@@ -76,22 +86,9 @@ namespace OpenMS
 							<< traits_->getPeakRt(*current_peak_) << ","
 							<< traits_->getPeakMz(*current_peak_)
 							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
-				
+		
 		nr_seeds_++;
-		
-		// we set the intensity threshold to a fixed percentage of the 5th largest intensity
-		if (nr_seeds_ == 6) 
-		{
-			noise_threshold_ = param_.getValue("min_intensity");
-			
-			if (noise_threshold_ < 0.0)
-			{	
-				float int_perc = param_.getValue("intensity_perc");;
-				noise_threshold_ = int_perc * traits_->getPeakIntensity(*current_peak_);
-				//std::cout << " Setting noise threshold to relative value..." << std::endl;
-			}
-		
-		}	
+ 		
 		std::cout << "SimpleSeeder: Intensity threshold for seeds is " << noise_threshold_ << std::endl;
 		// if the intensity of the next seed is below this threshold,
 		// seeding stops and we throw an execption.
@@ -109,14 +106,12 @@ namespace OpenMS
 	
 	void SimpleSeeder::sort_() 
 	{
-		
 		SimpleSeeder::IntensityLess comp = SimpleSeeder::IntensityLess::IntensityLess(traits_);
 		sort(indizes_.begin(),indizes_.end(),comp);
 		
 		// we want to retrieve the peak with the highest
 		// intensity first, therefore we reverse the order of peaks
 		reverse(indizes_.begin(),indizes_.end());
-			
 	}
 
 }

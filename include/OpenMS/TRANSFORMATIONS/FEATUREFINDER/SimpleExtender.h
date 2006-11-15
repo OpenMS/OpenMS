@@ -101,6 +101,7 @@ namespace OpenMS
   	typedef FeaFiTraits::IntensityType IntensityType;
   	typedef FeaFiTraits::CoordinateType CoordinateType;
   	typedef KernelTraits::ProbabilityType ProbabilityType;
+		typedef FeaFiTraits::PeakType PeakType;
   	
   	enum DimensionId
 			{ 
@@ -189,7 +190,7 @@ namespace OpenMS
           
   protected:
   	 	
-  	/// @brief Checks whether the current peak is too far from the centroid
+  	/// Checks if the current peak is too far from the centroid
   	bool isTooFarFromCentroid_(UnsignedInt current_index);
    	
    	/// Extends the seed into positive m/z direction   	
@@ -214,9 +215,10 @@ namespace OpenMS
   	bool first_seed_seen_;
   	
   	/// Data points with intensity below this threshold are not considered in the extension phase. 
-  	double intensity_threshold_;
+  	IntensityType intensity_threshold_;
   	
-  	double intensity_factor_;
+		/// Factor for minimum seed intensity 
+  	IntensityType intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
   	RunningAveragePosition< DPosition<2> > running_avg_;
@@ -224,9 +226,9 @@ namespace OpenMS
   	/// Keeps track of peaks already included in the boundary (value is priority of peak) 
   	std::map<UnsignedInt, double> priorities_; 
   	
-  	/// The last peak that was extracted from the boundary (used to compute the priority of neighbouring peaks)
-  	UnsignedInt last_extracted_;
-  	
+  	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
+  	DPosition<2> last_pos_extracted_;
+		  	
   	/// Represents the boundary of a feature 
   	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess > boundary_;    
   	           					
@@ -234,18 +236,26 @@ namespace OpenMS
   	                    std::vector<IndexWithPriority>, 
   	                    IndexWithPriority::PriorityLess,
   	                    IndexMap > boundary_; */ 	            
-  	             			
+  	
+		/// Score distribution in m/z dimension             			
   	Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
+		/// Score distribution in time dimension      
 		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
 		
+		/// Number of peaks encountered so far
 		UnsignedInt nr_peaks_seen_;
 		
-		float dist_mz_up_; 
-		float dist_mz_down_; 
-		float dist_rt_up_; 
-		float dist_rt_down_;   	
+		/// Maximum distance to seed in positive m/z
+		CoordinateType dist_mz_up_; 
+		/// Maximum distance to seed in negative m/z
+		CoordinateType dist_mz_down_; 
+		/// Maximum distance to seed in positive retention time
+		CoordinateType dist_rt_up_; 
+		/// Maximum distance to seed in negative retention time
+		CoordinateType dist_rt_down_;   	
 		
+		/// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
 		float priority_threshold_;
 		
   };

@@ -104,14 +104,19 @@ namespace OpenMS
 					data_   ( arg.data_ )
 			{}
 
-			/// Assignment operator.
+			/// Assignment operator
 			LinearInterpolation & operator= ( LinearInterpolation const & arg )
 			{
-				scale_   = arg.scale_;
-				offset_  = arg.offset_;
-				inside_  = arg.inside_;
-				outside_ = arg.outside_;
-				data_    = arg.data_;
+				 if (&arg == this)
+            return *this;
+						
+					scale_   = arg.scale_;
+					offset_  = arg.offset_;
+					inside_  = arg.inside_;
+					outside_ = arg.outside_;
+					data_    = arg.data_;
+					
+					return *this;
 			}
 
 			/// Destructor.

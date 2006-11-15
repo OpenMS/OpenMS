@@ -130,9 +130,9 @@ public:
 
     /// set internal data and update range information
     void setData(MapType& exp)
-    {
+    {			
+		
 				std::cout << "Storing MSExperimentExtern " << std::endl;
-				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
 				
 // 				map_ = exp;	This does not work, => check operator= in MSExperiment
 				for (UnsignedInt i=0; i<exp.size(); ++i)
@@ -140,9 +140,15 @@ public:
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
 				}	
 		 
+				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
+				
+				
+				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
+				std::cout << "Setting flags. " << std::endl;
         // resize internal data structures
         flags_.reserve(map_.getSize());
 
@@ -173,6 +179,9 @@ public:
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
+				
+				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
         // resize internal data structures
@@ -311,7 +320,7 @@ public:
         MapType::PIterator piter;
         try
         {
-            piter = scan_index_.getNextRt(p.getPosition()[RT],p.getPosition()[MZ]);
+            piter = scan_index_.getPrevRt(p.getPosition()[RT],p.getPosition()[MZ]);
         }
         catch (Exception::Base ex)
         {
@@ -483,14 +492,14 @@ public:
 #endif
 
         std::cout << "# features: " << features_.size() << std::endl;
-        std::ofstream ffile( "features_");
-        for (DFeatureMap<2>::const_iterator cit = features_.begin();
-                cit != features_.end();
-                ++cit)
-        {
-            ffile<< *cit << std::endl;
-        }
-        ffile.close();
+//         std::ofstream ffile( "features_");
+//         for (DFeatureMap<2>::const_iterator cit = features_.begin();
+//                 cit != features_.end();
+//                 ++cit)
+//         {
+//             ffile<< *cit << std::endl;
+//         }
+//         ffile.close();
 
         return features_;
 

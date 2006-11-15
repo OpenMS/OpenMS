@@ -624,7 +624,7 @@ public:
 				if (last_scan_index_ == 0)
 					test_offset = index;
 				else
-					test_offset = (index - spectra_lengths_[last_scan_index_]);
+					test_offset = (index - spectra_lengths_[ (last_scan_index_ - 1) ]);
 				
 				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
 				{
@@ -639,12 +639,12 @@ public:
 
         	// index of scan is simply the distance to the begin() iterator
         	scan_index =  (it - spectra_lengths_.begin() );        
-
+					last_scan_index_ = scan_index;
+					
         	// determine index of peak
         	if (scan_index == 0)
         	{
-						last_scan_index_ = 0;
-            peak_index          =  index;
+					  peak_index          =  index;
         	}
         	else
         	{
@@ -653,6 +653,7 @@ public:
             --it;
             peak_index = (index - *it);
         	}
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
 				
 				// all information was  collected, compile peak and continue
@@ -677,7 +678,7 @@ public:
 				if (last_scan_index_ == 0)
 					test_offset = index;
 				else
-					test_offset = (index - spectra_lengths_[last_scan_index_]);
+					test_offset = (index - spectra_lengths_[ (last_scan_index_ - 1) ]);
 				
 				if (test_offset < (*this)[last_scan_index_].size() && test_offset > 0)
 				{
@@ -692,7 +693,8 @@ public:
 
         	// index of scan is simply the distance to the begin() iterator
         	scan_index =  (it - spectra_lengths_.begin() );        
-
+					last_scan_index_ = scan_index;
+					
         	// determine index of peak
         	if (scan_index == 0)
         	{
@@ -706,6 +708,7 @@ public:
             --it;
             peak_index = (index - *it);
         	}
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
 				
 				// all information was  collected, compile peak and continue

@@ -31,7 +31,7 @@ namespace OpenMS
 
 	SimpleExtender::SimpleExtender() : BaseExtender(),
 																		 first_seed_seen_(false), intensity_threshold_(0),
-																		 last_extracted_(0), nr_peaks_seen_(0)
+																		 last_pos_extracted_(), nr_peaks_seen_(0)
 	{
     name_ = SimpleExtender::getName();
     defaults_.setValue("tolerance_rt",2.0f);
@@ -54,8 +54,8 @@ namespace OpenMS
     if (!first_seed_seen_)
     {
 
-			float tol_rt = param_.getValue("tolerance_rt");
-			float tol_mz = param_.getValue("tolerance_mz");
+			CoordinateType tol_rt = param_.getValue("tolerance_rt");
+			CoordinateType tol_mz = param_.getValue("tolerance_mz");
 			intensity_factor_ = param_.getValue("intensity_factor");
 
 			dist_mz_up_   = param_.getValue("dist_mz_up");
@@ -94,7 +94,7 @@ namespace OpenMS
 
     // remember last peak to be extracted from the boundary
     // in this case, the seed
-    last_extracted_ = seed_index;
+		last_pos_extracted_ = traits_->getPeak(seed_index).getPosition();
 
     float prior = computePeakPriority_(seed_index);
     IndexWithPriority seed(seed_index,prior);
@@ -105,35 +105,38 @@ namespace OpenMS
 
     while (!boundary_.empty())
     {
+// 			std::cout << "Size of boundary: " << boundary_.size() << std::endl;
+// 			std::cout << "Size of region: " << region_.size() << std::endl;
+			
 			// remove peak with highest priority
 			IndexWithPriority const index_priority = boundary_.top();
 			boundary_.pop();
 
 			nr_peaks_seen_++;
 
-			UnsignedInt const current_index       = index_priority.index;
-			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
+			const UnsignedInt  current_index = index_priority.index;
+			const PeakType current_peak  		= traits_->getPeak(current_index);
+			
+// 			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
 
 			// remember last peak to be extracted from the boundary
-			last_extracted_ = current_index;
+			last_pos_extracted_ = current_peak.getPosition();
 
 			// we set the intensity threshold for raw data points to be
 			// included into the feature region to be a fraction of the
 			// intensity of the fifth largest peak
 			if (nr_peaks_seen_ == 5)
-				intensity_threshold_ = intensity_factor_ * current_intensity;
+				intensity_threshold_ = intensity_factor_ * current_peak.getIntensity();
 
-			if (current_intensity <  intensity_threshold_)
+			if (current_peak.getIntensity() <  intensity_threshold_)
 				continue;
 
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
-
-			// get position of current peak
-			FeaFiTraits::PositionType const curr_pos = traits_->getPeak(current_index).getPosition();
-			// and add it to the current average of positions weighted by the intensity
-			running_avg_.add(curr_pos,current_intensity);
+			
+			// Add position to the current average of positions weighted by intensity
+			running_avg_.add(last_pos_extracted_,current_peak.getIntensity());
 
 			// explore neighbourhood of current peak
 			moveMzUp_(current_index);
@@ -146,6 +149,7 @@ namespace OpenMS
 			if (traits_->getPeakFlag(current_index) == FeaFiTraits::SEED || traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
 			{
 				traits_->getPeakFlag(current_index) = FeaFiTraits::INSIDE_FEATURE;
+// 				std::cout << "Adding point to region: " << current_peak << std::endl;
 				region_.add(current_index);
 			}
     } // end of while ( !boundary_.empty() )
@@ -164,20 +168,22 @@ namespace OpenMS
 	bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
 	{
 
-    CoordinateType const current_mz   = traits_->getPeakMz(current_peak);
-    CoordinateType const current_rt   = traits_->getPeakRt(current_peak);
+//     CoordinateType const current_mz   = traits_->getPeakMz(current_peak);
+//     CoordinateType const current_rt   = traits_->getPeakRt(current_peak);
+
+		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
 
     FeaFiTraits::PositionType const curr_mean = running_avg_.getPosition();
 
-    float dist_mz_up = param_.getValue("dist_mz_up");
-    float dist_mz_down = param_.getValue("dist_mz_down");
-    float dist_rt_up = param_.getValue("dist_rt_up");
-    float dist_rt_down = param_.getValue("dist_rt_down");
+//     float dist_mz_up = param_.getValue("dist_mz_up");
+//     float dist_mz_down = param_.getValue("dist_mz_down");
+//     float dist_rt_up = param_.getValue("dist_rt_up");
+//     float dist_rt_down = param_.getValue("dist_rt_down");
 
-    if ( current_mz > curr_mean[MZ] + dist_mz_up   ||
-				 current_mz < curr_mean[MZ] - dist_mz_down ||
-				 current_rt > curr_mean[RT] + dist_rt_up   ||
-				 current_rt < curr_mean[RT] - dist_rt_down )
+    if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
+				 p.getPosition()[MZ] < curr_mean[MZ] - dist_mz_down_ ||
+				 p.getPosition()[RT] > curr_mean[RT] + dist_rt_up_   ||
+				 p.getPosition()[RT] < curr_mean[RT] - dist_rt_down_ )
     {
 			return true;
     }
@@ -303,24 +309,21 @@ namespace OpenMS
 	double SimpleExtender::computePeakPriority_(UnsignedInt current_peak)
 	{
 
-    IntensityType curr_intens = traits_->getPeakIntensity(current_peak);
+		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
 
-    CoordinateType curr_mz = traits_->getPeakMz(current_peak);
-    CoordinateType last_mz = traits_->getPeakMz(last_extracted_);
+// 		CoordinateType last_mz = traits_->getPeakMz(last_osextracted_);
+// 		CoordinateType last_rt = traits_->getPeakRt(last_extracted_);
 
-    CoordinateType curr_rt = traits_->getPeakRt(current_peak);
-    CoordinateType last_rt = traits_->getPeakRt(last_extracted_);
-
-    return curr_intens *
-			score_distribution_rt_.value(curr_rt-last_rt) *
-			score_distribution_mz_.value(curr_mz-last_mz);
+    return p.getIntensity() *
+			score_distribution_rt_.value(p.getPosition()[RT]-last_pos_extracted_[RT]) *
+			score_distribution_mz_.value(p.getPosition()[MZ]-last_pos_extracted_[MZ]);
 
 	}
 
 	void SimpleExtender::checkNeighbour_(UnsignedInt current_index)
 	{
-    // we don't care about points with intensity zero
-    if (traits_->getPeakIntensity(current_index) == 0)
+    // we don't care about points with intensity zero (or less, might occur is TopHatFilter was applied)
+    if (traits_->getPeakIntensity(current_index) <= 0)
 			return;
 
     if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED

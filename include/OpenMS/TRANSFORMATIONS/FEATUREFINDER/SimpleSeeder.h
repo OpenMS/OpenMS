@@ -32,6 +32,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include<OpenMS/SYSTEM/StopWatch.h>
+
 #include <algorithm>
 #include <vector>
 #include <iostream>
@@ -60,6 +62,13 @@ namespace OpenMS
   class SimpleSeeder 
     : public BaseSeeder
   {
+		typedef FeaFiTraits::IntensityType IntensityType;
+				
+		enum DimensionId
+    {
+        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+    };
 
   public:
 		/** @brief Functor that allows to compare the indizes of two peaks by their intensity.
@@ -72,11 +81,14 @@ namespace OpenMS
   		public:
   			/// Construtor
   			IntensityLess(FeaFiTraits* traits)
-  				: traits_(traits) 
+					: intensities_(0)
   			{
-					intensities_.reserve(	traits_->getNumberOfPeaks()	);
-					for (UnsignedInt i=0; i<traits_->getNumberOfPeaks();++i)
-						intensities_.push_back(traits_->getPeakIntensity(i));
+					// save peak intensities
+					intensities_ = new IntensityType[ traits->getNumberOfPeaks() ];
+					for (UnsignedInt i=0; i<traits->getNumberOfPeaks();++i)
+					{
+						intensities_[i] = traits->getPeakIntensity(i) ;
+					}
 				}
   			
   			/// Overloaded () operator that allows to treat this class as a functor.
@@ -86,8 +98,7 @@ namespace OpenMS
 				}
   			
   		protected:
-  			FeaFiTraits* traits_;
-				std::vector<IntensityType> intensities_;
+					IntensityType* intensities_;
   	};
   	
     /// standard constructor
@@ -123,10 +134,10 @@ namespace OpenMS
   	std::vector<UnsignedInt>::const_iterator current_peak_;
   	
   	/// counts the number of seeds that we returned so far
-  	unsigned int nr_seeds_;
+  	UnsignedInt nr_seeds_;
   	
   	/// the assumed noise threshold as a percentage of the fifth largest peak
-  	double noise_threshold_;
+  	IntensityType noise_threshold_;
 
   };
 }

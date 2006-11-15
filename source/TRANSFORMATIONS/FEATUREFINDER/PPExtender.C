@@ -54,7 +54,7 @@ PPExtender::PPExtender()
 
     defaults_.setValue("noise_level_cwt",6000);
 	
-	defaults_.setValue("scans_to_sumup",5);
+		defaults_.setValue("scans_to_sumup",5);
 
     param_ = defaults_;
 }

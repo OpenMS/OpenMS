@@ -108,6 +108,9 @@ CHECK(nextSeed())
 	
 	peak = seeder.nextSeed();
 	TEST_EQUAL(traits->getPeakIntensity(peak),5);		
+	
+	peak = seeder.nextSeed();
+	TEST_EQUAL(traits->getPeakIntensity(peak),3);		
   
 RESULT
 
