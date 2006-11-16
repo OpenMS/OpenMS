@@ -417,6 +417,9 @@ CHECK(void toUpper())
 	s = "test45%#.,";
 	s.toUpper();
 	TEST_EQUAL(s,"TEST45%#.,");
+	s = "";
+	s.toUpper();
+	TEST_EQUAL(s,"");
 RESULT
 
 CHECK(void toLower())
@@ -424,6 +427,22 @@ CHECK(void toLower())
 	s = "TEST45%#.,";
 	s.toLower();
 	TEST_EQUAL(s,"test45%#.,");
+	s = "";
+	s.toLower();
+	TEST_EQUAL(s,"");
+RESULT
+
+CHECK(void firstToUpper())
+	String s;
+	s = "test45%#.,";
+	s.firstToUpper();
+	TEST_EQUAL(s,"Test45%#.,");
+	s = " ";
+	s.firstToUpper();
+	TEST_EQUAL(s," ");
+	s = "";
+	s.firstToUpper();
+	TEST_EQUAL(s,"");
 RESULT
 
 CHECK(void substitute(char from, char to))

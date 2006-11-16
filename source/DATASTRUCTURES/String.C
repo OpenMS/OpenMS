@@ -551,6 +551,14 @@ namespace OpenMS
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) toupper);
 	}
 
+	void String::firstToUpper()
+	{
+		if (this->size()!=0)
+		{
+			(*this)[0] = toupper ((*this)[0]);
+		}
+	}
+
 	void String::toLower()
 	{
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) tolower);

@@ -212,6 +212,9 @@ namespace OpenMS
 		///Converts the string to lowercase
 		void toLower();
 
+		///Converts the first letter of the string to uppercase
+		void firstToUpper();
+
 		///Replaces all occurences of the character @p from by the character @p to.
 		void substitute(char from, char to);
 
