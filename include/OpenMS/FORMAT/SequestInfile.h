@@ -29,10 +29,11 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <iostream>
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <map>
+#include <set>
+#include <string>
 
 
 namespace OpenMS
@@ -49,196 +50,289 @@ namespace OpenMS
   class SequestInfile
   {
 		public:
-			
-			// default constructor
+			/// default constructor
 			SequestInfile();
 
-			// copy constructor
+			/// copy constructor
 			SequestInfile(const SequestInfile& sequest_infile);
 
-			// destructor
-			//virtual ~SequestInfile();
+			/// destructor
+			virtual ~SequestInfile();
 
-			// assignment operator
+			/// assignment operator
 			SequestInfile& operator=(const SequestInfile& sequest_infile);
 
-			// stores the experiment data in an Sequest input file that can be used as input for Sequest shell execution
+			/// stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
 			void store(const String& filename) throw (Exception::UnableToCreateFile);
-			
-			void setDynMod(char amino_acid, float mass);
-			
-			
+
+			void setDynMod(char amino_acid, Real mass);
+
+			/// returns the enzyme used for cleavage
 			const String& getEnzymeInfo() const;
+			/// sets the enzyme used for cleavage
 			void setEnzymeInfo(String& value);
-			
+
+			/// returns the used database
 			const String& getDatabase() const;
-			void setDatabase(String& value);
-			
+			/// sets the used database
+			void setDatabase(const String& value);
+
+			/// returns the snd database used
 			const String& getSndDatabase() const;
-			void setSndDatabase(String& value);
-			
+			/// sets the second database used
+			void setSndDatabase(const String& value);
+
+			/// returns whether neutral losses are considered for the a-, b- and y-ions
 			const String& getNeutralLossesForIons() const;
-			void setNeutralLossesForIons(String& neutral_losses_for_ions);
-			
+			/// sets whether neutral losses are considered for the a-, b- and y-ions
+			void setNeutralLossesForIons(const String& neutral_losses_for_ions);
+
+			/// returns the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
 			const String& getIonSeriesWeights() const;
-			void setIonSeriesWeights(String& ion_series_weights);
-			
+			/// sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
+			void setIonSeriesWeights(const String& ion_series_weights);
+
+			/// returns the dynamic modifications
 			const String& getDynMods() const;
-			void setDynMods(String& dyn_mods);
-			
+			/// sets the dynamic modifications
+			void setDynMods(const String& dyn_mods);
+
+			/// returns the partial sequences (space delimited) that have to occur in the theortical spectra
 			const String& getPartialSequence() const;
-			void setPartialSequence(String& partial_sequence);
-			
+			/// sets the partial sequences (space delimited) that have to occur in the theortical spectra
+			void setPartialSequence(const String& partial_sequence);
+
+			/// returns the sequences (space delimited) that have to occur, or be absent (preceeded by a tilde) in the header of a protein to be considered
 			const String& getSequenceHeaderFilter() const;
-			void setSequenceHeaderFilter(String& sequence_header_filter);
-			
-			
-			float getPeptideMassTolerance() const;
-			void setPeptideMassTolerance(float value);
-			
-			float getFragmentIonTolerance() const;
-			void setFragmentIonTolerance(float value);
-			
-			float getMatchPeakTolerance() const;
-			void setMatchPeakTolerance(float value);
-			
-			float getIonCutoffPercentage() const;
-			void setIonCutoffPercentage(float value);
-			
-			float getMinimumProteinMass() const;
-			void setMinimumProteinMass(float value);
-			
-			float getMaximumProteinMass() const;
-			void setMaximumProteinMass(float value);
-			
-			float getDynNTermMod() const;
-			void setDynNTermMod(float mass);
-			
-			float getDynCTermMod() const;
-			void setDynCTermMod(float mass);
-			
-			float getStatNTermMod() const;
-			void setStatNTermMod(float mass);
-			
-			float getStatCTermMod() const;
-			void setStatCTermMod(float mass);
-			
-			float getStatNTermProtMod() const;
-			void setStatNTermProtMod(float mass);
-			
-			float getStatCTermProtMod() const;
-			void setStatCTermProtMod(float mass);
-			
-			
-			int getPeptideMassUnits() const;
-			void setPeptideMassUnits(int value);
-			
-			int getNumOutputLines() const;
-			void setNumOutputLines(int value);
-			
-			int getEnzymeNumber() const;
-			void setEnzymeNumber(int value);
-			
-			int getMaxNumDifAAPerMod() const;
-			void setMaxNumDifAAPerMod(int value);
-			
-			int getMaxNumModsPerPeptide() const;
-			void setMaxNumModsPerPeptide(int value);
-			
-			int getNucleotideReadingFrame() const;
-			void setNucleotideReadingFrame(int value);
-			
-			int getMaxNumInternalCleavageSites() const;
-			void setMaxNumInternalCleavageSites(int value);
-			
-			int getMatchPeakCount() const;
-			void setMatchPeakCount(int value);
-			
-			int getMatchPeakAllowedError() const;
-			void setMatchPeakAllowedError(int value);
-			
-			
+			/// sets the sequences (space delimited) that have to occur, or be absent (preceeded by a tilde) in the header of a protein to be considered
+			void setSequenceHeaderFilter(const String& sequence_header_filter);
+
+			/// returns the protein mass filter (either min and max mass, or mass and tolerance value in percent)
+			const String& getProteinMassFilter() const;
+			/// sets the protein mass filter (either min and max mass, or mass and tolerance value in percent)
+			void setProteinMassFilter(const String& protein_mass_filter);
+
+
+			/// returns the peptide mass tolerance
+			Real getPeptideMassTolerance() const;
+			/// sets the peptide mass tolerance
+			void setPeptideMassTolerance(Real value);
+
+			/// returns the fragment ion tolerance
+			Real getFragmentIonTolerance() const;
+			/// sets the fragment ion tolerance
+			void setFragmentIonTolerance(Real value);
+
+			/// returns the match peak tolerance
+			Real getMatchPeakTolerance() const;
+			/// sets the match peak tolerance
+			void setMatchPeakTolerance(Real value);
+
+			/// returns the the cutoff of the ratio matching theoretical peaks/theoretical peaks
+			Real getIonCutoffPercentage() const;
+			/// sets the ion cutoff of the ratio matching theoretical peaks/theoretical peaks
+			void setIonCutoffPercentage(Real value);
+
+			/// returns the dynamic modification for the N-terminal of the peptide
+			Real getDynNTermMod() const;
+			/// sets the dynamic modification for the N-terminal of the peptide
+			void setDynNTermMod(Real mass);
+
+			/// returns the dynamic modification for the C-terminal of the peptide
+			Real getDynCTermMod() const;
+			/// sets the dynamic modification for the C-terminal of the peptide
+			void setDynCTermMod(Real mass);
+
+			/// returns the static modification for the N-terminal of the peptide
+			Real getStatNTermMod() const;
+			/// sets the static modification for the N-terminal of the peptide
+			void setStatNTermMod(Real mass);
+
+			/// returns the static modification for the C-terminal of the peptide
+			Real getStatCTermMod() const;
+			/// sets the static modification for the C-terminal of the peptide
+			void setStatCTermMod(Real mass);
+
+			/// returns the static modification for the N-terminal of the protein
+			Real getStatNTermProtMod() const;
+			/// sets the static modification for the N-terminal of the protein
+			void setStatNTermProtMod(Real mass);
+
+			/// returns the static modification for the C-terminal of the protein
+			Real getStatCTermProtMod() const;
+			/// sets the static modification for the C-terminal of the protein
+			void setStatCTermProtMod(Real mass);
+
+
+			/// returns the peptide mass unit
+			SignedInt getPeptideMassUnit() const;
+			/// sets the peptide mass unit
+			void setPeptideMassUnit(SignedInt value);
+
+			/// return the number of peptides to be displayed
+			SignedInt getOutputLines() const;
+			/// sets the number of peptides to be displayed
+			void setOutputLines(SignedInt value);
+
+			/// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
+			SignedInt getEnzymeber() const;
+			/// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
+			SignedInt setEnzymeber(SignedInt value);
+
+			/// returns the maximum number of amino acids containing the same modification in a peptide
+			SignedInt getMaxAAPerModPerPeptide() const;
+			/// sets the maximum number of amino acids containing the same modification in a peptide
+			void setMaxAAPerModPerPeptide(SignedInt value);
+
+			/// returns the maximum number of modifications that are allowed in a peptide
+			SignedInt getMaxModsPerPeptide() const;
+			/// set the maximum number of modifications that are allowed in a peptide
+			void setMaxModsPerPeptide(SignedInt value);
+
+			/// returns the nucleotide reading frame
+			SignedInt getNucleotideReadingFrame() const;
+			/// sets the nucleotide reading frame:
+			///		0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
+			///		1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
+			///		2 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
+			///		3 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the third DNA code.
+			///		4 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the first DNA code.
+			///		5 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the second DNA code.
+			///		6 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the third DNA code.
+			///		7 	Use each of the DNA translations of the codes 1, 2, 3.
+			///		8 	Use each of the DNA translations of the codes 4, 5, 6.
+			///		9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
+			void setNucleotideReadingFrame(SignedInt value);
+
+			/// returns the maximum number of internal cleavage sites
+			SignedInt getMaxInternalCleavageSites() const;
+			/// sets the maximum number of internal cleavage sites
+			void setMaxInternalCleavageSites(SignedInt value);
+
+			/// returns the number of top abundant peaks to match with theoretical ones
+			SignedInt getMatchPeakCount() const;
+			/// sets the number of top abundant peaks to with theoretical ones
+			void setMatchPeakCount(SignedInt value);
+
+			/// returns the number of top abundant peaks that are allowed not to match with a theoretical peak
+			SignedInt getMatchPeakAllowedError() const;
+			/// sets the number of top abundant peaks that are allowed not to match with a theoretical peak
+			void setMatchPeakAllowedError(SignedInt value);
+
+
+			/// returns whether fragment ions shall be displayed
 			bool getShowFragmentIons() const;
+			/// sets whether fragment ions shall be displayed
 			void setShowFragmentIons(bool value);
-			
+
+			/// returns whether all proteins containing a found peptide should be displayed
 			bool getPrintDuplicateReferences() const;
+			/// sets whether all proteins containing a found peptide should be displayed
 			void setPrintDuplicateReferences(bool value);
-			
-			bool getUsePhosphoFragmentation() const;
-			void setUsePhosphoFragmentation(bool value);
-			
-			bool getRemovePrecursorPeak() const;
-			void setRemovePrecursorPeak(bool value);
-			
+
+// 			bool getUsePhosphoFragmentation() const;
+// 			void setUsePhosphoFragmentation(bool value);
+
+			/// return whether peaks near (15 amu) the precursor peak are removed
+			bool getRemovePrecursorNearPeaks() const;
+			/// sets whether peaks near (15 amu) the precursor peak are removed
+			void setRemovePrecursorNearPeaks(bool value);
+
+			/// return the mass type of the parent (0 - monoisotopic, 1 - average mass)
 			bool getMassTypeParent() const;
+			/// sets the mass type of the parent (0 - monoisotopic, 1 - average mass)
 			void setMassTypeParent(bool value);
-			
+
+			/// return the mass type of the fragments (0 - monoisotopic, 1 - average mass)
 			bool getMassTypeFragment() const;
+			/// sets the mass type of the fragments (0 - monoisotopic, 1 - average mass)
 			void setMassTypeFragment(bool value);
-			
+
+			/// returns whether normalized xcorr values are displayed
 			bool getNormalizeXcorr() const;
+			/// sets whether normalized xcorr values are displayed
 			void setNormalizeXcorr(bool value);
-			
+
+			/// returns whether residues are in upper case
 			bool getResiduesInUpperCase() const;
+			/// sets whether residues are in upper case
 			void setResiduesInUpperCase(bool value);
-			
-			
+
+
+			/// adds an enzyme to the list and sets is as used
+			/// the vector constists of four strings:
+			/// name, cut direction: 0 (N to C) / 1, cuts after (list of aa), doesn't cut before (list of aa)
 			void addEnzymeInfo(std::vector< String >& enzyme_info);
-			
-			const std::map< char, float >& getStatMods() const;
-			void setStatMods(std::map< char, float >& stat_mods);
-			
-			void setStatMod(char amino_acid, float mass);
-		
+
+			/// returns the static modifications (map of amino acids and corresponding modification)
+			const std::map< char, Real >& getStatMods() const;
+			/// set the static modification for an amino acid
+			char setStatMod(String amino_acid, Real mass);
+
 		protected:
-		
+			/// returns some standard enzymes (used to initialize the enzyme list)
 			String getStandardEnzymeInfo();
+
+			/// the amino acids in one-letter-code
+			static const String aas_single_letter_;// = "GASPVTCLIXNOBDQKZEMHFRYW";
+
+			/// the static modifications (map of amino acids and corresponding modification)
+			std::map< char, Real > stat_mods_;
 			
-			const static String aas_single_letter_;// = "GASPVTCLIXNOBDQKZEMHFRYW";
+			String
+				enzyme_info_, ///< an endline-delimited list of enzymes, each with cutting direction 0 (N to C) /1, cuts after (list of aa), doesn't cut before (list of aa), the attributes are tab-delimited
+				database_, ///< database used
+				snd_database_, ///< second database used
+				neutral_losses_for_ions_, ///< whether neutral losses are considered for the a-, b- and y-ions (e.g. 011 for b- and y-ions)
+				ion_series_weights_,///< weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series, space delimited
+				dyn_mods_, ///< space-delimited list of dynamic modifications, each with weight and aas (space delimited)
+				partial_sequence_, ///< space-delimited list of sequence parts that have to occur in the theortical spectra
+				sequence_header_filter_,///< space-delimited list of sequences that have to occur or be absend (preceeded by a tilde) in a protein header, to be considered
+				protein_mass_filter_;
 			
-			std::map< char, float > stat_mods_;
+			Real
+				peptide_mass_tolerance_,///< tolerance for matching a theoretical to an experimental peptide
+				fragment_ion_tolerance_,///< tolerance for matching a theoretical to an experimental peak
+				match_peak_tolerance_,///< minimum distance between two experimental peaks
+				ion_cutoff_percentage_,///< cutoff of the ratio matching theoretical peaks/theoretical peaks
+				dyn_n_term_mod_,///< dynamic modifications for the N-terminal of a peptide
+				dyn_c_term_mod_,///< dynamic modifications for the C-terminal of a peptide
+				stat_n_term_mod_,///< static modifications for the N-terminal of a peptide
+				stat_c_term_mod_,///< static modifications for the C-terminal of a peptide
+				stat_n_term_prot_mod_,///< static modifications for the N-terminal of a protein
+				stat_c_term_prot_mod_;///< static modifications for the C-terminal of a protein
 			
-			String enzyme_info_,
-						 database_,
-						 snd_database_,
-						 neutral_losses_for_ions_,
-						 ion_series_weights_,
-						 dyn_mods_,
-						 partial_sequence_,
-						 sequence_header_filter_;
+			SignedInt
+				peptide_mass_unit_,///< peptide mass unit (0 = amu, 1 = mmu, 2 = ppm)
+				output_lines_,///< number of peptides to be displayed
+				enzyme_number_,///< number of the enzyme used for cleavage
+				highest_enzyme_number_,///< highest enzyme number
+				max_AA_per_mod_per_peptide_,///< maximum number of amino acids containing the same modification in a peptide
+				max_mods_per_peptide_,///< maximum number of modifications per peptide
+				nucleotide_reading_frame_,///< nucleotide reading frame:
+					/// 0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
+					/// 1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
+					/// 2 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
+					/// 3 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the third DNA code.
+					/// 4 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the first DNA code.
+					/// 5 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the second DNA code.
+					/// 6 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the third DNA code.
+					/// 7 	Use each of the DNA translations of the codes 1, 2, 3.
+					/// 8 	Use each of the DNA translations of the codes 4, 5, 6.
+					/// 9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
+				max_internal_cleavage_sites_,///< maximum number of internal cleavage sites
+				match_peak_count_,///< number of the top abundant peaks to match with theoretical one
+				match_peak_allowed_error_;///< number of peaks that may lack this test
 			
-			float peptide_mass_tolerance_,
-						fragment_ion_tolerance_,
-						dyn_n_term_mod_,
-						dyn_c_term_mod_,
-						ion_cutoff_percentage_,
-						min_protein_mass_,
-						max_protein_mass_,
-						match_peak_tolerance_,
-						stat_n_term_mod_,
-						stat_c_term_mod_,
-						stat_n_term_prot_mod_,
-						stat_c_term_prot_mod_;
-			
-			int peptide_mass_units_,
-					num_output_lines_,
-					enzyme_number_,
-					highest_enzyme_number_,
-					max_num_differential_AA_per_mod_,
-					max_num_mods_per_peptide_,
-					nucleotide_reading_frame_,
-					max_num_internal_cleavage_sites_,
-					match_peak_count_,
-					match_peak_allowed_error_;
-			
-			bool show_fragment_ions_,
-					 print_duplicate_references_,
-					 use_phospho_fragmentation_,
-					 remove_precursor_peak_,
-					 mass_type_parent_,
-					 mass_type_fragment_,
-					 normalize_xcorr_,
-					 residues_in_upper_case_;
+			bool
+				show_fragment_ions_,///< wether to display fragment ions
+				print_duplicate_references_,///< whether all proteins containing a found peptide should be displayed
+//				use_phospho_fragmentation_,///< 
+				remove_precursor_near_peaks_,///< whether peaks near (15 amu) the precursor peak are removed
+				mass_type_parent_,///< mass type of the parent peak (0 - monoisotopic, 1 - average)
+				mass_type_fragment_,///< mass type of fragment peaks (0 - monoisotopic, 1 - average)
+				normalize_xcorr_,///< whether to display normalized xcorr values
+				residues_in_upper_case_;///< whether residues are in upper case
   };
 
 } // namespace OpenMS
