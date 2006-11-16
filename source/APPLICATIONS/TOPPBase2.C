@@ -79,7 +79,7 @@ namespace OpenMS
 					flags[string("-") + it->name] = it->name;
 					break;
 				case ParameterInformation::NONE:
-					cerr << endl << "Warning: undefined type of parameter '" << it->name <<"'" << endl;
+					writeLog_("Warning: undefined type of parameter '" + it->name + "'");
 					break;
 				default:
 					options[string("-") + it->name] = it->name;
@@ -646,19 +646,19 @@ namespace OpenMS
 					case ParameterInformation::STRING:
 						if (it->second.valueType()!=DataValue::STRVALUE) 
 						{
-							cerr << "Warning: Wrong parameter type of '" << location <<  it->first << "' in '" << filename << "'. Type should be 'string'!" << endl;
+							writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'string'!");
 						}
 						break;
 					case ParameterInformation::DOUBLE:
 						if (it->second.valueType()!=DataValue::DOUVALUE && it->second.valueType()!=DataValue::FLOVALUE)
 						{
-							cerr << "Warning: Wrong  parameter type of '" << location <<  it->first << "' in '" << filename << "'. Type should be 'double'!" << endl;
+							writeLog_("Warning: Wrong  parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'double'!");
 						}
 						break;						
 					case ParameterInformation::INT:
 						if (it->second.valueType()!=DataValue::INTVALUE)
 						{
-							cerr << "Warning: Wrong parameter type of '" << location <<  it->first << "' in '" << filename << "'. Type should be 'int'!" << endl;
+							writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'int'!");
 						}
 						break;
 					case ParameterInformation::FLAG:
@@ -669,7 +669,7 @@ namespace OpenMS
 									String tmp = it->second;
 									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false") 
 									{
-										cerr << "Warning: Unrecognized value for '" << location <<  it->first << "' in '" << filename << "'. It should be 'on' or 'off'!" << endl;
+										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be 'on' or 'off'!");
 									}
 								}
 								break;
@@ -680,12 +680,12 @@ namespace OpenMS
 									SignedInt tmp = it->second;
 									if (tmp!=1 && tmp!=0) 
 									{
-										cerr << "Warning: Unrecognized value for '" << location <<  it->first << "' in '" << filename << "'. It should be '0' or '1'!" << endl;
+										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be '0' or '1'!");
 									}
 								}
 								break;
 							default:
-								cerr << "Warning: Wrong parameter type of '" << location <<  it->first << "' in '" << filename << "'. Type should be 'string' or 'int'!" << endl;
+								writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'string' or 'int'!");
 								break;
 						};
 						break;
@@ -695,7 +695,7 @@ namespace OpenMS
 			}
 			catch (Exception::IllegalArgument)
 			{
-				cerr << "Warning: Unknown parameter '" << location <<  it->first << "' in '" << filename << "'" << endl;
+				writeLog_("Warning: Unknown parameter '" + location + it->first + "' in '" + filename + "'");
 			}
 		}
 	}
