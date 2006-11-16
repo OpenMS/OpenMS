@@ -131,6 +131,11 @@ public:
     /// set internal data and update range information
     void setData(MapType& exp)
     {			
+				if (exp.size() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
 		
 				std::cout << "Storing MSExperimentExtern " << std::endl;
 				
@@ -142,10 +147,9 @@ public:
 		 
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
-        map_.updateRanges();
+        map_.updateRanges();				
 				
-				
-				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "This map contains " << map_.size() << " scans  ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -156,12 +160,7 @@ public:
         for (UnsignedInt i=0; i<map_.getSize(); ++i)
             flags_.push_back(FeaFiTraits::UNUSED);
 				
-				if (map_.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
-									
+				std::cout << "Initialising scan index DS. " << std::endl;					
 				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
    }
 		
@@ -169,18 +168,24 @@ public:
 		/// NOTE: This is slow since all peaks are copied individually
     void setData(MSExperiment<DPeak<1> >& exp)
     {
+				if (exp.size() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
+		
 				std::cout << "Storing MSExperiment " << std::endl;
-				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
+			
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
 				}	
-				
+								
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
 				
-				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "This map contains " << map_.size() << " scans ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -196,7 +201,7 @@ public:
 					std::cout << "No data provided. Aborting. " << std::endl;
 					return;
 				}
-				std::cout << "Initialising scan index DS. FeaFi map contains now : " << map_.getSize() << std::endl;
+				std::cout << "Initialising scan index DS. " << std::endl;
         scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			
@@ -300,10 +305,12 @@ public:
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
         }
         
-//         if (peak_index>=map_.size())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+				UnsignedInt peak_index = piter.getPeakNumber();
+				
+        if (peak_index>=map_.size())
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
-        return piter.getPeakNumber();
+        return peak_index;
     }
 
     /** @brief get index of next peak in retiontion time dimension.
@@ -326,11 +333,13 @@ public:
         {
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
         }
-        
-//         if (peak_index>=map_.getSize())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__,"FeaFiTraits::getPrevRt", index, map_.getSize());
+  
+        UnsignedInt peak_index = piter.getPeakNumber();
+				
+        if (peak_index>=map_.size())
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
-        return piter.getPeakNumber();
+        return peak_index;
     }
 
     /// run main loop

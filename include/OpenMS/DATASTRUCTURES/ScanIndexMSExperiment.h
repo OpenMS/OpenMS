@@ -186,7 +186,7 @@ namespace OpenMS
 				current_scan	= getRank(current_rt);
 				last_rank_     = current_scan;
 			}
-			if (current_scan >= int(size()-2)) throw NoSuccessor(__FILE__, __LINE__, "getNextRt()", current_scan);
+			if (current_scan >= int(size()-2) || current_scan < 0 ) throw NoSuccessor(__FILE__, __LINE__, "getNextRt()", current_scan);
 		
 			// determine start and end of the next scan
 			PeakIterator scan_begin = (*this)[current_scan+1];
@@ -214,7 +214,7 @@ namespace OpenMS
 				last_rank_     = current_scan;
 			}
 			// if we are already in the first scan, there will be no predeccessor....
-			if (current_scan == 0) throw NoSuccessor(__FILE__, __LINE__, "getPrevRt()", current_scan);
+			if (current_scan >= int(size()) || current_scan <= 0) throw NoSuccessor(__FILE__, __LINE__, "getPrevRt()", current_scan);
 		
 			// determine start and end of the next scan
 			PeakIterator scan_begin = (*this)[current_scan-1];
