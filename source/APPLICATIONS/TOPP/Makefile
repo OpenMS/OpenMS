@@ -69,9 +69,6 @@ EXECUTABLES=\
 	SpectraFilter\
 	Resampler
 
-#	
-#	RawDataResampler\
-
 all: $(EXECUTABLES)
 
 # replace library-specific flags by application-
@@ -195,10 +192,6 @@ InspectAdapter: InspectAdapter.o
 SequestAdapter: SequestAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/
-
-RawDataResampler: RawDataResampler.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
 
 Resampler: Resampler.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
