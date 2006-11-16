@@ -307,7 +307,7 @@ public:
         
 				UnsignedInt peak_index = piter.getPeakNumber();
 				
-        if (peak_index>=map_.size())
+        if (peak_index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
         return peak_index;
@@ -336,7 +336,7 @@ public:
   
         UnsignedInt peak_index = piter.getPeakNumber();
 				
-        if (peak_index>=map_.size())
+        if (peak_index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
         return peak_index;
