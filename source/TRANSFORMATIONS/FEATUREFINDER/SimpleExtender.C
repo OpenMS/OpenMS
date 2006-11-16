@@ -124,6 +124,12 @@ namespace OpenMS
 			
 // 			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
 
+			 if (current_peak.getIntensity() <  intensity_threshold_)
+			{
+					std::cout << "Intensity below threshold. Skipping this peak. " << std::endl;
+					continue;
+			}
+
 			// remember last peak to be extracted from the boundary
 			last_pos_extracted_ = current_peak.getPosition();
 						
@@ -169,8 +175,8 @@ namespace OpenMS
 		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
 
     FeaFiTraits::PositionType const curr_mean = running_avg_.getPosition();
-    
-		if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
+
+    if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
 				 p.getPosition()[MZ] < curr_mean[MZ] - dist_mz_down_ ||
 				 p.getPosition()[RT] > curr_mean[RT] + dist_rt_up_   ||
 				 p.getPosition()[RT] < curr_mean[RT] - dist_rt_down_ )
@@ -220,7 +226,6 @@ namespace OpenMS
 			while (true)
 			{
 				current_index    = traits_->getPrevMz(current_index);	// take next peak
-				
 				// stop if we've left the current scan
 				if (current_scan != traits_->getPeakScanNr(current_index)
 						|| isTooFarFromCentroid_(current_index)
@@ -293,6 +298,9 @@ namespace OpenMS
 
 	double SimpleExtender::computePeakPriority_(const PeakType& p)
 	{
+
+// 		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
+
     return p.getIntensity() *
 			score_distribution_rt_.value(p.getPosition()[RT]-last_pos_extracted_[RT]) *
 			score_distribution_mz_.value(p.getPosition()[MZ]-last_pos_extracted_[MZ]);
@@ -302,16 +310,11 @@ namespace OpenMS
 	{
     // we don't care about points with intensity zero (or less, might occur is TopHatFilter was applied)
 		PeakType p = traits_->getPeak(current_index);
-		
-    if (p.getIntensity() <  intensity_threshold_)
-		{
-// 			std::cout << "Intensity below threshold. Skipping this peak. " << std::endl;
-			return;
-		}
 
-		std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
-		double pr_new = computePeakPriority_(p);
-
+    if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED)
+    {
+			std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
+			double pr_new = computePeakPriority_(p);
 		if (piter == priorities_.end()) // not yet in boundary
 		{
 			if (pr_new > priority_threshold_) // check if priority larger than threshold
@@ -332,7 +335,7 @@ namespace OpenMS
 				} 
         } // end if (piter == priorities_.end())
 			*/
-
+		}
 	}
 
 

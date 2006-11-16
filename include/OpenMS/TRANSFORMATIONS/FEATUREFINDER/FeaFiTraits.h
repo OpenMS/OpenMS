@@ -247,7 +247,7 @@ public:
     {
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
-        if (index == (map_.getSize()-1) )
+        if (index >= (map_.getSize()-1) )
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
 
         // check whether we walked out of the current scan i.e. the retention
@@ -448,6 +448,10 @@ public:
                     watch.reset();
                     ++no_exceptions;
                     ++exception[ex.getName()];
+										
+										#ifdef DEBUG_FEATUREFINDER
+                    writeGnuPlotFile_(peaks,false,nr_feat++);
+										#endif
                 }
 
             } // end of while(true)

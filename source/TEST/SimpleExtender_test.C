@@ -99,19 +99,17 @@ CHECK(nextSeed())
 	
 	extender.setTraits(traits);
 
-// 	Param param;
-// 	param.setValue("dist_mz_up",10);
-// 	param.setValue("dist_mz_down",10);
-// 	param.setValue("dist_rt_down",10);
-// 	param.setValue("dist_rt_up",10);
-// 	param.setValue("priority_thr",-5);
-// 	
-//   extender.setParam(param);
+ 	Param param;
+ 	param.setValue("dist_mz_up",10);
+ 	param.setValue("dist_mz_down",10);
+ 	param.setValue("dist_rt_down",10);
+ 	param.setValue("dist_rt_up",10);
+ 	param.setValue("priority_thr",-5);
+ 	
+  extender.setParam(param);
   IndexSet region = extender.extend(4);
   
   TEST_NOT_EQUAL(region.size(),0);
-  
-  IndexSet::const_iterator ind_iter = region.begin();
   
     
 RESULT
