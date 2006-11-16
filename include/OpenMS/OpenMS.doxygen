@@ -48,7 +48,7 @@
 	- Deisotoping / Decharging
   - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
 	- Rohdaten-Erkenner
-	
+		
 	- Clustering
 	- SpecAnnotate
 	
@@ -57,12 +57,12 @@
 		- Base 64
 		- XERCES speedup
 		- optional XML attributes
-		- Einschränkungen: Metadata, RT, m/z,
-		- keine Zusatz-Peaktdaten (DPickedPeak) schreiben
+		- Einschränkungen: Metadata, RT, m/z, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
 	- TOPPView:
 		- ohne quadtree
 		- Preferences für Layers
 	- DB
+	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)
 	
 

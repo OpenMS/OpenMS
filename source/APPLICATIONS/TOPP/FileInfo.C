@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 
 using namespace OpenMS;
@@ -59,57 +59,25 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileInfo
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPFileInfo()
-			: TOPPBase("FileInfo")
+			: TOPPBase2("FileInfo","Shows basic information about the file e.g. data ranges and file type")
 		{
 			
 		}
 	
 	protected:
-		void printToolUsage_() const
+
+		virtual void registerOptionsAndFlags_()
 		{
-			cerr << endl
-		       << getToolName() << " -- shows basic information about the file e.g. data ranges and file type." << endl
-		       << "Version: " << VersionInfo::getVersion() << endl
-		       << endl
-		       << "Usage:" << endl
-					 << "  " << getToolName() << " [options]" << endl
-					 << endl
-					 << "Options are:" << endl
-					 << "  -in <file>        input file" << endl
-					 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
-					 << "  -m                show meta information about the whole experiment" << endl
-					 << endl
-					 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'" << endl;
+			registerStringOption_("in","","input file");
+			registerStringOption_("in_type","","input file type (default: determined from input file extension or file content)\n"
+			                                   "valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'");
+			registerFlag_("m","show meta information about the whole experiment");
 		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in        input file name" << endl
-					 << "  in_type   input file type (default: determined from input file name extension)" << endl
-					 << "  m         show meta information about the whole experiment" << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"example.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"in_type\" value=\"MZDATA\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"m\" value=\"\" type=\"string\"/>" << endl;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-in"] = "in";
-			options_["-in_type"] = "in_type";
 		
-			flags_["-m"] = "m";
-		}
-	
 		ExitCodes main_(int , char**)
 		{
 	
@@ -118,14 +86,11 @@ class TOPPFileInfo
 			//-------------------------------------------------------------
 	
 			//file names
-			String in = getParamAsString_("in");
-			writeDebug_(String("Input file: ") + in, 1);
+			String in = getStringOption_("in");
 			
 			//file type
 			FileHandler fh;
-			FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
-			
-			writeDebug_(String("Input file type (from command line): ") + fh.typeToName(in_type), 1);
+			FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
 			
 			if (in_type==FileHandler::UNKNOWN)
 			{
@@ -224,7 +189,7 @@ class TOPPFileInfo
 			
 			
 			// '-m' show meta info
-			if (getParamAsBool_("m"))
+			if (getFlag_("m"))
 			{
 				String date;
 				exp_set->getDate().get(date);

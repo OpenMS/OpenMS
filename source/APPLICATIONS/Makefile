@@ -30,7 +30,8 @@ DIRECTORY=APPLICATIONS
 THISLIB=$(LIBNAME)
 
 CPP_SOURCES=\
-	TOPPBase.C
+	TOPPBase.C\
+	TOPPBase2.C
 
 include ../common.mak
 -include .Dependencies

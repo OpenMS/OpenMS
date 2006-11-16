@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -35,85 +35,105 @@ using namespace std;
 
 START_TEST(TOPPBase, "$Id$")
 
-class Test
-	: public TOPPBase
+class TOPPBaseTest
+	: public TOPPBase2
 {
 	public:
-		Test()
-			: TOPPBase("TOPPTest")
+		TOPPBaseTest()
+			: TOPPBase2("TOPPBaseTest", "A test class")
 		{
 			main(0,0);
 		}
 		
-		Test(int argc , char** argv)
-			: TOPPBase("TOPPTest")
+		TOPPBaseTest(int argc , char** argv)
+			: TOPPBase2("TOPPBaseTest", "A test class")
 		{
 			main(argc,argv);	
 		}
 		
-		virtual void printToolUsage_() const
+		virtual void registerOptionsAndFlags_()
 		{
-			
-		}
-		
-		virtual void printToolHelpOpt_() const
-		{
-			
-		}	
-	
-		virtual void setOptionsAndFlags_()
-		{
-			options_["-option"] = "option_internal";
-			flags_["-flag"] = "flag_internal";
+			registerStringOption_("stringoption","string default","string description");
+			registerIntOption_("intoption",4711,"int description");
+			registerDoubleOption_("doubleoption",0.4711,"double description");
+			registerFlag_("flag","flag description");
 		}
 
-		String getParamAsString(const String& key, const String& default_value="") const
+		String getStringOption(const String& name) const
 		{
-			return getParamAsString_(key,default_value);
+			return getStringOption_(name);
 		}
-		
-		SignedInt getParamAsInt(const String& key, SignedInt default_value=0) const
+
+		double getDoubleOption(const String& name) const
 		{
-			return getParamAsInt_(key,default_value);
+			return getDoubleOption_(name);
 		}
-		
-		double getParamAsDouble(const String& key, double default_value=0) const
+
+		SignedInt getIntOption(const String& name) const
 		{
-			return getParamAsDouble_(key,default_value);
+			return getIntOption_(name);
 		}
-		
-		bool getParamAsBool(const String& key, bool default_value=false) const
+
+		bool getFlag(const String& name) const
 		{
-			return getParamAsBool_(key,default_value);
-		}
-		
-		DataValue const& getParam(const String& key) const
-		{
-			return getParam_(key);
-		}
-		
-		Param const& getParam() const
-		{
-			return getParam_();
-		}
-		
-		Param getParamCopy( const std::string& prefix ) const
-		{
-			return getParamCopy_(prefix);
+			return getFlag_(name);
 		}
 			
 		virtual ExitCodes main_(int /*argc*/ , char** /*argv*/)
 		{
 			return EXECUTION_OK;
 		}
+
+// COMMENTED OUT AS THESE METHODS ARE private!
+// DO NOT DELETE AS THESE TESTS CAN STILL BE USED WHEN CHANGING TOPPBase!
+// SIMPLY MAKE THESE METHODS protected FOR A WHILE.
+//		String const& getIniLocation() const
+//		{
+//			return getIniLocation_();
+//		}
+//
+//		String getParamAsString(const String& key, const String& default_value="") const
+//		{
+//			return getParamAsString_(key,default_value);
+//		}
+//		
+//		SignedInt getParamAsInt(const String& key, SignedInt default_value=0) const
+//		{
+//			return getParamAsInt_(key,default_value);
+//		}
+//		
+//		double getParamAsDouble(const String& key, double default_value=0) const
+//		{
+//			return getParamAsDouble_(key,default_value);
+//		}
+//		
+//		bool getParamAsBool(const String& key, bool default_value=false) const
+//		{
+//			return getParamAsBool_(key,default_value);
+//		}
+//		
+//		DataValue const& getParam(const String& key) const
+//		{
+//			return getParam_(key);
+//		}
+//		
+//		Param const& getParam() const
+//		{
+//			return getParam_();
+//		}
+//		
+//		Param getParamCopy( const std::string& prefix ) const
+//		{
+//			return getParamCopy_(prefix);
+//		}
 };
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Test* ptr = 0;
+TOPPBaseTest* ptr = 0;
 CHECK(TOPPBase())
-	ptr = new Test();
+	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -122,119 +142,184 @@ CHECK(~TOPPBase())
 RESULT
 
 //parts to build command lines
-char* a1 ="TOPPTest";
+char* a1 ="TOPPBaseTest";
 char* a3 ="-ini";
-char* a5 ="-n";
+char* a5 ="-instance";
 char* a6 ="6";
 char* a7 ="data/TOPPBase_toolcommon.ini";
 char* a8 ="data/TOPPBase_common.ini";
 char* a9 ="5";
-char* a10 ="-option";
+char* a10 ="-stringoption";
 char* a11 ="-flag";
 char* a12 ="commandline";
 char* a13 ="4.5";
+char* a14 ="-intoption";
+char* a15 ="-doubleoption";
+
+// COMMENTED OUT AS THESE METHODS ARE private!
+// DO NOT DELETE AS THESE TESTS CAN STILL BE USED WHEN CHANGING TOPPBase!
+// SIMPLY MAKE THESE METHODS protected FOR A WHILE.
+//
+//CHECK(String const& getIniLocation_() const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
+//	//command line
+//	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
+//	TOPPBaseTest tmp2(3,instance_cl);
+//	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
+//RESULT
+//
+//CHECK(bool getParamAsBool_(const String& key, bool default_value=false) const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_EQUAL(tmp.getParamAsBool("flag",false),false);
+//	TEST_EQUAL(tmp.getParamAsBool("flag",true),true);
+//	//command line
+//	char* flag_cl[2] = {a1, a11}; //command line: "TOPPTOPPBaseTest -flag"
+//	TOPPBaseTest tmp2(2,flag_cl);
+//	TEST_EQUAL(tmp2.getParamAsBool("flag",false),true);
+//RESULT
+//
+//CHECK(SignedInt getParamAsInt_(const String& key, SignedInt default_value=0) const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_EQUAL(tmp.getParamAsInt("stringoption",17),17);
+//	//command line
+//	char* int_cl[3] = {a1, a10, a9}; //command line: "TOPPTOPPBaseTest -stringoption 5"
+//	TOPPBaseTest tmp2(3,int_cl);
+//	TEST_EQUAL(tmp2.getParamAsInt("stringoption",17),5);
+//RESULT
+//
+//CHECK(double getParamAsDouble_(const String& key, double default_value=0) const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_REAL_EQUAL(tmp.getParamAsDouble("stringoption",17.0),17.0);
+//	//command line
+//	char* double_cl[3] = {a1, a10, a13}; //command line: "TOPPTOPPBaseTest -stringoption 4.5"
+//	TOPPBaseTest tmp2(3,double_cl);
+//	TEST_REAL_EQUAL(tmp2.getParamAsDouble("stringoption",17.0),4.5);
+//RESULT
+//
+//CHECK(String getParamAsString_(const String& key, const String& default_value="") const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_EQUAL(tmp.getParamAsString("stringoption","leer"),"leer");
+//	//command line
+//	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
+//	TOPPBaseTest tmp2(3,string_cl);
+//	TEST_EQUAL(tmp2.getParamAsString("stringoption","leer"),"commandline");
+//RESULT
+//
+//CHECK(DataValue const& getParam_(const String& key) const)
+//	//default 
+//	TOPPBaseTest tmp;
+//	TEST_EQUAL(tmp.getParam("stringoption"),DataValue::EMPTY);
+//	
+//	//command line
+//	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
+//	TOPPBaseTest tmp2(3,string_cl);
+//	TEST_EQUAL(tmp2.getParam("stringoption"),DataValue("commandline"));
+//	
+//	//command line (when there is a ini file value too)
+//	char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
+//	TOPPBaseTest tmp3(5,both_cl);
+//	TEST_EQUAL(tmp3.getParam("stringoption"),DataValue("commandline"));
+//	
+//	//ini file: instance section
+//	char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+//	TOPPBaseTest tmp4(3,common_cl);
+//	TEST_EQUAL(tmp4.getParam("stringoption"),DataValue("instance1"));
+//	char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
+//	TOPPBaseTest tmp5(5,common5_cl);
+//	TEST_EQUAL(tmp5.getParam("stringoption"),DataValue("instance5"));
+//	
+//	//ini file: tool common section
+//	char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
+//	TOPPBaseTest tmp6(5,common6_cl);
+//	TEST_EQUAL(tmp6.getParam("stringoption"),DataValue("toolcommon"));
+//
+//	//ini file: common section
+//	char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
+//	TOPPBaseTest tmp7(5,common7_cl);
+//	TEST_EQUAL(tmp7.getParam("stringoption"),DataValue("common"));
+//
+//	//ini file: inheritence
+//	//TODO
+//RESULT
+//
+//CHECK(Param const& getParam_() const)
+//	//TODO
+//RESULT
+//
+//CHECK(Param getParamCopy_( const std::string& prefix ) const)
+//	//TODO
+//RESULT
 
 
-CHECK(String const& getToolName() const)
-	Test tmp;
-	TEST_EQUAL(tmp.getToolName(),"TOPPTest")
-RESULT
-
-CHECK(String const& getIniLocation() const)
+CHECK(String getStringOption_(const String& name) const)
 	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getIniLocation(),"TOPPTest:1:")
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
 	//command line
-	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTest -n 5"
-	Test tmp2(3,instance_cl);
-	TEST_EQUAL(tmp2.getIniLocation(),"TOPPTest:5:")
-RESULT
-
-CHECK(bool getParamAsBool_(const String& key, bool default_value=false) const)
-	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getParamAsBool("flag_internal",false),false);
-	TEST_EQUAL(tmp.getParamAsBool("flag_internal",true),true);
-	//command line
-	char* flag_cl[2] = {a1, a11}; //command line: "TOPPTest -flag"
-	Test tmp2(2,flag_cl);
-	TEST_EQUAL(tmp2.getParamAsBool("flag_internal",false),true);
-RESULT
-
-CHECK(SignedInt getParamAsInt_(const String& key, SignedInt default_value=0) const)
-	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getParamAsInt("option_internal",17),17);
-	//command line
-	char* int_cl[3] = {a1, a10, a9}; //command line: "TOPPTest -option 5"
-	Test tmp2(3,int_cl);
-	TEST_EQUAL(tmp2.getParamAsInt("option_internal",17),5);
-RESULT
-
-CHECK(double getParamAsDouble_(const String& key, double default_value=0) const)
-	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getParamAsDouble("option_internal",17.0),17.0);
-	//command line
-	char* double_cl[3] = {a1, a10, a13}; //command line: "TOPPTest -option 4.5"
-	Test tmp2(3,double_cl);
-	TEST_EQUAL(tmp2.getParamAsDouble("option_internal",17.0),4.5);
-RESULT
-
-CHECK(String getParamAsString_(const String& key, const String& default_value="") const)
-	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getParamAsString("option_internal","leer"),"leer");
-	//command line
-	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTest -option commandline"
-	Test tmp2(3,string_cl);
-	TEST_EQUAL(tmp2.getParamAsString("option_internal","leer"),"commandline");
-RESULT
-
-CHECK(DataValue const& getParam_(const String& key) const)
-	//default 
-	Test tmp;
-	TEST_EQUAL(tmp.getParam("option_internal"),DataValue::EMPTY);
-	
-	//command line
-	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTest -option commandline"
-	Test tmp2(3,string_cl);
-	TEST_EQUAL(tmp2.getParam("option_internal"),DataValue("commandline"));
+	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
+	TOPPBaseTest tmp2(3,string_cl);
+	TEST_EQUAL(tmp2.getStringOption("stringoption"),"commandline");
 	
 	//command line (when there is a ini file value too)
-	char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTest -option commandline -ini data/TOPPBase_toolcommon.ini"
-	Test tmp3(5,both_cl);
-	TEST_EQUAL(tmp3.getParam("option_internal"),DataValue("commandline"));
+	char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
+	TOPPBaseTest tmp3(5,both_cl);
+	TEST_EQUAL(tmp3.getStringOption("stringoption"),DataValue("commandline"));
 	
 	//ini file: instance section
-	char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTest -ini data/TOPPBase_toolcommon.ini"
-	Test tmp4(3,common_cl);
-	TEST_EQUAL(tmp4.getParam("option_internal"),DataValue("instance1"));
-	char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTest -ini data/TOPPBase_toolcommon.ini -n 5"
-	Test tmp5(5,common5_cl);
-	TEST_EQUAL(tmp5.getParam("option_internal"),DataValue("instance5"));
+	char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	TOPPBaseTest tmp4(3,common_cl);
+	TEST_EQUAL(tmp4.getStringOption("stringoption"),DataValue("instance1"));
+	char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
+	TOPPBaseTest tmp5(5,common5_cl);
+	TEST_EQUAL(tmp5.getStringOption("stringoption"),DataValue("instance5"));
 	
 	//ini file: tool common section
-	char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTest -ini data/TOPPBase_toolcommon.ini -n 6"
-	Test tmp6(5,common6_cl);
-	TEST_EQUAL(tmp6.getParam("option_internal"),DataValue("toolcommon"));
+	char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
+	TOPPBaseTest tmp6(5,common6_cl);
+	TEST_EQUAL(tmp6.getStringOption("stringoption"),DataValue("toolcommon"));
 
 	//ini file: common section
-	char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTest -ini data/TOPPBase_common.ini -n 6"
-	Test tmp7(5,common7_cl);
-	TEST_EQUAL(tmp7.getParam("option_internal"),DataValue("common"));
-
-	//ini file: inheritence
-	//TODO
+	char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
+	TOPPBaseTest tmp7(5,common7_cl);
+	TEST_EQUAL(tmp7.getStringOption("stringoption"),DataValue("common"));
 RESULT
 
-CHECK(Param const& getParam_() const)
-	//TODO
+CHECK(String getIntOption_(const String& name) const)
+	//default 
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
+	//command line
+	char* string_cl[3] = {a1, a14, a6}; //command line: "TOPPTOPPBaseTest -intoption 6"
+	TOPPBaseTest tmp2(3,string_cl);
+	TEST_EQUAL(tmp2.getIntOption("intoption"),6);
 RESULT
 
-CHECK(Param getParamCopy_( const std::string& prefix ) const)
-	//TODO
+CHECK(String getDoubleOption_(const String& name) const)
+	//default 
+	TOPPBaseTest tmp;
+	TEST_REAL_EQUAL(tmp.getDoubleOption("doubleoption"),0.4711);
+	//command line
+	char* string_cl[3] = {a1, a15, a13}; //command line: "TOPPTOPPBaseTest -doubleoption 4.5"
+	TOPPBaseTest tmp2(3,string_cl);
+	TEST_REAL_EQUAL(tmp2.getDoubleOption("doubleoption"),4.5);
 RESULT
+
+CHECK(bool getFlag_(const String& name) const)
+	//default 
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getFlag("flag"),false);
+	//command line
+	char* flag_cl[2] = {a1, a11}; //command line: "TOPPTOPPBaseTest -flag"
+	TOPPBaseTest tmp2(2,flag_cl);
+	TEST_EQUAL(tmp2.getFlag("flag"),true);
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
