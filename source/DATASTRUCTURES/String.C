@@ -566,6 +566,11 @@ namespace OpenMS
 		this->erase(std::remove(this->begin(), this->end(), what),this->end());
 	}
 
+	void String::ensurePathEnding(char path_ending)
+	{
+		if ( !this->hasSuffix(path_ending) ) this->append(1, path_ending);
+	}
+
 } // namespace OpenMS
 
 

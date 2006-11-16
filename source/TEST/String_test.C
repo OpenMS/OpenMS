@@ -460,6 +460,21 @@ CHECK(void remove(char what))
 	TEST_EQUAL(s, "");
 RESULT
 
+CHECK(void ensurePathEnding(char path_ending))
+	String s = "/";
+	s.ensurePathEnding();
+	TEST_EQUAL("/", s)
+
+	s.ensurePathEnding('\\');
+	TEST_EQUAL("/\\", s)
+
+	s.ensurePathEnding('\\');
+	TEST_EQUAL("/\\", s)
+
+	s.ensurePathEnding();
+	TEST_EQUAL("/\\/", s)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -217,6 +217,9 @@ namespace OpenMS
 
 		///Remove all occurences of the character @p what.
 		void remove(char what);
+
+		///If there's no path ending character (/,\) at the end of the string, append path_ending
+		void ensurePathEnding(char path_ending = '/');
 		//@}
 
 		/** @name Converters
