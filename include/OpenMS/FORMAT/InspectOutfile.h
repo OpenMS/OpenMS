@@ -61,7 +61,7 @@ namespace OpenMS
 			/// Constructor
 			InspectOutfile();
 			
-			/// load the results of an InsPecT search
+			/// load the results of an Inspect search
 			std::vector< UnsignedInt >
 			load(
 				const std::string& result_filename,
@@ -84,7 +84,8 @@ namespace OpenMS
 				Exception::FileNotFound,
 				Exception::ParseError,
 				Exception::IllegalArgument);
-			
+
+			/// generates a trie database from another one, using the wanted records only
 			void
 			compressTrieDB(
 				const std::string& database_filename,
@@ -97,7 +98,8 @@ namespace OpenMS
 				Exception::FileNotFound,
 				Exception::ParseError,
 				Exception::UnableToCreateFile);
-			
+
+			/// generates a trie database from a given one (the type of database is determined by getLabels)
 			void
 			generateTrieDB(
 				const std::string& source_database_filename,
@@ -111,12 +113,14 @@ namespace OpenMS
 				Exception::UnableToCreateFile);
 			
 		protected:
-			/// get the accession and accession type of a protein
+			/// retrieve the accession type and accession number from a protein description line
+			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
 			
-			/// given a vector of peptide hits, either insert the new peptide hit or update its ProteinHits, returns whether an update took place
+			/// either insert the new peptide hit or update it's protein indices
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
-			
+
+			/// retvrive
 			void getPrecursorRTandMZ(
 				const std::vector< std::pair< String, std::vector< UnsignedInt > > >& files_and_scan_numbers,
 				std::vector< Real >& precursor_retention_times,
@@ -124,7 +128,8 @@ namespace OpenMS
 				UnsignedInt scans)
 			throw(
 				Exception::ParseError);
-			
+
+			/// retrieve the labes of a given database (at the moment FASTA and Swissprot)
 			void
 			getLabels(
 				const std::string& source_database_filename,
@@ -136,7 +141,8 @@ namespace OpenMS
 			throw (
 				Exception::FileNotFound,
 				Exception::ParseError);
-			
+
+			/// retrieve sequences from a trie database
 			std::vector< UnsignedInt >
 			getSequences(
 				const std::string& database_filename,
@@ -144,25 +150,17 @@ namespace OpenMS
 				std::vector< String >& sequences)
 			throw (
 				Exception::FileNotFound);
-			
-			void
-			getLabels(
-				const std::string& source_database_filename,
-				const std::string& ac_label,
-				const std::string& sequence_start_label,
-				const std::string& sequence_end_label,
-				const std::string& comment_label,
-				const std::string& species_label)
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError);
-			
-			static const UnsignedInt db_pos_length_;
-			static const UnsignedInt trie_db_pos_length_;
-			static const UnsignedInt protein_name_length_;
-			static const UnsignedInt record_length_;
-			static const char trie_delimiter_;
-			static const std::string score_type_;
+
+			/// a record in the index file that belongs to a trie database consists of three parts
+			/// 1) the protein's position in the original database
+			/// 2) the proteins's position in the trie database
+			/// 3) the name of the protein (the line with the accession identifier)
+			static const UnsignedInt db_pos_length_; ///< length of 1)
+			static const UnsignedInt trie_db_pos_length_; ///< length of 2)
+			static const UnsignedInt protein_name_length_; ///< length of 3)
+			static const UnsignedInt record_length_; ///< length of the whole record
+			static const char trie_delimiter_; ///< the sequences in the trie database are delimited by this character
+			static const std::string score_type_;///< type of score
 	};
 	
 } //namespace OpenMS

@@ -367,14 +367,9 @@ class TOPPInspectAdapter
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
-					if ( inspect_out ) inspect_output_filename = temp_data_dir + "tmp.direct.inspect.output";
+					if ( inspect_out ) inspect_output_filename = getParamAsString_("inspect_output", temp_data_dir + "tmp.direct.inspect.output");
 				}
 				else inspect_output_filename = string_buffer;
-			}
-			if ( string_buffer != inspect_output_filename )
-			{
-				string_buffer = getParamAsString_("inspect_output");
-				if ( !string_buffer.empty() ) inspect_output_filename = string_buffer;
 			}
 			
 			string_buffer = getParamAsString_("out");

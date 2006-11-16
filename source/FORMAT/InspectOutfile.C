@@ -619,8 +619,8 @@ namespace OpenMS
 		unsigned char record_flags = 0;
 		
 		string::size_type pos; // the position in a line
-		PointerSizeUInt source_database_pos = source_database.tellg(); // the start of a protein in the source database
-		PointerSizeUInt source_database_pos_buffer; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
+		unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
+		unsigned long long source_database_pos_buffer; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
 		UnsignedInt database_pos;
 		String line, sequence, protein_name;
 		char* record = new char[record_length_]; // a record in the index file
