@@ -39,14 +39,20 @@ SweepExtender::SweepExtender()
 	defaults_.setValue("charge1_ub",1.1f);
 	defaults_.setValue("charge1_lb",0.9f);
 	// charge 2
-	defaults_.setValue("charge2_ub",0.60f);
+	defaults_.setValue("charge2_ub",0.50f);
 	defaults_.setValue("charge2_lb",0.4f);
 	// charge 3
 	defaults_.setValue("charge3_ub",0.4f);
 	defaults_.setValue("charge3_lb",0.2f);
+	// charge 4
+	defaults_.setValue("charge4_ub",0.24f);
+	defaults_.setValue("charge4_lb",0.26f);
+	// charge 5
+	defaults_.setValue("charge5_ub",0.21f);
+	defaults_.setValue("charge5_lb",0.19f);
 	
 	// tolerance in m/z for an monoisotopic peak in the previous scan
-	defaults_.setValue("tolerance_mz",1.2f);
+	defaults_.setValue("tolerance_mz",1.0f);
 	
     param_ = defaults_;
 }
@@ -106,6 +112,12 @@ void SweepExtender::sweep_()
 	
 	charge3_ub_    = param_.getValue("charge3_ub");
 	charge3_lb_     = param_.getValue("charge3_lb");
+	
+	charge4_ub_    = param_.getValue("charge4_ub");
+	charge4_lb_     = param_.getValue("charge4_lb");
+	
+	charge5_ub_    = param_.getValue("charge5_ub");
+	charge5_lb_     = param_.getValue("charge5_lb");
 	
 	CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
 	
@@ -279,6 +291,14 @@ UnsignedInt SweepExtender::testDistance2NextPeak_(CoordinateType dist2nextpeak)
 	else if (dist2nextpeak < charge3_ub_ && dist2nextpeak > charge3_lb_) 
 	{
 		return 3;
+	}
+	else if (dist2nextpeak < charge4_ub_ && dist2nextpeak > charge4_lb_) 
+	{
+		return 4;
+	}
+	else if (dist2nextpeak < charge5_ub_ && dist2nextpeak > charge5_lb_) 
+	{
+		return 5;
 	}
 	else
 	{

@@ -1145,11 +1145,7 @@ namespace OpenMS
 			const SpectrumType& spec = (*cexp_)[s];
 						
 			int MSLevel = spec.getMSLevel();
-			
-//			std::cout << "Scan: " << s << std::endl;
-//			std::cout << "rt: " << (*cexp_)[s].getRetentionTime() << std::endl;
-//			std::cout << "size : " << (*cexp_)[s].size() << std::endl;
-			
+
 			os << String(MSLevel+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
 				 << MSLevel << "\" peaksCount=\""

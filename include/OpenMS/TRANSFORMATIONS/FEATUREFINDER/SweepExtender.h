@@ -192,6 +192,15 @@ protected:
 	/// lower bound for distance between charge 3 peaks
 	CoordinateType charge3_lb_;	
 	
+	/// upper bound for distance between charge 4 peaks
+	CoordinateType charge4_ub_;
+	/// lower bound for distance between charge 4 peaks
+	CoordinateType charge4_lb_;	
+	
+	/// upper bound for distance between charge 5 peaks
+	CoordinateType charge5_ub_;
+	/// lower bound for distance between charge 5 peaks
+	CoordinateType charge5_lb_;	
 }; // end of class SweepExtender
 
 } // end of namespace OpenMS

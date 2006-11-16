@@ -721,7 +721,7 @@ namespace OpenMS
           StopWatch watch;
           watch.start();
           // pick the peaks in scan i
-          pick(ms_exp_raw[i].begin(),ms_exp_raw[i].end(),out_spec,ms_exp_raw[i].getMSLevel());
+          pick(ms_exp_raw[i],out_spec,ms_exp_raw[i].getMSLevel());
           watch.stop();
 
           std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;

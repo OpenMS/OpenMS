@@ -77,7 +77,7 @@ namespace OpenMS
 			// reserve enough space in mutable queue
 			//unsigned int peak_nr = traits_->getNumberOfPeaks();
 			//boundary_.reserve(peak_nr);
-
+		
 			first_seed_seen_ = true;
 
     }
@@ -99,6 +99,10 @@ namespace OpenMS
 
     float prior = computePeakPriority_(seed_p);
     IndexWithPriority seed(seed_index,prior);
+		
+		IntensityType seed_intensity = seed_p.getIntensity();
+		
+		intensity_threshold_ = intensity_factor_ * seed_intensity;
 
     // at the beginning, the boundary contains only the seed
     boundary_.push(seed);
@@ -122,16 +126,10 @@ namespace OpenMS
 
 			// remember last peak to be extracted from the boundary
 			last_pos_extracted_ = current_peak.getPosition();
-
-			// we set the intensity threshold for raw data points to be
-			// included into the feature region to be a fraction of the
-			// intensity of the fifth largest peak
-			if (nr_peaks_seen_ == 5)
-				intensity_threshold_ = intensity_factor_ * current_peak.getIntensity();
-
-			if (current_peak.getIntensity() <  intensity_threshold_)
-				continue;
-
+						
+// 			std::cout << "SimpleExtender: intensity threshold set to " << intensity_threshold_ << " current intensity is " << current_peak.getIntensity() << std::endl;
+// 			std::cout << "That is " << (( current_peak.getIntensity() / seed_intensity )  ) << std::endl;
+						
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
@@ -197,7 +195,7 @@ namespace OpenMS
 				// stop if we've left the current scan
 				if (current_scan != traits_->getPeakScanNr(current_index)
 						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED)
 				{
 				break;
 				}
@@ -226,7 +224,7 @@ namespace OpenMS
 				// stop if we've left the current scan
 				if (current_scan != traits_->getPeakScanNr(current_index)
 						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED)
+						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED)
 				{
 				break;
 				}
@@ -252,7 +250,7 @@ namespace OpenMS
 
 				if (isTooFarFromCentroid_(current_index)
 						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED);
+						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED);
 				{
 				break;
 				}
@@ -278,7 +276,7 @@ namespace OpenMS
 
 				if (isTooFarFromCentroid_(current_index)
 						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) == FeaFiTraits::UNUSED);
+						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED);
 				{
 				break;
 				}
@@ -305,8 +303,11 @@ namespace OpenMS
     // we don't care about points with intensity zero (or less, might occur is TopHatFilter was applied)
 		PeakType p = traits_->getPeak(current_index);
 		
-    if (p.getIntensity() <= 0)
+    if (p.getIntensity() <  intensity_threshold_)
+		{
+// 			std::cout << "Intensity below threshold. Skipping this peak. " << std::endl;
 			return;
+		}
 
 		std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
 		double pr_new = computePeakPriority_(p);

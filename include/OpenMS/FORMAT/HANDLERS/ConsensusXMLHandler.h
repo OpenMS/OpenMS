@@ -400,7 +400,7 @@ namespace OpenMS
     }
 
     template < typename ConsensusElementT >
-    void ConsensusXMLHandler<ConsensusElementT>::characters(const XMLCh* const chars, const unsigned int /*length*/)
+    void ConsensusXMLHandler<ConsensusElementT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
     {
       // find the tag that the parser is in right now
       for (Size i=0; i<is_parser_in_tag_.size(); i++)
