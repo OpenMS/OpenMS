@@ -319,7 +319,7 @@ namespace OpenMS
 		}
 		
 		stringstream ss;
-		ss << enzyme_number_ << ". " << enzyme_info[0] << String(max(22 - enzyme_info[0].length(), (UnsignedInt) 0) + 1, ' ') << enzyme_info[1] << String(6, ' ') << enzyme_info[2] << String(max(aas_single_letter_.length() - enzyme_info[2].length(), (UnsignedInt) 0) + 1, ' ') << enzyme_info[3] << endl;
+		ss << enzyme_number_ << ". " << enzyme_info[0] << String(max(22 - enzyme_info[0].length(), (String::size_type) 0) + 1, ' ') << enzyme_info[1] << String(6, ' ') << enzyme_info[2] << String(max(aas_single_letter_.length() - enzyme_info[2].length(), (String::size_type) 0) + 1, ' ') << enzyme_info[3] << endl;
 		
 		enzyme_info_.append(ss.str());
 	}
