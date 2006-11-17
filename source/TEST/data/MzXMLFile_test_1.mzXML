@@ -15,25 +15,25 @@
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Instrument Comment</comment>
 		</msInstrument>
-		<dataProcessing>
+		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="">
 			<software type="conversion" name="MS-X" version="1.0"/>
 			<processingOperation name="processing 1" type="type 1" value="done 1"/>
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>Software Comment</comment>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1">
+		<scan num="1" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT-1S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Scan Comment</comment>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3">
+		<scan num="2" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT-1S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="5">
+		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT-1S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
-			<scan num="4" msLevel="2" peaksCount="5">
-				<precursorMz>123.456</precursorMz>
+			<scan num="4" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT-1S">
+				<precursorMz precursorIntensity="0">123.456</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			</scan>
 		</scan>

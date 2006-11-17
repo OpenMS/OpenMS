@@ -1083,8 +1083,8 @@ namespace OpenMS
 					}
 				}
 				String info = cont.getContactInfo();
-				UnsignedInt phone = info.find("PHONE:");
-				UnsignedInt uri = info.find("URI:");
+				std::string::size_type phone = info.find("PHONE:");
+				std::string::size_type uri = info.find("URI:");
 				if (phone != std::string::npos)
 				{
 					UnsignedInt end = uri != std::string::npos ? uri : info.size();
