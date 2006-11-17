@@ -55,7 +55,7 @@
 		QuadTree_test\
 		RangeManager_test\
 		Matrix_test\
-		
+
 
 	EXECUTABLES_METADATA = \
 		MetaInfoRegistry_test\
@@ -115,7 +115,7 @@
 		EXECUTABLES_VISUAL =\
 		MultiGradient_test\
 		MappingInfo_test\
-		AxisTickCalculator_test	
+		AxisTickCalculator_test
 	endif
 
 	#FORMAT
@@ -335,7 +335,7 @@ include ../common.mak
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 
 # do not optimize tests (reduces compile time drastically)
-CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0 
+CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
 
 #add libraries for GUI to LIBS
 ifeq ($(ENABLE_GUI),true)
@@ -345,7 +345,7 @@ endif
 
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
-# 
+#
 %%.C:
 	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.C $(LDFLAGS) -o $@ $(LIBS)
 
@@ -404,9 +404,9 @@ applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
 
 clean:	default_clean
-	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP core a.out region* cut* feature* $(EXECUTABLES)
+	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* $(EXECUTABLES)
 
 # Create data files for MzData, MzXML, ANDIFile with variable number of scans
 # Call: format_data [#scans] [filename] (i.e. format_data 100 tmp)
-format_data:	format_data.o 
+format_data:	format_data.o
 	$(CXX)	$(LDFLAGS) -o format_data format_data.o $(LIBS)

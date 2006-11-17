@@ -443,7 +443,7 @@ int main(int argc, char **argv)\
 	 @hideinitializer
 */
 #define NEW_TMP_FILE(filename)\
-					filename = "_"+String::random(7)+".TMP";\
+					filename = String(__FILE__).prefix('.') + '_' + String(__LINE__) + ".tmp";\
 					TEST::tmp_file_list.push_back(filename);\
 					if (TEST::verbose > 1)\
 					{\
