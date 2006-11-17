@@ -1038,8 +1038,12 @@ namespace OpenMS
 				time.substitute(' ', 'T');
 				os << "\t\t\t<software type=\"" << type
 					 << "\" name=\"" << name
-					 << "\" version=\"" << version
-				 	 << "\" completionTime=\"" << time << "\"/>\n";
+					 << "\" version=\"" << version << "\"";
+				if (time != "")
+				{
+					os << " completionTime=\"" << time << "\"";
+				}
+				os << "/>\n";
 			}
 			catch(Exception::InvalidValue exception)
 			{
@@ -1079,17 +1083,26 @@ namespace OpenMS
 					}
 				}
 				String info = cont.getContactInfo();
-				if (info.find("PHONE:")!=std::string::npos && info.find("URI:")!=std::string::npos)
+				UnsignedInt phone = info.find("PHONE:");
+				UnsignedInt uri = info.find("URI:");
+				if (phone != std::string::npos)
+				{
+					UnsignedInt end = uri != std::string::npos ? uri : info.size();
+					os << "\" phone=\"" << info.substr(phone + 6, end - phone + 6);
+				}
+				
+				if (cont.getEmail() != "")
+				{
+					os << "\" email=\"" << cont.getEmail();
+				}
+				
+				if (uri != std::string::npos)
 				{
 					UnsignedInt uri = info.find("URI:");
-					os << "\" phone=\"" << info.substr(6,uri-6).trim()
-						 << "\" email=\"" << cont.getEmail()
-						 << "\" URI=\"" << info.substr(uri+4).trim() << "\"/>\n";
+					os << "\" URI=\"" << info.substr(uri+4).trim();
 				}
-				else
-				{
-					os << "\" phone=\"\" email=\"" << cont.getEmail() << "\" URI=\"" << info << "\"/>\n";
-				}
+				
+				os << "\"/>\n";
 			}
 			writeUserParam_(os,inst,3);
 			try

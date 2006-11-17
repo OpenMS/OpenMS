@@ -8,32 +8,32 @@
 			<msIonisation category="msIonisation" value="ESI"/>
 			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
 			<msDetector category="msDetector" value="Faraday Cup"/>
-			<software type="acquisition" name="MS-Y" version="2.0" completionTime="2001-02-03T04:05:06"/>
+			<software type="acquisition" name="MS-Y" version="2.0"/>
 			<msResolution category="msResolution" value="FWHM"/>
-			<operator first="FirstName" last="LastName" phone="+49-7071-123456" email="admin@foo.de" URI="http://www.OpenMS.de"/>
+			<operator first="FirstName" last="LastName"/>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Instrument Comment</comment>
 		</msInstrument>
-		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1">
-			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+		<dataProcessing>
+			<software type="conversion" name="MS-X" version="1.0"/>
 			<processingOperation name="processing 1" type="type 1" value="done 1"/>
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>Software Comment</comment>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" retentionTime="PT60S">
+		<scan num="1" msLevel="1" peaksCount="1">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Scan Comment</comment>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3" polarity="+" scanType="Full" retentionTime="PT120S" startMz="110" endMz="130">
+		<scan num="2" msLevel="1" peaksCount="3">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="5" polarity="-" scanType="zoom" retentionTime="PT180S" startMz="100" endMz="140">
+		<scan num="3" msLevel="1" peaksCount="5">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
-			<scan num="4" msLevel="2" peaksCount="5" polarity="-" scanType="zoom" retentionTime="PT180S">
-				<precursorMz precursorIntensity="1234" precursorCharge="2">123.456</precursorMz>
+			<scan num="4" msLevel="2" peaksCount="5">
+				<precursorMz>123.456</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			</scan>
 		</scan>
