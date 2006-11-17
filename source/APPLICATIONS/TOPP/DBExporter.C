@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <qapplication.h>
 
@@ -53,72 +53,26 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class TOPPDBExporter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPDBExporter()
-			: TOPPBase("DBExporter")
+			: TOPPBase2("DBExporter","Extracts MS data from a OpenMS database")
 		{
 			
 		}
 	
 	protected:
-		void printToolUsage_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr << endl
-       << getToolName() << " -- Extracts MS data from a OpenMS database." << endl
-       << "Version: " << VersionInfo::getVersion() << endl
-       << endl
-       << "Usage:" << endl
-			 << " " << getToolName() << " [options]" << endl
-			 << endl
-			 << "Options are:" << endl
-			 << "  -u <DB user>      user/login of the DB" << endl
-			 << "  -h <DB host>      host name of the DB server (default: localhost)" << endl
-			 << "  -p <DB password>  password on the DB" << endl
-			 << "  -P <DB port>      port the DB server is running on (default: 3306)" << endl			 
-			 << "  -db <DB name>     DB name" << endl
-			 << "  -id <DB id>       id of the the map to export" << endl
-			 << "  -query <query>    a SQL query that returns one or several DB ids of the MSExperiment table" << endl
-			 << "  -out <file>       output file in mzData format (prefixed with DB id and '_' if several files are exported)" << endl;
-		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  user     user/login of the DB" << endl
-					 << "  host     host name of the DB server (default: localhost)" << endl
-					 << "  password password on the DB" << endl
-					 << "  port     port the DB server is running on (default: 3306)" << endl			 
-					 << "  db       DB name" << endl
-					 << "  id       DB id of the data in the table MSExperiment" << endl
-					 << "  query    a SQL query that returns one or several DB ids of the MSExperiment table" << endl
-					 << "  out      output file name (stored in mzData format)" << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"user\" value=\"user\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"host\" value=\"192.168.0.16\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"password\" value=\"password\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"port\" value=\"3307\" type=\"int\"/>" << endl
-					 << "  <ITEM name=\"db\" value=\"OpenMS_DB\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"id\" value=\"1234567\" type=\"int\"/>" << endl
-					 << "  <ITEM name=\"query\" value=\"SELECT id from MSExperiment WHERE 1\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"ouput.mzData\" type=\"string\"/>" << endl;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-p"] = "password";
-			options_["-u"] = "user";
-			options_["-h"] = "host";
-			options_["-P"] = "port";
-			options_["-db"] = "db";
-			options_["-id"] = "id";
-			options_["-query"] = "query";
-			options_["-out"] = "out";
+			registerStringOption_("u", "<user>", "", "user/login of the DB");
+			registerStringOption_("h", "<host>", "localhost", "host name of the DB server");
+			registerStringOption_("p", "<password>", "", "password for the user");
+			registerIntOption_("P", "<port>", 3306, "port the DB server is running on");
+			registerStringOption_("db", "<name>", "", "DB name");
+			registerIntOption_("id", "<DB id>", 0, "id of the the map to export");
+			registerStringOption_("query", "<query>", "", "a SQL query that returns one or several DB ids of the MSExperiment table");
+			registerStringOption_("out", "<file>", "", "output file in mzData format (prefixed with DB id and '_' if several files are exported)");
 		}
 	
 		ExitCodes main_(int argc , char** argv)
@@ -133,37 +87,14 @@ class TOPPDBExporter
 			UnsignedInt port;
 			UID id;
 			
-			//input file names and types
-			out = getParamAsString_("out");			
-			writeDebug_(String("Output file: ") + out, 1);
-			
-			//db
-			db = getParamAsString_("db");
-			writeDebug_(String("db: ") + db,1);	
-	
-			//user
-			user = getParamAsString_("user");
-			writeDebug_(String("user: ") + user,1);	
-	
-			//password
-			password = getParamAsString_("password");
-			writeDebug_(String("password: ") + password,5);	
-	
-			//host
-			host = getParamAsString_("host","localhost");
-			writeDebug_(String("host: ") + host,1);	
-	
-			//port
-			port = getParamAsInt_("port",3306);
-			writeDebug_(String("port: ") + String(port),1);	
-
-			//query
-			query = getParamAsString_("query");
-			writeDebug_(String("query: ") + query,1);	
-	
-			//id
-			id = getParamAsInt_("id",0);
-			writeDebug_(String("id: ") + String(double(id)),1);	
+			out = getStringOption_("out");			
+			db = getStringOption_("db");
+			user = getStringOption_("user");
+			password = getStringOption_("password");
+			host = getStringOption_("host");
+			port = getIntOption_("port");
+			query = getStringOption_("query");
+			id = getIntOption_("id");
 
 	
 			//-------------------------------------------------------------

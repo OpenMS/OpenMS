@@ -67,7 +67,9 @@ using namespace std;
 	For each data points in the feature region, we compute its probability given
 	the model. Data points with a probability below this cutoff are discarded.</li>
   </ul>
- 
+ 	
+ 	@todo write test (Marc)
+ 	
 	@ingroup TOPP
 */
 

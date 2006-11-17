@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -58,59 +58,24 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileMerger
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPFileMerger()
-		: TOPPBase("FileMerger")
+		: TOPPBase2("FileMerger","Merges several single scan files into a mzData file")
 	{
 			
 	}
 	
  protected:
-	void printToolUsage_() const
+	void registerOptionsAndFlags_()
 	{
-		cerr  << endl
-					<< getToolName() << " -- Merges several single scan files into a mzData file." << endl
-					<< "Version: " << VersionInfo::getVersion() << endl
-					<< endl
-					<< "Usage:" << endl
-					<< " " << getToolName() << " [options]" << endl
-					<< endl
-					<< "Options are:" << endl
-					<< "  -file_list <file> a text file containing file names and retention times separated by tab." << endl
-					<< "                    If no retention time is given, it is taken from the input file." << endl
-					<< "  -in_type <type>   input file type (default: determined from input file extension)." << endl
-					<< "  -out <file>       output mzData file name" << endl
-					<< "  -auto_number      automatically numbers the scans (starting at 1)." << endl
-					<< endl
-					<< "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'" << endl;
-	}
-	
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  file_list <file> a text file containing file names and retention times sparated by tab" << endl
-				 << "  in_type <type>   input file type (default: determined from input file extension)" << endl
-				 << "  out              output mzData file name" << endl
-				 << "  auto_number      automatically numbers the scans (starting at 1)." << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"file_list\" value=\"input.txt\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"in_type\" value=\"DTA\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"auto_number\" value=\"\" type=\"string\"/>" << endl;
-	}
-	
-	void setOptionsAndFlags_()
-	{
-		options_["-file_list"] = "file_list";
-		options_["-in_type"] = "in_type";
-		options_["-out"] = "out";
-		flags_["-auto_number"] = "auto_number";
+		registerStringOption_("file_list","<file>","","a text file containing file names and retention times separated by tab.\n"
+																									"If no retention time is given, it is taken from the input file");
+		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension)\n"
+		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'");
+		registerStringOption_("out","<file>","","output file in MzData format");
+		registerFlag_("auto_number","automatically numbers the scans (starting at 1)");
 	}
 	
 	ExitCodes main_(int , char**)
@@ -121,19 +86,17 @@ class TOPPFileMerger
 		//-------------------------------------------------------------
 	
 		//file list
-		String file_list_name = getParamAsString_("file_list");
-		writeDebug_(String("File list: ") + file_list_name, 1);
+		String file_list_name = getStringOption_("file_list");
 
 		//file type
 		FileHandler fh;
-		FileHandler::Type force_type = fh.nameToType(getParamAsString_("in_type",""));
+		FileHandler::Type force_type = fh.nameToType(getStringOption_("in_type"));
 	
 		//output file names and types
-		String out_file = getParamAsString_("out");
-		writeDebug_(String("Output file: ") + out_file, 1);
+		String out_file = getStringOption_("out");
 
 		//auto numbering
-		bool auto_number = getParamAsBool_("auto_number",false);
+		bool auto_number = getFlag_("auto_number");
 			
 		//-------------------------------------------------------------
 		// loading input

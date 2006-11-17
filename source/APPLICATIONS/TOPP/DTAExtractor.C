@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,61 +50,24 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class TOPPDTAExtractor
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPDTAExtractor()
-			: TOPPBase("DTAExtractor")
+			: TOPPBase2("DTAExtractor","extracts scans of an mzData file to several files in DTA format")
 		{
 			
 		}
 
 	protected:
-		void printToolUsage_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr  << endl
-						<< getToolName() << " -- extracts scans of an mzData file to several files in DTA format." << endl
-						<< "Version: " << VersionInfo::getVersion() << endl
-						<< endl
-						<< "Usage:" << endl
-						<< " " << getToolName() << " [options]" << endl
-						<< endl
-						<< "Options are:" << endl
-						<< "  -in <file>        input mzData file name" << endl
-						<< "  -out <file>       output base file name (RT and m/z are appended)" << endl
-						<< "  -mz [min]:[max]   m/z range of precursor peaks to extract (ignored for MS level 1)" << endl
-						<< "  -rt [min]:[max]   retention time range of spectra to extract" << endl
-						<< "  -level i[,j]...   MS levels to extract (default: ALL)" << endl;
-						
-		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in      input mzData file name" << endl
-					 << "  out     output base file name (RT and m/z are appended)" << endl
-					 << "  mz      m/z range to extract" << endl
-					 << "  rt      retention time range to extract" << endl
-					 << "  level   MS levels to extract (default: ALL)" << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"DTA/input\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"mz\" value=\"500:1000\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"rt\" value=\":100\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"level\" value=\"1,2\" type=\"string\"/>" << endl;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-in"] = "in";
-			options_["-out"] = "out";
-			options_["-mz"] = "mz";
-			options_["-rt"] = "rt";
-			options_["-level"] = "level";
+			registerStringOption_("in","<file>","","input file in MzData format");
+			registerStringOption_("out","<file>","","base name of output files (RT, m/z and extension are appended)");
+			registerStringOption_("mz","[min]:[max]",":","m/z range of precursor peaks to extract.\n"
+																									 "This option is ignored for MS level 1");
+			registerStringOption_("rt","[min]:[max]",":","retention time range of spectra to extract");
+			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract");
 		}
 	
 		ExitCodes main_(int , char**)
@@ -114,34 +77,20 @@ class TOPPDTAExtractor
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			//input file names and types
-			String in = getParamAsString_("in");			
-			writeDebug_(String("Input file: ") + in, 1);
-
-			//oputput file names and types
-			String out = getParamAsString_("out");			
-			writeDebug_(String("Output file base: ") + out, 1);
+			String in = getStringOption_("in");			
+			String out = getStringOption_("out");			
 
 			//ranges
 			String mz, rt, tmp;
 			double mz_l, mz_u, rt_l, rt_u;
-			vector<UnsignedInt> levels;
-			
+			vector<UnsignedInt> levels;			
 			//initialize ranges
 			mz_l = rt_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = numeric_limits<double>::max();
 			
-			//determine rt bounds
-			rt = getParamAsString_("rt",":");
-			writeDebug_(String("rt bounds: ") + rt,2);	
-			
-			//determine mz bounds
-			mz = getParamAsString_("mz",":");
-			writeDebug_(String("mz bounds: ") + mz,2);	
-
-			//determine levels
-			String level = getParamAsString_("level","1,2,3,4,5");
-			writeDebug_(String("MS levels: ") + level,2);	
+			rt = getStringOption_("rt");
+			mz = getStringOption_("mz");
+			String level = getStringOption_("level");
 			
 			//convert bounds to numbers
 			try

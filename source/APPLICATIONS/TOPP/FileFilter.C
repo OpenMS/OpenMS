@@ -27,7 +27,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,70 +52,26 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileFilter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase("FileFilter")
+			: TOPPBase2("FileFilter","extracts portions of the data from an mzData file")
 		{
 			
 		}
 	
 	protected:
-		void printToolUsage_() const
+
+		void registerOptionsAndFlags_()
 		{
-			cerr  << endl
-						<< getToolName() << " -- extracts portions of the data from an mzData file." << endl
-						<< "Version: " << VersionInfo::getVersion() << endl
-						<< endl
-						<< "Usage:" << endl
-						<< " " << getToolName() << " [options]" << endl
-						<< endl
-						<< "Options are:" << endl
-						<< "  -in <file>        input mzData file name" << endl
-						<< "  -out <file>       output mzData file name" << endl
-						<< "  -mz [min]:[max]   m/z range to extract" << endl
-						<< "  -rt [min]:[max]   retention time range to extract" << endl
-						<< "  -int [min]:[max]  intensity range to extract" << endl
-						<< "  -level i[,j]...   MS levels to extract (default: ALL)" << endl
-					  << "  -remove_zoom      flag that removes zoom scans" << endl
-					  ;
-		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in            input mzData file name" << endl
-					 << "  out           output mzData file name" << endl
-					 << "  mz            m/z range to extract" << endl
-					 << "  rt            retention time range to extract" << endl
-					 << "  int           intensity range to extract" << endl
-					 << "  level         MS levels to extract (default: ALL)" << endl
-					 << "  remove_zoom   remove zoom scans (default: no)" << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"mz\" value=\"500:1000\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"rt\" value=\":100\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"int\" value=\"5000:\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"level\" value=\"1,2\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"remove_zoom\" value=\"\" type=\"string\"/>" << endl
-					 ;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-out"] = "out";
-			options_["-in"] = "in";
-			options_["-mz"] = "mz";
-			options_["-rt"] = "rt";
-			options_["-int"] = "int";
-			options_["-level"] = "level";
-			flags_["-remove_zoom"] = "remove_zoom";
+			registerStringOption_("in","<file>","","input file in MzData format");
+			registerStringOption_("out","<file>","","output file in MzData format");
+			registerStringOption_("mz","[min]:[max]",":","m/z range to extract");
+			registerStringOption_("rt","[min]:[max]",":","retention time range to extract");
+			registerStringOption_("int","[min]:[max]",":","intensity range to extract");
+			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract");
+			registerFlag_("remove_zoom","flag that removes zoom scans");
 		}
 	
 		ExitCodes main_(int , char**)
@@ -125,38 +81,21 @@ class TOPPFileFilter
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			//input file names and types
-			String in = getParamAsString_("in");			
-			writeDebug_(String("Input file: ") + in, 1);
+			String in = getStringOption_("in");			
+			String out = getStringOption_("out");
 	
-			//output file names and types
-			String out = getParamAsString_("out");
-			writeDebug_(String("Output file: ") + out, 1);
-
 			//ranges
 			String mz, rt, it, level, tmp;
 			double mz_l, mz_u, rt_l, rt_u, it_l, it_u;
-			vector<UnsignedInt> levels;
-			
+			vector<UnsignedInt> levels;		
 			//initialize ranges
 			mz_l = rt_l = it_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = it_u = numeric_limits<double>::max();
 			
-			//determine rt bounds
-			rt = getParamAsString_("rt",":");
-			writeDebug_(String("rt bounds: ") + rt,2);	
-			
-			//determine mz bounds
-			mz = getParamAsString_("mz",":");
-			writeDebug_(String("mz bounds: ") + mz,2);	
-			
-			//determine int bounds
-			it = getParamAsString_("int",":");
-			writeDebug_(String("int bounds: ") + it,2);	
-
-			//determine levels
-			level = getParamAsString_("level","1,2,3,4,5");
-			writeDebug_(String("MS levels: ") + level,2);	
+			rt = getStringOption_("rt");
+			mz = getStringOption_("mz");
+			it = getStringOption_("int");
+			level = getStringOption_("level");
 			
 			//convert bounds to numbers
 			try
@@ -247,7 +186,7 @@ class TOPPFileFilter
 			exp.erase(remove_if(exp.begin(), exp.end(), MSLevelRange<MSExperiment< >::SpectrumType>(levels, true)), exp.end());
 			
 			//remove zoom scan mode (might be a lot of spectra)
-			bool rem_zoom = getParamAsBool_("remove_zoom");
+			bool rem_zoom = getFlag_("remove_zoom");
 			writeDebug_(String("Remove zoom: ") + String(rem_zoom),3);
 			if (rem_zoom)
 			{

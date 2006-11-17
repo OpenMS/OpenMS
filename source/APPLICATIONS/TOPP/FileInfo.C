@@ -72,9 +72,9 @@ class TOPPFileInfo
 
 		virtual void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","","input file");
-			registerStringOption_("in_type","","input file type (default: determined from input file extension or file content)\n"
-			                                   "valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'");
+			registerStringOption_("in","<file>","","input file");
+			registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension or file content)\n"
+			                                            "valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'");
 			registerFlag_("m","show meta information about the whole experiment");
 		}
 		

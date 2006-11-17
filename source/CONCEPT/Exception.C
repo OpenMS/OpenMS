@@ -372,7 +372,7 @@ namespace OpenMS
 				:	Base(file, line, function, "InvalidValue", "")
 			{
 				stringstream ss;
-				ss << "The value `" << value << "' was used but not valid! " << message;
+				ss << "The value `" << value << "' was used but is not valid! " << message;
 				what_ = ss.str();
 				globalHandler.setMessage(what_);
 			}

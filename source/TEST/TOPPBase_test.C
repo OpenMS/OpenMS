@@ -53,9 +53,9 @@ class TOPPBaseTest
 		
 		virtual void registerOptionsAndFlags_()
 		{
-			registerStringOption_("stringoption","string default","string description");
-			registerIntOption_("intoption",4711,"int description");
-			registerDoubleOption_("doubleoption",0.4711,"double description");
+			registerStringOption_("stringoption","<string>","string default","string description");
+			registerIntOption_("intoption","<int>",4711,"int description");
+			registerDoubleOption_("doubleoption","<double>",0.4711,"double description");
 			registerFlag_("flag","flag description");
 		}
 

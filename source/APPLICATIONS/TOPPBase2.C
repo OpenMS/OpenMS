@@ -59,10 +59,10 @@ namespace OpenMS
 		registerOptionsAndFlags_();
 		addEmptyLine_();
 		addText_("Common TOPP options:");
-		registerStringOption_("ini","","Use the given TOPP INI file");
-		registerStringOption_("log","TOPP.log","Location of the log file");
-		registerIntOption_("instance",1,"Instance number for the TOPP INI file");
-		registerIntOption_("debug",0,"Sets the debug level");
+		registerStringOption_("ini","<file>","","Use the given TOPP INI file");
+		registerStringOption_("log","<file>","TOPP.log","Location of the log file");
+		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file");
+		registerIntOption_("debug","<n>",0,"Sets the debug level");
 		registerFlag_("-help","Shows this help");
 		
 		// prepare options and flags for command line parsing
@@ -224,9 +224,9 @@ namespace OpenMS
 			writeLog_(String("Error: Unable to read file (") + e.what() + ")");
 			return INPUT_FILE_CORRUPT;
 		}
-		catch(Exception::IllegalArgument& e)
+		catch(Exception::InvalidValue& e)
 		{
-			writeLog_(String("Error: Illegal argument (") + e.what() + ")");
+			writeLog_(String("Error: ") + e.what() + " in " + e.getFunction());
 			return INTERNAL_ERROR;
 		}
 		catch(Exception::Base& e)
@@ -252,41 +252,22 @@ namespace OpenMS
 				 << endl
 				 << "Options are:" << endl;
 		
-		//determine max length of parameters
+		//determine max length of parameters (including argument) for indentation
 		string::size_type max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			max_size = max(max_size,it->name.size());
+			max_size = max(max_size,it->name.size()+it->argument.size());
 		}
 		
 		//offset of the descriptions
-		UnsignedInt offset = 13 + max_size;
+		UnsignedInt offset = 6 + max_size;
 		
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			//NAME
+			//NAME + ARGUMENT
 			String tmp = "  -";
-			tmp += it->name;
-			
-			//TYPE
-			switch (it->type)
-			{
-				case ParameterInformation::STRING:
-					tmp += " <string> ";
-					break;
-				case ParameterInformation::DOUBLE:
-					tmp += " <real>   ";
-					break;
-				case ParameterInformation::INT:
-					tmp += " <int>    ";
-					break;
-				case ParameterInformation::NEWLINE:
-					cerr << endl;
-					continue;
-					break;			
-				default:
-					break;
-			}
+			tmp += it->name + " " + it->argument;
+			if (it->type == ParameterInformation::NEWLINE) tmp = "";
 			
 			//OFFSET
 			tmp.fillRight(' ',offset);
@@ -324,14 +305,14 @@ namespace OpenMS
 				case ParameterInformation:: STRING:
 					if (it->default_value!="") 
 					{
-						cerr << " (default: " << it->default_value << ")";
+						cerr << " (default: '" << it->default_value << "')";
 					}
 					break;
 				case ParameterInformation::DOUBLE:
-					cerr << " (default: " << it->default_value << ")";
+					cerr << " (default: '" << it->default_value << "')";
 					break;
 				case ParameterInformation::INT:
-					cerr << " (default: " << it->default_value << ")";
+					cerr << " (default: '" << it->default_value << "')";
 					break;				
 				default:
 					break;
@@ -343,39 +324,39 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase2::registerStringOption_(const String& name, const String& default_value,const String& description)
+	void TOPPBase2::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description)
 	{
-		parameters_.push_back(ParameterInformation(name,ParameterInformation::STRING, default_value, description));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description));
 	}
 	
 
-	void TOPPBase2::registerDoubleOption_(const String& name, double default_value, const String& description)
+	void TOPPBase2::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description)
 	{
-		parameters_.push_back(ParameterInformation(name,ParameterInformation::DOUBLE, String(default_value), description));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, String(default_value), description));
 	}
 	
 
-	void TOPPBase2::registerIntOption_(const String& name, SignedInt default_value, const String& description)
+	void TOPPBase2::registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description)
 	{
-		parameters_.push_back(ParameterInformation(name,ParameterInformation::INT, String(default_value), description));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, String(default_value), description));
 	}
 
 	void TOPPBase2::registerFlag_(const String& name, const String& description)
 	{
-		parameters_.push_back(ParameterInformation(name,ParameterInformation::FLAG, "", description));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", description));
 	}
 
 	void TOPPBase2::addEmptyLine_()
 	{
-		parameters_.push_back(ParameterInformation("",ParameterInformation::NEWLINE, "", ""));
+		parameters_.push_back(ParameterInformation("",ParameterInformation::NEWLINE, "", "", ""));
 	}
 
 	void TOPPBase2::addText_(const String& text)
 	{
-		parameters_.push_back(ParameterInformation("",ParameterInformation::TEXT, "", text));
+		parameters_.push_back(ParameterInformation("",ParameterInformation::TEXT, "", "", text));
 	}
 
-	const TOPPBase2::ParameterInformation& TOPPBase2::findEntry_(const String& name) const throw (Exception::IllegalArgument)
+	const TOPPBase2::ParameterInformation& TOPPBase2::findEntry_(const String& name) const throw (Exception::InvalidValue)
 	{
 		vector<ParameterInformation>::const_iterator it = parameters_.begin();
 		while(it != parameters_.end() && it->name!=name)
@@ -384,34 +365,54 @@ namespace OpenMS
 		}
 		if (it == parameters_.end())
 		{
-			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"name argument invalid!");
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Access to unregistered parameter", name);
 		}
 		return *it;
 	}
 	
-	String TOPPBase2::getStringOption_(const String& name) const
+	String TOPPBase2::getStringOption_(const String& name) const throw (Exception::InvalidValue)
 	{
-		String tmp = getParamAsString_(name, findEntry_(name).default_value);
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::STRING)
+		{
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Access to non-string parameter", name);
+		}
+		String tmp = getParamAsString_(name, p.default_value);
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 		return tmp;
 	}
 	
-	double TOPPBase2::getDoubleOption_(const String& name) const
+	double TOPPBase2::getDoubleOption_(const String& name) const throw (Exception::InvalidValue)
 	{
-		double tmp = getParamAsDouble_(name, String(findEntry_(name).default_value).toFloat());
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::DOUBLE)
+		{
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Access to non-double parameter", name);
+		}
+		double tmp = getParamAsDouble_(name, String(p.default_value).toFloat());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 		return tmp;
 	}
 	
-	SignedInt TOPPBase2::getIntOption_(const String& name) const
+	SignedInt TOPPBase2::getIntOption_(const String& name) const throw (Exception::InvalidValue)
 	{
-		SignedInt tmp = getParamAsInt_(name, String(findEntry_(name).default_value).toInt());
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::INT)
+		{
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Access to non-int parameter", name);
+		}
+		SignedInt tmp = getParamAsInt_(name, String(p.default_value).toInt());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 		return tmp;
 	}
 	
-	bool TOPPBase2::getFlag_(const String& name) const
+	bool TOPPBase2::getFlag_(const String& name) const throw (Exception::InvalidValue)
 	{
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::FLAG)
+		{
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Access to non-flag parameter", name);
+		}
 		bool tmp = getParamAsBool_(name);
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 		return tmp;
@@ -693,9 +694,9 @@ namespace OpenMS
 						break;
 				};
 			}
-			catch (Exception::IllegalArgument)
+			catch (Exception::InvalidValue)
 			{
-				writeLog_("Warning: Unknown parameter '" + location + it->first + "' in '" + filename + "'");
+				writeLog_("Warning: Unknown parameter '" + location + it->first + "' in '" + filename + "'!");
 			}
 		}
 	}

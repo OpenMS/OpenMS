@@ -38,7 +38,6 @@ UNCONDITIONAL_TESTS = \
 	DBImporter_test \
 	DTAExtractor_test \
 	Dewarper_test \
-	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
@@ -53,7 +52,8 @@ UNCONDITIONAL_TESTS = \
 	NoiseFilter_test \
 	PeakPicker_test \
 	SequestAdapter_test \
-	SpectraFilter_test
+	SpectraFilter_test \
+	FeatureFinder_test \
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS=\
@@ -75,7 +75,7 @@ TOPP_PIPELINE_TESTS = \
 	MyoQuant_test \
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.*
+CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature*
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/

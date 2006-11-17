@@ -41,7 +41,9 @@ namespace OpenMS
 		 You have to implement the virtual methods @ref printToolUsage_, @ref printToolHelpOpt_, @ref setOptionsAndFlags_ 
 		 and @ref main_ only.
 		 
-		 @todo complete the tests (Clemens)
+		 @note This class is deprecated! Please move to TOPPBase2! Instructions how to do that can be found there!
+		 
+		 
 	*/
   class TOPPBase
   {

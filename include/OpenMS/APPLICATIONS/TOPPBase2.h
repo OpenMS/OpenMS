@@ -42,6 +42,15 @@ namespace OpenMS
 		 and @ref main_ only.
 		 
 		 @todo complete the tests (Clemens)
+		 
+		 To move from TOPPBase to TOPPBase2:
+		 <OL>
+		 	 <LI> Change include to TOPPBase2
+		 	 <LI> Change constructors to TOPPBase2 (move tool description to constructors)
+		 	 <LI> rename setOptionsAndFlags to registerOptionsAndFlags_
+		 	 <LI> Add registration (name, argument text, default value, description)
+		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
+		 </OL>
 	*/
   class TOPPBase2
   {
@@ -97,22 +106,26 @@ namespace OpenMS
 			std::string default_value;
 			/// description of the parameter
 			std::string description;
+			/// argument in the description
+			std::string argument;
 				
-			ParameterInformation(const std::string& n, ParameterTypes t, const std::string& def, const std::string& desc)
+			ParameterInformation(const std::string& n, ParameterTypes t, const std::string& arg,const std::string& def, const std::string& desc)
 			{
 				name = n;
 				type = t;
 				default_value = def;
 				description = desc;
-			};
+				argument = arg;
+			}
 
 			ParameterInformation()
 				: name(),
 					type(NONE),
 					default_value(),
-					description()
+					description(),
+					argument()
 			{
-			};
+			}
 
 			ParameterInformation& operator=(const ParameterInformation& rhs)
 			{
@@ -124,7 +137,7 @@ namespace OpenMS
 				description = rhs.description;
 				
 				return *this;
-			};
+			}
 
 		};
 
@@ -191,7 +204,7 @@ namespace OpenMS
 		std::vector<ParameterInformation> parameters_;
 		
 		/// Finds the the entry in the parameters_ array that has the name @p name
-		const ParameterInformation& findEntry_(const String& name) const throw (Exception::IllegalArgument);
+		const ParameterInformation& findEntry_(const String& name) const throw (Exception::InvalidValue);
 
 		/** 
 			@name Internal parameter handling
@@ -286,14 +299,35 @@ namespace OpenMS
 		*/
 		virtual void registerOptionsAndFlags_()=0;
 
-		/// Registers a string option. Indentation of newline is done automatically.
-		void registerStringOption_(const String& name, const String& default_value, const String& description);
+		/**
+			@brief Registers a string option. Indentation of newline is done automatically
+			
+			@param name Name of the option in the command line and the INI file
+			@param argument Argument description text for the help output
+			@param default_value Default argument
+			@param description Description of the parameter. Indentation of newline is done automatically.
+		*/
+		void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description);
 		
-		/// Registers a double option. Indentation of newline is done automatically.
-		void registerDoubleOption_(const String& name, double default_value, const String& description);
+		/**
+			@brief Registers a double option. Indentation of newline is done automatically.
+			
+			@param name Name of the option in the command line and the INI file
+			@param argument Argument description text for the help output
+			@param default_value Default argument
+			@param description Description of the parameter. Indentation of newline is done automatically.
+		*/
+		void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description);
 		
-		/// Registers a integer option. Indentation of newline is done automatically.
-		void registerIntOption_(const String& name, SignedInt default_value, const String& description);
+		/**
+			@brief Registers an integer option. 
+			
+			@param name Name of the option in the command line and the INI file
+			@param argument Argument description text for the help output
+			@param default_value Default argument
+			@param description Description of the parameter. Indentation of newline is done automatically.
+		*/
+		void registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description);
 		
 		/// Adds an empty line between registered variables in the documentation.
 		void addEmptyLine_();
@@ -305,16 +339,16 @@ namespace OpenMS
 		void registerFlag_(const String& name, const String& description);
 
 		///Returns the value of a previously registered string option
-		String getStringOption_(const String& name) const;
+		String getStringOption_(const String& name) const throw (Exception::InvalidValue);
 		
 		///Returns the value of a previously registered double option
-		double getDoubleOption_(const String& name) const;
+		double getDoubleOption_(const String& name) const throw (Exception::InvalidValue);
 		
 		///Returns the value of a previously registered integer option
-		SignedInt getIntOption_(const String& name) const;
+		SignedInt getIntOption_(const String& name) const throw (Exception::InvalidValue);
 		
 		///Returns the value of a previously registered flag
-		bool getFlag_(const String& name) const;
+		bool getFlag_(const String& name) const throw (Exception::InvalidValue);
 	
 		//@}
 		

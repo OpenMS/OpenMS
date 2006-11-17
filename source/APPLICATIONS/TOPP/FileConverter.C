@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,60 +56,26 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileConverter
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPFileConverter()
-		: TOPPBase("FileConverter")
+		: TOPPBase2("FileConverter","converts between different MS file formats")
 	{
 			
 	}
 	
  protected:
-	void printToolUsage_() const
+
+	void registerOptionsAndFlags_()
 	{
-		cerr << endl
-				 << getToolName() << " -- converts between different MS file formats." << endl
-				 << "Version: " << VersionInfo::getVersion() << endl
-				 << endl
-				 << "Usage:" << endl
-				 << "  " << getToolName() << " [options]" << endl
-				 << endl
-				 << "Options are:" << endl
-				 << "  -in <file>        input file" << endl
-				 << "  -out <file>       output file" << endl
-				 << "  -in_type <type>   input file type (default: determined from input file extension)" << endl
-				 << "  -out_type <type>  output file type (default: determined from output file extension)" << endl
-				 << endl
-				 << "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'" << endl
-				 << "                       'FeatureFile' can be converted, but will lose feature specific information" << endl
-				 << "Valid output types are: 'mzData', 'mzXML', 'DTA2D'" << endl;	
-	}
-	
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  in         input file" << endl
-				 << "  out        output file" << endl
-				 << "  in_type    input file type (default: determined from input file extension)" << endl
-				 << "  out_type   output file type (default: determined from output file extension)" << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"in_type\" value=\"MZDATA\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.mzXML\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out_type\" value=\"MZXML\" type=\"string\"/>" << endl;
-	}
-	
-	void setOptionsAndFlags_()
-	{
-		options_["-out"] = "out";
-		options_["-in"] = "in";
-		options_["-out_type"] = "out_type";
-		options_["-in_type"] = "in_type";
+		registerStringOption_("in","<file>","","input file\n");
+		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension)\n"
+		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'\n"
+																	              "'FeatureFile' can be converted, but will lose feature specific information");
+		registerStringOption_("out","<file>","","output file\n");
+		registerStringOption_("out_type","<type>","","output file type (default: determined from input file extension)\n"
+		                              	             "Valid output types are: 'mzData', 'mzXML', 'DTA2D'");
 	}
 	
 	ExitCodes main_(int , char**)
@@ -120,15 +86,12 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 	
 		//input file names
-		String in = getParamAsString_("in");
-		writeDebug_(String("Input file: ") + in, 1);
+		String in = getStringOption_("in");
 			
 		//input file type
 		FileHandler fh;
-		FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
-			
-		writeDebug_(String("Input file type (from command line): ") + fh.typeToName(in_type), 1);
-			
+		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
+					
 		if (in_type==FileHandler::UNKNOWN)
 		{
 			in_type = fh.getTypeByFileName(in);
@@ -142,15 +105,14 @@ class TOPPFileConverter
 		}
 	
 		//output file names and types
-		String out = getParamAsString_("out");
-		FileHandler::Type out_type = fh.nameToType(getParamAsString_("out_type",""));
+		String out = getStringOption_("out");
+		FileHandler::Type out_type = fh.nameToType(getStringOption_("out_type"));
 			
 		if (out_type==FileHandler::UNKNOWN)
 		{
 			out_type = fh.getTypeByFileName(out);
 		}
-			
-		writeDebug_(String("Output file: ") + out, 1);
+		
 		writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
 			
 		//-------------------------------------------------------------
