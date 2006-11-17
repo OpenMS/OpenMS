@@ -226,7 +226,6 @@ CHECK(writePGM())
 	{ // using defaults (black background, no scaling)
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "0.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output);
 		output.close();
@@ -235,7 +234,6 @@ CHECK(writePGM())
 	{ // black background, with comment
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "1.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,15,0,false,"One comment line\nAnother comment line.");
 		output.close();
@@ -244,7 +242,6 @@ CHECK(writePGM())
 	{ // white background, reduced gray scale
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "2a.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,4,0,true);
 		output.close();
@@ -253,7 +250,6 @@ CHECK(writePGM())
 	{ // using 1 bit (get "  ep" only)
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "4.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,1,1./15,false,"binary feep (is \"  ep\" only)");
 		output.close();
@@ -262,7 +258,6 @@ CHECK(writePGM())
 	{ // using 1 bit, reverse video (get "  ep" only)
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "4r.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,1,1./15,true,"binary feep (is \"  ep\" only)");
 		output.close();
@@ -271,7 +266,6 @@ CHECK(writePGM())
 	{ // no scaling, but reverse video
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "2.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,0,1,true);
 		output.close();
@@ -280,7 +274,6 @@ CHECK(writePGM())
 	{ // using 16 bit
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
-		feep_pgm = "3.TMP";
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,(1<<16)-1);
 		output.close();
