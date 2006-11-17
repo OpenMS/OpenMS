@@ -395,7 +395,8 @@ InspectAdapter_test: $(NUMERICDIFF)
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.feat -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.pairs,LabeledMatcher_1_output.tmp)
 
 
 MapAlignment_test: $(NUMERICDIFF)

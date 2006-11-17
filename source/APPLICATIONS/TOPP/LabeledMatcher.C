@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <iostream>
 #include <fstream>
@@ -49,26 +49,10 @@ using namespace std;
 	@brief Executes the pair matching algorithm for labeled peptides.
  
 	This module identifies pairs of labeled "features" in a LC/MS map.
-	By feature, we understand a peptide in a MS sample that
-	reveals a characteristic isotope distribution.
- 
-  
-  <ul>
-	<li><b>min_intensity</b> :
-	minimum intensity of a seed
-	</li>
-	<li><b>priority_thr</b> :
-	The priority of data point is a function of its intensity and
-	its distance from the seed. Data points with a priority below this
-	threshold are not included into the feature region.</li>
-	<li><b>min_quality</b> :
-	minimum quality of feature, if smaller feature will be discarded</li>
-	<li><b>intensity_cutoff_factor</b>
-	For each data points in the feature region, we compute its probability given
-	the model. Data points with a probability below this cutoff are discarded.</li>
-  </ul>
+	By feature, we understand a peptide in a MS sample that reveals a characteristic isotope distribution.
  	
- 	@todo write test (Marc)
+ 	@todo write more docu, write more test (Marc)
+ 	@todo remove vis_all and vis_best as soon as FeaturePair files can be shown in TOPPView (Marc)
  	
 	@ingroup TOPP
 */
@@ -78,156 +62,115 @@ using namespace std;
 
 
 class TOPPLabeledMatcher
-      : public TOPPBase
+      : public TOPPBase2
 {
-public:
-  TOPPLabeledMatcher()
-      : TOPPBase("LabeledMatcher")
-  {}
+	public:
+		
+	  TOPPLabeledMatcher()
+	    : TOPPBase2("LabeledMatcher","find pairs of labeled features in LC/MS data")
+	  {
+	  }
 
-protected:
-  void printToolUsage_() const
-  {
-    cerr << endl
-    << getToolName() << " -- find pairs of labeled features in LC/MS data" << endl
-    << "Version: " << VersionInfo::getVersion() << endl
-    << endl
-    << "Usage:" << endl
-    << " " << getToolName() << " [-in <file>] [-out <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]" << endl
-    << "  -in  <file>       input file" << endl
-    << "  -out <file>  	    output file" << endl
-    << "  -vis_all <file>   output file of all pairs for visualisation in TOPPView"
-    << "  -vis_best <file>  output file of the best pairs for visualisation in TOPPView"
-    << ""
-    << "The boundaries on m/z and RT dimension can be defined only in the INI file!"
-    << endl;
-  }
-
-   void printToolHelpOpt_() const
-  {
-    cerr << endl
-    << getToolName() << endl
-    << endl
-    << "INI options:" << endl
-    << "in        input file in mzData format (default read from INI file)" << endl
-    << "out  	  output file" << endl
-    << "vis_all   output file of all pairs "
-    << "vis_best  output file of the best pairs "
-    << endl
-    << "INI File example section:" << endl
-    << "  <ITEM name=\"in\" value=\"input.xml\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"out\" value=\"output.xml\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"vis_all\" value=\"output_all_pairs.xml\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"vis_best\" value=\"output_vis_best.xml\" type=\"string\"/>" << endl
-		<< "  <NODE name=\"algorithm\">" << endl
-		<< "    <ITEM name=\"rt_pair_dist\" value=\"0.5\" type=\"float\"/>" << endl
-		<< "    <ITEM name=\"rt_stdev_low\" value=\"0.22\" type=\"float\"/>" << endl
-		<< "    <ITEM name=\"rt_stdev_high\" value=\"0.65\" type=\"float\"/>" << endl
-		<< "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>" << endl
-		<< "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>" << endl
-		<< "  </NODE>" << endl;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    //list of all the valid options
-    options_["-out"] = "out";
-    options_["-in"] = "in";
-    options_["-vis_best"] = "vis_best";
-    options_["-vis_all"] = "vis_all";
-  }
-
-  ExitCodes main_(int , char**)
-  {
-
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-
-    // input file to be read
-    String inputfile = "";
-
-    // output file to be written
-    String outputfile = "";
-    String vis_all_outputfile = "";
-    String vis_best_outputfile = "";
-
-    // determine name of input file
-    inputfile = getParamAsString_("in");
-    outputfile = getParamAsString_("out");
-
-    // determine name ouf visualization output file
-    vis_all_outputfile = getParamAsString_("vis_all");
-    vis_best_outputfile = getParamAsString_("vis_best");
-
-
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-
-
-    DFeatureMap<2> features;
-    DFeatureMapFile().load(inputfile,features);
-
-    // sort input file
-    enum DimensionId
-    {
-      RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-      MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-    };
-
-    typedef DFeature<2>::NthPositionLess< RT > RTless;
-    typedef DFeature<2>::NthPositionLess<MZ> MZless;
-    sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
-
-    PairMatcher pm(features);
-
-    // String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    Param pm_param = getParamCopy_(getIniLocation()+"algorithm:");
-    writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
-    pm.setParam(pm_param);
-
-    //pm.setDebugLevel(debug_level);
-    //pm.setDebugStream(&log);
-    //pm.setInstanceId(ini_location);
-
-    writeLog_(" Running LabeledMatcher...");
-
-    const DFeaturePairVector<2>* pairs = &pm.run();
-
-    // save pairs in DFeatureMap for visualization in TOPPView
-    // (until visualization of DFeaturePairFile is available)
-    if (vis_all_outputfile!="")
-    {
-      DFeatureMap<2> map;
-      PairMatcher::fillFeatureMap(map,*pairs);
-      DFeatureMapFile().store(vis_all_outputfile,map);
-    }
-
-    //     log << Date::now() << " " << ini_location << "\nAll pairs:\n";
-    //     PairMatcher::printInfo(log,*pairs);
-
-    if (vis_best_outputfile!="")
-    {
-      DFeatureMap<2> map;
-      pairs = &pm.getBestPairs();
-      PairMatcher::fillFeatureMap(map,*pairs);
-      DFeatureMapFile().store(vis_best_outputfile,map);
-    }
-
-    //     log << Date::now() << " " << ini_location << "\nBest pairs:\n";
-    //     PairMatcher::printInfo(log,*pairs);
-
-    //-------------------------------------------------------------
-    // writing files
-    //-------------------------------------------------------------
-
-    writeLog_(String(" Writing results to ") + outputfile);
-    DFeaturePairsFile().store(outputfile,*pairs);
-
-    return EXECUTION_OK;
-  }
+	protected:
+	
+	  void registerOptionsAndFlags_()
+	  {
+			registerStringOption_("in","<file>","","input file in FeatureMap format");
+			registerStringOption_("out","<file>","","output file in FeaturePairs format");
+			registerStringOption_("vis_all","<file>","","output file of all pairs for visualisation in TOPPView");
+			registerStringOption_("vis_best","<file>","","output file of the best pairs for visualisation in TOPPView");
+	  	addEmptyLine_();
+	  	addText_("RT and m/z shifts and ranges can currently only be given in the 'algorithm' part of INI file:\n"
+							 "  <NODE name=\"algorithm\">\n"
+							 "    <ITEM name=\"rt_pair_dist\" value=\"0.5\" type=\"float\"/>\n"
+							 "    <ITEM name=\"rt_stdev_low\" value=\"0.22\" type=\"float\"/>\n"
+							 "    <ITEM name=\"rt_stdev_high\" value=\"0.65\" type=\"float\"/>\n"
+							 "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>\n"
+							 "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>\n" 
+							 "  </NODE>");
+	  	addEmptyLine_();
+	  	addText_("Note: The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.\n"
+							 "      This is due to the fact, that the heavier peptide normally elutes earlier!");
+	  }
+	
+	  ExitCodes main_(int , char**)
+	  {
+	
+	    //-------------------------------------------------------------
+	    // parameter handling
+	    //-------------------------------------------------------------
+	
+	    // input file to be read
+	    String inputfile = "";
+	
+	    // output file to be written
+	    String outputfile = "";
+	    String vis_all_outputfile = "";
+	    String vis_best_outputfile = "";
+	
+	    // determine name of input file
+	    inputfile = getStringOption_("in");
+	    outputfile = getStringOption_("out");
+	
+	    // determine name ouf visualization output file
+	    vis_all_outputfile = getStringOption_("vis_all");
+	    vis_best_outputfile = getStringOption_("vis_best");
+	
+	    //-------------------------------------------------------------
+	    // reading input
+	    //-------------------------------------------------------------
+	
+	
+	    DFeatureMap<2> features;
+	    DFeatureMapFile().load(inputfile,features);
+	
+	    // sort input file
+	    enum DimensionId
+	    {
+	      RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+	      MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+	    };
+	
+	    typedef DFeature<2>::NthPositionLess< RT > RTless;
+	    typedef DFeature<2>::NthPositionLess<MZ> MZless;
+	    sort(features.begin(),features.end(), LexicographicComparator<RTless,MZless>());
+	
+	    PairMatcher pm(features);
+	
+	    Param pm_param = getParamCopy_(getIniLocation_()+"algorithm:");
+	    writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
+	    pm.setParam(pm_param);
+	
+	    writeDebug_(" Running LabeledMatcher...",1);
+	
+	    const DFeaturePairVector<2>* pairs = &pm.run();
+	
+	    // save pairs in DFeatureMap for visualization in TOPPView
+	    // (until visualization of DFeaturePairFile is available)
+	    if (vis_all_outputfile!="")
+	    {
+	      DFeatureMap<2> map;
+	      PairMatcher::fillFeatureMap(map,*pairs);
+	      DFeatureMapFile().store(vis_all_outputfile,map);
+	    }
+	
+	    if (vis_best_outputfile!="")
+	    {
+	      DFeatureMap<2> map;
+	      pairs = &pm.getBestPairs();
+	      PairMatcher::fillFeatureMap(map,*pairs);
+	      DFeatureMapFile().store(vis_best_outputfile,map);
+	    }
+	
+	    //-------------------------------------------------------------
+	    // writing files
+	    //-------------------------------------------------------------
+	
+	    writeDebug_(String(" Writing results to ") + outputfile, 1 );
+	    DFeaturePairsFile().store(outputfile,*pairs);
+	
+	    return EXECUTION_OK;
+	  }
 };
 
 

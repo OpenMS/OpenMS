@@ -108,6 +108,7 @@
 		MSExperiment_test\
 		DimensionDescription_test
 
+#		MSExperimentExtern_test\
 
 	#VISUAL
 
@@ -248,8 +249,11 @@
 		EnzymaticDigestion_test
 
 	ifeq ($(LIBSVM_SUPPORT),true)
-		EXECUTABLES_ANALYSIS_SVM = SVMWrapper_test
+		EXECUTABLES_ANALYSIS_SVM = \
+
 	endif
+#			SVMWrapper_test
+
 
 	EXECUTABLES_ANALYSIS_MAPMATCHING = \
 		DFeaturePair_test\
@@ -352,7 +356,7 @@ endif
 dummy:
 
 # concept_test should be the first one, because it tests the testing ...
-test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_mapmatching_test applications_test
+test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_svm_test analysis_mapmatching_test applications_test
 	@./runtests -success
 
 info:
@@ -396,6 +400,9 @@ transformations_test:	$(EXECUTABLES_TRANSFORMATIONS) dummy
 
 analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 	@./runtests -section "ANALYSIS_ID" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_ID)
+
+analysis_svm_test:	$(EXECUTABLES_ANALYSIS_SVM) dummy
+	@./runtests -section "ANALYSIS_SVM" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_SVM)
 
 analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING)

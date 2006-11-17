@@ -75,23 +75,14 @@ namespace OpenMS
 			pairs_.clear();
 
 			// calculate area of map
-			float	min_x = numeric_limits<float>::max();
-			float max_x = -1 * numeric_limits<float>::max();
-			float	min_y = numeric_limits<float>::max();
-			float max_y = -1 * numeric_limits<float>::max();
-			for (FeatureMapType::ConstIterator it = features_.begin(); it != features_.end(); ++it)
-			{
-				if (it->getPosition()[0] < min_x) min_x = it->getPosition()[0];
-				if (it->getPosition()[0] > max_x) max_x = it->getPosition()[0];
-				if (it->getPosition()[1] < min_y) min_y = it->getPosition()[1];
-				if (it->getPosition()[1] > max_y) max_y = it->getPosition()[1];
-			}
+			features_.updateRanges();
 
 			// fill tree
-			QuadTreeType tree(DRange<2>(min_x, max_x, min_y, max_y));
+			QuadTreeType tree(DRange<2>(features_.getMin()[0], features_.getMax()[0], features_.getMin()[1], features_.getMax()[1]));
 			for (Size i=0; i<features_.size(); ++i)
 			{
-				try{
+				try
+				{
 					tree.insert(features_[i].getPosition(), &features_[i] );
 				}catch(Exception::IllegalTreeOperation e)
 				{
@@ -112,6 +103,7 @@ namespace OpenMS
 			DRange<2> local;
 			for (FeatureMapType::const_iterator it=features_.begin(); it!=features_.end(); ++it)
 			{
+				//cout << "Testing feature " << it->getPosition()[0] << " " << it->getPosition()[1] << endl;
 				// set up local area to search for feature partner
 				int charge = it->getCharge();
 				double mz_opt = mz_pair_dist/charge;
@@ -119,11 +111,15 @@ namespace OpenMS
 				local.setMaxX(it->getPosition()[0]-rt_min);
 				local.setMinY(it->getPosition()[1]+mz_opt-mz_diff);
 				local.setMaxY(it->getPosition()[1]+mz_opt+mz_diff);
-
+				
+				//cout << local << endl;
+				
 				for (QuadTreeType::Iterator check=tree.begin(local); check!=tree.end(); ++check)
 				{
+					//cout << "  Testing point" << endl;
 					if ( check->second->getCharge() == charge)
 					{
+						//cout << "    charge ok" << endl;
 						// calculate score
 						double diff[2];
 						diff[MZ] = fabs( it->getPosition()[MZ] - check->second->getPosition()[MZ] );

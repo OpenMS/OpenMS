@@ -50,6 +50,7 @@ namespace OpenMS
 		 	 <LI> rename setOptionsAndFlags to registerOptionsAndFlags_
 		 	 <LI> Add registration (name, argument text, default value, description)
 		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
+		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ mehtods
 		 </OL>
 	*/
   class TOPPBase2
@@ -210,19 +211,6 @@ namespace OpenMS
 			@name Internal parameter handling
 		 */
 		//@{
-
-		/**
-			@brief Returns the location of the ini file where parameters are taken
-			from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
-			this will be <code>"TOPPTool:17:"</code>.  Note the ':' at the end.
-
-			This is assigned during tool startup, depending on the command line but (of course) not depending on ini files.
-		*/
-		String const& getIniLocation_() const 
-		{ 
-			return ini_location_; 
-		}
-
 		/**
 			 @brief Return the value of parameter @p key as a string or @p default_value if this value is not set.
 				
@@ -279,6 +267,18 @@ namespace OpenMS
 		//@}
 
 	 protected:
+
+		/**
+			@brief Returns the location of the ini file where parameters are taken
+			from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
+			this will be <code>"TOPPTool:17:"</code>.  Note the ':' at the end.
+
+			This is assigned during tool startup, depending on the command line but (of course) not depending on ini files.
+		*/
+		String const& getIniLocation_() const 
+		{ 
+			return ini_location_; 
+		}
 
 		/** 
 			@name Parameter handling

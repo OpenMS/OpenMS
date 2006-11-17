@@ -84,13 +84,19 @@ class TOPPBaseTest
 			return EXECUTION_OK;
 		}
 
+		String const& getIniLocation() const
+		{
+			return getIniLocation_();
+		}
+
+		Param getParamCopy( const std::string& prefix ) const
+		{
+			return getParamCopy_(prefix);
+		}
+
 // COMMENTED OUT AS THESE METHODS ARE private!
 // DO NOT DELETE AS THESE TESTS CAN STILL BE USED WHEN CHANGING TOPPBase!
 // SIMPLY MAKE THESE METHODS protected FOR A WHILE.
-//		String const& getIniLocation() const
-//		{
-//			return getIniLocation_();
-//		}
 //
 //		String getParamAsString(const String& key, const String& default_value="") const
 //		{
@@ -120,11 +126,6 @@ class TOPPBaseTest
 //		Param const& getParam() const
 //		{
 //			return getParam_();
-//		}
-//		
-//		Param getParamCopy( const std::string& prefix ) const
-//		{
-//			return getParamCopy_(prefix);
 //		}
 };
 
@@ -156,19 +157,19 @@ char* a13 ="4.5";
 char* a14 ="-intoption";
 char* a15 ="-doubleoption";
 
+CHECK(String const& getIniLocation_() const)
+	//default 
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
+	//command line
+	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
+	TOPPBaseTest tmp2(3,instance_cl);
+	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
+RESULT
+
 // COMMENTED OUT AS THESE METHODS ARE private!
 // DO NOT DELETE AS THESE TESTS CAN STILL BE USED WHEN CHANGING TOPPBase!
 // SIMPLY MAKE THESE METHODS protected FOR A WHILE.
-//
-//CHECK(String const& getIniLocation_() const)
-//	//default 
-//	TOPPBaseTest tmp;
-//	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
-//	//command line
-//	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
-//	TOPPBaseTest tmp2(3,instance_cl);
-//	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
-//RESULT
 //
 //CHECK(bool getParamAsBool_(const String& key, bool default_value=false) const)
 //	//default 
@@ -243,19 +244,16 @@ char* a15 ="-doubleoption";
 //	char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
 //	TOPPBaseTest tmp7(5,common7_cl);
 //	TEST_EQUAL(tmp7.getParam("stringoption"),DataValue("common"));
-//
-//	//ini file: inheritence
-//	//TODO
 //RESULT
 //
 //CHECK(Param const& getParam_() const)
 //	//TODO
 //RESULT
-//
-//CHECK(Param getParamCopy_( const std::string& prefix ) const)
-//	//TODO
-//RESULT
 
+
+CHECK(Param getParamCopy_( const std::string& prefix ) const)
+	//TODO
+RESULT
 
 CHECK(String getStringOption_(const String& name) const)
 	//default 

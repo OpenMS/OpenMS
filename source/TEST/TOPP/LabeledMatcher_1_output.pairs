@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<pairlist>
+<pair nr="0">
+	<pairquality>12</pairquality>
+	<first>
+	<feature id="0">
+		<position dim="0">11</position>
+		<position dim="1">558</position>
+		<intensity>100</intensity>
+		<quality dim="0">1</quality>
+		<quality dim="1">1</quality>
+		<overallquality>2</overallquality>
+		<charge>1</charge>
+		<model name="">
+		</model>
+	</feature>
+	</first>
+	<second>
+	<feature id="1">
+		<position dim="0">10</position>
+		<position dim="1">566</position>
+		<intensity>100</intensity>
+		<quality dim="0">1</quality>
+		<quality dim="1">1</quality>
+		<overallquality>6</overallquality>
+		<charge>1</charge>
+		<model name="">
+		</model>
+	</feature>
+	</second>
+</pair>
+<pair nr="1">
+	<pairquality>80</pairquality>
+	<first>
+	<feature id="2">
+		<position dim="0">15</position>
+		<position dim="1">530</position>
+		<intensity>100</intensity>
+		<quality dim="0">1</quality>
+		<quality dim="1">1</quality>
+		<overallquality>8</overallquality>
+		<charge>2</charge>
+		<model name="">
+		</model>
+	</feature>
+	</first>
+	<second>
+	<feature id="3">
+		<position dim="0">14</position>
+		<position dim="1">534</position>
+		<intensity>100</intensity>
+		<quality dim="0">1</quality>
+		<quality dim="1">1</quality>
+		<overallquality>10</overallquality>
+		<charge>2</charge>
+		<model name="">
+		</model>
+	</feature>
+	</second>
+</pair>
+</pairlist>
+<!-- Local Variables: -->
+<!-- mode: nxml -->
+<!-- tab-width: 2 -->
+<!-- End: -->
