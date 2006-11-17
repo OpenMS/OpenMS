@@ -1075,7 +1075,7 @@ public:
     void setDate(const Date& date) {	exp_.setDate(date); }
 
     /// deletes the temporary file (or what did you expect ?)
-    void deleteTempFile()	{ std::remove( file_name_ .c_str()); }
+    void deleteTempFile_()	{ std::remove( file_name_ .c_str()); }
 
     /// resets the internal data
     void reset()
@@ -1139,11 +1139,10 @@ public:
             --it;
             peak_index = (index - *it);
         	}
+					
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
-				
-				if (scan_index > this->size() || peak_index > nr_dpoints_ )
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
+								
 				// all information was  collected, compile peak and continue
 				DRawDataPoint<2> rp;
 				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();
@@ -1158,7 +1157,7 @@ public:
     {
 // 				std::cout << "getPeak(" << index << ") const" << std::endl;
 				
-				if (index > nr_dpoints_ )
+				if (index > nr_dpoints_)
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
 				
 				UnsignedInt scan_index = 0;
@@ -1203,11 +1202,12 @@ public:
             --it;
             peak_index          = (index - *it);
 					}
+					
+// 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
 				
-				if (scan_index > this->size() || peak_index > nr_dpoints_ )
-            throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-								
+				
+				
 				// all information was  collected, compile peak and continue
 				DRawDataPoint<2> rp;
 				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();

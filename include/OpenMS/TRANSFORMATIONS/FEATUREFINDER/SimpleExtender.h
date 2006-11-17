@@ -191,7 +191,7 @@ namespace OpenMS
   protected:
   	 	
   	/// Checks if the current peak is too far from the centroid
-  	bool isTooFarFromCentroid_(UnsignedInt& current_index);
+  	bool isTooFarFromCentroid_(UnsignedInt current_index);
    	
    	/// Extends the seed into positive m/z direction   	
   	void moveMzUp_(UnsignedInt current_peak);
@@ -206,10 +206,10 @@ namespace OpenMS
   	void moveRtDown_(UnsignedInt current_peak);
   	
   	/// Computes the priority of a peak as function of intensity and distance from seed. 
-  	double computePeakPriority_(const PeakType& peak);
+  	double computePeakPriority_(UnsignedInt current_peak);
   	
   	/// Checks the neighbours of the current for insertion into the boundary.
-  	void checkNeighbour_(UnsignedInt& peak_index);
+  	void checkNeighbour_(UnsignedInt current_peak);
   	
   	/// This flag indicates whether the first seed has already been processed. 
   	bool first_seed_seen_;

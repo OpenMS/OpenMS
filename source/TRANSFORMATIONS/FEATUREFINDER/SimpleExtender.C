@@ -77,7 +77,7 @@ namespace OpenMS
 			// reserve enough space in mutable queue
 			//unsigned int peak_nr = traits_->getNumberOfPeaks();
 			//boundary_.reserve(peak_nr);
-		
+
 			first_seed_seen_ = true;
 
     }
@@ -94,15 +94,10 @@ namespace OpenMS
 
     // remember last peak to be extracted from the boundary
     // in this case, the seed
-		const PeakType seed_p    = traits_->getPeak(seed_index);
-		last_pos_extracted_ = seed_p.getPosition();
+		last_pos_extracted_ = traits_->getPeak(seed_index).getPosition();
 
-    float prior = computePeakPriority_(seed_p);
+    float prior = computePeakPriority_(seed_index);
     IndexWithPriority seed(seed_index,prior);
-		
-		IntensityType seed_intensity = seed_p.getIntensity();
-		
-		intensity_threshold_ = intensity_factor_ * seed_intensity;
 
     // at the beginning, the boundary contains only the seed
     boundary_.push(seed);
@@ -124,18 +119,18 @@ namespace OpenMS
 			
 // 			IntensityType const current_intensity = traits_->getPeakIntensity(current_index);
 
-			 if (current_peak.getIntensity() <  intensity_threshold_)
-			{
-					std::cout << "Intensity below threshold. Skipping this peak. " << std::endl;
-					continue;
-			}
-
 			// remember last peak to be extracted from the boundary
 			last_pos_extracted_ = current_peak.getPosition();
-						
-// 			std::cout << "SimpleExtender: intensity threshold set to " << intensity_threshold_ << " current intensity is " << current_peak.getIntensity() << std::endl;
-// 			std::cout << "That is " << (( current_peak.getIntensity() / seed_intensity )  ) << std::endl;
-						
+
+			// we set the intensity threshold for raw data points to be
+			// included into the feature region to be a fraction of the
+			// intensity of the fifth largest peak
+			if (nr_peaks_seen_ == 5)
+				intensity_threshold_ = intensity_factor_ * current_peak.getIntensity();
+
+			if (current_peak.getIntensity() <  intensity_threshold_)
+				continue;
+
 			// Now we explore the neighbourhood of the current peak. Peaks in this area are included
 			// into the boundary if their intensity is not too low and they are not too
 			// far away from the seed.
@@ -170,11 +165,20 @@ namespace OpenMS
 	 * \brief Checks whether the current peak is to far away from the seed
 	 * 
 	 * */
-	bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt& current_peak)
+	bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
 	{
+
+//     CoordinateType const current_mz   = traits_->getPeakMz(current_peak);
+//     CoordinateType const current_rt   = traits_->getPeakRt(current_peak);
+
 		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
 
     FeaFiTraits::PositionType const curr_mean = running_avg_.getPosition();
+
+//     float dist_mz_up = param_.getValue("dist_mz_up");
+//     float dist_mz_down = param_.getValue("dist_mz_down");
+//     float dist_rt_up = param_.getValue("dist_rt_up");
+//     float dist_rt_down = param_.getValue("dist_rt_down");
 
     if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
 				 p.getPosition()[MZ] < curr_mean[MZ] - dist_mz_down_ ||
@@ -183,7 +187,6 @@ namespace OpenMS
     {
 			return true;
     }
-		
     return false;
 	}
 
@@ -198,13 +201,16 @@ namespace OpenMS
 			{
 				current_index = traits_->getNextMz(current_index); // take next peak
 
+				// ???? TODO (Clemens)
+				// Various improvements are possible here:
+				// The following triggers a binary search in scan_index_.
+				// This could be avoided by looking at RT itself instead of ScanNr.
+				// Also, isTooFarFromCentroid_ need not consider RT here, since it has not changed.
+
 				// stop if we've left the current scan
 				if (current_scan != traits_->getPeakScanNr(current_index)
-						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED)
-				{
-				break;
-				}
+						|| isTooFarFromCentroid_(current_index) )
+					break;
 
 				// check this neighbour for insertion into the boundary
 				checkNeighbour_(current_index);
@@ -226,13 +232,14 @@ namespace OpenMS
 			while (true)
 			{
 				current_index    = traits_->getPrevMz(current_index);	// take next peak
+
+				// ???? TODO (Clemens) 
+				// see remarks in moveMzUp_()
+
 				// stop if we've left the current scan
 				if (current_scan != traits_->getPeakScanNr(current_index)
-						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED)
-				{
-				break;
-				}
+						|| isTooFarFromCentroid_(current_index))
+					break;
 
 				// check this neighbour for insertion into the boundary
 				checkNeighbour_(current_index);
@@ -251,15 +258,17 @@ namespace OpenMS
     {
 			while (true)
 			{
+
+				// ???? TODO (Clemens)
+				// Again, binary search for rt is not necessary.  We could maintain that information.
+				// Also, binary search within scan should look for mz of staring point, not the last mz.
+				// (Note: isTooFarFromCentroid_() _does_ need to consider both rt and mz here, since mz might have changed.)
+
 				current_index = traits_->getNextRt(current_index); // take next peak
 
-				if (isTooFarFromCentroid_(current_index)
-						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED);
-				{
-				break;
-				}
-				
+				if (isTooFarFromCentroid_(current_index))
+					break;
+
 				// check this neighbour for insertion into the boundary
 				checkNeighbour_(current_index);
 
@@ -272,6 +281,11 @@ namespace OpenMS
 
 	void SimpleExtender::moveRtDown_(UnsignedInt current_index)
 	{
+
+		// ???? TODO (Clemens) 
+		// see remarks in moveRtUp_()
+
+
     try // moving up in retention time
     {
 
@@ -279,12 +293,8 @@ namespace OpenMS
 			{
 				current_index = traits_->getPrevRt(current_index); // take next peak
 
-				if (isTooFarFromCentroid_(current_index)
-						|| isTooFarFromCentroid_(current_index)
-						|| traits_->getPeakFlag(current_index) != FeaFiTraits::UNUSED);
-				{
-				break;
-				}
+				if (isTooFarFromCentroid_(current_index))
+					break;
 
 				// check this neighbour for insertion into the boundary
 				checkNeighbour_(current_index);
@@ -296,34 +306,38 @@ namespace OpenMS
     {}
 	}
 
-	double SimpleExtender::computePeakPriority_(const PeakType& p)
+	double SimpleExtender::computePeakPriority_(UnsignedInt current_peak)
 	{
 
-// 		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
+		FeaFiTraits::PeakType p = traits_->getPeak(current_peak);
 
     return p.getIntensity() *
 			score_distribution_rt_.value(p.getPosition()[RT]-last_pos_extracted_[RT]) *
 			score_distribution_mz_.value(p.getPosition()[MZ]-last_pos_extracted_[MZ]);
+
 	}
 
-	void SimpleExtender::checkNeighbour_(UnsignedInt& current_index)
+	void SimpleExtender::checkNeighbour_(UnsignedInt current_index)
 	{
     // we don't care about points with intensity zero (or less, might occur is TopHatFilter was applied)
-		PeakType p = traits_->getPeak(current_index);
+    if (traits_->getPeakIntensity(current_index) <= 0)
+			return;
 
-    if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED)
+    if (traits_->getPeakFlag(current_index)== FeaFiTraits::UNUSED
+				/*&& !isTooFarFromCentroid_(current_index)*/ )
     {
 			std::map<UnsignedInt, double>::iterator piter = priorities_.find(current_index);
-			double pr_new = computePeakPriority_(p);
-		if (piter == priorities_.end()) // not yet in boundary
-		{
-			if (pr_new > priority_threshold_) // check if priority larger than threshold
+			double pr_new = computePeakPriority_(current_index);
+
+			if (piter == priorities_.end()) // not yet in boundary
 			{
-				priorities_[current_index] = pr_new;
-				IndexWithPriority peak(current_index,pr_new);
-				boundary_.push(peak);	// add to boundary
+				if (pr_new > priority_threshold_) // check if priority larger than threshold
+				{
+					priorities_[current_index] = pr_new;
+					IndexWithPriority peak(current_index,pr_new);
+					boundary_.push(peak);	// add to boundary
+				}
 			}
-		}
 			/*else // already in boundary
         {
 				double pr_curr = piter->second;
@@ -335,7 +349,7 @@ namespace OpenMS
 				} 
         } // end if (piter == priorities_.end())
 			*/
-		}
+    } // end if traits_->...
 	}
 
 

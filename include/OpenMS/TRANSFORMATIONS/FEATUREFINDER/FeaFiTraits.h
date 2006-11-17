@@ -131,11 +131,6 @@ public:
     /// set internal data and update range information
     void setData(MapType& exp)
     {			
-				if (exp.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
 		
 				std::cout << "Storing MSExperimentExtern " << std::endl;
 				
@@ -147,9 +142,10 @@ public:
 		 
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
-        map_.updateRanges();				
+        map_.updateRanges();
 				
-				std::cout << "This map contains " << map_.size() << " scans  ";
+				
+				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -160,7 +156,12 @@ public:
         for (UnsignedInt i=0; i<map_.getSize(); ++i)
             flags_.push_back(FeaFiTraits::UNUSED);
 				
-				std::cout << "Initialising scan index DS. " << std::endl;					
+				if (map_.size() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
+									
 				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
    }
 		
@@ -168,24 +169,18 @@ public:
 		/// NOTE: This is slow since all peaks are copied individually
     void setData(MSExperiment<DPeak<1> >& exp)
     {
-				if (exp.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
-		
 				std::cout << "Storing MSExperiment " << std::endl;
-			
+				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
 				}	
-								
+				
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
 				
-				std::cout << "This map contains " << map_.size() << " scans ";
+				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -201,7 +196,7 @@ public:
 					std::cout << "No data provided. Aborting. " << std::endl;
 					return;
 				}
-				std::cout << "Initialising scan index DS. " << std::endl;
+				std::cout << "Initialising scan index DS. FeaFi map contains now : " << map_.getSize() << std::endl;
         scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			
@@ -247,7 +242,7 @@ public:
     {
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
-        if (index >= (map_.getSize()-1) )
+        if (index == (map_.getSize()-1) )
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
 
         // check whether we walked out of the current scan i.e. the retention
@@ -305,12 +300,10 @@ public:
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
         }
         
-				UnsignedInt peak_index = piter.getPeakNumber();
-				
-        if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+//         if (peak_index>=map_.size())
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
-        return peak_index;
+        return piter.getPeakNumber();
     }
 
     /** @brief get index of next peak in retiontion time dimension.
@@ -333,13 +326,11 @@ public:
         {
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
         }
-  
-        UnsignedInt peak_index = piter.getPeakNumber();
-				
-        if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+        
+//         if (peak_index>=map_.getSize())
+//             throw Exception::IndexOverflow(__FILE__, __LINE__,"FeaFiTraits::getPrevRt", index, map_.getSize());
 
-        return peak_index;
+        return piter.getPeakNumber();
     }
 
     /// run main loop
@@ -448,10 +439,6 @@ public:
                     watch.reset();
                     ++no_exceptions;
                     ++exception[ex.getName()];
-										
-										#ifdef DEBUG_FEATUREFINDER
-                    writeGnuPlotFile_(peaks,false,nr_feat++);
-										#endif
                 }
 
             } // end of while(true)
