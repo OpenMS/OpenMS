@@ -229,7 +229,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output);
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_d.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_d.pgm");
 	}
 	{ // black background, with comment
 		std::string feep_pgm;
@@ -237,7 +237,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,15,0,false,"One comment line\nAnother comment line.");
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_c.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_c.pgm");
 	}
 	{ // white background, reduced gray scale
 		std::string feep_pgm;
@@ -245,7 +245,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,4,0,true);
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_r.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_r.pgm");
 	}
 	{ // using 1 bit (get "  ep" only)
 		std::string feep_pgm;
@@ -253,7 +253,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,1,1./15,false,"binary feep (is \"  ep\" only)");
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_1.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_1.pgm");
 	}
 	{ // using 1 bit, reverse video (get "  ep" only)
 		std::string feep_pgm;
@@ -261,7 +261,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,1,1./15,true,"binary feep (is \"  ep\" only)");
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_1r.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_1r.pgm");
 	}
 	{ // no scaling, but reverse video
 		std::string feep_pgm;
@@ -269,7 +269,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,0,1,true);
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_nr.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_nr.pgm");
 	}
 	{ // using 16 bit
 		std::string feep_pgm;
@@ -277,7 +277,7 @@ CHECK(writePGM())
 		std::ofstream output (feep_pgm.c_str());
 		matrixcr.writePGM(output,(1<<16)-1);
 		output.close();
-		TEST_FILE(feep_pgm.c_str(),"data/feep_16.pgm");
+		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_16.pgm");
 	}
 #if 0
 #endif
