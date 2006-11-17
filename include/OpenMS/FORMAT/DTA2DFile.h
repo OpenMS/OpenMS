@@ -231,13 +231,10 @@ namespace OpenMS
 								
 				// Iterate over all peaks of each spectrum and
 				// write one line for each peak of the spectrum.
-				unsigned int c = 0;
 				for (typename MapType::const_iterator spec=map.begin(); spec!=map.end(); ++spec)
 				{
 					for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 					{
-						std::cout << "Writing peptide " << c++ << std::endl;
-						std::cout << spec->getRetentionTime() << " "<< it->getPosition()[0] << " "<< it->getIntensity() << std::endl;
 						// Write rt, m/z and intensity.
 						os 	<< spec->getRetentionTime() << " "<< it->getPosition()[0] << " "<< it->getIntensity() << std::endl;
 					}
