@@ -436,9 +436,11 @@ int main(int argc, char **argv)\
 /** @brief Create a temporary filename.
 
   This macro assigns a new temporary filename to the string variable given as
-  its argument. The filename is created using tmpnam.  All temporary files are
-  deleted if #END_TEST is called.  @param filename string will contain the
-  filename on completion of the macro 
+  its argument. The filename is created using the filename of the test and the
+  line number where this macro is invoked, for example 'Matrix_test.C' might
+  create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
+  line 268.  All temporary files are deleted if #END_TEST is called.  @param
+  filename string will contain the filename on completion of the macro
 
 	 @hideinitializer
 */
