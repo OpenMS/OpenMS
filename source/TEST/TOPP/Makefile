@@ -316,20 +316,20 @@ FileFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "FileFilter:"
 
 	@$(ECHO) "- Test 1: RT, m/z test, int (upper bound)"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -rt :30 -mz :1000 -int :20000)
-	@$(call TEST_FILE_EQUAL,FileFilter_1_output.mzData,FileFilter.tmp)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_1_out.tmp -rt :30 -mz :1000 -int :20000)
+	@$(call TEST_FILE_EQUAL,FileFilter_1_output.mzData,FileFilter_1_out.tmp)
 
 	@$(ECHO) "- Test 2: RT, m/z test, int (lower bound)"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -rt 30: -mz 1000: -int 100:)
-	@$(call TEST_FILE_EQUAL,FileFilter_2_output.mzData,FileFilter.tmp)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_2_out.tmp -rt 30: -mz 1000: -int 100:)
+	@$(call TEST_FILE_EQUAL,FileFilter_2_output.mzData,FileFilter_2_out.tmp)
 
 	@$(ECHO) "- Test 3: level"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter.tmp -level 2)
-	@$(call TEST_FILE_EQUAL,FileFilter_3_output.mzData,FileFilter.tmp)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
+	@$(call TEST_FILE_EQUAL,FileFilter_3_output.mzData,FileFilter_3_out.tmp)
 
 	@$(ECHO) "- Test 4: remove_zoom"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter.tmp -remove_zoom)
-	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter.tmp)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
+	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter_4_out.tmp)
 
 FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) ""

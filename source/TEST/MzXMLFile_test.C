@@ -271,49 +271,49 @@ CHECK([EXTRA] load/store for empty scans)
 	TEST_EQUAL(e2.getSize(),0);
 RESULT
 
-//CHECK([EXTRA] load with optional attributes)
-//	PRECISION(0.01)
-//
-//	MSExperiment< DRawDataPoint<1> > e;
-//	MzXMLFile mzxml;
-//	
-//	// real test
-//	mzxml.load("data/MzXMLFile_test_4.mzXML",e);
-//  //---------------------------------------------------------------------------
-//  // 60 : (120,100)
-//  // 120: (110,100) (120,200) (130,100)
-//  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
-//	//--------------------------------------------------------------------------- 
-//  TEST_EQUAL(e.size(), 4)
-//	TEST_REAL_EQUAL(e[0].getRetentionTime(), 60)
-//	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
-//	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
-//
-//	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POLNULL)
-//	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-//	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
-//
-//	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStart(), 0)
-//	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStart(), 110)
-//	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStart(), 100)
-//	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStop(), 0)
-//	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStop(), 130)
-//	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStop(), 140)
-//
-//	//---------------------------------------------------------------------------
-//  // const Software& getSoftware() const;
-//  //---------------------------------------------------------------------------
-//	String tmp;
-//	e.getSoftware().getCompletionTime().get(tmp);
-//  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
-//
-//	//---------------------------------------------------------------------------
-//  // const ProcessingMethod& getProcessingMethod() const;
-//  //---------------------------------------------------------------------------
-//  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), true)
-//	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), true)
-//	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
-//RESULT
+CHECK([EXTRA] load with optional attributes)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzXMLFile mzxml;
+	
+	// real test
+	mzxml.load("data/MzXMLFile_test_4.mzXML",e);
+  //---------------------------------------------------------------------------
+  // 60 : (120,100)
+  // 120: (110,100) (120,200) (130,100)
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//--------------------------------------------------------------------------- 
+  TEST_EQUAL(e.size(), 4)
+	TEST_REAL_EQUAL(e[0].getRetentionTime(), 60)
+	TEST_REAL_EQUAL(e[1].getRetentionTime(), 120)
+	TEST_REAL_EQUAL(e[2].getRetentionTime(), 180)
+
+	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POLNULL)
+	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
+	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
+
+	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStart(), 0)
+	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStart(), 110)
+	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStart(), 100)
+	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStop(), 0)
+	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStop(), 130)
+	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStop(), 140)
+
+	//---------------------------------------------------------------------------
+  // const Software& getSoftware() const;
+  //---------------------------------------------------------------------------
+	String tmp;
+	e.getSoftware().getCompletionTime().get(tmp);
+  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
+
+	//---------------------------------------------------------------------------
+  // const ProcessingMethod& getProcessingMethod() const;
+  //---------------------------------------------------------------------------
+  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), true)
+	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), true)
+	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
