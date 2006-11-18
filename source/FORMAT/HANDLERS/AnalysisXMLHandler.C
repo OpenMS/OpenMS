@@ -609,12 +609,13 @@ namespace OpenMS
   void AnalysisXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		tag_ = String(xercesc::XMLString::transcode(qname));
-
+		
 		String attribute_value;
 
 		if (tag_ == "userParam")
 		{
 			attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
+			
 			if (attribute_value == "peptide_significance_threshold")
 			{
 				(*identifications_)[peptide_identification_index_].setPeptideSignificanceThreshold(
@@ -713,9 +714,14 @@ namespace OpenMS
 			}
 			else if (attribute_value == "date_group_index")
 			{		
-					String   		date_time_string;
-					
-					date_time_string = date_times_temp_.at(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
+				UnsignedInt index = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+				
+				if (index>=date_times_temp_.size())
+				{
+					throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(index),"Undefined date_group index");
+				}
+
+				String date_time_string = date_times_temp_.at(index);
 					if (inside_peptide_)
 					{
 						(*identifications_)[peptide_identification_index_].getDateTime().set(date_time_string);
@@ -747,7 +753,7 @@ namespace OpenMS
   void AnalysisXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
  		tag_ = String(xercesc::XMLString::transcode(qname)).trim();
- 		
+		
  		if (tag_ == "protein")
  		{	
 			if (inside_global_protein_)

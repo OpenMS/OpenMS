@@ -371,8 +371,9 @@ namespace OpenMS
         timer.start();
         sne.init(it_pick_begin,it_pick_end);
         timer.stop();
+#ifdef DEBUG_PEAK_PICKING
         std::cout << "SNE init " << timer.getCPUTime() << std::endl;
-
+#endif
         if (optimization_)
         {
           unsigned int l=raw_peak_array.size();
@@ -402,8 +403,9 @@ namespace OpenMS
           timer.start();
           wt_.transform(it_pick_begin, it_pick_end,1.);
           timer.stop();
+#ifdef DEBUG_PEAK_PICKING
           std::cout << "TRANSFORM " << timer.getCPUTime() << std::endl;
-
+#endif
           PeakArea_ area;
           bool centroid_fit=false;
           bool regular_endpoints=true;
@@ -608,16 +610,18 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-          //#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING
           std::cout << "Pick Scan " << input_it->getRetentionTime()<< std::endl;
-          //#endif
+#endif
           StopWatch timer;
           timer.start();
 
           // pick the peaks in scan i
           pick(*input_it,spectrum,input_it->getMSLevel());
           timer.stop();
+#ifdef DEBUG_PEAK_PICKING
           std::cout << "Picking took " << timer.getClockTime()  << std::endl;
+#endif
 
           // if any peaks are found copy the spectrum settings
           if (spectrum.size() > 0)
@@ -716,16 +720,19 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > out_spec;
 
+#ifdef DEBUG_PEAK_PICKING
           std::cout << "Picking scan " << i << std::endl;
           std::cout << "Size of input: " << ms_exp_raw[i].size() << std::endl;
+#endif
           StopWatch watch;
           watch.start();
           // pick the peaks in scan i
           pick(ms_exp_raw[i],out_spec,ms_exp_raw[i].getMSLevel());
           watch.stop();
 
+#ifdef DEBUG_PEAK_PICKING
           std::cout << "Picking this scan took " << watch.getClockTime() << " seconds. " << std::endl;
-
+#endif
           // copy spectrum settings
           out_spec.setType(SpectrumSettings::PEAKS);
 
