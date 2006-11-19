@@ -68,7 +68,7 @@ class TOPPResampler
 	void printToolUsage_() const
 	{
 		cerr << endl
-				 << getToolName() << " -- shows basic information about the file e.g. data ranges and file type." << endl
+				 << getToolName() << " -- transform a LC-MS map into a resampled pgm image." << endl
 				 << "Version: " << VersionInfo::getVersion() << endl
 				 << endl
 				 << "Usage:" << endl
