@@ -99,24 +99,34 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	set.add(0,27);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.size(), 9);
-	TEST_REAL_EQUAL(hull[0][0], 1240.54);
-	TEST_REAL_EQUAL(hull[0][1], 687.6);
-	TEST_REAL_EQUAL(hull[1][0], 1252.39);
-	TEST_REAL_EQUAL(hull[1][1], 687.6);
-	TEST_REAL_EQUAL(hull[2][0], 1252.39);
-	TEST_REAL_EQUAL(hull[2][1], 693.8);
-	TEST_REAL_EQUAL(hull[3][0], 1251.73);
-	TEST_REAL_EQUAL(hull[3][1], 695.2);
-	TEST_REAL_EQUAL(hull[4][0], 1251.07);
-	TEST_REAL_EQUAL(hull[4][1], 695.4);
-	TEST_REAL_EQUAL(hull[5][0], 1239.9);
-	TEST_REAL_EQUAL(hull[5][1], 695.4);
-	TEST_REAL_EQUAL(hull[6][0], 1237.27);
-	TEST_REAL_EQUAL(hull[6][1], 692);
-	TEST_REAL_EQUAL(hull[7][0], 1237.27);
-	TEST_REAL_EQUAL(hull[7][1], 691);
-	TEST_REAL_EQUAL(hull[8][0], 1237.93);
-	TEST_REAL_EQUAL(hull[8][1], 688.4);
+	
+	TEST_REAL_EQUAL(hull[0][0], 1237.27);
+	TEST_REAL_EQUAL(hull[0][1], 691);
+	
+	TEST_REAL_EQUAL(hull[1][0], 1237.93);
+	TEST_REAL_EQUAL(hull[1][1], 688.4);
+	
+	TEST_REAL_EQUAL(hull[2][0], 1240.54);
+	TEST_REAL_EQUAL(hull[2][1], 687.6);
+	
+	TEST_REAL_EQUAL(hull[3][0], 1252.39);
+	TEST_REAL_EQUAL(hull[3][1], 687.6);	
+	
+	TEST_REAL_EQUAL(hull[4][0], 1252.39);
+	TEST_REAL_EQUAL(hull[4][1], 693.8);
+	
+	TEST_REAL_EQUAL(hull[5][0], 1251.73);
+	TEST_REAL_EQUAL(hull[5][1], 695.2);
+	
+	TEST_REAL_EQUAL(hull[6][0], 1251.07);
+	TEST_REAL_EQUAL(hull[6][1], 695.4);
+	
+	TEST_REAL_EQUAL(hull[7][0], 1239.9);
+	TEST_REAL_EQUAL(hull[7][1], 695.4);
+	
+	TEST_REAL_EQUAL(hull[8][0], 1237.27);
+	TEST_REAL_EQUAL(hull[8][1], 692);
+	
 RESULT
 
 CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set))
@@ -187,23 +197,26 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	set.add(0,16);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.size(), 6);
-	TEST_REAL_EQUAL(hull[0][0], 54.72);
-	TEST_REAL_EQUAL(hull[0][1], 428.729);
-
-	TEST_REAL_EQUAL(hull[1][0], 57.93);
-	TEST_REAL_EQUAL(hull[1][1], 428.754);
+	
+	TEST_REAL_EQUAL(hull[0][0], 51.51);
+	TEST_REAL_EQUAL(hull[0][1], 428.778);
+	
+	TEST_REAL_EQUAL(hull[1][0], 54.72);
+	TEST_REAL_EQUAL(hull[1][1], 428.729);
 
 	TEST_REAL_EQUAL(hull[2][0], 57.93);
-	TEST_REAL_EQUAL(hull[2][1], 428.9);
+	TEST_REAL_EQUAL(hull[2][1], 428.754);
 
-	TEST_REAL_EQUAL(hull[3][0], 54.72);
-	TEST_REAL_EQUAL(hull[3][1], 428.924);
+	TEST_REAL_EQUAL(hull[3][0], 57.93);
+	TEST_REAL_EQUAL(hull[3][1], 428.9);
 
-	TEST_REAL_EQUAL(hull[4][0], 51.51);
-	TEST_REAL_EQUAL(hull[4][1], 428.9);
+	TEST_REAL_EQUAL(hull[4][0], 54.72);
+	TEST_REAL_EQUAL(hull[4][1], 428.924);
 
 	TEST_REAL_EQUAL(hull[5][0], 51.51);
-	TEST_REAL_EQUAL(hull[5][1], 428.778);
+	TEST_REAL_EQUAL(hull[5][1], 428.9);
+
+	
 RESULT
 
 CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet& set))
@@ -225,20 +238,23 @@ CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet&
 	set.add(0,4);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.size(), 5);
-	TEST_REAL_EQUAL(hull[0][0], 1.0);
-	TEST_REAL_EQUAL(hull[0][1], 0.0);
-
-	TEST_REAL_EQUAL(hull[1][0], 2.0);
+	
+	TEST_REAL_EQUAL(hull[0][0], 0.0);
+	TEST_REAL_EQUAL(hull[0][1], 1.0);
+	
+	TEST_REAL_EQUAL(hull[1][0], 1.0);
 	TEST_REAL_EQUAL(hull[1][1], 0.0);
 
 	TEST_REAL_EQUAL(hull[2][0], 2.0);
-	TEST_REAL_EQUAL(hull[2][1], 2.0);
+	TEST_REAL_EQUAL(hull[2][1], 0.0);
 
-	TEST_REAL_EQUAL(hull[3][0], 1.0);
-	TEST_REAL_EQUAL(hull[3][1], 3.0);
+	TEST_REAL_EQUAL(hull[3][0], 2.0);
+	TEST_REAL_EQUAL(hull[3][1], 2.0);
 
-	TEST_REAL_EQUAL(hull[4][0], 0.0);
-	TEST_REAL_EQUAL(hull[4][1], 1.0);
+	TEST_REAL_EQUAL(hull[4][0], 1.0);
+	TEST_REAL_EQUAL(hull[4][1], 3.0);
+
+	
 
 RESULT
 

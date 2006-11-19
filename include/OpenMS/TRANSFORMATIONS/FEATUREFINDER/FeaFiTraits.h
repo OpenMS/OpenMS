@@ -58,6 +58,10 @@
 #include <limits>
 #include <cmath>
 
+#include <CGAL/Cartesian.h>
+#include <CGAL/convex_hull_2.h>
+#include <CGAL/Polygon_2.h>
+
 namespace OpenMS
 {
 /**
@@ -99,6 +103,10 @@ public:
     typedef DFeatureMap<2> FeatureVector;
     typedef DFeature<2>::ConvexHullType ConvexHullType;
     typedef FeaFiModule::NoSuccessor NoSuccessor;
+		
+		typedef CGAL::Cartesian<CoordinateType>	K;
+		typedef K::Point_2	Point_2;
+		typedef CGAL::Polygon_2<K, std::list<Point_2> >  Polygon_2;
 
     /// standard constructor
     FeaFiTraits() {}
@@ -131,8 +139,14 @@ public:
     /// set internal data and update range information
     void setData(MapType& exp)
     {			
+				if (exp.size() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
 		
 				std::cout << "Storing MSExperimentExtern " << std::endl;
+				map_.setBufferSize( exp.getBufferSize() );
 				
 // 				map_ = exp;	This does not work, => check operator= in MSExperiment
 				for (UnsignedInt i=0; i<exp.size(); ++i)
@@ -142,10 +156,9 @@ public:
 		 
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
-        map_.updateRanges();
+        map_.updateRanges();				
 				
-				
-				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "This map contains " << map_.size() << " scans  ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -156,12 +169,7 @@ public:
         for (UnsignedInt i=0; i<map_.getSize(); ++i)
             flags_.push_back(FeaFiTraits::UNUSED);
 				
-				if (map_.size() == 0)
-				{
-					std::cout << "No data provided. Aborting. " << std::endl;
-					return;
-				}
-									
+				std::cout << "Initialising scan index DS. " << std::endl;					
 				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
    }
 		
@@ -169,18 +177,24 @@ public:
 		/// NOTE: This is slow since all peaks are copied individually
     void setData(MSExperiment<DPeak<1> >& exp)
     {
+				if (exp.size() == 0)
+				{
+					std::cout << "No data provided. Aborting. " << std::endl;
+					return;
+				}
+		
 				std::cout << "Storing MSExperiment " << std::endl;
-				std::cout << "This map contains " << exp.size() << " scans. " << std::endl;
+			
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
 				}	
-				
+								
 				std::cout << "Updating range information. " << std::endl;
         // update range informations
         map_.updateRanges();
 				
-				std::cout << "This map contains " << map_.size() << " scans. " << std::endl;
+				std::cout << "This map contains " << map_.size() << " scans ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
 				std::cout << "Setting flags. " << std::endl;
@@ -196,7 +210,7 @@ public:
 					std::cout << "No data provided. Aborting. " << std::endl;
 					return;
 				}
-				std::cout << "Initialising scan index DS. FeaFi map contains now : " << map_.getSize() << std::endl;
+				std::cout << "Initialising scan index DS. " << std::endl;
         scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			
@@ -242,7 +256,7 @@ public:
     {
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
-        if (index == (map_.getSize()-1) )
+        if (index >= (map_.getSize()-1) )
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
 
         // check whether we walked out of the current scan i.e. the retention
@@ -300,10 +314,12 @@ public:
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
         }
         
-//         if (peak_index>=map_.size())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+				UnsignedInt peak_index = piter.getPeakNumber();
+				
+        if (peak_index>=map_.getSize())
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
-        return piter.getPeakNumber();
+        return peak_index;
     }
 
     /** @brief get index of next peak in retiontion time dimension.
@@ -326,11 +342,13 @@ public:
         {
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
         }
-        
-//         if (peak_index>=map_.getSize())
-//             throw Exception::IndexOverflow(__FILE__, __LINE__,"FeaFiTraits::getPrevRt", index, map_.getSize());
+  
+        UnsignedInt peak_index = piter.getPeakNumber();
+				
+        if (peak_index>=map_.getSize())
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
 
-        return piter.getPeakNumber();
+        return peak_index;
     }
 
     /// run main loop
@@ -395,9 +413,9 @@ public:
                     std::cout << "Time spent for fitting: " << watch.getClockTime() << std::endl;
                     watch.reset();
 
-#ifdef DEBUG_FEATUREFINDER
+										#ifdef DEBUG_FEATUREFINDER
                     writeGnuPlotFile_(peaks,false,nr_feat++);
-#endif
+										#endif
                     // gather information for fitting summary
                     const DFeature<2>& f = features_[features_.size()-1];
 
@@ -439,6 +457,10 @@ public:
                     watch.reset();
                     ++no_exceptions;
                     ++exception[ex.getName()];
+										
+										#ifdef DEBUG_FEATUREFINDER
+                    writeGnuPlotFile_(peaks,false,nr_feat++);
+										#endif
                 }
 
             } // end of while(true)
@@ -451,7 +473,7 @@ public:
 
         std::cout << size << " features were found. " << std::endl;
 
-        std::cout << "seed count " << seed_count << std::endl;
+//         std::cout << "seed count " << seed_count << std::endl;
 
         std::cout << "FeatureFinder summary:\n"
         << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size
@@ -491,16 +513,6 @@ public:
         writeGnuPlotFile_(empty,true,nr_feat);
 #endif
 
-        std::cout << "# features: " << features_.size() << std::endl;
-//         std::ofstream ffile( "features_");
-//         for (DFeatureMap<2>::const_iterator cit = features_.begin();
-//                 cit != features_.end();
-//                 ++cit)
-//         {
-//             ffile<< *cit << std::endl;
-//         }
-//         ffile.close();
-
         return features_;
 
     } // end of run(seeders, extenders, fitters)
@@ -512,90 +524,108 @@ public:
     const ConvexHullType calculateConvexHull(const IndexSet& set )
     {
         ConvexHullType convex_hull;
-        const double PRECISION = 0.0001;
+//         const double PRECISION = 0.0001;
         if (set.size()<3)
             return convex_hull;
+						
+				std::vector<Point_2> cgal_points;
+				
+				for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
+      {
+      		PeakType p = getPeak(*it);
+					cgal_points.push_back( Point_2(p.getPosition()[RT], p.getPosition()[MZ]) );    
+      }
+		
+			std::vector<Point_2> cgal_result;
+  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
+                       
+			for (std::vector<Point_2>::const_iterator cit = cgal_result.begin();
+						cit !=	cgal_result.end(); 
+						++cit)
+			{
+				convex_hull.push_back( 	PositionType( cit->x(),cit->y() ) );			
+			} 				
 
         // keep track of already in hull included peaks to avoid unnecessary computations of triangle area
-        std::map<UnsignedInt, bool> isIncluded;
-
-        CoordinateType min_mz = std::numeric_limits<CoordinateType>::max();
-        IndexSet::const_iterator min = set.begin();
-
-        // Find peak with minimal mz to start wrapping
-        for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
-        {
-            if (getPeakMz(*it) < min_mz)
-            {
-                min_mz = getPeakMz(*it);
-                min = it;
-            }
-            isIncluded[*it] = false;
-        }
-				convex_hull.push_back( getPeak(*min).getPosition() );
-
-        // Hull peaks denoting current hull line
-        IndexSet::const_iterator hull_peak1 = min;
-        IndexSet::const_iterator start = set.begin();
-        if (start==min)
-            ++start;  // don't start at "min" because of while-condition
-        IndexSet::const_iterator hull_peak2 = start;
-
-        while (hull_peak2!=min)
-        {
-            bool found_any = false;
-            for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
-            {
-                // skip if already used
-                if (isIncluded[*it] || it==hull_peak1 || it==hull_peak2)
-                    continue;
-
-                found_any = true;
-                // "it" lies to the right of the line [hull_peak1,hull_peak2]
-                double area = triangleArea_(hull_peak1,hull_peak2,it);
-                if (area>-PRECISION)
-                {
-                    // area almost 0 -> collinear points
-                    // -> avoid consecutive peaks with equal mz or rt coordinate
-                    if (fabs(area)<PRECISION)
-                    {
-                        double mz1 = getPeakMz(*hull_peak1);
-                        double mz2 = getPeakMz(*hull_peak2);
-                        double mz3 = getPeakMz(*it);
-                        double rt1 = getPeakRt(*hull_peak1);
-                        double rt2 = getPeakRt(*hull_peak2);
-                        double rt3 = getPeakRt(*it);
-                        if ( 	( fabs(mz2-mz3)<PRECISION && fabs(rt2-rt1) > fabs(rt3-rt1) )
-                                ||( fabs(rt2-rt3)<PRECISION && fabs(mz2-mz1) > fabs(mz3-mz1) ))
-                        {
-                            isIncluded[*it] = true;
-                            continue;
-                        }
-                    }
-                    hull_peak2 = it;  // "it" becomes new hull peak
-                }
-            }
-
-            if (!found_any)
-            {
-                hull_peak2 = min; // no available peaks anymore
-                continue;
-            }
-
-            if (hull_peak2 == min)
-                continue;  // finish loop
-            isIncluded[*hull_peak2] = true;
-
-            // continue wrapping
-            hull_peak1 = hull_peak2;
-            // hull_peak2 satisfies the contition: all peaks lie to the left of [hull_peak1,hull_peak2]
-						convex_hull.push_back( getPeak(*hull_peak2).getPosition() );
-            
-						start = set.begin();
-            if (start==min)
-                ++start;  // don't start at "min" because of while-condition
-            hull_peak2 = start;
-        }
+//         std::map<UnsignedInt, bool> isIncluded;
+// 
+//         CoordinateType min_mz = std::numeric_limits<CoordinateType>::max();
+//         IndexSet::const_iterator min = set.begin();
+// 
+//         // Find peak with minimal mz to start wrapping
+//         for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
+//         {
+//             if (getPeakMz(*it) < min_mz)
+//             {
+//                 min_mz = getPeakMz(*it);
+//                 min = it;
+//             }
+//             isIncluded[*it] = false;
+//         }
+// 				convex_hull.push_back( getPeak(*min).getPosition() );
+// 
+//         // Hull peaks denoting current hull line
+//         IndexSet::const_iterator hull_peak1 = min;
+//         IndexSet::const_iterator start = set.begin();
+//         if (start==min)
+//             ++start;  // don't start at "min" because of while-condition
+//         IndexSet::const_iterator hull_peak2 = start;
+// 
+//         while (hull_peak2!=min)
+//         {
+//             bool found_any = false;
+//             for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
+//             {
+//                 // skip if already used
+//                 if (isIncluded[*it] || it==hull_peak1 || it==hull_peak2)
+//                     continue;
+// 
+//                 found_any = true;
+//                 // "it" lies to the right of the line [hull_peak1,hull_peak2]
+//                 double area = triangleArea_(hull_peak1,hull_peak2,it);
+//                 if (area>-PRECISION)
+//                 {
+//                     // area almost 0 -> collinear points
+//                     // -> avoid consecutive peaks with equal mz or rt coordinate
+//                     if (fabs(area)<PRECISION)
+//                     {
+//                         double mz1 = getPeakMz(*hull_peak1);
+//                         double mz2 = getPeakMz(*hull_peak2);
+//                         double mz3 = getPeakMz(*it);
+//                         double rt1 = getPeakRt(*hull_peak1);
+//                         double rt2 = getPeakRt(*hull_peak2);
+//                         double rt3 = getPeakRt(*it);
+//                         if ( 	( fabs(mz2-mz3)<PRECISION && fabs(rt2-rt1) > fabs(rt3-rt1) )
+//                                 ||( fabs(rt2-rt3)<PRECISION && fabs(mz2-mz1) > fabs(mz3-mz1) ))
+//                         {
+//                             isIncluded[*it] = true;
+//                             continue;
+//                         }
+//                     }
+//                     hull_peak2 = it;  // "it" becomes new hull peak
+//                 }
+//             }
+// 
+//             if (!found_any)
+//             {
+//                 hull_peak2 = min; // no available peaks anymore
+//                 continue;
+//             }
+// 
+//             if (hull_peak2 == min)
+//                 continue;  // finish loop
+//             isIncluded[*hull_peak2] = true;
+// 
+//             // continue wrapping
+//             hull_peak1 = hull_peak2;
+//             // hull_peak2 satisfies the contition: all peaks lie to the left of [hull_peak1,hull_peak2]
+// 						convex_hull.push_back( getPeak(*hull_peak2).getPosition() );
+//             
+// 						start = set.begin();
+//             if (start==min)
+//                 ++start;  // don't start at "min" because of while-condition
+//             hull_peak2 = start;
+//         }
 
         return convex_hull;
     }
@@ -604,7 +634,6 @@ protected:
    /// Writes gnuplot output (only for debugging purposes)
     void writeGnuPlotFile_(IndexSet peaks, bool last,int nr_feat)
     {
-        // ONLY FOR DEBUGGING PURPOSES:
         // write feature + surrounding region to file
         if (!last)
         {
@@ -613,8 +642,10 @@ protected:
 
             String file    = "region" + String(nr_feat);
 
-            // write feature to output stream
-            gpfile << "replot \'" << file << "\' w i title \"\" " << std::endl;
+						if (nr_feat == 0)
+							gpfile << "splot \'" << file << "\' w i title \"\" " << std::endl;
+						else	
+              gpfile << "replot \'" << file << "\' w i title \"\" " << std::endl;
 
             std::ofstream myfile(file.c_str()); // data file
             IndexSet::const_iterator citer = peaks.begin();
@@ -641,12 +672,12 @@ protected:
     }
 
     /// Calculate area of a triangle (needed for gift wrap algorithm)
-    inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
-    {
-        // triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
-        return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
-               - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
-    }
+//     inline double triangleArea_(IndexSet::const_iterator it0, IndexSet::const_iterator it1, IndexSet::const_iterator it2)
+//     {
+//         // triangle area via determinant: x0*y1+x1*y2+x2*y0-x2*y1-x1*y0-x0*y2
+//         return getPeakMz(*it0)*getPeakRt(*it1) + getPeakMz(*it1)*getPeakRt(*it2) + getPeakMz(*it2)*getPeakRt(*it0)
+//                - getPeakMz(*it2)*getPeakRt(*it1) - getPeakMz(*it1)*getPeakRt(*it0) - getPeakMz(*it0)*getPeakRt(*it2);
+//     }
     /// Container for peak data
     MapType map_;
 

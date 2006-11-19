@@ -73,40 +73,34 @@ CHECK(~SimpleExtender())
 RESULT
 
 CHECK(nextSeed())
-  SimpleExtender extender;
+
+	SimpleExtender extender;
   FeaFiTraits* traits = new FeaFiTraits();
-  DPeakArray<2> peak_array;
+  MSExperiment<DPeak<1> > exp;
+	MSExperiment<DPeak<1> >::SpectrumType spec;
+	spec.setRetentionTime(1260);
   
   double mzs[] = {675, 675.5, 676, 676.5, 677};
-	double rts[] = {1260, 1260, 1260, 1260, 1260};
 	double its[] = {5, 10, 7, 3, 15};
 	
 	const Size num = 5;
 	
 	for (unsigned int i=0; i < num; i++)
 	{
-		DPeak<2> p;
-		p.getPosition()[MZ] = mzs[i];
-		p.getPosition()[RT] = rts[i];
+		DPeak<1> p;
+		p.getPosition()[0] = mzs[i];
 		p.getIntensity()    = its[i];
-		peak_array.push_back(p);
+		
+		spec.push_back(p);
 	}
 	
-	MSExperimentExtern<DPeak<1> > exp;
-	exp.set2DData(peak_array);
+	exp.push_back(spec);
 	
 	traits->setData(exp);
 	
 	extender.setTraits(traits);
-
- 	Param param;
- 	param.setValue("dist_mz_up",10);
- 	param.setValue("dist_mz_down",10);
- 	param.setValue("dist_rt_down",10);
- 	param.setValue("dist_rt_up",10);
- 	param.setValue("priority_thr",-5);
  	
-  extender.setParam(param);
+//   extender.setParam(param);
   IndexSet region = extender.extend(4);
   
   TEST_NOT_EQUAL(region.size(),0);

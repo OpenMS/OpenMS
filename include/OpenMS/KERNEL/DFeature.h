@@ -76,9 +76,8 @@ namespace OpenMS
 		typedef DRange<D, TraitsType> BoundingBoxType;		
 		typedef std::vector< DPosition<D, TraitsType>	> ConvexHullType;	
 		typedef std::vector<ConvexHullType> ConvexHullVector;			
-		typedef	typename Traits::RealType QualityType;
-		/// 
-		typedef	typename Traits::ChargeType ChargeType;
+		typedef	 typename Traits::RealType QualityType;
+		typedef	 typename Traits::ChargeType ChargeType;
 		//@}
 
 		/** @name Constructors and Destructor

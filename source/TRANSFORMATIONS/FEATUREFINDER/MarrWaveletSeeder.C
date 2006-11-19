@@ -182,7 +182,7 @@ void MarrWaveletSeeder::sweep_()
             peakfile.close();
 
             // sum scan
-            // sumUp_(current_scan,curr_peak);
+            sumUp_(current_scan,curr_peak);
 
             // compute cwt for this scan
             cwt_.init(cwt_scale_, 0.0001);
@@ -526,11 +526,11 @@ void MarrWaveletSeeder::getMaxPositions_( RawDataPointIterator first, RawDataPoi
     
  }
 
-void MarrWaveletSeeder::sumUp_(RawDataArrayType& /*scan*/, unsigned int current_index)
+void MarrWaveletSeeder::sumUp_(RawDataArrayType& scan, unsigned int current_index)
 {
 	unsigned int scans_to_collect = param_.getValue("scans_to_sumup");
 	
-// std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
+	std::cout << "Summing up " << scans_to_collect << " scans." << std::endl;
 	
 	unsigned int scans_collected  = 0;
 	
@@ -550,19 +550,19 @@ void MarrWaveletSeeder::sumUp_(RawDataArrayType& /*scan*/, unsigned int current_
 			if (scans_collected == scans_to_collect)
 			{
 				// we have enough scans
-// 				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
-// 				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
-// 				std::ofstream outfile( fname.c_str() );
-//              	for (unsigned int i=0;i<scan.size(); ++i)
-//             	 {
-//             		outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
-//              	}
-//              	outfile.close();
+				std::cout << "Collected " << scans_collected << " scans. Stop. " << std::endl;
+				String fname = "scan_summed_" + String(traits_->getPeakRt(current_index));
+				std::ofstream outfile( fname.c_str() );
+        for (unsigned int i=0;i<scan.size(); ++i)
+        {
+        	outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
+        }
+        outfile.close();
 				
 				break;
 			} 
 			// sum up the intensities of the neighbouring scan
-// 			AlignAndSum_(scan,ascan);		
+			AlignAndSum_(scan,ascan);		
 			
 			// prepare for next scan
 			ascan.clear();			
@@ -571,10 +571,10 @@ void MarrWaveletSeeder::sumUp_(RawDataArrayType& /*scan*/, unsigned int current_
 		} // end of if (new scan)
 		
 		// collect data points until new scan starts
-        DRawDataPoint<1> p;
-        p.setIntensity( traits_->getPeakIntensity(j) );
-        p.getPosition()[0] = traits_->getPeakMz(j);
-        ascan.push_back(p);
+    DRawDataPoint<1> p;
+    p.setIntensity( traits_->getPeakIntensity(j) );
+    p.getPosition()[0] = traits_->getPeakMz(j);
+    ascan.push_back(p);
 		
 			
 	}	// end of for (all peaks)

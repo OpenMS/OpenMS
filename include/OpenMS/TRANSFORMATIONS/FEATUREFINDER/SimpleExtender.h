@@ -70,9 +70,9 @@ namespace OpenMS
 	  				Parameters:
 			<table>
 			<tr><td>tolerance_rt</td>
-					<td>Scale for the interpolation of the rt distribution (default 2.0)</td></tr>
+					<td>Scale for the interpolation of the rt priority distribution (default 2.0)</td></tr>
 			<tr><td>tolerance_mz</td>
-					<td>Scale for the interpolation of the mz distribution (default 0.5)</td></tr>
+					<td>Scale for the interpolation of the mz priority distribution (default 0.5)</td></tr>
 			<tr><td>dist_mz_up</td>
 					<td>Maximum distance in positive mz direction for data points in the feature region (default 6.0)</td></tr>
 			<tr><td>dist_mz_down</td>
@@ -82,11 +82,14 @@ namespace OpenMS
 			<tr><td>dist_rt_down</td>
 					<td>Maximum distance in negative rt direction for data points in the feature region (default 5.0)</td></tr>
 			<tr><td>priority_thr</td>
-					<td>Minimum priority for data points to be included into the boundary of the feature (default 0.01)</td></tr>
+					<td>Minimum priority for data points to be included into the boundary of the feature (default 0.0)
+								The priority of a data point is a function of its intensity and its distance to the last point
+								included into the feature region. Setting this threshold to zero or a very small value is
+								usually a good idea. </td></tr>
 			<tr><td>intensity_factor</td>
 					<td>Influences for intensity (ion count) threshold in the feature extension. We include only raw data
-					points into this region if their intensity is larger than [intensity_factor * (intensity of the 5th largest peak in the region)].
-					We use the 5th largest peak for robustness reasons (default 0.03) .</td></tr>
+					points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].
+					(default value is 0.03) .</td></tr>
 			</table>
 			
 			@ingroup FeatureFinder
@@ -98,10 +101,16 @@ namespace OpenMS
 
   public:
   
+		/// Intensity of a data point
   	typedef FeaFiTraits::IntensityType IntensityType;
+		/// Coordinates of a point (m/z and rt)
   	typedef FeaFiTraits::CoordinateType CoordinateType;
+		/// Priority of a point (see below)
   	typedef KernelTraits::ProbabilityType ProbabilityType;
+		/// Point type (raw, picked etc)
 		typedef FeaFiTraits::PeakType PeakType;
+		/// Position of a point
+		typedef PeakType::PositionType PositionType;
   	
   	enum DimensionId
 			{ 
@@ -147,7 +156,7 @@ namespace OpenMS
   		IndexWithPriority(UnsignedInt i, double p) : index(i), priority(p) {}
   		
   		UnsignedInt index;
-  		double priority;
+  		ProbabilityType priority;
   		  		
   		struct PriorityLess
   		{  			 			  			
@@ -160,34 +169,7 @@ namespace OpenMS
 			};
   			
   	};
-  	
-  	
-  	/**
-  	 	 @brief This structure simulates a boost::property_map and simply
-  	   returns the index for each IndexWithPriority structure.
-  	  
-  	   Only needed for the priority queue implementing the feature
-  	   boundary.
-  	 **/
-  	struct IndexMap
-  	{
-  		typedef int value_type;
-			typedef IndexWithPriority key_type;
-					
-  		IndexMap() {}
-  		
-  		inline int operator[] (const IndexWithPriority& iwp)  const throw()
-  		{
-  			return iwp.index;
-  		}
-  		
-  		friend int get ( IndexMap const & /*imap*/, IndexWithPriority const & key ) throw()
-			{ 
-				return key.index; 
-			}
-  		  		
-  	};
-          
+            
   protected:
   	 	
   	/// Checks if the current peak is too far from the centroid
@@ -206,7 +188,7 @@ namespace OpenMS
   	void moveRtDown_(UnsignedInt current_peak);
   	
   	/// Computes the priority of a peak as function of intensity and distance from seed. 
-  	double computePeakPriority_(UnsignedInt current_peak);
+  	ProbabilityType computePeakPriority_(PeakType & peak);
   	
   	/// Checks the neighbours of the current for insertion into the boundary.
   	void checkNeighbour_(UnsignedInt current_peak);
@@ -221,30 +203,28 @@ namespace OpenMS
   	IntensityType intensity_factor_;
   	  	
   	/// keeps an running average of the peak coordinates weighted by the intensities 
-  	RunningAveragePosition< DPosition<2> > running_avg_;
+  	RunningAveragePosition< PositionType > running_avg_;
   	
   	/// Keeps track of peaks already included in the boundary (value is priority of peak) 
-  	std::map<UnsignedInt, double> priorities_; 
+  	std::map<UnsignedInt, ProbabilityType> priorities_; 
   	
   	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
-  	DPosition<2> last_pos_extracted_;
+  	PositionType last_pos_extracted_;
 		  	
   	/// Represents the boundary of a feature 
   	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess > boundary_;    
-  	           					
-  	/*MutablePriorityQueue<IndexWithPriority, 
-  	                    std::vector<IndexWithPriority>, 
-  	                    IndexWithPriority::PriorityLess,
-  	                    IndexMap > boundary_; */ 	            
   	
-		/// Score distribution in m/z dimension             			
+		/// Score distribution in retention time     			
   	Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
-		/// Score distribution in time dimension      
+		/// Score distribution in m/z
 		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
 		
-		/// Number of peaks encountered so far
-		UnsignedInt nr_peaks_seen_;
+		/// Sum of the intensities collected so far
+		IntensityType intensity_sum_;
+		
+		/// Mininum percentage of the already collected intensity that a new pointed has to contribute
+		IntensityType min_intensity_contribution_;
 		
 		/// Maximum distance to seed in positive m/z
 		CoordinateType dist_mz_up_; 
@@ -253,10 +233,10 @@ namespace OpenMS
 		/// Maximum distance to seed in positive retention time
 		CoordinateType dist_rt_up_; 
 		/// Maximum distance to seed in negative retention time
-		CoordinateType dist_rt_down_;   	
+		CoordinateType dist_rt_down_;   			
 		
 		/// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
-		float priority_threshold_;
+		ProbabilityType priority_threshold_;
 		
   };
 }
