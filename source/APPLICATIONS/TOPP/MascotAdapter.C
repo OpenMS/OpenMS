@@ -276,6 +276,7 @@ class TOPPMascotAdapter
 			options_["-hits"] = "hits";
 			options_["-cleavage"] = "cleavage";
 			options_["-missed_cleavages"] = "missed_cleavages";
+			options_["-boundary"] = "boundary";
 			options_["-mass_type"] = "mass_type";
 			flags_["-mascot_in"] = "mascot_in";
 			flags_["-mascot_out"] = "mascot_out";
@@ -336,6 +337,7 @@ class TOPPMascotAdapter
 			DateTime date_time;
 			String date_time_string;
 			String time_string;
+			String boundary = "";
 			
 			date_time.now();
 			date_time.get(date_time_string);
@@ -378,6 +380,12 @@ class TOPPMascotAdapter
 				mascot_in = true;
 			}
 			
+			boundary = getParamAsString_("boundary");
+			if (boundary != "")
+			{			
+				writeDebug_(String("Boundary: ") + inputfile_name, 1);
+			}
+	
 			if (getParamAsBool_("mascot_out", false))
 			{
 				mascot_out = true;
@@ -639,6 +647,10 @@ class TOPPMascotAdapter
 				} // from if(!mascot_in)
 				else
 				{
+					if (boundary != "")
+					{
+						mascot_infile->setBoundary(boundary);
+					}
 					mascot_infile->store(mascot_infile_name, 
 															 experiment, 
 															 "OpenMS search");		
