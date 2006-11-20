@@ -109,6 +109,9 @@ namespace OpenMS
 
 			/// clears the distribution and resets max isotope to 0
 			void clear();
+
+			/// Estimate Peptide Isotopdistribution from weight and number of isotopes that should be reported (very fast)
+			void estimateFromPeptideWeight(double weight);
 			//@}
 			
 			/// @name Operators
