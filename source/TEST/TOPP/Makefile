@@ -420,7 +420,8 @@ MapStatistics_test: $(NUMERICDIFF)
 MascotAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.txt,MascotAdapter_1_output.tmp)
 
 
 NoiseFilter_test: $(NUMERICDIFF)
