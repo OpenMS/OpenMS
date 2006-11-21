@@ -191,7 +191,10 @@ namespace OpenMS
 		//@}
 		
 		
-		/** @name Mutators
+		/** 
+			@name Mutators
+			
+			All these methods return a reference to the string in order to make them chainable
 		*/
 		//@{
 		/// inverts the direction of the string
@@ -207,22 +210,25 @@ namespace OpenMS
 		String& fillRight(char c, UnsignedInt size);
 
 		///Converts the string to uppercase
-		void toUpper();
+		String& toUpper();
 		
 		///Converts the string to lowercase
-		void toLower();
+		String& toLower();
 
 		///Converts the first letter of the string to uppercase
-		void firstToUpper();
+		String& firstToUpper();
 
 		///Replaces all occurences of the character @p from by the character @p to.
-		void substitute(char from, char to);
+		String& substitute(char from, char to);
 
 		///Remove all occurences of the character @p what.
-		void remove(char what);
+		String& remove(char what);
 
-		///If there's no path ending character (/,\) at the end of the string, append path_ending
-		void ensurePathEnding(char path_ending = '/');
+		///Makes sure the string ends with the character @p end
+		String& ensureLastChar(char end);
+
+		///removes whitespaces (space, tab, line feed, carriage return)
+		String& removeWhitespaces();
 		//@}
 
 		/** @name Converters
@@ -267,7 +273,7 @@ namespace OpenMS
 
 		See also @seealso split().
 		*/
-		void implode(std::vector<String>::iterator first, std::vector<String>::iterator last, const std::string& glue = "");
+		void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "");
 		
 	};
 } // namespace OPENMS
