@@ -412,7 +412,7 @@ CHECK(void implode(std::vector<String>::iterator first, std::vector<String>::ite
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(void toUpper())
+CHECK(String& toUpper())
 	String s;
 	s = "test45%#.,";
 	s.toUpper();
@@ -422,7 +422,7 @@ CHECK(void toUpper())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(void toLower())
+CHECK(String& toLower())
 	String s;
 	s = "TEST45%#.,";
 	s.toLower();
@@ -432,7 +432,7 @@ CHECK(void toLower())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(void firstToUpper())
+CHECK(String& firstToUpper())
 	String s;
 	s = "test45%#.,";
 	s.firstToUpper();
@@ -445,7 +445,7 @@ CHECK(void firstToUpper())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(void substitute(char from, char to))
+CHECK(String& substitute(char from, char to))
 	String s = "abcdefg";
 
 	s.substitute('a','x');
@@ -466,7 +466,7 @@ CHECK(void substitute(char from, char to))
 	TEST_EQUAL(s,".....")
 RESULT
 
-CHECK(void remove(char what))
+CHECK(String& remove(char what))
 	String s = "abcabc";
 
 	s.remove('a');
@@ -479,19 +479,34 @@ CHECK(void remove(char what))
 	TEST_EQUAL(s, "");
 RESULT
 
-CHECK(void ensurePathEnding(char path_ending))
+CHECK(String& ensureLastChar(char end))
 	String s = "/";
-	s.ensurePathEnding();
+	s.ensureLastChar('/');
 	TEST_EQUAL("/", s)
 
-	s.ensurePathEnding('\\');
+	s.ensureLastChar('\\');
 	TEST_EQUAL("/\\", s)
 
-	s.ensurePathEnding('\\');
+	s.ensureLastChar('\\');
 	TEST_EQUAL("/\\", s)
 
-	s.ensurePathEnding();
+	s.ensureLastChar('/');
 	TEST_EQUAL("/\\/", s)
+RESULT
+
+CHECK(String& removeWhitespaces())
+	String s;
+	
+	s.removeWhitespaces();	
+	TEST_EQUAL(s,"");
+	
+	s = "\n\r\t test \n\r\t";
+	s.removeWhitespaces();	
+	TEST_EQUAL(s,"test");
+
+	s = "\n\r\t te \n\r\tst \n\r\t";
+	s.removeWhitespaces();	
+	TEST_EQUAL(s,"test");
 RESULT
 
 /////////////////////////////////////////////////////////////

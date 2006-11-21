@@ -496,7 +496,7 @@ namespace OpenMS
 		return true;
 	}
 
-	void String::implode(vector<String>::iterator first, vector<String>::iterator last, const string& glue)
+	void String::implode(vector<String>::const_iterator first, vector<String>::const_iterator last, const string& glue)
 	{
 		//empty container
 		if (first==last)
@@ -506,7 +506,7 @@ namespace OpenMS
 		}
 		
 		string::operator=(*first);
-		for (vector<String>::iterator it = ++first; it != last; ++it)
+		for (vector<String>::const_iterator it = ++first; it != last; ++it)
 		{
 			string::operator+=( glue + (*it));
 		}
@@ -546,37 +546,55 @@ namespace OpenMS
 		//return atof(c_str());
 	}
 
-	void String::toUpper()
+	String& String::toUpper()
 	{
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) toupper);
+		return *this;
 	}
 
-	void String::firstToUpper()
+	String& String::firstToUpper()
 	{
 		if (this->size()!=0)
 		{
 			(*this)[0] = toupper ((*this)[0]);
 		}
+		return *this;
 	}
 
-	void String::toLower()
+	String& String::toLower()
 	{
 		std::transform(this->begin(), this->end(), this->begin(), (int(*)(int)) tolower);
+		return *this;
 	}
 	
-	void String::substitute(char from, char to)
+	String& String::substitute(char from, char to)
 	{
 		std::replace(this->begin(), this->end(), from, to);
+		return *this;
 	}
 
-	void String::remove(char what)
+	String& String::remove(char what)
 	{
 		this->erase(std::remove(this->begin(), this->end(), what),this->end());
+		return *this;
 	}
 
-	void String::ensurePathEnding(char path_ending)
+	String& String::ensureLastChar(char end)
 	{
-		if ( !this->hasSuffix(path_ending) ) this->append(1, path_ending);
+		if ( !this->hasSuffix(end) ) this->append(1, end);
+		return *this;
+	}
+
+	String& String::removeWhitespaces()
+	{
+		Iterator end = this->end();
+		end  = std::remove(this->begin(), end, ' ');
+		end  = std::remove(this->begin(), end, '\t');
+		end  = std::remove(this->begin(), end, '\n');
+		end  = std::remove(this->begin(), end, '\r');
+				
+		this->erase(end,this->end());
+		return *this;
 	}
 
 } // namespace OpenMS
