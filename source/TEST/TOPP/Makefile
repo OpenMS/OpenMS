@@ -198,7 +198,8 @@ AdditiveSeries_test: $(NUMERICDIFF)
 AnalysisXMLMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "AnalysisXMLMerger:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,AnalysisXMLMerger,-ini AnalysisXMLMerger_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,AnalysisXMLMerger_1_output.analysisXML,AnalysisXMLMerger_1_output.tmp)
 
 
 BaselineFilter_test: $(NUMERICDIFF)
