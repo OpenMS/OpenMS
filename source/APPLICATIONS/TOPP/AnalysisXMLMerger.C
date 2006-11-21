@@ -192,10 +192,10 @@ class TOPPAnalysisXMLMerger
 		for(counter = 1; counter < file_names.size(); ++counter)
 		{
 			analysisXML_file.load(file_names[counter],
-														&protein_identifications,
-														&identifications, 
-														&retention_times,
-														&mz_values,
+														&additional_protein_identifications,
+														&additional_identifications, 
+														&additional_retention_times,
+														&additional_mz_values,
 														&contact_person);
 			protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
 			identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
