@@ -62,8 +62,6 @@ namespace OpenMS
 		 (It seems that Doxygen does not parse pure access declarations, so we
 		 list them here.)
 		 
-		 @todo Prefix test data files with 'Matrix_' (Clemens)
-		 
 		 @ingroup Datastructures
   */
   template <typename Value>

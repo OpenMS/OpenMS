@@ -30,6 +30,8 @@
 	@brief IO classes.
 	
 	This module contains all classes that are involved in file or DB IO.
+	
+	Very basic file system functions can be found in the @ref File class of the @ref System module! 
 */
 
 /**

@@ -3,7 +3,7 @@ This folder contains some useful tools for developers:
 
   create_test.php    -  Creates a test for a file/class using 'check_test'.
   
-  missing_tests.php  -  Reports tests that are missing, not executed or probably not complete.
+  tests_missing.php  -  Reports tests that are missing, not executed or probably not complete.
   
   create_methods.php -  Creates methods for a class:
                         member accessors, default constructors, destructor, assignment operator and equality operators.

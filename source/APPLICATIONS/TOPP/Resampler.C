@@ -27,7 +27,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -76,8 +76,6 @@ class TOPPResampler
 				 << endl <<
 			"Options are:\n"
 			"   -in <file>        input file\n"
-			"   -in_type <type>   input file type (default: determined from input file extension)\n"
-			"                    (Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf).)\n"
 			"   -out <file>       output file (PGM format)\n"
 			" Parameters affecting the resampling\n"
 			"   -rt min:max       retention time range to be resampled for output\n"
@@ -102,18 +100,15 @@ class TOPPResampler
 				 << "... to be documented ..." << endl
 				 << "" << endl
 				 << "  in        input file name" << endl
-				 << "  in_type   input file type (default: determined from input file name extension)" << endl
 				 << endl
 				 << "INI File example section:" << endl
 				 << "  <ITEM name=\"in\" value=\"example.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"in_type\" value=\"MZDATA\" type=\"string\"/>" << endl
 				 << "  ... and so on ..." << endl;
 	}
 	
 	void setOptionsAndFlags_()
 	{
 		options_["-in"] = "in";
-		options_["-in_type"] = "in_type";
 		options_["-out"] = "out";
 		options_["-rows"] = "rows";
 		options_["-cols"] = "cols";
@@ -139,41 +134,12 @@ class TOPPResampler
 		String out = getParamAsString_("out");
 		writeDebug_(String("Output file: ") + out, 1);
 			
-		//file type
-		FileHandler fh;
-		FileHandler::Type in_type = fh.nameToType(getParamAsString_("in_type",""));
-			
-		writeDebug_(String("Input file type (from command line): ") + fh.typeToName(in_type), 1);
-			
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			in_type = fh.getTypeByFileName(in);
-			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
-		}	
-
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			in_type = fh.getTypeByContent(in);
-			writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
-		}
-
-		cout << endl
-				 << "file name: " << in << endl
-				 << "file type: " <<  fh.typeToName(in_type) << endl
-				 << endl;
-			
 		typedef MSExperiment< DPeak<1> > MSExperimentType;
 
 		MSExperimentType exp;
+		MzDataFile().load(in,exp);			
 	
 		std::stringstream comments;
-		
-		if (! fh.loadExperiment(in,exp,in_type) )
-		{
-			writeLog_("Unsupported or corrupt input file. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;			
-		}
 		
 		//basic info
 		exp.updateRanges();
