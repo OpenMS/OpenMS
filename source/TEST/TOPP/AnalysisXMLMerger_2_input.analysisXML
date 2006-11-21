@@ -29,7 +29,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -49,7 +48,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -69,7 +67,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -89,7 +86,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -109,7 +105,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -129,7 +124,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -149,7 +143,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -169,7 +162,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -189,7 +181,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -209,7 +200,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -229,7 +219,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="38.11" />
 					<userParam name="score_type" value="Mascot" />
@@ -249,7 +238,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="8.88" />
 					<userParam name="score_type" value="Mascot" />
@@ -269,7 +257,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="8.88" />
 					<userParam name="score_type" value="Mascot" />
@@ -289,7 +276,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="8.88" />
 					<userParam name="score_type" value="Mascot" />
@@ -309,7 +295,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="7.06" />
 					<userParam name="score_type" value="Mascot" />
@@ -329,7 +314,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -349,7 +333,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -369,7 +352,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -389,7 +371,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -409,7 +390,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -429,7 +409,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="6.66" />
 					<userParam name="score_type" value="Mascot" />
@@ -449,7 +428,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="5.57" />
 					<userParam name="score_type" value="Mascot" />
@@ -469,7 +447,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="5.24" />
 					<userParam name="score_type" value="Mascot" />
@@ -489,7 +466,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="4.59" />
 					<userParam name="score_type" value="Mascot" />
@@ -509,7 +485,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="5.61" />
 					<userParam name="score_type" value="Mascot" />
@@ -529,7 +504,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="4.24" />
 					<userParam name="score_type" value="Mascot" />
@@ -549,7 +523,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="4.24" />
 					<userParam name="score_type" value="Mascot" />
@@ -569,7 +542,6 @@
 					<userParam name="peptide_significance_threshold" value="0"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="230.45" />
-					<userParam name="predicted_p_value" value="0" />
 					<userParam name="precursor_mz" value="623.52" />
 					<userParam name="score" value="3.94" />
 					<userParam name="score_type" value="Mascot" />
