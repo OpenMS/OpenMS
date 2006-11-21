@@ -206,6 +206,7 @@ class TOPPInspectAdapter
 // 			options_["-TagCountB"] = "TagCountB";
 //			flags_["-twopass"] = "twopass";
 			options_["-out"] = "out";
+			options_["-inspect_input"] = "inspect_input";
 			options_["-inspect_output"] = "inspect_output";
 			flags_["-blind_only"] = "blind_only";
 			options_["-p_value"] = "p_value";
@@ -266,9 +267,10 @@ class TOPPInspectAdapter
  			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
 		}
 
-		inline void ensurePathChar(string& path, char path_char = '/')
+		void absFilePath(string& file_path)
 		{
-			if ( !path.empty() && (string("/\\").find(path[path.length()-1], 0) == string::npos) ) path.append(1, path_char);
+			QFileInfo file_info(file_path);
+			file_path = file_info.absFilePath().ascii();
 		}
 
 		ExitCodes main_(int , char**)
@@ -284,11 +286,6 @@ class TOPPInspectAdapter
 				substrings,
 				dbs,
 				seq_files;
-// 				mod_types;
-// 				mod_types.push_back("fix");
-// 				mod_types.push_back("cterminal");
-// 				mod_types.push_back("nterminal");
-// 				mod_types.push_back("opt");
 			
 			vector < vector< String > > mod;
 			
@@ -351,7 +348,8 @@ class TOPPInspectAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				ensurePathChar(temp_data_dir);
+				absFilePath(temp_data_dir);
+				temp_data_dir.ensurePathEnding();
 			}
 			
 			string_buffer = getParamAsString_("in");
@@ -364,6 +362,7 @@ class TOPPInspectAdapter
 			}
 			else
 			{
+				absFilePath(string_buffer);
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
@@ -371,6 +370,7 @@ class TOPPInspectAdapter
 				}
 				else inspect_output_filename = string_buffer;
 			}
+std::cout << inspect_output_filename;
 			
 			string_buffer = getParamAsString_("out");
 			if ( string_buffer.empty() )
@@ -381,6 +381,7 @@ class TOPPInspectAdapter
 			}
 			else
 			{
+				absFilePath(string_buffer);
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
 			}
@@ -399,6 +400,7 @@ class TOPPInspectAdapter
 					}
 				}
 			}
+			absFilePath(inspect_input_filename);
 			
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
@@ -414,7 +416,8 @@ class TOPPInspectAdapter
 				cout << "No inspect directory specified. Aborting!" << endl;
 				return ILLEGAL_PARAMETERS;
 			}
-			ensurePathChar(inspect_dir);
+			absFilePath(inspect_dir);
+			inspect_dir.ensurePathEnding();
 			
 			blind_only = getParamAsBool_("blind_only");
 			
@@ -450,9 +453,6 @@ class TOPPInspectAdapter
 				blind = getParamAsBool_("blind");
 				if ( blind && inspect_in && !inspect_out )
 				{
-// 					writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!");
-// 					cout << "a blind search with prior run to minimize the database can only be run in full mode. Aborting!" << endl;
-// 					return ILLEGAL_PARAMETERS;
 					blind = false;
 					blind_only = true;
 				}
@@ -487,6 +487,7 @@ class TOPPInspectAdapter
 				}
 				else
 				{
+					absFilePath(db_filename);
 					if ( db_filename.hasSuffix(".trie") )
 					{
 						inspect_infile.setDb(db_filename);
@@ -521,6 +522,7 @@ class TOPPInspectAdapter
 				}
 				else if ( blind )
 				{
+					absFilePath(snd_db_filename);
 					if ( snd_db.hasSuffix(".trie") )
 					{
 						snd_db_filename = snd_db;
@@ -960,8 +962,8 @@ class TOPPInspectAdapter
 					catch( Exception::ParseError pe )
 					{
 						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
-						writeLog_("This doesn't seem to be an inspect output file. Aborting!");
-						cout << "This doesn't seem to be an inspect output file. Aborting!" << endl;
+						writeLog_(String(pe.getMessage()) + " Aborting!");
+						cout << String(pe.getMessage()) + " Aborting!" << endl;
 						return INPUT_FILE_CORRUPT;
 					}
 					vector< ProteinIdentification > protein_identifications;
