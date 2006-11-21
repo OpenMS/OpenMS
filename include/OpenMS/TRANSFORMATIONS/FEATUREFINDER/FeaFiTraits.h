@@ -147,8 +147,9 @@ public:
 		
 				std::cout << "Storing MSExperimentExtern " << std::endl;
 				map_.setBufferSize( exp.getBufferSize() );
-				
-// 				map_ = exp;	This does not work, => check operator= in MSExperiment
+				map_.updateBuffer();
+	
+				// copy scanwise such that we can remove tandem spectra
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
@@ -228,9 +229,9 @@ public:
 
     /// retrieve the number of peaks.
     const UnsignedInt getNumberOfPeaks()  { return map_.getSize(); }
-		/// Return navigation datastructure of LC-MS map
+		/// Retrieve index datastructure 
     const ScanIndexMSExperiment<MapType >& getScanIndex() { return scan_index_; }
-
+	
     /// access intensity of peak with index @p index.
     const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index).getIntensity(); }
     /// access m/z of peak with index @p index .

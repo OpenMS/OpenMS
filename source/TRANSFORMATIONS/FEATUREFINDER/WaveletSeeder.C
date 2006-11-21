@@ -54,10 +54,10 @@ namespace OpenMS
 			std::cout << "Initializing wavelet seeder..." << std::endl;
 		
 			/// Very ugly. Should be removed in final version (ost)
-			MSExperiment<DRawDataPoint<1>  > exp = traits_->getAllPeaks();	
+			FeaFiTraits::MapType exp = traits_->getData();	
 			scan_index_ = traits_->getScanIndex();
 			
-			IsotopeFinder<MSExperiment<DRawDataPoint<2>  > > finder(exp);
+			IsotopeFinder<MSExperimentExtern<DPeak<2>  > > finder(exp);
 		
 			int votes_cutoff        = param_.getValue("rtvotes_cutoff");
 			double wt_cutoff      = param_.getValue("wt_cutoff");

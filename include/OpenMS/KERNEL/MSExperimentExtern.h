@@ -971,7 +971,7 @@ public:
     /// Returns the buffer size (mutable)
     UnsignedInt& getBufferSize() { return buffer_size_; }
     /// Returns the buffer size (not mutable)
-    const UnsignedInt getBufferSize() const { return buffer_size_; }
+    const UnsignedInt& getBufferSize() const { return buffer_size_; }
 
     /// Changes the size of the internal buffer
     void updateBuffer()
@@ -984,7 +984,10 @@ public:
     /// Note: the internal vector is of size 100 by default but this
     /// function returns the actual number of scans stored so far
     size_type size() const { return scan2buffer_.size(); }
-
+		
+		std::vector<UnsignedInt>& getSpectraLengths() { return spectra_lengths_; }
+		const std::vector<UnsignedInt>& getSpectraLengths() const { return spectra_lengths_; }
+		
     /// empties buffer and removes temporary file
     void clear()
     {

@@ -232,18 +232,18 @@ protected:
 
         if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
         {
-			cout << "Feature 1: " << feat1->getIntensity() << endl;
-			cout << "Feature 2: " << feat2->getIntensity() << endl;
-			cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
+// 						cout << "Feature 1: " << feat1->getIntensity() << endl;
+// 						cout << "Feature 2: " << feat2->getIntensity() << endl;
+// 						cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
             intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
             return true;
         } 
 		if (!feat1)
-			cout << "Feature 1 was not found. " << endl;
+			writeDebug_(String("Feature 1 was not found. "),1);
 			
 		if (!feat2) 
-			cout << "Feature 2 was not found. " << endl;	
+			writeDebug_(String("Feature 2 was not found. "),1);
 		
         return false;
     }
@@ -407,9 +407,9 @@ protected:
         feat_pos2[MZ] = (CoordinateType) add_param.getValue("Standard:MZ");
         feat_pos2[RT] = (CoordinateType) add_param.getValue("Standard:RT");
 
-        cout << " Setting tolerances to " << tol_mz << " " << tol_rt << endl;
-        cout << " Feature position 1: " <<  feat_pos1 << endl;
-        cout << " Feature position 2: " << feat_pos2 << endl;;
+        writeDebug_(String("Setting tolerances to ") + String(tol_mz) + String(" ") + String(tol_rt),1);
+//         cout << " Feature position 1: " <<  feat_pos1 << endl;
+//         cout << " Feature position 2: " << feat_pos2 << endl;;
 
         String title = (String) add_param.getValue("title");
 
@@ -451,7 +451,7 @@ protected:
         vector<String>::const_iterator cit = files.begin();
         while (cit != files.end())
         {
-            cout << "Opening file " << *cit << endl;
+          	//cout << "Opening file " << *cit << endl;
 
             if (readMapFile_(*cit,intensities,tol_mz,tol_rt,feat_pos1,feat_pos2) )
             {
@@ -487,8 +487,8 @@ protected:
 
         if (getParamAsBool_("write_gnuplot_output"))
         {
-						cout << "Writing gnuplot output" << endl;
-            // compute regression and write GNUplot files
+						writeDebug_(String("Writing gnuplot output"),1);
+						// compute regression and write GNUplot files
             computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
                                                     intensities.begin(), 0.95, filename_prefix, out_f, "eps", true);
         }

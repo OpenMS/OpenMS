@@ -107,9 +107,8 @@
 		RangeUtils_test\
 		MSSpectrum_test\
 		MSExperiment_test\
-		DimensionDescription_test
-
-#		MSExperimentExtern_test\
+		DimensionDescription_test\
+		MSExperimentExtern_test
 
 	#VISUAL
 

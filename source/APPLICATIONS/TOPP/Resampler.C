@@ -230,7 +230,7 @@ class TOPPResampler
 				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
 				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
 			};
-		for ( MSExperimentType::PeakIterator<DPeak<1> > iter(exp.peakBegin()); iter != exp.peakEnd(); ++iter )
+		for ( MSExperimentType::PIterator iter = exp.peakBegin(); iter != exp.peakEnd(); ++iter )
 		{
 			bilip.addValue(iter.getRt(),iter->getPos(),iter->getIntensity());
 		}

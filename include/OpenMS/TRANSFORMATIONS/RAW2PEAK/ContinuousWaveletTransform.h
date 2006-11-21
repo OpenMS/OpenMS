@@ -227,6 +227,18 @@ public:
     {
         return signal_[i].getIntensity();
     }
+		
+		template < typename InputPeakIterator >
+		double getInterpolatedValue_(double x, InputPeakIterator it_left)
+		{
+    	// Interpolate between the point to the left and the point to the right.
+    	double left_position = it_left->getPosition()[mz_dim_];
+    	double right_position = (it_left+1)->getPosition()[mz_dim_];
+    	double d=(x-left_position)/(right_position-left_position);
+
+    	return ((it_left+1)->getIntensity()*d+it_left->getIntensity()*(1-d));
+		}
+
 
 
 protected:

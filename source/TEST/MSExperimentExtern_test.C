@@ -82,7 +82,7 @@ CHECK(MSExperimentExtern& operator= (const MSExperimentExtern& source))
 
   tmp2 = MSExperimentExtern<>();
   TEST_EQUAL(tmp2.getContacts().size(),0);  
-  TEST_EQUAL(tmp2.getBufferSize(),1500);
+  TEST_EQUAL(tmp2.getBufferSize(),100);
 RESULT
 
 CHECK(bool operator== (const MSExperimentExtern& rhs) const)
@@ -255,12 +255,6 @@ CHECK(UnsignedInt getSize() const)
 	tmp.updateRanges();
 	TEST_EQUAL(tmp.getSize(),3);
 		
-RESULT
-
-CHECK(const MSExperimentExtern& getExperimentalSettings() const)
-	MSExperimentExtern<> exp;
-	exp.setComment("test");
-	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 RESULT
 
 /////////////////////////////////////////////////////////////

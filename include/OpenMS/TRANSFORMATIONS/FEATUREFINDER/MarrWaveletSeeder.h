@@ -58,6 +58,10 @@ namespace OpenMS
 			in each scan. Patterns that occur in several consecutive scans are declared as seeds
 			for the extension phase.
 			
+			TODO: Resolution of cwt: estimate average spacing from data
+			TODO: Scoring of seeds: take (local) variance of signal into account
+			TODO: Clustering of signals in adjacent scans, pass information on all scans to extender
+			
 			@ingroup FeatureFinder
 		
 	*/ 
@@ -73,10 +77,12 @@ namespace OpenMS
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
-	
-	typedef DRawDataPoint<1> RawDataPointType;
-	typedef DPeakArray<1, RawDataPointType > RawDataArrayType;
-	typedef RawDataArrayType::iterator RawDataPointIterator;
+
+	typedef FeaFiTraits::MapType MapType;
+	typedef MapType::SpectrumType SpectrumType;
+	typedef SpectrumType::ContainerType ContainerType;
+	typedef	 MapType::PeakType PeakType;
+	typedef SpectrumType::iterator RawDataPointIterator;
 	
   public:
 	   /// standard constructor
@@ -157,12 +163,12 @@ namespace OpenMS
     } // end of searchInScan_
 	
 	
-	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax, unsigned int curr_peak);
+	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax,CoordinateType curr_peak);
  
   /// Sums a scan
-  void sumUp_(RawDataArrayType& scan, unsigned int current_index);
+  void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index, CoordinateType& current_rt);
 	
-	void AlignAndSum_(RawDataArrayType& scan, RawDataArrayType& neighbour);
+	void AlignAndSum_(ContainerType& scan, ContainerType& neighbour);
  	
 	/// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
 	UnsignedInt testDistance2NextPeak_(CoordinateType dist2nextpeak);
@@ -194,16 +200,18 @@ namespace OpenMS
 	/// lower bound for distance between charge 3 peaks
 	CoordinateType charge3_lb_;	
 	
-	/// upper bound for distance between charge 3 peaks
+	/// upper bound for distance between charge 4 peaks
 	CoordinateType charge4_ub_;
-	/// lower bound for distance between charge 3 peaks
+	/// lower bound for distance between charge 4 peaks
 	CoordinateType charge4_lb_;	
+	
+	/// upper bound for distance between charge 5 peaks
+	CoordinateType charge5_ub_;
+	/// lower bound for distance between charge 4 peaks
+	CoordinateType charge5_lb_;
 	
 	/// Computes the wavelet transform for a given scan
 	ContinuousWaveletTransformNumIntegration cwt_;
-	
-	/// wavelet dilation
-	IntensityType cwt_scale_;
 				
 	/// Minimum ion count
 	IntensityType noise_level_signal_;
@@ -211,12 +219,9 @@ namespace OpenMS
    /// The min. intensity in the cwt 
    IntensityType noise_level_cwt_;
 
+	 /// S/N threshold for single peaks in the cwt
 	 IntensityType high_peak_intensity_factor_;
 	 
-	 UnsignedInt min_number_scans_;
-	 
-	 UnsignedInt min_number_peaks_;
-
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MARRWAVELETSEEDER_H

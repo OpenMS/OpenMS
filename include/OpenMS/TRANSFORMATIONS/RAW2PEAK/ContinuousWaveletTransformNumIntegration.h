@@ -185,7 +185,7 @@ namespace OpenMS
     /**
      @brief Perform necessary preprocessing steps like tabulating the Wavelet.
      
-      Build a Marr-Wavelet for the current spacing and scale.
+      	Build a Marr-Wavelet for the current spacing and scale.
       	We store the wavelet in the vector<double> wavelet_;
 
       	We only need a finite amount of points since the Marr function
