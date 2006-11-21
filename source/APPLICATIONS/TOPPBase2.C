@@ -201,37 +201,37 @@ namespace OpenMS
 
 		catch(Exception::UnableToCreateFile& e)
 		{
-			writeLog_(String("Error: Unable to write file (") + e.what() + ")");
+			writeLog_(String("Error: Unable to write file (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return CANNOT_WRITE_OUTPUT_FILE;
 		}	
 		catch(Exception::FileNotFound& e)
 		{
-			writeLog_(String("Error: File not found (") + e.what() + ")");
+			writeLog_(String("Error: File not found (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return INPUT_FILE_NOT_FOUND;
 		}
 		catch(Exception::FileNotReadable& e)
 		{
-			writeLog_(String("Error: File not readable (") + e.what() + ")");
+			writeLog_(String("Error: File not readable (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return INPUT_FILE_NOT_READABLE;
 		}
 		catch(Exception::FileEmpty& e)
 		{
-			writeLog_(String("Error: File empty (") + e.what() + ")");
+			writeLog_(String("Error: File empty (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return INPUT_FILE_EMPTY;
 		}
 		catch(Exception::ParseError& e)
 		{
-			writeLog_(String("Error: Unable to read file (") + e.what() + ")");
+			writeLog_(String("Error: Unable to read file (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return INPUT_FILE_CORRUPT;
 		}
 		catch(Exception::InvalidValue& e)
 		{
-			writeLog_(String("Error: ") + e.what() + " in " + e.getFunction());
+			writeLog_(String("Error: Invalid value (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return INTERNAL_ERROR;
 		}
 		catch(Exception::Base& e)
 		{
-			writeLog_(String("Error: Unexpected error (") + e.what() + ")");
+			writeLog_(String("Error: Unexpected error (") + e.what() + ")\nCode location: " + e.getFile() + ":" + String(e.getLine()));
 			return UNKNOWN_ERROR;
 		}
 	  

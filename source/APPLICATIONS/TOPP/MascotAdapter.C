@@ -39,9 +39,6 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
-
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -324,8 +321,6 @@ class TOPPMascotAdapter
 			DoubleReal precursor_mass_tolerance = 2;
 			DoubleReal peak_mass_tolerance = 1;
 			String temp_charge;
-			QFileInfo file_info;
-			QFile file;
 			string db = "MSDB";
 			string hits = "20";
 			string cleavage = "Trypsin";
@@ -357,7 +352,6 @@ class TOPPMascotAdapter
 			if (inputfile_name == "")
 			{
 				writeLog_("No input file specified. Aborting!");
-				cout << "No input file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -367,7 +361,6 @@ class TOPPMascotAdapter
 			if (outputfile_name == "")
 			{
 				writeLog_("No output file specified. Aborting!");
-				cout << "No output file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}				
@@ -391,9 +384,7 @@ class TOPPMascotAdapter
 				mascot_out = true;
 				if (mascot_in)
 				{
-					writeLog_("Both Mascot flags set. Aborting!");
-					cout << "Both Mascot flags set. Aborting! Only one of the two "
-						<< "flags [-mascot_in|-mascot_out] can be set" << endl;
+					writeLog_("Both Mascot flags set. Aborting! Only one of the two  flags [-mascot_in|-mascot_out] can be set!");
 					return ILLEGAL_PARAMETERS;
 				}				
 			}
@@ -466,8 +457,6 @@ class TOPPMascotAdapter
 				{
 					writeLog_(String("No charge states specified for ") + 
 										String("Mascot search. Aborting!"));
-					cout << "No charge states specified for "
-						<< "Mascot search. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;			
 				}
 				writeDebug_(String("Charges: ") + temp_string, 1);
@@ -512,8 +501,6 @@ class TOPPMascotAdapter
 				if (mascot_cgi_dir == "")
 				{
 					writeLog_(String("No Mascot directory specified. Aborting!"));
-					cout << "No Mascot directory specified."
-						<< " Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				writeDebug_(String("Mascot directory: ") + mascot_cgi_dir, 1);
@@ -524,28 +511,17 @@ class TOPPMascotAdapter
 				if (mascot_data_dir == "")
 				{
 					writeLog_("No temp directory specified. Aborting!");
-					cout << "No temp directory specified."
-						<< " Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				
 				writeDebug_(String("Temp directory: ") + mascot_data_dir, 1);
 
-				file.setName(mascot_data_dir + "/" + mascot_outfile_name);
-				file.open( IO_WriteOnly );
-				if (!file.isWritable())
+				String tmp = mascot_data_dir + "/" + mascot_outfile_name;
+				if (!File::writable(tmp))
 				{
-					writeLog_(String(" Could not write in temp data directory: ")
-						+ mascot_data_dir + "/" + mascot_outfile_name
-						+ String(" Aborting!"));
-					cout << "Could not write in temp data directory: "
-						<< mascot_data_dir
-						<< " Aborting!" 
-						<< endl;
-					file.close();				
+					writeLog_(String(" Could not write in temp data directory: ")+ tmp + " Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				file.close();
 				mascotXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML";				
 			}
 
@@ -562,26 +538,22 @@ class TOPPMascotAdapter
 			// testing whether input and output files are accessible
 			//-------------------------------------------------------------
 	
-			file_info.setFile(inputfile_name.c_str());
-			if (!file_info.exists())
+			if (!File::exists(inputfile_name))
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 			}
-			if (!file_info.isReadable())
+			if (!File::readable(inputfile_name))
 			{
 				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
 			}
-	    if (file_info.size() == 0)
+	    if (File::empty(inputfile_name))
 	    {
 	      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 	    }		
-			file.setName(outputfile_name.c_str());
-			file.open( IO_WriteOnly );
-			if (!file.isWritable())
+			if (!File::empty(outputfile_name))
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
 			}
-			file.close();				
 	
 			//-------------------------------------------------------------
 			// reading input
@@ -621,13 +593,14 @@ class TOPPMascotAdapter
 					mascot_infile->store(mascot_data_dir + "/" + mascot_infile_name, 
 															 experiment, 
 															 "OpenMS search");
-					file_info.setFile(logfile.c_str());
+					String tmp = logfile;
+					File::absolutePath(tmp);
 					writeDebug_("The Mascot process created the following output:", 0);
 					/// calling the Mascot process
 					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
 						mascot_data_dir + "/" + mascot_infile_name + 
-						" >> " + String(file_info.absFilePath().ascii()) + ";"
+						" >> " + tmp + ";"
 						+ "./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
 						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
@@ -635,9 +608,7 @@ class TOPPMascotAdapter
 					status = system(call.c_str());
 					if (status != 0)
 					{
-						cout << "Mascot server problem. Aborting! (Details can be seen " 
-						<< " in the logfile: \"" << logfile << "\")" << endl;
-						writeLog_("Mascot server problem. Aborting!");
+						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
 						call = "rm " + mascot_data_dir + "/" 
 										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";";
 						system(call.c_str());

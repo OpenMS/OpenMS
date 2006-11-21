@@ -50,9 +50,8 @@ namespace OpenMS
     
     @ingroup DatabaseIO
     
-    @todo add setup and clear method for the DB (Marc)
-    @todo test: update function (Marc)
-    @todo add support for missing classes / add missing members to classes(Marc)
+    @todo add setup and clear method for the DB (Thomas S.)
+    @todo add support for missing classes / add missing members to classes(Thomas S.)
   */
  
   class DBAdapter

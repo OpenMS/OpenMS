@@ -41,27 +41,20 @@ namespace OpenMS
 	/**
 		@brief 
 		
-		@todo add docu
-		@todo write test(Martin)
+		@todo add docu (Martin)
+		@todo write test (Martin)
 	*/
 	class InspectFile
 	{
 		public:
-			/// @todo move to String (Martin)
-			void remove(std::string& s, const std::string& unwanted_character);
-			
-			/// erase all whitespaces in a string
-			/// @todo move to String (Martin)
-			void removeWhitespaces(std::string& s);
-			
 			/// used to generate a trie database from another kind of database
-			void generateTrieDB(const std::string& source_filename, const std::string& source_path, const std::string& database_path, std::vector< unsigned int > wanted_records = std::vector< unsigned int >(), std::string database_filename = "", std::string index_filename = "", bool append = false, std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError);
+			void generateTrieDB(const String& source_filename, const String& source_path, const String& database_path, std::vector< unsigned int > wanted_records = std::vector< unsigned int >(), String database_filename = "", String index_filename = "", bool append = false, String species = "None") throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/// compress a trie database to contain the wanted records only
-			void compressTrieDB(const std::string database_filename, std::string index_filename, std::string database_path, std::vector< unsigned int > wanted_records, std::string second_database_filename = "", std::string second_index_filename = "", std::string second_database_path = "", bool append = false) throw (Exception::FileNotFound, Exception::ParseError);
+			void compressTrieDB(const String database_filename, String index_filename, String database_path, std::vector< unsigned int > wanted_records, String second_database_filename = "", String second_index_filename = "", String second_database_path = "", bool append = false) throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/// get the sequence, accession and accession type for some proteins from a database
-			void getSequenceAndACandACType(const std::string& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label , std::string species = "None") throw (Exception::FileNotFound, Exception::ParseError);
+			void getSequenceAndACandACType(const String& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const String& ac_label, const String& sequence_start_label, const String& sequence_end_label, const String& comment_label, String species_label , String species = "None") throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/**
 				@brief retrieve the labels used in a file
@@ -71,25 +64,22 @@ namespace OpenMS
 				label for the end of the sequence
 				label for the line defining the species
 			*/
-			void getLabels(const std::string& source_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError);
+			void getLabels(const String& source_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/// retrieve sequences from a trie database
-			void getSequences(std::string database_path, const std::string& database_filename, std::string index_filename, const std::vector< unsigned int > wanted_records, std::vector<std::string>& sequences) throw (Exception::FileNotFound, Exception::ParseError);
+			void getSequences(String database_path, const String& database_filename, String index_filename, const std::vector< unsigned int > wanted_records, std::vector<String>& sequences) throw (Exception::FileNotFound, Exception::ParseError);
 			
-			/// if there's no character marking the name as a directory it is set
-			void ensurePathChar(std::string& path, char path_char = '/');
+			bool setTempDatabaseFilename(const String& temp_database_filename);
+			const String& getTempDatabaseFilename() const;
 			
-			bool setTempDatabaseFilename(const std::string& temp_database_filename);
-			const std::string& getTempDatabaseFilename() const;
+			bool setTempIndexFilename(const String& temp_index_filename);
+			const String& getTempIndexFilename() const;
 			
-			bool setTempIndexFilename(const std::string& temp_index_filename);
-			const std::string& getTempIndexFilename() const;
+			bool setSecondTempDatabaseFilename(const String& temp_second_database_filename);
+			const String& getSecondTempDatabaseFilename() const;
 			
-			bool setSecondTempDatabaseFilename(const std::string& temp_second_database_filename);
-			const std::string& getSecondTempDatabaseFilename() const;
-			
-			bool setSecondTempIndexFilename(const std::string& temp_second_index_filename);
-			const std::string& getSecondTempIndexFilename() const;
+			bool setSecondTempIndexFilename(const String& temp_second_index_filename);
+			const String& getSecondTempIndexFilename() const;
 			
 			void setUseTempFiles(const bool use_temp_files);
 			const bool getUseTempFiles() const;
@@ -110,19 +100,19 @@ namespace OpenMS
 				> some_other_protein
 				...
 			*/
-			void generateTrieDB_(const std::string& source_filename, const std::string& source_path, const std::string& database_path, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label = "", std::string species = "None", std::vector< unsigned int > wanted_records = std::vector< unsigned int >(), std::string database_filename = "", std::string index_filename = "", bool append = false) throw (Exception::FileNotFound, Exception::ParseError);
+			void generateTrieDB_(const String& source_filename, const String& source_path, const String& database_path, const String& ac_label, const String& sequence_start_label, const String& sequence_end_label, const String& comment_label, String species_label = "", String species = "None", std::vector< unsigned int > wanted_records = std::vector< unsigned int >(), String database_filename = "", String index_filename = "", bool append = false) throw (Exception::FileNotFound, Exception::ParseError);
 			
 			static const unsigned int index_peptide_name_length_; ///< the length of a peptide name in the index file
 			static const unsigned int index_db_record_length_; ///< the length of the originial database position in the index file
 			static const unsigned int index_trie_record_length_; ///< the length of the trie database position in the index file
 			static const unsigned int index_record_length_; ///< the length of a record (the sum of the three parameters above)
 			static const char trie_delimiter_; ///< the character that delimits protein sequences in a trie database
-			static const std::string score_type_;
+			static const String score_type_;
 			
-			static std::string temp_database_filename_;
-			static std::string temp_index_filename_;
-			static std::string temp_second_database_filename_;
-			static std::string temp_second_index_filename_;
+			static String temp_database_filename_;
+			static String temp_index_filename_;
+			static String temp_second_database_filename_;
+			static String temp_second_index_filename_;
 			static bool use_temp_files_;
 		
 	};

@@ -35,9 +35,8 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
 
 #include <fstream>
 #include <iostream>
@@ -132,8 +131,6 @@ class TOPPRTPredict
 
 		ExitCodes main_(int , char**)
 		{
-			QFileInfo file_info;
-			QFile file;
 			String inputfile_name;
 			String svmfile_name;
 			String outputfile_name;
@@ -166,7 +163,6 @@ class TOPPRTPredict
 			if (inputfile_name == "")
 			{
 				writeLog_("No input file specified. Aborting!");
-				cout << "No input file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -177,7 +173,6 @@ class TOPPRTPredict
 			if (outputfile_name == "")
 			{
 				writeLog_("No output file specified. Aborting!");
-				cout << "No output file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}				
@@ -186,10 +181,7 @@ class TOPPRTPredict
 			writeDebug_(String("Total gradient time: ") + String(total_gradient_time), 1);
 			if (total_gradient_time == 0.f)
 			{
-				writeLog_(String("Total gradient time has to") + 
-						String(" be specified. Aborting!"));
-				cout << "Total gradient time has to"
-						<< " be specified. Aborting!" << endl;
+				writeLog_("Total gradient time has to be specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}				
 
@@ -199,7 +191,6 @@ class TOPPRTPredict
 			if (svmfile_name == "")
 			{
 				writeLog_("No svm model file specified. Aborting!");
-				cout << "No svm model file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -208,36 +199,33 @@ class TOPPRTPredict
 			// testing whether input and output files are accessible
 			//-------------------------------------------------------------
 			
-			file_info.setFile(inputfile_name.c_str());
-			if (!file_info.exists())
+			if (!File::exists(inputfile_name))
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 			}
-			if (!file_info.isReadable())
+			if (!File::readable(inputfile_name))
 			{
 				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
 			}
-			if (file_info.size() == 0)
+			if (File::empty(inputfile_name))
 			{
 				throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 			}		
-			file_info.setFile(svmfile_name.c_str());
-			if (!file_info.exists())
+			
+
+			if (!File::exists(svmfile_name))
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, svmfile_name);
 			}
-			if (!file_info.isReadable())
+			if (!File::readable(svmfile_name))
 			{
 				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, svmfile_name);			
 			}
-			file.setName(outputfile_name.c_str());
-			file.open( IO_WriteOnly );
-			if (!file.isWritable())
+			if (!File::readable(outputfile_name))
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
 			}
-			file.close();				
-
+			
 
 			//-------------------------------------------------------------
 			// reading input

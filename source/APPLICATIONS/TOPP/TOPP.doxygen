@@ -45,7 +45,5 @@
  		<LI><B>--help-opt</b> shows help about the INI file options of the tool
  	</UL>
   
-  @todo tests for TOPP tools (Marc / everyone)
-  
   @ingroup Applications
 */

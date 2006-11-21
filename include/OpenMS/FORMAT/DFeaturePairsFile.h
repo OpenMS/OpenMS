@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeaturePairsHandler.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -78,7 +78,7 @@ namespace OpenMS
       void load(String filename, DFeaturePairVector<D>& pairs) throw (Exception::FileNotFound, Exception::ParseError)
       {
       	//try to open file
-				if (!TextFile::exists(filename))
+				if (!File::exists(filename))
 		    {
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }

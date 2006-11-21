@@ -48,6 +48,8 @@ namespace OpenMS
 		These settings are valid for the whole experiment. 
 		See SpectrumSettings for settings which are spectrum specific.
 		
+		@todo add several instances of software to capture processing in TOPP (Marc)
+		
 		@ingroup Metadata
 	*/
   class ExperimentalSettings

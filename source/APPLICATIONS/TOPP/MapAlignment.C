@@ -114,14 +114,13 @@ class TOPPMapAlignment
       // parameter handling
       //-------------------------------------------------------------
       Param mapali_param = getParam_();
-      cout << "Param \n" << mapali_param << endl;
+      writeDebug_("Parameters:", mapali_param, 2);
 
       Param files_param = mapali_param.copy("Files:",true);
-      cout << "Param \n" << files_param << endl;
+      writeDebug_("Files parameters:", files_param, 2);
       Param::ConstIterator pit = files_param.begin();
-
+      
       String map_type = mapali_param.getValue("map_type");
-      std::cout << "Map type " << map_type << std::endl;
 
       //-------------------------------------------------------------
       // loading input and initialize the alignment object

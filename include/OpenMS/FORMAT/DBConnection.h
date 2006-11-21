@@ -52,7 +52,7 @@ namespace OpenMS
     
     @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
     
-    @todo make DBConnection a singleton as several concurrent DBConnections do not work! (Marc)
+    @todo make DBConnection a singleton as several concurrent DBConnections do not work! (Thomas S.)
     
     @ingroup DatabaseIO
   */

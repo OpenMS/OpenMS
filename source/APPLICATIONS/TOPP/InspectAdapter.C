@@ -30,14 +30,12 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 
 #include <stdlib.h>
 #include <vector>
-
-#include <qfile.h>
-#include <qfileinfo.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -116,7 +114,8 @@ class TOPPInspectAdapter
 	public:
 		TOPPInspectAdapter()
 			: TOPPBase("InspectAdapter")
-		{}
+		{
+		}
 	
 	protected:
 		void printToolUsage_() const
@@ -217,42 +216,6 @@ class TOPPInspectAdapter
 			flags_["-cmn_conts"] = "cmn_conts";
 			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
 		}
-
-		long fsize(const string& filename)
-		{
-			FILE* file = fopen(filename.c_str(), "r");
-			long size = 0;
-			if ( file != NULL )
-			{
-				fseek(file, 0, SEEK_END);
-				size = ftell(file);
-				fclose(file);
-				return size;
-			}
-			return -1;
-		}
-		
-		inline bool emptyFile(const string& filename)
-		{
-			return ( fsize(filename) == 0 );
-		}
-
-		string fileContent(const string& filename)
-		{
-			long size = fsize(filename);
-			if ( size != -1 )
-			{
-				FILE* file = fopen(filename.c_str(), "r");
-				char* buffer = new char[size+1];
-				buffer[size] = 0;
-				fread (buffer, size, 1, file);
-				fclose(file);
-				string sbuffer = buffer;
-				delete(buffer);
-				return sbuffer;
-			}
-			else return string();
-		}
 		
 		// deleting all temporary files
 		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_idx_filename, const String& inspect_logfile)
@@ -265,12 +228,6 @@ class TOPPInspectAdapter
 			if ( snd_db_filename.hasSuffix("tmp.inspect.db.snd.trie") ) remove(snd_db_filename.c_str());
 			if ( snd_idx_filename.hasSuffix("tmp.inspect.db.snd.index") ) remove(snd_idx_filename.c_str());
  			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
-		}
-
-		void absFilePath(string& file_path)
-		{
-			QFileInfo file_info(file_path);
-			file_path = file_info.absFilePath().ascii();
 		}
 
 		ExitCodes main_(int , char**)
@@ -330,9 +287,9 @@ class TOPPInspectAdapter
 			
 			if ( inspect_in && inspect_out )
 			{
-				writeLog_("Both Inspect flags set. Aborting!");
-				cout << "Both Inspect flags set. Aborting! Only one of the two "
-						<< "flags [-inspect_in|-inspect_out] can be set" << endl;
+				writeLog_("Both Inspect flags set. Aborting!\n"
+				          "Only one of the two flags [-inspect_in|-inspect_out] can be set");
+				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
@@ -344,25 +301,24 @@ class TOPPInspectAdapter
 				if ( temp_data_dir.empty() )
 				{
 					writeLog_("No directory for temporary files specified. Aborting!");
-					cout << "No directory for temporary files specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				absFilePath(temp_data_dir);
-				temp_data_dir.ensurePathEnding();
+
+				File::absolutePath(temp_data_dir);
+				temp_data_dir.ensureLastChar('/');
 			}
 			
 			string_buffer = getParamAsString_("in");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
-				cout << "No input file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			else
 			{
-				absFilePath(string_buffer);
+				File::absolutePath(string_buffer);
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
@@ -370,18 +326,16 @@ class TOPPInspectAdapter
 				}
 				else inspect_output_filename = string_buffer;
 			}
-std::cout << inspect_output_filename;
 			
 			string_buffer = getParamAsString_("out");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No output file specified. Aborting!");
-				cout << "No output file specified. Aborting!" << endl;
 				return ILLEGAL_PARAMETERS;
 			}
 			else
 			{
-				absFilePath(string_buffer);
+				File::absolutePath(string_buffer);
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
 			}
@@ -395,12 +349,11 @@ std::cout << inspect_output_filename;
 					else if ( inspect_in )
 					{
 						writeLog_("No name for the inspect input file specified. Aborting!");
-						cout << "No name for the inspect input file specified. Aborting!" << endl;
 						return ILLEGAL_PARAMETERS;
 					}
 				}
 			}
-			absFilePath(inspect_input_filename);
+			File::absolutePath(inspect_input_filename);
 			
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
@@ -413,11 +366,12 @@ std::cout << inspect_output_filename;
 			if ( inspect_in && inspect_dir.empty() && inspect_out )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
-				cout << "No inspect directory specified. Aborting!" << endl;
 				return ILLEGAL_PARAMETERS;
 			}
-			absFilePath(inspect_dir);
-			inspect_dir.ensurePathEnding();
+
+			File::absolutePath(inspect_dir);
+			inspect_dir.ensureLastChar('/');;
+
 			
 			blind_only = getParamAsBool_("blind_only");
 			
@@ -443,7 +397,6 @@ std::cout << inspect_output_filename;
 				if ( dbs.empty() && seq_files.empty() )
 				{
 					writeLog_("No database specified. Aborting!");
-					cout << "No database specified. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				
@@ -465,7 +418,6 @@ std::cout << inspect_output_filename;
 						if ( !blind )
 						{
 							writeLog_("No name for new trie database given. Aborting!");
-							cout << "No name for new trie database given. Aborting!" << endl;
 							return ILLEGAL_PARAMETERS;
 						}
 					}
@@ -474,7 +426,6 @@ std::cout << inspect_output_filename;
 						if ( no_tmp_dbs )
 						{
 							writeLog_("No_tmp_dbs flag set but no name for database given. Aborting!");
-							cout << "No_tmp_dbs flag set but no name for database given. Aborting!" << endl;
 							return ILLEGAL_PARAMETERS;
 						}
 						else
@@ -487,7 +438,7 @@ std::cout << inspect_output_filename;
 				}
 				else
 				{
-					absFilePath(db_filename);
+					File::absolutePath(db_filename);
 					if ( db_filename.hasSuffix(".trie") )
 					{
 						inspect_infile.setDb(db_filename);
@@ -503,8 +454,7 @@ std::cout << inspect_output_filename;
 				
 				if ( blind && blind_only )
 				{
-					writeLog_("Both blind flags set. Aborting!");
-					cout << "Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set" << endl;
+					writeLog_("Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set");
 					return ILLEGAL_PARAMETERS;
 				}
 				
@@ -512,7 +462,6 @@ std::cout << inspect_output_filename;
 				if ( no_tmp_dbs && blind && snd_db.empty() )
 				{
 					writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
-					cout << "No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( blind && snd_db.empty() )
@@ -522,7 +471,7 @@ std::cout << inspect_output_filename;
 				}
 				else if ( blind )
 				{
-					absFilePath(snd_db_filename);
+					File::absolutePath(snd_db_filename);
 					if ( snd_db.hasSuffix(".trie") )
 					{
 						snd_db_filename = snd_db;
@@ -550,7 +499,6 @@ std::cout << inspect_output_filename;
 						if ( mod.back().size() < 2 || mod.back().size() > 4 )
 						{
 							writeLog_("Illegal number of parameters for modification given. Aborting!");
-							cout << "Illegal number of parameters for modification given. Aborting!" << endl;
 							return ILLEGAL_PARAMETERS;
 						}
 						else
@@ -562,7 +510,6 @@ std::cout << inspect_output_filename;
 							catch ( Exception::ConversionError ce )
 							{
 								writeLog_("Given mass is no float. Aborting!");
-								cout << "Given mass is no float. Aborting!" << endl;
 								return ILLEGAL_PARAMETERS;
 							}
 						}
@@ -578,7 +525,6 @@ std::cout << inspect_output_filename;
 				if ( inspect_infile.getMods() < 1 && !mod.empty() )
 				{
 					writeLog_("Modifications specified, but max_mods_pp not set. Setting it to 1.");
-					cout << "Modifications specified, but max_mods_pp not set. Setting it to 1." << endl;
 					inspect_infile.setMods(1);
 				}
 				
@@ -589,7 +535,6 @@ std::cout << inspect_output_filename;
 					if ( (inspect_infile.getPMTolerance() < 0) )
 					{
 						writeLog_("Illegal parent mass tolerance (<0) given. Aborting!");
-						cout << "Illegal parent mass tolerance (<0) given. Aborting!" << endl;
 						return ILLEGAL_PARAMETERS;
 					}
 				}
@@ -601,7 +546,6 @@ std::cout << inspect_output_filename;
 					if ( (inspect_infile.getIonTolerance() < 0) )
 					{
 						writeLog_("Illegal ion mass tolerance (<0) given. Aborting!");
-						cout << "Illegal ion mass tolerance (<0) given. Aborting!" << endl;
 						return ILLEGAL_PARAMETERS;
 					}
 				}
@@ -615,7 +559,6 @@ std::cout << inspect_output_filename;
 // 					if ( (inspect_infile.getTagCountA() < 0) )
 // 					{
 // 						writeLog_("Illegal number of tags (TagCountA <0) given. Aborting!");
-// 						cout << "Illegal number of tags (TagCountA <0) given. Aborting!" << endl;
 // 						return ILLEGAL_PARAMETERS;
 // 					}
 // 				}
@@ -627,7 +570,6 @@ std::cout << inspect_output_filename;
 // 					if ( (inspect_infile.getTagCountB() < 0) )
 // 					{
 // 						writeLog_("Illegal number of tags (TagCountB <0) given. Aborting!");
-// 						cout << "Illegal number of tags (TagCountB <0) given. Aborting!" << endl;
 // 						return ILLEGAL_PARAMETERS;
 // 					}
 // 				}
@@ -641,7 +583,6 @@ std::cout << inspect_output_filename;
 					if ( inspect_infile.getMaxPTMsize() < 0 )
 					{
 						writeLog_("Illegal maximum modification size (<0). Aborting!");
-						cout << "Illegal maximum modification size (<0). Aborting!" << endl;
 						return ILLEGAL_PARAMETERS;
 					}
 				}
@@ -656,7 +597,6 @@ std::cout << inspect_output_filename;
 				if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 				{
 					writeLog_("Illegal p-value. Aborting!");
-					cout << "Illegal p-value. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 				
@@ -669,7 +609,6 @@ std::cout << inspect_output_filename;
 				if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
 				{
 					writeLog_("Illegal p-value for blind search. Aborting!");
-					cout << "Illegal p-value for blind search. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;
 				}
 			}
@@ -678,26 +617,19 @@ std::cout << inspect_output_filename;
 			// (3) running program according to parameters
 			//-------------------------------------------------------------
 			// checking accessability of files
-			QFileInfo file_info;
-			QFile file;
 			
 			// the file for the inspect output
 			if ( (inspect_in && inspect_out) || (inspect_in && blind) )
 			{
-				file.setName(inspect_output_filename);
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(inspect_output_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
 				}
-				file.close();
 			}
 			
 			if ( !inspect_infile.getJumpscores().empty() )
 			{
-				file_info.setFile(inspect_infile.getJumpscores());
-				if ( !file_info.isReadable() )
+				if ( !File::readable(inspect_infile.getJumpscores()) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
 				}
@@ -706,62 +638,53 @@ std::cout << inspect_output_filename;
 			// output file
 			if ( inspect_out )
 			{
-				file.setName(output_filename);
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(output_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
 				}
-				file.close();
 			}
 			
 			vector< String > not_accessable, accessable_db, idx, accessable_seq;
 			if ( inspect_in )
 			{
-				file.setName(inspect_input_filename.c_str());
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(inspect_input_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_input_filename);
 				}
-				file.close();
 				
 				// database and index
-				file.setName(db_filename.c_str());
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(db_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
 				}
-				file.close();
-				file.setName(idx_filename);
-				file.open( IO_WriteOnly );
-				if ( !file.isWritable() )
+
+				if ( !File::writable(idx_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
 				}
-				file.close();
 				
 				// given databases and sequence files
 				for ( vector< String >::const_iterator db_i = dbs.begin(); db_i != dbs.end(); ++db_i )
 				{
-					file_info.setFile(db_i->c_str());
-					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+					if ( !File::readable(*db_i) || File::empty(*db_i) ) 
+					{
+						not_accessable.push_back(*db_i);
+					}
 					else // if the file is accessable, try to find the corresponding index file and check it
 					{
-						if ( db_i->hasSuffix(".trie") ) string_buffer = db_i->substr(0, db_i->length()-4) + "index";
-						else string_buffer = *db_i + "index";
+						if ( db_i->hasSuffix(".trie") ) 
+						{
+							string_buffer = db_i->substr(0, db_i->length()-4) + "index";
+						}
+						else 
+						{
+							string_buffer = *db_i + "index";
+						}
 						
-						file_info.setFile(string_buffer.c_str());
-						if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-						else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-						else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+						if ( !File::readable(string_buffer) || File::empty(string_buffer) ) 
+						{
+							not_accessable.push_back(*db_i);
+						}
 						else
 						{
 							accessable_db.push_back(*db_i);
@@ -772,16 +695,18 @@ std::cout << inspect_output_filename;
 				
 				for ( vector< String >::const_iterator db_i = seq_files.begin(); db_i != seq_files.end(); ++db_i )
 				{
-					file_info.setFile(db_i->c_str());
-					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
-					else accessable_seq.push_back(*db_i);
+					if ( !File::readable(*db_i) || File::empty(*db_i) )
+					{ 
+						not_accessable.push_back(*db_i);
+					}
+					else 
+					{
+						accessable_seq.push_back(*db_i);
+					}
 				}
 				if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
 				{
 					writeLog_("All of the given databases are either not existent, not readable or empty. Aborting!");
-					cout << "All of the given databases are either not existent, not readable or empty. Aborting!" << endl;
 					throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, not_accessable.front());
 				}
 				else if ( !not_accessable.empty() )
@@ -791,48 +716,31 @@ std::cout << inspect_output_filename;
 					string_buffer.append(String( accessable_db.size() + accessable_seq.size() ));
 					string_buffer.append(" databases only!");
 					writeLog_(string_buffer.c_str());
-					cout << string_buffer << endl;
 				}
 				
 				// second database and index
 				if ( blind )
 				{
-					file.setName(snd_db_filename);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(snd_db_filename) )
 					{
-						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_db_filename);
 					}
-					file.close();
-					file.setName(snd_idx_filename);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(snd_idx_filename) )
 					{
-						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_idx_filename);
 					}
-					file.close();
 				}
 				
 				// the on-screen output of inspect
 				if ( inspect_out )
 				{
-					file.setName(inspect_logfile);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(inspect_logfile) )
 					{
 						writeLog_(String(" Could not write in temp data directory: ")
 								+ temp_data_dir + inspect_logfile
 								+ String(" Aborting!"));
-						cout << "Could not write in temp data directory: "
-								<< temp_data_dir
-								<< " Aborting!"
-								<< endl;
-						file.close();
 						return ILLEGAL_PARAMETERS;
 					}
-					file.close();
 				}
 			}
 			
@@ -881,13 +789,15 @@ std::cout << inspect_output_filename;
 				call.append(inspect_logfile);
 
 				int status = system(call.c_str());
-				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfile));
-
+				
+				//debug output
+				writeLog_("inspect output while running:\n");
+				TextFile inspect_logfile_content(inspect_logfile);
+				writeLog_(inspect_logfile_content.asString());
+				
 				if (status != 0)
 				{
-					cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << endl;
-					writeLog_("Inspect problem. Aborting!");
+					writeLog_("Inspect problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -900,7 +810,6 @@ std::cout << inspect_output_filename;
 					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< Real >(), vector< Real >(), contact_person);
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
-					cout << "No proteins matching criteria for generating minimized database for blind search!" << endl;
 					
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 				}
@@ -933,12 +842,12 @@ std::cout << inspect_output_filename;
 				call.append(inspect_logfile);
 				
 				int status = system(call.c_str());
-				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfile));
+				writeLog_("inspect output while running:\n");
+				TextFile inspect_logfile_content(inspect_logfile);
+				writeLog_(inspect_logfile_content.asString());
 				if (status != 0)
 				{
-					cout << "Inspect problem. Aborting! (Details can be seen in the logfile: \"" << logfile << "\")" << endl;
-					writeLog_("Inspect problem. Aborting!");
+					writeLog_("Inspect problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -948,7 +857,7 @@ std::cout << inspect_output_filename;
 			{
 				AnalysisXMLFile analysisXML_file;
 				
-				if ( !emptyFile(inspect_output_filename) )
+				if ( !File::empty(inspect_output_filename) )
 				{
 					vector< Identification > identifications;
 					ProteinIdentification protein_identification;
@@ -963,7 +872,6 @@ std::cout << inspect_output_filename;
 					{
 						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 						writeLog_(String(pe.getMessage()) + " Aborting!");
-						cout << String(pe.getMessage()) + " Aborting!" << endl;
 						return INPUT_FILE_CORRUPT;
 					}
 					vector< ProteinIdentification > protein_identifications;
@@ -975,7 +883,6 @@ std::cout << inspect_output_filename;
 				{
 					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< Real >(), vector< Real >(), contact_person);
 					writeLog_("No proteins identified!");
-					cout << "No proteins identified!" << endl;
 				}
 			}
 			

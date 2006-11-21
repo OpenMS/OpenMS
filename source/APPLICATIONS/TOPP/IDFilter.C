@@ -32,11 +32,10 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
 
 #include <map>
 #include <iostream>
@@ -226,8 +225,6 @@ class TOPPIDFilter
 		Real protein_significance_threshold_fraction = 1;
 		Real peptide_significance_threshold_fraction = 1;
 		bool strict = false;
-		QFileInfo file_info;
-		QFile file;
 		String sequences_file_name = "";
 		String exclusion_peptides_file_name = "";
 		FASTAFile fasta_file;
@@ -244,7 +241,6 @@ class TOPPIDFilter
 		if (inputfile_name == "")
 		{
 			writeLog_("No input file specified. Aborting!");
-			cout << "No input file specified. Aborting!" << endl;
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
@@ -255,7 +251,6 @@ class TOPPIDFilter
 		if (outputfile_name == "")
 		{
 			writeLog_("No output file specified. Aborting!");
-			cout << "No output file specified. Aborting!" << endl;
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}				
@@ -324,43 +319,33 @@ class TOPPIDFilter
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
 	
-		file_info.setFile(inputfile_name.c_str());
-		if (!file_info.exists())
+		if (!File::exists(inputfile_name))
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 		}
-		if (!file_info.isReadable())
+		if (!File::readable(inputfile_name))
 		{
 			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
 		}
-		if (file_info.size() == 0)
+		if (File::empty(inputfile_name))
 		{
 			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 		}		
 		if (sequences_file_name != "")
 		{
-			file_info.setFile(sequences_file_name.c_str());
-			if (!file_info.exists())
-			{
-				sequences_file_name = "";
-			}
-			if (!file_info.isReadable())
+			if (!File::readable(sequences_file_name))
 			{
 				sequences_file_name = "";
 			}
 			if (sequences_file_name != "")
 			{ 
-				writeDebug_("Sequences file <" + sequences_file_name + "> used for"
-										+ " filtering", 1);
+				writeDebug_("Sequences file <" + sequences_file_name + "> used for" + " filtering", 1);
 			}
 		}
-		file.setName(outputfile_name.c_str());
-		file.open( IO_WriteOnly );
-		if (!file.isWritable())
+		if (!File::writable(outputfile_name))
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
 		}
-		file.close();				
 	
 		//-------------------------------------------------------------
 		// reading input

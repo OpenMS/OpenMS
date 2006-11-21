@@ -28,9 +28,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-
-#include <qfileinfo.h>
-#include <qfile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -117,9 +115,7 @@ class TOPPAnalysisXMLMerger
 		vector<Real> 										additional_mz_values;
 		UnsignedInt											counter = 0;
 		String 													out_file = "";
-		String 													file_list	= "";	
-		QFileInfo 											file_info;
-		QFile 													file;
+		String 													file_list	= "";
 
 
 		//-------------------------------------------------------------
@@ -133,7 +129,6 @@ class TOPPAnalysisXMLMerger
 		if (file_names.size() < 2)
 		{
 			writeLog_("Less than two filenames given. Aborting!");
-			cout << "Less than two filenames given. Aborting!" << endl;
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
@@ -145,7 +140,6 @@ class TOPPAnalysisXMLMerger
 		if (out_file == "")
 		{
 			writeLog_("No output file specified. Aborting!");
-			cout << "No output file specified. Aborting!" << endl;
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
@@ -158,27 +152,24 @@ class TOPPAnalysisXMLMerger
 		for(UnsignedInt i = 0; i < file_names.size(); ++i)
 		{
 			actual_file_name = file_names[i];
-			file_info.setFile(actual_file_name.c_str());
-			if (!file_info.exists())
+			if (!File::exists(actual_file_name))
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);
 			}
-			if (!file_info.isReadable())
+			if (!File::readable(actual_file_name))
 			{
 				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);			
 			}
-	    if (file_info.size() == 0)
+	    if (File::empty(actual_file_name))
 	    {
 	      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);
 	    }		
 		}		
-		file.setName(out_file.c_str());
-		file.open( IO_WriteOnly );
-		if (!file.isWritable())
+
+		if (!File::writable(out_file))
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_file);
 		}
-		file.close();				
 
 		//-------------------------------------------------------------
 		// calculations

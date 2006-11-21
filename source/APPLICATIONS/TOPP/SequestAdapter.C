@@ -42,7 +42,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <qfileinfo.h>
 #include <qdir.h>
 #include <qstringlist.h>
 
@@ -194,21 +193,21 @@ class TOPPSequestAdapter
 			<< "  -nuc_reading_frame             Format of the FASTA database:" << endl
 			<< "                                 0  The FASTA file contains amino acid codes. No translation is needed." << endl
 			<< "                                 1  The DNA sequence is scanned left to right (forward direction)." << endl
-			<< "                                    The amino acid code starts with the first DNA code." << cout
-			<< "                                 2  The DNA sequence is scanned left to right (forward direction)." << cout
+			<< "                                    The amino acid code starts with the first DNA code." << endl
+			<< "                                 2  The DNA sequence is scanned left to right (forward direction)." << endl
 			<< "                                    The amino acid code starts with the second DNA code." << endl
-			<< "                                 3  The DNA sequence is scanned left to right (forward direction)." << cout
-			<< "                                    The amino acid code starts with the third DNA code." << cout
-			<< "                                 4  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the first DNA code." << cout
-			<< "                                 5  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the second DNA code." << cout
-			<< "                                 6  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the third DNA code." << cout
-			<< "                                 7  Use each of the DNA translations of the codes 1, 2, 3." << cout
-			<< "                                 8  Use each of the DNA translations of the codes 4, 5, 6." << cout
-			<< "                                 9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6." << cout
-			<< cout
+			<< "                                 3  The DNA sequence is scanned left to right (forward direction)." << endl
+			<< "                                    The amino acid code starts with the third DNA code." << endl
+			<< "                                 4  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << endl
+			<< "                                    The amino acid code starts with the first DNA code." << endl
+			<< "                                 5  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << endl
+			<< "                                    The amino acid code starts with the second DNA code." << endl
+			<< "                                 6  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << endl
+			<< "                                    The amino acid code starts with the third DNA code." << endl
+			<< "                                 7  Use each of the DNA translations of the codes 1, 2, 3." << endl
+			<< "                                 8  Use each of the DNA translations of the codes 4, 5, 6." << endl
+			<< "                                 9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6." << endl
+			<< endl
 			<< "  -max_num_int_cleav_sites       This value is the number of cleavage positions that may have been ignored by the enzyme." << endl
 			<< "  -match_peak_count              The highest abundant experimental peaks are checked whether they are matched by the" << endl
 			<< "                                 theoretical ones. match_peak_count is the number of the top abundant peaks to check." << endl
@@ -513,7 +512,6 @@ class TOPPSequestAdapter
 			if ( int_buffer < 0 )
 			{
 				writeLog_("Maximal charge to test is less than zero. Aborting!");
-				cout << "Maximal charge to test is less than zero. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -524,7 +522,6 @@ class TOPPSequestAdapter
 			if ( getParamAsBool_("show_enzyme_numbers") )
 			{
 				writeLog_("Option show_enzyme_numbers chosen. Aborting.");
-				cout << "Enzyme numers:" << endl << sequest_infile.getEnzymeInfo();
 				return EXECUTION_OK;
 			}
 
@@ -533,7 +530,6 @@ class TOPPSequestAdapter
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No spectrum file specified. Aborting!");
-				cout << "No spectrum file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -554,7 +550,6 @@ class TOPPSequestAdapter
 			if ( temp_data_dir.empty() )
 			{
 				writeLog_("No directory for temporary files given. Aborting!");
-				cout << "No directory for temporary files given. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -567,7 +562,6 @@ class TOPPSequestAdapter
 				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
 				if ( !qdir.entryList().empty() )
 				{
-					cout << "There are already dta files in directory " + temp_data_dir + ". Aborting!" << endl;
 					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
 					deleteTempFiles(input_filename, logfile);
 					return UNKNOWN_ERROR;
@@ -577,7 +571,10 @@ class TOPPSequestAdapter
 				QFileInfo file_info;
 				unsigned int msms_spectra_in_file;
 				unsigned int msms_spectra_altogether = 0;
-				if ( make_dtas ) cout << "creating dta files" << endl;
+				if ( make_dtas )
+				{
+					writeLog_("creating dta files");
+				}
 				dtas = 0;
 				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 				{
@@ -591,7 +588,6 @@ class TOPPSequestAdapter
 					catch ( Exception::ParseError pe )
 					{
 						writeLog_("Error loading mzXML file. Aborting!");
-						cout << "Error loading mzXML file. Aborting!" << endl;
 						printUsage_();
 						return PARSE_ERROR;
 					}
@@ -605,7 +601,6 @@ class TOPPSequestAdapter
 				if ( !msms_spectra_altogether )
 				{
 					writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
-					cout << "No MS/MS spectra found in any of the mzXML files. Aborting!" << endl;
 					printUsage_();
 					return UNKNOWN_ERROR;
 				}
@@ -619,7 +614,6 @@ class TOPPSequestAdapter
 			if ( !isWinFormat(temp_data_dir_win) )
 			{
 				writeLog_("Windows path for the directory for temporary files has wrong format. Aborting!");
-				cout << "Windows path for the directory for temporary files has wrong format. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -627,14 +621,12 @@ class TOPPSequestAdapter
 			if ( temp_data_dir_network.empty() )
 			{
 				writeLog_("Network path for the directory for temporary files is empty. Aborting!");
-				cout << "Network path for the directory for temporary files is empty. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 				if ( !correctNetworkPath(temp_data_dir_network) )
 			{
 				writeLog_(temp_data_dir_network + "is no network path. Aborting!");
-				cout << temp_data_dir_network + "is no network path. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -651,7 +643,6 @@ class TOPPSequestAdapter
 					if ( !Sequest_out ) // if only Sequest_in is set, a name has to be given
 					{
 						writeLog_("No input file specified. Aborting!");
-						cout << "No input file specified. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -669,7 +660,6 @@ class TOPPSequestAdapter
 				if ( !correctNetworkPath(input_file_dir_network) )
 				{
 					writeLog_(input_file_dir_network + "is no network path. Aborting!");
-					cout << input_file_dir_network + "is no network path. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -681,7 +671,6 @@ class TOPPSequestAdapter
 				if ( user.empty() )
 				{
 					writeLog_("No user name for Sequest computer given. Aborting!");
-					cout << "No user name for Sequest computer given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -693,7 +682,6 @@ class TOPPSequestAdapter
 				if ( !isWinFormat(sequest_dir_win) && !sequest_dir_win.empty() )
 				{
 					writeLog_("Windows path for the SEQUEST working directory has wrong format. Aborting!");
-					cout << "Windows path for the SEQUEST working directory has wrong format. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -707,7 +695,6 @@ class TOPPSequestAdapter
 				if ( sequest_computer.empty() )
 				{
 					writeLog_("No sequest computer name given. Aborting!");
-					cout << "No sequest computer name given. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -716,7 +703,6 @@ class TOPPSequestAdapter
 			if ( logfile == temp_data_dir + "sequest.log")
 			{
 				writeLog_("The logfile must not be named " + temp_data_dir + "sequest.log. Aborting!");
-				cout << "The logfile must not be named " + temp_data_dir + "sequest.log. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -729,7 +715,6 @@ class TOPPSequestAdapter
 			if ( database.empty() )
 			{
 				writeLog_("No database specified. Aborting!");
-				cout << "No database specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -742,7 +727,6 @@ class TOPPSequestAdapter
 				if ( !correctNetworkPath(database_dir_network) )
 				{
 					writeLog_(database_dir_network + "is no network path. Aborting!");
-					cout << database_dir_network + "is no network path. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -757,7 +741,6 @@ class TOPPSequestAdapter
 					if ( !correctNetworkPath(snd_database_dir_network) )
 					{
 						writeLog_(snd_database_dir_network + "is no network path. Aborting!");
-						cout << snd_database_dir_network + "is no network path. Aborting!" << endl;
 						printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
@@ -771,14 +754,12 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No peptide mass tolerance specified. Aborting!");
-					cout << "No peptide mass tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Peptide mass tolerance < 0. Aborting!");
-					cout << "Peptide mass tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -788,14 +769,12 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No fragment ion tolerance specified. Aborting!");
-					cout << "No fragment ion tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Fragment ion tolerance < 0. Aborting!");
-					cout << "Fragment ion tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -805,14 +784,12 @@ class TOPPSequestAdapter
 				if ( double_buffer == -1 )
 				{
 					writeLog_("No match peak tolerance specified. Aborting!");
-					cout << "No match peak tolerance specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( double_buffer < 0 )
 				{
 					writeLog_("Match peak tolerance < 0. Aborting!");
-					cout << "Match peak tolerance < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -822,7 +799,6 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Ion cutoff < 0. Aborting!");
-					cout << "Ion cutoff < 0. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -832,7 +808,6 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) || (int_buffer > max_peptide_mass_units) )
 				{
 					writeLog_("Illegal peptide mass unit (not in [0,2]). Aborting!");
-					cout << "Illegal peptide mass unit (not in [0,2]). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -842,7 +817,6 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 1) )
 				{
 					writeLog_("Illegal number of results (< 1). Aborting!");
-					cout << "Illegal number of results (< 1). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -861,14 +835,12 @@ class TOPPSequestAdapter
 						if ( (enzyme_info.size() < 3) || (enzyme_info.size() > 4) )
 						{
 							writeLog_("Illegal number of informations for enzyme (not in [3,4]). Aborting!");
-							cout << "Illegal number of informations for enzyme (not in [3,4]). Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
 						if ( !((enzyme_info[1] == "0") || (enzyme_info[1] == "1"))  )
 						{
 							writeLog_("Cut direction for enzyme not specified correctly (has to be 1 (N to C)) or 0 (C to N))). Aborting!");
-							cout << "Cut direction for enzyme not specified correctly (has to be 1 (N to C) or 0 (C to N)). Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -886,7 +858,6 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Illegal minimum protein mass (< 0). Aborting!");
-					cout << "Illegal minimum protein mass (< 0). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -896,7 +867,6 @@ class TOPPSequestAdapter
 				if ( double_buffer < 0 )
 				{
 					writeLog_("Illegal maximum protein mass (< 0). Aborting!");
-					cout << "Illegal maximum protein mass (< 0). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -906,7 +876,6 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of modified amino acids per different modification. Aborting!");
-					cout << "No maximum number of modified amino acids per different modification. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -916,7 +885,6 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of differential modifications per peptide. Aborting!");
-					cout << "No maximum number of differential modifications per peptide. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -926,7 +894,6 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) || (int_buffer > 9) )
 				{
 					writeLog_("Illegal number for nucleotide reading frame. Aborting!");
-					cout << "Illegal number for nucleotide reading frame. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -936,7 +903,6 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of maximum internal cleavage sites. Aborting!");
-					cout << "Illegal number of maximum internal cleavage sites. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -946,7 +912,6 @@ class TOPPSequestAdapter
 				if ( (int_buffer < 0) && (int_buffer > 5) )
 				{
 					writeLog_("Illegal number of auto-detected peaks to try matching. Aborting!");
-					cout << "Illegal number of auto-detected peaks to try matching. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -956,7 +921,6 @@ class TOPPSequestAdapter
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of allowed errors in matching auto-detected peaks. Aborting!");
-					cout << "Illegal number of allowed errors in matching auto-detected peaks. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -975,7 +939,6 @@ class TOPPSequestAdapter
 				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == string::npos) || (string_buffer2.find(string_buffer[1], 0) == string::npos) || (string_buffer2.find(string_buffer[2], 0) == string::npos) )
 				{
 					writeLog_("Neutral losses for ABY-ions not given (or illegal values given). Aborting!");
-					cout << "Neutral losses for ABY-ions not given (or illegal values given). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -991,7 +954,6 @@ class TOPPSequestAdapter
 				if ( substrings.size() != 9 )
 				{
 					writeLog_("Weights for ion series not given (or illegal values given). Aborting!");
-					cout << "Weights for ion series not given (or illegal values given). Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1004,7 +966,6 @@ class TOPPSequestAdapter
 						if ( (double_buffer < 0) || (double_buffer > 1) )
 						{
 							writeLog_("Illegal weights for ion series given. Aborting!");
-							cout << "Illegal weights for ion series given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -1026,7 +987,6 @@ class TOPPSequestAdapter
 						if ( sscanf(s_i->c_str(), "%f,%40s", &f_buffer, c_buffer) != 2 )
 						{
 							writeLog_("Illegal number of parameters for dynamic modification given. Aborting!");
-							cout << "Illegal number of parameters for dynamic modification given. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -1056,7 +1016,6 @@ class TOPPSequestAdapter
 						if ( (*s_i)[1] != ',' )
 						{
 							writeLog_("Unexpected format for static modification found. Aborting!");
-							cout << "Unexpected format for static modification found. Aborting!" << endl;
 							printUsage_();
 							return ILLEGAL_PARAMETERS;
 						}
@@ -1081,7 +1040,6 @@ class TOPPSequestAdapter
 				if ( string_buffer.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
-					cout << "No output file specified. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1092,7 +1050,6 @@ class TOPPSequestAdapter
 				if ( (p_value <= 0) || (p_value > 1) )
 				{
 					writeLog_("P-value not in (0,1]. Aborting!");
-					cout << "P-value not in (0,1]. Aborting!" << endl;
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -1181,7 +1138,6 @@ class TOPPSequestAdapter
 				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
 				if ( !qdir.entryList().empty() )
 				{
-					cout << "There are already dta files in directory " + temp_data_dir + ". Aborting!" << endl;
 					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
 					deleteTempFiles(input_filename, logfile);
 					return UNKNOWN_ERROR;
@@ -1191,7 +1147,10 @@ class TOPPSequestAdapter
 			MSExperiment<> msexperiment;
 			unsigned int msms_spectra_in_file;
 			unsigned int msms_spectra_altogether = 0;
-			if ( make_dtas ) cout << "creating dta files" << endl;
+			if ( make_dtas ) 
+			{
+				writeLog_("creating dta files");
+			}
 			dtas = 0;
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
@@ -1205,7 +1164,6 @@ class TOPPSequestAdapter
 				catch ( Exception::ParseError pe )
 				{
 					writeLog_("Error loading mzXML file. Aborting!");
-					cout << "Error loading mzXML file. Aborting!" << endl;
 					printUsage_();
 					return PARSE_ERROR;
 				}
@@ -1220,7 +1178,6 @@ class TOPPSequestAdapter
 			if ( !msms_spectra_altogether )
 			{
 				writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
-				cout << "No MS/MS spectra found in any of the mzXML files. Aborting!" << endl;
 				printUsage_();
 				return UNKNOWN_ERROR;
 			}
@@ -1254,15 +1211,13 @@ class TOPPSequestAdapter
 				batchfile.clear();
 				
 				call.append(temp_data_dir_win + batch_filename + "\" " + sequest_computer);
-				cout << call << endl;
+				writeLog_("System call: " + call);
 				int status = system(call.c_str());
 				remove(sequest_screen_output.c_str());
 				
 				if ( status != 0 )
 				{
-					cout << "Sequest problem. Aborting! (Details can be seen "
-					<< " in the logfile: \"" << logfile << "\")" << endl;
-					writeLog_("Sequest problem. Aborting!");
+					writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 					deleteTempFiles(input_filename, logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -1272,7 +1227,6 @@ class TOPPSequestAdapter
 					ifstream sequest_log(string(temp_data_dir + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
 					if ( !sequest_log )
 					{
-						cout << "No Sequest log found!" << endl;
 						writeLog_("No Sequest log found!");
 					}
 					else
@@ -1297,16 +1251,14 @@ class TOPPSequestAdapter
 				{
 					for ( unsigned long long int i = 0; i <= (unsigned long long int) (dtas / max_dtas_per_run); ++i )
 					{
-						cout << "removing dta files" << endl;
+						writeLog_("removing dta files");
 						QDir qdir(temp_data_dir, "*.dta" + String(i) , QDir::Name, QDir::Files);
 						QStringList qlist = qdir.entryList();
-						QFile qfile;
 						
 						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 						{
-							if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
+							if ( !File::remove(temp_data_dir + *i) )
 							{
-								cout << string((*i).ascii()) << "could not be removed!" << endl;
 								writeLog_(string((*i).ascii()) + "could not be removed!");
 							}
 						}
@@ -1326,7 +1278,6 @@ class TOPPSequestAdapter
 				if ( qlist.isEmpty() )
 				{
 					writeLog_("No .out identified. Aborting!");
-					cout << "No .out identified. Aborting!" << endl;
 					qlist.clear();
 					deleteTempFiles(input_filename, logfile);
 					return UNKNOWN_ERROR;
@@ -1354,7 +1305,6 @@ class TOPPSequestAdapter
 				// remove all outs
 				if ( !keep_out_files )
 				{
-					cout << "removing out files" << endl;
 					qdir.setPath(temp_data_dir);
 					qlist = qdir.entryList("*.out", QDir::Files, QDir::Name);
 					QFile qfile;
@@ -1363,7 +1313,6 @@ class TOPPSequestAdapter
 					{
 						if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) )
 						{
-							cout << string((*i).ascii()) << "could not be removed!" << endl;
 							writeLog_(string((*i).ascii()) + "could not be removed!");
 						}
 					}

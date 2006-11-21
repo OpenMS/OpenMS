@@ -35,9 +35,8 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <qfileinfo.h>
-#include <qfile.h>
 
 #include <fstream>
 #include <iostream>
@@ -238,8 +237,6 @@ class TOPPRTModel
 			String logfile = "";
 			// log filestream (as long as the real logfile is not setermined yet)
 			ofstream log;
-			QFileInfo file_info;
-			QFile file;
 			String inputfile_name;
 			String outputfile_name;
 			AnalysisXMLFile analysisXML_file;
@@ -296,7 +293,6 @@ class TOPPRTModel
 			if (inputfile_name == "")
 			{
 				writeLog_("No input file specified. Aborting!");
-				cout << "No input file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
@@ -307,7 +303,6 @@ class TOPPRTModel
 			if (outputfile_name == "")
 			{
 				writeLog_("No output file specified. Aborting!");
-				cout << "No output file specified. Aborting!" << endl;
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}				
@@ -317,10 +312,7 @@ class TOPPRTModel
 			writeDebug_(String("Total gradient time: ") + String(total_gradient_time), 1);
 			if (total_gradient_time == 0.f)
 			{
-				writeLog_(String("Total gradient time has to") + 
-						String(" be specified. Aborting!"));
-				cout << "Total gradient time has to"
-						<< " be specified. Aborting!" << endl;
+				writeLog_("Total gradient time has to be specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}				
 
@@ -464,27 +456,24 @@ class TOPPRTModel
 			// testing whether input and output files are accessible
 			//-------------------------------------------------------------
 	
-			file_info.setFile(inputfile_name.c_str());
-			if (!file_info.exists())
+			if (!File::exists(inputfile_name))
 			{
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
 			}
-			if (!file_info.isReadable())
+			if (!File::readable(inputfile_name))
 			{
 				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
 			}
-	    if (file_info.size() == 0)
-	    {
-	      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
-	    }		
-			file.setName(outputfile_name.c_str());
-			file.open( IO_WriteOnly );
-			if (!file.isWritable())
+			if (File::empty(inputfile_name))
+			{
+				throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
+			}
+			
+			if (!File::writable(outputfile_name))
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
 			}
-			file.close();				
-	
+			
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
@@ -517,12 +506,12 @@ class TOPPRTModel
 						writeLog_(String("For one spectrum there should not be more than one peptide.")
 								+ String(" Please use the IDFilter with the -strict option to ")
 								+ String("achieve this. Aborting!"));
-						cout << "Hits: " << endl;
+						writeLog_("Hits: ");
 						for(vector<PeptideHit>::iterator it = identifications[i].getPeptideHits().begin(); 
 								it != identifications[i].getPeptideHits().end(); 
 								it++)
 						{
-							cout << it->getSequence() << " score: " << it->getScore() << endl;
+							writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));
 						}
 						return INPUT_FILE_CORRUPT;
 					}
@@ -557,25 +546,21 @@ class TOPPRTModel
 				{
 					svm.setParameter(parameters_iterator->first,
 													 parameters_iterator->second);
-					if (debug > 0)
+					if (parameters_iterator->first == DEGREE)
 					{
-						if (parameters_iterator->first == DEGREE)
-						{
-							debug_string += " degree: " + String(parameters_iterator->second);					
-						}
-						else if (parameters_iterator->first == C)
-						{
-							debug_string += " C: " + String(parameters_iterator->second);
-						}
-						else if (parameters_iterator->first == NU)
-						{
-							debug_string += " nu: " + String(parameters_iterator->second);
-						}
-						else if (parameters_iterator->first == P)
-						{
-							debug_string += " P: " + String(parameters_iterator->second);
-						}
-						
+						debug_string += " degree: " + String(parameters_iterator->second);					
+					}
+					else if (parameters_iterator->first == C)
+					{
+						debug_string += " C: " + String(parameters_iterator->second);
+					}
+					else if (parameters_iterator->first == NU)
+					{
+						debug_string += " nu: " + String(parameters_iterator->second);
+					}
+					else if (parameters_iterator->first == P)
+					{
+						debug_string += " P: " + String(parameters_iterator->second);
 					}
 				}
 				debug_string += " with performance " + String(cv_quality);

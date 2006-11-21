@@ -166,8 +166,8 @@ protected:
             return ILLEGAL_PARAMETERS;
         }
 
-		cout << "Reading grid file " << gridfile << endl;
-		cout << "Reading pairs file " << pairsfile << endl;
+			  writeLog_(String("Reading grid file ") + gridfile );
+				writeLog_(String("Reading pairs file ") + pairsfile );
 		
         //-------------------------------------------------------------
         // reading input

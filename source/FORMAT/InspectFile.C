@@ -28,56 +28,10 @@
 
 namespace OpenMS
 {
-	void InspectFile::remove(std::string& s, const std::string& unwanted_characters)
+	void InspectFile::compressTrieDB(const String database_filename, String index_filename, String database_path, std::vector< unsigned int > wanted_records, String second_database_filename_, String second_index_filename, String second_database_path, bool append) throw (Exception::FileNotFound, Exception::ParseError)
 	{
-		std::string::iterator start = s.begin();
-		std::string::iterator end = s.begin();
-		while ( (end != s.end()) && (start != s.end()) )
-		{
-			// find the next unwanted character
-			while ( (start != s.end()) && (unwanted_characters.find(*start, 0) == std::string::npos ) )
-			{
-				++start;
-			}
-			end = start;
-		
-			// find the next symbol that is not an unwanted character
-			while ( (end != s.end()) && (unwanted_characters.find(*end, 0) != std::string::npos ) )
-			{
-				++end;
-			}
-			// remove the unwanted characters
-			start = s.erase(start, end);
-			// find the next unwanted character
-		}
-	}
-	
-	void InspectFile::removeWhitespaces(std::string& s)
-	{
-		std::string::iterator start = s.begin();
-		std::string::iterator end = s.begin();
-		while ( (end != s.end()) && (start != s.end()) )
-		{
-			// find the next symbol that is not a whitespace or an asterisk
-			while ( (end != s.end()) && (*end < 33) )
-			{
-				++end;
-			}
-			// remove the whitespaces or asterisks
-			start = s.erase(start, end);
-			// find the next whitespace
-			while ( (start != s.end()) && (*start > 32) )
-			{
-				++start;
-			}
-			end = start;
-		}
-	}
-	
-	void InspectFile::compressTrieDB(const std::string database_filename, std::string index_filename, std::string database_path, std::vector< unsigned int > wanted_records, std::string second_database_filename_, std::string second_index_filename, std::string second_database_path, bool append) throw (Exception::FileNotFound, Exception::ParseError)
-	{
-		ensurePathChar(database_path);
-		std::string path_and_file = database_path + database_filename;
+		database_path.ensureLastChar('/');
+		String path_and_file = database_path + database_filename;
 		std::ifstream database_file( path_and_file.c_str(), std::ios::in | std::ios::binary );
 		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		// if no index filename was given, assume that it is the same as database_filename but with ending ".index"
@@ -114,7 +68,10 @@ namespace OpenMS
 		{
 			second_database_path = database_path;
 		}
-		else ensurePathChar(second_database_path);
+		else
+		{
+			second_database_path.ensureLastChar('/');
+		}
 		
 		if ( (database_filename == second_database_filename) && (database_path == second_database_path) && (index_filename == second_index_filename) )
 		{
@@ -229,7 +186,7 @@ namespace OpenMS
 		fclose(second_index_file);
 	}
 	
-	void InspectFile::generateTrieDB_(const std::string& source_filename, const std::string& source_path, const std::string& database_path, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label, std::string species, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::generateTrieDB_(const String& source_filename, const String& source_path, const String& database_path, const String& ac_label, const String& sequence_start_label, const String& sequence_end_label, const String& comment_label, String species_label, String species, std::vector< unsigned int > wanted_records, String database_filename, String index_filename, bool append) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		// if no database name is given, the name of the source file plus ending ".trie" is used
 		if ( database_filename.empty() )
@@ -243,8 +200,8 @@ namespace OpenMS
 			if ( getUseTempFiles() ) index_filename = getTempIndexFilename();
 			else index_filename = source_filename+".index";
 		}
-		std::string path_and_file = source_path;
-		ensurePathChar(path_and_file);
+		String path_and_file = source_path;
+		path_and_file.ensureLastChar('/');
 		path_and_file.append(source_filename);
 		std::ifstream source_file(path_and_file.c_str(), std::ifstream::in | std::ifstream::binary );
 		if ( !source_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_filename);
@@ -254,7 +211,7 @@ namespace OpenMS
 		if ( append ) openmode[0] = 'a';
 		
 		path_and_file = database_path;
-		ensurePathChar(path_and_file);
+		path_and_file.ensureLastChar('/');
 		path_and_file.append(database_filename);
 		FILE* database_file = fopen(path_and_file.c_str(), openmode);
 		if ( database_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
@@ -263,7 +220,7 @@ namespace OpenMS
 		if ( append ) if ( !ftell(database_file) )	append = false;
 		
 		path_and_file = database_path;
-		ensurePathChar(path_and_file);
+		path_and_file.ensureLastChar('/');
 		path_and_file.append(index_filename);
 		FILE* index_file = fopen(path_and_file.c_str(), openmode);
 		if ( index_file == NULL ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
@@ -329,8 +286,8 @@ namespace OpenMS
 				else
 				{
 					// erase all whitespaces from the sequence
-					removeWhitespaces(line);
-					remove(line, "*");
+					line.removeWhitespaces();
+					line.remove('*');
 					// save this part of the sequence
 					sequence.append(line);
 				}
@@ -365,7 +322,7 @@ namespace OpenMS
 				if ( line.hasPrefix(species_label) && (record_flags==ac_flag) )
 				{
 					pos = species_label.length();
-					if ( line.find(species, pos) != std::string::npos ) record_flags |= species_flag;
+					if ( line.find(species, pos) != String::npos ) record_flags |= species_flag;
 					
 					// if it's not from the wanted species, skip the record
 					if ( !(record_flags&species_flag) ) record_flags = 0;
@@ -395,7 +352,7 @@ namespace OpenMS
 					fwrite(&source_file_pos, sizeof(unsigned long long int), 1, index_file);
 					fwrite(&database_file_pos, sizeof(unsigned int), 1, index_file);
 					fwrite(ac, 1, index_peptide_name_length_, index_file);
-					remove(sequence, "*");
+					sequence.remove('*');
 					fputs(sequence.c_str(), database_file);
 				}
 			}
@@ -415,7 +372,7 @@ namespace OpenMS
 		fclose(index_file);
 	}
 	
-	void InspectFile::getSequenceAndACandACType(const std::string& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const std::string& ac_label, const std::string& sequence_start_label, const std::string& sequence_end_label, const std::string& comment_label, std::string species_label , std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::getSequenceAndACandACType(const String& database_filename, std::vector< unsigned int > wanted_records, std::vector< std::vector< String > >& protein_info, const String& ac_label, const String& sequence_start_label, const String& sequence_end_label, const String& comment_label, String species_label , String species) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		std::ifstream database_file(database_filename.c_str());
 		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
@@ -478,7 +435,7 @@ namespace OpenMS
 				else
 				{
 					// erase all whitespaces from the sequence
-					removeWhitespaces(line);
+					line.removeWhitespaces();
 					// save this part of the sequence
 					sequence.append(line);
 				}
@@ -509,7 +466,7 @@ namespace OpenMS
 				if ( line.hasPrefix(species_label) && (record_flags==ac_flag) )
 				{
 					pos = species_label.length();
-					if ( line.find(species, pos) != std::string::npos ) record_flags |= species_flag;
+					if ( line.find(species, pos) != String::npos ) record_flags |= species_flag;
 					
 					// if it's not from the wanted species, skip the record
 					if ( !(record_flags&species_flag) ) record_flags = 0;
@@ -548,20 +505,20 @@ namespace OpenMS
 	}
 	
 	
-	void InspectFile::generateTrieDB(const std::string& source_filename, const std::string& source_path, const std::string& database_path, std::vector< unsigned int > wanted_records, std::string database_filename, std::string index_filename, bool append, std::string species) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::generateTrieDB(const String& source_filename, const String& source_path, const String& database_path, std::vector< unsigned int > wanted_records, String database_filename, String index_filename, bool append, String species) throw (Exception::FileNotFound, Exception::ParseError)
 	{
-		std::string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
+		String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 		
-		std::string path_and_file = source_path;
-		ensurePathChar(path_and_file);
+		String path_and_file = source_path;
+		path_and_file.ensureLastChar('/');
 		path_and_file.append(source_filename);
 		getLabels(path_and_file, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 		
-		if ( sequence_start_label == std::string(1, trie_delimiter_) ) compressTrieDB(source_filename, "", source_path, wanted_records, database_filename, index_filename, database_path, append);
+		if ( sequence_start_label == String(1, trie_delimiter_) ) compressTrieDB(source_filename, "", source_path, wanted_records, database_filename, index_filename, database_path, append);
 		else generateTrieDB_(source_filename, source_path, database_path, ac_label, sequence_start_label, sequence_end_label, comment_label, species_label, species, wanted_records, database_filename, index_filename, append);
 	}
 	
-	void InspectFile::getLabels(const std::string& source_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::getLabels(const String& source_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		std::ifstream source_file(source_filename.c_str());
 		if ( !source_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_filename);
@@ -607,11 +564,11 @@ namespace OpenMS
 		}
 	}
 
-	void InspectFile::getSequences(std::string database_path, const std::string& database_filename_, std::string index_filename, const std::vector< unsigned int > wanted_records, std::vector<std::string>& sequences) throw (Exception::FileNotFound, Exception::ParseError)
+	void InspectFile::getSequences(String database_path, const String& database_filename_, String index_filename, const std::vector< unsigned int > wanted_records, std::vector<String>& sequences) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		String database_filename(database_filename_);
-		ensurePathChar(database_path);
-		std::string path_and_file = database_path+database_filename;
+		database_path.ensureLastChar('/');
+		String path_and_file = database_path+database_filename;
 		std::ifstream database_file( path_and_file.c_str(), std::ios::in | std::ios::binary );
 		if ( !database_file ) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		// if no index file is given and a trie database is used, check whether threre's a corresponding index file
@@ -696,7 +653,7 @@ namespace OpenMS
 		database_file.close();
 	}
 	
-	bool InspectFile::setTempDatabaseFilename(const std::string& temp_database_filename)
+	bool InspectFile::setTempDatabaseFilename(const String& temp_database_filename)
 	{
 		if ( temp_database_filename_.empty() )
 		{
@@ -705,12 +662,12 @@ namespace OpenMS
 		}
 		return false;
 	}
-	const std::string& InspectFile::getTempDatabaseFilename() const
+	const String& InspectFile::getTempDatabaseFilename() const
 	{
 		return temp_database_filename_;
 	}
 	
-	bool InspectFile::setTempIndexFilename(const std::string& temp_index_filename)
+	bool InspectFile::setTempIndexFilename(const String& temp_index_filename)
 	{
 		if ( temp_index_filename_.empty() )
 		{
@@ -719,12 +676,12 @@ namespace OpenMS
 		}
 		return false;
 	}
-	const std::string& InspectFile::getTempIndexFilename() const
+	const String& InspectFile::getTempIndexFilename() const
 	{
 		return temp_index_filename_;
 	}
 	
-	bool InspectFile::setSecondTempDatabaseFilename(const std::string& temp_second_database_filename)
+	bool InspectFile::setSecondTempDatabaseFilename(const String& temp_second_database_filename)
 	{
 		if ( temp_second_database_filename_.empty() )
 		{
@@ -733,12 +690,13 @@ namespace OpenMS
 		}
 		return false;
 	}
-	const std::string& InspectFile::getSecondTempDatabaseFilename() const
+
+	const String& InspectFile::getSecondTempDatabaseFilename() const
 	{
 		return temp_second_database_filename_;
 	}
 	
-	bool InspectFile::setSecondTempIndexFilename(const std::string& temp_second_index_filename)
+	bool InspectFile::setSecondTempIndexFilename(const String& temp_second_index_filename)
 	{
 		if ( temp_second_index_filename_.empty() )
 		{
@@ -747,7 +705,7 @@ namespace OpenMS
 		}
 		return false;
 	}
-	const std::string& InspectFile::getSecondTempIndexFilename() const
+	const String& InspectFile::getSecondTempIndexFilename() const
 	{
 		return temp_second_index_filename_;
 	}
@@ -761,15 +719,10 @@ namespace OpenMS
 		return use_temp_files_;
 	}
 	
-	void InspectFile::ensurePathChar(std::string& path, char path_char)
-	{
-		if ( !path.empty() && (std::string("/\\").find(path[path.length()-1], 0) == std::string::npos) ) path.append(1, path_char);
-	}
-	
-	std::string InspectFile::temp_database_filename_ = "";
-	std::string InspectFile::temp_index_filename_ = "";
-	std::string InspectFile::temp_second_database_filename_ = "";
-	std::string InspectFile::temp_second_index_filename_ = "";
+	String InspectFile::temp_database_filename_ = "";
+	String InspectFile::temp_index_filename_ = "";
+	String InspectFile::temp_second_database_filename_ = "";
+	String InspectFile::temp_second_index_filename_ = "";
 	bool InspectFile::use_temp_files_ = 0;
 	
 	const unsigned int InspectFile::index_peptide_name_length_ = 80;
@@ -777,6 +730,6 @@ namespace OpenMS
 	const unsigned int InspectFile::index_trie_record_length_ = 4;
 	const unsigned int InspectFile::index_record_length_ = index_peptide_name_length_ + index_db_record_length_ + index_trie_record_length_;
 	const char InspectFile::trie_delimiter_ = '*';
-	const std::string InspectFile::score_type_ = "InsPecT";
+	const String InspectFile::score_type_ = "InsPecT";
 
 } // namespace OpenMS

@@ -51,6 +51,8 @@ using namespace std;
 	If the retention time is not given in the file list, it is taken from the corresponding input file.
 	Alternatively the FileMerger numbers the scans consecutively starting from 1 if the flag '-auto_number' is given.
 	
+	@todo Merging whole files, not only the first scans (Marc)
+	
 	@ingroup TOPP
 */
 

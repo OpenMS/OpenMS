@@ -52,6 +52,9 @@ namespace OpenMS
 		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
 		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ mehtods
 		 </OL>
+		
+		@todo Add handling of non-optional parameters (Marc)
+		
 	*/
   class TOPPBase2
   {

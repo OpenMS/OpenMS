@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/DGridHandler.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -74,7 +74,7 @@ namespace OpenMS
       void load(String filename, DGrid<D>& grid) throw (Exception::FileNotFound,Exception::ParseError)
       {
 		   	//try to open file
-				if (!TextFile::exists(filename))
+				if (!File::exists(filename))
 		    {
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }

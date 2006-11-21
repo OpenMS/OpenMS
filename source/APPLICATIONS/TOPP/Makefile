@@ -60,7 +60,6 @@ EXECUTABLES=\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
-	SequestAdapter\
 	AnalysisXMLMerger\
 	MapStatistics\
 	AdditiveSeries\
@@ -68,6 +67,9 @@ EXECUTABLES=\
 	NoiseFilter\
 	SpectraFilter\
 	Resampler
+
+#	SequestAdapter\
+
 
 all: $(EXECUTABLES)
 

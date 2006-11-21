@@ -35,9 +35,7 @@
 namespace OpenMS
 {
 	/**
-		@brief A convenient text file class.
-	
-		This class facilitates reading, writing and handling text files.
+		@brief This class provides some basic file handling methods and facilitates reading, writing and handling text files.
   
   	@ingroup FileIO
 	*/
@@ -122,9 +120,10 @@ namespace OpenMS
 				It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
     	*/
 			Iterator searchSuffix(const String& text, bool trim=false);
-
-			/// Static method used for testing if a @p file exists
-			static bool exists(const String& file);
+			
+			/// Return the content as a single String
+			String asString() const;
+			
   };
 
 } // namespace OpenMS

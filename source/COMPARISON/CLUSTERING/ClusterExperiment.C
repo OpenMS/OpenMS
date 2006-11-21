@@ -33,7 +33,7 @@
 
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
 #include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
@@ -204,7 +204,7 @@ namespace OpenMS
     clear_();
 
   	//try to open file
-		if (!TextFile::exists(filename))
+		if (!File::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }

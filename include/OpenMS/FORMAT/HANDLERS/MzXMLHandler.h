@@ -264,17 +264,14 @@ namespace OpenMS
   }
 
 	/**
-	 * MzXML parsing routine. Source: http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/Doc/mzXML_2.1_tutorial.pdf
-	 *
-	 * @todo implement section 4.4 and 4.5 of MzXML spec.
-	 *
-	 * @todo msRun - add optional attributes "startTime" and "endTime" to DB / datastructures (TK / TS / Marc)
-	 * @todo parentFile - add required attribute "fileSha1" to DB / SourceFile class (TK / TS / Marc)
-	 * @todo dataProcessing - add support for optional attribute "intensityCutOff" to DB / ProcessingMethod class (TK / TS / Marc)
-	 * @todo dataProcessing - add support for optional attribute "spotIntegration" to DB / ProcessingMethod class (TK / TS / Marc)
-	 * @todo scan - add support for a bunch of optional attributes (see comment in MsXMLHandler.h, function "startElement", case SCAN:) to DB / datastructures (TK / TS / Marc)
-	 * @todo scanOrigin - add support for "parentFileID" and "num" attributes to DB / datastructures (TK / TS / Marc)
-	 * @todo precursorMZ - add support for "precursorScanNum" and "windowWideness" attributes to DB / datastructures (TK / TS / Marc)
+		@brief MzXML parsing routine. Source: http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/Doc/mzXML_2.1_tutorial.pdf
+	 
+		@todo implement section 4.4 and 4.5 of MzXML spec. (Thomas K.)
+		@todo parentFile - add required attribute "fileSha1" to DB / SourceFile class (Thomas K.)
+		@todo dataProcessing - add support for optional attribute "intensityCutOff" to DB / ProcessingMethod class (Thomas K.)
+		@todo scan - add support for a bunch of optional attributes (see comment in MsXMLHandler.h, function "startElement", case SCAN:) to DB / datastructures (Thomas K.)
+		@todo scanOrigin - add support for "parentFileID" and "num" attributes to DB / datastructures (Thomas K.)
+		@todo precursorMZ - add support for "windowWideness" attributes to DB / datastructures (Thomas K.)
 	 */
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -291,18 +288,6 @@ namespace OpenMS
 				if (tmp_str!="") // optional attribute
 				{  
 					exp_->reserve( asUnsignedInt_(tmp_str) );
-				}
-				
-				tmp_str = getAttributeAsString(STARTTIME);
-				if (tmp_str != "") // optional attribute
-				{
-				  // TODO
-				}
-				
-				tmp_str = getAttributeAsString(ENDTIME);
-				if (tmp_str != "") // optional attribute
-				{
-				  // TODO
 				}
 				
 				// fall through?

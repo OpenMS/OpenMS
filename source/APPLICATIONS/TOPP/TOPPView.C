@@ -128,7 +128,7 @@ void print_usage()
 			 << endl
 			 << "Options are:" << endl
 			 << "  --help            shows this help" << endl
-			 << "  --ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
+			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
 			 << endl ;
 }
 
@@ -137,7 +137,7 @@ int main( int argc, char ** argv )
 	//list of all the valid options
 	map<string,string> valid_options, valid_flags;
 	valid_flags["--help"] = "help";
-	valid_options["--ini"] = "ini";
+	valid_options["-ini"] = "ini";
 	
 	Param param;
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unkonwn");
@@ -187,9 +187,42 @@ int main( int argc, char ** argv )
 		mw->savePreferences();
 	  return res;
 	}
+
+	//######################## ERROR HANDLING #################################
+	
+	catch(Exception::UnableToCreateFile& e)
+	{
+		cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}	
+	catch(Exception::FileNotFound& e)
+	{
+		cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}
+	catch(Exception::FileNotReadable& e)
+	{
+		cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}
+	catch(Exception::FileEmpty& e)
+	{
+		cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}
+	catch(Exception::ParseError& e)
+	{
+		cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}
+	catch(Exception::InvalidValue& e)
+	{
+		cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
+		return 1;
+	}
 	catch(Exception::Base& e)
 	{
-		cout << "Error: Unexpected error (" << e.what() <<")"<< endl;
+		cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
 		return 1;
 	}
 	

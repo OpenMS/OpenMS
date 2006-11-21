@@ -33,7 +33,7 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -41,9 +41,8 @@ namespace OpenMS
 {
   /**
   	@brief File adapter for MzData files
-  
-  	@todo Add external CVs 
-  	@todo test all optional attributes (Marc)
+ 
+  	@todo test all optional attributes (Thomas K.)
   	
   	@ingroup FileIO
   */
@@ -64,7 +63,7 @@ namespace OpenMS
       void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
       	//try to open file
-				if (!TextFile::exists(filename))
+				if (!File::exists(filename))
 		    {
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }
