@@ -421,7 +421,9 @@ MascotAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
 	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
-	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.txt,MascotAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.mascot_in,MascotAdapter_1_output.tmp)
+	@$(call RUN_PROG_OPT,MascotAdapter,-in MascotAdapter_2_input.mascotXML -additional_in MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.analysisXML,MascotAdapter_2_output.tmp)
 
 
 NoiseFilter_test: $(NUMERICDIFF)
