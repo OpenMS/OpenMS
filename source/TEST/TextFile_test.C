@@ -192,9 +192,13 @@ CHECK(Iterator searchSuffix(const String& text, bool trim=false))
 	TEST_EQUAL(file.searchSuffix("back_tab_line") == file.end(), true)
 RESULT
 
-CHECK(bool exists(const String& file))
-	TEST_EQUAL(false, TextFile::exists("does_not_exists.txt"))
-	TEST_EQUAL(true, TextFile::exists("data/TextFile_test_infile.txt"))
+CHECK(bool TextFile::asString() const)
+	TextFile tmp;
+	TEST_EQUAL(tmp.asString(),"")
+	tmp.push_back("1\n");
+	tmp.push_back("2\n");
+	tmp.push_back("3\n");
+	TEST_EQUAL(tmp.asString(),"1\n2\n3\n")
 RESULT
 
 /////////////////////////////////////////////////////////////

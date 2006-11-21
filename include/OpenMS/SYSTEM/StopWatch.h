@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		This class is used to determine the current process time.
 		
-		@ingroup Concept
+		@ingroup System
 	*/
 	class StopWatch
 	{

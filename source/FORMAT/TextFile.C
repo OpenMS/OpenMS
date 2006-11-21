@@ -179,17 +179,11 @@ namespace OpenMS
 		return searchSuffix(begin(),text,trim);		
 	}
 
-	bool TextFile::exists(const String& file)
+	String TextFile::asString() const
 	{
-		fstream fin;
-		fin.open(file.c_str(),ios::in);
-		if( fin.is_open())
-		{
-			fin.close();
-			return true;
-		}
-		fin.close();
-		return false;
+		String tmp;
+		tmp.implode(this->begin(),this->end());
+		return tmp;
 	}
 
 } // namespace OpenMS

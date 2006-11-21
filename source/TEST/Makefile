@@ -89,7 +89,8 @@
 		ExperimentalSettings_test
 
 	EXECUTABLES_SYSTEM = \
-		StopWatch_test
+		StopWatch_test\
+		File_test
 
 	EXECUTABLES_KERNEL =\
 		KernelTraits_test\
