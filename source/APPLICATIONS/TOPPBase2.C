@@ -45,7 +45,6 @@ namespace OpenMS
 			instance_number_(-1),
 			debug_level_(-1)
 	{
-		const_cast<String&>(tool_description).firstToUpper();
 	}
 
 	TOPPBase2::~TOPPBase2()
@@ -752,7 +751,7 @@ namespace OpenMS
     }
 	}
 	
-	void TOPPBase2::ouputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile)
+	void TOPPBase2::outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile)
 	{
 		if (!File::writable(filename))
 		{

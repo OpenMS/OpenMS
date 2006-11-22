@@ -89,6 +89,7 @@ namespace OpenMS
 		 	 <LI> Add registration (name, argument text, default value, description, required=true)
 		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
 		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ methods
+		 	 <LI> use IO file checks
 		 </OL>
 	*/
   class TOPPBase2
@@ -302,12 +303,6 @@ namespace OpenMS
 
 		*/
 		DataValue const& getParam_(const String& key) const;
-
-		/**
-			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
-			Returns a Param that contains everything you can get by the getParamAs...() methods.
-		*/
-		Param const& getParam_() const;
 		//@}
 
 	 protected:
@@ -431,7 +426,7 @@ namespace OpenMS
 		void inputFileReadable_(const String& filename) const throw (Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty);
 		
 		/// Checks if an output file is writable
-		void ouputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
+		void outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
 		//@}
 
 
@@ -468,6 +463,13 @@ namespace OpenMS
 			@param location Exact location inside the source file
 		*/
 		void checkParam_(const Param& param, const String& filename, const String& location) const;
+
+		/**
+			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
+			ys
+			Returns a Param that contains everything you can get by the getParamAs...() methods.
+		*/
+		Param const& getParam_() const;
 		
   };
 

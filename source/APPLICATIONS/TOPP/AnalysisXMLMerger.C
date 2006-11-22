@@ -28,9 +28,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -55,54 +54,25 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPAnalysisXMLMerger
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPAnalysisXMLMerger()
-		: TOPPBase("AnalysisXMLMerger")
+		: TOPPBase2("AnalysisXMLMerger","Merges several analysisXML files into one analysisXML file")
 	{
 			
 	}
 	
  protected:
-	void printToolUsage_() const
+	void registerOptionsAndFlags_()
 	{
-		cerr  << endl
-					<< getToolName() << " -- Merges several analysisXML files into one analysisXML file." << endl
-					<< "Version: " << VersionInfo::getVersion() << endl
-					<< endl
-					<< "Usage:" << endl
-					<< " " << getToolName() << " [options]" << endl
-					<< endl
-					<< "Options are:" << endl
-				 << "  -in               two ore more analysisXML files separated by comma (without blanks)" << endl
-				 << "  -out              output analysisXML file name" << endl;
-	}
-	
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  in               two ore more analysisXML files separated by comma (without blanks)" << endl
-				 << "  out              output analysisXML file name" << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"file1.analysisXML,file2.analysisXML\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl;
-	}
-	
-	void setOptionsAndFlags_()
-	{
-		options_["-in"] = "in";
-		options_["-out"] = "out";
+		registerStringOption_("in","<file>","","two or more analysisXML files separated by comma (without blanks)");
+		registerStringOption_("out","<file>","","output file in analysisXML format");
 	}
 	
 	ExitCodes main_(int , char**)
 	{
 		vector<String> 									file_names;
-		String 													actual_file_name;
 		AnalysisXMLFile 								analysisXML_file;
 		vector<ProteinIdentification> 	protein_identifications;
 		vector<Identification> 					identifications;
@@ -123,27 +93,17 @@ class TOPPAnalysisXMLMerger
 		//-------------------------------------------------------------
 	
 		//file list
-		file_list = getParamAsString_("in");
+		file_list = getStringOption_("in");
 		file_list.split(',', file_names);
-
 		if (file_names.size() < 2)
 		{
 			writeLog_("Less than two filenames given. Aborting!");
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
-		
-		writeDebug_(String("File list: ") + file_list, 1);
 
 		//output file names and types
-		out_file = getParamAsString_("out", "");
-		if (out_file == "")
-		{
-			writeLog_("No output file specified. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
-		writeDebug_(String("Output file: ") + out_file, 1);
+		out_file = getStringOption_("out");
 				
 		//-------------------------------------------------------------
 		// testing whether input and output files are accessible
@@ -151,25 +111,10 @@ class TOPPAnalysisXMLMerger
 
 		for(UnsignedInt i = 0; i < file_names.size(); ++i)
 		{
-			actual_file_name = file_names[i];
-			if (!File::exists(actual_file_name))
-			{
-				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);
-			}
-			if (!File::readable(actual_file_name))
-			{
-				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);			
-			}
-	    if (File::empty(actual_file_name))
-	    {
-	      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, actual_file_name);
-	    }		
-		}		
-
-		if (!File::writable(out_file))
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_file);
+			inputFileReadable_(file_names[i]);
 		}
+		
+		outputFileWritable_(out_file);
 
 		//-------------------------------------------------------------
 		// calculations

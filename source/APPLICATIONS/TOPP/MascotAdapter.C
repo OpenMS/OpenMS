@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/ContactPerson.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <map>
 #include <iostream>
@@ -178,107 +178,39 @@ using namespace std;
 
 
 class TOPPMascotAdapter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPMascotAdapter()
-			: TOPPBase("MascotAdapter")
+			: TOPPBase2("MascotAdapter","annotates MS/MS spectra using Mascot")
 		{
-			
 		}
 	
 	protected:
-		void printToolUsage_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr << endl
-		       << getToolName() << " -- annotates MS/MS spectra using Mascot" << endl
-		       << "Version: " << VersionInfo::getVersion() << endl
-		       << endl
-		       << "Usage:" << endl
-					 << " " << getToolName() << " [options]" << endl
-					 << endl
-					 << "Options are:" << endl
-					 << "  -in <file>           input file in mzData format." << endl
-					 << "                       Note: In mode 'mascot_out' a Mascot results file is read."  << endl
-					 << "  -out <file>          output file in analysisXML format." << endl
-					 << "                       Note: In mode 'mascot_in' Mascot generic format is written." << endl
-					 << "  -mascot_in           if this flag is set the MascotAdapter will read in mzData and write Mascot generic format." << endl
-					 << "  -mascot_out          if this flag is set the MascotAdapter will read in a Mascot resultsfile and write analysisXML." << endl
-					 << "  -instr               the instrument that was used to measure the spectra" << endl
-					 <<	"  -prcr_m_tol          the precursor mass tolerance" << endl
-					 << "  -pk_m_tol            the peak mass tolerance" << endl
-					 << "  -tax                 the taxonomy" << endl
-					 << "  -mods                the modifications i.e. Carboxymethyl (C)" << endl
-					 << "  -vmods               the variable modifications i.e. Carboxymethyl (C)" << endl
-					 << "  -charges             the different charge states separated by comma" << endl
-					 << "  -mascot_directory    the directory in which mascot is located" << endl
-					 << "  -temp_data_directory a directory in which some temporary files can be stored" << endl
-					 << endl ;
-		}
-
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in                        input file" << endl
-					 << "  out                       output file" << endl
-					 << "  mascot_in                 if this flag is set the MascotAdapter will read in "
-					 << "mzData and write Mascot generic format" << endl
-					 << "  mascot_out                if this flag is set the MascotAdapter will read in "
-					 << "a Mascot resultsfile and write analysisXML." << endl
-					 << "  instrument                the instrument that was used to measure the spectra" << endl
-					 <<	"  precursor_mass_tolerance  the precursor mass tolerance" << endl
-					 << "  peak_mass_tolerance       the peak mass tolerance" << endl
-					 << "  taxonomy                  the taxonomy" << endl
-					 << "  modifications             the modifications i.e. Carboxymethyl (C)" << endl
-					 << "  variable_modifications    the variable modifications i.e. Carboxymethyl (C)" << endl
-					 << "  charges                   the different charge states separated by comma" << endl
-					 << "  mascot_directory          the directory in which mascot is located" << endl
-					 << "  temp_data_directory       a directory in which some temporary files can be stored" << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"instrument\" value=\"ESI-TRAP\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"precursor_mass_tolerance\" value=\"1.3\" type=\"float\"/>" << endl
-           << "  <ITEM name=\"peak_mass_tolerance\" value=\"0.3\" type=\"float\"/>" << endl
-           << "  <ITEM name=\"taxonomy\" value=\". . . . . . Chordata (vertebrates and relatives)\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"modifications\" value=\"Carboxymethyl (C)\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"charges\" value=\"1+,2+,3+\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"db\" value=\"MSDB\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"hits\" value=\"AUTO\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"cleavage\" value=\"Trypsin\" type=\"string\"/>" << endl
-           << "  <ITEM name=\"missed_cleavages\" value=\"1\" type=\"UnsignedInt\"/>" << endl
-           << "  <ITEM name=\"mass_type\" value=\"Monoisotopic\" type=\"string\"/>" << endl
-		       << "  <ITEM name=\"mascot_directory\" value=\"/local/mascot/\" type=\"string\"/>" << endl
-		       << "  <ITEM name=\"temp_data_directory\" value=\"/local/mascot/tmp/\" type=\"string\"/>" << endl;
- 
-		}		
-
-		void setOptionsAndFlags_()
-		{
-			options_["-out"] = "out";
-			options_["-in"] = "in";
-			options_["-additional_in"] = "additional_in";
-			options_["-instr"] = "instrument";
-			options_["-prcr_m_tol"] = "precursor_mass_tolerance";
-			options_["-pk_m_tol"] = "peak_mass_tolerance";
-			options_["-tax"] = "taxonomy";
-			options_["-mods"] = "modifications";
-			options_["-vmods"] = "variable_modifications";
-			options_["-charges"] = "charges";
-			options_["-db"] = "db";
-			options_["-hits"] = "hits";
-			options_["-cleavage"] = "cleavage";
-			options_["-missed_cleavages"] = "missed_cleavages";
-			options_["-boundary"] = "boundary";
-			options_["-mass_type"] = "mass_type";
-			flags_["-mascot_in"] = "mascot_in";
-			flags_["-mascot_out"] = "mascot_out";
-			options_["-mascot_directory"] = "mascot_directory";
-			options_["-temp_data_directory"] = "temp_data_directory";
+			registerStringOption_("out", "<file>", "", "input file in mzData format.\n"
+			                                           "Note: In mode 'mascot_out' a Mascot results file is read");
+			registerStringOption_("in", "<file>", "", "output file in analysisXML format.\n"
+					 																			"Note: In mode 'mascot_in' Mascot generic format is written.");
+			registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
+			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot resultsfile and write analysisXML");
+			registerStringOption_("additional_in", "<>", "", "", false);
+			registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
+			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
+			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
+			registerStringOption_("taxonomy", "<tax>", "All entries" , "the taxonomy", false);
+			registerStringOption_("modifications", "<mods>", "", "the modifications i.e. Carboxymethyl (C)", false);
+			registerStringOption_("variable_modifications", "<mods>", "", "the variable modifications i.e. Carboxymethyl (C)", false);
+			registerStringOption_("charges", "[1+,2+,...]", "", "the different charge states separated by comma");
+			registerStringOption_("db", "<name>", "MSDB", "the database to search in", false);
+			registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
+			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
+			registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
+			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
+			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
+			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}
 
 		ExitCodes main_(int , char**)
@@ -318,17 +250,17 @@ class TOPPMascotAdapter
 			vector<Real> precursor_mz_values;
 			vector<SignedInt> charges;
 			vector<String> parts;
-			DoubleReal precursor_mass_tolerance = 2;
-			DoubleReal peak_mass_tolerance = 1;
+			DoubleReal precursor_mass_tolerance;
+			DoubleReal peak_mass_tolerance;
 			String temp_charge;
-			string db = "MSDB";
-			string hits = "20";
-			string cleavage = "Trypsin";
-			UnsignedInt missed_cleavages = 1;
-			string mass_type = "Monoisotopic";
+			string db;
+			string hits;
+			string cleavage;
+			UnsignedInt missed_cleavages;
+			string mass_type;
 			int status = 0;
-			bool mascot_in = false;
-			bool mascot_out = false;
+			bool mascot_in;
+			bool mascot_out;
 			DateTime date_time;
 			String date_time_string;
 			String time_string;
@@ -347,7 +279,7 @@ class TOPPMascotAdapter
 			// parsing parameters
 			//-------------------------------------------------------------
 						
-			inputfile_name = getParamAsString_("in");			
+			inputfile_name = getStringOption_("in");			
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
 			if (inputfile_name == "")
 			{
@@ -356,7 +288,7 @@ class TOPPMascotAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 	
-			outputfile_name = getParamAsString_("out");
+			outputfile_name = getStringOption_("out");
 			writeDebug_(String("Output file: ") + outputfile_name, 1);
 			if (outputfile_name == "")
 			{
@@ -365,70 +297,62 @@ class TOPPMascotAdapter
 				return ILLEGAL_PARAMETERS;
 			}				
 
-			mascotXML_file_name = getParamAsString_("additional_in");
+			mascotXML_file_name = getStringOption_("additional_in");
 			writeDebug_(String("Additional input file: ") + mascotXML_file_name, 1);
 
-			if (getParamAsBool_("mascot_in", false))
-			{
-				mascot_in = true;
-			}
+			mascot_in = getFlag_("mascot_in");
 			
-			boundary = getParamAsString_("boundary");
+			boundary = getStringOption_("boundary");
 			if (boundary != "")
 			{			
-				writeDebug_(String("Boundary: ") + inputfile_name, 1);
+				writeDebug_(String("Boundary: ") + boundary, 1);
 			}
 	
-			if (getParamAsBool_("mascot_out", false))
+			if (getFlag_("mascot_out"))
 			{
 				mascot_out = true;
 				if (mascot_in)
 				{
-					writeLog_("Both Mascot flags set. Aborting! Only one of the two  flags [-mascot_in|-mascot_out] can be set!");
+					writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
 					return ILLEGAL_PARAMETERS;
 				}				
 			}
 			else
 			{		
-				instrument = getParamAsString_("instrument", "Default");
-				writeDebug_(String("Instrument: ") + instrument, 1);
-				precursor_mass_tolerance = getParamAsString_("precursor_mass_tolerance", "2.0f").toDouble();
-				writeDebug_(String("Precursor mass tolerance: ") + 
-					String(precursor_mass_tolerance), 1);
-
-
-				peak_mass_tolerance = getParamAsString_("peak_mass_tolerance", "1.0f").toDouble();
-				writeDebug_(String("Peak mass tolerance: ") + String(peak_mass_tolerance), 1);
-
-				taxonomy = getParamAsString_("taxonomy", "All entries");
-				writeDebug_(String("Taxonomy: ") + taxonomy, 1);
-
+				db = getStringOption_("db");
+				hits = getStringOption_("hits");
+				cleavage = getStringOption_("cleavage");
+				missed_cleavages = getIntOption_("missed_cleavages");
+				mass_type = getStringOption_("mass_type");
+				
+				instrument = getStringOption_("instrument");
+				precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+				peak_mass_tolerance = getDoubleOption_("peak_mass_tolerance");
+				taxonomy = getStringOption_("taxonomy");
+				
 				/// fixed modifications
-				temp_string = getParamAsString_("modifications");
+				temp_string = getStringOption_("modifications");
 				temp_string.split(',', mods);
 				if (mods.size() == 0 && temp_string != "")
 				{
 					mods.push_back(temp_string);
 				}
-				writeDebug_(String("Modifications: ") + temp_string, 1);
 
 				/// variable modifications
-				temp_string = getParamAsString_("variable_modifications");
+				temp_string = getStringOption_("variable_modifications");
 				temp_string.split(',', variable_mods);
 				if (variable_mods.size() == 0 && temp_string != "")
 				{
 					mods.push_back(temp_string);
-				}				
-				writeDebug_(String("Variable modifications: ") + temp_string, 1);							
+				}					
 
 				///charges
-				temp_string = getParamAsString_("charges");
+				temp_string = getStringOption_("charges");
 				temp_string.split(',', parts);
 				if (parts.size() == 0 && temp_string != "")
 				{
 					temp_charge = temp_string;
-					if (temp_charge[temp_charge.size() - 1] == '-'
-							|| temp_charge[0] == '-')
+					if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
 					{
 						charges.push_back(-1 * (temp_charge.toInt()));
 					}
@@ -442,8 +366,7 @@ class TOPPMascotAdapter
 					for(UnsignedInt i = 0; i < parts.size(); i++)
 					{
 						temp_charge = parts[i];
-						if (temp_charge[temp_charge.size() - 1] == '-'
-								|| temp_charge[0] == '-')
+						if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
 						{
 							charges.push_back(-1 * (temp_charge.toInt()));
 						}
@@ -455,58 +378,38 @@ class TOPPMascotAdapter
 				}
 				if (charges.size() == 0)
 				{
-					writeLog_(String("No charge states specified for ") + 
-										String("Mascot search. Aborting!"));
+					writeLog_("No charge states specified for Mascot search. Aborting!");
 					return ILLEGAL_PARAMETERS;			
 				}
-				writeDebug_(String("Charges: ") + temp_string, 1);
-				  				
-				db = getParamAsString_("db", "MSDB");
-				writeDebug_(String("Database: ") + db, 1);
-				
-				hits = getParamAsString_("hits", "AUTO");
-				writeDebug_(String("Hits: ") + hits, 1);
-								
-				cleavage = getParamAsString_("cleavage", "Trypsin");
-				writeDebug_(String("Cleavage: ") + cleavage, 1);
-				
-				missed_cleavages = (UnsignedInt) getParamAsString_("missed_cleavages", "0").toInt();
-				writeDebug_(String("Number of allowed missed cleavages: ") + String(missed_cleavages), 1);
-				
-				mass_type = getParamAsString_("mass_type", "Monoisotopic");
-				writeDebug_(String("Precursor mass type: ") + mass_type, 1);
-	
 			}
+			
 			if (mascot_in)
 			{
 				mascot_infile_name = outputfile_name;
-				writeDebug_(String("Mascot flag: ") + 
-					String("mascot_in (reads in MzData writes Mascot generic format)"), 1);
+				writeDebug_("Mascot flag: mascot_in (reads in MzData writes Mascot generic format)", 1);
 			}
 			else if (mascot_out)
 			{
 				mascot_outfile_name = inputfile_name;
-				writeDebug_(String("Mascot flag: ") + 
-					String("mascot_out (reads in Mascot results file writes analysisXML file)"), 1);
+				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes analysisXML file)", 1);
 			}
 			else
 			{
-				writeDebug_(String("No Mascot flag set: ") + 
-					String("reads in MzData writes analysisXML file"), 1);
+				writeDebug_("No Mascot flag set: reads in MzData writes analysisXML file", 1);
 			}
 			if (!mascot_in && !mascot_out)
 			{
 				
-				mascot_cgi_dir = getParamAsString_("mascot_directory");
+				mascot_cgi_dir = getStringOption_("mascot_directory");
 				if (mascot_cgi_dir == "")
 				{
-					writeLog_(String("No Mascot directory specified. Aborting!"));
+					writeLog_("No Mascot directory specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				writeDebug_(String("Mascot directory: ") + mascot_cgi_dir, 1);
 				mascot_cgi_dir += "/cgi/";
 
-				mascot_data_dir = getParamAsString_("temp_data_directory");
+				mascot_data_dir = getStringOption_("temp_data_directory");
 
 				if (mascot_data_dir == "")
 				{
@@ -525,35 +428,21 @@ class TOPPMascotAdapter
 				mascotXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML";				
 			}
 
-			contact_person.setName(getParamAsString_("contactName", "unknown"));
-			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
-
-			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
-			
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));
-			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
+//			contact_person.setName(getStringOption_("contactName", "unknown"));
+//			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
+//
+//			contact_person.setInstitution(getStringOption_("contactInstitution", "unknown"));
+//			writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
+//			
+//			contact_person.setContactInfo(getStringOption_("contactInfo"));
+//			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
 					
 			//-------------------------------------------------------------
 			// testing whether input and output files are accessible
 			//-------------------------------------------------------------
-	
-			if (!File::exists(inputfile_name))
-			{
-				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
-			}
-			if (!File::readable(inputfile_name))
-			{
-				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
-			}
-	    if (File::empty(inputfile_name))
-	    {
-	      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
-	    }		
-			if (!File::empty(outputfile_name))
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
-			}
+			
+			inputFileReadable_(inputfile_name);
+			outputFileWritable_(outputfile_name);
 	
 			//-------------------------------------------------------------
 			// reading input
@@ -636,10 +525,6 @@ class TOPPMascotAdapter
 			
 				if (!mascot_out)
 				{
-//					mascot_outfile->load(mascot_data_dir + "/" + mascot_outfile_name,
-//															identifications,
-//															precursor_retention_times,
-//															precursor_mz_values);
 					mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,

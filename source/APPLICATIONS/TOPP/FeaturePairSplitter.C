@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <map>
 #include <iostream>
@@ -77,92 +77,39 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeaturePairSplitter
-      : public TOPPBase
+      : public TOPPBase2
 {
  public:
   TOPPFeaturePairSplitter()
-		: TOPPBase("FeaturePairSplitter")
-  {}
+		: TOPPBase2("FeaturePairSplitter","split a feature pairs file into two feature files and a qualities file")
+  {
+  }
 
  protected:
-  void printToolUsage_() const
+  void registerOptionsAndFlags_()
   {
-    cerr << endl
-				 << getToolName() << " -- split a feature pairs file into two feature files and a qualities file." << endl
-				 << "Version: " << VersionInfo::getVersion() << endl <<
-			"\n"
-			"Usage:\n"
-			"  " << getToolName() << " [-in <file>] [-out1 <file>] [-out2 <file>] [-qual <file>] [-dump <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
-			"Options are:\n"
-			"  -in <file>        input file\n"
-			"  -out1 <file>      first feature output file\n"
-			"  -out2 <file>      second feature output file\n"
-			"  -qual <file>      pair qualtities output file\n"
-			"  -dump <file>      pair dump output file (writes two files: <file> and <file>.gp)\n"
-			"All output options are optional.\n"
-				 << endl;
-  }
-
-  void printToolHelpOpt_() const
-  {
-    cerr << "\n"
-				 << getToolName() << "\n"
-			"\n"
-			"INI options:\n"
-			"  in     input feature pairs file\n"
-			"  out1   first feature output file\n"
-			"  out2   second feature output file\n"
-			"  qual   pair qualtities output file\n"
-			"  dump   pair dump output file (writes two files: <file> and <file>.gp)\n"
-			"\n"
-			"INI File example section:\n"
-			"  <ITEM name=\"in\" value=\"pairs.xml\" type=\"string\"/>\n"
-			"  <ITEM name=\"out1\" value=\"features1.xml\" type=\"string\"/>\n"
-			"  <ITEM name=\"out2\" value=\"features2.xml\" type=\"string\"/>\n"
-			"  <ITEM name=\"qual\" value=\"qualities.txt\" type=\"string\"/>\n"
-			"  <ITEM name=\"dump\" value=\"dump.txt\" type=\"string\"/>\n"
-			"\n"
-			"All output options are optional.\n"
-			;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    options_["-in"]   = "in";
-    options_["-out1"] = "out1";
-    options_["-out2"] = "out2";
-    options_["-qual"] = "qual";
-    options_["-dump"] = "dump";
+    registerStringOption_("in","<file>","","input file");
+    registerStringOption_("out1","<file>","","first feature output file",false);
+    registerStringOption_("out2","<file>","","second feature output file",false);
+    registerStringOption_("qual","<file>","","pair qualtities output file",false);
+    registerStringOption_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
   }
 
   ExitCodes main_(int , char**)
   {
-
-		writeDebug_("--------------------------------------------------",1);
-		writeDebug_("Running FeaturePairSplitter.",1);
-
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
 
 		// file names
-		String in = getParamAsString_("in");
-		writeDebug_(String("Input feture pairs file: ") + in, 1);
-
-		String out1 = getParamAsString_("out1");
-		writeDebug_(String("First feature output file: ") + out1, 1);
+		String in = getStringOption_("in");
+		String out1 = getStringOption_("out1");
 		bool const write_out1 = !out1.empty();
-
-		String out2 = getParamAsString_("out2");
-		writeDebug_(String("Second feature output file: ") + out2, 1);
+		String out2 = getStringOption_("out2");
 		bool const write_out2 = !out2.empty();
-
-		String qual = getParamAsString_("qual");
-		writeDebug_(String("Pair qualities output file: ") + qual, 1);
+		String qual = getStringOption_("qual");
 		bool const write_qual = !qual.empty();
-
-		String dump = getParamAsString_("dump");
-		writeDebug_(String("Pair dump output file: ") + dump, 1);
+		String dump = getStringOption_("dump");
 		bool const write_dump = !dump.empty();
 
 		// load data from input file.
@@ -178,12 +125,9 @@ class TOPPFeaturePairSplitter
 					++iter
 				)
 		{
-			if ( write_out1 )
-				first_feature_map.push_back(iter->getFirst());
-			if ( write_out2 )
-				second_feature_map.push_back(iter->getSecond());
-			if ( write_qual )
-				qualities_vector.push_back(iter->getQuality());
+			if ( write_out1 ) first_feature_map.push_back(iter->getFirst());
+			if ( write_out2 ) second_feature_map.push_back(iter->getSecond());
+			if ( write_qual ) qualities_vector.push_back(iter->getQuality());
 		}
 
 		// write the data to files
@@ -201,17 +145,15 @@ class TOPPFeaturePairSplitter
 		if ( write_qual )
 		{
 			ofstream qualities_file(qual.c_str());
-			copy(qualities_vector.begin(),qualities_vector.end(),
-					 ostream_iterator<double>(qualities_file,"\n")
-					);
+			copy(qualities_vector.begin(),qualities_vector.end(), ostream_iterator<double>(qualities_file,"\n") );
 		}
 		if ( write_dump )
 		{
 			enum DimensionId
-				{
-					RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-					MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
-				};
+			{
+				RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+				MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+			};
 
 			ofstream dump_file(dump.c_str());
 			std::string dump_gp = dump + ".gp";

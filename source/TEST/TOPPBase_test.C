@@ -100,9 +100,9 @@ class TOPPBaseTest
 			inputFileReadable_(filename);
 		}
 		
-		void ouputFileWritable(const String& filename) const
+		void outputFileWritable(const String& filename) const
 		{
-			ouputFileWritable_(filename);
+			outputFileWritable_(filename);
 		}
 		
 };
@@ -288,12 +288,12 @@ CHECK(void inputFileReadable_(const String& filename) const)
 	TOPPBaseTest().inputFileReadable("data/TOPPBase_common.ini");
 RESULT
 
-CHECK(void ouputFileWritable_(const String& filename) const)
-	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().ouputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
+CHECK(void outputFileWritable_(const String& filename) const)
+	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
 
 	String filename;
 	NEW_TMP_FILE(filename);
-	TOPPBaseTest().ouputFileWritable(filename);
+	TOPPBaseTest().outputFileWritable(filename);
 RESULT
 
 CHECK(Param getParamCopy_( const std::string& prefix ) const)

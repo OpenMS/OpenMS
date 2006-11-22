@@ -24,29 +24,16 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/KERNEL/DPosition.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 #include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
 #include <algorithm>
-
 #include <gsl/gsl_math.h>
-
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 using namespace OpenMS;
 using namespace Math;
@@ -58,8 +45,8 @@ typedef DFeature<2>::IntensityType IntensityType;
 /// Defines the coordinates of peaks / features.
 enum DimensionId
 {
-    RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-    MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+  RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+  MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
 };
 
 //-------------------------------------------------------------
@@ -110,63 +97,49 @@ enum DimensionId
 /// @cond TOPPCLASSES
 
 class AdditiveSeries
-            : public TOPPBase
+            : public TOPPBase2
 {
-public:
+	public:
     AdditiveSeries()
-            : TOPPBase("AdditiveSeries")
-    {}
-
-protected:
-    void printToolUsage_() const
+            : TOPPBase2("AdditiveSeries","computes an additive series to quantify a peptide in a set of samples")
     {
-        cerr << endl
-        << getToolName() << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
-        << "Detailed procedure is described in Groepl et. (2005) Proc. CompLife-05 ." << endl
-        << "Version: " << VersionInfo::getVersion() << endl
-        << endl
-        << "Usage:" << endl
-        << " " << getToolName() << " [options]" << endl
-        << endl
-        << "Options are:" << endl
-        << "  -in <file>   input file containing the spiked concentrations (default read from INI file)" << endl
-        << "  -out <file>  output file XML containg regression line and confidence interval (default read from INI file)" << endl
-        << endl
-        << "Common TOPP options are:" << endl
-        << "  -ini <file>       TOPP INI file (default: TOPP.ini)" << endl
-        << "  -log <file>       log file (default: TOPP.log)" << endl
-        << "  -n <int>          instance number (default: 1)" << endl
-        << "  -d <level>        sets debug level (default: 0)" << endl
-        << "  --help            shows this help" << endl
-        << "  --help-opt        shows help on the INI options accepted" << endl
-        << endl ;
     }
 
-    void printToolHelpOpt_() const
+	protected:
+    void registerOptionsAndFlags_()
     {
-        cerr << endl
-        << getToolName() << " -- Computes an additive series to quantify a peptide in a set of samples." << endl
-        << "Detailed procedure is described in Groepl et. (2005) Proc. CompLife-05 ." << endl
-        << endl
-        << "INI options (excerpt):" << endl
-        << endl
-        << " -write_gnuplot_output : Flag that writes a script with GNUplot commands" << endl
-        << " -mz_tolerance         : m/z range for feature coordinates" << endl
-        << " -rt_tolerance         : rt range for feature coordinates" << endl
-        << endl
-        << "All further parameters are explained in the example INI file" << endl
-        << endl ;
+			registerStringOption_("in","<file>","","input file containing one spiked concentration");
+			registerStringOption_("out","<file>","","output XML file containg regression line and confidence interval");
+			registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
+			registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
 
-    }
-
-    void setOptionsAndFlags_()
-    {
-        options_["-out"] = "out";
-        options_["-in"] = "in";
+			addEmptyLine_();
+			addText_("GNUplot options:");
+			registerFlag_("write_gnuplot_output","Flag that activates the GNUplot output");
+			registerStringOption_("title","<title>","","title of the plot",false);
+			registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
+			registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
+			
+			addEmptyLine_();
+			addText_("Input feature files, feature position and standard position can only be specified in the INI file:\n"
+							"  <NODE name=\"Files\">\n"
+							"    <ITEM name=\"1\" value=\"data/file1.xml\" type=\"string\">\n"
+							"    <ITEM name=\"2\" value=\"data/file2.xml\" type=\"string\">\n"
+							"    <ITEM name=\"3\" value=\"data/file3.xml\" type=\"string\">\n"
+							"    <ITEM name=\"4\" value=\"data/file4.xml\" type=\"string\">\n"
+							"  </NODE>\n"
+							"  <NODE name=\"Feature\">\n"
+							"    <ITEM name=\"MZ\" value=\"675.9\" type=\"float\">\n"
+							"    <ITEM name=\"RT\" value=\"1246\" type=\"float\">\n"
+							"  </NODE>\n"
+							"  <NODE name=\"Standard\">\n"
+							"    <ITEM name=\"MZ\" value=\"689.9\" type=\"float\">\n"
+							"    <ITEM name=\"RT\" value=\"1246\" type=\"float\">\n"
+							"  </NODE>");
     }
 
 
-    /// searches for a features with coordinates within the tolerance in this map
+  /// searches for a features with coordinates within the tolerance in this map
 	/// NOTE: It might happen, that there are several features at similar coordinates.
 	/// In this case, the program cannot be sure which one is the correct. So we decided
 	/// to use the one with the strongest intensity.
@@ -363,144 +336,114 @@ protected:
 
     ExitCodes main_(int , char**)
     {
-        //-------------------------------------------------------------
-        // parsing parameters
-        //-------------------------------------------------------------
-        Param const& add_param =  getParam_();
-				writeDebug_("Used parameters", add_param, 3);
-				
-        DPosition<2> feat_pos1;
-        DPosition<2> feat_pos2;
+      //-------------------------------------------------------------
+      // parsing parameters
+      //-------------------------------------------------------------
+      Param const& add_param =  getParam_();
+			writeDebug_("Used parameters", add_param, 3);
 
-        if (add_param.getValue("mz_tolerance").isEmpty() || add_param.getValue("rt_tolerance").isEmpty() )
+      CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
+      CoordinateType tol_rt = getDoubleOption_("rt_tolerance");
+
+      String conc_f = getStringOption_("in");
+      String out_f  = getStringOption_("out");
+
+      if (add_param.getValue("Feature:MZ").isEmpty() || add_param.getValue("Feature:RT").isEmpty() )
+      {
+        writeLog_("Feature coordinates not given. Aborting.");
+        return ILLEGAL_PARAMETERS;
+      }
+      DPosition<2> feat_pos1;
+      feat_pos1[MZ] = (CoordinateType) add_param.getValue("Feature:MZ");
+      feat_pos1[RT] = (CoordinateType) add_param.getValue("Feature:RT");
+
+      if (add_param.getValue("Standard:MZ").isEmpty() || add_param.getValue("Standard:RT").isEmpty() )
+      {
+        writeLog_("Standard coordinates not given. Aborting.");
+        return ILLEGAL_PARAMETERS;
+      }
+			DPosition<2> feat_pos2;
+      feat_pos2[MZ] = (CoordinateType) add_param.getValue("Standard:MZ");
+      feat_pos2[RT] = (CoordinateType) add_param.getValue("Standard:RT");
+
+      writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
+
+      String title = getStringOption_("title");
+
+      // read the spiked concentrations
+      ifstream conc_file(conc_f.c_str());
+      char line[256];
+      vector<double> sp_concentrations;
+      while (conc_file.getline(line,256))
+      {
+				string line_str(line);
+				std::istringstream line_stream(line_str);
+				double conc = 0;
+				line_stream >> conc;
+				sp_concentrations.push_back(conc);
+      }
+
+      // introduce a flag for each concetration. true => the corresponding feature was found
+      vector<bool> flags;
+
+      // fetching list of files
+      vector<String> files;
+      Param file_param = add_param.copy("Files:",true);
+      Param::ConstIterator pit = file_param.begin();
+      while (pit != file_param.end() )
+      {
+        files.push_back(pit->second);
+        pit++;
+      }
+      sort(files.begin(),files.end());
+
+      // collect features
+      vector<IntensityType> intensities;
+      vector<String>::const_iterator cit = files.begin();
+      while (cit != files.end())
+      {
+        if (readMapFile_(*cit,intensities,tol_mz,tol_rt,feat_pos1,feat_pos2) )
         {
-            writeDebug_(String("Tolerances not set in INI file. Aborting."),1);
-            return ILLEGAL_PARAMETERS;
-        }
-
-        CoordinateType tol_mz = (CoordinateType) add_param.getValue("mz_tolerance");
-        CoordinateType tol_rt = (CoordinateType) add_param.getValue("rt_tolerance");
-
-
-        String conc_f = getParamAsString_("in");
-        String out_f  = getParamAsString_("out");
-        if (conc_f=="" || out_f=="" )
-        {
-            writeDebug_(String("Input / outputfile not given. Aborting."),1);
-            return ILLEGAL_PARAMETERS;
-        }
-
-        if (add_param.getValue("Feature:MZ").isEmpty() || add_param.getValue("Feature:RT").isEmpty() )
-        {
-            writeDebug_(String("Feature coordinates not given. Aborting."),1);
-            return ILLEGAL_PARAMETERS;
-        }
-        feat_pos1[MZ] = (CoordinateType) add_param.getValue("Feature:MZ");
-        feat_pos1[RT] = (CoordinateType) add_param.getValue("Feature:RT");
-
-        if (add_param.getValue("Standard:MZ").isEmpty() || add_param.getValue("Standard:RT").isEmpty() )
-        {
-            writeDebug_(String("Standard coordinates not given. Aborting."),1);
-            return ILLEGAL_PARAMETERS;
-        }
-
-        feat_pos2[MZ] = (CoordinateType) add_param.getValue("Standard:MZ");
-        feat_pos2[RT] = (CoordinateType) add_param.getValue("Standard:RT");
-
-        writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
-//         cout << " Feature position 1: " <<  feat_pos1 << endl;
-//         cout << " Feature position 2: " << feat_pos2 << endl;;
-
-        String title = (String) add_param.getValue("title");
-
-        // read the spiked concentrations
-        ifstream conc_file(conc_f.c_str());
-        char line[256];
-        vector<double> sp_concentrations;
-        while (conc_file.getline(line,256))
-        {
-					string line_str(line);
-					std::istringstream line_stream(line_str);
-					double conc = 0;
-					line_stream >> conc;
-					sp_concentrations.push_back(conc);
-					// line_str.trim();
-					// sp_concentrations.push_back(line_str.toDouble());
-        }
-
-        // introduce a flag for each concetration
-        // true => the corresponding feature was found
-        vector<bool> flags;
-
-        // fetching list of files
-        vector<String> files;
-        Param file_param = add_param.copy("Files:",true);
-
-        Param::ConstIterator pit = file_param.begin();
-
-        while (pit != file_param.end() )
-        {
-            files.push_back(pit->second);
-            pit++;
-        }
-
-        sort(files.begin(),files.end());
-
-        // collect features
-        vector<IntensityType> intensities;
-        vector<String>::const_iterator cit = files.begin();
-        while (cit != files.end())
-        {
-          	//cout << "Opening file " << *cit << endl;
-
-            if (readMapFile_(*cit,intensities,tol_mz,tol_rt,feat_pos1,feat_pos2) )
-            {
-                flags.push_back(true);
-            }
-            else
-            {
-                flags.push_back(false);
-            }
-            cit++;
-        }
-
-        vector<double> sp_concentrations2;
-        for (unsigned int i=0; i<sp_concentrations.size(); i++)
-        {
-            if (flags.at(i) == true )
-            {
-                sp_concentrations2.push_back( sp_concentrations.at(i) );
-            }
-        }
-
-        if (intensities.size() == 0 || sp_concentrations.size() == 0 )
-        {
-            writeDebug_(" Did not find any data! Aborting..." ,1);
-            return UNKNOWN_ERROR;
-        }
-
-        // set prefix of gnuplot output
-        String filename_prefix = title;
-				// // // Formerly (until 2006-10-26) :
-        // // // String filename_prefix = "gnuplot_";
-        // // // filename_prefix += String(title);
-
-        if (getParamAsBool_("write_gnuplot_output"))
-        {
-						writeDebug_(String("Writing gnuplot output"),1);
-						// compute regression and write GNUplot files
-            computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
-                                                    intensities.begin(), 0.95, filename_prefix, out_f, "eps", true);
+        	flags.push_back(true);
         }
         else
         {
-            writeDebug_(" No GNUplot output is written...",1);
-            // compute regression and write GNUplot files
-            computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
-                                                    intensities.begin(), 0.95, filename_prefix, out_f, "eps", false);
+        	flags.push_back(false);
         }
+        cit++;
+      }
 
-        return EXECUTION_OK;
+      vector<double> sp_concentrations2;
+      for (unsigned int i=0; i<sp_concentrations.size(); i++)
+      {
+        if (flags.at(i) == true )
+        {
+        	sp_concentrations2.push_back( sp_concentrations.at(i) );
+        }
+      }
+
+      if (intensities.size() == 0 || sp_concentrations.size() == 0 )
+      {
+          writeLog_("Did not find any data. Aborting!");
+          return ILLEGAL_PARAMETERS;
+      }
+
+      // set prefix of gnuplot output
+      String filename_prefix = title;
+      if (getFlag_("write_gnuplot_output"))
+      {
+					writeDebug_(String("Writing gnuplot output"),1);
+          computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
+                                                  intensities.begin(), 0.95, filename_prefix, out_f, "eps", true);
+      }
+      else
+      {
+          writeDebug_(" No GNUplot output is written...",1);
+          computeRegressionAndWriteGnuplotFiles_ (sp_concentrations2.begin(), sp_concentrations2.end(),
+                                                  intensities.begin(), 0.95, filename_prefix, out_f, "eps", false);
+      }
+
+      return EXECUTION_OK;
     }
 
 };

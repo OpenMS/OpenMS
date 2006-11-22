@@ -24,12 +24,11 @@
 // $Maintainer: Clemens Groepl, Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashPairwiseMapMatcher.h> // the new one
+#include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashPairwiseMapMatcher.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <sstream>
 
@@ -43,7 +42,6 @@ typedef DFeatureMapFile FeatureMapFile;
 typedef DFeaturePair<2,Feature> FeaturePair;
 typedef DFeaturePairVector<2,Feature> FeaturePairVector;
 typedef DFeaturePairsFile FeaturePairVectorFile;
-// typedef DSimpleFeatureMatcher<2,KernelTraits,Feature> SimpleFeatureMatcherType;
 typedef DGrid<2> GridType;
 
 
@@ -75,74 +73,35 @@ typedef DGrid<2> GridType;
 /// @cond TOPPCLASSES
 
 class TOPPUnlabeledMatcher
-      : public TOPPBase
+	: public TOPPBase2
 {
   public:
     TOPPUnlabeledMatcher()
-        : TOPPBase("UnlabeledMatcher")
-    {}
+        : TOPPBase2("UnlabeledMatcher","matches common two-dimensional features/peaks of two LC/MS maps")
+    {
+    }
 
   protected:
-    void printToolUsage_() const
-    {
-      cerr << '\n' <<
-				getToolName() << " -- match common two-dimensional features of two LC/MS data sets\n"
-      	"Version: " << VersionInfo::getVersion() << "\n" 
-				"\n"
-				"Usage:\n"
-				"  " << getToolName() << " [-in1 <file>] [-in2 <file>] [-grid <file>] [-pairs <file>] [-ini <file>] [-log <file>] [-n <int>] [-d <level>]\n\n"
-				"Options are:\n"
-				"  -in1 <file>   input feature file 1\n"
-				"  -in2 <file>   input feature file 2\n"
-				"  -pairs <file> output file: XML formatted list of feature pairs\n"
-				"  -grid <file>  output file: grid covering the feature map\n"
-					 << endl;
-    }
 
-    void printToolHelpOpt_() const
+    void registerOptionsAndFlags_()
     {
-      cerr << '\n'
-					 << getToolName() << "\n"
-				"\n"
-				"INI options:\n"
-				"  in1    input feature file 1\n"
-				"  in2    input feature file 2\n"
-				"  pairs  output file: XML formatted list of feature pairs\n"
-				"  grid   output file: grid covering the feature map\n"
-				"\n"
-				"INI File example section:\n"
-				"  <ITEM name=\"in1\" value=\"input_1.mzData\" type=\"string\"/>\n"
-				"  <ITEM name=\"in2\" value=\"input_2.mzData\" type=\"string\"/>\n"
-				"  <ITEM name=\"pairs\" value=\"pairs.xml\" type=\"string\"/>\n"
-				"  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>\n"
-				"Note: many more parameters can be set in the INI File.\n"
-				"See TOPP/Examples/UnlabeledeMatcher.ini for an example.\n"
-				;
-    }
-
-    void setOptionsAndFlags_()
-    {
-      options_["-in1"] = "in1";
-      options_["-in2"] = "in2";
-      options_["-grid"] = "grid";
-      options_["-pairs"] = "pairs";
+			registerStringOption_("in1","<file>","","input feature file 1");
+			registerStringOption_("in2","<file>","","input feature file 2");
+			registerStringOption_("pairs","<file>","","output file: XML formatted list of feature pairs");
+			registerStringOption_("grid","<file>","","output file: grid covering the feature map");
     }
 
     ExitCodes main_(int , char**)
     {
-
-      writeDebug_("--------------------------------------------------",1);
-      writeDebug_("Running UnlabeledMatcher.",1);
-
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
 
       // determine name of grid file
-      String gridfilename = getParamAsString_("grid");
+      String gridfilename = getStringOption_("grid");
 
       // determine name of pairs file
-      String pairsfile = getParamAsString_("pairs");
+      String pairsfile = getStringOption_("pairs");
 
       // input files to be read
       String inputfile[2];
@@ -154,8 +113,7 @@ class TOPPUnlabeledMatcher
       /// determine names of input files
       for ( Size index = 0; index < 2; ++index )
       {
-        String inputfile_key = String("in") + String(1 + index);
-        inputfile[index] = getParamAsString_(inputfile_key);
+        inputfile[index] = getStringOption_(String("in") + (index+1));
         writeLog_(String("Reading input file ") + (index+1) + ", `" + inputfile[index] + '\'');
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
@@ -200,10 +158,9 @@ class TOPPUnlabeledMatcher
 
       return EXECUTION_OK;
 
-    } // main_()
+    }
 
-}
-; // TOPPUnlabeledMatcher
+};
 
 
 int main( int argc, char ** argv )
