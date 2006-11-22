@@ -395,8 +395,7 @@ public:
         {
             while (true)
             {
-                std::cout << "Seeding ..." << std::endl;
-                UnsignedInt seed = seeders[0]->nextSeed();
+               	UnsignedInt seed = seeders[0]->nextSeed();
 
                 watch.start();
                 std::cout << "Extension ..." << std::endl;

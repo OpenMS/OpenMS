@@ -32,7 +32,7 @@ namespace OpenMS
 {
 
 MarrWaveletSeeder::MarrWaveletSeeder()
-        : BaseSeeder()
+        : BaseSeeder(), is_initialized_(false)
 {
     name_ = MarrWaveletSeeder::getName();
 
@@ -77,17 +77,10 @@ MarrWaveletSeeder::~MarrWaveletSeeder()
 {}
 
 Index MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
-{
-    if (!is_initialized_)
-        sweep_();
-
+{ 
+		if (!is_initialized_)  sweep_();		
+		
     is_initialized_ = true;
-
-    // check if this cluster consists of one scan only and if so, just move to the next one
-    while ((*curr_region_).second.scans_.size() == 1 && curr_region_ != iso_map_.end() )
-    {
-        ++curr_region_;
-    }
 
     if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 )
         throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
@@ -122,7 +115,7 @@ Index MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
 
 void MarrWaveletSeeder::sweep_()
 {
-    // stores the monoisotopic peaks of isotopic clusters
+	  // stores the monoisotopic peaks of isotopic clusters
     std::vector<CoordinateType> iso_last_scan;			// in the previous scan
     std::vector<CoordinateType> iso_curr_scan;			// in the last scan
     
@@ -139,8 +132,8 @@ void MarrWaveletSeeder::sweep_()
 		charge4_ub_    = param_.getValue("charge4_ub");
     charge4_lb_     = param_.getValue("charge4_lb");
 		
-		charge5_ub_    = param_.getValue("charge4_ub");
-    charge5_lb_     = param_.getValue("charge4_lb");
+		charge5_ub_    = param_.getValue("charge5_ub");
+    charge5_lb_     = param_.getValue("charge5_lb");
 		
 		// thresholds for cwt
 		CoordinateType tolerance_mz = param_.getValue("tolerance_mz");
@@ -158,7 +151,7 @@ void MarrWaveletSeeder::sweep_()
 		
     // sweep through scans
 		UnsignedInt nr_scans = traits_->getData().size();
-				
+		
     for (UnsignedInt currscan_index = 0; currscan_index < nr_scans; ++currscan_index)
     {
 					current_scan  = traits_->getData()[currscan_index].getContainer();
