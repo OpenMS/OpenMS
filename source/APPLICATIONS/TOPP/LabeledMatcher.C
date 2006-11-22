@@ -48,10 +48,9 @@ using namespace std;
  
 	@brief Executes the pair matching algorithm for labeled peptides.
  
-	This module identifies pairs of labeled "features" in a LC/MS map.
+	This module identifies pairs of isotope-labeled features in a LC/MS features map.
 	By feature, we understand a peptide in a MS sample that reveals a characteristic isotope distribution.
  	
- 	@todo write more docu, write more test (Marc)
  	@todo remove vis_all and vis_best as soon as FeaturePair files can be shown in TOPPView (Marc)
  	
 	@ingroup TOPP
@@ -88,9 +87,10 @@ class TOPPLabeledMatcher
 							 "    <ITEM name=\"mz_pair_dist\" value=\"4.0\" type=\"float\"/>\n"
 							 "    <ITEM name=\"mz_stdev\" value=\"0.025\" type=\"float\"/>\n" 
 							 "  </NODE>");
-	  	addEmptyLine_();
-	  	addText_("Note: The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.\n"
-							 "      This is due to the fact, that the heavier peptide normally elutes earlier!");
+			addEmptyLine_();
+			addText_("Note: The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.\n"
+			         "      This is due to the fact, that the heavier peptide normally elutes earlier!");
+
 	  }
 	
 	  ExitCodes main_(int , char**)

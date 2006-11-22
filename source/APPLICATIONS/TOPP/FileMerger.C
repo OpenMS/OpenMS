@@ -40,18 +40,16 @@ using namespace std;
 /**
 	@page FileMerger FileMerger
 	
-	@brief Merges several single scan files into an mzData file.
+	@brief Merges several files into an mzData file.
 	
 	Input is a text file with a list of file names and (optional) retention times.
 	Output is a mzData file that contains the merged scans.
 	
-	Only the first scan out of each file and its meta information are copied into the output file.
-	The meta information that is valid for all scans is taken from the first file.
+	The meta information that is valid for the whole experiment is taken from the first file.
 	
-	If the retention time is not given in the file list, it is taken from the corresponding input file.
-	Alternatively the FileMerger numbers the scans consecutively starting from 1 if the flag '-auto_number' is given.
-	
-	@todo Merging whole files, not only the first scans (Marc)
+	If the retention time it is taken from the corresponding input file.
+	Alternatively the FileMerger numbers the scans consecutively starting from 1 if the flag '-rt_auto' is given.
+	Or the retention time can be given in the file list if the flag '-rt_file' is given.
 	
 	@ingroup TOPP
 */
@@ -64,7 +62,7 @@ class TOPPFileMerger
 {
  public:
 	TOPPFileMerger()
-		: TOPPBase2("FileMerger","Merges several single scan files into a mzData file")
+		: TOPPBase2("FileMerger","Merges several files into one mzData file")
 	{
 			
 	}
@@ -72,12 +70,16 @@ class TOPPFileMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("file_list","<file>","","a text file containing file names and retention times separated by tab.\n"
-																									"If no retention time is given, it is taken from the input file");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension)\n"
+		registerStringOption_("file_list","<file>","","a text file containing one input file name per line");
+		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension).\n"
 		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'");
-		registerStringOption_("out","<file>","","output file in MzData format");
-		registerFlag_("auto_number","automatically numbers the scans (starting at 1)");
+		registerStringOption_("out","<file>","","output file name in MzData format");
+		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
+		registerFlag_("rt_file","Take retention times from file_list.\n"
+														"If this flag is activated, the file list has to contain a filename and a\n"
+														"retention time separated by tab in each line.");
+		addEmptyLine_();
+		addText_("Note: Meta data about the whole experiment is taken from the first file in the list!");
 	}
 	
 	ExitCodes main_(int , char**)
@@ -98,7 +100,8 @@ class TOPPFileMerger
 		String out_file = getStringOption_("out");
 
 		//auto numbering
-		bool auto_number = getFlag_("auto_number");
+		bool auto_number = getFlag_("rt_auto");
+		bool rt_from_file = getFlag_("rt_file");
 			
 		//-------------------------------------------------------------
 		// loading input
@@ -108,43 +111,50 @@ class TOPPFileMerger
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-			
-		//parse filename and rt
-		float rt,auto_rt=1;
+		
+		float rt_final,rt_file,rt_auto=0;
 		String line, filename;
 		vector<String> tmp;
 		MSExperiment<DPeak<1> > out, in;
 		out.reserve(file_list.size());
-		bool first_scan = true;
-			
+		bool first_file = true;
+		
 		for (TextFile::Iterator it = file_list.begin(); it!=file_list.end(); ++it)
 		{
+			//parsing of file list
+			rt_file = -1;
 			line = *it;
 			line.trim();
 			if (line == "")
 			{
 				continue;
 			}
-				
+			
+			//tab separator
 			if (line.find("	")!=string::npos)
 			{
 				line.split('	',tmp);
 				filename = tmp[0];
 				if (tmp[1].size()!=0)
 				{
-					rt = tmp[1].toFloat();
+					rt_file = tmp[1].toFloat();
 				}
-				else
+			}
+			// space separator
+			else if (line.find(" ")!=string::npos)
+			{
+				line.split(' ',tmp);
+				filename = tmp[0];
+				if (tmp[1].size()!=0)
 				{
-					rt = -1;
+					rt_file = tmp[1].toFloat();
 				}
 			}
 			else
 			{
 				filename = line;
-				rt = -1;
 			}
-				
+			
 			//load file 
 			fh.loadExperiment(filename,in,force_type);
 			if (in.size()==0)
@@ -154,34 +164,46 @@ class TOPPFileMerger
 			}
 			else if (in.size()>1)
 			{
-				writeLog_(String("Warning: More than one scan in file '") + filename +"'! Extracting only the first scan!");
+				out.reserve(out.size()+in.size());
+				if (rt_from_file)
+				{
+					writeLog_(String("Warning: More than one scan in file '") + filename +"'! All scans will have the same retention time!");
+				}
 			}
+			
+			for ( MSExperiment<DPeak<1> >::const_iterator it2 = in.begin(); it2!=in.end(); ++it2 )
+			{ 
+				//handle rt
+				++rt_auto;
+				rt_final = -1;
+				if (auto_number)
+				{
+					rt_final = rt_auto;
+				}
+				else if (rt_from_file) 
+				{
+					rt_final = rt_file;
+				}
+				else
+				{
+					rt_final = it2->getRetentionTime();
+				}
 				
-			//handle rt
-			if (auto_number)
-			{
-				rt = auto_rt++;
-			}
-			if (in[0].getRetentionTime()==-1 || rt!=-1)
-			{
-				in[0].setRetentionTime(rt);
-			}
-				
-			if (in[0].getRetentionTime()==-1)
-			{
-				writeLog_(String("No retention time for file '") + filename + "' given. Aborting!");
-				printUsage_();
-				return PARSE_ERROR;	
-			}
-				
-			out.push_back(in[0]);
-			// copy experimental settings from first file
-			if (first_scan)
-			{
-				out.ExperimentalSettings::operator=(in);
-				first_scan = false;
+				if(rt_final==-1)
+				{
+					writeLog_(String("Warning: No valid retention time for output scan '") + String(rt_auto) +"' from file '" + filename + "'");
+				}
+					
+				out.push_back(*it2);
+				out.back().setRetentionTime(rt_final);
 			}
 
+			// copy experimental settings from first file
+			if (first_file)
+			{
+				out.ExperimentalSettings::operator=(in);
+				first_file = false;
+			}
 		}
 			
 		//-------------------------------------------------------------

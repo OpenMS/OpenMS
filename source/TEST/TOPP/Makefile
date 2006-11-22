@@ -366,20 +366,25 @@ FileMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
 
-	@$(ECHO) "- Test 1: 3 Files"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_ini.txt -out FileMerger.tmp)
+	@$(ECHO) "- Test 1: 3 Files (-rt_file)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_ini.txt -out FileMerger.tmp -rt_file)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_1_output.txt,FileMerger2.tmp)
 
-	@$(ECHO) "- Test 1: 2 Files (-in_type)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_ini.txt -in_type DTA -out FileMerger.tmp)
+	@$(ECHO) "- Test 2: 2 Files (-rt_file -in_type)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_ini.txt -in_type DTA -out FileMerger.tmp -rt_file)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_2_output.txt,FileMerger2.tmp)
 
-	@$(ECHO) "- Test 1: 2 Files (-auto_number)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_ini.txt -out FileMerger.tmp -auto_number)
+	@$(ECHO) "- Test 3: 2 Files (-rt_auto)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_ini.txt -out FileMerger.tmp -rt_auto)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_3_output.txt,FileMerger2.tmp)
+
+	@$(ECHO) "- Test 4: 2 Files (several files)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_4_ini.txt -out FileMerger.tmp)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,FileMerger_4_output.txt,FileMerger2.tmp)
 
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""

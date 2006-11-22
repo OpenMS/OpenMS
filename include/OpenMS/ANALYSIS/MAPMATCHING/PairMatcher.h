@@ -42,6 +42,9 @@ namespace OpenMS
 	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance)
 		as described in the thesis "Automated LC-MS data analysis for differential quantification
 		of MHC ligands using stable isotope labeling".
+		
+		@note The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.
+			    This is due to the fact, that the heavier peptide normally elutes earlier!
 
 	  Parameters:
 			<table>
@@ -58,8 +61,7 @@ namespace OpenMS
 			</table>
 		
 		@todo Warn when Param values are given, that are not needed (Marc)
-	 **/
-
+	*/
 	class PairMatcher: public FactoryProduct
 	{
 		public:

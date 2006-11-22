@@ -45,12 +45,9 @@
 
 /*
 	TODO (Marc):
-	- Deisotoping / Decharging
-  - DFeature: Signatur von clone-Methode geändert bei DFeature. Ist das gut?
+	- Handling of non-optional TOPP parameters
+	- Parameter check in set defaults
 	- Rohdaten-Erkenner
-		
-	- Clustering
-	- SpecAnnotate
 	
 	TODO (Hiwis):
 	- XML:

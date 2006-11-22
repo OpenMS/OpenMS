@@ -71,7 +71,7 @@ class TOPPFileConverter
 	{
 		registerStringOption_("in","<file>","","input file");
 		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension)\n"
-		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'\n"
+		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'.\n"
 																	              "'FeatureFile' can be converted, but will lose feature specific information");
 		registerStringOption_("out","<file>","","output file");
 		registerStringOption_("out_type","<type>","","output file type (default: determined from input file extension)\n"
