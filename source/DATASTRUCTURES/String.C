@@ -677,6 +677,13 @@ namespace OpenMS
 		return s.str();
 	}
 
+	String String::operator+ (const char* s) const
+	{
+		stringstream t;
+		t << *this << s;
+		return t.str();
+	}
+
 } // namespace OpenMS
 
 

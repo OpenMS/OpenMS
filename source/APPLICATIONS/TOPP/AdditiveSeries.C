@@ -407,7 +407,7 @@ protected:
         feat_pos2[MZ] = (CoordinateType) add_param.getValue("Standard:MZ");
         feat_pos2[RT] = (CoordinateType) add_param.getValue("Standard:RT");
 
-        writeDebug_(String("Setting tolerances to ") + String(tol_mz) + String(" ") + String(tol_rt),1);
+        writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
 //         cout << " Feature position 1: " <<  feat_pos1 << endl;
 //         cout << " Feature position 2: " << feat_pos2 << endl;;
 

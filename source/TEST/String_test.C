@@ -556,6 +556,10 @@ CHECK(String operator+ (char i) const)
 	TEST_EQUAL(fixed + '4', "test4")
 RESULT
 
+CHECK(String operator+ (const char* s) const)
+	TEST_EQUAL(fixed + "bla4", "testbla4")
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

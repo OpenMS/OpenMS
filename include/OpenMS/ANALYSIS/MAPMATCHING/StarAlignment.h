@@ -198,7 +198,7 @@ namespace OpenMS
         {
           if (i != reference_map_index_)
           {
-            tree = tree + '(' + (String)reference_map_index_ + ":0," + (String)i + ':' + (String)(i+1) + "):0";
+            tree = tree + '(' + reference_map_index_ + ":0," + i + ':' + (i+1) + "):0";
 
             if (i < (n-1))
             {

@@ -279,6 +279,8 @@ namespace OpenMS
 		String operator+ (long double d) const;
 		/// Sum operator for char
 		String operator+ (char c) const;
+		/// Sum operator for char*
+		String operator+ (const char* s) const;
 		//@}
 
 

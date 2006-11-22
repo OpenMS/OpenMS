@@ -104,7 +104,7 @@ class TOPPDBImporter
 			
 			a.storeExperiment(exp);
 			
-			writeLog_( String(" written file to DB (id: ") + String((double)(exp.getPersistenceId())) + ")");	
+			writeLog_( String(" written file to DB (id: ") + (double)(exp.getPersistenceId()) + ")");	
 			
 			return EXECUTION_OK;
 		}

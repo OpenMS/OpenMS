@@ -503,9 +503,8 @@ class TOPPRTModel
 					}
 					else
 					{
-						writeLog_(String("For one spectrum there should not be more than one peptide.")
-								+ String(" Please use the IDFilter with the -strict option to ")
-								+ String("achieve this. Aborting!"));
+						writeLog_("For one spectrum there should not be more than one peptide."
+								      "Please use the IDFilter with the -strict option to achieve this. Aborting!");
 						writeLog_("Hits: ");
 						for(vector<PeptideHit>::iterator it = identifications[i].getPeptideHits().begin(); 
 								it != identifications[i].getPeptideHits().end(); 

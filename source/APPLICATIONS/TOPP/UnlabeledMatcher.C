@@ -156,7 +156,7 @@ class TOPPUnlabeledMatcher
       {
         String inputfile_key = String("in") + String(1 + index);
         inputfile[index] = getParamAsString_(inputfile_key);
-        writeLog_(String("Reading input file ") + String(index+1) + String(", `") + inputfile[index]+'\'');
+        writeLog_(String("Reading input file ") + (index+1) + ", `" + inputfile[index] + '\'');
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
 
@@ -186,12 +186,12 @@ class TOPPUnlabeledMatcher
       writeDebug_("Running algorithm...done.",1);
 
       writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
-      writeDebug_(String("Writing feature pairs file `") + pairsfile + String("'."),1);
+      writeDebug_(String("Writing feature pairs file `") + pairsfile + "'.",1);
 
       FeaturePairVectorFile feature_pair_vector_file;
       feature_pair_vector_file.store(pairsfile,geomhash_feature_matcher.getFeaturePairs());
 
-      writeDebug_(String("Writing grid file `") + gridfilename + String("'."),1);
+      writeDebug_(String("Writing grid file `") + gridfilename + "'.",1);
 
       DGridFile grid_file;
       grid_file.store(gridfilename,geomhash_feature_matcher.getGrid());

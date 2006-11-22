@@ -737,8 +737,7 @@ class TOPPInspectAdapter
 					if ( !File::writable(inspect_logfile) )
 					{
 						writeLog_(String(" Could not write in temp data directory: ")
-								+ temp_data_dir + inspect_logfile
-								+ String(" Aborting!"));
+								+ temp_data_dir + inspect_logfile + " Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
 				}

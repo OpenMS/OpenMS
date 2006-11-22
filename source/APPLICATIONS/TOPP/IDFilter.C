@@ -277,14 +277,12 @@ class TOPPIDFilter
 
 		if (getParamAsBool_("strict", false))
 		{				
-			writeDebug_(String("strict filtering (if there is more than one best hit")
-									+ String(" for one spectrum, discard all of them)"), 1);
+			writeDebug_("strict filtering (if there is more than one best hit for one spectrum, discard all of them)", 1);
 			strict = true;
 		}
 		else
 		{
-			writeDebug_(String("no strict filtering (if there is more than one best hit")
-									+ String(" for one spectrum, take all of them)"), 1);				
+			writeDebug_(String("no strict filtering (if there is more than one best hit for one spectrum, take all of them)"), 1);				
 		}
 
 

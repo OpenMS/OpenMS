@@ -442,7 +442,7 @@ class TOPPSequestAdapter
 						if ( make_dtas )
 						{
 							++dtas;
-							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (unsigned long long int) (dtas / max_dtas_per_run) );
+							filename = common_name + "." + scan_number + "." + spec_i->getPrecursorPeak().getCharge() + ".dta" + (unsigned long long int) (dtas / max_dtas_per_run);
 							dtafile.store(filename, *spec_i);
 						}
 						retention_times.push_back(spec_i->getRetentionTime());
@@ -455,7 +455,7 @@ class TOPPSequestAdapter
 							{
 								++dtas;
 								spec_i->getPrecursorPeak().setCharge(i);
-								filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (unsigned long long int) (dtas / max_dtas_per_run) );
+								filename = common_name + "." + scan_number + "." + spec_i->getPrecursorPeak().getCharge() + ".dta" + (unsigned long long int) (dtas / max_dtas_per_run);
 								dtafile.store(filename, *spec_i);
 							}
 							retention_times.push_back(spec_i->getRetentionTime());

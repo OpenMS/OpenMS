@@ -138,10 +138,10 @@ class TOPPDTAExtractor
 				}
 				
 				String tmp3("MS levels: ");
-				tmp3 = tmp3 + String(*(levels.begin()));
+				tmp3 = tmp3 + *(levels.begin());
 				for (vector<UnsignedInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
-					tmp3 = tmp3 + ", " + String(*it);
+					tmp3 = tmp3 + ", " + *it;
 				}
 				writeDebug_(tmp3,1);	
 			}

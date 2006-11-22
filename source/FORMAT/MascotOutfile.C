@@ -395,7 +395,7 @@ namespace OpenMS
 				indices_iterator != indices.end();
 				indices_iterator++)
 		{
-  		it = f.searchSuffix(String("\"query")+String(indices_iterator->first) + String("\""), true);	
+  		it = f.searchSuffix(String("\"query") + indices_iterator->first + "\"", true);	
 			if (it==f.end())
 	  	{
 				precursor_retention_times.push_back(0.f);
@@ -405,7 +405,7 @@ namespace OpenMS
 				it = f.search(it, String("rtinseconds="));	
 				if (it==f.end())
 		  	{
-		  		it = f.search(String("\"query")+String(indices_iterator->first) + String("\""), true);
+		  		it = f.search(String("\"query") + indices_iterator->first + "\"", true);
 				}
 				else
 				{

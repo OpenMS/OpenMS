@@ -210,7 +210,7 @@ namespace OpenMS
 					throw Exception::ParseError
 						( __FILE__, __LINE__, __PRETTY_FUNCTION__,
 							"<ITEM name=\"inherit\" ... />",
-							String("Too many inheritance steps (")+String(inheritance_steps_max)+String(" allowed).  Perhaps there is a cycle?")
+							String("Too many inheritance steps (")+inheritance_steps_max+" allowed).  Perhaps there is a cycle?"
 						);
 				}
 				result.remove("inherit");
