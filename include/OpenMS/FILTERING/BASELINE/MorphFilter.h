@@ -121,8 +121,8 @@ namespace OpenMS
         \f$ x \f$ in the signal \f$s \f$ after a dilatation is the maximal data point in a window which is represented by
         the structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
         \f[ [\delta_B(s)](x)=max_{b \in B} s(x+b). \f]
-        \image html Dilatation.jpg "Erosion with a structuring element of length 3"
-        \image latex Dilatation.eps "Erosion with a structuring element of length 3"
+        \image html Dilation.png "Dilationwith a structuring element of length 3"
+        \image latex Dilation.eps "Dilation with a structuring element of length 3"
     */
     template < typename InputPeakIterator, typename OutputPeakContainer >
     void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)
@@ -208,7 +208,7 @@ namespace OpenMS
        \f$ x \f$ in the signal \f$s \f$ after an erosion is the minimal data point in a window which is represented by the
        structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
        \f[ [\epsilon_B(s)](x)=min_{b \in B} s(x+b). \f]
-       \image html Erosion.jpg "Erosion with a structuring element of length 3"
+       \image html Erosion.png "Erosion with a structuring element of length 3"
        \image latex Erosion.eps "Erosion with a structuring element of length 3"
     */
     template < typename InputPeakIterator, typename OutputPeakContainer >
