@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <math.h>
 
@@ -732,6 +733,30 @@ namespace OpenMS
 			{
 				writeLog_("Warning: Unknown parameter '" + location + it->first + "' in '" + filename + "'!");
 			}
+		}
+	}
+
+	void TOPPBase2::inputFileReadable_(const String& filename) const throw (Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty)
+	{
+		if (!File::exists(filename))
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+		if (!File::readable(filename))
+		{
+			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);			
+		}
+    if (File::empty(filename))
+    {
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+	}
+	
+	void TOPPBase2::ouputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile)
+	{
+		if (!File::writable(filename))
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 	}
 

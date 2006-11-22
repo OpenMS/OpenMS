@@ -86,9 +86,9 @@ namespace OpenMS
 		 	 <LI> Change include to TOPPBase2
 		 	 <LI> Change constructors to TOPPBase2 (move tool description to constructors)
 		 	 <LI> rename setOptionsAndFlags to registerOptionsAndFlags_
-		 	 <LI> Add registration (name, argument text, default value, description)
+		 	 <LI> Add registration (name, argument text, default value, description, required=true)
 		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
-		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ mehtods
+		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ methods
 		 </OL>
 	*/
   class TOPPBase2
@@ -417,6 +417,23 @@ namespace OpenMS
 		/// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
 		void writeDebug_(const String& text, const Param& param, UnsignedInt min_level) const;
 		//@}
+
+
+		/** 
+			@name File IO checking methods
+			
+			Methods used to check the validity of input and output files in main_.
+			The exceptions thrown in these methods are catched in the main method of this class.
+			They do not have to be handled in the tool itself!
+		*/
+		//@{			
+		/// Checks if an input file exists, is readable and is not empty
+		void inputFileReadable_(const String& filename) const throw (Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty);
+		
+		/// Checks if an output file is writable
+		void ouputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
+		//@}
+
 
 		/**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.

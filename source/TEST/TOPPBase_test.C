@@ -94,6 +94,16 @@ class TOPPBaseTest
 		{
 			return getParamCopy_(prefix);
 		}
+
+		void inputFileReadable(const String& filename) const
+		{
+			inputFileReadable_(filename);
+		}
+		
+		void ouputFileWritable(const String& filename) const
+		{
+			ouputFileWritable_(filename);
+		}
 		
 };
 
@@ -269,6 +279,21 @@ CHECK(bool getFlag_(const String& name) const)
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getFlag("doubleoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getFlag("imleeewenit"));
+RESULT
+
+CHECK(void inputFileReadable_(const String& filename) const)
+	TEST_EXCEPTION(Exception::FileNotFound,TOPPBaseTest().inputFileReadable("/this/file/does/not/exist.txt"));
+	//TEST_EXCEPTION(Exception::FileNotReadable,);
+	TEST_EXCEPTION(Exception::FileEmpty,TOPPBaseTest().inputFileReadable("data/TOPPBase_empty.txt"));
+	TOPPBaseTest().inputFileReadable("data/TOPPBase_common.ini");
+RESULT
+
+CHECK(void ouputFileWritable_(const String& filename) const)
+	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().ouputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
+
+	String filename;
+	NEW_TMP_FILE(filename);
+	TOPPBaseTest().ouputFileWritable(filename);
 RESULT
 
 CHECK(Param getParamCopy_( const std::string& prefix ) const)
