@@ -35,6 +35,44 @@
 
 namespace OpenMS
 {
+
+		namespace Exception
+		{
+			/// An unregistered parameter was accessed
+			class UnregisteredParameter
+				: public Exception::Base
+			{
+				public:
+					UnregisteredParameter(const char* file, int line, const char* function, const String& parameter)
+						: Base(file, line, function, "UnregisteredParameter", parameter)
+					{
+						globalHandler.setMessage(what_);
+					}
+			};
+			/// A parameter was accessed with the wrong type
+			class WrongParameterType
+				: public Exception::Base
+			{
+				public:
+					WrongParameterType(const char* file, int line, const char* function, const String& parameter)
+						: Base(file, line, function, "WrongParameterType", parameter)
+					{
+						globalHandler.setMessage(what_);
+					}
+			};
+			/// A required parameter was not given
+			class RequiredParameterNotGiven
+				: public Exception::Base
+			{
+				public:
+					RequiredParameterNotGiven(const char* file, int line, const char* function, const String& parameter)
+						: Base(file, line, function, "RequiredParameterNotGiven", parameter)
+					{
+						globalHandler.setMessage(what_);
+					}
+			};
+		}
+
 	/**
 		 @brief Base class for TOPP Applications.
 		
@@ -52,9 +90,6 @@ namespace OpenMS
 		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
 		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ mehtods
 		 </OL>
-		
-		@todo Add handling of non-optional parameters (Marc)
-		
 	*/
   class TOPPBase2
   {
@@ -70,6 +105,7 @@ namespace OpenMS
 			INPUT_FILE_EMPTY,
 			CANNOT_WRITE_OUTPUT_FILE,
 			ILLEGAL_PARAMETERS,
+			MISSING_PARAMETERS,
 			UNKNOWN_ERROR,
 			EXTERNAL_PROGRAM_ERROR,
 			PARSE_ERROR,
@@ -86,7 +122,6 @@ namespace OpenMS
 		ExitCodes main(int argc , char** argv);
 
 	 private:
-		
 		/// Stuct that captures all information of a parameter
 		struct ParameterInformation
 		{
@@ -112,14 +147,18 @@ namespace OpenMS
 			std::string description;
 			/// argument in the description
 			std::string argument;
-				
-			ParameterInformation(const std::string& n, ParameterTypes t, const std::string& arg,const std::string& def, const std::string& desc)
+			/// flag that indicates if this parameter is required i.e. it must differ from the default value
+			bool required;
+			
+			/// Constructor that takes all members in declaration order
+			ParameterInformation(const std::string& n, ParameterTypes t, const std::string& arg,const std::string& def, const std::string& desc, bool req)
 			{
 				name = n;
 				type = t;
 				default_value = def;
 				description = desc;
 				argument = arg;
+				required = req;
 			}
 
 			ParameterInformation()
@@ -127,7 +166,8 @@ namespace OpenMS
 					type(NONE),
 					default_value(),
 					description(),
-					argument()
+					argument(),
+					required(true)
 			{
 			}
 
@@ -139,7 +179,8 @@ namespace OpenMS
 				type = rhs.type;
 				default_value = rhs.default_value;
 				description = rhs.description;
-				
+				argument = rhs.argument;
+				required = rhs.required;
 				return *this;
 			}
 
@@ -208,7 +249,7 @@ namespace OpenMS
 		std::vector<ParameterInformation> parameters_;
 		
 		/// Finds the the entry in the parameters_ array that has the name @p name
-		const ParameterInformation& findEntry_(const String& name) const throw (Exception::InvalidValue);
+		const ParameterInformation& findEntry_(const String& name) const throw (Exception::UnregisteredParameter);
 
 		/** 
 			@name Internal parameter handling
@@ -309,8 +350,9 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
+			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
-		void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description);
+		void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true);
 		
 		/**
 			@brief Registers a double option. Indentation of newline is done automatically.
@@ -319,8 +361,9 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
+			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
-		void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description);
+		void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true);
 		
 		/**
 			@brief Registers an integer option. 
@@ -329,8 +372,9 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
+			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
-		void registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description);
+		void registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description, bool required = true);
 		
 		/// Adds an empty line between registered variables in the documentation.
 		void addEmptyLine_();
@@ -342,16 +386,16 @@ namespace OpenMS
 		void registerFlag_(const String& name, const String& description);
 
 		///Returns the value of a previously registered string option
-		String getStringOption_(const String& name) const throw (Exception::InvalidValue);
+		String getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered double option
-		double getDoubleOption_(const String& name) const throw (Exception::InvalidValue);
+		double getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered integer option
-		SignedInt getIntOption_(const String& name) const throw (Exception::InvalidValue);
+		SignedInt getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
 		///Returns the value of a previously registered flag
-		bool getFlag_(const String& name) const throw (Exception::InvalidValue);
+		bool getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType);
 	
 		//@}
 		

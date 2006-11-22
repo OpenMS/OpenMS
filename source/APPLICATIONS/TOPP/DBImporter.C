@@ -61,9 +61,9 @@ class TOPPDBImporter
 		void registerOptionsAndFlags_()
 		{			
 			registerStringOption_("u", "<user>", "", "user/login of the DB");
-			registerStringOption_("h", "<host>", "localhost", "host name of the DB server");
+			registerStringOption_("h", "<host>", "localhost", "host name of the DB server", false);
 			registerStringOption_("p", "<password>", "", "password for the user");
-			registerIntOption_("P", "<port>", 3306, "port the DB server is running on");
+			registerIntOption_("P", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
 			registerStringOption_("in", "<file>", "", "input file in mzData format");
 		}

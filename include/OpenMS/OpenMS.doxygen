@@ -45,7 +45,6 @@
 
 /*
 	TODO (Marc):
-	- Handling of non-optional TOPP parameters
 	- Parameter check in set defaults
 	- Rohdaten-Erkenner
 	

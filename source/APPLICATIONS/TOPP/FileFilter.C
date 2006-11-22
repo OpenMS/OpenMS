@@ -67,10 +67,10 @@ class TOPPFileFilter
 		{
 			registerStringOption_("in","<file>","","input file in MzData format");
 			registerStringOption_("out","<file>","","output file in MzData format");
-			registerStringOption_("mz","[min]:[max]",":","m/z range to extract");
-			registerStringOption_("rt","[min]:[max]",":","retention time range to extract");
-			registerStringOption_("int","[min]:[max]",":","intensity range to extract");
-			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract");
+			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
+			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
+			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
+			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract", false);
 			registerFlag_("remove_zoom","flag that removes zoom scans");
 		}
 	

@@ -76,8 +76,8 @@ class TOPPLabeledMatcher
 	  {
 			registerStringOption_("in","<file>","","input file in FeatureMap format");
 			registerStringOption_("out","<file>","","output file in FeaturePairs format");
-			registerStringOption_("vis_all","<file>","","output file of all pairs for visualisation in TOPPView");
-			registerStringOption_("vis_best","<file>","","output file of the best pairs for visualisation in TOPPView");
+			registerStringOption_("vis_all","<file>","","output file of all pairs for visualisation in TOPPView", false);
+			registerStringOption_("vis_best","<file>","","output file of the best pairs for visualisation in TOPPView", false);
 	  	addEmptyLine_();
 	  	addText_("RT and m/z shifts and ranges can currently only be given in the 'algorithm' part of INI file:\n"
 							 "  <NODE name=\"algorithm\">\n"
