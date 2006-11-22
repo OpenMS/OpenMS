@@ -191,7 +191,7 @@ class TOPPFileMerger
 				
 				if(rt_final==-1)
 				{
-					writeLog_(String("Warning: No valid retention time for output scan '") + String(rt_auto) +"' from file '" + filename + "'");
+					writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto +"' from file '" + filename + "'");
 				}
 					
 				out.push_back(*it2);

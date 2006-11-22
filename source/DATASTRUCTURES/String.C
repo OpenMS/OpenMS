@@ -597,6 +597,86 @@ namespace OpenMS
 		return *this;
 	}
 
+	String String::operator+ (int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (unsigned int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (short int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (short unsigned int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (long int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (long unsigned int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (long long unsigned int i) const
+	{
+		stringstream s;
+		s << *this << i;
+		return s.str();
+	}
+
+	String String::operator+ (float f) const
+	{
+		stringstream s;
+		s.precision(7);
+		s << *this << f;
+		return s.str();
+	}
+
+	String String::operator+ (double d) const
+	{
+		stringstream s;
+		s.precision(10);
+		s << *this << d;
+		return s.str();
+	}
+
+	String String::operator+ (long double d) const
+	{
+		stringstream s;
+		s.precision(16);
+		s << *this << d;
+		return s.str();
+	}
+
+	String String::operator+ (char c) const
+	{
+		stringstream s;
+		s << *this << c;
+		return s.str();
+	}
+
 } // namespace OpenMS
 
 

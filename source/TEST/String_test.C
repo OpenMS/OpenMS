@@ -509,6 +509,53 @@ CHECK(String& removeWhitespaces())
 	TEST_EQUAL(s,"test");
 RESULT
 
+
+const String fixed("test");
+
+CHECK(String operator+ (int i) const)
+	TEST_EQUAL(fixed + (int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (unsigned int i) const)
+	TEST_EQUAL(fixed + (unsigned int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (short int i) const)
+	TEST_EQUAL(fixed + (short int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (short unsigned int i) const)
+	TEST_EQUAL(fixed + (short unsigned int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (long int i) const)
+	TEST_EQUAL(fixed + (long int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (long unsigned int i) const)
+	TEST_EQUAL(fixed + (long unsigned int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (long long unsigned int i) const)
+	TEST_EQUAL(fixed + (long long unsigned int)(4), "test4")
+RESULT
+
+CHECK(String operator+ (float i) const)
+	TEST_EQUAL(fixed + (float)(4), "test4")
+RESULT
+
+CHECK(String operator+ (double i) const)
+	TEST_EQUAL(fixed + (double)(4), "test4")
+RESULT
+
+CHECK(String operator+ (long double i) const)
+	TEST_EQUAL(fixed + (long double)(4), "test4")
+RESULT
+
+CHECK(String operator+ (char i) const)
+	TEST_EQUAL(fixed + '4', "test4")
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
