@@ -370,7 +370,7 @@ namespace OpenMS
 
 		// the following code is only executed if debug flag is set.
 #ifdef DEBUG_FEATUREFINDER
-		String fname = "feature"+String(counter_)+"_"+profile_;
+		String fname = "feature"+String(counter_);/*+"_"+profile_;*/
 		ofstream file(fname.c_str()); // gnuplot file with feature model
 
 		DPeakArray<2> dpa;

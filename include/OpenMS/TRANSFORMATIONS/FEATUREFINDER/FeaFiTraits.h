@@ -405,6 +405,7 @@ public:
                 std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;
                 watch.reset();
                 ++seed_count;
+								std::cout << "This is seed nr " << seed_count << std::endl;
                 try
                 {
 

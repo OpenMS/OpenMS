@@ -61,15 +61,17 @@ namespace OpenMS
     typedef FeaFiTraits::IntensityType IntensityType;
     typedef FeaFiTraits::CoordinateType CoordinateType;
     typedef KernelTraits::ProbabilityType ProbabilityType;
+		typedef FeaFiTraits::MapType MapType;
 
 		typedef DRawDataPoint<2>::NthPositionLess<RT> RTless;
     typedef DRawDataPoint<2>::NthPositionLess<MZ> MZless;
 	
-		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::SweepLineHash SweepLineHash;
-		typedef IsotopeFinder<MSExperiment<DRawDataPoint<2> > >::DoubleList DoubleList;
-	
-		typedef DPeakArray<2, DRawDataPoint<2> >::iterator PeakIterator;
+		typedef IsotopeFinder< MapType >::SweepLineHash SweepLineHash;
+		typedef IsotopeFinder< MapType >::DoubleList DoubleList;
+
+		typedef MapType::PIterator PeakIterator;
 		
+
     /// standard constructor
     WaveletSeeder();
 

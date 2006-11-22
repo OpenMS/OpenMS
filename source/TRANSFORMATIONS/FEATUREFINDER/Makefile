@@ -59,9 +59,8 @@ CPP_SOURCES=\
 	EuclideanDistance.C\
 	RankCorrelation.C\
 	IsotopeFinder.C\
-	MarrWaveletSeeder.C
-
-#WaveletSeeder.C
+	MarrWaveletSeeder.C\
+	WaveletSeeder.C
 
 include ../../common.mak
 -include .Dependencies
