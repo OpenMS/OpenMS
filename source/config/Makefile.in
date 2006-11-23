@@ -194,6 +194,10 @@ style:
 TOPP:
 	@cd APPLICATIONS/TOPP/ && make
 
+# test TOPP tools
+TOPPtest:
+	@cd TEST/TOPP/ && make
+
 #
 #    special targets - internal use only! 
 #
