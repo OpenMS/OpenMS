@@ -81,7 +81,7 @@ CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature*
 TOPP = ${OPENMS_PATH}/bin/
 
 # Diff that allows for slight numeric differences
-DEVIATION = 1.001
+DEVIATION = 1.05
 NUMERICDIFF = NumericDiff
 
 #######################################################################

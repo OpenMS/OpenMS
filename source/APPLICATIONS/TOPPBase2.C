@@ -652,13 +652,21 @@ namespace OpenMS
 			{
 				log_.open("TOPP.log", ofstream::out | ofstream::app);
 				log_ << log_separator_ << endl;
-				writeDebug_("Writing to 'TOPP.log'",1);
+				if (debug_level_>=1)
+				{
+					cout << "Writing to 'TOPP.log'" << endl;
+					log_ << Date::now() << ' ' << getIniLocation_() << ": " << "Writing to 'TOPP.log'"<< endl;
+				}
 			}
 			else
 			{
 				log_.open( ((String)log_destination) .c_str(), ofstream::out | ofstream::app);
 				log_ << log_separator_ << endl;
-				writeDebug_("Writing to '"+(String)log_destination+'\'',1);
+				if (debug_level_>=1)
+				{
+					cout << "Writing to '" << (String)log_destination << '\'' << endl;
+					log_ << Date::now() << ' ' << getIniLocation_() << ": " << "Writing to '" << (String)log_destination << '\'' <<  endl;
+				}
 			}
 		}
 		return;
