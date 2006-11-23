@@ -189,13 +189,12 @@ class TOPPMascotAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "input file in mzData format.\n"
-			                                           "Note: In mode 'mascot_out' a Mascot results file is read");
-			registerStringOption_("in", "<file>", "", "output file in analysisXML format.\n"
-					 																			"Note: In mode 'mascot_in' Mascot generic format is written.");
+			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
+			registerStringOption_("in", "<file>", "", "input file in mzData format.\n"
+					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
 			registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
-			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot resultsfile and write analysisXML");
-			registerStringOption_("additional_in", "<>", "", "", false);
+			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write analysisXML");
 			registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -259,8 +258,8 @@ class TOPPMascotAdapter
 			UnsignedInt missed_cleavages;
 			string mass_type;
 			int status = 0;
-			bool mascot_in;
-			bool mascot_out;
+			bool mascot_in = false;
+			bool mascot_out = false;
 			DateTime date_time;
 			String date_time_string;
 			String time_string;
@@ -296,9 +295,6 @@ class TOPPMascotAdapter
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}				
-
-			mascotXML_file_name = getStringOption_("additional_in");
-			writeDebug_(String("Additional input file: ") + mascotXML_file_name, 1);
 			
 			boundary = getStringOption_("boundary");
 			if (boundary != "")
@@ -386,7 +382,8 @@ class TOPPMascotAdapter
 			}
 			else if (mascot_out)
 			{
-				mascot_outfile_name = inputfile_name;
+				mascotXML_file_name = inputfile_name;
+
 				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes analysisXML file)", 1);
 			}
 			else
@@ -480,13 +477,25 @@ class TOPPMascotAdapter
 															 "OpenMS search");
 					String tmp = logfile;
 					File::absolutePath(tmp);
-					writeDebug_("The Mascot process created the following output:", 0);
+
+					writeDebug_("Searching...", 0);
 					/// calling the Mascot process
+					writeDebug_("The Mascot process created the following output:", 1);
 					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
 						mascot_data_dir + "/" + mascot_infile_name + 
-						" >> " + tmp + ";"
-						+ "./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
+						" >> " + tmp + ";";
+					status = system(call.c_str());
+					
+					if (status != 0)
+					{
+						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
+						call = "rm " + mascot_data_dir + "/" 
+										+ mascot_infile_name + ";";
+						system(call.c_str());
+						return EXTERNAL_PROGRAM_ERROR;						
+					}
+					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
 						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
 						"show_header=1 show_queries=1 > " + mascotXML_file_name + ";";
@@ -529,26 +538,12 @@ class TOPPMascotAdapter
 				}
 				else
 				{
-					if (mascotXML_file_name != "")
-					{
-						mascotXML_file.load(mascotXML_file_name,
+					mascotXML_file.load(mascotXML_file_name,
 															&protein_identification,
 															&identifications,
 															&precursor_retention_times,
-															&precursor_mz_values);			
-						
-					}
-					else
-					{
-						mascot_outfile->load(mascot_outfile_name,
-																identifications,
-																precursor_retention_times,
-																precursor_mz_values);
-						
-					}
-							
+															&precursor_mz_values);																
 				}
-				delete mascot_outfile;
 			
 			//-------------------------------------------------------------
 			// writing output
