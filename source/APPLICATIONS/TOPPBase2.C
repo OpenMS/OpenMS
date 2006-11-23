@@ -157,12 +157,15 @@ namespace OpenMS
 					writeDebug_("Parameters from common section without tool name:",param_common_,2);
 				}
 				param_ = param_cmdline_;
+				writeDebug_("Applying defaults to instance section, including inherited ones:",param_common_,2);
 				param_.setDefaults( param_instance_inherited_ );
+				writeDebug_("Applying defaults to common section with tool name:",param_common_,2);
 				param_.setDefaults( param_common_tool_ );
+				writeDebug_("Applying defaults to common section without tool name:",param_common_,2);
 				param_.setDefaults( param_common_ );
 
 				// check if all parameters are registered and have the correct type				
-				checkParam_(param_instance_inherited_, (String)value_ini, getIniLocation_()+":");
+				checkParam_(param_instance_inherited_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
 				checkParam_(param_common_, (String)value_ini, "common::" );
 			}			

@@ -30,6 +30,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
@@ -105,7 +106,7 @@ namespace OpenMS
     void clear();
 
     ///Insert all values of @p para and adds the prefix @p prefix.
-    void insert(const std::string& prefix, const Param& para);
+    void insert(String prefix, const Param& para);
     ///Remove all entries that start with @p prefix.
     void remove
 		(const std::string& prefix);
@@ -113,11 +114,22 @@ namespace OpenMS
     /**
     	@brief Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
     	
-    	@param para The default values. 
+    	@param defaults The default values. 
     	@param prefix The prefix to add to all defaults. 
     	@param showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
+    	
+    	@see checkDefaults
     */
-    void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=false);
+    void setDefaults(const Param& defaults, String prefix="", bool showMessage=false);
+
+    /**
+    	@brief Warns if a parameter is present for which not default value is specified.
+    	
+    	@param defaults The default values. 
+    	@param prefix The prefix where to check for the defaults. 
+    	@param os The output stream for the warnings.
+    */
+    void checkDefaults(const Param& defaults, String prefix="", std::ostream& os = std::cout) const;
 
     /**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.
@@ -127,7 +139,7 @@ namespace OpenMS
 			 @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
 			 @param new_prefix is added to the front of all keys
     */
-		Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
+		Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const;
 	
 		/** @brief Like copy(), but with support for "inherit" items.  These are
 				 only considered for nodes, i.e. if the @p prefix ends with a ':'.
@@ -157,7 +169,7 @@ namespace OpenMS
 			 @param argv argv varaible from command line
 			 @param prefix prefix for all options
     */
-    void parseCommandLine(const int argc , char** argv, const std::string& prefix = "");
+    void parseCommandLine(const int argc , char** argv, String prefix = "");
 
     /**
 			 @brief Parses command line arguments to specified key locations.

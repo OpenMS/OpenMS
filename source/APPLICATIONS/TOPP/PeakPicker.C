@@ -141,8 +141,6 @@ class TOPPPeakPicker
     //-------------------------------------------------------------
     // Init peak picker
     //-------------------------------------------------------------
-    // ???? old String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-    // ???? old Param pepi_param = getParamCopy_(ini_location,true);
 		Param pepi_param = getParam_();
 		
     //optimization

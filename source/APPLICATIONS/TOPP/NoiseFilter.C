@@ -160,12 +160,6 @@ class TOPPNoiseFilter
       }
 
       //-------------------------------------------------------------
-      // Init noise filter
-      //-------------------------------------------------------------
-      // ???? old String ini_location = String(tool_name_) + ":" + String(instance_number_) + ":";
-      // ???? old Param noise_param = getParamCopy_(ini_location,true);
-
-      //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
 

@@ -254,7 +254,7 @@ CHECK(Param copy(const std::string& prefix, bool remove_prefix=false, const std:
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK(void setDefaults(const Param& para, const std::string& prefix="", bool showMessage=true))
+CHECK(void setDefaults(const Param& defaults, String prefix="", bool showMessage=true))
 	Param defaults;
 	defaults.setValue("float",1.0f);	
 	defaults.setValue("float2",2.0f);
@@ -282,7 +282,6 @@ CHECK(void setDefaults(const Param& para, const std::string& prefix="", bool sho
 	TEST_REAL_EQUAL(float(p2.getValue("PATH:float2")),2.0);
 	TEST_EQUAL(string(p2.getValue("PATH:string")),"some string");
 	TEST_EQUAL(string(p2.getValue("PATH:string2")),"default string2");
-	
 RESULT
 
 char* a1 ="executable";
@@ -417,6 +416,35 @@ CHECK(ConstIterator end() const)
 	TEST_EQUAL(p.end()==p.begin(),true)
 	p.setValue("key",17.4);
 	TEST_EQUAL((--p.end())==p.begin(),true)
+RESULT
+
+CHECK(void checkDefaults(const Param& defaults, String prefix="", std::ostream& os=std::cout))
+	ostringstream os;
+	Param p,d;
+	p.setValue("string",String("bla"));
+	p.setValue("int",5);
+	p.setValue("double",47.11);
+	
+	p.checkDefaults(d,"",os);
+	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'double' found!\nWarning: Unknown parameter 'int' found!\nWarning: Unknown parameter 'string' found!\n");
+	
+	d.setValue("int",5);
+	d.setValue("double",47.11);
+	os.str("");
+	p.checkDefaults(d,"",os);
+	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found!\n");
+	
+	p.clear();
+	p.setValue("pref:string",String("bla"));
+	p.setValue("pref:int",5);
+	p.setValue("pref:double",47.11);
+	os.str("");
+	p.checkDefaults(d,"pref",os);
+	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found in 'pref:'!\n");
+
+	os.str("");
+	p.checkDefaults(d,"pref:",os);
+	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found in 'pref:'!\n");
 RESULT
 
 /////////////////////////////////////////////////////////////

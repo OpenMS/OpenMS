@@ -26,6 +26,8 @@
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 	FactoryProduct::FactoryProduct(): param_(), defaults_(), check_defaults_(true), name_()
@@ -39,7 +41,9 @@ namespace OpenMS
 		setParam(source.getParam());
 	}
 
-	FactoryProduct::~FactoryProduct(){}
+	FactoryProduct::~FactoryProduct()
+	{	
+	}
 
 	FactoryProduct& FactoryProduct::operator = (const FactoryProduct& source)
 	{
@@ -59,15 +63,16 @@ namespace OpenMS
 	{
 		if (check_defaults_)
 		{
-			for (Param::ConstIterator it = p.begin(); it != p.end(); ++it)
+			//cout << "FactoryProduct '" << name_ << "' number of defaults: " << defaults_.size() << endl;
+			if (defaults_.size()==0)
 			{
-				if (defaults_.getValue(it->first)==DataValue::EMPTY)
-	      	throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-					"This parameter of "+name_+" is not registered!",it->first);
+				cout << "Warning no default parameters for FactoryProduct '" << name_ << "' specified!" << endl;
 			}
 			param_ = p;
 			param_.setDefaults(defaults_,"",false);
-		}else
+			param_.checkDefaults(defaults_,"");
+		}
+		else
 		{
 			param_ = p;
 			param_.setDefaults(defaults_);

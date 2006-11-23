@@ -127,7 +127,7 @@ class TOPPFileConverter
 			// This works because DFeature<DIM> is derived from DPeak<DIM>.
 			// However you will lose information and waste memory.
 			// Enough reasons to issue a warning!
-			writeLog_("Warning:  Converting features to peaks.  You will lose information!");	
+			writeLog_("Warning: Converting features to peaks. You will lose information!");	
 			DFeatureMap<2> fm;
 			DFeatureMapFile().load(in,fm);
 			fm.sortByPosition();

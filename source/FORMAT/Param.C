@@ -100,7 +100,7 @@ namespace OpenMS
 			
 	}
 	
-	void Param::insert(const string& prefix, const Param& para)
+	void Param::insert(String prefix, const Param& para)
 	{
 		if (prefix=="")
 		{
@@ -111,36 +111,27 @@ namespace OpenMS
 		}
 		else
 		{
+			prefix.ensureLastChar(':');
 			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
 			{
-				values_[prefix+":"+it->first]=it->second;
+				values_[prefix+it->first]=it->second;
 			}
 		}
 	}
 
-	void Param::setDefaults(const Param& para, const string& prefix, bool showMessage)
+	void Param::setDefaults(const Param& defaults, String prefix, bool showMessage)
 	{
-		if (prefix=="")
+		if (prefix!="")
 		{
-			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
-			{
-				if (values_.find(it->first)==values_.end())
-				{
-					if (showMessage)
-						cout << "Setting " << it->first << " to " << it->second << endl;
-					
-					values_[it->first]=it->second;
-				}
-			}
-		}
-		else
+			prefix.ensureLastChar(':');
+		}	
+		
+		for(map<string,DataValue>::const_iterator it = defaults.values_.begin(); it != defaults.values_.end();++it)
 		{
-			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
+			if (values_.find(prefix+it->first)==values_.end())
 			{
-				if (values_.find(prefix+":"+it->first)==values_.end())
-				{
-					values_[prefix+":"+it->first]=it->second;
-				}
+				if (showMessage) cout << "Setting " << prefix+it->first << " to " << it->second << endl;
+				values_[prefix+it->first]=it->second;
 			}
 		}
 	}
@@ -162,8 +153,13 @@ namespace OpenMS
 		}
 	}
 
-	Param Param::copy(const string& prefix, bool remove_prefix, const string& new_prefix) const
+	Param Param::copy(const string& prefix, bool remove_prefix, String new_prefix) const
 	{
+		if (new_prefix != "")
+		{
+			new_prefix.ensureLastChar(':');
+		}
+		
 		Param out;
 		string key;
 		map<string,DataValue>::const_iterator it = values_.lower_bound(prefix);
@@ -182,7 +178,7 @@ namespace OpenMS
 			// add new prefix
 			if (new_prefix != "")
 			{
-				key = new_prefix + string(":") +key;
+				key = new_prefix + key;
 			}
 			
 			out.values_[key]=it->second;
@@ -392,13 +388,12 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , char**argv, const string& prefix)
+	void Param::parseCommandLine(const int argc , char**argv, String prefix)
 	{
 		//determine prefix
-		string pref = prefix;
-		if (pref!="")
+		if (prefix!="")
 		{
-			pref += ":";
+			prefix.ensureLastChar(':');
 		}
 		
 		//parse arguments
@@ -421,24 +416,24 @@ namespace OpenMS
       //flag (option without text argument)
       if(arg[0]  == '-' && (arg1[0] == '-' || arg1 ==""))
       {
-	      	values_[pref+arg] = "";
+	      	values_[prefix+arg] = "";
       }
       //option with argument
       else if(arg[0]  == '-')
       {
-	      	values_[pref+arg] = arg1;
+	      	values_[prefix+arg] = arg1;
 	      	++i;
       }      
       //just text arguments (not preceded by an option)
       else
       {
-      	if (values_[pref+string("misc")].isEmpty())
+      	if (values_[prefix+"misc"].isEmpty())
       	{
-      		values_[pref+string("misc")] = arg;
+      		values_[prefix+"misc"] = arg;
       	}
       	else
       	{
-      		values_[pref+string("misc")] = string(values_[pref+string("misc")])+" "+arg;
+      		values_[prefix+"misc"] = string(values_[prefix+"misc"])+" "+arg;
       	}
       }
     }
@@ -536,6 +531,31 @@ namespace OpenMS
 	void Param::clear()
 	{
 		values_.clear();
+	}
+
+	void Param::checkDefaults(const Param& defaults, String prefix, std::ostream& os) const
+	{
+		//Extract right parameters
+		map<string,DataValue> check;
+		if (prefix=="")
+		{
+			check = values_;
+		}	
+		else
+		{
+			prefix.ensureLastChar(':');
+			check = copy(prefix,true).values_;
+		}
+		//check
+		for(map<string,DataValue>::const_iterator it = check.begin(); it != check.end();++it)
+		{
+			if (defaults.values_.find(it->first)==defaults.values_.end())
+			{
+				os << "Warning: Unknown parameter '" << it->first << "' found";
+				if (prefix!="") os << " in '" << prefix << "'";
+				os << "!" << endl;
+			}
+		}
 	}
 
 }	//namespace
