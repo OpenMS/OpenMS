@@ -202,7 +202,7 @@ class TOPPMascotAdapter
 			registerStringOption_("taxonomy", "<tax>", "All entries" , "the taxonomy", false);
 			registerStringOption_("modifications", "<mods>", "", "the modifications i.e. Carboxymethyl (C)", false);
 			registerStringOption_("variable_modifications", "<mods>", "", "the variable modifications i.e. Carboxymethyl (C)", false);
-			registerStringOption_("charges", "[1+,2+,...]", "", "the different charge states separated by comma");
+			registerStringOption_("charges", "[1+,2+,...]", "1+,2+,3+", "the different charge states separated by comma",false);
 			registerStringOption_("db", "<name>", "MSDB", "the database to search in", false);
 			registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
@@ -299,23 +299,19 @@ class TOPPMascotAdapter
 
 			mascotXML_file_name = getStringOption_("additional_in");
 			writeDebug_(String("Additional input file: ") + mascotXML_file_name, 1);
-
-			mascot_in = getFlag_("mascot_in");
 			
 			boundary = getStringOption_("boundary");
 			if (boundary != "")
 			{			
 				writeDebug_(String("Boundary: ") + boundary, 1);
 			}
-	
-			if (getFlag_("mascot_out"))
+			
+			mascot_in = getFlag_("mascot_in");
+			mascot_out = getFlag_("mascot_out");
+			if (mascot_out && mascot_in)
 			{
-				mascot_out = true;
-				if (mascot_in)
-				{
-					writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
-					return ILLEGAL_PARAMETERS;
-				}				
+				writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
+				return ILLEGAL_PARAMETERS;				
 			}
 			else
 			{		

@@ -645,7 +645,7 @@ namespace OpenMS
 
 	void TOPPBase2::enableLogging_() const
 	{
-		if ( !log_ )
+		if ( !log_.is_open() )
 		{
 			DataValue const & log_destination = param_cmdline_.getValue("log");
 			if ( log_destination.isEmpty() )
