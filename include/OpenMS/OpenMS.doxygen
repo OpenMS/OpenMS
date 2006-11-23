@@ -43,11 +43,7 @@
 	
 */
 
-/*
-	TODO (Marc):
-	- Parameter check in set defaults
-	- Rohdaten-Erkenner
-	
+/*	
 	TODO (Hiwis):
 	- XML:
 		- Base 64

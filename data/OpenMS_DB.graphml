@@ -1,0 +1,1211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by yFiles 2.4 -->
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns/graphml" xmlns:y="http://yworks.com/xml/graphml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/graphml http://www.yworks.com/xml/schema/graphml/1.0/ygraphml.xsd">
+  <key id="d0" for="node" yfiles.type="nodegraphics"/>
+  <key id="d1" for="edge" yfiles.type="edgegraphics"/>
+  <graph id="G" edgedefault="directed">
+    <node id="n0">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="0.0" y="0.0" width="170.0" height="119.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="6.0" y="3.0" width="158.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">DATA_ExperimentGroup</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_File* (FK)
+fid_MetaInfo* (FK)
+Name
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n1">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1898.5" y="376.0" width="136.0" height="119.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="29.0" y="3.0" width="78.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">DATA_Peak</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_MetaInfo* (FK)
+mz
+Intensity
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n2">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2280.5" y="376.0" width="136.0" height="231.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="7.5" y="3.0" width="121.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">DATA_PickedPeak</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_MetaInfo* (FK)
+mz
+Intensity
+Charge
+Area
+WidthLeft
+WidthRight
+FWHM
+SignalToNoise
+ShapeType
+QualityScore
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n3">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2436.5" y="376.0" width="150.0" height="175.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="21.5" y="3.0" width="107.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">DATA_Precursor</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_MetaInfo* (FK)
+mz
+Intensity
+Charge
+ActivationMethod
+ActivationEnergy
+ActivationEnergyUnit
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n4">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2276.75" y="144.0" width="164.0" height="189.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="28.5" y="3.0" width="107.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">DATA_Spectrum</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+fid_File* (FK)
+fid_MetaInfo* (FK)
+Description
+MSLevel
+MassType
+RetentionTime
+TotalIonCurrent
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n5">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2054.5" y="376.0" width="206.0" height="161.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="49.5" y="3.0" width="107.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">ID_Identification</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_File* (FK)
+fid_MetaInfo* (FK)
+`Date`
+Charge
+PeptideSignificanceThreshold
+ProteinSignificanceThreshold
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n6">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2044.5" y="706.0" width="226.0" height="217.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="23.0" y="3.0" width="180.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">ID_IdentificationParameters</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Identification* (FK)
+SoftwareName
+`Database`
+DatabaseVersion
+Taxonomy
+FixedModifications
+VariableModifications
+MissedCleavages
+MassType
+IonTolerance
+PeptideTolerance
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n7">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1846.5" y="706.0" width="178.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="44.0" y="3.0" width="90.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">ID_PeptideHit</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Identification* (FK)
+Score*
+ScoreType
+Rank*
+Sequence
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n8">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2290.5" y="706.0" width="178.0" height="161.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="45.5" y="3.0" width="87.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">ID_ProteinHit</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Identification* (FK)
+Score*
+ScoreType
+Rank*
+Accession
+AccessionType
+Sequence
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n9">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="16.5" y="144.0" width="274.0" height="91.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="10.5" y="3.0" width="253.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">LINK_ExperimentGroup_MSExperiment</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_ExperimentGroup (FK)
+fid_MSExperiment* (FK)
+fid_ExperimentGroupfid_MSExperiment**
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n10">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="902.5" y="144.0" width="192.0" height="91.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="13.5" y="3.0" width="165.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">LINK_MSExperiment_File</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_MSExperiment (FK)
+fid_File* (FK)
+fid_MSExperimentfid_File**
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n11">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2048.5" y="938.0" width="218.0" height="77.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="20.5" y="3.0" width="177.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">LINK_PeptideHit_ProteinHit</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_PeptideHit** (FK)
+fid_ProteinHit* (FK)
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n12">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1641.5" y="706.0" width="185.0" height="105.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="34.0" y="3.0" width="117.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_Acquisition</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_AcquisitionInfo* (FK)
+fid_MetaInfo* (FK)
+Number
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n13">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1649.0" y="376.0" width="170.0" height="105.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="14.5" y="3.0" width="141.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_AcquisitionInfo</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+MethodOfCombination
+SpectrumType
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n14">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1114.5" y="144.0" width="164.0" height="161.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="12.5" y="3.0" width="139.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_ContactPerson</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+fid_MetaInfo* (FK)
+PreName
+LastName
+Affiliation
+Email
+`Comment`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n15">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1483.0" y="144.0" width="122.0" height="119.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="8.0" y="3.0" width="106.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_Digestion</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+Enzyme
+DigestionTime
+Ph
+Temperature
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n16">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1146.6636087127158" y="837.9532967032969" width="82.0" height="105.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="5.5" y="3.0" width="71.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_File</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+FileName
+FilePath
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n17">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="352.5" y="376.0" width="162.0" height="91.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="10.0" y="3.0" width="142.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_GradientEluent</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_HPLC* (FK)
+Name
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n18">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="215.5" y="706.0" width="262.0" height="105.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="43.5" y="3.0" width="175.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_GradientPercentage</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_GradientTime (FK)
+fid_GradientEluent* (FK)
+Percentage
+fid_GradientTimefid_GradientEluent**
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n19">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="186.5" y="376.0" width="146.0" height="91.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="6.0" y="3.0" width="134.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_GradientTime</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_HPLC* (FK)
+`Time`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n20">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="310.5" y="144.0" width="164.0" height="189.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="41.0" y="3.0" width="82.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_HPLC</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+InstrumentName
+ColumnName
+GradientBeginTime
+GradientEndTime
+Description
+Flux
+Pressure
+Temperature
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n21">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2606.5" y="376.0" width="194.0" height="147.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="14.5" y="3.0" width="165.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_InstrumentSettings</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_MetaInfo* (FK)
+MZRangeBegin
+MzRangeEnd
+Polarity
+ScanMode
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n22">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="534.5" y="376.0" width="164.0" height="147.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="22.0" y="3.0" width="120.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_IonDetector</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSInstrument* (FK)
+fid_MetaInfo* (FK)
+AcquisitionMode
+ADCSamplingFrequency
+Resolution
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n23">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="718.5" y="376.0" width="164.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="26.0" y="3.0" width="112.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_IonSource</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSInstrument* (FK)
+fid_MetaInfo* (FK)
+InletType
+IonizationMethod
+IonizationMode
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n24">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1123.5" y="0.0" width="146.0" height="119.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="3.0" y="3.0" width="140.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_MSExperiment</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MetaInfo* (FK)
+`Date`
+Description
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n25">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="718.5" y="144.0" width="164.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="15.0" y="3.0" width="134.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_MSInstrument</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+fid_MetaInfo*
+Model
+Vendor
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n26">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="902.5" y="376.0" width="164.0" height="315.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="15.0" y="3.0" width="134.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_MassAnalyzer</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSInstrument* (FK)
+fid_MetaInfo* (FK)
+Accuracy
+FinalMSExponent
+IsolationWidth
+MagneticFieldStrength
+ReflectronState
+Resolution
+ResolutionMethod
+ResolutionType
+ScanDirection
+ScanFunction
+ScanLaw
+ScanRate
+ScanTime
+TandemScanningMethod
+TOFPathLength
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n27">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1273.6636087127158" y="837.9532967032969" width="114.0" height="63.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="6.0" y="3.0" width="102.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_MetaInfo</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n28">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2820.5" y="376.0" width="202.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="14.5" y="3.0" width="173.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_MetaInfoDescription</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Spectrum* (FK)
+fid_File* (FK)
+fid_MetaInfo* (FK)
+Name
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n29">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1625.0" y="144.0" width="146.0" height="147.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="10.5" y="3.0" width="125.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_Modification</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+ReagentName
+AffectedAminoAcids
+SpecificityType
+Mass
+MassShift
+Variant
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n30">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1791.0" y="144.0" width="164.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="13.0" y="3.0" width="138.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_PreProcessing</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+fid_File* (FK)
+fid_MetaInfo* (FK)
+`Type`
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n31">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1299.0" y="144.0" width="164.0" height="217.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="34.0" y="3.0" width="96.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_Sample</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+fid_Sample* (FK)
+fid_MetaInfo* (FK)
+Name
+SampleID
+Mass
+Volume
+Concentration
+State
+Organism
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n32">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="1459.0" y="376.0" width="170.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="4.5" y="3.0" width="161.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_SampleTreatment</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_Sample* (FK)
+fid_Digestion* (FK)
+fid_Modification* (FK)
+fid_MetaInfo* (FK)
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n33">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="2460.75" y="144.0" width="164.0" height="133.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="30.0" y="3.0" width="104.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_Software</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>id**
+fid_MSExperiment* (FK)
+Name
+Version
+CompletionTime
+Description
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n34">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="3042.5" y="376.0" width="170.0" height="91.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="8.5" y="3.0" width="153.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_SpectrumQuality</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_Spectrum** (FK)
+Score
+`Type`
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <node id="n35">
+      <data key="d0" >
+        <y:UMLClassNode >
+          <y:Geometry  x="947.6636087127158" y="837.9532967032969" width="154.0" height="119.0"/>
+          <y:Fill hasColor="false"  transparent="false"/>
+          <y:BorderStyle type="line" width="1.0" color="#000000" />
+          <y:NodeLabel x="1.0" y="3.0" width="152.0" height="19.92626953125" visible="true" alignment="center" fontFamily="Dialog" fontSize="13" fontStyle="bold" textColor="#000000" hasBackgroundColor="false" hasLineColor="false" modelName="internal" modelPosition="t" autoSizePolicy="content">META_TypeNameValue</y:NodeLabel>
+          <y:UML clipContent="true" omitDetails="false" use3DEffect="false" stereotype="" constraint="">
+            <y:AttributeLabel>fid_MetaInfo (FK)
+`Type`
+Name
+`Value`
+fid_MetaInfoName**
+            </y:AttributeLabel>
+            <y:MethodLabel>
+            </y:MethodLabel>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
+    <edge id="e0" source="n1" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-59.5" tx="-51.25" ty="94.5">
+            <y:Point x="1966.5" y="366.0"/>
+            <y:Point x="2307.5" y="366.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e1" source="n2" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-115.5" tx="-10.25" ty="94.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e2" source="n3" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-87.5" tx="10.25" ty="94.5">
+            <y:Point x="2511.5" y="371.0"/>
+            <y:Point x="2369.0" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e3" source="n4" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-94.5" tx="48.666666666666686" ty="59.5">
+            <y:Point x="2358.75" y="129.0"/>
+            <y:Point x="1245.1666666666667" y="129.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e4" source="n5" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-80.5" tx="-30.75" ty="94.5">
+            <y:Point x="2157.5" y="371.0"/>
+            <y:Point x="2328.0" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e5" source="n6" target="n5">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-108.5" tx="0.0" ty="80.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e6" source="n7" target="n5">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="-68.66666666666666" ty="80.5">
+            <y:Point x="1935.5" y="701.0"/>
+            <y:Point x="2088.833333333333" y="701.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e7" source="n8" target="n5">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-80.5" tx="68.66666666666666" ty="80.5">
+            <y:Point x="2379.5" y="701.0"/>
+            <y:Point x="2226.1666666666665" y="701.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e8" source="n9" target="n0">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="-68.5" sy="-45.5" tx="0.0" ty="59.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e9" source="n9" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="68.5" sy="-45.5" tx="-64.88888888888889" ty="59.5">
+            <y:Point x="222.0" y="124.0"/>
+            <y:Point x="1131.611111111111" y="124.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e10" source="n10" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-45.5" tx="-16.22222222222222" ty="59.5">
+            <y:Point x="998.5" y="139.0"/>
+            <y:Point x="1180.2777777777778" y="139.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e11" source="n11" target="n7">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="-54.5" sy="-38.5" tx="0.0" ty="66.5">
+            <y:Point x="2103.0" y="933.0"/>
+            <y:Point x="1935.5" y="933.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e12" source="n11" target="n8">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="54.5" sy="-38.5" tx="0.0" ty="80.5">
+            <y:Point x="2212.0" y="933.0"/>
+            <y:Point x="2379.5" y="933.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e13" source="n12" target="n13">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-52.5" tx="0.0" ty="52.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e14" source="n13" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-52.5" tx="-71.75" ty="94.5">
+            <y:Point x="1734.0" y="361.0"/>
+            <y:Point x="2287.0" y="361.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e15" source="n14" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-80.5" tx="0.0" ty="59.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e16" source="n17" target="n20">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-45.5" tx="41.0" ty="94.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e17" source="n18" target="n19">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="-65.5" sy="-52.5" tx="0.0" ty="45.5">
+            <y:Point x="281.0" y="701.0"/>
+            <y:Point x="259.5" y="701.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e18" source="n18" target="n17">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="65.5" sy="-52.5" tx="0.0" ty="45.5">
+            <y:Point x="412.0" y="701.0"/>
+            <y:Point x="433.5" y="701.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e19" source="n19" target="n20">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-45.5" tx="-41.0" ty="94.5">
+            <y:Point x="259.5" y="371.0"/>
+            <y:Point x="351.5" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e20" source="n20" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-94.5" tx="-48.66666666666667" ty="59.5">
+            <y:Point x="392.5" y="129.0"/>
+            <y:Point x="1147.8333333333333" y="129.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e21" source="n21" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-73.5" tx="30.75" ty="94.5">
+            <y:Point x="2703.5" y="366.0"/>
+            <y:Point x="2389.5" y="366.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e22" source="n22" target="n25">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-73.5" tx="-54.66666666666667" ty="66.5">
+            <y:Point x="616.5" y="371.0"/>
+            <y:Point x="745.8333333333334" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e23" source="n23" target="n25">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="0.0" ty="66.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e24" source="n25" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="-32.44444444444444" ty="59.5">
+            <y:Point x="800.5" y="134.0"/>
+            <y:Point x="1164.0555555555557" y="134.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e25" source="n26" target="n25">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-157.5" tx="54.666666666666686" ty="66.5">
+            <y:Point x="984.5" y="371.0"/>
+            <y:Point x="855.1666666666667" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e26" source="n28" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="51.25" ty="94.5">
+            <y:Point x="2921.5" y="361.0"/>
+            <y:Point x="2410.0" y="361.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e27" source="n30" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="32.44444444444446" ty="59.5">
+            <y:Point x="1873.0" y="134.0"/>
+            <y:Point x="1228.9444444444443" y="134.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e28" source="n31" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-108.5" tx="16.22222222222223" ty="59.5">
+            <y:Point x="1381.0" y="139.0"/>
+            <y:Point x="1212.7222222222222" y="139.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e29" source="n31" target="n31">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="-41.0" sy="108.5" tx="-82.0" ty="-0.0">
+            <y:Point x="1340.0" y="371.5"/>
+            <y:Point x="1288.5" y="371.5"/>
+            <y:Point x="1288.5" y="252.5"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e30" source="n32" target="n31">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="-56.666666666666686" sy="-66.5" tx="41.0" ty="108.5">
+            <y:Point x="1487.3333333333333" y="371.0"/>
+            <y:Point x="1422.0" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e31" source="n32" target="n15">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="0.0" ty="59.5"/>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e32" source="n32" target="n29">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="56.66666666666667" sy="-66.5" tx="0.0" ty="73.5">
+            <y:Point x="1600.6666666666667" y="371.0"/>
+            <y:Point x="1698.0" y="371.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e33" source="n33" target="n24">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-66.5" tx="64.88888888888891" ty="59.5">
+            <y:Point x="2542.75" y="124.0"/>
+            <y:Point x="1261.388888888889" y="124.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e34" source="n34" target="n4">
+      <data key="d1" >
+        <y:PolyLineEdge >
+          <y:Path sx="0.0" sy="-45.5" tx="71.75" ty="94.5">
+            <y:Point x="3127.5" y="356.0"/>
+            <y:Point x="2430.5" y="356.0"/>
+          </y:Path>
+          <y:LineStyle type="line" width="1.0" color="#000000" />
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+  </graph>
+</graphml>
