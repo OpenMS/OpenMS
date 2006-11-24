@@ -33,6 +33,7 @@
 
 #ifdef CGAL_DEF
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #endif
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
@@ -43,7 +44,6 @@
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/DIALOGS/FeaFiDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DWindow.h>
 #include <OpenMS/VISUAL/Spectrum2DWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DWindow.h>
