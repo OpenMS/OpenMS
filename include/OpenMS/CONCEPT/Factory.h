@@ -38,9 +38,6 @@ namespace OpenMS
 
   /**
   	@brief Returns FactoryProduct* based on the name of the desired concrete FactoryProduct
-    
- 		Factory class of the FeatureFinder - creates instances of all modules such as seeders,
- 		extenders and fitters. 
  		
  		@ingroup Concept
   */

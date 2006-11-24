@@ -31,8 +31,7 @@
 
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
 
 ///////////////////////////
 
@@ -47,9 +46,9 @@ using namespace std;
 
 // Factory is singleton, therefore we don't test the constructor
 CHECK(Factory<DummyProduct>::create(name))
-	BaseSeeder* p = Factory<BaseSeeder>::create("SimpleSeeder");
-	SimpleSeeder seeder;
-	TEST_EQUAL(*p,seeder);
+	DataReducer* p = Factory<DataReducer>::create("MaxReducer");
+	MaxReducer reducer;
+	TEST_EQUAL(*p,reducer);
 RESULT
 
 /////////////////////////////////////////////////////////////

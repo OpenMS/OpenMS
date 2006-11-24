@@ -31,7 +31,10 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-CPP_SOURCES=\
+CPP_SOURCES=
+
+ifeq ($(CGAL_SUPPORT),true)
+CGAL_SOURCES=\
 	BaseExtender.C\
 	BaseModel.C\
 	BaseModelFitter.C\
@@ -41,7 +44,6 @@ CPP_SOURCES=\
 	Correlation.C\
 	DummySeeder.C\
 	FeaFiModule.C\
-	FeaFiTraits.C\
 	FeatureFinder.C\
 	GaussModel.C\
 	IsotopeModel.C\
@@ -60,7 +62,12 @@ CPP_SOURCES=\
 	RankCorrelation.C\
 	IsotopeFinder.C\
 	MarrWaveletSeeder.C\
-	WaveletSeeder.C
+	WaveletSeeder.C\
+	FeaFiTraits.C
+endif
+
+ADD_CPP_SOURCES = $(CGAL_SOURCES)
+ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak
 -include .Dependencies

@@ -31,7 +31,8 @@ DIRECTORY=APPLICATIONS/TOPP
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_EXEC=\
 	UnlabeledMatcher\
-	MapAlignment
+	MapAlignment\
+	FeatureFinder
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -48,7 +49,6 @@ EXECUTABLES=\
 	FileFilter\
 	FileMerger\
 	TOPPView\
-	FeatureFinder\
 	BaselineFilter\
 	IDFilter\
 	MascotAdapter\

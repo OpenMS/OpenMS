@@ -518,20 +518,15 @@ public:
 
     } // end of run(seeders, extenders, fitters)
 
-    /** @brief Calculate the convex hull of the peaks contained in @p set
-
-    								Uses the gift wrap algorithm 
-    */
+    ///@brief Calculate the convex hull of the peaks contained in @p set
     const ConvexHullType calculateConvexHull(const IndexSet& set )
     {
-        ConvexHullType convex_hull;
-//         const double PRECISION = 0.0001;
-        if (set.size()<3)
-            return convex_hull;
+      ConvexHullType convex_hull;
+      if (set.size()<3) return convex_hull;
 						
-				std::vector<Point_2> cgal_points;
+			std::vector<Point_2> cgal_points;
 				
-				for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
+			for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
       {
       		PeakType p = getPeak(*it);
 					cgal_points.push_back( Point_2(p.getPosition()[RT], p.getPosition()[MZ]) );    
@@ -547,88 +542,7 @@ public:
 				convex_hull.push_back( 	PositionType( cit->x(),cit->y() ) );			
 			} 				
 
-        // keep track of already in hull included peaks to avoid unnecessary computations of triangle area
-//         std::map<UnsignedInt, bool> isIncluded;
-// 
-//         CoordinateType min_mz = std::numeric_limits<CoordinateType>::max();
-//         IndexSet::const_iterator min = set.begin();
-// 
-//         // Find peak with minimal mz to start wrapping
-//         for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
-//         {
-//             if (getPeakMz(*it) < min_mz)
-//             {
-//                 min_mz = getPeakMz(*it);
-//                 min = it;
-//             }
-//             isIncluded[*it] = false;
-//         }
-// 				convex_hull.push_back( getPeak(*min).getPosition() );
-// 
-//         // Hull peaks denoting current hull line
-//         IndexSet::const_iterator hull_peak1 = min;
-//         IndexSet::const_iterator start = set.begin();
-//         if (start==min)
-//             ++start;  // don't start at "min" because of while-condition
-//         IndexSet::const_iterator hull_peak2 = start;
-// 
-//         while (hull_peak2!=min)
-//         {
-//             bool found_any = false;
-//             for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
-//             {
-//                 // skip if already used
-//                 if (isIncluded[*it] || it==hull_peak1 || it==hull_peak2)
-//                     continue;
-// 
-//                 found_any = true;
-//                 // "it" lies to the right of the line [hull_peak1,hull_peak2]
-//                 double area = triangleArea_(hull_peak1,hull_peak2,it);
-//                 if (area>-PRECISION)
-//                 {
-//                     // area almost 0 -> collinear points
-//                     // -> avoid consecutive peaks with equal mz or rt coordinate
-//                     if (fabs(area)<PRECISION)
-//                     {
-//                         double mz1 = getPeakMz(*hull_peak1);
-//                         double mz2 = getPeakMz(*hull_peak2);
-//                         double mz3 = getPeakMz(*it);
-//                         double rt1 = getPeakRt(*hull_peak1);
-//                         double rt2 = getPeakRt(*hull_peak2);
-//                         double rt3 = getPeakRt(*it);
-//                         if ( 	( fabs(mz2-mz3)<PRECISION && fabs(rt2-rt1) > fabs(rt3-rt1) )
-//                                 ||( fabs(rt2-rt3)<PRECISION && fabs(mz2-mz1) > fabs(mz3-mz1) ))
-//                         {
-//                             isIncluded[*it] = true;
-//                             continue;
-//                         }
-//                     }
-//                     hull_peak2 = it;  // "it" becomes new hull peak
-//                 }
-//             }
-// 
-//             if (!found_any)
-//             {
-//                 hull_peak2 = min; // no available peaks anymore
-//                 continue;
-//             }
-// 
-//             if (hull_peak2 == min)
-//                 continue;  // finish loop
-//             isIncluded[*hull_peak2] = true;
-// 
-//             // continue wrapping
-//             hull_peak1 = hull_peak2;
-//             // hull_peak2 satisfies the contition: all peaks lie to the left of [hull_peak1,hull_peak2]
-// 						convex_hull.push_back( getPeak(*hull_peak2).getPosition() );
-//             
-// 						start = set.begin();
-//             if (start==min)
-//                 ++start;  // don't start at "min" because of while-condition
-//             hull_peak2 = start;
-//         }
-
-        return convex_hull;
+      return convex_hull;
     }
 
 protected:

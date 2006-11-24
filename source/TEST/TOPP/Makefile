@@ -29,7 +29,6 @@ include ../../config_defs.mak
 DIRECTORY=TEST/TOPP
 
 # Tests for individual tools.
-# (in alphabetical order)
 UNCONDITIONAL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
@@ -52,13 +51,13 @@ UNCONDITIONAL_TESTS = \
 	NoiseFilter_test \
 	PeakPicker_test \
 	SequestAdapter_test \
-	SpectraFilter_test \
-	FeatureFinder_test \
+	SpectraFilter_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS=\
 	UnlabeledMatcher_test\
-	MapAlignment_test
+	MapAlignment_test\
+	FeatureFinder_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -67,12 +66,18 @@ LIBSVM_TESTS=\
 	RTPredict_test
 endif
 
-TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${CGAL_TESTS} ${LIBSVM_TESTS}
+TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 
-# Tests for processing pipelines using several tools.
-# (in alphabetical order)
-TOPP_PIPELINE_TESTS = \
-	MyoQuant_test \
+# Tests for processing pipelines using several tools
+
+UNCONDITIONAL_PIPELINE_TESTS = 
+
+ifeq ($(CGAL_SUPPORT),true)
+CGAL_PIPELINE_TESTS=\
+	MyoQuant_test
+endif
+
+TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature*

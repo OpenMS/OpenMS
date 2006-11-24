@@ -31,6 +31,10 @@
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #endif
 
+#ifdef CGAL_DEF
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#endif
+
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 #include <OpenMS/VISUAL/SpectrumMDIWindow.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
@@ -57,7 +61,6 @@
 #include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/VISUAL/DIALOGS/BaselineFilteringDialog.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 
@@ -1935,6 +1938,7 @@ namespace OpenMS
 
   void SpectrumMDIWindow::findFeaturesActiveSpectrum()
   {
+#ifdef CGAL_DEF
     Spectrum2DWindow* w = active2DWindow_();
     if (w!=0)
     {
@@ -1955,6 +1959,7 @@ namespace OpenMS
         updateLayerbar();
       }
     }
+#endif
   }
 
   void SpectrumMDIWindow::closeEvent(QCloseEvent * e)
