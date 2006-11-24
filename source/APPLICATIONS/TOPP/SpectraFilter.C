@@ -27,15 +27,16 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -186,10 +187,10 @@ class TOPPSpectraFilter
 				filter_names.push_back(filter_command);
 			}
 
-			ClusterFactory* cluster_factory = ClusterFactory::instance();
+			Factory<FilterFunctor>* cluster_factory = Factory<FilterFunctor>::instance();
 
-			// get the FactoryProduct pointers from the names
-			vector<FactoryProduct*> functors;
+			// get the FilterFunctor pointers from the names
+			vector<FilterFunctor*> functors;
 			for (vector<String>::const_iterator it = filter_names.begin(); it != filter_names.end(); ++it)
 			{
 				try 
@@ -219,11 +220,20 @@ class TOPPSpectraFilter
 			RTRange<MSExperiment< >::SpectrumType> rt_predicate(rt_l, rt_u, false);
 
 			// for every filter
-			for (vector<FactoryProduct*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
+			for (vector<FilterFunctor*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
 			{
 				String ini_location = getIniLocation() + "filters:";
 				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":");
 				writeDebug_("Used filter parameters", filter_param, 3);
+				
+				(*it)->getParam().insert("", filter_param);
+				for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
+				{
+					(*it)->apply(*sit);
+				}
+			}
+
+			/*
 				
 				String filter_name = (*it)->getName();
 				if (filter_name == "NLargest")
@@ -355,7 +365,7 @@ class TOPPSpectraFilter
 				}
 
 			}
-		
+*/		
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------

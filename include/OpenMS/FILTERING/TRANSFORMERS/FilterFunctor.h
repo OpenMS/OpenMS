@@ -62,7 +62,10 @@ namespace OpenMS
 		static void registerChildren();
 		
     /// function call operator
-    template <typename SpectrumType> double apply(SpectrumType& spectrum) = 0;
+    template <typename SpectrumType> double apply(SpectrumType& spectrum)
+		{
+			return 0;
+		}
 
   };
 }
