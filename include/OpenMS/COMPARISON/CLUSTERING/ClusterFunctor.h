@@ -28,14 +28,12 @@
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
 
-#include <vector>
 #include <map>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
+#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 namespace OpenMS
 {
@@ -60,12 +58,14 @@ namespace OpenMS
     /** @brief copy constructor <br> */
     ClusterFunctor& operator=(const ClusterFunctor& source);
 
+		static void registerChildren();
+		
     /** @brief function call operator <br> */
     /**
     \param clusterrunp the parent ClusterRun, it computes the similarity score and provides the ClusterSpectrum objects
     \return the finished clusters ( the int is just a side-effect of the clustering-process )
     */
-    virtual std::map<int,ClusterNode*> operator()(const ClusterExperiment::ClusterRun* clusterrunp) = 0;
+    virtual std::map<int, ClusterNode*> operator()(const ClusterExperiment::ClusterRun* clusterrunp) = 0;
   };
 
 }

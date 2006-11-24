@@ -65,7 +65,7 @@ namespace OpenMS
 
 		// @name Accessors
 		//@{
-    static FactoryProduct* create() { return new ComplementFilter(); }
+    static FilterFunctor* create() { return new ComplementFilter(); }
 
 		/// returns the total intensity of peak pairs which could result from complementing fragments
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

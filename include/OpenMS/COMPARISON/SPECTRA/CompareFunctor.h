@@ -82,13 +82,15 @@ namespace OpenMS
     virtual double operator () (const ClusterSpectrum&, const ClusterSpectrum&) const { return 0; }
 
     /// function call operator, calculates the self similarity
-    double operator()(const ClusterSpectrum& a) const { return (*this)(a, a); }
+    double operator () (const ClusterSpectrum& a) const { return (*this)(a, a); }
 
     /// preliminary check for similarity
     double filter(const ClusterSpectrum&, const ClusterSpectrum&) const;
 
     /// returns type of compared spectrum representation
     bool usebins() const { return usebins_; }
+
+		static void registerChildren();
 
   protected:
 

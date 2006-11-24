@@ -55,7 +55,7 @@ namespace OpenMS
     ClusterCompareFunctor& operator=(const ClusterCompareFunctor& source);
 
     /** @brief create instance <br> */
-    static FactoryProduct* create() {return new ClusterCompareFunctor();}
+    static AnalysisFunctor* create() {return new ClusterCompareFunctor();}
 
     std::map<String,double> operator()(const std::map<int,ClusterNode*>&);
 

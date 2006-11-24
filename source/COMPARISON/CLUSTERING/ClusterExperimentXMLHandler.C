@@ -29,11 +29,11 @@
 #include <iostream>
 #include <cassert>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 
@@ -66,7 +66,7 @@ namespace OpenMS
   	String qname_string = XMLString::transcode(qname);
   	
     // if a FactoryProduct is found its parameters are set here
-    if ( forwardconfigurablep_)
+    if (forwardconfigurablep_)
     {
       if (qname_string =="param")
       {
@@ -160,7 +160,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0 )
       {
-        forwardconfigurablep_ = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->create(name));
+        forwardconfigurablep_ = Factory<PreprocessingFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;
@@ -175,7 +175,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0)
       {
-        forwardconfigurablep_ = dynamic_cast<CompareFunctor*>(ClusterFactory::instance()->create(name));
+        forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;
@@ -190,7 +190,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0 )
       {
-        forwardconfigurablep_ = dynamic_cast<ClusterFunctor*>(ClusterFactory::instance()->create(name));
+        forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;
@@ -240,7 +240,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0 )
       {
-        forwardconfigurablep_ = dynamic_cast<AnalysisFunctor*>(ClusterFactory::instance()->create(name));
+        forwardconfigurablep_ = Factory<AnalysisFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;

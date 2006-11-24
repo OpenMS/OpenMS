@@ -66,7 +66,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new NeutralLossDiffFilter(); }
+    static FilterFunctor* create() { return new NeutralLossDiffFilter(); }
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

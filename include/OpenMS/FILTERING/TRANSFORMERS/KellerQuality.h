@@ -68,7 +68,7 @@ namespace OpenMS{
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new KellerQuality(); }
+    static FilterFunctor* create() { return new KellerQuality(); }
 
 		///
     double operator () (const ClusterSpectrum& spec);

@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		// static create function for factory
-    static FactoryProduct* create() 
+    static PreprocessingFunctor* create() 
 		{ 
 			return new NLargest();
 		}	

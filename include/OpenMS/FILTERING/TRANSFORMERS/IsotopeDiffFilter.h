@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new IsotopeDiffFilter(); }
+    static FilterFunctor* create() { return new IsotopeDiffFilter(); }
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

@@ -25,6 +25,20 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
   PreprocessingFunctor::PreprocessingFunctor()
@@ -39,6 +53,19 @@ namespace OpenMS
 		name_ = source.getName();
   }
 
+	void PreprocessingFunctor::registerChildren()
+	{
+    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getName(),&ThresholdMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getName(),&WindowMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Scaler::getName(),&Scaler::create);
+    Factory<PreprocessingFunctor>::registerProduct(NLargest::getName(),&NLargest::create);
+    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getName(),&BernNorm::create);
+    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getName(),&MarkerMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getName(),&SqrtMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getName(),&Normalizer::create);
+    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getName(),&ParentPeakMower::create);
+	}
+	
   PreprocessingFunctor& PreprocessingFunctor::operator=(const PreprocessingFunctor& source)
   {
    	FactoryProduct::operator=(source);

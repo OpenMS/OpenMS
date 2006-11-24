@@ -32,7 +32,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -58,7 +58,8 @@ namespace OpenMS
     :PersistentObject(source),parentp_(source.parentp_),clusters_(),binsize_(source.binsize_),binspread_(source.binspread_),didrun_(source.didrun_),sim_funcp_(0),preprocess_queue_(), cluster_funcp_(0),analysis_queue_(source.analysis_queue_),norm_(source.norm_)
   {
     PersistentObject::operator=(source);
-    ClusterFactory* fp = ClusterFactory::instance();
+    Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
+		/*
     for ( map<int,ClusterNode*>::const_iterator cmit = source.clusters_.begin();
         cmit != source.clusters_.end(); ++cmit )
     {
@@ -78,6 +79,7 @@ namespace OpenMS
       PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(fp->duplicate(*cvit));
       preprocess_queue_.push_back(mfp);
     }
+		*/
   }
 
   ClusterExperiment::ClusterRun& ClusterExperiment::ClusterRun::operator = ( const ClusterExperiment::ClusterRun& source)
@@ -89,7 +91,8 @@ namespace OpenMS
     binspread_=source.binspread_; 
     analysis_queue_=source.analysis_queue_;
     norm_ = source.norm_;
-    ClusterFactory* fp = ClusterFactory::instance();
+    Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
+		/*
     for ( map<int,ClusterNode*>::const_iterator cmit = source.clusters_.begin();
         cmit != source.clusters_.end(); ++cmit )
     {
@@ -109,6 +112,7 @@ namespace OpenMS
       PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(fp->duplicate(*cvit));
       preprocess_queue_.push_back(mfp);
     }
+		*/
     return *this;
   }
  

@@ -58,6 +58,9 @@ namespace OpenMS
     /// assignment operator
     FilterFunctor& operator = (const FilterFunctor& source);
 
+		///
+		static void registerChildren();
+		
     /// function call operator
     template <typename SpectrumType> double apply(SpectrumType& spectrum) = 0;
 

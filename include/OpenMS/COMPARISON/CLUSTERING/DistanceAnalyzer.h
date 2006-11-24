@@ -57,7 +57,7 @@ namespace OpenMS
     /** @brief assignment operator <br> */
     DistanceAnalyzer& operator=(const DistanceAnalyzer& source);
 
-    static FactoryProduct* create() {return new DistanceAnalyzer();}
+    static AnalysisFunctor* create() {return new DistanceAnalyzer();}
 
     std::map<String,double> operator()(const std::map<int,ClusterNode*>&);
 

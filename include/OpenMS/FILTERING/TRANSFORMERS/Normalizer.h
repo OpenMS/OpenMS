@@ -73,7 +73,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new Normalizer();}
+    static PreprocessingFunctor* create() { return new Normalizer();}
 
 		///
 		static const String getName()

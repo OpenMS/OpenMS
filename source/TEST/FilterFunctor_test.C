@@ -31,7 +31,7 @@
 #include <OpenMS/METADATA/Identification.h>
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
 ///////////////////////////
@@ -50,7 +50,7 @@ using namespace std;
 
 FilterFunctor* ffp;
 
-ClusterFactory* factoryp = ClusterFactory::instance();
+Factory<FilterFunctor>* factoryp = Factory<FilterFunctor>::instance();
 
 DTAFile dtafile;
 
@@ -62,10 +62,11 @@ spec->getIdentifications().push_back(dbs);
 //ClusterSpectrum cspec(spec);
 //const ClusterSpectrum& ccspec = cspec;
 
-vector<String> catalogue = factoryp->catalogue("FilterFunctor");
+//vector<String> catalogue = factoryp->catalogue("FilterFunctor");
 
 // go through all registered FilterFunctors and check if they accept a spectrum 
 // and return something
+/*
 for (vector<String>::const_iterator cvit = catalogue.begin(); cvit != catalogue.end(); ++cvit)
 {
   CHECK()
@@ -85,6 +86,7 @@ for (vector<String>::const_iterator cvit = catalogue.begin(); cvit != catalogue.
 
 factoryp->destroy();
 
+*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

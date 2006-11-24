@@ -70,7 +70,7 @@ namespace OpenMS
 			// @name Accessors
 			// @{
 			///
-    	static FactoryProduct* create() {return new BinnedRepSharedPeakCount();}
+    	static CompareFunctor* create() {return new BinnedRepSharedPeakCount();}
 
 			///
 			static const String getName()

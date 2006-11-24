@@ -69,7 +69,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new BinnedRepSumAgreeingIntensities(); }
+    static CompareFunctor* create() { return new BinnedRepSumAgreeingIntensities(); }
 
 		///
 		static const String getName()

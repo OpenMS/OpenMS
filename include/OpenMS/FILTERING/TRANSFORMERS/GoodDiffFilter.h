@@ -67,7 +67,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new GoodDiffFilter();}
+    static FilterFunctor* create() { return new GoodDiffFilter();}
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

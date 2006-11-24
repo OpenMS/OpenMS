@@ -69,7 +69,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new BernNorm();}
+    static PreprocessingFunctor* create() { return new BernNorm();}
 
 		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)

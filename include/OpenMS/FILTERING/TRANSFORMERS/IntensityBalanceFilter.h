@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new IntensityBalanceFilter();}
+    static FilterFunctor* create() { return new IntensityBalanceFilter();}
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

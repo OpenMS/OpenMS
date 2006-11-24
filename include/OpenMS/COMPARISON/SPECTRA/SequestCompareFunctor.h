@@ -70,7 +70,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SequestCompareFunctor(); }
+    static CompareFunctor* create() { return new SequestCompareFunctor(); }
 
 		///
 		static const String getName()

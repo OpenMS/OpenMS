@@ -86,7 +86,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SpectrumCheapDPCorr(); }
+    static CompareFunctor* create() { return new SpectrumCheapDPCorr(); }
 
 		///
 		static const String getName()

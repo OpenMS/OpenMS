@@ -75,7 +75,7 @@ namespace OpenMS
     LinkageCluster& operator=(const LinkageCluster& source);
 
     /** @brief create instance <br> */
-    static FactoryProduct* create() {return new LinkageCluster();}
+    static ClusterFunctor* create() {return new LinkageCluster();}
 
     /** @brief function call operator <br> */
     std::map<int,ClusterNode*> operator()(const ClusterExperiment::ClusterRun* );

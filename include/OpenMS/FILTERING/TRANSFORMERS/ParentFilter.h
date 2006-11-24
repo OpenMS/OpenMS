@@ -62,7 +62,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new ParentFilter(); }
+    static FilterFunctor* create() { return new ParentFilter(); }
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

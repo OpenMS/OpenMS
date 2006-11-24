@@ -65,7 +65,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new ParentPeakMower(); }
+    static PreprocessingFunctor* create() { return new ParentPeakMower(); }
 
 		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)

@@ -62,7 +62,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new SqrtMower();}
+    static PreprocessingFunctor* create() { return new SqrtMower();}
 
 		///
 		template <typename SpectrumType> void apply(SpectrumType& spectrum)

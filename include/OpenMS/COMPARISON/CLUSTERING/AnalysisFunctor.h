@@ -70,6 +70,8 @@ namespace OpenMS
     */
     virtual void canRun() const;
 
+		static void registerChildren();
+		
     /** @brief return if the class needs a connection to the DB <br> */
     bool needsDBAdapter() const {return needsAdapter_;}
 

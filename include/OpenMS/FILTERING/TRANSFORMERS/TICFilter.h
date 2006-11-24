@@ -63,7 +63,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new TICFilter(); }
+    static FilterFunctor* create() { return new TICFilter(); }
 
 		///
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)

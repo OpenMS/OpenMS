@@ -73,7 +73,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() {return new BinnedRepMutualInformation();}
+    static CompareFunctor* create() {return new BinnedRepMutualInformation();}
 
 		///
 		static const String getName()

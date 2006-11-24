@@ -69,7 +69,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create(){return new BinnedRepSpectrumContrastAngle();}
+    static CompareFunctor* create(){return new BinnedRepSpectrumContrastAngle();}
 
 		///
 		static const String getName()

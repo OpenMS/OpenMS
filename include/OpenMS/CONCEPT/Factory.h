@@ -62,7 +62,8 @@ namespace OpenMS
     /// singleton access to Factory 
     static Factory* instance()
     {
-      if (!instance_ptr_){
+      if (!instance_ptr_)
+			{
 				instance_ptr_ = new Factory();
 				FactoryProduct::registerChildren();
       }
@@ -73,11 +74,14 @@ namespace OpenMS
     static FactoryProduct* create(const String& name)
     {
     	MapIterator it = instance()->inventory_.find(name);
-      	if (it != instance()->inventory_.end())
-				return ( *(it->second) )();
+      if (it != instance()->inventory_.end())
+			{
+				return (*(it->second))();
+			}
       else 
-      	throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-				"This FactoryProduct is not registered!",name.c_str());
+			{
+      	throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This FactoryProduct is not registered!",name.c_str());
+			}
     }
     
     /**
@@ -97,8 +101,7 @@ namespace OpenMS
     static Factory* instance_ptr_;
   };
   
-  template<typename FactoryProduct>
-    Factory<FactoryProduct>* Factory<FactoryProduct>::instance_ptr_ = 0;
+  template<typename FactoryProduct> Factory<FactoryProduct>* Factory<FactoryProduct>::instance_ptr_ = 0;
     
 }
 #endif //OPENMS_CONCEPT_FACTORY_H

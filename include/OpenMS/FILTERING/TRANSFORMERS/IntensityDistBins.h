@@ -67,7 +67,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new IntensityDistBins(); }
+    static FilterFunctor* create() { return new IntensityDistBins(); }
 
 		///
     std::vector<double> operator () (const ClusterSpectrum& spec);

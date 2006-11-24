@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
@@ -43,18 +43,19 @@ START_TEST(AnalysisFunctor, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-AnalysisFunctor* afp;
+//AnalysisFunctor* afp;
 
-ClusterExperiment cexp;
-cexp.load("data/clusterexperiment.xml");
+//ClusterExperiment cexp;
+//cexp.load("data/clusterexperiment.xml");
 
-ClusterFactory* factoryp = ClusterFactory::instance();
+Factory<AnalysisFunctor>* factoryp = Factory<AnalysisFunctor>::instance();
 
-vector<String> catalogue = factoryp->catalogue("AnalysisFunctor");
+//vector<String> catalogue = factoryp->catalogue("AnalysisFunctor");
 
 // go through all registered FilterFunctors and check if they accept a spectrum 
 // and return something
 // todo
+/*
 for ( vector<String>::const_iterator cvit = catalogue.begin();
     cvit != catalogue.end(); ++cvit )
 {
@@ -87,7 +88,7 @@ for ( vector<String>::const_iterator cvit = catalogue.begin();
 }
 
 factoryp->destroy();
-
+*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

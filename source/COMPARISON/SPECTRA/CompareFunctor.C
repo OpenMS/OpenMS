@@ -27,6 +27,16 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSharedPeakCount.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
+#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
+
+#include <OpenMS/CONCEPT/Factory.h>
+
 #include <cmath>
 #include <sstream>
 using namespace std;
@@ -58,7 +68,18 @@ namespace OpenMS
     usebins_ = source.usebins_;
     return *this;
   }
-  
+ 
+	void CompareFunctor::registerChildren()
+	{
+    Factory<CompareFunctor>::registerProduct(BinnedRepSpectrumContrastAngle::getName(), &BinnedRepSpectrumContrastAngle::create);
+    Factory<CompareFunctor>::registerProduct(BinnedRepMutualInformation::getName(), &BinnedRepMutualInformation::create);
+    Factory<CompareFunctor>::registerProduct(BinnedRepSumAgreeingIntensities::getName(), &BinnedRepSumAgreeingIntensities::create);
+    Factory<CompareFunctor>::registerProduct(BinnedRepSharedPeakCount::getName(), &BinnedRepSharedPeakCount::create);
+    Factory<CompareFunctor>::registerProduct(SpectrumCheapDPCorr::getName(), &SpectrumCheapDPCorr::create);
+    Factory<CompareFunctor>::registerProduct(SpectrumPrecursorComparator::getName(), &SpectrumPrecursorComparator::create);
+    Factory<CompareFunctor>::registerProduct(SequestCompareFunctor::getName(), &SequestCompareFunctor::create);
+	}
+	
   /**
   does a check if comparison makes sense at all<br>
   counter-examples for useful comparisons would be spectra that have a mass 

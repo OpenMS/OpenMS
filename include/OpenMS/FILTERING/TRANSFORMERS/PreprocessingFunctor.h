@@ -61,6 +61,8 @@ namespace OpenMS
     /// assignment operator
     PreprocessingFunctor& operator = (const PreprocessingFunctor& source);
 
+		static void registerChildren();
+		
 		/// interface definition of the functor classes
 		template <typename SpectrumType> void apply(SpectrumType& /* spectrum */) {}
 	};

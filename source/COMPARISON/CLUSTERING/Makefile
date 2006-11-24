@@ -38,7 +38,6 @@ ifeq ($(ENABLE_GUI),true)
   	ClusterIdentificator.C\
 	  Cluster.C\
  		BinnedRep.C \
-  	ClusterFactory.C\
   	ClusterExperiment.C\
   	ClusterRun.C\
   	Analysis.C\

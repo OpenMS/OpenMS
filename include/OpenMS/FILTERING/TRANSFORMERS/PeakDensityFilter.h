@@ -61,7 +61,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new PeakDensityFilter();}
+    static FilterFunctor* create() { return new PeakDensityFilter();}
 
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{

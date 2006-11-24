@@ -33,7 +33,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>

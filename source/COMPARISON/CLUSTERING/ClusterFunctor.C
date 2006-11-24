@@ -26,6 +26,9 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
   ClusterFunctor::ClusterFunctor()
@@ -39,6 +42,11 @@ namespace OpenMS
   {
   }
 
+	void ClusterFunctor::registerChildren()
+	{
+		Factory<ClusterFunctor>::registerProduct(LinkageCluster::getName(), &LinkageCluster::create);
+	}
+	
   ClusterFunctor& ClusterFunctor::operator=(const ClusterFunctor& source)
   {
     FactoryProduct::operator=(source);

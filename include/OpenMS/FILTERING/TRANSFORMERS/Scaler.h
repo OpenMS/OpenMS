@@ -63,7 +63,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new Scaler(); }
+    static PreprocessingFunctor* create() { return new Scaler(); }
 
 		///
 		static const String getName()

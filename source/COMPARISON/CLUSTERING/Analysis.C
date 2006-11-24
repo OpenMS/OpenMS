@@ -24,12 +24,11 @@
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
-
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 
@@ -45,7 +44,7 @@ namespace OpenMS
   {
     if ( source.anafuncp_) 
     {
-      anafuncp_ = dynamic_cast<AnalysisFunctor*>(ClusterFactory::instance()->duplicate(source.anafuncp_));
+      anafuncp_ = source.anafuncp_;
     }
     else anafuncp_ = 0;
   }
@@ -68,7 +67,7 @@ namespace OpenMS
     PersistentObject::operator=(source);
     if ( source.anafuncp_) 
     {
-      anafuncp_ = dynamic_cast<AnalysisFunctor*>(ClusterFactory::instance()->duplicate(source.anafuncp_));
+      anafuncp_ = source.anafuncp_;
     }
     else anafuncp_ = 0;
     result_ = source.result_;

@@ -65,7 +65,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-		static FactoryProduct* create() { return new PeakDiffBins(); }
+		static FilterFunctor* create() { return new PeakDiffBins(); }
 
 		///
     std::vector<double> operator()(const ClusterSpectrum& spec);

@@ -25,6 +25,9 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterCompareFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/DistanceAnalyzer.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <sstream>
 
@@ -81,7 +84,14 @@ namespace OpenMS
   {
     clusterrunp_ = crp;
   }
-  
+ 
+	void AnalysisFunctor::registerChildren()
+	{
+		Factory<AnalysisFunctor>::registerProduct(ClusterCompareFunctor::getName(),&ClusterCompareFunctor::create);
+		Factory<AnalysisFunctor>::registerProduct(DistanceAnalyzer::getName(),&DistanceAnalyzer::create);
+
+	}
+	
   void AnalysisFunctor::canRun() const
   {
     ostringstream oss;

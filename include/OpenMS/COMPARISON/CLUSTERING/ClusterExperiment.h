@@ -311,7 +311,7 @@ namespace OpenMS
       ClusterRunAnalysisLess(String cfig, String param);
 
       /** @brief destructor <br> */
-      ~ClusterRunAnalysisLess();
+      virtual ~ClusterRunAnalysisLess();
 
       /** @brief comparison <br> */
       bool operator()(const ClusterRun* ap, const ClusterRun* bp);

@@ -71,7 +71,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new TradSeqQuality(); }
+    static FilterFunctor* create() { return new TradSeqQuality(); }
 
 		///
     double operator () (const ClusterSpectrum& spec);

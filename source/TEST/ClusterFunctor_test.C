@@ -31,7 +31,7 @@
 #include <OpenMS/METADATA/Identification.h>
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 
 ///////////////////////////
@@ -48,12 +48,13 @@ using namespace std;
 
 ClusterFunctor* cfp;
 
-ClusterFactory* factoryp = ClusterFactory::instance();
+Factory<ClusterFunctor>* factoryp = Factory<ClusterFunctor>::instance();
 
-vector<String> catalogue = factoryp->catalogue("ClusterFunctor");
+//vector<String> catalogue = factoryp->catalogue("ClusterFunctor");
 
 // go through all registered FilterFunctors and check if they accept a spectrum 
 // and return something
+/*
 for ( vector<String>::const_iterator cvit = catalogue.begin();
     cvit != catalogue.end(); ++cvit )
 {
@@ -74,7 +75,7 @@ for ( vector<String>::const_iterator cvit = catalogue.begin();
 }
 
 factoryp->destroy();
-
+*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
