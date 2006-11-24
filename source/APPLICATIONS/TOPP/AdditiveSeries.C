@@ -108,7 +108,7 @@ class AdditiveSeries
 	protected:
     void registerOptionsAndFlags_()
     {
-			registerStringOption_("in","<file>","","input file containing one spiked concentration");
+			registerStringOption_("in","<file>","","input file containing one spiked concentration per line");
 			registerStringOption_("out","<file>","","output XML file containg regression line and confidence interval");
 			registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
 			registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
@@ -116,7 +116,7 @@ class AdditiveSeries
 			addEmptyLine_();
 			addText_("GNUplot options:");
 			registerFlag_("write_gnuplot_output","Flag that activates the GNUplot output");
-			registerStringOption_("title","<title>","","title of the plot",false);
+			registerStringOption_("out_gp","<name>","","base file name (3 files with different extensions are created)",false);
 			registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 			registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 			
@@ -368,8 +368,6 @@ class AdditiveSeries
 
       writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
 
-      String title = getStringOption_("title");
-
       // read the spiked concentrations
       ifstream conc_file(conc_f.c_str());
       char line[256];
@@ -429,7 +427,7 @@ class AdditiveSeries
       }
 
       // set prefix of gnuplot output
-      String filename_prefix = title;
+      String filename_prefix = getStringOption_("out_gp");;
       if (getFlag_("write_gnuplot_output"))
       {
 					writeDebug_(String("Writing gnuplot output"),1);
