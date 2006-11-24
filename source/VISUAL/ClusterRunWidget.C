@@ -24,11 +24,8 @@
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
-
 #include <OpenMS/VISUAL/DIALOGS/FactoryProductDialog.h>
-
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterFactory.h>
-
+#include <OpenMS/CONCEPT/Factory.h>
 #include <qinputdialog.h>
 
 using namespace std;
@@ -88,13 +85,13 @@ namespace OpenMS
   void ClusterRunWidget::usecf()
   {
     delete cfp_;
-    cfp_ = dynamic_cast<CompareFunctor*>(ClusterFactory::instance()->create(cfbox_->currentText().ascii()));
+    cfp_ = Factory<CompareFunctor>::instance()->create(cfbox_->currentText().ascii());
     configure_(cfp_);
   }
 
   void ClusterRunWidget::addpp()
   {
-    PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(ClusterFactory::instance()->create(ppbox_->currentText().ascii()));
+    PreprocessingFunctor* mfp = Factory<PreprocessingFunctor>::instance()->create(ppbox_->currentText().ascii());
     configure_(mfp);
     mowers_.push_back(mfp);
     ppnames_->setText(ppnames_->text() + "\n" + ppbox_->currentText());
@@ -112,7 +109,7 @@ namespace OpenMS
 
   void ClusterRunWidget::fillbox_(String type, QComboBox* box)
   {
-    vector<String> candidates = ClusterFactory::instance()->catalogue(type);
+    vector<String> candidates /*= Factory<PreprocessingFunctor>::instance()->catalogue(type)*/;
     box->clear();
     for ( uint i = 0; i < candidates.size(); ++i )
     {
