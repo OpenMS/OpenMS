@@ -108,7 +108,6 @@ class AdditiveSeries
 	protected:
     void registerOptionsAndFlags_()
     {
-			registerStringOption_("in","<file>","","input file containing one spiked concentration per line");
 			registerStringOption_("out","<file>","","output XML file containg regression line and confidence interval");
 			registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
 			registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
@@ -121,12 +120,18 @@ class AdditiveSeries
 			registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 			
 			addEmptyLine_();
-			addText_("Input feature files, feature position and standard position can only be specified in the INI file:\n"
+			addText_("Input feature files, spiked concentrations, feature position and standard position can only be specified in the INI file:\n"
 							"  <NODE name=\"Files\">\n"
 							"    <ITEM name=\"1\" value=\"data/file1.xml\" type=\"string\">\n"
 							"    <ITEM name=\"2\" value=\"data/file2.xml\" type=\"string\">\n"
 							"    <ITEM name=\"3\" value=\"data/file3.xml\" type=\"string\">\n"
 							"    <ITEM name=\"4\" value=\"data/file4.xml\" type=\"string\">\n"
+							"  </NODE>\n"
+							"  <NODE name=\"Concentrations\">\n"
+							"    <ITEM name=\"1\" value=\"0.0\" type=\"double\">\n"
+							"    <ITEM name=\"2\" value=\"2.0\" type=\"double\">\n"
+							"    <ITEM name=\"3\" value=\"5.0\" type=\"double\">\n"
+							"    <ITEM name=\"4\" value=\"10.0\" type=\"double\">\n"
 							"  </NODE>\n"
 							"  <NODE name=\"Feature\">\n"
 							"    <ITEM name=\"MZ\" value=\"675.9\" type=\"float\">\n"
@@ -345,7 +350,6 @@ class AdditiveSeries
       CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
       CoordinateType tol_rt = getDoubleOption_("rt_tolerance");
 
-      String conc_f = getStringOption_("in");
       String out_f  = getStringOption_("out");
 
       if (add_param.getValue("Feature:MZ").isEmpty() || add_param.getValue("Feature:RT").isEmpty() )
@@ -368,19 +372,6 @@ class AdditiveSeries
 
       writeDebug_(String("Setting tolerances to ") + tol_mz + " " + tol_rt,1);
 
-      // read the spiked concentrations
-      ifstream conc_file(conc_f.c_str());
-      char line[256];
-      vector<double> sp_concentrations;
-      while (conc_file.getline(line,256))
-      {
-				string line_str(line);
-				std::istringstream line_stream(line_str);
-				double conc = 0;
-				line_stream >> conc;
-				sp_concentrations.push_back(conc);
-      }
-
       // introduce a flag for each concetration. true => the corresponding feature was found
       vector<bool> flags;
 
@@ -393,7 +384,16 @@ class AdditiveSeries
         files.push_back(pit->second);
         pit++;
       }
-      sort(files.begin(),files.end());
+
+      // read the spiked concentrations
+      vector<double> sp_concentrations;
+      file_param = add_param.copy("Concentrations:",true);
+      pit = file_param.begin();
+      while (pit != file_param.end() )
+      {
+        sp_concentrations.push_back((double)(pit->second));
+        pit++;
+      }
 
       // collect features
       vector<IntensityType> intensities;

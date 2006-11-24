@@ -68,12 +68,13 @@ clean:
 	@$(MAKE) subdirs SUBDIRS="$(DIRS) $(GUI_DIRS) TEST BENCHMARKS EXAMPLES" TARGET=default_clean
 	@-$(RM) -f  $(STATIC_LIBS) $(SHARED_LIBS)
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
-	@cd APPLICATIONS && make -f Makefile_SUBDIRS default_clean
+	@cd $(OPENMS_PATH)/source/APPLICATIONS && make -f Makefile_SUBDIRS default_clean
+	@cd $(OPENMS_PATH)/source/TEST/TOPP/ && make clean
 
 distclean:	clean
-	@-$(RM) -rf autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin
+	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin
 
-lib_clean:
+libclean:
 	@$(ECHO) "Removing all installed libraries..."
 	@-$(RM) -rf ../lib
 

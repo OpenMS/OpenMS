@@ -102,7 +102,7 @@ default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 	@ if test -z ${DEBUG}; then $(CLEANUP); fi
 
 clean:
-	$(CLEANUP)
+	@$(CLEANUP)
 
 #######################################################################
 # HELP TARGET
