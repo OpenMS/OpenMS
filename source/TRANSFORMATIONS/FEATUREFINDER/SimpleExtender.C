@@ -50,7 +50,7 @@ namespace OpenMS
 	SimpleExtender::~SimpleExtender()
 	{}
 
-	const IndexSet& SimpleExtender::extend(const UnsignedInt seed_index)
+	const IndexSet& SimpleExtender::extend(const IndexSet seed_region)
 	{
     if (!first_seed_seen_)
     {
@@ -83,6 +83,30 @@ namespace OpenMS
 		priorities_.clear();
     running_avg_.clear();
 		while (boundary_.size() > 0) boundary_.pop();
+		
+		CoordinateType max_intensity = 0.0;
+		UnsignedInt seed_index = 0;
+		
+		// find maximum of region and set seed flag
+    for (IndexSet::const_iterator citer = seed_region.begin();
+            citer != seed_region.end();
+            ++citer)
+    {
+				PeakType p	 = traits_->getPeak(*citer);
+				
+        if (p.getIntensity() > max_intensity)
+        {
+            seed_index     = *citer;
+            max_intensity = p.getIntensity();						
+				}
+				
+				ProbabilityType pi = computePeakPriority_(p);
+    		IndexWithPriority iwp(*citer,pi);
+				
+				boundary_.push(iwp);
+
+    } // end of for (Index in region)
+    traits_->getPeakFlag(seed_index) = FeaFiTraits::SEED;
     		
 		 // remember last peak to be extracted from the boundary
     // (in this case the seed !)

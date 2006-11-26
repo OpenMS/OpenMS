@@ -43,7 +43,7 @@ namespace OpenMS
 
 	SimpleSeeder::~SimpleSeeder(){}
 
-  Index SimpleSeeder::nextSeed() throw (NoSuccessor)
+  IndexSet SimpleSeeder::nextSeed() throw (NoSuccessor)
 	{
 		if (!is_initialised_) 
 		{
@@ -100,8 +100,11 @@ namespace OpenMS
 		
 		// set flag
 		traits_->getPeakFlag(*current_peak_) = FeaFiTraits::SEED;
+		
+		IndexSet bla;
+		bla.add( *current_peak_++ );
 				
-		return *current_peak_++;
+		return bla;
 	}
 	
 	void SimpleSeeder::sort_() 

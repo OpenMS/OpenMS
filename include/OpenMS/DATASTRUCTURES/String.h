@@ -300,7 +300,9 @@ namespace OpenMS
 		
 		/**@brief Concatenates all elements from @p first to @p last-1 and inserts @p glue between the elements
 
-		See also @seealso split().
+				TODO: ???? Who came up with this weird name ? I guess "join" or "merge" would be more applicable here. (ost)
+		
+				See also @seealso split().
 		*/
 		void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "");
 		

@@ -32,13 +32,14 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
+#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
+// #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <vector>
 #include <map>
@@ -92,7 +93,7 @@ namespace OpenMS
     virtual ~MarrWaveletSeeder();
 
     /// return next seed 
-    Index nextSeed() throw (NoSuccessor);
+    IndexSet nextSeed() throw (NoSuccessor);
 
     static BaseSeeder* create()
     {
@@ -114,7 +115,7 @@ namespace OpenMS
         // predicted charge state of this peptide
         UnsignedInt charge_;
         // peaks in this cluster
-        std::vector<UnsignedInt> peaks_;
+        IndexSet peaks_;
         // the scans of this cluster
         std::vector<CoordinateType> scans_;
     };
@@ -166,7 +167,7 @@ namespace OpenMS
 	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax,CoordinateType curr_peak);
  
   /// Sums a scan
-  void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index, CoordinateType& current_rt);
+  void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index );
 	
 	void AlignAndSum_(ContainerType& scan, ContainerType& neighbour);
  	

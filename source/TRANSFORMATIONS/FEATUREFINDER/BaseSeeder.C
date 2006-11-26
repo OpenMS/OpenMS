@@ -29,21 +29,20 @@
 
 // all from BaseSeeder derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
 
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/WaveletSeeder.h>
 
 namespace OpenMS
 {
 	void BaseSeeder::registerChildren()
 	{
 		Factory<BaseSeeder>::registerProduct(SimpleSeeder::getName(), &SimpleSeeder::create);
-// 		Factory<BaseSeeder>::registerProduct(DummySeeder::getName(), &DummySeeder::create);
 		Factory<BaseSeeder>::registerProduct(MarrWaveletSeeder::getName(), &MarrWaveletSeeder::create);
-// 		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
+ 		Factory<BaseSeeder>::registerProduct(PickedPeakSeeder::getName(), &PickedPeakSeeder::create);
+		
+		Factory<BaseSeeder>::registerProduct(WaveletSeeder::getName(), &WaveletSeeder::create);
 	}	
 	
 	BaseSeeder::BaseSeeder(): FeaFiModule(){}

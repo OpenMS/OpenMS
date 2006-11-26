@@ -97,19 +97,27 @@ CHECK(nextSeed())
 	
 	seeder.setTraits(traits);
 	
-	Index peak = seeder.nextSeed();
+	IndexSet region;
+	Index peak;
+	
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),15);	
 	
-	peak = seeder.nextSeed();
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),10);					
 	
-	peak = seeder.nextSeed();
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),7);		
 	
-	peak = seeder.nextSeed();
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),5);		
 	
-	peak = seeder.nextSeed();
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),3);		
   
 RESULT

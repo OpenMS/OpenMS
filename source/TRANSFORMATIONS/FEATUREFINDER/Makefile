@@ -42,7 +42,6 @@ CGAL_SOURCES=\
 	BaseSeeder.C\
 	BiGaussModel.C\
 	Correlation.C\
-	DummySeeder.C\
 	FeaFiModule.C\
 	FeatureFinder.C\
 	GaussModel.C\
@@ -52,8 +51,6 @@ CGAL_SOURCES=\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
 	SimpleSeeder.C\
-	PPExtender.C\
-	SweepExtender.C\
 	EmgModel.C\
 	ExtendedModelFitter.C\
 	LmaGaussModel.C\
@@ -63,8 +60,11 @@ CGAL_SOURCES=\
 	IsotopeFinder.C\
 	MarrWaveletSeeder.C\
 	WaveletSeeder.C\
-	FeaFiTraits.C
+	FeaFiTraits.C\
+	PickedPeakSeeder.C
 endif
+
+
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
 ADD_INCLUDES=$(GUI_INCLUDES)
@@ -73,4 +73,4 @@ include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
-#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
+ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER

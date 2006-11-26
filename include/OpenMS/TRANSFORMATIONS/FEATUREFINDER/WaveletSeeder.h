@@ -43,6 +43,9 @@ namespace OpenMS
 
 	/** @brief Seeding module based on the wavelet class IsotopeFinder.
 	
+			This is an old seeding class based on the isotopic wavelet developed by Rene Hussong.
+			It is due to be replaced soon.
+	
 		@ingroup FeatureFinder
 		
 	*/ 
@@ -79,7 +82,7 @@ namespace OpenMS
     virtual ~WaveletSeeder();
 
     /// return next seed 
-    Index nextSeed() throw (NoSuccessor);
+    IndexSet nextSeed() throw (NoSuccessor);
 
     static BaseSeeder* create()
     {

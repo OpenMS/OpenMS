@@ -125,7 +125,7 @@ namespace OpenMS
     virtual ~SimpleExtender();
 
     /// return next seed
-    const IndexSet& extend(const UnsignedInt seed);
+    const IndexSet& extend(const IndexSet seed_region);
 
 		/// returns an instance of this class 
     static BaseExtender* create()

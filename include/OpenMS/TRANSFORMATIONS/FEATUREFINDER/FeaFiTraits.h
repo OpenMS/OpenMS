@@ -35,9 +35,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
-
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
@@ -395,11 +392,12 @@ public:
         {
             while (true)
             {
-               	UnsignedInt seed = seeders[0]->nextSeed();
+//                	UnsignedInt seed = seeders[0]->nextSeed();
+								IndexSet seed_region = seeders[0]->nextSeed();
 
                 watch.start();
                 std::cout << "Extension ..." << std::endl;
-                IndexSet peaks = extenders[0]->extend(seed);
+                IndexSet peaks = extenders[0]->extend(seed_region);
                 watch.stop();
                 std::cout << "Time spent for extension: " << watch.getClockTime() << std::endl;
                 watch.reset();

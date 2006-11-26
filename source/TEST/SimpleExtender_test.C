@@ -100,8 +100,9 @@ CHECK(nextSeed())
 	
 	extender.setTraits(traits);
  	
-//   extender.setParam(param);
-  IndexSet region = extender.extend(4);
+	IndexSet seeding_region;
+	seeding_region.add(4);
+  IndexSet region = extender.extend(seeding_region);
   
   TEST_NOT_EQUAL(region.size(),0);
   

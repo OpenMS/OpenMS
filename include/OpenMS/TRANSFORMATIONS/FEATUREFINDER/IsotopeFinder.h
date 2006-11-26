@@ -87,8 +87,8 @@ class IsotopeFinder
 		 * tuned to resemble specific peak probabilies (dependent on the mass and a binomial distribution e.g.) you should
 		 * usually not change this parameter. */
 		IsotopeFinder (const MapType& experiment, const unsigned int integration_workspace=100, 
-			double integration_epsilon=1e-6, unsigned int peak_cut_off=5, double score_cut_off=0, 
-			unsigned int rt_votes_cut_off=6	, double wtCutOff=0, unsigned int mz_interleave=3) throw ();
+		double integration_epsilon=1e-6, unsigned int peak_cut_off=5, double score_cut_off=0, 
+		unsigned int rt_votes_cut_off=6	, double wtCutOff=0, unsigned int mz_interleave=3) throw ();
 
 		virtual void initializeMe () throw ();
 
@@ -97,15 +97,15 @@ class IsotopeFinder
 
 		/** Reads in a DTA2D file. There is already a class named DTA2D, implemented exactly for the same purpose. 
 		 * Unfortunately, reading-in a file by this class takes much longer than by this simple function here. */  		
-		virtual void readTabFile (const std::string& filename) throw (Exception::FileNotFound);
+			virtual void readTabFile (const std::string& filename) throw (Exception::FileNotFound);
 
 		/** Essentially the same function as cwt.
 		 * Computes the wavelet transform for several charges in nearly the same time. */
 		virtual inline void cwtMulti (const unsigned int scanNumber, 
-			const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<2> > >* pwts,
+			const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<1> > >* pwts,
 			std::vector<double>* wt_thresholds) throw ();
 
-		virtual void identifyCharge (const std::vector<DPeakArray<1, DRawDataPoint<2> > >& candidates, 
+		virtual void identifyCharge (const std::vector<DPeakArray<1, DRawDataPoint<1> > >& candidates, 
 			std::vector<double>* wt_thresholds, const unsigned int scan, const double RT) throw ();
 
 		virtual SweepLineHash findFeatures (const unsigned int start_scan, const unsigned int end_scan, 
@@ -163,7 +163,7 @@ class IsotopeFinder
 
 		/** The common index operator. Returns the scan "index" (by index, not by RT).
 		 * @todo Do we have to throw something like e.g. OutOfBoundsError here? */
-		virtual inline MSSpectrum<DRawDataPoint<2> > operator[] (unsigned int index) const throw ()
+		virtual inline MSSpectrum<DRawDataPoint<1> > operator[] (unsigned int index) const throw ()
 			{ return (experiment_[index]); }
 
 		inline unsigned int getNumScans () const throw ()
@@ -173,9 +173,9 @@ class IsotopeFinder
 
 		virtual void printHashEntry (SweepLineHash::iterator iter) throw ();
 
-		virtual void createGNUplot (unsigned int alignedTo, double mz, unsigned int charge,  
-			const DPeakArray<1, DRawDataPoint<2> >* signal, std::vector<double>* wavelet, 
-			DPeakArray<1, DRawDataPoint<2> >* transform) throw ();
+// 		virtual void createGNUplot (unsigned int alignedTo, double mz, unsigned int charge,  
+// 			const DPeakArray<1, DRawDataPoint<1> >* signal, std::vector<double>* wavelet, 
+// 			DPeakArray<1, DRawDataPoint<1> >* transform) throw ();
 		
 		inline unsigned int unique_merge (const std::list<double>& a, const std::list<double>& b,
 			std::vector<double>::iterator& c_begin, std::vector<double>::iterator& c_end, std::vector<double>* res) throw ();
@@ -187,8 +187,8 @@ class IsotopeFinder
 		/** The working horse of the discrete-time continuous wavelet transform, but for several charges at the same time.
 		 * Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
 		 * this yields the same. */
-		virtual void fastMultiCorrelate (const DPeakArray<1, DRawDataPoint<2> >& signal, 
-			const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<2> > >* pwts,
+		virtual void fastMultiCorrelate (const DPeakArray<1, DRawDataPoint<1> >& signal, 
+			const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<1> > >* pwts,
 			std::vector<double>* wt_thresholds) throw ();
 
 		/** The wavelet (mother) function. Exaclty the same as phiRaw, but needed for use with the GNU scientific library (GSL).
@@ -241,8 +241,8 @@ class IsotopeFinder
 
 		/** Estimates the average spacing for the m/z dimension. 
 		 * Used internally to compute the circular convolution. */
-		virtual double averageMZSpacing (const DPeakArray<1, DRawDataPoint<2> >& signal) const throw ();
-		virtual double averageRTSpacing (const DPeakArray<1, DRawDataPoint<2> >& signal) const throw ();
+		void computeSpacings_() throw ();
+// 		virtual double averageRTSpacing (/*const DPeakArray<1, DRawDataPoint<2> >& signal*/) const throw ();
 		
 		/** The lambda parameter essentially influences the shape of the wavelet.
 		 * Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
@@ -252,25 +252,25 @@ class IsotopeFinder
 
 		virtual void filterHashByRTVotes () throw ();
 
-		double getMean (const DPeakArray<1, DRawDataPoint<2> >& signal, const unsigned int startIndex, 
+		double getMean (const DPeakArray<1, DRawDataPoint<1> >& signal, const unsigned int startIndex, 
 			const unsigned int endIndex) const throw ();
 
-		double getAbsMean (const DPeakArray<1, DRawDataPoint<2> >& signal, const unsigned int startIndex, 
+		double getAbsMean (const DPeakArray<1, DRawDataPoint<1> >& signal, const unsigned int startIndex, 
 			const unsigned int endIndex) const throw ();
 
-		double getUpShiftedMoment (const DPeakArray<1, DRawDataPoint<2> >& signal, const unsigned int startIndex, 
+		double getUpShiftedMoment (const DPeakArray<1, DRawDataPoint<1> >& signal, const unsigned int startIndex, 
 			const unsigned int moment, const unsigned int endIndex) throw ();
-
+/*
 		double getSd (const DPeakArray<1, DRawDataPoint<2> >& signal, const double mean, 
-			const unsigned int startIndex, const unsigned int endIndex) const throw ();
+			const unsigned int startIndex, const unsigned int endIndex) const throw ();*/
 
-		double getAbsSd (const DPeakArray<1, DRawDataPoint<2> >& signal, const double mean, 
+		double getAbsSd (const DPeakArray<1, DRawDataPoint<1> >& signal, const double mean, 
 			const unsigned int startIndex, const unsigned int endIndex) const throw ();
 
 		void generateGammaValues () throw ();
 
 		inline double getMZbyHashKey (const unsigned int key) const throw ()
-		{ return (experiment_.getMin().Y()+key*avMZSpacing_); }
+		{ return (experiment_.getMin().X()+key*avMZSpacing_); }
 
 		virtual void prepareGNUplotFiles (const std::string& file="gnu.plot") throw ();
 
@@ -283,7 +283,7 @@ class IsotopeFinder
 		unsigned int PEAK_CUT_OFF;
 		double SCORE_CUT_OFF;
 		unsigned int RT_VOTES_CUT_OFF;
-    	double WT_CUT_OFF;
+    		double WT_CUT_OFF;
 		unsigned int MZ_INTERLEAVE;
 		
 		unsigned int waveletLength_; //Will be initialized with -1 and therefore it should be a signed integer	
@@ -302,10 +302,10 @@ class IsotopeFinder
 template <typename MapType>
 hash_map<unsigned int, double> IsotopeFinder<MapType>::preComputedGamma_;
 
-inline bool comparator (const DRawDataPoint<2> a, const DRawDataPoint<2> b)
-{
-	return (a.getIntensity() > b.getIntensity());
-}	
+// inline bool comparator (const DRawDataPoint<1> a, const DRawDataPoint<1> b)
+// {
+// 	return (a.getIntensity() > b.getIntensity());
+// }	
 
 
 template <typename MapType>
@@ -354,7 +354,7 @@ IsotopeFinder<MapType>::IsotopeFinder (const MapType& experiment, const unsigned
 	sd_intens_ (0.0), 
 	writtenGnuFiles_ (0u)
 {
-	experiment_ = experiment;
+// 	experiment_ = experiment;
 	initializeMe();	
 }
 
@@ -365,99 +365,45 @@ void IsotopeFinder<MapType>::initializeMe () throw ()
 	//Since the signal might be unequally spaced, we have to sample the wavelet function for each translational step 
 	//First, we have to estimate the average spacing in M/Z direction; otherwise we could sample too many or too few points
 	//for the wavelet function.
+	std::cout << "Collecting range information." << std::endl;
 	experiment_.updateRanges();
-	//experiment_.sortSpectra(true); Do we need this here?
-	DPeakArray<1, DRawDataPoint<2> > signal; experiment_.get2DData(signal); 
-	avMZSpacing_ = averageMZSpacing (signal);
-	std::cout << "Average m/z spacing: " << avMZSpacing_ << std::endl;
-	avRTSpacing_ = averageRTSpacing (signal);
-	std::cout << "Average RT spacing: " << avRTSpacing_ << std::endl;
-	waveletLength_ = (int) (PEAK_CUT_OFF/avMZSpacing_);	
+	
+	std::cout << "Calculating spacings." << std::endl;
 	std::list<unsigned int> charges;
-	charges.push_back(1); charges.push_back(2); 
-	min_spacing_ = INT_MAX; max_spacing_= 0; av_intens_ =0; double tmp=0;
-	for (unsigned int i=0; i<signal.size()-1; ++i)
-	{
-		tmp = signal[i+1].getPosition().Y() - signal[i].getPosition().Y();
-		if (fabs(tmp) < min_spacing_)
-			min_spacing_ = tmp;		
-		if (fabs(tmp) > max_spacing_)
-			max_spacing_ = tmp;
-		av_intens_ += signal[i].getIntensity();
-	}
-	av_intens_ += signal[signal.size()-1].getIntensity();
-	av_intens_ /= (double) signal.size();
-	sd_intens_ = getAbsSd (signal, av_intens_, 0, signal.size()); 	
+	charges.push_back(1); charges.push_back(2); charges.push_back(3); charges.push_back(4);
+	min_spacing_ = INT_MAX; max_spacing_= 0; av_intens_ =0; 
+	computeSpacings_();
+	
+// 	sd_intens_ = getAbsSd (signal, av_intens_, 0, signal.size()); 	
+	
+	std::cout << "Average m/z spacing: " << avMZSpacing_ << std::endl;
+	std::cout << "Average RT spacing: " << avRTSpacing_ << std::endl;
 	std::cout << "Minimal m/z spacing: " << min_spacing_ << std::endl;
 	std::cout << "Maximal m/z spacing: " << max_spacing_ << std::endl;
 	std::cout << "Average intensity: " << av_intens_ << std::endl;
-	std::cout << "Intensity sd: " << sd_intens_ << std::endl;
+// 	std::cout << "Intensity sd: " << sd_intens_ << std::endl;
+	
+	waveletLength_ = (int) (PEAK_CUT_OFF/avMZSpacing_);	
+	
 	generateGammaValues();
 	prepareGNUplotFiles();
+	
 }
 
 
 template <typename MapType>
 void IsotopeFinder<MapType>::readTabFile (const std::string& filename) throw (Exception::FileNotFound)
 {
-// 	experiment_.setBufferSize(100);
-// 	experiment_.updateBuffer();
+	experiment_.setBufferSize(200);
+	experiment_.updateBuffer();
 	MzXMLFile().load(filename,experiment_);
 	initializeMe();	
-	
-// 	typename MapType::SpectrumType spec, spec2;
-//   typename MapType::SpectrumType::PeakType p;
-// 
-// 	TopHatFilter filter;
-// 	
-// 	std::ifstream ifile (filename.c_str());
-//  	if (!ifile)
-// 	{
-// 		throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);				
-// 	}	
-// 	double c_x, old_x=-1, c_y, c_intensity; 
-// 	while (ifile >> c_x)
-// 	{
-// 		ifile >> c_y;
-// 		ifile >> c_intensity;
-// 
-// 		//i.e. a new spectrum begins
-// 		if (c_x != old_x && !spec.empty())
-// 		{
-// 			spec.setRetentionTime(old_x);
-// 			filter.filter (spec.begin(), spec.end(), spec2);
-// 			spec2.setRetentionTime(old_x);
-// 			experiment_.push_back(spec2);
-// 			spec.clear();	spec2.clear();	
-// 		}
-// 		
-// 		p.setIntensity (c_intensity);
-// 		p.getPosition()[0] = c_y;
-// 		p.getPosition()[1] = c_x; old_x = c_x;
-// 		
-// 		spec.push_back(p);
-// 	}
-// 
-// 	//Pushing the last scan
-// 	spec.setRetentionTime(old_x);
-// 	filter.filter (spec.begin(), spec.end(), spec2);
-// 	spec2.setRetentionTime(old_x);
-// 	experiment_.push_back(spec2);
-// 
-// 	if (experiment_.empty())
-// 	{
-// 		std::cout << "Error: file is empty." << std::endl;
-// 		exit(-1);
-// 	}
-// 	
-// 	ifile.close();		
-// 	initializeMe();	
 }
 
 
 template <typename MapType>
 void IsotopeFinder<MapType>::cwtMulti (const unsigned int scanNumber, 
-	const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<2> > >* pwts, 
+	const std::list<unsigned int>& charges, std::vector<DPeakArray<1, DRawDataPoint<1> > >* pwts, 
 	std::vector<double>* wt_thresholds) throw ()
 {
 	fastMultiCorrelate (experiment_[scanNumber].getContainer(), charges, pwts, wt_thresholds);
@@ -468,15 +414,15 @@ template <typename MapType>
 typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatures 
 	(const unsigned int start_scan, const unsigned int end_scan, const bool sweepLine) throw ()
 {
-	experiment_.updateRanges(); //this needs identifyCharge
+// experiment_.updateRanges(); //this needs identifyCharge
 	std::list<unsigned int> charges;
 	charges.push_back(1); charges.push_back(2); charges.push_back(3); 
-	std::vector<DPeakArray<1, DRawDataPoint<2> > >* pwts = NULL;
+	std::vector<DPeakArray<1, DRawDataPoint<1> > >* pwts = NULL;
 	std::vector<double>* wt_thresholds = NULL;
 	for (unsigned int i=start_scan; i<=end_scan; ++i)
 	{
 		std::cout << "Spectrum " << i << " (" << experiment_[i].getRetentionTime() << ") of " << end_scan << std::endl; 
-		pwts = new std::vector<DPeakArray<1, DRawDataPoint<2> > > (charges.size(), experiment_[i].getContainer());
+		pwts = new std::vector<DPeakArray<1, DRawDataPoint<1> > > (charges.size(), experiment_[i].getContainer());
 		wt_thresholds = new std::vector<double> (charges.size(), 0);
 		cwtMulti (i, charges, pwts, wt_thresholds);
 		identifyCharge (*pwts, wt_thresholds, i, experiment_[i].getRetentionTime());
@@ -485,9 +431,11 @@ typename IsotopeFinder<MapType>::SweepLineHash IsotopeFinder<MapType>::findFeatu
 	}
 
 	if (sweepLine)
-    filterHashByRTVotes ();
+    			filterHashByRTVotes ();
 		
-	for (SweepLineHash::const_iterator citer = hash_.begin();
+	 std::cout << "# signals found : " << hash_.size() << std::endl;
+					
+		for (SweepLineHash::const_iterator citer = hash_.begin();
 	       	citer != hash_.end();
 		   		++citer)
 	 	{	 						 					
@@ -627,7 +575,7 @@ void IsotopeFinder<MapType>::filterHashByRTVotes () throw ()
 
 template <typename MapType>
 /*std::pair<typename IsotopeFinder<MapType>::WaveletCollection, typename IsotopeFinder<MapType>::WaveletCollection>*/ 
-void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRawDataPoint<2> > >& candidates, std::vector<double>* wt_thresholds, const unsigned int scan, const double RT) throw ()
+void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRawDataPoint<1> > >& candidates, std::vector<double>* wt_thresholds, const unsigned int scan, const double RT) throw ()
 {	
 	std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
 	WaveletCollection scoresC (candidates.size(), zeros);
@@ -648,27 +596,32 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 	for (unsigned int c=0; c<candidates.size(); ++c)		
 	{
 		processed = std::vector<bool> (candidates[0].size(), false); //Reset
-		containerType c_candidate = candidates[c]; 
+		containerType c_candidate(candidates[c].size());/* = candidates[c]; */
 		
 		//Ugly, but do not how to do this in a better (and easy) way
-		for (unsigned int i=0; i<c_candidate.size(); ++i)
-			c_candidate[i].setPosition(DPosition<2>(c_candidate[i].getPosition().X(), i));
-
-		sort (c_candidate.begin(), c_candidate.end(), comparator); 
-		c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
-
-		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
+		for (unsigned int i=0; i<candidates[c].size(); ++i)
 		{
-			if (iter->getIntensity() <= (*wt_thresholds)[c]*0*c_av_intens)
-				break;
+			c_candidate[i].setPosition(DPosition<2>( candidates[c][i].getPos(),i));
+			c_candidate[i].setIntensity( candidates[c][i].getIntensity() );
 		}
 
-		c_candidate.erase (iter, c_candidate.end());
+		sort (c_candidate.begin(), c_candidate.end(), DRawDataPoint<2>::IntensityLess() ); 
+		c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
+	
+		std::cout << "Average intensity: " << c_av_intens << std::endl;
 		
+		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
+		{
+			if (iter->getIntensity() <= (*wt_thresholds)[c]*0*c_av_intens) 	break;			
+		}
 
+		c_candidate.erase (iter, c_candidate.end());		
+
+		std::cout << "Starting processing. " << std::endl;
 		i_iter=0;
 		for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter, ++i_iter)
 		{
+			// Retrieve index
 			c_index = (int) (iter->getPosition().Y());		
 			
 			if (processed[c_index])
@@ -679,8 +632,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 			seed_mz=iter->getPosition().X();
 
 			//Catch impossible cases
-			// Unsigned int < zero is always false !
-      if (/*start_index < 0 ||*/ end_index >= candidates[c].size() || start_index > end_index)
+			if (end_index >= candidates[c].size() || start_index > end_index)
         continue;			
 	
 			//Mark as processed
@@ -706,13 +658,22 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 					continue;
 				
 				if (abs(v)%2 == 1) //i.e. whole
+				{
 					scoresC[c][c_index] -= c_val;
+					std::cout << "Setting scoresC to " << scoresC[c][c_index] << std::endl;
+				}
 				else //i.e. peak
+				{
 					scoresC[c][c_index] += c_val; 
+					std::cout << "Setting scoresC to " << scoresC[c][c_index] << std::endl;
+				}
 			}
 
 			if (scoresC[c][c_index] <= 1.0*iter->getIntensity())
+			{
+				std::cout << "Setting scores to zero for " << c << " " << c_index << std::endl;
 				scoresC[c][c_index] = 0;
+			}
 		}	
 	}
 
@@ -765,10 +726,9 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 			}
 
 
-		//std::cout << experiment_[scan].getContainer()[positions[0]-1].getPos() << std::endl;	
-		//std::cout << experiment_.getMin().Y() << std::endl;
-		c_hash_key = (unsigned int) ((experiment_[scan].getContainer()[positions[0]-1].getPos() - experiment_.getMin().Y())
-			/ avMZSpacing_);
+		std::cout << "getPos: " << experiment_[scan].getContainer()[positions[0]-1].getPos() << std::endl;	
+		std::cout << "getMin().Y() " << experiment_.getMin().Y() << std::endl;
+		c_hash_key = (unsigned int) ((experiment_[scan].getContainer()[positions[0]-1].getPos() - experiment_.getMin().Y()) / avMZSpacing_);
 		
 		allZero=true;	
 		for (iter_cl=c_list.begin(); iter_cl!=c_list.end(); ++iter_cl)
@@ -794,9 +754,13 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 				c_fill_list = iter_hash.first->second.first; c_fill_list.push_back(RT);	
 				c_fill_list.unique(); //It might be the case, that we have several votes for the same RT and MZ by different
 				//charges => unique the list.
-				for (iter_cl = c_list.begin(), iter_cl_hash = iter_hash.first->second.second.begin(); iter_cl != c_list.end(); 
-					++iter_cl, ++iter_cl_hash)
-						*iter_cl += *iter_cl_hash;
+				for (iter_cl = c_list.begin(), iter_cl_hash = iter_hash.first->second.second.begin(); 
+							iter_cl != c_list.end(); 
+							++iter_cl, ++iter_cl_hash)
+				{
+					*iter_cl += *iter_cl_hash;
+				}
+								
 				hash_.erase (iter_hash.first);
 			  c_pair = DoubleList (c_fill_list, c_list);
 				goto FINISH;
@@ -822,7 +786,7 @@ void IsotopeFinder<MapType>::identifyCharge (const std::vector<DPeakArray<1, DRa
 
 
 template <typename MapType>
-double IsotopeFinder<MapType>::getMean (const DPeakArray<1, DRawDataPoint<2> >& signal,
+double IsotopeFinder<MapType>::getMean (const DPeakArray<1, DRawDataPoint<1> >& signal,
 	const unsigned int startIndex, const unsigned int endIndex) const throw ()
 {
 	double res=0;
@@ -834,7 +798,7 @@ double IsotopeFinder<MapType>::getMean (const DPeakArray<1, DRawDataPoint<2> >& 
 
 				
 template <typename MapType>
-double IsotopeFinder<MapType>::getAbsMean (const DPeakArray<1, DRawDataPoint<2> >& signal,
+double IsotopeFinder<MapType>::getAbsMean (const DPeakArray<1, DRawDataPoint<1> >& signal,
 	const unsigned int startIndex, const unsigned int endIndex) const throw ()
 {
 	double res=0;
@@ -846,7 +810,7 @@ double IsotopeFinder<MapType>::getAbsMean (const DPeakArray<1, DRawDataPoint<2> 
 
 
 template <typename MapType>
-double IsotopeFinder<MapType>::getUpShiftedMoment (const DPeakArray<1, DRawDataPoint<2> >& signal,
+double IsotopeFinder<MapType>::getUpShiftedMoment (const DPeakArray<1, DRawDataPoint<1> >& signal,
 	const unsigned int moment, const unsigned int startIndex, const unsigned int endIndex) throw ()
 {
 	double tmp=0, min=INT_MAX; 
@@ -891,24 +855,24 @@ double IsotopeFinder<MapType>::getUpShiftedMoment (const DPeakArray<1, DRawDataP
 }
 
 
-template <typename MapType>
-double IsotopeFinder<MapType>::getSd (const DPeakArray<1, DRawDataPoint<2> >& signal, const double mean, 
-	const unsigned int startIndex, const unsigned int endIndex) const throw ()
-{
-	double res=0;
-	for (unsigned int i=startIndex; i<endIndex; ++i)
-		res += (signal[i].getIntensity()-mean)*(signal[i].getIntensity()-mean);
-
-	return (sqrt(res/(double)(endIndex-startIndex)));	
-}
+// template <typename MapType>
+// double IsotopeFinder<MapType>::getSd (const DPeakArray<1, DRawDataPoint<2> >& signal, const double mean, 
+// 	const unsigned int startIndex, const unsigned int endIndex) const throw ()
+// {
+// 	double res=0;
+// 	for (unsigned int i=startIndex; i<endIndex; ++i)
+// 		res += (signal[i].getIntensity()-mean)*(signal[i].getIntensity()-mean);
+// 
+// 	return (sqrt(res/(double)(endIndex-startIndex)));	
+// }
 
 
 template <typename MapType>
 void IsotopeFinder<MapType>::fastMultiCorrelate 
-	(const DPeakArray<1, DRawDataPoint<2> >& signal, const std::list<unsigned int>& charges, 
-	 std::vector<DPeakArray<1, DRawDataPoint<2> > >* pwts, std::vector<double>* wt_thresholds) throw ()
+	(const DPeakArray<1, DRawDataPoint<1> >& signal, const std::list<unsigned int>& charges, 
+	 std::vector<DPeakArray<1, DRawDataPoint<1> > >* pwts, std::vector<double>* wt_thresholds) throw ()
 {					
-	std::vector<DPeakArray<1, DRawDataPoint<2> > >* res = pwts;
+	std::vector<DPeakArray<1, DRawDataPoint<1> > >* res = pwts;
 	unsigned int signal_size = signal.size();
 	
 	WaveletCollection phis (charges.size(), std::vector<double> (waveletLength_)); //all necessary wavelets (by rows)
@@ -929,8 +893,9 @@ void IsotopeFinder<MapType>::fastMultiCorrelate
 		//Now, let's sample the wavelets
 		for (charge_iter=charges.begin(), k=0; charge_iter!=charges.end(); ++charge_iter, ++k)
 		{
-			cumSpacing=0; w_sum=0; w_s_sum=0;				
+			cumSpacing=0; w_sum=0; w_s_sum=0;			
 			realMass = signal[i].getPos() * (*charge_iter);
+// 			std::cout << "realMass: " << realMass << std::endl;
 			lambda = getLambda (realMass); //Lambda determines the distribution (the shape) of the wavelet
 			//integration = phiRawInt (lambda, 1.0/(double)(*charge_iter));
 			//std::cout << "Exact: " << integration << "\t" << lambda << "\t" << 1.0/(double)(*charge_iter) << std::endl;
@@ -942,6 +907,7 @@ void IsotopeFinder<MapType>::fastMultiCorrelate
 			while (cumSpacing < max_w_monoi_intens)
 			{
 				cSpacing = signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
+// 			std::cout << "cSpacing " << cSpacing << std::endl;
 			 	last=cumSpacing;	
 				if (cSpacing < 0)
 					cumSpacing += avMZSpacing_;
@@ -1010,8 +976,11 @@ void IsotopeFinder<MapType>::fastMultiCorrelate
 
 		//Store the current convolution result
 		for (unsigned int m=0; m<charges.size(); ++m)
+		{
+// 			std::cout << "Wavelet transformed data: " << sums[m] << std::endl;
 			(*res)[m][i].setIntensity(sums[m]);
-
+		}
+			
 		if (formzs == tmpMzsToGnuFiles.end())
 			continue;
 		
@@ -1035,39 +1004,72 @@ void IsotopeFinder<MapType>::fastMultiCorrelate
 	std::list<unsigned int>::iterator iterf;	
 	std::list<WaveletCollection>::iterator iterbp;
 
-	for (unsigned int m=0; m<charges.size(); ++m)
-	{
-		for (formzs=mzsToGnuFiles_.begin(), iterf=formzs_indices.begin(), iterbp=back_phis.begin(); 
-			formzs != mzsToGnuFiles_.end(); ++formzs, ++iterf, ++iterbp)		
-			createGNUplot (*iterf, *formzs, m+1, &signal, &((*iterbp)[m]), &(*res)[m]);
-	}
+// 	for (unsigned int m=0; m<charges.size(); ++m)
+// 	{
+// 		for (formzs=mzsToGnuFiles_.begin(), iterf=formzs_indices.begin(), iterbp=back_phis.begin(); 
+// 			formzs != mzsToGnuFiles_.end(); ++formzs, ++iterf, ++iterbp)		
+// 			createGNUplot (*iterf, *formzs, m+1, &signal, &((*iterbp)[m]), &(*res)[m]);
+// 	}
 }
 
 
 template <typename MapType>
-double IsotopeFinder<MapType>::averageMZSpacing (const DPeakArray<1, DRawDataPoint<2> >& signal) 
-	const throw ()
+void IsotopeFinder<MapType>::computeSpacings_() throw ()
 {
-	double MZspacing=0, avMZspacing=0, leftOuts=0;
-	for (unsigned int i=0; i<signal.size()-1; ++i)
-	{			
-		MZspacing = signal[i+1].getPosition().Y() - signal[i].getPosition().Y();
-		if (signal[i+1].getPosition().X() != signal[i].getPosition().X()) //i.e. a new scan begins
-		{
-			++leftOuts;
-			continue;			
-		}
-		avMZspacing += MZspacing;
-	}
-	avMZspacing /= (double)(signal.size()-leftOuts-1); //-1, since there are n data points and hence n-1 spacings
+		double MZspacing_sum =0; /*MZspacing=0, last_rt = -1;	*/ 
+		double RTspacing_sum =0, /*avRTspacing=0,*/ rt_counts=0;
 		
-	return (avMZspacing);		
+		typename MapType::PIterator piter = experiment_.peakBegin();
+		double last_mz = piter->getPosition()[0];
+		double last_rt   = piter.getRt();
+		++piter;
+		
+		for (;	piter != experiment_.peakEnd(); ++piter)
+		{					
+			av_intens_ += piter->getIntensity();
+					
+			if (piter.getRt() != last_rt) //i.e. a new scan begins
+			{
+				RTspacing_sum += (piter.getRt() - last_rt);			
+				last_rt   = piter.getRt();				
+				++rt_counts;
+				last_mz = piter->getPosition()[0];
+				continue;			
+			}
+			
+			double current_spacing = (piter->getPosition()[0] - last_mz);
+			
+			if (fabs(current_spacing) < min_spacing_)
+				min_spacing_ = current_spacing;	
+			
+			if (fabs(current_spacing) > max_spacing_)
+				max_spacing_ = current_spacing;
+			
+			MZspacing_sum += current_spacing;
+			last_mz = piter->getPosition()[0];
+	}
+	// compute average spacing of points in m/z
+	avMZSpacing_ = (MZspacing_sum / (double)(experiment_.getSize()-rt_counts-1)); //-1, since there are n data points and hence n-1 spacings
+	
+	// compute average spacing of points in rt
+	if (rt_counts == 0)
+	{
+		avRTSpacing_ = 1;
+	}
+	else
+	{
+		avRTSpacing_ = (RTspacing_sum / rt_counts);
+	}
+	
+	// average intensity
+	av_intens_ /= (double) (experiment_.getSize() - 1);
+	
+	return;
 }
 
-
+/*
 template <typename MapType>
-double IsotopeFinder<MapType>::averageRTSpacing (const DPeakArray<1, DRawDataPoint<2> >& signal) 
-	const throw ()
+double IsotopeFinder<MapType>::averageRTSpacing () const throw ()
 {
 	double RTspacing=0, avRTspacing=0, counts=0;
 	for (unsigned int i=0; i<signal.size()-1; ++i)
@@ -1086,11 +1088,11 @@ double IsotopeFinder<MapType>::averageRTSpacing (const DPeakArray<1, DRawDataPoi
 	avRTspacing /= counts;		
 
 	return (avRTspacing);		
-}
+}*/
 
 				
 template <typename MapType>
-double IsotopeFinder<MapType>::getAbsSd (const DPeakArray<1, DRawDataPoint<2> >& signal, const double mean,
+double IsotopeFinder<MapType>::getAbsSd (const DPeakArray<1, DRawDataPoint<1> >& signal, const double mean,
   const unsigned int startIndex, const unsigned int endIndex) const throw ()
 {
   double res=0, tmp;
@@ -1183,53 +1185,53 @@ void IsotopeFinder<MapType>::prepareGNUplotFiles (const std::string& file) throw
 }
 
 
-template <typename MapType>
-void IsotopeFinder<MapType>::createGNUplot (unsigned int alignedTo, double mz, unsigned int charge,  
-	const DPeakArray<1, DRawDataPoint<2> >* signal, std::vector<double>* wavelet, 
-	DPeakArray<1, DRawDataPoint<2> >* transform) throw ()
-{
-	std::ofstream ofile;
-	
-	if (signal != NULL)
-	{
-		std::stringstream str;
-		str << "s" << mz << ".wt" << '\0';
-		ofile.open (str.str().c_str());
-		DPeakArray<1, DRawDataPoint<2> >::const_iterator iter;
-		for (iter = signal->begin(); iter != signal->end(); ++iter)
-				ofile << iter->getPos() << "\t" << iter->getIntensity() << std::endl;
-		ofile.close();
-	}
-	
-	if (wavelet != NULL)	
-	{
-		unsigned int i=0;
-		std::stringstream str;
-
-		str << "w" << mz << "_" << charge << ".wt" << '\0';
-		ofile.open (str.str().c_str());
-		std::vector<double>::iterator iter;
-		std::cout << "alignedTo " << alignedTo << "\t" << "mz " << mz << std::endl;
-		for (iter = wavelet->begin(), i=alignedTo; iter != wavelet->end(); ++iter, ++i)
-			ofile << (*signal)[i].getPos() << "\t" << *iter << std::endl;
-		ofile.close();
-		str.clear();
-	}	
-	
-	if (transform != NULL)				
-	{	
-		std::stringstream str;
-		str << "t" << mz << "_" << charge << ".wt" << '\0';
-		ofile.open (str.str().c_str());
-		DPeakArray<1, DRawDataPoint<2> >::iterator iter;
-		for (iter = transform->begin(); iter != transform->end(); ++iter)
-			ofile << iter->getPos() << "\t" << iter->getIntensity() << std::endl;
-		ofile.close();
-		str.clear();
-	}
-	
-	++writtenGnuFiles_;
-}
+// template <typename MapType>
+// void IsotopeFinder<MapType>::createGNUplot (unsigned int alignedTo, double mz, unsigned int charge,  
+// 	const DPeakArray<1, DRawDataPoint<1> >* signal, std::vector<double>* wavelet, 
+// 	DPeakArray<1, DRawDataPoint<2> >* transform) throw ()
+// {
+// 	std::ofstream ofile;
+// 	
+// 	if (signal != NULL)
+// 	{
+// 		std::stringstream str;
+// 		str << "s" << mz << ".wt" << '\0';
+// 		ofile.open (str.str().c_str());
+// 		DPeakArray<1, DRawDataPoint<1> >::const_iterator iter;
+// 		for (iter = signal->begin(); iter != signal->end(); ++iter)
+// 				ofile << iter->getPos() << "\t" << iter->getIntensity() << std::endl;
+// 		ofile.close();
+// 	}
+// 	
+// 	if (wavelet != NULL)	
+// 	{
+// 		unsigned int i=0;
+// 		std::stringstream str;
+// 
+// 		str << "w" << mz << "_" << charge << ".wt" << '\0';
+// 		ofile.open (str.str().c_str());
+// 		std::vector<double>::iterator iter;
+// 		std::cout << "alignedTo " << alignedTo << "\t" << "mz " << mz << std::endl;
+// 		for (iter = wavelet->begin(), i=alignedTo; iter != wavelet->end(); ++iter, ++i)
+// 			ofile << (*signal)[i].getPos() << "\t" << *iter << std::endl;
+// 		ofile.close();
+// 		str.clear();
+// 	}	
+// 	
+// 	if (transform != NULL)				
+// 	{	
+// 		std::stringstream str;
+// 		str << "t" << mz << "_" << charge << ".wt" << '\0';
+// 		ofile.open (str.str().c_str());
+// 		DPeakArray<1, DRawDataPoint<2> >::iterator iter;
+// 		for (iter = transform->begin(); iter != transform->end(); ++iter)
+// 			ofile << iter->getPos() << "\t" << iter->getIntensity() << std::endl;
+// 		ofile.close();
+// 		str.clear();
+// 	}
+// 	
+// 	++writtenGnuFiles_;
+// }
 
 
 

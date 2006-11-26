@@ -47,7 +47,7 @@ namespace OpenMS
 	WaveletSeeder::~WaveletSeeder(){}
 	
 
-  Index WaveletSeeder::nextSeed() throw (NoSuccessor)
+  IndexSet WaveletSeeder::nextSeed() throw (NoSuccessor)
 	{
 // 		if (!is_initialized_) 
 // 		{
@@ -119,7 +119,7 @@ namespace OpenMS
 // 				PeakIterator scan_end   = scan_index_[current_scan+1];				
 // 					
 // 				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
-// 				int peak_index = (insert_iter - traits_->Data().PeakBegin());		
+// 				int peak_index = (insert_iter - exp.peakBegin());		
 // 	
 // // 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
 // 				
@@ -184,7 +184,10 @@ namespace OpenMS
 // 	traits_->getPeakFlag(max_index) = FeaFiTraits::SEED;
 // 	
 // 	return max_index;
-		return 1;
+
+		IndexSet bla;
+		bla.add(1);
+		return bla;
 }
 
 

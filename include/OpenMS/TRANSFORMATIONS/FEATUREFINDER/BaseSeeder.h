@@ -28,6 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
@@ -61,7 +62,7 @@ namespace OpenMS
     static void registerChildren();
 
     /// return next seed 
-    virtual Index nextSeed() throw (NoSuccessor)=0;
+    virtual IndexSet nextSeed() throw (NoSuccessor)=0;
 
     
   };

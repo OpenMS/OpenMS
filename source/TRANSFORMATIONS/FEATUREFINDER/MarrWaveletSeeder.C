@@ -76,7 +76,7 @@ MarrWaveletSeeder::MarrWaveletSeeder()
 MarrWaveletSeeder::~MarrWaveletSeeder()
 {}
 
-Index MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
+IndexSet MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
 {
     if (!is_initialized_)
         sweep_();
@@ -86,31 +86,31 @@ Index MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
     if ( curr_region_ == iso_map_.end() || iso_map_.size() == 0 )
         throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, 1);
 
-    std::vector<UnsignedInt> next_region = (*curr_region_).second.peaks_;
+    IndexSet next_region = (*curr_region_).second.peaks_;
     ++curr_region_;
 
     // find maximum intensity in the decteted region
-    UnsignedInt max_index           = 0;
-    CoordinateType max_intensity = 0.0;
+//     UnsignedInt max_index           = 0;
+//     CoordinateType max_intensity = 0.0;
+// 
+//     // find maximum of region
+//     for (std::vector<UnsignedInt>::const_iterator citer = next_region.begin();
+//             citer != next_region.end();
+//             ++citer)
+//     {
+//         if (traits_->getPeakIntensity(*citer) > max_intensity)
+//         {
+//             max_index = *citer;
+//             max_intensity = traits_->getPeakIntensity(*citer);
+//         }
+// 
+//     } // end of for (Index in region)
+//     traits_->getPeakFlag(max_index) = FeaFiTraits::SEED;
+// 
+//     std::cout << "Found seed with intensity " << traits_->getPeakIntensity(max_index) ;
+//     std::cout << " at (" << traits_->getPeakRt(max_index) << "," << traits_->getPeakMz(max_index) << ")" << std::endl;
 
-    // find maximum of region
-    for (std::vector<UnsignedInt>::const_iterator citer = next_region.begin();
-            citer != next_region.end();
-            ++citer)
-    {
-        if (traits_->getPeakIntensity(*citer) > max_intensity)
-        {
-            max_index = *citer;
-            max_intensity = traits_->getPeakIntensity(*citer);
-        }
-
-    } // end of for (Index in region)
-    traits_->getPeakFlag(max_index) = FeaFiTraits::SEED;
-
-    std::cout << "Found seed with intensity " << traits_->getPeakIntensity(max_index) ;
-    std::cout << " at (" << traits_->getPeakRt(max_index) << "," << traits_->getPeakMz(max_index) << ")" << std::endl;
-
-    return max_index;
+    return next_region;
 
 }
 
@@ -176,7 +176,7 @@ void MarrWaveletSeeder::sweep_()
 				#endif
 
         // align and sum
-        sumUp_(current_scan,currscan_index,current_rt);
+        sumUp_(current_scan,currscan_index);
 
         // compute cwt for this scan, use spacing of 0.0001
         // TODO: estimate spacing for this scan.
@@ -309,8 +309,7 @@ void MarrWaveletSeeder::sweep_()
                 {
                     if ( (ind-p) > 0 && traits_->getPeakFlag( current_offset + (ind-p) ) == FeaFiTraits::UNUSED)
                     {
-                        iso_map_[mz_in_hash].peaks_.push_back( current_offset + ind-p );
-                        //                             traits_->getPeakFlag(ind-p) = FeaFiTraits::INSIDE_FEATURE;
+                        iso_map_[mz_in_hash].peaks_.add( current_offset + ind-p );
                     }
                 }
 //                 std::cout << "Storing m/z " << mz_in_hash << std::endl;
@@ -321,20 +320,17 @@ void MarrWaveletSeeder::sweep_()
                 {
                     for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                     {
-                        iso_map_[mz_in_hash].peaks_.push_back( current_offset + v );
-                        //                             traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+                        iso_map_[mz_in_hash].peaks_.add( current_offset + v );
                     }
                 }
 
-                iso_map_[mz_in_hash].peaks_.push_back( current_offset + local_maxima[z] );
-                //                     traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
+                iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );
 
-                //                     iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
+                //	iso_curr_scan.push_back(traits_->getPeakMz( local_maxima[z] ));
                 iso_curr_scan.push_back( current_scan[ local_maxima[z] ].getPos() );
 
                 // check distance to next peak
-                if ( (z+1) >= nr_maxima)
-                    break;
+                if ( (z+1) >= nr_maxima) break;
 
                 dist2nextpeak = ( current_scan[ local_maxima[z+1] ].getPos()  -   current_scan[ local_maxima[z] ].getPos() );
 
@@ -346,17 +342,14 @@ void MarrWaveletSeeder::sweep_()
                     {
                         for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                         {
-                            iso_map_[mz_in_hash].peaks_.push_back( current_offset + v );
-                            //                                 traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+                            iso_map_[mz_in_hash].peaks_.add( current_offset + v );
                         }
                     }
-                    iso_map_[mz_in_hash].peaks_.push_back( current_offset + local_maxima[z] );
-                    //                         traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
+                    iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );
                     continue;
                 }
 
-                if ( (z+1) >= nr_maxima)
-                    break;
+                if ( (z+1) >= nr_maxima) break;
 
                 CoordinateType monoiso_mass = current_scan[ local_maxima[z+1] ].getPos();
                 CoordinateType mass_diff         = 0.0;
@@ -367,8 +360,7 @@ void MarrWaveletSeeder::sweep_()
                         mass_diff < 6 &&
                         traits_->getPeakFlag(local_maxima[z]) == FeaFiTraits::UNUSED)
                 {
-                    iso_map_[mz_in_hash].peaks_.push_back( current_offset + local_maxima[z] );				// save peak in cluster
-                    //                         traits_->getPeakFlag(local_maxima[z]) = FeaFiTraits::INSIDE_FEATURE;
+                    iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );				// save peak in cluster
                     ++z;
 
                     // between two local maxima in the cwt there might be several raw data points
@@ -376,8 +368,7 @@ void MarrWaveletSeeder::sweep_()
                     {
                         for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                         {
-                            iso_map_[mz_in_hash].peaks_.push_back( current_offset + v );
-                            //                                 traits_->getPeakFlag(v) = FeaFiTraits::INSIDE_FEATURE;
+                            iso_map_[mz_in_hash].peaks_.add( current_offset + v );
                         }
                     }
 
@@ -405,13 +396,13 @@ void MarrWaveletSeeder::sweep_()
 
                 iso_map_[this_mass].charge_  = 1;
                 iso_map_[this_mass].scans_.push_back( current_rt );
-                iso_map_[this_mass].peaks_.push_back(current_offset + this_peak);
+                iso_map_[this_mass].peaks_.add(current_offset + this_peak);
 
                 // walk to the left
                 while ( fabs(next_mass - this_mass) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak > 0)
                 {
                     --this_peak;
-                    iso_map_[this_mass].peaks_.push_back(current_offset + this_peak);
+                    iso_map_[this_mass].peaks_.add(current_offset + this_peak);
 
                     next_mass     = current_scan[ this_peak ].getPos();  /*traits_->getPeakMz(this_peak);*/
                     next_intensity = current_scan[ this_peak ].getIntensity();
@@ -424,7 +415,7 @@ void MarrWaveletSeeder::sweep_()
                 while ( fabs(next_mass - this_mass) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak < nr_peaks)
                 {
                     ++this_peak;
-                    iso_map_[this_mass].peaks_.push_back(this_peak);
+                    iso_map_[this_mass].peaks_.add(this_peak);
 
                     next_mass     = current_scan[ this_peak ].getPos();  /*traits_->getPeakMz(this_peak);*/
                     next_intensity = current_scan[ this_peak ].getIntensity();
@@ -528,7 +519,7 @@ void MarrWaveletSeeder::getMaxPositions_( RawDataPointIterator first, RawDataPoi
 
 }
 
-void MarrWaveletSeeder::sumUp_(ContainerType& scan, UnsignedInt& current_scan_index, CoordinateType& current_rt)
+void MarrWaveletSeeder::sumUp_(ContainerType& scan, UnsignedInt& current_scan_index)
 {
     UnsignedInt scans_to_collect = param_.getValue("scans_to_sumup");
     ContainerType ascan;
@@ -552,17 +543,6 @@ void MarrWaveletSeeder::sumUp_(ContainerType& scan, UnsignedInt& current_scan_in
         ascan = traits_->getData()[i].getContainer();
         AlignAndSum_(scan,ascan);
     }
-
-#ifdef DEBUG_FEATUREFINDER
-    // write scan to file
-    // 	String fname = "scan_summed_" + String(current_rt);
-    // 	std::ofstream outfile( fname.c_str() );
-    //   for (unsigned int i=0;i<scan.size(); ++i)
-    //   {
-    //   	outfile << scan[i].getPosition()[0] << "  " << scan[i].getIntensity() << std::endl;
-    //   }
-    //   outfile.close();
-#endif
 
 }
 
@@ -647,6 +627,6 @@ UnsignedInt MarrWaveletSeeder::testDistance2NextPeak_(CoordinateType dist2nextpe
 
     return 0;
 
-}
+} // end of testDistance2NextPeak_
 
-}
+} // end of namespace OpenMS

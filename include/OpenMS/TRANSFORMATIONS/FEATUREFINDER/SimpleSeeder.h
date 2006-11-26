@@ -108,7 +108,7 @@ namespace OpenMS
     virtual ~SimpleSeeder();
 
     /// return next seed 
-    Index nextSeed() throw (NoSuccessor);
+    IndexSet nextSeed() throw (NoSuccessor);
 
     static BaseSeeder* create()
     {

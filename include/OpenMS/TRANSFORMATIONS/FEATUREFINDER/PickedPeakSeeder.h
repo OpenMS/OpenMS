@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- C++: make; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,56 +21,44 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SWEEPEXTENDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SWEEPEXTENDER_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
+#include<OpenMS/SYSTEM/StopWatch.h>
 
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include <vector>
-#include <map>
 #include <algorithm>
+#include <vector>
 #include <iostream>
-#include <cmath>
- 
-#include <fstream>
-#include<sstream>
 
 namespace OpenMS
 {
 
-/**
-  @brief Implements the extension phase of the FeatureFinder.
-  
-  This extender module sweeps through the scans and classifies cluster 
-  of peaks as candidate peptides if the distance between successive peaks 
-  is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3).
-  
-  @NOTE This module works only for picked peaks. Used it in combination with class DummySeeder.
-  
-  @NOTE Experiments have shown that this extender produces a lot of false positive hits. It would be
-  better to take also the relaitive intensities between the peaks into consideration and to check if these
-  a similar to an isotopic pattern.
+/** @brief Seeding class
+
+		This extender module sweeps through the scans and classifies cluster 
+ 		of peaks as candidate peptides if the distance between successive peaks 
+ 		is 1 Da (charge 1) , 0.5 Da (charge 2) or 0.3 Da (charge 3) etc.
  
-  @ingroup FeatureFinder
+ 		@NOTE This module works only for picked peaks. Used it in combination with class DummySeeder.
+ 
+ 		@NOTE Experiments have shown that this extender produces a lot of false positive hits. It would be
+ 		better to take also the relaitive intensities between the peaks into consideration and to check if these
+ 		a similar to an isotopic pattern.
+  			
+		@ingroup FeatureFinder
 	
- */
-class SweepExtender
-            : public BaseExtender
+*/
+class PickedPeakSeeder
+            : public BaseSeeder
 {
-
-public:
-
     typedef FeaFiTraits::IntensityType IntensityType;
     typedef FeaFiTraits::CoordinateType CoordinateType;
     typedef KernelTraits::ProbabilityType ProbabilityType;
@@ -81,65 +69,63 @@ public:
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
+public:
     /// standard constructor
-    SweepExtender();
+    PickedPeakSeeder();
 
     /// destructor
-    virtual ~SweepExtender();
+    virtual ~PickedPeakSeeder();
 
     /// return next seed
-    const IndexSet& extend(const UnsignedInt seed);
+    IndexSet nextSeed() throw (NoSuccessor);
 
-    /// returns an instance of this class
-    static BaseExtender* create()
+    static BaseSeeder* create()
     {
-        return new SweepExtender();
+        return new PickedPeakSeeder();
     }
 
-    /// returns the name of this module
     static const String getName()
     {
-        return "SweepExtender";
+        return "PickedPeakSeeder";
     }
 
     /// stores information about an isotopic cluser (i.e. potential peptide charge variant)
     struct IsotopeCluster
     {
         IsotopeCluster()
-          : charge_(0), peaks_(), scans_()
+                : charge_(0), peaks_(), scans_()
         {}
-     
+
         // predicted charge state of this peptide
         UnsignedInt charge_;
         // peaks in this cluster
-        std::vector< UnsignedInt > peaks_;
+        IndexSet peaks_;
         // the scans of this cluster
         std::vector<CoordinateType> scans_;
     };
-
 
 protected:
 
     /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
     std::vector<double>::iterator searchInScan_(std::vector<CoordinateType>::iterator scan_begin,
-            																std::vector<CoordinateType>::iterator scan_end ,
-            																double current_mz)
+            std::vector<CoordinateType>::iterator scan_end ,
+            double current_mz)
     {
 
         // perform binary search to find the neighbour in rt dimension
-		// 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
+        // 	lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
         std::vector<CoordinateType>::iterator insert_iter = lower_bound(scan_begin,scan_end,current_mz);
 
-		// the peak found by lower_bound does not have to be the closest one, therefore we have
-		// to check both neighbours
-	    if ( insert_iter == scan_end ) // we are at the and have only one choice
+        // the peak found by lower_bound does not have to be the closest one, therefore we have
+        // to check both neighbours
+        if ( insert_iter == scan_end ) // we are at the and have only one choice
         {
             return --insert_iter;
         }
         else
         {
-			// if the found peak is at the beginning of the spectrum,
-			// there is not much we can do.
+            // if the found peak is at the beginning of the spectrum,
+            // there is not much we can do.
             if ( insert_iter == scan_begin )
             {
                 return insert_iter;
@@ -159,11 +145,11 @@ protected:
                 }
             }
         }
-		
+
     } // end of searchInScan_
-	
-	/// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
-	UnsignedInt testDistance2NextPeak_(CoordinateType dist2nextpeak);
+
+    /// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)
+    UnsignedInt testDistance2NextPeak_(CoordinateType dist2nextpeak);
 
     /// Sweeps through scans and detects isotopic patterns
     void sweep_();
@@ -176,32 +162,32 @@ protected:
 
     /// indicates whether the extender has been initialized
     bool is_initialized_;
-	
-	/// upper bound for distance between charge 1 peaks
-	CoordinateType charge1_ub_;
-	/// lower bound for distance between charge 1 peaks
-	CoordinateType charge1_lb_;
-	
-	/// upper bound for distance between charge 2 peaks
-	CoordinateType charge2_ub_;
-	/// lower bound for distance between charge 2 peaks
-	CoordinateType charge2_lb_;	
-	
-	/// upper bound for distance between charge 3 peaks
-	CoordinateType charge3_ub_;
-	/// lower bound for distance between charge 3 peaks
-	CoordinateType charge3_lb_;	
-	
-	/// upper bound for distance between charge 4 peaks
-	CoordinateType charge4_ub_;
-	/// lower bound for distance between charge 4 peaks
-	CoordinateType charge4_lb_;	
-	
-	/// upper bound for distance between charge 5 peaks
-	CoordinateType charge5_ub_;
-	/// lower bound for distance between charge 5 peaks
-	CoordinateType charge5_lb_;	
-}; // end of class SweepExtender
 
-} // end of namespace OpenMS
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SWEEPEXTENDER_H
+    /// upper bound for distance between charge 1 peaks
+    CoordinateType charge1_ub_;
+    /// lower bound for distance between charge 1 peaks
+    CoordinateType charge1_lb_;
+
+    /// upper bound for distance between charge 2 peaks
+    CoordinateType charge2_ub_;
+    /// lower bound for distance between charge 2 peaks
+    CoordinateType charge2_lb_;
+
+    /// upper bound for distance between charge 3 peaks
+    CoordinateType charge3_ub_;
+    /// lower bound for distance between charge 3 peaks
+    CoordinateType charge3_lb_;
+
+    /// upper bound for distance between charge 4 peaks
+    CoordinateType charge4_ub_;
+    /// lower bound for distance between charge 4 peaks
+    CoordinateType charge4_lb_;
+
+    /// upper bound for distance between charge 5 peaks
+    CoordinateType charge5_ub_;
+    /// lower bound for distance between charge 5 peaks
+    CoordinateType charge5_lb_;
+
+};
+}
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PICKEDPEAKSEEDER_H
