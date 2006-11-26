@@ -53,6 +53,7 @@ ifeq ($(ENABLE_GUI),true)
   	SpectrumGenerator.C\
 		ClusterExperimentXMLHandler.C
 endif
+		
 
 CPP_SOURCES = \
 	$(DB_SOURCES)
