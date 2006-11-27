@@ -68,7 +68,7 @@ namespace OpenMS
     static PreprocessingFunctor* create() { return new ParentPeakMower(); }
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 			typedef typename SpectrumType::Iterator Iterator;
@@ -108,6 +108,10 @@ namespace OpenMS
       	}
     	}	while (it != spectrum.begin());
 		}
+
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+		void filterPeakMap(PeakMap& exp);
 
 		///
 		static const String getName()

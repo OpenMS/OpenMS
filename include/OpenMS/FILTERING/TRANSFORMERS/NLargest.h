@@ -80,7 +80,7 @@ namespace OpenMS
 		}
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			// sort by intensity (sorts from lower to higher)
 			spectrum.getContainer().sortByIntensity();
@@ -98,6 +98,10 @@ namespace OpenMS
 			}
 	
 		}
+
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+		void filterPeakMap(PeakMap& exp);
 		// @}
 	
   };

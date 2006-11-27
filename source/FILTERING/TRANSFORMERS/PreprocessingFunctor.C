@@ -44,7 +44,6 @@ namespace OpenMS
   PreprocessingFunctor::PreprocessingFunctor()
     : FactoryProduct()
   {
-		name_ = PreprocessingFunctor::getName();
   }
 
   PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
@@ -53,17 +52,21 @@ namespace OpenMS
 		name_ = source.getName();
   }
 
+	PreprocessingFunctor::~PreprocessingFunctor()
+	{
+	}
+	
 	void PreprocessingFunctor::registerChildren()
 	{
-    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getName(),&ThresholdMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getName(),&WindowMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Scaler::getName(),&Scaler::create);
-    Factory<PreprocessingFunctor>::registerProduct(NLargest::getName(),&NLargest::create);
-    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getName(),&BernNorm::create);
-    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getName(),&MarkerMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getName(),&SqrtMower::create);
-    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getName(),&Normalizer::create);
-    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getName(),&ParentPeakMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(ThresholdMower::getName(), &ThresholdMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(WindowMower::getName(), &WindowMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Scaler::getName(), &Scaler::create);
+    Factory<PreprocessingFunctor>::registerProduct(NLargest::getName(), &NLargest::create);
+    Factory<PreprocessingFunctor>::registerProduct(BernNorm::getName(), &BernNorm::create);
+    Factory<PreprocessingFunctor>::registerProduct(MarkerMower::getName(), &MarkerMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(SqrtMower::getName(), &SqrtMower::create);
+    Factory<PreprocessingFunctor>::registerProduct(Normalizer::getName(), &Normalizer::create);
+    Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getName(), &ParentPeakMower::create);
 	}
 	
   PreprocessingFunctor& PreprocessingFunctor::operator=(const PreprocessingFunctor& source)

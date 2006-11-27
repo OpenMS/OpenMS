@@ -82,7 +82,7 @@ namespace OpenMS
 		}
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
@@ -128,6 +128,10 @@ namespace OpenMS
       	it->setIntensity(it->getIntensity()/max[pos]);
     	}*/
 		}
+
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+    void filterPeakMap(PeakMap& exp);
 		// @}
 
   };

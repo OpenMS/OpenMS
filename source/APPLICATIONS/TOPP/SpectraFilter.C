@@ -25,21 +25,16 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/Scaler.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+
+#include <typeinfo>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,6 +51,9 @@ using namespace std;
 		<LI> SqrtMower -- set each intensity to the square root of the original intensity
 		<LI> ThresholdMower -- removes peaks lower than a threshold intensity
 		<LI> WindowMower -- keeps the biggest peaks in a sliding window
+		<LI> Normalizer -- Normalizes the peaks in the spectrum with different modes
+		<LI> Scaler -- Scales the peaks according to their rank
+		<LI> BernNorm -- Does the Bern et al. normalization
 	</UL>
 	
 	@ingroup TOPP
@@ -66,140 +64,56 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPSpectraFilter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPSpectraFilter()
-			: TOPPBase("SpectraFilter")
+			: TOPPBase2("SpectraFilter", "can apply several spectra filters to the spectra")
 		{
 		}
 	
 	protected:
-		void printToolUsage_() const
+
+		void registerOptionsAndFlags_()
 		{
-			cerr  << endl
-						<< getToolName() << " -- applies different spectrum modification filters to the data." << endl
-						<< "Version: " << VersionInfo::getVersion() << endl
-						<< endl
-						<< "Usage:" << endl
-						<< " " << getToolName() << " [options]" << endl
-						<< endl
-						<< "Options are:" << endl
-						<< "  -in <file>                   input mzData file name" << endl
-						<< "  -out <file>                  output mzData file name" << endl
-						<< "  -rt [min]:[max]              retention time range to extract" << endl
-						<< "  -filters <name>[,<name>,...] filters to apply (see --help-opt for complete list)" << endl;
+			registerStringOption_("in", "<file>", "", "input file in MzData format");
+			registerStringOption_("out", "<file>", "", "output file in MzData format");
+			registerStringOption_("filters", "<filter1>[,<filter2>]", "NLargest, Scaler, BernNorm, ParentPeakMower, Normalizer, SqrtMower, ThresholdMower, WindowMower", "filter to be applied");
+
 		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in        input mzData file name" << endl
-					 << "  out       output mzData file name" << endl
-					 << "  rt        retention time range to extract" << endl
-					 << "  filters   possible spectra filters are: " << endl
-					 << "            - NLargest, keeps the n most intensive peaks of each spectrum" << endl
-					 << "            - Normalizer, normalizes the intensity" << endl
-					 << "            - BernNorm, normalizes due to method of Bern et. al" << endl
-					 << "            - ParentPeakMower, reduces the intensity of the parent peak" << endl
-					 << "            - Scaler, scales the intensities" << endl
-					 << "            - SqrtMower, set each intensity to the square root of the original intensity" << endl
-					 << "            - ThresholdMower, removes peaks lower than a threshold intensity" << endl
-					 << "            - WindowMower, keeps the biggest peaks in a sliding window" << endl
-					 << "            to specify options of the filters (different from the defaults) a TOPP.ini" << endl
-					 << "            file should be created with a section with special options for each filter" << endl
-					 << "            (see TOPP ini for an example file). For the list of options see the " << endl
-					 << "            documentation of the filters." << endl
-					 << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"rt\" value=\":100\" type=\"string\"/>" << endl;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-out"] = "out";
-			options_["-in"] = "in";
-			options_["-rt"] = "rt";
-			// filters to apply 
-			options_["-filters"] = "filters";
-		}
-	
+		
 		ExitCodes main_(int , char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			//input file names and types
-			String in = getParamAsString_("in");			
-			writeDebug_(String("Input file: ") + in, 1);
-	
-			//output file names and types
-			String out = getParamAsString_("out");
-			writeDebug_(String("Output file: ") + out, 1);
-
-			//ranges
-			String mz, rt, it, tmp;
-			double rt_l, rt_u;
-			
-			//initialize ranges
-			rt_l = -1 * numeric_limits<double>::max();
-			rt_u = numeric_limits<double>::max();
-			
-			//determine rt bounds
-			rt = getParamAsString_("rt",":");
-			writeDebug_(String("rt bounds: ") + rt,2);	
-			
-			//convert bounds to numbers
-			try
-			{
-				//rt
-				tmp = rt.prefix(':');
-				if (tmp!="")
-				{
-					rt_l = tmp.toDouble();
-				}
-				tmp = rt.suffix(':');
-				if (tmp!="")
-				{
-					rt_u = tmp.toDouble();
-				}
-				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
-			}
-			catch(Exception::ConversionError& e)
-			{
-				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;			
-			}
-		
+			//input/output files
+			String in(getStringOption_("in"));
+			String out(getStringOption_("out"));
+						
 			// get the filternames
 			vector<String> filter_names;
-			String filter_command = getParamAsString_("filters");
+			String filter_command = getStringOption_("filters");
 			filter_command.split(',', filter_names);
 			if (filter_names.size() == 0)
 			{
 				filter_names.push_back(filter_command);
 			}
 
-			Factory<FilterFunctor>* cluster_factory = Factory<FilterFunctor>::instance();
+			Factory<PreprocessingFunctor>* factory = Factory<PreprocessingFunctor>::instance();
 
 			// get the FilterFunctor pointers from the names
-			vector<FilterFunctor*> functors;
+			vector<PreprocessingFunctor*> functors;
 			for (vector<String>::const_iterator it = filter_names.begin(); it != filter_names.end(); ++it)
 			{
 				try 
 				{
-					functors.push_back(cluster_factory->create(*it));
+					functors.push_back(factory->create(*it));
 				}
 				catch (Exception::Base& e)
 				{
-					writeLog_("Unkown filter: " + *it);
+					writeLog_("Unkown filter: '" + *it + "'");
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
@@ -211,161 +125,22 @@ class TOPPSpectraFilter
 
       MSExperiment<> exp;
       MzDataFile f;
-      f.load(in,exp);
+      f.load(in, exp);
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-
-			RTRange<MSExperiment< >::SpectrumType> rt_predicate(rt_l, rt_u, false);
-
+			
 			// for every filter
-			for (vector<FilterFunctor*>::const_iterator it = functors.begin(); it != functors.end(); ++it)
+			for (vector<PreprocessingFunctor*>::iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				String ini_location = getIniLocation() + "filters:";
-				Param filter_param = getParamCopy_(ini_location + (*it)->getName() + ":");
+				Param filter_param = getParamCopy_(getIniLocation_()+(*it)->getName()+":");
 				writeDebug_("Used filter parameters", filter_param, 3);
-				
-				(*it)->getParam().insert("", filter_param);
-				for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-				{
-					(*it)->apply(*sit);
-				}
+				writeDebug_("Applying filter: " +  (*it)->getName(), 1);
+				(*it)->setParam(filter_param);
+				(*it)->filterPeakMap(exp);
 			}
 
-			/*
-				
-				String filter_name = (*it)->getName();
-				if (filter_name == "NLargest")
-				{
-					NLargest filter;
-					filter.getParam().insert("", filter_param);
-
-					// apply to every spectrum in the mzdata file
-					for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-					{
-						if (rt_predicate(*sit))
-						{
-							filter.apply(*sit);
-						}
-					}
-					continue;
-				}
-
-				if (filter_name == "Normalizer")
-				{
-					Normalizer filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-				if (filter_name == "BernNorm")
-				{
-					BernNorm filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-				if (filter_name == "ParentPeakMower")
-				{
-					ParentPeakMower filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-				if (filter_name == "Scaler")
-				{
-					Scaler filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-				
-				if (filter_name == "SqrtMower")
-				{
-					SqrtMower filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-				if (filter_name == "ThresholdMower")
-				{
-					ThresholdMower filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-				if (filter_name == "WindowMower")
-				{
-					WindowMower filter;
-					filter.getParam().insert("", filter_param);
-
-          // apply to every spectrum in the mzdata file
-          for (MSExperiment< >::iterator sit = exp.begin(); sit != exp.end(); ++sit)
-          {
-            if (rt_predicate(*sit))
-            {
-              filter.apply(*sit);
-            }
-          }
-					continue;
-				}
-
-			}
-*/		
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------

@@ -32,7 +32,7 @@ namespace OpenMS
   Scaler::Scaler()
     : PreprocessingFunctor()
   {
-		name_ = PreprocessingFunctor::getName();
+		name_ = Scaler::getName();
   }
 
   Scaler::Scaler(const Scaler& source)
@@ -50,34 +50,17 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  void Scaler::operator()(MSSpectrum< DPeak<1> >& spec) const
+  void Scaler::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
-    map<double,int> peakssorted;
-    int count = 0;
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end();++it )
-    {
-      peakssorted[it->getIntensity()] = 0;
-      ++count;
-    } 
-    for(map<double,int>::reverse_iterator rmit = peakssorted.rbegin(); rmit != peakssorted.rend(); ++rmit)
-    {
-      if ( --count > 0 ) peakssorted[rmit->first] = count;
-    }
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); )
-    {
-      double newIntensity = peakssorted[it->getIntensity()];
-      if (newIntensity > 0 )
-      {
-        it->getIntensity() = peakssorted[it->getIntensity()];
-        ++it;
-      }
-      else 
-      {
-        it = spec.getContainer().erase(it);
-      }
-    }                                                
+    filterSpectrum(spectrum);
   }
-	*/
+
+  void Scaler::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
 
 }

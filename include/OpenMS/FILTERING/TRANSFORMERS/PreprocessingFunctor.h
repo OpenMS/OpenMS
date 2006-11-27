@@ -28,6 +28,7 @@
 #define OPENMS_FILTERING_TRANSFORMERS_PREPROCESSINGFUNCTOR_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -56,15 +57,22 @@ namespace OpenMS
     PreprocessingFunctor(const PreprocessingFunctor& source);
 		
     /// destructor
-    virtual ~PreprocessingFunctor() {}
+    virtual ~PreprocessingFunctor();
 		
     /// assignment operator
     PreprocessingFunctor& operator = (const PreprocessingFunctor& source);
 
 		static void registerChildren();
 		
-		/// interface definition of the functor classes
-		template <typename SpectrumType> void apply(SpectrumType& /* spectrum */) {}
+		/// this is just an interface method, it must be implemented in the derived classes
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& /* spectrum */) = 0;
+
+		/// filters an MSSpectrum, this method should be overwritten in the derived classes
+		virtual void filterPeakSpectrum(PeakSpectrum& spectrum) = 0;
+
+		/// filters an MSExperiment, this method should be overwritten in the derived classes
+		virtual void filterPeakMap(PeakMap& exp) = 0;
+
 	};
 
 }

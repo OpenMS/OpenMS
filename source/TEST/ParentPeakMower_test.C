@@ -59,7 +59,7 @@ CHECK(ParentPeakMower(const ParentPeakMower& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
@@ -69,7 +69,7 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_REAL_EQUAL((spec.begin()+40)->getIntensity(), 37.5)
 
 	e_ptr->getParam().setValue("windowsize", 200);
-	e_ptr->apply(spec);
+	e_ptr->filterSpectrum(spec);
 	
 	TEST_REAL_EQUAL((spec.begin()+40)->getIntensity(), 4.40909)
 	

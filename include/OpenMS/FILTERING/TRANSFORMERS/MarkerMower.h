@@ -68,7 +68,7 @@ namespace OpenMS
     static PreprocessingFunctor* create() { return new MarkerMower(); }
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 		
@@ -99,6 +99,10 @@ namespace OpenMS
 			}
 		}
 
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+		void filterPeakMap(PeakMap& exp);
+		
 		static const String getName()
 		{
 			return "MowerMarker";

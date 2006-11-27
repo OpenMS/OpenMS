@@ -63,6 +63,20 @@ namespace OpenMS
     return *this;
   }
 
+  void MarkerMower::filterPeakSpectrum(PeakSpectrum& spectrum)
+  {
+    filterSpectrum(spectrum);
+  }
+
+  void MarkerMower::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+
+	
 /*
   void MarkerMower::operator()(MSSpectrum< DPeak<1> >& spec) const
   {

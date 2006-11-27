@@ -60,14 +60,14 @@ CHECK(SqrtMower(const SqrtMower& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
 	
 	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
-	e_ptr->apply(spec);
+	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 

@@ -75,9 +75,6 @@ namespace OpenMS
     /// assignment operator
     CompareFunctor& operator = (const CompareFunctor& source);
 
-		/// @todo needed for factory ?
-		/// static void registerChildren();
-
     /// function call operator, calculates the similarity
     virtual double operator () (const ClusterSpectrum&, const ClusterSpectrum&) const { return 0; }
 
@@ -90,6 +87,7 @@ namespace OpenMS
     /// returns type of compared spectrum representation
     bool usebins() const { return usebins_; }
 
+		/// registers all derived products 
 		static void registerChildren();
 
   protected:

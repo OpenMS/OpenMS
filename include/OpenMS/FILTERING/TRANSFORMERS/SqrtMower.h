@@ -62,10 +62,10 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static PreprocessingFunctor* create() { return new SqrtMower();}
+    static PreprocessingFunctor* create() { return new SqrtMower(); }
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
@@ -74,6 +74,10 @@ namespace OpenMS
 			}
 			return;
 		}
+
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+		void filterPeakMap(PeakMap& exp);
 
 		///
 		static const String getName()

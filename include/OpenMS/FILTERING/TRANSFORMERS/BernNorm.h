@@ -57,7 +57,7 @@ namespace OpenMS
     BernNorm(const BernNorm& source);
 
     /// destructor
-    ~BernNorm();
+    virtual ~BernNorm();
 		//@}
 	
 		// @name Operators
@@ -69,10 +69,10 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static PreprocessingFunctor* create() { return new BernNorm();}
+    static PreprocessingFunctor* create() { return new BernNorm(); }
 
 		///
-		template <typename SpectrumType> void apply(SpectrumType& spectrum)
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
@@ -128,6 +128,10 @@ namespace OpenMS
 			return;
 		}
 
+		void filterPeakSpectrum(PeakSpectrum& spectrum);
+
+		void filterPeakMap(PeakMap& exp);
+		
 		///
 		static const String getName()
 		{

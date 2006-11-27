@@ -64,35 +64,19 @@ namespace OpenMS
     PreprocessingFunctor::operator=(source);
     return *this;
   }
-/*
-  void NLargest::operator()(MSSpectrum< DPeak<1> >& spec) const
+
+  void NLargest::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
-    // sort
-    map<double,int> peakssorted;
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end();++it )
-    {
-      peakssorted[it->getIntensity()] = 0;
-    } 
-    
-    // rank
-    int count = (int)param_.getValue("n");
-    for(map<double,int>::reverse_iterator rmit = peakssorted.rbegin(); rmit != peakssorted.rend(); ++rmit)
-    {
-      if ( --count > 0 ) peakssorted[rmit->first] = count;
-      else break;
-    }
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); )
-    {
-      double rank = peakssorted[it->getIntensity()];
-      if (rank > 0 )
-      {
-        ++it;
-      }
-      else 
-      {
-        it = spec.getContainer().erase(it);
-      }
-    }                                                
+    filterSpectrum(spectrum);
   }
-*/
+
+  void NLargest::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+
+
 }

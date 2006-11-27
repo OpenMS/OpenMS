@@ -190,7 +190,7 @@ namespace OpenMS
   {
     for (vector<PreprocessingFunctor*>::const_iterator it = preprocess_queue_.begin(); it != preprocess_queue_.end(); ++it)
     {
-      (**it).apply(spec);
+      (**it).filterPeakSpectrum(spec);
     }
   }
 

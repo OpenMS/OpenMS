@@ -57,57 +57,16 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  void BernNorm::operator()(MSSpectrum< DPeak<1> >& spec) const
-  {
-    double c1 = (double)param_.getValue("C1");
-    double c2 = (double)param_.getValue("C2");
-    double treshold = (double)param_.getValue("threshold");
+	void BernNorm::filterPeakSpectrum(PeakSpectrum& spectrum)
+	{
+		filterSpectrum(spectrum);
+	}
 
-    spec.getContainer().sortByPosition();
-
-    // find highest peak and ranking
-    double maxint = 0;
-    map<double,uint> peakranks;
-    for ( MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); ++it )
-    {
-      peakranks[it->getIntensity()] = 0;
-      if ( it->getIntensity() > maxint )
-      {
-        maxint = it->getIntensity();
-      }
-    }
-    uint rank = 0;
-    for ( map<double,uint>::reverse_iterator mit = peakranks.rbegin(); mit != peakranks.rend(); ++mit )
-    {
-      mit->second = ++rank;
-    }
-
-    // find maxmz i.e. significant ( > threshold * maxpeak ) peak with highest m/z
-    double maxmz = 0;
-    for ( int i = spec.size() -1 ; i >= 0 ; --i )
-    {
-      if ( spec.getContainer()[i].getIntensity() > maxint * treshold )
-      {
-        maxmz = spec.getContainer()[i].getPosition()[0];
-        break;
-      }
-    }
-
-    // rank
-    for ( MSSpectrum< DPeak<1> >::iterator it = spec.begin() ; it != spec.end(); )
-    {
-      double newint = c1-(c2/maxmz)*peakranks[it->getIntensity()];
-      if ( newint < 0 )
-      {
-        it = spec.getContainer().erase(it);
-      }
-      else
-      {
-        it->getIntensity() = newint;
-        ++it;
-      }
-    }
-  }
-*/
+	void BernNorm::filterPeakMap(PeakMap& exp)
+	{
+		for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+		{
+			filterSpectrum(*it);
+		}
+	}
 }

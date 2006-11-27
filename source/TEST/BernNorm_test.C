@@ -59,19 +59,19 @@ CHECK(BernNorm(const BernNorm& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
 
 	TEST_EQUAL(spec.size(), 121)
 
-	e_ptr->apply(spec);
+	e_ptr->filterSpectrum(spec);
 	
 	TEST_EQUAL(spec.size(), 121)
 
 	e_ptr->getParam().setValue("C2", 2000.0);
-	e_ptr->apply(spec);
+	e_ptr->filterSpectrum(spec);
 
 	TEST_EQUAL(spec.size(), 28)
 

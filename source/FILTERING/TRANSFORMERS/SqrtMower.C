@@ -26,8 +26,6 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS
@@ -52,5 +50,18 @@ namespace OpenMS
   SqrtMower::~SqrtMower()
   {
   }
-
+	
+	void SqrtMower::filterPeakSpectrum(PeakSpectrum& spectrum)
+  {
+    filterSpectrum(spectrum);
+  }
+	
+  void SqrtMower::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+	
 }

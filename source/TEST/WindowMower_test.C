@@ -59,7 +59,7 @@ CHECK(WindowMower(const WindowMower& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/spectrum.dta", spec);
@@ -68,7 +68,7 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	e_ptr->getParam().setValue("windowsize", 50); // default
 	e_ptr->getParam().setValue("peakcount", 2);
 	
-	e_ptr->apply(spec);
+	e_ptr->filterSpectrum(spec);
 	
 	TEST_EQUAL(spec.size(), 58)
 	

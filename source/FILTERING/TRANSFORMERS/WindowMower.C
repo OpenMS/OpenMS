@@ -53,4 +53,17 @@ namespace OpenMS
   {
   }
 
+  void WindowMower::filterPeakSpectrum(PeakSpectrum& spectrum)
+  {
+    filterSpectrum(spectrum);
+  }
+
+  void WindowMower::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+
 }

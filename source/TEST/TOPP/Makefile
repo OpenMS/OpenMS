@@ -470,8 +470,16 @@ SequestAdapter_test: $(NUMERICDIFF)
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
-	@$(ECHO) "	... todo ..."
-
+	@$(ECHO) "- Test 1: -filter SqrtMower"
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -filters SqrtMower)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_1_output.mzData,SpectraFilter_1_output.mzData.tmp)
+	@$(ECHO) "- Test 2: -filter WindowMower"
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData,SpectraFilter_2_output.mzData.tmp)
+	@$(ECHO) "- Test 3: -filter ThresholdMower,SqrtMower -ini SpectraFilter_3_parameters.ini"
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini SpectraFilter_3_parameters.ini -filters SqrtMower)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
+	
 
 UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""

@@ -55,37 +55,17 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  void ParentPeakMower::operator()(MSSpectrum< DPeak<1> >& spec) const
+	void ParentPeakMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
-    double window = (double)param_.getValue("windowsize");
-    double mean = 0;
-    
-    spec.getContainer().sortByPosition();
-    
-    //calculate mean
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end(); ++it)
-    {
-      mean += it->getIntensity();
-    }
-    mean /= spec.size();
-    
-    // assumed position of precursorpeak
-    double pppos = spec.getPrecursorPeak().getPosition()[0] / spec.getPrecursorPeak().getCharge();
-    MSSpectrum< DPeak<1> >::iterator it = spec.end();
-    if ( it == spec.begin() ) return;
-    do
-    {
-      --it;
-      if (it->getPosition()[0] <= pppos + window && it->getPosition()[0] >= pppos - window)
-      {
-        if( it->getIntensity() > mean ) it->setIntensity(mean);
-      }
-      else if (it->getPosition()[0] < pppos - window)
-      {
-        break;
-      }
-    }while (it != spec.begin());
+    filterSpectrum(spectrum);
   }
-*/
+
+  void ParentPeakMower::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+
 }

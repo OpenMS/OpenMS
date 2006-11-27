@@ -55,29 +55,17 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  void Normalizer::operator()(MSSpectrum< DPeak<1> >& spec) const
+  void Normalizer::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
-    vector<double> max = vector<double>((unsigned int)param_.getValue("windows"));
-    double minmz = 10000;
-    double maxmz = 0;
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end();++it )
+    filterSpectrum(spectrum);
+  }
+
+  void Normalizer::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if ( it->getPosition()[0] < minmz ) minmz = it->getPosition()[0];
-      else if ( it->getPosition()[0] > maxmz ) maxmz = it->getPosition()[0];
-    }
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end();++it )
-    {
-      uint pos = (uint) ( ( it->getPosition()[0] - minmz ) / ( maxmz - minmz ) *  max.size() );
-      if ( pos == max.size() ) --pos;
-      if ( max.at(pos) < it->getIntensity() ) max.at(pos) = it->getIntensity(); 
-    }
-    for (MSSpectrum< DPeak<1> >::iterator it = spec.begin(); it != spec.end();++it )
-    {
-      uint pos = (uint) ( ( it->getPosition()[0] - minmz ) / ( maxmz - minmz ) * max.size() );
-      if ( pos == max.size() ) --pos;
-      it->setIntensity(it->getIntensity()/max[pos]);
+      filterSpectrum(*it);
     }
   }
-*/
+
 }

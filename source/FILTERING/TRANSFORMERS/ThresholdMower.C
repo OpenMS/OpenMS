@@ -53,4 +53,17 @@ namespace OpenMS
     return *this;
   }
 
+  void ThresholdMower::filterPeakSpectrum(PeakSpectrum& spectrum)
+  {
+    filterSpectrum(spectrum);
+  }
+
+  void ThresholdMower::filterPeakMap(PeakMap& exp)
+  {
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      filterSpectrum(*it);
+    }
+  }
+
 }
