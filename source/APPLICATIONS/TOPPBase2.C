@@ -268,7 +268,7 @@ namespace OpenMS
 	       << "Usage:" << endl
 				 << "  " << tool_name_ << " <options>" << endl
 				 << endl
-				 << "Options (madatory options marked with '*'):" << endl;
+				 << "Options (mandatory options marked with '*'):" << endl;
 		
 		//determine max length of parameters (including argument) for indentation
 		string::size_type max_size = 0;
