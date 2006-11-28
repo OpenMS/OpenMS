@@ -27,7 +27,7 @@
 #ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 
-#include <OpenMS/CHEMISTRY/PeptideSequence.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -63,14 +63,14 @@ namespace OpenMS
 			TheoreticalSpectrumGenerator operator = (const TheoreticalSpectrumGenerator& tsg);
 
 			/// returns a spectrum with b and y peaks
-			PeakSpectrum getSpectrum(const PeptideSequence& peptide);
+			PeakSpectrum getSpectrum(const AASequence& peptide);
 
 			/// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-			void addPeaks(PeakSpectrum& spectrum, const PeptideSequence& peptide,
+			void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide,
 														Residue::ResidueType res_type, SignedInt charge = 1, double intensity = 1);
 
 			/// returns a vector with sequences of the ions
-			std::vector<PeptideSequence> getIons() const;
+			std::vector<AASequence> getIons() const;
 
 			/// returns true if loss peak adding is enabled 
 			bool getAddLosses() const;
@@ -106,7 +106,7 @@ namespace OpenMS
 
 			UnsignedInt max_isotope_;
 
-			std::vector<PeptideSequence> ions_;
+			std::vector<AASequence> ions_;
 	};
 }
 

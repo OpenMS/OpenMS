@@ -257,7 +257,7 @@ EXECUTABLES_CHEMISTRY = \
 	EmpiricalFormula_test\
 	Residue_test\
 	ResidueDB_test\
-	PeptideSequence_test\
+	AASequence_test\
 	EnzymaticDigestion_test
 
 #ANALYSIS

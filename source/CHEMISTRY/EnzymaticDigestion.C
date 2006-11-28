@@ -61,7 +61,7 @@ namespace OpenMS
 		if (enzyme < SIZE_OF_ENZYMES) enzyme_ = enzyme;
 	}
 
-	void EnzymaticDigestion::nextCleavageSite_(const PeptideSequence& protein, PeptideSequence::ConstIterator& iterator)
+	void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator)
 	{
 		//cout << "nextCleavageSite_" << endl;
 		switch (enzyme_)
@@ -84,10 +84,10 @@ namespace OpenMS
 		};
 	}
 	
-	UnsignedInt EnzymaticDigestion::peptideCount(const PeptideSequence& protein)
+	UnsignedInt EnzymaticDigestion::peptideCount(const AASequence& protein)
 	{
 		UnsignedInt count = 1;
-		PeptideSequence::ConstIterator iterator = protein.begin();
+		AASequence::ConstIterator iterator = protein.begin();
 		while(nextCleavageSite_(protein,iterator), iterator != protein.end())
 		{
 			++count;
@@ -103,26 +103,26 @@ namespace OpenMS
 		return sum;
 	}
 
-	void EnzymaticDigestion::digest(const PeptideSequence& protein, std::vector<PeptideSequence>& output)
+	void EnzymaticDigestion::digest(const AASequence& protein, std::vector<AASequence>& output)
 	{
 		//initialization
 		UnsignedInt count = 1;
 		output.clear();
 		
 		//missed cleavage iterators
-		vector<PeptideSequence::ConstIterator> mc_iterators;
+		vector<AASequence::ConstIterator> mc_iterators;
 		if (missed_cleavages_ != 0) mc_iterators.push_back(protein.begin());
 		
-		PeptideSequence::ConstIterator begin = protein.begin();
-		PeptideSequence::ConstIterator end = protein.begin();
+		AASequence::ConstIterator begin = protein.begin();
+		AASequence::ConstIterator end = protein.begin();
 		while(nextCleavageSite_(protein,end), end != protein.end())
 		{
 			++count;
 			if (missed_cleavages_ != 0) mc_iterators.push_back(end);
-			output.push_back(PeptideSequence(begin,end));
+			output.push_back(AASequence(begin,end));
 			begin = end;
 		}
-		output.push_back(PeptideSequence(begin,end));
+		output.push_back(AASequence(begin,end));
 		if (missed_cleavages_ != 0) mc_iterators.push_back(end);
 		
 		//missed cleavages
@@ -141,11 +141,11 @@ namespace OpenMS
 			UnsignedInt pos = count;
 			for (UnsignedInt i=1 ; ((i<=missed_cleavages_) && (count > i)) ; ++i)
 			{
-				vector<PeptideSequence::ConstIterator>::const_iterator b = mc_iterators.begin();
-				vector<PeptideSequence::ConstIterator>::const_iterator e = b+(i+1);
+				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();
+				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);
 				while (e != mc_iterators.end())
 				{
-					output[pos] = PeptideSequence(*b,*e);
+					output[pos] = AASequence(*b,*e);
 					++b;
 					++e;
 					++pos;

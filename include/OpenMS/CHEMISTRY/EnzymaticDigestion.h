@@ -28,7 +28,7 @@
 #define OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/PeptideSequence.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <string>
 #include <vector>
@@ -69,10 +69,10 @@ namespace OpenMS
 			void setEnzyme(Enzyme enzyme);		
 
 			/// Performs the enzymatic digestion of a protein.
-			void digest(const PeptideSequence& protein, std::vector<PeptideSequence>& output);
+			void digest(const AASequence& protein, std::vector<AASequence>& output);
 			
 			/// Returns the number of peptides a digestion of @p protein would yield.
-			UnsignedInt peptideCount(const PeptideSequence& protein);
+			UnsignedInt peptideCount(const AASequence& protein);
 			
 		protected:
 			/// Number of missed cleavages
@@ -81,7 +81,7 @@ namespace OpenMS
 			Enzyme enzyme_;
 			
 			///moves the iterator @p it after the next cleavage site of the @p sequence
-			void nextCleavageSite_(const PeptideSequence& sequence, PeptideSequence::ConstIterator& iterator);
+			void nextCleavageSite_(const AASequence& sequence, AASequence::ConstIterator& iterator);
 	};
 
 } // namespace OpenMS

@@ -74,7 +74,7 @@ namespace OpenMS
     ostringstream ss;
     double mass_cutoff = (double)param_.getValue("mass_cutoff");
     uint resolution = (unsigned int)param_.getValue("resolution");
-    ROCCurve roc; 
+    Math::ROCCurve roc; 
     map<int,vector<double> > autocorr;
     // todo tmp
     map<int,vector<ClusterSpectrum>* > clusters;

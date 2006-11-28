@@ -29,7 +29,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/PeptideSequence.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -41,31 +41,31 @@ START_TEST(ResidueDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PeptideSequence* p_ptr = 0;
-CHECK(PeptideSequence())
-	p_ptr = new PeptideSequence;
+AASequence* p_ptr = 0;
+CHECK(AASequence())
+	p_ptr = new AASequence;
 	TEST_NOT_EQUAL(p_ptr, 0)
 RESULT
 
-CHECK(~PeptideSequence())
+CHECK(~AASequence())
 	delete p_ptr;
 RESULT
 
 CHECK(operator +)
-	PeptideSequence seq1("AAACCC");
-	PeptideSequence seq2("AAADDD");
+	AASequence seq1("AAACCC");
+	AASequence seq2("AAADDD");
 	TEST_EQUAL(seq1+seq2 == "AAACCCAAADDD", true)
 	TEST_EQUAL(seq1+seq2 != "AAACCCAAADDD", false)
 	TEST_EQUAL(seq1+seq2 == "AAA", false)
-	PeptideSequence seq3("AlaAlaAlaAspAspAsp");
+	AASequence seq3("AlaAlaAlaAspAspAsp");
 	TEST_EQUAL(seq2 == seq3, true)
 	TEST_EQUAL(seq1.hasPrefix("Ala"), true)
 	TEST_EQUAL(seq1.hasSubsequence("Ala"), true)
-	TEST_EXCEPTION(Exception::ParseError, PeptideSequence("BZ"))
-	TEST_EXCEPTION(Exception::ParseError, PeptideSequence("M(Ox"))
-	TEST_EXCEPTION(Exception::ParseError, PeptideSequence("A(Ox)"))
-	PeptideSequence seq4("M(Ox)MM");
-	TEST_EQUAL(seq4.hasPrefix(PeptideSequence("M(Ox)")), true)
+	TEST_EXCEPTION(Exception::ParseError, AASequence("BZ"))
+	TEST_EXCEPTION(Exception::ParseError, AASequence("M(Ox"))
+	TEST_EXCEPTION(Exception::ParseError, AASequence("A(Ox)"))
+	AASequence seq4("M(Ox)MM");
+	TEST_EQUAL(seq4.hasPrefix(AASequence("M(Ox)")), true)
 	
 	TEST_EQUAL(seq1.getSuffix(3) == "CCC", true)
 	TEST_EQUAL(seq1.getPrefix(3) == "AAA", true)

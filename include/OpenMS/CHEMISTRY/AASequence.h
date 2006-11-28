@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PEPTIDESEQUENCE_H
-#define OPENMS_CHEMISTRY_PEPTIDESEQUENCE_H
+#ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
+#define OPENMS_CHEMISTRY_AASEQUENCE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -42,13 +42,11 @@ namespace OpenMS
 	class Residue;
 
 	/** 
-		@brief Representation of a peptide
-		
-		@todo rename to AASequence (Andreas)
+		@brief Representation of a peptide/protein sequence
 		
 		@ingroup Chemistry
 	*/
-	class PeptideSequence
+	class AASequence
 	{
 		public:
 			
@@ -65,22 +63,22 @@ namespace OpenMS
 			*/
 			//@{
 			/// default constructor
-			PeptideSequence();
+			AASequence();
 	
 			/// copy constructor
-			PeptideSequence(const PeptideSequence&);
+			AASequence(const AASequence&);
 
 			/// copy constructor from a String
-			PeptideSequence(const String&) throw(Exception::ParseError);
+			AASequence(const String&) throw(Exception::ParseError);
 
 			/// constructor with given residue db pointer
-			PeptideSequence(ResidueDB* res_db);
+			AASequence(ResidueDB* res_db);
 			
 			/// constructor with given a residue range
-			PeptideSequence(ConstIterator begin, ConstIterator end);
+			AASequence(ConstIterator begin, ConstIterator end);
 			
 			/// destructor
-			virtual ~PeptideSequence();
+			virtual ~AASequence();
 			//@}
 
 			/** @name Accessors
@@ -111,16 +109,16 @@ namespace OpenMS
 			const Residue* operator [] (UnsignedInt index) const throw(Exception::IndexOverflow);
 			
 			/// adds the residues of the peptide
-			PeptideSequence operator + (const PeptideSequence& peptide) const;
+			AASequence operator + (const AASequence& peptide) const;
 
 			/// adds the residues of the peptide, which is given as a string
-			PeptideSequence operator + (const String& peptide) const throw(Exception::ParseError);
+			AASequence operator + (const String& peptide) const throw(Exception::ParseError);
 
 			/// adds the residues of a peptide
-			PeptideSequence& operator += (const PeptideSequence&);
+			AASequence& operator += (const AASequence&);
 
 			/// adds the residues of a peptide, which is given as a string
-			PeptideSequence& operator += (const String&) throw(Exception::ParseError);
+			AASequence& operator += (const String&) throw(Exception::ParseError);
 
 			/** sets the residue db from an residue db; ATTENTION this affects all instances!
 			 * 	calling with no argument resets to the default residues db usage
@@ -131,13 +129,13 @@ namespace OpenMS
 			Size size() const;
 
 			/// returns a peptide sequence of the first index residues
-			PeptideSequence getPrefix(Size index) const throw(Exception::IndexOverflow);
+			AASequence getPrefix(Size index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of the last index residues
-			PeptideSequence getSuffix(Size index) const throw(Exception::IndexOverflow);
+			AASequence getSuffix(Size index) const throw(Exception::IndexOverflow);
 
 			/// returns a peptide sequence of number residues, beginning at position index
-			PeptideSequence getSubsequence(Size index, Size number) const throw(Exception::IndexOverflow);
+			AASequence getSubsequence(Size index, Size number) const throw(Exception::IndexOverflow);
 			//@}
 
 			/** @name Predicates
@@ -150,31 +148,31 @@ namespace OpenMS
 			bool has(const String& name) const;
 			
 			/// returns true if the peptide contains the given peptide
-			bool hasSubsequence(const PeptideSequence& peptide) const;
+			bool hasSubsequence(const AASequence& peptide) const;
 
 			// returns true if the peptide contains the given peptide
 			bool hasSubsequence(const String& peptide) const throw(Exception::ParseError);
 			
 			/// returns true if the peptide has the given prefix
-			bool hasPrefix(const PeptideSequence& peptide) const;
+			bool hasPrefix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given prefix
 			bool hasPrefix(const String& peptide) const throw(Exception::ParseError);
 
 			/// returns true if the peptide has the given suffix
-			bool hasSuffix(const PeptideSequence& peptide) const;
+			bool hasSuffix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given suffix
 			bool hasSuffix(const String& peptide) const throw(Exception::ParseError);
 
 			/// equality operator
-			bool operator == (const PeptideSequence&) const;
+			bool operator == (const AASequence&) const;
 
 			/// equality operator given the peptide as a string
 			bool operator == (const String&) const throw(Exception::ParseError);
 
 			/// inequality operator 
-			bool operator != (const PeptideSequence&) const;
+			bool operator != (const AASequence&) const;
 
 			/// inequality operator given the peptide as a string
 			bool operator != (const String&) const throw(Exception::ParseError);
@@ -193,10 +191,10 @@ namespace OpenMS
 			//@}
 			
 			/// writes a peptide to an output stream
-			friend std::ostream& operator << (std::ostream& os, const PeptideSequence& peptide);
+			friend std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 			
 			/// reads a peptide from an input stream
-			friend std::istream& operator >> (std::istream& is, const PeptideSequence& peptide);
+			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
 			
 		protected:
 	
@@ -210,9 +208,9 @@ namespace OpenMS
 
 	};			
 
-	std::ostream& operator << (std::ostream& os, const PeptideSequence& peptide);
+	std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 
-	std::istream& operator >> (std::istream& os, const PeptideSequence& peptide);
+	std::istream& operator >> (std::istream& os, const AASequence& peptide);
 	
 } // namespace OpenMS
 

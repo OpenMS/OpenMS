@@ -47,6 +47,7 @@ START_TEST(ROCCurve, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
+using namespace OpenMS::Math;
 
 ROCCurve* rcp;
 

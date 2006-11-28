@@ -54,7 +54,7 @@ namespace OpenMS
 	{
 	}
 
-	PeakSpectrum TheoreticalSpectrumGenerator::getSpectrum(const PeptideSequence& peptide)
+	PeakSpectrum TheoreticalSpectrumGenerator::getSpectrum(const AASequence& peptide)
 	{
 		ions_.clear();
 		PeakSpectrum spec;
@@ -63,12 +63,12 @@ namespace OpenMS
 		return spec;
 	}
 
-	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const PeptideSequence& peptide,
+	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const AASequence& peptide,
 																							Residue::ResidueType res_type, SignedInt charge, double intensity)
 	{
 		DPeak<1> p;
 		//p.setCharge(charge);
-		HashMap<float, PeptideSequence> ions;
+		HashMap<float, AASequence> ions;
 		HashMap<float, String> names;
 		ions_.clear();
 		// generate the ion peaks
@@ -77,7 +77,7 @@ namespace OpenMS
 			case Residue::AIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion=peptide.getPrefix(i);
+					AASequence ion=peptide.getPrefix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::AIon, charge)/charge;
 					ions[pos] = ion;
@@ -87,7 +87,7 @@ namespace OpenMS
 			case Residue::BIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion=peptide.getPrefix(i);
+					AASequence ion=peptide.getPrefix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::BIon, charge)/charge;
 					ions[pos] = ion;
@@ -97,7 +97,7 @@ namespace OpenMS
 			case Residue::CIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion=peptide.getPrefix(i);
+					AASequence ion=peptide.getPrefix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::CIon, charge)/charge;
 					ions[pos] = ion;
@@ -107,7 +107,7 @@ namespace OpenMS
 			case Residue::XIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion=peptide.getSuffix(i);
+					AASequence ion=peptide.getSuffix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::XIon, charge)/charge;
 					ions[pos] = ion;
@@ -117,7 +117,7 @@ namespace OpenMS
 			case Residue::YIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion=peptide.getSuffix(i);
+					AASequence ion=peptide.getSuffix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::YIon, charge)/charge;
 					ions[pos] = ion;
@@ -127,7 +127,7 @@ namespace OpenMS
 			case Residue::ZIon:
 				for (Size i=1; i!=peptide.size(); ++i)
 				{
-					PeptideSequence ion = peptide.getSuffix(i);
+					AASequence ion = peptide.getSuffix(i);
 					ions_.push_back(ion);
 					float pos = ion.getMonoWeight(Residue::ZIon, charge)/charge;
 					ions[pos] = ion;
@@ -143,9 +143,9 @@ namespace OpenMS
 			p.setIntensity(intensity);
 		}
 
-		for (HashMap<float, PeptideSequence>::ConstIterator cit=ions.begin(); cit!=ions.end(); ++cit)
+		for (HashMap<float, AASequence>::ConstIterator cit=ions.begin(); cit!=ions.end(); ++cit)
 		{
-			PeptideSequence ion = cit->second;
+			AASequence ion = cit->second;
 			float pos = cit->first;
 			String ion_name = names[pos];
 			if (add_isotopes_)
@@ -217,7 +217,7 @@ namespace OpenMS
 		return;
 	}
 
-	vector<PeptideSequence> TheoreticalSpectrumGenerator::getIons() const
+	vector<AASequence> TheoreticalSpectrumGenerator::getIons() const
 	{
 		return ions_;
 	}

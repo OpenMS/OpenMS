@@ -21,9 +21,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer: Andreas Bertsch $
 # --------------------------------------------------------------------------
-#
 
 DIRECTORY=CHEMISTRY
 
@@ -38,7 +37,7 @@ ADD_CPP_SOURCES=\
 		EmpiricalFormula.C\
 		Residue.C\
 		ResidueDB.C\
-		PeptideSequence.C\
+		AASequence.C\
 		TheoreticalSpectrumGenerator.C\
 		EnzymaticDigestion.C
 

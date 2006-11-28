@@ -36,151 +36,154 @@ using namespace std;
 
 namespace OpenMS
 {
-  ROCCurve::ROCCurve()
-    : score_clas_pairs_(),pos_(0),neg_(0)
-  {
-  }
-
-  ROCCurve::~ROCCurve()
-  {
-  }
-
-  ROCCurve::ROCCurve( const ROCCurve& source )
-    : score_clas_pairs_(source.score_clas_pairs_),pos_(source.pos_), neg_(source.neg_)
-  {
-  }
-
-  ROCCurve& ROCCurve::operator=( const ROCCurve& source )
-  {
-    score_clas_pairs_ = source.score_clas_pairs_;
-    pos_ = source.pos_;
-    neg_ = source.neg_;
-    return *this;
-  }
-
-  /**
-  \param score classifier score
-  \param clas real type 
-  */
-  void ROCCurve::insertPair(double score, bool clas)
-  {
-    score_clas_pairs_.push_back(std::make_pair(score,clas));
-    if ( clas )
-    {
-      ++pos_;
-    }
-    else
-    {
-      ++neg_;
-    }
-  }
-
-  /**
-  needs CGAL
-  */
-  double ROCCurve::AUC()
-  {
-#ifdef OPENMS_HAS_CGAL
-    score_clas_pairs_.sort(simsortdec());
-    // value that is not in score_clas_pairs_
-    double prevsim = score_clas_pairs_.begin()->first + 1;
-    uint truePos = 0;
-    uint falsePos = 0;
-    Polygon polygon;
-    polygon.push_back(Point(0,0));
-    if ( !neg_ || !pos_ )
-    {
-      cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
-      return 0;
-    }
-    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
-    {
-      if ( fabs(cit->first - prevsim) > 1e-8 )
-      {
-        polygon.push_back(Point((double)falsePos/neg_,(double)truePos/pos_));
-      }
-      if ( cit->second )
-      {
-        ++truePos;
-      }
-      else
-      {
-        ++falsePos;
-      }
-    }
-    polygon.push_back(Point(1,1));
-    polygon.push_back(Point(1,0));
-    return -polygon.area();
-#else
-    cerr << "ROCCurve::AUC() requires CGAL\n";
-    return 0;
-#endif
-  }
-
-  std::vector<std::pair<double,double > > ROCCurve::curve(uint resolution)
-  {
-    score_clas_pairs_.sort(simsortdec());
-    vector<pair<double,double> > result;
-    uint position = 0;
-    uint truePos = 0;
-    uint falsePos = 0;
-    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
-    {
-      if ( cit->second )
-      {
-        ++truePos;
-      }
-      else
-      {
-        ++falsePos;
-      }
-      if ( ((double)++position/score_clas_pairs_.size())*resolution > result.size() )
-      {
-        result.push_back(make_pair((double)falsePos/neg_,(double)truePos/pos_));
-      }
-    }
-    return result;
-  }
-
-  /** 
-  \param fraction
-  \return cutoff for classifying <i>fraction</i> of the positives right <br> 
-  */
-  double ROCCurve::cutoffPos(double fraction)
-  {
-    score_clas_pairs_.sort(simsortdec());
-    uint truePos = 0;
-    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
-    {
-      if ( cit->second )
-      {
-        if ( (double)truePos++/pos_ > fraction )
-        {
-          return cit->first;
-        }
-      }
-    }
-    return -1;
-  }
-
-  /** 
-  \param fraction
-  \return cutoff for classifying <i>fraction</i> of the negatives right <br> 
-  */
-  double ROCCurve::cutoffNeg(double fraction)
-  {
-    score_clas_pairs_.sort(simsortdec());
-    uint trueNeg = 0;
-    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
-    {
-      if ( cit->second )
-      {
-        if ( (double)trueNeg++/neg_ > 1-fraction )
-        {
-          return cit->first;
-        }
-      }
-    }
-    return -1;
-  }
+	namespace Math
+	{
+	  ROCCurve::ROCCurve()
+	    : score_clas_pairs_(),pos_(0),neg_(0)
+	  {
+	  }
+	
+	  ROCCurve::~ROCCurve()
+	  {
+	  }
+	
+	  ROCCurve::ROCCurve( const ROCCurve& source )
+	    : score_clas_pairs_(source.score_clas_pairs_),pos_(source.pos_), neg_(source.neg_)
+	  {
+	  }
+	
+	  ROCCurve& ROCCurve::operator=( const ROCCurve& source )
+	  {
+	    score_clas_pairs_ = source.score_clas_pairs_;
+	    pos_ = source.pos_;
+	    neg_ = source.neg_;
+	    return *this;
+	  }
+	
+	  /**
+	  \param score classifier score
+	  \param clas real type 
+	  */
+	  void ROCCurve::insertPair(double score, bool clas)
+	  {
+	    score_clas_pairs_.push_back(std::make_pair(score,clas));
+	    if ( clas )
+	    {
+	      ++pos_;
+	    }
+	    else
+	    {
+	      ++neg_;
+	    }
+	  }
+	
+	  /**
+	  needs CGAL
+	  */
+	  double ROCCurve::AUC()
+	  {
+	#ifdef OPENMS_HAS_CGAL
+	    score_clas_pairs_.sort(simsortdec());
+	    // value that is not in score_clas_pairs_
+	    double prevsim = score_clas_pairs_.begin()->first + 1;
+	    uint truePos = 0;
+	    uint falsePos = 0;
+	    Polygon polygon;
+	    polygon.push_back(Point(0,0));
+	    if ( !neg_ || !pos_ )
+	    {
+	      cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
+	      return 0;
+	    }
+	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
+	    {
+	      if ( fabs(cit->first - prevsim) > 1e-8 )
+	      {
+	        polygon.push_back(Point((double)falsePos/neg_,(double)truePos/pos_));
+	      }
+	      if ( cit->second )
+	      {
+	        ++truePos;
+	      }
+	      else
+	      {
+	        ++falsePos;
+	      }
+	    }
+	    polygon.push_back(Point(1,1));
+	    polygon.push_back(Point(1,0));
+	    return -polygon.area();
+	#else
+	    cerr << "ROCCurve::AUC() requires CGAL\n";
+	    return 0;
+	#endif
+	  }
+	
+	  std::vector<std::pair<double,double > > ROCCurve::curve(uint resolution)
+	  {
+	    score_clas_pairs_.sort(simsortdec());
+	    vector<pair<double,double> > result;
+	    uint position = 0;
+	    uint truePos = 0;
+	    uint falsePos = 0;
+	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
+	    {
+	      if ( cit->second )
+	      {
+	        ++truePos;
+	      }
+	      else
+	      {
+	        ++falsePos;
+	      }
+	      if ( ((double)++position/score_clas_pairs_.size())*resolution > result.size() )
+	      {
+	        result.push_back(make_pair((double)falsePos/neg_,(double)truePos/pos_));
+	      }
+	    }
+	    return result;
+	  }
+	
+	  /** 
+	  \param fraction
+	  \return cutoff for classifying <i>fraction</i> of the positives right <br> 
+	  */
+	  double ROCCurve::cutoffPos(double fraction)
+	  {
+	    score_clas_pairs_.sort(simsortdec());
+	    uint truePos = 0;
+	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
+	    {
+	      if ( cit->second )
+	      {
+	        if ( (double)truePos++/pos_ > fraction )
+	        {
+	          return cit->first;
+	        }
+	      }
+	    }
+	    return -1;
+	  }
+	
+	  /** 
+	  \param fraction
+	  \return cutoff for classifying <i>fraction</i> of the negatives right <br> 
+	  */
+	  double ROCCurve::cutoffNeg(double fraction)
+	  {
+	    score_clas_pairs_.sort(simsortdec());
+	    uint trueNeg = 0;
+	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
+	    {
+	      if ( cit->second )
+	      {
+	        if ( (double)trueNeg++/neg_ > 1-fraction )
+	        {
+	          return cit->first;
+	        }
+	      }
+	    }
+	    return -1;
+	  }
+	}
 }

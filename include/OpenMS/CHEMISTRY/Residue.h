@@ -82,7 +82,7 @@ namespace OpenMS
 				/// returns the name of the modification
 				const String& getName() const;
 
-				/// sets the short name of the modification, this name is used in PeptideSequence as output
+				/// sets the short name of the modification, this name is used in AASequence as output
 				void setShortName(const String& name);
 
 				/// returns the short name of the modification
@@ -415,7 +415,7 @@ namespace OpenMS
 			/// returns the name of the residue
 			const String& getName() const;
 
-			/// sets the short name of the residue, this name is used in the PeptideSequence for output
+			/// sets the short name of the residue, this name is used in the AASequence for output
 			void setShortName(const String& short_name);
 
 			/// returns the short name of the residue

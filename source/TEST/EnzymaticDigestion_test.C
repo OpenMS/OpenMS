@@ -67,7 +67,7 @@ CHECK(void setEnzyme(Enzyme enzyme))
 	///TODO ?????? as soon as there is a second enzyme
 RESULT
 
-CHECK(UnsignedInt peptideCount(const PeptideSequence& protein))
+CHECK(UnsignedInt peptideCount(const AASequence& protein))
 	EnzymaticDigestion ed;
 	UnsignedInt tmp = ed.peptideCount(String("ACDE"));
 	TEST_EQUAL(tmp,1)
@@ -95,9 +95,9 @@ CHECK(UnsignedInt peptideCount(const PeptideSequence& protein))
 	TEST_EQUAL(ed.peptideCount(String("RKR")),6)
 RESULT
 
-CHECK(void digest(const PeptideSequence& protein, std::vector<PeptideSequence>& output))
+CHECK(void digest(const AASequence& protein, std::vector<AASequence>& output))
 	EnzymaticDigestion ed;
-	vector<PeptideSequence> out;
+	vector<AASequence> out;
 	
 	ed.digest(String("ACDE"),out);
 	TEST_EQUAL(out.size(),1)

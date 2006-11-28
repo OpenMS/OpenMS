@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
+
 #ifndef OPENMS_MATH_STATISTICS_ROCCURVE_H
 #define OPENMS_MATH_STATISTICS_ROCCURVE_H
 
@@ -34,81 +34,81 @@
   #include <CGAL/Polygon_2.h>
 #endif
 
-
 #include <list>
 #include <vector>
 
 namespace OpenMS
 {
-  /**
-  	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values <br>
-  	
-  	@todo add to Math namespace (Andreas)
-  	
-  	@ingroup Math
-  */
-  class ROCCurve
-  {
-  private:
-  #ifdef CGAL_DEF
-    typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
-    typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
-  #endif
-
-    /// predicate for sort()
-    class simsortdec
-    {
-    public:
-      bool operator()(const std::pair<double,bool>& a, const std::pair<double,bool>& b)
-      {
-        return b.first < a.first;
-      }
-    };
-  public:
+	namespace Math
+	{
+	  /**
+	  	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values <br>
+	  	
+	  	@ingroup Math
+	  */
+	  class ROCCurve
+	  {
+	  private:
+	  #ifdef CGAL_DEF
+	    typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
+	    typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
+	  #endif
 	
-    // @name Cosntructors and Destructors
-    // @{
-		/// default constructor
-    ROCCurve();
-
-		/// destructor
-    virtual ~ROCCurve();
-
-		/// copy constructor
-    ROCCurve(const ROCCurve& source);
-		// @}
-
-		// @name Operators
-		// @{
-		/// assignment operators
-    ROCCurve& operator = (const ROCCurve& source);
-    // @}
-
-		// @name Accessors
-		// @{
-    /// insert score, type pair 
-    void insertPair(double score, bool clas);
-
-    /// returns Area Under Curve
-    double AUC();
-
-    /// some points in the ROC Curve
-    std::vector<std::pair<double,double> > curve(uint resolution = 10);
-
-		///
-    double cutoffPos(double fraction = 0.95);
-
-		///
-    double cutoffNeg(double fraction = 0.95);
-		// @}
-
-  private:
+	    /// predicate for sort()
+	    class simsortdec
+	    {
+	    public:
+	      bool operator()(const std::pair<double,bool>& a, const std::pair<double,bool>& b)
+	      {
+	        return b.first < a.first;
+	      }
+	    };
+	  public:
+		
+	    // @name Cosntructors and Destructors
+	    // @{
+			/// default constructor
+	    ROCCurve();
 	
-    std::list<std::pair<double,bool> > score_clas_pairs_;
+			/// destructor
+	    virtual ~ROCCurve();
+	
+			/// copy constructor
+	    ROCCurve(const ROCCurve& source);
+			// @}
+	
+			// @name Operators
+			// @{
+			/// assignment operators
+	    ROCCurve& operator = (const ROCCurve& source);
+	    // @}
+	
+			// @name Accessors
+			// @{
+	    /// insert score, type pair 
+	    void insertPair(double score, bool clas);
+	
+	    /// returns Area Under Curve
+	    double AUC();
+	
+	    /// some points in the ROC Curve
+	    std::vector<std::pair<double,double> > curve(uint resolution = 10);
+	
+			///
+	    double cutoffPos(double fraction = 0.95);
+	
+			///
+	    double cutoffNeg(double fraction = 0.95);
+			// @}
+	
+	  private:
 		
-    uint pos_;
-		
-    uint neg_;
-  };
+	    std::list<std::pair<double,bool> > score_clas_pairs_;
+			
+	    uint pos_;
+			
+	    uint neg_;
+	  };
+	}
 }
 #endif // OPENMS_MATH_STATISTICS_ROCCURVE_H
