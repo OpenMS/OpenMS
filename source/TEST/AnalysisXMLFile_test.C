@@ -56,11 +56,7 @@ CHECK(~AnalysisXMLFile())
 	delete ptr;
 RESULT
 
-CHECK(AnalysisXMLFile(const AnalysisXMLFile& source))
-  // ???
-RESULT
-
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>* protein_identifications, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values, ContactPerson* contact_person) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<Identification>& identifications, std::vector<float>& precursor_retention_times, std::vector<float>& precursor_mz_values, ContactPerson& contact_person) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<Identification> identifications; 
@@ -69,11 +65,11 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>* pro
 	ContactPerson contact_person;
 
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
 	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
@@ -134,13 +130,13 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>* pro
 	DoubleReal predicted_sigma = 0.0;
 
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person,
-							&predicted_retention_times,
-							&predicted_sigma);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person,
+							predicted_retention_times,
+							predicted_sigma);
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
 	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
@@ -214,11 +210,11 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 
 	NEW_TMP_FILE(temp_filename)
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
-							&protein_identifications2, 
-				   		&identifications2, 
-							&precursor_retention_times2, 
-							&precursor_mz_values2, 
-							&contact_person2);
+							protein_identifications2, 
+				   		identifications2, 
+							precursor_retention_times2, 
+							precursor_mz_values2, 
+							contact_person2);
 	xml_file.store(temp_filename, 
 							    protein_identifications2, 
 				   				identifications2, 
@@ -226,11 +222,11 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 									precursor_mz_values2,
 									contact_person2);
 	xml_file.load(temp_filename, 
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 
 	TEST_EQUAL(protein_identifications == protein_identifications2, true)							
 	TEST_EQUAL(identifications == identifications2, true)							
@@ -299,11 +295,11 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 
 	NEW_TMP_FILE(temp_filename)
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 	xml_file.store(temp_filename, 
 							    protein_identifications, 
 				   				identifications, 
@@ -311,11 +307,11 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 									precursor_mz_values,
 									contact_person);
 	xml_file.load(temp_filename, 
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
 	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
@@ -379,13 +375,13 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 	NEW_TMP_FILE(temp_filename)
 	
 	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person,
-							&predicted_retention_times,
-							&predicted_sigma);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person,
+							predicted_retention_times,
+							predicted_sigma);
 	xml_file.store(temp_filename, 
 									protein_identifications, 
 				   				identifications, 
@@ -396,13 +392,13 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 									predicted_sigma);
 
 	xml_file.load(temp_filename,
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person,
-							&predicted_retention_times,
-							&predicted_sigma);
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person,
+							predicted_retention_times,
+							predicted_sigma);
 
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")

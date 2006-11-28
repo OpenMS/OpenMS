@@ -56,7 +56,6 @@ vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 DateTime date;
 MascotXMLFile xml_file;
-AnalysisXMLFile analysis_xml_file;
 
 date.now();
 
@@ -241,18 +240,17 @@ CHECK((void sort()))
 	vector<float> precursor_mz_values;
 	ContactPerson contact_person;
 	ProteinHit hit;
-	AnalysisXMLFile analysis_xml_file;
 	
 	hit.setAccession("TESTPROTEIN");
 	hit.setScore(80.4);
 	hit.setScoreType("Mascot");
 
-	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 							
 	protein_identifications[0].insertProteinHit(hit);
 	protein_identifications[0].sort();

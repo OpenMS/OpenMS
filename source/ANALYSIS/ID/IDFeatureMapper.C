@@ -32,4 +32,12 @@ namespace OpenMS
   {
     
   }
+ 
+  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values)
+	{
+		for(DFeatureMap<2>::Iterator it = fm.begin(); it!=fm.end(); ++it)
+		{
+			
+		}
+	}
 } // namespace OpenMS

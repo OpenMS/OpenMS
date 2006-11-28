@@ -39,11 +39,11 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-  
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications,
   									 vector<Identification>& identifications, 
    									 vector<float>& precursor_retention_times, 
    									 vector<float>& precursor_mz_values,
+   									 ContactPerson& contact_person,
    									 const String& filename ) :
     XMLHandler(filename),
     protein_identifications_(&protein_identifications),
@@ -57,7 +57,7 @@ namespace OpenMS
     peptide_identification_index_(0),
     protein_identification_index_(0),
     inside_peptide_(false),
-    contact_person_(0),
+    contact_person_(&contact_person),
     const_protein_identifications_(),
     const_identifications_(),
     const_precursor_retention_times_(),
@@ -76,7 +76,47 @@ namespace OpenMS
     actual_date_time_("0000-00-00 00:00:00")
   {
   }
-   									 
+
+  AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications, 
+      									 vector<Identification>& identifications, 
+      									 vector<float>& precursor_retention_times, 
+      									 vector<float>& precursor_mz_values,
+      									 ContactPerson& contact_person,
+      									 map<String, double>& predicted_retention_times,
+      									 DoubleReal& predicted_sigma,
+   									 		 const String& filename) :
+    XMLHandler(filename),
+    protein_identifications_(&protein_identifications),
+    identifications_(&identifications),
+    precursor_retention_times_(&precursor_retention_times),
+    precursor_mz_values_(&precursor_mz_values),
+    actual_protein_hit_(),
+    actual_protein_hits_(),
+    actual_peptide_hit_(),
+    actual_peptide_hits_(),
+    peptide_identification_index_(0),
+    protein_identification_index_(0),
+    inside_peptide_(false),
+    contact_person_(&contact_person),
+    const_protein_identifications_(),
+    const_identifications_(),
+    const_precursor_retention_times_(),
+    const_precursor_mz_values_(),
+		const_contact_person_(),
+		const_predicted_retention_times_(),
+		tag_(),
+		charge_identification_index_(0),        
+    inside_protein_(false),
+    inside_global_protein_(false),
+    predicted_retention_times_(&predicted_retention_times),
+    predicted_sigma_(&predicted_sigma),
+    const_predicted_sigma_(0),
+    date_times_temp_(),
+    date_times_counter_(0),
+    actual_date_time_("0000-00-00 00:00:00")
+  {
+  }
+
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications,
   									 const vector<Identification>& identifications, 
    									 const vector<float>& precursor_retention_times, 
@@ -111,84 +151,6 @@ namespace OpenMS
     date_times_temp_(),
     date_times_counter_(0),
     actual_date_time_("0000-00-00 00:00:00")    
-  {
-  }
-   									 
-  AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>* protein_identifications, 
-      									 vector<Identification>* identifications, 
-      									 vector<float>* precursor_retention_times, 
-      									 vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person,
-   									 const String& filename) :
-    XMLHandler(filename),
-    protein_identifications_(protein_identifications),
-    identifications_(identifications),
-    precursor_retention_times_(precursor_retention_times),
-    precursor_mz_values_(precursor_mz_values),
-    actual_protein_hit_(),
-    actual_protein_hits_(),
-    actual_peptide_hit_(),
-    actual_peptide_hits_(),
-    peptide_identification_index_(0),
-    protein_identification_index_(0),
-    inside_peptide_(false),
-    contact_person_(contact_person),
-    const_protein_identifications_(),
-    const_identifications_(),
-    const_precursor_retention_times_(),
-    const_precursor_mz_values_(),
-		const_contact_person_(),
-		const_predicted_retention_times_(),
-		tag_(),
-		charge_identification_index_(0),        
-    inside_protein_(false),
-    inside_global_protein_(false),
-    predicted_retention_times_(),
-    predicted_sigma_(0),
-    const_predicted_sigma_(0),
-    date_times_temp_(),
-    date_times_counter_(0),
-    actual_date_time_("0000-00-00 00:00:00")
-  {
-  }
-
-  AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>* protein_identifications, 
-      									 vector<Identification>* identifications, 
-      									 vector<float>* precursor_retention_times, 
-      									 vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person,
-      									 map<String, double>* predicted_retention_times,
-      									 DoubleReal* predicted_sigma,
-   									 const String& filename) :
-    XMLHandler(filename),
-    protein_identifications_(protein_identifications),
-    identifications_(identifications),
-    precursor_retention_times_(precursor_retention_times),
-    precursor_mz_values_(precursor_mz_values),
-    actual_protein_hit_(),
-    actual_protein_hits_(),
-    actual_peptide_hit_(),
-    actual_peptide_hits_(),
-    peptide_identification_index_(0),
-    protein_identification_index_(0),
-    inside_peptide_(false),
-    contact_person_(contact_person),
-    const_protein_identifications_(),
-    const_identifications_(),
-    const_precursor_retention_times_(),
-    const_precursor_mz_values_(),
-		const_contact_person_(),
-		const_predicted_retention_times_(),
-		tag_(),
-		charge_identification_index_(0),        
-    inside_protein_(false),
-    inside_global_protein_(false),
-    predicted_retention_times_(predicted_retention_times),
-    predicted_sigma_(predicted_sigma),
-    const_predicted_sigma_(0),
-    date_times_temp_(),
-    date_times_counter_(0),
-    actual_date_time_("0000-00-00 00:00:00")
   {
   }
 

@@ -236,7 +236,6 @@ class TOPPMascotAdapter
 			MSExperiment< DPeak<1> > experiment;
 			IDSpectrumMapper annotator;
 			IDFilter filter;
-			AnalysisXMLFile analysisXML_file;
 			MascotXMLFile mascotXML_file;
 			MascotInfile* mascot_infile;
 			MascotOutfile* mascot_outfile;
@@ -550,7 +549,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 				vector<ProteinIdentification> protein_identifications;
 				protein_identifications.push_back(protein_identification);
-				analysisXML_file.store(outputfile_name,
+				AnalysisXMLFile().store(outputfile_name,
 															 protein_identifications, 
 													 		 identifications, 
 													 		 precursor_retention_times, 

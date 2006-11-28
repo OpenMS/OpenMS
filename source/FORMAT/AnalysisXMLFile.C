@@ -50,11 +50,11 @@ namespace OpenMS
 	}
 
   void AnalysisXMLFile::load(const String& filename, 
-  					 								 vector<ProteinIdentification>* protein_identifications,
-  													 vector<Identification>* identifications, 
-  													 vector<float>* precursor_retention_times,
-  													 vector<float>* precursor_mz_values,
-  													 ContactPerson* contact_person)
+  					 								 vector<ProteinIdentification>& protein_identifications,
+  													 vector<Identification>& identifications, 
+  													 vector<float>& precursor_retention_times,
+  													 vector<float>& precursor_mz_values,
+  													 ContactPerson& contact_person)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -77,18 +77,18 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		protein_identifications->clear();
-		identifications->clear();
-		precursor_retention_times->clear();
-		precursor_mz_values->clear();
-		*contact_person = ContactPerson();
+		protein_identifications.clear();
+		identifications.clear();
+		precursor_retention_times.clear();
+		precursor_mz_values.clear();
+		contact_person = ContactPerson();
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-															 identifications,
-															 precursor_retention_times, 
-															 precursor_mz_values,
-															 contact_person,
-															 filename);
+																				 identifications,
+																				 precursor_retention_times, 
+																				 precursor_mz_values,
+																				 contact_person,
+																				 filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -110,13 +110,13 @@ namespace OpenMS
   }
   					 
   void AnalysisXMLFile::load(const String& filename, 
-  					 								 vector<ProteinIdentification>* protein_identifications,
-  													 vector<Identification>* identifications, 
-  													 vector<float>* precursor_retention_times,
-  													 vector<float>* precursor_mz_values,
-  													 ContactPerson* contact_person,
-      											 std::map<String, double>* predicted_retention_times,
-      											 DoubleReal* predicted_sigma)
+  					 								 vector<ProteinIdentification>& protein_identifications,
+  													 vector<Identification>& identifications, 
+  													 vector<float>& precursor_retention_times,
+  													 vector<float>& precursor_mz_values,
+  													 ContactPerson& contact_person,
+      											 std::map<String, double>& predicted_retention_times,
+      											 DoubleReal& predicted_sigma)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -140,22 +140,22 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		/// clear information
-		protein_identifications->clear();
-		identifications->clear();
-		precursor_retention_times->clear();
-		precursor_mz_values->clear();
-		*contact_person = ContactPerson();
-		predicted_retention_times->clear();
-		*predicted_sigma = 0;
+		protein_identifications.clear();
+		identifications.clear();
+		precursor_retention_times.clear();
+		precursor_mz_values.clear();
+		contact_person = ContactPerson();
+		predicted_retention_times.clear();
+		predicted_sigma = 0;
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-															 identifications,
-															 precursor_retention_times, 
-															 precursor_mz_values,
-															 contact_person,
-															 predicted_retention_times,
-															 predicted_sigma,
-															 filename);
+																				 identifications,
+																				 precursor_retention_times, 
+																				 precursor_mz_values,
+																				 contact_person,
+																				 predicted_retention_times,
+																				 predicted_sigma,
+																				 filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -214,11 +214,11 @@ namespace OpenMS
 
 		//read data and close stream
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-															 identifications,
-															 precursor_retention_times, 
-															 precursor_mz_values, 
-															 contact_person,
-															 filename);
+																				 identifications,
+																				 precursor_retention_times, 
+																				 precursor_mz_values, 
+																				 contact_person,
+																				 filename);
 		handler.writeTo(os);
 		os.close();
 
@@ -242,13 +242,13 @@ namespace OpenMS
 
 		//read data and close stream
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-															 identifications, 
-															 precursor_retention_times, 
-															 precursor_mz_values, 
-															 contact_person,
-															 predicted_retention_times,
-															 predicted_sigma,
-															 filename);
+																				 identifications, 
+																				 precursor_retention_times, 
+																				 precursor_mz_values, 
+																				 contact_person,
+																				 predicted_retention_times,
+																				 predicted_sigma,
+																				 filename);
 		handler.writeTo(os);
 		os.close();
 

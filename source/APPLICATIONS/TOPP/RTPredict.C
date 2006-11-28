@@ -232,11 +232,11 @@ class TOPPRTPredict
 			//-------------------------------------------------------------
 			
 			analysisXML_file.load(inputfile_name,
-														&protein_identifications,
-														&identifications,
-														&precursor_retention_times,
-														&precursor_mz_values,
-														&contact_person);
+														protein_identifications,
+														identifications,
+														precursor_retention_times,
+														precursor_mz_values,
+														contact_person);
 	  													
 			//-------------------------------------------------------------
 			// calculations

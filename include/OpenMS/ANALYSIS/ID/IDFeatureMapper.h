@@ -35,38 +35,24 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotates a DPEatureMap instance with Identification instances
-    
-    The identifications stored in a Identification instance can be added to the
-    corresponding spectrum. Furthermore the annotations that are present
-    can be retrieved.
+    @brief Annotates a DFeatureMap instance with Identification instances
+ 		
+ 		
   */
   class IDFeatureMapper
   {
     public:
 
-      /// Constructor
+      /// Default constructor
       IDFeatureMapper();
       
 			/**
-				@brief Annotates the spectra belonging to the experiment
+				@brief This method does the actual mapping
 				
-				The retention times and mz-values are used to find the 
-				spectrum in experiment to which the corresponding 
-				identification belongs. The Identification is then added to the spectrum      					
-      */
-      template <class PeakT>				
-      UnsignedInt annotate(DFeatureMap<2> fm,
- 			      					 	   const std::vector<Identification>& identifications,
-			      				 			 const std::vector<float>& precursor_retention_times,
-			      				 			 const std::vector<float>& precursor_mz_values,
-			  				 				   float precision = 0.01f)
-  		{
-				
-  		}
-      
-    protected:
-      
+				As Identifications do not have m/z or RT those values are provided in 
+				variables @p precursor_retention_times and @p precursor_mz_values.
+			*/		
+      void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values);      
   };
  
 } // namespace OpenMS

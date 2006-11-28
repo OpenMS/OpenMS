@@ -120,19 +120,19 @@ class TOPPAnalysisXMLMerger
 		// calculations
 		//-------------------------------------------------------------
 		analysisXML_file.load(file_names[0],
-													&protein_identifications,
-													&identifications, 
-													&retention_times,
-													&mz_values,
-													&contact_person);
+													protein_identifications,
+													identifications, 
+													retention_times,
+													mz_values,
+													contact_person);
 		for(counter = 1; counter < file_names.size(); ++counter)
 		{
 			analysisXML_file.load(file_names[counter],
-														&additional_protein_identifications,
-														&additional_identifications, 
-														&additional_retention_times,
-														&additional_mz_values,
-														&contact_person);
+														additional_protein_identifications,
+														additional_identifications, 
+														additional_retention_times,
+														additional_mz_values,
+														contact_person);
 			protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
 			identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
 			retention_times.insert(retention_times.end(), additional_retention_times.begin(), additional_retention_times.end());

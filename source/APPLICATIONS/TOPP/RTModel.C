@@ -239,7 +239,6 @@ class TOPPRTModel
 			ofstream log;
 			String inputfile_name;
 			String outputfile_name;
-			AnalysisXMLFile analysisXML_file;
 		  vector<ProteinIdentification> protein_identifications;
 		  vector<Identification> identifications;
 		  vector<DoubleReal> training_retention_times_double;
@@ -480,12 +479,12 @@ class TOPPRTModel
 			
 			
 			
-			analysisXML_file.load(inputfile_name,
-														&protein_identifications,
-														&identifications,
-	  												&precursor_retention_times,
-	  												&precursor_mz_values,
-		  											&contact_person);
+			AnalysisXMLFile().load(inputfile_name,
+														protein_identifications,
+														identifications,
+	  												precursor_retention_times,
+	  												precursor_mz_values,
+		  											contact_person);
 		  													
 			//-------------------------------------------------------------
 			// calculations

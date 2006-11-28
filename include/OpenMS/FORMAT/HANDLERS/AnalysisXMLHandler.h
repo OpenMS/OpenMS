@@ -42,47 +42,42 @@ namespace OpenMS
   /**
     @brief Handler that is used for parsing AnalysisXML data
     
+    @todo do not work with that many pointers internally. Replace by references (Nico)
   */
   class AnalysisXMLHandler:
     public XMLHandler
   {
     public:
-      /// Constructor
+      /// Constructor for loading
       AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications,
       									 std::vector<Identification>& identifications, 
       									 std::vector<float>& precursor_retention_times, 
-      									 std::vector<float>& precursor_mz_values, 
+      									 std::vector<float>& precursor_mz_values,
+      									 ContactPerson& contact_person,
       									 const String& filename);
-      /// Constructor
+      /// Constructor for loading
+      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications,
+      									 std::vector<Identification>& identifications, 
+      									 std::vector<float>& precursor_retention_times, 
+      									 std::vector<float>& precursor_mz_values,
+      									 ContactPerson& contact_person,
+      									 std::map<String, double>& predicted_retention_times,
+      									 DoubleReal& predicted_sigma,
+      									 const String& filename);
+      /// Constructor for storing
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
       									 const std::vector<float>& precursor_retention_times, 
       									 const std::vector<float>& precursor_mz_values, 
       									 const String& filename);
-      /// Constructor
-      AnalysisXMLHandler(std::vector<ProteinIdentification>* protein_identifications,
-      									 std::vector<Identification>* identifications, 
-      									 std::vector<float>* precursor_retention_times, 
-      									 std::vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person, 
-      									 const String& filename);
-      /// Constructor
-      AnalysisXMLHandler(std::vector<ProteinIdentification>* protein_identifications,
-      									 std::vector<Identification>* identifications, 
-      									 std::vector<float>* precursor_retention_times, 
-      									 std::vector<float>* precursor_mz_values,
-      									 ContactPerson* contact_person,
-      									 std::map<String, double>* predicted_retention_times,
-      									 DoubleReal* predicted_sigma,
-      									 const String& filename);
-      /// Constructor
+      /// Constructor for storing
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
       									 const std::vector<float>& precursor_retention_times, 
       									 const std::vector<float>& precursor_mz_values,
       									 const ContactPerson& contact_person, 
       									 const String& filename);
-      /// Constructor
+      /// Constructor for storing
       AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
       									 const std::vector<Identification>& identifications, 
       									 const std::vector<float>& precursor_retention_times, 

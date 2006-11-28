@@ -30,7 +30,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -49,7 +48,6 @@ using namespace std;
 
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
-AnalysisXMLFile xml_output_file;
 ProteinIdentification protein_identification;
 vector<Identification> identifications; 
 vector<float> precursor_retention_times;

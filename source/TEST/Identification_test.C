@@ -62,7 +62,6 @@ vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 DateTime date;
 MascotXMLFile xml_file;
-AnalysisXMLFile analysis_xml_file;
 vector<PeptideHit>* hits;
 
 date.now();
@@ -354,18 +353,17 @@ CHECK((void sort()))
 	vector<float> precursor_mz_values;
 	ContactPerson contact_person;
 	PeptideHit hit;
-	AnalysisXMLFile analysis_xml_file;
 	
 	hit.setSequence("TESTPEPTIDE");
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
 	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
@@ -385,18 +383,17 @@ CHECK((void assignRanks()))
 	vector<float> precursor_mz_values;
 	ContactPerson contact_person;
 	PeptideHit hit;
-	AnalysisXMLFile analysis_xml_file;
 	
 	hit.setSequence("TESTPEPTIDE");
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	analysis_xml_file.load("data/AnalysisXMLFile_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 	TEST_EQUAL(contact_person.getName(), "TestName")
 	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
 	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")

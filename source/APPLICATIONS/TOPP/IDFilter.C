@@ -352,22 +352,22 @@ class TOPPIDFilter
 		if (total_gradient_time != 0.f)
 		{
 			analysisXML_file.load(inputfile_name,
-														&protein_identifications, 
-														&identifications, 
-														&precursor_retention_times, 
-														&precursor_mz_values,
-														&contact_person,
-														&predicted_retention_times,
-														&predicted_sigma);
+														protein_identifications, 
+														identifications, 
+														precursor_retention_times, 
+														precursor_mz_values,
+														contact_person,
+														predicted_retention_times,
+														predicted_sigma);
 		}
 		else
 		{
 			analysisXML_file.load(inputfile_name, 
-														&protein_identifications, 
-														&identifications, 
-														&precursor_retention_times, 
-														&precursor_mz_values,
-														&contact_person);				
+														protein_identifications, 
+														identifications, 
+														precursor_retention_times, 
+														precursor_mz_values,
+														contact_person);				
 		}
 		if (sequences_file_name != "")
 		{
@@ -377,11 +377,11 @@ class TOPPIDFilter
 		if (exclusion_peptides_file_name  != "")
 		{
 			analysisXML_file.load(exclusion_peptides_file_name, 
-													  &protein_identifications, 
-													 	&identifications_exclusion, 
-													 	&precursor_retention_times_exclusion, 
-													 	&precursor_mz_values_exclusion,
-													 	&contact_person_exclusion);
+													  protein_identifications, 
+													 	identifications_exclusion, 
+													 	precursor_retention_times_exclusion, 
+													 	precursor_mz_values_exclusion,
+													 	contact_person_exclusion);
 			for(UnsignedInt i = 0; i < identifications_exclusion.size(); i++)
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getPeptideHits().begin();

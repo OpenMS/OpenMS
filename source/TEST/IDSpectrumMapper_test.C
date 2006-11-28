@@ -31,11 +31,8 @@
 #include <iostream>
 
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DPosition.h>
-#include <OpenMS/KERNEL/DPeak.h>
 
 ///////////////////////////
 
@@ -52,7 +49,6 @@ IDSpectrumMapper* ptr;
 MSExperiment< DPeak<1> > experiment;
 vector<Identification> identifications; 
 vector<ProteinIdentification> protein_identifications; 
-AnalysisXMLFile xml_file;
 vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 ContactPerson contact_person;
@@ -60,12 +56,12 @@ float precision = 0.1;
 MSSpectrum< DPeak<1> > spectrum;
 DPeak<1> peak;
 
-xml_file.load("data/IDSpectrumMapper_test.analysisXML",
-							&protein_identifications, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values, 
-							&contact_person);
+AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
+							protein_identifications, 
+				   		identifications, 
+							precursor_retention_times, 
+							precursor_mz_values, 
+							contact_person);
 							
 peak.setPosition(0);
 

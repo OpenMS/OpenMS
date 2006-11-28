@@ -64,11 +64,11 @@ namespace OpenMS
 				corresponding variables
       */
       void load(const String& filename,
-      					std::vector<ProteinIdentification>* protein_identifications, 
-      					std::vector<Identification>* identifications, 
-      					std::vector<float>* precursor_retention_times,
-      					std::vector<float>* precursor_mz_values,
-      					ContactPerson* contact_person)  	const throw (Exception::FileNotFound, 
+      					std::vector<ProteinIdentification>& protein_identifications, 
+      					std::vector<Identification>& identifications, 
+      					std::vector<float>& precursor_retention_times,
+      					std::vector<float>& precursor_mz_values,
+      					ContactPerson& contact_person)  	const throw (Exception::FileNotFound, 
   							 																							 Exception::ParseError);
       					 
 			/**
@@ -80,13 +80,13 @@ namespace OpenMS
 				used to filter the peptides via the TOPP tool RTPredict.
       */
       void load(const String& filename, 
-      					std::vector<ProteinIdentification>* protein_identifications, 
-      					std::vector<Identification>* identifications, 
-      					std::vector<float>* precursor_retention_times,
-      					std::vector<float>* precursor_mz_values,
-      					ContactPerson* contact_person,
-      					std::map<String, double>* predicted_retention_times,
-      					DoubleReal* predicted_sigma)  	const throw (Exception::FileNotFound, 
+      					std::vector<ProteinIdentification>& protein_identifications, 
+      					std::vector<Identification>& identifications, 
+      					std::vector<float>& precursor_retention_times,
+      					std::vector<float>& precursor_mz_values,
+      					ContactPerson& contact_person,
+      					std::map<String, double>& predicted_retention_times,
+      					DoubleReal& predicted_sigma)  	const throw (Exception::FileNotFound, 
   							 																						 Exception::ParseError);
       					 
 			/**

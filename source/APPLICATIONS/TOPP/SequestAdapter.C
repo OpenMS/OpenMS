@@ -1265,8 +1265,6 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				AnalysisXMLFile analysisXML_file;
-				
 				SequestOutfile sequest_outfile;
 				vector< Identification > identifications;
 				ProteinIdentification protein_identification;
@@ -1300,7 +1298,7 @@ class TOPPSequestAdapter
 				vector< ProteinIdentification > pis;
 				pis.push_back(protein_identification);
 
-				analysisXML_file.store(output_filename, pis, identifications, precursor_retention_times, precursor_mz_values, contact_person);
+				AnalysisXMLFile().store(output_filename, pis, identifications, precursor_retention_times, precursor_mz_values, contact_person);
 				
 				// remove all outs
 				if ( !keep_out_files )
