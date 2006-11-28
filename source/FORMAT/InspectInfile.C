@@ -131,7 +131,7 @@ namespace OpenMS
 
 		if ( PM_tolerance_ >= 0 ) ofs << "PM_tolerance," << PM_tolerance_ << endl;
 
-		if ( ion_tolerance_ >= 0 ) ofs << "ion_tolerance," << ion_tolerance_ << endl;
+		if ( ion_tolerance_ >= 0 ) ofs << "IonTolerance," << ion_tolerance_ << endl;
 
 		if ( !jumpscores_.empty() ) ofs << "jumpscores," << jumpscores_ << endl;
 

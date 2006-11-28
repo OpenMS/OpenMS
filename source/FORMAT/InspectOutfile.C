@@ -116,13 +116,13 @@ namespace OpenMS
 			{
 				if ( line_number == 1 )
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This doesn't seem to be an inspect output file!", result_filename);
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename + " doesn't seem to be an inspect output file!", result_filename);
 				}
 				corrupted_lines.push_back(line_number);
 				continue;
 			}
 			
-			// if the version Inspect.20060620.zip is used, there is a header which is skipped
+			// the is a header which is skipped
 			if ( substrings[0] == "#SpectrumFile" ) continue;
 			
 			// take only those peptides whose p-value is less or equal the given threshold
@@ -414,15 +414,15 @@ namespace OpenMS
 			}
 			catch (Exception::ParseError pe) // if it's not a MzXML, it's supposed to be an MzData
 			{
-				try
-				{
+// 				try
+// 				{
 					MzDataFile().load(fs_i->first, experiment);
-				}
-				catch (Exception::ParseError pe) // other formats are not supported (yet)
-				{
-					precursor_mz_values.insert(precursor_mz_values.end(), fs_i->second.size(), 0.0);
-					precursor_retention_times.insert(precursor_retention_times.end(), fs_i->second.size(), 0.0);
-				}
+// 				}
+// 				catch (Exception::ParseError pe) // other formats are not supported (yet)
+// 				{
+// 					precursor_mz_values.insert(precursor_mz_values.end(), fs_i->second.size(), 0.0);
+// 					precursor_retention_times.insert(precursor_retention_times.end(), fs_i->second.size(), 0.0);
+// 				}
 			}
 			
 			if ( experiment.size() < fs_i->second.back() )
@@ -687,6 +687,8 @@ namespace OpenMS
 						// read at most protein_name_length_ characters from the record name and write them to the record
 						protein_name = line.substr(pos, protein_name_length_);
 						protein_name.remove(';');
+						protein_name.remove(',');
+						protein_name.substitute('>', '}');
 						memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
 						record_flags |= ac_flag; // set the ac flag

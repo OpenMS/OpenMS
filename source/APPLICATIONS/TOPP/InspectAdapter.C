@@ -30,12 +30,14 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 
 #include <stdlib.h>
 #include <vector>
+
+#include <qfile.h>
+#include <qfileinfo.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -114,8 +116,7 @@ class TOPPInspectAdapter
 	public:
 		TOPPInspectAdapter()
 			: TOPPBase("InspectAdapter")
-		{
-		}
+		{}
 	
 	protected:
 		void printToolUsage_() const
@@ -205,7 +206,6 @@ class TOPPInspectAdapter
 // 			options_["-TagCountB"] = "TagCountB";
 //			flags_["-twopass"] = "twopass";
 			options_["-out"] = "out";
-			options_["-inspect_input"] = "inspect_input";
 			options_["-inspect_output"] = "inspect_output";
 			flags_["-blind_only"] = "blind_only";
 			options_["-p_value"] = "p_value";
@@ -215,6 +215,42 @@ class TOPPInspectAdapter
 			flags_["-blind"] = "blind";
 			flags_["-cmn_conts"] = "cmn_conts";
 			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
+		}
+
+		long fsize(const string& filename)
+		{
+			FILE* file = fopen(filename.c_str(), "r");
+			long size = 0;
+			if ( file != NULL )
+			{
+				fseek(file, 0, SEEK_END);
+				size = ftell(file);
+				fclose(file);
+				return size;
+			}
+			return -1;
+		}
+		
+		inline bool emptyFile(const string& filename)
+		{
+			return ( fsize(filename) == 0 );
+		}
+
+		string fileContent(const string& filename)
+		{
+			long size = fsize(filename);
+			if ( size != -1 )
+			{
+				FILE* file = fopen(filename.c_str(), "r");
+				char* buffer = new char[size+1];
+				buffer[size] = 0;
+				fread (buffer, size, 1, file);
+				fclose(file);
+				string sbuffer = buffer;
+				delete(buffer);
+				return sbuffer;
+			}
+			else return string();
 		}
 		
 		// deleting all temporary files
@@ -230,6 +266,11 @@ class TOPPInspectAdapter
  			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
 		}
 
+		inline void ensurePathChar(string& path, char path_char = '/')
+		{
+			if ( !path.empty() && (string("/\\").find(path[path.length()-1], 0) == string::npos) ) path.append(1, path_char);
+		}
+
 		ExitCodes main_(int , char**)
 		{
 			//-------------------------------------------------------------
@@ -243,6 +284,11 @@ class TOPPInspectAdapter
 				substrings,
 				dbs,
 				seq_files;
+// 				mod_types;
+// 				mod_types.push_back("fix");
+// 				mod_types.push_back("cterminal");
+// 				mod_types.push_back("nterminal");
+// 				mod_types.push_back("opt");
 			
 			vector < vector< String > > mod;
 			
@@ -276,6 +322,8 @@ class TOPPInspectAdapter
 				min_annotated_spectra_per_protein;
 			
 			ContactPerson contact_person;
+
+			QFileInfo file_info;
 			
 			
 			//-------------------------------------------------------------
@@ -287,9 +335,7 @@ class TOPPInspectAdapter
 			
 			if ( inspect_in && inspect_out )
 			{
-				writeLog_("Both Inspect flags set. Aborting!\n"
-				          "Only one of the two flags [-inspect_in|-inspect_out] can be set");
-				printUsage_();
+				writeLog_("Both Inspect flags set. Only one of the two flags [-inspect_in|-inspect_out] can be set. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
@@ -304,9 +350,9 @@ class TOPPInspectAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-
-				File::absolutePath(temp_data_dir);
-				temp_data_dir.ensureLastChar('/');
+				file_info.setFile(temp_data_dir);
+				temp_data_dir = file_info.absFilePath().ascii();
+				ensurePathChar(temp_data_dir);
 			}
 			
 			string_buffer = getParamAsString_("in");
@@ -318,13 +364,16 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				File::absolutePath(string_buffer);
+				file_info.setFile(string_buffer);
+				string_buffer = file_info.absFilePath().ascii();
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
 					if ( inspect_out ) inspect_output_filename = getParamAsString_("inspect_output", temp_data_dir + "tmp.direct.inspect.output");
 				}
 				else inspect_output_filename = string_buffer;
+				file_info.setFile(inspect_output_filename);
+				inspect_output_filename = file_info.absFilePath().ascii();
 			}
 			
 			string_buffer = getParamAsString_("out");
@@ -335,7 +384,8 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				File::absolutePath(string_buffer);
+				file_info.setFile(string_buffer);
+				string_buffer = file_info.absFilePath().ascii();
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
 			}
@@ -343,17 +393,11 @@ class TOPPInspectAdapter
 			if ( inspect_in && inspect_out )
 			{
 				inspect_input_filename = getParamAsString_("inspect_input");
-				if ( inspect_input_filename.empty() )
-				{
-					if ( inspect_in && inspect_out ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
-					else if ( inspect_in )
-					{
-						writeLog_("No name for the inspect input file specified. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-				}
+				if ( inspect_input_filename.empty() ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
+				
+				file_info.setFile(inspect_input_filename);
+				inspect_input_filename = file_info.absFilePath().ascii();
 			}
-			File::absolutePath(inspect_input_filename);
 			
 			contact_person.setName(getParamAsString_("contactName", "unknown"));
 			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
@@ -368,10 +412,9 @@ class TOPPInspectAdapter
 				writeLog_("No inspect directory file specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-
-			File::absolutePath(inspect_dir);
-			inspect_dir.ensureLastChar('/');;
-
+			file_info.setFile(inspect_dir);
+			inspect_dir = file_info.absFilePath().ascii();
+			ensurePathChar(inspect_dir);
 			
 			blind_only = getParamAsBool_("blind_only");
 			
@@ -406,6 +449,8 @@ class TOPPInspectAdapter
 				blind = getParamAsBool_("blind");
 				if ( blind && inspect_in && !inspect_out )
 				{
+// 					writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!"); mode. Aborting!" << endl;
+// 					return ILLEGAL_PARAMETERS;
 					blind = false;
 					blind_only = true;
 				}
@@ -425,7 +470,7 @@ class TOPPInspectAdapter
 					{
 						if ( no_tmp_dbs )
 						{
-							writeLog_("No_tmp_dbs flag set but no name for database given. Aborting!");
+							writeLog_("no_tmp_dbs flag set but no name for database given. Aborting!");
 							return ILLEGAL_PARAMETERS;
 						}
 						else
@@ -438,7 +483,8 @@ class TOPPInspectAdapter
 				}
 				else
 				{
-					File::absolutePath(db_filename);
+					file_info.setFile(db_filename);
+					db_filename = file_info.absFilePath().ascii();
 					if ( db_filename.hasSuffix(".trie") )
 					{
 						inspect_infile.setDb(db_filename);
@@ -454,7 +500,7 @@ class TOPPInspectAdapter
 				
 				if ( blind && blind_only )
 				{
-					writeLog_("Both blind flags set. Aborting! Only one of the two flags [-blind|-blind_only] can be set");
+					writeLog_("Both blind flags set. Only one of the two flags [-blind|-blind_only] can be set. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				
@@ -471,7 +517,8 @@ class TOPPInspectAdapter
 				}
 				else if ( blind )
 				{
-					File::absolutePath(snd_db_filename);
+					file_info.setFile(snd_db);
+					snd_db = file_info.absFilePath().ascii();
 					if ( snd_db.hasSuffix(".trie") )
 					{
 						snd_db_filename = snd_db;
@@ -617,19 +664,25 @@ class TOPPInspectAdapter
 			// (3) running program according to parameters
 			//-------------------------------------------------------------
 			// checking accessability of files
+			QFile file;
 			
 			// the file for the inspect output
 			if ( (inspect_in && inspect_out) || (inspect_in && blind) )
 			{
-				if ( !File::writable(inspect_output_filename) )
+				file.setName(inspect_output_filename);
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
 				{
+					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
 				}
+				file.close();
 			}
 			
 			if ( !inspect_infile.getJumpscores().empty() )
 			{
-				if ( !File::readable(inspect_infile.getJumpscores()) )
+				file_info.setFile(inspect_infile.getJumpscores());
+				if ( !file_info.isReadable() )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
 				}
@@ -638,53 +691,65 @@ class TOPPInspectAdapter
 			// output file
 			if ( inspect_out )
 			{
-				if ( !File::writable(output_filename) )
+				file.setName(output_filename);
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
 				{
+					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
 				}
+				file.close();
 			}
 			
 			vector< String > not_accessable, accessable_db, idx, accessable_seq;
 			if ( inspect_in )
 			{
-				if ( !File::writable(inspect_input_filename) )
+				file.setName(inspect_input_filename.c_str());
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
 				{
+					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_input_filename);
 				}
+				file.close();
 				
 				// database and index
-				if ( !File::writable(db_filename) )
+				file.setName(db_filename.c_str());
+				file.open(IO_WriteOnly);
+				if ( !file.isWritable() )
 				{
+					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
 				}
-
-				if ( !File::writable(idx_filename) )
+				file.close();
+				file.setName(idx_filename);
+				file.open( IO_WriteOnly );
+				if ( !file.isWritable() )
 				{
+					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
 				}
+				file.close();
 				
 				// given databases and sequence files
-				for ( vector< String >::const_iterator db_i = dbs.begin(); db_i != dbs.end(); ++db_i )
+				for ( vector< String >::iterator db_i = dbs.begin(); db_i != dbs.end(); ++db_i )
 				{
-					if ( !File::readable(*db_i) || File::empty(*db_i) ) 
-					{
-						not_accessable.push_back(*db_i);
-					}
+					file_info.setFile(*db_i);
+					db_i->assign(file_info.absFilePath().ascii());
+					
+					file_info.setFile(*db_i);
+					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
+					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
+					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
 					else // if the file is accessable, try to find the corresponding index file and check it
 					{
-						if ( db_i->hasSuffix(".trie") ) 
-						{
-							string_buffer = db_i->substr(0, db_i->length()-4) + "index";
-						}
-						else 
-						{
-							string_buffer = *db_i + "index";
-						}
+						if ( db_i->hasSuffix(".trie") ) string_buffer = db_i->substr(0, db_i->length()-4) + "index";
+						else string_buffer = *db_i + "index";
 						
-						if ( !File::readable(string_buffer) || File::empty(string_buffer) ) 
-						{
-							not_accessable.push_back(*db_i);
-						}
+						file_info.setFile(string_buffer.c_str());
+						if ( !file_info.exists() ) not_accessable.push_back(*db_i);
+						else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
+						else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
 						else
 						{
 							accessable_db.push_back(*db_i);
@@ -693,16 +758,16 @@ class TOPPInspectAdapter
 					}
 				}
 				
-				for ( vector< String >::const_iterator db_i = seq_files.begin(); db_i != seq_files.end(); ++db_i )
+				for ( vector< String >::iterator db_i = seq_files.begin(); db_i != seq_files.end(); ++db_i )
 				{
-					if ( !File::readable(*db_i) || File::empty(*db_i) )
-					{ 
-						not_accessable.push_back(*db_i);
-					}
-					else 
-					{
-						accessable_seq.push_back(*db_i);
-					}
+					file_info.setFile(*db_i);
+					db_i->assign(file_info.absFilePath().ascii());
+					
+					file_info.setFile(*db_i);
+					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
+					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
+					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+					else accessable_seq.push_back(*db_i);
 				}
 				if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
 				{
@@ -721,25 +786,38 @@ class TOPPInspectAdapter
 				// second database and index
 				if ( blind )
 				{
-					if ( !File::writable(snd_db_filename) )
+					file.setName(snd_db_filename);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
+						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_db_filename);
 					}
-					if ( !File::writable(snd_idx_filename) )
+					file.close();
+					file.setName(snd_idx_filename);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
+						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_idx_filename);
 					}
+					file.close();
 				}
 				
 				// the on-screen output of inspect
 				if ( inspect_out )
 				{
-					if ( !File::writable(inspect_logfile) )
+					file.setName(inspect_logfile);
+					file.open(IO_WriteOnly);
+					if ( !file.isWritable() )
 					{
 						writeLog_(String(" Could not write in temp data directory: ")
-								+ temp_data_dir + inspect_logfile + " Aborting!");
+								+ temp_data_dir + inspect_logfile
+								+ String(" Aborting!"));
+						file.close();
 						return ILLEGAL_PARAMETERS;
 					}
+					file.close();
 				}
 			}
 			
@@ -784,19 +862,16 @@ class TOPPInspectAdapter
 				call.append(" -o ");
 				call.append(inspect_output_filename);
 				// writing the inspect output to a temporary file
-				call.append(" > ");
+				call.append(" -e ");
 				call.append(inspect_logfile);
 
 				int status = system(call.c_str());
-				
-				//debug output
-				writeLog_("inspect output while running:\n");
-				TextFile inspect_logfile_content(inspect_logfile);
-				writeLog_(inspect_logfile_content.asString());
-				
+				writeLog_("inspect output during running:\n");
+				writeLog_(fileContent(inspect_logfile));
+
 				if (status != 0)
 				{
-					writeLog_("Inspect problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+					writeLog_("Inspect problem. Aborting!");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -841,12 +916,11 @@ class TOPPInspectAdapter
 				call.append(inspect_logfile);
 				
 				int status = system(call.c_str());
-				writeLog_("inspect output while running:\n");
-				TextFile inspect_logfile_content(inspect_logfile);
-				writeLog_(inspect_logfile_content.asString());
+				writeLog_("inspect output during running:\n");
+				writeLog_(fileContent(inspect_logfile));
 				if (status != 0)
 				{
-					writeLog_("Inspect problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+					writeLog_("Inspect problem. Aborting!");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -856,7 +930,7 @@ class TOPPInspectAdapter
 			{
 				AnalysisXMLFile analysisXML_file;
 				
-				if ( !File::empty(inspect_output_filename) )
+				if ( !emptyFile(inspect_output_filename) )
 				{
 					vector< Identification > identifications;
 					ProteinIdentification protein_identification;
@@ -870,7 +944,7 @@ class TOPPInspectAdapter
 					catch( Exception::ParseError pe )
 					{
 						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
-						writeLog_(String(pe.getMessage()) + " Aborting!");
+						writeLog_(pe.getMessage());
 						return INPUT_FILE_CORRUPT;
 					}
 					vector< ProteinIdentification > protein_identifications;
