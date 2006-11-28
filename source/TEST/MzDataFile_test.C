@@ -440,22 +440,23 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
-  MSExperiment< DPickedPeak<1> > e;
+  MSExperiment< DPickedPeak<1> > e1, e2;
   MzDataFile f;
-  f.load("data/MzDataFile_test_1.mzData",e);
-	TEST_EQUAL(e.size(), 3)
+  f.load("data/MzDataFile_test_1.mzData",e1);
+	TEST_EQUAL(e1.size(), 3)
 
 	std::string tmp_filename;
  	NEW_TMP_FILE(tmp_filename);
-	f.store(tmp_filename,e);
-	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_1.mzData");
+	f.store(tmp_filename,e1);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e1, e2);
 
-	MSExperiment< DRawDataPoint<1> > e2;
+	MSExperiment< DRawDataPoint<1> > e3, e4;
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzDataFile_test_2.mzData",e2);
-	f.store(tmp_filename,e2);
-	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");
-
+	f.load("data/MzDataFile_test_2.mzData",e3);
+	f.store(tmp_filename,e3);
+	f.load(tmp_filename,e4);
+	TEST_EQUAL(e3, e4);
 RESULT
 
 // check load for 64Bit precision and endian conversion
@@ -514,11 +515,12 @@ CHECK([EXTRA] load/store for Float Kernel Traits)
 	NEW_TMP_FILE(tmp_filename);
 
   	MzDataFile f;
-	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e2;
+	MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e1, e2;
 
-	f.load("data/MzDataFile_test_2.mzData",e2);
-	f.store(tmp_filename,e2);
-	TEST_FILE(tmp_filename.c_str(),"data/MzDataFile_test_2.mzData");
+	f.load("data/MzDataFile_test_2.mzData",e1);
+	f.store(tmp_filename,e1);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e1, e2);
 RESULT
 
 // check for Float Kernel traits

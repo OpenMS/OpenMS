@@ -224,33 +224,36 @@ RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	std::string tmp_filename;
-  MSExperiment< DRawDataPoint<1> > e, e2;
+  MSExperiment< DRawDataPoint<1> > e1, e2;
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
- 	 f.load("data/MzXMLFile_test_1.mzXML",e);
-	TEST_EQUAL(e.size(), 4)
+ 	 f.load("data/MzXMLFile_test_1.mzXML",e1);
+	TEST_EQUAL(e1.size(), 4)
 
-	f.store(tmp_filename,e);
-	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_1.mzXML");
+	f.store(tmp_filename,e1);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e1, e2);
 
 
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzXMLFile_test_2.mzXML",e);
-	f.store(tmp_filename,e);
-  TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
+	f.load("data/MzXMLFile_test_2.mzXML",e1);
+	f.store(tmp_filename,e1);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e1, e2);
 RESULT
 
 CHECK([EXTRA] load/store for Float Kernel Traits)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
-  MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e;
+  MSExperiment< DRawDataPoint<1, FloatKernelTraits> > e1, e2;
   MzXMLFile f;
 	
-	f.load("data/MzXMLFile_test_2.mzXML",e);
-	f.store(tmp_filename,e);
-	TEST_FILE(tmp_filename.c_str(),"data/MzXMLFile_test_2.mzXML");
+	f.load("data/MzXMLFile_test_2.mzXML",e1);
+	f.store(tmp_filename,e1);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e1, e2);
 RESULT
 
 // check for Float Kernel traits
