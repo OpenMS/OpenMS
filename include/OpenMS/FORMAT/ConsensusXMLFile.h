@@ -27,15 +27,8 @@
 #ifndef OPENMS_FORMAT_CONSENSUSXMLFILE_H
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <fstream>
 
 namespace OpenMS
 {
@@ -44,7 +37,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class ConsensusXMLFile
+  class ConsensusXMLFile : public Internal::SchemaFile
   {
     public:
       ///Default constructor
@@ -60,46 +53,9 @@ namespace OpenMS
       template <typename ElementT>
       void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
-        //try to open file
-        if (!File::exists(filename))
-        {
-          throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-        }
-
-        // initialize parser
-        try
-        {
-          xercesc::XMLPlatformUtils::Initialize();
-        }
-        catch (const xercesc::XMLException& toCatch)
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
-
-        xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-        parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-        parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
         map = ConsensusMap<ElementT>();  // clear map
         Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename);
-
-        parser->setContentHandler(&handler);
-        parser->setErrorHandler(&handler);
-
-        xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
-        try
-        {
-          parser->parse(source);
-          delete(parser);
-        }
-        catch (const xercesc::XMLException& toCatch)
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
-        catch (const xercesc::SAXException& toCatch)
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
+        parse_(filename, &handler);
       }
 
       /**
@@ -111,16 +67,8 @@ namespace OpenMS
       void store(const String& filename, const AlignmentT& alignment)
       const throw (Exception::UnableToCreateFile)
       {
-        std::ofstream os(filename.c_str());
-        if (!os)
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,filename);
-        }
-
-        //read data and close stream
         Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
-        handler.writeTo(os);
-        os.close();
+        save_(filename, &handler);
       }
   };
 

@@ -55,7 +55,8 @@ CPP_SOURCES=\
 	DFeatureMapFile.C\
 	DFeaturePairsFile.C\
 	MascotXMLFile.C\
-	DGridFile.C
+	DGridFile.C\
+	SchemaFile.C
 
 #	SequestInfile.C\
 #	SequestOutfile.C

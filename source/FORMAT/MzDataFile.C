@@ -29,6 +29,7 @@
 namespace OpenMS
 {
 	MzDataFile::MzDataFile()
+		: SchemaFile()
 	{
 	}
 

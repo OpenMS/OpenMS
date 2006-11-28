@@ -28,11 +28,12 @@
 
 namespace OpenMS
 {
-	 ConsensusXMLFile::ConsensusXMLFile()
+	ConsensusXMLFile::ConsensusXMLFile()
+		: SchemaFile()
 	{
 	}
 
-	 ConsensusXMLFile::~ConsensusXMLFile()
+	ConsensusXMLFile::~ConsensusXMLFile()
 	{
 	}
 

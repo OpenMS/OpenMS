@@ -80,6 +80,9 @@ namespace OpenMS
 			/// @returns a numerical value representing the tag.
 			UnsignedInt enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes);
 
+			/// Writes the contents to a stream
+			virtual void writeTo(std::ostream& os) = 0;
+
     protected:
     	/// Default construtctor not implemented => protected
     	SchemaHandler();

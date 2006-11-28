@@ -28,42 +28,25 @@
 #define OPENMS_FORMAT_DFEATUREMAPFILE_H
 
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/HANDLERS/DFeatureMapHandler.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <fstream>
+#include <OpenMS/FORMAT/SchemaFile.h>
 
 namespace OpenMS
 {
-	
 	/**
   	@brief This class provides Input/Output functionality for DFeatureMaps
   		
-  		
-  
   	@ingroup FileIO
   */
-  class DFeatureMapFile
+  class DFeatureMapFile : public Internal::SchemaFile
   {
 	 public:
 		/** @name Constructors and Destructor */
 		//@{
 
 		///Default constructor
-		DFeatureMapFile() 
-		{
-		
-		}
+		DFeatureMapFile();
 		///Destructor
-		virtual ~DFeatureMapFile() 
-		{
-		
-		}
+		~DFeatureMapFile();
 		//@}
 
 		/** @name Accessors */
@@ -71,77 +54,17 @@ namespace OpenMS
 		/// loads the file with name @p filename into @p map. General case is not implemented!
 		template<Size D> 
 		void load(String filename, DFeatureMap<D>& map) throw (Exception::FileNotFound);
-			
 		
 		/// loads the file with name @p filename into @p map.
-		void load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
-    {
-    	//try to open file
-			if (!File::exists(filename))
-	    {
-	      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-	    }
-			
-			// initialize parser
-			try 
-			{
-				xercesc::XMLPlatformUtils::Initialize();
-			}
-			catch (const xercesc::XMLException& toCatch) 
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-		  }
+		void load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
 
-			xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-			parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-			parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-			
-			feature_map.clear();
-			Internal::DFeatureMapHandler<2> handler(feature_map,filename);
-			
-			parser->setContentHandler(&handler);
-			parser->setErrorHandler(&handler);
-			
-			xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
-			try 
-      {
-      	parser->parse(source);
-      	delete(parser);
-      }
-      catch (const xercesc::XMLException& toCatch) 
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-      }
-      catch (const xercesc::SAXException& toCatch) 
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-      }
-		}
-      
 		/// stores the map @p map in file with name @p filename. General case is not implemented!
 		template<Size D> 
 		void store(String filename, const DFeatureMap<D>& map) const throw (Exception::UnableToCreateFile);
 			
 		
 		/// stores the map @p feature_map in file with name @p filename.
-		void store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile)
-		{
-			if (feature_map.empty()) return;
-      
-			// open file
-			std::ofstream os(filename.c_str(), std::fstream::out);
-			if (!os.is_open())
-			{
-				os.close();
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, "DFeatureMapFile::store",filename);
-			}	
-    		
-			//read data and close stream
-			Internal::DFeatureMapHandler<2> handler(feature_map,filename);
-			handler.writeTo(os);
-			os.close();
-		}
-                
+		void store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile);
 		//@}
 
 	};

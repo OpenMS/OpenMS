@@ -27,104 +27,52 @@
 #ifndef OPENMS_FORMAT_MZDATAFILE_H
 #define OPENMS_FORMAT_MZDATAFILE_H
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <fstream>
 
 namespace OpenMS
 {
-  /**
-  	@brief File adapter for MzData files
- 
-  	@todo test all optional attributes (Thomas K.)
-  	
-  	@ingroup FileIO
-  */
-  class MzDataFile
-  {
-    public:
-      ///Default constructor
-      MzDataFile();
-      ///Destructor
-      ~MzDataFile();
+	/**
+		@brief File adapter for MzData files
+
+		@todo test all optional attributes (Thomas K.)
+		
+		@ingroup FileIO
+	*/
+	class MzDataFile : public Internal::SchemaFile
+	{
+		public:
+			///Default constructor
+			MzDataFile();
+			///Destructor
+			~MzDataFile();
 
 			/**
-      	@brief Loads a map from a MzData file.
+				@brief Loads a map from a MzData file.
 
-      	@p map has to be a MSExperiment or have the same interface.
-      */
-      template <typename MapType>
-      void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
-      {
-      	//try to open file
-				if (!File::exists(filename))
-		    {
-		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		    }
-				
-				// initialize parser
-				try 
-				{
-					xercesc::XMLPlatformUtils::Initialize();
-				}
-				catch (const xercesc::XMLException& toCatch) 
-				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-			  }
-
-				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
+				@p map has to be a MSExperiment or have the same interface.
+			*/
+			template <typename MapType>
+			void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+			{
 				map.reset();
 				
 				Internal::MzDataHandler<MapType> handler(map,filename);
-				
-				parser->setContentHandler(&handler);
-				parser->setErrorHandler(&handler);
-				
-				xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
-				try 
-        {
-        	parser->parse(source);
-        	delete(parser);
-        }
-        catch (const xercesc::XMLException& toCatch) 
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
-        catch (const xercesc::SAXException& toCatch) 
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
-        }
+				parse_(filename, &handler);
 			}
 
-      /**
-      	@brief Stores a map in a MzData file.
+			/**
+				@brief Stores a map in a MzData file.
 
-      	@p map has to be a MSExperiment or have the same interface.
-      */
-      template <typename MapType>
-      void store(const String& filename, const MapType& map)
+				@p map has to be a MSExperiment or have the same interface.
+			*/
+			template <typename MapType>
+			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
-		  {
-				std::ofstream os(filename.c_str());
-				if (!os)
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__,__PRETTY_FUNCTION__,filename);
-		    }
-
-				//read data and close stream
+			{
 				Internal::MzDataHandler<MapType> handler(map,filename);
-				handler.writeTo(os);
-				os.close();
-  		}
+				save_(filename, &handler);
+			}
 	};
 
 } // namespace OpenMS

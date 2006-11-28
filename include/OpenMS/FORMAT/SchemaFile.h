@@ -21,61 +21,49 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Thomas Kadauke $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZXMLFILE_H
-#define OPENMS_FORMAT_MZXMLFILE_H
+#ifndef OPENMS_FORMAT_SCHEMAFILE_H
+#define OPENMS_FORMAT_SCHEMAFILE_H
 
-#include <OpenMS/FORMAT/SchemaFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
+// OpenMS includes
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
+	// forward declarations
 	class String;
-	/**
-		@brief File adapter for MzXML files
 	
-		@todo test all optional attributes (Thomas K.)
-	
-		@ingroup FileIO
-	*/
-	class MzXMLFile : public Internal::SchemaFile
+	namespace Internal
 	{
-		public:
-			///Default constructor
-			MzXMLFile();
-			///Destructor
-			~MzXMLFile();
-
-
-			/**
-				@brief Loads a map from a MzXML file.
-
-				@p map has to be a MSExperiment or have the same interface.
-			*/
-			template <typename MapType>
-			void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
-			{
-				map.reset();
-				
-				Internal::MzXMLHandler<MapType> handler(map,filename);
-				parse_(filename, &handler);
-			}
-
-			/**
-				@brief Stores a map in a MzXML file.
-
-				@p map has to be a MSExperiment or have the same interface.
-			*/
-			template <typename MapType>
-			void store(const String& filename, const MapType& map)
-			const throw (Exception::UnableToCreateFile)
-			{
-				Internal::MzXMLHandler<MapType> handler(map,filename);
-				save_(filename, &handler);
-			}
-	};
+		class SchemaHandler;
+	
+		/**
+			@brief Base class for loading/storing XML files that have a handler derived from SchemaHandler.
+		
+			@ingroup FileIO
+		*/
+		class SchemaFile
+		{
+			public:
+				///Default constructor
+				SchemaFile();
+				///Destructor
+				~SchemaFile();
+	
+			protected:
+				/**
+					Parses the XML file given by @p filename using the handler given by @p handler.
+				*/
+				void parse_(const String& filename, SchemaHandler* handler) throw (Exception::FileNotFound, Exception::ParseError);
+	
+				/**
+					Stores the contents of the XML handler given by @p handler in the file given by @p filename.
+				*/
+				void save_(const String& filename, SchemaHandler* handler) const throw (Exception::UnableToCreateFile);
+		};
+	}
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZXMLFILE_H
+#endif // OPENMS_FOMAT_SchemaFile_H

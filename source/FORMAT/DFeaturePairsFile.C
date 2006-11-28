@@ -30,4 +30,14 @@ namespace OpenMS {
 	
 	// not much going on here...	
 	
+	DFeaturePairsFile::DFeaturePairsFile()
+		: SchemaFile()
+	{
+		
+	}
+		///Destructor
+	DFeaturePairsFile::~DFeaturePairsFile()
+	{
+		
+	}
 }

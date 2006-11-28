@@ -35,6 +35,7 @@ using namespace std;
 namespace OpenMS
 {
 	MzXMLFile::MzXMLFile()
+		: SchemaFile()
 	{
 	}
 

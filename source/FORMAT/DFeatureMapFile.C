@@ -25,8 +25,29 @@
 // --------------------------------------------------------------------------
 
 #include<OpenMS/FORMAT/DFeatureMapFile.h>
+#include <OpenMS/FORMAT/HANDLERS/DFeatureMapHandler.h>
 
 namespace OpenMS 
 {
-	
+	DFeatureMapFile::DFeatureMapFile()
+		: SchemaFile()
+	{
+	}
+	DFeatureMapFile::~DFeatureMapFile()
+	{
+	}
+
+	void DFeatureMapFile::load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
+	{
+		feature_map.clear();
+		Internal::DFeatureMapHandler<2> handler(feature_map,filename);
+		parse_(filename, &handler);
+	}
+
+	void DFeatureMapFile::store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile)
+	{
+		if (feature_map.empty()) return;
+		Internal::DFeatureMapHandler<2> handler(feature_map,filename);
+		save_(filename, &handler);
+	}
 }
