@@ -423,24 +423,24 @@ namespace OpenMS
 				precursor_peak_ = peak; 
 			}
 			
-		/** 
-			@brief accessor for the normalized retention time
-				
-			Returns the normalized retention time, if the gradient start and stop time are known.
-			Otherwise the absolut retention time is returned.
-		*/
+			/** 
+				@brief accessor for the normalized retention time
+					
+				Returns the normalized retention time, if the gradient start and stop time are known.
+				Otherwise the absolut retention time is returned.
+			*/
 	    CoordinateType getNormalizedRetentionTime() const 
 	    { 
 	    	return (retention_stop_==0)? retention_time_: (retention_time_-retention_start_)/(retention_stop_-retention_start_); 
 	    }
 			
-		/// returns the absolute retention time (unit is seconds)
+			/// returns the absolute retention time (unit is seconds)
 	    const CoordinateType& getRetentionTime() const 
 	    { 
 	    	return retention_time_; 
 	    }
 		
-		/// returns the absolute retention time (unit is seconds)
+			/// returns the absolute retention time (unit is seconds)
 	    CoordinateType& getRetentionTime()  
 	    { 
 	    	return retention_time_; 
@@ -499,6 +499,54 @@ namespace OpenMS
 			}
 	
 			//@}
+
+			/**
+				 @brief Fast search for peak range begin
+	
+				 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+			*/
+			Iterator MZBegin(double mz)
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
+			}
+	
+			/**
+				 @brief Fast search for peak range end (returns the past-the-end iterator)
+	
+				 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
+			*/
+			Iterator MZEnd(double mz)
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
+			}
+	
+			/**
+				 @brief Fast search for peak range begin
+	
+				 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+			*/
+			ConstIterator MZBegin(double mz) const
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
+			}
+	
+			/**
+				 @brief Fast search for peak range end (returns the past-the-end iterator)
+	
+				 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
+			*/
+			ConstIterator MZEnd(double mz) const
+			{
+				PeakType p;
+				p.getPosition()[0] = mz;
+				return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
+			}
 
 		protected:
 			

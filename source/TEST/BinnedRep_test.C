@@ -54,7 +54,7 @@ uint binspread = 2;
 
 DTAFile dtafile;
 MSSpectrum< DPeak<1> > spec;
-dtafile.load("data/spectrum.dta",spec);
+dtafile.load("data/Transformers_tests.dta",spec);
 
 CHECK(BinnedRep::BinnedRep())
   brp = new BinnedRep(binsize,binspread);

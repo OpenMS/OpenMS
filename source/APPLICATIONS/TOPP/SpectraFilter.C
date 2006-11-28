@@ -29,7 +29,6 @@
 
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -78,8 +77,31 @@ class TOPPSpectraFilter
 		{
 			registerStringOption_("in", "<file>", "", "input file in MzData format");
 			registerStringOption_("out", "<file>", "", "output file in MzData format");
-			registerStringOption_("filters", "<filter1>[,<filter2>]", "NLargest, Scaler, BernNorm, ParentPeakMower, Normalizer, SqrtMower, ThresholdMower, WindowMower", "filter to be applied");
-
+			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filter to be applied");
+			addEmptyLine_();
+			addText_("Available filters and their parameters are:\n"
+							 "  - NLargest: keeps the n most intensive peaks of each spectrum\n"
+							 "    - n: the numer of peaks to keep\n"
+							 "  - ParentPeakMower: reduces the intensity of the unfragmented precursor peak ions\n"
+							 "    - windowsize: m/z window around the precurosor peak to scale down\n"
+							 "  - SqrtMower: set each intensity to the square root of the original intensity\n"
+							 "  - ThresholdMower: removes peaks lower than a threshold intensity\n"
+							 "    - threshold: intensity thresholdn\n"
+							 "  - WindowMower: keeps the biggest peaks in a sliding window\n"
+							 "    - windowsize: ???\n"
+							 "    - peakcount: ???\n"
+							 "  - Normalizer: Normalizes the peaks to a maximum of '1'\n"
+							 "  - Scaler: Scales the peaks according to their rank in terms of intensity\n"
+							 "  - BernNorm: Does the Bern et al. normalization\n"
+							 "    - C1 - ???\n"
+							 "    - C2 - ???\n"							 
+							 "    - threshold - ???");
+			addEmptyLine_();
+			addText_("Parameters for the filter can only be fiven in the INI file.\n"
+							 "Example parameters section for the 'ThresholdMower':\n"
+							 "  <NODE name=\"ThresholdMower\">\n"
+							 "    <ITEM name=\"threshold\" value=\"5.0\" type=\"float\"/>\n"
+							 "  </NODE>");
 		}
 		
 		ExitCodes main_(int , char**)

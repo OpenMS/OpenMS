@@ -115,31 +115,6 @@ namespace OpenMS
 			
 			// overwrite the spectrum with the new container
 			spectrum.setContainer(container);
-
-			/* old implementation ?!?
-    	std::map<double, double> peaksinwindow; // peakheight,pos
-    	std::map<double, int> marks; // peaks get marked if they belong to the <peakcount> highest in the window
-			
-			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    	{
-      	peaksinwindow.clear();
-       	for (uint i = 0; (it+i) != spectrum.end() && (it+i)->getIntensity() < it->getIntensity()+windowsize ; ++i)
-       	{
-        	 peaksinwindow.insert(std::make_pair<double, double>((it+i)->getIntensity(), (it+i)->getPosition()[0]));
-       	}
-			 
-       	std::map<double, double>::reverse_iterator it2 = peaksinwindow.rbegin();
-       	for (uint i = 0; i < peakcount && i < peaksinwindow.size(); ++i)
-       	{
-         	marks[(it2++)->second]++;
-       	}
-			 
-       	//todo do something with the marking, maybe multiply the peaks with it
-       	for (uint i = 0; i < spectrum.size(); ++i)
-       	{
-         	spectrum.getContainer()[i].setIntensity(spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i].getIntensity()*marks[spectrum.getContainer()[i].getPosition()[0]]);
-       	}
-      }*/
     }
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

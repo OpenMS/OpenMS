@@ -58,8 +58,8 @@ DTAFile dtafile;
 MSSpectrum< DPeak<1> >* spec = new MSSpectrum< DPeak<1> >();
 MSSpectrum< DPeak<1> >* spec2 = new MSSpectrum< DPeak<1> >();
 
-dtafile.load("data/spectrum.dta",*spec);
-dtafile.load("data/spectrum2.dta",*spec2);
+dtafile.load("data/Transformers_tests.dta",*spec);
+dtafile.load("data/Transformers_tests_2.dta",*spec2);
 
 ClusterExperiment* cexp = 0;
 ClusterExperiment::ClusterRun* crp = 0;

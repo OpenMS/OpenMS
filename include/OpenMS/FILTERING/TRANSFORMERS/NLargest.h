@@ -35,7 +35,7 @@ namespace OpenMS
 	/**	
   	@brief NLargest removes all but the n largest peaks<br>
   
-  	\param n number of peaks to keep
+  	@param n number of peaks to keep
 
 		@ingroup SpectraPreprocessing
   */
@@ -82,21 +82,15 @@ namespace OpenMS
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
-			// sort by intensity (sorts from lower to higher)
-			spectrum.getContainer().sortByIntensity();
-
 			// get parameter how many peaks are wanted
 			unsigned int n = (unsigned int)param_.getValue("n");
-
-			// reverse the order of the peaks (from higher to lower intensity)
-			reverse(spectrum.getContainer().begin(), spectrum.getContainer().end());
+			if (spectrum.size() <= n) return;
+			
+			// sort by reverse intensity
+			spectrum.getContainer().sortByIntensity(true);
 
 			// keep the n largest peaks if more than n are present
-			if (spectrum.getContainer().size() > n)
-			{
-				spectrum.getContainer().resize(n);
-			}
-	
+			spectrum.resize(n);
 		}
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

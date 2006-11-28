@@ -62,12 +62,12 @@ RESULT
 CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 	ClusterSpectrum cs1(spec, 0, 1, 1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
-	dta_file2.load("data/spectrum2.dta", spec2);
+	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 	ClusterSpectrum cs2(spec2, 0, 1, 1);	
 
 	double score = (*e_ptr)(cs1, cs2);

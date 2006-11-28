@@ -64,7 +64,7 @@ RESULT
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 
 	map<double, bool> marked;
 	e_ptr->apply(marked, spec);

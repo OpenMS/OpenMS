@@ -33,10 +33,9 @@ namespace OpenMS
 {
 
   /**
-  	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented parent ions
+  	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
   
 	  @param windowsize consider all peaks inside parent ion m/z +- windowsize
-	  @param x what is considered high: intensity > x*mean(peakintensity)
 
 		@ingroup SpectraPreprocessing
   */
@@ -70,43 +69,39 @@ namespace OpenMS
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
-			typedef typename SpectrumType::ConstIterator ConstIterator;
-			typedef typename SpectrumType::Iterator Iterator;
-		
-    	double window = (double)param_.getValue("windowsize");
-    	double mean = 0;
-
-    	spectrum.getContainer().sortByPosition();
-
-    	// calculate mean
-    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    	{
-      	mean += it->getIntensity();
-    	}
-    	mean /= spectrum.size();
-
-    	// assumed position of precursorpeak
+    	//get precursor peak position precursorpeak
     	double pppos = spectrum.getPrecursorPeak().getPosition()[0];
+			//???? Why devide by charge? Scaling is done in the wrong place like that?!?!?!
 			if (spectrum.getPrecursorPeak().getCharge() != 0)
 			{
 				pppos /= spectrum.getPrecursorPeak().getCharge();
 			}
+			//abort if no precursor peak was set
+			if (pppos==0.0)
+			{
+				if (spectrum.getMSLevel()>1)
+				{
+					std::cout << "Warning: No precursor peak for Spectrum with MS-level greater than '1'. Aborting!" << std::endl;
+				}
+				return;
+			}
 
-    	Iterator it = spectrum.end();
-			
-    	if (it == spectrum.begin()) return;
-    	do
+    	spectrum.getContainer().sortByPosition();
+
+    	// calculate mean
+    	double mean = 0;
+    	for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
-      	--it;
-      	if (it->getPosition()[0] <= pppos + window && it->getPosition()[0] >= pppos - window)
-      	{
-        	if (it->getIntensity() > mean) it->setIntensity(mean);
-      	}
-      	else if (it->getPosition()[0] < pppos - window)
-      	{
-        	break;
-      	}
-    	}	while (it != spectrum.begin());
+      	mean += it->getIntensity();
+    	}
+    	mean /= spectrum.size();
+			
+			//do scaling
+			double window = (double)param_.getValue("windowsize");
+    	for (typename SpectrumType::Iterator it = spectrum.MZBegin(pppos - window); it != spectrum.MZEnd(pppos + window); ++it)
+    	{
+				if (it->getIntensity() > mean) it->setIntensity(mean);
+    	}
 		}
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

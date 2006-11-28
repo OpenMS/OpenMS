@@ -70,22 +70,17 @@ namespace OpenMS
 
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
-		{
-			typedef typename SpectrumType::Iterator Iterator;
-
-			double threshold = (double)param_.getValue("threshold");
-
-			for (Iterator it = spectrum.begin(); it != spectrum.end(); )
-			{
-				if (it->getIntensity() < threshold)
-				{
-					it = spectrum.getContainer().erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
+		{			
+			// sort by intensity
+			spectrum.getContainer().sortByIntensity();
+			
+			// find right position to erase
+			typename SpectrumType::PeakType p;
+			p.setIntensity((double)param_.getValue("threshold"));
+			spectrum.erase(
+										spectrum.begin(),
+										lower_bound(spectrum.begin(), spectrum.end(), p, typename SpectrumType::PeakType::IntensityLess())
+										);
 		}
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

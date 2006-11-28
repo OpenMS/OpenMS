@@ -42,6 +42,8 @@ START_TEST(Scaler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+PRECISION(0.01)
+
 Scaler* e_ptr = 0;
 CHECK(Scaler())
 	e_ptr = new Scaler;
@@ -62,14 +64,21 @@ RESULT
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 
 	e_ptr->filterSpectrum(spec);
 	
 	TEST_EQUAL(spec.size(), 121)
 
 	spec.getContainer().sortByIntensity();
-	TEST_EQUAL(spec.begin()->getIntensity(), 95)
+	TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
+	TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
+	TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
+
+	for (PeakSpectrum::Iterator it = spec.begin(); it!=spec.end(); ++it)
+	{
+		cout << it->getIntensity() << " " << it->getPosition()[0] << endl; 
+	}
 	
 RESULT
 

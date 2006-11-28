@@ -35,16 +35,17 @@ namespace OpenMS
   /**
   	@brief Normalizer normalizes the peak intensities
  
-		@todo implement the method fully; implementing it correct; docs! (Andreas)
- 
-	  \param method
+	  @param method
 	    0 = peaks get scaled relative to the maximum intensity<br>
 	    1 = peaks get scaled relative to the TIC <br>
 	    2 = peaks get scaled so that a vector with one dimension per peak has length 1<br>
-	  \param windows
+	  @param windows
 	    only applicable for method = 0 <br>
 	    normalize in <i>windows</i> regions individually<br>
-
+		
+		@todo implement the method fully; implementing it correct; docs! (Andreas)
+		@todo chenage SpectraFilter docu as soon as it is implemented fully (Andreas)
+		
 		@ingroup SpectraPreprocessing
   */
   class Normalizer
@@ -108,8 +109,7 @@ namespace OpenMS
 
 			//////////////////
 			
-			/**
-			@todo implement the promised variants (Andreas)
+			/*
     	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     	{
       	if ( it->getPosition()[0] < minmz ) minmz = it->getPosition()[0];

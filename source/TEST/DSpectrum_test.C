@@ -748,6 +748,118 @@ CHECK(void setRetentionTime(double rt, double start=0, double stop=0))
   TEST_REAL_EQUAL(sdi.getNormalizedRetentionTime(),0.2255)
 RESULT
 
+CHECK((Iterator MZEnd(double mz)))
+	DSpectrum<1> tmp;
+	DSpectrum<1>::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	DSpectrum<1>::Iterator it;
+	
+	it = tmp.MZBegin(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.0);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
+CHECK((Iterator MZBegin(double mz)))
+	DSpectrum<1> tmp;
+	DSpectrum<1>::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	DSpectrum<1>::Iterator it;
+	
+	it = tmp.MZEnd(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(5.0);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
+CHECK((ConstIterator MZEnd(double mz) const))
+	DSpectrum<1> tmp;
+	DSpectrum<1>::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	DSpectrum<1>::ConstIterator it;
+	
+	it = tmp.MZBegin(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.0);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZBegin(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
+CHECK((ConstIterator MZBegin(double mz) const))
+	DSpectrum<1> tmp;
+	DSpectrum<1>::PeakType rdp;
+	rdp.getPosition()[0] = 1.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 2.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 3.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 4.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 5.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 6.0;
+	tmp.getContainer().push_back(rdp);
+	rdp.getPosition()[0] = 7.0;
+	tmp.getContainer().push_back(rdp);
+	
+	DSpectrum<1>::ConstIterator it;
+	
+	it = tmp.MZEnd(4.5);
+	TEST_EQUAL(it->getPosition()[0],5.0)
+	it = tmp.MZEnd(5.0);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+	it = tmp.MZEnd(5.5);
+	TEST_EQUAL(it->getPosition()[0],6.0)
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -62,7 +62,7 @@ RESULT
 CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 	
 	vector<double> filter = (*e_ptr)(spec);
 

@@ -62,7 +62,7 @@ RESULT
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 	
 	spec.getContainer().sortByPosition();
 

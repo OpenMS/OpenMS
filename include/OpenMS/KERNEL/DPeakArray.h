@@ -29,6 +29,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
 #include <vector>
@@ -123,8 +124,18 @@ namespace OpenMS
 			the standard sorting methods of std::vector.
 		*/
 		//@{
-		/// Sorts the peaks according to intensity
-		void sortByIntensity() { std::sort(Base::begin(), Base::end(), typename PeakType::IntensityLess()); }
+		/// Sorts the peaks according to ascending intensity
+		void sortByIntensity(bool reverse=false) 
+		{ 
+			if (reverse)
+			{
+				std::sort(Base::begin(), Base::end(), reverseComparator(typename PeakType::IntensityLess())); 
+			}
+			else
+			{
+				std::sort(Base::begin(), Base::end(), typename PeakType::IntensityLess()); 
+			}
+		}
 		
 		/// Lexicographically sorts the peaks by their position.
 		void sortByPosition() 

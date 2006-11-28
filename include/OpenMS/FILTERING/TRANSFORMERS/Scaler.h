@@ -73,38 +73,24 @@ namespace OpenMS
 
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{	
-			typedef typename SpectrumType::ConstIterator ConstIterator;
-			typedef typename SpectrumType::Iterator Iterator;
-			std::map<double, int> peakssorted;
-	    int count(0);
+			if (spectrum.size()==0) return;
 			
- 	  	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
- 	   	{
- 	    	peakssorted[it->getIntensity()] = 0;
- 	    	++count;
- 	  	}
-			
-    	for(std::map<double, int>::reverse_iterator rmit = peakssorted.rbegin(); rmit != peakssorted.rend(); ++rmit)
-    	{
-      	if (--count > 0) 
+			spectrum.getContainer().sortByIntensity();
+			typename SpectrumType::size_type count = spectrum.size();
+			++count;
+			typename SpectrumType::PeakType::IntensityType last_int = 0.0; 
+			typename SpectrumType::Iterator it = spectrum.end();
+			do
+			{
+				--it;
+				if (it->getIntensity()!=last_int)
 				{
-					peakssorted[rmit->first] = count;
+					--count;
 				}
-    	}
-			
-    	for (Iterator it = spectrum.begin(); it != spectrum.end(); )
-    	{
-      	double new_intensity = peakssorted[it->getIntensity()];
-      	if (new_intensity > 0)
-      	{
-        	it->setIntensity(peakssorted[it->getIntensity()]);
-        	++it;
-      	}
-      	else
-      	{
-        	it = spectrum.getContainer().erase(it);
-      	}
-    	}
+				last_int = it->getIntensity();
+				it->setIntensity(count);
+			}
+			while (it!=spectrum.begin());
 		}
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

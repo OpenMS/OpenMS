@@ -67,8 +67,7 @@ namespace OpenMS
 		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
-			typedef typename SpectrumType::Iterator Iterator;
-			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			for (typename SpectrumType::Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
 				it->setIntensity(std::sqrt(it->getIntensity()));
 			}

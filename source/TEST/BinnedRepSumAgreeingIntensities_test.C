@@ -62,14 +62,14 @@ RESULT
 CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 	TEST_EQUAL(spec.size(), 121)
 
 	ClusterSpectrum csa(spec, 0, 1, 1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
-	dta_file2.load("data/spectrum2.dta", spec2);
+	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
 	ClusterSpectrum csb(spec2, 0, 1, 1);
 

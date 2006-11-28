@@ -208,15 +208,13 @@ CHECK(DPeakArray& operator = (const DPeakArray& rhs))
 RESULT
 
 
-CHECK(void sortByIntensity())
+CHECK(void sortByIntensity(bool reverse = false))
 	DPeakArray<2, DPickedPeak<2> > pl2(pl);
 	pl2.sortByIntensity();
 	TEST_EQUAL(pl2.size(), 3)
 	
 	std::vector<DPickedPeak<2> > v(pl2.size());
 	std::copy(pl2.begin(), pl2.end(), v.begin());
-	TEST_EQUAL(v.size(), 3)
-	ABORT_IF(v.size() != 3)
 	TEST_REAL_EQUAL(v[2].getIntensity(), peak1.getIntensity())
 	TEST_REAL_EQUAL(v[2].getPosition()[0], peak1.getPosition()[0])
 	TEST_REAL_EQUAL(v[2].getPosition()[1], peak1.getPosition()[1])
@@ -228,6 +226,20 @@ CHECK(void sortByIntensity())
 	TEST_REAL_EQUAL(v[0].getIntensity(), peak3.getIntensity())
 	TEST_REAL_EQUAL(v[0].getPosition()[0], peak3.getPosition()[0])
 	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
+
+	pl2.sortByIntensity(true);
+	std::copy(pl2.begin(), pl2.end(), v.begin());
+	TEST_REAL_EQUAL(v[0].getIntensity(), peak1.getIntensity())
+	TEST_REAL_EQUAL(v[0].getPosition()[0], peak1.getPosition()[0])
+	TEST_REAL_EQUAL(v[0].getPosition()[1], peak1.getPosition()[1])
+
+	TEST_REAL_EQUAL(v[1].getIntensity(), peak2.getIntensity())
+	TEST_REAL_EQUAL(v[1].getPosition()[0], peak2.getPosition()[0])
+	TEST_REAL_EQUAL(v[1].getPosition()[1], peak2.getPosition()[1])
+
+	TEST_REAL_EQUAL(v[2].getIntensity(), peak3.getIntensity())
+	TEST_REAL_EQUAL(v[2].getPosition()[0], peak3.getPosition()[0])
+	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
 CHECK(void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented))

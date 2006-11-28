@@ -63,7 +63,7 @@ RESULT
 CHECK(double operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 
 	ClusterSpectrum cs(spec, 0, 1, 1);
 

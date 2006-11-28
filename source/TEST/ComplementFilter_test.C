@@ -62,7 +62,7 @@ RESULT
 CHECK(template <typename SpectrumType> double apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 
 	double filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 37.0)

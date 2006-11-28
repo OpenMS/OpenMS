@@ -50,8 +50,8 @@ DTAFile dtafile;
 
 MSSpectrum< DPeak<1> >* spec = new MSSpectrum< DPeak<1> >();
 MSSpectrum< DPeak<1> >* spec2 = new MSSpectrum< DPeak<1> >();
-dtafile.load("data/spectrum.dta",*spec);
-dtafile.load("data/spectrum.dta",*spec2);
+dtafile.load("data/Transformers_tests.dta",*spec);
+dtafile.load("data/Transformers_tests.dta",*spec2);
 
 Identification dbs;
 dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1,"RRYA"));

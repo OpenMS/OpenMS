@@ -63,11 +63,11 @@ RESULT
 CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/spectrum.dta", spec);
+	dta_file.load("data/Transformers_tests.dta", spec);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
-	dta_file2.load("data/spectrum2.dta", spec2);
+	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
 	double filter = e_ptr->filter(spec, spec);
 	

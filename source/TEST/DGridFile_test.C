@@ -61,7 +61,7 @@ CHECK(void load(const String& filename, DGrid& grid) throw (Exception::FileNotFo
 	DGrid<2> grid;
 	DGridFile gfile;
 		   
-  gfile.load("data/Grid.xml",grid);
+  gfile.load("data/DGridFile.xml",grid);
   DGridCell<2> cell = grid.back();
   	
 	TEST_EQUAL(cell.minX(),0);
@@ -86,10 +86,10 @@ CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const 
 	DGridFile gfile;
   
   NEW_TMP_FILE(tmp_filename);
-  gfile.load("data/Grid.xml",grid);
+  gfile.load("data/DGridFile.xml",grid);
 	gfile.store(tmp_filename,grid);
 	
-	TEST_FILE(tmp_filename.c_str(),"data/Grid.xml");
+	TEST_FILE(tmp_filename.c_str(),"data/DGridFile.xml");
 	
 RESULT
 
