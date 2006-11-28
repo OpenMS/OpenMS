@@ -23,7 +23,6 @@
 # --------------------------------------------------------------------------
 # $Maintainer: Ole Schulz-Trieglaff  $
 # --------------------------------------------------------------------------
-#
 
 DIRECTORY=ANALYSIS/ID
 
@@ -32,7 +31,8 @@ THISLIB=$(LIBNAME)
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-  MSExperimentAnnotator.C
+  IDSpectrumMapper.C\
+	IDFeatureMapper.C
 
 include ../../common.mak
 -include .Dependencies

@@ -21,17 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
-#include <map>
-
-using namespace std;
+#include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 
 namespace OpenMS 
 {
-  MSExperimentAnnotator::MSExperimentAnnotator() 
+  IDFeatureMapper::IDFeatureMapper() 
   {
     
   }

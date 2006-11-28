@@ -38,6 +38,7 @@ START_TEST(DFeature<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
 DFeature<10>* d10_ptr = 0;
 CHECK(DFeature())
@@ -347,6 +348,41 @@ CHECK(meta info with assignment)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
+
+
+
+
+CHECK((const std::vector<Identification>& getIdentifications() const))
+	DFeature<1> tmp;
+	vector<Identification> vec(tmp.getIdentifications());
+	TEST_EQUAL(vec.size(),0);
+RESULT
+
+CHECK((void setIdentifications(const std::vector<Identification>& identifications)))
+	DFeature<1> tmp;
+	vector<Identification> vec;
+	
+	tmp.setIdentifications(vec);
+	TEST_EQUAL(tmp.getIdentifications().size(),0);
+	
+	Identification dbs;
+	dbs.setCharge(5);
+	vec.push_back(dbs);
+	tmp.setIdentifications(vec);
+	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),5);
+RESULT
+
+CHECK((std::vector<Identification>& getIdentifications()))
+	DFeature<1> tmp;
+	vector<Identification> vec;
+	
+	tmp.getIdentifications().resize(1);
+	tmp.getIdentifications()[0].setCharge(6);
+	TEST_EQUAL(tmp.getIdentifications().size(),1);
+	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),6);
+RESULT
+  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/METADATA/Identification.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 
@@ -191,6 +192,24 @@ namespace OpenMS
 			}
 		};
 
+    /// returns a const reference to the Identification vector
+    const std::vector<Identification>& getIdentifications() const
+    {
+    	return identifications_;
+    };
+        	
+    /// returns a mutable reference to the Identification vector
+    std::vector<Identification>& getIdentifications()
+    {
+    	return identifications_;
+    };
+    
+    /// sets the Identification vector
+    void setIdentifications(const std::vector<Identification>& identifications)
+    {
+    	identifications_ = identifications;
+    };
+
 		protected:
 		/// Overall quality measure of the feature
 		QualityType overall_quality_;
@@ -202,6 +221,11 @@ namespace OpenMS
 		ConvexHullVector convex_hulls_;		
 		/// Charge of the peptide represented by this feature
 		ChargeType charge_;
+		/// Peptide Identifications belonging to the feature
+	  std::vector<Identification> identifications_;
+
+
+
 
 		/**@name Serialization
 		 */		

@@ -24,8 +24,8 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H
-#define OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H
+#ifndef OPENMS_ANALYSIS_ID_IDSPECTRUMMAPPER_H
+#define OPENMS_ANALYSIS_ID_IDSPECTRUMMAPPER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Identification.h>
@@ -35,18 +35,18 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotates MSExperiments with Identification instances
+    @brief Annotate a MSExperiment instances with Identification instances
     
     The identifications stored in a Identification instance can be added to the
     corresponding spectrum. Furthermore the annotations that are present
     can be retrieved.
   */
-  class MSExperimentAnnotator
+  class IDSpectrumMapper
   {
     public:
 
       /// Constructor
-      MSExperimentAnnotator();
+      IDSpectrumMapper();
       
 			/**
 				@brief Annotates the spectra belonging to the experiment
@@ -174,4 +174,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_MSEXPERIMENTANNOTATOR_H
+#endif // OPENMS_ANALYSIS_ID_IDSPECTRUMMAPPER_H

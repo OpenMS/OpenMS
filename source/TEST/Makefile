@@ -280,7 +280,8 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DMapDewarper_test
 
 EXECUTABLES_ANALYSIS_ID =\
-	MSExperimentAnnotator_test
+	IDSpectrumMapper_test\
+	IDFeatureMapper_test
 
 # APPLICATIONS
 

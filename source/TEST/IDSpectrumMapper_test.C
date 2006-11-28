@@ -30,7 +30,7 @@
 
 #include <iostream>
 
-#include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
+#include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -39,7 +39,7 @@
 
 ///////////////////////////
 
-START_TEST(MSExperimentAnnotator, "$Id$")
+START_TEST(IDSpectrumMapper, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -47,8 +47,8 @@ START_TEST(MSExperimentAnnotator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MSExperimentAnnotator annotator;
-MSExperimentAnnotator* ptr;
+IDSpectrumMapper annotator;
+IDSpectrumMapper* ptr;
 MSExperiment< DPeak<1> > experiment;
 vector<Identification> identifications; 
 vector<ProteinIdentification> protein_identifications; 
@@ -60,7 +60,7 @@ float precision = 0.1;
 MSSpectrum< DPeak<1> > spectrum;
 DPeak<1> peak;
 
-xml_file.load("data/MSExperimentAnnotatorFile_test.analysisXML",
+xml_file.load("data/IDSpectrumMapper_test.analysisXML",
 							&protein_identifications, 
 				   		&identifications, 
 							&precursor_retention_times, 
@@ -77,8 +77,8 @@ experiment.push_back(spectrum);
 spectrum.setRetentionTime(180);
 experiment.push_back(spectrum);							
 
-CHECK(MSExperimentAnnotator())
-	ptr = new MSExperimentAnnotator();
+CHECK(IDSpectrumMapper())
+	ptr = new IDSpectrumMapper();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 

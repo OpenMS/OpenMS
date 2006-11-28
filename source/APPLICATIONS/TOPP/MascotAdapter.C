@@ -34,7 +34,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/ID/MSExperimentAnnotator.h>
+#include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
@@ -234,7 +234,7 @@ class TOPPMascotAdapter
 			String mascotXML_file_name = "";
 			MzDataFile mzdata_infile;
 			MSExperiment< DPeak<1> > experiment;
-			MSExperimentAnnotator annotator;
+			IDSpectrumMapper annotator;
 			IDFilter filter;
 			AnalysisXMLFile analysisXML_file;
 			MascotXMLFile mascotXML_file;
