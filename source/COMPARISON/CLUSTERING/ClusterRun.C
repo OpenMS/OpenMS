@@ -58,25 +58,30 @@ namespace OpenMS
     :PersistentObject(source),parentp_(source.parentp_),clusters_(),binsize_(source.binsize_),binspread_(source.binspread_),didrun_(source.didrun_),sim_funcp_(0),preprocess_queue_(), cluster_funcp_(0),analysis_queue_(source.analysis_queue_),norm_(source.norm_)
   {
     PersistentObject::operator=(source);
-    Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
+		// TODO
+    //Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
+		
+    for (map<int,ClusterNode*>::const_iterator cmit = source.clusters_.begin(); cmit != source.clusters_.end(); ++cmit)
+    {
+      clusters_.insert(make_pair(cmit->first, new ClusterNode(*cmit->second)));
+    }
+		
+    if (source.sim_funcp_) 
+    {
+			// TODO
+      //sim_funcp_ =  duplicate from factory
+    }
+
+    if (source.cluster_funcp_) 
+    {
+			// TODO
+      //cluster_funcp_ = duplicate from factory
+    }
+		
 		/*
-    for ( map<int,ClusterNode*>::const_iterator cmit = source.clusters_.begin();
-        cmit != source.clusters_.end(); ++cmit )
+    for (vector<PreprocessingFunctor*>::const_iterator cvit = source.preprocess_queue_.begin(); cvit != source.preprocess_queue_.end(); ++cvit)
     {
-      clusters_.insert(make_pair(cmit->first,new ClusterNode(*cmit->second)));
-    }
-    if ( source.sim_funcp_ ) 
-    {
-      sim_funcp_ = dynamic_cast<CompareFunctor*>(fp->duplicate(source.sim_funcp_));
-    }
-    if ( source.cluster_funcp_ ) 
-    {
-      cluster_funcp_ = dynamic_cast<ClusterFunctor*>(fp->duplicate(source.cluster_funcp_));
-    }
-    for ( vector<PreprocessingFunctor*>::const_iterator cvit = source.preprocess_queue_.begin();
-        cvit != source.preprocess_queue_.end(); ++cvit )
-    {
-      PreprocessingFunctor* mfp = dynamic_cast<PreprocessingFunctor*>(fp->duplicate(*cvit));
+      PreprocessingFunctor* mfp = 0; // TODO duplicate from factory
       preprocess_queue_.push_back(mfp);
     }
 		*/
@@ -91,7 +96,8 @@ namespace OpenMS
     binspread_=source.binspread_; 
     analysis_queue_=source.analysis_queue_;
     norm_ = source.norm_;
-    Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
+		// TODO
+    //Factory<ClusterFunctor>* fp = Factory<ClusterFunctor>::instance();
 		/*
     for ( map<int,ClusterNode*>::const_iterator cmit = source.clusters_.begin();
         cmit != source.clusters_.end(); ++cmit )

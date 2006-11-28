@@ -174,7 +174,7 @@ namespace OpenMS
     {
       ++size_;
       //Spectrum< DPeak<1> >* spec = dynamic_cast<MSSpectrum< DPeak<1> >*>(adapterp->createObject(*cit));//TODO Persistence
-      MSSpectrum< DPeak<1> >* spec;
+      MSSpectrum< DPeak<1> >* spec = 0;
       
       if ( !spec ) 
       {
