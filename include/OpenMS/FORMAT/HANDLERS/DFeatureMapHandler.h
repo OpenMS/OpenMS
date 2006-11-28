@@ -245,7 +245,7 @@ namespace OpenMS
 				delete model_desc_;
 				break;
 			case HULLPOINT:
-				current_chull_->push_back(*hull_position_);
+				current_chull_->addPoint(*hull_position_);
 				delete hull_position_;
 				break;
 			case CONVEXHULL:
@@ -422,13 +422,13 @@ namespace OpenMS
 				os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 
 				ConvexHullType current_hull = hulls[i];
-				UnsignedInt hull_size       = current_hull.size();
+				UnsignedInt hull_size       = current_hull.getPoints().size();
 
 				for (UnsignedInt j=0;j<hull_size;j++)
 				{
 					os << "\t\t\t\t<hullpoint>" << std::endl;
 
-					DPosition<D> pos = current_hull[j];
+					DPosition<D> pos = current_hull.getPoints()[j];
 					UnsignedInt pos_size = pos.size();
 					for (UnsignedInt k=0; k<pos_size; k++)
 					{

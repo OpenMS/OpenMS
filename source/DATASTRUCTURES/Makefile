@@ -45,7 +45,8 @@ CPP_SOURCES=\
 	DateTime.C\
 	QuadTree.C\
 	RangeManager.C\
-	ScanIndexMSExperiment.C
+	ScanIndexMSExperiment.C\
+	DConvexHull.C
 
 include ../common.mak
 -include .Dependencies

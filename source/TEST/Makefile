@@ -60,6 +60,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	QuadTree_test\
 	RangeManager_test\
 	Matrix_test\
+	DConvexHull_test
 
 #METADATA
 

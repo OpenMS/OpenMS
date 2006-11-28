@@ -537,7 +537,7 @@ public:
 						cit !=	cgal_result.end(); 
 						++cit)
 			{
-				convex_hull.push_back( 	PositionType( cit->x(),cit->y() ) );			
+				convex_hull.addPoint( 	PositionType( cit->x(),cit->y() ) );			
 			} 				
 
       return convex_hull;

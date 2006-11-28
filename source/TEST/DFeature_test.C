@@ -348,10 +348,6 @@ CHECK(meta info with assignment)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-
-
-
-
 CHECK((const std::vector<Identification>& getIdentifications() const))
 	DFeature<1> tmp;
 	vector<Identification> vec(tmp.getIdentifications());
@@ -382,7 +378,11 @@ CHECK((std::vector<Identification>& getIdentifications()))
 	TEST_EQUAL(tmp.getIdentifications().size(),1);
 	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),6);
 RESULT
-  
+
+CHECK((DBoundingBox<D> DFeature<D, Traits>::getBoundingBox() const))
+	//TODO
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

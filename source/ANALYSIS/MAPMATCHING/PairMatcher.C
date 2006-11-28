@@ -196,14 +196,14 @@ namespace OpenMS
 
 				DFeature<2>::ConvexHullType hull;
 				const double fak = 0.3;
-				hull.push_back( pairs[i].getFirst().getPosition() - DPosition<2>(fak,0) );
-				hull.push_back( pairs[i].getFirst().getPosition() - DPosition<2>(0,fak) );
-				hull.push_back( pairs[i].getFirst().getPosition() + DPosition<2>(fak,0) );
-				hull.push_back( pairs[i].getFirst().getPosition() + DPosition<2>(0,fak) );
-				hull.push_back( pairs[i].getSecond().getPosition() + DPosition<2>(fak,0) );
-				hull.push_back( pairs[i].getSecond().getPosition() + DPosition<2>(0,fak) );
-				hull.push_back( pairs[i].getSecond().getPosition() - DPosition<2>(fak,0) );
-				hull.push_back( pairs[i].getSecond().getPosition() - DPosition<2>(0,fak) );
+				hull.addPoint( pairs[i].getFirst().getPosition() - DPosition<2>(fak,0) );
+				hull.addPoint( pairs[i].getFirst().getPosition() - DPosition<2>(0,fak) );
+				hull.addPoint( pairs[i].getFirst().getPosition() + DPosition<2>(fak,0) );
+				hull.addPoint( pairs[i].getFirst().getPosition() + DPosition<2>(0,fak) );
+				hull.addPoint( pairs[i].getSecond().getPosition() + DPosition<2>(fak,0) );
+				hull.addPoint( pairs[i].getSecond().getPosition() + DPosition<2>(0,fak) );
+				hull.addPoint( pairs[i].getSecond().getPosition() - DPosition<2>(fak,0) );
+				hull.addPoint( pairs[i].getSecond().getPosition() - DPosition<2>(0,fak) );
 				first->second.getConvexHulls().push_back( hull );
 
 				DPosition<2> diff

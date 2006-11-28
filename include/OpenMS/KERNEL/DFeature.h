@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/DConvexHull.h>
 #include <OpenMS/METADATA/Identification.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
@@ -74,8 +75,7 @@ namespace OpenMS
 		//@{	
 		enum { DIMENSION = D };
 		typedef Traits TraitsType;
-		typedef DRange<D, TraitsType> BoundingBoxType;		
-		typedef std::vector< DPosition<D, TraitsType>	> ConvexHullType;	
+		typedef DConvexHull<D> ConvexHullType;
 		typedef std::vector<ConvexHullType> ConvexHullVector;			
 		typedef	 typename Traits::RealType QualityType;
 		typedef	 typename Traits::ChargeType ChargeType;
@@ -112,7 +112,7 @@ namespace OpenMS
 		/**	@name Accessors	*/
 		//@{
 		/// Non-mutable access to the bounding box
-		BoundingBoxType getBoundingBox() const;
+		DBoundingBox<D> getBoundingBox() const;
 
 		/// Non-mutable access to the overall quality
 		inline const QualityType& getOverallQuality() const { return overall_quality_; }
@@ -277,28 +277,18 @@ namespace OpenMS
 	}
 
 	template <Size D, typename Traits>
-	typename DFeature<D, Traits>::BoundingBoxType DFeature<D, Traits>::getBoundingBox() const
+	DBoundingBox<D> DFeature<D, Traits>::getBoundingBox() const
 	{
-		if (convex_hulls_.size()==0 || convex_hulls_[0].size()==0)
+		DBoundingBox<D> bb, tmp;
+		
+		for (typename ConvexHullVector::const_iterator	it=convex_hulls_.begin(); it!=convex_hulls_.end(); ++it)
 		{
-			return DRange<D>();
+			tmp = it->getBoundingBox();
+			bb.enlarge(tmp.min());
+			bb.enlarge(tmp.max());
 		}
-		else
-		{
-			DPosition<D> min(std::numeric_limits< typename DPeak<2,Traits>::CoordinateType>::max());
-			DPosition<D> max(std::numeric_limits< typename DPeak<2,Traits>::CoordinateType>::min());
-			
-			// find min/max in each dimension of all convex hull points
-			for (typename ConvexHullType::const_iterator	it=convex_hulls_[0].begin(); it!=convex_hulls_[0].end(); ++it)
-			{
-				for (UnsignedInt dim=0; dim<D; ++dim)
-				{
-					if ((*it)[dim]>max[dim]) max[dim] = (*it)[dim];
-					if ((*it)[dim]<min[dim]) min[dim] = (*it)[dim];
-				}
-			}
-			return DRange<D>(min,max);
-		}
+		
+		return bb;
 	}
 	
 } // namespace OpenMS

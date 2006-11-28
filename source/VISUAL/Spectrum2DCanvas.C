@@ -717,10 +717,10 @@ namespace OpenMS
 			for (UnsignedInt hull=0; hull<feature->getConvexHulls().size(); ++hull)
 			{
 				
-				points.resize(feature->getConvexHulls()[hull].size());
+				points.resize(feature->getConvexHulls()[hull].getPoints().size());
 				UnsignedInt index=0;
 				//iterate over hull points
-				for(DFeature<2>::ConvexHullType::const_iterator it=feature->getConvexHulls()[hull].begin(); it!=feature->getConvexHulls()[hull].end(); ++it, ++index)
+				for(DFeature<2>::ConvexHullType::PointArrayType::const_iterator it=feature->getConvexHulls()[hull].getPoints().begin(); it!=feature->getConvexHulls()[hull].getPoints().end(); ++it, ++index)
 				{
 					points.setPoint(index, dataToWidget_(it->Y(), it->X()));
 				}	

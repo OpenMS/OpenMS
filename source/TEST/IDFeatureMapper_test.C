@@ -32,6 +32,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
+#include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 ///////////////////////////
 
@@ -56,21 +57,27 @@ RESULT
 
 CHECK((void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values)))
 
-IDFeatureMapper annotator;
-DFeatureMap<2> fm;
-
+//load id data
 vector<Identification> identifications; 
 vector<ProteinIdentification> protein_identifications; 
 vector<float> precursor_retention_times;
 vector<float> precursor_mz_values;
 ContactPerson contact_person;
 AnalysisXMLFile().load("data/IDFeatureMapper_test.analysisXML",
-							protein_identifications, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values, 
-							contact_person);
+												protein_identifications, 
+									   		identifications, 
+												precursor_retention_times, 
+												precursor_mz_values, 
+												contact_person);
 
+//load feature data
+DFeatureMap<2> fm;
+DFeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
+
+//map
+IDFeatureMapper().annotate(fm,identifications,precursor_retention_times,precursor_mz_values);
+
+//TODO
 RESULT
 
 /////////////////////////////////////////////////////////////
