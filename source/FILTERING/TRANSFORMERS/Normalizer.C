@@ -35,7 +35,7 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		name_ = Normalizer::getName();
-    defaults_.setValue("windows", 10); // only applicable for max normalizing, run twice for other methods
+    defaults_.setValue("method", "to_one");
 		param_ = defaults_;
   }
 

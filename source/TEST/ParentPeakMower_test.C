@@ -63,15 +63,41 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
+	spec.setMSLevel(2);
 	
 	spec.getContainer().sortByPosition();
 
-	TEST_REAL_EQUAL((spec.begin()+40)->getIntensity(), 37.5)
+	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
-	e_ptr->getParam().setValue("windowsize", 200);
+	double window_size(2.0);
+	e_ptr->getParam().setValue("window_size", window_size);
+	e_ptr->getParam().setValue("default_charge", 2);
+	e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
+	e_ptr->getParam().setValue("set_to_zero", (short)1);
+
 	e_ptr->filterSpectrum(spec);
-	
-	TEST_REAL_EQUAL((spec.begin()+40)->getIntensity(), 4.40909)
+	double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
+	for (Size z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
+	{
+		for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+		{	
+			if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
+			{
+				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+			}
+
+			// test if NH3 loss is correct removed
+			if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+			{
+				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+			}
+
+			if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+			{
+				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+			}
+		}
+	}
 	
 RESULT
 

@@ -73,6 +73,17 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	spec.getContainer().sortByIntensity();
 	
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
+
+	e_ptr->getParam().setValue("method", "to_TIC");
+	e_ptr->filterSpectrum(spec);
+
+	double sum(0);
+	for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+	{
+		sum += it->getIntensity();
+	}
+
+	TEST_REAL_EQUAL(sum, 1.0);	
 RESULT
 
 delete e_ptr;

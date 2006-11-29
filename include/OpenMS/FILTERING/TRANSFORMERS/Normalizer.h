@@ -36,15 +36,8 @@ namespace OpenMS
   	@brief Normalizer normalizes the peak intensities
  
 	  @param method
-	    0 = peaks get scaled relative to the maximum intensity<br>
-	    1 = peaks get scaled relative to the TIC <br>
-	    2 = peaks get scaled so that a vector with one dimension per peak has length 1<br>
-	  @param windows
-	    only applicable for method = 0 <br>
-	    normalize in <i>windows</i> regions individually<br>
-		
-		@todo implement the method fully; implementing it correct; docs! (Andreas)
-		@todo chenage SpectraFilter docu as soon as it is implemented fully (Andreas)
+	   	to_one = peaks get scaled relative to the maximum intensity<br>
+	    to_TIC = peaks get scaled relative to the TIC <br>
 		
 		@ingroup SpectraPreprocessing
   */
@@ -87,50 +80,53 @@ namespace OpenMS
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
-		
-	    //std::vector<double> max = std::vector<double>((unsigned int)param_.getValue("windows"));
- 	  	//double minmz = 10000;
-    	//double maxmz = 0;
+	
+			const String method = param_.getValue("method");
 			
-			////////////////////
-			// just to normalize s.th.!! (normalize to one)
-			double max(0);
-			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			// normalizes the max peak to 1 and the rest of the peaks to values relative to max
+			if (method == "to_one")
 			{
-				if (max < it->getIntensity())
+				double max(0);
+				for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 				{
-					max = it->getIntensity();
+					if (max < it->getIntensity())
+					{
+						max = it->getIntensity();
+					}
 				}
-			}
-			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-			{
-				it->setIntensity(it->getIntensity() / max);
+				for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+				{
+					it->setIntensity(it->getIntensity() / max);
+				}
+				return;
 			}
 
-			//////////////////
+			// normalizes the peak intensities to the TIC
+			if (method == "to_TIC")
+			{
+				double sum(0);
+				for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+				{
+					sum += it->getIntensity();
+				}
+
+				for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+				{
+					it->setIntensity(it->getIntensity() / sum);
+				}
+				return;
+			}
 			
-			/*
-    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    	{
-      	if ( it->getPosition()[0] < minmz ) minmz = it->getPosition()[0];
-      	else if (it->getPosition()[0] > maxmz) maxmz = it->getPosition()[0];
-    	}
-    	for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    	{
-      	uint pos = (uint)((it->getPosition()[0] - minmz) / (maxmz - minmz) * max.size());
-      	if (pos == max.size()) --pos;
-      	if (max.at(pos) < it->getIntensity()) max.at(pos) = it->getIntensity();
-    	}
-    	for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    	{
-     		uint pos = (uint)((it->getPosition()[0] - minmz) / (maxmz - minmz) * max.size());
-      	if (pos == max.size()) --pos;
-      	it->setIntensity(it->getIntensity()/max[pos]);
-    	}*/
+			// method unknown
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method);
+			return;
+			
 		}
 
+		///
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
+		///
     void filterPeakMap(PeakMap& exp);
 		// @}
 

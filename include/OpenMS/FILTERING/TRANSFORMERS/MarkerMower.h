@@ -108,7 +108,7 @@ namespace OpenMS
 			return "MowerMarker";
 		}
 
-    /// insert new Marker
+    /// insert new Marker (violates the PreprocessingFunctor interface)
     void insertmarker(PeakMarker*);
 		// @}
 	

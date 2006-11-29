@@ -35,7 +35,14 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		name_ = ParentPeakMower::getName();
-    defaults_.setValue("windowsize", 35);
+    defaults_.setValue("window_size", 2.0);
+		defaults_.setValue("default_charge", (int)2);
+		defaults_.setValue("clean_all_charge_states", (short)1);
+		defaults_.setValue("consider_NH3_loss", (short)1);
+		defaults_.setValue("consider_H2O_loss", (short)1);
+		defaults_.setValue("reduce_by_factor", (short)0);
+		defaults_.setValue("factor", 1000.0);
+		defaults_.setValue("set_to_zero", (short)1);
 		param_ = defaults_;
   }
 

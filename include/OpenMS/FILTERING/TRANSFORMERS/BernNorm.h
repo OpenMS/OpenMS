@@ -36,7 +36,9 @@ namespace OpenMS
   @brief BernNorm scales the peaks by ranking them and then scaling them according to rank.
   
   For exact formula look in Bioinformatics, Aug 2004; 20: i49 - i54
-  
+
+	@todo read paper and try to confirm implementation (andreas)
+	
   @param C1
   @param C2
 	@param threshold

@@ -74,11 +74,6 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
 	TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
 	TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
-
-	for (PeakSpectrum::Iterator it = spec.begin(); it!=spec.end(); ++it)
-	{
-		cout << it->getIntensity() << " " << it->getPosition()[0] << endl; 
-	}
 	
 RESULT
 

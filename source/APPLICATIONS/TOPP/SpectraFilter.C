@@ -50,7 +50,7 @@ using namespace std;
 		<LI> SqrtMower -- set each intensity to the square root of the original intensity
 		<LI> ThresholdMower -- removes peaks lower than a threshold intensity
 		<LI> WindowMower -- keeps the biggest peaks in a sliding window
-		<LI> Normalizer -- Normalizes the peaks in the spectrum with different modes
+		<LI> Normalizer -- Normalizes the peaks in the spectrum with different modes (to_one, to_TIC)
 		<LI> Scaler -- Scales the peaks according to their rank
 		<LI> BernNorm -- Does the Bern et al. normalization
 	</UL>
@@ -81,21 +81,29 @@ class TOPPSpectraFilter
 			addEmptyLine_();
 			addText_("Available filters and their parameters are:\n"
 							 "  - NLargest: keeps the n most intensive peaks of each spectrum\n"
-							 "    - n: the numer of peaks to keep\n"
+							 "    - n: the numer of peaks to keep [200]\n"
 							 "  - ParentPeakMower: reduces the intensity of the unfragmented precursor peak ions\n"
-							 "    - windowsize: m/z window around the precurosor peak to scale down\n"
+							 "    - window_size: the size of the m/z window where the peaks are removed, +/- window_size [2.0]\n"
+							 "    - default_charge: if the precursor has no charge set, the default charge is assumed [2]\n"
+							 "    - clean_all_charge_states: set to 1 if precursor ions of all possible charge states should be removed [1]\n"
+							 "    - set_to_zero: reduce the intensities of the precursor and related ions to zero [1]\n"
+							 "    - reduce_by_factor: reduce the intensities by a given factor (set 'set_to_zero' to 0) [0]\n"
+							 "    - factor: factor which is used to reduce the intensities if \"reduce_by_factor\" is selected [1000.0]\n"
+							 "    - consider_NH3_loss: whether NH3 loss peaks from the precursor should be removed [1]\n"
+							 "    - consider_H2O_loss: whether H2O loss peaks from the precursor shoudl be removed [1]\n"
 							 "  - SqrtMower: set each intensity to the square root of the original intensity\n"
 							 "  - ThresholdMower: removes peaks lower than a threshold intensity\n"
-							 "    - threshold: intensity thresholdn\n"
-							 "  - WindowMower: keeps the biggest peaks in a sliding window\n"
-							 "    - windowsize: ???\n"
-							 "    - peakcount: ???\n"
+							 "    - threshold: intensity threshold [0.05]\n"
+							 "  - WindowMower: keeps the most abundand peaks in a sliding window\n"
+							 "    - windowsize: the size of the sliding window along the m/z axis [50]\n"
+							 "    - peakcount: the number of peaks that should be kept [2]\n"
 							 "  - Normalizer: Normalizes the peaks to a maximum of '1'\n"
+							 "   - method: normalize to TIC (\"to_TIC\") or normalize to max intensity of one (\"to_one\") [to_TIC]\n"
 							 "  - Scaler: Scales the peaks according to their rank in terms of intensity\n"
 							 "  - BernNorm: Does the Bern et al. normalization\n"
-							 "    - C1 - ???\n"
-							 "    - C2 - ???\n"							 
-							 "    - threshold - ???");
+							 "    - C1 - ??? [48.0]\n"
+							 "    - C2 - ??? [400.0]\n"							 
+							 "    - threshold - ??? [0.1]");
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.\n"
 							 "Example parameters section for the 'ThresholdMower':\n"

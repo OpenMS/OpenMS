@@ -107,7 +107,7 @@ namespace OpenMS
     ppnames_->clear();
   }
 
-  void ClusterRunWidget::fillbox_(String type, QComboBox* box)
+  void ClusterRunWidget::fillbox_(String /* type */, QComboBox* box)
   {
     vector<String> candidates /*= Factory<PreprocessingFunctor>::instance()->catalogue(type)*/;
     box->clear();
