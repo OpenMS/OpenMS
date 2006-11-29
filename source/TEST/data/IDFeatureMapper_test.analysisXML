@@ -5,8 +5,8 @@
 			<sampleName>unknown</sampleName>
 		</admin>
 		<settings>
-			<userParam name="number_of_identifications" value="3" />
-			<userParam name="number_of_protein_identifications" value="1" />
+			<userParam name="number_of_identifications" value="10" />
+			<userParam name="number_of_protein_identifications" value="2" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
@@ -31,7 +31,7 @@
 				</peptide>
 				<peptide>
 					<seq>B</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="1" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="90" />
@@ -41,7 +41,7 @@
 				</peptide>
 				<peptide>
 					<seq>C</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="85" />
@@ -51,7 +51,7 @@
 				</peptide>
 				<peptide>
 					<seq>D</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="3" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="95" />
@@ -61,7 +61,7 @@
 				</peptide>
 				<peptide>
 					<seq>E</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="90" />
@@ -77,7 +77,7 @@
 				<dbID>OUTSIDE</dbID>
 				<peptide>
 					<seq>F</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="5" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="81" />
@@ -87,7 +87,7 @@
 				</peptide>
 				<peptide>
 					<seq>G</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="6" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="90" />
@@ -97,7 +97,7 @@
 				</peptide>
 				<peptide>
 					<seq>H</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="7" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="101" />
@@ -107,17 +107,17 @@
 				</peptide>
 				<peptide>
 					<seq>I</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="8" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="89" />
-					<userParam name="precursor_mz" value="1000" />
+					<userParam name="precursor_retention_time" value="81" />
+					<userParam name="precursor_mz" value="999" />
 					<userParam name="score" value="35" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
 				<peptide>
 					<seq>J</seq>
-					<userParam name="identification_index" value="0" />
+					<userParam name="identification_index" value="9" />
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="90" />

@@ -37,7 +37,7 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of a database search
+    @brief Representation of a database search with one spectrum
     
 	  Represents the peptide and protein hits with additional parameters.
 		

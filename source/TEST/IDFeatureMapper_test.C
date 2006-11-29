@@ -75,7 +75,7 @@ DFeatureMap<2> fm;
 DFeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
 
 //map
-IDFeatureMapper().annotate(fm,identifications,precursor_retention_times,precursor_mz_values);
+IDFeatureMapper().annotate(fm,identifications,protein_identifications, precursor_retention_times,precursor_mz_values);
 
 //TODO
 RESULT

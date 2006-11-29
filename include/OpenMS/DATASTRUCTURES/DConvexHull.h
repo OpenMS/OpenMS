@@ -153,6 +153,11 @@ namespace OpenMS
 			/// returns if the @p point lies in the convex hull
 			bool encloses(const PointType& point) const
 			{
+				if (!getBoundingBox().encloses(point))
+				{
+					return false;
+				}
+				
 				//convert input to cgal
 				std::vector<Point_2> cgal_points;
 				for (typename PointArrayType::const_iterator it = points_.begin(); it!=points_.end(); ++it)

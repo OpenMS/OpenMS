@@ -35,7 +35,7 @@
 namespace OpenMS
 {
   /**
-    @brief Representation of a protein identification
+    @brief Representation of a protein identification derived from serveral Identification instances
     
 	  Represents the protein hits with additional parameters.
 		

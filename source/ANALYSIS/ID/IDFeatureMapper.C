@@ -36,14 +36,17 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const vector<Identification>& identifications, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
+  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const vector<Identification>& ids, const vector<ProteinIdentification>& protein_ids, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
   	throw (Exception::Precondition)
 	{
 		//Precondition
-		if (precursor_retention_times.size()!=precursor_mz_values.size() || precursor_retention_times.size()!=identifications.size())
+		if (precursor_retention_times.size()!=precursor_mz_values.size() || precursor_retention_times.size()!=ids.size())
 		{
 			throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Identification, RT and m/z vectos must have the same size!");
 		}
+		
+		//assign protein identifications
+		fm.setProteinIdentifications(protein_ids);
 		
 		//Dimensions
     enum DimensionId
@@ -66,20 +69,26 @@ namespace OpenMS
 				DPosition<2> id_pos(precursor_retention_times[i],precursor_mz_values[i]);
 				
 				//check if the ID lies within the bouning box. if it does not => next id
-				if (!bb.encloses(id_pos)) continue;
-				cout << "  * ID inside BB " << endl;
-				
+				if (!bb.encloses(id_pos))
+				{
+					cout << "  * outside BB " << endl;
+					continue;
+				}
+				else
+				{
+					cout << "  * inside BB " << endl;
+				}
 				for(DFeature<2>::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
 				{
 					cout << "    * Convex Hull" << endl;
 					if (ch_it->encloses(id_pos))
 					{
+						f_it->getIdentifications().push_back(ids[i]);
 						cout << "    * !!HIT!!" << endl;
-						continue;
+						break;
 					}
 				}		
 			}
-
 		}
 	}
 } // namespace OpenMS
