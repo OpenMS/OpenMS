@@ -55,10 +55,6 @@
 #include <limits>
 #include <cmath>
 
-#include <CGAL/Cartesian.h>
-#include <CGAL/convex_hull_2.h>
-#include <CGAL/Polygon_2.h>
-
 namespace OpenMS
 {
 /**
@@ -100,10 +96,6 @@ public:
     typedef DFeatureMap<2> FeatureVector;
     typedef DFeature<2>::ConvexHullType ConvexHullType;
     typedef FeaFiModule::NoSuccessor NoSuccessor;
-		
-		typedef CGAL::Cartesian<CoordinateType>	K;
-		typedef K::Point_2	Point_2;
-		typedef CGAL::Polygon_2<K, std::list<Point_2> >  Polygon_2;
 
     /// standard constructor
     FeaFiTraits() {}
@@ -519,28 +511,17 @@ public:
     ///@brief Calculate the convex hull of the peaks contained in @p set
     const ConvexHullType calculateConvexHull(const IndexSet& set )
     {
-      ConvexHullType convex_hull;
-      if (set.size()<3) return convex_hull;
-						
-			std::vector<Point_2> cgal_points;
-				
+      ConvexHullType hull;
+      
+    	//convert to vector of DPosition
+			std::vector< DPosition<2> > points;				
 			for (IndexSet::const_iterator it = set.begin(); it!=set.end(); ++it)
       {
-      		PeakType p = getPeak(*it);
-					cgal_points.push_back( Point_2(p.getPosition()[RT], p.getPosition()[MZ]) );    
+      	points.push_back(getPeak(*it).getPosition());
       }
-		
-			std::vector<Point_2> cgal_result;
-  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
-                       
-			for (std::vector<Point_2>::const_iterator cit = cgal_result.begin();
-						cit !=	cgal_result.end(); 
-						++cit)
-			{
-				convex_hull.addPoint( 	PositionType( cit->x(),cit->y() ) );			
-			} 				
-
-      return convex_hull;
+      //calculate convex hull
+      hull = points;
+      return hull;
     }
 
 protected:

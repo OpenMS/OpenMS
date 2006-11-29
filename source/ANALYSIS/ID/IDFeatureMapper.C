@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
+#include <OpenMS/KERNEL/DimensionDescription.h>
 
 using namespace std;
 
@@ -35,14 +36,50 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values)
+  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const vector<Identification>& identifications, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
+  	throw (Exception::Precondition)
 	{
-		for(DFeatureMap<2>::Iterator it = fm.begin(); it!=fm.end(); ++it)
+		//Precondition
+		if (precursor_retention_times.size()!=precursor_mz_values.size() || precursor_retention_times.size()!=identifications.size())
 		{
-			cout << "Feature " << it->getPosition()[0] << " " << it->getPosition()[1] << endl;
+			throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Identification, RT and m/z vectos must have the same size!");
+		}
+		
+		//Dimensions
+    enum DimensionId
+    {
+      RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+      MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+    };
+		
+		//iterate over the features
+		for(DFeatureMap<2>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
+		{
+			cout << endl << "* Feature (rt/mz): " << f_it->getPosition()[RT] << " " << f_it->getPosition()[MZ] << endl;
+			DBoundingBox<2> bb = f_it->getBoundingBox();
+			const DFeature<2>::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
-			//TODO
-			
+			//iterate over the IDs
+			for (UnsignedInt i=0; i<precursor_retention_times.size(); ++i)
+			{
+				cout << "  * ID (rt/mz): " << precursor_retention_times[i] << " " << precursor_mz_values[i] << endl;
+				DPosition<2> id_pos(precursor_retention_times[i],precursor_mz_values[i]);
+				
+				//check if the ID lies within the bouning box. if it does not => next id
+				if (!bb.encloses(id_pos)) continue;
+				cout << "  * ID inside BB " << endl;
+				
+				for(DFeature<2>::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
+				{
+					cout << "    * Convex Hull" << endl;
+					if (ch_it->encloses(id_pos))
+					{
+						cout << "    * !!HIT!!" << endl;
+						continue;
+					}
+				}		
+			}
+
 		}
 	}
 } // namespace OpenMS

@@ -52,7 +52,7 @@ namespace OpenMS
 				As Identifications do not have m/z or RT those values are provided in 
 				variables @p precursor_retention_times and @p precursor_mz_values.
 			*/		
-      void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values);      
+      void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values) throw (Exception::Precondition);      
   };
  
 } // namespace OpenMS

@@ -43,7 +43,13 @@ EXECUTABLES_CONCEPT = \
 
 #DATASTRUCTURES
 
+ifeq ($(CGAL_SUPPORT),true)
+	EXECUTABLES_DATASTRUCTURES_CGAL = \
+	DConvexHull_test
+endif
+
 EXECUTABLES_DATASTRUCTURES = \
+	$(EXECUTABLES_DATASTRUCTURES_CGAL)\
 	String_test\
 	Date_test\
 	HashMap_test\
@@ -59,8 +65,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	DateTime_test\
 	QuadTree_test\
 	RangeManager_test\
-	Matrix_test\
-	DConvexHull_test
+	Matrix_test
 
 #METADATA
 

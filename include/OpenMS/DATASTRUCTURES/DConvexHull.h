@@ -28,16 +28,18 @@
 #define OPENMS_DATASTRUCTURES_DCONVEXHULL_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
 #include <vector>
 
+#include <CGAL/Cartesian.h>
+#include <CGAL/convex_hull_2.h>
+
 namespace OpenMS
 {
 	/**	
-		@brief A d-dimensional convex hull representation
-		
-		@todo improve operator== and addPoint (Marc)
+		@brief A d-dimensional convex hull representation (conterclockwise)
 		
 		@ingroup Datastructures
 	*/
@@ -52,7 +54,11 @@ namespace OpenMS
 			/// default constructor
 			DConvexHull()
 				: points_()
-			{	
+			{
+				if (D!=2)
+				{
+					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
 			}
 			
 			/// assignment operator
@@ -69,10 +75,24 @@ namespace OpenMS
 			/// constructor from a vector of points
 			DConvexHull& operator=(const PointArrayType& points)
 			{
+				//init
+				points_.clear();
+				if (points.size()==0) return *this;
+				
+				//convert input to cgal
+				std::vector<Point_2> cgal_points;
 				for (typename PointArrayType::const_iterator it = points.begin(); it!=points.end(); ++it)
+	      {
+					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
+	      }
+				//calculate convex hull
+				std::vector<Point_2> cgal_result;
+	  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
+	      // add the points
+				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
 				{
-					addPoint(*it);
-				}
+					points_.push_back( PointType(cit->x(),cit->y()) );			
+				} 	
 				
 				return *this;
 			}
@@ -80,15 +100,18 @@ namespace OpenMS
 			/// equality operator
 			bool operator==(const DConvexHull& rhs) const
 			{
-				//TODO check if all point are contained in the other chonvex hull
-				return points_ == rhs.points_;
-			}
-			
-			/// adds a point
-			void addPoint(const PointType& point)
-			{
-				//TODO check if already contained
-				points_.push_back(point);
+				// different size => return false
+				if (points_.size()!= rhs.points_.size()) return false;
+				
+				//different points now => return false
+				for (typename PointArrayType::const_iterator it = rhs.points_.begin(); it !=	rhs.points_.end(); ++it)
+				{
+					if (find(points_.begin(),points_.end(),*it)==points_.end())
+					{
+						return false;
+					}
+				}
+				return true;
 			}
 			
 			/// removes all points
@@ -116,15 +139,50 @@ namespace OpenMS
 				return bb;
 			}
 			
+			/// adds a point to the convex hull if it is not already contained. Returns if the point was added.
+			bool addPoint(const PointType& point)
+			{
+				if (!encloses(point))
+				{
+					points_.push_back(point);
+					return true;
+				}
+				return false;
+			}
+			
 			/// returns if the @p point lies in the convex hull
 			bool encloses(const PointType& point) const
 			{
-				//TODO
-				return false;
+				//convert input to cgal
+				std::vector<Point_2> cgal_points;
+				for (typename PointArrayType::const_iterator it = points_.begin(); it!=points_.end(); ++it)
+	      {
+					cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
+	      }
+	      cgal_points.push_back( Point_2(point[0],point[1]) ); 
+				
+				//calculate convex hull
+				std::vector<Point_2> cgal_result;
+	  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
+				
+				//point added => return false
+				if (cgal_result.size()!=points_.size()) return false;
+				
+				//different points now => return false
+				for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
+				{
+					if (find(points_.begin(),points_.end(),PointType(cit->x(),cit->y()))==points_.end())
+					{
+						return false;
+					}
+				}
+				
+	      return true;
 			}
 			
 		protected:
 			PointArrayType points_;
+			typedef CGAL::Cartesian<double>::Point_2 Point_2;
 	};
 } // namespace OPENMS
 

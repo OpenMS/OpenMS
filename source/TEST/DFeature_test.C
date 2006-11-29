@@ -379,8 +379,54 @@ CHECK((std::vector<Identification>& getIdentifications()))
 	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),6);
 RESULT
 
+//do not change these datastructures, they are used in the following tests...
+std::vector< DConvexHull<2> > hulls(2);
+hulls[0].addPoint(DPosition<2>(1.0,2.0));
+hulls[0].addPoint(DPosition<2>(3.0,4.0));
+hulls[1].addPoint(DPosition<2>(0.5,0.0));
+hulls[1].addPoint(DPosition<2>(1.0,1.0));
+
+CHECK(const ConvexHullVector& getConvexHulls() const)
+	DFeature<2> tmp;
+	TEST_EQUAL(tmp.getConvexHulls().size(),0)
+RESULT
+
+CHECK(ConvexHullVector& getConvexHulls())
+	DFeature<2> tmp;
+	tmp.getConvexHulls() = hulls;
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+RESULT
+
+CHECK(void setConvexHulls(const ConvexHullVector& hulls))
+	DFeature<2> tmp;
+	tmp.setConvexHulls(hulls);
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+RESULT
+
 CHECK((DBoundingBox<D> DFeature<D, Traits>::getBoundingBox() const))
-	//TODO
+	DFeature<2> tmp;
+	tmp.setConvexHulls(hulls);
+	DBoundingBox<2> bb = tmp.getBoundingBox();
+	TEST_REAL_EQUAL(bb.min()[0],0.5)
+	TEST_REAL_EQUAL(bb.min()[1],0.0)
+	TEST_REAL_EQUAL(bb.max()[0],3.0)
+	TEST_REAL_EQUAL(bb.max()[1],4.0)
 RESULT
 
 /////////////////////////////////////////////////////////////

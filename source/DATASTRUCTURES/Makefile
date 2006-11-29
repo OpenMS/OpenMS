@@ -28,6 +28,8 @@ DIRECTORY=DATASTRUCTURES
 
 THISLIB=$(LIBNAME)
 
+include ../config_defs.mak
+
 CPP_SOURCES=\
 	DIntervalBase.C\
 	DBoundingBox.C\
@@ -45,8 +47,15 @@ CPP_SOURCES=\
 	DateTime.C\
 	QuadTree.C\
 	RangeManager.C\
-	ScanIndexMSExperiment.C\
+	ScanIndexMSExperiment.C
+
+ifeq ($(CGAL_SUPPORT),true)
+CGAL_SOURCES=\
 	DConvexHull.C
+endif
+
+ADD_CPP_SOURCES = $(CGAL_SOURCES)
+ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../common.mak
 -include .Dependencies
