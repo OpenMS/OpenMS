@@ -285,6 +285,7 @@ namespace OpenMS
 #ifdef OPENMS_DEBUG
 			if ( index >= size() ) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,size()-1);
 #endif
+
 			return index/cols_;
 		}
 
@@ -300,7 +301,7 @@ namespace OpenMS
 			 simplicity.  The "plain" variant of PGM even uses ASCII encoded decimal
 			 numbers (as opposed to the raw format, which uses binary).  See
 			 http://netpbm.sourceforge.net/doc/pgm.html or Wikipedia for further
-			 info about PGM.
+			 information about PGM.
 
 			 @param os The stream to write to.
 
@@ -339,7 +340,6 @@ namespace OpenMS
 													 ) const
 		{
 
-			// detect if reverse video was requested
 			if ( maxval < 0 )
 			{
 				maxval *= -1;
@@ -500,7 +500,7 @@ namespace OpenMS
 
 	/**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
 
-	If matrices have different row or colmn numbers, throws a precondition exception.
+	If matrices have different row or column numbers, throws a precondition exception.
 
 	@relatesalso Matrix
 	*/

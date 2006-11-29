@@ -370,36 +370,36 @@ public:
     template <class Container>
     void set2DData(const Container& cont) throw (Exception::Precondition)
     {
-        SpectrumType* spectrum = 0;
-        /// If the container is emptry, nothing will happen
-        if (cont.size() == 0) return;
+			SpectrumType* spectrum = 0;
+			// If the container is empty, nothing will happen
+			if (cont.size() == 0) return;
 
-        const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-        const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+			const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
+			const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
 
-        typename PeakType::CoordinateType current_rt = -1.0*std::numeric_limits<typename PeakType::CoordinateType>::max();
+			typename PeakType::CoordinateType current_rt = - std::numeric_limits<typename PeakType::CoordinateType>::max();
 
-        for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
-        {
-          // check if the retentime time has changed
-          if (current_rt != iter->getPosition()[RT] || spectrum == 0)
-          {
-            if (current_rt > iter->getPosition()[RT])
-            {
-              throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
-            }
-            current_rt =  iter->getPosition()[RT];
-            Base_::insert(Base_::end(),SpectrumType());
-            spectrum = &(Base_::back());
-            spectrum->setRetentionTime(current_rt);
-            spectrum->setMSLevel(1);
-          }
+			for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
+			{
+				// check if the retention time time has changed
+				if (current_rt != iter->getPosition()[RT] || spectrum == 0)
+				{
+					if (current_rt > iter->getPosition()[RT])
+					{
+						throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
+					}
+					current_rt =  iter->getPosition()[RT];
+					Base_::insert(Base_::end(),SpectrumType());
+					spectrum = &(Base_::back());
+					spectrum->setRetentionTime(current_rt);
+					spectrum->setMSLevel(1);
+				}
 
-          // create temporary peak and insert it into spectrum
-          spectrum->insert(spectrum->end(), PeakType());
-          spectrum->back().setIntensity(iter->getIntensity());
-          spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
-        }
+				// create temporary peak and insert it into spectrum
+				spectrum->insert(spectrum->end(), PeakType());
+				spectrum->back().setIntensity(iter->getIntensity());
+				spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
+			}
     }
 
     /// Returns the name
