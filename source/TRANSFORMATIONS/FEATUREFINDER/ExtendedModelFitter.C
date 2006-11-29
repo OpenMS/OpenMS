@@ -360,13 +360,10 @@ namespace OpenMS
 		f.getQuality(MZ) = quality_->evaluate(model_set, *(static_cast<InterpolationModel<>*>(final->getModel(MZ)) ), MZ );
 
 		// save meta data in feature for TOPPView
-		String meta = "Feature #" + String(counter_)
-			+ ", +"	+ String(f.getCharge())
-			+ ", " + String(set.size()) + "->" + String(model_set.size())
-			+ ", Corr: (" + String(max_quality)
-			+ "," + String(f.getQuality(RT))
-			+ "," + String(f.getQuality(MZ)) + ")";
-		f.setMetaValue(3,meta);
+		stringstream meta ;
+		meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << set.size() << "->" << model_set.size() 
+				 << ", Corr: (" << max_quality << ","  << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
+		f.setMetaValue(3,meta.str());
 
 		// the following code is only executed if debug flag is set.
 #ifdef DEBUG_FEATUREFINDER
