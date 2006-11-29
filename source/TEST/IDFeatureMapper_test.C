@@ -77,7 +77,28 @@ DFeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
 //map
 IDFeatureMapper().annotate(fm,identifications,protein_identifications, precursor_retention_times,precursor_mz_values);
 
-//TODO
+//test protein ids
+TEST_EQUAL(fm.getProteinIdentifications().size(),1)
+TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits().size(),2)
+TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits()[0].getAccession(),"ABCDE")
+TEST_EQUAL(fm.getProteinIdentifications()[0].getProteinHits()[1].getAccession(),"FGHIJ")
+
+//test peptide ids
+TEST_EQUAL(fm[0].getIdentifications().size(),5)
+TEST_EQUAL(fm[1].getIdentifications().size(),0)
+TEST_EQUAL(fm[2].getIdentifications().size(),0)
+TEST_EQUAL(fm[0].getIdentifications()[0].getPeptideHits().size(),1)
+TEST_EQUAL(fm[0].getIdentifications()[1].getPeptideHits().size(),1)
+TEST_EQUAL(fm[0].getIdentifications()[2].getPeptideHits().size(),1)
+TEST_EQUAL(fm[0].getIdentifications()[3].getPeptideHits().size(),1)
+TEST_EQUAL(fm[0].getIdentifications()[4].getPeptideHits().size(),1)
+TEST_EQUAL(fm[0].getIdentifications()[0].getPeptideHits()[0].getSequence(),"A")
+TEST_EQUAL(fm[0].getIdentifications()[1].getPeptideHits()[0].getSequence(),"B")
+TEST_EQUAL(fm[0].getIdentifications()[2].getPeptideHits()[0].getSequence(),"C")
+TEST_EQUAL(fm[0].getIdentifications()[3].getPeptideHits()[0].getSequence(),"D")
+TEST_EQUAL(fm[0].getIdentifications()[4].getPeptideHits()[0].getSequence(),"E")
+
+TEST_EQUAL(fm[0].getIdentifications()[0].getProteinHits().size(),0)
 RESULT
 
 /////////////////////////////////////////////////////////////

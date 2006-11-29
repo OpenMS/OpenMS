@@ -6,7 +6,7 @@
 		</admin>
 		<settings>
 			<userParam name="number_of_identifications" value="10" />
-			<userParam name="number_of_protein_identifications" value="2" />
+			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
@@ -18,7 +18,7 @@
 		<proteinGroup count="2">
 			<protein>
 				<dbName>MSDB</dbName>
-				<dbID>INSIDE</dbID>
+				<dbID>ABCDE</dbID>
 				<peptide>
 					<seq>A</seq>
 					<userParam name="identification_index" value="0" />
@@ -74,7 +74,7 @@
 			</protein>
 			<protein>
 				<dbName>MSDB</dbName>
-				<dbID>OUTSIDE</dbID>
+				<dbID>FGHIJ</dbID>
 				<peptide>
 					<seq>F</seq>
 					<userParam name="identification_index" value="5" />

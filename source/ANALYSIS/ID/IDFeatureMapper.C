@@ -36,7 +36,7 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(DFeatureMap<2> fm, const vector<Identification>& ids, const vector<ProteinIdentification>& protein_ids, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
+  void IDFeatureMapper::annotate(DFeatureMap<2>& fm, const vector<Identification>& ids, const vector<ProteinIdentification>& protein_ids, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
   	throw (Exception::Precondition)
 	{
 		//Precondition
@@ -58,33 +58,29 @@ namespace OpenMS
 		//iterate over the features
 		for(DFeatureMap<2>::Iterator f_it = fm.begin(); f_it!=fm.end(); ++f_it)
 		{
-			cout << endl << "* Feature (rt/mz): " << f_it->getPosition()[RT] << " " << f_it->getPosition()[MZ] << endl;
+			//cout << endl << "* Feature (rt/mz): " << f_it->getPosition()[RT] << " " << f_it->getPosition()[MZ] << endl;
 			DBoundingBox<2> bb = f_it->getBoundingBox();
 			const DFeature<2>::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
 			//iterate over the IDs
 			for (UnsignedInt i=0; i<precursor_retention_times.size(); ++i)
 			{
-				cout << "  * ID (rt/mz): " << precursor_retention_times[i] << " " << precursor_mz_values[i] << endl;
+				//cout << "  * ID (rt/mz): " << precursor_retention_times[i] << " " << precursor_mz_values[i] << endl;
 				DPosition<2> id_pos(precursor_retention_times[i],precursor_mz_values[i]);
 				
 				//check if the ID lies within the bouning box. if it does not => next id
 				if (!bb.encloses(id_pos))
 				{
-					cout << "  * outside BB " << endl;
+					//cout << "  * outside BB " << endl;
 					continue;
-				}
-				else
-				{
-					cout << "  * inside BB " << endl;
 				}
 				for(DFeature<2>::ConvexHullVector::const_iterator ch_it = ch_vec.begin(); ch_it!=ch_vec.end(); ++ch_it)
 				{
-					cout << "    * Convex Hull" << endl;
+					//cout << "    * Convex Hull" << endl;
 					if (ch_it->encloses(id_pos))
 					{
 						f_it->getIdentifications().push_back(ids[i]);
-						cout << "    * !!HIT!!" << endl;
+						//cout << "    * !!HIT!!" << endl;
 						break;
 					}
 				}		
