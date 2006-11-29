@@ -38,6 +38,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
 #include <iostream>
