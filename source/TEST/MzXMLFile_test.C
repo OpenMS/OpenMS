@@ -318,6 +318,64 @@ CHECK([EXTRA] load with optional attributes)
 	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
 RESULT
 
+CHECK([EXTRA] load/store for nested scans)
+	std::string tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+  MzXMLFile f;
+	MSExperiment<> e2;
+	e2.resize(5);
+	
+	//alternating
+	e2[0].setMSLevel(1);
+	e2[1].setMSLevel(2);
+	e2[2].setMSLevel(1);
+	e2[3].setMSLevel(2);
+	e2[4].setMSLevel(1);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+
+	//ending with ms level 2
+	e2[0].setMSLevel(1);
+	e2[1].setMSLevel(2);
+	e2[2].setMSLevel(1);
+	e2[3].setMSLevel(2);
+	e2[4].setMSLevel(2);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+
+	//MS level 1-3
+	e2[0].setMSLevel(1);
+	e2[1].setMSLevel(2);
+	e2[2].setMSLevel(3);
+	e2[3].setMSLevel(2);
+	e2[4].setMSLevel(3);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+
+	//MS level 1-3
+	e2[0].setMSLevel(2);
+	e2[1].setMSLevel(2);
+	e2[2].setMSLevel(2);
+	e2[3].setMSLevel(2);
+	e2[4].setMSLevel(2);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+
+	//MS level 2-3
+	e2[0].setMSLevel(2);
+	e2[1].setMSLevel(2);
+	e2[2].setMSLevel(3);
+	e2[3].setMSLevel(2);
+	e2[4].setMSLevel(3);
+	f.store(tmp_filename,e2);
+	f.load(tmp_filename,e2);
+	TEST_EQUAL(e2.size(),5);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

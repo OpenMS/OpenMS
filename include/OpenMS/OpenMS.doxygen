@@ -49,6 +49,7 @@
 		- Base 64
 		- XERCES speedup
 		- optional XML attributes
+		- mzXML/mzData sicherstellen dass alle Versionen getestet werden
 		- Einschränkungen: Metadata, RT, m/z, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
 	- TOPPView:
 		- ohne quadtree

@@ -1137,13 +1137,16 @@ namespace OpenMS
 
 		os << "\t\t</dataProcessing>\n";
 		
+		int min_ms_level = std::numeric_limits<int>::max();
+		
 		// write scans
 		for (UnsignedInt s=0; s<cexp_->size(); s++)
 		{
 			const SpectrumType& spec = (*cexp_)[s];
 						
 			int MSLevel = spec.getMSLevel();
-
+			min_ms_level = std::min(MSLevel,min_ms_level);
+			
 			os << String(MSLevel+1,'\t')
 				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
 				 << MSLevel << "\" peaksCount=\""
@@ -1193,7 +1196,7 @@ namespace OpenMS
 				os << String(MSLevel+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
 			
 			//check MS level of next scan and close scans (scans can be nested)
-			int next_MSLevel = 1;
+			int next_MSLevel = min_ms_level;
 			if (s < cexp_->size()-1)
 			{
 				next_MSLevel = ((*cexp_)[s+1]).getMSLevel();
