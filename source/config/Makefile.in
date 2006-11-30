@@ -177,20 +177,6 @@ test:	dummy
 bench:	dummy
 	@cd BENCHMARKS ; $(MAKE) bench
 
-# creates the documentation
-doc:
-	@test -f ../doc/Doxyfile || $(CP) config/Doxyfile.in ../doc/Doxyfile
-	@cd ../doc/ && doxygen ../doc/Doxyfile
-
-# creates the internal documentation
-idoc:
-	@test -f ../doc/Doxyfile || $(CP) config/Doxyfile.in ../doc/Doxyfile
-	@cd ../doc/ && doxygen ../doc/Doxyfile_internal
-
-# creates the coding conventions
-style:
-	@cd ../doc/misc/ && make coding_style.pdf && rm *.aux *.log *.dvi
-
 # build TOPP tools
 TOPP:
 	@cd APPLICATIONS/TOPP/ && make
