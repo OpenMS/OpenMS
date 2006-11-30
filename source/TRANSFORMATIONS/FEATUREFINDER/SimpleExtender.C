@@ -50,7 +50,7 @@ namespace OpenMS
 	SimpleExtender::~SimpleExtender()
 	{}
 
-	const IndexSet& SimpleExtender::extend(const IndexSet seed_region)
+	const IndexSet& SimpleExtender::extend(const IndexSet& seed_region)
 	{
     if (!first_seed_seen_)
     {

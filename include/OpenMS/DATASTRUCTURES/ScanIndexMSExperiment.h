@@ -264,10 +264,10 @@ namespace OpenMS
 				}
 				else // see if the next smaller one fits better
 				{
-					CoordinateType delta_mz = (insert_iter->getPosition()[0] - current_mz);
+					CoordinateType delta_mz = (insert_iter->getPos() - current_mz);
 					--insert_iter;
 									
-					if ( current_mz - insert_iter->getPosition()[0] > delta_mz )
+					if ( current_mz - insert_iter->getPos() > delta_mz )
 					{
 						return insert_iter; // peak to the right is closer (in m/z dimension)
 					}

@@ -55,9 +55,13 @@ CPP_SOURCES=\
 	RankCorrelation.C\
 	IsotopeFinder.C\
 	MarrWaveletSeeder.C\
-	WaveletSeeder.C\
 	FeaFiTraits.C\
-	PickedPeakSeeder.C
+	PickedPeakSeeder.C\
+	IsotopeWaveletSeeder.C
+
+
+ADD_CPP_SOURCES = $(CGAL_SOURCES)
+ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak
 -include .Dependencies

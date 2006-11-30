@@ -29,10 +29,13 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include<OpenMS/SYSTEM/StopWatch.h>
+
+#include<OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <vector>

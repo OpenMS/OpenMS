@@ -61,7 +61,6 @@ namespace OpenMS
 			
 			TODO: Resolution of cwt: estimate average spacing from data
 			TODO: Scoring of seeds: take (local) variance of signal into account
-			TODO: Clustering of signals in adjacent scans, pass information on all scans to extender
 			
 			@ingroup FeatureFinder
 		

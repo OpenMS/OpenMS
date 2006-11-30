@@ -72,7 +72,7 @@ namespace OpenMS
        \param seed index of peak that serves as seed for feature
        \return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
     */
-    virtual const IndexSet& extend(const IndexSet seed_region)=0;
+    virtual const IndexSet& extend(const IndexSet& seed_region)=0;
 			
   protected:
     

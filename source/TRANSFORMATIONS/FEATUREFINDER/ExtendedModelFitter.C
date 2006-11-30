@@ -253,9 +253,13 @@ namespace OpenMS
 			}
 		}
 		// Print number of selected peaks after cutoff
-#ifdef DEBUG_FEATUREFINDER
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
-#endif
+
+// 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
+// 		
+// 		std::ofstream outfile( "qualities", std::ios_base::app  );
+// 		outfile << max_quality << std::endl;
+// 		outfile.close();
 
 		// not enough peaks left for feature
 		if (model_set.size() < static_cast<Size>(param_.getValue("min_num_peaks:final")))
@@ -266,7 +270,7 @@ namespace OpenMS
 												"Skipping feature, IndexSet size after cutoff too small: "
 												+String(model_set.size()));
 		}
-		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
+ 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
 		if (max_quality < static_cast<float>(param_.getValue("quality:minimum")))

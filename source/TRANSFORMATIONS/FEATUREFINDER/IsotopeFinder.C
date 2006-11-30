@@ -25,3 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFinder.h>
+
+namespace OpenMS
+{
+
+
+}
+

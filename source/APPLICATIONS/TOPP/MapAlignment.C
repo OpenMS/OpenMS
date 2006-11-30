@@ -140,7 +140,7 @@ class TOPPMapAlignment
         while (pit != files_param.end())
         {
           file_names.push_back(pit->second);
-          // load the feature file into a feature_maps
+          // load the feature file into a feature_map
           feature_file.load(pit->second, feature_maps[i]);
           map_vector.push_back(&(feature_maps[i]));
           pit++;

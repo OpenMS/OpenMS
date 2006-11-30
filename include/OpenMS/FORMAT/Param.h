@@ -123,7 +123,7 @@ namespace OpenMS
     void setDefaults(const Param& defaults, String prefix="", bool showMessage=false);
 
     /**
-    	@brief Warns if a parameter is present for which not default value is specified.
+    	@brief Warns if a parameter is present for which no default value is specified.
     	
     	@param defaults The default values. 
     	@param prefix The prefix where to check for the defaults. 

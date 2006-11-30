@@ -88,7 +88,7 @@ public:
     typedef DRawDataPoint<2>::IntensityType IntensityType;
     typedef DRawDataPoint<2>::CoordinateType CoordinateType;
     typedef DRawDataPoint<2>::PositionType PositionType;
-    typedef DFeature<1>::ChargeType ChargeType;
+    typedef DFeature<2>::ChargeType ChargeType;
 
     typedef PeakType::NthPositionLess< RT > RTless;
     typedef PeakType::NthPositionLess< MZ > MZless;
