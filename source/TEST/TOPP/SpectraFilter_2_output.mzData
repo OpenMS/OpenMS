@@ -260,10 +260,10 @@
 				</precursorList>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="3">AADcQgAA8EIAAAJD</data>
+				<data precision="32" endian="little" length="2">AADcQgAA8EI=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+				<data precision="32" endian="little" length="2">AADIQgAASEM=</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="3">
@@ -281,10 +281,10 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="4">AADIQgAA3EIAAAJDAAAMQw==</data>
+				<data precision="32" endian="little" length="2">AADcQgAA8EI=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="4">AADIQgAASEMAAEhDAADIQg==</data>
+				<data precision="32" endian="little" length="2">AABIQwAAlkM=</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>
