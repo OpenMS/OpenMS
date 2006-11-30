@@ -70,7 +70,7 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	e_ptr->filterSpectrum(spec);
 	
-	TEST_EQUAL(spec.size(), 58)
+	TEST_EQUAL(spec.size(), 56)
 	
 RESULT
 

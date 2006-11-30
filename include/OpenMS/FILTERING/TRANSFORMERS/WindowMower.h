@@ -84,22 +84,33 @@ namespace OpenMS
 			spectrum.getContainer().sortByPosition();
 			
 			// slide the window over spectrum and store peakcount most intense peaks (if available) of every window position
-			for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			bool end(false);
+			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
 			{
 				ContainerType container;
-				for (Iterator it2 = it; (it2->getPosition()[0] - it->getPosition()[0] < windowsize) && it2 != spectrum.end(); ++it2)
+				for (ConstIterator it2 = it; (it2->getPosition()[0] - it->getPosition()[0] < windowsize); )
 				{
 					container.push_back(*it2);
+					if (++it2 == spectrum.end())
+					{
+						end = true;
+						break;
+					}
 				}
 
-				container.sortByIntensity();
-
-				for (Size i = 0; i != peakcount; ++i)
+				container.sortByIntensity(true);
+				
+				for (Size i = 0; i < peakcount; ++i)
 				{
 					if (container.size() > i)
 					{
 						positions.insert(container[i].getPosition()[0]);
 					}
+				}
+
+				if (end)
+				{
+					break;
 				}
 			}
 
