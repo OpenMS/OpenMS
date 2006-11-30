@@ -59,7 +59,8 @@ GUI_CPP_SOURCES=\
 	PeakPickingDialog.C\
 	SmoothingDialog.C\
 	BaselineFilteringDialog.C\
-	SortDialog.C
+	SortDialog.C\
+	FeaFiDialog.C
 
 
 GUI_MOC_SOURCES=\
@@ -90,7 +91,9 @@ GUI_MOC_SOURCES=\
 	SmoothingDialog_moc.C\
 	BaselineFilteringDialogTemplate_moc.C\
 	BaselineFilteringDialog_moc.C\
-	SortDialog_moc.C
+	SortDialog_moc.C\
+	FeaFiDialogTemplate_moc.C\
+	FeaFiDialog_moc.C
 
 GUI_UIC_SOURCES=\
 	Spectrum1DGoToDialogTemplate.C\
@@ -98,30 +101,17 @@ GUI_UIC_SOURCES=\
 	OpenDialogTemplate.C\
 	PeakPickingDialogTemplate.C\
 	SmoothingDialogTemplate.C\
-	BaselineFilteringDialogTemplate.C
-
-#conditional compiles QT
-ifeq ($(CGAL_SUPPORT),true)
-	CGAL_CPP_SOURCES=\
-		FeaFiDialog.C
-	CGAL_MOC_SOURCES=\
-		FeaFiDialogTemplate_moc.C\
-		FeaFiDialog_moc.C
-	CGAL_UIC_SOURCES=\
-		FeaFiDialogTemplate.C
-endif
+	BaselineFilteringDialogTemplate.C\
+	FeaFiDialogTemplate.C
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
 	ADD_CPP_SOURCES=\
-		$(GUI_CPP_SOURCES)\
-		$(CGAL_CPP_SOURCES)
+		$(GUI_CPP_SOURCES)
 	ADD_MOC_SOURCES=\
-		$(GUI_MOC_SOURCES)\
-		$(CGAL_MOC_SOURCES)
+		$(GUI_MOC_SOURCES)
 	UIC_SOURCES=\
-		$(GUI_UIC_SOURCES)\
-		$(CGAL_UIC_SOURCES)
+		$(GUI_UIC_SOURCES)
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)

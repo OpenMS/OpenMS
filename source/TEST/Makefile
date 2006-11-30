@@ -43,13 +43,7 @@ EXECUTABLES_CONCEPT = \
 
 #DATASTRUCTURES
 
-ifeq ($(CGAL_SUPPORT),true)
-	EXECUTABLES_DATASTRUCTURES_CGAL = \
-	DConvexHull_test
-endif
-
 EXECUTABLES_DATASTRUCTURES = \
-	$(EXECUTABLES_DATASTRUCTURES_CGAL)\
 	String_test\
 	Date_test\
 	HashMap_test\
@@ -65,7 +59,8 @@ EXECUTABLES_DATASTRUCTURES = \
 	DateTime_test\
 	QuadTree_test\
 	RangeManager_test\
-	Matrix_test
+	Matrix_test\
+	DConvexHull_test
 
 #METADATA
 
@@ -296,8 +291,7 @@ EXECUTABLES_APPLICATIONS = \
 
 # TRANSFORMATIONS
 
-ifeq ($(CGAL_SUPPORT),true)
-	EXECUTABLES_TRANSFORMATIONS_CGAL = \
+EXECUTABLES_TRANSFORMATIONS = \
 	FeatureFinder_test\
 	FeaFiTraits_test\
 	BaseModel_test\
@@ -312,11 +306,7 @@ ifeq ($(CGAL_SUPPORT),true)
 	LogNormalModel_test\
 	ExtendedModelFitter_test\
 	SimpleSeeder_test\
-	Correlation_test
-endif
-
-EXECUTABLES_TRANSFORMATIONS = \
-	$(EXECUTABLES_TRANSFORMATIONS_CGAL)\
+	Correlation_test\
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	PeakPicker_test\

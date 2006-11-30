@@ -51,13 +51,13 @@ UNCONDITIONAL_TESTS = \
 	NoiseFilter_test \
 	PeakPicker_test \
 	SequestAdapter_test \
-	SpectraFilter_test
+	SpectraFilter_test\
+	FeatureFinder_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS=\
 	UnlabeledMatcher_test\
-	MapAlignment_test\
-	FeatureFinder_test
+	MapAlignment_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -70,14 +70,10 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 
 # Tests for processing pipelines using several tools
 
-UNCONDITIONAL_PIPELINE_TESTS = 
-
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_PIPELINE_TESTS=\
+UNCONDITIONAL_PIPELINE_TESTS =\
 	MyoQuant_test
-endif
 
-TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
+TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature*

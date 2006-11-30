@@ -21,9 +21,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
-#
 
 
 DIRECTORY=SYSTEM
@@ -38,6 +37,3 @@ include ../common.mak
 -include .Dependencies
 
 OPENMS_INCLUDES=$(GUI_INCLUDES)
-
-SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(ADD_CPP_SOURCES) $(ADD_MOC_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES) $(CGAL_SOURCES)
-OBJECTS 	= $(SOURCES:.C=.o)

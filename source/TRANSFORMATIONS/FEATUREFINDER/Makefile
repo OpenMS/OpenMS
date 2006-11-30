@@ -24,17 +24,13 @@
 # $Maintainer: Ole Schulz-Trieglaff, Clemens Groepl $
 # --------------------------------------------------------------------------
 
-
 DIRECTORY=TRANSFORMATIONS/FEATUREFINDER
 
 THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-CPP_SOURCES=
-
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_SOURCES=\
+CPP_SOURCES=\
 	BaseExtender.C\
 	BaseModel.C\
 	BaseModelFitter.C\
@@ -62,12 +58,6 @@ CGAL_SOURCES=\
 	WaveletSeeder.C\
 	FeaFiTraits.C\
 	PickedPeakSeeder.C
-endif
-
-
-
-ADD_CPP_SOURCES = $(CGAL_SOURCES)
-ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../../common.mak
 -include .Dependencies

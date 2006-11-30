@@ -31,8 +31,7 @@ DIRECTORY=APPLICATIONS/TOPP
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_EXEC=\
 	UnlabeledMatcher\
-	MapAlignment\
-	FeatureFinder
+	MapAlignment
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -66,7 +65,8 @@ EXECUTABLES=\
 	MapMatcher\
 	NoiseFilter\
 	SpectraFilter\
-	Resampler
+	Resampler\
+	FeatureFinder
 
 #	SequestAdapter\
 

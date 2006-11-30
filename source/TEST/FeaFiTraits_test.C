@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Ole Schulz-Trieglaff  $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -100,32 +99,15 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.getPoints().size(), 9);
 	
-	TEST_REAL_EQUAL(hull.getPoints()[0][0], 1237.27);
-	TEST_REAL_EQUAL(hull.getPoints()[0][1], 691);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[1][0], 1237.93);
-	TEST_REAL_EQUAL(hull.getPoints()[1][1], 688.4);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[2][0], 1240.54);
-	TEST_REAL_EQUAL(hull.getPoints()[2][1], 687.6);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[3][0], 1252.39);
-	TEST_REAL_EQUAL(hull.getPoints()[3][1], 687.6);	
-	
-	TEST_REAL_EQUAL(hull.getPoints()[4][0], 1252.39);
-	TEST_REAL_EQUAL(hull.getPoints()[4][1], 693.8);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[5][0], 1251.73);
-	TEST_REAL_EQUAL(hull.getPoints()[5][1], 695.2);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[6][0], 1251.07);
-	TEST_REAL_EQUAL(hull.getPoints()[6][1], 695.4);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[7][0], 1239.9);
-	TEST_REAL_EQUAL(hull.getPoints()[7][1], 695.4);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[8][0], 1237.27);
-	TEST_REAL_EQUAL(hull.getPoints()[8][1], 692);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1237.27, 691)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1237.93, 688.4)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1240.54, 687.6)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1252.39, 687.6)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1252.39, 693.8)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1251.73, 695.2)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1251.07, 695.4)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1239.9, 695.4)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1237.27, 692)) != hull.getPoints().end(), true);
 	
 RESULT
 
@@ -152,17 +134,11 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	set.add(0,8);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.getPoints().size(), 4);
-	TEST_REAL_EQUAL(hull.getPoints()[0][0], 61.14);
-	TEST_REAL_EQUAL(hull.getPoints()[0][1], 429.242);
 
-	TEST_REAL_EQUAL(hull.getPoints()[1][0], 64.36);
-	TEST_REAL_EQUAL(hull.getPoints()[1][1], 429.242);
-
-	TEST_REAL_EQUAL(hull.getPoints()[2][0], 64.36);
-	TEST_REAL_EQUAL(hull.getPoints()[2][1], 429.437);
-
-	TEST_REAL_EQUAL(hull.getPoints()[3][0], 61.14);
-	TEST_REAL_EQUAL(hull.getPoints()[3][1], 429.315);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(61.14, 429.242)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(64.36, 429.242)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(64.36, 429.437)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(61.14, 429.315)) != hull.getPoints().end(), true);
 
 RESULT
 
@@ -197,26 +173,13 @@ CHECK(const ConvexHullType& FeaFiTraits::calculateConvexHull(const IndexSet& set
 	set.add(0,16);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.getPoints().size(), 6);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[0][0], 51.51);
-	TEST_REAL_EQUAL(hull.getPoints()[0][1], 428.778);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[1][0], 54.72);
-	TEST_REAL_EQUAL(hull.getPoints()[1][1], 428.729);
 
-	TEST_REAL_EQUAL(hull.getPoints()[2][0], 57.93);
-	TEST_REAL_EQUAL(hull.getPoints()[2][1], 428.754);
-
-	TEST_REAL_EQUAL(hull.getPoints()[3][0], 57.93);
-	TEST_REAL_EQUAL(hull.getPoints()[3][1], 428.9);
-
-	TEST_REAL_EQUAL(hull.getPoints()[4][0], 54.72);
-	TEST_REAL_EQUAL(hull.getPoints()[4][1], 428.924);
-
-	TEST_REAL_EQUAL(hull.getPoints()[5][0], 51.51);
-	TEST_REAL_EQUAL(hull.getPoints()[5][1], 428.9);
-
-	
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(51.51, 428.778)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(54.72, 428.729)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(57.93, 428.754)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(57.93, 428.9)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(54.72, 428.924)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(51.51, 428.9)) != hull.getPoints().end(), true);	
 RESULT
 
 CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet& set))
@@ -238,24 +201,12 @@ CHECK(const ConvexHullType& BaseFeaFiTraits::calculateConvexHull(const IndexSet&
 	set.add(0,4);
 	FeaFiTraits::ConvexHullType hull = t.calculateConvexHull(set);
 	TEST_REAL_EQUAL(hull.getPoints().size(), 5);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[0][0], 0.0);
-	TEST_REAL_EQUAL(hull.getPoints()[0][1], 1.0);
-	
-	TEST_REAL_EQUAL(hull.getPoints()[1][0], 1.0);
-	TEST_REAL_EQUAL(hull.getPoints()[1][1], 0.0);
 
-	TEST_REAL_EQUAL(hull.getPoints()[2][0], 2.0);
-	TEST_REAL_EQUAL(hull.getPoints()[2][1], 0.0);
-
-	TEST_REAL_EQUAL(hull.getPoints()[3][0], 2.0);
-	TEST_REAL_EQUAL(hull.getPoints()[3][1], 2.0);
-
-	TEST_REAL_EQUAL(hull.getPoints()[4][0], 1.0);
-	TEST_REAL_EQUAL(hull.getPoints()[4][1], 3.0);
-
-	
-
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(0.0, 1.0)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1.0, 0.0)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(2.0, 0.0)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(2.0, 2.0)) != hull.getPoints().end(), true);
+	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), FeaFiTraits::ConvexHullType::PointType(1.0, 3.0)) != hull.getPoints().end(), true);
 RESULT
 
 /////////////////////////////////////////////////////////////

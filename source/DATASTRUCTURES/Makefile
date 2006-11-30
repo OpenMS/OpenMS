@@ -47,15 +47,8 @@ CPP_SOURCES=\
 	DateTime.C\
 	QuadTree.C\
 	RangeManager.C\
-	ScanIndexMSExperiment.C
-
-ifeq ($(CGAL_SUPPORT),true)
-CGAL_SOURCES=\
+	ScanIndexMSExperiment.C\
 	DConvexHull.C
-endif
-
-ADD_CPP_SOURCES = $(CGAL_SOURCES)
-ADD_INCLUDES=$(GUI_INCLUDES)
 
 include ../common.mak
 -include .Dependencies

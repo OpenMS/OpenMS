@@ -26,10 +26,6 @@
 //
 #include <OpenMS/MATH/STATISTICS/ROCCurve.h>
 
-#ifdef OPENMS_HAS_CGAL
-  #include <CGAL/Cartesian.h>
-#endif
-
 #include <iostream>
 
 using namespace std;
