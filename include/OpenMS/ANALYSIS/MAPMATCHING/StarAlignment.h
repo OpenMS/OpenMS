@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
 
 #define DEBUG_ALIGNMENT
-//#undef DEBUG_ALIGNMENT
+#undef DEBUG_ALIGNMENT
 
 namespace OpenMS
 {
@@ -301,7 +301,6 @@ namespace OpenMS
               lin_regression.setGrid(pairwise_matcher_->getGrid());
               lin_regression.setMinQuality(-1.);
               lin_regression.estimateTransform();
-
               transformations_[i] = lin_regression.getGrid();
             }
             // otherwise take the estimated transformation of the superimposer
@@ -320,20 +319,23 @@ namespace OpenMS
             {
               // Test in which cell this element is included
               // and apply the corresponding transformation
-              typename GridType::iterator grid_it = (lin_regression.getGrid()).begin();
-              while (grid_it != (lin_regression.getGrid()).end() )
+              typename GridType::iterator grid_it = transformations_[i].begin();
+              while ((grid_it != (transformations_[i]).end()))
               {
-                if (grid_it->encloses(map[j].getPosition()) )
+                if (grid_it->encloses(map[j].getPosition()))
                 {
-                  DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
-                  DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
-
                   // apply transform for the singleton group element
                   IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
                   PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
+                  if (grid_it->getMappings().size() != 0)
+                  {
+                    DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
+                    DLinearMapping<1>* mapping_mz = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[MZ]);
 
-                  mapping_rt->apply(pos[RT]);
-                  mapping_mz->apply(pos[MZ]);
+                    mapping_rt->apply(pos[RT]);
+                    mapping_mz->apply(pos[MZ]);
+                  }
+
                   index_tuple.setTransformedPosition(pos);
 #ifdef DEBUG_ALIGNMENT
 
@@ -344,9 +346,9 @@ namespace OpenMS
                   map[j].insert(index_tuple);
                 }
                 grid_it++;
-
               } // end while (grid)
             } // end while (features)
+
 #ifdef DEBUG_ALIGNMENT
             out.flush();
 
@@ -495,7 +497,6 @@ namespace OpenMS
             pairwise_matcher_->setFeatureMap(SCENE, pointer_map);
             ElementPairVectorType pairs;
             pairwise_matcher_->setFeaturePairs(pairs);
-
             pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT

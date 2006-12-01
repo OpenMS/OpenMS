@@ -240,53 +240,55 @@ namespace OpenMS
         // iterate over all grid cells of the scene map
         for (Size i = 0; i < scene_grid_maps.size(); ++i)
         {
-          String algorithm = param_.getValue("superimposer");
-          if ( superimposer_ != 0 )
+          if (scene_grid_maps[i].size() > 0)
           {
-            V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
-
-            superimposer_->setFeatureMap(SCENE, scene_grid_maps[i]);
-
-            //             // optional debug output: buckets of the shift map
-            //             if ( !shift_buckets_file.empty() )
-            //             {
-            //               superimposer_->getParam().setValue("debug:shift_buckets_file", shift_buckets_file+String(i).fillLeft('0',3));
-            //             }
-            //
-            //             // optional debug output: buckets of the feature maps
-            //             if ( !feature_buckets_file.empty() )
-            //             {
-            //               superimposer_->getParam().setValue("debug:feature_buckets_file", feature_buckets_file+String(i).fillLeft('0',3));
-            //             }
-
-            superimposer_->run();
-
-            // ???? copy array to vector -- but the old Grid class will be replaced anyway
-            grid_[i].getMappings().resize(2,0);
-            for ( Size dim = 0; dim < 2; ++dim )
+            String algorithm = param_.getValue("superimposer");
+            if ( superimposer_ != 0 )
             {
-              TransformationType const& trafo = superimposer_->getTransformation(dim);
-              if ( !grid_[i].getMappings()[dim] )
+              V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
+
+              superimposer_->setFeatureMap(SCENE, scene_grid_maps[i]);
+
+              //             // optional debug output: buckets of the shift map
+              //             if ( !shift_buckets_file.empty() )
+              //             {
+              //               superimposer_->getParam().setValue("debug:shift_buckets_file", shift_buckets_file+String(i).fillLeft('0',3));
+              //             }
+              //
+              //             // optional debug output: buckets of the feature maps
+              //             if ( !feature_buckets_file.empty() )
+              //             {
+              //               superimposer_->getParam().setValue("debug:feature_buckets_file", feature_buckets_file+String(i).fillLeft('0',3));
+              //             }
+
+              superimposer_->run();
+
+              // ???? copy array to vector -- but the old Grid class will be replaced anyway
+              grid_[i].getMappings().resize(2,0);
+              for ( Size dim = 0; dim < 2; ++dim )
               {
-                grid_[i].getMappings()[dim] = new TransformationType;
+                TransformationType const& trafo = superimposer_->getTransformation(dim);
+                if ( !grid_[i].getMappings()[dim] )
+                {
+                  grid_[i].getMappings()[dim] = new TransformationType;
+                }
+                *grid_[i].getMappings()[dim] = trafo;
+                pair_finder_->setTransformation(dim, trafo);
               }
-              *grid_[i].getMappings()[dim] = trafo;
-              pair_finder_->setTransformation(dim, trafo);
             }
-          }
-          else
-          {
-            V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
-          }
+            else
+            {
+              V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
+            }
 
-          pair_finder_->setFeaturePairs(*all_feature_pairs_);
-          pair_finder_->setFeatureMap(SCENE, scene_grid_maps[i]);
+            pair_finder_->setFeaturePairs(*all_feature_pairs_);
+            pair_finder_->setFeatureMap(SCENE, scene_grid_maps[i]);
 
-          V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
-          pair_finder_->run();
+            V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
+            pair_finder_->run();
+          }
         }
 #undef V_computeMatching_
-
       }
 
 
