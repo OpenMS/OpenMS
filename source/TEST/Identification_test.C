@@ -57,9 +57,7 @@ std::vector<ProteinHit> protein_hits;
 ProteinHit protein_hit;
 PeptideHit peptide_hit;
 ProteinIdentification protein_identification;
-vector<Identification> identifications; 
-vector<float> precursor_retention_times;
-vector<float> precursor_mz_values;
+vector<IdentificationData> identifications; 
 DateTime date;
 MascotXMLFile xml_file;
 vector<PeptideHit>* hits;
@@ -275,30 +273,22 @@ RESULT
 
 CHECK((std::vector<PeptideHit>* getReferencingHits(String date_time, String accession) const))
 	
-	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
-							&protein_identification, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values);
-	hits = identifications[0].getReferencingHits(String("2006-03-09 11:31:52"), String("AAN17824"));
+	xml_file.load("data/MascotXMLFile_test_1.mascotXML", protein_identification, identifications);
+	hits = identifications[0].id.getReferencingHits(String("2006-03-09 11:31:52"), String("AAN17824"));
 	TEST_EQUAL(hits->size(), 2)
 	TEST_EQUAL((*hits)[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL((*hits)[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_REAL_EQUAL((*hits)[0].getScore(), 33.85)
 	TEST_REAL_EQUAL((*hits)[1].getScore(), 33.12)
-	hits = identifications[0].getReferencingHits(String("2006-03-09 11:31:52"), String("BAN17824"));
+	hits = identifications[0].id.getReferencingHits(String("2006-03-09 11:31:52"), String("BAN17824"));
 	TEST_EQUAL(hits->size(), 0)	
 RESULT
 
 CHECK((template<class iteratorT> std::vector<PeptideHit>* getNonReferencingHits(iteratorT protein_hits_begin, iteratorT protein_hits_end, const String& date_time) const))
 							
-	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
-							&protein_identification, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values);
+	xml_file.load("data/MascotXMLFile_test_1.mascotXML", protein_identification, identifications);
 							
-	hits = identifications[2].getNonReferencingHits(protein_identification.getProteinHits().begin(),
+	hits = identifications[2].id.getNonReferencingHits(protein_identification.getProteinHits().begin(),
 																									protein_identification.getProteinHits().end(),
 																									String("2006-03-09 11:31:52"));
 	TEST_EQUAL(hits->size(), 2)
@@ -307,7 +297,7 @@ CHECK((template<class iteratorT> std::vector<PeptideHit>* getNonReferencingHits(
 	TEST_REAL_EQUAL((*hits)[0].getScore(), 5.41)
 	TEST_REAL_EQUAL((*hits)[1].getScore(), 7.87)
 	delete hits;
-	hits = identifications[0].getNonReferencingHits(protein_identification.getProteinHits().begin(),
+	hits = identifications[0].id.getNonReferencingHits(protein_identification.getProteinHits().begin(),
 																									protein_identification.getProteinHits().end(),
 																									String("2006-03-09 11:31:52"));
 	TEST_EQUAL(hits->size(), 0)	
@@ -319,11 +309,7 @@ CHECK((std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< Strin
 	multimap< String, ProteinHit > map;
 	String date_time;
 																																
-	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
-							&protein_identification, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values);
+	xml_file.load("data/MascotXMLFile_test_1.mascotXML", protein_identification, identifications);
 	vector<ProteinHit> protein_hits = protein_identification.getProteinHits();
 
 	protein_identification.getDateTime().get(date_time);														
@@ -333,14 +319,14 @@ CHECK((std::vector<PeptideHit>* getNonReferencingHits(const std::multimap< Strin
 	{
 		map.insert(make_pair(date_time, *it));
 	}																													
-	hits = identifications[2].getNonReferencingHits(map);
+	hits = identifications[2].id.getNonReferencingHits(map);
 	TEST_EQUAL(hits->size(), 2)
 	TEST_EQUAL((*hits)[0].getSequence(), "RASNSPQDPQSATAHSFR")
 	TEST_EQUAL((*hits)[1].getSequence(), "MYSTVGPA")
 	TEST_REAL_EQUAL((*hits)[0].getScore(), 5.41)
 	TEST_REAL_EQUAL((*hits)[1].getScore(), 7.87)
 	delete hits;
-	hits = identifications[0].getNonReferencingHits(map);
+	hits = identifications[0].id.getNonReferencingHits(map);
 	TEST_EQUAL(hits->size(), 0)	
 	delete hits;
 
@@ -348,64 +334,42 @@ RESULT
 
 CHECK((void sort()))
 	vector<ProteinIdentification> protein_identifications; 
-	vector<Identification> identifications; 
-	vector<float> precursor_retention_times;
-	vector<float> precursor_mz_values;
-	ContactPerson contact_person;
+	vector<IdentificationData> identifications; 
 	PeptideHit hit;
 	
 	hit.setSequence("TESTPEPTIDE");
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
-							protein_identifications, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values, 
-							contact_person);
-	TEST_EQUAL(contact_person.getName(), "TestName")
-	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
-	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
+	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML", protein_identifications, identifications);
 	TEST_EQUAL(identifications.size(), 3)
 
-	identifications[0].insertPeptideHit(hit);
-	identifications[0].sort();
-	TEST_EQUAL(identifications[0].getPeptideHits().size(), 3)
-	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
+	identifications[0].id.insertPeptideHit(hit);
+	identifications[0].id.sort();
+	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 3)
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
 
 RESULT
 
 CHECK((void assignRanks()))
 	vector<ProteinIdentification> protein_identifications; 
-	vector<Identification> identifications; 
-	vector<float> precursor_retention_times;
-	vector<float> precursor_mz_values;
-	ContactPerson contact_person;
+	vector<IdentificationData> identifications;
 	PeptideHit hit;
 	
 	hit.setSequence("TESTPEPTIDE");
 	hit.setScore(33.9);
 	hit.setScoreType("Mascot");
 
-	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
-							protein_identifications, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values, 
-							contact_person);
-	TEST_EQUAL(contact_person.getName(), "TestName")
-	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
-	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
+	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML", protein_identifications, identifications);
 	TEST_EQUAL(identifications.size(), 3)
 
-	identifications[0].insertPeptideHit(hit);
-	identifications[0].assignRanks();
-	TEST_EQUAL(identifications[0].getPeptideHits().size(), 3)
-	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
-	TEST_EQUAL(identifications[0].getPeptideHits()[0].getRank(), 1)
-	TEST_EQUAL(identifications[0].getPeptideHits()[1].getRank(), 2)
-	TEST_EQUAL(identifications[0].getPeptideHits()[2].getRank(), 3)
+	identifications[0].id.insertPeptideHit(hit);
+	identifications[0].id.assignRanks();
+	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 3)
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "TESTPEPTIDE")
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getRank(), 1)
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getRank(), 2)
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[2].getRank(), 3)
 
 RESULT
 

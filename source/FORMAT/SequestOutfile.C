@@ -33,21 +33,11 @@ namespace OpenMS
 	SequestOutfile::SequestOutfile()
 	{}
 	
-	/*
-	SequestOutfile::SequestOutfile(const SequestOutfile& sequest_outfile)
-	{}
-
-	SequestOutfile&	SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
-	{return *this;}
-	*/
-	
   void
 	SequestOutfile::load(
 		const string& result_filename,
-		vector< Identification >&	identifications,
+		vector< IdentificationData >&	identifications,
 		ProteinIdentification&	protein_identification,
-		//vector< Real >& precursor_retention_times,
-		vector< Real >& precursor_mz_values,
 		const Real& p_value_threshold,
 		const string& database,
 		const string& snd_database)

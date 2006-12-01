@@ -10,7 +10,7 @@
 		</admin>
 		<settings>
 			<userParam name="number_of_identifications" value="1" />
-			<userParam name="number_of_protein_identifications" value="0" />
+			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />

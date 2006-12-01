@@ -45,18 +45,11 @@ namespace OpenMS
 	{
 	  	
 	}
-	
-	MascotXMLFile::~MascotXMLFile()
-	{
-	  	
-	}
 
-  void MascotXMLFile::load(const String& 								filename,
-						      					ProteinIdentification*				protein_identification, 
-						      					std::vector<Identification>* 	identifications, 
-						      					std::vector<float>* 					precursor_retention_times,
-						      					std::vector<float>* 					precursor_mz_values
-						      				 ) const throw (Exception::FileNotFound, Exception::ParseError)
+  void MascotXMLFile::load(const String& filename,
+						      					ProteinIdentification& protein_identification, 
+						      					std::vector<IdentificationData>& id_data
+						      				) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -78,16 +71,10 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		protein_identification->clear();     // clear information
-		identifications->clear();  					 // clear information
-		precursor_retention_times->clear();  // clear information
-		precursor_mz_values->clear();  			 // clear information
+		protein_identification.clear();
+		id_data.clear();
 
-		Internal::MascotXMLHandler handler(protein_identification, 
-																			 identifications,
-															 				 precursor_retention_times, 
-															 				 precursor_mz_values,
-															 				 filename);
+		Internal::MascotXMLHandler handler(protein_identification, id_data, filename);
 
 
 		parser->setContentHandler(&handler);
@@ -107,32 +94,22 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
     }
-
-  	vector<PeptideHit> 									peptide_hits;
-  	vector<float>::iterator 						rt_it = precursor_retention_times->begin();
-  	vector<float>::iterator							mz_it = precursor_mz_values->begin();
-  	vector<Identification>::iterator 		id_it = identifications->begin();
 		
 		/// Since the mascot xml can contain "peptides" without sequences the identifications 
-		/// without any real peptide hit are removed as well as the corresponding mz and rt values.
-		while(id_it != identifications->end() 
-					&& rt_it != precursor_retention_times->end()
-					&& mz_it != precursor_mz_values->end())
+		/// without any real peptide hit are removed
+  	vector<PeptideHit> peptide_hits;
+  	vector<IdentificationData>::iterator id_it = id_data.begin();
+
+		while(id_it != id_data.end())
 		{
-			peptide_hits = id_it->getPeptideHits();
-			if (peptide_hits.size() == 0
-					|| (peptide_hits.size() == 1
-						&& peptide_hits[0].getSequence() == ""))
+			peptide_hits = id_it->id.getPeptideHits();
+			if (peptide_hits.size() == 0 || (peptide_hits.size() == 1 && peptide_hits[0].getSequence() == ""))
 			{
-				id_it = identifications->erase(id_it);
-				rt_it = precursor_retention_times->erase(rt_it);
-				mz_it = precursor_mz_values->erase(mz_it);
+				id_it = id_data.erase(id_it);
 			}
 			else
 			{
 				++id_it;
-				++rt_it;
-				++mz_it;
 			}
 		}         
       

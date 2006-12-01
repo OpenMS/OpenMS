@@ -36,15 +36,9 @@ namespace OpenMS
     
   }
   
-  void IDFeatureMapper::annotate(DFeatureMap<2>& fm, const vector<Identification>& ids, const vector<ProteinIdentification>& protein_ids, const vector<float>& precursor_retention_times, const vector<float>& precursor_mz_values)
+  void IDFeatureMapper::annotate(DFeatureMap<2>& fm, const vector<IdentificationData>& ids, const vector<ProteinIdentification>& protein_ids)
   	throw (Exception::Precondition)
-	{
-		//Precondition
-		if (precursor_retention_times.size()!=precursor_mz_values.size() || precursor_retention_times.size()!=ids.size())
-		{
-			throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Identification, RT and m/z vectos must have the same size!");
-		}
-		
+	{		
 		//assign protein identifications
 		fm.setProteinIdentifications(protein_ids);
 		
@@ -63,10 +57,10 @@ namespace OpenMS
 			const DFeature<2>::ConvexHullVector& ch_vec = f_it->getConvexHulls();
 			
 			//iterate over the IDs
-			for (UnsignedInt i=0; i<precursor_retention_times.size(); ++i)
+			for (UnsignedInt i=0; i<ids.size(); ++i)
 			{
-				//cout << "  * ID (rt/mz): " << precursor_retention_times[i] << " " << precursor_mz_values[i] << endl;
-				DPosition<2> id_pos(precursor_retention_times[i],precursor_mz_values[i]);
+				//cout << "  * ID (rt/mz): " << ids[i].rt << " " << ids[i].mz << endl;
+				DPosition<2> id_pos(ids[i].rt,ids[i].mz);
 				
 				//check if the ID lies within the bouning box. if it does not => next id
 				if (!bb.encloses(id_pos))
@@ -79,7 +73,7 @@ namespace OpenMS
 					//cout << "    * Convex Hull" << endl;
 					if (ch_it->encloses(id_pos))
 					{
-						f_it->getIdentifications().push_back(ids[i]);
+						f_it->getIdentifications().push_back(ids[i].id);
 						//cout << "    * !!HIT!!" << endl;
 						break;
 					}

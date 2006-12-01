@@ -45,11 +45,7 @@ namespace OpenMS
   {
     public:
       /// Constructor
-      MascotXMLHandler(ProteinIdentification*       protein_identification,
-      								 std::vector<Identification>* identifications, 
-      								 std::vector<float>* 					precursor_retention_times, 
-      								 std::vector<float>* 					precursor_mz_values,
-      								 const String& filename);
+      MascotXMLHandler(ProteinIdentification& protein_identification, std::vector<IdentificationData>& identifications, const String& filename);
 
       /// Destructor
       ~MascotXMLHandler();
@@ -65,22 +61,12 @@ namespace OpenMS
 		  
     private:
     	
-    	ProteinIdentification* protein_identification_;				///< the protein identifications
-      std::vector<Identification>* identifications_;				///< the identifications (storing the peptide hits)
-      std::vector<float>* precursor_retention_times_;				///< the corresponding retention times
-      std::vector<float>* precursor_mz_values_;							///< the corresponding mz values
+    	ProteinIdentification& protein_identification_;				///< the protein identifications
+      std::vector<IdentificationData>& id_data_;				///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;												
-      std::vector<ProteinHit> actual_protein_hits_;
       PeptideHit actual_peptide_hit_;
-      std::vector<PeptideHit> actual_peptide_hits_;
 			UnsignedInt peptide_identification_index_;
-			UnsignedInt protein_identification_index_;
-    	const ProteinIdentification const_protein_identification_;
-      const std::vector<Identification> const_identifications_;
-      const std::vector<float> const_precursor_retention_times_;
-      const std::vector<float> const_precursor_mz_values_;
-			String tag_;      	
-			bool inside_protein_;
+			String tag_;
 			DateTime date_;
 			String date_time_string_;
 			UnsignedInt actual_query_;

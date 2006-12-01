@@ -52,8 +52,6 @@ float protein_significance_threshold = 63.2;
 std::vector<ProteinHit> protein_hits;
 ProteinHit protein_hit;
 ProteinIdentification protein_identification;
-vector<float> precursor_retention_times;
-vector<float> precursor_mz_values;
 DateTime date;
 MascotXMLFile xml_file;
 
@@ -235,10 +233,7 @@ RESULT
 CHECK((void sort()))
 
 	vector<ProteinIdentification> protein_identifications; 
-	vector<Identification> identifications; 
-	vector<float> precursor_retention_times;
-	vector<float> precursor_mz_values;
-	ContactPerson contact_person;
+	vector<IdentificationData> identifications; 
 	ProteinHit hit;
 	
 	hit.setAccession("TESTPROTEIN");
@@ -247,16 +242,10 @@ CHECK((void sort()))
 
 	AnalysisXMLFile().load("data/AnalysisXMLFile_test.analysisXML",
 							protein_identifications, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values, 
-							contact_person);
+				   		identifications);
 							
 	protein_identifications[0].insertProteinHit(hit);
 	protein_identifications[0].sort();
-	TEST_EQUAL(contact_person.getName(), "TestName")
-	TEST_EQUAL(contact_person.getInstitution(), "TestInstitution")
-	TEST_EQUAL(contact_person.getContactInfo(), "TestInfo")
 
 	TEST_EQUAL(protein_identifications.size(), 1)
 	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "TESTPROTEIN")

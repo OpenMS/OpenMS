@@ -25,9 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
@@ -75,14 +73,9 @@ class TOPPAnalysisXMLMerger
 		vector<String> 									file_names;
 		AnalysisXMLFile 								analysisXML_file;
 		vector<ProteinIdentification> 	protein_identifications;
-		vector<Identification> 					identifications;
-		vector<Real> 										retention_times;		
-		vector<Real> 										mz_values;		
-		ContactPerson 									contact_person;
+		vector<IdentificationData> 					identifications;
 		vector<ProteinIdentification> 	additional_protein_identifications;
-		vector<Identification> 					additional_identifications;
-		vector<Real> 										additional_retention_times;		
-		vector<Real> 										additional_mz_values;
+		vector<IdentificationData> 					additional_identifications;
 		UnsignedInt											counter = 0;
 		String 													out_file = "";
 		String 													file_list	= "";
@@ -121,22 +114,15 @@ class TOPPAnalysisXMLMerger
 		//-------------------------------------------------------------
 		analysisXML_file.load(file_names[0],
 													protein_identifications,
-													identifications, 
-													retention_times,
-													mz_values,
-													contact_person);
+													identifications);
+
 		for(counter = 1; counter < file_names.size(); ++counter)
 		{
 			analysisXML_file.load(file_names[counter],
 														additional_protein_identifications,
-														additional_identifications, 
-														additional_retention_times,
-														additional_mz_values,
-														contact_person);
+														additional_identifications);
 			protein_identifications.insert(protein_identifications.end(), additional_protein_identifications.begin(), additional_protein_identifications.end());
 			identifications.insert(identifications.end(), additional_identifications.begin(), additional_identifications.end());
-			retention_times.insert(retention_times.end(), additional_retention_times.begin(), additional_retention_times.end());
-			mz_values.insert(mz_values.end(), additional_mz_values.begin(), additional_mz_values.end());						
 		}										
 															
 		//-------------------------------------------------------------
@@ -145,9 +131,7 @@ class TOPPAnalysisXMLMerger
 			
 		analysisXML_file.store(out_file, 
 													protein_identifications, 
-													identifications, 
-													retention_times, 
-													mz_values);
+													identifications);
 			
 		return EXECUTION_OK;
 	}

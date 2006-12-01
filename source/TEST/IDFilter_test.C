@@ -53,19 +53,13 @@ IDFilter* ptr2;
 Identification identification;
 
 std::vector< ProteinIdentification > protein_identifications;
-std::vector< Identification > identifications;	
-std::vector< Real > precursor_retention_times;
-std::vector< Real > precursor_mz_values;
-ContactPerson person;	
+std::vector< IdentificationData > identifications;
 	
 AnalysisXMLFile().load("data/IDFilter_test.analysisXML", 
 							protein_identifications, 
-							identifications, 
-							precursor_retention_times, 
-							precursor_mz_values,
-							person);
+							identifications);
 
-identification = identifications[0];							
+identification = identifications[0].id;							
 	
 CHECK(IDFilter& operator = (const IDFilter& source))
 	ptr1 = new IDFilter();

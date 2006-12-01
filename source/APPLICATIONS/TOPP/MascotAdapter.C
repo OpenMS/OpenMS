@@ -24,19 +24,14 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -238,15 +233,13 @@ class TOPPMascotAdapter
 			IDSpectrumMapper annotator;
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;
-			MascotInfile* mascot_infile;
-			MascotOutfile* mascot_outfile;
+			MascotInfile mascot_infile;
+			MascotOutfile mascot_outfile;
 			ContactPerson contact_person;
 			vector<String> mods;
 			vector<String> variable_mods;
 			ProteinIdentification protein_identification;
-			vector<Identification> identifications;
-			vector<Real> precursor_retention_times;
-			vector<Real> precursor_mz_values;
+			vector<IdentificationData> identifications;
 			vector<SignedInt> charges;
 			vector<String> parts;
 			DoubleReal precursor_mass_tolerance;
@@ -449,30 +442,27 @@ class TOPPMascotAdapter
 			// calculations
 			//-------------------------------------------------------------
 			
-			
-				mascot_infile = new MascotInfile();
-			
-				mascot_infile->setInstrument(instrument);
-				mascot_infile->setPrecursorMassTolerance(precursor_mass_tolerance);
-				mascot_infile->setPeakMassTolerance(peak_mass_tolerance);
+				mascot_infile.setInstrument(instrument);
+				mascot_infile.setPrecursorMassTolerance(precursor_mass_tolerance);
+				mascot_infile.setPeakMassTolerance(peak_mass_tolerance);
 				if (mods.size() > 0)
 				{
-					mascot_infile->setModifications(mods);
+					mascot_infile.setModifications(mods);
 				}
 				if (variable_mods.size() > 0)
 				{
-					mascot_infile->setVariableModifications(variable_mods);
+					mascot_infile.setVariableModifications(variable_mods);
 				}
-				mascot_infile->setTaxonomy(taxonomy);
-				mascot_infile->setDB(db);
-				mascot_infile->setHits(hits);
-				mascot_infile->setCleavage(cleavage);
-				mascot_infile->setMissedCleavages(missed_cleavages);
-				mascot_infile->setMassType(mass_type);
-				mascot_infile->setCharges(charges);
+				mascot_infile.setTaxonomy(taxonomy);
+				mascot_infile.setDB(db);
+				mascot_infile.setHits(hits);
+				mascot_infile.setCleavage(cleavage);
+				mascot_infile.setMissedCleavages(missed_cleavages);
+				mascot_infile.setMassType(mass_type);
+				mascot_infile.setCharges(charges);
 				if (!mascot_in)
 				{
-					mascot_infile->store(mascot_data_dir + "/" + mascot_infile_name, 
+					mascot_infile.store(mascot_data_dir + "/" + mascot_infile_name, 
 															 experiment, 
 															 "OpenMS search");
 					String tmp = logfile;
@@ -514,35 +504,26 @@ class TOPPMascotAdapter
 				{
 					if (boundary != "")
 					{
-						mascot_infile->setBoundary(boundary);
+						mascot_infile.setBoundary(boundary);
 					}
-					mascot_infile->store(mascot_infile_name, 
+					mascot_infile.store(mascot_infile_name, 
 															 experiment, 
 															 "OpenMS search");		
 				}
-				delete mascot_infile;
 			} // from if(!mascot_out)
 			if (!mascot_in)
 			{
-	
-				/// Reading in the Mascot outfile
-				mascot_outfile = new MascotOutfile();
-			
 				if (!mascot_out)
 				{
 					mascotXML_file.load(mascotXML_file_name,
-															&protein_identification,
-															&identifications,
-															&precursor_retention_times,
-															&precursor_mz_values);			
+															protein_identification,
+															identifications);			
 				}
 				else
 				{
 					mascotXML_file.load(mascotXML_file_name,
-															&protein_identification,
-															&identifications,
-															&precursor_retention_times,
-															&precursor_mz_values);																
+															protein_identification,
+															identifications);																
 				}
 			
 			//-------------------------------------------------------------
@@ -552,10 +533,7 @@ class TOPPMascotAdapter
 				protein_identifications.push_back(protein_identification);
 				AnalysisXMLFile().store(outputfile_name,
 															 protein_identifications, 
-													 		 identifications, 
-													 		 precursor_retention_times, 
-													 		 precursor_mz_values,
-													 		 contact_person);
+													 		 identifications);
 													 		 												 		 
 				/// Deletion of temporary Mascot files
 				if (!mascot_out)

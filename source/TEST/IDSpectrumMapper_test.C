@@ -47,21 +47,15 @@ using namespace std;
 IDSpectrumMapper annotator;
 IDSpectrumMapper* ptr;
 MSExperiment< DPeak<1> > experiment;
-vector<Identification> identifications; 
-vector<ProteinIdentification> protein_identifications; 
-vector<float> precursor_retention_times;
-vector<float> precursor_mz_values;
-ContactPerson contact_person;
+vector<IdentificationData> identifications; 
+vector<ProteinIdentification> protein_identifications;
 float precision = 0.1;
 MSSpectrum< DPeak<1> > spectrum;
 DPeak<1> peak;
 
 AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
 							protein_identifications, 
-				   		identifications, 
-							precursor_retention_times, 
-							precursor_mz_values, 
-							contact_person);
+				   		identifications);
 							
 peak.setPosition(0);
 
@@ -79,40 +73,26 @@ CHECK(IDSpectrumMapper())
 RESULT
 
 CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, float precision = 0.01f)))
-	vector<Identification> identifications2; 
-	vector<float> precursor_retention_times2;
-	vector<float> precursor_mz_values2;
+	vector<IdentificationData> identifications2; 
 
-	annotator.annotate(experiment,
-      					 	   identifications,
-      				 			 precursor_retention_times,
-      				 			 precursor_mz_values,
-      				 			 precision);
-  annotator.getAnnotations(experiment,
-      					 	   			&identifications2,
-      				 			 			&precursor_retention_times2,
-      				 			 			&precursor_mz_values2);
+	annotator.annotate(experiment, identifications, precision);
+  annotator.getAnnotations(experiment, identifications2);
   TEST_EQUAL(identifications.size(), identifications2.size())
   PRECISION(precision);
-  TEST_REAL_EQUAL(precursor_retention_times[0], precursor_retention_times2[0])
-  TEST_REAL_EQUAL(precursor_mz_values[0], precursor_mz_values2[0])
+  TEST_REAL_EQUAL(identifications[0].rt, identifications2[0].rt)
+  TEST_REAL_EQUAL(identifications[0].mz, identifications2[0].mz)
 RESULT
 
 CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values)))
-	vector<Identification> identifications3; 
-	vector<float> precursor_retention_times3;
-	vector<float> precursor_mz_values3;
+	vector<IdentificationData> identifications3; 
 
-  annotator.getAnnotations(experiment,
-      					 	   			&identifications3,
-      				 			 			&precursor_retention_times3,
-      				 			 			&precursor_mz_values3);
+  annotator.getAnnotations(experiment,identifications3);
   TEST_EQUAL(identifications.size(), identifications3.size())
   PRECISION(precision);
-  TEST_REAL_EQUAL(precursor_retention_times[0], precursor_retention_times3[0])
-  TEST_REAL_EQUAL(precursor_mz_values[0], precursor_mz_values3[0])
-  TEST_REAL_EQUAL(60, precursor_retention_times3[0])
-  TEST_REAL_EQUAL(precursor_mz_values[0], 0)
+  TEST_REAL_EQUAL(identifications[0].rt, identifications3[0].rt)
+  TEST_REAL_EQUAL(identifications[0].mz, identifications3[0].mz)
+  TEST_REAL_EQUAL(identifications3[0].rt,60)
+  TEST_REAL_EQUAL(identifications[0].mz, 0)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -24,13 +24,9 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -208,18 +204,12 @@ class TOPPIDFilter
 		String outputfile_name;
 		IDFilter filter;
 		AnalysisXMLFile analysisXML_file;
-		ContactPerson contact_person;
-		ContactPerson contact_person_exclusion;
 		vector<ProteinIdentification> protein_identifications;
-		vector<Identification> identifications;
-		vector<Identification> identifications_exclusion;
+		vector<IdentificationData> identifications;
+		vector<IdentificationData> identifications_exclusion;
 		vector<Real> precursor_retention_times;
-		vector<Real> precursor_retention_times_exclusion;
 		vector<Real> precursor_mz_values;
-		vector<Real> precursor_mz_values_exclusion;
-		vector<Identification> filtered_identifications;
-		vector<Real> filtered_precursor_retention_times;
-		vector<Real> filtered_precursor_mz_values;
+		vector<IdentificationData> filtered_identifications;
 		Identification filtered_identification;
 		vector<UnsignedInt> charges;
 		Real protein_significance_threshold_fraction = 1;
@@ -254,18 +244,6 @@ class TOPPIDFilter
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}				
-
-		contact_person.setName(getParamAsString_("contactName", "unknown"));
-		writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
-
-		contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-		writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
-			
-		contact_person.setContactInfo(getParamAsString_("contactInfo"));
-		if (contact_person.getContactInfo() != "")
-		{
-			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
-		}
 
 		peptide_significance_threshold_fraction = getParamAsString_("peptide_significance_threshold_fraction", String("0.f")).toFloat();
 		writeDebug_(String("Peptide significance threshold fraction: ") + 
@@ -353,10 +331,7 @@ class TOPPIDFilter
 		{
 			analysisXML_file.load(inputfile_name,
 														protein_identifications, 
-														identifications, 
-														precursor_retention_times, 
-														precursor_mz_values,
-														contact_person,
+														identifications,
 														predicted_retention_times,
 														predicted_sigma);
 		}
@@ -364,10 +339,7 @@ class TOPPIDFilter
 		{
 			analysisXML_file.load(inputfile_name, 
 														protein_identifications, 
-														identifications, 
-														precursor_retention_times, 
-														precursor_mz_values,
-														contact_person);				
+														identifications);				
 		}
 		if (sequences_file_name != "")
 		{
@@ -378,14 +350,11 @@ class TOPPIDFilter
 		{
 			analysisXML_file.load(exclusion_peptides_file_name, 
 													  protein_identifications, 
-													 	identifications_exclusion, 
-													 	precursor_retention_times_exclusion, 
-													 	precursor_mz_values_exclusion,
-													 	contact_person_exclusion);
+													 	identifications_exclusion);
 			for(UnsignedInt i = 0; i < identifications_exclusion.size(); i++)
 			{
-				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getPeptideHits().begin();
-						it != identifications_exclusion[i].getPeptideHits().end();
+				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].id.getPeptideHits().begin();
+						it != identifications_exclusion[i].id.getPeptideHits().end();
 						it++)
 				{
 					exclusion_peptides.push_back(it->getSequence());
@@ -401,7 +370,7 @@ class TOPPIDFilter
 		for(UnsignedInt i = 0; i < identifications.size(); i++)
 		{	
 																 
-			filter.filterIdentificationsByThresholds(identifications[i], 
+			filter.filterIdentificationsByThresholds(identifications[i].id, 
 																							 peptide_significance_threshold_fraction, 
 																							 protein_significance_threshold_fraction,
 																							 filtered_identification);
@@ -443,9 +412,11 @@ class TOPPIDFilter
 
 			if(!filtered_identification.empty())
 			{
-				filtered_identifications.push_back(filtered_identification);
-				filtered_precursor_retention_times.push_back(precursor_retention_times[i]);
-				filtered_precursor_mz_values.push_back(precursor_mz_values[i]);
+			  IdentificationData tmp;
+			  tmp.id = filtered_identification;
+			  tmp.rt = precursor_retention_times[i];
+			  tmp.mz = precursor_mz_values[i];
+				filtered_identifications.push_back(tmp);
 			}
 		}
 						
@@ -457,10 +428,7 @@ class TOPPIDFilter
 		{
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications, 
-												 		 filtered_identifications, 
-												 		 filtered_precursor_retention_times, 
-												 		 filtered_precursor_mz_values,
-												 		 contact_person,
+												 		 filtered_identifications,
 												 		 predicted_retention_times,
 												 		 predicted_sigma);
 		}
@@ -468,10 +436,7 @@ class TOPPIDFilter
 		{
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications, 
-												 		 filtered_identifications, 
-												 		 filtered_precursor_retention_times, 
-												 		 filtered_precursor_mz_values,
-												 		 contact_person);
+												 		 filtered_identifications);
 		}
 		return EXECUTION_OK;
 	}

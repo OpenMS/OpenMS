@@ -46,7 +46,8 @@ namespace OpenMS
 	/**	
 		@brief A d-dimensional convex hull representation (conterclockwise)
 		
-		@note If OpenMS is compiled without CGAL, this is simply a point container. No proper construction of convex hulls is done then.
+		@note If OpenMS is compiled with CGAL, the convex hull is calculated using CGAL. 
+					Otherwise the gift-wrapping algorithm is used.
 		
 		@ingroup Datastructures
 	*/
@@ -79,11 +80,7 @@ namespace OpenMS
 			}
 			
 
-			/**
-				@brief constructor from a vector of points
-				
-				@note If OpenMS is compiled without CGAL, this does not compute a convex hull. All points are simply added.
-			*/
+			///constructor from a vector of points
 			DConvexHull& operator=(const PointArrayType& points)
 			{
 				//init
@@ -152,11 +149,7 @@ namespace OpenMS
 				return bb;
 			}
 			
-			/**
-				@brief adds a point to the convex hull if it is not already contained. Returns if the point was added.
-				
-				@note If OpenMS is compiled without CGAL, this method checks if the point is in the bounding box only.
-			*/
+			/// adds a point to the convex hull if it is not already contained. Returns if the point was added.
 			bool addPoint(const PointType& point)
 			{
 				if (!encloses(point))
@@ -167,11 +160,7 @@ namespace OpenMS
 				return false;
 			}
 			
-			/**
-				@brief returns if the @p point lies in the convex hull
-				
-				@note If OpenMS is compiled without CGAL, this method checks if the pointis in the bounding box only.
-			*/
+			/// returns if the @p point lies in the convex hull
 			bool encloses(const PointType& point) const
 			{
 				if (!getBoundingBox().encloses(point))

@@ -27,14 +27,8 @@
 #ifndef OPENMS_FORMAT_ANALYSISXMLFILE_H
 #define OPENMS_FORMAT_ANALYSISXMLFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 
-
-
-#include <fstream>
 #include <vector>
 
 namespace OpenMS 
@@ -44,7 +38,7 @@ namespace OpenMS
     
     This class is used to load and store documents that implement 
     the schema of analysisXML files.
-  
+  	
   	@ingroup FileIO
   */
   class AnalysisXMLFile
@@ -52,10 +46,6 @@ namespace OpenMS
     public:
       /// Constructor
       AnalysisXMLFile();
-      /// Copy constructor
-      AnalysisXMLFile(const AnalysisXMLFile& source);
-      /// Destructor
-      ~AnalysisXMLFile();
       
 			/**
       	@brief Loads the identifications of an AnalysisXML file
@@ -63,13 +53,7 @@ namespace OpenMS
 				The information is read in and the information is stored in the
 				corresponding variables
       */
-      void load(const String& filename,
-      					std::vector<ProteinIdentification>& protein_identifications, 
-      					std::vector<Identification>& identifications, 
-      					std::vector<float>& precursor_retention_times,
-      					std::vector<float>& precursor_mz_values,
-      					ContactPerson& contact_person)  	const throw (Exception::FileNotFound, 
-  							 																							 Exception::ParseError);
+      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
 			/**
       	@brief Loads the identifications of an AnalysisXML file
@@ -79,52 +63,21 @@ namespace OpenMS
 				the predicted retention times and the predicted sigma that can be
 				used to filter the peptides via the TOPP tool RTPredict.
       */
-      void load(const String& filename, 
-      					std::vector<ProteinIdentification>& protein_identifications, 
-      					std::vector<Identification>& identifications, 
-      					std::vector<float>& precursor_retention_times,
-      					std::vector<float>& precursor_mz_values,
-      					ContactPerson& contact_person,
-      					std::map<String, double>& predicted_retention_times,
-      					DoubleReal& predicted_sigma)  	const throw (Exception::FileNotFound, 
-  							 																						 Exception::ParseError);
+      void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma)  	const throw (Exception::FileNotFound, Exception::ParseError);
       					 
 			/**
       	@brief Stores the data in an AnalysisXML file
 
 				The data is read in and stored in the file 'filename'.
       */
-      void store(String filename, 
-	      				 const std::vector<ProteinIdentification>& protein_identifications, 
-      					 const std::vector<Identification>& identifications, 
-      					 const std::vector<float>& precursor_retention_times,
-      					 const std::vector<float>& precursor_mz_values) const throw (Exception::UnableToCreateFile); 
-			
-			/**
-      	@brief Stores the data in an AnalysisXML file
-
-				The data is read in and stored in the file 'filename'.
-      */
-      void store(String filename, 
-	      				 const std::vector<ProteinIdentification>& protein_identifications, 
-      					 const std::vector<Identification>& identifications, 
-      					 const std::vector<float>& precursor_retention_times,
-      					 const std::vector<float>& precursor_mz_values,
-      					 const ContactPerson& contact_person) const throw (Exception::UnableToCreateFile); 
+      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile); 
 
 			/**
       	@brief Stores the data in an AnalysisXML file
 
 				The data is read in and stored in the file 'filename'.
       */
-      void store(String filename, 
-	      				 const std::vector<ProteinIdentification>& protein_identifications, 
-      					 const std::vector<Identification>& identifications, 
-      					 const std::vector<float>& precursor_retention_times,
-      					 const std::vector<float>& precursor_mz_values,
-      					 const ContactPerson& contact_person,
-      					 const std::map<String, double>& predicted_retention_times,
-      					 DoubleReal predicted_sigma) 
+      void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) 
       	const throw (Exception::UnableToCreateFile); 
 
   };

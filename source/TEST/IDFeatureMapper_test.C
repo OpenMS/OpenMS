@@ -55,27 +55,19 @@ CHECK(~IDFeatureMapper())
 	delete ptr;
 RESULT
 
-CHECK((void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values)))
+CHECK((void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications)))
 
 //load id data
-vector<Identification> identifications; 
+vector<IdentificationData> identifications; 
 vector<ProteinIdentification> protein_identifications; 
-vector<float> precursor_retention_times;
-vector<float> precursor_mz_values;
-ContactPerson contact_person;
-AnalysisXMLFile().load("data/IDFeatureMapper_test.analysisXML",
-												protein_identifications, 
-									   		identifications, 
-												precursor_retention_times, 
-												precursor_mz_values, 
-												contact_person);
+AnalysisXMLFile().load("data/IDFeatureMapper_test.analysisXML", protein_identifications, identifications);
 
 //load feature data
 DFeatureMap<2> fm;
 DFeatureMapFile().load("data/IDFeatureMapper_test.feat", fm);
 
 //map
-IDFeatureMapper().annotate(fm,identifications,protein_identifications, precursor_retention_times,precursor_mz_values);
+IDFeatureMapper().annotate(fm,identifications,protein_identifications);
 
 //test protein ids
 TEST_EQUAL(fm.getProteinIdentifications().size(),1)

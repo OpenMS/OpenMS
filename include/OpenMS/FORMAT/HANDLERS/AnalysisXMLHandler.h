@@ -28,17 +28,17 @@
 #define OPENMS_FORMAT_HANDLERS_ANALYSISXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
+#include <fstream>
 
 namespace OpenMS
 {
 	namespace Internal
 	{
+
   /**
     @brief Handler that is used for parsing AnalysisXML data
     
@@ -49,43 +49,13 @@ namespace OpenMS
   {
     public:
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications,
-      									 std::vector<Identification>& identifications, 
-      									 std::vector<float>& precursor_retention_times, 
-      									 std::vector<float>& precursor_mz_values,
-      									 ContactPerson& contact_person,
-      									 const String& filename);
+      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for loading
-      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications,
-      									 std::vector<Identification>& identifications, 
-      									 std::vector<float>& precursor_retention_times, 
-      									 std::vector<float>& precursor_mz_values,
-      									 ContactPerson& contact_person,
-      									 std::map<String, double>& predicted_retention_times,
-      									 DoubleReal& predicted_sigma,
-      									 const String& filename);
+      AnalysisXMLHandler(std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
-      									 const std::vector<Identification>& identifications, 
-      									 const std::vector<float>& precursor_retention_times, 
-      									 const std::vector<float>& precursor_mz_values, 
-      									 const String& filename);
+      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const String& filename);
       /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
-      									 const std::vector<Identification>& identifications, 
-      									 const std::vector<float>& precursor_retention_times, 
-      									 const std::vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person, 
-      									 const String& filename);
-      /// Constructor for storing
-      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications,
-      									 const std::vector<Identification>& identifications, 
-      									 const std::vector<float>& precursor_retention_times, 
-      									 const std::vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person,
-      									 const std::map<String, double>& predicted_retention_times,
-      									 DoubleReal predicted_sigma, 
-      									 const String& filename);
+      AnalysisXMLHandler(const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma,  const String& filename);
       
       /// Destructor
       ~AnalysisXMLHandler();
@@ -105,22 +75,16 @@ namespace OpenMS
 
     protected:
       std::vector<ProteinIdentification>* protein_identifications_;
-      std::vector<Identification>* identifications_;
-      std::vector<float>* precursor_retention_times_;
-      std::vector<float>* precursor_mz_values_;
+      std::vector<IdentificationData>* id_data_;
       ProteinHit actual_protein_hit_;
       std::vector<ProteinHit> actual_protein_hits_;
       PeptideHit actual_peptide_hit_;
       std::vector<PeptideHit> actual_peptide_hits_;
 			UnsignedInt peptide_identification_index_;
 			UnsignedInt protein_identification_index_;
-			bool inside_peptide_;
-			ContactPerson* contact_person_;      	
+			bool inside_peptide_;   	
       const std::vector<ProteinIdentification> const_protein_identifications_;
-      const std::vector<Identification> const_identifications_;
-      const std::vector<float> const_precursor_retention_times_;
-      const std::vector<float> const_precursor_mz_values_;
-			const ContactPerson const_contact_person_;
+      const std::vector<IdentificationData> const_id_data_;
 			const std::map<String, double> const_predicted_retention_times_;
 			String tag_;      	
 			UnsignedInt charge_identification_index_;

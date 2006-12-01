@@ -40,16 +40,11 @@ namespace OpenMS
 	namespace Internal
 	{
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications,
-  									 vector<Identification>& identifications, 
-   									 vector<float>& precursor_retention_times, 
-   									 vector<float>& precursor_mz_values,
-   									 ContactPerson& contact_person,
+  									 std::vector<IdentificationData>& id_data,
    									 const String& filename ) :
     XMLHandler(filename),
     protein_identifications_(&protein_identifications),
-    identifications_(&identifications),
-    precursor_retention_times_(&precursor_retention_times),
-    precursor_mz_values_(&precursor_mz_values),
+    id_data_(&id_data),
     actual_protein_hit_(),
     actual_protein_hits_(),
     actual_peptide_hit_(),
@@ -57,12 +52,8 @@ namespace OpenMS
     peptide_identification_index_(0),
     protein_identification_index_(0),
     inside_peptide_(false),
-    contact_person_(&contact_person),
     const_protein_identifications_(),
-    const_identifications_(),
-    const_precursor_retention_times_(),
-    const_precursor_mz_values_(),
-		const_contact_person_(),
+    const_id_data_(),
 		const_predicted_retention_times_(),
 		tag_(),        
 		charge_identification_index_(0),        
@@ -78,18 +69,13 @@ namespace OpenMS
   }
 
   AnalysisXMLHandler::AnalysisXMLHandler(vector<ProteinIdentification>& protein_identifications, 
-      									 vector<Identification>& identifications, 
-      									 vector<float>& precursor_retention_times, 
-      									 vector<float>& precursor_mz_values,
-      									 ContactPerson& contact_person,
+      									 std::vector<IdentificationData>& id_data,
       									 map<String, double>& predicted_retention_times,
       									 DoubleReal& predicted_sigma,
    									 		 const String& filename) :
     XMLHandler(filename),
     protein_identifications_(&protein_identifications),
-    identifications_(&identifications),
-    precursor_retention_times_(&precursor_retention_times),
-    precursor_mz_values_(&precursor_mz_values),
+    id_data_(&id_data),
     actual_protein_hit_(),
     actual_protein_hits_(),
     actual_peptide_hit_(),
@@ -97,12 +83,8 @@ namespace OpenMS
     peptide_identification_index_(0),
     protein_identification_index_(0),
     inside_peptide_(false),
-    contact_person_(&contact_person),
     const_protein_identifications_(),
-    const_identifications_(),
-    const_precursor_retention_times_(),
-    const_precursor_mz_values_(),
-		const_contact_person_(),
+    const_id_data_(),
 		const_predicted_retention_times_(),
 		tag_(),
 		charge_identification_index_(0),        
@@ -118,15 +100,11 @@ namespace OpenMS
   }
 
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications,
-  									 const vector<Identification>& identifications, 
-   									 const vector<float>& precursor_retention_times, 
-   									 const vector<float>& precursor_mz_values,
+  									 const std::vector<IdentificationData>& id_data,
    									 const String& filename) :
     XMLHandler(filename),
     protein_identifications_(),
-    identifications_(0),
-    precursor_retention_times_(0),
-    precursor_mz_values_(0),
+    id_data_(0),
     actual_protein_hit_(),
     actual_protein_hits_(),
     actual_peptide_hit_(),
@@ -134,12 +112,8 @@ namespace OpenMS
     peptide_identification_index_(0),
     protein_identification_index_(0),
     inside_peptide_(false),
-    contact_person_(0),
     const_protein_identifications_(protein_identifications),
-    const_identifications_(identifications),
-    const_precursor_retention_times_(precursor_retention_times),
-    const_precursor_mz_values_(precursor_mz_values),
-		const_contact_person_(),
+    const_id_data_(id_data),
 		const_predicted_retention_times_(),
 		tag_(),        
 		charge_identification_index_(0),        
@@ -153,58 +127,15 @@ namespace OpenMS
     actual_date_time_("0000-00-00 00:00:00")    
   {
   }
-
-  AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
-      									 const vector<Identification>& identifications, 
-      									 const vector<float>& precursor_retention_times, 
-      									 const vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person,
-   									 const String& filename) :
-    XMLHandler(filename),
-    protein_identifications_(0),
-    identifications_(0),
-    precursor_retention_times_(0),
-    precursor_mz_values_(0),
-    actual_protein_hit_(),
-    actual_protein_hits_(),
-    actual_peptide_hit_(),
-    actual_peptide_hits_(),
-    peptide_identification_index_(0),
-    protein_identification_index_(0),
-    inside_peptide_(false),
-    contact_person_(0),
-    const_protein_identifications_(protein_identifications),
-    const_identifications_(identifications),
-    const_precursor_retention_times_(precursor_retention_times),
-    const_precursor_mz_values_(precursor_mz_values),
-		const_contact_person_(contact_person),
-		const_predicted_retention_times_(),
-		tag_(),
-		charge_identification_index_(0),        
-    inside_protein_(false),
-    inside_global_protein_(false),
-    predicted_retention_times_(),
-    predicted_sigma_(0),
-		const_predicted_sigma_(0),
-    date_times_temp_(),
-    date_times_counter_(0),
-    actual_date_time_("0000-00-00 00:00:00")
-  {
-  }
       									 	      									 	  
   AnalysisXMLHandler::AnalysisXMLHandler(const vector<ProteinIdentification>& protein_identifications, 
-      									 const vector<Identification>& identifications, 
-      									 const vector<float>& precursor_retention_times, 
-      									 const vector<float>& precursor_mz_values,
-      									 const ContactPerson& contact_person,
+      									 const std::vector<IdentificationData>& id_data,
       									 const map<String, double>& const_predicted_retention_times,
       									 DoubleReal predicted_sigma,
    									 const String& filename) :
     XMLHandler(filename),
     protein_identifications_(0),
-    identifications_(0),
-    precursor_retention_times_(0),
-    precursor_mz_values_(0),
+    id_data_(0),
     actual_protein_hit_(),
     actual_protein_hits_(),
     actual_peptide_hit_(),
@@ -212,12 +143,8 @@ namespace OpenMS
     peptide_identification_index_(0),
     protein_identification_index_(0),
     inside_peptide_(false),
-    contact_person_(0),
     const_protein_identifications_(protein_identifications),
-    const_identifications_(identifications),
-    const_precursor_retention_times_(precursor_retention_times),
-    const_precursor_mz_values_(precursor_mz_values),
-		const_contact_person_(contact_person),
+    const_id_data_(id_data),
 		const_predicted_retention_times_(const_predicted_retention_times),
 		tag_(),
 		charge_identification_index_(0),        
@@ -276,38 +203,11 @@ namespace OpenMS
 		{
 			os << "";			
 		}
-		os << "</sampleName>\n\t\t\t<contact>\n"
-		 << "\t\t\t\t<name>";
-		if (const_contact_person_.getName() != "")
-		{
-			os << const_contact_person_.getName();			
-		}
-		else
-		{
-			os << "unknown";
-		}
-		os << "</name>\n"		
-		 << "\t\t\t\t<institution>";
-		if (const_contact_person_.getInstitution() != "")
-		{
-		  os << const_contact_person_.getInstitution();
-		}
-		else
-		{
-			os << "unknown";			
-		}		 
-		os << "</institution>\n";	
-		if (const_contact_person_.getContactInfo() != "")
-		{
-			os << "\t\t\t\t<contactInfo>"
-				 << const_contact_person_.getContactInfo()
-				 << "</contactInfo>\n";
-		}
-		os << "\t\t\t</contact>\n"	
+		os << "</sampleName>\n"
 		 << "\t\t</admin>\n"
 		 << "\t\t<settings>\n"
 		 << "\t\t\t<userParam name=\"number_of_identifications\" value=\""
-  	 << const_identifications_.size() << "\" />\n"
+  	 << const_id_data_.size() << "\" />\n"
 		 << "\t\t\t<userParam name=\"number_of_protein_identifications\" value=\""
   	 << const_protein_identifications_.size() << "\" />\n"
 		 << "\t\t\t<userParam name=\"retention_time_type\" value=\""
@@ -323,11 +223,11 @@ namespace OpenMS
 			os << "\t\t\t<userParam name=\"predicted_sigma\" value=\""
   	 		<< const_predicted_sigma_ << "\" />\n";  	 
   	}
-  	for(vector<Identification>::const_iterator it = const_identifications_.begin();
-  		  it != const_identifications_.end();
+  	for(vector<IdentificationData>::const_iterator it = const_id_data_.begin();
+  		  it != const_id_data_.end();
   		  it++)
   	{
-  		date_time = it->getDateTime();
+  		date_time = it->id.getDateTime();
   		date_time.get(date_time_string);
   		if (date_time_string == "0000-00-00 00:00:00")
   		{
@@ -394,9 +294,9 @@ namespace OpenMS
 						os << protein_hits_it->getAccession();
 					}
 					os << "</dbID>\n";
-					for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
+					for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
 					{
-						referencing_peptide_hits = const_identifications_[i].getReferencingHits(date_time_string, 
+						referencing_peptide_hits = const_id_data_[i].id.getReferencingHits(date_time_string, 
 																																	 								  protein_hits_it->getAccession());
 						for(vector<PeptideHit>::iterator peptide_hits_it = referencing_peptide_hits->begin();
 								peptide_hits_it != referencing_peptide_hits->end();
@@ -405,12 +305,12 @@ namespace OpenMS
 							writePeptideHit(os, 
   														String("\t\t\t\t"),
   														*peptide_hits_it,
-  														const_identifications_[i].getPeptideSignificanceThreshold(),
+  														const_id_data_[i].id.getPeptideSignificanceThreshold(),
   														i,
-  														const_identifications_[i].getCharge(), 
-  														const_precursor_retention_times_[i],
-  														const_precursor_mz_values_[i],
-  														const_identifications_[i].getDateTime(),
+  														const_id_data_[i].id.getCharge(), 
+  														const_id_data_[i].rt,
+  														const_id_data_[i].mz,
+  														const_id_data_[i].id.getDateTime(),
 															date_times);
 
 						} // peptide_hits_it
@@ -431,9 +331,9 @@ namespace OpenMS
 			} // protein identifications
 		}
 
-		for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
+		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
 		{
-			if (const_identifications_[i].getProteinHits().size() > 0)
+			if (const_id_data_[i].id.getProteinHits().size() > 0)
 			{
 				protein_hits_present = true;
 			}
@@ -442,16 +342,16 @@ namespace OpenMS
 		if (protein_hits_present)
 		{
 			os << "\t\t<proteinGroup count=\"" << group_count << "\">\n";
-			for(UnsignedInt j = 0; j < const_identifications_.size(); j++)
+			for(UnsignedInt j = 0; j < const_id_data_.size(); j++)
 			{
-				date_time = const_identifications_[j].getDateTime();
+				date_time = const_id_data_[j].id.getDateTime();
 				date_time.get(date_time_string);
 	  		if (date_time_string == "0000-00-00 00:00:00")
 	  		{
 	  			date_time_string = actual_date_time_;
 	  		}				
 					
-				temp_protein_hits = const_identifications_[j].getProteinHits();
+				temp_protein_hits = const_id_data_[j].id.getProteinHits();
 				for(vector<ProteinHit>::const_iterator protein_hits_it = temp_protein_hits.begin();
 						protein_hits_it != temp_protein_hits.end();
 						protein_hits_it++)
@@ -469,9 +369,9 @@ namespace OpenMS
 						os << protein_hits_it->getAccession();
 					}
 					os << "</dbID>\n";
-					for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
+					for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
 					{
-						referencing_peptide_hits = const_identifications_[i].getReferencingHits(date_time_string, 
+						referencing_peptide_hits = const_id_data_[i].id.getReferencingHits(date_time_string, 
 																																						 protein_hits_it->getAccession());
 						for(vector<PeptideHit>::iterator peptide_hits_it = referencing_peptide_hits->begin();
 								peptide_hits_it != referencing_peptide_hits->end();
@@ -480,12 +380,12 @@ namespace OpenMS
 							writePeptideHit(os, 
   														String("\t\t\t\t"),
   														*peptide_hits_it,
-  														const_identifications_[i].getPeptideSignificanceThreshold(),
+  														const_id_data_[i].id.getPeptideSignificanceThreshold(),
   														i,
-  														const_identifications_[i].getCharge(), 
-  														const_precursor_retention_times_[i],
-  														const_precursor_mz_values_[i],
-  														const_identifications_[i].getDateTime(),
+  														const_id_data_[i].id.getCharge(), 
+  														const_id_data_[i].rt,
+  														const_id_data_[i].mz,
+  														const_id_data_[i].id.getDateTime(),
 															date_times);
 
 						} // peptide_hits_it
@@ -509,16 +409,16 @@ namespace OpenMS
 		// All protein hits with the corresponding date and time are stored.
 		// They are used afterwards to determine the peptide hits that do
 		// not reference any protein hits.
-		for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
+		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
 		{
-			const_identifications_[i].getDateTime().get(date_time_string);
+			const_id_data_[i].id.getDateTime().get(date_time_string);
   		if (date_time_string == "0000-00-00 00:00:00")
   		{
   			date_time_string = actual_date_time_;
   		}
 			
-			for(vector<ProteinHit>::const_iterator it = const_identifications_[i].getProteinHits().begin();
-					it != const_identifications_[i].getProteinHits().end();
+			for(vector<ProteinHit>::const_iterator it = const_id_data_[i].id.getProteinHits().begin();
+					it != const_id_data_[i].id.getProteinHits().end();
 					it++)
 			{
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
@@ -539,10 +439,10 @@ namespace OpenMS
 				all_protein_hits.insert(make_pair(date_time_string, *it));				
 			}
 		}
-		for(UnsignedInt i = 0; i < const_identifications_.size(); i++)
+		for(UnsignedInt i = 0; i < const_id_data_.size(); i++)
 		{
 			non_referencing_peptide_hits = 
-				const_identifications_[i].getNonReferencingHits(all_protein_hits);
+				const_id_data_[i].id.getNonReferencingHits(all_protein_hits);
 				 								  														  
 																  														 
 			for(vector<PeptideHit>::const_iterator peptide_hits_it = non_referencing_peptide_hits->begin();
@@ -552,12 +452,12 @@ namespace OpenMS
 				writePeptideHit(os, 
 												String("\t\t"),
 												*peptide_hits_it,
-												const_identifications_[i].getPeptideSignificanceThreshold(),
+												const_id_data_[i].id.getPeptideSignificanceThreshold(),
 												i,
-												const_identifications_[i].getCharge(), 
-												const_precursor_retention_times_[i],
-												const_precursor_mz_values_[i],
-												const_identifications_[i].getDateTime(),
+												const_id_data_[i].id.getCharge(), 
+												const_id_data_[i].rt,
+												const_id_data_[i].mz,
+												const_id_data_[i].id.getDateTime(),
 												date_times);
 			}
 			delete non_referencing_peptide_hits;
@@ -580,16 +480,16 @@ namespace OpenMS
 			
 			if (attribute_value == "peptide_significance_threshold")
 			{
-				(*identifications_)[peptide_identification_index_].setPeptideSignificanceThreshold(
+				(*id_data_)[peptide_identification_index_].id.setPeptideSignificanceThreshold(
 					((String) XMLString::transcode(attributes.getValue(1u))).toFloat());
 			}
 			else if (attribute_value == "precursor_charge")
 			{
-				(*identifications_)[peptide_identification_index_].setCharge(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
+				(*id_data_)[peptide_identification_index_].id.setCharge(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
 			}
 			else if (attribute_value == "precursor_retention_time")
 			{
-				(*precursor_retention_times_)[peptide_identification_index_] = 
+				(*id_data_)[peptide_identification_index_].rt = 
 					((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 			}
 			else if (attribute_value == "predicted_sigma")
@@ -607,16 +507,9 @@ namespace OpenMS
 						((String) XMLString::transcode(attributes.getValue(1u))).toFloat()));
 				}
 			}
-			else if (attribute_value == "number_of_identifications" 
-							|| attribute_value == "number_of_db_searches")
+			else if (attribute_value == "number_of_identifications" || attribute_value == "number_of_db_searches")
 			{
-				for(int i = 0; i < ((String) XMLString::transcode(attributes.getValue(1u))).toInt(); i++)
-				{
-					Identification temp_identification;
-					identifications_->push_back(temp_identification);
-					(*precursor_retention_times_).push_back(0);
-					(*precursor_mz_values_).push_back(0);
-				}
+				id_data_->resize(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
 			}
 			else if (attribute_value == "number_of_protein_identifications")
 			{
@@ -628,7 +521,7 @@ namespace OpenMS
 			}
 			else if (attribute_value == "precursor_mz")
 			{
-				(*precursor_mz_values_)[peptide_identification_index_] = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
+				(*id_data_)[peptide_identification_index_].mz = ((String) XMLString::transcode(attributes.getValue(1u))).toFloat();
 			}
 			else if (attribute_value == "score")
 			{
@@ -657,10 +550,18 @@ namespace OpenMS
 				if (inside_peptide_)
 				{
 					peptide_identification_index_ = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+					if (peptide_identification_index_ >= id_data_->size())
+					{ 
+						throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(peptide_identification_index_),"Peptide identification_index larger then the overall number of peptides");
+					}
 				}
 				else
 				{
 					protein_identification_index_ = ((String) XMLString::transcode(attributes.getValue(1u))).toInt();
+					if (protein_identification_index_ >= protein_identifications_->size())
+					{ 
+						throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(protein_identification_index_),"Protein identification_index larger then the overall number of proteins");
+					}
 				}
 			}
 			else if (attribute_value == "protein_identification_index")
@@ -686,7 +587,7 @@ namespace OpenMS
 				String date_time_string = date_times_temp_.at(index);
 					if (inside_peptide_)
 					{
-						(*identifications_)[peptide_identification_index_].getDateTime().set(date_time_string);
+						(*id_data_)[peptide_identification_index_].id.getDateTime().set(date_time_string);
 					}
 					else
 					{
@@ -696,7 +597,7 @@ namespace OpenMS
 						}
 						else
 						{
-							(*identifications_)[protein_identification_index_].getDateTime().set(date_time_string);
+							(*id_data_)[protein_identification_index_].id.getDateTime().set(date_time_string);
 						}
 					}
 			}						
@@ -724,7 +625,7 @@ namespace OpenMS
 			}
 			else
 			{				
-	 			(*identifications_)[protein_identification_index_].insertProteinHit(actual_protein_hit_);
+	 			(*id_data_)[protein_identification_index_].id.insertProteinHit(actual_protein_hit_);
 			}
 	 			actual_protein_hit_.clear();
 	 			actual_peptide_indices_.clear();
@@ -737,7 +638,7 @@ namespace OpenMS
 			vector<PeptideHit>::iterator  it;
  			
 			vector<PeptideHit>& temp_peptide_hits = 
-				(*identifications_)[peptide_identification_index_].getPeptideHits();
+				(*id_data_)[peptide_identification_index_].id.getPeptideHits();
 				
 			it = temp_peptide_hits.begin();
 			while(it != temp_peptide_hits.end() && !already_stored)
@@ -749,7 +650,7 @@ namespace OpenMS
 					{
 		 				String 							date_time;
 		 			
-		 				(*identifications_)[peptide_identification_index_].getDateTime().get(date_time);
+		 				(*id_data_)[peptide_identification_index_].id.getDateTime().get(date_time);
 						it->addProteinIndex(make_pair(date_time, actual_protein_hit_.getAccession()));						
 					}
 				}
@@ -761,10 +662,10 @@ namespace OpenMS
 				{
 	 				String 							date_time;
 	 			
-	 				(*identifications_)[peptide_identification_index_].getDateTime().get(date_time);
+	 				(*id_data_)[peptide_identification_index_].id.getDateTime().get(date_time);
 					actual_peptide_hit_.addProteinIndex(make_pair(date_time, actual_protein_hit_.getAccession()));
 				}
-	 			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
+	 			(*id_data_)[peptide_identification_index_].id.insertPeptideHit(actual_peptide_hit_); 			
 			}
  			actual_peptide_hit_.clear();
  			inside_peptide_ = false;
@@ -775,22 +676,7 @@ namespace OpenMS
 
   void AnalysisXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
-		if (tag_ == "name")
-		{
-			contact_person_->setName(((String) xercesc::XMLString::transcode(chars)).trim());
-			tag_ = "";
-		}
-		else if (tag_ == "institution")
-		{
-			contact_person_->setInstitution(((String) xercesc::XMLString::transcode(chars)).trim());
-			tag_ = "";
-		}
-		else if (tag_ == "contactInfo")
-		{
-			contact_person_->setContactInfo(((String) xercesc::XMLString::transcode(chars)).trim());
-			tag_ = "";
-		}
-		else if (tag_ == "dbName")
+		if (tag_ == "dbName")
 		{
 			actual_protein_hit_.setAccessionType(((String) xercesc::XMLString::transcode(chars)).trim());
 			tag_ = "";

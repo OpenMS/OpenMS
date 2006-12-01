@@ -61,7 +61,7 @@ namespace OpenMS
       // Constructor
       SequestOutfile();
 			
-			void load(const std::string& result_filename, std::vector< Identification >&	identifications, ProteinIdentification&	protein_identification, std::vector< float >& precursor_retention_times, std::vector< float >& precursor_mz_values, const double& p_value_threshold, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const std::string& result_filename, std::vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const double& p_value_threshold, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
 			
 		protected:
 			// split a string into substrings using splitter
@@ -76,8 +76,6 @@ namespace OpenMS
 			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
 			
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
-			
-			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< unsigned int > > >& files_and_scan_numbers, std::vector< float >&  precursor_retention_times, std::vector< float >& precursor_mz_values);
 			
 			// make sure there's a char marking the string as directory
 			void ensurePathChar(std::string& path, char path_char = '/');

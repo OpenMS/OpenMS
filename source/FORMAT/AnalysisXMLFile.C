@@ -43,18 +43,10 @@ namespace OpenMS
 	{
 	  	
 	}
-	
-	AnalysisXMLFile::~AnalysisXMLFile()
-	{
-	  	
-	}
 
   void AnalysisXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
-  													 vector<Identification>& identifications, 
-  													 vector<float>& precursor_retention_times,
-  													 vector<float>& precursor_mz_values,
-  													 ContactPerson& contact_person)
+  													 std::vector<IdentificationData>& id_data)
   	const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
@@ -78,16 +70,10 @@ namespace OpenMS
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		protein_identifications.clear();
-		identifications.clear();
-		precursor_retention_times.clear();
-		precursor_mz_values.clear();
-		contact_person = ContactPerson();
+		id_data.clear();
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-																				 identifications,
-																				 precursor_retention_times, 
-																				 precursor_mz_values,
-																				 contact_person,
+																				 id_data,
 																				 filename);
 
 		parser->setContentHandler(&handler);
@@ -111,10 +97,7 @@ namespace OpenMS
   					 
   void AnalysisXMLFile::load(const String& filename, 
   					 								 vector<ProteinIdentification>& protein_identifications,
-  													 vector<Identification>& identifications, 
-  													 vector<float>& precursor_retention_times,
-  													 vector<float>& precursor_mz_values,
-  													 ContactPerson& contact_person,
+  													 std::vector<IdentificationData>& id_data,
       											 std::map<String, double>& predicted_retention_times,
       											 DoubleReal& predicted_sigma)
   	const throw (Exception::FileNotFound, Exception::ParseError)
@@ -141,18 +124,12 @@ namespace OpenMS
 
 		/// clear information
 		protein_identifications.clear();
-		identifications.clear();
-		precursor_retention_times.clear();
-		precursor_mz_values.clear();
-		contact_person = ContactPerson();
+		id_data.clear();
 		predicted_retention_times.clear();
 		predicted_sigma = 0;
 
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-																				 identifications,
-																				 precursor_retention_times, 
-																				 precursor_mz_values,
-																				 contact_person,
+																				 id_data,
 																				 predicted_retention_times,
 																				 predicted_sigma,
 																				 filename);
@@ -178,9 +155,7 @@ namespace OpenMS
   					 
   void AnalysisXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
-  					 									const vector<Identification>& identifications, 
-  					 									const vector<float>& precursor_retention_times,
-  					 									const vector<float>& precursor_mz_values) const throw (Exception::UnableToCreateFile)
+  					 									const std::vector<IdentificationData>& id_data) const throw (Exception::UnableToCreateFile)
   {
 		std::ofstream os(filename.c_str());
 		if (!os)
@@ -190,46 +165,16 @@ namespace OpenMS
 
 		//read data and close stream
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-															 					 identifications, 
-															 					 precursor_retention_times, 
-															 					 precursor_mz_values,
+															 					 id_data,
 															 					 filename);
 		handler.writeTo(os);
 		os.close();
 
-  } 
+  }
 
   void AnalysisXMLFile::store(String filename, 
   					 									const vector<ProteinIdentification>& protein_identifications,
-  					 									const vector<Identification>& identifications, 
-  					 									const vector<float>& precursor_retention_times,
-  					 									const vector<float>& precursor_mz_values,
-  					 									const ContactPerson& contact_person) const throw (Exception::UnableToCreateFile)
-  {
-		std::ofstream os(filename.c_str());
-		if (!os)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-
-		//read data and close stream
-		Internal::AnalysisXMLHandler handler(protein_identifications,
-																				 identifications,
-																				 precursor_retention_times, 
-																				 precursor_mz_values, 
-																				 contact_person,
-																				 filename);
-		handler.writeTo(os);
-		os.close();
-
-  } 
-
-  void AnalysisXMLFile::store(String filename, 
-  					 									const vector<ProteinIdentification>& protein_identifications,
-  					 									const vector<Identification>& identifications, 
-  					 									const vector<float>& precursor_retention_times,
-  					 									const vector<float>& precursor_mz_values,
-  					 									const ContactPerson& contact_person,
+  					 									const std::vector<IdentificationData>& id_data,
   					 									const map<String, double>& predicted_retention_times,
   					 									DoubleReal predicted_sigma) 
   	const throw (Exception::UnableToCreateFile)
@@ -242,10 +187,7 @@ namespace OpenMS
 
 		//read data and close stream
 		Internal::AnalysisXMLHandler handler(protein_identifications,
-																				 identifications, 
-																				 precursor_retention_times, 
-																				 precursor_mz_values, 
-																				 contact_person,
+																				 id_data,
 																				 predicted_retention_times,
 																				 predicted_sigma,
 																				 filename);

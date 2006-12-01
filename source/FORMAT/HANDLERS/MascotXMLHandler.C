@@ -38,26 +38,15 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  MascotXMLHandler::MascotXMLHandler(ProteinIdentification* protein_identification,
-								  									 vector<Identification>* identifications, 
-								   									 vector<float>* precursor_retention_times, 
-								   									 vector<float>* precursor_mz_values,
+  MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
+								  									 vector<IdentificationData>& id_data, 
       								 							 const String& filename) :
     XMLHandler(filename),
     protein_identification_(protein_identification),
-    identifications_(identifications),
-    precursor_retention_times_(precursor_retention_times),
-    precursor_mz_values_(precursor_mz_values),
+    id_data_(id_data),
     actual_protein_hit_(),
-    actual_protein_hits_(),
     actual_peptide_hit_(),
-    actual_peptide_hits_(),
     peptide_identification_index_(0),
-    protein_identification_index_(0),
-    const_protein_identification_(),
-    const_identifications_(),
-    const_precursor_retention_times_(),
-    const_precursor_mz_values_(),
 		tag_(),
 		date_()        
   {
@@ -95,7 +84,7 @@ namespace OpenMS
 				String attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
 	  		peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
-			if (peptide_identification_index_ > identifications_->size())
+			if (peptide_identification_index_ > id_data_.size())
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, ".mascotXML", 
 																		"No header information present: use "
@@ -114,7 +103,7 @@ namespace OpenMS
  			/// since Mascot uses SwissProt IDs we set this type here
 			actual_protein_hit_.setAccessionType("SwissProt");
 			actual_protein_hit_.setScoreType("Mascot");
- 			protein_identification_->insertProteinHit(actual_protein_hit_);
+ 			protein_identification_.insertProteinHit(actual_protein_hit_);
  			actual_protein_hit_.clear();
  		}
  		else if (tag_ == "peptide")
@@ -123,7 +112,7 @@ namespace OpenMS
 			vector<PeptideHit>::iterator  it;
  			
 			vector<PeptideHit>& temp_peptide_hits = 
-				(*identifications_)[peptide_identification_index_].getPeptideHits();
+				id_data_[peptide_identification_index_].id.getPeptideHits();
 				
 			it = temp_peptide_hits.begin();
 			while(it != temp_peptide_hits.end() && !already_stored)
@@ -138,7 +127,7 @@ namespace OpenMS
 			{
 				actual_peptide_hit_.setScoreType("Mascot");
 				actual_peptide_hit_.addProteinIndex(make_pair(date_time_string_, actual_protein_hit_.getAccession()));
-	 			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
+	 			id_data_[peptide_identification_index_].id.insertPeptideHit(actual_peptide_hit_); 			
 			}
 			else
 			{
@@ -150,7 +139,7 @@ namespace OpenMS
  		else if (tag_ == "u_peptide")
  		{
 			actual_peptide_hit_.setScoreType("Mascot");
- 			(*identifications_)[peptide_identification_index_].insertPeptideHit(actual_peptide_hit_); 			
+ 			id_data_[peptide_identification_index_].id.insertPeptideHit(actual_peptide_hit_); 			
  			actual_peptide_hit_.clear();
  		}
 		tag_ = "";
@@ -161,14 +150,10 @@ namespace OpenMS
 
 		if (tag_ == "NumQueries")
 		{
-			Identification temp_identification;
-			
-			temp_identification.setDateTime(date_);
-			for(int i = 0; i < ((String) XMLString::transcode(chars)).trim().toInt(); i++)
+			id_data_.resize(((String) XMLString::transcode(chars)).trim().toInt());
+			for(UnsignedInt i = 0; i < id_data_.size(); i++)
 			{
-				identifications_->push_back(temp_identification);
-				precursor_retention_times_->push_back(0);
-				precursor_mz_values_->push_back(0);
+				id_data_[i].id.setDateTime(date_);
 			}
 			tag_ = "";
 		}
@@ -178,12 +163,12 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_exp_mz")
 		{
-			(*precursor_mz_values_)[peptide_identification_index_] = ((String) XMLString::transcode(chars)).trim().toFloat();
+			id_data_[peptide_identification_index_].mz = ((String) XMLString::transcode(chars)).trim().toFloat();
 			tag_ = "";
 		}
 		else if (tag_ == "pep_exp_z")
 		{
-			(*identifications_)[peptide_identification_index_].setCharge(((String) XMLString::transcode(chars)).trim().toInt());
+			id_data_[peptide_identification_index_].id.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_score")
@@ -193,7 +178,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_homol")
 		{			
-			(*identifications_)[peptide_identification_index_].setPeptideSignificanceThreshold(
+			id_data_[peptide_identification_index_].id.setPeptideSignificanceThreshold(
 					((String) XMLString::transcode(chars)).trim().toFloat());
 			tag_ = "";
 		}
@@ -205,11 +190,11 @@ namespace OpenMS
 			/// According to matrixscience the homology threshold is only used if it exists and is
 			/// smaller than the identity threshold.
 			temp_homology = 
-				(*identifications_)[peptide_identification_index_].getPeptideSignificanceThreshold();
+				id_data_[peptide_identification_index_].id.getPeptideSignificanceThreshold();
 			temp_identity = ((String) XMLString::transcode(chars)).trim().toFloat();
 			if (temp_homology > temp_identity || temp_homology == 0)
 			{
-				(*identifications_)[peptide_identification_index_].setPeptideSignificanceThreshold(
+				id_data_[peptide_identification_index_].id.setPeptideSignificanceThreshold(
 					temp_identity);				
 			}
 			tag_ = "";
@@ -229,7 +214,7 @@ namespace OpenMS
 				date_.set(parts[0] + ' ' + parts[1].prefix('Z'));
 				date_time_string_ = parts[0] + ' ' + parts[1].prefix('Z');
 			}
-			protein_identification_->setDateTime(date_);
+			protein_identification_.setDateTime(date_);
 		}
 		else if (tag_ == "StringTitle")
 		{
@@ -239,7 +224,7 @@ namespace OpenMS
 			title.split('_', parts);
 			if (parts.size() == 2)
 			{
-				(*precursor_retention_times_)[actual_query_ - 1] = parts[1].toFloat();
+				id_data_[actual_query_ - 1].rt = parts[1].toFloat();
 			}
 		}
   }

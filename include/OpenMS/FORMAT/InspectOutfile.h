@@ -28,15 +28,7 @@
 #define OPENMS_FORMAT_INSPECTOUTFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <fstream>
 #include <iostream>
@@ -51,7 +43,8 @@ namespace OpenMS
 		
 		This class serves to read in an Inspect outfile and write an AnalysisXML file
 		
-		@todo write test(Martin)
+		@todo write test (Martin)
+		@todo do not write methode parameters and throws in different lines as some scripts cannot parse this. This has to be changed in all headers(Martin)
 		
 		@ingroup FileIO
 	*/
@@ -65,10 +58,8 @@ namespace OpenMS
 			std::vector< UnsignedInt >
 			load(
 				const std::string& result_filename,
-				std::vector< Identification >& identifications,
+				std::vector< IdentificationData >& identifications,
 				ProteinIdentification& protein_identification,
-				std::vector< Real >& precursor_retention_times,
-				std::vector< Real >& precursor_mz_values,
 				Real p_value_threshold)
 //				const std::string& database_filename)
 			throw (
@@ -123,8 +114,7 @@ namespace OpenMS
 			/// retvrive
 			void getPrecursorRTandMZ(
 				const std::vector< std::pair< String, std::vector< UnsignedInt > > >& files_and_scan_numbers,
-				std::vector< Real >& precursor_retention_times,
-				std::vector< Real >& precursor_mz_values,
+				std::vector< IdentificationData >& ids,
 				UnsignedInt scans)
 			throw(
 				Exception::ParseError);

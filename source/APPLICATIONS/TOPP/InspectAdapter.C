@@ -320,8 +320,6 @@ class TOPPInspectAdapter
 			
 			SignedInt
 				min_annotated_spectra_per_protein;
-			
-			ContactPerson contact_person;
 
 			QFileInfo file_info;
 			
@@ -398,13 +396,6 @@ class TOPPInspectAdapter
 				file_info.setFile(inspect_input_filename);
 				inspect_input_filename = file_info.absFilePath().ascii();
 			}
-			
-			contact_person.setName(getParamAsString_("contactName", "unknown"));
-			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
-			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));
-			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
 			
 			inspect_dir = getParamAsString_("inspect_dir");
 			if ( inspect_in && inspect_dir.empty() && inspect_out )
@@ -881,7 +872,7 @@ class TOPPInspectAdapter
 				if ( wanted_records.empty() )
 				{
 					AnalysisXMLFile analysisXML_file;
-					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< Real >(), vector< Real >(), contact_person);
+					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
 					
@@ -932,13 +923,12 @@ class TOPPInspectAdapter
 				
 				if ( !emptyFile(inspect_output_filename) )
 				{
-					vector< Identification > identifications;
+					vector< IdentificationData > identifications;
 					ProteinIdentification protein_identification;
-					vector< Real > precursor_retention_times, precursor_mz_values;
 					
 					try
 					{
-						vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, precursor_retention_times, precursor_mz_values, p_value_threshold);
+						vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
 //				const std::string& database_filename)
 					}
 					catch( Exception::ParseError pe )
@@ -950,11 +940,11 @@ class TOPPInspectAdapter
 					vector< ProteinIdentification > protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					
-					analysisXML_file.store(output_filename, protein_identifications, identifications, precursor_retention_times, precursor_mz_values, contact_person);
+					analysisXML_file.store(output_filename, protein_identifications, identifications);
 				}
 				else
 				{
-					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< Identification >(), vector< Real >(), vector< Real >(), contact_person);
+					analysisXML_file.store(output_filename, vector< ProteinIdentification >(), vector< IdentificationData >());
 					writeLog_("No proteins identified!");
 				}
 			}

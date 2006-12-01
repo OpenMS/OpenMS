@@ -25,15 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -136,10 +130,7 @@ class TOPPRTPredict
 			String outputfile_name;
 			AnalysisXMLFile analysisXML_file;
 			vector<ProteinIdentification> protein_identifications;
-			vector<Identification> identifications;
-			vector<float> precursor_retention_times;
-			vector<float> precursor_mz_values;
-			ContactPerson contact_person;
+			vector<IdentificationData> identifications;
 			vector< String > peptides;
 			vector< DoubleReal > training_retention_times;
 			vector<PeptideHit> temp_peptide_hits;
@@ -233,10 +224,7 @@ class TOPPRTPredict
 			
 			analysisXML_file.load(inputfile_name,
 														protein_identifications,
-														identifications,
-														precursor_retention_times,
-														precursor_mz_values,
-														contact_person);
+														identifications);
 	  													
 			//-------------------------------------------------------------
 			// calculations
@@ -244,7 +232,7 @@ class TOPPRTPredict
 		
 			for(UnsignedInt i = 0; i < identifications.size(); i++)
 			{
-				temp_peptide_hits = identifications[i].getPeptideHits();
+				temp_peptide_hits = identifications[i].id.getPeptideHits();
 				for(UnsignedInt j = 0; j < temp_peptide_hits.size(); j++)
 				{
 					peptides.push_back(temp_peptide_hits[j].getSequence());
@@ -277,9 +265,6 @@ class TOPPRTPredict
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications,
 														 identifications,
-														 precursor_retention_times,
-														 precursor_mz_values,
-														 contact_person,
 														 predicted_data,
 														 svm.getSVRProbability());
 			return EXECUTION_OK;

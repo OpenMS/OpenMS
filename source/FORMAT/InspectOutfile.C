@@ -25,6 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 
 using namespace std;
 
@@ -36,10 +39,8 @@ namespace OpenMS
 	vector< UnsignedInt >
 	InspectOutfile::load(
 		const string& result_filename,
-		vector< Identification >& identifications,
+		vector< IdentificationData >& identifications,
 		ProteinIdentification& protein_identification,
-		vector< Real >& precursor_retention_times,
-		vector< Real >& precursor_mz_values,
 		Real p_value_threshold)
 //		const string& database_filename)
 	throw (
@@ -152,8 +153,8 @@ namespace OpenMS
 			// the first time, the condition is always fullfilled because spectrum_file is ""
 			if ( (substrings[spectrum_file_column] != spectrum_file) || ((UnsignedInt) substrings[scan_column].toInt() != scan_number) )
 			{
-				identifications.push_back(Identification());
-				query = &identifications.back();
+				identifications.push_back(IdentificationData());
+				query = &(identifications.back().id);
 				
 				query->setCharge(substrings[charge_column].toInt());
 				query->setPeptideSignificanceThreshold(p_value_threshold);
@@ -171,9 +172,6 @@ namespace OpenMS
 				
 				scan_numbers->push_back(scan_number);
 				++scans;
-				
-				precursor_retention_times.push_back(0);
-				precursor_mz_values.push_back(0);
 			}
 			
 			// get the peptide infos from the new peptide and insert it
@@ -209,7 +207,7 @@ namespace OpenMS
 //		}
 		
 		// get the precursor retention times and mz values
-		getPrecursorRTandMZ(files_and_scan_numbers, precursor_retention_times, precursor_mz_values, scans);
+		getPrecursorRTandMZ(files_and_scan_numbers, identifications, scans);
 		
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
 		if ( identifications.size() == 1 )
@@ -394,17 +392,14 @@ namespace OpenMS
 	void
 	InspectOutfile::getPrecursorRTandMZ(
 		const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers,
-		vector< Real >& precursor_retention_times,
-		vector< Real >& precursor_mz_values,
+		vector< IdentificationData >& ids,
 		UnsignedInt scans)
 	throw(
 		Exception::ParseError)
 	{
 		MSExperiment<> experiment;
-		precursor_retention_times.clear();
-		precursor_retention_times.reserve(scans);
-		precursor_mz_values.clear();
-		precursor_mz_values.reserve(scans);
+		ids.clear();
+		ids.reserve(scans);
 		
 		for ( vector< pair< String, vector< UnsignedInt > > >::const_iterator fs_i = files_and_scan_numbers.begin(); fs_i != files_and_scan_numbers.end(); ++fs_i )
 		{
@@ -429,13 +424,11 @@ namespace OpenMS
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enought scans in file! (" + String(experiment.size()) + " available, should be " + String(fs_i->second.back()) + ")", fs_i->first);
 			}
-			MSExperiment<>::SpectrumType& scan = experiment[0];
-			
+
 			for ( vector< UnsignedInt >::const_iterator scan_i = fs_i->second.begin(); scan_i != fs_i->second.end(); ++scan_i )
 			{
-				scan = experiment[*scan_i];
-				precursor_mz_values.push_back(scan.getPrecursorPeak().getPosition()[0]);
-				precursor_retention_times.push_back(scan.getRetentionTime());
+				ids[*scan_i].mz = experiment[*scan_i].getPrecursorPeak().getPosition()[0];
+				ids[*scan_i].rt = experiment[*scan_i].getRetentionTime();
 			}
 		}
 	}

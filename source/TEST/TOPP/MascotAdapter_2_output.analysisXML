@@ -3,10 +3,6 @@
 	<description>
 		<admin>
 			<sampleName> unknown </sampleName>
-			<contact>
-				<name>unknown</name>
-				<institution>unknown</institution>
-			</contact>
 		</admin>
 		<settings>
 			<userParam name="number_of_identifications" value="1" />

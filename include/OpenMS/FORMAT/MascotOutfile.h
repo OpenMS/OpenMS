@@ -60,8 +60,6 @@ namespace OpenMS
 		    
 		    @param filename the file to be loaded
 		    @param identifications the identifications
-		    @param precursor_retention_times the retention times of the precursors corresponding to the identifications
-		    @param precursor_mz_values the mz values of the precursors corresponding to the identifications
 				@param p the significance level (for the protein hit scores)
 
 		    This class serves to read in a Mascot outfile. The information can be 
@@ -70,7 +68,7 @@ namespace OpenMS
 		  	
 		  	@ingroup FileIO
 		  */
-			void load(String filename, std::vector<Identification>& identifications, std::vector<Real>& precursor_retention_times, std::vector<Real>& precursor_mz_values, Real p = 0.05) throw (Exception::ParseError);
+			void load(String filename, std::vector<IdentificationData>& identifications, Real p = 0.05) throw (Exception::ParseError);
 
     protected:
 

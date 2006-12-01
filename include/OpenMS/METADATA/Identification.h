@@ -35,7 +35,7 @@
 #include <map>
 
 namespace OpenMS
-{
+{   	
   /**
     @brief Representation of a database search with one spectrum
     
@@ -174,5 +174,29 @@ namespace OpenMS
     std::vector<PeptideHit> peptide_hits_;						///< a list containing the peptide hits
     float peptide_significance_threshold_;						///< the peptide significance threshold
   };
+
+	///Struct that contains an Identification and its corresponding RT and m/z value
+	struct IdentificationData
+	{
+		double rt;
+		double mz;
+		Identification id;
+	
+		bool operator==(const IdentificationData& rhs) const
+		{
+			return rt==rhs.rt && mz==rhs.mz &&  id==rhs.id;
+		}
+
+		IdentificationData& operator==(const IdentificationData& rhs)
+		{
+			if (&rhs==this) return *this;
+			
+			rt=rhs.rt;
+			mz=rhs.mz;
+			id=rhs.id;
+			
+			return *this;
+		}
+	};
 } //namespace OpenMS
 #endif // OPENMS_METADATA_IDENTIFICATION_H

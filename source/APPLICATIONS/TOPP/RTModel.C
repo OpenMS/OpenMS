@@ -25,15 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -240,11 +234,8 @@ class TOPPRTModel
 			String inputfile_name;
 			String outputfile_name;
 		  vector<ProteinIdentification> protein_identifications;
-		  vector<Identification> identifications;
+		  vector<IdentificationData> identifications;
 		  vector<DoubleReal> training_retention_times_double;
-		  vector<float> precursor_retention_times;
-		  vector<float> precursor_mz_values;
-		  ContactPerson contact_person;
 		  vector< String > training_peptides;
 		  vector< DoubleReal > training_retention_times;
 		  UnsignedInt temp_size = 0;
@@ -481,10 +472,7 @@ class TOPPRTModel
 			
 			AnalysisXMLFile().load(inputfile_name,
 														protein_identifications,
-														identifications,
-	  												precursor_retention_times,
-	  												precursor_mz_values,
-		  											contact_person);
+														identifications);
 		  													
 			//-------------------------------------------------------------
 			// calculations
@@ -492,21 +480,21 @@ class TOPPRTModel
 
 			for(UnsignedInt i = 0; i < identifications.size(); i++)
 			{
-				if ((temp_size = identifications[i].getPeptideHits().size()) > 0)
+				if ((temp_size = identifications[i].id.getPeptideHits().size()) > 0)
 				{
 					if (temp_size == 1)
 					{
-						temp_peptide_hit = identifications[i].getPeptideHits()[0];
+						temp_peptide_hit = identifications[i].id.getPeptideHits()[0];
 						training_peptides.push_back(temp_peptide_hit.getSequence());
-						training_retention_times.push_back(precursor_retention_times[i]);
+						training_retention_times.push_back(identifications[i].rt);
 					}
 					else
 					{
 						writeLog_("For one spectrum there should not be more than one peptide."
 								      "Please use the IDFilter with the -strict option to achieve this. Aborting!");
 						writeLog_("Hits: ");
-						for(vector<PeptideHit>::iterator it = identifications[i].getPeptideHits().begin(); 
-								it != identifications[i].getPeptideHits().end(); 
+						for(vector<PeptideHit>::iterator it = identifications[i].id.getPeptideHits().begin(); 
+								it != identifications[i].id.getPeptideHits().end(); 
 								it++)
 						{
 							writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));

@@ -48,29 +48,20 @@ namespace OpenMS
     public:
       /// Constructor
       MascotXMLFile();
-      /// Destructor
-      ~MascotXMLFile();
       
 		  /**
 		    @brief loads data from a MascotXML file
 		    
 		    @param filename the file to be loaded
 		    @param protein_identification protein identifications belonging to the whole experiment
-		    @param identifications the identifications
-		    @param precursor_retention_times the retention times of the precursors corresponding to the identifications
-		    @param precursor_mz_values the mz values of the precursors corresponding to the identifications
+		    @param id_data the identifications with m/z and RT
 
 		    This class serves to read in a MascotXML file. The information can be 
 		    retrieved via the load function.      
 		  	
 		  	@ingroup FileIO
 		  */
-	    void load(const String& 								filename,
-      					ProteinIdentification*				protein_identification, 
-      					std::vector<Identification>* 	identifications, 
-      					std::vector<float>* 					precursor_retention_times,
-      					std::vector<float>* 					precursor_mz_values
-      				 ) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<IdentificationData>& id_data ) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
   };
  

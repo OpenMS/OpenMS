@@ -49,12 +49,8 @@ using namespace std;
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
 ProteinIdentification protein_identification;
-vector<Identification> identifications; 
-vector<float> precursor_retention_times;
-vector<float> precursor_mz_values;
-vector<Identification> identifications2; 
-vector<float> precursor_retention_times2;
-vector<float> precursor_mz_values2;
+vector<IdentificationData> identifications; 
+vector<IdentificationData> identifications2; 
 DateTime date;
 String date_string_1;
 String date_string_2;
@@ -68,23 +64,17 @@ CHECK(MascotXMLFile())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(const String& filename, ProteinIdentification* protein_identification, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
+CHECK((void load(const String& filename, ProteinIdentification* protein_identification, std::vector<IdentificationData>& identifications) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
 
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
-							&protein_identification, 
-				   		&identifications, 
-							&precursor_retention_times, 
-							&precursor_mz_values);
+							protein_identification, 
+				   		identifications);
 	
 	TEST_EQUAL(identifications.size(), 3)
-//	TEST_EQUAL(precursor_retention_times.size(), 2)
-	TEST_EQUAL(precursor_mz_values.size(), 3)
-//	TEST_EQUAL(precursor_retention_times[0], 120)
-//	TEST_EQUAL(precursor_retention_times[1], 120)
 	PRECISION(0.0001)
-	TEST_REAL_EQUAL(precursor_mz_values[0], 789.83)
-	TEST_REAL_EQUAL(precursor_mz_values[1], 135.29)
-	TEST_REAL_EQUAL(precursor_mz_values[2], 982.58)
+	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
+	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
+	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
 	PRECISION(0.00001)	
 	TEST_EQUAL(protein_identification.getProteinHits().size(), 2)
 	TEST_EQUAL(protein_identification.getProteinHits()[0].getAccession(), "AAN17824")
@@ -97,40 +87,40 @@ CHECK((void load(const String& filename, ProteinIdentification* protein_identifi
 	protein_identification.getDateTime().get(date_string_1);
 	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
 	
-	TEST_REAL_EQUAL(identifications[0].getPeptideSignificanceThreshold(), 31.8621)
-	TEST_EQUAL(identifications[0].getCharge(), 3)
-	TEST_EQUAL(identifications[1].getCharge(), 2)
-	TEST_EQUAL(identifications[0].getPeptideHits().size(), 2)
+	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
+	TEST_EQUAL(identifications[0].id.getCharge(), 3)
+	TEST_EQUAL(identifications[1].id.getCharge(), 2)
+	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
 	
-	peptide_hit = identifications[0].getPeptideHits()[0];
+	peptide_hit = identifications[0].id.getPeptideHits()[0];
 	references = peptide_hit.getProteinIndices();
 	TEST_EQUAL(references.size(), 2)
 	TEST_EQUAL(references[0].second, "AAN17824")
 	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
 	TEST_EQUAL(references[1].second, "GN1736")
 	TEST_EQUAL(references[1].first, "2006-03-09 11:31:52")
-	peptide_hit = identifications[0].getPeptideHits()[1];
+	peptide_hit = identifications[0].id.getPeptideHits()[1];
 	references = peptide_hit.getProteinIndices();
 	TEST_EQUAL(references.size(), 1)
 	TEST_EQUAL(references[0].second, "AAN17824")
 	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
-	peptide_hit = identifications[1].getPeptideHits()[0];
+	peptide_hit = identifications[1].id.getPeptideHits()[0];
 	references = peptide_hit.getProteinIndices();
 	TEST_EQUAL(references.size(), 1)
 	TEST_EQUAL(references[0].second, "GN1736")
 	TEST_EQUAL(references[0].first, "2006-03-09 11:31:52")
 	
-	TEST_EQUAL(identifications[1].getPeptideHits().size(), 1)
-	TEST_REAL_EQUAL(identifications[0].getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].getPeptideHits()[0].getScore(), 43.9)
-	TEST_EQUAL(identifications[0].getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].getDateTime() == date, true)	
-	TEST_EQUAL(identifications[0].getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].getPeptideHits()[0].getSequence(), "HSKLSAK")
+	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
+	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
+	TEST_EQUAL(identifications[0].id.getDateTime() == date, true)	
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
 RESULT
 
 CHECK(~MascotXMLFile())

@@ -56,11 +56,7 @@ namespace OpenMS
 				identification belongs. The Identification is then added to the spectrum      					
       */
       template <class PeakT>				
-      UnsignedInt annotate(MSExperiment< PeakT >& experiment,
- 			      					 	   const std::vector<Identification>& identifications,
-			      				 			 const std::vector<float>& precursor_retention_times,
-			      				 			 const std::vector<float>& precursor_mz_values,
-			  				 				   float precision = 0.01f)
+      UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)
   		{
 				std::multimap<float, UnsignedInt> experiment_precursors;
 				std::multimap<float, UnsignedInt> identifications_precursors;
@@ -70,7 +66,6 @@ namespace OpenMS
 				float temp_db_search_value;
 				DPosition< 1 >::CoordinateType experiment_precursor_position;
 				DPosition< 1 >::CoordinateType identifications_precursor_position;
-				std::vector<Identification> temp_identifications;
 				float temp;
 				float actual_retention_time = 0;
 				UnsignedInt counter = 0;
@@ -80,9 +75,9 @@ namespace OpenMS
 					actual_retention_time = experiment[i].getRetentionTime();
 					experiment_precursors.insert(std::make_pair(actual_retention_time, i));
 				}
-				for(UnsignedInt i = 0; i < precursor_retention_times.size(); i++)
+				for(UnsignedInt i = 0; i < identifications.size(); i++)
 				{
-					identifications_precursors.insert(std::make_pair(precursor_retention_times[i], i));
+					identifications_precursors.insert(std::make_pair(identifications[i].rt, i));
 				}
 				experiment_iterator = experiment_precursors.begin();
 				identifications_iterator = identifications_precursors.begin();
@@ -94,21 +89,16 @@ namespace OpenMS
 					temp = temp_experiment_value - temp_db_search_value;
 					
 					/// testing whether the retention times are within the precision threshold
-					if (((temp < precision) && temp >= 0)
-						 || ((-1 * temp < precision) && (-1 * temp >= 0)))
+					if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && (-1 * temp >= 0)))
 					{
-						experiment_precursor_position = 
-							experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
-						identifications_precursor_position = precursor_mz_values[identifications_iterator->second];				
+						experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
+						identifications_precursor_position = identifications[identifications_iterator->second].mz;				
 						temp = identifications_precursor_position - experiment_precursor_position;
-						if (((temp < precision) && temp >= 0)
-						 || ((-1 * temp < precision) && (-1 * temp >= 0)))
+						if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && (-1 * temp >= 0)))
 						{
-							if (!identifications[identifications_iterator->second].empty())
+							if (!identifications[identifications_iterator->second].id.empty())
 							{
-								temp_identifications = experiment[experiment_iterator->second].getIdentifications();
-								temp_identifications.push_back(identifications[identifications_iterator->second]);
-								experiment[experiment_iterator->second].setIdentifications(temp_identifications);
+								experiment[experiment_iterator->second].getIdentifications().push_back(identifications[identifications_iterator->second].id);
 								counter++;
 							}
 						}
@@ -127,40 +117,30 @@ namespace OpenMS
   		}
       				 
 			/**
-				@brief stores all annotations of the spectra in the specific member
-				variables							
+				@brief stores all annotations of the spectra in the specific member variables							
       	
 				Every non-empty Identification that is associated with a spectrum is
 				stored as well as the retention times and the mz-values.				
       */				
       template <class PeakT>				
-      void getAnnotations(const MSExperiment< PeakT >& experiment,
-      						 			  std::vector<Identification>* identifications,
-      				       			std::vector<float>* precursor_retention_times,
-      				       			std::vector<float>* precursor_mz_values)
+      void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<IdentificationData>& identifications)
       {
-				*identifications = std::vector<Identification>();  					 // clear information
-				*precursor_retention_times = std::vector<float>();  // clear information
-				*precursor_mz_values = std::vector<float>();  			 // clear information
-				
+				identifications.clear();
 				std::vector<Identification> temp_identifications;
-				float temp_precursor_retention_time;
-				float temp_precursor_mz_value;
-				
+				IdentificationData tmp_id;
 				for(UnsignedInt i = 0; i < experiment.size(); i++)
 				{
 					temp_identifications = experiment[i].getIdentifications();
 					if (temp_identifications.size() > 0)
 					{
-						temp_precursor_retention_time = experiment[i].getRetentionTime();				
-						temp_precursor_mz_value = experiment[i].getPrecursorPeak().getPosition()[0];
+						tmp_id.rt = experiment[i].getRetentionTime();				
+						tmp_id.mz = experiment[i].getPrecursorPeak().getPosition()[0];
 						for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
 						{
 							if (!temp_identifications[j].empty())
 							{
-								identifications->push_back(temp_identifications[j]);
-								precursor_retention_times->push_back(temp_precursor_retention_time);
-								precursor_mz_values->push_back(temp_precursor_mz_value);
+								tmp_id.id = temp_identifications[j];
+								identifications.push_back(tmp_id);
 							}
 						}
 					}
