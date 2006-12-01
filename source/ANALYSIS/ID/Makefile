@@ -32,7 +32,14 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
   IDSpectrumMapper.C\
-	IDFeatureMapper.C
+	IDFeatureMapper.C\
+	ProtonDistributionModel.C\
+	HiddenMarkovModel.C\
+	HiddenMarkovModelLight.C\
+	PILISSequenceDB.C\
+	PILISModel.C\
+	PILISIdentification.C
+
 
 include ../../common.mak
 -include .Dependencies

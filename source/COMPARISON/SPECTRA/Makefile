@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer: Andreas Bertsch $
 # --------------------------------------------------------------------------
 
 
@@ -39,7 +39,9 @@ CPP_SOURCES=\
 	BinnedRepSharedPeakCount.C\
 	SequestCompareFunctor.C\
 	SpectrumPrecursorComparator.C\
-	CompareFunctor.C
+	CompareFunctor.C\
+	ZhangSimilarityScore.C
+	
 
 ADD_CPP_SOURCES = 
 
