@@ -131,7 +131,7 @@ namespace OpenMS
 
 	HiddenMarkovModelLight::HiddenMarkovModelLight(const HiddenMarkovModelLight& /*hmm*/)
 	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		//throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	
 	HiddenMarkovModelLight::~HiddenMarkovModelLight()

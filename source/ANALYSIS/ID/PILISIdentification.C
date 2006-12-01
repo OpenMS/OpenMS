@@ -31,8 +31,6 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
-#define MAX_CANDS 200
-
 using namespace std;
 
 namespace OpenMS
@@ -42,6 +40,9 @@ namespace OpenMS
 		:	sequence_db_(0),
 			hmm_model_(0)
 	{
+		param_.setValue("prcr_m_tol", double(3.0));
+		param_.setValue("max_candidates", 200);
+		param_.setValue("score_name", "ZhangSimilarityScore");
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& /*PILIS_id*/)

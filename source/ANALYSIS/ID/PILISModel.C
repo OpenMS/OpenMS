@@ -1960,9 +1960,9 @@ namespace OpenMS
 		enum_to_name_[PRE_H2O_CTERM] = "Pre_H2O_Cterm";
 	
     hmms_losses_[Residue::BIon] = HiddenMarkovModelLight();
-    parseModelFile(String("/share/usr/bertsch/Diplom_sources/model_losses_bions.dat"), &hmms_losses_[Residue::BIon]);
+    //parseModelFile(String("model_losses_bions.dat"), &hmms_losses_[Residue::BIon]);
     hmms_losses_[Residue::YIon] = HiddenMarkovModelLight();
-    parseModelFile(String("/share/usr/bertsch/Diplom_sources/model_losses_yions.dat"), &hmms_losses_[Residue::YIon]);
+    //parseModelFile(String("model_losses_yions.dat"), &hmms_losses_[Residue::YIon]);
 
 		for (HashMap<States_, String>::ConstIterator it = enum_to_name_.begin(); it != enum_to_name_.end(); ++it)
 		{

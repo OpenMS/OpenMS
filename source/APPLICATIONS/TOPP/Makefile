@@ -66,7 +66,8 @@ EXECUTABLES=\
 	NoiseFilter\
 	SpectraFilter\
 	Resampler\
-	FeatureFinder
+	FeatureFinder\
+	PILISIdentification
 
 #	SequestAdapter\
 
@@ -222,3 +223,7 @@ MapAlignment: MapAlignment.o
 AnalysisXMLMerger: AnalysisXMLMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
+
+PILISIdentification: PILISIdentification.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	cp $@ $(OPENMS_PATH)/bin/
