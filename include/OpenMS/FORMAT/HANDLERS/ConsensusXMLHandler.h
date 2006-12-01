@@ -422,8 +422,8 @@ namespace OpenMS
 
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();
-      os << "\t<mapList count=\"" << map_vector.size() << ">\n";
-      os << "\t<map_type name=\"" << calignment_->getMapType() << "/>\n";
+      os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
+      os << "\t<map_type name=\"" << calignment_->getMapType() << "\"/>\n";
 
       // write aligned maps (mapList)
       UnsignedInt n = map_vector.size();

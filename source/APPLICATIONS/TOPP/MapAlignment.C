@@ -109,7 +109,7 @@ class TOPPMapAlignment
     {
       //output file name
       String out = getParamAsString_("out");
-      
+
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
@@ -119,7 +119,7 @@ class TOPPMapAlignment
       Param files_param = mapali_param.copy("Files:",true);
       writeDebug_("Files parameters:", files_param, 2);
       Param::ConstIterator pit = files_param.begin();
-      
+
       String map_type = mapali_param.getValue("map_type");
 
       //-------------------------------------------------------------
@@ -158,50 +158,49 @@ class TOPPMapAlignment
         cons_file.store(out,alignment);
       }
       // peak maps
-      else
-      {
-        StarAlignment< ConsensusPeakType > alignment;
-        alignment.setParam(mapali_param);
-        MzDataFile mzdata_file;
-        std::vector< String > file_names;
-        // Vector for the feature maps
-        std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));
-
-        // Reference to the map vector of the alignment object
-        std::vector< PeakArrayType* >& map_vector = alignment.getElementMapVector();
-        unsigned int i=0;
-        while (pit != files_param.end())
-        {
-          file_names.push_back(pit->second);
-          // load the feature file into a feature_maps
-          PeakMap ms_exp;
-          mzdata_file.load(pit->second, ms_exp);
-          ms_exp.get2DData(peak_maps[i]);
-          map_vector.push_back(&(peak_maps[i]));
-          pit++;
-          ++i;
-        }
-        alignment.setFileNames(file_names);
-        //-------------------------------------------------------------
-        // align
-        //-------------------------------------------------------------
-        alignment.run();
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
+//       else
+//       {
+//         StarAlignment< ConsensusPeakType > alignment;
+//         alignment.setParam(mapali_param);
+//         MzDataFile mzdata_file;
+//         std::vector< String > file_names;
+//         // Vector for the feature maps
+//         std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));
+// 
+//         // Reference to the map vector of the alignment object
+//         std::vector< PeakArrayType* >& map_vector = alignment.getElementMapVector();
+//         unsigned int i=0;
+//         while (pit != files_param.end())
+//         {
+//           file_names.push_back(pit->second);
+//           // load the feature file into a feature_maps
+//           PeakMap ms_exp;
+//           mzdata_file.load(pit->second, ms_exp);
+//           ms_exp.get2DData(peak_maps[i]);
+//           map_vector.push_back(&(peak_maps[i]));
+//           pit++;
+//           ++i;
+//         }
+//         alignment.setFileNames(file_names);
+//         //-------------------------------------------------------------
+//         // align
+//         //-------------------------------------------------------------
+//         alignment.run();
+//         //-------------------------------------------------------------
+//         // writing output
+//         //-------------------------------------------------------------
 //         ConsensusXMLFile cons_file;
 //         cons_file.store(out,alignment);
+
+        return EXECUTION_OK;
       }
+    };
 
-      return EXECUTION_OK;
+
+    int main( int argc, char ** argv )
+    {
+      TOPPMapAlignment tool;
+      return tool.main(argc,argv);
     }
-};
 
-
-int main( int argc, char ** argv )
-{
-  TOPPMapAlignment tool;
-  return tool.main(argc,argv);
-}
-
-/// @endcond
+    /// @endcond
