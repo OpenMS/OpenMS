@@ -278,7 +278,9 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DLinearMapping_test\
 	PairMatcher_test\
 	DMapMatcherRegression_test\
-	DMapDewarper_test
+	DMapDewarper_test\
+	BasePairFinder_test\
+	BaseSuperimposer_test
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\

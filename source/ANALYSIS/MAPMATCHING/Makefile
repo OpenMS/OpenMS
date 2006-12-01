@@ -47,9 +47,10 @@ CPP_SOURCES=\
 	DLinearMapping.C\
 	PairMatcher.C\
 	BasePairwiseMapMatcher.C\
-	GeomHashPairwiseMapMatcher.C\
+	PoseClusteringPairwiseMapMatcher.C\
 	BaseSuperimposer.C\
-	GeomHashShiftSuperimposer.C\
+	PoseClusteringShiftSuperimposer.C\
+	PoseClusteringAffineSuperimposer.C\
 	BasePairFinder.C\
 	SimplePairFinder.C\
 	Group.C\
