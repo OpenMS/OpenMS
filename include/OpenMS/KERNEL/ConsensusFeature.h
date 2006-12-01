@@ -296,9 +296,10 @@ namespace OpenMS
     os << "Size " << cons.count() << std::endl;
     for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it, ++i)
     {
-      os  << "Element: " << i << std::endl;
-      os << "Transformed Position: " << it->getTransformedPosition() << std::endl;
-      os << "Original Position: " << it->getElement() << std::endl;
+      os << "Element: " << i << std::endl;
+      os << "Map index: " << it->getMapIndex() << " feature index " << it->getElementIndex() << std::endl;
+      os <<  "Transformed Position: " << it->getTransformedPosition() << std::endl;
+      os <<  "Original Position: " << it->getElement() << std::endl;
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 
