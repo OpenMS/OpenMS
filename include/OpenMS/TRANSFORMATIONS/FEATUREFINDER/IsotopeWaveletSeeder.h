@@ -37,15 +37,12 @@
 
 // GSL includes
 #include <gsl/gsl_sf_gamma.h>
-// #include <gsl/gsl_integration.h>
 
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <list>
 #include <hash_map.h>
-#include <map.h>
 #include <math.h>
 #include <values.h>
 #include <algorithm>
@@ -81,20 +78,19 @@ namespace OpenMS
 		typedef FeaFiTraits::MapType MapType;
 		typedef MapType::PIterator PeakIterator;
 		typedef MapType::PeakType PeakType;
+		typedef MapType::SpectrumType SpectrumType;
+		typedef SpectrumType::ContainerType ContainerType;
 		
-		/// This comparator is used to compare
+		/// Compare one dimensional points by the mass
 		typedef PeakType::NthPositionLess<0> MZless;
-		
 		/// The mother wavelets (one for each charge state)
 		typedef std::vector<std::vector<double> > WaveletCollection; 
-		///
-		typedef std::pair<std::list<double>, std::list<double> > DoubleList;
-		///
-		typedef hash_multimap<unsigned int, DoubleList> SweepLineHash;
-		///
-		typedef std::multimap<unsigned int, DoubleList> SweepLineMap;	
-		///
-		typedef std::list<unsigned int> ChargeVector;
+		/// The Hash entry, stores pairs of scan number and list of charge scores
+		typedef std::pair<std::list<UnsignedInt>, std::list<double> > DoubleList;
+		/// The Hash. Maps mass bins to scans and charge scores
+		typedef hash_multimap<UnsignedInt, DoubleList> SweepLineHash;
+		/// Stores the charge states examined
+		typedef std::list<UnsignedInt> ChargeVector;
 
     /// standard constructor
     IsotopeWaveletSeeder();
@@ -120,21 +116,24 @@ namespace OpenMS
 		/// Computes m/z spacing of the LC-MS map
 		void computeSpacings_();
 		
-		/// Precompute and store the gamma function
+		/// Precompute and store the gamma function (for the mother wavelet)
 		void generateGammaValues_();
 		
 		/**
 			@brief Computes the wavelet transform for several charges in nearly the same time.
 			
 			The working horse of the discrete-time continuous wavelet transform, but for several charges at the same time.
-		 Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
-		 this yields the same.		
+		 	Note that you should compute a convolution instead of an correlation. Since we do not mirror the wavelet function
+		 	this yields the same.		
 		**/																			
 		void fastMultiCorrelate(const DPeakArray<1, PeakType >& signal, 
 	 																	std::vector<DPeakArray<1, PeakType > >* pwts, 
 																		std::vector<double>* wt_thresholds);
 		
-		/** The lambda parameter essentially influences the shape of the wavelet.
+		/** 
+				@brief Returns the lamba parameter of the mother wavelet
+				
+				The lambda parameter essentially influences the shape of the wavelet.
 		 		Since isotope patterns depend on mass, the wavelet has to adapt its shape. 
 		 		For more insights look at the formula of the wavelet function. 
 		**/
@@ -162,12 +161,12 @@ namespace OpenMS
 			return (res);
 		}
 		
+		/// Assigns scores to each charge state of a isotopic pattern
 		void identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates, 
 																std::vector<double>* wt_thresholds, 
-																const UnsignedInt scan, 
-																const CoordinateType current_rt);
+																UnsignedInt scan);
 		
-		/// Returns the interpolated value TODO: Check who is calling this function and where
+		/// Returns the interpolated value 
 		inline double getInterpolatedValue (const double x0, const double x, const double x1, 
 			const double f0, const double f1) const throw ()
 		{
@@ -187,13 +186,19 @@ namespace OpenMS
 				return (std::pair<int, int> (-1, -1));
 		}	
 		
-		/// Returns the absolute mean of the intensities in this scan
+		/// Returns the absolute mean of the intensities in @p signal
 		double getAbsMean (const DPeakArray<1, PeakType >& signal,
 																	const unsigned int startIndex, 
 																	const unsigned int endIndex) const;
 		
-		/// Removes patterns from hash occuring in less then rt_votes_cutoff_ scans
+		/// Removes entries from hash occuring in less then rt_votes_cutoff_ scans
 		void filterHashByRTVotes ();
+		
+		/// Sums the intensities in adjacent scans
+  	void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index );
+	
+		/// Aligns to scans
+		void AlignAndSum_(ContainerType& scan, ContainerType& neighbour);
 										
 		/// Does not need much explanation.
 		bool is_initialized_;
@@ -221,6 +226,10 @@ namespace OpenMS
 		IntensityType intensity_factor_;
 		/// Determines threshold for cwt of a peak
 		IntensityType avg_intensity_factor_;
+		/// Determines distance of left box frame from monoisotopic bin
+		CoordinateType mass_tolerance_right_;
+		/// Determines distance of right box frame from monoisotopic bin
+		CoordinateType mass_tolerance_left_;
 		
   };
 }

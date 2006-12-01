@@ -58,10 +58,7 @@ namespace OpenMS
 	 		Uses the continuous wavelet transform (Marr mother wavelet) to detect isotopic pattern
 			in each scan. Patterns that occur in several consecutive scans are declared as seeds
 			for the extension phase.
-			
-			TODO: Resolution of cwt: estimate average spacing from data
-			TODO: Scoring of seeds: take (local) variance of signal into account
-			
+				
 			@ingroup FeatureFinder
 		
 	*/ 
@@ -162,12 +159,13 @@ namespace OpenMS
 		
     } // end of searchInScan_
 	
-	
+	/// Finds local maxima in the cwt
 	void getMaxPositions_( RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, std::vector<int>& localmax,CoordinateType curr_peak);
  
-  /// Sums a scan
+  /// Sums the intensities in adjacent scans
   void sumUp_(ContainerType& scan, UnsignedInt& current_scan_index );
 	
+	/// Aligns to scans
 	void AlignAndSum_(ContainerType& scan, ContainerType& neighbour);
  	
 	/// Test if the distance between two peaks is equal to 1  / z (where z=1,2,....)

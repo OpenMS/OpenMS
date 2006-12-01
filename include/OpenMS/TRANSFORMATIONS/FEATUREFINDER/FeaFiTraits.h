@@ -134,7 +134,6 @@ public:
 					return;
 				}
 		
-				std::cout << "Storing MSExperimentExtern " << std::endl;
 				map_.setBufferSize( exp.getBufferSize() );
 				map_.updateBuffer();
 	
@@ -151,7 +150,6 @@ public:
 				std::cout << "This map contains " << map_.size() << " scans  ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
-				std::cout << "Setting flags. " << std::endl;
         // resize internal data structures
         flags_.reserve(map_.getSize());
 
@@ -159,7 +157,6 @@ public:
         for (UnsignedInt i=0; i<map_.getSize(); ++i)
             flags_.push_back(FeaFiTraits::UNUSED);
 				
-				std::cout << "Initialising scan index DS. " << std::endl;					
 				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
    }
 		
@@ -173,8 +170,6 @@ public:
 					return;
 				}
 		
-				std::cout << "Storing MSExperiment " << std::endl;
-			
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getMSLevel() == 1) map_.push_back(exp[i]);
@@ -200,8 +195,7 @@ public:
 					std::cout << "No data provided. Aborting. " << std::endl;
 					return;
 				}
-				std::cout << "Initialising scan index DS. " << std::endl;
-        scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
+				scan_index_.init ( map_.peakBegin(), map_.peakEnd() );
     }
 			
 		/// Mutable access to LC-MS map

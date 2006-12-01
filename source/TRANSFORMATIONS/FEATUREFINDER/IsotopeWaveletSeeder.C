@@ -41,11 +41,23 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
 {
     name_ = IsotopeWaveletSeeder::getName();
 
+		// minimal number of scans for an isotopic pattern
 //     defaults_.setValue("rtvotes_cutoff",6);
+
+		// max charge state examined
 		defaults_.setValue("max_charge",5);
+		
+		// intensity threshold in wt
 		defaults_.setValue("intensity_factor",1.5);
 		defaults_.setValue("avg_intensity_factor",3.0);
 		
+		// determines width of feature box
+		defaults_.setValue("mass_tolerance_right",2.5);
+		defaults_.setValue("mass_tolerance_left",6.0);
+		
+		// number of scans used for alignment
+    defaults_.setValue("scans_to_sumup",5);
+				
     param_ = defaults_;
 }
 
@@ -59,9 +71,11 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
     {
         // reading params
 //         rt_votes_cutoff_         = param_.getValue("rtvotes_cutoff");
-				intensity_factor_        = param_.getValue("intensity_factor");
-				avg_intensity_factor_ = param_.getValue("avg_intensity_factor");
-				max_charge_            = param_.getValue("max_charge");
+				intensity_factor_          = param_.getValue("intensity_factor");
+				avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
+				max_charge_              = param_.getValue("max_charge");
+				mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
+				mass_tolerance_left_   = param_.getValue("mass_tolerance_left");
 				
         // store charge states
         for (UnsignedInt i=1;i<=max_charge_;++i) charges_.push_back(i);           
@@ -97,46 +111,45 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
                 outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
             }
             outfile.close();
-						#endif
-
-            std::cout << "Spectrum " << i << " (" << current_rt << ") of " << nr_scans << std::endl;
+					  #endif
+						
+						// align and sum
+        		sumUp_(current_scan,i);
+										
+						std::cout << "Spectrum " << i << " (" << current_rt << ") of " << nr_scans << std::endl;
 
             // store peak data, once for each charge state
             pwts = new std::vector<DPeakArray<1, PeakType > > (max_charge_, traits_->getData()[i].getContainer() );
             wt_thresholds = new std::vector<double> (charges_.size(), 0);
 
-            // compute cwt
-// 						std::cout << "FastMultiCorrelate" << std::endl;
+            // compute wavelet transform
             fastMultiCorrelate(current_scan, pwts, wt_thresholds);
             // compute scores of charge states
-// 						std::cout << "identifyCharge" << std::endl;
-            identifyCharge(*pwts, wt_thresholds, i, current_rt);
-// 						std::cout << "Deleting pointer" << std::endl;
+            identifyCharge(*pwts, wt_thresholds, i);
             delete (pwts);
             delete (wt_thresholds);
         } // end of for (each scan)
 
-// 				std::cout << "done. " << std::endl;
         // filter detected isotopic pattern
         filterHashByRTVotes();
 
-				std::cout << "Searching for indizes. " << std::endl;
+				#ifdef DEBUG_FEATUREFINDER
         CoordinateType min_mass = traits_->getData().getMin().Y();
 
         for (SweepLineHash::const_iterator citer = hash_.begin();
                 citer != hash_.end();
                 ++citer)
         {
+				
             std::cout << "m/z range: ";
             std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
             std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
-
-            for (std::list<double>::const_iterator iter_cl2 = citer->
-                    second.first.begin();
-                    iter_cl2 != citer->second.first.end();
-                    ++iter_cl2)
+												
+            for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
+                  iter_cl2 != citer->second.first.end();
+                  ++iter_cl2)
             {
-                std::cout << "'rt: " <<  *iter_cl2 << " |  ";
+                std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
 
                 for (std::list<double>::const_iterator iter_l = citer->
                         second.second.begin();
@@ -151,7 +164,8 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
             std::cout << "----------------------------------------------------------------" << std::endl;
 
         }
-
+				#endif
+				
 				hash_iter_ = hash_.begin();		
 				
 				is_initialized_ = true;
@@ -166,70 +180,62 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 		CoordinateType mass_to_find = min_mass + (hash_iter_->first-1)*avMZSpacing_;
 		IndexSet region_;		
 		
-		ScanIndexMSExperiment<MapType> scan_index = traits_->getScanIndex();
-	
+		#ifdef DEBUG_FEATUREFINDER
+		std::cout << "Mass bin is " << mass_to_find << std::endl;
+		#endif
+		
 		// check all scans that support this isotopic pattern
-		for (std::list<double>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
+		for (std::list<UnsignedInt>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
 		  		iter_cl2 != hash_iter_->second.first.end(); 
 		   		++iter_cl2)
 				{
-				
-				CoordinateType rt_to_find = *iter_cl2;
-				
-// 				std::cout << "Searching for rt: " << rt_to_find << std::endl;
-				unsigned int current_scan = scan_index.getRank(rt_to_find);
-				
-				if (current_scan >= (scan_index.size()-1) )
-				{
-// 					std::cout << "Wrong scan number:" << current_scan  << std::endl;
-					break;
-				}
-				
-// 				std::cout << "Searching for " << current_scan << std::endl;
-// 				std::cout << "Scan index " << scan_index_.size() << std::endl;
-							
-				PeakIterator scan_begin = scan_index[current_scan];
-				PeakIterator scan_end   = scan_index[current_scan+1];				
+					UnsignedInt current_scan = *iter_cl2;
 					
-				PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
-				int peak_index = insert_iter.getPeakNumber();
-				
-	
-// 				std::cout << "Adding peak at mass " << traits_->getPeakMz(peak_index) << std::endl;
-				
-				CoordinateType miso_mass = traits_->getPeakMz(peak_index);
-				CoordinateType miso_rt       =	traits_->getPeakRt(peak_index);			
-				
-				// walk a bit to the left from the monoisotopic peak
-				for (int p=0; p<=10; ++p)
-				{
-					if ( (peak_index - p) > 0 
-					     && traits_->getPeakFlag( (peak_index - p) ) == FeaFiTraits::UNUSED
-						 && traits_->getPeakRt( (peak_index - p) ) == miso_rt
-						 && traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < 2  )
+					if (current_scan >= (traits_->getData().size() ) )
 					{
-					 	region_.add( (peak_index - p) );
+// 					std::cout << "Warning: wrong scan number:" << current_scan  << std::endl;
+						break;
 					}
-				}
+							
+					PeakIterator scan_begin = traits_->getScanIndex()[current_scan];
+					PeakIterator scan_end   = traits_->getScanIndex()[current_scan+1];				
+					
+					PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
+					int peak_index = insert_iter.getPeakNumber();
+					#ifdef DEBUG_FEATUREFINDER
+					std::cout << "Corresponding peak is at mass " << traits_->getPeakMz(peak_index) << std::endl;
+					#endif
+					CoordinateType miso_mass = traits_->getPeakMz(peak_index);
+					CoordinateType miso_rt       =	traits_->getPeakRt(peak_index);			
+				
+					// The isotope wavelet operates on mass bins and not actual masses in the spectrum
+					// We therefore need to check a couple of surrounding peaks in order to find the monoisotopic one
+					// walk to the left
+					for (int p=0; p<=10; ++p)
+					{
+						if ( (peak_index - p) > 0 
+					  	  && traits_->getPeakRt( (peak_index - p) ) == miso_rt
+							 	&& traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < mass_tolerance_right_  )
+						{
+// 							std::cout << "adding " << (peak_index - p) << " at mass " << traits_->getPeakMz( (peak_index - p) ) << std::endl;
+					 		region_.add( (peak_index - p) );
+						}
+					}
 		
 				CoordinateType mass_distance = 0;							
 				int nr_peaks = traits_->getNumberOfPeaks();
 				
-				//we added the first peak (hopefully the monoisotopic one), now
-				// we want to walk for about 10 Thompson (or Dalton or whatever)
-				// into positive  (increasing) m/z direction
-				while (mass_distance < 7
+				// walk to the right
+				while (mass_distance < mass_tolerance_left_
 				           && peak_index < (nr_peaks-2)
-						   && traits_->getPeakRt(peak_index) == miso_rt)
+						   		&& traits_->getPeakRt(peak_index) == miso_rt)
 				{
 					++peak_index;
-					if (traits_->getPeakFlag(peak_index) == FeaFiTraits::UNUSED) region_.add(peak_index);
-// 					std::cout << "Adding peak " << peak_index << std::endl;
-						mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
-// 					std::cout << "Current mass distance : " << mass_distance << std::endl;
+					region_.add(peak_index);
+// 					std::cout << "adding " << (peak_index) << " at mass " << traits_->getPeakMz( peak_index) << std::endl;
+					mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
 				} 
-// 				std::cout << "This scan is done." << std::endl;
-								
+												
 	}	// for (std::list...)
 	
 	std::cout << "Done. Size of region: " << region_.size() << std::endl;	
@@ -290,13 +296,12 @@ void IsotopeWaveletSeeder::generateGammaValues_()
         query += min_spacing_;
         ++counter;
     }
-
     std::cout << " done." << std::endl;
 }
 
 void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& signal,
-        std::vector<DPeakArray<1, PeakType > >* pwts,
-        std::vector<double>* wt_thresholds)
+        																													std::vector<DPeakArray<1, PeakType > >* pwts,
+        																													std::vector<double>* wt_thresholds)
 {
     std::vector<DPeakArray<1, PeakType > >* res = pwts;
     unsigned int signal_size = signal.size();
@@ -320,8 +325,8 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
             w_s_sum=0;
             realMass = signal[i].getPos() * (*charge_iter);
 //         		std::cout << "realMass: " << realMass << std::endl;
-            lambda = getLambda (realMass); //Lambda determines the distribution (the shape) of the wavelet
-            //integration = phiRawInt (lambda, 1.0/(double)(*charge_iter));
+
+            lambda = getLambda (realMass); 	//Lambda determines the distribution (the shape) of the wavelet
             //std::cout << "Exact: " << integration << "\t" << lambda << "\t" << 1.0/(double)(*charge_iter) << std::endl;
 
             max_w_monoi_intens=0.25/(*charge_iter);
@@ -332,14 +337,14 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
             while (cumSpacing < max_w_monoi_intens)
             {
                 cSpacing = signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
-//            			std::cout << "cSpacing " << cSpacing << std::endl;
-// 								std::cout << cumSpacing << " " << max_w_monoi_intens << std::endl;
                 last=cumSpacing;
-                if (cSpacing < 0)
+                
+								if (cSpacing < 0)
                     cumSpacing += avMZSpacing_;
                 else //The "normal" case
                     cumSpacing += signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
-                ++j;
+
+								++j;
             }
 
             align_offset = max_w_monoi_intens-last;
@@ -352,16 +357,13 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 
                 realMass = tmp_pos1 * (*charge_iter);
                 lambda = getLambda (realMass); //Lambda determines the distribution (the shape) of the wavelet
-                //std::cout << "phi before: " << phiRaw (cumSpacing, lambda, 1.0/(double)(*charge_iter))
-                //<< "\tphi after" << phiRaw (cumSpacing, lambda, 1.0/(double)(*charge_iter))- integration << std::endl;
-                //std::cout << "cumSpacing: " << cumSpacing << std::endl;
+               
                 phis[k][j] = phiRaw (cumSpacing, lambda, 1.0/(double)(*charge_iter));
                 w_sum += phis[k][j];
                 w_s_sum += phis[k][j] * phis[k][j];
-                //std::cout << "t: " << cumSpacing << "\t" << lambda << "\t" << 1.0/(double)(*charge_iter)
-                //			<< "\t" << integration << "\t" << phis[k][j] << std::endl;
                 cSpacing = tmp_pos1 - tmp_pos;
-                //cSpacing might get negative, as soon as the wavelet approaches the end of the signal (if i=signal_size-1).
+                
+								//cSpacing might get negative, as soon as the wavelet approaches the end of the signal (if i=signal_size-1).
                 //Since this case is only of theoretical interest (we do not expect any important signals at the very end of the
                 //spectrum), we simlply use the average spacing in that case.
                 if (cSpacing < 0)
@@ -384,8 +386,10 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 
         std::vector<double> sums (charges_.size());
         k=0;
+				
+				//Since all wavelet functions have the same length, we can simply use phis[0].size()
         for (UnsignedInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
-        {	//Since all wavelet functions have the same length, we can simply use phis[0].size()
+        {	
 
             for (UnsignedInt m=0; m<charges_.size(); ++m)
             {
@@ -394,16 +398,15 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
         }
 
         for (UnsignedInt l=0; l<i && k<phis[0].size(); ++l, ++k)
-        {	//Since all wavelet functions have the same length, we can simply use phis[0].size()
+        {
 
             for (UnsignedInt m=0; m<charges_.size(); ++m)
                 sums[m] += signal[l].getIntensity()*phis[m][k];
         }
 
-        //Store the current convolution result
+        //Store the convolution result
         for (UnsignedInt m=0; m<charges_.size(); ++m)
         {
-//   					std::cout << "Wavelet transformed data: " << sums[m] << std::endl;
             (*res)[m][i].setIntensity(sums[m]);
         }
 
@@ -414,11 +417,12 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 
 void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakType > >& candidates,
         std::vector<double>* wt_thresholds,
-        const UnsignedInt scan,
-        const CoordinateType current_rt)
+        UnsignedInt scan)
 {
     std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
     WaveletCollection scoresC (candidates.size(), zeros);
+		
+		CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
 
     std::vector<unsigned int> start_indices, end_indices;
     //In order to determine the start and end indices, we first need to know the width of the region one should consider
@@ -450,17 +454,19 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
         sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< DRawDataPoint<2>::IntensityLess>() );
         c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
 
-        std::cout << "Average intensity: " << c_av_intens << std::endl;
-				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
+
 
         for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
         {
      	   		if (iter->getIntensity() <= (*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) break;
         }
 
-// 				std::cout << "writing output. " << std::endl;
 				#ifdef DEBUG_FEATUREFINDER
-        String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
+				std::cout << "Average intensity: " << c_av_intens << std::endl;
+				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
+        
+				// write debug output
+				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
         std::ofstream outfile(filename.c_str());
 				containerType::iterator write_iter;
         for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
@@ -506,11 +512,8 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
                                               						candidates[c][c_between.first].getIntensity(),
                                               						candidates[c][c_between.second].getIntensity());
                 
-								if (fabs(c_val) < c_av_intens)
-								{	
-// 									std::cout << "(fabs(c_val) < c_av_intens)" << std::endl;
-									continue;               
-								}
+								if (fabs(c_val) < c_av_intens) continue;  
+							
                 // What the hell is happening here?
                 if (abs(v)%2 == 1) //i.e. whole
                 {
@@ -529,20 +532,26 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
         }
     }
 
-		std::cout << "Scoring regions. " << std::endl;
+		
     //Now, since we computed all scores, we can hash all mz positions
-
     unsigned int numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
     //This is a vector telling us the next mz position in charge i we have to hash
-    std::vector<unsigned int> positions (numOfCharges, 0);
-// 		std::cout << "numOfCharges " << numOfCharges << std::endl;
+    std::vector<UnsignedInt> positions (numOfCharges, 0);
 		
-    unsigned int c_hash_key, count_finished_charges=0;
-    double allZero;
+    UnsignedInt c_hash_key, count_finished_charges=0;
+    bool allZero;
     DoubleList c_pair;
-    std::list<double> c_list, c_fill_list;
+
+		// c_list is now charge_scores
+		// c_fill_list is scans
+		std::list<double> charge_scores;
+		std::list<UnsignedInt> scans;
+		
     std::list<double>::iterator iter_cl, iter_cl_hash;
     std::pair<SweepLineHash::iterator, SweepLineHash::iterator> iter_hash;
+		
+		double score_sum = 0.0;
+		
     while (1) // ;-)
     {
         //Termination criterion
@@ -567,7 +576,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
             if (positions[c] >= numOfMZPositions) continue;               
 
             //positions[c] also tells us the next candidate to hash
-            c_list.push_back (scoresC[c][positions[c]++]);
+            charge_scores.push_back (scoresC[c][positions[c]++]);
         }
 
         for (unsigned int c=0; c<numOfCharges-1; ++c)
@@ -577,32 +586,26 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
                 std::cout << "Quadro Zack!" << std::endl;
             }
 				}
-
-// 				std::cout << "scan  " << scan << " positions[0]-1 " << (positions[0]-1) <<  std::endl; 
-// 				std::cout << "getPos: " << traits_->getData()[scan].getContainer()[positions[0]-1].getPos() << std::endl;	
-// 				std::cout << "getMin().Y() " << traits_->getData().getMin().Y() << std::endl;
-        c_hash_key = (unsigned int) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().Y()) / avMZSpacing_);
+        
+				c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().Y()) / avMZSpacing_);
 // 				std::cout << "c_hash_key " << c_hash_key << std::endl;
 				
         allZero=true;
-        for (iter_cl=c_list.begin(); iter_cl!=c_list.end(); ++iter_cl)
+        for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)
 				{
             if (*iter_cl != 0) allZero=false;                
 				}
-// 				std::cout << "all zero done " << c_hash_key << std::endl;
-        if (!c_list.empty() && !allZero)
+
+        if (!charge_scores.empty() && !allZero)
         {
             iter_hash=hash_.equal_range(c_hash_key);
-// 						std::cout << "equal range " << c_hash_key << std::endl;
+
             while (iter_hash.first != iter_hash.second)
             {
 								// m/z already in hash table 
-//                 std::cout << "M/Z already in hash table ... " << std::endl;
-
                 if (scan != 0)
 								{
-                    if (find(iter_hash.first->second.first.begin(), iter_hash.first->second.first.end(),
-                             traits_->getData()[scan-1].getRetentionTime()) == iter_hash.first->second.first.end())
+									 if (	find(iter_hash.first->second.first.begin(), iter_hash.first->second.first.end(), (scan-1) ) == iter_hash.first->second.first.end() )
                     {
                         //i.e. there is no neighbouring entry before this retention time
                         //i.e. we can treat this case as if no entry is present in the hash
@@ -610,42 +613,74 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
                         continue;
                     }
 								}	
-                c_fill_list = iter_hash.first->second.first;
-                c_fill_list.push_back(current_rt);
-// 								std::cout << "Adding rt " << current_rt << std::endl;
-                c_fill_list.unique(); // It might be the case, that we have several votes for the same RT and MZ 
-								                           // by different charges => unique the list.
+                scans = iter_hash.first->second.first;
+								scans.push_back(scan);
+								
+								// It might be the case, that we have several votes for the same RT and MZ 
+								 // by different charges => unique the list.
+                scans.unique(); 
                 
-								for (iter_cl = c_list.begin(), iter_cl_hash = iter_hash.first->second.second.begin();
-                        iter_cl != c_list.end();
+								for (iter_cl = charge_scores.begin(), iter_cl_hash = iter_hash.first->second.second.begin();
+                        iter_cl != charge_scores.end();
                         ++iter_cl, ++iter_cl_hash)
                 {
                     *iter_cl += *iter_cl_hash;
                 }
 
                 hash_.erase (iter_hash.first);
-                c_pair = DoubleList (c_fill_list, c_list);
+								
+								// normalize scores
+								score_sum = 0.0;
+								for (std::list<double>::iterator it = charge_scores.begin();
+								      it != charge_scores.end();
+											++it)
+								{
+									score_sum += *it;
+								}
+								
+								for (std::list<double>::iterator it = charge_scores.begin();
+								      it != charge_scores.end();
+											++it)
+								{
+									*it /= score_sum;
+								}
+																
+                c_pair = DoubleList (scans, charge_scores);
                 goto FINISH;
             }
 
-						// new entry
-// 						std::cout << "New entry . " << std::endl;
-            //Store RT and the corresponding score
-            c_fill_list.clear();
-            c_fill_list.push_back(current_rt);
-            c_pair = DoubleList (c_fill_list, c_list);
+						// new hash entry
+            scans.clear();
+						scans.push_back(scan);
+						
+						// normalize scores
+						score_sum = 0.0;
+						for (std::list<double>::iterator it = charge_scores.begin();
+							      it != charge_scores.end();
+										++it)
+						{
+								score_sum += *it;
+						}
+								
+						for (std::list<double>::iterator it = charge_scores.begin();
+						      it != charge_scores.end();
+									++it)
+						{
+								*it /= score_sum;
+						}
+												
+            c_pair = DoubleList (scans, charge_scores);
 
 FINISH:
-// 						std::cout << "Inserting entry at " << c_hash_key << std::endl;
             hash_.insert (SweepLineHash::value_type(c_hash_key, c_pair));
         }
 
-        c_list.clear();
+        charge_scores.clear();
     }
 
 FINISHED_HASHING:
 
-// 		std::cout << "Scoring done. " << std::endl;
+// done
 
     return;
 }
@@ -680,6 +715,77 @@ void IsotopeWaveletSeeder::filterHashByRTVotes ()
 
     std::cout << "Hash size after filtering: " << hash_.size() << std::endl << std::endl;
 
+}
+
+void IsotopeWaveletSeeder::sumUp_(ContainerType& scan, UnsignedInt& current_scan_index)
+{
+    UnsignedInt scans_to_collect = param_.getValue("scans_to_sumup");
+    ContainerType ascan;
+
+    if (current_scan_index + scans_to_collect > traits_->getData().size() )
+    {
+        UnsignedInt diff = (current_scan_index + scans_to_collect) - traits_->getData().size();
+
+        if (diff > scans_to_collect)
+            scans_to_collect = 0;
+        else
+            scans_to_collect -= diff;
+
+    }
+
+    for (UnsignedInt i=current_scan_index; i < (current_scan_index + scans_to_collect); ++i)
+    {
+        ascan = traits_->getData()[i].getContainer();
+        AlignAndSum_(scan,ascan);
+    }
+
+}
+
+void IsotopeWaveletSeeder::AlignAndSum_(ContainerType& scan, ContainerType& neighbour)
+{
+    if (scan.size() == 0 || neighbour.size() == 0)
+        return;
+
+    double mass_tolerance = 0.1;
+
+    UnsignedInt index_newscan = 0;
+    for (UnsignedInt k=0; k<neighbour.size(); ++k)
+    {
+        PeakType p               = neighbour[k];
+        CoordinateType mass = p.getPosition()[0];
+
+        while (scan[index_newscan].getPos() < mass && index_newscan < scan.size())
+            ++index_newscan;
+
+        // This seems to happen more frequently than expected
+        if (index_newscan >= scan.size() )
+            break;	// and quit the loop
+
+        if (index_newscan > 0)
+        {
+            double left_diff   = fabs(scan[index_newscan-1].getPosition()[0] - mass);
+            double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);
+
+            // check which neighbour is closer
+            if (left_diff < right_diff && (left_diff < mass_tolerance) )
+            {
+                scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
+            }
+            else if (right_diff < mass_tolerance)
+            {
+                scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
+            }
+        }
+        else // no left neighbour available
+        {
+            double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);
+            if (right_diff < mass_tolerance)
+            {
+                scan[index_newscan].getIntensity() += p.getIntensity();
+            }
+        }
+
+    } // end for (all peaks in neighbouring scan)
 }
 
 } // end of namespace OpenMS
