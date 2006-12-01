@@ -29,12 +29,20 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 
+#include <math.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_cdf.h>
+
 namespace OpenMS
 {
 	/** @brief Measures the quality of a modelfit to some realworld data. 
 	  
 	 		Implementation of class BaseQuality. The quality is measured as
 	 		the (squared) Pearson cross correlation of data and model.
+			
+			The correlation coefficient is squared in order to obtain a value 
+			between 0 and 1.
 	 		
 	 		@ingroup FeatureFinder
 	 	*/
@@ -58,7 +66,11 @@ namespace OpenMS
 	/// creates instance of this class (function is called by factory).
     static BaseQuality* create() { return new Correlation(); }
 
-    static const String getName() { return "Correlation"; }		
+		/// name of this quality measure
+   static const String getName() { return "Correlation"; }		
+		
+	 /// gives the significance of last fit
+		double getPvalue() { return pval_; }
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_CORRELATION_H

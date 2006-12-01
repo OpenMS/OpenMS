@@ -63,17 +63,19 @@ namespace OpenMS
     /// register all derived classes here 
     static void registerChildren();
 
-    /** @brief calculate probability of peaks given by @p set given the model @p model
-		
-		This quality will be maximized by the ModelFitter 
-	*/
+    /// Computes the goodness of fit between model @p model and peaks denoted by @p set
     virtual double evaluate(const IndexSet& set, const BaseModel<2>& model)=0;
     
-    /** @brief calculate probability of peaks given by @p set given the model @p model
-        along dimension @p dim.
-     */
+    /// Computes the goodness of fit between model @p model and peaks @p set along dimension @p dim.
     virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
 		
+		/// Returns the significance of the last fit (if applicable, otherwise -1
+		virtual double getPvalue() = 0;
+		
+	protected:
+		/// Significance of fit
+		double pval_;
+			
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEQUALITY_H

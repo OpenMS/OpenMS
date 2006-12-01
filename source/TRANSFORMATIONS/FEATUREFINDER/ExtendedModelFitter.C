@@ -272,6 +272,8 @@ namespace OpenMS
 		}
  		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
 
+		std::cout << "P-value : " << quality_->getPvalue() << std::endl;
+		
 		// fit has too low quality or fit was not possible i.e. because of zero stdev
 		if (max_quality < static_cast<float>(param_.getValue("quality:minimum")))
 		{

@@ -59,8 +59,11 @@ namespace OpenMS
 	/// creates instance of this class (function is called by factory).
     static BaseQuality* create() { return new EuclideanDistance(); }
 
+		/// Name of this quality
     static const String getName() { return "EuclideanDistance"; }
-	
+		
+		/// Returns significance
+		double getPvalue() { return pval_; }
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EUCLIDEANDISTANCE_H

@@ -31,6 +31,7 @@
 // all from BaseQuality derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RankCorrelation.h>
 
 namespace OpenMS
 {
@@ -38,9 +39,10 @@ namespace OpenMS
 	{
 		Factory<BaseQuality>::registerProduct("Correlation", &Correlation::create);
 		Factory<BaseQuality>::registerProduct("EuclideanDistance", &EuclideanDistance::create);
+		Factory<BaseQuality>::registerProduct("RankCorrelation", &RankCorrelation::create);
 	}
 
-	BaseQuality::BaseQuality(): FeaFiModule(){}
+	BaseQuality::BaseQuality(): FeaFiModule(), pval_(-1) {}
 
 	BaseQuality::BaseQuality(const BaseQuality& source)
 		: FeaFiModule(source)

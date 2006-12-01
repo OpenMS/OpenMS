@@ -114,10 +114,10 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	
 	// evaluate rt dimension
 	double result = corr.evaluate(set, gm1,0);
-	TEST_REAL_EQUAL(result,0.162949)
+	TEST_REAL_EQUAL(result,0.00847637)
 	// evaluate mz dimension
 	result = corr.evaluate(set, gm1,1);
-	TEST_REAL_EQUAL(result,0.162949)
+	TEST_REAL_EQUAL(result,0.00847637)
 	
 RESULT
 
@@ -186,7 +186,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	set.add(0,4);
 	
 	double result = corr.evaluate(set, pm1);
-	TEST_REAL_EQUAL(result,0.104557);
+	TEST_REAL_EQUAL(result,0.17834);
 	
 RESULT
 

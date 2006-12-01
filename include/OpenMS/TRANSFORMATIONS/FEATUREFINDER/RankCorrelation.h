@@ -29,6 +29,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 
+#include "gsl/gsl_cdf.h"
+
 namespace OpenMS
 {
 	/** @brief Measures the quality of a modelfit to some realworld data. 
@@ -60,13 +62,16 @@ namespace OpenMS
     double evaluate(const IndexSet& set, const BaseModel<2>& model);
     
     /// evaluates the quality of the fit of @p model to @p set along dimension @p dim
-    double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
+   double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim);
 
 	/// creates instance of this class (function is called by factory).
-    static BaseQuality* create()  { return new RankCorrelation(); }
+   static BaseQuality* create()  { return new RankCorrelation(); }
 
-    static const String getName() { return "RankCorrelation"; }
+	/// name 
+  static const String getName() { return "RankCorrelation"; }
 	
+	double getPvalue() { return pval_; }		
+			 	 
 	class RankComp 
   	{
   	

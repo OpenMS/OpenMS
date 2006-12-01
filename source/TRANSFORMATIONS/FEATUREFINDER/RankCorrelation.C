@@ -87,7 +87,21 @@ namespace OpenMS
 		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
-		return (sum_model_data / (sqsum_data * sqsum_model) );
+		
+		double corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
+		
+		UnsignedInt df = set.size()-1;
+		double t_stat = sqrt(df) * corr; 
+		
+		// t_stat follows t-distributuin with n-2 degrees of freedom
+		pval_ = (1 - gsl_cdf_ugaussian_P(t_stat));	
+				
+// 		std::cout << "RankCorrelation: " << corr << std::endl;		
+// 		std::cout << "RankCorrelation: t(1-a/2,n-1) = " << gsl_ran_gaussian_pdf(0.975, df ) << std::endl;
+// 		std::cout << "RankCorrelation: t_stat = " << fabs(t_stat) << std::endl;
+// 		std::cout << "RankCorrelation: P(t_stat) = " << pval_ << std::endl;		
+		
+		return ( fabs(corr));
 	}
 	
 	double RankCorrelation::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)

@@ -42,7 +42,7 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
     name_ = IsotopeWaveletSeeder::getName();
 
 		// minimal number of scans for an isotopic pattern
-//     defaults_.setValue("rtvotes_cutoff",6);
+		defaults_.setValue("rtvotes_cutoff",5);
 
 		// max charge state examined
 		defaults_.setValue("max_charge",5);
@@ -70,7 +70,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
     if (!is_initialized_)
     {
         // reading params
-//         rt_votes_cutoff_         = param_.getValue("rtvotes_cutoff");
+				rt_votes_cutoff_         = param_.getValue("rtvotes_cutoff");
 				intensity_factor_          = param_.getValue("intensity_factor");
 				avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
 				max_charge_              = param_.getValue("max_charge");
@@ -202,9 +202,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 					
 					PeakIterator insert_iter = std::lower_bound(scan_begin,scan_end,mass_to_find,MZless());	
 					int peak_index = insert_iter.getPeakNumber();
-					#ifdef DEBUG_FEATUREFINDER
-					std::cout << "Corresponding peak is at mass " << traits_->getPeakMz(peak_index) << std::endl;
-					#endif
+					
 					CoordinateType miso_mass = traits_->getPeakMz(peak_index);
 					CoordinateType miso_rt       =	traits_->getPeakRt(peak_index);			
 				

@@ -226,7 +226,6 @@ namespace OpenMS
 
 
 
-
 		/**@name Serialization
 		 */		
 		//@{

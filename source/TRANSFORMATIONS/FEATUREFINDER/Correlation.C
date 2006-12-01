@@ -26,7 +26,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -45,18 +44,67 @@ namespace OpenMS
 		Intensity cross_product_sum = 0;
 		Intensity data_square_sum   = 0;
 		Intensity model_square_sum  = 0;
+		
+		Intensity model_avg = 0.0;
+		Intensity data_avg    = 0.0;
+		
+		std::vector<Intensity> model_intensities(set.size());
+		std::vector<Intensity> data_intensities(set.size());
+		
+		std::vector<Intensity>::iterator model_iter = model_intensities.begin();
+		std::vector<Intensity>::iterator data_iter   = data_intensities.begin();
 
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			Intensity model_it = model.getIntensity(peak.getPosition());
-			Intensity data_it  = peak.getIntensity();
-			cross_product_sum += model_it * data_it;
-			data_square_sum   += data_it  * data_it;
-			model_square_sum  += model_it * model_it;
+			*data_iter    = peak.getIntensity();
+			*model_iter = model.getIntensity(peak.getPosition());
+			
+			model_avg += *model_iter;
+			data_avg    += *data_iter;
+			
+			++model_iter;
+			++data_iter;			
+			//Intensity model_it = model.getIntensity(peak.getPosition());
+			//Intensity data_it  = peak.getIntensity();
+			//cross_product_sum += model_it * data_it;
+			//data_square_sum   += data_it  * data_it;
+			//model_square_sum  += model_it * model_it;
 		}
+		
+		// compute average intensities for data and model
+		model_avg /= set.size();
+		data_avg /= set.size();
+		
+		model_iter = model_intensities.begin();
+		data_iter   = data_intensities.begin();
+		
+		for ( ;model_iter != model_intensities.end(); ++model_iter)
+		{
+			cross_product_sum += ( *model_iter - model_avg) * ( *data_iter - data_avg);
+			data_square_sum    += ( *data_iter - data_avg)  * ( *data_iter - data_avg);
+			model_square_sum  += ( *model_iter - model_avg)  * ( *model_iter - model_avg);			
+		
+			 ++data_iter;
+		}
+		
 		if ( ! data_square_sum || ! model_square_sum ) return 0;
-		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
+		
+		double corr = cross_product_sum / sqrt(data_square_sum * model_square_sum);
+		
+		UnsignedInt df = set.size()-2;
+		double t_stat = sqrt(df) * (corr / sqrt(1 - corr*corr)); 
+		
+		// t_stat follows t-distributuin with n-2 degrees of freedom
+		pval_ = (1 - gsl_cdf_tdist_P(t_stat, df ));	
+				
+// 		std::cout << "Correlation: " << corr << std::endl;		
+// 		std::cout << "Correlation: t(1-a/2,n-1) = " << gsl_ran_tdist_pdf(0.975, df ) << std::endl;
+// 		std::cout << "Correlation: t_stat = " << fabs(t_stat) << std::endl;
+// 		std::cout << "Correlation: P(t_stat) = " << pval_ << std::endl;
+		
+// 		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
+			return (fabs(corr));
 	}
 	
 	double Correlation::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
@@ -66,18 +114,55 @@ namespace OpenMS
 		Intensity cross_product_sum = 0;
 		Intensity data_square_sum   = 0;
 		Intensity model_square_sum  = 0;
+		
+		Intensity model_avg = 0.0;
+		Intensity data_avg    = 0.0;
+		
+		std::vector<Intensity> model_intensities(set.size());
+		std::vector<Intensity> data_intensities(set.size());
+		
+		std::vector<Intensity>::iterator model_iter = model_intensities.begin();
+		std::vector<Intensity>::iterator data_iter   = data_intensities.begin();
 
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			Intensity model_it = model.getIntensity(peak.getPosition()[dim]);
-			Intensity data_it  = peak.getIntensity();
-			cross_product_sum += model_it * data_it;
-			data_square_sum   += data_it  * data_it;
-			model_square_sum  += model_it * model_it;
+			*data_iter    = peak.getIntensity();
+			*model_iter = model.getIntensity(peak.getPosition()[dim] );
+			
+			model_avg += *model_iter;
+			data_avg    += *data_iter;
+			
+			++model_iter;
+			++data_iter;			
+			//Intensity model_it = model.getIntensity(peak.getPosition());
+			//Intensity data_it  = peak.getIntensity();
+			//cross_product_sum += model_it * data_it;
+			//data_square_sum   += data_it  * data_it;
+			//model_square_sum  += model_it * model_it;
 		}
+		
+		// compute average intensities for data and model
+		model_avg /= set.size();
+		data_avg /= set.size();
+		
+		model_iter = model_intensities.begin();
+		data_iter   = data_intensities.begin();
+		
+		for ( ;model_iter != model_intensities.end(); ++model_iter)
+		{
+			cross_product_sum += ( *model_iter - model_avg) * ( *data_iter - data_avg);
+			data_square_sum    += ( *data_iter - data_avg)  * ( *data_iter - data_avg);
+			model_square_sum  += ( *model_iter - model_avg)  * ( *model_iter - model_avg);			
+		
+			 ++data_iter;
+		}
+		
 		if ( ! data_square_sum || ! model_square_sum ) return 0;
-		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
+		
+ 		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
 	}
+	
+	
 
 }
