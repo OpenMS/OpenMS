@@ -35,7 +35,7 @@
 #include <CGAL/Point_set_2.h>
 
 #define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -106,6 +106,8 @@ namespace OpenMS
       {
         max_pair_distance_[RT] = 0;
         max_pair_distance_[MZ] = 0;
+        precision_[RT] = 0;
+        precision_[MZ] = 0;
       }
 
       /// Copy constructor
@@ -114,6 +116,8 @@ namespace OpenMS
       {
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
+        precision_[RT] = source.precision_[RT];
+        precision_[MZ] = source.precision_[MZ];
       }
 
       ///  Assignment operator
@@ -129,6 +133,8 @@ namespace OpenMS
         transformation_[MZ] = source.transformation_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
+        precision_[RT] = source.precision_[RT];
+        precision_[MZ] = source.precision_[MZ];
         return *this;
       }
 
@@ -255,7 +261,7 @@ namespace OpenMS
         const PointMapType& reference_map = *(feature_map_[MODEL]);
         const PointMapType& transformed_map = *(feature_map_[SCENE]);
 
-#define V_findFeaturePairs_(bla) V_DelaunayPairFinder(bla)
+#define V_findFeaturePairs_(bla) // V_DelaunayPairFinder(bla)
 
         V_findFeaturePairs_("@@@ findFeaturePairs_()");
 
@@ -273,8 +279,8 @@ namespace OpenMS
         // compute the delaunay triangulation
         Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
 
-        V_findFeaturePairs_("Translation rt " << transformation_[RT]->getParam());
-        V_findFeaturePairs_("Translation mz " << transformation_[MZ]->getParam());
+        V_findFeaturePairs_("Translation rt " << transformation_[RT].getParam());
+        V_findFeaturePairs_("Translation mz " << transformation_[MZ].getParam());
 
         // Initialize a hash map for the features of reference_map to avoid that features of the reference map occur in several feature pairs
         std::vector< SignedInt > lookup_table(n,-1);
@@ -286,11 +292,13 @@ namespace OpenMS
         {
           // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
           double rt_pos = transformed_map[fi1].getPosition()[RT];
-          double mz_pos = transformed_map[fi1].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]);
+          double mz_pos = transformed_map[fi1].getPosition()[MZ];
 
           V_findFeaturePairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
-          transformation_[RT]->apply(rt_pos);
-          transformation_[MZ]->apply(mz_pos);
+          transformation_[RT].apply(rt_pos);
+          transformation_[MZ].apply(mz_pos);
+
+          mz_pos /= (diff_intercept_[MZ] / diff_intercept_[RT]);
           Point transformed_pos(rt_pos,mz_pos);
 
           V_findFeaturePairs_("Transformed Position is : " << transformed_pos );
@@ -309,8 +317,8 @@ namespace OpenMS
           Point nearest = resulting_range[0]->point();
           Point second_nearest = resulting_range[1]->point();
 
-          if (((fabs(transformed_pos[RT] - nearest.hx())  < max_pair_distance_[RT])
-               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < max_pair_distance_[MZ]))
+          if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
+               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
           {
@@ -341,6 +349,10 @@ namespace OpenMS
           if ( pair_key > -1 )
           {
             feature_pairs_->push_back(FeaturePairType(*(all_feature_pairs[pair_key].second),*(all_feature_pairs[pair_key].first)));
+            //             std::cout << "Delaunay PUSH Pairs " << (*(all_feature_pairs[pair_key].second)).getPosition()[RT] << ' '
+            //                       << (*(all_feature_pairs[pair_key].second)).getPosition()[MZ] << " and "
+            //                       << (*(all_feature_pairs[pair_key].first)).getPosition()[RT] << ' '
+            //                       << (*(all_feature_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;
           }
         }
 #undef V_findFeaturePairs_
@@ -374,7 +386,7 @@ namespace OpenMS
         Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
         timer.stop();
         V_computeConsensusMap("End delaunay triangulation after " << timer.getCPUTime() << "s");
-        
+
         // Initialize a hash map for the features of reference_map to avoid that features of the reference map occur in several feature pairs
         std::vector< SignedInt > lookup_table(n,-1);
         std::vector< std::pair< const PointType*, PointType*> > all_feature_pairs;
@@ -406,8 +418,12 @@ namespace OpenMS
 
           Point nearest = resulting_range[0]->point();
           Point second_nearest = resulting_range[1]->point();
-          if (((fabs(transformed_pos[RT] - nearest.hx())  < max_pair_distance_[RT])
-               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < max_pair_distance_[MZ]))
+          //           if (((fabs(transformed_pos[RT] - nearest.hx())  < max_pair_distance_[RT])
+          //                &&  (fabs(transformed_pos[MZ] - nearest.hy())  < max_pair_distance_[MZ]))
+          //               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
+          //                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+          if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
+               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
           {
@@ -428,8 +444,8 @@ namespace OpenMS
               PointType& second_map_b = *(all_feature_pairs[pair_key].second);
               PointType& second_map_c = second_map[fi1];
 
-              //               V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
-              //               V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
+              V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
+              V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
 
               V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
 
@@ -437,6 +453,7 @@ namespace OpenMS
                   && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
               {
                 lookup_table[feature_key] = index_act_feature_pair;
+                V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
               }
               else
               {
@@ -444,11 +461,13 @@ namespace OpenMS
                 if (!(second_map_b.getPositionRange().encloses(first_map_a.getPosition())
                       && !second_map_c.getPositionRange().encloses(first_map_a.getPosition())))
                 {
+                  V_computeConsensusMap(second_map_b.getPosition() << " and " << first_map_a.getPosition() << " are a pair, but check the distance between c and b");
                   // check the distance between second_map_b and second_map_c
                   if (fabs(second_map_b.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT])
                            - second_map_c.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]))
                       > max_pair_distance_[MZ])
                   {
+                    V_computeConsensusMap("distance ok");
                     // and check which one of the elements lies closer to first_map_a
                     if( sqrt(pow((first_map_a.getPosition()[RT] - second_map_b.getPosition()[RT]), 2)
                              + pow((first_map_a.getPosition()[MZ] - second_map_b.getPosition()[RT]), 2))
@@ -456,6 +475,7 @@ namespace OpenMS
                                + pow((first_map_a.getPosition()[MZ] - second_map_c.getPosition()[RT]), 2)))
                     {
                       lookup_table[feature_key] = index_act_feature_pair;
+                      V_computeConsensusMap("take a and c");
                     }
                   }
                   else
@@ -530,6 +550,8 @@ namespace OpenMS
       double diff_intercept_[2];
       // allowed distance from a feature neighbour
       float max_pair_distance_[2];
+      // precision of the retention time and mz values
+      float precision_[2];
       //@}
 
       /// Parses the parameters, assigns their values to instance members.
@@ -551,7 +573,24 @@ namespace OpenMS
           else
           {
             max_pair_distance_[dimension] = (float)data_value;
-            V_parseParam_(param_name<< ": "<< diff_intercept_[dimension]);
+            V_parseParam_(param_name<< ": "<< max_pair_distance_[dimension]);
+          }
+        }
+
+        param_name_prefix = "similarity:precision:";
+        for ( Size dimension = 0; dimension < 2; ++dimension)
+        {
+          std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
+          DataValue data_value = param_.getValue(param_name);
+          if ( data_value == DataValue::EMPTY )
+          {
+            throw Exception::ElementNotFound<std::string>
+            (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
+          }
+          else
+          {
+            precision_[dimension] = (float)data_value;
+            V_parseParam_(param_name<< ": "<< precision_[dimension]);
           }
         }
 

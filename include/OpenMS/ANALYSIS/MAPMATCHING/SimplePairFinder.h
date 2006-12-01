@@ -126,6 +126,8 @@ namespace OpenMS
         diff_exponent_[MZ] = source.diff_exponent_[MZ];
         pair_min_quality_ = source.pair_min_quality_;
         transformed_positions_second_map_ = source.transformed_positions_second_map_;
+        transformation_[RT] = source.transformation_[RT];
+        transformation_[MZ] = source.transformation_[MZ];
         return *this;
       }
 
@@ -172,12 +174,9 @@ namespace OpenMS
 
         for ( Size dim = 0; dim < 2; ++dim )
         {
-          if ( transformation_[dim] )
+          for (Size i = 0; i < n; ++i)
           {
-            for (Size i = 0; i < n; ++i)
-            {
-              transformation_[dim]->apply( transformed_positions_second_map_[i][dim] );
-            }
+            transformation_[dim].apply( transformed_positions_second_map_[i][dim] );
           }
         }
 

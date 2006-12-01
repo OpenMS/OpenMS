@@ -29,10 +29,11 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
 #include <fstream>
@@ -53,7 +54,7 @@ namespace OpenMS
   **/
 
   template <typename MapT = DFeatureMap<2> >
-  class BaseSuperimposer
+  class BaseSuperimposer : public FactoryProduct
   {
     public:
       /// Defines the coordinates of peaks / features.
@@ -94,7 +95,7 @@ namespace OpenMS
       typedef typename TraitsType::IntensityType IntensityType;
 
       /// Type of estimated transformation
-      typedef DBaseMapping< 1, TraitsType > TransformationType;
+      typedef DLinearMapping< 1, TraitsType > TransformationType;
 
       //@}
 
@@ -103,13 +104,12 @@ namespace OpenMS
       //@{
       /// Constructor
       BaseSuperimposer()
-          : param_(),
+          : FactoryProduct(),
+          	param_(),
           final_transformation_()
       {
         feature_map_[MODEL] = 0;
         feature_map_[SCENE] = 0;
-        final_transformation_[RT] = 0;
-        final_transformation_[MZ] = 0;
       }
 
       /** @brief Copy constructor
@@ -117,7 +117,8 @@ namespace OpenMS
       The final transformation member has to be copied in the derived classes!
       */
       BaseSuperimposer(const BaseSuperimposer& source)
-          : param_(source.param_)
+          : FactoryProduct(source),
+          	param_(source.param_)
       {
         feature_map_[MODEL] = source.feature_map_[MODEL];
         feature_map_[SCENE] = source.feature_map_[SCENE];
@@ -129,7 +130,7 @@ namespace OpenMS
 
       The final transformation member has to be assigned in the derived classes!
       */
-      virtual BaseSuperimposer& operator = (BaseSuperimposer source)
+      virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
       {
         param_ = source.param_;
         feature_map_[MODEL] = source.feature_map_[MODEL];
@@ -142,14 +143,6 @@ namespace OpenMS
       /// Destructor
       virtual ~BaseSuperimposer()
       {
-        for ( Size dim = 0; dim < 2; ++dim )
-        {
-          if (final_transformation_[dim] != 0)
-          {
-            delete final_transformation_[dim];
-            final_transformation_[dim] = 0;
-          }
-        }
       }
       //@}
 
@@ -195,12 +188,30 @@ namespace OpenMS
         return *feature_map_[index];
       }
 
+      //------------------------------------------------------------
+
+      /** @name Accesssor methods
+      */
+      /// Set
+      void setTransformation(Size dim, const TransformationType& trafo)
+      {
+        final_transformation_[dim] = trafo;
+      }
+
+      /// Get shift in dimension dim
+      const TransformationType& getTransformation(Size dim) const
+      {
+        return final_transformation_[dim];
+      }
+
       //@}
 
       /// Estimates the transformation for each grid cell
-      virtual void run()
-      {}
-      ;
+      virtual void run() = 0;
+      
+
+      /// register all derived classes here
+      static void registerChildren();
 
 
     protected:
@@ -216,7 +227,7 @@ namespace OpenMS
       PointMapType const * feature_map_[2];
 
       /// Final transformation
-      TransformationType* final_transformation_[2];
+      TransformationType final_transformation_[2];
 
       //@}
 

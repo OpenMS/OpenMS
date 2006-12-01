@@ -24,7 +24,7 @@
 // $Maintainer: Clemens Groepl, Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashPairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
@@ -62,7 +62,7 @@ typedef DGrid<2> GridType;
   between the feature positions in the two maps,
   a simple pairwise matching procedure can be used.
   For more complex situations, an algorithm based
-  on geometric hashing can be used to estimate
+  on pose clustering can be used to estimate
   a transform and to compute feature pairs based
   on this transform.  
     
@@ -118,7 +118,7 @@ class TOPPUnlabeledMatcher
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
 
-			writeDebug_("Parameters passed to DGeomHashPairwiseMapMatcher", getParam_(),3);
+			writeDebug_("Parameters passed to PoseClusteringMapMatcher", getParam_(),3);
 			
       //-------------------------------------------------------------
 
@@ -126,38 +126,37 @@ class TOPPUnlabeledMatcher
       // the resulting feature pairs go here
       FeaturePairVector feature_pair_vector;
 
-      GeomHashPairwiseMapMatcher<> geomhash_feature_matcher;
+      PoseClusteringPairwiseMapMatcher<> poseclust_feature_matcher;
 
-      geomhash_feature_matcher.setParam(getParam_());
+      poseclust_feature_matcher.setParam(getParam_());
 
       for ( Size index = 0; index < 2; ++index )
       {
-        geomhash_feature_matcher.setFeatureMap(index,feature_map[index]);
+        poseclust_feature_matcher.setFeatureMap(index,feature_map[index]);
       }
 
-      geomhash_feature_matcher.setFeaturePairs(feature_pair_vector);
+      poseclust_feature_matcher.setFeaturePairs(feature_pair_vector);
 
       writeDebug_("Running algorithm.",1);
 
-      geomhash_feature_matcher.run();
+      poseclust_feature_matcher.run();
 
       writeDebug_("Running algorithm...done.",1);
 
-      writeDebug_(String("Number of feature pairs: ") + String(geomhash_feature_matcher.getFeaturePairs().size()),1);
+      writeDebug_(String("Number of feature pairs: ") + String(poseclust_feature_matcher.getFeaturePairs().size()),1);
       writeDebug_(String("Writing feature pairs file `") + pairsfile + "'.",1);
 
       FeaturePairVectorFile feature_pair_vector_file;
-      feature_pair_vector_file.store(pairsfile,geomhash_feature_matcher.getFeaturePairs());
+      feature_pair_vector_file.store(pairsfile,poseclust_feature_matcher.getFeaturePairs());
 
       writeDebug_(String("Writing grid file `") + gridfilename + "'.",1);
 
       DGridFile grid_file;
-      grid_file.store(gridfilename,geomhash_feature_matcher.getGrid());
+      grid_file.store(gridfilename,poseclust_feature_matcher.getGrid());
 
       writeDebug_("Running UnlabeledMatcher...done.",1);
 
       return EXECUTION_OK;
-
     }
 
 };

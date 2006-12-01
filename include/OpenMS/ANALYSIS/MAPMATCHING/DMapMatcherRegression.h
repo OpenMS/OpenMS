@@ -96,7 +96,6 @@ namespace OpenMS
       /// estimates the transformation for each grid cell
       void estimateTransform()
       {
-
         for ( typename Grid::iterator grid_iter = this->grid_.begin();
               grid_iter != this->grid_.end();
               ++grid_iter
@@ -106,7 +105,7 @@ namespace OpenMS
 
 #ifdef DEBUG_MAPMATCHING
 
-          std::cout << "Estimate the transformation with :" << std::endl;
+          std::cout << "Estimate the transformation with : " << this->feature_pairs_.size() << " pairs " << std::endl;
 #endif
 
           for (typename FeaturePairVector::iterator pair_iter = this->feature_pairs_.begin();
@@ -119,56 +118,56 @@ namespace OpenMS
                 && pair_iter->getQuality() > this->min_quality_ )
             {
               selection.push_back(*pair_iter);
-#ifdef DEBUG_MAPMATCHING
 
+#ifdef DEBUG_MAPMATCHING
               std::cout << "Pair " << pair_iter->first.getPosition() << " " << pair_iter->second.getPosition() << std::endl;
 #endif
-            }
 
+            }
           } // end for (pair_iter)
 
           // build arrays
           int num = selection.size();
-
-          if (num == 0)
-            continue;
-
-          double* x = new double[num];
-          double* y = new double[num];
-
-          grid_iter->getMappings().clear();
-
-          // loop over all dimensions
-          for (UnsignedInt d=0; d<2;d++)
+          if (num > 2)
           {
 
-            for (int i=0; i<num;i++)
+            double* x = new double[num];
+            double* y = new double[num];
+
+            grid_iter->getMappings().clear();
+
+            // loop over all dimensions
+            for (UnsignedInt d=0; d<2;d++)
             {
-              x[i] = selection[i].getFirst().getPosition()[d];
-              y[i] = selection[i].getSecond().getPosition()[d];
-            }
 
-            // estimate the transform for this dimension
-            double slope, intercept, cov00, cov01, cov11, sumsq;
+              for (int i=0; i<num;i++)
+              {
+                x[i] = selection[i].getFirst().getPosition()[d];
+                y[i] = selection[i].getSecond().getPosition()[d];
+              }
 
-            gsl_fit_linear(x, 1, y, 1, num, &intercept, &slope, &cov00, &cov01, &cov11, &sumsq);
+              // estimate the transform for this dimension
+              double slope, intercept, cov00, cov01, cov11, sumsq;
+
+              gsl_fit_linear(x, 1, y, 1, num, &intercept, &slope, &cov00, &cov01, &cov11, &sumsq);
 
 #ifdef DEBUG_MAPMATCHING
 
-            std::cout << "Estimating transform for dimension " << d << std::endl;
-            std::cout << "Best fit: Y = " << intercept << " + " << slope << "* X" << std::endl;
-            std::cout << "Sumsquares: " << sumsq << std::endl;
+              std::cout << "Estimating transform for dimension " << d << std::endl;
+              std::cout << "Best fit: Y = " << intercept << " + " << slope << "* X" << std::endl;
+              std::cout << "Sumsquares: " << sumsq << std::endl;
 #endif
 
-            // create the transform and save it in the cell
-            grid_iter->getMappings().push_back(new DLinearMapping<1>(slope,intercept));
+              // create the transform and save it in the cell
+              grid_iter->getMappings().push_back(new DLinearMapping<1>(slope,intercept));
 
-          } // end for (d)
+            } // end for (d)
 
-          delete [] x;
-          delete [] y;
+            delete [] x;
+            delete [] y;
 
-        } // end for (gridcell)
+          } // end for (gridcell)
+        }
 
       } // end void estimateTransform()
 

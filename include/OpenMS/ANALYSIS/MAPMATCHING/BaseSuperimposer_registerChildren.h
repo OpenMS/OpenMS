@@ -25,17 +25,20 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_REGISTERCHILDREN_H
-#define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_REGISTERCHILDREN_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_REGISTERCHILDREN_H
+#define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_REGISTERCHILDREN_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
 namespace OpenMS
 {
   template < typename MapT>
-  void BasePairwiseMapMatcher<MapT>::registerChildren()
+  void BaseSuperimposer<MapT>::registerChildren()
   {
-    Factory< BasePairwiseMapMatcher<PointMapType> >::registerProduct(PoseClusteringPairwiseMapMatcher<PointMapType>::getName(), &PoseClusteringPairwiseMapMatcher<PointMapType>::create);
+    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringShiftSuperimposer<PointMapType>::getName(), &PoseClusteringShiftSuperimposer<PointMapType>::create);
+
+    Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringAffineSuperimposer<PointMapType>::getName(),        &PoseClusteringAffineSuperimposer<PointMapType>::create);
+
   }
 
 } // namespace OpenMS

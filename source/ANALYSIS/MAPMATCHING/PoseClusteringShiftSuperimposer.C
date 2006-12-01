@@ -24,20 +24,9 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_REGISTERCHILDREN_H
-#define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_REGISTERCHILDREN_H
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 
 namespace OpenMS
 {
-  template < typename MapT>
-  void BasePairwiseMapMatcher<MapT>::registerChildren()
-  {
-    Factory< BasePairwiseMapMatcher<PointMapType> >::registerProduct(PoseClusteringPairwiseMapMatcher<PointMapType>::getName(), &PoseClusteringPairwiseMapMatcher<PointMapType>::create);
-  }
-
-} // namespace OpenMS
-
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BasePairFinder_H
+		
+} 

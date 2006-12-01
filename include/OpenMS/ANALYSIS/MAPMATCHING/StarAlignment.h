@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/GeomHashPairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapDewarper.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
 
@@ -270,8 +270,9 @@ namespace OpenMS
           if (i != reference_map_index_)
           {
 #ifdef DEBUG_ALIGNMENT
-            std::cout << "*** Build a consensus map of map " << i << " *** " << std::endl;
+            std::cout << "*** Build a consensus map of map " << i << " *** " << file_names_[i] << " ***" <<  std::endl;
 #endif
+
             //build a consensus map of map i
             ConsensusMapType map;
             buildConsensusMapType_(i,map);
@@ -291,13 +292,23 @@ namespace OpenMS
 
             std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairs.size() << " ***" << std::endl;
 #endif
-            // estimate for each grid cell a better transformation using the element pairs
-            lin_regression.setFeaturePairs(pairs);
-            lin_regression.setGrid(pairwise_matcher_->getGrid());
-            lin_regression.setMinQuality(-1.);
-            lin_regression.estimateTransform();
 
-            transformations_[i] = lin_regression.getGrid();
+            // use the linear regression only if there are more than 2 pairs
+            if (pairs.size() > 2)
+            {
+              // estimate for each grid cell a better transformation using the element pairs
+              lin_regression.setFeaturePairs(pairs);
+              lin_regression.setGrid(pairwise_matcher_->getGrid());
+              lin_regression.setMinQuality(-1.);
+              lin_regression.estimateTransform();
+
+              transformations_[i] = lin_regression.getGrid();
+            }
+            // otherwise take the estimated transformation of the superimposer
+            else
+            {
+              transformations_[i] = pairwise_matcher_->getGrid();
+            }
 #ifdef DEBUG_ALIGNMENT
 
             String name = "map_" + (String)number_alignments + ".dat";
@@ -350,6 +361,11 @@ namespace OpenMS
 
             std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
             ++number_alignments;
+            std::ofstream out_cons("ConsensusMap",std::ios::out);
+            for (UnsignedInt i = 0; i < final_consensus_map_.size(); ++i)
+            {
+              out_cons << final_consensus_map_[i] << std::endl;
+            }
 #endif
 
           }
@@ -380,13 +396,16 @@ namespace OpenMS
         UnsignedInt first=5;
         UnsignedInt second=7;
         out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
+        << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
         << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
         << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
         UnsignedInt n=element_map_vector_.size();
+        first +=5;
+        second +=5;
         for (UnsignedInt i=0; i < (n-1); ++i)
         {
           String map = "map_" + (String)i + ".dat";
-          out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
+          out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"\"\n"
           << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
           << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
           << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
@@ -428,7 +447,7 @@ namespace OpenMS
         Param param_matcher = param_.copy("matching:",true);
 
         // take the n-th most intensive Peaks of the reference map
-        Size n = 100;
+        Size n = 50;
         PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
         reference_pointer_map.sortByIntensity();
         Size number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
@@ -463,16 +482,17 @@ namespace OpenMS
             PeakConstReferenceMapType pointer_map((element_map_vector_[i])->begin(), (element_map_vector_[i])->end());
             pairwise_matcher_->getGrid().clear();
             pairwise_matcher_->initGridTransformation(pointer_map);
-            pointer_map.sortByIntensity();
-            Size number = (pointer_map.size() > n) ? n : pointer_map.size();
-            PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
+            /* pointer_map.sortByIntensity();
+             Size number = (pointer_map.size() > n) ? n : pointer_map.size();
+             PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
+             */
 
 #ifdef DEBUG_ALIGNMENT
 
             std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
 #endif
             // compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
-            pairwise_matcher_->setFeatureMap(SCENE, most_intense);
+            pairwise_matcher_->setFeatureMap(SCENE, pointer_map);
             ElementPairVectorType pairs;
             pairwise_matcher_->setFeaturePairs(pairs);
 
@@ -589,15 +609,18 @@ namespace OpenMS
         << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
         << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
         n = element_map_vector_.size();
-        for (UnsignedInt i=0; i < (n-1); ++i)
+        for (UnsignedInt i=0; i < n; ++i)
         {
-          String map = "map_" + (String)i + ".dat";
-          out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
-          << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
-          << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
-          << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
-          first +=5;
-          second +=5;
+          if (i != reference_map_index_)
+          {
+            String map = "map_" + (String)i + ".dat";
+            out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
+            << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
+            << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
+            << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
+            first +=5;
+            second +=5;
+          }
         }
         std::cout << "The consensus elements are written to Consensus.dat.\n"
         << "You can visualize the result using the gnuplot script \"Consensus.gp\" (Type \"gnuplot Consensus.gp -\")" << std::endl;
