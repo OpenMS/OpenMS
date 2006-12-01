@@ -178,7 +178,7 @@ namespace OpenMS
         pair_finder_->setParam(param_);
 
         data_value = param_.getValue("superimposer");
-        if (data_value != "simple")
+        if (data_value != DataValue::EMPTY)
         {
           superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
           superimposer_->setParam(param_);
@@ -276,15 +276,7 @@ namespace OpenMS
           }
           else
           {
-            if ( algorithm == "simple" )
-            {
-              V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
-            }
-
-            else
-            {
-              V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm not recognized");
-            }
+            V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
           }
 
           pair_finder_->setFeaturePairs(*all_feature_pairs_);
