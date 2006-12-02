@@ -43,37 +43,74 @@
 
 namespace OpenMS 
 {
+	/** 
+	  @brief This class implements the simulation of the spectra from PILIS
+
+		PILIS uses a HMM based structure to model the population of fragment ions
+		from a peptide. The spectrum generator can be accessed via the getSpectrum
+		method.
+	*/		
 	class PILISModel 
 	{
 		public:
 						
+			/** @name Constructors and destructors
+			*/
+			//@{
+			/// default constructor
 			PILISModel();
 
+			/// copy constructor
 			PILISModel(const PILISModel& model);
 			
+			/// destructor
 			virtual ~PILISModel();
+			//@}
 
+			/// assignment operator
+			void operator = (const PILISModel& mode);
+			
+			/// does the initialization of the model
 			void initModel();
 
-			// training
+			/** @name Accessors
+			 */
+			//@{
+			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
 			void train(const PeakSpectrum&, const AASequence& peptide, UnsignedInt charge);
 
-			void readFromFile(const String& file_name);
+			/** reads the model parameters from the given files
+			    @param base_filename filename of the base model
+					@param precursor_filename filename of the precursor model
+					@param b_loss_filename filename of the b-ion loss model
+					@param y_loss_filename filename of the y-ion loss model
+			*/ 
+			void readFromFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename);
 
+			/// ????
 			void writetoYGFFile(const String& filename);
 
-			void writeToFile(const String& file_name);
+			/** writes the model parameters into the given files
+			    @param base_filename filename of the base model
+					@param precursor_filename filename of the precursor model
+					@param b_loss_filename filename of the b-ion loss model
+					@param y_loss_filename filename of the y-ion loss model
+			*/			 
+			void writeToFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename);
 
-			// TODO
+			/// greedy specturm aligner, should be replaced by a better algorithm
 			void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
+			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge);
+			//@}
 
+			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
 
-
 		protected:
-		
+
+			/// enumerates the basic loss types implemented
 			enum NeutralLossType_
 			{
 				LOSS_TYPE_H2O = 0,
@@ -81,6 +118,7 @@ namespace OpenMS
 				LOSS_TYPE_NONE
 			};
 
+			/// enumeration of the basic ion types used
 			enum IonType_
 			{
 				AIon = 0,
@@ -92,6 +130,7 @@ namespace OpenMS
 				YIon_NH3
 			};
 			
+			/// describes precursor and related peaks
 			struct PrecursorPeaks_
 			{
 				double pre;
@@ -99,18 +138,22 @@ namespace OpenMS
 				double pre_NH3;
 			};
 		
+			/// describes ions peaks and the relatives of them
 			struct IonPeaks_
 			{
 				HashMap<IonType_, std::vector<double> > ints;
 			};
 			
-			
+			/// initializes the model
 			void initModel_();
 	
+			/// initializes the precursor model
 			void initPrecursorModel_();
 
+			/// initializes the loss models
 			void initLossModels_();
 
+			/// the states of the precursor and loss states
 			enum States_
 			{
 				PRE_MH = 0,
@@ -157,32 +200,31 @@ namespace OpenMS
       };			
 
 			
-			// 
+			/// extracts the precursor and related intensities of a training spectrum
 			void getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UnsignedInt charge);
 
+			/// extracts the ions intensities of a training spectrum
 			double getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UnsignedInt charge);
 			
-			// internal train methods
+			/// trains precursor and related peaks
 			void trainPrecursorIons_(double initial_probability, double intensity, double intensity_NH3, double intensity_H2O, const AASequence& peptide);
 
+			/// trains neutral losses an related peaks
 			void trainNeutralLossesFromIon_(double initial_probability, const HashMap<NeutralLossType_, double>& intensities, Residue::ResidueType ion_type, double ion_intensity, const AASequence& ion);
 
-
-			// internal getter methods
-			//double getPrecursorPeakIntensity_(double initial_probability, const AASequence& peptide);
-
+			/// estimates the precursor intensities 
 			void getPrecursorIons_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor);
 
+			/// estimates the neutral losses of an ion
 			void getNeutralLossesFromIon_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, Residue::ResidueType ion_type, const AASequence& ion);
 
-
-			// enables the states needed
+			/// enables the states needed for precursor training/simulation
 			void enablePrecursorIonStates_(const AASequence& peptide);
 
+			/// enables the states needed for neutral loss training/simulation
 			void enableNeutralLossStates_(Residue::ResidueType ion_type, const AASequence& ion);
 
-			
-			// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
+			/// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																							std::vector<double>& cr_init, 
 																							std::vector<double>& sc_init, 
@@ -190,26 +232,34 @@ namespace OpenMS
 																							const HashMap<Size, double>& sc_charges,
 																							const AASequence& peptide);
 
-			// add peaks to spectrum
+			/// add peaks to spectrum
 			void addPeaks_(double mz, int charge, double mz_offset, double intensity, PeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 			
-			// parse model file
+			/// parse model file of losses and precursor models
 			void parseModelFile(const String& filename, HiddenMarkovModelLight* model);
 
+			/// residue db used
 			static ResidueDB res_db_;
 
+			/// base model used
 			HiddenMarkovModel hmm_;
 
+			/// precursor model used
 			HiddenMarkovModelLight hmm_precursor_;
 
+			/// loss models used
 			HashMap<Residue::ResidueType, HiddenMarkovModelLight> hmms_losses_;
 
+			/// proton distribution model
 			ProtonDistributionModel prot_dist_;
 
+			/// theoretical spectrum generator (needed for training/aligning and spectrum intensity extraction)
 			TheoreticalSpectrumGenerator tsg_;
 
+			/// name to enum mapping of the losses/precursor states
 			HashMap<String, States_> name_to_enum_;
 
+			/// enum to name mapping of the losses/precursor states
 			HashMap<States_, String> enum_to_name_;
 
 	};

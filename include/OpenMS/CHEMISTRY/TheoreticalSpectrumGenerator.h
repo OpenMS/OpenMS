@@ -29,8 +29,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <vector>
+#include <OpenMS/FORMAT/Param.h>
 
 namespace OpenMS
 {
@@ -62,52 +61,34 @@ namespace OpenMS
 			/// assignment operator 
 			TheoreticalSpectrumGenerator operator = (const TheoreticalSpectrumGenerator& tsg);
 
+			/** @name Acessors
+			 */
+			//@{
 			/// returns a spectrum with b and y peaks
-			PeakSpectrum getSpectrum(const AASequence& peptide);
+			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, int charge = 1);
 
 			/// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-			void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide,
-														Residue::ResidueType res_type, SignedInt charge = 1, double intensity = 1);
+			void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, SignedInt charge = 1);
 
-			/// returns a vector with sequences of the ions
-			std::vector<AASequence> getIons() const;
+			/// adds the precursor peaks to the spectrum
+			void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, int charge = 1);
 
-			/// returns true if loss peak adding is enabled 
-			bool getAddLosses() const;
-			
-			/// setter to toggle loss peak adding
-			void setAddLosses(bool add_losses);
-		
-			/// returns true if isotope peaks adding is enabled
-			bool getAddIsotopes() const;
+			/// mutable acces to the parameters
+			Param& getParam();
 
-			/// setter to toggle isotope peaks adding
-			void setAddIsotopes(bool add_isotopes);
+			/// non-mutable access to the parameters
+			const Param& getParam() const;
 
-			/// return true if meta info support is enabled
-			bool getAddMetaInfo() const;
-
-			/// setter to toggle meta info support
-			void setAddMetaInfo(bool meta_info);
-
-			/// returns the max isotope which is added via isotope peak support (if enabled)
-			UnsignedInt getMaxIsotope() const;
-
-			/// set the max peak of the isotope support
-			void setMaxIsotope(UnsignedInt max_isotope);
+			/// set the parameters
+			void setParam(const Param& param);
+			//@}
 
 		private:
 			
-			bool add_losses_;
+			Param param_;
 
-			bool add_isotopes_;
-
-			bool add_metainfo_;
-
-			UnsignedInt max_isotope_;
-
-			std::vector<AASequence> ions_;
-	};
+			Peak p_;
+		};
 }
 
 #endif

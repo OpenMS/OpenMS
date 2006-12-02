@@ -91,7 +91,9 @@ namespace OpenMS
 			for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
 			{
 				AASequence peptide_sequence(it1->peptide);
-				PeakSpectrum spec = tsg.getSpectrum(peptide_sequence/*, it1->charge*/); // TODO
+				// TODO parameter settings
+				PeakSpectrum spec;
+				tsg.getSpectrum(spec, peptide_sequence, it1->charge);
 				double score = (*scorer)(*it, spec);
 				PeptideHit peptide_hit(score, "Zhang", 0, it1->peptide);
 				pre_id.insertPeptideHit(peptide_hit);

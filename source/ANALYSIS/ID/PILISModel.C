@@ -112,14 +112,19 @@ namespace OpenMS
 		initPrecursorModel_();
 	}
 
-	void PILISModel::readFromFile(const String& file_name)
+	void PILISModel::readFromFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename )
 	{
+		#ifdef SIM_DEBUG
 		cerr << "reading from file '" << file_name << "'" << endl;
-		hmm_.readFromFile(file_name);
+		#endif
 
-		parseModelFile("data/PILIS/model_precursor.dat", &hmm_precursor_);
-		parseModelFile("data/PILIS/model_losses_bions.dat", &hmms_losses_[Residue::BIon]);
-		parseModelFile("data/PILIS/model_losses_yions.dat", &hmms_losses_[Residue::YIon]);
+		// read the base model (actually directly in the HMM implemented)
+		hmm_.readFromFile(base_filename);
+
+		// read the precursor and loss models
+		parseModelFile(precursor_filename, &hmm_precursor_);
+		parseModelFile(b_loss_filename, &hmms_losses_[Residue::BIon]);
+		parseModelFile(y_loss_filename, &hmms_losses_[Residue::YIon]);
 		
 		return;
 	}
@@ -130,14 +135,19 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::writeToFile(const String& file_name)
+	void PILISModel::writeToFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename)
 	{
+		#ifdef SIM_DEBUG
 		cerr << "writing to file '" << file_name << "'" << endl;
-		hmm_.writeToFile(file_name);
+		#endif
 
-		hmm_precursor_.writeToFile("model_precursor_keller.dat");
-		hmms_losses_[Residue::BIon].writeToFile("model_losses_bions_keller.dat");
-		hmms_losses_[Residue::YIon].writeToFile("model_losses_yions_keller.dat");
+		// write the base model file
+		hmm_.writeToFile(base_filename);
+
+		// write the precursor and loss models
+		hmm_precursor_.writeToFile(precursor_filename);
+		hmms_losses_[Residue::BIon].writeToFile(b_loss_filename);
+		hmms_losses_[Residue::YIon].writeToFile(y_loss_filename);
 		return;
 	}
 
