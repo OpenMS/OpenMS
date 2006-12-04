@@ -684,6 +684,20 @@ namespace OpenMS
 		return t.str();
 	}
 
+		String String::operator+ (const String& s) const
+	{
+		stringstream t;
+		t << *this << s;
+		return t.str();
+	}
+		
+		String String::operator+ (const std::string& s) const
+	{
+		stringstream t;
+		t << *this << s;
+		return t.str();
+	}
+
 } // namespace OpenMS
 
 

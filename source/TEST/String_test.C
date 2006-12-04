@@ -560,6 +560,14 @@ CHECK(String operator+ (const char* s) const)
 	TEST_EQUAL(fixed + "bla4", "testbla4")
 RESULT
 
+CHECK(String operator+ (const String& s) const)
+	TEST_EQUAL(fixed + String("bla4"), "testbla4")
+RESULT
+
+CHECK(String operator+ (const std::string& s) const)
+	TEST_EQUAL(fixed + std::string("bla4"), "testbla4")
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

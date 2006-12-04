@@ -281,6 +281,10 @@ namespace OpenMS
 		String operator+ (char c) const;
 		/// Sum operator for char*
 		String operator+ (const char* s) const;
+		/// Sum operatr for String
+		String operator+ (const String& s) const;
+		/// Sum operator for std::string
+		String operator+ (const std::string& s) const;
 		//@}
 
 
