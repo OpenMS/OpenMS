@@ -25,25 +25,48 @@
 // --------------------------------------------------------------------------
 
 /**
-  @defgroup TOPP TOPP - The OpenMS Proteomics Pipeline
-  
-  @brief TOPP documentation
+  @page TOPP TOPP - The OpenMS Proteomics Pipeline
   
   TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
   
-  The TOPP tools can be found in the <tt>OpenMS/source/APPLICATIONS/TOPP/</tt> directory. 
-  Use the command <tt>'make'</tt> to build the tools after you built OpenMS.
+  Execute 'make TOPP' and 'make TOPPtest' in the 'source' directory to build and test TOPP.
+  The OpenMS library has to be built before TOPP.
  	
- 	All TOPP tools provide the following command line options:
- 	<UL>
- 	  <LI><B>-ini &lt;file&gt;</b>Use the given TOPP INI file
- 	  <LI><B>-log &lt;file&gt;</b> log file (default: TOPP.log)
- 	  <LI><B>-n &lt;int&gt;</b> instance number (default: 1)
- 	  <LI><B>-d &lt;level&gt;</b> debug level (default: 0)
- 	  <LI><B>--help</b> shows help about the usage of the tool
- 		<LI><B>--help-opt</b> shows help about the INI file options of the tool
- 	</UL>
-  
-  @ingroup Applications
+ 	The TOPP tools are devided into several subgroups:
+  - <b>File Handling</b>
+    - \subpage AnalysisXMLMerger
+  	- \subpage DBExporter
+    - \subpage DBImporter
+    - \subpage DTAExtractor
+    - \subpage FeaturePairSplitter
+    - \subpage FileConverter
+    - \subpage FileFilter
+    - \subpage FileInfo
+    - \subpage FileMerger
+  - <b>Signal processing and preprocessing</b>
+    - \subpage BaselineFilter
+    - \subpage NoiseFilter
+    - \subpage PeakPicker
+    - \subpage Resampler
+    - \subpage SpectraFilter
+  - <b>Quantitation</b>
+ 		- \subpage FeatureFinder
+  	- \subpage UnlabeledMatcher 
+ 		- \subpage LabeledMatcher
+  - <b>Identification</b>
+    - \subpage IDFilter
+    - \subpage InspectAdapter
+  	- \subpage MascotAdapter
+    - \subpage SequestAdapter
+ 		- \subpage RTPredict
+ 		- \subpage RTModel    
+  - <b>Map alignment</b>
+    - \subpage MapAlignment
+    - \subpage MapMatcher
+		- \subpage Dewarper
+  - <b>Misc</b>
+   	- \subpage AdditiveSeries
+  	- \subpage MapStatistics
+    - \subpage TOPPView
 */
