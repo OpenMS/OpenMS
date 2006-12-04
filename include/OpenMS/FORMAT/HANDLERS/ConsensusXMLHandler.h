@@ -32,11 +32,14 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
@@ -52,7 +55,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-
     /**
       
       @brief XML Handler for a consensusXML.
@@ -136,6 +138,8 @@ namespace OpenMS
         ///Writes the contents to a stream
         void writeTo(std::ostream& os);
 
+
+
       protected:
         ConsensusMap<ConsensusElementType>* consensus_map_;
         ConsensusElementType* act_cons_element_;
@@ -144,6 +148,7 @@ namespace OpenMS
         const StarAlignment< ConsensusElementType >* calignment_;
         bool consensus_element_range_;
         bool feature_map_flag_;
+        bool consensus_map_flag_;
         typename ConsensusElementType::PositionType pos_;
         typename ConsensusElementType::IntensityType it_;
         typename ConsensusElementType::PositionBoundingBoxType pos_range_;
@@ -175,6 +180,10 @@ namespace OpenMS
         */
         enum MapTypes { TAGMAP, ATTMAP, MAP_NUM };
 
+        /// This function fills the members of a picked peak of type OutputPeakType.
+        template <typename FileHandler>
+        void loadFile_(FileHandler& /* file_handler */, const String& /* file_name */, UnsignedInt /* id */)
+        {}
 
         void writeCellList_(std::ostream& os, const GridType& grid)
         {
@@ -234,12 +243,36 @@ namespace OpenMS
         }
     };
 
+    /// Load the peaks
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > >::loadFile_< DFeatureMapFile >(DFeatureMapFile& feature_file, const String& file_name, UnsignedInt id)
+    {
+      feature_file.load(file_name,(consensus_map_->getMapVector())[id]);
+    }
 
+    // load MzData
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak<> > >::loadFile_<MzDataFile>(MzDataFile& mzdata_file, const String& file_name, UnsignedInt id)
+    {
+      MSExperiment< Peak > ms_exp;
+      mzdata_file.load(file_name,ms_exp);
+      ms_exp.get2DData((consensus_map_->getMapVector())[id]);
+    }
+
+    // load consensusXML
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature<> > > > >::loadFile_<ConsensusXMLFile>(ConsensusXMLFile& cons_file, const String& file_name, UnsignedInt id)
+    {
+      cons_file.load(file_name,(consensus_map_->getMapVector())[id]);
+    }
 
     //--------------------------------------------------------------------------------
 
-    template < typename  ConsensusElementT >
-    void ConsensusXMLHandler<ConsensusElementT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    template < typename  AlignmentT >
+    void ConsensusXMLHandler<AlignmentT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       int tag = leaveTag(qname);
 
@@ -254,8 +287,8 @@ namespace OpenMS
     }
 
 
-    template < typename  ConsensusElementT >
-    void ConsensusXMLHandler<ConsensusElementT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    template < typename  AlignmentT >
+    void ConsensusXMLHandler<AlignmentT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
       int tag = enterTag(qname, attributes);
 
@@ -279,7 +312,15 @@ namespace OpenMS
             if (getAttributeAsString(ID) == "feature_map")
             {
               feature_map_flag_ = true;
+              consensus_map_flag_ = false;
             }
+            else
+              if (getAttributeAsString(ID) == "consensus_map")
+              {
+                consensus_map_flag_ = true;
+                feature_map_flag_ = false;
+              }
+
           }
           break;
           case MAP:
@@ -295,16 +336,21 @@ namespace OpenMS
               if (feature_map_flag_)
               {
                 DFeatureMapFile feature_file;
-                feature_file.load(act_filename,(consensus_map_->getMapVector())[id]);
+                loadFile_(feature_file,act_filename,id);
               }
               // load MzData
               else
-              {
-                MzDataFile mzdata_file;
-                MSExperiment< Peak > ms_exp;
-                mzdata_file.load(act_filename,ms_exp);
-                ms_exp.get2DData((consensus_map_->getMapVector())[id]);
-              }
+                if (consensus_map_flag_)
+                {
+                  ConsensusXMLFile cons_file;
+                  loadFile_(cons_file,act_filename,id);
+                }
+                else
+                {
+                  MzDataFile mzdata_file;
+                  loadFile_(mzdata_file,act_filename,id);
+                }
+
               consensus_map_->getFilenames()[id]=act_filename;
             }
           }
@@ -399,8 +445,8 @@ namespace OpenMS
       }
     }
 
-    template < typename ConsensusElementT >
-    void ConsensusXMLHandler<ConsensusElementT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+    template < typename AlignmentT >
+    void ConsensusXMLHandler<AlignmentT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
     {
       // find the tag that the parser is in right now
       for (Size i=0; i<is_parser_in_tag_.size(); i++)
@@ -414,15 +460,15 @@ namespace OpenMS
     }
 
 
-    template < typename  ConsensusElementT  >
-    void ConsensusXMLHandler<ConsensusElementT>::writeTo(std::ostream& os)
+    template < typename  AlignmentT  >
+    void ConsensusXMLHandler<AlignmentT>::writeTo(std::ostream& os)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
       << "<consensusXML>\n";
 
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();
-      os << "\t<mapList count=\"" << map_vector.size() << "\"/>\n";
+      os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
       os << "\t<map_type name=\"" << calignment_->getMapType() << "\"/>\n";
 
       // write aligned maps (mapList)

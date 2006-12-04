@@ -51,8 +51,9 @@ namespace OpenMS
         @name Type definitions
       */
       //@{
-      typedef DFeature<2,KernelTraits> ElementType;
+      typedef DFeature< 2, KernelTraits > BaseElementType;
       typedef ContainerT ElementContainerType;
+      typedef typename ElementContainerType::value_type ElementType;
       typedef Group< ElementContainerType > Group;
 
       typedef typename ElementType::TraitsType TraitsType;
@@ -69,7 +70,7 @@ namespace OpenMS
       //@{
       /// Default constructor
       ConsensusFeature()
-          : ElementType(),
+          : BaseElementType(),
           Group(),
           position_range_(),
           intensity_range_()
@@ -77,7 +78,7 @@ namespace OpenMS
 
       ///
       ConsensusFeature(const PositionType& pos, const IntensityType& i)
-          : ElementType(),
+          : BaseElementType(),
           Group(),
           position_range_(),
           intensity_range_()
@@ -148,7 +149,7 @@ namespace OpenMS
 
       /// Copy constructor
       inline ConsensusFeature(const ConsensusFeature& source)
-          : ElementType(source),
+          : BaseElementType(source),
           Group(source),
           position_range_(source.position_range_),
           intensity_range_(source.intensity_range_)
@@ -161,7 +162,7 @@ namespace OpenMS
           return *this;
 
         Group::operator=(source);
-        ElementType::operator=(source);
+        BaseElementType::operator=(source);
         position_range_=source.position_range_;
         intensity_range_=source.intensity_range_;
 

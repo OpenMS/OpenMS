@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFileDefinition.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -43,6 +44,8 @@ typedef DFeatureMap< 2, Feature > FeatureMapType;
 typedef DPeakArray< 2, Peak2D > PeakArrayType;
 typedef ConsensusFeature< FeatureMapType > ConsensusFeatureType;
 typedef ConsensusPeak< PeakArrayType > ConsensusPeakType;
+typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
+
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -158,49 +161,83 @@ class TOPPMapAlignment
         cons_file.store(out,alignment);
       }
       // peak maps
-//       else
-//       {
-//         StarAlignment< ConsensusPeakType > alignment;
-//         alignment.setParam(mapali_param);
-//         MzDataFile mzdata_file;
-//         std::vector< String > file_names;
-//         // Vector for the feature maps
-//         std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));
-// 
-//         // Reference to the map vector of the alignment object
-//         std::vector< PeakArrayType* >& map_vector = alignment.getElementMapVector();
-//         unsigned int i=0;
-//         while (pit != files_param.end())
-//         {
-//           file_names.push_back(pit->second);
-//           // load the feature file into a feature_maps
-//           PeakMap ms_exp;
-//           mzdata_file.load(pit->second, ms_exp);
-//           ms_exp.get2DData(peak_maps[i]);
-//           map_vector.push_back(&(peak_maps[i]));
-//           pit++;
-//           ++i;
-//         }
-//         alignment.setFileNames(file_names);
-//         //-------------------------------------------------------------
-//         // align
-//         //-------------------------------------------------------------
-//         alignment.run();
-//         //-------------------------------------------------------------
-//         // writing output
-//         //-------------------------------------------------------------
-//         ConsensusXMLFile cons_file;
-//         cons_file.store(out,alignment);
+      else
+        if (map_type == "peak_map")
+        {
+          StarAlignment< ConsensusPeakType > alignment;
+          alignment.setParam(mapali_param);
+          MzDataFile mzdata_file;
+          std::vector< String > file_names;
+          // Vector for the feature maps
+          std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));
 
-        return EXECUTION_OK;
-      }
-    };
+          // Reference to the map vector of the alignment object
+          std::vector< PeakArrayType* >& map_vector = alignment.getElementMapVector();
+          unsigned int i=0;
+          while (pit != files_param.end())
+          {
+            file_names.push_back(pit->second);
+            // load the feature file into a feature_maps
+            PeakMap ms_exp;
+            mzdata_file.load(pit->second, ms_exp);
+            ms_exp.get2DData(peak_maps[i]);
+            map_vector.push_back(&(peak_maps[i]));
+            pit++;
+            ++i;
+          }
+          alignment.setFileNames(file_names);
+          //-------------------------------------------------------------
+          // align
+          //-------------------------------------------------------------
+          alignment.run();
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          ConsensusXMLFile cons_file;
+          cons_file.store(out,alignment);
+        }
+        else if (map_type == "consensus_map")
+        {
+          StarAlignment< ConsensusFeature< ConsensusMapType > > alignment;
+          alignment.setParam(mapali_param);
+          
+          ConsensusXMLFile cons_file;
+          std::vector< String > file_names;
+          // Vector for the feature maps
+          std::vector< ConsensusMapType > cons_maps(distance(pit,files_param.end()));
 
+          // Reference to the map vector of the alignment object
+          std::vector< ConsensusMapType* >& map_vector = alignment.getElementMapVector();
+          unsigned int i=0;
+          while (pit != files_param.end())
+          {
+            file_names.push_back(pit->second);
+            // load the feature file into a feature_map
+            cons_file.load(pit->second, cons_maps[i]);
+            map_vector.push_back(&(cons_maps[i]));
+            pit++;
+            ++i;
+          }
+          alignment.setFileNames(file_names);
+          //-------------------------------------------------------------
+          // align
+          //-------------------------------------------------------------
+          alignment.run();
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          cons_file.store(out,alignment);
+        }
 
-    int main( int argc, char ** argv )
-    {
-      TOPPMapAlignment tool;
-      return tool.main(argc,argv);
+      return EXECUTION_OK;
     }
+};
 
-    /// @endcond
+
+int main( int argc, char ** argv )
+{
+  TOPPMapAlignment tool;
+  return tool.main(argc,argv);
+}
+
+/// @endcond

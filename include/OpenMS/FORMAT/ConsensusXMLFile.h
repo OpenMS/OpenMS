@@ -28,7 +28,8 @@
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
-#include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 namespace OpenMS
 {
@@ -51,12 +52,7 @@ namespace OpenMS
           @p 
          */
       template <typename ElementT>
-      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError)
-      {
-        map = ConsensusMap<ElementT>();  // clear map
-        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename);
-        parse_(filename, &handler);
-      }
+      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError);
 
       /**
         @brief Stores a staralignment object into consensusXML format.
@@ -64,14 +60,9 @@ namespace OpenMS
         @p 
       */
       template <typename AlignmentT>
-      void store(const String& filename, const AlignmentT& alignment)
-      const throw (Exception::UnableToCreateFile)
-      {
-        Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
-        save_(filename, &handler);
-      }
-  };
+      void store(const String& filename, const AlignmentT& alignment) const throw (Exception::UnableToCreateFile);
 
+  };
 } // namespace OpenMS
 
 #endif // OPENMS_FOMAT_MZXMLFILE_H
