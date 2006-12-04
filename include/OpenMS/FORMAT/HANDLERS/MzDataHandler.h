@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
@@ -109,6 +110,8 @@ namespace OpenMS
 
   		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
+			
+			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 
 		 protected:
 			/// map pointer for reading
@@ -166,6 +169,8 @@ namespace OpenMS
 			typedef typename MapType::SpectrumType SpectrumType;
 			typedef typename MapType::PeakType PeakType;
 
+			PeakFileOptions options_;
+		
 			/**@name temporary datastructures to hold parsed data */
 			//@{
 				
@@ -288,6 +293,8 @@ namespace OpenMS
 							}
 							break;
 						case DATA:
+							if (options_.getMetadataOnly()) break;
+							
 							data_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
 							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
 							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
@@ -453,6 +460,8 @@ namespace OpenMS
 					meta_id_ = getAttributeAsString(SUP_DATA_ARRAY_REF);
 					break;
 				case DATA:
+					if (options_.getMetadataOnly()) break;
+					
 					// store precision for later
 					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString(ATT_PRECISION)));
 					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString(ATT_ENDIAN)));

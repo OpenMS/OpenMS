@@ -29,6 +29,7 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -101,6 +102,8 @@ namespace OpenMS
 
   		///Write the contents to a stream
 			void writeTo(std::ostream& os);
+			
+			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 
     protected:
 		/// map pointer for reading
@@ -155,6 +158,8 @@ namespace OpenMS
 		typedef typename SpectrumType::Iterator  PeakIterator;
 		typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
 
+		PeakFileOptions options_;
+		
 		/**@name temporary datastructures to hold parsed data */
     //@{
    		PeakIterator peak_;
@@ -222,7 +227,7 @@ namespace OpenMS
   {
   	//std::cout << " -- Chars -- "<< xercesc::XMLString::transcode(chars) << " -- " << std::endl;
   		
-		if(is_parser_in_tag_[PEAKS])
+		if(is_parser_in_tag_[PEAKS] && !options_.getMetadataOnly())
 		{
 			//chars may be split to several chunks => concatenate them
 			char_rest_ += xercesc::XMLString::transcode(chars);
@@ -233,7 +238,7 @@ namespace OpenMS
 		{
 			
 		}
-		else if (	is_parser_in_tag_[PRECURSORMZ])
+		else if (	is_parser_in_tag_[PRECURSORMZ] && !options_.getMetadataOnly())
 		{
 			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
 		}
@@ -247,7 +252,7 @@ namespace OpenMS
 			{
 				setAddInfo(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
 			}
-			else if (is_parser_in_tag_[SCAN])
+			else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly())
 			{
 				spec_->setComment( xercesc::XMLString::transcode(chars) );
 			}
@@ -284,10 +289,13 @@ namespace OpenMS
 		switch(tag)
 		{
 			case MSRUN:
-				tmp_str = getAttributeAsString(SCANCOUNT);
-				if (tmp_str!="") // optional attribute
-				{  
-					exp_->reserve( asUnsignedInt_(tmp_str) );
+				if (options_.getMetadataOnly())
+				{
+					tmp_str = getAttributeAsString(SCANCOUNT);
+					if (tmp_str!="") // optional attribute
+					{  
+						exp_->reserve( asUnsignedInt_(tmp_str) );
+					}
 				}
 				
 				// fall through?
@@ -463,6 +471,8 @@ namespace OpenMS
 				break;
 			case PRECURSORMZ:
 				{
+					if (options_.getMetadataOnly()) break;
+					
 					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
 					tmp_str = getAttributeAsString(PRECURSOR_INTENSITY);
@@ -533,6 +543,8 @@ namespace OpenMS
 				break;
 			case SCAN:
 				{
+					if (options_.getMetadataOnly()) break;
+					
 					tmp_str = getAttributeAsString(NUM);
 					if (tmp_str == "")
 					{
@@ -885,7 +897,7 @@ namespace OpenMS
 					{
 						setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
 					}
-					else if (is_parser_in_tag_[SCAN])
+					else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly())
 					{
 						setAddInfo(	*spec_, name, value, "Instrument.Comment");
 					}
@@ -936,7 +948,7 @@ namespace OpenMS
 		if (tag==PEAKS)
 		{
 			//std::cout << "reading scan" << std::endl;
-			if (char_rest_=="") // no peaks
+			if (char_rest_=="" || options_.getMetadataOnly()) // no peaks
 			{
 				return;
 			}

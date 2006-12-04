@@ -318,6 +318,89 @@ CHECK([EXTRA] load with optional attributes)
 	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
 RESULT
 
+CHECK([EXTRA] load with metadata only flag)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzXMLFile mzxml;
+	mzxml.getOptions().setMetadataOnly(true);
+
+	// real test
+	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+
+	//---------------------------------------------------------------------------
+  // const SourceFile& getSourceFile() const;
+  //---------------------------------------------------------------------------
+  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
+  TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
+  TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
+
+	//---------------------------------------------------------------------------
+  // const Software& getSoftware() const;
+  //---------------------------------------------------------------------------
+  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
+  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
+  TEST_EQUAL(e.getSoftware().getComment(), "conversion");
+
+	//---------------------------------------------------------------------------
+  // const ProcessingMethod& getProcessingMethod() const;
+  //---------------------------------------------------------------------------
+	TEST_EQUAL(e.getProcessingMethod().getMetaValue("processing 1#type 1"), "done 1")
+	TEST_EQUAL(e.getProcessingMethod().getMetaValue("processing 2#type 2"), "done 2")
+	TEST_EQUAL(e.getProcessingMethod().getMetaValue("#Comment"), "Software Comment")
+
+	//---------------------------------------------------------------------------
+  // const Instrument& getInstrument() const;
+  //---------------------------------------------------------------------------
+	const Instrument& inst = e.getInstrument();
+	TEST_EQUAL(inst.getVendor(), "MS-Vendor")
+	TEST_EQUAL(inst.getModel(), "MS 1")
+	TEST_EQUAL(inst.getMetaValue("URL1"), "www.open-ms.de")
+	TEST_EQUAL(inst.getMetaValue("URL2"), "www.uni-tuebingen.de")
+	TEST_EQUAL(inst.getMetaValue("#Comment"), "Instrument Comment")
+	TEST_EQUAL(inst.getIonSource().getIonizationMethod(), IonSource::ESI)
+	TEST_EQUAL(inst.getIonDetector().getType(), IonDetector::FARADAYCUP)
+	// UNSET:
+  TEST_EQUAL(inst.getName(), "")
+	TEST_EQUAL(inst.getCustomizations(), "")
+	TEST_EQUAL(inst.getIonDetector().getResolution(), 0.0f)
+	TEST_EQUAL(inst.getIonDetector().getADCSamplingFrequency(), 0.0f)
+	TEST_EQUAL(inst.getIonSource().getInletType(), IonSource::INLETNULL)
+	TEST_EQUAL(inst.getIonDetector().getAcquisitionMode(), IonDetector::ACQMODENULL)
+	TEST_EQUAL(inst.getIonSource().getPolarity(), IonSource::POLNULL)
+
+	TEST_EQUAL(inst.getMassAnalyzers().size(), 1)
+  ABORT_IF(inst.getMassAnalyzers().size()!=1);
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::PAULIONTRAP)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::FWHM)
+	// UNSET:
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::RESTYPENULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanFunction(), MassAnalyzer::SCANFCTNULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::SCANDIRNULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::SCANLAWNULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getTandemScanMethod(), MassAnalyzer::TANDEMNULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::REFLSTATENULL)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getResolution(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getAccuracy(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanRate(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanTime(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getTOFTotalPathLength(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getIsolationWidth(), 0.0f)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getFinalMSExponent(), 0)
+	TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0.0f)
+
+  //---------------------------------------------------------------------------
+	// const Sample& getSample()
+  //---------------------------------------------------------------------------
+	// UNSET:
+	TEST_EQUAL(e.getSample().getName(), "")
+	TEST_EQUAL(e.getSample().getNumber(), "")
+	TEST_EQUAL(e.getSample().getState(), Sample::SAMPLENULL)
+ 	TEST_EQUAL(e.getSample().getMass(), 0.0f)
+	TEST_EQUAL(e.getSample().getVolume(), 0.0f)
+	TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
+RESULT
+
 CHECK([EXTRA] load/store for nested scans)
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);

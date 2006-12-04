@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_MZXMLFILE_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
 namespace OpenMS
@@ -48,6 +49,7 @@ namespace OpenMS
 			///Destructor
 			~MzXMLFile();
 
+			PeakFileOptions& getOptions() { return options_; }
 
 			/**
 				@brief Loads a map from a MzXML file.
@@ -60,6 +62,7 @@ namespace OpenMS
 				map.reset();
 				
 				Internal::MzXMLHandler<MapType> handler(map,filename);
+				handler.setOptions(options_);
 				parse_(filename, &handler);
 			}
 
@@ -75,6 +78,9 @@ namespace OpenMS
 				Internal::MzXMLHandler<MapType> handler(map,filename);
 				save_(filename, &handler);
 			}
+		
+		private:
+			PeakFileOptions options_;
 	};
 } // namespace OpenMS
 
