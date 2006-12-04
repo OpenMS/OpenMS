@@ -284,7 +284,7 @@ public:
     UnsignedInt getNextRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
         if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
 
         const PeakType p  = map_.getPeak(index);
 
@@ -301,21 +301,21 @@ public:
 				UnsignedInt peak_index = piter.getPeakNumber();
 				
         if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
 
         return peak_index;
     }
 
     /** @brief get index of next peak in retiontion time dimension.
 
-    \param index of the peak whose predecessor is requested
-    \return index of the previous peak
+    		\param index of the peak whose predecessor is requested
+    		\return index of the previous peak
     */
     UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
         if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.size());
-
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
+				
         const PeakType p = getPeak(index);
         MapType::PIterator piter;
         try
@@ -330,7 +330,7 @@ public:
         UnsignedInt peak_index = piter.getPeakNumber();
 				
         if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.size());
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
 
         return peak_index;
     }

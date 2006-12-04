@@ -25,10 +25,10 @@
 			<position dim="0">1245.38</position>
 			<position dim="1">689.965</position>
 			<intensity>2.51367e+06</intensity>
-			<quality dim="0">0.869906</quality>
-			<quality dim="1">0.830071</quality>
-			<meta>Feature #0, +2, 48->48, Corr: (0.9610233905,0.8699062701,0.8300711255)</meta>
-			<overallquality>0.961023</overallquality>
+			<quality dim="0">0.366159</quality>
+			<quality dim="1">0.221314</quality>
+			<meta>Feature #0, +2, 48->48, Corr: (0.918768,0.366159,0.221314)</meta>
+			<overallquality>0.918768</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
@@ -59,7 +59,7 @@
 				<param name="RT:statistics:mean" value="1245.38"></param>
 				<param name="RT:statistics:variance" value="1.36017"></param>
 				<param name="cutoff" value="3378.69"></param>
-				<param name="intensity_scaling" value="0.176346"></param>
+				<param name="intensity_scaling" value="0.176345"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>
@@ -96,10 +96,10 @@
 			<position dim="0">1246.54</position>
 			<position dim="1">675.99</position>
 			<intensity>221571</intensity>
-			<quality dim="0">0.74659</quality>
-			<quality dim="1">0.746812</quality>
-			<meta>Feature #1, +2, 57->49, Corr: (0.9233098271,0.7465901067,0.7468121035)</meta>
-			<overallquality>0.92331</overallquality>
+			<quality dim="0">0.166551</quality>
+			<quality dim="1">0.147712</quality>
+			<meta>Feature #1, +2, 57->49, Corr: (0.855176,0.166551,0.147712)</meta>
+			<overallquality>0.855176</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="MZ" value="IsotopeModel"></param>
