@@ -105,14 +105,15 @@ public:
 
         // compute the number of data points of the structuring element given the spacing of the raw data
         // and the size (in Th) of the structuring element
-        float spacing= ((last-1)->getPos() - first->getPos())/ (distance(first,last)+1);
-        int struc_elem_number_of_points = (int) ceil(struc_size_ / spacing + 1);
+        float spacing= ((last-1)->getPos() - first->getPos()) / (distance(first,last)-1);
+        int struc_elem_number_of_points = (int) round(struc_size_ / spacing );
 
         // the number has to be odd
         if (!isOdd(struc_elem_number_of_points))
         {
             struc_elem_number_of_points += 1;
         }
+//         std::cout << "struc_size_ " << struc_size_ <<  " spacing " << spacing << " struc_elem_number_of_points " << struc_elem_number_of_points << std::endl;
 
         std::vector<PeakType> erosion_result;
         // compute the erosion of raw data

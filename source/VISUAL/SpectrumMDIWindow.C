@@ -1562,7 +1562,7 @@ namespace OpenMS
     BaselineFilteringDialog dialog(this,"Open Smoothing Dialog");
     if (dialog.exec())
     {
-      // 1D smoothing
+      // 1D baseline filtering
       Spectrum1DWindow* w = active1DWindow_();
       if (w!=0)
       {
@@ -1580,7 +1580,7 @@ namespace OpenMS
         // add one spectrum
         exp_filtered.resize(1);
 
-        // Resampling before savitzky golay filtering?
+        // Resampling before baseline filtering?
         if (resampling_flag)
         {
           Spectrum1DCanvas::ExperimentType::SpectrumType resampled_spectrum;
@@ -1612,18 +1612,18 @@ namespace OpenMS
 
           bool resampling_flag = dialog.getResampling();
 
-          //add new window for picked peaks
+          //add new window for baseline filtered data
           Spectrum2DWindow* w_tophat = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_tophat->setMainPreferences(prefs_);
-          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (smoothed)";
+          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (filtered)";
 
           Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyDataSet();
           exp_filtered.setName(new_name); // set layername
 
-          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_smoothed";
+          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_filtered";
 
-          // Resampling before savitzky golay filtering?
+          // Resampling before baseline filtering?
           if (resampling_flag)
           {
             Spectrum2DCanvas::ExperimentType resampled_experiment;
