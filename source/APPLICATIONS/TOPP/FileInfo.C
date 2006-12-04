@@ -52,7 +52,6 @@ using namespace std;
 	
 	@todo determine if raw or picked data is contained (Marc)
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

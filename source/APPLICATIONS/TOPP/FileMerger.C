@@ -51,7 +51,6 @@ using namespace std;
 	Alternatively the FileMerger numbers the scans consecutively starting from 1 if the flag '-rt_auto' is given.
 	Or the retention time can be given in the file list if the flag '-rt_file' is given.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

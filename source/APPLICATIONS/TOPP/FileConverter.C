@@ -49,7 +49,6 @@ using namespace std;
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

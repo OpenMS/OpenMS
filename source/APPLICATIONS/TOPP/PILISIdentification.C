@@ -39,8 +39,6 @@ using namespace std;
 	@page PILISIdentification PILISIdentification
 	
 	@brief Performs an identification with PILIS
-	
-	@ingroup TOPP
 */
 
 

@@ -64,9 +64,7 @@ typedef DGrid<2> GridType;
   For more complex situations, an algorithm based
   on pose clustering can be used to estimate
   a transform and to compute feature pairs based
-  on this transform.  
-    
-  @ingroup TOPP
+  on this transform.
 */
 
 // We do not want this class to show up in the docu, thus:

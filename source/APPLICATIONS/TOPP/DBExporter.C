@@ -46,7 +46,6 @@ using namespace std;
 	If only one dataset is exported, it is stored with the given name.
 	If several datasets are exported, the given name is prefixed with the DB id and a underscore.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu -> cond

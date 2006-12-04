@@ -99,7 +99,6 @@ using namespace std;
 	
 	@todo look for possible crash codes of sequest and catching them (Martin)
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu -> cond

@@ -53,7 +53,6 @@ using namespace std;
  	
  	@todo remove vis_all and vis_best as soon as FeaturePair files can be shown in TOPPView (Marc)
  	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

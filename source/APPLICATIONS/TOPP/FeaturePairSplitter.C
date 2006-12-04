@@ -69,7 +69,6 @@ using namespace std;
 	@note All options needed to operate this tool can be given in the command
 	line, so no INI file is needed.
 
-	@ingroup TOPP
 
 */
 

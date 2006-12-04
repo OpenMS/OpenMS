@@ -90,8 +90,6 @@
                                         are not removed from the data however. They can be displayed through the 
                                         'intensity distribution' menu of the context menu.
   </UL>
-
-  @ingroup TOPP
 */
 
 //QT

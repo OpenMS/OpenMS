@@ -26,8 +26,6 @@
 
 /**
 	@mainpage OpenMS
-	@author   Oliver Kohlbacher
-	@author   Knut Reinert
 	
 	@section OpenMS_section OpenMS is a free platform for the analysis of HPLC/MS data.
 	
@@ -42,7 +40,10 @@
 	@section TOPP_section TOPP - The OpenMS proteomics pipeline.
 	
 	Documentation of the TOPP tools can be found \subpage TOPP "here".
-	
+
+	@author   Oliver Kohlbacher
+	@author   Knut Reinert
+
 */
 
 /*	

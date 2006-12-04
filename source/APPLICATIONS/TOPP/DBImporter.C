@@ -41,7 +41,6 @@ using namespace std;
 	
 	Besides the file to import only the connection data has to be given.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu -> cond

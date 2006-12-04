@@ -45,7 +45,6 @@ using namespace std;
 	that are to be merged are given at the '-in' parameter as a comma separated list.
 	The output will be written to the file specified after the '-out' option.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

@@ -104,7 +104,6 @@ using namespace std;
 	
 	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?, catch exceptions to close files (Martin)
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu -> cond

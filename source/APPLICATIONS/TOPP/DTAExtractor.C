@@ -43,7 +43,6 @@ using namespace std;
 	
 	The retention time, the m/z ratio (for MS level > 1) and the file extention are appended to the output file name.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

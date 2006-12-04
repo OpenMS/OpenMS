@@ -70,7 +70,6 @@ using namespace std;
 	the model. Data points with a probability below this cutoff are discarded.</li>
   </ul>
 		
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

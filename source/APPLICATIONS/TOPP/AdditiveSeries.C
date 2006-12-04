@@ -90,7 +90,6 @@ enum DimensionId
 	</li>
 	</ul>
 		
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

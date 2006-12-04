@@ -55,7 +55,6 @@ using namespace std;
 		<LI> BernNorm -- Does the Bern et al. normalization
 	</UL>
 	
-	@ingroup TOPP
 */
 
 

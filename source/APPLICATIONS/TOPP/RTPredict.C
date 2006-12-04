@@ -60,7 +60,6 @@ using namespace std;
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" /> 
 	@endcode inside the peptide entities in the analysisXML output file.
 
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

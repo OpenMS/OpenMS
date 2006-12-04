@@ -45,7 +45,6 @@ using namespace std;
 	and to write all data that lies within the given ranges to an output mzData file. It can also extract spectra
 	of a certain MS level e.g. MS/MS spectra when using level '2'.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

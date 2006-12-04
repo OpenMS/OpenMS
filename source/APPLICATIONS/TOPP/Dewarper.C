@@ -54,7 +54,6 @@ using namespace std;
 	module simply applies this transform to the coordinates
 	of each feature contained in the corresponding grid cells.
 		
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

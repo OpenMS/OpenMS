@@ -124,7 +124,6 @@ using namespace std;
 	The model can be used in RTPredict, to predict retention times 
 	for peptides.
 
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

@@ -61,6 +61,7 @@
     - \subpage SequestAdapter
  		- \subpage RTPredict
  		- \subpage RTModel    
+ 		- \subpage PILISIdentification
   - <b>Map alignment</b>
     - \subpage MapAlignment
     - \subpage MapMatcher

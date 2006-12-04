@@ -68,7 +68,6 @@ using namespace std;
 	give a measure of spread and location and are stored
 	in a XML format for further processing.
 	
-	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:
