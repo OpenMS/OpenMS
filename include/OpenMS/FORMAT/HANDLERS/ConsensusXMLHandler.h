@@ -182,7 +182,7 @@ namespace OpenMS
 
         /// This function fills the members of a picked peak of type OutputPeakType.
         template <typename ConsensusElementT >
-        void loadFile_(const String& /* file_name */, UnsignedInt /* id */, const ConsensusElementT* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+        void loadFile_(const String& /* file_name */, UnsignedInt /* id */, const ConsensusElementT& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
         {}
 
         void writeCellList_(std::ostream& os, const GridType& grid)
@@ -330,7 +330,7 @@ namespace OpenMS
           }
           break;
           case CONSENSUSELEMENT:
-          act_cons_element_ = new ConsensusElementType;
+          act_cons_element_ = ConsensusElementType();
           consensus_element_range_ = true;
           break;
           case CENTROID:
@@ -407,12 +407,12 @@ namespace OpenMS
 
               act_index_tuple.getMapIndex() = map_index;
               act_index_tuple.getElementIndex() = element_index;
-              act_index_tuple.gsetElement(((consensus_map_->getMapVector())[map_index])[element_index]);
-              act_cons_element_->insert(act_index_tuple);
-              act_cons_element_->getPosition() = pos_;
-              act_cons_element_->getPositionRange() = pos_range_;
-              act_cons_element_->getIntensity() = it_;
-              act_cons_element_->getIntensityRange() = it_range_;
+              act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
+              act_cons_element_.insert(act_index_tuple);
+              act_cons_element_.getPosition() = pos_;
+              act_cons_element_.getPositionRange() = pos_range_;
+              act_cons_element_.getIntensity() = it_;
+              act_cons_element_.getIntensityRange() = it_range_;
             }
           }
           break;
