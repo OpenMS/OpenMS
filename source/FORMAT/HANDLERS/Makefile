@@ -40,10 +40,10 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	endif
 endif
 
-ifeq ($(CGAL_SUPPORT),true)
-	CGAL_SOURCES=\
-		ConsensusXMLHandler.C
-endif
+#ifeq ($(CGAL_SUPPORT),true)
+#	CGAL_SOURCES=\
+#		ConsensusXMLHandler.C
+#endif
 
 HANDLER_SOURCES=\
 	XMLHandler.C\

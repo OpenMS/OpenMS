@@ -29,7 +29,7 @@
 
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-
+#include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
 namespace OpenMS
 {
@@ -46,23 +46,35 @@ namespace OpenMS
       ///Destructor
       ~ConsensusXMLFile();
 
-      /**
-          @brief Loads a consenus map from a ConsensusXML file.
 
-          @p 
-         */
+      /**
+      @brief Loads a consenus map from a ConsensusXML file.
+
+      @p 
+      */
       template <typename ElementT>
-      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError);
+      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError)
+      {
+        map = ConsensusMap<ElementT>();  // clear map
+        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename);
+        parse_(filename, &handler);
+      }
 
       /**
-        @brief Stores a staralignment object into consensusXML format.
-
-        @p 
+      @brief Stores a staralignment object into consensusXML format.
+       
+      @p
       */
       template <typename AlignmentT>
-      void store(const String& filename, const AlignmentT& alignment) const throw (Exception::UnableToCreateFile);
-
+      void store(const String& filename, const AlignmentT& alignment)
+      const throw (Exception::UnableToCreateFile)
+      {
+        Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
+        save_(filename, &handler);
+      }
   };
 } // namespace OpenMS
+
+#include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler_loadFile.h>
 
 #endif // OPENMS_FOMAT_MZXMLFILE_H
