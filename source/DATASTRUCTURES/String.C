@@ -517,7 +517,7 @@ namespace OpenMS
 	{
     std::stringstream ss(c_str());
     int ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+c_str()+" to an int"));
+    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+*this+" to an int"));
     return ret;
     // long int strtol(const char *nptr, char **endptr, int base);    
     // return atoi(c_str());
@@ -530,7 +530,7 @@ namespace OpenMS
 	{
     std::stringstream ss(c_str());
     float ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+c_str()+" to a float"));
+    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a float"));
     return ret;    
 		// float strtof(const char *nptr, char **endptr);
 		// return (float)atof(c_str());
@@ -540,7 +540,7 @@ namespace OpenMS
 	{
     std::stringstream ss(c_str());
     double ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+c_str()+" to a double"));
+    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a double"));
     return ret;    
 		// double strtod(const char *nptr, char **endptr);
 		//return atof(c_str());
