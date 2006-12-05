@@ -33,7 +33,7 @@ namespace OpenMS
     /// Load the peaks
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > >::loadFile_< ConsensusFeature<> >(const String& file_name, UnsignedInt id, const ConsensusFeature<>* /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > >::loadFile_< ConsensusFeature<> >(const String& file_name, UnsignedInt id, const ConsensusFeature<>& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
     {
       DFeatureMapFile feature_file;
       feature_file.load(file_name,(consensus_map_->getMapVector())[id]);
@@ -42,7 +42,7 @@ namespace OpenMS
     // load MzData
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusPeak<> > >::loadFile_< ConsensusPeak<> >( const String& file_name, UnsignedInt id, const ConsensusPeak<>* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak<> > >::loadFile_< ConsensusPeak<> >( const String& file_name, UnsignedInt id, const ConsensusPeak<>& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
       MzDataFile mzdata_file;
       MSExperiment< Peak > ms_exp;
@@ -53,7 +53,7 @@ namespace OpenMS
     // load consensusXML
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature<> > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature<> > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature<> > >* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature<> > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature<> > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature<> > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
       ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(((consensus_map_->getMapVector())[id]),file_name);
 
