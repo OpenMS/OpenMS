@@ -75,6 +75,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler_loadFile.h>
-
 #endif // OPENMS_FOMAT_MZXMLFILE_H

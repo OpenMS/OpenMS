@@ -28,6 +28,75 @@
 
 namespace OpenMS
 {
+  namespace Internal
+  {
+    /// Load the peaks
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > >::loadFile_< ConsensusFeature<> >(const String& file_name, UnsignedInt id, const ConsensusFeature<>* /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
+    {
+      DFeatureMapFile feature_file;
+      feature_file.load(file_name,(consensus_map_->getMapVector())[id]);
+    }
+
+    // load MzData
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak<> > >::loadFile_< ConsensusPeak<> >( const String& file_name, UnsignedInt id, const ConsensusPeak<>* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    {
+      MzDataFile mzdata_file;
+      MSExperiment< Peak > ms_exp;
+      mzdata_file.load(file_name,ms_exp);
+      ms_exp.get2DData((consensus_map_->getMapVector())[id]);
+    }
+
+    // load consensusXML
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature<> > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature<> > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature<> > >* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    {
+      ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(((consensus_map_->getMapVector())[id]),file_name);
+
+      //try to open file
+      if (!File::exists(file_name))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_name);
+      }
+
+      // initialize parser
+      try
+      {
+        xercesc::XMLPlatformUtils::Initialize();
+      }
+      catch (const xercesc::XMLException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      }
+
+      xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+
+      parser->setContentHandler(&handler);
+      parser->setErrorHandler(&handler);
+
+      // try to parse file
+      xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(file_name.c_str()) );
+      try
+      {
+        parser->parse(source);
+        delete(parser);
+      }
+      catch (const xercesc::XMLException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      }
+      catch (const xercesc::SAXException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      }
+    }
+  } // namespace Internal
 } // namespace OpenMS
 
 

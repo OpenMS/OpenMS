@@ -32,7 +32,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
@@ -41,11 +40,15 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 #include <xercesc/util/TransService.hpp>
+
+#include <fstream>
 
 // STL includes
 #include <iostream>
@@ -178,8 +181,8 @@ namespace OpenMS
         enum MapTypes { TAGMAP, ATTMAP, MAP_NUM };
 
         /// This function fills the members of a picked peak of type OutputPeakType.
-        template <typename FileHandler>
-        void loadFile_(FileHandler& /* file_handler */, const String& /* file_name */, UnsignedInt /* id */)
+        template <typename ConsensusElementT >
+        void loadFile_(const String& /* file_name */, UnsignedInt /* id */, const ConsensusElementT* /* c */) throw (Exception::FileNotFound, Exception::ParseError)
         {}
 
         void writeCellList_(std::ostream& os, const GridType& grid)
@@ -258,17 +261,164 @@ namespace OpenMS
     
     template < typename AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  {}
+
+    template < typename  AlignmentT >
+    void ConsensusXMLHandler<AlignmentT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      // find the tag that the parser is in right now
-      for (Size i=0; i<is_parser_in_tag_.size(); i++)
+      int tag = enterTag(qname, attributes);
+
+      String tmp_str;
+      // Do something depending on the tag
+      switch(tag)
       {
-        if (is_parser_in_tag_[i])
-        {
-          switch(i)
-          {}
-        }
+          case MAPLIST:
+          tmp_str = getAttributeAsString(COUNT);
+          if (tmp_str != "")
+          {
+            UnsignedInt count = asUnsignedInt_(tmp_str);
+            consensus_map_->getMapVector().resize(count);
+            consensus_map_->getFilenames().resize(count);
+          }
+          break;
+          case MAPTYPE:
+          tmp_str = getAttributeAsString(NAME);
+          if (tmp_str != "")
+          {
+            if (getAttributeAsString(ID) == "feature_map")
+            {
+              feature_map_flag_ = true;
+              consensus_map_flag_ = false;
+            }
+            else
+              if (getAttributeAsString(ID) == "consensus_map")
+              {
+                consensus_map_flag_ = true;
+                feature_map_flag_ = false;
+              }
+
+          }
+          break;
+          case MAP:
+          tmp_str = getAttributeAsString(ID);
+          if (tmp_str != "")
+          {
+            UnsignedInt id = asUnsignedInt_(tmp_str);
+            tmp_str = getAttributeAsString(NAME);
+            if (tmp_str != "")
+            {
+              String act_filename = tmp_str;
+              // load FeatureMapXML
+              if (feature_map_flag_)
+              {
+                loadFile_(act_filename,id,act_cons_element_);
+              }
+              // load MzData
+              else
+              {
+                if (consensus_map_flag_)
+                {
+                  loadFile_(act_filename,id,act_cons_element_);
+                }
+                else
+                {
+                  loadFile_(act_filename,id,act_cons_element_);
+                }
+              }
+              consensus_map_->getFilenames()[id]=act_filename;
+            }
+          }
+          break;
+          case CONSENSUSELEMENT:
+          act_cons_element_ = new ConsensusElementType;
+          consensus_element_range_ = true;
+          break;
+          case CENTROID:
+          tmp_str = getAttributeAsString(RT_ATT);
+          if (tmp_str != "")
+          {
+            pos_[RT] = asDouble_(tmp_str);
+          }
+
+          tmp_str = getAttributeAsString(MZ_ATT);
+          if (tmp_str != "")
+          {
+            pos_[MZ] = asDouble_(tmp_str);
+          }
+
+          tmp_str = getAttributeAsString(IT);
+          if (tmp_str != "")
+          {
+            it_ = asDouble_(tmp_str);
+          }
+          break;
+          case RANGE:
+          if (consensus_element_range_)
+          {
+            tmp_str = getAttributeAsString(RTMIN);
+            if (tmp_str != "")
+            {
+              pos_range_.setMinX(asDouble_(tmp_str));
+
+              tmp_str = getAttributeAsString(RTMAX);
+              if (tmp_str != "")
+              {
+                pos_range_.setMaxX(asDouble_(tmp_str));
+
+                tmp_str = getAttributeAsString(MZMIN);
+                if (tmp_str != "")
+                {
+                  pos_range_.setMinY(asDouble_(tmp_str));
+
+                  tmp_str = getAttributeAsString(MZMAX);
+                  if (tmp_str != "")
+                  {
+                    pos_range_.setMaxY(asDouble_(tmp_str));
+
+                    tmp_str = getAttributeAsString(ITMIN);
+                    if (tmp_str != "")
+                    {
+                      it_range_.setMin(asDouble_(tmp_str));
+
+                      tmp_str = getAttributeAsString(ITMAX);
+                      if (tmp_str != "")
+                      {
+                        it_range_.setMax(asDouble_(tmp_str));
+
+                        consensus_element_range_ = false;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          break;
+          case ELEMENT:
+          act_index_tuple_ = new IndexTuple< ElementContainerType >;
+          tmp_str = getAttributeAsString(MAP_ATT);
+          if (tmp_str != "")
+          {
+            UnsignedInt map_index = asUnsignedInt_(tmp_str);
+            tmp_str = getAttributeAsString(ID);
+            if (tmp_str != "")
+            {
+              UnsignedInt element_index = asUnsignedInt_(tmp_str);
+
+              act_index_tuple_->getMapIndex() = map_index;
+              act_index_tuple_->getElementIndex() = element_index;
+              act_index_tuple_->setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
+              act_cons_element_->insert(*act_index_tuple_);
+              act_cons_element_->getPosition() = pos_;
+              act_cons_element_->getPositionRange() = pos_range_;
+              act_cons_element_->getIntensity() = it_;
+              act_cons_element_->getIntensityRange() = it_range_;
+            }
+          }
+          break;
       }
     }
+
 
 
     template < typename  AlignmentT  >
@@ -347,8 +497,6 @@ namespace OpenMS
       os << "\t</consensusElementList>\n";
       os << "</consensusXML>"<< std::endl;
     }
-
-
   } // namespace Internal
 } // namespace OpenMS
 

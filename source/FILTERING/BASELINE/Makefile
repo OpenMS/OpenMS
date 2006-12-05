@@ -38,5 +38,3 @@ CPP_SOURCES=\
 include ../../common.mak
 -include .Dependencies
 
-filter: filter.C 
-	${CXX} -g $(LDFLAGS) $(GUI_INCLUDES) filter.C $(GUI_LIBS) -o filter
