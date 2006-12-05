@@ -38,7 +38,8 @@ namespace OpenMS
 		MetaInfoInterface(),
 		activation_method_(ACTMETHNULL),
 		activation_energy_(0.0),
-		activation_energy_unit_(UNITSNULL)
+		activation_energy_unit_(UNITSNULL),
+		window_size_(0.0)
 	{
 		
 	}
@@ -47,7 +48,8 @@ namespace OpenMS
 		MetaInfoInterface(source),
 	  activation_method_(source.activation_method_),
 	  activation_energy_(source.activation_energy_),
-	  activation_energy_unit_(source.activation_energy_unit_)
+	  activation_energy_unit_(source.activation_energy_unit_),
+	  window_size_(source.window_size_)
 	{
 	  
 	}
@@ -65,6 +67,7 @@ namespace OpenMS
 	  activation_method_ = source.activation_method_;
 	  activation_energy_ = source.activation_energy_;
 	  activation_energy_unit_ = source.activation_energy_unit_;
+	  window_size_ = source.window_size_;
 
 	  return *this;
 	}
@@ -75,6 +78,7 @@ namespace OpenMS
 	    activation_method_ == rhs.activation_method_ &&
 	    activation_energy_ == rhs.activation_energy_ &&
 	    activation_energy_unit_ == rhs.activation_energy_unit_ &&
+	    window_size_ == rhs.window_size_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -112,6 +116,16 @@ namespace OpenMS
 	void Precursor::setActivationEnergyUnit(Precursor::EnergyUnits activation_energy_unit)
 	{
 	  activation_energy_unit_ = activation_energy_unit; 
+	}
+	
+	float Precursor::getWindowSize() const
+	{
+		return window_size_;
+	}
+	
+	void Precursor::setWindowSize(float size)
+	{
+		window_size_ = size;
 	}
 
 }

@@ -81,17 +81,30 @@ CHECK(void setDeisotoping(bool deisotoping))
   TEST_EQUAL(tmp.getDeisotoping(),true);  
 RESULT
 
+CHECK(float getIntensityCutoff() const)
+  ProcessingMethod tmp;
+  TEST_REAL_EQUAL(tmp.getIntensityCutoff(), 0);
+RESULT
+
+CHECK(void setIntensityCutoff(float cutoff))
+  ProcessingMethod tmp;
+  tmp.setIntensityCutoff(22.6);
+  TEST_REAL_EQUAL(tmp.getIntensityCutoff(), 22.6);
+RESULT
+
 CHECK(ProcessingMethod& operator= (const ProcessingMethod& source))
   ProcessingMethod tmp;
   tmp.setChargeDeconvolution(true);
   tmp.setDeisotoping(true);
   tmp.setSpectrumType(SpectrumSettings::PEAKS);
+  tmp.setIntensityCutoff(3.4);
   tmp.setMetaValue("label",String("label"));
   
   ProcessingMethod tmp2(tmp);
   TEST_EQUAL(tmp2.getChargeDeconvolution(),true);
   TEST_EQUAL(tmp2.getDeisotoping(),true);
   TEST_EQUAL(tmp2.getSpectrumType(),SpectrumSettings::PEAKS);
+  TEST_REAL_EQUAL(tmp2.getIntensityCutoff(), 3.4);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 RESULT
 
@@ -100,6 +113,7 @@ CHECK(ProcessingMethod(const ProcessingMethod& source))
   tmp.setChargeDeconvolution(true);
   tmp.setDeisotoping(true);
   tmp.setSpectrumType(SpectrumSettings::PEAKS);
+  tmp.setIntensityCutoff(2.8);
   tmp.setMetaValue("label",String("label"));
   
   ProcessingMethod tmp2;
@@ -107,12 +121,14 @@ CHECK(ProcessingMethod(const ProcessingMethod& source))
   TEST_EQUAL(tmp2.getChargeDeconvolution(),true);
   TEST_EQUAL(tmp2.getDeisotoping(),true);
   TEST_EQUAL(tmp2.getSpectrumType(),SpectrumSettings::PEAKS);
+  TEST_REAL_EQUAL(tmp2.getIntensityCutoff(), 2.8);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   
   tmp2 = ProcessingMethod();
   TEST_EQUAL(tmp2.getChargeDeconvolution(),false);
   TEST_EQUAL(tmp2.getDeisotoping(),false);
   TEST_EQUAL(tmp2.getSpectrumType(),SpectrumSettings::UNKNOWN);
+  TEST_REAL_EQUAL(tmp2.getIntensityCutoff(), 0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 RESULT
 
@@ -130,6 +146,10 @@ CHECK(bool operator== (const ProcessingMethod& rhs) const)
   
   edit = empty;
   edit.setSpectrumType(SpectrumSettings::PEAKS);
+  TEST_EQUAL(edit==empty, false);
+  
+  edit = empty;
+  edit.setIntensityCutoff(99.24);
   TEST_EQUAL(edit==empty, false);
   
   edit = empty;
@@ -151,6 +171,10 @@ CHECK(bool operator!= (const ProcessingMethod& rhs) const)
   
   edit = empty;
   edit.setSpectrumType(SpectrumSettings::PEAKS);
+  TEST_EQUAL(edit!=empty, true);
+  
+  edit = empty;
+  edit.setIntensityCutoff(99.24);
   TEST_EQUAL(edit!=empty, true);
   
   edit = empty;

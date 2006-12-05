@@ -71,11 +71,17 @@ namespace OpenMS
       SpectrumSettings::SpectrumType getSpectrumType() const;
       /// sets the peak type
       void setSpectrumType(SpectrumSettings::SpectrumType method);
+      
+      /// returns the intensity cutoff
+      float getIntensityCutoff() const;
+      /// sets the intensity cutoff
+      void setIntensityCutoff(float cutoff);
 
     protected:
       bool deisotoping_;
       bool charge_deconvolution_;
       SpectrumSettings::SpectrumType method_;
+      float intensity_cutoff_;
   };
 } // namespace OpenMS
 

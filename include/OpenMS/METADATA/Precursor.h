@@ -80,11 +80,17 @@ namespace OpenMS
       EnergyUnits getActivationEnergyUnit() const;
       /// sets the activation energy unit
       void setActivationEnergyUnit(EnergyUnits activation_energy_unit);
+      
+      /// returns the window size
+      float getWindowSize() const;
+      /// sets the window size
+      void setWindowSize(float size);
  
     protected:
       ActivationMethod activation_method_;
       float activation_energy_;
       EnergyUnits activation_energy_unit_;
+      float window_size_;
   };
 } // namespace OpenMS
 

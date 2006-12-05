@@ -268,13 +268,6 @@ namespace OpenMS
 
 	/**
 		@brief MzXML parsing routine. Source: http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/Doc/mzXML_2.1_tutorial.pdf
-	 
-		@todo implement section 4.4 and 4.5 of MzXML spec. (Thomas K.)
-		@todo parentFile - add required attribute "fileSha1" to DB / SourceFile class (Thomas K.)
-		@todo dataProcessing - add support for optional attribute "intensityCutOff" to DB / ProcessingMethod class (Thomas K.)
-		@todo scan - add support for a bunch of optional attributes (see comment in MsXMLHandler.h, function "startElement", case SCAN:) to DB / datastructures (Thomas K.)
-		@todo scanOrigin - add support for "parentFileID" and "num" attributes to DB / datastructures (Thomas K.)
-		@todo precursorMZ - add support for "windowWideness" attributes to DB / datastructures (Thomas K.)
 	 */
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
@@ -344,7 +337,7 @@ namespace OpenMS
 				tmp_str = getAttributeAsString(FILESHA1);
 				if (tmp_str != "") // required attribute
 				{
-					// TODO: fileSha1 attribute
+					exp_->getSourceFile().setSha1(tmp_str);
 				}
 				else
 				{
@@ -488,13 +481,13 @@ namespace OpenMS
 					tmp_str = getAttributeAsString(PRECURSOR_SCANNUM);
 					if (tmp_str != "") // optional attribute
 					{
-						// TODO
+						// ignore
 					}
 					
 					tmp_str = getAttributeAsString(WINDOW_WIDENESS);
 					if (tmp_str != "") // optional attribute
 					{
-						// TODO
+						spec_->getPrecursor().setWindowSize(asDouble_(tmp_str));
 					}
 				}
 				break;
@@ -614,9 +607,12 @@ namespace OpenMS
 							case DECONVOLUTED:
 								exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
 								break;
-							//	case CENTROIDED: case IONENERGY:	case COLLENERGY: 	case PRESSURE: case LOWMZ:
-							//	case HIGHMZ: case BASEPEAKMZ:	case BASEPEAKINT:	case TOTIONCURRENT
-							// still missing: collisionGas, collisionGasPressure
+							case CENTROIDED:
+								if (asBool_(value)) spec_->setType(SpectrumSettings::PEAKS);
+								break;
+							case COLLENERGY:
+								spec_->getPrecursor().setActivationEnergy(asFloat_(value));
+								break;
 							}
 					}
 				}
@@ -625,7 +621,7 @@ namespace OpenMS
 				tmp_str = getAttributeAsString(PARENTFILEID);
 				if (tmp_str != "") // required attribute
 				{
-					// TODO
+					// ignore
 				}
 				else
 				{
@@ -635,7 +631,7 @@ namespace OpenMS
 				tmp_str = getAttributeAsString(NUM);
 				if (tmp_str != "") // required attribute
 				{
-					// TODO
+					// ignore
 				}
 				else
 				{
@@ -870,7 +866,7 @@ namespace OpenMS
 									// TODO
 									break;
 								case INTENSITY_CUTOFF:
-									// TODO
+									exp_->getProcessingMethod().setIntensityCutoff(asDouble_(value));
 									break;
 							}
 					}
@@ -997,7 +993,7 @@ namespace OpenMS
 			 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
 			 << "\t\t<parentFile fileName=\"" << cexp_->getSourceFile().getNameOfFile()
 			 << "\" fileType=\"" << cexp_->getSourceFile().getFileType()
-			 << "\" fileSha1=\"0000000000000000000000000000000000000000\"/>\n";
+			 << "\" fileSha1=\"" << cexp_->getSourceFile().getSha1() << "\"/>\n";
 
 		if (cexp_->getInstrument() != Instrument())
 		{
@@ -1119,6 +1115,8 @@ namespace OpenMS
 			 << cexp_->getProcessingMethod().getChargeDeconvolution()
 			 << "\" centroided=\""
 			 << enum2str_(PEAKPROCMAP,cexp_->getProcessingMethod().getSpectrumType())
+			 << "\" intensityCutoff=\""
+			 << cexp_->getProcessingMethod().getIntensityCutoff()
 			 << "\">\n"
 			 << "\t\t\t<software type=\"" << software.getComment()
 			 << "\" name=\"" << software.getName()

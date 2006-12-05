@@ -69,12 +69,17 @@ namespace OpenMS
       const String& getFileType() const;
      	/// sets the file type
       void setFileType(const String& file_type);
-
+      
+      /// returns the source file's SHA1 hash value
+      const String& getSha1() const;
+      /// sets the source file's SHA1 hash value
+      void setSha1(const String& sha1);
 
     protected:
 			String name_of_file_;
 			String path_to_file_;
 			String file_type_;
+			String sha1_;
   };
 } // namespace OpenMS
 

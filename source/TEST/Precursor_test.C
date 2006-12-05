@@ -81,17 +81,30 @@ CHECK(void setActivationEnergyUnit(EnergyUnits activation_energy_unit))
   TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::EV);
 RESULT
 
+CHECK(float getWindowSize() const)
+  Precursor tmp;
+  TEST_REAL_EQUAL(tmp.getWindowSize(), 0);
+RESULT
+
+CHECK(void setWindowSize(float size))
+  Precursor tmp;
+  tmp.setWindowSize(22.7);
+  TEST_REAL_EQUAL(tmp.getWindowSize(), 22.7);
+RESULT
+
 CHECK(Precursor(const Precursor& source))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
 	tmp.setActivationEnergyUnit(Precursor::EV);
+	tmp.setWindowSize(22.7);
 	tmp.setMetaValue("label",String("label"));
 	
 	Precursor tmp2(tmp);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
+	TEST_REAL_EQUAL(tmp2.getWindowSize(), 22.7);
 	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),47.11);
 RESULT
 
@@ -100,6 +113,7 @@ CHECK(Precursor& operator= (const Precursor& source))
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
 	tmp.setActivationEnergyUnit(Precursor::EV);
+	tmp.setWindowSize(22.7);
 	tmp.setMetaValue("label",String("label"));
 	
 	//normal assignment
@@ -108,6 +122,7 @@ CHECK(Precursor& operator= (const Precursor& source))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
+	TEST_REAL_EQUAL(tmp2.getWindowSize(), 22.7);
 	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),47.11);
 		
 	//assignment of empty object
@@ -115,6 +130,7 @@ CHECK(Precursor& operator= (const Precursor& source))
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::ACTMETHNULL);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::UNITSNULL);
+	TEST_REAL_EQUAL(tmp2.getWindowSize(), 0.0);
 	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),0.0);
 RESULT
 
@@ -132,6 +148,10 @@ CHECK(bool operator== (const Precursor& rhs) const)
 	
 	tmp2 = tmp;
 	tmp.setActivationEnergyUnit(Precursor::EV);
+	TEST_EQUAL(tmp==tmp2, false);
+	
+	tmp2 = tmp;
+	tmp.setWindowSize(22.7);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -153,6 +173,10 @@ CHECK(bool operator!= (const Precursor& rhs) const)
 	
 	tmp2 = tmp;
 	tmp.setActivationEnergyUnit(Precursor::EV);
+	TEST_EQUAL(tmp!=tmp2, true);
+	
+	tmp2 = tmp;
+	tmp.setWindowSize(22.7);
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;

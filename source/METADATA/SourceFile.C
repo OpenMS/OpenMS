@@ -34,7 +34,8 @@ namespace OpenMS
 	SourceFile::SourceFile():
 	  name_of_file_(),
 	  path_to_file_(),
-	  file_type_()
+	  file_type_(),
+	  sha1_()
 	{
 	  
 	}
@@ -42,7 +43,8 @@ namespace OpenMS
 	SourceFile::SourceFile(const SourceFile& source):
 	  name_of_file_(source.name_of_file_),
 	  path_to_file_(source.path_to_file_),
-	  file_type_(source.file_type_)
+	  file_type_(source.file_type_),
+	  sha1_(source.sha1_)
 	{
 	  
 	}
@@ -59,6 +61,7 @@ namespace OpenMS
 	  name_of_file_ = source.name_of_file_;
 	  path_to_file_ = source.path_to_file_;
 	  file_type_ = source.file_type_;
+	  sha1_ = source.sha1_;
 	  
 	  return *this;
 	}
@@ -68,7 +71,8 @@ namespace OpenMS
 		return 
 	    name_of_file_ == rhs.name_of_file_ &&
 	    path_to_file_ == rhs.path_to_file_ &&
-	    file_type_ == rhs.file_type_
+	    file_type_ == rhs.file_type_ &&
+	    sha1_ == rhs.sha1_
 			;
 	}
 	
@@ -105,6 +109,16 @@ namespace OpenMS
 	void SourceFile::setFileType(const String& file_type)
 	{
 	  file_type_ = file_type; 
+	}
+	
+	const String& SourceFile::getSha1() const
+	{
+		return sha1_;
+	}
+	
+	void SourceFile::setSha1(const String& sha1)
+	{
+		sha1_ = sha1;
 	}
 	
 }

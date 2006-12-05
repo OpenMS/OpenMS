@@ -36,7 +36,8 @@ namespace OpenMS
 		MetaInfoInterface(),
 		deisotoping_(false),
 		charge_deconvolution_(false),
-		method_(SpectrumSettings::UNKNOWN)
+		method_(SpectrumSettings::UNKNOWN),
+		intensity_cutoff_(0.0)
 	{
 		
 	}
@@ -45,7 +46,8 @@ namespace OpenMS
 		MetaInfoInterface(source),
 	  deisotoping_(source.deisotoping_),
 	  charge_deconvolution_(source.charge_deconvolution_),
-	  method_(source.method_)
+	  method_(source.method_),
+	  intensity_cutoff_(source.intensity_cutoff_)
 	{
 	  
 	}
@@ -62,6 +64,7 @@ namespace OpenMS
 	  deisotoping_ = source.deisotoping_;
 	  charge_deconvolution_ = source.charge_deconvolution_;
 	  method_ = source.method_;
+	  intensity_cutoff_ = source.intensity_cutoff_;
 	  MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -73,6 +76,7 @@ namespace OpenMS
 			deisotoping_ == rhs.deisotoping_ &&
 	    charge_deconvolution_ == rhs.charge_deconvolution_ &&
 	    method_ == rhs.method_ &&
+	    intensity_cutoff_ == rhs.intensity_cutoff_ &&
 			MetaInfoInterface::operator==(rhs)
 			;
 	}
@@ -112,5 +116,14 @@ namespace OpenMS
 	  method_ = method; 
 	}
 
+	float ProcessingMethod::getIntensityCutoff() const
+	{
+		return intensity_cutoff_;
+	}
+	
+	void ProcessingMethod::setIntensityCutoff(float cutoff)
+	{
+		intensity_cutoff_ = cutoff;
+	}
 }
 

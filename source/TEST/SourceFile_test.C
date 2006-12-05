@@ -81,16 +81,29 @@ CHECK(void setPathToFile(const String& path_path_to_file))
   TEST_EQUAL(tmp.getPathToFile(),"/misc/sturm/mp3/");
 RESULT
 
+CHECK(const String& getSha1() const)
+  SourceFile tmp;
+  TEST_EQUAL(tmp.getSha1(), "");
+RESULT
+
+CHECK(void setSha1(const String& sha1))
+  SourceFile tmp;
+  tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+  TEST_EQUAL(tmp.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+RESULT
+
 CHECK(SourceFile(const SourceFile& source))
 	SourceFile tmp;
 	tmp.setFileType("mp3");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
+	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 	SourceFile tmp2(tmp);
 	TEST_EQUAL(tmp2.getFileType(),"mp3");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
+	TEST_EQUAL(tmp2.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 RESULT
 
 CHECK(SourceFile& operator= (const SourceFile& source))
@@ -98,6 +111,7 @@ CHECK(SourceFile& operator= (const SourceFile& source))
 	tmp.setFileType("mp3");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
+	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 	//normal assignment
 	SourceFile tmp2;
@@ -105,15 +119,17 @@ CHECK(SourceFile& operator= (const SourceFile& source))
 	TEST_EQUAL(tmp2.getFileType(),"mp3");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
+	TEST_EQUAL(tmp2.getSha1(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 	//assignment of empty object
 	tmp2 = SourceFile();
 	TEST_EQUAL(tmp2.getFileType(),"");
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
+	TEST_EQUAL(tmp2.getSha1(),"");
 RESULT
 
-CHECK(bool operator!= (const SourceFile& rhs) const)
+CHECK(bool operator== (const SourceFile& rhs) const)
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -125,12 +141,16 @@ CHECK(bool operator!= (const SourceFile& rhs) const)
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp==tmp2, false);
 	
+	tmp2 = tmp;
+	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	TEST_EQUAL(tmp==tmp2, false);
+	
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	TEST_EQUAL(tmp==tmp2, false);
 RESULT
 
-CHECK(bool operator== (const SourceFile& rhs) const)
+CHECK(bool operator!= (const SourceFile& rhs) const)
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);
@@ -140,6 +160,10 @@ CHECK(bool operator== (const SourceFile& rhs) const)
 	
 	tmp2 = tmp;
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
+	TEST_EQUAL(tmp!=tmp2, true);
+	
+	tmp2 = tmp;
+	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;	

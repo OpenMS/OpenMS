@@ -104,6 +104,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
   TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
   TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
+  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 
 	//---------------------------------------------------------------------------
   // const Software& getSoftware() const;
@@ -316,6 +317,7 @@ CHECK([EXTRA] load with optional attributes)
   TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), true)
 	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), true)
 	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
+	TEST_REAL_EQUAL(e.getProcessingMethod().getIntensityCutoff(), 2);
 RESULT
 
 CHECK([EXTRA] load with metadata only flag)
@@ -334,6 +336,7 @@ CHECK([EXTRA] load with metadata only flag)
   TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
   TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
   TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
+  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 
 	//---------------------------------------------------------------------------
   // const Software& getSoftware() const;
