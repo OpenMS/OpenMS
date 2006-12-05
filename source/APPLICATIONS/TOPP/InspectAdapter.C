@@ -25,13 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/METADATA/ContactPerson.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <stdlib.h>
 #include <vector>

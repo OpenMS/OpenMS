@@ -29,7 +29,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/RangeManager.h>
 

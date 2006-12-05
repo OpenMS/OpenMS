@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
+#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <iostream>
 

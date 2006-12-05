@@ -27,7 +27,6 @@
 #ifndef OPENMS_METADATA_INSTRUMENTSETTINGS_H
 #define OPENMS_METADATA_INSTRUMENTSETTINGS_H
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/IonSource.h>
 

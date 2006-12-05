@@ -29,7 +29,6 @@
 
 #include<OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {	

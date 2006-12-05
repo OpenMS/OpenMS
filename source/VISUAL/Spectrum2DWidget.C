@@ -28,7 +28,6 @@
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
 
 using namespace std;
 

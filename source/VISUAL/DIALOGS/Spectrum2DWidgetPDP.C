@@ -24,8 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-
 //OpenMS
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>

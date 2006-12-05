@@ -26,7 +26,6 @@
 
 
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
 
 #include <sstream>
 

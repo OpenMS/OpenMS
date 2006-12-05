@@ -27,8 +27,6 @@
 #ifndef OPENMS_FILTERING_BASELINE_MORPHFILTER_H
 #define OPENMS_FILTERING_BASELINE_MORPHFILTER_H
 
-#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/Param.h>
 
 #include <iostream>

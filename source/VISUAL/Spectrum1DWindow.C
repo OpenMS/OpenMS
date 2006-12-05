@@ -33,7 +33,6 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DWindow.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 

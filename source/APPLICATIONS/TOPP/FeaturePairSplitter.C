@@ -24,10 +24,8 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 

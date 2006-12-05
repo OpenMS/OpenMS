@@ -30,9 +30,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DMapDewarper.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
+#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #define DEBUG_ALIGNMENT
 #undef DEBUG_ALIGNMENT

@@ -24,14 +24,10 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-
 #include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
-#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 // Qt
 #include <qlayout.h>

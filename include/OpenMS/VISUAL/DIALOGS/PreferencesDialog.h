@@ -35,7 +35,6 @@
 #include <string>
 
 // OpenMS
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/ListStack.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>

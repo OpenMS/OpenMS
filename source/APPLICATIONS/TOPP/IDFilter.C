@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

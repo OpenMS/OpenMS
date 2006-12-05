@@ -26,7 +26,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 
 // all from BaseQuality derived classes
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>

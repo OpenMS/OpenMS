@@ -33,10 +33,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include<OpenMS/SYSTEM/StopWatch.h>
-
-#include<OpenMS/KERNEL/ComparatorUtils.h>
-
 #include <algorithm>
 #include <vector>
 #include <iostream>

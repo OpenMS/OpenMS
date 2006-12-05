@@ -34,9 +34,6 @@
 // STL
 #include <string>
 
-// OpenMS
-#include <OpenMS/CONCEPT/Types.h>
-
 namespace OpenMS
 {
 	class PreferencesManager;

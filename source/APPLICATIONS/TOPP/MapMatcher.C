@@ -26,15 +26,11 @@
 
 #include <OpenMS/FORMAT/Param.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 

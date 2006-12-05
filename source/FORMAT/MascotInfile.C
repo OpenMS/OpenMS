@@ -29,7 +29,6 @@
 
 
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace std;
 

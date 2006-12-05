@@ -27,8 +27,6 @@
 #ifndef OPENMS_VISUAL_COLORSELECTOR_H
 #define OPENMS_VISUAL_COLORSELECTOR_H
 
-#include <OpenMS/CONCEPT/Types.h>
-
 //QT
 #include <qwidget.h>
 

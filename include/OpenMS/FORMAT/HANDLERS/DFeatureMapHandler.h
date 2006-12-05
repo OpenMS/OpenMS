@@ -28,7 +28,6 @@
 #ifndef OPENMS_FORMAT_HANDLERS_DFEATUREMAPHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_DFEATUREMAPHANDLER_H
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>

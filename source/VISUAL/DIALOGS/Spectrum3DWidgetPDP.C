@@ -24,10 +24,8 @@
 // $Maintainer: Cornelia Friedle$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <qlayout.h>
 #include <qgroupbox.h>
 #include <qcheckbox.h>

@@ -27,7 +27,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/DistanceAnalyzer.h>
 #include <OpenMS/MATH/STATISTICS/ROCCurve.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/FORMAT/DBAdapter.h>
 
 #include <cmath>
 #include <cassert>

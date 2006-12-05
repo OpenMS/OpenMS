@@ -26,7 +26,6 @@
 //
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <iostream>

@@ -32,9 +32,9 @@
 #include <iostream>
 
 // OpenMS
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DWindow.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
+#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 

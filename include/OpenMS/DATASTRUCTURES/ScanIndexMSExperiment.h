@@ -33,11 +33,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DimensionDescription.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 namespace OpenMS
 {
 
@@ -123,7 +118,7 @@ namespace OpenMS
        NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw()
        :	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), index_(index)
 			{
-				what_ = "there is no successor/predecessor for the given Index: " + String(index_);
+				what_ = "there is no successor/predecessor for the given Index: " + index_;
 				Exception::globalHandler.setMessage(what_);
 			}
        

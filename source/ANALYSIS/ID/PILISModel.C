@@ -26,10 +26,8 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 
 //#include <iostream>
 #include <cmath>

@@ -30,7 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
-#include <OpenMS/KERNEL/DPosition.h>
 
 //TODO: remove
 #include <iostream>

@@ -27,7 +27,6 @@
 #ifndef OPENMS_METADATA_PRECURSOR_H
 #define OPENMS_METADATA_PRECURSOR_H
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 namespace OpenMS 
 {

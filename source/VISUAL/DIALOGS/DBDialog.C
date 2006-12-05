@@ -25,10 +25,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/VISUAL/DIALOGS/DBDialog.h>
 
-#include <OpenMS/FORMAT/DBConnection.h>
-
 #include <qmessagebox.h>
-
 #include <fstream>
 
 using namespace std;

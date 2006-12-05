@@ -24,9 +24,10 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
+#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
 
 #ifdef DB_DEF
+#include <OpenMS/FORMAT/DBConnection.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
 #endif
@@ -37,7 +38,6 @@
 #endif
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
-#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
@@ -48,7 +48,6 @@
 #include <OpenMS/VISUAL/Spectrum2DWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/LayerManager.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
@@ -56,7 +55,6 @@
 #include <OpenMS/VISUAL/DIALOGS/PeakPickingDialog.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
-
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/VISUAL/DIALOGS/SmoothingDialog.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>

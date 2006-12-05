@@ -24,19 +24,15 @@
 // $Maintainer:  $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-
 #include <sstream>
 #include <fstream>
 #include <ctime>
 #include <cstdlib>
 
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
-#include <OpenMS/FORMAT/DataSetInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
-#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperimentXMLHandler.h>
 

@@ -31,14 +31,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 

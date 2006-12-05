@@ -31,15 +31,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 
-#include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
 #include <OpenMS/DATASTRUCTURES/IndexSet.h>
-
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
-
-// #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <vector>
 #include <map>

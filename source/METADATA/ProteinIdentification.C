@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 #include <algorithm>
 

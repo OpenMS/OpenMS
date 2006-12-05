@@ -26,6 +26,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 //qt includes
 #include <qpainter.h>

@@ -28,8 +28,6 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_SMOOTHFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_SMOOTHFILTER_H
 
-#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 

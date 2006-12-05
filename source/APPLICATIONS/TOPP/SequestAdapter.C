@@ -26,17 +26,15 @@
 
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <stdlib.h>
 #include <vector>

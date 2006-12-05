@@ -24,8 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-
 //OpenMS
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>

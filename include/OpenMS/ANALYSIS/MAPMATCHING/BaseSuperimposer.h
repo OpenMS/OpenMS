@@ -28,9 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
-
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>

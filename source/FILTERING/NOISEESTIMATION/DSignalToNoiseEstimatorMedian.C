@@ -26,7 +26,6 @@
 //
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
 {

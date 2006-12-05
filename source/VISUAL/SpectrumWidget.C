@@ -25,9 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
 
 #include <qaction.h>
 #include <qlayout.h>

@@ -34,8 +34,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>

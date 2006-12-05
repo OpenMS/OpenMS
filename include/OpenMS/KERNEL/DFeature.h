@@ -29,7 +29,6 @@
 
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/DATASTRUCTURES/DConvexHull.h>
 #include <OpenMS/METADATA/Identification.h>
 

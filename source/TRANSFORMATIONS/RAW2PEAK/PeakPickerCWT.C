@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <cmath>
 
 namespace OpenMS
 {

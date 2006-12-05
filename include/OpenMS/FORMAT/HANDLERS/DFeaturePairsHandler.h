@@ -27,7 +27,6 @@
 #ifndef OPENMS_FORMAT_HANDLERS_DFEATUREPAIRSHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_DFEATUREPAIRSHANDLER_H
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DPosition.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>

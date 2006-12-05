@@ -29,6 +29,9 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_REGISTERCHILDREN_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#ifdef CGAL_DEF
+#  include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#endif
 
 namespace OpenMS
 {

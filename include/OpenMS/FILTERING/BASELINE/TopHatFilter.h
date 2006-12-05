@@ -31,6 +31,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
 

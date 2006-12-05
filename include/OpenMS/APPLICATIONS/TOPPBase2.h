@@ -30,8 +30,6 @@
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <iostream>
 #include <fstream>

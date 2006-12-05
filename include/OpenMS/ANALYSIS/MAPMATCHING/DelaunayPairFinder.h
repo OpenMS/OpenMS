@@ -30,6 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/IndexTuple.h>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>

@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DMAPMATCHERREGRESSION_H
 
 #include<OpenMS/KERNEL/DFeature.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DLinearMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DBaseMapMatcher.h>
 

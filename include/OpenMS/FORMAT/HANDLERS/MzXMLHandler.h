@@ -35,8 +35,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include<OpenMS/FORMAT/DTAFile.h>
-
 namespace OpenMS
 {
 	namespace Internal

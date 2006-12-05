@@ -28,9 +28,11 @@
 #define OPENMS_KERNEL_DPEAKCONSTREFERENCEARRAY_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/KERNEL/KernelTraits.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/FORMAT/Serialization.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
 

@@ -25,9 +25,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterCompareFunctor.h>
-
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-
 #include <cmath>
 
 using namespace std;

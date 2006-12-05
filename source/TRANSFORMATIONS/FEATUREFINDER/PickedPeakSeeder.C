@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <iostream>
 
 namespace OpenMS

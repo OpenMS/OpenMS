@@ -23,11 +23,9 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-//
+
 #include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cmath>
 

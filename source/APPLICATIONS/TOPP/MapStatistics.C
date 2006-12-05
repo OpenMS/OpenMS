@@ -24,15 +24,11 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
 #include <map>

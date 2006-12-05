@@ -25,6 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
+#include <OpenMS/KERNEL/ConsensusPeak.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 
 namespace OpenMS
 {

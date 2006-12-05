@@ -24,7 +24,6 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
@@ -32,8 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

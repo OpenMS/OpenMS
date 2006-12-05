@@ -26,9 +26,6 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>

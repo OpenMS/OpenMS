@@ -26,7 +26,6 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DWindow.h>
-#include<OpenMS/VISUAL/Spectrum3DWidget.h>
 #include <iostream.h>
 #include <qpopupmenu.h>
 namespace OpenMS 

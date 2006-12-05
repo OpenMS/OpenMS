@@ -32,7 +32,6 @@
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
 
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h> 
 #include <OpenMS/KERNEL/KernelTraits.h>
 
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>

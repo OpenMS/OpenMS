@@ -33,9 +33,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer_registerChildren.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
-#ifdef CGAL_DEF
-#  include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
-#endif
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_registerChildren.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>

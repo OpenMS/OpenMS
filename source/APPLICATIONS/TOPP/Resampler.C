@@ -29,7 +29,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 

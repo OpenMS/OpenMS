@@ -27,7 +27,6 @@
 
 #include <OpenMS/VISUAL/PreferencesManager.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialog.h>
-#include <OpenMS/VISUAL/ListStack.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <sstream>

@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

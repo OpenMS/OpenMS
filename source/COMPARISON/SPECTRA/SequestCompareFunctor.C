@@ -25,8 +25,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 

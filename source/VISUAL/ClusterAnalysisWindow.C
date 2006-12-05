@@ -26,13 +26,10 @@
 #include <OpenMS/VISUAL/ClusterAnalysisWindow.h>
 
 #include <OpenMS/FORMAT/DBAdapter.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/InspectDialog.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 
 

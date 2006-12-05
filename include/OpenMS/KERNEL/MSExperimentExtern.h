@@ -33,8 +33,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <OpenMS/SYSTEM/StopWatch.h>
-
 #include<vector>
 #include<algorithm>
 #include<limits>

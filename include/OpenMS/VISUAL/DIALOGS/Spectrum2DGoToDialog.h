@@ -29,7 +29,6 @@
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum2DGoToDialogTemplate.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
 namespace OpenMS 

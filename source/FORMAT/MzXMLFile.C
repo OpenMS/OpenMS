@@ -25,8 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <fstream>
 

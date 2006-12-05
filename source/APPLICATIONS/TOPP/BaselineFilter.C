@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

@@ -41,7 +41,6 @@
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {

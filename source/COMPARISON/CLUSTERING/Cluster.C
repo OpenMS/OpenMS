@@ -27,7 +27,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 
 #include <iostream>

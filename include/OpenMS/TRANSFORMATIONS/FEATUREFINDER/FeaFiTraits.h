@@ -39,8 +39,6 @@
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 

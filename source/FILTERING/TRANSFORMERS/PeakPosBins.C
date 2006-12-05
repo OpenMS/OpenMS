@@ -26,7 +26,6 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakPosBins.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <algorithm>
 

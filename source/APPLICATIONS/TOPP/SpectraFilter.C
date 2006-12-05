@@ -31,7 +31,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
 
 #include <typeinfo>
 

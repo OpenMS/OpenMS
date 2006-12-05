@@ -26,6 +26,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <math.h>
 

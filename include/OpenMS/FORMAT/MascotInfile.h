@@ -27,7 +27,6 @@
 #ifndef OPENMS_FORMAT_MASCOTINFILE_H
 #define OPENMS_FORMAT_MASCOTINFILE_H
 
-#include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
+#include <OpenMS/KERNEL/DFeatureMap.h>
 
 namespace OpenMS
 {

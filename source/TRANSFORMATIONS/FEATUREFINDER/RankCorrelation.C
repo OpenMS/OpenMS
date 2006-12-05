@@ -26,6 +26,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RankCorrelation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <iostream>
 
 namespace OpenMS

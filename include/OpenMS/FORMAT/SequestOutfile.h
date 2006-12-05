@@ -27,15 +27,7 @@
 #ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
 #define OPENMS_FORMAT_SEQUESTOUTFILE_H
 
-#include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
 #include <fstream>

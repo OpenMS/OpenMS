@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {

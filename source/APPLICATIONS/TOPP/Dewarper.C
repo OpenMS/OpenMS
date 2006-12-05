@@ -26,12 +26,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapDewarper.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DGridCell.h>
-
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

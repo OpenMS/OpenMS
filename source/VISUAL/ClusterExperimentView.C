@@ -29,7 +29,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/METADATA/Identification.h>
 #include <qpopupmenu.h>
 #include <qaction.h>
 #include <qdialog.h>

@@ -26,7 +26,6 @@
 //
 
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>

@@ -27,8 +27,6 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
 
-#include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>

@@ -24,11 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DWidgetPDP.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 // Qt
 #include <qlayout.h>

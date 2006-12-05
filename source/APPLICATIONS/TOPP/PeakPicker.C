@@ -25,9 +25,8 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
-
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

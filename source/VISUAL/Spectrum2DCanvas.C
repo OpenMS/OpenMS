@@ -25,10 +25,8 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
-#include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DCanvasPDP.h>
 
 //STL

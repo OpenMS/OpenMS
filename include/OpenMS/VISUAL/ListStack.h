@@ -28,8 +28,6 @@
 #ifndef OPENMS_VISUAL_LISTSTACK_H
 #define OPENMS_VISUAL_LISTSTACK_H
 
-#include <OpenMS/CONCEPT/Types.h>
-
 //QT
 #include <qlistview.h>
 #include <qwidgetstack.h>

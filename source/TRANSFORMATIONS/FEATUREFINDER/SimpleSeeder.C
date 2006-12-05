@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
 #include <iostream>
 
 namespace OpenMS

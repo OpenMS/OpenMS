@@ -40,6 +40,7 @@ check options:
   -h  check headers (tab settings for editors, cvs headers, maintainer)
   -m  check headers for empty maintainer field
   -u  check for unneeded includes (does not check references or pointers yet)
+  -c  check for unneeded includes in C-files (results are not always reliable because of forward declarations)
 other options:
   -v  verbose mode
 <?
@@ -57,7 +58,7 @@ other options:
 	}
 	
 	$do_all = false;
-	if (!isset($argv[2]) OR ($argv[2]!="-g" AND $argv[2]!="-h" AND $argv[2]!="-u" AND $argv[2]!="-m"))
+	if (!isset($argv[2]) OR ($argv[2]!="-g" AND $argv[2]!="-h" AND $argv[2]!="-u" AND $argv[2]!="-m" AND $argv[2]!="-c"))
 	{
 		$do_all = true;
 	}
@@ -186,17 +187,32 @@ other options:
 	}
 
 	#################unneeded includes###############################
+	//hide
+	$dont_report = array("config","TypeNameIdStringMiscellanyDefs","Constants","Benchmark","helper");
+	//multiple classes per file (filename => classes)
+	$multiclass = array(
+									"Macros" => array("OPENMS_PRECONDITION","OPENMS_POSTCONDITION"),
+									"ComparatorUtils" => array("PointerComparator","ReverseComparator","LexicographicComparator","pointerComparator","reverseComparator","lexicographicComparator"),
+	 								"MathFunctions" => array("ceil_decimal","round_decimal","intervalTransformation","linear2log","log2linear","isOdd"),
+	 								"HashFunction" => array("hashPointer","hashPJWString","hashElfString","getNextPrime"),
+									"RangeUtils" => array("RTRange","MSLevelRange","ScanModePredicate","SpectrumEmptyPredicate","MzRange","IntensityRange"),
+									"StandardTypes" => array("RawDataPoint","RawDataPoint2D","RawSpectrum","RawMap","Peak","Peak2D","PeakSpectrum","PeakMap","Feature","FeatureMap"),
+									"Types" => array("Distance","Handle","Index","SignedInt","UnsignedInt","Size","Time","HashIndex","Position","Real","DoubleReal","Property","ErrorCode","Byte","PointerSizeUInt","PointerSizeInt","UID"),
+									"Exception" => array("throw","Base"),
+									"DPickedPeak" => array("PeakShapeType","DPickedPeak"),
+									"TimeStamp" => array("PreciseTime","TimeStamp"),
+									
+	 							);
+	###unneeded includes for header files###
 	if ($do_all OR $argv[2]=="-u")
 	{
-		$dont_report = array("config","Types","helper","TypeNameIdStringMiscellanyDefs","Macros","Exception","Base64","ComparatorUtils", "GaussFitUtils","PreprocessorFlags","MathFunctions","TimeStamp");
-		//todo multi-class headers: TimeStamp
-		
 		$files=array();
-		exec("find $path/include/ -name \"*.h\"", $files);
-		foreach ($files as $header)
+		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
+
+		foreach ($files as $filename)
 		{
 			$count = array();
-			$file = file($header);
+			$file = file($filename);
 			for ($i=0;$i<count($file);$i++)
 			{
 				$line = trim($file[$i]);
@@ -215,15 +231,26 @@ other options:
 				{
 					foreach ($count as $class => $number)
 					{
-						if (strpos($line,$class)!== FALSE)
+						//multiple classes per file
+						if (isset($multiclass[$class]))
+						{
+							foreach ($multiclass[$class] as $subclass)
+							{
+								if (strpos($line,$subclass)!== FALSE)
+								{
+									$count[$class]++;
+								}
+							}
+						}
+						//class name == file
+						else if (strpos($line,$class)!== FALSE)
 						{
 							$count[$class]++;
 						}
 					}
 				}
 			}
-			
-			$out = ">>UNNEEDED INCLUDE in $header\n";
+			$out = ">>UNNEEDED INCLUDE in $filename\n";
 			foreach ($count as $class => $number)
 			{
 				if ($number == 0)
@@ -231,7 +258,147 @@ other options:
 					$out .= "  $class\n";
 				}
 			}
-			if ($out != ">>UNNEEDED INCLUDE in $header\n")
+			if ($out != ">>UNNEEDED INCLUDE in $filename\n")
+			{
+				print $out;
+			}
+		}
+		
+		###check for duplicate includes###
+		$files=array();
+		exec("find $path/source/ -name \"*.C\" ! -name \"*_test.C\" ! -wholename \"*/EXAMPLES/*\" ! -wholename \"*/TEST/*\"", $files);
+
+		foreach ($files as $filename)
+		{
+			$includes = array();
+			$duplicates = array();
+			$file = file($filename);
+			for ($i=0;$i<count($file);$i++)
+			{
+				$line = trim($file[$i]);
+				if (isIncludeLine($line,$include))
+				{
+					if (beginsWith($include,"OpenMS/"))
+					{
+						$includes[] = substr($include,strrpos($include,"/")+1,-2);
+					}
+				}
+			}
+			//header for source file
+			$header = substr($filename,0,strpos($filename,"/source/"))."/include/OpenMS/".substr($filename,strpos($filename,"/source/")+8,-2).".h";
+			if (file_exists($header))
+			{
+				$headerfile = file($header);
+			}
+			else
+			{
+				$headerfile = array();
+			}
+			for ($i=0;$i<count($headerfile);$i++)
+			{
+				$line = trim($headerfile[$i]);
+				if (isIncludeLine($line,$include))
+				{
+					if (beginsWith($include,"OpenMS/"))
+					{
+						$class = substr($include,strrpos($include,"/")+1,-2);
+						if (in_array($class,$includes))
+						{
+							$duplicates[] = $class;
+						}
+					}
+				}
+			}
+			if (count($duplicates)!=0)
+			{
+				print ">>UNNEEDED INCLUDE in $filename\n";
+				foreach ($duplicates as $d)
+				{
+					print "  $d\n";
+				}
+			}
+		}
+	}
+
+	###unneeded includes for source files###
+	if ($argv[2]=="-c")
+	{
+		$files=array();
+		exec("find $path/source/ -name \"*.C\" ! -name \"*_test.C\" ! -wholename \"*/EXAMPLES/*\" ! -wholename \"*/TEST/*\"", $files);
+
+		foreach ($files as $filename)
+		{
+			$count = array();
+			$file = file($filename);
+			for ($i=0;$i<count($file);$i++)
+			{
+				$line = trim($file[$i]);
+				if (isIncludeLine($line,$include))
+				{
+					if (beginsWith($include,"OpenMS/"))
+					{
+						$class = substr($include,strrpos($include,"/")+1,-2);
+						//Do not report header of source file
+						if (!in_array($class,$dont_report) && $class != substr($filename,strrpos($filename,"/")+1,-2))
+						{
+							$count["$class"] = 0;
+						}
+					}
+				}
+				else
+				{
+					foreach ($count as $class => $number)
+					{
+						//multiple classes per file
+						if (isset($multiclass[$class]))
+						{
+							foreach ($multiclass[$class] as $subclass)
+							{
+								if (strpos($line,$subclass)!== FALSE)
+								{
+									$count[$class]++;
+								}
+							}
+						}
+						//class name == file
+						else if (strpos($line,$class)!== FALSE)
+						{
+							$count[$class]++;
+						}
+					}
+				}
+			}
+
+			// find header for source files
+		  $header = substr($filename,0,strpos($filename,"/source/"))."/include/OpenMS/".substr($filename,strpos($filename,"/source/")+8,-2).".h";
+			if (file_exists($header))
+			{
+				$headerfile = file($header);
+			}
+			else
+			{
+				$headerfile = array();
+			}
+			
+			$out = ">>UNNEEDED INCLUDE in $filename\n";
+			foreach ($count as $class => $number)
+			{
+				if ($number == 0)
+				{
+					//check for forward declaration
+					$forward_declared = false;
+					foreach ($headerfile as $line)
+					{
+						if (trim($line)=="class $class;")
+						{
+							$forward_declared = true;
+							break;
+						}
+					}
+					if (!$forward_declared) $out .= "  $class ?\n";
+				}
+			}
+			if ($out != ">>UNNEEDED INCLUDE in $filename\n")
 			{
 				print $out;
 			}
