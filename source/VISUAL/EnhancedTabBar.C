@@ -28,7 +28,9 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 using namespace std;
-using namespace OpenMS;
+
+namespace OpenMS
+{
 
 	EnhancedTabBar::EnhancedTabBar( QWidget * parent, const char * name) : QTabBar(parent,name)
 	{
@@ -55,5 +57,5 @@ using namespace OpenMS;
 		}
 	}
 	
-	
+} //namespace OpenMS	
 

@@ -32,50 +32,54 @@
 #include <qlabel.h>
 
 using namespace std;
-using namespace OpenMS;
 
-FeaFiDialog::FeaFiDialog( QWidget * parent, const char * name, WFlags fl):
-	FeaFiDialogTemplate(parent,name,fl), finder_()
-{
-	resize(sizeHint());
-	start_button->setEnabled(false);
-}
-
-FeaFiDialog::~FeaFiDialog()
+namespace OpenMS
 {
 
-}
-
-FeatureFinder& FeaFiDialog::getFeatureFinder()
-{
-	return finder_;
-}
-
-
-void FeaFiDialog::loadParamFile()
-{
-	QString dir = QDir::current().path();
-	dir = dir.left(dir.find("OpenMS")).append("OpenMS/source/APPLICATIONS/FEATUREFINDER/");
- 	QString file = QFileDialog::getOpenFileName(dir, "Parameters (*.ini)", this,
-																							"featurefinder dialog","Select file(s) to open");
-
-	if (!file.isEmpty() && file!="")
+	FeaFiDialog::FeaFiDialog( QWidget * parent, const char * name, WFlags fl):
+		FeaFiDialogTemplate(parent,name,fl), finder_()
 	{
-		Param param;
-		param.load(file.ascii());
-		bool isParamValid = finder_.setParam(param);
-		if (isParamValid)
-		{
-			std::ostringstream label;
-			label << finder_;
-			param_label->setText(label.str().c_str());
-			param_label->setAlignment( int( QLabel::AlignVCenter|QLabel::AlignLeft ) );
-			start_button->setEnabled(true);
-			start_button->setFocus();
-		}
-		else
-		{
-			param_label->setText(tr("Chosen param file was not valid.\nNo Feature-Finder loaded yet."));
-		}	
+		resize(sizeHint());
+		start_button->setEnabled(false);
 	}
-}
+	
+	FeaFiDialog::~FeaFiDialog()
+	{
+	
+	}
+	
+	FeatureFinder& FeaFiDialog::getFeatureFinder()
+	{
+		return finder_;
+	}
+	
+	
+	void FeaFiDialog::loadParamFile()
+	{
+		QString dir = QDir::current().path();
+		dir = dir.left(dir.find("OpenMS")).append("OpenMS/source/APPLICATIONS/FEATUREFINDER/");
+	 	QString file = QFileDialog::getOpenFileName(dir, "Parameters (*.ini)", this,
+																								"featurefinder dialog","Select file(s) to open");
+	
+		if (!file.isEmpty() && file!="")
+		{
+			Param param;
+			param.load(file.ascii());
+			bool isParamValid = finder_.setParam(param);
+			if (isParamValid)
+			{
+				std::ostringstream label;
+				label << finder_;
+				param_label->setText(label.str().c_str());
+				param_label->setAlignment( int( QLabel::AlignVCenter|QLabel::AlignLeft ) );
+				start_button->setEnabled(true);
+				start_button->setFocus();
+			}
+			else
+			{
+				param_label->setText(tr("Chosen param file was not valid.\nNo Feature-Finder loaded yet."));
+			}	
+		}
+	}
+
+} //namespace OpenMS

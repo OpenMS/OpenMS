@@ -24,8 +24,8 @@
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SUMREDCUER_H
-#define OPENMS_FILTERING_DATAREDUCTION_SUMREDCUER_H
+#ifndef OPENMS_FILTERING_DATAREDUCTION_SUMREDUCER_H
+#define OPENMS_FILTERING_DATAREDUCTION_SUMREDUCER_H
 
 #include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 

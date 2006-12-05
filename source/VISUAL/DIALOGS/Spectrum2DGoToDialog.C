@@ -29,118 +29,121 @@
 #include <qlineedit.h>
 
 using namespace std;
-using namespace OpenMS;
 
-Spectrum2DGoToDialog::Spectrum2DGoToDialog( QWidget * parent, const char * name, WFlags fl)
-	: Spectrum2DGoToDialogTemplate(parent,name,fl),
-  area_(DRange<2>(0.0f, 0.0f, 1000.0f, 1000.0f)),
-  centerX((area_.minX() + area_.maxX())/2.0f),
-  centerY((area_.minY() + area_.maxY())/2.0f)
-{
-  centerPositionXLineEdit->setText(QString().setNum(centerX));
-  centerPositionYLineEdit->setText(QString().setNum(centerY));
-  minXLineEdit->setText(QString().setNum(area_.minX()));
-  maxXLineEdit->setText(QString().setNum(area_.maxX()));
-  minYLineEdit->setText(QString().setNum(area_.minY()));
-  maxYLineEdit->setText(QString().setNum(area_.maxY()));
-}
-
-Spectrum2DGoToDialog::~Spectrum2DGoToDialog()
+namespace OpenMS
 {
 
-}
+	Spectrum2DGoToDialog::Spectrum2DGoToDialog( QWidget * parent, const char * name, WFlags fl)
+		: Spectrum2DGoToDialogTemplate(parent,name,fl),
+	  area_(DRange<2>(0.0f, 0.0f, 1000.0f, 1000.0f)),
+	  centerX((area_.minX() + area_.maxX())/2.0f),
+	  centerY((area_.minY() + area_.maxY())/2.0f)
+	{
+	  centerPositionXLineEdit->setText(QString().setNum(centerX));
+	  centerPositionYLineEdit->setText(QString().setNum(centerY));
+	  minXLineEdit->setText(QString().setNum(area_.minX()));
+	  maxXLineEdit->setText(QString().setNum(area_.maxX()));
+	  minYLineEdit->setText(QString().setNum(area_.minY()));
+	  maxYLineEdit->setText(QString().setNum(area_.maxY()));
+	}
+	
+	Spectrum2DGoToDialog::~Spectrum2DGoToDialog()
+	{
+	
+	}
+	
+	
+	void Spectrum2DGoToDialog::setMinX(float minX)
+	{
+	  // update model
+	  area_.setMinX(minX);
+	  centerX = (area_.minX() + area_.maxX())/2.0f;
+	  // update view
+	  minXLineEdit->setText(QString().setNum(area_.minX()));
+	  centerPositionXLineEdit->setText(QString().setNum(centerX));
+	}
+	
+	void Spectrum2DGoToDialog::setMaxX(float maxX)
+	{
+	  // update model
+	  area_.setMaxX(maxX);
+	  centerX = (area_.minX() + area_.maxX())/2.0f;
+	  // update view
+	  maxXLineEdit->setText(QString().setNum(area_.maxX()));
+	  centerPositionXLineEdit->setText(QString().setNum(centerX));  
+	}
+	
+	float Spectrum2DGoToDialog::getMinX()
+	{
+	  return area_.minX();    
+	}
+	
+	float Spectrum2DGoToDialog::getMaxX()
+	{
+	  return area_.maxX();    
+	}
+	
+	void Spectrum2DGoToDialog::setMinY(float minY)
+	{
+	  // update model
+	  area_.setMinY(minY);
+	  centerY = (area_.minY() + area_.maxY())/2.0f;
+	  // update view
+	  minYLineEdit->setText(QString().setNum(area_.minY()));
+	  centerPositionYLineEdit->setText(QString().setNum(centerY));
+	  
+	}
+	
+	void Spectrum2DGoToDialog::setMaxY(float maxY)
+	{
+	  // update model
+	  area_.setMaxY(maxY);
+	  centerY = (area_.minY() + area_.maxY())/2.0f;
+	  // update view
+	  maxYLineEdit->setText(QString().setNum(area_.maxY()));
+	  centerPositionYLineEdit->setText(QString().setNum(centerY));  
+	}
+	
+	float Spectrum2DGoToDialog::getMinY()
+	{
+	  return area_.minY();  
+	}
+	
+	float Spectrum2DGoToDialog::getMaxY()
+	{
+	  return area_.maxY();  
+	}
+	
+	void Spectrum2DGoToDialog::gotoButton_clicked()
+	{
+	  // calculate translation of the center
+	  float newCenterX = centerPositionXLineEdit->text().toFloat();
+	  float translationX = newCenterX - centerX;
+	  
+	  float newCenterY = centerPositionYLineEdit->text().toFloat();
+	  float translationY = newCenterY - centerY;
+	
+	  // update model
+	  area_.setMinX(area_.minX() + translationX);
+	  area_.setMaxX(area_.maxX() + translationX);
+	
+	  area_.setMinY(area_.minY() + translationY);
+	  area_.setMaxY(area_.maxY() + translationY);
+	  
+	  // conversion succeded
+	  done(QDialog::Accepted);
+	}
+	
+	void Spectrum2DGoToDialog::setVisibleAreaButton_clicked()
+	{
+	  // update model
+	  area_.setMinX(minXLineEdit->text().toFloat());
+	  area_.setMaxX(maxXLineEdit->text().toFloat());
+	  
+	  area_.setMinY(minYLineEdit->text().toFloat());
+	  area_.setMaxY(maxYLineEdit->text().toFloat()); 
+	  // conversion succeded
+	  done(QDialog::Accepted);
+	}
 
-
-void Spectrum2DGoToDialog::setMinX(float minX)
-{
-  // update model
-  area_.setMinX(minX);
-  centerX = (area_.minX() + area_.maxX())/2.0f;
-  // update view
-  minXLineEdit->setText(QString().setNum(area_.minX()));
-  centerPositionXLineEdit->setText(QString().setNum(centerX));
-}
-
-void Spectrum2DGoToDialog::setMaxX(float maxX)
-{
-  // update model
-  area_.setMaxX(maxX);
-  centerX = (area_.minX() + area_.maxX())/2.0f;
-  // update view
-  maxXLineEdit->setText(QString().setNum(area_.maxX()));
-  centerPositionXLineEdit->setText(QString().setNum(centerX));  
-}
-
-float Spectrum2DGoToDialog::getMinX()
-{
-  return area_.minX();    
-}
-
-float Spectrum2DGoToDialog::getMaxX()
-{
-  return area_.maxX();    
-}
-
-void Spectrum2DGoToDialog::setMinY(float minY)
-{
-  // update model
-  area_.setMinY(minY);
-  centerY = (area_.minY() + area_.maxY())/2.0f;
-  // update view
-  minYLineEdit->setText(QString().setNum(area_.minY()));
-  centerPositionYLineEdit->setText(QString().setNum(centerY));
-  
-}
-
-void Spectrum2DGoToDialog::setMaxY(float maxY)
-{
-  // update model
-  area_.setMaxY(maxY);
-  centerY = (area_.minY() + area_.maxY())/2.0f;
-  // update view
-  maxYLineEdit->setText(QString().setNum(area_.maxY()));
-  centerPositionYLineEdit->setText(QString().setNum(centerY));  
-}
-
-float Spectrum2DGoToDialog::getMinY()
-{
-  return area_.minY();  
-}
-
-float Spectrum2DGoToDialog::getMaxY()
-{
-  return area_.maxY();  
-}
-
-void Spectrum2DGoToDialog::gotoButton_clicked()
-{
-  // calculate translation of the center
-  float newCenterX = centerPositionXLineEdit->text().toFloat();
-  float translationX = newCenterX - centerX;
-  
-  float newCenterY = centerPositionYLineEdit->text().toFloat();
-  float translationY = newCenterY - centerY;
-
-  // update model
-  area_.setMinX(area_.minX() + translationX);
-  area_.setMaxX(area_.maxX() + translationX);
-
-  area_.setMinY(area_.minY() + translationY);
-  area_.setMaxY(area_.maxY() + translationY);
-  
-  // conversion succeded
-  done(QDialog::Accepted);
-}
-
-void Spectrum2DGoToDialog::setVisibleAreaButton_clicked()
-{
-  // update model
-  area_.setMinX(minXLineEdit->text().toFloat());
-  area_.setMaxX(maxXLineEdit->text().toFloat());
-  
-  area_.setMinY(minYLineEdit->text().toFloat());
-  area_.setMaxY(maxYLineEdit->text().toFloat()); 
-  // conversion succeded
-  done(QDialog::Accepted);
-}
-
+} //namespace OpenMS

@@ -126,7 +126,8 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal;
-
+	using namespace Math;
+	
   SpectrumMDIWindow* SpectrumMDIWindow::instance_ = 0;
 
   SpectrumMDIWindow* SpectrumMDIWindow::instance()

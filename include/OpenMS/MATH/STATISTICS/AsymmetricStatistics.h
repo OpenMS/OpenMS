@@ -61,7 +61,7 @@ namespace OpenMS
 			
 		 public:
 			AsymmetricStatistics()
-				: Math::BasicStatistics<>(),
+				: BasicStatistics<>(),
 					variance1_(1.0),
 					variance2_(1.0)
 			{}

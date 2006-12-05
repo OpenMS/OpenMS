@@ -33,98 +33,102 @@
 
 #include <iostream> 
 using namespace std;
-using namespace OpenMS;
 
-SmoothingDialog::SmoothingDialog(QWidget* parent, const char* name , WFlags fl )
-    : SmoothingDialogTemplate(parent,name,fl)
+namespace OpenMS
 {
-  sgolay_order_line_edit->setText(QString().setNum(4));
-  kernel_widh_line_edit->setText(QString().setNum(1.0));
-  spacing_line_edit->setText(QString().setNum(0.2));
-  resampling_check_box->setChecked(false);
-  gaussian_radio_button->setChecked(false);
-  sgolay_radio_button->setChecked(true);
-}
 
-SmoothingDialog::~SmoothingDialog()
-{}
+	SmoothingDialog::SmoothingDialog(QWidget* parent, const char* name , WFlags fl )
+	    : SmoothingDialogTemplate(parent,name,fl)
+	{
+	  sgolay_order_line_edit->setText(QString().setNum(4));
+	  kernel_widh_line_edit->setText(QString().setNum(1.0));
+	  spacing_line_edit->setText(QString().setNum(0.2));
+	  resampling_check_box->setChecked(false);
+	  gaussian_radio_button->setChecked(false);
+	  sgolay_radio_button->setChecked(true);
+	}
+	
+	SmoothingDialog::~SmoothingDialog()
+	{}
+	
+	void SmoothingDialog::setKernelWidth(float kw)
+	{
+	  // update view
+	  kernel_widh_line_edit->setText(QString().setNum(kw));
+	}
+	
+	void SmoothingDialog::setSGolayOrder(unsigned int o)
+	{
+	  // update view
+	  sgolay_order_line_edit->setText(QString().setNum(o));
+	}
+	
+	void SmoothingDialog::setSpacing(float r)
+	{
+	  // update view
+	  spacing_line_edit->setText(QString().setNum(r));
+	}
+	
+	void SmoothingDialog::setResampling(bool r)
+	{
+	  resampling_check_box->setChecked(r);
+	}
+	
+	void SmoothingDialog::setGaussian(bool g)
+	{
+	  gaussian_radio_button->setChecked(g);
+	}
+	
+	void SmoothingDialog::setSGolay(bool s)
+	{
+	  sgolay_radio_button->setChecked(s);
+	}
+	
+	
+	float SmoothingDialog::getKernelWidth()
+	{
+	  return QString(kernel_widh_line_edit->text()).toFloat();;
+	}
+	
+	unsigned int SmoothingDialog::getSGolayOrder()
+	{
+	  return QString(sgolay_order_line_edit->text()).toUInt();
+	}
+	
+	float SmoothingDialog::getSpacing()
+	{
+	  return QString(spacing_line_edit->text()).toFloat();
+	}
+	
+	bool SmoothingDialog::getResampling()
+	{
+	  return resampling_check_box->isChecked();
+	}
+	
+	bool SmoothingDialog::getGaussian()
+	{
+	  return gaussian_radio_button->isChecked();
+	}
+	
+	bool SmoothingDialog::getSGolay()
+	{
+	  return sgolay_radio_button->isChecked();
+	}
+	
+	void SmoothingDialog::startButton_clicked()
+	{
+	  // conversion succeded
+	  done(QDialog::Accepted);
+	}
+	
+	void SmoothingDialog::resetButton_clicked()
+	{
+	  sgolay_order_line_edit->setText(QString().setNum(4));
+	  kernel_widh_line_edit->setText(QString().setNum(1.0));
+	  spacing_line_edit->setText(QString().setNum(.2));
+	  resampling_check_box->setChecked(false);
+	  gaussian_radio_button->setChecked(false);
+	  sgolay_radio_button->setChecked(true);
+	}
 
-void SmoothingDialog::setKernelWidth(float kw)
-{
-  // update view
-  kernel_widh_line_edit->setText(QString().setNum(kw));
-}
-
-void SmoothingDialog::setSGolayOrder(unsigned int o)
-{
-  // update view
-  sgolay_order_line_edit->setText(QString().setNum(o));
-}
-
-void SmoothingDialog::setSpacing(float r)
-{
-  // update view
-  spacing_line_edit->setText(QString().setNum(r));
-}
-
-void SmoothingDialog::setResampling(bool r)
-{
-  resampling_check_box->setChecked(r);
-}
-
-void SmoothingDialog::setGaussian(bool g)
-{
-  gaussian_radio_button->setChecked(g);
-}
-
-void SmoothingDialog::setSGolay(bool s)
-{
-  sgolay_radio_button->setChecked(s);
-}
-
-
-float SmoothingDialog::getKernelWidth()
-{
-  return QString(kernel_widh_line_edit->text()).toFloat();;
-}
-
-unsigned int SmoothingDialog::getSGolayOrder()
-{
-  return QString(sgolay_order_line_edit->text()).toUInt();
-}
-
-float SmoothingDialog::getSpacing()
-{
-  return QString(spacing_line_edit->text()).toFloat();
-}
-
-bool SmoothingDialog::getResampling()
-{
-  return resampling_check_box->isChecked();
-}
-
-bool SmoothingDialog::getGaussian()
-{
-  return gaussian_radio_button->isChecked();
-}
-
-bool SmoothingDialog::getSGolay()
-{
-  return sgolay_radio_button->isChecked();
-}
-
-void SmoothingDialog::startButton_clicked()
-{
-  // conversion succeded
-  done(QDialog::Accepted);
-}
-
-void SmoothingDialog::resetButton_clicked()
-{
-  sgolay_order_line_edit->setText(QString().setNum(4));
-  kernel_widh_line_edit->setText(QString().setNum(1.0));
-  spacing_line_edit->setText(QString().setNum(.2));
-  resampling_check_box->setChecked(false);
-  gaussian_radio_button->setChecked(false);
-  sgolay_radio_button->setChecked(true);
-}
+} //namespace OpenMS

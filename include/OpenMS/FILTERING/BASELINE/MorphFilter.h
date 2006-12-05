@@ -35,8 +35,6 @@
 
 namespace OpenMS
 {
-  using namespace Math;
-
   /**  @brief This class is the baseclass of morphological filters.
   
        The basic idea of a morphological filter is to inhibit selected signal structures.

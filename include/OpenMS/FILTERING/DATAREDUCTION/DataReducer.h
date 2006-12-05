@@ -24,8 +24,8 @@
 // $Maintainer: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_DATAREDCUER_H
-#define OPENMS_FILTERING_DATAREDUCTION_DATAREDCUER_H
+#ifndef OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
+#define OPENMS_FILTERING_DATAREDUCTION_DATAREDUCER_H
 
 #include<OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

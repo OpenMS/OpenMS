@@ -31,93 +31,97 @@
 #include <qpushbutton.h>
 
 using namespace std;
-using namespace OpenMS;
 
-PeakPickingDialog::PeakPickingDialog(QWidget* parent, const char* name , WFlags fl )
-    : PeakPickingDialogTemplate(parent,name,fl)
+namespace OpenMS
 {
-  height_line_edit->setText(QString().setNum(200));
-  height_ms2_line_edit->setText(QString().setNum(50));
-  signal_to_noise_line_edit->setText(QString().setNum(5));
-  fwhm_line_edit->setText(QString().setNum(0.2));
-  opt_check_box->setChecked(false);
-}
 
-PeakPickingDialog::~PeakPickingDialog()
-{}
+	PeakPickingDialog::PeakPickingDialog(QWidget* parent, const char* name , WFlags fl )
+	    : PeakPickingDialogTemplate(parent,name,fl)
+	{
+	  height_line_edit->setText(QString().setNum(200));
+	  height_ms2_line_edit->setText(QString().setNum(50));
+	  signal_to_noise_line_edit->setText(QString().setNum(5));
+	  fwhm_line_edit->setText(QString().setNum(0.2));
+	  opt_check_box->setChecked(false);
+	}
+	
+	PeakPickingDialog::~PeakPickingDialog()
+	{}
+	
+	
+	void PeakPickingDialog::setPeakHeight(float height)
+	{
+	  // update view
+	  height_line_edit->setText(QString().setNum(height));
+	}
+	
+	void PeakPickingDialog::setPeakHeightMs2(float height)
+	{
+	  // update view
+	  height_ms2_line_edit->setText(QString().setNum(height));
+	}
+	
+	
+	void PeakPickingDialog::setSignalToNoise(float sn)
+	{
+	  // update view
+	  signal_to_noise_line_edit->setText(QString().setNum(sn));
+	}
+	
+	void PeakPickingDialog::setFwhm(float fwhm)
+	{
+	  // update view
+	  fwhm_line_edit->setText(QString().setNum(fwhm));
+	}
+	
+	void PeakPickingDialog::setOptimization(bool opt)
+	{
+	  // update view
+	  opt_check_box->setChecked(opt);
+	}
+	
+	
+	float PeakPickingDialog::getPeakHeight()
+	{
+	  return  QString(height_line_edit->text()).toFloat();
+	}
+	
+	float PeakPickingDialog::getPeakHeightMs2()
+	{
+	  return QString(height_ms2_line_edit->text()).toFloat();
+	}
+	
+	
+	float PeakPickingDialog::getSignalToNoise()
+	{
+	  return QString(signal_to_noise_line_edit->text()).toFloat();
+	}
+	
+	float PeakPickingDialog::getFwhm()
+	{
+	  return QString(fwhm_line_edit->text()).toFloat();
+	}
+	
+	bool PeakPickingDialog::getOptimization()
+	{
+	  return opt_check_box->isChecked();
+	}
+	
+	
+	void PeakPickingDialog::startButton_clicked()
+	{
+	  // conversion succeded
+	  done(QDialog::Accepted);
+	}
+	
+	void PeakPickingDialog::resetButton_clicked()
+	{
+	  height_line_edit->setText(QString().setNum(200));
+	  height_ms2_line_edit->setText(QString().setNum(50));
+	  signal_to_noise_line_edit->setText(QString().setNum(5));
+	  fwhm_line_edit->setText(QString().setNum(0.2));
+	  opt_check_box->setChecked(false);
+	}
 
-
-void PeakPickingDialog::setPeakHeight(float height)
-{
-  // update view
-  height_line_edit->setText(QString().setNum(height));
-}
-
-void PeakPickingDialog::setPeakHeightMs2(float height)
-{
-  // update view
-  height_ms2_line_edit->setText(QString().setNum(height));
-}
-
-
-void PeakPickingDialog::setSignalToNoise(float sn)
-{
-  // update view
-  signal_to_noise_line_edit->setText(QString().setNum(sn));
-}
-
-void PeakPickingDialog::setFwhm(float fwhm)
-{
-  // update view
-  fwhm_line_edit->setText(QString().setNum(fwhm));
-}
-
-void PeakPickingDialog::setOptimization(bool opt)
-{
-  // update view
-  opt_check_box->setChecked(opt);
-}
-
-
-float PeakPickingDialog::getPeakHeight()
-{
-  return  QString(height_line_edit->text()).toFloat();
-}
-
-float PeakPickingDialog::getPeakHeightMs2()
-{
-  return QString(height_ms2_line_edit->text()).toFloat();
-}
-
-
-float PeakPickingDialog::getSignalToNoise()
-{
-  return QString(signal_to_noise_line_edit->text()).toFloat();
-}
-
-float PeakPickingDialog::getFwhm()
-{
-  return QString(fwhm_line_edit->text()).toFloat();
-}
-
-bool PeakPickingDialog::getOptimization()
-{
-  return opt_check_box->isChecked();
-}
-
-
-void PeakPickingDialog::startButton_clicked()
-{
-  // conversion succeded
-  done(QDialog::Accepted);
-}
-
-void PeakPickingDialog::resetButton_clicked()
-{
-  height_line_edit->setText(QString().setNum(200));
-  height_ms2_line_edit->setText(QString().setNum(50));
-  signal_to_noise_line_edit->setText(QString().setNum(5));
-  fwhm_line_edit->setText(QString().setNum(0.2));
-  opt_check_box->setChecked(false);
-}
+}//namespace OpenMS
 

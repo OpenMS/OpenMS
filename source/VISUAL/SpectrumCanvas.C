@@ -45,7 +45,8 @@
 using namespace std;
 namespace OpenMS
 {
-
+	using namespace Math;
+	
 	SpectrumCanvas::SpectrumCanvas(QWidget* parent, const char* name, WFlags f)
 		: QWidget(parent, name, f | WNoAutoErase | WStaticContents ),
 			buffer_(0),

@@ -31,7 +31,6 @@
 //QT
 #include <qsqlrecord.h>
 
-using namespace OpenMS;
 using namespace std;
 
 namespace OpenMS

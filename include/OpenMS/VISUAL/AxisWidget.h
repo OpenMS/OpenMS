@@ -43,8 +43,6 @@ class QPixmap;
 
 namespace OpenMS
 {
-	using namespace Math;
-	
 	/**
 		@brief Widget that represents an axis of a graph.
 		
@@ -203,7 +201,7 @@ namespace OpenMS
 				}else{
 					res = x*pow(unit_scaling_,base_legend_-act_legend_);
 				}
-				res = (is_log_)? round_decimal(pow(res,10),-8) : round_decimal(res,-8);
+				res = (is_log_)? Math::round_decimal(pow(res,10),-8) : Math::round_decimal(res,-8);
 	
 				return res;
 			}

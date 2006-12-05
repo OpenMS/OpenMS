@@ -29,6 +29,8 @@
 
 namespace OpenMS
 {
+	using namespace Math;
+	
   SavitzkyGolayQRFilter::SavitzkyGolayQRFilter()
       : SmoothFilter()
   {

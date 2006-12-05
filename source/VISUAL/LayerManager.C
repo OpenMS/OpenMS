@@ -33,108 +33,112 @@
 #include <iostream>
 
 using namespace std;
-using namespace OpenMS;
 
-LayerManager::LayerManager( QWidget * parent, const char * name, WFlags fl):
-	LayerManagerTemplate(parent,name,fl),
-	items_(),
-	activated_item_(-1)
+namespace OpenMS
 {
-	main_layout_ = new QVBoxLayout(this);
-	layout_ = new QVBoxLayout(main_layout_,2);
-	main_layout_->addStretch(5);
-}
 
-LayerManager::~LayerManager()
-{
-	
-}
-
-void LayerManager::itemActivated(int index)
-{
-	activate(index);
-	emit activatedChanged(index);
-}
-
-void LayerManager::activate(int index)
-{
-	//no change => ignore
-	if (index==activated_item_)
+	LayerManager::LayerManager( QWidget * parent, const char * name, WFlags fl):
+		LayerManagerTemplate(parent,name,fl),
+		items_(),
+		activated_item_(-1)
 	{
-		return;
+		main_layout_ = new QVBoxLayout(this);
+		layout_ = new QVBoxLayout(main_layout_,2);
+		main_layout_->addStretch(5);
 	}
 	
-	//deactivate previous active item
-	if (activated_item_!=-1 && activated_item_<=int(items_.size()))
+	LayerManager::~LayerManager()
 	{
-		items_[activated_item_]->deactivate();
+		
 	}
 	
-	//store current activated item
-	activated_item_ = index;
-	items_[activated_item_]->activate();
-}
-
-
-void LayerManager::setVisible(UnsignedInt i, bool b)
-{
-	items_[i]->changeState(b);
-}
-
-int LayerManager::addLayer( std::string label )
-{
-	LayerItem* li = new LayerItem(this);
-	li->changeLabel(label);
-	li->setIndex(items_.size());
-	layout_->addWidget(li);
-	items_.push_back(li);
-	connect(li,SIGNAL(stateChanged(int, bool)),this,SLOT(itemVisibilityChanged(int, bool)));
-	connect(li,SIGNAL(activated(int)),this,SLOT(itemActivated(int)));
-	connect(li,SIGNAL(removeRequest(int)),this,SLOT(itemRemoveRequest(int)));
-	return (items_.size()-1);
-}
-
-void LayerManager::reset()
-{
-	for(vector<LayerItem*>::iterator it = items_.begin(); it != items_.end() ; ++it)
+	void LayerManager::itemActivated(int index)
 	{
-		delete(*it);
+		activate(index);
+		emit activatedChanged(index);
 	}
-	items_.clear();
-	delete(layout_);
-	delete(main_layout_);
-	main_layout_ = new QVBoxLayout(this);
-	layout_ = new QVBoxLayout(main_layout_);
-	main_layout_->addStretch(5);
-	activated_item_ = -1;
-}
-
-void LayerManager::itemVisibilityChanged(int index, bool b)
-{
-	emit visibilityChanged(index,b);
-}
-
-void LayerManager::itemRemoveRequest(int index)
-{
-	//delete layer item
-	LayerItem* item = items_[index];
-	layout_->remove(item);
-	delete(item);
-	items_.erase(items_.begin()+index);
 	
-	//update activated item
-	activated_item_ = -1;
-	
-	//update layer indices
-	for (UnsignedInt i=index; i<items_.size(); ++i)
+	void LayerManager::activate(int index)
 	{
-		items_[i]->setIndex(i);
+		//no change => ignore
+		if (index==activated_item_)
+		{
+			return;
+		}
+		
+		//deactivate previous active item
+		if (activated_item_!=-1 && activated_item_<=int(items_.size()))
+		{
+			items_[activated_item_]->deactivate();
+		}
+		
+		//store current activated item
+		activated_item_ = index;
+		items_[activated_item_]->activate();
+	}
+	
+	
+	void LayerManager::setVisible(UnsignedInt i, bool b)
+	{
+		items_[i]->changeState(b);
+	}
+	
+	int LayerManager::addLayer( std::string label )
+	{
+		LayerItem* li = new LayerItem(this);
+		li->changeLabel(label);
+		li->setIndex(items_.size());
+		layout_->addWidget(li);
+		items_.push_back(li);
+		connect(li,SIGNAL(stateChanged(int, bool)),this,SLOT(itemVisibilityChanged(int, bool)));
+		connect(li,SIGNAL(activated(int)),this,SLOT(itemActivated(int)));
+		connect(li,SIGNAL(removeRequest(int)),this,SLOT(itemRemoveRequest(int)));
+		return (items_.size()-1);
+	}
+	
+	void LayerManager::reset()
+	{
+		for(vector<LayerItem*>::iterator it = items_.begin(); it != items_.end() ; ++it)
+		{
+			delete(*it);
+		}
+		items_.clear();
+		delete(layout_);
+		delete(main_layout_);
+		main_layout_ = new QVBoxLayout(this);
+		layout_ = new QVBoxLayout(main_layout_);
+		main_layout_->addStretch(5);
+		activated_item_ = -1;
+	}
+	
+	void LayerManager::itemVisibilityChanged(int index, bool b)
+	{
+		emit visibilityChanged(index,b);
+	}
+	
+	void LayerManager::itemRemoveRequest(int index)
+	{
+		//delete layer item
+		LayerItem* item = items_[index];
+		layout_->remove(item);
+		delete(item);
+		items_.erase(items_.begin()+index);
+		
+		//update activated item
+		activated_item_ = -1;
+		
+		//update layer indices
+		for (UnsignedInt i=index; i<items_.size(); ++i)
+		{
+			items_[i]->setIndex(i);
+		}
+	
+	//	for (UnsignedInt i=0; i<items_.size(); ++i)
+	//	{
+	//		cout << items_[i]->getIndex() << " "<< items_[i]->getLabel()<<endl;
+	//	}
+		
+		emit removed(index);
 	}
 
-//	for (UnsignedInt i=0; i<items_.size(); ++i)
-//	{
-//		cout << items_[i]->getIndex() << " "<< items_[i]->getLabel()<<endl;
-//	}
-	
-	emit removed(index);
-}
+} //namespace OpenMS

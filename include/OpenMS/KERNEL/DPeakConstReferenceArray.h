@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_DPeakConstReferenceArray_H
-#define OPENMS_KERNEL_DPeakConstReferenceArray_H
+#ifndef OPENMS_KERNEL_DPEAKCONSTREFERENCEARRAY_H
+#define OPENMS_KERNEL_DPEAKCONSTREFERENCEARRAY_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
@@ -891,5 +891,5 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DPeakConstReferenceArray_H
+#endif // OPENMS_KERNEL_DPEAKCONSTREFERENCEARRAY_H
 

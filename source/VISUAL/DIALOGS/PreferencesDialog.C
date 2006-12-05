@@ -35,98 +35,95 @@
 #include <qlayout.h>
 #include <qmessagebox.h>
 
-using namespace OpenMS;
 using namespace std;
 
-
-PreferencesDialog::PreferencesDialog()
-:QDialog(),
-pages_()
+namespace OpenMS
 {
-	QGridLayout* layout;
-	QPushButton* button;
-	
-	setCaption("Preferences");
-
-	//layout
-	layout = new QGridLayout(this,2,5);
-	layout->setSpacing(4);
-	layout->setMargin(6);
-	
-	//buttons
-	button = new QPushButton("&OK",this);
-	button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(button,SIGNAL(clicked()),SLOT(ok_()));
-	layout->addWidget(button,1,1);	
-
-	button = new QPushButton("&Cancel",this);
-	button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(button,SIGNAL(clicked()),SLOT(cancel_()));
-	layout->addWidget(button,1,2);
-	
-
-	button = new QPushButton("&Apply",this);
-	button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(button,SIGNAL(clicked()),SLOT(apply_()));
-	layout->addWidget(button,1,3);
-	
-	button = new QPushButton("&Help",this);
-	button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(button,SIGNAL(clicked()),SLOT(help_()));
-	layout->addWidget(button,1,4);	
-
-	//liststack
-	stack_ = new ListStack(this);
-	layout->addMultiCellWidget(stack_,0,0,0,4);
-}
-
-PreferencesDialog::~PreferencesDialog()
-{
-	
-}
-
-void PreferencesDialog::addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, PreferencesManager* parent) 
-{
-	pages_.push_back(page);
-	stack_->addWidget(name,page,creator,parent);
-	stack_->expand();
-}
-
-
-void PreferencesDialog::ok_()
-{
-	for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+	PreferencesDialog::PreferencesDialog()
+	:QDialog(),
+	pages_()
 	{
-		(*it)->save();
+		QGridLayout* layout;
+		QPushButton* button;
+		
+		setCaption("Preferences");
+	
+		//layout
+		layout = new QGridLayout(this,2,5);
+		layout->setSpacing(4);
+		layout->setMargin(6);
+		
+		//buttons
+		button = new QPushButton("&OK",this);
+		button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(button,SIGNAL(clicked()),SLOT(ok_()));
+		layout->addWidget(button,1,1);	
+	
+		button = new QPushButton("&Cancel",this);
+		button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(button,SIGNAL(clicked()),SLOT(cancel_()));
+		layout->addWidget(button,1,2);
+		
+	
+		button = new QPushButton("&Apply",this);
+		button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(button,SIGNAL(clicked()),SLOT(apply_()));
+		layout->addWidget(button,1,3);
+		
+		button = new QPushButton("&Help",this);
+		button->setSizePolicy(QSizePolicy::QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(button,SIGNAL(clicked()),SLOT(help_()));
+		layout->addWidget(button,1,4);	
+	
+		//liststack
+		stack_ = new ListStack(this);
+		layout->addMultiCellWidget(stack_,0,0,0,4);
 	}
-	accept();
-}
-
-void PreferencesDialog::cancel_()
-{
-	for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+	
+	PreferencesDialog::~PreferencesDialog()
 	{
-		(*it)->load();
+		
 	}
-	reject();
-}
-
-
-void PreferencesDialog::apply_()
-{
-	for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+	
+	void PreferencesDialog::addPage(std::string name, PreferencesDialogPage* page, PreferencesManager* creator, PreferencesManager* parent) 
 	{
-		(*it)->save();
+		pages_.push_back(page);
+		stack_->addWidget(name,page,creator,parent);
+		stack_->expand();
 	}
-}
+	
+	
+	void PreferencesDialog::ok_()
+	{
+		for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+		{
+			(*it)->save();
+		}
+		accept();
+	}
+	
+	void PreferencesDialog::cancel_()
+	{
+		for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+		{
+			(*it)->load();
+		}
+		reject();
+	}
+	
+	
+	void PreferencesDialog::apply_()
+	{
+		for (vector<PreferencesDialogPage*>::iterator it =pages_.begin();it!=pages_.end();++it)
+		{
+			(*it)->save();
+		}
+	}
+	
+	
+	void PreferencesDialog::help_()
+	{
+		QMessageBox::information( this, "Dialog page help", QString(dynamic_cast<PreferencesDialogPage*>(stack_->activeWidget())->getHelpText().c_str()) );
+	}
 
-
-void PreferencesDialog::help_()
-{
-	QMessageBox::information( this, "Dialog page help", QString(dynamic_cast<PreferencesDialogPage*>(stack_->activeWidget())->getHelpText().c_str()) );
-}
-
-
-
-
-
+} //namespace OpenMS

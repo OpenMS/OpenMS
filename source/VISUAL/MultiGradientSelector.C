@@ -37,211 +37,214 @@
 #include <iostream>
 
 using namespace std;
-using namespace OpenMS;
 
-MultiGradientSelector::MultiGradientSelector( QWidget * parent, const char * name) : QWidget(parent,name), gradient_(), margin_(5), gradient_area_width_(0), lever_area_height_(17), selected_(-1), selected_color_(Qt::white)
-{
-	setMinimumSize(250,45);
-	setFocusPolicy(QWidget::ClickFocus);
-	QToolTip::add( this, "Click the lever area to add new levers.<BR>"
-												"Levers are removed with the DEL key.<BR>"
-	                      "<NOBR>Double click a lever to change its color.</NOBR><BR>"
-	                      "Levers can be dragged.<BR>"
-	                      "Click the gradient to change its mode.<BR>"
-	             );
-}
-
-MultiGradientSelector::~MultiGradientSelector()
+namespace OpenMS
 {
 
-}
-
-const MultiGradient& MultiGradientSelector::gradient() const
-{
-	return gradient_;
-}
-
-MultiGradient& MultiGradientSelector::gradient()
-{
-	return gradient_;
-}
-
-void MultiGradientSelector::paintEvent(QPaintEvent * /* e */ )
-{
-  static QPixmap pixmap;
-	pixmap.resize(size());
-	pixmap.fill(paletteBackgroundColor());	
-	
-	//calculate gradient area width
-	if (gradient_area_width_==0)
+	MultiGradientSelector::MultiGradientSelector( QWidget * parent, const char * name) : QWidget(parent,name), gradient_(), margin_(5), gradient_area_width_(0), lever_area_height_(17), selected_(-1), selected_color_(Qt::white)
 	{
-		gradient_area_width_ = width()-2*margin_-2;
-	}
-
-	QPainter painter(&pixmap,this);
-	
-	//gradient field outline
-	painter.setPen(QColor(0,0,0));
-	painter.drawRect(margin_,margin_,width()-2*margin_,height()-2*margin_-lever_area_height_);
-
-	//draw gradient
-	for (SignedInt i=0;i<gradient_area_width_;++i)
-	{
-		painter.setPen(gradient_.interpolatedColorAt(i,0,gradient_area_width_));
-		painter.drawLine(margin_+1+i,margin_+1,margin_+1+i,height()-margin_-lever_area_height_-2);		
+		setMinimumSize(250,45);
+		setFocusPolicy(QWidget::ClickFocus);
+		QToolTip::add( this, "Click the lever area to add new levers.<BR>"
+													"Levers are removed with the DEL key.<BR>"
+		                      "<NOBR>Double click a lever to change its color.</NOBR><BR>"
+		                      "Levers can be dragged.<BR>"
+		                      "Click the gradient to change its mode.<BR>"
+		             );
 	}
 	
-	//levers
-	painter.setPen(QColor(0,0,0));
-	for (UnsignedInt i=0;i<gradient_.size();++i)
+	MultiGradientSelector::~MultiGradientSelector()
 	{
-		SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
-		painter.drawRect(pos-4,height()-margin_-lever_area_height_+5,9,9);
-		painter.drawLine(pos-4,height()-margin_-lever_area_height_+5,pos,height()-margin_-lever_area_height_);
-		painter.drawLine(pos,height()-margin_-lever_area_height_,pos+4,height()-margin_-lever_area_height_+5);
-		painter.fillRect(pos-3,height()-margin_-lever_area_height_+6,7,7,gradient_.color(i));
+	
+	}
+	
+	const MultiGradient& MultiGradientSelector::gradient() const
+	{
+		return gradient_;
+	}
+	
+	MultiGradient& MultiGradientSelector::gradient()
+	{
+		return gradient_;
+	}
+	
+	void MultiGradientSelector::paintEvent(QPaintEvent * /* e */ )
+	{
+	  static QPixmap pixmap;
+		pixmap.resize(size());
+		pixmap.fill(paletteBackgroundColor());	
 		
-		//selected lever
-		if (SignedInt(gradient_.position(i)) == selected_)
+		//calculate gradient area width
+		if (gradient_area_width_==0)
 		{
-			painter.fillRect(pos-2,height()-margin_-lever_area_height_+3,5,2,QColor(0,0,0));
-			painter.fillRect(pos-1,height()-margin_-lever_area_height_+1,3,2,QColor(0,0,0));
+			gradient_area_width_ = width()-2*margin_-2;
 		}
+	
+		QPainter painter(&pixmap,this);
+		
+		//gradient field outline
+		painter.setPen(QColor(0,0,0));
+		painter.drawRect(margin_,margin_,width()-2*margin_,height()-2*margin_-lever_area_height_);
+	
+		//draw gradient
+		for (SignedInt i=0;i<gradient_area_width_;++i)
+		{
+			painter.setPen(gradient_.interpolatedColorAt(i,0,gradient_area_width_));
+			painter.drawLine(margin_+1+i,margin_+1,margin_+1+i,height()-margin_-lever_area_height_-2);		
+		}
+		
+		//levers
+		painter.setPen(QColor(0,0,0));
+		for (UnsignedInt i=0;i<gradient_.size();++i)
+		{
+			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			painter.drawRect(pos-4,height()-margin_-lever_area_height_+5,9,9);
+			painter.drawLine(pos-4,height()-margin_-lever_area_height_+5,pos,height()-margin_-lever_area_height_);
+			painter.drawLine(pos,height()-margin_-lever_area_height_,pos+4,height()-margin_-lever_area_height_+5);
+			painter.fillRect(pos-3,height()-margin_-lever_area_height_+6,7,7,gradient_.color(i));
+			
+			//selected lever
+			if (SignedInt(gradient_.position(i)) == selected_)
+			{
+				painter.fillRect(pos-2,height()-margin_-lever_area_height_+3,5,2,QColor(0,0,0));
+				painter.fillRect(pos-1,height()-margin_-lever_area_height_+1,3,2,QColor(0,0,0));
+			}
+		}
+		
+		bitBlt(this,0,0,&pixmap,0,0,width(),height());		
 	}
 	
-	bitBlt(this,0,0,&pixmap,0,0,width(),height());		
-}
-
-void MultiGradientSelector::mousePressEvent ( QMouseEvent * e )
-{
-	if ( e->button() != LeftButton ) 
+	void MultiGradientSelector::mousePressEvent ( QMouseEvent * e )
 	{
-		e->ignore();
-		return;
-  } 	
-	
-	left_button_pressed_=true;
-	
-	//select lever
-	for (UnsignedInt i=0;i<gradient_.size();++i)
-	{
-		SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
-		if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
+		if ( e->button() != LeftButton ) 
 		{
-			selected_=gradient_.position(i);
-			selected_color_=gradient_.color(i);
-			repaint();
+			e->ignore();
 			return;
-		}
-	}		
-	
-	//create new lever
-	if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
-	{
-		SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
-		gradient_.insert(pos,selected_color_);
-		selected_ = pos;
-		repaint();
-	}
-	//tmp!!
-	else
-	{
-		if (getInterpolationMode()==MultiGradient::IM_LINEAR)
+	  } 	
+		
+		left_button_pressed_=true;
+		
+		//select lever
+		for (UnsignedInt i=0;i<gradient_.size();++i)
 		{
-			setInterpolationMode(MultiGradient::IM_STAIRS);
+			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
+			{
+				selected_=gradient_.position(i);
+				selected_color_=gradient_.color(i);
+				repaint();
+				return;
+			}
+		}		
+		
+		//create new lever
+		if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
+		{
+			SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
+			gradient_.insert(pos,selected_color_);
+			selected_ = pos;
+			repaint();
 		}
+		//tmp!!
 		else
 		{
-			setInterpolationMode(MultiGradient::IM_LINEAR);
-		}
-		repaint();
-	}
-}
-
-	void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
-	{
-		if (left_button_pressed_ && selected_!=-1)
-		{
-			//inside lever area
-			if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
+			if (getInterpolationMode()==MultiGradient::IM_LINEAR)
 			{
-				SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
-				//be careful not to remove other levers...
-				if (pos!=selected_ && !gradient_.exists(pos))
+				setInterpolationMode(MultiGradient::IM_STAIRS);
+			}
+			else
+			{
+				setInterpolationMode(MultiGradient::IM_LINEAR);
+			}
+			repaint();
+		}
+	}
+	
+		void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
+		{
+			if (left_button_pressed_ && selected_!=-1)
+			{
+				//inside lever area
+				if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
 				{
-					gradient_.remove(selected_);
-					gradient_.insert(pos,selected_color_);
-					selected_ = pos;
-					repaint();
+					SignedInt pos = SignedInt(100*(e->x()-margin_)/float(gradient_area_width_));
+					//be careful not to remove other levers...
+					if (pos!=selected_ && !gradient_.exists(pos))
+					{
+						gradient_.remove(selected_);
+						gradient_.insert(pos,selected_color_);
+						selected_ = pos;
+						repaint();
+					}
 				}
 			}
 		}
-	}
-
-void MultiGradientSelector::mouseReleaseEvent ( QMouseEvent * e )
-{
-	if ( e->button() != LeftButton ) 
+	
+	void MultiGradientSelector::mouseReleaseEvent ( QMouseEvent * e )
 	{
-		e->ignore();
-		return;
-  } 	
-	left_button_pressed_ = false;
-}
-
-void MultiGradientSelector::mouseDoubleClickEvent ( QMouseEvent * e )
-{
-	for (UnsignedInt i=0;i<gradient_.size();++i)
-	{
-		SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
-		if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
+		if ( e->button() != LeftButton ) 
 		{
-			gradient_.insert(gradient_.position(i),QColorDialog::getColor(gradient_.color(i),this, "Color dialog"));
-			if (SignedInt(gradient_.position(i))==selected_)
-			{
-				selected_color_=gradient_.color(i);
-			}
+			e->ignore();
 			return;
+	  } 	
+		left_button_pressed_ = false;
+	}
+	
+	void MultiGradientSelector::mouseDoubleClickEvent ( QMouseEvent * e )
+	{
+		for (UnsignedInt i=0;i<gradient_.size();++i)
+		{
+			SignedInt pos = SignedInt(float(gradient_.position(i))/100.0*gradient_area_width_+margin_+1);
+			if (e->x() >= pos-3 && e->x() <= pos+4 && e->y() >= height()-margin_-lever_area_height_+8 && e->y() <= height()-margin_-lever_area_height_+15)
+			{
+				gradient_.insert(gradient_.position(i),QColorDialog::getColor(gradient_.color(i),this, "Color dialog"));
+				if (SignedInt(gradient_.position(i))==selected_)
+				{
+					selected_color_=gradient_.color(i);
+				}
+				return;
+			}
 		}
 	}
-}
-
-void MultiGradientSelector::keyPressEvent ( QKeyEvent * e )
-{
-	if (e->key() == Qt::Key_Delete)
+	
+	void MultiGradientSelector::keyPressEvent ( QKeyEvent * e )
 	{
-		gradient_.remove(selected_);
-		selected_=-1;
-		selected_color_=Qt::white;
-		repaint();
+		if (e->key() == Qt::Key_Delete)
+		{
+			gradient_.remove(selected_);
+			selected_=-1;
+			selected_color_=Qt::white;
+			repaint();
+		}
+		else
+		{
+			e->ignore();		
+		}
 	}
-	else
+	
+	void MultiGradientSelector::stairsInterpolation(bool state)
 	{
-		e->ignore();		
+		if (state)
+		{
+			gradient_.setInterpolationMode(MultiGradient::IM_STAIRS);
+		}
+		else
+		{
+			gradient_.setInterpolationMode(MultiGradient::IM_LINEAR);
+		}
 	}
-}
-
-void MultiGradientSelector::stairsInterpolation(bool state)
-{
-	if (state)
+	
+	void MultiGradientSelector::setInterpolationMode(MultiGradient::InterpolationMode mode)
 	{
-		gradient_.setInterpolationMode(MultiGradient::IM_STAIRS);
+		gradient_.setInterpolationMode(mode);
 	}
-	else
+	
+	UnsignedInt MultiGradientSelector::getInterpolationMode() const
 	{
-		gradient_.setInterpolationMode(MultiGradient::IM_LINEAR);
+		return gradient_.getInterpolationMode();
 	}
-}
 
-void MultiGradientSelector::setInterpolationMode(MultiGradient::InterpolationMode mode)
-{
-	gradient_.setInterpolationMode(mode);
-}
-
-UnsignedInt MultiGradientSelector::getInterpolationMode() const
-{
-	return gradient_.getInterpolationMode();
-}
-
+} //namespace OpenMS
 
 
 

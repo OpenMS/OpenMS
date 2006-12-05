@@ -109,7 +109,7 @@ public:
         int struc_elem_number_of_points = (int) round(struc_size_ / spacing );
 
         // the number has to be odd
-        if (!isOdd(struc_elem_number_of_points))
+        if (!Math::isOdd(struc_elem_number_of_points))
         {
             struc_elem_number_of_points += 1;
         }

@@ -39,6 +39,7 @@ using namespace std;
 namespace OpenMS
 {
 	using namespace Internal;
+	using namespace Math;
 	
 	Spectrum1DWidget::Spectrum1DWidget(QWidget* parent, const char* name, WFlags f)
 		: SpectrumWidget(parent, name, f)

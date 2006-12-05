@@ -31,61 +31,65 @@
 #include <qpushbutton.h>
 
 using namespace std;
-using namespace OpenMS;
 
-BaselineFilteringDialog::BaselineFilteringDialog(QWidget* parent, const char* name , WFlags fl )
-    : BaselineFilteringDialogTemplate(parent,name,fl)
+namespace OpenMS
 {
-  struc_elem_line_edit->setText(QString().setNum(5));
-  spacing_line_edit->setText(QString().setNum(0.2));
-  resampling_check_box->setChecked(false);
-}
 
-BaselineFilteringDialog::~BaselineFilteringDialog()
-{}
+	BaselineFilteringDialog::BaselineFilteringDialog(QWidget* parent, const char* name , WFlags fl )
+	    : BaselineFilteringDialogTemplate(parent,name,fl)
+	{
+	  struc_elem_line_edit->setText(QString().setNum(5));
+	  spacing_line_edit->setText(QString().setNum(0.2));
+	  resampling_check_box->setChecked(false);
+	}
+	
+	BaselineFilteringDialog::~BaselineFilteringDialog()
+	{}
+	
+	void BaselineFilteringDialog::setStrucElemWidth(float kw)
+	{
+	  // update view
+	  struc_elem_line_edit->setText(QString().setNum(kw));
+	}
+	
+	void BaselineFilteringDialog::setSpacing(float r)
+	{
+	  // update view
+	  spacing_line_edit->setText(QString().setNum(r));
+	}
+	
+	void BaselineFilteringDialog::setResampling(bool r)
+	{
+	  resampling_check_box->setChecked(r);
+	}
+	
+	float BaselineFilteringDialog::getSpacing()
+	{
+	  return QString(spacing_line_edit->text()).toFloat();
+	}
+	
+	bool BaselineFilteringDialog::getResampling()
+	{
+	  return resampling_check_box->isChecked();
+	}
+	
+	float BaselineFilteringDialog::getStrucElemWidth()
+	{
+	  return QString(struc_elem_line_edit->text()).toFloat();;
+	}
+	
+	void BaselineFilteringDialog::startButton_clicked()
+	{
+	  // conversion succeded
+	  done(QDialog::Accepted);
+	}
+	
+	void BaselineFilteringDialog::resetButton_clicked()
+	{
+	  struc_elem_line_edit->setText(QString().setNum(5));
+	  spacing_line_edit->setText(QString().setNum(0.2));
+	  resampling_check_box->setChecked(false);
+	}
 
-void BaselineFilteringDialog::setStrucElemWidth(float kw)
-{
-  // update view
-  struc_elem_line_edit->setText(QString().setNum(kw));
-}
-
-void BaselineFilteringDialog::setSpacing(float r)
-{
-  // update view
-  spacing_line_edit->setText(QString().setNum(r));
-}
-
-void BaselineFilteringDialog::setResampling(bool r)
-{
-  resampling_check_box->setChecked(r);
-}
-
-float BaselineFilteringDialog::getSpacing()
-{
-  return QString(spacing_line_edit->text()).toFloat();
-}
-
-bool BaselineFilteringDialog::getResampling()
-{
-  return resampling_check_box->isChecked();
-}
-
-float BaselineFilteringDialog::getStrucElemWidth()
-{
-  return QString(struc_elem_line_edit->text()).toFloat();;
-}
-
-void BaselineFilteringDialog::startButton_clicked()
-{
-  // conversion succeded
-  done(QDialog::Accepted);
-}
-
-void BaselineFilteringDialog::resetButton_clicked()
-{
-  struc_elem_line_edit->setText(QString().setNum(5));
-  spacing_line_edit->setText(QString().setNum(0.2));
-  resampling_check_box->setChecked(false);
-}
+} //namespace OpenMS
 

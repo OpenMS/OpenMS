@@ -28,45 +28,43 @@
 
 #include <iostream>
 
-using namespace OpenMS;
 using namespace std;
 
-
-PreferencesDialogPage::PreferencesDialogPage(PreferencesManager* manager,QWidget* parent, const char* name, WFlags f)
-:QWidget(parent,name,f),
-manager_(manager),
-help_()
+namespace OpenMS
 {
+
+	PreferencesDialogPage::PreferencesDialogPage(PreferencesManager* manager,QWidget* parent, const char* name, WFlags f)
+	:QWidget(parent,name,f),
+	manager_(manager),
+	help_()
+	{
+		
+	}
 	
-}
-
-PreferencesDialogPage::~PreferencesDialogPage()
-{
+	PreferencesDialogPage::~PreferencesDialogPage()
+	{
+		
+	}
 	
-}
-
-const string& PreferencesDialogPage::getHelpText() const
-{
-	return help_;
-}
-
-void PreferencesDialogPage::setHelpText(const std::string& text)
-{
-	help_ = text;	
-}
-
-
-void PreferencesDialogPage::load()
-{
+	const string& PreferencesDialogPage::getHelpText() const
+	{
+		return help_;
+	}
 	
-}
-
-void PreferencesDialogPage::save()
-{
+	void PreferencesDialogPage::setHelpText(const std::string& text)
+	{
+		help_ = text;	
+	}
 	
-}
+	
+	void PreferencesDialogPage::load()
+	{
+		
+	}
+	
+	void PreferencesDialogPage::save()
+	{
+		
+	}
 
-
-
-
-
+} //namespace OpenMS

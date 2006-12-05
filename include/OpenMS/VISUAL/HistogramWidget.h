@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramWidget(const Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0, const char* name = "HistogramWidget");
+			HistogramWidget(const Math::Histogram<UnsignedInt,float>& distribution, QWidget* parent = 0, const char* name = "HistogramWidget");
 			/// Destructor
 			virtual ~HistogramWidget();
 			
@@ -78,7 +78,7 @@ namespace OpenMS
 			void setLeftSplitter(double pos);
 
 		protected:
-			Histogram<UnsignedInt,float> dist_;
+			Math::Histogram<UnsignedInt,float> dist_;
 			bool show_splitters_;
 			double left_splitter_;
 			double right_splitter_;

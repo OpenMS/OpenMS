@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_BASELINEFITLERINGDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_BASELINEFITLERINGDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_BASELINEFILTERINGDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_BASELINEFILTERINGDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/BaselineFilteringDialogTemplate.h>
 
@@ -57,5 +57,5 @@ namespace OpenMS
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_BaselineFilteringDialog_H
+#endif // OPENMS_VISUAL_DIALOGS_BASELINEFILTERINGDIALOG_H
 

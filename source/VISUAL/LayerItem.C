@@ -34,97 +34,100 @@
 #include <iostream>
 
 using namespace std;
-using namespace OpenMS;
 
-LayerItem::LayerItem( QWidget * parent, const char * name, WFlags fl):
-	LayerItemTemplate(parent,name,fl),
-	activated_(false),
-	context_menu_(0)
-{
-	label->setBuddy(this);
-}
-
-LayerItem::~LayerItem()
+namespace OpenMS
 {
 
-}
-
-void LayerItem::mousePressEvent ( QMouseEvent* /*e*/ )
-{
-	activate();
-	emit activated(index_);
-}
-
-void LayerItem::activate()
-{
-	if (!activated_)
+	LayerItem::LayerItem( QWidget * parent, const char * name, WFlags fl):
+		LayerItemTemplate(parent,name,fl),
+		activated_(false),
+		context_menu_(0)
 	{
-		activated_ = true;
-		setPaletteBackgroundColor(Qt::blue);
-		label->setText((String("<font color=white><b>")+text_+ String("</b></font>")).c_str());
+		label->setBuddy(this);
 	}
-}
-
-void LayerItem::deactivate()
-{
-	if (activated_)
-	{
-		activated_ = false;
-		unsetPalette();
-		label->setText(text_.c_str());
-	}
-}
-
-bool LayerItem::isActivated()
-{
-	return activated_;
-}
-
-void LayerItem::setIndex(UnsignedInt index)
-{
-	index_ = index;
-}
-
-void LayerItem::changeState(bool state)
-{
-	checkbox->setChecked(state);
-}
-
-void LayerItem::changeLabel(string l)
-{
-	text_ = l;
-	label->setText(l.c_str());
-}
-
-void LayerItem::toggled(bool state)
-{
-	emit stateChanged(index_, state);
-}
-
-void LayerItem::remove()
-{
 	
-	emit removeRequest(index_);
-}
-
-void LayerItem::contextMenuEvent( QContextMenuEvent * )
-{
-	if (index_==0)
+	LayerItem::~LayerItem()
 	{
-		return;
+	
 	}
-	context_menu_ = new QPopupMenu(this);
-	context_menu_->insertItem("delete",this,SLOT(remove()));
-	context_menu_->exec( QCursor::pos() );
-}
+	
+	void LayerItem::mousePressEvent ( QMouseEvent* /*e*/ )
+	{
+		activate();
+		emit activated(index_);
+	}
+	
+	void LayerItem::activate()
+	{
+		if (!activated_)
+		{
+			activated_ = true;
+			setPaletteBackgroundColor(Qt::blue);
+			label->setText((String("<font color=white><b>")+text_+ String("</b></font>")).c_str());
+		}
+	}
+	
+	void LayerItem::deactivate()
+	{
+		if (activated_)
+		{
+			activated_ = false;
+			unsetPalette();
+			label->setText(text_.c_str());
+		}
+	}
+	
+	bool LayerItem::isActivated()
+	{
+		return activated_;
+	}
+	
+	void LayerItem::setIndex(UnsignedInt index)
+	{
+		index_ = index;
+	}
+	
+	void LayerItem::changeState(bool state)
+	{
+		checkbox->setChecked(state);
+	}
+	
+	void LayerItem::changeLabel(string l)
+	{
+		text_ = l;
+		label->setText(l.c_str());
+	}
+	
+	void LayerItem::toggled(bool state)
+	{
+		emit stateChanged(index_, state);
+	}
+	
+	void LayerItem::remove()
+	{
+		
+		emit removeRequest(index_);
+	}
+	
+	void LayerItem::contextMenuEvent( QContextMenuEvent * )
+	{
+		if (index_==0)
+		{
+			return;
+		}
+		context_menu_ = new QPopupMenu(this);
+		context_menu_->insertItem("delete",this,SLOT(remove()));
+		context_menu_->exec( QCursor::pos() );
+	}
+	
+	UnsignedInt  LayerItem::getIndex() const
+	{
+		return index_;
+	}
+	
+	String  LayerItem::getLabel() const
+	{
+		return label->text().ascii();
+	}
 
-UnsignedInt  LayerItem::getIndex() const
-{
-	return index_;
-}
-
-String  LayerItem::getLabel() const
-{
-	return label->text().ascii();
-}
-
+} //namespace OpenMS

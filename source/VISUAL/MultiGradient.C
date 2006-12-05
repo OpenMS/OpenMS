@@ -33,9 +33,11 @@
 #include <math.h>
 
 using namespace std;
-using namespace OpenMS;
-using namespace OpenMS::Exception;
 
+namespace OpenMS
+{
+	using namespace Exception;
+	
 	MultiGradient::MultiGradient()
 		: pos_col_(), 
 			interpolation_mode_(IM_LINEAR)
@@ -272,3 +274,4 @@ using namespace OpenMS::Exception;
 		return pos_col_.find(position)!=pos_col_.end();
 	}
 
+} //namespace OpenMS

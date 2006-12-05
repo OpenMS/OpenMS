@@ -40,64 +40,67 @@
 #include <qradiobutton.h>
 #include <qvbuttongroup.h>
 
-using namespace OpenMS;
+
 using namespace std;
 
-
-HistogramDialog::HistogramDialog(const Histogram<UnsignedInt,float>& distribution, QWidget* parent, const char* name) :QDialog(parent,name)
-{ 	
-	setCaption("Intensity Distribution");
-	
-	//layout
-	QGridLayout* layout = new QGridLayout(this,3,2);
-	layout->setMargin(6);
-	layout->setSpacing(6);
-	layout->setRowStretch(0,100);
-
-	//ok
-	QPushButton* ok_button_ = new QPushButton("&OK",this);
-	ok_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(ok_button_,SIGNAL(clicked()),this,SLOT(accept()));
-	layout->addWidget(ok_button_,1,1);
-	
-	//cancel
-	QPushButton* cancel_button_ = new QPushButton("&Cancel",this);
-	cancel_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-	connect(cancel_button_,SIGNAL(clicked()),this,SLOT(reject()));
-	layout->addWidget(cancel_button_,1,2);
-	
-	//distribution
-	mw_ = new HistogramWidget(distribution, this, "HistogramWidget");
-	mw_->showSplitters(true);
-	layout->addMultiCellWidget(mw_,0,0,0,2);
-	
-	//resize dialog
-	adjustSize();
-}
-
-HistogramDialog::~HistogramDialog()
-{ 	
-	
-}
-
-double HistogramDialog::getLeftSplitter()
-{ 	
-	return mw_->getLeftSplitter();	
-}
-
-double HistogramDialog::getRightSplitter()
-{ 	
-	return mw_->getRightSplitter();	
-}
-
-void HistogramDialog::setLeftSplitter(double position)
+namespace OpenMS
 {
-	mw_->setLeftSplitter(position);
-}
+	using namespace Math;
+	
+	HistogramDialog::HistogramDialog(const Histogram<UnsignedInt,float>& distribution, QWidget* parent, const char* name) :QDialog(parent,name)
+	{ 	
+		setCaption("Intensity Distribution");
+		
+		//layout
+		QGridLayout* layout = new QGridLayout(this,3,2);
+		layout->setMargin(6);
+		layout->setSpacing(6);
+		layout->setRowStretch(0,100);
+	
+		//ok
+		QPushButton* ok_button_ = new QPushButton("&OK",this);
+		ok_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(ok_button_,SIGNAL(clicked()),this,SLOT(accept()));
+		layout->addWidget(ok_button_,1,1);
+		
+		//cancel
+		QPushButton* cancel_button_ = new QPushButton("&Cancel",this);
+		cancel_button_->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+		connect(cancel_button_,SIGNAL(clicked()),this,SLOT(reject()));
+		layout->addWidget(cancel_button_,1,2);
+		
+		//distribution
+		mw_ = new HistogramWidget(distribution, this, "HistogramWidget");
+		mw_->showSplitters(true);
+		layout->addMultiCellWidget(mw_,0,0,0,2);
+		
+		//resize dialog
+		adjustSize();
+	}
+	
+	HistogramDialog::~HistogramDialog()
+	{ 	
+		
+	}
+	
+	double HistogramDialog::getLeftSplitter()
+	{ 	
+		return mw_->getLeftSplitter();	
+	}
+	
+	double HistogramDialog::getRightSplitter()
+	{ 	
+		return mw_->getRightSplitter();	
+	}
+	
+	void HistogramDialog::setLeftSplitter(double position)
+	{
+		mw_->setLeftSplitter(position);
+	}
+	
+	void HistogramDialog::setRightSplitter(double position)
+	{
+		mw_->setRightSplitter(position);
+	}
 
-void HistogramDialog::setRightSplitter(double position)
-{
-	mw_->setRightSplitter(position);
-}
-
-
+} //namespace OpenMS

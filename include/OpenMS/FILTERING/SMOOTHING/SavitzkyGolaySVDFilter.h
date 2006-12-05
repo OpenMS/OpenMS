@@ -41,8 +41,6 @@
 
 namespace OpenMS
 {
-  using namespace Math;
-
   /**
     @brief Computes the Savitzky-Golay filter coefficients using QR decomposition.
    

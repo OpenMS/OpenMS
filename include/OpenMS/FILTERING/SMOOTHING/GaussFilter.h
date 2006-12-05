@@ -35,8 +35,6 @@
 
 namespace OpenMS
 {
-  using namespace Math;
-
   /**
     @brief This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform raw data.
    

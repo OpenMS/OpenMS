@@ -37,148 +37,151 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 
-using namespace OpenMS;
 using namespace std;
 
-
-PreferencesManager::PreferencesManager()
-:parent_(0), 
- clients_(),
- is_active_(0)
-{  
-}
-
-PreferencesManager::~PreferencesManager()
+namespace OpenMS
 {
-	if (parent_!=0)
-	{
-		parent_->removeClient(this);
+
+	PreferencesManager::PreferencesManager()
+	:parent_(0), 
+	 clients_(),
+	 is_active_(0)
+	{  
 	}
-}
-
-PreferencesManager* PreferencesManager::getParent()
-{
-		return parent_;
-}
-
-void PreferencesManager::setParent(PreferencesManager* parent)
-{	
-	parent_ = parent;
-}
-
-void PreferencesManager::addClient(PreferencesManager* client, const string& name, bool isIncluded)
-{ 
-		if (isIncluded){
-		incl_clients_[client] = name;
-		}else{
-		clients_[client] = name;
+	
+	PreferencesManager::~PreferencesManager()
+	{
+		if (parent_!=0)
+		{
+			parent_->removeClient(this);
 		}
-	client->setParent(this);
-}
-
-
-void PreferencesManager::removeClient(PreferencesManager* client, bool isIncluded)
-{ 	
-	if (isIncluded){
-		incl_clients_.erase(client);
-	}else{
-		clients_.erase(client);
 	}
-}
-
-void PreferencesManager::setClientName(PreferencesManager* client, const std::string& name, bool isIncluded)
-{
-	if (isIncluded){
-		incl_clients_[client] = name;
-	}else{
-		clients_[client] = name;
-	} 
-}
-
-SignedInt PreferencesManager::showPreferencesDialog()
-{
-	if (parent_!=0)
-	{
-		return parent_->showPreferencesDialog();
-	}
-
-	//dialog
-	PreferencesDialog dialog;
 	
-	createPreferences_(&dialog,"Default Preferences");
+	PreferencesManager* PreferencesManager::getParent()
+	{
+			return parent_;
+	}
+	
+	void PreferencesManager::setParent(PreferencesManager* parent)
+	{	
+		parent_ = parent;
+	}
+	
+	void PreferencesManager::addClient(PreferencesManager* client, const string& name, bool isIncluded)
+	{ 
+			if (isIncluded){
+			incl_clients_[client] = name;
+			}else{
+			clients_[client] = name;
+			}
+		client->setParent(this);
+	}
 	
 	
-	if (dialog.exec())
-	{
-		return 1;
+	void PreferencesManager::removeClient(PreferencesManager* client, bool isIncluded)
+	{ 	
+		if (isIncluded){
+			incl_clients_.erase(client);
+		}else{
+			clients_.erase(client);
+		}
 	}
-	else
+	
+	void PreferencesManager::setClientName(PreferencesManager* client, const std::string& name, bool isIncluded)
 	{
+		if (isIncluded){
+			incl_clients_[client] = name;
+		}else{
+			clients_[client] = name;
+		} 
+	}
+	
+	SignedInt PreferencesManager::showPreferencesDialog()
+	{
+		if (parent_!=0)
+		{
+			return parent_->showPreferencesDialog();
+		}
+	
+		//dialog
+		PreferencesDialog dialog;
+		
+		createPreferences_(&dialog,"Default Preferences");
+		
+		
+		if (dialog.exec())
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+		
+	}
+	
+	
+	void PreferencesManager::createPreferences_(PreferencesDialog* dialog, const string& name)
+	{
+		dialog->addPage(name,createPreferences(dialog),this,getParent());
+		//client preferences
+		for (map<PreferencesManager*,string>::iterator it = clients_.begin();it!=clients_.end();++it)
+		{
+			it->first->createPreferences_(dialog,it->second);
+		}
+	}
+	
+	PreferencesDialogPage* PreferencesManager::client(std::string name, QWidget* parent)
+	{
+		for (map<PreferencesManager*,string>::iterator it = incl_clients_.begin(); it!=incl_clients_.end();++it)
+		{
+			if (it->second == name)
+				return it->first->createPreferences(parent);
+		}
 		return 0;
 	}
 	
-}
-
-
-void PreferencesManager::createPreferences_(PreferencesDialog* dialog, const string& name)
-{
-	dialog->addPage(name,createPreferences(dialog),this,getParent());
-	//client preferences
-	for (map<PreferencesManager*,string>::iterator it = clients_.begin();it!=clients_.end();++it)
+	bool PreferencesManager::isActive()
 	{
-		it->first->createPreferences_(dialog,it->second);
+		return is_active_;
 	}
-}
-
-PreferencesDialogPage* PreferencesManager::client(std::string name, QWidget* parent)
-{
-	for (map<PreferencesManager*,string>::iterator it = incl_clients_.begin(); it!=incl_clients_.end();++it)
+	
+	void PreferencesManager::setActive(bool b)
 	{
-		if (it->second == name)
-			return it->first->createPreferences(parent);
+		is_active_ = b;
 	}
-	return 0;
-}
+	
+	void PreferencesManager::setPref(const String& name,const String& value)
+	{
+		prefs_.setValue(name, value);
+	}
+	
+	void PreferencesManager::setPref(const String& name,SignedInt value)
+	{
+		prefs_.setValue(name, value);
+	}
+	
+	const DataValue& PreferencesManager::getPref(const String& name) const
+	{
+		return prefs_.getValue(name);
+	}
+	
+	void PreferencesManager::removePref(const String& name)
+	{
+		return prefs_.remove(name);
+	}
+	
+	///returns the preference entry @p name as SignedInt
+	SignedInt PreferencesManager::getPrefAsInt(const String& name) const
+	{
+		//cout << name << ": " << (string)prefs_.getValue(name) << endl;
+		return (SignedInt)(prefs_.getValue(name));
+	}
+	
+	///returns the preference entry @p name as String
+	String PreferencesManager::getPrefAsString(const String& name) const
+	{
+		return prefs_.getValue(name).toString();
+	}
 
-bool PreferencesManager::isActive()
-{
-	return is_active_;
-}
-
-void PreferencesManager::setActive(bool b)
-{
-	is_active_ = b;
-}
-
-void PreferencesManager::setPref(const String& name,const String& value)
-{
-	prefs_.setValue(name, value);
-}
-
-void PreferencesManager::setPref(const String& name,SignedInt value)
-{
-	prefs_.setValue(name, value);
-}
-
-const DataValue& PreferencesManager::getPref(const String& name) const
-{
-	return prefs_.getValue(name);
-}
-
-void PreferencesManager::removePref(const String& name)
-{
-	return prefs_.remove(name);
-}
-
-///returns the preference entry @p name as SignedInt
-SignedInt PreferencesManager::getPrefAsInt(const String& name) const
-{
-	//cout << name << ": " << (string)prefs_.getValue(name) << endl;
-	return (SignedInt)(prefs_.getValue(name));
-}
-
-///returns the preference entry @p name as String
-String PreferencesManager::getPrefAsString(const String& name) const
-{
-	return prefs_.getValue(name).toString();
-}
+} //namespace OpenMS

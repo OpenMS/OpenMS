@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRPFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRPFINDER_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H
+#define OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -618,4 +618,4 @@ namespace OpenMS
   ; // DelaunayPairFinder
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_DelaunayPairFinder_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H

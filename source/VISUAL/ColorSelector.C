@@ -34,49 +34,52 @@
 #include <iostream>
 
 using namespace std;
-using namespace OpenMS;
 
-ColorSelector::ColorSelector( QWidget * parent, const char * name) : QWidget(parent,name),color_(255,255,255)
+namespace OpenMS
 {
-	setMinimumSize(12,12);
-}
 
-ColorSelector::~ColorSelector()
-{
-	
-}
-
-void ColorSelector::paintEvent(QPaintEvent* /*e*/)
-{
-	SignedInt size=QMIN(width(),height());
-	QPainter painter(this);
-	painter.setPen(QColor(0,0,0));
-	painter.drawRect(0,0,size,size);
-	painter.setPen(QColor(255,255,255));
-	painter.drawRect(1,1,size-2,size-2);	
-
-	painter.fillRect(2,2,size-4,size-4,color_);
-}
-	
-void ColorSelector::mousePressEvent(QMouseEvent* e)
-{
-	if ( e->button() != LeftButton ) 
+	ColorSelector::ColorSelector( QWidget * parent, const char * name) : QWidget(parent,name),color_(255,255,255)
 	{
-		e->ignore();
-		return;
-  } 	
-	color_ = QColorDialog::getColor(color_,this, "Color dialog");
-	repaint();
-}	
+		setMinimumSize(12,12);
+	}
+	
+	ColorSelector::~ColorSelector()
+	{
+		
+	}
+	
+	void ColorSelector::paintEvent(QPaintEvent* /*e*/)
+	{
+		SignedInt size=QMIN(width(),height());
+		QPainter painter(this);
+		painter.setPen(QColor(0,0,0));
+		painter.drawRect(0,0,size,size);
+		painter.setPen(QColor(255,255,255));
+		painter.drawRect(1,1,size-2,size-2);	
+	
+		painter.fillRect(2,2,size-4,size-4,color_);
+	}
+		
+	void ColorSelector::mousePressEvent(QMouseEvent* e)
+	{
+		if ( e->button() != LeftButton ) 
+		{
+			e->ignore();
+			return;
+	  } 	
+		color_ = QColorDialog::getColor(color_,this, "Color dialog");
+		repaint();
+	}	
+	
+	const QColor& ColorSelector::getColor()
+	{
+		return color_;
+	}
+	
+	void ColorSelector::setColor(const QColor& col)
+	{
+		color_=col;
+		repaint();
+	}
 
-const QColor& ColorSelector::getColor()
-{
-	return color_;
-}
-
-void ColorSelector::setColor(const QColor& col)
-{
-	color_=col;
-	repaint();
-}
-
+} //namespace OpenMS
