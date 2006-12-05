@@ -97,8 +97,7 @@ namespace OpenMS
         ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(&consensus_map),
-            act_cons_element_(0),
-            act_index_tuple_(0),
+            act_cons_element_(),
             calignment_(0),
             consensus_element_range_(false),
             feature_map_flag_(true)
@@ -111,8 +110,7 @@ namespace OpenMS
         ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(0),
-            act_cons_element_(0),
-            act_index_tuple_(0),
+            act_cons_element_(),
             calignment_(&alignment),
             consensus_element_range_(false),
             feature_map_flag_(true)
@@ -142,8 +140,7 @@ namespace OpenMS
 
       protected:
         ConsensusMap<ConsensusElementType>* consensus_map_;
-        ConsensusElementType* act_cons_element_;
-        IndexTuple< ElementContainerType >* act_index_tuple_;
+        ConsensusElementType act_cons_element_;
         // StartAlignment pointer for writing
         const StarAlignment< ConsensusElementType >* calignment_;
         bool consensus_element_range_;
@@ -254,12 +251,11 @@ namespace OpenMS
       switch(tag)
       {
           case CONSENSUSELEMENT:
-          consensus_map_->push_back(*act_cons_element_);
-          delete act_cons_element_;
+          consensus_map_->push_back(act_cons_element_);
           break;
       }
     }
-
+    
     template < typename AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
     {

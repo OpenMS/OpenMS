@@ -102,7 +102,7 @@ namespace OpenMS
         }
         break;
         case CONSENSUSELEMENT:
-        act_cons_element_ = new ConsensusElementType;
+        act_cons_element_ = ConsensusElementType();
         consensus_element_range_ = true;
         break;
         case CENTROID:
@@ -167,7 +167,7 @@ namespace OpenMS
         }
         break;
         case ELEMENT:
-        act_index_tuple_ = new IndexTuple< ElementContainerType >;
+        IndexTuple< ElementContainerType > act_index_tuple;
         tmp_str = getAttributeAsString(MAP_ATT);
         if (tmp_str != "")
         {
@@ -177,14 +177,14 @@ namespace OpenMS
           {
             UnsignedInt element_index = asUnsignedInt_(tmp_str);
 
-            act_index_tuple_->getMapIndex() = map_index;
-            act_index_tuple_->getElementIndex() = element_index;
-            act_index_tuple_->setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
-            act_cons_element_->insert(*act_index_tuple_);
-            act_cons_element_->getPosition() = pos_;
-            act_cons_element_->getPositionRange() = pos_range_;
-            act_cons_element_->getIntensity() = it_;
-            act_cons_element_->getIntensityRange() = it_range_;
+            act_index_tuple.getMapIndex() = map_index;
+            act_index_tuple.getElementIndex() = element_index;
+            act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
+            act_cons_element_.insert(act_index_tuple);
+            act_cons_element_.getPosition() = pos_;
+            act_cons_element_.getPositionRange() = pos_range_;
+            act_cons_element_.getIntensity() = it_;
+            act_cons_element_.getIntensityRange() = it_range_;
           }
         }
         break;

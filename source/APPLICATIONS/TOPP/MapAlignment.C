@@ -31,7 +31,6 @@
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFileDefinition.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
