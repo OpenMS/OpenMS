@@ -174,6 +174,7 @@ class TOPPNoiseFilter
 
       if (filter_type == "sgolay")
       {	
+  			writeDebug_(String("Sgolay filtering"), 1);
         SavitzkyGolaySVDFilter sgolay( getParam_() );
         // ???? old SavitzkyGolaySVDFilter sgolay(noise_param);
 
@@ -187,7 +188,7 @@ class TOPPNoiseFilter
         if (!resampling_flag)
         { 
            sgolay.filterExperiment(ms_exp_raw,ms_exp_filtered);
-
+					 writeDebug_(String("No resampling!"), 1);
         }
         else
         {
@@ -231,7 +232,8 @@ class TOPPNoiseFilter
       }
       else
         if (filter_type == "gaussian")
-        {
+        {	
+					writeDebug_(String("Gaussian filtering"), 1);
           GaussFilter gauss( getParam_() );
           // ???? old GaussFilter gauss(noise_param);
           gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
