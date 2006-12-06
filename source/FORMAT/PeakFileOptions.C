@@ -24,45 +24,60 @@
 // $Maintainer: Thomas Kadauke $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEAKFILEOPTIONS_H
-#define OPENMS_FORMAT_PEAKFILEOPTIONS_H
-
-#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 namespace OpenMS
 {
-	/**
-		@brief Options for loading files containing peak data.
-
-		@ingroup FileIO
-	*/
-	class PeakFileOptions
+	PeakFileOptions::PeakFileOptions()
+		: metadata_only_(false),
+			has_rt_range_(false),
+			has_mz_range_(false)
 	{
-	public:
-		///Default constructor
-		PeakFileOptions();
-		///Destructor
-		~PeakFileOptions();
+	}
+	
+	PeakFileOptions::~PeakFileOptions()
+	{
+	}
+	
+	void PeakFileOptions::setMetadataOnly(bool only)
+	{
+		metadata_only_ = only;
+	}
+	
+	bool PeakFileOptions::getMetadataOnly() const
+	{
+		return metadata_only_;
+	}
+	
+	void PeakFileOptions::setRTRange(const DRange<1>& range)
+	{
+		rt_range_ = range;
+		has_rt_range_ = true;
+	}
+	
+	bool PeakFileOptions::hasRTRange()
+	{
+		return has_rt_range_;
+	}
+	
+	const DRange<1>& PeakFileOptions::getRTRange() const
+	{
+		return rt_range_;
+	}
+	
+	void PeakFileOptions::setMZRange(const DRange<1>& range)
+	{
+		mz_range_ = range;
+		has_mz_range_ = true;
+	}
 
-		void setMetadataOnly(bool only);
-		bool getMetadataOnly() const;
-		
-		void setRTRange(const DRange<1>& range);
-		bool hasRTRange();
-		const DRange<1>& getRTRange() const;
-		
-		void setMZRange(const DRange<1>& range);
-		bool hasMZRange();
-		const DRange<1>& getMZRange() const;
-
-	private:
-		bool metadata_only_;
-		bool has_rt_range_;
-		bool has_mz_range_;
-		DRange<1> rt_range_;
-		DRange<1> mz_range_;
-	};
-
+	bool PeakFileOptions::hasMZRange()
+	{
+		return has_mz_range_;
+	}
+	
+	const DRange<1>& PeakFileOptions::getMZRange() const
+	{
+		return mz_range_;
+	}
 } // namespace OpenMS
-
-#endif // OPENMS_FORMAT_PEAKFILEOPTIONS_H

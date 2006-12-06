@@ -174,7 +174,8 @@ EXECUTABLES_FORMAT = \
 	AnalysisXMLFile_test\
 	MascotXMLFile_test\
 	DGridFile_test\
-	MzDataFile_test
+	MzDataFile_test\
+	PeakFileOptions_test
 
 #MATH
 
