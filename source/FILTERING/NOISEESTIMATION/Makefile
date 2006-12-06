@@ -35,7 +35,8 @@ include ../../config_defs.mak
 CPP_SOURCES=\
   DSignalToNoiseEstimatorWindowing.C\
   DSignalToNoiseEstimator.C\
-	DSignalToNoiseEstimatorMedian.C
+  DSignalToNoiseEstimatorMeanIterative.C\
+  DSignalToNoiseEstimatorMedian.C
 
 include ../../common.mak
 -include .Dependencies

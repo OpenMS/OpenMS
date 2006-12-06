@@ -25,9 +25,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEDIAN_H
-#define OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEDIAN_H
-
+#ifndef OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEANITERATIVE_H
+#define OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEANITERATIVE_H
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -38,28 +37,29 @@
 namespace OpenMS
 {
   /**
-    @brief Estimates the signal/noise ratio of each data point in a scan
-           based by using the median (histogram based)
+  	@brief Estimates the signal/noise ratio of each data point in a scan
+           based on an iterative scheme which discards high intensities
    
     For each datapoint in the given scan, we collect a range of data points around it (param: WindowLength).
-    The noise for a datapoint is estimated to be the median of the intensities of the current window.
-    If the number of elements in the current window is not sufficient (param: MinReqElementsInWindow),
+    The noise for a datapoint is estimated iteratively by discarding peaks which are more than
+    (StdevMP * StDev) above the mean value. After three iterations, the mean value is 
+    considered to be the noise level. If the number of elements in the current window is not sufficient (param: MinReqElementsInWindow),
     the noise level is set to a default value (param: NoiseEmptyWindow).
     The whole computation is histogram based, so the user will need to supply a number of bins (param: BinCount), which determines
     the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined 
     automatically (params: AutoMaxIntensity, AutoMode) by two different methods or can be set directly by the user (param: MaxIntensity).
-    If provided, the MaxIntensity param is always favoured over AutoMaxIntensity&AutoMode. If the (estimated) MaxIntensity value is too
-    low and the median is found to be in the last (&highest) bin, a warning to std:err will be given. In this case you should increase
-    MaxIntensity (and optionally the BinCount).
+    If provided, the MaxIntensity param is always favoured over AutoMaxIntensity&AutoMode. Know that Auto-Mode will slow down the 
+    computation.
     
     The class uses a lazy evaluation approach and will compute ALL StN values when the first request is made. 
-    Changing any of the parameters will invalidate the StN values (which will invoke a recomputation on the next request).
+    Changing any of the parameters will invalidate the StN values.
 
     Accepted Ini-File Parameters:
     <table>
     <tr><th>Parameter                                               </th><th>  Description                                </th></tr>
     <tr><td> SignalToNoiseEstimationParameter:WindowLength          </td><td>  window length in Thomson                   </td></tr>
     <tr><td> SignalToNoiseEstimationParameter:BinCount              </td><td>  number of bins used                        </td></tr>
+    <tr><td> SignalToNoiseEstimationParameter:StdevMP               </td><td>  multiplier for stdev                       </td></tr>
     <tr><td> SignalToNoiseEstimationParameter:MinReqElementsInWindow</td><td>  minimum number of elements required in a window   </td></tr>
     <tr><td> SignalToNoiseEstimationParameter:NoiseEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
       
@@ -74,34 +74,27 @@ namespace OpenMS
     <tr><td colspan=2> [The following 2 parameters belong together and should both be provided if <b>MaxIntensity</b> was NOT given]</td></tr>
 
     <tr><td> SignalToNoiseEstimationParameter:AutoMode                 </td><td> method to use to determine "MaxIntensity": 
-                                                             <pre>0 [default]  use mean + "AutoMaxIntensity" * stdev</pre>  
+                                                             <pre>0 [default]  use mean + "AutoMaxIntensity" * stdev</pre> 
                                                              <pre>1            "AutoMaxIntensity"th percentile</pre>
                                                                                                                           </td></tr>
     <tr><td> SignalToNoiseEstimationParameter:AutoMaxIntensity         </td><td> parameter for "MaxIntensity" estimation; 
                                                              <pre>if "AutoMode" == 0, default is "AutoMaxIntensity"=3</pre> 
                                                              <pre>else            the default is "AutoMaxIntensity"=95 (do NOT exceed 100)</pre>
                                                                                                                           </td></tr>
-    </table>  
+    </table>      
     
-        
-   @note 
+    @note 
     Warning to *stderr* if sparse_window_percent > 20
             - percent of windows that have less than "MinReqElementsInWindow" of elements
               (noise estimates in those windows are simply a constant "NoiseEmptyWindow")
-            .             
-    Warning to *stderr* if histogram_oob_percent (oob=_out_of_bounds) > 1
-            - percentage of median estimations that had to rely on the last(=rightmost) bin
-              which gives an unreliable result
-            .  
+            .   
     
-    
-   @ingroup Filtering
+    @ingroup Filtering
     
   */
   
-  
   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
-     class DSignalToNoiseEstimatorMedian : public DSignalToNoiseEstimator<D, PeakIterator>
+     class DSignalToNoiseEstimatorMeanIterative : public DSignalToNoiseEstimator<D, PeakIterator>
   {
 
   public:
@@ -114,6 +107,7 @@ namespace OpenMS
     {
        DEFAULT_WINLEN   = 200,  // window length in Thomson
        DEFAULT_BINCOUNT = 30,  // number of bins for histogramm 
+       DEFAULT_STDEV    = 3,   // standard deviation multiplier for thresold estimation during iteration on window
        DEFAULT_MAXINTENSITY_BYSTDEV   = 3,  // "mean+DEFAULT_MAXINTENSITY_BYSTDEV*stdev" will give the treshold during preprocessing on whole dataset
        DEFAULT_MAXINTENSITY_BYPERCENT = 95, // 95th percentile value will give the treshold during preprocessing on whole dataset
        DEFAULT_MIN_REQUIRED_ELEMENTS  = 10, // number of elements required for a window to be considered NON-empty
@@ -129,7 +123,7 @@ namespace OpenMS
     //@}
 
     using DSignalToNoiseEstimator<D, PeakIterator>::param_;
-    using DSignalToNoiseEstimator<D, PeakIterator>::first_;
+	  using DSignalToNoiseEstimator<D, PeakIterator>::first_;
     using DSignalToNoiseEstimator<D, PeakIterator>::last_;
     using DSignalToNoiseEstimator<D, PeakIterator>::rt_dim_;
     using DSignalToNoiseEstimator<D, PeakIterator>::mz_dim_;
@@ -143,17 +137,19 @@ namespace OpenMS
 
     
     /// (default) constructor
-    /// accepts up to 4 parameters (for a description see above)
+    /// accepts up to 5 parameters (for a description see above)
     /// This constructor does not accept a "max_intensity" parameter, so the algorithm will
     /// use its default heuristic to estimate a "max_intensity"
-    inline DSignalToNoiseEstimatorMedian(
+    inline DSignalToNoiseEstimatorMeanIterative(
             double win_len               = (double) DEFAULT_WINLEN,
             int    bin_count             = DEFAULT_BINCOUNT,
+            double stdev                 = (double) DEFAULT_STDEV,
             int    min_required_elements = DEFAULT_MIN_REQUIRED_ELEMENTS,
             double noise_for_empty_window= (double) DEFAULT_NOISE_ON_EMTPY_WINDOW)
        : DSignalToNoiseEstimator<D,PeakIterator>(), 
          win_len_(win_len), 
          bin_count_(bin_count),
+         stdev_(stdev),
          min_required_elements_(min_required_elements),
          noise_for_empty_window_(noise_for_empty_window)
     {
@@ -166,19 +162,21 @@ namespace OpenMS
     }
    
     /// constructor
-    /// accepts 5 Parameters (for a description see above)
+    /// accepts 6 Parameters (for a description see above)
     /// As "max_intensity" is provided by the user, no heuristic will be used
     /// Be aware though, that a misjudged "max_intensity" (either too small or too big) 
     /// can lead to unreliable results
-    inline DSignalToNoiseEstimatorMedian(
+    inline DSignalToNoiseEstimatorMeanIterative(
             double win_len,
             int    bin_count,
+            double stdev,
             int    min_required_elements,
             double noise_for_empty_window,
             int    max_intensity)
        : DSignalToNoiseEstimator<D,PeakIterator>(), 
          win_len_(win_len), 
          bin_count_(bin_count),
+         stdev_(stdev), 
          min_required_elements_(min_required_elements),
          noise_for_empty_window_(noise_for_empty_window),
          max_intensity_((double) max_intensity)
@@ -191,15 +189,16 @@ namespace OpenMS
         updateParam();
     }
 
-
+  
     /// constructor
-    /// accepts 6 Parameters (for a description see above)
+    /// accepts 7 Parameters (for a description see above)
     /// "max_intensity" will be estimated using a heuristic,
     /// which parameters you can specify using
     /// "auto_max_intensity" and "auto_mode".
-    inline DSignalToNoiseEstimatorMedian(
+    inline DSignalToNoiseEstimatorMeanIterative(
             double win_len,
             int    bin_count,
+            double stdev,
             int    min_required_elements,
             double noise_for_empty_window,
             double auto_max_intensity,
@@ -207,6 +206,7 @@ namespace OpenMS
        : DSignalToNoiseEstimator<D,PeakIterator>(), 
          win_len_(win_len), 
          bin_count_(bin_count),
+         stdev_(stdev), 
          min_required_elements_(min_required_elements),
          noise_for_empty_window_(noise_for_empty_window),
          auto_max_intensity_(auto_max_intensity), 
@@ -220,20 +220,18 @@ namespace OpenMS
     
     /// constructor (using a param object)
     /// @see setParam(const Param& param) 
-    inline DSignalToNoiseEstimatorMedian(const Param& parameters)
+    inline DSignalToNoiseEstimatorMeanIterative(const Param& parameters)
       : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
     {
       setParam(parameters);
-
-      is_result_valid_ = false;
     }
-
-
+    
     /// Copy Constructor
-    inline DSignalToNoiseEstimatorMedian(const DSignalToNoiseEstimatorMedian&  ne)
+    inline DSignalToNoiseEstimatorMeanIterative(const DSignalToNoiseEstimatorMeanIterative&  ne)
       : DSignalToNoiseEstimator<D,PeakIterator>(ne),
         win_len_               (ne.win_len_),
         bin_count_             (ne.bin_count_),
+        stdev_                 (ne.stdev_),
         min_required_elements_ (ne.min_required_elements_),
         noise_for_empty_window_(ne.noise_for_empty_window_),
         max_intensity_         (ne.max_intensity_),
@@ -244,18 +242,17 @@ namespace OpenMS
     {
       param_  = ne.getParam();
     }
-
-
+    
     /// Destructor
-    virtual ~DSignalToNoiseEstimatorMedian() {}
+    virtual ~DSignalToNoiseEstimatorMeanIterative() {}
+    
 
 
-    /** @name Assignment
-     * WARNING: does not assign the StNs
+    /** @name Assignment 
      */
     //@{
     ///
-    inline DSignalToNoiseEstimatorMedian& operator=(const DSignalToNoiseEstimatorMedian& ne)
+    inline DSignalToNoiseEstimatorMeanIterative& operator=(const DSignalToNoiseEstimatorMeanIterative& ne)
     {
       mz_dim_                 = ne.mz_dim_;
       rt_dim_                 = ne.rt_dim_;
@@ -264,6 +261,7 @@ namespace OpenMS
       
       win_len_                = ne.win_len_; 
       bin_count_              = ne.bin_count_;
+      stdev_                  = ne.stdev_;
       min_required_elements_  = ne.min_required_elements_;
       noise_for_empty_window_ = ne.noise_for_empty_window_;
       max_intensity_          = ne.max_intensity_;
@@ -295,6 +293,13 @@ namespace OpenMS
     inline int& getBinCount() { return bin_count_; }
     /// Mutable access to the number of bins used for the histogram
     inline void setBinCount(const int& bin_count) { bin_count_ = bin_count; updateParam();}
+
+    /// Non-mutable access to the multiplier of the stdev used during iterative threshold calculation
+    inline const double& getSTDEVMultiplier() const { return stdev_; }
+    /// Mutable access to the multiplier of the stdev used during iterative threshold calculation
+    inline double& getSTDEVMultiplier() { return stdev_; }
+    /// Mutable access to the multiplier of the stdev used during iterative threshold calculation
+    inline void setSTDEVMultiplier(const double& stdev) { stdev_ = stdev; updateParam();}
 
     /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
     inline const double& getMaxIntensity() const { return max_intensity_; }
@@ -343,6 +348,7 @@ namespace OpenMS
     /// Mutable access to the last raw data point
     inline void setLastDataPoint(const PeakIterator& last) { DSignalToNoiseEstimator<D, PeakIterator>::setLastDataPoint(last); is_result_valid_ = false;}    
     
+    
     /// Mutable access to the parameter object
     /// For valid parameter names see class description
     /// Left out parameters will be set to default
@@ -359,6 +365,10 @@ namespace OpenMS
       if (dv.isEmpty() || dv.toString() == "") bin_count_ = DEFAULT_BINCOUNT;
       else bin_count_ = (int) dv;
       
+      dv = param_.getValue("SignalToNoiseEstimationParameter:StdevMP");
+      if (dv.isEmpty() || dv.toString() == "") stdev_ = (double) DEFAULT_STDEV;
+      else stdev_ = (double) dv;
+
       dv = param_.getValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow");
       if (dv.isEmpty() || dv.toString() == "") min_required_elements_ = DEFAULT_MIN_REQUIRED_ELEMENTS;
       else min_required_elements_ = (int) dv;
@@ -390,6 +400,7 @@ namespace OpenMS
       Param default_p;
       default_p.setValue("SignalToNoiseEstimationParameter:WindowLength", win_len_);
       default_p.setValue("SignalToNoiseEstimationParameter:BinCount", (double) bin_count_);
+      default_p.setValue("SignalToNoiseEstimationParameter:StdevMP", stdev_);
       default_p.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) min_required_elements_);
       default_p.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", noise_for_empty_window_);
       default_p.setValue("SignalToNoiseEstimationParameter:MaxIntensity", max_intensity_);
@@ -398,38 +409,34 @@ namespace OpenMS
       
       // ... and check it against current param object:
       param_.checkDefaults(default_p);
-      
+
     }
 
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
-    /// @note: you can provide a "flat" 2D DPeakArray iterator. The class will evaluate the datapoints 
+	  /// @note: you can provide a "flat" 2D DPeakArray iterator. The class will evaluate the datapoints 
     /// scan by scan. A scan is found by collecting all items with the same (*iterator).getPosition()[rt_dim_]
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
-      first_= it_begin;
+	    first_= it_begin;
       last_= it_end;
-      
+	    
       is_result_valid_ = false;
     }
 
     /// Return to signal/noise estimate for data point @p data_point
-    /// @note the first query to this function will take longer, as
+    /// @note: the first query to this function will take longer, as
     ///        all SignalToNoise values are calculated
-    /// @note you will get a warning to stderr if more than 20% of the 
+    /// @note: you will get a warning to stderr if more than 20% of the 
     ///        noise estimates used sparse windows
-    /// @note you will get a warning to stderr if more than 1% of the 
-    ///        median estimates was in the rightmost histogram bin
-    ///        (you should consider increasing MaxIntensity)
     virtual double getSignalToNoise(PeakIterator data_point)
     {
       double sparse_window = 0;
-      double histogram_oob = 0;
       
       if (!is_result_valid_)
       {
         if (rt_dim_ == -1) {
             // D==1
-            shiftWindow_(first_, last_, sparse_window, histogram_oob);
+            shiftWindow_(first_, last_, sparse_window);
         }
         else
         {
@@ -439,7 +446,6 @@ namespace OpenMS
             double scan_count = 0;
             double rt;
             double sparse_window_scan;
-            double histogram_oob_scan;
             while (scan_end != last_)
             {
               scan_count++;
@@ -449,17 +455,15 @@ namespace OpenMS
               {
                 ++scan_end;
               }
-              shiftWindow_(scan_start, scan_end, sparse_window_scan, histogram_oob_scan);
+              shiftWindow_(scan_start, scan_end, sparse_window_scan);
               
               scan_start = scan_end;
               
-              // add up percentages for sparse windows & histogram overflow in scans
+              // add up percentages for sparse windows in scans
               sparse_window += sparse_window_scan;
-              histogram_oob += histogram_oob_scan;
             }
             // average result over scans
             sparse_window = sparse_window / scan_count;
-            histogram_oob = histogram_oob / scan_count;
         }
         
         is_result_valid_ = true;
@@ -467,23 +471,14 @@ namespace OpenMS
         // warn if percentage of sparse windows is above 20%
         if (sparse_window > 20) 
         {
-          std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
+          std::cerr << "WARNING in DSignalToNoiseEstimatorMeanIterative: " 
                    << sparse_window 
                    << "% of all windows were sparse. You should consider decreasing WindowLength and/or MinReqElementsInWindow" 
+                   << " You should also check the MaximalIntensity value (or the parameters for its heuristic estimation)"
+                   << " If it is too low, then too many high intensity peaks will be discarded, which leads to a sparse window!"
                    << std::endl;
         }
-        
-        // warn if percentage of possibly wrong median estimates is above 1%
-        if (histogram_oob > 1) 
-        {
-          std::cerr << "WARNING in DSignalToNoiseEstimatorMedian: " 
-                   << histogram_oob 
-                   << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
-                   << "You should consider increasing MaxIntensity (and maybe BinCount with it, to keep bin width reasonable)" 
-                   << std::endl;
-        }
-        
-      }  
+      }    
       
       return stn_estimates_[*data_point];
     }
@@ -496,6 +491,7 @@ namespace OpenMS
       // update param-object
       param_.setValue("SignalToNoiseEstimationParameter:WindowLength", win_len_);
       param_.setValue("SignalToNoiseEstimationParameter:BinCount", (double) bin_count_);
+      param_.setValue("SignalToNoiseEstimationParameter:StdevMP", stdev_);
       param_.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) min_required_elements_);
       param_.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", noise_for_empty_window_);
       param_.setValue("SignalToNoiseEstimationParameter:MaxIntensity", max_intensity_);
@@ -515,15 +511,10 @@ namespace OpenMS
     /// @param : sparse_window_percent
     ///          percent of windows that have less than "min_required_elements_" of elements
     ///          (noise estimates in those windows are simply a constant "noise_for_empty_window_")           
-    /// @param : histogram_oob_percent (oob=_out_of_bounds)
-    ///          percentage of median estimations that had to rely on the last(=rightmost) bin
-    ///          which gives an unreliable result
-    void shiftWindow_(const PeakIterator& scan_first_, const PeakIterator& scan_last_, double &sparse_window_percent, double &histogram_oob_percent)
+    void shiftWindow_(const PeakIterator& scan_first_, const PeakIterator& scan_last_, double &sparse_window_percent)
     {
       // reset counter for sparse windows
       sparse_window_percent = 0;
-      // reset counter for histogram overflow
-      histogram_oob_percent = 0;
       
       // reset the results
       stn_estimates_.clear();
@@ -594,8 +585,7 @@ namespace OpenMS
       
       double window_half_size = win_len_ / 2;
       double bin_size = max_intensity_local / bin_count_;
-      int bin_count_minus_1 = bin_count_ - 1;
-      
+
       std::vector <int> histogram(bin_count_, 0);
       std::vector <double> bin_value(bin_count_, 0);
       // calculate average intensity that is represented by a bin
@@ -604,21 +594,17 @@ namespace OpenMS
          histogram[bin] = 0;
          bin_value[bin] = (bin + 0.5) * bin_size;           
       }
+      /// index of last valid bin during iteration
+      int hist_rightmost_bin;
       /// bin in which a datapoint would fall
       int to_bin;
-
-      /// index of bin where the median is located
-      int median_bin;
-      /// additive number of elements from left to x in histogram
-      int element_inc_count;
+      /// mean & stdev of the histogram
+      double hist_mean;
+      double hist_stdev;
       
       /// tracks elements in current window, which may vary because of uneven spaced data
       int elements_in_window = 0;
-      /// number of windows
       int window_count = 0;
-      
-      /// number of elements where we find the median
-      int element_in_window_half;
       
       double noise;    // noise value of a datapoint      
 
@@ -628,19 +614,25 @@ namespace OpenMS
         // erase all elements from histogram that will leave the window on the LEFT side
         while ( (*window_pos_borderleft).getPosition()[mz_dim_] <  (*window_pos_center).getPosition()[mz_dim_] - window_half_size )
         {
-          to_bin = std::min((int) (((*window_pos_borderleft).getIntensity()) / bin_size), bin_count_minus_1);
-          --histogram[to_bin];
-          --elements_in_window;
+          to_bin = (int) (((*window_pos_borderleft).getIntensity()) / bin_size);
+          if (to_bin < bin_count_)
+          {
+            --histogram[to_bin];
+            --elements_in_window;
+          }
           ++window_pos_borderleft;
         }
         
         // add all elements to histogram that will enter the window on the RIGHT side
-        while (    (window_pos_borderright != scan_last_)
-                &&((*window_pos_borderright).getPosition()[mz_dim_] <= (*window_pos_center).getPosition()[mz_dim_] + window_half_size ) )
+        while (     (window_pos_borderright != scan_last_)
+                && ((*window_pos_borderright).getPosition()[mz_dim_] <= (*window_pos_center).getPosition()[mz_dim_] + window_half_size )                     )
         {
-          to_bin = std::min((int) (((*window_pos_borderright).getIntensity()) / bin_size), bin_count_minus_1);
-          ++histogram[to_bin];
-          ++elements_in_window;
+          to_bin = (int) (((*window_pos_borderright).getIntensity()) / bin_size);
+          if (to_bin < bin_count_)
+          {
+            ++histogram[to_bin];
+            ++elements_in_window;
+          }
           ++window_pos_borderright;
         }
 
@@ -651,46 +643,57 @@ namespace OpenMS
         }
         else
         {
-          // find bin i where ceil[elements_in_window/2] <= sum_c(0..i){ histogram[c] }
-          median_bin = -1;
-          element_inc_count = 0;
-          element_in_window_half = (elements_in_window+1) / 2;
-          while (median_bin < bin_count_minus_1 && element_inc_count < element_in_window_half) {
-            ++median_bin;
-            element_inc_count += histogram[median_bin];
-          }
-
-          // increase the error count
-          if (median_bin == bin_count_minus_1) {++histogram_oob_percent;}
           
-          noise = std::max(noise_for_empty_window_, bin_value[median_bin]);
+          hist_rightmost_bin = bin_count_;
+          
+          // do iteration on histogram and find threshold
+          for (int i=0;i<3;++i)
+          {
+            // mean
+            hist_mean = 0;
+            for (int bin = 0; bin < hist_rightmost_bin; ++bin) {
+              hist_mean += histogram[bin]*bin_value[bin];                
+            }
+            hist_mean = hist_mean / elements_in_window;
+            
+            // stdev
+            hist_stdev = 0;
+            for (int bin = 0; bin < hist_rightmost_bin; ++bin) {
+              hist_stdev += histogram[bin] * std::pow(bin_value[bin]-hist_mean, 2);                
+            }
+            hist_stdev = std::sqrt(hist_stdev / elements_in_window);
+            
+            //determine new threshold (i.e. the rightmost bin we consider)
+            int estimate = (int) ((hist_mean + hist_stdev * stdev_ - 1) / bin_size + 1);
+            hist_rightmost_bin = std::min(estimate, bin_count_);
+          }
+          
+          noise = std::max(noise_for_empty_window_, hist_mean);
         }
         
         // store result
         stn_estimates_[*window_pos_center] = (*window_pos_center).getIntensity() / noise;
         
-        
         // advance the window center by one datapoint
         ++window_pos_center;
         ++window_count;  
       } // end while
-
+      
       sparse_window_percent = sparse_window_percent *100 / window_count;
-      histogram_oob_percent = histogram_oob_percent *100 / window_count;
       
     } // end of shiftWindow_
 
     /// calculate mean & stdev of intensities of a DPeakArray
-    inline GaussianEstimate estimate(const PeakIterator& scan_first_, const PeakIterator& scan_last_) const
-    {
-        int size = 0;
+		inline GaussianEstimate estimate(const PeakIterator& scan_first_, const PeakIterator& scan_last_) const
+		{
+			  int size = 0;
         // add up
         double v = 0;
         double m = 0;
         PeakIterator run = scan_first_;
         while (run != scan_last_)
         {
-          m += (*run).getIntensity();
+        	m += (*run).getIntensity();
           ++size;
           ++run;
         }
@@ -701,14 +704,14 @@ namespace OpenMS
         run = scan_first_;
         while (run != scan_last_)
         {
-          v += std::pow(m - (*run).getIntensity(), 2);
+        	v += std::pow(m - (*run).getIntensity(), 2);
           ++run;
         }        
         v = v / ((double)size); // divide by n
         
         GaussianEstimate value = {m, v};        
         return value;
-    }
+		}
 
     /// stores the noise estimate for each peak
     /// TODO: change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
@@ -719,6 +722,8 @@ namespace OpenMS
     double win_len_;    
     /// number of bins in the histogram
     int    bin_count_;
+    /// multiplier for the stdev of intensities
+    double stdev_;
     /// minimal number of elements a window need to cover to be used
     int min_required_elements_;
     /// used as noise value for windows which cover less than "min_required_elements_" AND for windows where the mean value got iterated down to 0
@@ -738,4 +743,4 @@ namespace OpenMS
 
 }// namespace OpenMS
 
-#endif //OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEDIAN_H
+#endif //OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEANITERATIVE_H
