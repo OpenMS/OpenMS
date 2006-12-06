@@ -28,12 +28,11 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODELFITTER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/DATASTRUCTURES/IndexSet.h>
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
+  class IndexSet;
 
   /** @brief Abstract base class for ModelFitter-Module of FeatureFinder.
    

@@ -25,6 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
+#include <OpenMS/FORMAT/DBConnection.h>
+
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qlineedit.h>

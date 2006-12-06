@@ -28,13 +28,14 @@
 #define OPENMS_FILTERING_TRANSFORMERS_PEAKDIFFBINS_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <map>
 #include <vector>
 
 namespace OpenMS
 {
+	class ClusterSpectrum;
+	
   /**
   	@brief PeakDiffBins calculates all differences between pairs and returns the fraction of the total intensity in the specified regions
 

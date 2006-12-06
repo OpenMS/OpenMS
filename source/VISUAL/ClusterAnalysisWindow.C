@@ -23,8 +23,18 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
-#include <OpenMS/VISUAL/ClusterAnalysisWindow.h>
 
+#include <OpenMS/VISUAL/ClusterAnalysisWindow.h>
+#include <OpenMS/VISUAL/BinnedRepWidget.h>
+#include <OpenMS/VISUAL/SimMatrixWidget.h>
+#include <OpenMS/VISUAL/ScaleWidget.h>
+#include <OpenMS/VISUAL/FactoryProductView.h>
+#include <OpenMS/VISUAL/ResultView.h>
+#include <OpenMS/VISUAL/ClusterExperimentView.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
+#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
@@ -32,7 +42,14 @@
 #include <OpenMS/VISUAL/DIALOGS/InspectDialog.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 
-
+#include <qpixmap.h>
+#include <qmenubar.h>
+#include <qsplitter.h>
+#include <qtabwidget.h>
+#include <qlabel.h>
+#include <qlistview.h>
+#include <qstatusbar.h>
+#include <qpopupmenu.h>
 #include <qprogressdialog.h>
 #include <qfiledialog.h>
 #include <qstylesheet.h>

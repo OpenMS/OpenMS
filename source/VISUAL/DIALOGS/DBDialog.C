@@ -23,7 +23,16 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/VISUAL/DIALOGS/DBDialog.h>
+
+#include <OpenMS/FORMAT/DBConnection.h>
+
+#include <qlabel.h>
+#include <qlineedit.h>
+#include <qcheckbox.h>
+#include <qpushbutton.h>
+#include <qlayout.h>
 
 #include <qmessagebox.h>
 #include <fstream>

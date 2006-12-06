@@ -23,7 +23,11 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/VISUAL/BinnedRepWidget.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
+
+#include <qpixmap.h>
 
 #include <iostream>
 

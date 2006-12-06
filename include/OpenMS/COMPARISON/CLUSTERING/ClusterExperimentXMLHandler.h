@@ -28,12 +28,12 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTEREXPERIMENTXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 
 namespace OpenMS
 {
+	class FactoryProduct;
+	class ClusterExperiment;
+	class ClusterNode;
 
   class ClusterExperimentXMLHandler : public Internal::XMLHandler
   {

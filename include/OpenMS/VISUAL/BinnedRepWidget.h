@@ -29,14 +29,16 @@
 
 #include <qwidget.h>
 #include <qpainter.h>
-#include <qpixmap.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include<vector>
+#include <vector>
+
+class QPixMap;
 
 namespace OpenMS
 {
+  class BinnedRep;
 
   class BinnedRepWidget : public QWidget
   {

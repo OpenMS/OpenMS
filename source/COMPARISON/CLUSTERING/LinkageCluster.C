@@ -26,6 +26,9 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/DATASTRUCTURES/SparseVector.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 
 #include <cmath>
 

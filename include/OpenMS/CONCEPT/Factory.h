@@ -35,6 +35,7 @@
 
 namespace OpenMS
 {
+  class String;
 
   /**
   	@brief Returns FactoryProduct* based on the name of the desired concrete FactoryProduct

@@ -28,6 +28,8 @@
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace std;
 

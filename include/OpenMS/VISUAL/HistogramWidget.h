@@ -39,10 +39,11 @@
 // OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
 
 namespace OpenMS
 {
+	class AxisWidget;
+	
 	/**
 		@brief Widget which can visualize a histogram.
 		

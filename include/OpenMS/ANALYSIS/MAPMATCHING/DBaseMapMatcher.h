@@ -33,7 +33,6 @@
 
 #include<OpenMS/DATASTRUCTURES/DRange.h>
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 

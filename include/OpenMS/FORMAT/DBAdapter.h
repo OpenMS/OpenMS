@@ -30,9 +30,9 @@
 //#include <OpenMS/config.h>
 
 //OpenMS includes
-#include <OpenMS/FORMAT/DBConnection.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/DBConnection.h>
 
 //QT includes
 #include <qsqlquery.h>
@@ -43,6 +43,8 @@
 
 namespace OpenMS
 {	
+	class DBConnection;
+	
   /** 
   	@brief A class for accessing and storing data in a SQL database
   	

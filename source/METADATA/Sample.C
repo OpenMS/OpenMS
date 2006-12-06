@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Sample.h>
+#include <OpenMS/METADATA/SampleTreatment.h>
 
 #include <iostream>
 

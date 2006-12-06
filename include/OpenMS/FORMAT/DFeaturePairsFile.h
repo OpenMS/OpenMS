@@ -28,7 +28,6 @@
 #define OPENMS_FORMAT_DFEATUREPAIRSFILE_H
 
 #include <OpenMS/FORMAT/SchemaFile.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/FORMAT/HANDLERS/DFeaturePairsHandler.h>
 

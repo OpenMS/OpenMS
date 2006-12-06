@@ -26,34 +26,39 @@
 #ifndef OPENMS_VISUAL_CLUSTERANALYSISWINDOW_H
 #define OPENMS_VISUAL_CLUSTERANALYSISWINDOW_H
 
-#include <qwidget.h>
-#include <qsplitter.h>
-#include <qlayout.h>
 #include <qvbox.h>
-#include <qmainwindow.h>
-#include <qlistview.h>
-#include <qmenubar.h>
-#include <qstatusbar.h>
-#include <qtabwidget.h>
 
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
-#include <OpenMS/VISUAL/BinnedRepWidget.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/VISUAL/DIALOGS/DBDialog.h>
-#include <OpenMS/VISUAL/SimMatrixWidget.h>
-#include <OpenMS/VISUAL/ScaleWidget.h>
-#include <OpenMS/VISUAL/FactoryProductView.h>
-#include <OpenMS/VISUAL/ResultView.h>
-#include <OpenMS/VISUAL/ClusterExperimentView.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
 #include <vector>
 #include <map>
 
+class QWidget;
+class QSplitter;
+class QLayout;
+class QMainWindow;
+class QListView;
+class QMenuBar;
+class QStatusBar;
+class QTabWidget;
+class QListViewItem;
+class QLabel;
+class QGridLayout;
+
 namespace OpenMS
 {
 	class DBAdapter;
+	class Spectrum1DWidget;
+	class ClusterNode;
+	class BinnedRepWidget;
+	class DBDialog;
+	class ScaleWidget;
+	class FactoryProductView;
+	class ResultView;
+	class ClusterExperimentView;
+	class SimMatrixWidget;
+
 	
   /**
   	@brief main window for analyzing tandem ms spectrum clusters

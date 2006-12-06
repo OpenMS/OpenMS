@@ -28,12 +28,13 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DLINEARMAPPING_H
 
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/FORMAT/Param.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>
 
 namespace OpenMS
 {
+	class Param;
+	
 	/**
 		 @brief This class represents a linear coordinate transformation that can
 		 be applied to a pair of features.

@@ -30,7 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/DATASTRUCTURES/IndexSet.h>
-#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

@@ -23,10 +23,18 @@
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/FactoryProductDialog.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+
 #include <qinputdialog.h>
+#include <qcombobox.h>
+#include <qlayout.h>
+#include <qlabel.h>
+#include <qpushbutton.h>
 
 using namespace std;
 

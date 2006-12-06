@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKER_H
 
 #include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
 #include <vector>
@@ -37,6 +36,8 @@
 
 namespace OpenMS
 {
+  class String;
+
   /**
     @defgroup Transformations Transformations
 

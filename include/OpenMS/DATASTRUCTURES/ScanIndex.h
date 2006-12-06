@@ -33,7 +33,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>

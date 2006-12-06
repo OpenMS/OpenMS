@@ -30,7 +30,6 @@
 
 #include <vector>
 #include <qdialog.h>
-#include <OpenMS/FORMAT/DBConnection.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 class QLineEdit;
@@ -38,6 +37,8 @@ class QTable;
 
 namespace OpenMS
 {
+	class DBConnection;
+	
 	/**
 		@brief Dialog that allow selecting a spectrum from a DB.
 		

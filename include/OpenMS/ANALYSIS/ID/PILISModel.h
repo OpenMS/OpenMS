@@ -38,11 +38,12 @@
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 namespace OpenMS 
 {
+	class AASequence;
+	
 	/** 
 	  @brief This class implements the simulation of the spectra from PILIS
 

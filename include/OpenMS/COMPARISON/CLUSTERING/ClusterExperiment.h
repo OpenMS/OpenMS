@@ -34,14 +34,7 @@
 #include <cmath>
 #include <iostream>
 
-//these are Clustered
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-
-//the Clusters are represented as ClusterNodes
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/DataSetInfo.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
@@ -55,6 +48,9 @@ namespace OpenMS
   class PreprocessingFunctor;
   class DBAdapter;
   class Cluster;
+  class ClusterSpectrum;
+  class ClusterNode;
+  class DataSetInfo;
   
   enum Norm { arithmetic, geometric, none };
   /**

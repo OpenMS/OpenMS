@@ -32,11 +32,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 
 namespace OpenMS 
 {
+	class AASequence;
+	
 	class ProtonDistributionModel 
 	{
 		public:

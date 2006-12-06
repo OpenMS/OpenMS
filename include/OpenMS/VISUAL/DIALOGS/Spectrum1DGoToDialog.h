@@ -29,9 +29,6 @@
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum1DGoToDialogTemplate.h>
-#include <qlineedit.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <qstring.h>
 
 namespace OpenMS 
 {

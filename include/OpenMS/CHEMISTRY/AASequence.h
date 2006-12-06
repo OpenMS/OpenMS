@@ -28,18 +28,17 @@
 #define OPENMS_CHEMISTRY_AASEQUENCE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <vector>
 #include <iostream>
 
 namespace OpenMS
 {
-
-	class Residue;
+	class ResidueDB;
 
 	/** 
 		@brief Representation of a peptide/protein sequence

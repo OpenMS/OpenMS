@@ -34,6 +34,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/HistogramWidget.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 using namespace std;
 

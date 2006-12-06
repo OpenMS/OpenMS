@@ -35,8 +35,6 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>

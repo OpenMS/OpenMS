@@ -26,6 +26,7 @@
 
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <cmath>
 
 #define PROTON_LOSS_FACTOR 0.3

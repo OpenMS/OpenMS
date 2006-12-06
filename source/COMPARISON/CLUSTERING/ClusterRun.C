@@ -36,6 +36,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
 

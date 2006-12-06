@@ -35,6 +35,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperimentXMLHandler.h>
+#include <OpenMS/FORMAT/DataSetInfo.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>

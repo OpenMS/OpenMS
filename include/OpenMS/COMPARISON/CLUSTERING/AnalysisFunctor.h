@@ -30,13 +30,13 @@
 #include <vector>
 #include <map>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
 namespace OpenMS
 {
 	class DBAdapter;
+	class ClusterNode;
 	
   /**
   <b>AnalysisFunctor</b> classes analyze the output of a ClusterRun

@@ -34,6 +34,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 

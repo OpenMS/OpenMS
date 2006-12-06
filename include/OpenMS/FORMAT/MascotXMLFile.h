@@ -27,14 +27,14 @@
 #ifndef OPENMS_FORMAT_MASCOTXMLFILE_H
 #define OPENMS_FORMAT_MASCOTXMLFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
 
-#include <fstream>
 #include <vector>
 
 namespace OpenMS 
 {
+	class String;
+	
   /**
     @brief Used to load MascotXML files
     

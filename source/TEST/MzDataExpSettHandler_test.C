@@ -28,6 +28,12 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/METADATA/MassAnalyzer.h>
+#include <OpenMS/METADATA/IonDetector.h>
+#include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/METADATA/Sample.h>
+
 #include <sstream>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>

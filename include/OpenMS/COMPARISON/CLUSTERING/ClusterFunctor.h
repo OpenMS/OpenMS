@@ -30,13 +30,14 @@
 
 #include <map>
 
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 namespace OpenMS
 {
+  class ClusterNode;
+  class SparseVector;
+
   /**
   ClusterFunctor classes partition a set of ClusterSpectrum into natural groups<br>
   */

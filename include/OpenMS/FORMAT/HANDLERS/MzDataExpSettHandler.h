@@ -29,12 +29,15 @@
 
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
 {
+	class ExperimentalSettings;
+	class ContactPerson;
+	class MassAnalyzer;
+	
 	namespace Internal
 	{
 

@@ -27,7 +27,6 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
@@ -37,6 +36,8 @@
 
 namespace OpenMS
 {
+	class MetaInfoInterface;
+	
 	namespace Internal
 	{
   /**

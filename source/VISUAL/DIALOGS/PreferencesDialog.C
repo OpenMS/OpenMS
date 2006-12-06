@@ -26,6 +26,8 @@
 
 
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
+#include <OpenMS/VISUAL/ListStack.h>
 
 #include <iostream>
 #include <qdialog.h>

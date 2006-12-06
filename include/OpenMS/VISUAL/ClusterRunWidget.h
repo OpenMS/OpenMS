@@ -28,20 +28,20 @@
 
 #include <qdialog.h>
 
-#include <qpushbutton.h>
-#include <qcombobox.h>
-#include <qlabel.h>
-#include <qlayout.h>
-
 #include <vector>
-
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
 
+class QPushButton;
+class QComboBox;
+class QLabel;
+class QLayout;
+class QGridLayout;
+
 namespace OpenMS
 {
+  class CompareFunctor;
+  class PreprocessingFunctor;
 
   /**
   allows the creation of (half) ClusterRun`s<br>

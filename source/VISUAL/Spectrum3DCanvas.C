@@ -37,6 +37,7 @@
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DCanvasPDP.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 using namespace std;
 

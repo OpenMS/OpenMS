@@ -27,7 +27,6 @@
 #ifndef OPENMS_FORMAT_HANDLERS_DGRIDHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_DGRIDHANDLER_H
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/Param.h>

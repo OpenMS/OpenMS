@@ -34,7 +34,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include<OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 //STL
 #include <stack>
@@ -51,6 +50,7 @@ namespace OpenMS
 {
 	class AxisWidget;
 	class SpectrumWidget;
+	class DataReducer;
 	
 	/**
 		@brief Base class for visualization canvas classes

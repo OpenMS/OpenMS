@@ -29,16 +29,18 @@
 #define OPENMS_VISUAL_DIALOGS_DBDIALOG_H
 
 #include <qdialog.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qlayout.h>
-#include <qcheckbox.h>
 
-#include <OpenMS/FORMAT/DBConnection.h>
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QLayout;
+class QCheckBox;
+class QGridLayout;
 
 namespace OpenMS
 {
+  class DBConnection;
+
   // lets the user connect to a OpenMS DB
   // the settings can be saved to HDD (filename preferences)
   // but the settings are saved in plaintext

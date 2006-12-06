@@ -30,9 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
@@ -42,6 +40,8 @@
 
 namespace OpenMS
 {
+  class BaseModelFitter;
+
 /**
 	@defgroup FeatureFinder FeatureFinder
 	

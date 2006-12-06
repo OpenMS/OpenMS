@@ -27,12 +27,14 @@
 #ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 #define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 
 namespace OpenMS
 {
+	class AASequence;
+	
 	/** 
 		@brief Generates theoretical spectra with various options
 		

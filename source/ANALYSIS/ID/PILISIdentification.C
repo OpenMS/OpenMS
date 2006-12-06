@@ -29,6 +29,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace std;
 

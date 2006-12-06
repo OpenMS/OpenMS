@@ -27,6 +27,7 @@
 
 //OpenMS includes
 #include <OpenMS/FORMAT/DBAdapter.h>
+#include <OpenMS/FORMAT/DBConnection.h>
 
 using namespace std;
 

@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakDiffBins.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 using namespace std;
 

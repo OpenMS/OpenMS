@@ -33,14 +33,14 @@
 
 // STL
 #include <string>
-
-// OpenMS
-#include <OpenMS/VISUAL/ListStack.h>
-#include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
-#include <OpenMS/VISUAL/PreferencesManager.h>
+#include <vector>
 
 namespace OpenMS
 {
+	class PreferencesDialogPage;
+	class PreferencesManager;
+	class ListStack;
+	
 	/**
 		@brief Main dialog for the PreferencesManager classes.	
 		

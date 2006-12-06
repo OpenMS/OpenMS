@@ -29,14 +29,14 @@
 
 #include <list>
 
-#include <OpenMS/METADATA/SampleTreatment.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS 
 {
+	class SampleTreatment;
+	
 	/**
 		@brief Meta information about the sample
 		

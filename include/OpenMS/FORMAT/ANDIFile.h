@@ -28,12 +28,13 @@
 #define OPENMS_FORMAT_ANDIFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/HANDLERS/ANDIHandler.h>
 #include <fstream>
 
 namespace OpenMS
 {
+	class String;
+	
   /**
   	@brief File adapter for ANDI/MS files
 

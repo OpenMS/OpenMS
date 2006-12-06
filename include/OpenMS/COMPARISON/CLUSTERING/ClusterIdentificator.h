@@ -28,7 +28,6 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERIDENTIFICATOR_H
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 #include <OpenMS/METADATA/Identification.h>
 
 #include <map>
@@ -36,6 +35,7 @@
 namespace OpenMS
 {
 	class DBAdapter;
+	class Cluster;
 	
   /**
   compares spectra against cluster representatives <br>
