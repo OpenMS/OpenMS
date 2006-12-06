@@ -729,16 +729,10 @@ int main(int argc, char **argv)\
 			std::cout << "    (line " << __LINE__ << ": TEST_FILE("<< #filename << ", " << #templatename << "): ";\
 			if (TEST::this_test)\
 			{\
-				std::cout << "true";\
+				std::cout << "true + " << std::endl;\
 			} else {\
-				std::cout << "false";\
-			}\
-			\
-			if (TEST::this_test)\
-			{\
-				std::cout << " + " << std::endl;\
-			} else {\
-				std::cout << " - " << std::endl;\
+				std::cout << "false - " << std::endl;\
+				std::cout << "    (different files:  "<< filename << "  " << templatename << " )\n";\
 			}\
 		}\
 	}
