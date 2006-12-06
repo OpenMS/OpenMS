@@ -39,7 +39,7 @@ check options:
   -g  check if header guards present and correct
   -h  check headers (tab settings for editors, cvs headers, maintainer)
   -m  check headers for empty maintainer field
-  -u  check for unneeded includes (does not check references or pointers yet)
+  -u  check for unneeded includes
   -c  check for unneeded includes in C-files (results are not always reliable because of forward declarations)
 other options:
   -v  verbose mode
