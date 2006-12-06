@@ -30,6 +30,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <cmath> // pow()
 #include <iomanip>
 #include <vector>
 
@@ -45,7 +46,7 @@ namespace OpenMS
 
 		 The following member functions of the base class std::vector<ValueType>
 		 can also be used:
-		 
+
 		 - begin
 		 - end
 		 - rbegin
@@ -61,7 +62,7 @@ namespace OpenMS
 
 		 (It seems that Doxygen does not parse pure access declarations, so we
 		 list them here.)
-		 
+
 		 @ingroup Datastructures
   */
   template <typename Value>
@@ -320,14 +321,21 @@ namespace OpenMS
 			 Actually, this might be what you want in most cases - large matrix
 			 entries show up dark.
 
+			 @param gamma Parameter for the "gamma correction" (as known from image
+			 processing) to be applied to the pixel intensities.  The gamma
+			 correction replaces <i>x</i> with
+			 <i>x<sup>gamma</sup>*maxval<sup>1-gamma</sup></i>.  (This is not
+			 exactly the sRGB standard, which has a range with linear slope for
+			 small intensities.)
+
 			 @param comment A comment which will be embedded in the output. It can
 			 consist of several lines separated by '\\n'.  By default, <i>no</i>
-			 comment is written (not even an empty one). 
+			 comment is written (not even an empty one).
 
 			 Negative matrix entries are <i>never</i> mapped into the dynamic range.
 
 			 Negative values for maxval or scale work like their absolute values.
-			 
+
 			 Final remark: The ValueType must be "numeric" (or at least convertible
 			 to double and int, comparable, etc.) for all this to work.
 
@@ -335,6 +343,7 @@ namespace OpenMS
 		std::ostream& writePGM ( std::ostream& os,
 														 int maxval = 0,
 														 double scale = 0,
+														 double gamma = 1,
 														 bool reverse_video = false,
 														 std::string const& comment = String::EMPTY
 													 ) const
@@ -381,8 +390,9 @@ namespace OpenMS
 				 << cols() << ' ' << rows() << "\n"
 				"# maxval\n"
 				 << maxval << '\n' <<
-				"# scaling factor is " << scale << "\n"
-				"# reverse video is " << ( reverse_video ? "on\n" : "off\n" )
+				"# scaling factor:    " << scale << "\n"
+				"# gamma correction:  " << gamma << ( gamma == 1. ? " (none)\n" : "\n") <<
+				"# reverse video:     " << ( reverse_video ? "on\n" : "off\n" )
 				;
 			// Write out the comment, with "# " before each line.
 			if ( ! comment.empty() )
@@ -413,55 +423,85 @@ namespace OpenMS
 			// maintenance I use a macro here to keep both versions in sync.
 			// ((( Template programming, the HARD way ;-) )))
 #define PGM_DATA_LOOP \
-			for ( size_type i = 0; i < rows(); ++i )								\
-			{																												\
-				if ( cols() > cols_output )														\
-				{																											\
-					os << "# row " << i << '\n';												\
-				}																											\
-				Size count = 0;																				\
-				for ( size_type j = 0; j < cols(); ++j, ++iter )			\
-				{																											\
-					/* output gray value, rounded to nearest int */			\
-					int gray = int( *iter * scale + 0.5 );							\
-					if ( gray < 0 )																			\
-					{																										\
-						os << PGM_MAYBE_REVERSE_VIDEO(0,maxval);					\
-					}																										\
-					else if ( gray > maxval )														\
-					{																										\
-						os << PGM_MAYBE_REVERSE_VIDEO(maxval,0);					\
-					}																										\
-					else																								\
-					{																										\
-						os << PGM_MAYBE_REVERSE_VIDEO(gray,maxval-gray);	\
-					}																										\
-					/* output whitespace */															\
-					if ( ++count == cols_output )												\
-					{																										\
-						os << '\n';																				\
-						count = 0;																				\
-					}																										\
-					else																								\
-					{																										\
-						os << ' ';																				\
-					}																										\
-				}																											\
-				os << '\n';																						\
+			for ( size_type i = 0; i < rows(); ++i )															\
+			{																																			\
+				if ( cols() > cols_output )																					\
+				{																																		\
+					os << "# row " << i << '\n';																			\
+				}																																		\
+				for ( Size j = 0, count = 0; ; )																		\
+				{																																		\
+					/* output gray value, rounded to nearest int */										\
+					int gray = int( *iter * scale + 0.5 );														\
+					if ( gray < 0 )																										\
+					{																																	\
+						os << PGM_REVERSE_VIDEO(0,maxval);															\
+					}																																	\
+					else if ( gray > maxval )																					\
+					{																																	\
+						os << PGM_REVERSE_VIDEO(maxval,0);															\
+					}																																	\
+					else																															\
+					{																																	\
+						os << PGM_GAMMA_CORRECTED(PGM_REVERSE_VIDEO(gray,maxval-gray));	\
+					}																																	\
+					/* loop increment */																							\
+					++j; ++iter;																											\
+					/* loop condition */																							\
+					if ( j < cols()	)																									\
+					{																																	\
+						/* output whitespace */																					\
+						if ( ++count == cols_output )																		\
+						{																																\
+							os << '\n';																										\
+							count = 0;																										\
+						}																																\
+						else																														\
+						{																																\
+							os << ' ';																										\
+						}																																\
+					}																																	\
+					else break;																												\
+				}																																		\
+				os << '\n';																													\
 			}
 
 			// Now here comes the "real" code.
-			if ( reverse_video )
-			{
-#define PGM_MAYBE_REVERSE_VIDEO(a,b) b
-				PGM_DATA_LOOP;
-#undef PGM_MAYBE_REVERSE_VIDEO
+			if ( gamma == 1. )
+			{ // no gamma correction
+#define PGM_GAMMA_CORRECTED(x) (x)
+				if ( reverse_video )
+				{
+#define PGM_REVERSE_VIDEO(a,b) (b)
+					PGM_DATA_LOOP;
+#undef PGM_REVERSE_VIDEO
+				}
+				else
+				{
+#define PGM_REVERSE_VIDEO(a,b) (a)
+					PGM_DATA_LOOP;
+#undef PGM_REVERSE_VIDEO
+				}
+#undef PGM_GAMMA_CORRECTED
 			}
 			else
-			{
-#define PGM_MAYBE_REVERSE_VIDEO(a,b) a
-				PGM_DATA_LOOP;
-#undef PGM_MAYBE_REVERSE_VIDEO
+			{ // apply gamma correction
+				double const gamma_reciprocal = 1./gamma;
+				double const rescaling_factor = std::pow(maxval,1.-gamma_reciprocal);
+#define PGM_GAMMA_CORRECTED(x) (int(std::pow( (x) ,gamma_reciprocal)*rescaling_factor + 0.5))
+				if ( reverse_video )
+				{
+#define PGM_REVERSE_VIDEO(a,b) (b)
+					PGM_DATA_LOOP;
+#undef PGM_REVERSE_VIDEO
+				}
+				else
+				{
+#define PGM_REVERSE_VIDEO(a,b) (a)
+					PGM_DATA_LOOP;
+#undef PGM_REVERSE_VIDEO
+				}
+#undef PGM_GAMMA_CORRECTED
 			}
 #undef PGM_DATA_LOOP
 

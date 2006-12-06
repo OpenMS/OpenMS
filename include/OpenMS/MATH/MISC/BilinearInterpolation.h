@@ -117,6 +117,7 @@ namespace OpenMS
 			/// Assignment operator.
 			BilinearInterpolation & operator= ( BilinearInterpolation const & arg )
 			{
+				if ( &arg == this ) return *this;
 				scale_0_   = arg.scale_0_;
 				offset_0_  = arg.offset_0_;
 				scale_1_   = arg.scale_1_;
@@ -563,9 +564,16 @@ namespace OpenMS
 			/// The transformation from "outside" to "inside" coordinates.
 			KeyType key2index_0 ( KeyType pos ) const throw()
 			{
-				pos -= offset_0_;
-				pos /= scale_0_;
-				return pos;
+				if ( scale_0_ )
+				{
+					pos -= offset_0_;
+					pos /= scale_0_;
+					return pos;
+				}
+				else
+				{
+					return 0;
+				}
 			}
 
 			/// The transformation from "inside" to "outside" coordinates.
@@ -579,9 +587,16 @@ namespace OpenMS
 			/// The transformation from "outside" to "inside" coordinates.
 			KeyType key2index_1 ( KeyType pos ) const throw()
 			{
-				pos -= offset_1_;
-				pos /= scale_1_;
-				return pos;
+				if ( scale_1_ )
+				{
+					pos -= offset_1_;
+					pos /= scale_1_;
+					return pos;
+				}
+				else
+				{
+					return 0;
+				}
 			}
 
 			/// The transformation from "inside" to "outside" coordinates.
@@ -665,8 +680,15 @@ namespace OpenMS
 			void setMapping_0 ( KeyType const & inside_low, KeyType const & outside_low,
 													KeyType const & inside_high, KeyType const & outside_high )
 			{
-				setMapping_0 ( ( outside_high - outside_low ) / ( inside_high - inside_low ),
-											 inside_low, outside_low );
+				if ( inside_high != inside_low )
+				{
+					setMapping_0 ( ( outside_high - outside_low ) / ( inside_high - inside_low ),
+												 inside_low, outside_low );
+				}
+				else
+				{
+					setMapping_0 ( 0, inside_low, outside_low );
+				}
 				return;
 			}
 
@@ -700,8 +722,15 @@ namespace OpenMS
 			void setMapping_1 ( KeyType const & inside_low, KeyType const & outside_low,
 													KeyType const & inside_high, KeyType const & outside_high )
 			{
-				setMapping_1 ( ( outside_high - outside_low ) / ( inside_high - inside_low ),
-											 inside_low, outside_low );
+				if ( inside_high != inside_low )
+				{
+					setMapping_1 ( ( outside_high - outside_low ) / ( inside_high - inside_low ),
+												 inside_low, outside_low );
+				}
+				else
+				{
+					setMapping_1 ( 0, inside_low, outside_low );
+				}
 				return;
 			}
 

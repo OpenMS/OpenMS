@@ -235,7 +235,7 @@ CHECK(writePGM())
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,15,0,false,"One comment line\nAnother comment line.");
+		matrixcr.writePGM(output,15,0,1.,false,"One comment line\nAnother comment line.");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_c.pgm");
 	}
@@ -243,7 +243,7 @@ CHECK(writePGM())
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,4,0,true);
+		matrixcr.writePGM(output,4,0,1.,true);
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_r.pgm");
 	}
@@ -251,7 +251,7 @@ CHECK(writePGM())
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,1,1./15,false,"binary feep (is \"  ep\" only)");
+		matrixcr.writePGM(output,1,1./15,1.,false,"binary feep (is \"  ep\" only)");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_1.pgm");
 	}
@@ -259,7 +259,7 @@ CHECK(writePGM())
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,1,1./15,true,"binary feep (is \"  ep\" only)");
+		matrixcr.writePGM(output,1,1./15,1.,true,"binary feep (is \"  ep\" only)");
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_1r.pgm");
 	}
@@ -267,7 +267,7 @@ CHECK(writePGM())
 		std::string feep_pgm;
 		NEW_TMP_FILE(feep_pgm);
 		std::ofstream output (feep_pgm.c_str());
-		matrixcr.writePGM(output,0,1,true);
+		matrixcr.writePGM(output,0,1,1.,true);
 		output.close();
 		TEST_FILE(feep_pgm.c_str(),"data/Matrix_test_nr.pgm");
 	}
