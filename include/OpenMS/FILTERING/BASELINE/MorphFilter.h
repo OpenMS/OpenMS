@@ -117,7 +117,7 @@ namespace OpenMS
         \f$ x \f$ in the signal \f$s \f$ after a dilatation is the maximal data point in a window which is represented by
         the structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
         \f[ [\delta_B(s)](x)=max_{b \in B} s(x+b). \f]
-        \image html Dilation.png "Dilationwith a structuring element of length 3"
+        \image html Dilation.png "Dilation with a structuring element of length 3"
         \image latex Dilation.eps "Dilation with a structuring element of length 3"
     */
     template < typename InputPeakIterator, typename OutputPeakContainer >
