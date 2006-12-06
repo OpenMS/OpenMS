@@ -36,7 +36,6 @@ CPP_SOURCES= \
 	DSpectrum.C\
 	DFeature.C\
 	DimensionDescription.C\
-	DPosition.C\
 	DPeak.C\
 	DPickedPeak.C\
 	DPeakArray.C\

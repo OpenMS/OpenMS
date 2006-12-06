@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {

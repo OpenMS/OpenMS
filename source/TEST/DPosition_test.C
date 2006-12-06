@@ -28,7 +28,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 ///////////////////////////
 

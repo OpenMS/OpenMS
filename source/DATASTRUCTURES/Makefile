@@ -31,6 +31,7 @@ THISLIB=$(LIBNAME)
 include ../config_defs.mak
 
 CPP_SOURCES=\
+	DPosition.C\
 	DIntervalBase.C\
 	DBoundingBox.C\
 	DRange.C\

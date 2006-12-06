@@ -27,7 +27,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DGRIDCELL_H
 
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DBaseMapping.h>

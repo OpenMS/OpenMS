@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_DFEATUREPAIRSHANDLER_H
 
 #include <OpenMS/KERNEL/DFeature.h>
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>

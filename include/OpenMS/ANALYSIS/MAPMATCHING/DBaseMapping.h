@@ -28,7 +28,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPPING_H
 
 #include <OpenMS/KERNEL/KernelTraits.h>
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 

@@ -30,7 +30,7 @@
 #include <iostream>
 #include <vector>
 
-#include<OpenMS/KERNEL/DPosition.h>
+#include<OpenMS/DATASTRUCTURES/DPosition.h>
 
 
 namespace OpenMS

@@ -27,7 +27,7 @@
 #ifndef OPENMS_DATASTRUCTURES_DINTERVALBASE_H
 #define OPENMS_DATASTRUCTURES_DINTERVALBASE_H
 
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <utility> // std::pair
 

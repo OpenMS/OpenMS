@@ -28,7 +28,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/DATASTRUCTURES/RunningAveragePosition.h>
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 ///////////////////////////
 
 using namespace OpenMS;

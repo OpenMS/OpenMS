@@ -40,7 +40,7 @@ namespace OpenMS
 	/**
 		 @brief Representation of a coordinate in D-dimensional space.
 		
-		 @ingroup Kernel		
+		 @ingroup Datastructures		
 	*/
 	template <Size D, typename Traits = KernelTraits>
 	class DPosition

@@ -27,7 +27,7 @@
 #ifndef OPENMS_DATASTRUCTURES_QUADTREE_H
 #define OPENMS_DATASTRUCTURES_QUADTREE_H
 
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <vector>

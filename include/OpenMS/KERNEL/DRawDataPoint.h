@@ -27,7 +27,7 @@
 #ifndef OPENMS_KERNEL_DRAWDATAPOINT_H
 #define OPENMS_KERNEL_DRAWDATAPOINT_H
 
-#include <OpenMS/KERNEL/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <sstream>
 
