@@ -86,4 +86,83 @@ function isIncludeLine($line,&$include)
 	return false;
 }
 
+function isAlpha($char)
+{
+	$c = ord($char);
+	return ((($c >= 64) && ($c <= 90)) || (($c >= 97) && ($c <= 122)));
+}
+
+function isSpace($char)
+{
+	return ($char == " ") || ($char == "\n") || ($char == "\t");
+}
+
+function isDigit($char)
+{
+	return ('0' <= $char) && ($char <= '9');
+}
+
+function isAlnum($char)
+{
+	return isAlpha($char) || isDigit($char);
+}
+
+function isIdentifierChar($char)
+{
+	return isAlnum($char) || $char == '_';
+}
+
+// tokenize a line into something like C++-Tokens (not exactly, but good enough)
+function tokenize($line)
+{
+	$result = array();
+	$start = 0;
+	// states: start => whitespace
+	//         ident => identifier / number etc.
+	$state = 0;
+	for ($i = 0; $i != strlen($line); $i++)
+	{
+		$char = $line[$i];
+		if ($state == 0)
+		{
+			// start state
+			if (isIdentifierChar($char))
+			{
+				// identifier / number etc.
+				$start = $i;
+				$state = 1;
+			}
+			else if (!isSpace($char))
+			{
+				// operator
+				$result[] = $char;
+			}
+		}
+		else
+		{
+			// identifier state
+			if (!isIdentifierChar($char))
+			{
+				// end of identifier
+				$state = 0;
+				$result[] = substr($line, $start, $i - $start);
+				
+				if (!isSpace($char))
+				{
+					// additionally, the current char belongs to an operator
+					$result[] = $char;
+				}
+			}
+		}
+	}
+	
+/*	print("tokenize: ");
+	
+	for ($i = 0; $i != count($result); $i++) {
+		print("\"" . $result[$i] . "\" ");
+	}
+	print("\n");*/
+	return $result;
+}
+
 ?>

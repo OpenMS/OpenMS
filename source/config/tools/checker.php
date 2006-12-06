@@ -203,15 +203,18 @@ other options:
 									"TimeStamp" => array("PreciseTime","TimeStamp"),
 									
 	 							);
+
 	###unneeded includes for header files###
 	if ($do_all OR $argv[2]=="-u")
 	{
+		####unneeded declarations or forward declartion possible###
 		$files=array();
 		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
 
 		foreach ($files as $filename)
 		{
 			$count = array();
+			$forward = array();
 			$file = file($filename);
 			for ($i=0;$i<count($file);$i++)
 			{
@@ -224,38 +227,54 @@ other options:
 						if (!in_array($class,$dont_report))
 						{
 							$count["$class"] = 0;
+							$forward["$class"] = 0;
 						}
 					}
 				}
 				else
 				{
+					$tokens = tokenize($line."\\");
 					foreach ($count as $class => $number)
 					{
+						$classes = array();
 						//multiple classes per file
 						if (isset($multiclass[$class]))
 						{
-							foreach ($multiclass[$class] as $subclass)
+							$classes = $multiclass[$class];
+						}
+						// class name == file name
+						else
+						{
+							$classes[0] = $class;
+						}
+						
+						// scan tokens for class name
+						for ($j = 0; $j != sizeof($tokens); $j++)
+						{
+							if (in_array($tokens[$j], $classes))
 							{
-								if (strpos($line,$subclass)!== FALSE)
+								$count[$class]++;
+								// check next token: if it is '*' or '&', the include might be unneeded
+								if (isset($tokens[$j + 1]) && ( $tokens[$j + 1] == "*" || $tokens[$j + 1] == "&"))
 								{
-									$count[$class]++;
+									$forward[$class]++;
 								}
 							}
-						}
-						//class name == file
-						else if (strpos($line,$class)!== FALSE)
-						{
-							$count[$class]++;
 						}
 					}
 				}
 			}
+			
 			$out = ">>UNNEEDED INCLUDE in $filename\n";
 			foreach ($count as $class => $number)
 			{
 				if ($number == 0)
 				{
 					$out .= "  $class\n";
+				}
+				else if (isset($forward[$class]) && $forward[$class] == $number)
+				{
+					$out .= "  $class (forward)\n";
 				}
 			}
 			if ($out != ">>UNNEEDED INCLUDE in $filename\n")
