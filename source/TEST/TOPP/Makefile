@@ -206,7 +206,8 @@ AnalysisXMLMerger_test: $(NUMERICDIFF)
 BaselineFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -resampling 0.2 -struc_elem_length 1.5)
+	@$(call TEST_FILE_EQUAL,BaselineFilter_output.tmp, BaselineFilter_output.mzData)
 
 
 DBExporter_test: $(NUMERICDIFF)
@@ -435,14 +436,22 @@ MascotAdapter_test: $(NUMERICDIFF)
 
 NoiseFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "NoiseFilter:"
-	@$(ECHO) "	... todo ..."
+	@$(ECHO) "NoiseFilter:"	
+	
+	@$(ECHO) "- Test 1: Gaussian filter"
+	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type gaussian -in  RawData_input.mzData -out NoiseFilter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp, NoiseFilter_1_output.mzData)
+	
+	@$(ECHO) "- Test 2: Savitzky Golay filter"
+	@$(call RUN_PROG_OPT,NoiseFilter,	-ini NoiseFilter_2_parameters.ini -filter_type sgolay -resampling 0.2 -in  RawData_input.mzData -out NoiseFilter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp, NoiseFilter_2_output.mzData)
 
 
 PeakPicker_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
+	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
 
 
 RTModel_test: $(NUMERICDIFF)

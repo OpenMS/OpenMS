@@ -146,6 +146,7 @@ class TOPPBaselineFilter
 			if (struc_elem != "")
 			{
 				struc_elem_length = struc_elem.toFloat();
+        writeLog_(String("Length of the structuring element: '") + struc_elem_length + "Th.");
 			}
 		}
 		catch(Exception::ConversionError& e)
