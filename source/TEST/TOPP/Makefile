@@ -151,7 +151,11 @@ verbose:
 # write '$(call RUN_PROG_OPT,Toolname,options)'.  [ Don't use RUN_PROG_OPT_INTERNAL
 # directly, use RUN_PROG_OPT instead.  Depending on the VERBOSE settings,
 # RUN_PROG_OPT will append a redirection or not. ]
+ifdef DEBUG
+RUN_PROG_OPT_INTERNAL = echo "  Executed: $(TOPP)$(1) $(2)"; $(TOPP)$(1) $(2)
+else
 RUN_PROG_OPT_INTERNAL = $(TOPP)$(1) $(2)
+endif
 
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef VERBOSE

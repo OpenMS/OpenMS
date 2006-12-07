@@ -1,7 +1,11 @@
+
 -- General information --
 
 file name: FileInfo_2_input.dta2d
 file type: DTA2D
+
+peak type (metadata) : Unknown
+peak type (estimated): Raw data
 
 Number of peaks: 8
 

@@ -1,7 +1,11 @@
+
 -- General information --
 
 file name: FileInfo_6_input.txt
 file type: ANDIMS
+
+peak type (metadata) : Peak data
+peak type (estimated): Raw data
 
 Number of peaks: 9
 

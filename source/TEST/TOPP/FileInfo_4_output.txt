@@ -1,7 +1,11 @@
+
 -- General information --
 
 file name: FileInfo_4_input.mzXML
 file type: mzXML
+
+peak type (metadata) : Peak data
+peak type (estimated): Peak data
 
 Number of peaks: 6864
 
