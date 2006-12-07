@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="OpenMS:">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="0">
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+			<processingMethod>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
+				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
+				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="ContinuumMassSpectrum"/>
+			</processingMethod>
+		</dataProcessing>
+	</description>
+	<spectrumList count="2">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="474.558"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="66">AABpRM0MaUSaGWlEZiZpRDMzaUQAQGlEzUxpRJpZaURmZmlEM3NpRACAaUTNjGlEmplpRGamaUQzs2lEAMBpRM3MaUSa2WlEZuZpRDPzaUQAAGpEzQxqRJoZakRmJmpEMzNqRABAakTNTGpEmllqRGZmakQzc2pEAIBqRM2MakSamWpEZqZqRDOzakQAwGpEzcxqRJrZakRm5mpEM/NqRAAAa0TNDGtEmhlrRGYma0QzM2tEAEBrRM1Ma0SaWWtEZmZrRDNza0QAgGtEzYxrRJqZa0RmpmtEM7NrRADAa0TNzGtEmtlrRGbma0Qz82tEAABsRM0MbESaGWxEZiZsRDMzbEQAQGxE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="66">gFtPQVjyCEMAAAAAJPJcQ2TyBUNw65lCoKGPQQAAAAD872dDAAAAAAAAAAAAAAAAwP6BQqALNEK4/RFDAAAAAGj9JUOeABhEDAEXRPj9gUMAAAAAeOXZQtDSN0IAAAAAAAAAAOYAakXpo4VGiip9RiWaaUUAAAAAywHORCKU90V1iYRFkKBVRAAAAABCQcBEyZzNRa4PjkU2SY9DAAAAAM8APESKXN1EKUCIRFCQHEIAAAAAoAuwQUT9LkNyfO1DUB+GQgAAAAB0ATxD8nzDQzH8R0SgzcBBAAAAAAAAgkPw/QND8AfYQy99WkR0/SJDAAAAABD8e0Ps/ZtDYCBUQgAAAAAAAAAA</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="2">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="475.321"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="66">AABpRM0MaUSaGWlEZiZpRDMzaUQAQGlEzUxpRJpZaURmZmlEM3NpRACAaUTNjGlEmplpRGamaUQzs2lEAMBpRM3MaUSa2WlEZuZpRDPzaUQAAGpEzQxqRJoZakRmJmpEMzNqRABAakTNTGpEmllqRGZmakQzc2pEAIBqRM2MakSamWpEZqZqRDOzakQAwGpEzcxqRJrZakRm5mpEM/NqRAAAa0TNDGtEmhlrRGYma0QzM2tEAEBrRM1Ma0SaWWtEZmZrRDNza0QAgGtEzYxrRJqZa0RmpmtEM7NrRADAa0TNzGtEmtlrRGbma0Qz82tEAABsRM0MbESaGWxEZiZsRDMzbEQAQGxE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="66">AAAAANDAT0L6dJNDAAAAAEx2jUOw8RNDwA0fQVC+S0IAAAAAAAAAAAAAAAC4/RFDAAASPAAAAAAAAAAAAAAAAAAAAADw/c9CEAKOQgAAAAAAAAAAAAAAAHDmO0IAAAAAAAAAAE8IiUV47GFGUQAIRqDeukQAAAAAOwHjRHKE40U/Ik9FoG1CQwAAAAAfcWBEfgkaRboXzUQAAAAAQLwHQ+AjvkETNO5ERHmFRLDGx0IAAAAAJ8AWROD8x0ToBsxDQNAwQQAAAAAAAAAAfn0XRKz/2UNgH7xCgP2NQwAAIEPA+j9CAAAAAAAAqDoY+tFCAAAAAAAAAAB4+l1DIBY0QgAAAAAAAAAA</data>
+			</intenArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>

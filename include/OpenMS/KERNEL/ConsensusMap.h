@@ -37,7 +37,7 @@ namespace OpenMS
     
     A ConsensusMap is a container holding 2-dimensional consensus elements (e.g. consensus features, peaks or raw data points)
     which in turn represent combined elements of 2-dimensional experiments.
-    Maps are implemented as vectors of elemnents and have basically the same interface
+    The map is implemented as vectors of elements and have basically the same interface
     as an STL vector has (model of Random Access Container and Back Insertion Sequence).
     
     @ingroup Kernel, Serialization

@@ -249,8 +249,8 @@ DTAExtractor_test: $(NUMERICDIFF)
 Dewarper_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "Dewarper:"
-	@$(ECHO) "	... todo ..."
-
+	@$(call RUN_PROG_OPT,Dewarper,-feat Dewarper_1_feat.xml -grid Dewarper_1_grid.xml -out Dewarper_1_out.tmp )
+	@$(call TEST_FILE_EQUAL,Dewarper_1_out.xml,Dewarper_1_out.tmp)
 
 FeatureFinder_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -426,8 +426,10 @@ MapMatcher_test: $(NUMERICDIFF)
 MapStatistics_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapStatistics:"
-	@$(ECHO) "	... todo ..."
-
+	@$(call RUN_PROG_OPT,MapStatistics,-in MapStatistics_rawdata.mzData -out MapStatistics_rawdata_results.tmp)
+	@$(call TEST_FILE_EQUAL,MapStatistics_rawdata_results.tmp, MapStatistics_rawdata_results.xml)
+	@$(call RUN_PROG_OPT,MapStatistics,-in MapStatistics_featdata.feat -out MapStatistics_featdata_results.tmp)
+	@$(call TEST_FILE_EQUAL,MapStatistics_featdata_results.tmp, MapStatistics_featdata_results.xml)
 
 MascotAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""

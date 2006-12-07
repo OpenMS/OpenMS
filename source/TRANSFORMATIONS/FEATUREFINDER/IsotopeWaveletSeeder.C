@@ -438,8 +438,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 
     for (unsigned int c=0; c<candidates.size(); ++c)
     {
-    		std::cout << "Checking charge state " << (c+1) << std::endl;
-			  processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
+				processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
         containerType c_candidate(candidates[c].size());
         
 				//Ugly, but do not how to do this in a better (and easy) way
@@ -460,6 +459,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
         }
 
 				#ifdef DEBUG_FEATUREFINDER
+				std::cout << "Checking charge state " << (c+1) << std::endl;
 				std::cout << "Average intensity: " << c_av_intens << std::endl;
 				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
         
