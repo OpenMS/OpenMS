@@ -28,7 +28,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 
@@ -49,9 +49,6 @@ using namespace std;
 	for each MS level is displayed.
 	
 	Additionally an overview of the metadata of the experiment can be displayed.
-	
-	@todo determine if raw or picked data is contained (Marc)
-	
 */
 
 // We do not want this class to show up in the docu:
@@ -107,8 +104,7 @@ class TOPPFileInfo
 					 << "-- General information --" << endl
 				   << endl
 					 << "file name: " << in << endl
-					 << "file type: " <<  fh.typeToName(in_type) << endl
-					 << endl;
+					 << "file type: " <<  fh.typeToName(in_type) << endl;
 			
 			MSExperiment< DPeak<1> > exp;
 			DFeatureMap<2> feat;
@@ -125,6 +121,11 @@ class TOPPFileInfo
 					printUsage_();
 					return ILLEGAL_PARAMETERS;			
 				}
+
+				cout << endl
+						 << "peak type (metadata) : " << SpectrumSettings::NamesOfSpectrumType[exp.getProcessingMethod().getSpectrumType()] << endl
+						 << "peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())] << endl
+						 << endl;
 		
 				//basic info
 				exp.updateRanges();

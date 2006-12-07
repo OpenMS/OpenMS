@@ -57,7 +57,8 @@ CPP_SOURCES=\
 	MascotXMLFile.C\
 	DGridFile.C\
 	SchemaFile.C\
-	PeakFileOptions.C
+	PeakFileOptions.C\
+	PeakTypeEstimator.C
 
 #	SequestInfile.C\
 #	SequestOutfile.C

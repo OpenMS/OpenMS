@@ -32,7 +32,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown"," PEAKS"," RAWDATA"};
+	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown","Peak data","Raw data"};
 
 	SpectrumSettings::SpectrumSettings():
 		type_(UNKNOWN), 

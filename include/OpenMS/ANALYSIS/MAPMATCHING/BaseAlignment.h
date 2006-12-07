@@ -28,10 +28,11 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEALIGNMENT_H
 
+#include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/Param.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_registerChildren.h>
 
 #include <utility>
 #include <fstream>
