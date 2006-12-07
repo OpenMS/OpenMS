@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
@@ -98,6 +98,16 @@ class TOPPBaselineFilter
 		MSExperiment<DRawDataPoint<1> > ms_exp_raw;
 		MSExperiment<DRawDataPoint<1> > ms_exp_filtered;
 		mz_data_file.load(in,ms_exp_raw);
+
+		//check for peak type (raw data required)
+		if (ms_exp_raw.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
+		{
+			writeLog_("Warning: The file meta data claims that this is not raw data!");
+		}
+		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
+		{
+			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
+		}
 
 		//-------------------------------------------------------------
 		// calculations

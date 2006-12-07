@@ -27,6 +27,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -115,7 +116,17 @@ class TOPPPeakPicker
     MzDataFile mz_data_file;
     MSExperiment<DRawDataPoint<1> > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
-
+		
+		//check for peak type (raw data required)
+		if (ms_exp_raw.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
+		{
+			writeLog_("Warning: The file meta data claims that this is not raw data!");
+		}
+		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
+		{
+			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
+		}
+		
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
@@ -127,7 +138,7 @@ class TOPPPeakPicker
 		// writing output
 		//-------------------------------------------------------------
 
-
+		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
 		mz_data_file.store(out,ms_exp_peaks);
 
 		return EXECUTION_OK;
