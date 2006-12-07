@@ -26,8 +26,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,54 +60,24 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPeakPicker
-      : public TOPPBase
+      : public TOPPBase2
 {
  public:
   TOPPPeakPicker()
-		: TOPPBase("PeakPicker")
-  {}
+		: TOPPBase2("PeakPicker","find mass spectrometric peaks in LC/MS raw data")
+  {
+  }
 
  protected:
-  void printToolUsage_() const
-  {
 
-    cerr << endl
-				 << getToolName() << " -- find mass spectrometric peaks in LC/MC experiments." << endl
-				 << "This application implements an algorithm for peak picking as " << endl
-				 << "described in Lange et al. (2006) Proc. PSB-06. "<< endl
-				 << "Version: " << VersionInfo::getVersion() << endl
-				 << endl
-				 << "Usage:" << endl
-				 << " " << getToolName() << " [options]" << endl
-				 << endl
-				 << "Options are:" << endl
-				 << "  -optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
-				 << "  -in <file>        input mzData file name" << endl
-				 << "  -out <file>       output mzData file name" << endl
-				 << endl;
-  }
-
-  void printToolHelpOpt_() const
+  void registerOptionsAndFlags_()
   {
-    cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
-				 << "  in <file>        input mzData file name" << endl
-				 << "  out <file>       output mzData file name" << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"optimize_peaks\" value=\"\" type=\"string\"/>" << endl;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    options_["-out"] = "out";
-    options_["-in"] = "in";
-    flags_["-optimize_peaks"] = "optimize_peaks";
+  	registerStringOption_("in","<file>","","input mzData file (raw data)");
+		registerStringOption_("out","<file>","","output mzData file (peak data)");
+    registerFlag_("optimize_peaks","flag that turns on for the optimization of peak parameters");
+		addEmptyLine_();
+  	addText_("This application implements an algorithm for peak picking as\n"
+				     "described in Lange et al. (2006) Proc. PSB-06. ");
   }
 
   ExitCodes main_(int , char**)
@@ -118,24 +87,9 @@ class TOPPPeakPicker
     // parameter handling
     //-------------------------------------------------------------
 
-    //input file names and types
-    String in = getParamAsString_("in");
-    writeDebug_(String("Input file: ") + in, 1);
-
-    //output file names and types
-    String out = getParamAsString_("out");
-    writeDebug_(String("Output file: ") + out, 1);
-
-    //optimze flag
-    bool optimize_peaks = getParamAsBool_("optimize_peaks");
-    if (optimize_peaks)
-    {
-    	writeDebug_(String("Optimization of peaks: ON"), 1);
-		}
-		else
-		{
-			writeDebug_(String("Optimization of peaks: OFF"), 1);
-		}
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    bool optimize_peaks = getFlag_("optimize_peaks");
 		
     //-------------------------------------------------------------
     // Init peak picker
@@ -161,7 +115,6 @@ class TOPPPeakPicker
     MzDataFile mz_data_file;
     MSExperiment<DRawDataPoint<1> > ms_exp_raw;
     mz_data_file.load(in,ms_exp_raw);
-
 
     //-------------------------------------------------------------
     // pick

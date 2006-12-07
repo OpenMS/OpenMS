@@ -27,9 +27,8 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,57 +61,23 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPBaselineFilter
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPBaselineFilter()
-		: TOPPBase("BaselineFilter")
-	{}
+		: TOPPBase2("BaselineFilter","top-hat filter for baseline reduction")
+	{
+	}
 
  protected:
-	void printToolUsage_() const
+	void registerOptionsAndFlags_()
 	{
-		cerr << endl
-				 << getToolName() << " -- remove the baseline in a LC/MS experiment" << endl
-				 << "Version: " << VersionInfo::getVersion() << endl
-				 << endl
-				 << "This application implements a morpholgical approach called top-hat filter." << endl
-				 << endl
-				 << "Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling flag!)." << endl
-				 << endl
-				 << "Usage:" << endl
-				 << " " << getToolName() << " [options]" << endl
-				 << "  -in <file>                input mzData file name" << endl
-				 << "  -out <file>               output mzData file name" << endl
-				 << "  -struc_elem_length <size> length of the structuring element (default is 2.5Th)" << endl
-				 << "  -resampling <spacing>     spacing for the resampling process (default: deactivated)"<< endl
-				 << endl;
-	}
-
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  in <file>                input mzData file name" << endl
-				 << "  out <file>               output mzData file name" << endl
-				 << "  struc_elem_length <size> length of the structuring element (given in Th)" << endl
-				 << "  resampling <spacing>     spacing for the resampling process (default: this flag is not set)" << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"struc_elem_length\" value=\"2.0\" type=\"float\"/>" << endl
-				 << "  <ITEM name=\"resampling\" value=\"0.05\" type=\"float\"/>" << endl;
-	}
-
-	void setOptionsAndFlags_()
-	{
-		options_["-out"] = "out";
-		options_["-in"] = "in";
-		options_["-struc_elem_length"] = "struc_elem_length";
-		options_["-resampling"] = "resampling";
+	  	registerStringOption_("in","<file>","","input mzData file (raw data)");
+			registerStringOption_("out","<file>","","output mzData file (raw data)");
+      registerDoubleOption_("struc_elem_length","<size>",2.5,"length of the structuring element in Th",false);
+      registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
+      addEmptyLine_();
+			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
 
 	ExitCodes main_(int , char**)
@@ -120,56 +85,10 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-		//input file names and types
-		String in = getParamAsString_("in");
-		writeDebug_(String("Input file: ") + in, 1);
-
-		//output file names and types
-		String out = getParamAsString_("out");
-		writeDebug_(String("Output file: ") + out, 1);
-
-		//length of the structuring element
-		String struc_elem = getParamAsString_("struc_elem_length");
-		writeDebug_(String("Length of structuring element: ") + struc_elem, 1);
-
-		//spacing for resampling process
-		String resampling = getParamAsString_("resampling");
-		writeDebug_(String("Resampling: ") + resampling, 1);
-
-
-		float struc_elem_length = 2.5;
-		float spacing = 0.;
-		bool resampling_flag = false;
-		try
-		{
-			//resampling
-			if (struc_elem != "")
-			{
-				struc_elem_length = struc_elem.toFloat();
-        writeLog_(String("Length of the structuring element: '") + struc_elem_length + "Th.");
-			}
-		}
-		catch(Exception::ConversionError& e)
-		{
-			writeLog_(String("Invalid length for the structuring element '") + struc_elem  + "' given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
-		try
-		{
-			//resampling
-			if (resampling != "")
-			{
-				spacing = resampling.toFloat();
-				resampling = true;
-			}
-		}
-		catch(Exception::ConversionError& e)
-		{
-			writeLog_(String("Invalid spacing '") + resampling + "' given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
+		String in = getStringOption_("in");
+		String out = getStringOption_("out");
+		double struc_elem_length = getDoubleOption_("struc_elem_length");
+		double spacing = getDoubleOption_("resampling");
 
 		//-------------------------------------------------------------
 		// loading input
@@ -193,7 +112,7 @@ class TOPPBaselineFilter
 		static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
 
 		// no resampling of the data
-		if (!resampling_flag)
+		if (spacing==0.0)
 		{
 			tophat.filterExperiment(ms_exp_raw,ms_exp_filtered);
 		}
@@ -230,7 +149,8 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-
+		
+		ms_exp_filtered.getProcessingMethod().setSpectrumType(SpectrumSettings::RAWDATA);
 		mz_data_file.store(out,ms_exp_filtered);
 
 		return EXECUTION_OK;
