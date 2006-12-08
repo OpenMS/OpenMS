@@ -345,7 +345,7 @@ namespace OpenMS
 		void MzDataHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
 			
-			std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+// 			std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -491,7 +491,7 @@ namespace OpenMS
 		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			
-			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+// 			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -514,8 +514,7 @@ namespace OpenMS
 					xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-					
-					std::cout << "MSExperimental Settings. "<< std::endl;
+
 					MzDataExpSettHandler handler( exp_->getExperimentalSettings(),file_); // *((ExperimentalSettings*)
 					handler.resetErrors();
 					parser->setContentHandler(&handler);

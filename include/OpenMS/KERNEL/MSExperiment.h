@@ -771,8 +771,10 @@ public:
 		ExperimentalSettings::operator=(ExperimentalSettings()); //reset meta info
 	}
 	
-	/// returns the meta information of this experiment
+	/// returns the meta information of this experiment (const access)
 	const ExperimentalSettings& getExperimentalSettings() const { return *this; }
+	/// returns the meta information of this experiment (mutable access)
+	ExperimentalSettings& getExperimentalSettings() { return *this; }
 		
 protected:
 

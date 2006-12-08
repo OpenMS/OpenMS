@@ -1086,8 +1086,10 @@ public:
         RangeManagerType::clearRanges(); // clear RangeManager
     }
 		
-    /// returns the meta information of this experiment
-    const ExperimentalSettings& getExperimentalSettings() const { return (/*(ExperimentalSettings)*/ exp_); }
+    /// returns the meta information of this experiment (mutable access)
+    ExperimentalSettings& getExperimentalSettings() { return ( exp_); }
+		/// returns the meta information of this experiment (const access)
+		const ExperimentalSettings& getExperimentalSettings() const { return  exp_; }
 
     /// Mutable access to peak with index @p
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
