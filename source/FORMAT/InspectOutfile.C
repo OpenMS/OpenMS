@@ -83,7 +83,7 @@ namespace OpenMS
 		
 		//	 record number, position in protein_hits
 		map< UnsignedInt, UnsignedInt > rn_position_map;
-		Identification* query;
+		Identification* query = NULL;
 		PeptideHit peptide_hit;
 		vector< PeptideHit >::iterator pep_hit_i;
 		DateTime datetime;
@@ -98,7 +98,7 @@ namespace OpenMS
 		vector< UnsignedInt > corrupted_lines;
 		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
 		vector< pair< String, vector< UnsignedInt > > > files_and_scan_numbers;
-		vector< UnsignedInt >* scan_numbers;
+		vector< UnsignedInt >* scan_numbers = NULL;
 		
 		ifstream result_file(result_filename.c_str());
 		if ( !result_file )
@@ -613,7 +613,7 @@ namespace OpenMS
 		
 		string::size_type pos; // the position in a line
 		unsigned long long source_database_pos = source_database.tellg(); // the start of a protein in the source database
-		unsigned long long source_database_pos_buffer; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
+		unsigned long long source_database_pos_buffer = 0; // because you don't know whether a new protein starts unless the line is read, the actual position is buffered before any new getline
 		UnsignedInt database_pos;
 		String line, sequence, protein_name;
 		char* record = new char[record_length_]; // a record in the index file

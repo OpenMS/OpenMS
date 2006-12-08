@@ -109,7 +109,7 @@ protected:
 		//-------------------------------------------------------------
 
 		if (in_type == FileHandler::UNKNOWN)
-		{
+		{	
 			writeLog_(" Unknown input type given. Aborting!");
 			return ILLEGAL_PARAMETERS;
 		}
@@ -119,9 +119,6 @@ protected:
 			DFeatureMapFile().load(in,map);
 
 			unsigned int size = map.size();
-
-      string in_type = getParamAsString_("in_type");
-      writeDebug_(String("Type of input file:: ") + in_type, 1);
 
 			typedef DFeatureMap<2>::FeatureType::IntensityType IntensityType;
 			typedef DFeatureMap<2>::FeatureType::QualityType QualityType;
