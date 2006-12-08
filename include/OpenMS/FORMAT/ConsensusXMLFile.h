@@ -75,4 +75,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZXMLFILE_H
+#endif // OPENMS_FOMAT_CONSENSUSXMLFILE_H

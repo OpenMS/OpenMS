@@ -35,7 +35,7 @@
 namespace OpenMS
 {
   /**
-    @brief A Group of D-dimensional elements.
+    @brief A group of D-dimensional elements.
     
   */
   template < typename ContainerType >

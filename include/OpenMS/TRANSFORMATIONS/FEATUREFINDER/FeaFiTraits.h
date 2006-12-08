@@ -237,7 +237,8 @@ public:
     {
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
-        if (index >= (map_.getSize()-1) )
+						
+        if (index == (map_.getSize()-1) )
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
 
         // check whether we walked out of the current scan i.e. the retention
@@ -280,8 +281,8 @@ public:
     */
     UnsignedInt getNextRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
-        if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
+        if (index>= ( map_.getSize() - 1))
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
 
         const PeakType p  = map_.getPeak(index);
 
@@ -292,13 +293,13 @@ public:
         }
         catch (Exception::Base ex)
         {
-            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
+            throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index);
         }
         
 				UnsignedInt peak_index = piter.getPeakNumber();
 				
         if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
 
         return peak_index;
     }
@@ -329,7 +330,7 @@ public:
         UnsignedInt peak_index = piter.getPeakNumber();
 				
         if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index, map_.getSize());
+            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
 
         return peak_index;
     }
@@ -456,8 +457,6 @@ public:
         Size size = features_.size();
 
         std::cout << size << " features were found. " << std::endl;
-
-//         std::cout << "seed count " << seed_count << std::endl;
 
         std::cout << "FeatureFinder summary:\n"
         << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size

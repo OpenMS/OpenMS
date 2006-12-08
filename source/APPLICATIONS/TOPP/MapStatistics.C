@@ -120,6 +120,9 @@ protected:
 
 			unsigned int size = map.size();
 
+      string in_type = getParamAsString_("in_type");
+      writeDebug_(String("Type of input file:: ") + in_type, 1);
+
 			typedef DFeatureMap<2>::FeatureType::IntensityType IntensityType;
 			typedef DFeatureMap<2>::FeatureType::QualityType QualityType;
 

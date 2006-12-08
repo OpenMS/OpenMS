@@ -93,7 +93,8 @@ namespace OpenMS
       virtual ~DMapDewarper()
       {}
 
-      /*
+      /**
+			
         @brief Dewarps the feature map. 
         
         This is a bit ugly. The mapping is D-dimensional function of
@@ -121,6 +122,7 @@ namespace OpenMS
               {
                 DPosition<1> temp;
                 temp[0] = pos[i];
+								std::cout << "Retrieving mapping " << i << std::endl;
                 grid_iter->getMappings().at(i)->apply(temp);
                 pos[i] = temp[0];
               }

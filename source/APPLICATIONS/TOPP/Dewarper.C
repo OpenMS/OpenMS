@@ -88,7 +88,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-
+		
     DGrid<2> the_grid;
     DGridFile().load(gridfile,the_grid);
 
@@ -99,11 +99,13 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
+		std::cout << "Reading input..." << std::endl;
     DMapDewarper<> map_dewarper;
     map_dewarper.setMap(feature_map);
     map_dewarper.setGrid(the_grid);
     map_dewarper.dewarp();
 
+		std::cout << "Reading input..." << std::endl;
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
