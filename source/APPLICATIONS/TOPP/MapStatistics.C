@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//				   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -25,11 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 #include <map>
 #include <iostream>
@@ -39,8 +38,6 @@
 
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_statistics.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,227 +67,193 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class MapStatistics
-            : public TOPPBase
+  : public TOPPBase2
 {
 public:
-    MapStatistics()
-            : TOPPBase("MapStatistics")
-    {}
+	MapStatistics()
+	  : TOPPBase2("MapStatistics","Computes a statistical summary for features / peak intensities and qualities in a map")
+	{
+	}
 
 protected:
-    void printToolUsage_() const
-    {
-        cerr << endl
-        << getToolName() << " -- Computes a five-number summary for " << endl
-        << "features / raw data intensities and qualities in a map." << endl
-        << "Version: " << VersionInfo::getVersion() << endl
-        << endl
-        << "Usage:" << endl
-        << " " << getToolName() << " [options]" << endl
-        << endl
-        << "Options are:" << endl
-        << "  -in <file>                   feature or raw data map (default read from INI file)" << endl
-        << "  -in_type <file_type>   either feat or mzData (default read from INI file)" << endl
-        << "  -out <file>                 output file in XML format (default read from INI file)" << endl
-        << endl ;
-    }
 
-    void printToolHelpOpt_() const
-    {
-        cerr << endl
-        << getToolName() << endl
-        << endl
-        << "INI options:" << endl
-        << "  in <file>                  either feat or mzData (default read from INI file)" << endl
-        << "  out <file>                output mzData file name" << endl
-        << "  in_type <file_type>  either feat or mzData (default read from INI file)" << endl
-        << endl
-        << "INI File example section:" << endl
-        << "<ITEM name=\"in\" value=\"myo_maps/04111717_feat.xml\" type=\"string\"/>" << endl
-        << "<ITEM name=\"out\" value=\"04111717_statistics.xml\" type=\"string\"/>" << endl
-        << "<ITEM name=\"in_type\" value=\"feat\" type=\"string\"/>" << endl;
-    }
-
-    void setOptionsAndFlags_()
-    {
-        options_["-out"] = "out";
-        options_["-in"] = "in";
-        options_["-in_type"] = "in_type";
-    }
+	void registerOptionsAndFlags_()
+	{
+		registerStringOption_("in","<file>","","input file (feature or raw data map)");
+		registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
+			                                          "Valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
+		registerStringOption_("out","<file>","","output file in XML format");
+	}
 
 
-    ExitCodes main_(int , char**)
-    {
+	ExitCodes main_(int , char**)
+	{
 
-        //-------------------------------------------------------------
-        // parameter handling
-        //-------------------------------------------------------------
-        //input file names and types
-        String in = getParamAsString_("in");
-        writeDebug_(String("Input file: ") + in, 1);
+		//-------------------------------------------------------------
+		// parameter handling
+		//-------------------------------------------------------------
+		String in = getStringOption_("in");
+		String out = getStringOption_("out");
+		
+		FileHandler fh;
+		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
+		
+		if (in_type==FileHandler::UNKNOWN)
+		{
+			in_type = fh.getTypeByFileName(in);
+			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
+		}
+		
+		//-------------------------------------------------------------
+		// calculations
+		//-------------------------------------------------------------
 
-        //output file names and types
-        String out = getParamAsString_("out");
-        writeDebug_(String("Output file: ") + out, 1);
+		if (in_type == FileHandler::UNKNOWN)
+		{
+			writeLog_(" Unknown input type given. Aborting!");
+			return ILLEGAL_PARAMETERS;
+		}
+		else if (in_type == FileHandler::FEATURE)
+		{
+			DFeatureMap<2> map;
+			DFeatureMapFile().load(in,map);
 
-               String in_type = getParamAsString_("in_type");
-        writeDebug_(String("Type of input file:: ") + in_type, 1);
+			unsigned int size = map.size();
 
-        if (in_type=="")
-        {
-            in_type = in.suffix('.');
-            writeDebug_(" input file type is determined from file extension!",1);
-        }
-        in_type.toUpper();
+			typedef DFeatureMap<2>::FeatureType::IntensityType IntensityType;
+			typedef DFeatureMap<2>::FeatureType::QualityType QualityType;
 
-        //-------------------------------------------------------------
-        // calculations
-        //-------------------------------------------------------------
+			IntensityType * intensities = new IntensityType[ size ];
+			QualityType * qualities	 = new QualityType[ size ];
 
-        // We need to distinguish whether we deal with peak
-        // or feature data because each type requires slightly
-        // different statistics
+			for (unsigned int i = 0; i < size; 	++i)
+			{
+				intensities[i] = map.at(i).getIntensity();
+				qualities[i]   = map.at(i).getOverallQuality();
+			}
 
-        if (in_type == "FEAT")
-        {
-            DFeatureMap<2> map;
-            DFeatureMapFile map_file;
-            map_file.load(in,map);
+			gsl_sort(intensities, 1, size);
+			gsl_sort(qualities, 1, size);
 
-            unsigned int size = map.size();
+			double mean_int, var_int, max_int, min_int;
+			mean_int = gsl_stats_mean(intensities,1,size);
+			var_int  = gsl_stats_variance(intensities,1,size);
+			max_int  = gsl_stats_max(intensities,1,size);
+			min_int  = gsl_stats_min(intensities,1,size);
 
-            typedef DFeatureMap<2>::FeatureType::IntensityType IntensityType;
-            typedef DFeatureMap<2>::FeatureType::QualityType QualityType;
+			double mean_q, var_q, max_q, min_q;
+			mean_q = gsl_stats_mean(qualities,1,size);
+			var_q  = gsl_stats_variance(qualities,1,size);
+			max_q  = gsl_stats_max(qualities,1,size);
+			min_q  = gsl_stats_min(qualities,1,size);
 
-            IntensityType * intensities = new IntensityType[ size ];
-            QualityType * qualities     = new QualityType[ size ];
+			double median_int, upperq_int, lowerq_int;
+			median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
+			upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+			lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
 
-            for (unsigned int i = 0; i < size; 	++i)
-            {
-                intensities[i] = map.at(i).getIntensity();
-                qualities[i]   = map.at(i).getOverallQuality();
-            }
+			double median_q, upperq_q, lowerq_q;
+			median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
+			upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
+			lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
 
-            gsl_sort(intensities, 1, size);
-            gsl_sort(qualities, 1, size);
+			delete [] intensities;
+			delete [] qualities;
 
-            double mean_int, var_int, max_int, min_int;
-            mean_int = gsl_stats_mean(intensities,1,size);
-            var_int  = gsl_stats_variance(intensities,1,size);
-            max_int  = gsl_stats_max(intensities,1,size);
-            min_int  = gsl_stats_min(intensities,1,size);
+			ofstream outstream(out.c_str());
+			outstream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
+			outstream << "<mapstatistics>" << endl;
 
-            double mean_q, var_q, max_q, min_q;
-            mean_q = gsl_stats_mean(qualities,1,size);
-            var_q  = gsl_stats_variance(qualities,1,size);
-            max_q  = gsl_stats_max(qualities,1,size);
-            min_q  = gsl_stats_min(qualities,1,size);
+			outstream << "\t<intensities>" << endl;
+			outstream << "\t\t<mean>" << mean_int << "</mean>" << endl;
+			outstream << "\t\t<median>" << median_int << "</median>" << endl;
+			outstream << "\t\t<variance>" << var_int << "</variance>" << endl;
+			outstream << "\t\t<min>" << min_int << "</min>" << endl;
+			outstream << "\t\t<max>" << max_int << "</max>" << endl;
+			outstream << "\t\t<lower_quartile>" << lowerq_int << "</lower_quartile>" << endl;
+			outstream << "\t\t<upper_quartile>" << upperq_int << "</upper_quartile>" << endl;
+			outstream << "\t</intensities>" << endl;
 
-            double median_int, upperq_int, lowerq_int;
-            median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
-            upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
-            lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+			outstream << "\t<qualities>" << endl;
+			outstream << "\t\t<mean>" << mean_q << "</mean>" << endl;
+			outstream << "\t\t<median>" << median_q << "</median>" << endl;
+			outstream << "\t\t<variance>" << var_q << "</variance>" << endl;
+			outstream << "\t\t<min>" << min_q << "</min>" << endl;
+			outstream << "\t\t<max>" << max_q << "</max>" << endl;
+			outstream << "\t\t<lower_quartile>" << lowerq_q << "</lower_quartile>" << endl;
+			outstream << "\t\t<upper_quartile>" << upperq_q << "</upper_quartile>" << endl;
+			outstream << "\t</qualities>" << endl;
 
-            double median_q, upperq_q, lowerq_q;
-            median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
-            upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
-            lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
+			outstream << "</mapstatistics>" << endl;
 
-            delete [] intensities;
-            delete [] qualities;
+			outstream.close();
+		}
+		else
+		{
+			MSExperiment< DPeak<1> > exp;
 
-            ofstream outstream(out.c_str());
-            outstream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
-            outstream << "<mapstatistics>" << endl;
+			if (! fh.loadExperiment(in,exp,in_type) )
+			{
+				writeLog_("Unsupported or corrupt input file. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;			
+			}
+			
+			//copy intensities of  MS-level 1 peaks
+			exp.updateRanges(1);
+			unsigned int size = exp.getSize();
+			DPeak<1>::IntensityType * intensities = new  DPeak<1>::IntensityType[ size ];
+			UnsignedInt i = 0;
+      for (MSExperiment< DPeak<1> >::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+      {
+	      if (spec->getMSLevel()!=1)
+	      {
+	          continue;
+	      }
+	      for (MSExperiment< DPeak<1> >::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
+	      {
+					intensities[i++] = it->getIntensity();
+	      }
+      }
 
-            outstream << "\t<intensities>" << endl;
-            outstream << "\t\t<mean>" << mean_int << "</mean>" << endl;
-            outstream << "\t\t<median>" << median_int << "</median>" << endl;
-            outstream << "\t\t<variance>" << var_int << "</variance>" << endl;
-            outstream << "\t\t<min>" << min_int << "</min>" << endl;
-            outstream << "\t\t<max>" << max_int << "</max>" << endl;
-            outstream << "\t\t<lower_quartile>" << lowerq_int << "</lower_quartile>" << endl;
-            outstream << "\t\t<upper_quartile>" << upperq_int << "</upper_quartile>" << endl;
-            outstream << "\t</intensities>" << endl;
+			gsl_sort(intensities, 1, size);
 
-            outstream << "\t<qualities>" << endl;
-            outstream << "\t\t<mean>" << mean_q << "</mean>" << endl;
-            outstream << "\t\t<median>" << median_q << "</median>" << endl;
-            outstream << "\t\t<variance>" << var_q << "</variance>" << endl;
-            outstream << "\t\t<min>" << min_q << "</min>" << endl;
-            outstream << "\t\t<max>" << max_q << "</max>" << endl;
-            outstream << "\t\t<lower_quartile>" << lowerq_q << "</lower_quartile>" << endl;
-            outstream << "\t\t<upper_quartile>" << upperq_q << "</upper_quartile>" << endl;
-            outstream << "\t</qualities>" << endl;
+			double mean_int, var_int, max_int, min_int;
+			mean_int = gsl_stats_mean(intensities,1,size);
+			var_int  = gsl_stats_variance(intensities,1,size);
+			max_int  = gsl_stats_max(intensities,1,size);
+			min_int  = gsl_stats_min(intensities,1,size);
 
-            outstream << "</mapstatistics>" << endl;
+			double median_int, upperq_int, lowerq_int;
+			median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
+			upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+			lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
 
-            outstream.close();
+			delete [] intensities;
 
-        }
-        else if (in_type == "MZDATA")
-        {
-            MSExperiment< DPeak<1> > exp;
-            MzDataFile f;
-            f.load(in,exp);
+			ofstream outstream(out.c_str());
+			outstream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
+			outstream << "<mapstatistics>" << endl;
 
-            DPeakArray<2> array;
-            exp.get2DData(array);
+			outstream << "\t<intensities>" << endl;
+			outstream << "\t\t<mean>" << mean_int << "</mean>" << endl;
+			outstream << "\t\t<median>" << median_int << "</median>" << endl;
+			outstream << "\t\t<variance>" << var_int << "</variance>" << endl;
+			outstream << "\t\t<min>" << min_int << "</min>" << endl;
+			outstream << "\t\t<max>" << max_int << "</max>" << endl;
+			outstream << "\t\t<lower_quartile>" << lowerq_int << "</lower_quartile>" << endl;
+			outstream << "\t\t<upper_quartile>" << upperq_int << "</upper_quartile>" << endl;
+			outstream << "\t</intensities>" << endl;
 
-            unsigned int size = array.size();
+			outstream << "</mapstatistics>" << endl;
 
-            typedef DPeak<1>::IntensityType IntensityType;
+			outstream.close();
 
-            IntensityType * intensities = new IntensityType[ size ];
+		}
 
-            for (unsigned int i = 0; i < size; 	++i)
-            {
-                intensities[i] = array[i].getIntensity();
-            }
+		return EXECUTION_OK;
 
-            gsl_sort(intensities, 1, size);
-
-            double mean_int, var_int, max_int, min_int;
-            mean_int = gsl_stats_mean(intensities,1,size);
-            var_int  = gsl_stats_variance(intensities,1,size);
-            max_int  = gsl_stats_max(intensities,1,size);
-            min_int  = gsl_stats_min(intensities,1,size);
-
-            double median_int, upperq_int, lowerq_int;
-            median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
-            upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
-            lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
-
-            delete [] intensities;
-
-            ofstream outstream(out.c_str());
-            outstream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
-            outstream << "<mapstatistics>" << endl;
-
-            outstream << "\t<intensities>" << endl;
-            outstream << "\t\t<mean>" << mean_int << "</mean>" << endl;
-            outstream << "\t\t<median>" << median_int << "</median>" << endl;
-            outstream << "\t\t<variance>" << var_int << "</variance>" << endl;
-            outstream << "\t\t<min>" << min_int << "</min>" << endl;
-            outstream << "\t\t<max>" << max_int << "</max>" << endl;
-            outstream << "\t\t<lower_quartile>" << lowerq_int << "</lower_quartile>" << endl;
-            outstream << "\t\t<upper_quartile>" << upperq_int << "</upper_quartile>" << endl;
-            outstream << "\t</intensities>" << endl;
-
-            outstream << "</mapstatistics>" << endl;
-
-            outstream.close();
-
-        }
-        else
-        {
-            writeDebug_(" Unknown file type '" + in_type + "' given. Aborting!",0);
-            return ILLEGAL_PARAMETERS;
-        }
-
-        return EXECUTION_OK;
-
-    }
+	}
 };
 
 

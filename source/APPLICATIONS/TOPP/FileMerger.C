@@ -70,7 +70,7 @@ class TOPPFileMerger
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("file_list","<file>","","a text file containing one input file name per line");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension).\n"
+		registerStringOption_("in_type","<type>","","input file type overwrite.\n"
 		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'", false);
 		registerStringOption_("out","<file>","","output file name in MzData format");
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");

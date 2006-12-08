@@ -37,6 +37,7 @@ UNCONDITIONAL_TESTS = \
 	DBImporter_test \
 	DTAExtractor_test \
 	Dewarper_test \
+	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
@@ -50,9 +51,10 @@ UNCONDITIONAL_TESTS = \
 	MascotAdapter_test \
 	NoiseFilter_test \
 	PeakPicker_test \
+	Resampler_test \
 	SequestAdapter_test \
-	SpectraFilter_test\
-	FeatureFinder_test
+	SpectraFilter_test
+	
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS=\
@@ -459,6 +461,10 @@ PeakPicker_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
 
+Resampler_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "Resampler:"
+	@$(ECHO) "	... todo ..."
 
 RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) ""

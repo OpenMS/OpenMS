@@ -69,7 +69,7 @@ class TOPPFileInfo
 		virtual void registerOptionsAndFlags_()
 		{
 			registerStringOption_("in","<file>","","input file");
-			registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension or file content)\n"
+			registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
 			                                            "Valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
 			registerFlag_("m","show meta information about the whole experiment");
 		}
@@ -92,12 +92,6 @@ class TOPPFileInfo
 			{
 				in_type = fh.getTypeByFileName(in);
 				writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
-			}	
-
-			if (in_type==FileHandler::UNKNOWN)
-			{
-				in_type = fh.getTypeByContent(in);
-				writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
 			}
 
 			cout << endl

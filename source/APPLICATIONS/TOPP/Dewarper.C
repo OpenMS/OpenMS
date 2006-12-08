@@ -29,8 +29,7 @@
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -58,51 +57,21 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPDewarper
-      : public TOPPBase
+      : public TOPPBase2
 {
 public:
   TOPPDewarper()
-      : TOPPBase("Dewarper")
-  {}
+      : TOPPBase2("Dewarper","Dewarps a feature map by applying a transform to the coordinates")
+  {
+  }
 
 protected:
-  void printToolUsage_() const
-  {
-    cerr << endl
-    << getToolName() << " -- dewarps a feature map" << endl
-    << "Version: " << VersionInfo::getVersion() << endl
-    << endl
-    << "Usage:" << endl
-    << " " << getToolName() << " [options]" << endl
-    << endl
-    << "Options are:" << endl
-    << "  -grid <file>   grid covering the map to be transformed" << endl
-    << "  -feat <file>   feature pairs" << endl
-    << "  -out <file>    dewarped feature map" << endl
-    << endl;
-  }
 
-  void printToolHelpOpt_() const
+  void registerOptionsAndFlags_()
   {
-    cerr << endl
-    << getToolName() << endl
-    << endl
-    << "INI options:" << endl
-    << "grid  grid covering the map to be transformed" << endl
-    << "  feat  feature pairs" << endl
-    << "  out   dewarped feature map" << endl
-    << endl
-    << "INI File example section:" << endl
-    << "  <ITEM name=\"grid\" value=\"grid.xml\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"feat\" value=\"input.feat\" type=\"string\"/>" << endl
-    << "  <ITEM name=\"out\" value=\"output.feat\" type=\"string\"/>" << endl;
-  }
-
-  void setOptionsAndFlags_()
-  {
-    options_["-out"] = "out";
-    options_["-grid"] = "grid";
-    options_["-feat"] = "feat";
+		registerStringOption_("feat","<file>","","the feature map to be transformed");
+		registerStringOption_("grid","<file>","","grid covering the map to be transformed");
+    registerStringOption_("out","<file>","","dewarped feature map");
   }
 
   ExitCodes main_(int , char**)
@@ -112,26 +81,16 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    String gridfile, features_file, outfile;
-	   
-	gridfile = getParamAsString_("grid");
-    writeDebug_(String("Grid file: ") + gridfile,1);
-
-    features_file = getParamAsString_("feat");
-    writeDebug_(String("Feature file: ")+ features_file,1);
-
-    //determine output file name
-    outfile = getParamAsString_("out");
-    writeDebug_(String("Output file: ")+ outfile,1);
-
+   	String gridfile = getStringOption_("grid");
+    String features_file = getStringOption_("feat");
+    String outfile = getStringOption_("out");
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
-    DGridFile grid_file;
     DGrid<2> the_grid;
-    grid_file.load(gridfile,the_grid);
+    DGridFile().load(gridfile,the_grid);
 
     DFeatureMapFile fmap_file;
     DFeatureMap<2> feature_map;
@@ -143,16 +102,12 @@ protected:
     DMapDewarper<> map_dewarper;
     map_dewarper.setMap(feature_map);
     map_dewarper.setGrid(the_grid);
-
     map_dewarper.dewarp();
-
-    DFeatureMap<2> dewarped_features;
-    dewarped_features = map_dewarper.getMap();
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    fmap_file.store(outfile,dewarped_features);
+    fmap_file.store(outfile,map_dewarper.getMap());
 
     return EXECUTION_OK;
   }

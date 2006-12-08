@@ -467,7 +467,7 @@ class TOPPMascotAdapter
 					String tmp = logfile;
 					File::absolutePath(tmp);
 
-					writeDebug_("Searching...", 0);
+					writeDebug_("Searching...", 1);
 					/// calling the Mascot process
 					writeDebug_("The Mascot process created the following output:", 1);
 					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 

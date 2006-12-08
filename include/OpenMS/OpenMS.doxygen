@@ -47,19 +47,21 @@
 */
 
 /*	
+	TODO:
+	- Release
+	  - HP: TOPP Seite, Installtion Seite (TOPP dazu), Team, Publications
+	
 	TODO (Hiwis):
 	- XML:
 		- Base 64
-		- XERCES speedup
-		- optional XML attributes
 		- mzXML/mzData sicherstellen dass alle Versionen getestet werden
 		- Einschränkungen: Metadata, RT, m/z, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
 	- TOPPView:
 		- ohne quadtree
+		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
+		- Visualisierung von FeaturePeairs
 	- DB
 	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)
-	
-
 */

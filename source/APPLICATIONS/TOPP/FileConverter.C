@@ -69,11 +69,11 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("in","<file>","","input file");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from output file extension)\n"
+		registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
 		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'.\n"
 																	              "'FeatureFile' can be converted, but will lose feature specific information", false);
 		registerStringOption_("out","<file>","","output file");
-		registerStringOption_("out_type","<type>","","output file type (default: determined from input file extension)\n"
+		registerStringOption_("out_type","<type>","","output file type (default: determined from output file extension)\n"
 		                              	             "Valid output types are: 'mzData', 'mzXML', 'DTA2D'", false);
 	}
 	
@@ -95,12 +95,6 @@ class TOPPFileConverter
 		{
 			in_type = fh.getTypeByFileName(in);
 			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 1);
-		}	
-
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			in_type = fh.getTypeByContent(in);
-			writeDebug_(String("Input file type (from file content): ") + fh.typeToName(in_type), 1);
 		}
 	
 		//output file names and types
