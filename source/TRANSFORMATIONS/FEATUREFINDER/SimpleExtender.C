@@ -113,6 +113,8 @@ namespace OpenMS
 		PeakType seed        = traits_->getPeak(seed_index);
 		last_pos_extracted_  = seed.getPosition();
 		
+		std::cout << "New seed: " << seed << std::endl;
+		
 		intensity_threshold_ = intensity_factor_ * seed.getIntensity();
 		intensity_sum_        = seed.getIntensity();
 

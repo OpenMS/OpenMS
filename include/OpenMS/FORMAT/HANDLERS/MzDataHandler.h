@@ -345,7 +345,7 @@ namespace OpenMS
 		void MzDataHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
 			
-			//std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+			std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -399,13 +399,8 @@ namespace OpenMS
 					meta_id_ = getAttributeAsString(ID);
 					break;
 				case SPECTRUM:
-				
-					// (ost) That's not possible if you work on external DS. If its internal buffer is full,
-					// MSExperimentExtern might throw this spectrum away and the pointer will be non-sense.
 					exp_->push_back(SpectrumType());
 					spec_ = &(exp_->back());
-					
-					//spec_->getContainer().clear(); 	// spectrum is inserted if element ends
 					break;
 			  case SPECTRUMLIST:
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
@@ -496,7 +491,7 @@ namespace OpenMS
 		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			
-			//std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -520,13 +515,14 @@ namespace OpenMS
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
 					parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 					
-					MzDataExpSettHandler handler( *((ExperimentalSettings*)exp_),file_);
+					std::cout << "MSExperimental Settings. "<< std::endl;
+					MzDataExpSettHandler handler( exp_->getExperimentalSettings(),file_); // *((ExperimentalSettings*)
 					handler.resetErrors();
 					parser->setContentHandler(&handler);
 					parser->setErrorHandler(&handler);
 					
 					String tmp(exp_sett_.str().c_str());
-					
+// 					std::cout << tmp << std::endl;
 					xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
 	      	parser->parse(source);
 	      	delete(parser);
@@ -648,7 +644,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::fillData_()
 		{
-			//std::cout << "reading scan" << std::endl;
+			std::cout << "reading scan" << std::endl;
 			if (data_.size() > decoder_.size()) // not enough decoder
 				decoder_.resize(data_.size());
 

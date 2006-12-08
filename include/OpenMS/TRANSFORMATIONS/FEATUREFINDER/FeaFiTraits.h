@@ -159,7 +159,6 @@ public:
    }
 		
 		/// copy input data to external memory and update range information 
-		/// NOTE: This is slow since all peaks are copied individually
     void setData(MSExperiment<DPeak<1> >& exp)
     {
 				if (exp.size() == 0)
@@ -311,6 +310,8 @@ public:
     */
     UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
+				std::cout << "getPrevRt(" << index << ")" << std::endl;
+				
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
 				

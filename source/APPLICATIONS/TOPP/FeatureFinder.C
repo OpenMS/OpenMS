@@ -109,7 +109,7 @@ class TOPPFeatureFinder
 		
 		writeLog_(String(" Reading input file ") + in);
 			
-		MSExperimentExtern<DPeak<1> > exp;
+		MSExperiment<DPeak<1> > exp;
 		MzDataFile().load(in,exp);
 
 		FeatureFinder ff;

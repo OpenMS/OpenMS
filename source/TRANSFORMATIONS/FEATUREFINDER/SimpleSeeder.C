@@ -50,7 +50,7 @@ namespace OpenMS
 			
 			UnsignedInt endIndex = traits_->getNumberOfPeaks();
 			for (UnsignedInt i=0;i<endIndex;++i) indizes_.push_back(i);
-			std::cout << "SimpleSeeder: Number of peaks: " << endIndex << std::endl;
+			std::cout << "SimpleSeeder: Number of data points: " << endIndex << std::endl;
 			sort_(); // sort index vector by intensity of peaks
 		
 			current_peak_ = indizes_.begin();
@@ -65,9 +65,7 @@ namespace OpenMS
 			}
 			
 		}
-	
-		std::cout << "SimpleSeeder: current peak " << 	*current_peak_ << std::endl;
-	
+		
 		// while the current peak is either already used or in a feature
 		// jump to next peak...
 		while (current_peak_ != indizes_.end() 
@@ -81,15 +79,17 @@ namespace OpenMS
 			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_);
 		}
 		
+		nr_seeds_++;
 		
+		#ifdef DEBUG_FEATUREFINDER
 		std::cout	<< "Processing seed " << nr_seeds_	<< " ("
 							<< traits_->getPeakRt(*current_peak_) << ","
 							<< traits_->getPeakMz(*current_peak_)
 							<< ") with intensity " << traits_->getPeakIntensity(*current_peak_) << std::endl;
-		
-		nr_seeds_++;
- 		
+				
 		std::cout << "SimpleSeeder: Intensity threshold for seeds is " << noise_threshold_ << std::endl;
+		#endif
+		
 		// if the intensity of the next seed is below this threshold,
 		// seeding stops and we throw an execption.
 		if (traits_->getPeakIntensity(*current_peak_) < noise_threshold_) 

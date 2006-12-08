@@ -586,7 +586,7 @@ public:
     }
 
     /// Destructor
-    ~MSExperimentExtern()
+    virtual ~MSExperimentExtern()
     {
         // delete temporary file
         std::remove( file_name_ .c_str());
@@ -1087,7 +1087,7 @@ public:
     }
 		
     /// returns the meta information of this experiment
-    const ExperimentalSettings getExperimentalSettings() const { return ((ExperimentalSettings) exp_); }
+    const ExperimentalSettings& getExperimentalSettings() const { return (/*(ExperimentalSettings)*/ exp_); }
 
     /// Mutable access to peak with index @p
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)

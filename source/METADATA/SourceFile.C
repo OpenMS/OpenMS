@@ -26,6 +26,8 @@
 
 #include <OpenMS/METADATA/SourceFile.h>
 
+#include<iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -88,7 +90,7 @@ namespace OpenMS
 	
 	void SourceFile::setNameOfFile(const String& name_of_file)
 	{
-	  name_of_file_ = name_of_file; 
+		name_of_file_ = name_of_file; 
 	}
 	
 	const String& SourceFile::getPathToFile() const 

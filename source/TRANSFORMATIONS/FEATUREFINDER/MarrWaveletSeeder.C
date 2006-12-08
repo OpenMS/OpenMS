@@ -89,7 +89,7 @@ IndexSet MarrWaveletSeeder::nextSeed() throw (NoSuccessor)
     IndexSet next_region = (*curr_region_).second.peaks_;
     ++curr_region_;
 		
-		std::cout << "Retrieving next region wiht charge: " << (*curr_region_).second.charge_ << std::endl; 
+		std::cout << "Retrieving next region with charge: " << (*curr_region_).second.charge_ << std::endl; 
 		
 		next_region.sort();
 
