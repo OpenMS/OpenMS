@@ -26,9 +26,9 @@
 
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <map>
 #include <iostream>
@@ -190,7 +190,7 @@ protected:
 		}
 		else
 		{
-			MSExperiment< DPeak<1> > exp;
+			RawMap exp;
 
 			if (! fh.loadExperiment(in,exp,in_type) )
 			{
@@ -204,13 +204,13 @@ protected:
 			unsigned int size = exp.getSize();
 			DPeak<1>::IntensityType * intensities = new  DPeak<1>::IntensityType[ size ];
 			UnsignedInt i = 0;
-      for (MSExperiment< DPeak<1> >::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+      for (RawMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
       {
 	      if (spec->getMSLevel()!=1)
 	      {
 	          continue;
 	      }
-	      for (MSExperiment< DPeak<1> >::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
+	      for (RawMap::SpectrumType::const_iterator it = spec->begin(); it!=spec->end(); ++it)
 	      {
 					intensities[i++] = it->getIntensity();
 	      }
