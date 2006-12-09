@@ -169,8 +169,8 @@ class AdditiveSeries
                     (iter->getPosition()[MZ] <  fpos1[MZ] + tol_mz) &&
                     (iter->getPosition()[MZ] >  fpos1[MZ] - tol_mz) )
             {
-				cout << "Found feature1 at " << endl;
-				cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  endl;
+				//cout << "Found feature1 at " << endl;
+				//cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ]  << " " << iter->getIntensity() <<  endl;
                 // feature at correct position found, save intensity
                 if (!feat1)
 				{
@@ -189,8 +189,8 @@ class AdditiveSeries
                     (iter->getPosition()[MZ] <  fpos2[MZ] + tol_mz) &&
                     (iter->getPosition()[MZ] >  fpos2[MZ] - tol_mz) )
             {
-				cout << "Found feature2 at " << endl;
-				cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  endl;
+				//cout << "Found feature2 at " << endl;
+				//cout << iter->getPosition()[RT] << " " << iter->getPosition()[MZ] << " " << iter->getIntensity() <<  endl;
                 // same as above
                  if (!feat2)
 				{

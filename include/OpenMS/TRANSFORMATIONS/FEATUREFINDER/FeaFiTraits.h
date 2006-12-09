@@ -310,7 +310,7 @@ public:
     */
     UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
-				std::cout << "getPrevRt(" << index << ")" << std::endl;
+				//std::cout << "getPrevRt(" << index << ")" << std::endl;
 				
         if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());

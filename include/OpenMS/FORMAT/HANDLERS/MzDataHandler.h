@@ -643,7 +643,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::fillData_()
 		{
-			std::cout << "reading scan" << std::endl;
+			//std::cout << "reading scan" << std::endl;
 			if (data_.size() > decoder_.size()) // not enough decoder
 				decoder_.resize(data_.size());
 

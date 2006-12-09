@@ -122,7 +122,7 @@ namespace OpenMS
               {
                 DPosition<1> temp;
                 temp[0] = pos[i];
-								std::cout << "Retrieving mapping " << i << std::endl;
+								//std::cout << "Retrieving mapping " << i << std::endl;
                 grid_iter->getMappings().at(i)->apply(temp);
                 pos[i] = temp[0];
               }
