@@ -55,6 +55,8 @@ namespace OpenMS
 	
 	NOTE: If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
 	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
+	
+	NOTE: This container works only with DPeak's. Other point types are not supported.
 				
 	@ingroup Kernel
 **/
@@ -651,7 +653,6 @@ public:
 
 				SpectrumType spec;
 				
-        //for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
 				for (UnsignedInt i=0; i<scan2buffer_.size(); ++i)
         {
 						spec = (*this)[i];
@@ -683,7 +684,7 @@ public:
 
         for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
         {
-          // check if the retentime time has changed
+          // check if retention time has changed
           if (current_rt != iter->getPosition()[RT] || spectrum == 0)
           {
             if (current_rt > iter->getPosition()[RT])
@@ -1420,6 +1421,7 @@ protected:
             else
             {
                 // size has changed, forget old position and append
+								std::cout << "Size has changed: "  << scan_location_[index] << " " << spec.size() << std::endl;
                 scan_location_[index] = pos;
             }
 

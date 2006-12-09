@@ -31,7 +31,7 @@
 
 #include <math.h>
 
-#include <gsl/gsl_randist.h>
+//#include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
 
 namespace OpenMS
@@ -69,8 +69,6 @@ namespace OpenMS
 		/// name of this quality measure
    static const String getName() { return "Correlation"; }		
 		
-	 /// gives the significance of last fit
-		double getPvalue() { return pval_; }
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_CORRELATION_H

@@ -31,6 +31,8 @@
 
 #include "gsl/gsl_cdf.h"
 
+#include <math.h>
+
 namespace OpenMS
 {
 	/** @brief Measures the quality of a modelfit to some realworld data. 
@@ -69,9 +71,7 @@ namespace OpenMS
 
 	/// name 
   static const String getName() { return "RankCorrelation"; }
-	
-	double getPvalue() { return pval_; }		
-			 	 
+				 	 
 	class RankComp 
   	{
   	
@@ -84,7 +84,7 @@ namespace OpenMS
   			/// Overloaded () operator that allows to treat this class as a functor.
   			bool operator() (const UnsignedInt& x, const UnsignedInt& y)
 			{
-    			return intensities_[x] < intensities_[y];
+    			return intensities_[x] > intensities_[y];
 			}
   			
   		protected:

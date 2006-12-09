@@ -70,7 +70,7 @@ namespace OpenMS
     virtual double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)=0;
 		
 		/// Returns the significance of the last fit (if applicable, otherwise -1
-		virtual double getPvalue() = 0;
+		double getPvalue() { return pval_; };
 		
 	protected:
 		/// Significance of fit

@@ -104,13 +104,13 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 
 						#ifdef DEBUG_FEATUREFINDER
 
-            String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
-            std::ofstream outfile(filename.c_str());
-            for (UnsignedInt k=0; k<current_scan.size();++k)
-            {
-                outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
-            }
-            outfile.close();
+//             String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
+//             std::ofstream outfile(filename.c_str());
+//             for (UnsignedInt k=0; k<current_scan.size();++k)
+//             {
+//                 outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
+//             }
+//             outfile.close();
 					  #endif
 						
 						// align and sum
@@ -134,36 +134,36 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
         filterHashByRTVotes();
 
 				#ifdef DEBUG_FEATUREFINDER
-        CoordinateType min_mass = traits_->getData().getMin().Y();
-
-        for (SweepLineHash::const_iterator citer = hash_.begin();
-                citer != hash_.end();
-                ++citer)
-        {
-				
-            std::cout << "m/z range: ";
-            std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
-            std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
-												
-            for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
-                  iter_cl2 != citer->second.first.end();
-                  ++iter_cl2)
-            {
-                std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
-
-                for (std::list<double>::const_iterator iter_l = citer->
-                        second.second.begin();
-                        iter_l != citer->second.second.end();
-                        ++iter_l)
-                {
-                    std::cout << *iter_l << " ";
-                }
-                std::cout << " | " << std::endl;
-            }	// end of times
-
-            std::cout << "----------------------------------------------------------------" << std::endl;
-
-        }
+//         CoordinateType min_mass = traits_->getData().getMin().Y();
+// 
+//         for (SweepLineHash::const_iterator citer = hash_.begin();
+//                 citer != hash_.end();
+//                 ++citer)
+//         {
+// 				
+//             std::cout << "m/z range: ";
+//             std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
+//             std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
+// 												
+//             for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
+//                   iter_cl2 != citer->second.first.end();
+//                   ++iter_cl2)
+//             {
+//                 std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
+// 
+//                 for (std::list<double>::const_iterator iter_l = citer->
+//                         second.second.begin();
+//                         iter_l != citer->second.second.end();
+//                         ++iter_l)
+//                 {
+//                     std::cout << *iter_l << " ";
+//                 }
+//                 std::cout << " | " << std::endl;
+//             }	// end of times
+// 
+//             std::cout << "----------------------------------------------------------------" << std::endl;
+// 
+//         }
 				#endif
 				
 				hash_iter_ = hash_.begin();		
@@ -464,14 +464,14 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
         
 				// write debug output
-				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
-        std::ofstream outfile(filename.c_str());
-				containerType::iterator write_iter;
-        for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
-        {
-            outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
-        }
-        outfile.close();
+// 				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
+//         std::ofstream outfile(filename.c_str());
+// 				containerType::iterator write_iter;
+//         for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
+//         {
+//             outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
+//         }
+//         outfile.close();
 				#endif
 				
         c_candidate.erase (iter, c_candidate.end());

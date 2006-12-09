@@ -76,31 +76,31 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1;
 	p1.getPosition()[1] = 1;
-	p1.getIntensity()    = 5;
+	p1.getIntensity()    = 0;
 	peak_array.push_back(p1);
 	
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
-	p1.getIntensity()    = 5;
+	p2.getIntensity()    = 3;
 	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
 	p3.getPosition()[0] = 3;
 	p3.getPosition()[1] = 3;
-	p1.getIntensity()    = 5;
+	p3.getIntensity()    = 5;
 	peak_array.push_back(p3);
 	
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
-	p1.getIntensity()    = 5;
+	p4.getIntensity()    = 3;
 	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
 	p5.getPosition()[0] = 5;
 	p5.getPosition()[1] = 5;
-	p1.getIntensity()    = 5;
+	p5.getIntensity()    = 0;
 	peak_array.push_back(p5);
 	
 	MSExperimentExtern<DPeak<1> > exp;
@@ -114,10 +114,10 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	
 	// evaluate rt dimension
 	double result = corr.evaluate(set, gm1,0);
-	TEST_REAL_EQUAL(result,0.00847637)
+	TEST_REAL_EQUAL(result,0.788997)
 	// evaluate mz dimension
 	result = corr.evaluate(set, gm1,1);
-	TEST_REAL_EQUAL(result,0.00847637)
+	TEST_REAL_EQUAL(result,0.788997)
 	
 RESULT
 
@@ -149,31 +149,31 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	DPeak<2> p1;
 	p1.getPosition()[0] = 1;
 	p1.getPosition()[1] = 1;
-	p1.getIntensity()    = 5;
+	p1.getIntensity()    = 0;
 	peak_array.push_back(p1);
 	
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
-	p1.getIntensity()    = 5;
+	p2.getIntensity()    = 3;
 	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
 	p3.getPosition()[0] = 3;
 	p3.getPosition()[1] = 3;
-	p1.getIntensity()    = 5;
+	p3.getIntensity()    = 5;
 	peak_array.push_back(p3);
 	
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
-	p1.getIntensity()    = 5;
+	p4.getIntensity()    = 3;
 	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
 	p5.getPosition()[0] = 5;
 	p5.getPosition()[1] = 5;
-	p1.getIntensity()    = 5;
+	p5.getIntensity()    = 0;
 	peak_array.push_back(p5);
 	
 	MSExperimentExtern<DPeak<1> > exp;
@@ -186,7 +186,9 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	set.add(0,4);
 	
 	double result = corr.evaluate(set, pm1);
-	TEST_REAL_EQUAL(result,0.17834);
+	double pval   = corr.getPvalue();
+	TEST_REAL_EQUAL(result,0.806434);
+	TEST_REAL_EQUAL(pval,0.0496042);
 	
 RESULT
 

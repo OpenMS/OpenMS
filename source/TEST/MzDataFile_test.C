@@ -29,6 +29,7 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 ///////////////////////////
 
@@ -438,6 +439,57 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getSample().getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
+
+CHECK((template<typename MapType> void load(const String& filename, MSExperimentExtern& map) ))
+	PRECISION(0.01)
+
+  //---------------------------------------------------------------------------
+  // test with DRawDataPoint (only peak data is tested, no meta data)
+  //---------------------------------------------------------------------------
+
+	MSExperimentExtern< DRawDataPoint<1> > e2;
+
+	// real test
+	MzDataFile().load("data/MzDataFile_test_1.mzData",e2);
+  //---------------------------------------------------------------------------
+  // 60 : (120,100)
+  // 120: (110,100) (120,200) (130,100)
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//--------------------------------------------------------------------------- 
+  TEST_EQUAL(e2.size(), 3)
+
+	TEST_EQUAL(e2[0].getContainer().size(), 1)
+	TEST_EQUAL(e2[1].getContainer().size(), 3)
+	TEST_EQUAL(e2[2].getContainer().size(), 5)
+
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
+
+RESULT  
 
 
 CHECK([EXTRA] load with metadata-only flag)

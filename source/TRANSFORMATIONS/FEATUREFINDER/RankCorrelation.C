@@ -47,10 +47,10 @@ namespace OpenMS
 		std::vector<IntensityType> data_intensities;
 		std::vector<IntensityType> model_intensities;
 		
-		std::vector<unsigned int> ranks_data;
-		std::vector<unsigned int> ranks_model;
+		std::vector<UnsignedInt> ranks_data;
+		std::vector<UnsignedInt> ranks_model;
 		
-		unsigned int rank_count = 0;
+		UnsignedInt rank_count = 0;
 		
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
@@ -72,7 +72,7 @@ namespace OpenMS
 		std::sort(ranks_model.begin(),ranks_model.end(),model_comp);
 		
 		int mu = (data_intensities.size() + 1) / 2; // average of ranks
-		
+				
 		IntensityType sum_model_data   = 0;
 				
 		IntensityType sqsum_data   = 0;
@@ -86,6 +86,8 @@ namespace OpenMS
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
 		
+// 		std::cout << sum_model_data << " " << sqsum_data <<  " " << sqsum_model << std::endl;
+		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
 		
@@ -94,14 +96,9 @@ namespace OpenMS
 		UnsignedInt df = set.size()-1;
 		double t_stat = sqrt(df) * corr; 
 		
-		// t_stat follows t-distributuin with n-2 degrees of freedom
+		// t_stat follows Normal Gaussian distribution 
 		pval_ = (1 - gsl_cdf_ugaussian_P(t_stat));	
 				
-// 		std::cout << "RankCorrelation: " << corr << std::endl;		
-// 		std::cout << "RankCorrelation: t(1-a/2,n-1) = " << gsl_ran_gaussian_pdf(0.975, df ) << std::endl;
-// 		std::cout << "RankCorrelation: t_stat = " << fabs(t_stat) << std::endl;
-// 		std::cout << "RankCorrelation: P(t_stat) = " << pval_ << std::endl;		
-		
 		return ( fabs(corr));
 	}
 	
@@ -151,8 +148,10 @@ namespace OpenMS
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
 		
+		double corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
+		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
-		return (sum_model_data / (sqsum_data * sqsum_model) );
+		return fabs(corr);
 		}
 }

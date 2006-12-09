@@ -66,11 +66,6 @@ namespace OpenMS
 			
 			++model_iter;
 			++data_iter;			
-			//Intensity model_it = model.getIntensity(peak.getPosition());
-			//Intensity data_it  = peak.getIntensity();
-			//cross_product_sum += model_it * data_it;
-			//data_square_sum   += data_it  * data_it;
-			//model_square_sum  += model_it * model_it;
 		}
 		
 		// compute average intensities for data and model
@@ -96,16 +91,10 @@ namespace OpenMS
 		UnsignedInt df = set.size()-2;
 		double t_stat = sqrt(df) * (corr / sqrt(1 - corr*corr)); 
 		
-		// t_stat follows t-distributuin with n-2 degrees of freedom
+		// t_stat follows t-distributoin with n-2 degrees of freedom
 		pval_ = (1 - gsl_cdf_tdist_P(t_stat, df ));	
-				
-// 		std::cout << "Correlation: " << corr << std::endl;		
-// 		std::cout << "Correlation: t(1-a/2,n-1) = " << gsl_ran_tdist_pdf(0.975, df ) << std::endl;
-// 		std::cout << "Correlation: t_stat = " << fabs(t_stat) << std::endl;
-// 		std::cout << "Correlation: P(t_stat) = " << pval_ << std::endl;
-		
-// 		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
-			return (fabs(corr));
+			
+		return (fabs(corr));
 	}
 	
 	double Correlation::evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedInt dim)
@@ -136,11 +125,6 @@ namespace OpenMS
 			
 			++model_iter;
 			++data_iter;			
-			//Intensity model_it = model.getIntensity(peak.getPosition());
-			//Intensity data_it  = peak.getIntensity();
-			//cross_product_sum += model_it * data_it;
-			//data_square_sum   += data_it  * data_it;
-			//model_square_sum  += model_it * model_it;
 		}
 		
 		// compute average intensities for data and model
@@ -161,7 +145,9 @@ namespace OpenMS
 		
 		if ( ! data_square_sum || ! model_square_sum ) return 0;
 		
- 		return (cross_product_sum * cross_product_sum) / (data_square_sum * model_square_sum);
+		double corr = cross_product_sum / sqrt(data_square_sum * model_square_sum);
+		
+ 		return fabs(corr);
 	}
 	
 	
