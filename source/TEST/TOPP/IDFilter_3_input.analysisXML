@@ -1,0 +1,564 @@
+<!-- -*- Mode: XML; tab-width: 2; -*- -->
+<mzIdent>
+	<description>
+		<admin>
+			<sampleName> unknown </sampleName>
+			<contact>
+				<name>unknown</name>
+				<institution>unknown</institution>
+			</contact>
+		</admin>
+		<settings>
+			<userParam name="number_of_identifications" value="1" />
+			<userParam name="number_of_protein_identifications" value="1" />
+			<userParam name="retention_time_type" value="float" />
+			<userParam name="mz_type" value="float" />
+			<userParam name="retention_time_unit" value="seconds" />
+			<userParam name="mz_unit" value="Thomson" />
+			<userParam name="date_group_0" value="2005-01-27 17:47:41"/>
+		</settings>
+	</description>
+	<ident>
+		<proteinGroup count="0">
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q824A5</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="32.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAD30739</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="28.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S53854</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="27.7"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q872T5</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="27.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>O13443</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25.6"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8DJX9</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8TGW6</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9QI95</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>O71997</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8SVD3</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="25"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q867D4</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q41475</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>BAA11814</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.7"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9BQF3</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.7"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>E984068</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.7"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9QHD0</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.6"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAB20042</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.6"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>E86143</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.5"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>A53592</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9UBC8</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q86VF0</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9ET00</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>E990633</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.4"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>I52651</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>E970438</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAB31418</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9XY15</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAC51380</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAD10122</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.3"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>BAA08782</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.2"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9BSL5</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.2"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAD14237</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.2"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8CQX5</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q39918</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q96628</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA16498</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAB86604</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24.1"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8IU67</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q7UEH1</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9GU43</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAC51472</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAA88055</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="24"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9WTS1</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S44465</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q8NFW3</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9UK71</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>Q83416</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>E1260572</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.9"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>S47210</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.8"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>AAC51621</dbID>
+				<userParam name="identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="23.8"/>
+				<userParam name="score_type" value="Mascot"/>
+                                <userParam name="date_group_index" value="0"/>
+			</protein>
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
+		<peptide>
+			<seq>LHASGITVTEIPVTATNFK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="33.85" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>MRSLGYVAVISAVATDTDK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="33.85" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>EGASTDFAALRTFLAEDGK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="12.73" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>DLEPGTDYEVTVSTLFGR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="11.79" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>FINFGVNVEVLSRFQTK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="11.38" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>MSLLSNMISIVKVGYNAR</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="11.32" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>THPYGHAIVAGIERYPSK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="11.26" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+		<peptide>
+			<seq>AITSDFANQAKTVLQNFK</seq>
+			<userParam name="identification_index" value="0" />
+			<userParam name="peptide_significance_threshold" value="31.8621"/>
+			<userParam name="precursor_charge" value="2" />
+			<userParam name="precursor_retention_time" value="0" />
+			<userParam name="precursor_mz" value="0" />
+			<userParam name="score" value="11.1" />
+			<userParam name="score_type" value="Mascot" />
+			<userParam name="date_group_index" value="0"/>
+		</peptide>
+	</ident>
+</mzIdent>

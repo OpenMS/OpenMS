@@ -401,6 +401,8 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,IDFilter_1_output.analysisXML,IDFilter_1_output.tmp)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pepfr 1 -protfr 1)
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.analysisXML,IDFilter_2_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
+	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
 
 
 InspectAdapter_test: $(NUMERICDIFF)
