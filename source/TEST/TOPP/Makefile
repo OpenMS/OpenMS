@@ -397,7 +397,10 @@ FileMerger_test: $(NUMERICDIFF)
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
+	@$(call TEST_FILE_EQUAL,IDFilter_1_output.analysisXML,IDFilter_1_output.tmp)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pepfr 1 -protfr 1)
+	@$(call TEST_FILE_EQUAL,IDFilter_2_output.analysisXML,IDFilter_2_output.tmp)
 
 
 InspectAdapter_test: $(NUMERICDIFF)

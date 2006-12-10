@@ -51,15 +51,23 @@ using namespace std;
 IDFilter* ptr1;
 IDFilter* ptr2;
 Identification identification;
+ProteinIdentification protein_identification;
 
 std::vector< ProteinIdentification > protein_identifications;
 std::vector< IdentificationData > identifications;
+std::vector< IdentificationData > identifications2;
+IdentificationData data;
 	
 AnalysisXMLFile().load("data/IDFilter_test.analysisXML", 
 							protein_identifications, 
 							identifications);
 
+identifications2.push_back(data);
+identifications2[0].rt = identifications[0].rt;
+identifications2[0].mz = identifications[0].mz;
+
 identification = identifications[0].id;							
+protein_identification = protein_identifications[0];							
 	
 CHECK(IDFilter& operator = (const IDFilter& source))
 	ptr1 = new IDFilter();
@@ -98,6 +106,7 @@ RESULT
 
 CHECK(const Identification& filterIdentificationsByProteins(const Identification& identification))
 	Identification identification2;
+	ProteinIdentification protein_identification2;
   vector< pair<String, String> > proteins;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -108,6 +117,7 @@ CHECK(const Identification& filterIdentificationsByProteins(const Identification
 
 	ptr1->setProteins(proteins);
 	ptr1->filterIdentificationsByProteins(identification, identification2);
+	ptr1->filterIdentificationsByProteins(protein_identification, protein_identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -118,14 +128,20 @@ CHECK(const Identification& filterIdentificationsByProteins(const Identification
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 11.26)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)	
-	protein_hits = identification2.getProteinHits();
+	protein_hits = protein_identification2.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 2)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 	TEST_EQUAL(protein_hits[1].getAccession(), "Q872T5")
+        identifications2[0].id = identification2;
+	AnalysisXMLFile().store("TOPP/IDFilter_1_output.analysisXML", 
+							protein_identifications, 
+							identifications2);
+
 RESULT
 
 CHECK((const Identification& filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins)))
 	Identification identification2;
+	ProteinIdentification protein_identification2;
   vector< pair<String, String> > proteins;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -135,6 +151,7 @@ CHECK((const Identification& filterIdentificationsByProteins(const Identificatio
 	ptr1 = new IDFilter();
 
 	ptr1->filterIdentificationsByProteins(identification, proteins, identification2);
+	ptr1->filterIdentificationsByProteins(protein_identification, protein_identification2);
 	peptide_hits = identification2.getPeptideHits();
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
@@ -145,7 +162,7 @@ CHECK((const Identification& filterIdentificationsByProteins(const Identificatio
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 11.26)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)	
-	protein_hits = identification2.getProteinHits();
+	protein_hits = protein_identification2.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 2)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 	TEST_EQUAL(protein_hits[1].getAccession(), "Q872T5")
@@ -169,9 +186,6 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 33.85)
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
-	protein_hits = identification2.getProteinHits();
-	TEST_EQUAL(protein_hits.size(), 50)
-	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 	
 RESULT
 
@@ -196,9 +210,13 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 33.85)
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
-	protein_hits = identification2.getProteinHits();
+	protein_hits = protein_identification.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 50)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
+        identifications2[0].id = identification2;
+	AnalysisXMLFile().store("TOPP/IDFilter_2_output.analysisXML", 
+							protein_identifications, 
+							identifications2);			
 
 RESULT
 
@@ -232,8 +250,12 @@ CHECK((const Identification& filterIdentificationsByExclusionPeptides(const Iden
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 10.37)
 	TEST_EQUAL(peptide_hits[1].getRank() , 2)
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
-	protein_hits = identification2.getProteinHits();
+	protein_hits = protein_identification.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 50)
+        identifications2[0].id = identification2;
+	AnalysisXMLFile().store("TOPP/IDFilter_3_output.analysisXML", 
+							protein_identifications, 
+							identifications2);			
 
 RESULT
 

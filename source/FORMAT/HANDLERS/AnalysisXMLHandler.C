@@ -608,6 +608,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "protein")
 		{
+                        inside_global_protein_ = true;
 			inside_protein_ = true;
 			inside_peptide_ = false;			
 		}

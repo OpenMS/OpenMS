@@ -82,7 +82,7 @@ namespace OpenMS
 				/// returns the name of the modification
 				const String& getName() const;
 
-				/// sets the short name of the modification, this name is used in AASequence as output
+				/// sets the short name of the modification, this name is used in PeptideSequence as output
 				void setShortName(const String& name);
 
 				/// returns the short name of the modification
@@ -415,7 +415,7 @@ namespace OpenMS
 			/// returns the name of the residue
 			const String& getName() const;
 
-			/// sets the short name of the residue, this name is used in the AASequence for output
+			/// sets the short name of the residue, this name is used in the PeptideSequence for output
 			void setShortName(const String& short_name);
 
 			/// returns the short name of the residue
@@ -521,6 +521,27 @@ namespace OpenMS
 			/// equality operator for one letter code
 			bool operator != (char one_letter_code) const;
 
+			/// returns the pka of the residue 
+			DoubleReal getPka() const;
+		
+			/// returns the pkb of the residue 
+			DoubleReal getPkb() const;
+		
+			/// returns the pkc of the residue if it exists otherwise -1
+			DoubleReal getPkc() const;
+		
+			/// calculates the isoelectric point using the pk* values
+			DoubleReal getPiValue() const;
+
+			/// sets the pka of the residue
+			void setPka(DoubleReal value);
+		
+			/// sets the pkb of the residue
+			void setPkb(DoubleReal value);		
+		
+			/// sets the pkc of the residue
+			void setPkc(DoubleReal value);		
+		
 			/// true if the residue is a modified one
 			bool isModified() const;
 			//@}
@@ -567,7 +588,16 @@ namespace OpenMS
 
 			// low mass markers like immonium ions
 			std::vector<EmpiricalFormula> low_mass_ions_;
+				
+			// pka values
+			DoubleReal pka_;
 
+			// pkb values
+			DoubleReal pkb_;
+			
+			// pkc values
+			DoubleReal pkc_;
+			
 	};
 	
 	std::ostream& operator << (std::ostream& os, const Residue& residue);

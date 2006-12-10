@@ -94,6 +94,10 @@ namespace OpenMS
       /// filters an identification corresponding to the given proteins
 			void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification);
 
+      /// filters a protein identification corresponding to the given proteins
+	void filterIdentificationsByProteins(const ProteinIdentification&     identification, 
+                                             ProteinIdentification&           filtered_identification);
+        
       /// filters the peptides of a identification corresponding to the retention times
 			void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, double>& predicted_retention_times, double measured_retention_time, double predicted_sigma, double allowed_deviation, double total_gradient_time, Identification& filtered_identification);
 																														

@@ -532,6 +532,33 @@ namespace OpenMS
 				}
 				continue;
 			}
+			if (key.hasSubstring("pka"))
+			{
+				// no pka defined?
+				if (!key.hasSuffix(":"))
+				{
+					res_ptr->setPka(value.toDouble());
+				}
+				continue;
+			}
+			if (key.hasSubstring("pkb"))
+			{
+				// no pkb defined?
+				if (!key.hasSuffix(":"))
+				{
+					res_ptr->setPkb(value.toDouble());
+				}
+				continue;
+			}
+			if (key.hasSubstring("pkc"))
+			{
+				// no pkc defined?
+				if (!key.hasSuffix(":"))
+				{
+					res_ptr->setPkc(value.toDouble());
+				}
+				continue;
+			}
 			cerr << "unknown key: " << key << ", with value: " << value << endl;
 		}
 		

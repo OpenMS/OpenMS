@@ -332,6 +332,49 @@ namespace OpenMS
 		}
 	}
 	
+	void IDFilter::filterIdentificationsByProteins(const ProteinIdentification& 	identification, 
+                                                       ProteinIdentification&           filtered_identification)
+	{
+		String protein_sequences;
+		String accession_sequences;
+		vector< UnsignedInt > new_protein_indices;
+		vector<ProteinHit> temp_protein_hits;
+		vector<ProteinHit> filtered_protein_hits;
+		ProteinHit temp_protein_hit;
+		DateTime date;		
+		
+		filtered_identification.clear();
+		date = identification.getDateTime();
+		temp_protein_hits = identification.getProteinHits();
+		for(UnsignedInt i = 0; i < proteins_.size(); i++)
+		{
+			accession_sequences.append("*" + proteins_[i].first);
+		}
+		accession_sequences.append("*");
+		
+		for(UnsignedInt i = 0; i < temp_protein_hits.size(); i++)
+		{
+	  	if (accession_sequences.find("*" 
+	  			+ temp_protein_hits[i].getAccession() 
+					+ "*") != string::npos)
+	  	{
+	  		new_protein_indices.push_back(i);
+	  	}
+		}
+		for(UnsignedInt i = 0; i < new_protein_indices.size(); i++)
+		{
+			temp_protein_hit = ProteinHit(temp_protein_hits[new_protein_indices[i]]);
+			temp_protein_hit.setRank((i + 1));
+			filtered_protein_hits.push_back(temp_protein_hit);
+		}
+		if (filtered_protein_hits.size() > 0)
+		{
+                  filtered_identification.setProteinHits(filtered_protein_hits);
+			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
+			filtered_identification.setDateTime(date);  																								
+		}
+	}
+	
 	void IDFilter::filterIdentificationsByRetentionTimes(const Identification& identification,
 																											const map<String, double>& predicted_retention_times,
 																											double measured_retention_time,

@@ -30,6 +30,7 @@
 #include <svm.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <string>
 #include <vector>
@@ -58,16 +59,30 @@ namespace OpenMS
 	*/
 	typedef enum{
 		
-	    SVM_TYPE,
-	    KERNEL_TYPE,
-	    DEGREE,
-	    C,
-	    NU,
-	    P,
-	    GAMMA,
-	    PROBABILITY
-	    	
+		SVM_TYPE,
+	  KERNEL_TYPE,
+	  DEGREE,
+	  C,
+	  NU,
+	  P,
+	  GAMMA,
+	  PROBABILITY,
+	  SIGMA,
+	  BORDER_LENGTH,
+	  SIGMA_1,
+	  SIGMA_2,
+	  SIGMA_3,
+	  BORDER_LENGTH_1,
+	  BORDER_LENGTH_2,
+	  BORDER_LENGTH_3
+	  	    	
 	}SVM_parameter_type;
+	
+	typedef enum 
+	{ 
+		OLIGO = 17,
+		OLIGO_COMBINED
+	}SVM_kernel_type; /* kernel_type */
 	
 	class SVMWrapper
 	{
@@ -195,20 +210,74 @@ namespace OpenMS
 																 					UnsignedInt number_of_partitions,
 																 					UnsignedInt number_of_runs,
 																 					bool 			  additive_step_size = true,
-																 					bool output = true);
+																 					bool output = false,
+																 					String 		  performances_file_name = "performances.txt");
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the model.		      
 		    
 		  */
 			double getSVRProbability();																			 					
-																	 				
 
+			svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2);
+						
+			static DoubleReal kernelOligo(const svm_node*									x, 
+																	  const svm_node*									y,
+																	  const std::vector<DoubleReal>&	gauss_table,
+								  								  UnsignedInt	 										max_distance = 50);
+
+			static DoubleReal kernelOligoCombined(const svm_node* 								x, 
+																						const svm_node*									y,
+																 						const std::vector<std::vector<DoubleReal> >& 	gauss_tables);
+												  			 						
+			static void calculateGaussTable(UnsignedInt 							border_length, 
+																			 DoubleReal 							sigma, 
+																			 std::vector<DoubleReal>&	gauss_table);
+
+			void setOligoCombinations(const std::vector<std::pair<DoubleReal, UnsignedInt> >& parameters);
+
+  		void setTrainingSample(svm_problem* training_sample);
+
+			void getSignificanceBorders(svm_problem* data, 
+																	std::pair<DoubleReal, DoubleReal>& borders,
+																	DoubleReal confidence = 0.95,
+																	UnsignedInt number_of_runs = 10,
+																	UnsignedInt number_of_partitions = 5,
+																	DoubleReal step_size = 0.01,
+																	UnsignedInt max_iterations = 1000000);
+
+			DoubleReal getPValue(DoubleReal 													sigma1, 
+													 DoubleReal 													sigma2,
+													 std::pair<DoubleReal, DoubleReal>		point);
+
+			void updateNorms(const svm_problem* data);
+			
+			void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values);
+
+			void getProbabilities(svm_problem* data, std::vector<std::vector<DoubleReal> >& scores);
+
+			// scales the data such that every coloumn is scaled to [-1, 1]
+			void scaleData(svm_problem* data, UnsignedInt number_of_combinations = 1, UnsignedInt start_combination = 0, SignedInt max_scale_value = -1);
+
+			void swapIndexValuePairs(svm_problem* data, UnsignedInt number_of_combinations = 1, UnsignedInt start_combination = 0);
+
+		protected:
+			void destroyProblem(svm_problem* problem);
+																	 				
 	 private:
+			UnsignedInt getNumberOfEnclosedPoints(DoubleReal m1, 
+																						DoubleReal m2, 
+																						const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
-	    struct svm_parameter* param_;               /// the parameters for the svm
-	    struct svm_model*     model_;               /// the learnt svm discriminant 
-	
+	    svm_parameter* 												param_;  	       	    // the parameters for the svm
+	    svm_model*     												model_;   			      // the learnt svm discriminant
+	    DoubleReal 														sigma_;								// for the oligo kernel (amount of positional smearing) 
+			std::vector<DoubleReal>								gauss_table_;					// lookup table for fast computation of the oligo kernel
+			std::vector<std::vector<DoubleReal>	> gauss_tables_;				// lookup table for fast computation of the combined oligo kernel
+			UnsignedInt			 											kernel_type_;					// the actual kernel type	
+			UnsignedInt			 											border_length_;				// the actual kernel type				
+			svm_problem*													training_set_;				// the training set
+			svm_problem*													training_problem_;		// the training set
 		  /**
 		    @brief Initializes the svm with standard parameters
 		    

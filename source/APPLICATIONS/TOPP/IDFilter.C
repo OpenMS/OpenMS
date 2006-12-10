@@ -368,8 +368,8 @@ class TOPPIDFilter
 						
 		/// Filtering identifications	by thresholds
 		for(UnsignedInt i = 0; i < identifications.size(); i++)
-		{	
-																 
+		{
+                  
 			filter.filterIdentificationsByThresholds(identifications[i].id, 
 																							 peptide_significance_threshold_fraction, 
 																							 protein_significance_threshold_fraction,
@@ -381,7 +381,6 @@ class TOPPIDFilter
 																							 sequences,
 																							 filtered_identification);
 			}
-				
 			if (total_gradient_time != 0.f)
 			{
 				Identification temp_identification = filtered_identification;
@@ -414,8 +413,8 @@ class TOPPIDFilter
 			{
 			  IdentificationData tmp;
 			  tmp.id = filtered_identification;
-			  tmp.rt = precursor_retention_times[i];
-			  tmp.mz = precursor_mz_values[i];
+			  tmp.rt = identifications[i].rt;
+			  tmp.mz = identifications[i].mz;
 				filtered_identifications.push_back(tmp);
 			}
 		}

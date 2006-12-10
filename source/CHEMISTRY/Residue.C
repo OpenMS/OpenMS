@@ -222,7 +222,10 @@ namespace OpenMS
 			is_modified_(false),
 			modification_(0),
 			loss_average_weight_(0.0f),
-			loss_mono_weight_(0.0f)
+			loss_mono_weight_(0.0f),
+			pka_(0.0),
+			pkb_(0.0),
+			pkc_(-1.0)
 	{
 	}
 
@@ -242,7 +245,10 @@ namespace OpenMS
 			modification_(0),
 			loss_formula_(neutral_loss),
 			loss_average_weight_(0.0f),
-			loss_mono_weight_(0.0f)
+			loss_mono_weight_(0.0f),
+			pka_(0.0),
+			pkb_(0.0),
+			pkc_(-1.0)
 	{
 	}
 
@@ -263,7 +269,10 @@ namespace OpenMS
 			loss_formula_(residue.loss_formula_),
 			loss_average_weight_(residue.loss_average_weight_),
 			loss_mono_weight_(residue.loss_mono_weight_),
-			low_mass_ions_(residue.low_mass_ions_)
+			low_mass_ions_(residue.low_mass_ions_),
+			pka_(residue.pka_),
+			pkb_(residue.pkb_),
+			pkc_(residue.pkc_)
 	{
 	}
 	
@@ -290,6 +299,9 @@ namespace OpenMS
 		loss_average_weight_ = residue.loss_average_weight_;
 		loss_mono_weight_ = residue.loss_mono_weight_;
 		low_mass_ions_ = residue.low_mass_ions_;
+		pka_ = residue.pka_;
+		pkb_ = residue.pkb_;
+		pkc_ = residue.pkc_;
 		return *this;
 	}
 
@@ -369,6 +381,63 @@ namespace OpenMS
 	const String& Residue::getOneLetterCode() const
 	{
 		return one_letter_code_;
+	}
+
+	DoubleReal Residue::getPka() const
+	{
+		return pka_;
+	}
+
+	DoubleReal Residue::getPkb() const
+	{
+		return pkb_;
+	}
+
+	DoubleReal Residue::getPkc() const
+	{
+		return pkc_;
+	}
+
+	DoubleReal Residue::getPiValue() const
+	{
+		DoubleReal temp1 = 0.0;
+		DoubleReal temp2 = 0.0;
+		DoubleReal temp3 = 0.0;
+		DoubleReal pi = 0;
+		
+		temp1 = getPka();
+		temp2 = getPkb();
+		temp3 = getPkc();
+				
+		if (temp3 >= 0 && temp3 < temp1)
+		{			
+			pi = (temp3 + temp2) / 2;
+		}
+		else if (temp3 >= temp2)
+		{			
+			pi = (temp1 + temp3) / 2;
+		}
+		else
+		{
+			pi = (temp1 + temp2) / 2;
+		}
+		
+		return pi;
+	}
+
+	void Residue::setPka(DoubleReal value)
+	{
+		pka_ = value;
+	}
+
+	void Residue::setPkb(DoubleReal value)
+	{
+		pkb_ = value;
+	}
+
+	void Residue::setPkc(DoubleReal value)
+	{
+		pkc_ = value;
 	}
 
 	void Residue::setLossFormula(const EmpiricalFormula& loss_formula)

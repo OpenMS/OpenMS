@@ -115,7 +115,7 @@ namespace OpenMS
 			/// sets the modifications from given file
 			void setModifications(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
 
-			/// adds a modification, i.e. a unknown modification, where only the weights are known
+			/// adds a modification, i.e. an unknown modification, where only the weights are known
 			void addModification(Residue::Modification modification);
 
 			/// sets the residues from given file

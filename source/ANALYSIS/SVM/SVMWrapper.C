@@ -25,21 +25,24 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
+#include <numeric>
 #include <iostream>
 #include <fstream>
 #include <ctime>
+
+#include <gsl/gsl_cdf.h>
 
 using namespace std;
 
 namespace OpenMS 
 {
 		
-	SVMWrapper::SVMWrapper()
-	{
-	
-	  model_ = NULL;
+	SVMWrapper::SVMWrapper() : model_(NULL), sigma_(0), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL)
+	{	
 	  param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
 	  initParameters();
 	}
@@ -62,16 +65,28 @@ namespace OpenMS
 	  switch(type)
 	  {
 	  	case(SVM_TYPE):
-				if (value == NU_SVR || value == EPSILON_SVR)	
+				if (value == NU_SVR || value == EPSILON_SVR || value == NU_SVC || value == C_SVC || value == ONE_CLASS)	
 				{
 				  param_->svm_type = value;
 				}
 				break;
-			case(KERNEL_TYPE):	
-				param_->kernel_type = value;
+			case(KERNEL_TYPE):
+				if (value == OLIGO || value == OLIGO_COMBINED)
+				{
+					kernel_type_ = value;
+					param_->kernel_type = PRECOMPUTED;
+				}
+				else
+				{	
+					param_->kernel_type = value;
+					kernel_type_ = value;
+				}
 				break;
 			case(DEGREE):
 				param_->degree = value;
+			  break;
+			case(BORDER_LENGTH):
+				border_length_ = value;
 			  break;
 			case(C):
 				param_->C = value;
@@ -84,6 +99,14 @@ namespace OpenMS
 				break;
 			case(GAMMA):
 				param_->gamma = value;
+				break;
+			case(SIGMA):
+				sigma_ = value;
+				if (border_length_ >= 1)
+				{
+					SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
+    		}
+				
 				break;
 			case(PROBABILITY):
 				if (value == 1 || value == 0)
@@ -102,13 +125,24 @@ namespace OpenMS
 	    switch(type)
 	    {
 	    	case(KERNEL_TYPE):
+					if (param_->kernel_type != PRECOMPUTED)
+					{
 	    	    return param_->kernel_type;
 	    	    break;
+					}
+					else
+					{
+						return kernel_type_;
+						break;
+					}
 	    	case(SVM_TYPE):
 	    	    return param_->svm_type;
 	    	    break;
 	    	case(DEGREE):
 	    	    return (int) param_->degree;
+	    	    break;
+	    	case(BORDER_LENGTH):
+	    	    return border_length_;
 	    	    break;
 	    	case(PROBABILITY):
 	    	    return param_->probability;
@@ -138,6 +172,13 @@ namespace OpenMS
 				case(GAMMA):
 			    param_->gamma = value;
 		   		break;
+				case(SIGMA):
+					sigma_ = value;
+					if (border_length_ >= 1)
+					{
+						SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
+	    		}
+					break;
 				default:
 			    break;
 	    }
@@ -159,10 +200,18 @@ namespace OpenMS
      	case(GAMMA):
      	    return param_->gamma;
      	    break;
+			case(SIGMA):
+					return sigma_;
+					break;
      	default:
      	    return -1;
      	    break;
     }
+	}
+
+	void SVMWrapper::setTrainingSample(svm_problem* training_sample)
+	{
+  	training_set_ = training_sample;		
 	}
 	
 	int SVMWrapper::train(struct svm_problem* problem)
@@ -171,12 +220,46 @@ namespace OpenMS
 				&& param_ != NULL 
 				&& (svm_check_parameter(problem,param_) == NULL))
 	  {
+	  	training_set_ = problem;
+	  	
 			if (model_ != NULL)
 			{
 		    svm_destroy_model(model_);
 		    model_ = NULL;
 			}
+			
+			if (kernel_type_ == OLIGO)
+			{
+				if (border_length_ != gauss_table_.size())
+				{
+					SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
+    		}
+    		training_problem_ = computeKernelMatrix(problem, problem);
+    		problem = training_problem_;
+			}
+			else if (kernel_type_ == OLIGO_COMBINED)
+			{
+				training_problem_ = computeKernelMatrix(problem, problem);
+    		problem = training_problem_;
+			}
+			else if (kernel_type_ == PRECOMPUTED)
+			{
+				training_problem_ = problem;
+			}
+			
+/*
+			cout << "Data: " << endl;
+			for(UnsignedInt i = 0; i < problem->l; ++i)
+			{
+				cout << problem->y[i] << ": " << flush << endl;
+				for(SignedInt j = 0; j <= problem->l; ++j)
+				{
+					cout << "(" << problem->x[i][j].index << "," << problem->x[i][j].value << ") ";
+				}
+			}
+*/
 			model_ = svm_train(problem, param_);
+			
 			return 1;
 		}
 	  else
@@ -215,6 +298,7 @@ namespace OpenMS
 			model_ = NULL;
 	  }
 	  model_ = svm_load_model(model_filename.c_str());
+		setParameter(SVM_TYPE, svm_get_svm_type(model_));
 	}
 	
 	vector<DoubleReal>* SVMWrapper::predict(struct svm_problem* problem)
@@ -222,10 +306,32 @@ namespace OpenMS
     DoubleReal          label = 0.0;
     vector<DoubleReal>* results = new vector<DoubleReal>();
 
+		if (model_ == NULL)
+			{
+				cout << "Model is null" << endl;
+			}
+		if (problem == NULL)
+			{
+				cout << "problem is null" << endl;
+			}
+		if (param_->kernel_type == PRECOMPUTED && training_set_ == NULL)
+			{
+				cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
+			}
+
+
     if (model_ == NULL || problem == NULL)
     {
 			return results;
     }
+		if (param_->kernel_type == PRECOMPUTED && kernel_type_ != PRECOMPUTED)
+		{
+			if (training_set_ == NULL)
+			{
+				return results;
+			}
+   		problem = computeKernelMatrix(problem, training_set_);
+		}
    
     for(int i = 0; i < problem->l; i++)
     {
@@ -233,6 +339,11 @@ namespace OpenMS
 			results->push_back(label);
 		}
 		
+		if (param_->kernel_type == PRECOMPUTED)
+		{
+    	destroyProblem(problem);
+		}
+
     return results;
 	}
 	
@@ -256,7 +367,7 @@ namespace OpenMS
 	}
 	
 	vector<svm_problem*>* SVMWrapper::createRandomPartitions(svm_problem* problem,
-																															UnsignedInt  number)
+																													 UnsignedInt  number)
 	{
 		vector<svm_problem*>* problems = new vector<svm_problem*>();
 		vector<UnsignedInt> indices;
@@ -387,12 +498,20 @@ namespace OpenMS
 																 									UnsignedInt 												   number_of_partitions,
 																 									UnsignedInt 												   number_of_runs,
 																 									bool																	 additive_step_sizes,
-																 									bool				 												   output)
+																 									bool				 												   output,
+																 									String																 performances_file_name)
 	{
 		map<SVM_parameter_type, DoubleReal>::iterator start_values_iterator;
 		map<SVM_parameter_type, DoubleReal>::iterator step_sizes_iterator;
 		map<SVM_parameter_type, DoubleReal>::iterator end_values_iterator;
 		map<SVM_parameter_type, DoubleReal>* best_parameters;	
+		vector<pair<DoubleReal, UnsignedInt> > combined_parameters;
+		combined_parameters.push_back(make_pair(1, 25));
+		for(UnsignedInt i = 1; i < gauss_tables_.size(); ++i)
+		{
+			combined_parameters.push_back(make_pair(1, 25));
+		}
+		
 		DoubleReal precision = 0.0001;
 		
 		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
@@ -412,12 +531,17 @@ namespace OpenMS
 		vector<DoubleReal> performances;
 		UnsignedInt max_index = 0;
 		DoubleReal max = 0;
-		ofstream performances_file("performances.txt");
+		ofstream performances_file(performances_file_name.c_str());
+		ofstream run_performances_file((performances_file_name + "_runs.txt").c_str());
+		DoubleReal max_performance;
+		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
+		vector<DoubleReal>::iterator predicted_it;
+		vector<DoubleReal>::iterator real_it;
 		
 		start_values_iterator = start_values_map.begin();
 		step_sizes_iterator = step_sizes_map.begin();
 		end_values_iterator = end_values_map.begin();
-		
+
 		// Initializing the necessary variables
 		while(start_values_iterator != start_values_map.end())
 		{
@@ -443,12 +567,53 @@ namespace OpenMS
 				end_values[actual_index] = end_values_iterator->second;
 			}			
 			start_values_iterator++;
+			if (actual_types[actual_index] == SIGMA_1)
+			{
+				combined_parameters[0].first = actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
+			else if (actual_types[actual_index] == SIGMA_2)
+			{
+				combined_parameters[1].first = actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
+			else if (actual_types[actual_index] == SIGMA_3)
+			{
+				combined_parameters[2].first = actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
+			else if (actual_types[actual_index] == BORDER_LENGTH_1)
+			{
+				combined_parameters[0].second = (UnsignedInt) actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
+			else if (actual_types[actual_index] == BORDER_LENGTH_2)
+			{
+				combined_parameters[1].second = (UnsignedInt) actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
+			else if (actual_types[actual_index] == BORDER_LENGTH_3)
+			{
+				combined_parameters[2].second = (UnsignedInt) actual_values[actual_index];
+				setOligoCombinations(combined_parameters);
+				updateNorms(problem);
+			}
 			actual_index++;
 		}
 
 		// for every 
 		for(UnsignedInt i = 0; i < number_of_runs; i++)
 		{
+			for(UnsignedInt index = 0; index < start_values_map.size(); ++index)
+			{
+				best_values[index] = 0;
+			}
+			max_performance = 0;		
 			partitions = createRandomPartitions(problem, number_of_partitions);
 	
 			counter = 0;
@@ -477,8 +642,56 @@ namespace OpenMS
 				actual_index = 0;
 				while(actual_index < start_values_map.size())
 				{
-					setParameter(actual_types[actual_index], actual_values[actual_index]);
-					actual_index++;
+					switch(actual_types[actual_index])
+					{
+						case SVM_TYPE:
+					  case KERNEL_TYPE:
+					  case DEGREE:
+					  case C:
+					  case NU:
+					  case P:
+					  case GAMMA:
+					  case PROBABILITY:
+					  case SIGMA:
+					  case BORDER_LENGTH:
+							setParameter(actual_types[actual_index], actual_values[actual_index]);					  	
+					  	break;
+						case SIGMA_1:
+							combined_parameters[0].first = actual_values[actual_index];
+							setOligoCombinations(combined_parameters);							
+							updateNorms(problem);
+							break;
+						case SIGMA_2:
+							combined_parameters[1].first = actual_values[actual_index];
+							setOligoCombinations(combined_parameters);							
+							updateNorms(problem);
+							break;
+						case SIGMA_3:
+							combined_parameters[2].first = actual_values[actual_index];
+							setOligoCombinations(combined_parameters);							
+							updateNorms(problem);
+							break;
+						case BORDER_LENGTH_1:
+							combined_parameters[0].second = (UnsignedInt) actual_values[actual_index];
+							setOligoCombinations(combined_parameters);
+							updateNorms(problem);
+							break;
+						case BORDER_LENGTH_2:
+							combined_parameters[1].second = (UnsignedInt) actual_values[actual_index];
+							setOligoCombinations(combined_parameters);							
+							updateNorms(problem);
+							break;
+						case BORDER_LENGTH_3:
+							combined_parameters[2].second = (UnsignedInt) actual_values[actual_index];
+							setOligoCombinations(combined_parameters);							
+							updateNorms(problem);
+							break;
+						default:
+							break;
+					} 
+					
+					++actual_index;
+					
 				}
 
 				// evaluation of parameter performance
@@ -489,44 +702,82 @@ namespace OpenMS
 					{
 						predicted_labels = predict((*partitions)[j]);
 						real_labels = getLabels((*partitions)[j]);
-						vector<DoubleReal>::iterator predicted_it = predicted_labels->begin();
-						vector<DoubleReal>::iterator real_it = real_labels->begin();
-
-						temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
-							predicted_labels->begin(), predicted_labels->end(),
-							real_labels->begin(), real_labels->end());
+												
+						predicted_it = predicted_labels->begin();
+						real_it = real_labels->begin();
+						
+						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
+						{
+							temp_performance += Math::BasicStatistics<DoubleReal>::classificationRate(
+								predicted_labels->begin(), predicted_labels->end(),
+								real_labels->begin(), real_labels->end());
+						}
+						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
+						{
+							temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
+								predicted_labels->begin(), predicted_labels->end(),
+								real_labels->begin(), real_labels->end());
+						}
 						
 						delete predicted_labels;
-						delete real_labels;												
-
-						if (output)
+						delete real_labels;
+						if (param_->kernel_type == PRECOMPUTED)
 						{
-							performances_file << temp_performance / (j + 1) << ": ";
+							destroyProblem(training_problem_);
+						}
+
+						if (output && j == number_of_partitions - 1)
+						{
+							performances_file << temp_performance / (j + 1) << " ";
 							for(UnsignedInt k = 0; k < start_values_map.size(); k++)
 							{
-								if (actual_types[k] == C)
+								switch(actual_types[k])
 								{
-									performances_file << "C: " << actual_values[k];						
-								}
-								else if (actual_types[k] == NU)
-								{
-									performances_file << "NU: " << actual_values[k];						
-								}
-								else if (actual_types[k] == DEGREE)
-								{
-									performances_file << "DEGREE: " << actual_values[k];						
-								}
-								else if (actual_types[k] == P)
-								{
-									performances_file << "P: " << actual_values[k];						
-								}
-								else if (actual_types[k] == GAMMA)
-								{
-									performances_file << "GAMMA: " << actual_values[k];						
+									case C:
+										performances_file << "C: " << actual_values[k];						
+										break;
+									case NU:
+										performances_file << "NU: " << actual_values[k];						
+										break;									
+									case DEGREE:
+										performances_file << "DEGREE: " << actual_values[k];						
+										break;																														
+									case P:
+										performances_file << "P: " << actual_values[k];						
+										break;																														
+									case GAMMA:										
+										performances_file << "GAMMA: " << actual_values[k];						
+										break;																														
+									case SIGMA:
+										performances_file << "SIGMA: " << actual_values[k];																										
+										break;																														
+									case SIGMA_1:										
+										performances_file << "SIGMA_1: " << actual_values[k];																										
+										break;																														
+									case SIGMA_2:										
+										performances_file << "SIGMA_2: " << actual_values[k];																										
+										break;																														
+									case SIGMA_3:										
+										performances_file << "SIGMA_3: " << actual_values[k];																										
+										break;																														
+									case BORDER_LENGTH:										
+										performances_file << "BORDER_LENGTH: " << actual_values[k];																										
+										break;																														
+									case BORDER_LENGTH_1:										
+										performances_file << "BORDER_LENGTH_1: " << actual_values[k];																										
+										break;
+									case BORDER_LENGTH_2:										
+										performances_file << "BORDER_LENGTH_2: " << actual_values[k];																										
+										break;
+									case BORDER_LENGTH_3:										
+										performances_file << "BORDER_LENGTH_3: " << actual_values[k];																										
+										break;
+									default:
+										break;																														
 								}
 								if (k < (start_values_map.size() - 1))
 								{
-									performances_file << ", ";
+									performances_file << " ";
 								}
 								else
 								{
@@ -535,10 +786,23 @@ namespace OpenMS
 							}
 						}
 					}
+					else
+					{
+						cout << "Training failed" << endl;
+					}
 				}
 
 				// storing performance for this parameter combination
-				temp_performance = temp_performance / number_of_partitions;				
+				temp_performance = temp_performance / number_of_partitions;
+				if (temp_performance > max_performance)
+				{
+					max_performance = temp_performance;
+					for(UnsignedInt index = 0; index < start_values_map.size(); ++index)
+					{
+						best_values[index] = actual_values[index];
+					}		
+				}
+								
 				if (i == 0)
 				{
 					performances.push_back(temp_performance);
@@ -549,7 +813,7 @@ namespace OpenMS
 					counter++;
 				}
 
-				// trying to set new parameter combination
+				// trying to find new parameter combination
 				found = false;
 				actual_index = 0;
 				while(actual_index < start_values_map.size()
@@ -585,7 +849,7 @@ namespace OpenMS
 							actual_values[actual_index] = start_values[actual_index];
 						}
 					}
-					actual_index++;						
+					actual_index++;
 				}
 			}
 			
@@ -599,7 +863,80 @@ namespace OpenMS
 			if (output)
 			{
 				cout << "run finished, time elapsed since start: " << clock() 
-				<< " performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) << endl;
+					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
+					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
+				run_performances_file << max_performance << " ";
+				for(UnsignedInt k = 0; k < start_values_map.size(); k++)
+				{
+					switch(actual_types[k])
+					{
+						case C:
+							cout << "C: " << best_values[k];						
+							run_performances_file << "C: " << best_values[k];						
+							break;
+						case NU:
+							cout << "NU: " << best_values[k];						
+							run_performances_file << "NU: " << best_values[k];						
+							break;									
+						case DEGREE:
+							cout << "DEGREE: " << best_values[k];						
+							run_performances_file << "DEGREE: " << best_values[k];						
+							break;																														
+						case P:
+							cout << "P: " << best_values[k];						
+							run_performances_file << "P: " << best_values[k];						
+							break;																														
+						case GAMMA:										
+							cout << "GAMMA: " << best_values[k];						
+							run_performances_file << "GAMMA: " << best_values[k];						
+							break;																														
+						case SIGMA:
+							cout << "SIGMA: " << best_values[k];						
+							run_performances_file << "SIGMA: " << best_values[k];																										
+							break;																														
+						case SIGMA_1:										
+							cout << "SIGMA_1: " << best_values[k];						
+							run_performances_file << "SIGMA_1: " << best_values[k];																										
+							break;																														
+						case SIGMA_2:										
+							cout << "SIGMA_2: " << best_values[k];						
+							run_performances_file << "SIGMA_2: " << best_values[k];																										
+							break;																														
+						case SIGMA_3:										
+							cout << "SIGMA_3: " << best_values[k];						
+							run_performances_file << "SIGMA_3: " << best_values[k];																										
+							break;																														
+						case BORDER_LENGTH:										
+							cout << "BORDER_LENGTH: " << best_values[k];						
+							run_performances_file << "BORDER_LENGTH: " << best_values[k];																										
+							break;																														
+						case BORDER_LENGTH_1:										
+							cout << "BORDER_LENGTH_1: " << best_values[k];						
+							run_performances_file << "BORDER_LENGTH_1: " << best_values[k];																										
+							break;
+						case BORDER_LENGTH_2:										
+							cout << "BORDER_LENGTH_2: " << best_values[k];						
+							run_performances_file << "BORDER_LENGTH_2: " << best_values[k];																										
+							break;
+						case BORDER_LENGTH_3:										
+							cout << "BORDER_LENGTH_3: " << best_values[k];						
+							run_performances_file << "BORDER_LENGTH_3: " << best_values[k];																										
+							break;
+						default:
+							break;																														
+					}
+					if (k < (start_values_map.size() - 1))
+					{
+						cout << " ";
+						run_performances_file << " ";
+					}
+					else
+					{
+						cout << endl;
+						run_performances_file << endl;
+					}
+				}
+
 			}
 		}
 		
@@ -620,8 +957,8 @@ namespace OpenMS
 		while(start_values_iterator != start_values_map.end())
 		{
 			actual_values[actual_index] = start_values_iterator->second;
-			actual_index++;
-			start_values_iterator++;		
+			++actual_index;
+			++start_values_iterator;		
 		}
 
 		actual_index = 0;
@@ -630,7 +967,7 @@ namespace OpenMS
 			while(actual_index < start_values_map.size())
 			{
 				actual_values[actual_index] = start_values[actual_index];
-				actual_index++;
+				++actual_index;
 			}
 		}
 		else
@@ -675,31 +1012,55 @@ namespace OpenMS
 							actual_values[actual_index] = start_values[actual_index];
 						}
 					}
-					actual_index++;						
+					actual_index++;
 				}
 				performances_file	<< performances[counter]  / number_of_runs << ": ";
 				for(UnsignedInt k = 0; k < start_values_map.size(); k++)
 				{
-					if (actual_types[k] == C)
+					switch(actual_types[k])
 					{
-						performances_file << "C: " << actual_values[k];						
-					}
-					else if (actual_types[k] == NU)
-					{
-						performances_file << "NU: " << actual_values[k];						
-					}
-					else if (actual_types[k] == DEGREE)
-					{
-						performances_file << "DEGREE: " << actual_values[k];						
-					}
-					else if (actual_types[k] == P)
-					{
-						performances_file << "P: " << actual_values[k];						
-					}
-					else if (actual_types[k] == GAMMA)
-					{
-						performances_file << "GAMMA: " << actual_values[k];						
-					}
+						case C:
+							performances_file << "C: " << actual_values[k];						
+							break;
+						case NU:
+							performances_file << "NU: " << actual_values[k];						
+							break;									
+						case DEGREE:
+							performances_file << "DEGREE: " << actual_values[k];						
+							break;																														
+						case P:
+							performances_file << "P: " << actual_values[k];						
+							break;																														
+						case GAMMA:										
+							performances_file << "GAMMA: " << actual_values[k];						
+							break;																														
+						case SIGMA:
+							performances_file << "SIGMA: " << actual_values[k];																										
+							break;																														
+						case SIGMA_1:										
+							performances_file << "SIGMA_1: " << actual_values[k];																										
+							break;																														
+						case SIGMA_2:										
+							performances_file << "SIGMA_2: " << actual_values[k];																										
+							break;																														
+						case SIGMA_3:										
+							performances_file << "SIGMA_3: " << actual_values[k];																										
+							break;																														
+						case BORDER_LENGTH:										
+							performances_file << "BORDER_LENGTH: " << actual_values[k];																										
+							break;																														
+						case BORDER_LENGTH_1:										
+							performances_file << "BORDER_LENGTH_1: " << actual_values[k];																										
+							break;
+						case BORDER_LENGTH_2:										
+							performances_file << "BORDER_LENGTH_2: " << actual_values[k];																										
+							break;
+						case BORDER_LENGTH_3:										
+							performances_file << "BORDER_LENGTH_3: " << actual_values[k];																										
+							break;
+						default:
+							break;
+					}																														
 					if (k < (start_values_map.size() - 1))
 					{
 						performances_file << ", ";
@@ -740,6 +1101,7 @@ namespace OpenMS
 		delete actual_values;
 		delete end_values;
 		delete step_sizes;
+		delete best_values;
 		
 		return best_parameters;									
 	}
@@ -761,18 +1123,671 @@ namespace OpenMS
 		model_ = NULL;
 	  
 	  param_->svm_type = NU_SVR;
-	  param_->kernel_type = POLY;
+	  param_->kernel_type = PRECOMPUTED;
 	  param_->degree = 1;                            // for poly
 	  param_->gamma = 1.0;	                         // for poly/rbf/sigmoid 
 	  param_->coef0 = 0;	                           // for poly/sigmoid 
 	  param_->cache_size = 300;                      // in MB 
 	  param_->eps = 0.001;	                         // stopping criterium 
 	  param_->C = 1;	                               // for C_SVC, EPSILON_SVR, and NU_SVR 
-	  param_->nr_weight = 0;	                       // for C_SVC 
 	  param_->nu = 0.5;	                             // for NU_SVC, ONE_CLASS, and NU_SVR 
 	  param_->p = 0.1;	                             // for EPSILON_SVR 
 	  param_->shrinking = 0;	                       // use the shrinking heuristics 
 		param_->probability = 0;
+
+		param_->nr_weight = 2;
+		param_->weight_label = new SignedInt[2];
+		param_->weight = new DoubleReal[2];
+		param_->weight_label[0] = -1;
+		param_->weight_label[1] = 1;
+		param_->weight[0] = 1;
+		param_->weight[1] = 1;
 	}
+
+	void SVMWrapper::updateNorms(const svm_problem* data)
+	{
+		vector<UnsignedInt> parts;
+		vector<UnsignedInt> norm_positions;
+		UnsignedInt index = 0;
+		UnsignedInt counter = 0;
+		
+		for(SignedInt i = 0; i < data->l; ++i)
+		{
+			while(data->x[i][index].index == -1)
+			{
+				norm_positions.push_back(index);
+				++counter;
+				++index;				
+			}
+			parts.push_back(index);
+			--counter;
+			while(counter > 0 || data->x[i][index].index != -1)
+			{
+				if (data->x[i][index].index == -1)
+				{
+					parts.push_back(index + 1);
+					--counter;
+				}
+				++index;
+			}
+			for(UnsignedInt j = 0; j < norm_positions.size(); ++j)
+			{
+				data->x[i][norm_positions[j]].value = sqrt(kernelOligo(&(data->x[i][parts[j]]), 
+																										&(data->x[i][parts[j]]), 
+																										gauss_tables_[j]));
+			}
+			norm_positions.clear();
+			parts.clear();
+			counter = 0;
+			index = 0;
+		}
+	}
+
+
+	DoubleReal SVMWrapper::kernelOligo(const svm_node* 						x, 
+																		 const svm_node*						y,
+																		 const vector<DoubleReal>& 	gauss_table,
+												  					 UnsignedInt 								max_distance)
+	{
+    double kernel = 0;
+    int    i1     = 0;
+    int    i2     = 0;
+    int    c1     = 0;
+
+    while(x[i1].index >= 0
+				  && y[i2].index >= 0)
+		{
+			if (x[i1].value == y[i2].value)
+  		{
+  			if (((UnsignedInt) abs(x[i1].index - y[i2].index)) <= max_distance)
+    		{
+    	    kernel += gauss_table.at(abs((int)(x[i1].index
+								      					    - y[i2].index)));
+          if (x[i1].value == x[i1 + 1].value)
+          {
+      			i1++;
+       			c1++;
+          }
+          else if (y[i2].value == y[i2 + 1].value)
+          {
+          	i2++;
+            i1 -= c1;
+            c1 = 0;
+          }
+          else
+          {
+          	i1++;
+            i2++;
+   		    }
+   	    }
+   	    else
+   	    {
+   				if (x[i1].index < y[i2].index)
+   				{
+     		    if (x[i1].value == x[i1 + 1].value)
+     		    {
+         			i1++;
+     		    }
+     		    else if (y[i2].value == y[i2 + 1].value)
+     		    {
+         			i2++;
+   	    			i1 -= c1;
+         			c1 = 0;
+     		    }
+    		    else
+     		    {
+    	   			i1++;
+         			i2++;
+      	    }
+      		}
+      	  else
+        	{
+          	i2++;
+            i1 -= c1;
+            c1 = 0;
+          }
+        }
+    	}
+     	else
+     	{
+     		if (x[i1].value < y[i2].value)
+     		{
+					i1++;
+     		}
+     		else
+     		{
+					i2++;
+     		}
+ 			}
+    }
+    return kernel;
+	}		
+
+	DoubleReal SVMWrapper::kernelOligoCombined(const svm_node* 											x, 
+																						 const svm_node*											y,
+																						 const vector<vector<DoubleReal> >& 	gauss_tables)
+	{
+    DoubleReal 	kernel      						= 0;
+	  DoubleReal 	kernel_temp 						= 0;
+	  UnsignedInt number_of_combinations 	= gauss_tables.size(); 
+	  UnsignedInt i1          						= number_of_combinations;
+	  UnsignedInt i2          						= number_of_combinations;
+	  UnsignedInt c1          						= 0;
+	  UnsignedInt count       						= 0;
+	  UnsignedInt distance								= 0;
+	  UnsignedInt max_distance						= 24;
+
+	  while(x[i1].index >= 0
+				  && y[i2].index >= 0
+		  		&& count < number_of_combinations)
+	  {
+			if (x[i1].value == y[i2].value)
+			{
+				try
+				{
+					distance = (UnsignedInt) abs((int)(x[i1].index - y[i2].index));
+					if (distance <= max_distance)
+					{
+						kernel_temp += gauss_tables[count].at((UnsignedInt) abs((int)(x[i1].index 
+											   																							- y[i2].index)));
+					}											   																							
+				}
+				catch(...)
+				{
+					
+					cout << "Index exception at " << count << ", " << abs((int) x[i1].index - y[i2].index) 
+					<< endl << "Gauss table size: " << gauss_tables[count].size() << endl;
+				}
+		    if (x[i1].value == x[i1 + 1].value)
+		    {
+					i1++;
+					c1++;
+		    }
+		    else if (y[i2].value == y[i2 + 1].value)
+		    {
+					i2++;
+					i1 -= c1;
+					c1 = 0;
+		    }
+		    else
+		    {
+					i1++;
+					i2++;
+					c1 = 0;
+		    }
+
+			}	
+			else
+			{
+		    if (x[i1].value < y[i2].value)
+		    {
+					i1++;
+		    }
+		    else
+		    {
+					i2++;
+		    }
+
+			}
+
+			if ((x[i1].index == -1
+		  	   || y[i2].index == -1)
+		    	&& count < number_of_combinations - 1)
+			{
+		  	if (number_of_combinations > 1)
+		    {
+					kernel += kernel_temp / (x[count].value 
+										 * y[count].value);
+
+					kernel_temp = 0;
+		    }
+
+		    count++;
+		    if (x[i1].index == -1)
+		    {
+					++i1;
+					while(y[i2].index != -1)
+					{
+						++i2;
+					}
+					++i2;
+					c1 = 0;
+		    }
+		    else
+		    {
+					++i2;
+					while(x[i1].index != -1)
+					{
+						++i1;
+					}
+					++i1;
+					c1 = 0;
+		    }
+			}
+
+	  }
+
+		return kernel + (kernel_temp / 
+					 (x[count].value * y[count].value));
+	}
+
+	svm_problem* SVMWrapper::computeKernelMatrix(svm_problem* problem1, svm_problem* problem2)
+	{
+		DoubleReal temp = 0;
+		svm_problem* kernel_matrix;
+				
+		if (problem1 == NULL || problem2 == NULL)
+		{
+			return NULL;
+		}	
+		UnsignedInt number_of_sequences = 0;
+
+		number_of_sequences = problem1->l;		
+		kernel_matrix = new svm_problem;
+		kernel_matrix->l = number_of_sequences;
+		kernel_matrix->x = new svm_node*[number_of_sequences];
+		kernel_matrix->y = new DoubleReal[number_of_sequences];
+		
+		for(UnsignedInt i = 0; i < number_of_sequences; i++)
+		{
+			kernel_matrix->x[i] = new svm_node[problem2->l + 1];
+			kernel_matrix->x[i][0].index = 0;
+			kernel_matrix->x[i][0].value = i + 1;
+			kernel_matrix->y[i] = problem1->y[i];
+		}
+
+		if (problem1 == problem2)
+		{
+			for(UnsignedInt i = 0; i < number_of_sequences; i++)
+			{			
+				for(UnsignedInt j = i; j < number_of_sequences; j++)
+				{
+					if (kernel_type_ == OLIGO)
+					{
+						temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
+					}
+					else if (kernel_type_ == OLIGO_COMBINED)
+					{
+						temp = SVMWrapper::kernelOligoCombined(problem1->x[i], problem2->x[j], gauss_tables_);
+					}
+					if (temp > 1000000)
+					{
+						cout << "The value is too big for indices " << i << ", " << j << endl;
+					}							
+					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].value = temp;
+					kernel_matrix->x[j][i + 1].index = i + 1;
+					kernel_matrix->x[j][i + 1].value = temp;				
+				}
+			}
+		}
+		else
+		{
+			for(UnsignedInt i = 0; i < number_of_sequences; i++)
+			{			
+				for(UnsignedInt j = 0; j < (UnsignedInt) problem2->l; j++)
+				{
+					if (kernel_type_ == OLIGO)
+					{
+						temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
+					}
+					else if (kernel_type_ == OLIGO_COMBINED)
+					{
+						temp = SVMWrapper::kernelOligoCombined(problem1->x[i], problem2->x[j], gauss_tables_);
+					}
+					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].value = temp;
+				}
+			}			
+		}
+					
+		return kernel_matrix;
+	}
+	
+	void SVMWrapper::destroyProblem(svm_problem* problem)
+	{
+		for(SignedInt i = 0; i < problem->l; i++)
+		{
+			free(problem->x[i]);
+		}
+		free(problem->y);
+		free(problem->x);
+		free(problem);
+	}
+	
+	void SVMWrapper::calculateGaussTable(UnsignedInt border_length, 
+																			 DoubleReal sigma, 
+																			 vector<DoubleReal>&	gauss_table)
+	{
+		if (border_length != gauss_table.size())
+		{
+			gauss_table.resize(border_length, 0);
+		}		
+		gauss_table[0] = 1;
+	 	for(UnsignedInt i = 1; i < border_length; ++i)
+	 	{
+	  	gauss_table[i] = exp((-1 / 4.0 /
+					 						     (sigma * sigma)) *
+	  								 	     (i * i));
+	  }
+	}
+	
+	void SVMWrapper::setOligoCombinations(const vector<pair<DoubleReal, UnsignedInt> >& parameters)
+	{    
+		UnsignedInt index = 0;
+		DoubleReal sigma = 0.0;
+
+   	if (gauss_tables_.size() != parameters.size())
+   	{
+   		gauss_tables_.resize(parameters.size(), vector<DoubleReal>());
+   	}
+   	for(vector<pair<DoubleReal, UnsignedInt> >::const_iterator it = parameters.begin();
+   			it != parameters.end();
+   			++it)
+   	{
+   		if (gauss_tables_[index].size() != it->second)
+   		{
+   			gauss_tables_[index].resize(it->second, 0);
+   		}
+   		gauss_tables_[index][0] = 1;
+   		sigma = it->first;
+   		for(UnsignedInt i = 1; i < it->second; ++i)
+   		{
+   			gauss_tables_[index][i] = exp((-1 / 4.0 / (sigma * sigma)) * (i * i));
+   		}
+   		++index;
+   	}
+	}
+	
+	void SVMWrapper::getSignificanceBorders(svm_problem* data, 
+																					pair<DoubleReal, DoubleReal>& sigmas,
+																					DoubleReal confidence,
+																					UnsignedInt number_of_runs,
+																					UnsignedInt number_of_partitions,
+																					DoubleReal step_size,
+																					UnsignedInt max_iterations)
+	{
+		vector<pair<DoubleReal, DoubleReal> > points;
+		vector<DoubleReal> 										differences;
+		vector<svm_problem*>* 								partitions;
+		svm_problem*													training_data;
+		vector<DoubleReal>*										predicted_labels;
+		vector<DoubleReal>*										real_labels;
+		UnsignedInt														counter = 0;
+		UnsignedInt														target = 0;
+		ofstream															file("points.txt");
+		DoubleReal 														mean;
+		DoubleReal														sigma1 = 0;
+		DoubleReal														sigma2 = 0;
+			
+		
+		// creation of points (measured rt, predicted rt)
+		for(UnsignedInt i = 0; i < number_of_runs; ++i)
+		{
+			partitions = createRandomPartitions(data, number_of_partitions);
+			
+			for (UnsignedInt j = 0; j < number_of_partitions; ++j)
+			{
+				training_data = SVMWrapper::mergePartitions(partitions, j);
+				if (train(training_data))
+				{
+					predicted_labels = predict((*partitions)[j]);
+					real_labels = getLabels((*partitions)[j]);
+					vector<DoubleReal>::iterator pred_it = predicted_labels->begin();
+					vector<DoubleReal>::iterator real_it = real_labels->begin();						
+					while(pred_it != predicted_labels->end()
+								&& real_it != real_labels->end())
+					{
+						points.push_back(make_pair(*real_it, *pred_it));
+						differences.push_back(abs(*real_it - *pred_it));
+						file << *real_it << " " << *pred_it << endl;
+						++pred_it;
+						++real_it;
+					}
+					delete predicted_labels;
+					delete real_labels;
+				}
+			}
+		}
+		file << flush;
+								
+		// trying to find the two line parameters
+		target = (UnsignedInt) round(confidence * points.size());
+		
+		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();
+		sigma1 = mean;
+		sigma2 = mean;
+		while(target > getNumberOfEnclosedPoints(sigma1, sigma2, points) && counter < max_iterations)
+		{
+			
+			cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
+						<< ((getNumberOfEnclosedPoints(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+						<< " % of points" << endl;
+
+			sigma1 += (step_size / 2);
+			sigma2 += step_size;
+			++counter;			
+		}
+		sigmas.first = sigma1;
+		sigmas.second = sigma2;
+
+		cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
+			<< ((getNumberOfEnclosedPoints(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+			<< " % of points" << endl;			
+	}
+	
+	UnsignedInt SVMWrapper::getNumberOfEnclosedPoints(DoubleReal sigma1, 
+																										DoubleReal sigma2, 
+																										const vector<pair<DoubleReal, DoubleReal> >& points)
+	{
+		UnsignedInt counter = 0;
+		DoubleReal 	sigma		= 0;
+		
+		for(vector<pair<DoubleReal, DoubleReal> >::const_iterator it = points.begin();
+				it != points.end();
+				++it)
+		{
+			sigma = sigma1 + it->first * (sigma2 - sigma1);
+			
+			if (it->first + sigma >= it->second
+					&& it->first - sigma <= it->second)
+			{
+				++counter;
+			}
+		}
+		return counter; 
+	}
+	
+	DoubleReal SVMWrapper::getPValue(DoubleReal 										sigma1, 
+																	 DoubleReal 										sigma2,
+																	 pair<DoubleReal, DoubleReal>		point)
+	{
+		DoubleReal center = point.first;
+		DoubleReal distance = point.second - center;
+		DoubleReal sd_units = 0;
+		DoubleReal result = 0;
+		
+		// getting the absolute value
+		distance = (distance < 0) ? (-1 * distance) : distance;
+			
+		sd_units = (2 * distance) / (sigma1 + point.first * (sigma2 - sigma1));
+		
+		result = (gsl_cdf_gaussian_P(sd_units, 1) - 0.5) * 2;
+		if (result > 1)
+		{
+			result = 1;
+		}
+		return result;
+	}
+	
+	void SVMWrapper::getDecisionValues(svm_problem* data, vector<DoubleReal>& decision_values)
+	{
+		DoubleReal temp_value;
+		
+		decision_values.clear();
+		for(SignedInt i = 0; i < data->l; ++i)
+		{
+			temp_value = 0;						
+			svm_predict_values(model_, data->x[i], &temp_value);
+			decision_values.push_back(temp_value);
+		}
+	}																		  			
+	
+	void SVMWrapper::getProbabilities(svm_problem* data, vector<vector<DoubleReal> >& scores)
+	{
+		vector<DoubleReal> values;
+		DoubleReal temp;
+		
+		scores.clear();
+		values.resize(svm_get_nr_class(model_), 0);
+		for(SignedInt i = 0; i < data->l; ++i)
+		{
+			temp = svm_predict_probability(model_, data->x[i], &(values[0]));
+			cout << "Returned: " << temp << endl;
+			cout << "label: " << data->y[i] << ", prob 0: " << values[0] << ", prob 1: " << values[1] << endl;
+			scores.push_back(values);
+		}
+	}
+		
+	void SVMWrapper::scaleData(svm_problem* data, UnsignedInt number_of_combinations, UnsignedInt start_combination, SignedInt max_scale_value)
+	{
+		vector<DoubleReal> max_values;
+		vector<DoubleReal> min_values;
+		vector<DoubleReal> sums;
+		UnsignedInt j = number_of_combinations;
+		SignedInt max_index = 0;
+		UnsignedInt counter = 0;
+		UnsignedInt temp = 0;
+		
+		for(UnsignedInt k = start_combination; k < number_of_combinations; ++k)
+		{
+			for(SignedInt i = 0; i < data->l; ++i)
+			{
+				j = 0;
+				counter = 0;
+				// if the libsvm vector does not contain a norm at the beginning the scaling should start from that index j
+				if (data->x[i][j].index != -1)
+				{
+					++counter;
+				}
+				while(counter < number_of_combinations + k)
+				{
+					if (data->x[i][j].index == -1)
+					{
+						++counter;
+					}
+					++j;
+				}
+				while(data->x[i][j].index != -1)
+				{
+					if (data->x[i][j].index > max_index)
+					{
+						max_index = data->x[i][j].index;
+					}
+					++j;
+				}
+			}
+			
+			max_values.resize(max_index, 0);
+			min_values.resize(max_index, 0);
+			sums.resize(max_index, 0);
+			
+			for(SignedInt i = 0; i < data->l; ++i)
+			{
+				j = 0;
+				counter = 0;
+				while(counter < number_of_combinations + k)
+				{
+					if (data->x[i][j].index == -1)
+					{
+						++counter;
+					}
+					++j;
+				}
+				while(data->x[i][j].index != -1)
+				{
+					if (data->x[i][j].value > max_values.at(data->x[i][j].index - 1))
+					{
+						max_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
+					}
+					sums.at(data->x[i][j].index - 1) = sums.at(data->x[i][j].index - 1) + data->x[i][j].value;
+					if (data->x[i][j].value < min_values.at(data->x[i][j].index - 1))
+					{
+						min_values.at(data->x[i][j].index - 1) = data->x[i][j].value;
+					}
+	
+					++j;
+				}
+			}
+			for(SignedInt i = 0; i < data->l; ++i)
+			{
+				j = 0;
+				counter = 0;
+				while(counter < number_of_combinations + k)
+				{
+					if (data->x[i][j].index == -1)
+					{
+						++counter;
+					}
+					++j;
+				}
+				while(data->x[i][j].index != -1)				
+				{
+					if (max_scale_value == -1)
+					{
+						data->x[i][j].value = 2 * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
+																	/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1)) - 1;																			
+					}
+					else
+					{
+						temp = (UnsignedInt) round(max_scale_value * (data->x[i][j].value - min_values.at(data->x[i][j].index - 1))
+															/ (max_values.at(data->x[i][j].index - 1) - min_values.at(data->x[i][j].index - 1)));
+
+						data->x[i][j].value = data->x[i][j].index;																			
+						data->x[i][j].index = temp;																			
+//						data->x[i][j].value = temp;																			
+					}
+					++j;
+				}
+			}
+			max_values.clear();
+			min_values.clear();
+			sums.clear();
+			max_index = 0;
+		}
+	}
+	
+	void SVMWrapper::swapIndexValuePairs(svm_problem* data, UnsignedInt number_of_combinations, UnsignedInt start_combination)
+	{
+		UnsignedInt j = number_of_combinations;
+		UnsignedInt counter = 0;
+		UnsignedInt temp = 0;
+
+		for(UnsignedInt k = start_combination; k < number_of_combinations; ++k)
+		{
+			for(SignedInt i = 0; i < data->l; ++i)
+			{
+				j = 0;
+				counter = 0;
+				while(counter < number_of_combinations + k)
+				{
+					if (data->x[i][j].index == -1)
+					{
+						++counter;
+					}
+					++j;
+				}
+				while(data->x[i][j].index != -1)				
+				{
+					temp = (UnsignedInt) data->x[i][j].value;
+					data->x[i][j].value = data->x[i][j].index;																			
+					data->x[i][j].index = temp;																			
+					++j;
+				}
+			}
+		
+		}	
+	}
+																		  																										
 
 } // namespace OpenMS
