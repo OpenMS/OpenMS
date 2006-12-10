@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -28,7 +28,6 @@
 
 namespace OpenMS
 {
-	DPeakReferenceArray<1> default_dpra_1;
-	DPeakReferenceArray<2> default_dpra_2;
-
+  DPeakReferenceArray<DFeatureMap<1> > default_dpeakreferencearray_featuremap_1;
+  DPeakReferenceArray<DFeatureMap<2> > default_dpeakreferencearray_featuremap_2;
 }

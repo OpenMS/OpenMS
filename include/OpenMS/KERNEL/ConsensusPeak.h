@@ -217,17 +217,17 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the combined peaks
-      inline const Group& getpeaks() const
+      inline const Group& getPeaks() const
       {
         return *this;
       }
       /// Mutable access to the combined peaks
-      inline Group& getpeaks()
+      inline Group& getPeaks()
       {
         return *this;
       }
       /// Set the combined peaks
-      inline void setpeaks(const Group& g)
+      inline void setPeaks(const Group& g)
       {
         Group::operator=(g);
       }

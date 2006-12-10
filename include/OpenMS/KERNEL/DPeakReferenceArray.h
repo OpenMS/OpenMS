@@ -51,805 +51,821 @@ namespace OpenMS
 
     @ingroup Kernel, Serialization
   */
-  template <Size D, typename TraitsT = KernelTraits, typename MapT = DFeatureMap<D, DFeature<D, TraitsT> > >
+  template <typename MapT>
   class DPeakReferenceArray
   {
-  public:
-
-    ///ConstIterator for the DPeakArray
-    template <class IteratorPeakT>
-    class DPeakReferenceArrayConstIterator
-    {
-
-      friend class DPeakReferenceArray;
-
     public:
-      /** @name Type definitions */
+
+      ///ConstIterator for the DPeakArray
+      template <class IteratorPeakT>
+      class DPeakReferenceArrayConstIterator
+      {
+
+          friend class DPeakReferenceArray;
+
+        public:
+          /** @name Type definitions */
+          //@{
+          typedef IteratorPeakT IteratorPeakType;
+          typedef IteratorPeakType value_type;
+          typedef typename std::vector<IteratorPeakType*>::difference_type difference_type;
+          typedef const value_type& reference;
+          typedef const value_type* pointer;
+          typedef std::random_access_iterator_tag iterator_category;
+          //@}
+
+          DPeakReferenceArrayConstIterator()
+          {}
+
+          DPeakReferenceArrayConstIterator(const typename std::vector<IteratorPeakType*>* vec , unsigned int position)
+          {
+            vector_ = (typename std::vector<IteratorPeakType*>*)vec;
+            position_ = position;
+          }
+
+          DPeakReferenceArrayConstIterator(typename std::vector<IteratorPeakType*>* vec , unsigned int position)
+          {
+            vector_ = vec;
+            position_ = position;
+          }
+
+          DPeakReferenceArrayConstIterator(const DPeakReferenceArrayConstIterator& it)
+          {
+            vector_=it.vector_;
+            position_=it.position_;
+          }
+
+          ~DPeakReferenceArrayConstIterator()
+          {}
+
+          DPeakReferenceArrayConstIterator& operator = (const DPeakReferenceArrayConstIterator& rhs)
+          {
+            if (this==&rhs)
+              return *this;
+
+            vector_=rhs.vector_;
+            position_=rhs.position_;
+
+            return *this;
+          }
+
+          bool operator < (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return position_ < it.position_;
+          }
+
+          bool operator > (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return position_ > it.position_;
+          }
+
+          bool operator <= (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return (position_ < it.position_ || position_ == it.position_);
+          }
+
+          bool operator >= (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return (position_ > it.position_ || position_ == it.position_);
+          }
+
+          bool operator == (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return position_ == it.position_ && vector_ == it.vector_;
+          }
+
+          bool operator != (const DPeakReferenceArrayConstIterator& it) const
+          {
+            return position_ != it.position_ || vector_ != it.vector_;
+          }
+
+          DPeakReferenceArrayConstIterator& operator ++ ()
+          {
+            position_ += 1;
+            return *this;
+          }
+
+          DPeakReferenceArrayConstIterator operator ++ (int)
+          {
+            DPeakReferenceArrayConstIterator tmp(*this);
+            ++(*this);
+            return tmp;
+          }
+
+          DPeakReferenceArrayConstIterator& operator -- ()
+          {
+            position_-=1;
+            return *this;
+          }
+
+          DPeakReferenceArrayConstIterator operator -- (int)
+          {
+            DPeakReferenceArrayConstIterator tmp(*this);
+            --(*this);
+            return tmp;
+          }
+
+          DPeakReferenceArrayConstIterator operator - (difference_type n) const
+          {
+            DPeakReferenceArrayConstIterator tmp(*this);
+            tmp.position_ -= n;
+            return tmp;
+          }
+
+          DPeakReferenceArrayConstIterator operator + (difference_type n) const
+          {
+            DPeakReferenceArrayConstIterator tmp(*this);
+            tmp.position_ += n;
+            return tmp;
+          }
+
+          DPeakReferenceArrayConstIterator& operator += (difference_type n)
+          {
+            position_ += n;
+            return *this;
+          }
+
+          DPeakReferenceArrayConstIterator& operator -= (difference_type n)
+          {
+            position_ -= n;
+            return *this;
+          }
+
+          friend difference_type operator - ( const DPeakReferenceArrayConstIterator& i1, const DPeakReferenceArrayConstIterator& i2 )
+          {
+            return (i1.position_ - i2.position_);
+          }
+
+          friend DPeakReferenceArrayConstIterator operator + ( difference_type n, const DPeakReferenceArrayConstIterator& i )
+          {
+            DPeakReferenceArrayConstIterator tmp(i);
+            tmp.position_ += n;
+            return tmp;
+          }
+
+          reference operator * ()
+          {
+            return *((*vector_)[position_]);
+          }
+
+          pointer operator -> ()
+          {
+            return (*vector_)[position_];
+          }
+
+          pointer operator -> () const
+          {
+            return (*vector_)[position_];
+          }
+
+          reference operator [] (difference_type n)
+          {
+            return *((*this)+n);
+          }
+
+        protected:
+
+          typename std::vector<IteratorPeakType*>* vector_;
+          unsigned int position_;
+      };
+
+
+      /// Mutable iterator for the DPeakArray
+      template <class IteratorPeakT>
+    class DPeakReferenceArrayIterator : public DPeakReferenceArrayConstIterator<IteratorPeakT>
+      {
+          friend class DPeakReferenceArray;
+
+        public:
+          typedef IteratorPeakT IteratorPeakType;
+          typedef typename DPeakReferenceArrayConstIterator<IteratorPeakType>::value_type& reference;
+          typedef typename DPeakReferenceArrayConstIterator<IteratorPeakType>::value_type* pointer;
+
+          using DPeakReferenceArrayConstIterator<IteratorPeakType>::vector_;
+          using DPeakReferenceArrayConstIterator<IteratorPeakType>::position_;
+
+
+          DPeakReferenceArrayIterator()
+          {}
+
+          DPeakReferenceArrayIterator(typename std::vector<IteratorPeakType*>* vec, unsigned int position): DPeakReferenceArrayConstIterator<IteratorPeakType>(vec,position)
+          {}
+
+          DPeakReferenceArrayIterator(const DPeakReferenceArrayIterator<IteratorPeakType>& it): DPeakReferenceArrayConstIterator<IteratorPeakType>(it)
+          {}
+
+          ~DPeakReferenceArrayIterator()
+          {}
+
+          reference operator * ()
+          {
+            return *((*vector_)[position_]);
+          }
+
+          pointer operator -> ()
+          {
+            return (*vector_)[position_];
+          }
+
+          const pointer operator -> () const
+          {
+            return (*vector_)[position_];
+          }
+
+          typename DPeakReferenceArrayIterator::reference operator [] (typename DPeakReferenceArrayIterator::difference_type n)
+          {
+            return *((*this)+n);
+          }
+
+          DPeakReferenceArrayIterator& operator ++ ()
+          {
+            DPeakReferenceArrayConstIterator<IteratorPeakType>::position_+=1;
+            return *this;
+          }
+
+          DPeakReferenceArrayIterator operator ++ (int)
+          {
+            DPeakReferenceArrayIterator tmp(*this);
+            ++(*this);
+            return tmp;
+          }
+
+          DPeakReferenceArrayIterator& operator -- ()
+          {
+            DPeakReferenceArrayConstIterator<IteratorPeakType>::position_-=1;
+            return *this;
+          }
+
+          DPeakReferenceArrayIterator operator -- (int)
+          {
+            DPeakReferenceArrayIterator tmp(*this);
+            --(*this);
+            return tmp;
+          }
+
+          DPeakReferenceArrayIterator operator - (typename DPeakReferenceArrayIterator::difference_type n) const
+          {
+            DPeakReferenceArrayIterator tmp(*this);
+            tmp.position_ -= n;
+            return tmp;
+          }
+
+          DPeakReferenceArrayIterator operator + (typename DPeakReferenceArrayIterator::difference_type n) const
+          {
+            DPeakReferenceArrayIterator tmp(*this);
+            tmp.position_ += n;
+            return tmp;
+          }
+
+          friend DPeakReferenceArrayIterator operator + (typename DPeakReferenceArrayIterator::difference_type n, const DPeakReferenceArrayIterator& i )
+          {
+            DPeakReferenceArrayIterator tmp(i);
+            tmp.position_ += n;
+            return tmp;
+          }
+
+          DPeakReferenceArrayIterator& operator += (typename DPeakReferenceArrayIterator::difference_type n)
+          {
+            DPeakReferenceArrayConstIterator<IteratorPeakType>::position_ += n;
+            return *this;
+          }
+
+          DPeakReferenceArrayIterator& operator -= (typename DPeakReferenceArrayIterator::difference_type n)
+          {
+            DPeakReferenceArrayConstIterator<IteratorPeakType>::position_ -= n;
+            return *this;
+          }
+
+          friend void swap(DPeakReferenceArrayIterator& i1, DPeakReferenceArrayIterator& i2)
+          {
+            unsigned int tmp = i1.position_;
+            i1.position_ = i2.position_;
+            i2.position_ = tmp;
+          }
+
+        protected:
+
+      };
+
+      /**
+         @name Type definitions
+      */
       //@{
-      typedef IteratorPeakT IteratorPeakType;
-      typedef IteratorPeakType value_type;
-      typedef typename std::vector<IteratorPeakType*>::difference_type difference_type;
-      typedef const value_type& reference;
-      typedef const value_type* pointer;
-      typedef std::random_access_iterator_tag iterator_category;
+      typedef MapT BaseMapType;
+      typedef typename BaseMapType::value_type PeakType;
+      enum { DIMENSION=PeakType::DIMENSION };
+      typedef typename PeakType::TraitsType TraitsType;
+      typedef DPeakReferenceArrayIterator<PeakType> Iterator;
+      typedef DPeakReferenceArrayConstIterator<PeakType> ConstIterator;
+      typedef std::reverse_iterator<Iterator> ReverseIterator;
+      typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
+      typedef typename std::vector<PeakType>::value_type value_type;
+      typedef typename std::vector<PeakType>::size_type size_type;
+      typedef typename std::vector<PeakType>::difference_type difference_type;
+      typedef typename std::vector<PeakType>::reference reference;
+      typedef typename std::vector<PeakType>::const_reference const_reference;
+      typedef typename std::vector<PeakType>::pointer pointer;
+      typedef Iterator iterator;
+      typedef ConstIterator const_iterator;
+      typedef ReverseIterator reverse_iterator;
+      typedef ConstReverseIterator const_reverse_iterator;
       //@}
 
-      DPeakReferenceArrayConstIterator()
-      {}
 
-      DPeakReferenceArrayConstIterator(const typename std::vector<IteratorPeakType*>* vec , unsigned int position)
+      /// See std::vector documentation.
+      void push_back(const PeakType& x)
       {
-        vector_ = (typename std::vector<IteratorPeakType*>*)vec;
-        position_ = position;
+        const PeakType* feature = &x;
+        vector_.push_back(feature);
       }
 
-      DPeakReferenceArrayConstIterator(typename std::vector<IteratorPeakType*>* vec , unsigned int position)
+      /// See std::vector documentation.
+      void pop_back()
       {
-        vector_ = vec;
-        position_ = position;
+        vector_.pop_back();
       }
 
-      DPeakReferenceArrayConstIterator(const DPeakReferenceArrayConstIterator& it)
+      /// See std::vector documentation.
+      size_type size() const
       {
-        vector_=it.vector_;
-        position_=it.position_;
+        return vector_.size();
       }
 
-      ~DPeakReferenceArrayConstIterator()
-      {}
-
-      DPeakReferenceArrayConstIterator& operator = (const DPeakReferenceArrayConstIterator& rhs)
+      /// See std::vector documentation.
+      size_type capacity() const
       {
-        if (this==&rhs) return *this;
-
-        vector_=rhs.vector_;
-        position_=rhs.position_;
-
-        return *this;
+        return std::max(vector_.size(),capacity_);
       }
 
-      bool operator < (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      void reserve(size_type n)
       {
-        return position_ < it.position_;
+        size_type cap = capacity();
+        if (n>cap)
+        {
+          vector_.reserve(n);
+        }
       }
 
-      bool operator > (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      size_type max_size() const
       {
-        return position_ > it.position_;
+        return vector_.max_size();
       }
 
-      bool operator <= (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      Iterator begin()
       {
-        return (position_ < it.position_ || position_ == it.position_);
+        return Iterator((std::vector<PeakType*>*)&vector_,(unsigned int)0);
       }
 
-      bool operator >= (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      Iterator end()
       {
-        return (position_ > it.position_ || position_ == it.position_);
+        return Iterator((std::vector<PeakType*>*)&vector_,(unsigned int)(vector_.size()));
       }
 
-      bool operator == (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      ConstIterator begin() const
       {
-        return position_ == it.position_ && vector_ == it.vector_;
+        return ConstIterator((const std::vector<PeakType*>*)&vector_,(unsigned int)0);
       }
 
-      bool operator != (const DPeakReferenceArrayConstIterator& it) const
+      /// See std::vector documentation.
+      ConstIterator end() const
       {
-        return position_ != it.position_ || vector_ != it.vector_;
+        return ConstIterator((const std::vector< PeakType*>*)&vector_,(unsigned int)(vector_.size()));
       }
 
-      DPeakReferenceArrayConstIterator& operator ++ ()
+      /// See std::vector documentation.
+      ReverseIterator rbegin()
       {
-        position_ += 1;
-        return *this;
+        return ReverseIterator(end());
       }
 
-      DPeakReferenceArrayConstIterator operator ++ (int)
+      /// See std::vector documentation.
+      ReverseIterator rend()
       {
-        DPeakReferenceArrayConstIterator tmp(*this);
-        ++(*this);
-        return tmp;
+        return ReverseIterator(begin());
       }
 
-      DPeakReferenceArrayConstIterator& operator -- ()
+      /// See std::vector documentation.
+      ConstReverseIterator rbegin() const
       {
-        position_-=1;
-        return *this;
+        return ConstReverseIterator(end());
       }
 
-      DPeakReferenceArrayConstIterator operator -- (int)
+      /// See std::vector documentation.
+      ConstReverseIterator rend() const
       {
-        DPeakReferenceArrayConstIterator tmp(*this);
-        --(*this);
-        return tmp;
+        return ConstReverseIterator(begin());
       }
 
-      DPeakReferenceArrayConstIterator operator - (difference_type n) const
+      /// See std::vector documentation.
+      void resize(size_type new_size, const PeakType& t=PeakType())
       {
-        DPeakReferenceArrayConstIterator tmp(*this);
-        tmp.position_ -= n;
-        return tmp;
+        size_type old_size = vector_.size();
+        if (new_size<old_size)
+        {
+          vector_.resize(new_size);
+        }
+        else if (new_size>old_size)
+        {
+          vector_.resize(new_size);
+        }
       }
 
-      DPeakReferenceArrayConstIterator operator + (difference_type n) const
+      /// See std::vector documentation.
+      reference front()
       {
-        DPeakReferenceArrayConstIterator tmp(*this);
-        tmp.position_ += n;
-        return tmp;
+        return *(begin());
       }
 
-      DPeakReferenceArrayConstIterator& operator += (difference_type n)
+      /// See std::vector documentation.
+      const_reference front() const
       {
-        position_ += n;
-        return *this;
+        return *(begin());
       }
 
-      DPeakReferenceArrayConstIterator& operator -= (difference_type n)
+      /// See std::vector documentation.
+      reference back()
       {
-        position_ -= n;
-        return *this;
+        return *(end()-1);
       }
 
-      friend difference_type operator - ( const DPeakReferenceArrayConstIterator& i1, const DPeakReferenceArrayConstIterator& i2 )
+      /// See std::vector documentation.
+      const_reference back() const
       {
-        return (i1.position_ - i2.position_);
+        return *(end()-1);
       }
 
-      friend DPeakReferenceArrayConstIterator operator + ( difference_type n, const DPeakReferenceArrayConstIterator& i )
+      /// See std::vector documentation.
+      void clear()
       {
-        DPeakReferenceArrayConstIterator tmp(i);
-        tmp.position_ += n;
-        return tmp;
+        vector_.clear();
       }
 
-      reference operator * ()
+      /// See std::vector documentation.
+      bool empty() const
       {
-        return *((*vector_)[position_]);
+        return vector_.empty();
       }
 
-      pointer operator -> ()
+      /// See std::vector documentation.
+      reference operator [](size_type n)
       {
-        return (*vector_)[position_];
+        return *(vector_[n]);
       }
 
-      pointer operator -> () const
+      /// See std::vector documentation.
+      const_reference operator [](size_type n) const
       {
-        return (*vector_)[position_];
+        return *(vector_[n]);
       }
 
-      reference operator [] (difference_type n)
+      /// See std::vector documentation.
+      bool operator == (const DPeakReferenceArray& array) const
       {
-        return *((*this)+n);
-      }
-
-    protected:
-
-      typename std::vector<IteratorPeakType*>* vector_;
-      unsigned int position_;
-    };
-
-
-    /// Mutable iterator for the DPeakArray
-    template <class IteratorPeakT>
-  class DPeakReferenceArrayIterator : public DPeakReferenceArrayConstIterator<IteratorPeakT>
-    {
-      friend class DPeakReferenceArray;
-
-    public:
-      typedef IteratorPeakT IteratorPeakType;
-      typedef typename DPeakReferenceArrayConstIterator<IteratorPeakType>::value_type& reference;
-      typedef typename DPeakReferenceArrayConstIterator<IteratorPeakType>::value_type* pointer;
-
-      using DPeakReferenceArrayConstIterator<IteratorPeakType>::vector_;
-      using DPeakReferenceArrayConstIterator<IteratorPeakType>::position_;
-
-
-      DPeakReferenceArrayIterator()
-      {}
-
-      DPeakReferenceArrayIterator(typename std::vector<IteratorPeakType*>* vec, unsigned int position): DPeakReferenceArrayConstIterator<IteratorPeakType>(vec,position)
-      {}
-
-      DPeakReferenceArrayIterator(const DPeakReferenceArrayIterator<IteratorPeakType>& it): DPeakReferenceArrayConstIterator<IteratorPeakType>(it)
-      {}
-
-      ~DPeakReferenceArrayIterator()
-      {}
-
-      reference operator * ()
-      {
-        return *((*vector_)[position_]);
-      }
-
-      pointer operator -> ()
-      {
-        return (*vector_)[position_];
-      }
-
-      const pointer operator -> () const
-      {
-        return (*vector_)[position_];
-      }
-
-      typename DPeakReferenceArrayIterator::reference operator [] (typename DPeakReferenceArrayIterator::difference_type n)
-      {
-        return *((*this)+n);
-      }
-
-      DPeakReferenceArrayIterator& operator ++ ()
-      {
-        DPeakReferenceArrayConstIterator<IteratorPeakType>::position_+=1;
-        return *this;
-      }
-
-      DPeakReferenceArrayIterator operator ++ (int)
-      {
-        DPeakReferenceArrayIterator tmp(*this);
-        ++(*this);
-        return tmp;
-      }
-
-      DPeakReferenceArrayIterator& operator -- ()
-      {
-        DPeakReferenceArrayConstIterator<IteratorPeakType>::position_-=1;
-        return *this;
-      }
-
-      DPeakReferenceArrayIterator operator -- (int)
-      {
-        DPeakReferenceArrayIterator tmp(*this);
-        --(*this);
-        return tmp;
-      }
-
-      DPeakReferenceArrayIterator operator - (typename DPeakReferenceArrayIterator::difference_type n) const
-      {
-        DPeakReferenceArrayIterator tmp(*this);
-        tmp.position_ -= n;
-        return tmp;
-      }
-
-      DPeakReferenceArrayIterator operator + (typename DPeakReferenceArrayIterator::difference_type n) const
-      {
-        DPeakReferenceArrayIterator tmp(*this);
-        tmp.position_ += n;
-        return tmp;
-      }
-
-      friend DPeakReferenceArrayIterator operator + (typename DPeakReferenceArrayIterator::difference_type n, const DPeakReferenceArrayIterator& i )
-      {
-        DPeakReferenceArrayIterator tmp(i);
-        tmp.position_ += n;
-        return tmp;
-      }
-
-      DPeakReferenceArrayIterator& operator += (typename DPeakReferenceArrayIterator::difference_type n)
-      {
-        DPeakReferenceArrayConstIterator<IteratorPeakType>::position_ += n;
-        return *this;
-      }
-
-      DPeakReferenceArrayIterator& operator -= (typename DPeakReferenceArrayIterator::difference_type n)
-      {
-        DPeakReferenceArrayConstIterator<IteratorPeakType>::position_ -= n;
-        return *this;
-      }
-
-      friend void swap(DPeakReferenceArrayIterator& i1, DPeakReferenceArrayIterator& i2)
-      {
-        unsigned int tmp = i1.position_;
-        i1.position_ = i2.position_;
-        i2.position_ = tmp;
-      }
-
-    protected:
-
-    };
-
-    /**
-       @name Type definitions
-    */
-    //@{
-    typedef TraitsT TraitsType;
-    typedef MapT BaseMapType;
-    typedef typename BaseMapType::value_type PeakType;
-    typedef DPeakReferenceArrayIterator<PeakType> Iterator;
-    typedef DPeakReferenceArrayConstIterator<PeakType> ConstIterator;
-    typedef std::reverse_iterator<Iterator> ReverseIterator;
-    typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
-    typedef typename std::vector<PeakType>::value_type value_type;
-    typedef typename std::vector<PeakType>::size_type size_type;
-    typedef typename std::vector<PeakType>::difference_type difference_type;
-    typedef typename std::vector<PeakType>::reference reference;
-    typedef typename std::vector<PeakType>::const_reference const_reference;
-    typedef typename std::vector<PeakType>::pointer pointer;
-    typedef Iterator iterator;
-    typedef ConstIterator const_iterator;
-    typedef ReverseIterator reverse_iterator;
-    typedef ConstReverseIterator const_reverse_iterator;
-    //@}
-
-
-    /// See std::vector documentation.
-    void push_back(const PeakType& x)
-    {
-      PeakType* feature = &x;
-      vector_.push_back(feature);
-    }
-
-    /// See std::vector documentation.
-    void pop_back()
-    {
-      vector_.pop_back();
-    }
-
-    /// See std::vector documentation.
-    size_type size() const
-    {
-      return vector_.size();
-    }
-
-    /// See std::vector documentation.
-    size_type capacity() const
-    {
-      return std::max(vector_.size(),capacity_);
-    }
-
-    /// See std::vector documentation.
-    void reserve(size_type n)
-    {
-      size_type cap = capacity();
-      if (n>cap)
-      {
-        vector_.reserve(n);
-      }
-    }
-
-    /// See std::vector documentation.
-    size_type max_size() const
-    {
-      return vector_.max_size();
-    }
-
-    /// See std::vector documentation.
-    Iterator begin()
-    {
-      return Iterator((std::vector<PeakType*>*)&vector_,(unsigned int)0);
-    }
-
-    /// See std::vector documentation.
-    Iterator end()
-    {
-      return Iterator((std::vector<PeakType*>*)&vector_,(unsigned int)(vector_.size()));
-    }
-
-    /// See std::vector documentation.
-    ConstIterator begin() const
-    {
-      return ConstIterator((const std::vector<PeakType*>*)&vector_,(unsigned int)0);
-    }
-
-    /// See std::vector documentation.
-    ConstIterator end() const
-    {
-      return ConstIterator((const std::vector< PeakType*>*)&vector_,(unsigned int)(vector_.size()));
-    }
-
-    /// See std::vector documentation.
-    ReverseIterator rbegin()
-    {
-      return ReverseIterator(end());
-    }
-
-    /// See std::vector documentation.
-    ReverseIterator rend()
-    {
-      return ReverseIterator(begin());
-    }
-
-    /// See std::vector documentation.
-    ConstReverseIterator rbegin() const
-    {
-      return ConstReverseIterator(end());
-    }
-
-    /// See std::vector documentation.
-    ConstReverseIterator rend() const
-    {
-      return ConstReverseIterator(begin());
-    }
-
-    /// See std::vector documentation.
-    void resize(size_type new_size, const PeakType& t=PeakType())
-    {
-      size_type old_size = vector_.size();
-      if (new_size<old_size)
-      {
-        vector_.resize(new_size);
-      }
-      else if (new_size>old_size)
-      {
-        vector_.resize(new_size);
-      }
-    }
-
-    /// See std::vector documentation.
-    reference front()
-    {
-      return *(begin());
-    }
-
-    /// See std::vector documentation.
-    const_reference front() const
-    {
-      return *(begin());
-    }
-
-    /// See std::vector documentation.
-    reference back()
-    {
-      return *(end()-1);
-    }
-
-    /// See std::vector documentation.
-    const_reference back() const
-    {
-      return *(end()-1);
-    }
-
-    /// See std::vector documentation.
-    void clear()
-    {
-      vector_.clear();
-    }
-
-    /// See std::vector documentation.
-    bool empty() const
-    {
-      return vector_.empty();
-    }
-
-    /// See std::vector documentation.
-    reference operator [](size_type n)
-    {
-      return *(vector_[n]);
-    }
-
-    /// See std::vector documentation.
-    const_reference operator [](size_type n) const
-    {
-      return *(vector_[n]);
-    }
-
-    /// See std::vector documentation.
-    bool operator == (const DPeakReferenceArray& array) const
-    {
-      if (base_container_ptr_ != array.base_container_ptr_)
-      {
-        return false;
-      }
-      if (size()!=array.size())
-      {
-        return false;
-      }
-      for (unsigned int i=0;i<size();i++)
-      {
-        if (typeid(*(vector_[i]))!=typeid(*(array.vector_[i])))
+        if (base_container_ptr_ != array.base_container_ptr_)
         {
           return false;
         }
-        if ( vector_[i]->operator!=(*array.vector_[i]) )
+        if (size()!=array.size())
         {
           return false;
         }
+        for (unsigned int i=0;i<size();i++)
+        {
+          if (typeid(*(vector_[i]))!=typeid(*(array.vector_[i])))
+          {
+            return false;
+          }
+          if ( vector_[i]->operator!=(*array.vector_[i]) )
+          {
+            return false;
+          }
+        }
+        return true;
       }
-      return true;
-    }
 
-    /// See std::vector documentation.
-    bool operator !=(const DPeakReferenceArray& array) const
-    {
-      return !(operator==(array));
-    }
-
-    /// Comparison of container sizes
-    bool operator < (const DPeakReferenceArray& array) const
-    {
-      return size() < array.size();
-    }
-
-    /// Comparison of container sizes
-    bool operator > (const DPeakReferenceArray& array) const
-    {
-      return size() > array.size();
-    }
-
-    /// Comparison of container sizes
-    bool operator <= (const DPeakReferenceArray& array) const
-    {
-      return operator<(array) || operator==(array);
-    }
-
-    /// Comparison of container sizes
-    bool operator >= (const DPeakReferenceArray& array) const
-    {
-      return operator>(array) || operator==(array);
-    }
-
-    /// See std::vector documentation.
-    void swap(DPeakReferenceArray& array)
-    {
-      vector_.swap(array.vector_);
-    }
-
-    /// See std::vector documentation.
-    friend void swap(DPeakReferenceArray& a1, DPeakReferenceArray& a2)
-    {
-      a1.vector_.swap(a2.vector_);
-    }
-
-    /// See std::vector documentation.
-    Iterator insert(Iterator pos, const PeakType& feature)
-    {
-      PeakType* pointer = &feature;
-      vector_.insert(vector_.begin()+pos.position_,pointer);
-      return pos;
-    }
-
-    /// See std::vector documentation.
-    void insert(Iterator pos, size_type n, const PeakType& feature)
-    {
-      PeakType* pointer;
-      std::vector<PeakType*> tmp;
-      for (size_type i=0;i<n;i++)
+      /// See std::vector documentation.
+      bool operator !=(const DPeakReferenceArray& array) const
       {
-        pointer = &feature;
-        tmp.push_back(pointer);
+        return !(operator==(array));
       }
-      vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
-    }
 
-    /// See std::vector documentation.
-    template <class InputIterator>
-    void insert(Iterator pos, InputIterator f, InputIterator l)
-    {
-      PeakType* pointer;
-      std::vector<PeakType*> tmp;
-      for (InputIterator it=f;it!=l;++it)
+      /// Comparison of container sizes
+      bool operator < (const DPeakReferenceArray& array) const
       {
-        pointer = (&it->clone());
-        tmp.push_back(pointer);
+        return size() < array.size();
       }
-      vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
-    }
 
-    /// See std::vector documentation.
-    Iterator erase(Iterator pos)
-    {
-      vector_.erase(vector_.begin()+pos.position_);
-      return pos;
-    }
+      /// Comparison of container sizes
+      bool operator > (const DPeakReferenceArray& array) const
+      {
+        return size() > array.size();
+      }
 
-    /// See std::vector documentation.
-    Iterator erase(Iterator first,Iterator last)
-    {
-      vector_.erase(vector_.begin()+first.position_,vector_.begin()+last.position_);
-      return first;
-    }
+      /// Comparison of container sizes
+      bool operator <= (const DPeakReferenceArray& array) const
+      {
+        return operator<(array) || operator==(array);
+      }
 
-    /** @name Accesssor methods
-     */
-    //@{
-    /// Set pointer to the base container
-    void setBaseContainerPointer(const BaseMapType& base_map) { base_container_ptr_ = &base_map; }
-    /// Set pointer to the base container
-    void setBaseContainerPointer(const BaseMapType* base_map_pointer) { base_container_ptr_ = base_map_pointer; }
-    /// Get grid
-    BaseMapType* getBaseContainerPointer() { return *base_container_ptr_; }
-    /// Get grid (non-mutable)
-    BaseMapType const* getBaseContainerPointer() const { return *base_container_ptr_; }
-    //@}
+      /// Comparison of container sizes
+      bool operator >= (const DPeakReferenceArray& array) const
+      {
+        return operator>(array) || operator==(array);
+      }
+
+      /// See std::vector documentation.
+      void swap(DPeakReferenceArray& array)
+      {
+        vector_.swap(array.vector_);
+      }
+
+      /// See std::vector documentation.
+      friend void swap(DPeakReferenceArray& a1, DPeakReferenceArray& a2)
+      {
+        a1.vector_.swap(a2.vector_);
+      }
+
+      /// See std::vector documentation.
+      Iterator insert(Iterator pos, const PeakType& feature)
+      {
+        PeakType* pointer = &feature;
+        vector_.insert(vector_.begin()+pos.position_,pointer);
+        return pos;
+      }
+
+      /// See std::vector documentation.
+      void insert(Iterator pos, size_type n, const PeakType& feature)
+      {
+        PeakType* pointer;
+        std::vector<PeakType*> tmp;
+        for (size_type i=0;i<n;i++)
+        {
+          pointer = &feature;
+          tmp.push_back(pointer);
+        }
+        vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
+      }
+
+      /// See std::vector documentation.
+      template <class InputIterator>
+      void insert(Iterator pos, InputIterator f, InputIterator l)
+      {
+        PeakType* pointer;
+        std::vector<PeakType*> tmp;
+        for (InputIterator it=f;it!=l;++it)
+        {
+          pointer = (&it->clone());
+          tmp.push_back(pointer);
+        }
+        vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
+      }
+
+      /// See std::vector documentation.
+      Iterator erase(Iterator pos)
+      {
+        vector_.erase(vector_.begin()+pos.position_);
+        return pos;
+      }
+
+      /// See std::vector documentation.
+      Iterator erase(Iterator first,Iterator last)
+      {
+        vector_.erase(vector_.begin()+first.position_,vector_.begin()+last.position_);
+        return first;
+      }
+
+      /** @name Accesssor methods
+       */
+      //@{
+      /// Set pointer to the base container
+      void setBaseContainerPointer(const BaseMapType& base_map)
+      {
+        base_container_ptr_ = &base_map;
+      }
+      /// Set pointer to the base container
+      void setBaseContainerPointer(const BaseMapType* base_map_pointer)
+      {
+        base_container_ptr_ = base_map_pointer;
+      }
+      /// Get grid
+      BaseMapType* getBaseContainerPointer()
+      {
+        return *base_container_ptr_;
+      }
+      /// Get grid (non-mutable)
+      BaseMapType const* getBaseContainerPointer() const
+      {
+        return *base_container_ptr_;
+      }
+      //@}
 
 
-    /** @name Constructors and Destructor
+      /** @name Constructors and Destructor
+        */
+      //@{
+      /// See std::vector documentation.
+      DPeakReferenceArray()
+          : capacity_(0),
+          base_container_ptr_(0)
+      {}
+
+      /// See std::vector documentation.
+      DPeakReferenceArray(size_type n)
+          : capacity_(0),
+          base_container_ptr_(0)
+      {
+        vector_=std::vector<PeakType*>(n);
+      }
+      /// See std::vector documentation.
+      DPeakReferenceArray(size_type n, const PeakType& feature)
+          : capacity_(0),
+          base_container_ptr_(0)
+      {
+        vector_=std::vector<PeakType*>(n);
+      }
+      /// See std::vector documentation.
+      DPeakReferenceArray(const DPeakReferenceArray& p)
+          :  capacity_(0),
+          base_container_ptr_(p.base_container_ptr_)
+      {
+        PeakType* feature;
+        for (ConstIterator it=p.begin(); it!=p.end();++it)
+        {
+          feature = const_cast<PeakType*>(&(*it));
+          vector_.push_back(feature);
+        }
+      }
+      /// See std::vector documentation.
+      template <class InputIterator>
+      DPeakReferenceArray(InputIterator f, InputIterator l)
+          : capacity_(0),
+          base_container_ptr_(0)
+      {
+        PeakType* feature;
+        for (InputIterator it=f;it!=l;++it)
+        {
+          feature = const_cast<PeakType*>(&(*it));
+          vector_.push_back(feature);
+        }
+      }
+      ///
+      DPeakReferenceArray(const BaseMapType& p)
+          :  capacity_(0),
+          base_container_ptr_(&p)
+      {
+        PeakType* feature;
+        for (typename BaseMapType::iterator it = p.begin(); it != p.end(); ++it)
+        {
+          feature = const_cast<PeakType*>(&(*it));
+          vector_.push_back(feature);
+        }
+      }
+
+      /// See std::vector documentation.
+      ~DPeakReferenceArray()
+      {}
+      //@}
+
+      /// See std::vector documentation.
+      DPeakReferenceArray& operator = (const DPeakReferenceArray& rhs)
+      {
+        if (this==&rhs)
+          return *this;
+
+        base_container_ptr_ = rhs.base_container_ptr_;
+        clear();
+        reserve(rhs.size());
+        PeakType* feature;
+        for (ConstIterator it=rhs.begin(); it!=rhs.end();++it)
+        {
+          feature = const_cast<PeakType*>(&(*it));
+          vector_.push_back(feature);
+        }
+
+        return *this;
+      }
+
+      /// See std::vector documentation.
+      template <class InputIterator>
+      void assign(InputIterator f , InputIterator l)
+      {
+        clear();
+        insert(end(),f,l);
+      }
+
+      /// See std::vector documentation.
+      void assign(size_type n , const PeakType& x)
+      {
+        clear();
+        insert(end(),n,x);
+      }
+
+      /**
+        @brief Sorting.
+
+        These simplified sorting methods are supported in addition to the standard sorting methods of std::vector.
       */
-    //@{
-    /// See std::vector documentation.
-    DPeakReferenceArray()
-        : capacity_(0),
-    base_container_ptr_(0) {}
+      //@{
 
-    /// See std::vector documentation.
-    DPeakReferenceArray(size_type n)
-        : capacity_(0),
-        base_container_ptr_(0)
-    {
-      vector_=std::vector<PeakType*>(n);
-    }
-    /// See std::vector documentation.
-    DPeakReferenceArray(size_type n, const PeakType& feature)
-        : capacity_(0),
-        base_container_ptr_(0)
-    {
-      vector_=std::vector<PeakType*>(n);
-    }
-    /// See std::vector documentation.
-    DPeakReferenceArray(const DPeakReferenceArray& p)
-        :  capacity_(0),
-        base_container_ptr_(p.base_container_ptr_)
-    {
-      PeakType* feature;
-      for (ConstIterator it=p.begin(); it!=p.end();++it)
+      /// Sorts the features by intensity
+      void sortByIntensity()
       {
-        feature = const_cast<PeakType*>(&(*it));
-        vector_.push_back(feature);
-      }
-    }
-    /// See std::vector documentation.
-    template <class InputIterator>
-    DPeakReferenceArray(InputIterator f, InputIterator l)
-        : capacity_(0),
-        base_container_ptr_(0)
-    {
-      PeakType* feature;
-      for (InputIterator it=f;it!=l;++it)
-      {
-        feature = const_cast<PeakType*>(&(*it));
-        vector_.push_back(feature);
-      }
-    }
-    ///
-    DPeakReferenceArray(const BaseMapType& p)
-        :  capacity_(0),
-        base_container_ptr_(&p)
-    {
-      PeakType* feature;
-      for (typename BaseMapType::iterator it = p.begin(); it != p.end(); ++it)
-      {
-        feature = const_cast<PeakType*>(&(*it));
-        vector_.push_back(feature);
-      }
-    }
-
-    /// See std::vector documentation.
-    ~DPeakReferenceArray()
-    {}
-    //@}
-
-    /// See std::vector documentation.
-    DPeakReferenceArray& operator = (const DPeakReferenceArray& rhs)
-    {
-      if (this==&rhs) return *this;
-
-      base_container_ptr_ = rhs.base_container_ptr_;
-      clear();
-      reserve(rhs.size());
-      PeakType* feature;
-      for (ConstIterator it=rhs.begin(); it!=rhs.end();++it)
-      {
-        feature = const_cast<PeakType*>(&(*it));
-        vector_.push_back(feature);
+        std::sort(vector_.begin(), vector_.end(), PointerComparator < typename PeakType::IntensityLess > () );
       }
 
-      return *this;
-    }
+      /// Lexicographically sorts the features by their position.
+      void sortByPosition()
+      {
+        std::sort(vector_.begin(), vector_.end(), PointerComparator<typename PeakType::PositionLess>() );
+      }
 
-    /// See std::vector documentation.
-    template <class InputIterator>
-    void assign(InputIterator f , InputIterator l)
-    {
-      clear();
-      insert(end(),f,l);
-    }
+      /**
+        @brief Sorts the features by one dimension of their position.
 
-    /// See std::vector documentation.
-    void assign(size_type n , const PeakType& x)
-    {
-      clear();
-      insert(end(),n,x);
-    }
+        It is only sorted according to dimentsion @p i .
+      */
+      void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
 
-    /**
-      @brief Sorting.
+      //@}
 
-      These simplified sorting methods are supported in addition to the standard sorting methods of std::vector.
-    */
-    //@{
+      /**
+        @name Generic sorting function templates.
+        Any feature comparator can be
+        given as template argument.  You can also give the comparator as an
+        argument to the function template (this is useful if the comparator is
+        not default constructed, but keep in mind that STL copies comparators
+        a lot).
 
-    /// Sorts the features by intensity
-    void sortByIntensity()
-    {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator < typename PeakType::IntensityLess > () );
-    }
+        <p> Thus your can e.g. write <code>features.sortByComparator <
+        DFeature<1>::IntensityLess > ()</code>, if features have type
+        <code>DPeakReferenceArray < 1, DFeature <1> ></code>.
+      */
+      //@{
+      template < typename ComparatorType >
+      void sortByComparator ( ComparatorType const & comparator )
+      {
+        std::sort(vector_.begin(), vector_.end(), PointerComparator < ComparatorType > ( comparator ) );
+      }
+      template < typename ComparatorType >
+      void sortByComparator ()
+      {
+        std::sort(vector_.begin(), vector_.end(), PointerComparator< ComparatorType >() );
+      }
+      //@}
 
-    /// Lexicographically sorts the features by their position.
-    void sortByPosition()
-    {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator<typename PeakType::PositionLess>() );
-    }
+      //----------------------------------------------------------------------
 
-    /**
-      @brief Sorts the features by one dimension of their position.
+    protected:
 
-      It is only sorted according to dimentsion @p i .
-    */
-    void sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented);
+      typedef std::vector<PeakType*> InternalPointerVector;
 
-    //@}
+      /**
+        @brief Do not use this.
 
-    /**
-      @name Generic sorting function templates.
-      Any feature comparator can be
-      given as template argument.  You can also give the comparator as an
-      argument to the function template (this is useful if the comparator is
-      not default constructed, but keep in mind that STL copies comparators
-      a lot).
+        ...unless you know what you are doing!  It is used by PointerPriorityQueue
+        which has a special constructor for vector arguments, which is faster than
+        using begin() and end() because it does not rely on push_back().
+      */
+      InternalPointerVector const & internalPointerVector() const
+      {
+        return vector_;
+      }
 
-      <p> Thus your can e.g. write <code>features.sortByComparator <
-      DFeature<1>::IntensityLess > ()</code>, if features have type
-      <code>DPeakReferenceArray < 1, DFeature <1> ></code>.
-    */
-    //@{
-    template < typename ComparatorType >
-    void sortByComparator ( ComparatorType const & comparator )
-    {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator < ComparatorType > ( comparator ) );
-    }
-    template < typename ComparatorType >
-    void sortByComparator ()
-    {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator< ComparatorType >() );
-    }
-    //@}
+      ///the internal vector of PeakType pointers
+      std::vector<const PeakType*> vector_;
+      ///the current capacity
+      size_type capacity_;
+      /// Pointer to the base container
+      BaseMapType* base_container_ptr_;
 
-    //----------------------------------------------------------------------
+      ///@name Serialization
+      //@{
+    private:
+      /// Serialization interface
+      template<class Archive>
+      void serialize(Archive & ar, const unsigned int /* version */ )
+      {
+        ar & boost::serialization::make_nvp("vector",vector_);
+        ar & boost::serialization::make_nvp("capacity",capacity_);
+      }
+      //@}
 
-  protected:
-
-    typedef std::vector<PeakType*> InternalPointerVector;
-
-    /**
-      @brief Do not use this.
-
-      ...unless you know what you are doing!  It is used by PointerPriorityQueue
-      which has a special constructor for vector arguments, which is faster than
-      using begin() and end() because it does not rely on push_back().
-    */
-    InternalPointerVector const & internalPointerVector() const
-    {
-      return vector_;
-    }
-
-    ///the internal vector of PeakType pointers
-    std::vector<PeakType*> vector_;
-    ///the current capacity
-    size_type capacity_;
-    /// Pointer to the base container
-    BaseMapType* base_container_ptr_;
-
-    ///@name Serialization
-    //@{
-  private:
-    /// Serialization interface
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int /* version */ )
-    {
-      ar & boost::serialization::make_nvp("vector",vector_);
-      ar & boost::serialization::make_nvp("capacity",capacity_);
-    }
-    //@}
-
-    /// Serialization
-    friend class boost::serialization::access;
+      /// Serialization
+      friend class boost::serialization::access;
 
   };
 
   ///Print the contents to a stream.
-  template <Size D, typename Feature>
-  std::ostream& operator << (std::ostream& os, const DPeakReferenceArray<D, Feature>& array)
+  template <typename MapT>
+  std::ostream& operator << (std::ostream& os, const DPeakReferenceArray<MapT>& array)
   {
     os << "-- DFEATUREARRAY BEGIN --"<<std::endl;
-    for (typename DPeakReferenceArray<D, Feature>::const_iterator it = array.begin(); it!=array.end(); ++it)
+    for (typename DPeakReferenceArray<MapT>::const_iterator it = array.begin(); it!=array.end(); ++it)
     {
       os << *it << std::endl;
     }
@@ -861,10 +877,10 @@ namespace OpenMS
   //  Implementation of the inline / template functions
   //---------------------------------------------------------------
 
-  template <Size D, typename TraitsT, typename PeakT >
-  void DPeakReferenceArray<D,TraitsT,PeakT>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
+  template <typename MapT>
+  void DPeakReferenceArray<MapT>::sortByNthPosition(UnsignedInt i) throw (Exception::NotImplemented)
   {
-    OPENMS_PRECONDITION(i < Index(D), "illegal dimension")
+    OPENMS_PRECONDITION(i < Index(MapT::DIMENSION), "illegal dimension")
     if (i==0)
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<0> >() );

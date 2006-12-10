@@ -40,7 +40,7 @@
 #include <math.h>
 
 #if defined OPENMS_DEBUG && ! defined V_PoseClusteringAffineSuperimposer
-#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
+#define V_PoseClusteringAffineSuperimposer(bla)  std::cout << bla << std::endl;
 #else
 #define V_PoseClusteringAffineSuperimposer(bla)
 #endif
@@ -128,8 +128,7 @@ namespace OpenMS
       /// Constructor
       PoseClusteringAffineSuperimposer()
           : Base()
-      {
-      }
+      {}
 
       /// Copy constructor
       PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)
@@ -378,7 +377,7 @@ namespace OpenMS
           {
             ++it_last;
           }
-          
+
           for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
           {
             partners.push_back(&(*it));
@@ -449,12 +448,12 @@ namespace OpenMS
                   // compute the transformation (i,j) -> (k,l)
                   PositionType shift;
                   PositionType scaling;
-                  
+
                   if (fabs(diff[RT]) > 0.001)
                   {
                     scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
-                   								 /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
-                                  
+                                  /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
+
                     shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
                     /* if (scaling[RT] < scaling_bucket_size_[RT])
                     {
@@ -470,8 +469,8 @@ namespace OpenMS
                   if (fabs(diff[MZ]) > 0.001)
                   {
                     scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
-                   								 /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
-                                  
+                                  /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
+
                     shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
                   }
                   else
@@ -504,8 +503,8 @@ namespace OpenMS
                     }
                     //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
                     //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
-                    
-                   
+
+
                     // hash the transformation if possible
                     PositionType bucket_fraction_complement_shift(1,1);
                     PositionType bucket_fraction_complement_scaling(1,1);
@@ -513,42 +512,42 @@ namespace OpenMS
                     bucket_fraction_complement_scaling -= bucket_fraction_scaling;
                     // Distribute the vote of the shift among the four neighboring buckets.
                     QualityType factor;
-                    
+
                     if (scaling[RT] > 0.1 )
-										{
-                    	// rt
-                    	factor = bucket_fraction_complement_shift[RT] * bucket_fraction_complement_scaling[RT];
-                    	rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT])] += factor;
-                    //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                    //                     std::cout << "hash scaling " << bucket_scaling_index[RT]*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
-                    //                     std::cout << "factor" << factor << std::endl;
+                    {
+                      // rt
+                      factor = bucket_fraction_complement_shift[RT] * bucket_fraction_complement_scaling[RT];
+                      rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT])] += factor;
+                      //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
+                      //                     std::cout << "hash scaling " << bucket_scaling_index[RT]*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
+                      //                     std::cout << "factor" << factor << std::endl;
 
-                    	factor = bucket_fraction_complement_shift[RT] * bucket_fraction_scaling[RT];
-                    	rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT] + 1 )] += factor;
-                    	//                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                    	//                     std::cout << "hash scaling " << (bucket_scaling_index[RT]+1)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
+                      factor = bucket_fraction_complement_shift[RT] * bucket_fraction_scaling[RT];
+                      rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT] + 1 )] += factor;
+                      //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
+                      //                     std::cout << "hash scaling " << (bucket_scaling_index[RT]+1)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
 
-                    	factor = bucket_fraction_shift[RT] * bucket_fraction_complement_scaling[RT];
-                    	rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] )] += factor;
+                      factor = bucket_fraction_shift[RT] * bucket_fraction_complement_scaling[RT];
+                      rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] )] += factor;
 
-                    	factor = bucket_fraction_shift[RT] * bucket_fraction_scaling[RT];
-                    	rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] + 1 )] += factor;
-										}
-										
-										if (scaling[MZ] > 0.1 )
-										{
-                    	// mz
-                    	factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                    	mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] )] += factor;
+                      factor = bucket_fraction_shift[RT] * bucket_fraction_scaling[RT];
+                      rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] + 1 )] += factor;
+                    }
 
-                    	factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_scaling[MZ];
-                    	mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] + 1 )] += factor;
+                    if (scaling[MZ] > 0.1 )
+                    {
+                      // mz
+                      factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_complement_scaling[MZ];
+                      mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] )] += factor;
 
-                    	factor = bucket_fraction_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                    	mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] )] += factor;
+                      factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_scaling[MZ];
+                      mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] + 1 )] += factor;
 
-                    	factor = bucket_fraction_shift[MZ] * bucket_fraction_scaling[MZ];
-                    	mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] + 1 )] += factor;
+                      factor = bucket_fraction_shift[MZ] * bucket_fraction_complement_scaling[MZ];
+                      mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] )] += factor;
+
+                      factor = bucket_fraction_shift[MZ] * bucket_fraction_scaling[MZ];
+                      mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] + 1 )] += factor;
                     }
                   } // if
                 } // for l
@@ -605,9 +604,9 @@ namespace OpenMS
         }
 
         V_estimateFinalAffineTransformation_("Max element in rt: Indizes: "<< max_element_index_rt.first << ' ' << max_element_index_rt.second
-        << " Votes: " << act_max_rt
-        << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
-        << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT]);
+                                             << " Votes: " << act_max_rt
+                                             << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
+                                             << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT]);
 
 
         // Compute a weighted average of the transformation parameters nearby the max_element_index.
@@ -673,9 +672,9 @@ namespace OpenMS
         }
 
         V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
-        << " Votes: " << act_max_mz
-        << " shift: "  << max_element_index_mz.first*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ]
-        << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ]);
+                                             << " Votes: " << act_max_mz
+                                             << " shift: "  << max_element_index_mz.first*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ]
+                                             << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ]);
 
         PositionType mz_trafo;
         PositionType mz_bounding_box_min(shift_bounding_box_.min()[MZ],scaling_bounding_box_.min()[MZ]);

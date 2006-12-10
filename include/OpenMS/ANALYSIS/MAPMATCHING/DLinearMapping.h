@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange$
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DLINEARMAPPING_H
@@ -124,12 +124,6 @@ namespace OpenMS
 		// Who cares about D>1 anyway ? :-)
 		void apply(DPosition<D>& pos) const
 		{
-// 			std::cout << "DLinearMapping slope and intercept:  "
-// 								<< this 
-// 								<< ' ' << slope_
-// 								<< ' ' << intercept_
-// 								<< std::endl;
-								
 			for (UnsignedInt i=0; i < D; ++i)
 			{
 				pos[i] = intercept_ + slope_ * pos[i];
@@ -138,11 +132,6 @@ namespace OpenMS
 			
 		void apply( typename Traits::RealType & pos) const
 		{
-// 			std::cout << "DLinearMapping slope and intercept:  "
-// 								<< this 
-// 								<< ' ' << slope_
-// 								<< ' ' << intercept_
-// 								<< std::endl;
 			pos *= slope_;
 			pos += intercept_;
 		}

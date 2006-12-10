@@ -30,7 +30,7 @@
 #include <iostream>
 #include <vector>
 
-#include<OpenMS/DATASTRUCTURES/DPosition.h>
+#include<OpenMS/KERNEL/DFeatureMap.h>
 
 
 namespace OpenMS
@@ -39,7 +39,7 @@ namespace OpenMS
     @brief 
   */
 
-  template < typename ContainerType >
+  template < typename ContainerType = DFeatureMap<2, DFeature<2> > >
   class IndexTuple
   {
     public:

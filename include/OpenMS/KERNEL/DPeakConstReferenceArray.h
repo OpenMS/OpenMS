@@ -874,15 +874,15 @@ namespace OpenMS
     OPENMS_PRECONDITION(i < Index(MapT::DIMENSION), "illegal dimension")
     if (i==0)
     {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename MapT::PeakType::template NthPositionLess<0> >() );
+      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<0> >() );
     }
     else if (i==1)
     {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename MapT::PeakType::template NthPositionLess<1> >() );
+      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<1> >() );
     }
     else if (i==2)
     {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename MapT::PeakType::template NthPositionLess<2> >() );
+      std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<2> >() );
     }
     else
     {

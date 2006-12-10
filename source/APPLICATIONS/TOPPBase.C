@@ -152,7 +152,12 @@ namespace OpenMS
 				{
 					writeDebug_( "Log file: " + (String)value_log, 1 );
 					log_.close();
-					log_.open( ((String)value_log) .c_str(), ofstream::out | ofstream::app);
+					log_.open( ((String)value_log).c_str(), ofstream::out | ofstream::app);
+					if ( !log_ )
+					{
+									std::cerr << "Cannot reopen log file!   (1) '" << (String) value_log << "'\n";
+									exit (1); // TODO richtiger Fehlercode
+					}
 					log_ << log_separator_ << endl;
 					writeDebug_("Writing to '"+(String)value_log+'\'',1);
 				}
@@ -436,14 +441,26 @@ namespace OpenMS
 			DataValue const & log_destination = param_cmdline_.getValue("log");
 			if ( log_destination.isEmpty() )
 			{
+				log_.close();
 				log_.open("TOPP.log", ofstream::out | ofstream::app);
-				log_ << log_separator_ << endl;
+					if ( !log_ )
+					{
+						std::cerr << "Cannot reopen log file!   (22) '" << (String) log_destination << "'\n";
+									exit (1); // TODO richtiger Fehlercode
+					}
+					log_ << log_separator_ << endl;
 				writeDebug_("Writing to 'TOPP.log'",1);
 			}
 			else
 			{
+				log_.close();
 				log_.open( ((String)log_destination) .c_str(), ofstream::out | ofstream::app);
-				log_ << log_separator_ << endl;
+					if ( !log_ )
+					{
+									std::cerr << "Cannot reopen log file!   (3) '" << (String) log_destination << "'\n";
+									exit (1); // TODO richtiger Fehlercode
+					}
+					log_ << log_separator_ << endl;
 				writeDebug_("Writing to '"+(String)log_destination+'\'',1);
 			}
 		}

@@ -127,7 +127,7 @@ namespace OpenMS
 	        typename OutputPeakContainer::iterator it = resampled_peak_container.begin();
 	        for (int i=0; i < number_resampled_points; ++i)
 	        {
-	            it->getPos() = start_pos+ i*spacing_;
+	            it->getPos() = start_pos + i*spacing_;
 	            ++it;
 	        }
 	
@@ -142,15 +142,23 @@ namespace OpenMS
 	        for (int i=0; i < number_raw_points ; ++i)
 	        {
 	            left_index = (int)floor(((first+i)->getPos() - start_pos) / spacing_);
+	           // std::cout << "Left index " << left_index << std::endl;
 	            right_index = left_index + 1;
-	
+//							std::cout << "Right index " << right_index << std::endl;
+//								
+//							std::cout << "Number of points " << number_raw_points << '\n'
+//												<< "Act pos " << (first+i)->getPosition()[0] 
+//												<< " Start pos " << start_pos << " End position " << end_pos << std::endl;
+//	
 	            // compute the distance between x and the left adjacent resampled peak
 	            distance_left = fabs((first+i)->getPos() - (it + left_index)->getPos()) / spacing_;
+	           // std::cout << "Distance left " << distance_left << std::endl;
 	            // compute the distance between x and the right adjacent resampled peak
 	            distance_right = fabs((first+i)->getPos() - (it + right_index)->getPos());
+	            //std::cout << "Distance right " << distance_right << std::endl;
 	
 	            // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-	            (it  + left_index)->getIntensity() += (first+i)->getIntensity()*distance_right / spacing_;
+	            (it + left_index)->getIntensity() += (first+i)->getIntensity()*distance_right / spacing_;
 	            (it + right_index)->getIntensity() += (first+i)->getIntensity()*distance_left;
 	        }
 	    }

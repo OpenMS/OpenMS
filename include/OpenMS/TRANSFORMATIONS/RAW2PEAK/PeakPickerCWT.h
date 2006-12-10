@@ -42,7 +42,7 @@
 #include <vector>
 #include <algorithm>
 
-//#define DEBUG_PEAK_PICKING
+#define DEBUG_PEAK_PICKING
 namespace OpenMS
 {
   /**

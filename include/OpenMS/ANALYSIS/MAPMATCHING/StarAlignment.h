@@ -36,8 +36,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
+
 #define DEBUG_ALIGNMENT
-#undef DEBUG_ALIGNMENT
+//#undef DEBUG_ALIGNMENT
 
 namespace OpenMS
 {
