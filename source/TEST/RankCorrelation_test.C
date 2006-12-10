@@ -82,7 +82,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
-	p2.getIntensity()    = 3;
+	p2.getIntensity()    = 2.5;
 	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
@@ -94,7 +94,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
-	p4.getIntensity()    = 3;
+	p4.getIntensity()    = 2.5;
 	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
@@ -114,11 +114,11 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<1>& model, UnsignedI
 	
 	// evaluate rt dimension
 	double result = corr.evaluate(set, gm1,0);
-	TEST_REAL_EQUAL(result,0.333333)
+	TEST_REAL_EQUAL(result,0.875)
 
 	// evaluate mz dimension
 	result = corr.evaluate(set, gm1,1);
-	TEST_REAL_EQUAL(result,0.333333)
+	TEST_REAL_EQUAL(result,0.855482)
 	
 RESULT
 
@@ -156,7 +156,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	DPeak<2> p2;
 	p2.getPosition()[0] = 2;
 	p2.getPosition()[1] = 2;
-	p2.getIntensity()    = 3;
+	p2.getIntensity()    = 2.5;
 	peak_array.push_back(p2);
 	
 	DPeak<2> p3;
@@ -168,7 +168,7 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	DPeak<2> p4;
 	p4.getPosition()[0] = 4;
 	p4.getPosition()[1] = 4;
-	p4.getIntensity()    = 3;
+	p4.getIntensity()    = 2.5;
 	peak_array.push_back(p4);
 	
 	DPeak<2> p5;
@@ -188,8 +188,8 @@ CHECK((double evaluate(const IndexSet& set, const BaseModel<2>& model)))
 	
 	double result = corr.evaluate(set, pm1);
 	double pval   = corr.getPvalue();
-	TEST_REAL_EQUAL(result,0.333333);
-	TEST_REAL_EQUAL(pval,0.252493);
+	TEST_REAL_EQUAL(result, 0.875);
+	TEST_REAL_EQUAL(pval,0.0400592);
 	
 RESULT
 

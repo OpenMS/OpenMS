@@ -71,25 +71,34 @@ namespace OpenMS
 
 	/// name 
   static const String getName() { return "RankCorrelation"; }
-				 	 
-	class RankComp 
-  	{
-  	
-  		public:
-  			/// Construtor
-  			RankComp(IntensityVector & intensities)
-  				: intensities_(intensities) 
-  			{}
-  			
-  			/// Overloaded () operator that allows to treat this class as a functor.
-  			bool operator() (const UnsignedInt& x, const UnsignedInt& y)
+	
+	protected:
+	/// Computes the rank of the sorted vector @p w (taken from "Numerical Recipies in C") 	
+	void compute_rank(IntensityVector& w)
+	{
+			unsigned long j=0,ji,jt;
+			float rank;
+			unsigned int n = w.size();
+			
+			while (j < n) 
 			{
-    			return intensities_[x] > intensities_[y];
-			}
-  			
-  		protected:
-  			IntensityVector intensities_;
-  	};
+					if (w[j+1] != w[j]) 
+					{ 
+						w[j]=j;
+						++j;
+					} 
+					else 
+					{
+						// tie 
+						for (jt=j+1;jt<=n && w[jt]==w[j];jt++);
+						rank=0.5*(j+jt-1); // mean rank of tie
+						for (ji=j;ji<=(jt-1);ji++) w[ji]=rank; 
+						j=jt;
+					}
+		}
+		if (j == n) w[n]=n; 
+	}			 	 
+	
 
   };
 }

@@ -44,34 +44,24 @@ namespace OpenMS
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				
 		// store and sort intensities of model and data
-		std::vector<IntensityType> data_intensities;
-		std::vector<IntensityType> model_intensities;
-		
-		std::vector<UnsignedInt> ranks_data;
-		std::vector<UnsignedInt> ranks_model;
-		
-		UnsignedInt rank_count = 0;
-		
+		std::vector<IntensityType> ranks_data;
+		std::vector<IntensityType> ranks_model;
+			
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
-			model_intensities.push_back( model.getIntensity(peak.getPosition()) );
-			data_intensities.push_back( peak.getIntensity() );
-			
-			ranks_data.push_back(rank_count);
-			ranks_model.push_back(rank_count);
-			++rank_count;
+			ranks_model.push_back( model.getIntensity(peak.getPosition()) );
+			ranks_data.push_back( peak.getIntensity());
 		}
 				
 		// compute ranks of data
-		RankCorrelation::RankComp data_comp = RankCorrelation::RankComp::RankComp(data_intensities);
-		std::sort(ranks_data.begin(),ranks_data.end(),data_comp);
+		std::sort(ranks_data.begin(),ranks_data.end());
+		std::sort(ranks_model.begin(),ranks_model.end());
+
+		compute_rank(ranks_data);
+		compute_rank(ranks_model);
 		
-		// compute ranks of model
-		RankCorrelation::RankComp model_comp = RankCorrelation::RankComp::RankComp(model_intensities);
-		std::sort(ranks_model.begin(),ranks_model.end(),model_comp);
-		
-		int mu = (data_intensities.size() + 1) / 2; // average of ranks
+		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 				
 		IntensityType sum_model_data   = 0;
 				
@@ -85,8 +75,6 @@ namespace OpenMS
 			sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
-		
-// 		std::cout << sum_model_data << " " << sqsum_data <<  " " << sqsum_model << std::endl;
 		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
@@ -107,33 +95,24 @@ namespace OpenMS
 		if (!traits_) throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				
 		// store and sort intensities of model and data
-		std::vector<IntensityType> data_intensities;
-		std::vector<IntensityType> model_intensities;
-		
-		std::vector<unsigned int> ranks_data;
-		std::vector<unsigned int> ranks_model;
-		
-		unsigned int rank_count = 0;
-		
+		std::vector<IntensityType> ranks_data;
+		std::vector<IntensityType> ranks_model;
+				
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
 			const CoordinateType coord = traits_->getPeak(*it).getPosition()[dim];;
-			model_intensities.push_back( model.getIntensity( coord ) );
-			data_intensities.push_back( traits_->getPeakIntensity(*it) );
-			ranks_data.push_back(rank_count);
-			ranks_model.push_back(rank_count);
-			++rank_count;
+			ranks_data.push_back(traits_->getPeakIntensity(*it));
+			ranks_model.push_back( model.getIntensity( coord ) );
 		}
 				
-		// compute ranks of data
-		RankCorrelation::RankComp data_comp = RankCorrelation::RankComp::RankComp(data_intensities);
-		std::sort(ranks_data.begin(),ranks_data.end(),data_comp);
+		// compute ranks of data and model
+		std::sort(ranks_data.begin(),ranks_data.end() );
+		std::sort(ranks_model.begin(),ranks_model.end() );
 		
-		// compute ranks of model
-		RankCorrelation::RankComp model_comp = RankCorrelation::RankComp::RankComp(model_intensities);
-		std::sort(ranks_model.begin(),ranks_model.end(),model_comp);
+		compute_rank(ranks_data);
+		compute_rank(ranks_model);
 		
-		int mu = (data_intensities.size() + 1) / 2; // average of ranks
+		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
 		
 		IntensityType sum_model_data   = 0;
 				

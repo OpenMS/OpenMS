@@ -323,13 +323,6 @@ namespace OpenMS
 		{
 			f.setCharge(1);		
 		}
-#ifdef DEBUG_FEATUREFINDER
-		std::cout << " Offset: "
-							<< float(final->getModel(MZ)->getParam().getValue("statistics:mean"))-mz_stat_.mean()
-							<< " "
-							<< float(final->getModel(RT)->getParam().getValue("statistics:mean"))-rt_stat_.mean()
-							<< "\n";
-#endif
 
 		int const intensity_choice = param_.getValue("feature_intensity_sum");
 		double feature_intensity = 0.0;
@@ -370,50 +363,46 @@ namespace OpenMS
 				 << ", Corr: (" << max_quality << ","  << f.getQuality(RT) << "," << f.getQuality(MZ) << ")";
 		f.setMetaValue(3,meta.str());
 
-		// the following code is only executed if debug flag is set.
-#ifdef DEBUG_FEATUREFINDER
-		String fname = "feature"+String(counter_);/*+"_"+profile_;*/
-		ofstream file(fname.c_str()); // gnuplot file with feature model
-
-		DPeakArray<2> dpa;
-		final->getSamples(dpa);
-		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
-			if (it->getIntensity()>0.9)
-				file << it->getPosition()[RT] << "	" << it->getPosition()[MZ] << "	"
-						 << it->getIntensity() << "\n";
+		#ifdef DEBUG_FEATUREFINDER
+		// write debug output
+		CoordinateType rt = f.getPosition()[RT];
+		CoordinateType mz = f.getPosition()[MZ];
 		
-		fname = "cut"+String(counter_);
-		ofstream file2(fname.c_str()); // gnuplot file with peaks after cutoff
-		file2 << "# RT MZ IT_orig IT_model isContained \n";
-		double last_rt = -100000;
-		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it)
+		// write feature model 
+		String fname = "model"+ String(counter_) + "_" + String(rt) + "_" + String(mz);
+		ofstream file(fname.c_str()); 
+		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
-#if 1 // cool style output
-			const DRawDataPoint<2>& p = traits_->getPeak(*it);
-			// extra linefeed for gnuplot's "with lines"
-			if ( p. getPosition()[RT] != last_rt )
-			{
-				last_rt = p.getPosition()[RT];
-				file2 << '\n';
-			}
-			file2 << p.getPosition()[RT] << ' '
-						<< p.getPosition()[MZ] << ' '
-						<< p.getIntensity() << ' '
-						<< final->getIntensity(p.getPosition())
-						<< ( final->isContained( traits_->getPeak(*it).getPosition() ) ? " 1 " : " 0 " )
-						<< '\n';
-#else // old style output
 			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
 			{
 				const DRawDataPoint<2>& p = traits_->getPeak(*it);
-				file2 << p.getPosition()[RT] << ' '
-							<< p.getPosition()[MZ] << ' '
-							<< p.getIntensity() << ' '
-							<< final->getIntensity(p.getPosition()) << '\n';
+				file << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << final->getIntensity( p.getPosition() ) << "\n";						
 			}
-#endif
 		}
-#endif
+		
+
+// 		DPeakArray<2> dpa;
+// 		final->getSamples(dpa);
+// 		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
+// 		{
+// 			if (it->getIntensity()>0.1)
+// 				file << it->getPosition()[RT] << " " << it->getPosition()[MZ] << " " << it->getIntensity() << "\n";
+// 		}
+		
+		// wrote peaks remaining after model fit
+		fname = "feature"+String(counter_) + String(counter_) + "_" + String(rt) + "_" + String(mz);
+		ofstream file2(fname.c_str()); 
+		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
+		{
+			if ( final->isContained( traits_->getPeak(*it).getPosition() ))
+			{
+				const DRawDataPoint<2>& p = traits_->getPeak(*it);
+				file2 << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << p.getIntensity() << "\n";						
+			}
+		}
+		file.close();
+		#endif
+		
 		++counter_;
 
 		delete final;
