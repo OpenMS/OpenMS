@@ -38,7 +38,7 @@
 #include<gsl/gsl_fit.h>
 
 #define DEBUG_MAPMATCHING
-//#undef DEBUG_MAPMATCHING
+#undef DEBUG_MAPMATCHING
 
 namespace OpenMS
 {

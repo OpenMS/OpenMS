@@ -35,14 +35,13 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-
- #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 
 #include <math.h>
 #include <vector>
 #include <algorithm>
 
-#define DEBUG_PEAK_PICKING
+//#define DEBUG_PEAK_PICKING
 namespace OpenMS
 {
   /**

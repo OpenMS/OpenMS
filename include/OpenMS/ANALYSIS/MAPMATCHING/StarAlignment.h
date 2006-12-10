@@ -38,7 +38,7 @@
 
 
 #define DEBUG_ALIGNMENT
-//#undef DEBUG_ALIGNMENT
+#undef DEBUG_ALIGNMENT
 
 namespace OpenMS
 {
