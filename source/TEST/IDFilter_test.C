@@ -132,10 +132,6 @@ CHECK(const Identification& filterIdentificationsByProteins(const Identification
 	TEST_EQUAL(protein_hits.size(), 2)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
 	TEST_EQUAL(protein_hits[1].getAccession(), "Q872T5")
-        identifications2[0].id = identification2;
-	AnalysisXMLFile().store("TOPP/IDFilter_1_output.analysisXML", 
-							protein_identifications, 
-							identifications2);
 
 RESULT
 
@@ -213,10 +209,6 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	protein_hits = protein_identification.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 50)
 	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
-        identifications2[0].id = identification2;
-	AnalysisXMLFile().store("TOPP/IDFilter_2_output.analysisXML", 
-							protein_identifications, 
-							identifications2);			
 
 RESULT
 
@@ -252,10 +244,6 @@ CHECK((const Identification& filterIdentificationsByExclusionPeptides(const Iden
 	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
 	protein_hits = protein_identification.getProteinHits();
 	TEST_EQUAL(protein_hits.size(), 50)
-        identifications2[0].id = identification2;
-	AnalysisXMLFile().store("TOPP/IDFilter_3_output.analysisXML", 
-							protein_identifications, 
-							identifications2);			
 
 RESULT
 
