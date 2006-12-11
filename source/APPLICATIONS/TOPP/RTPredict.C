@@ -49,10 +49,10 @@ using namespace std;
 	
 	@brief This application is used to predict retention times for peptides
 	
-	The input of this component is a svm model and an analysisXML
+	The input of this application is a svm model and an analysisXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
-	This file should have been produced by the RTModel component. 
+	This file should have been produced by the RTModel application. 
 	<br>
 	The peptide sequences are extracted from the analysisXML inputfile 
 	and passed to the svm. The svm then predicts retention times

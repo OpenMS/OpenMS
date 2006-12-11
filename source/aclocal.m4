@@ -3211,6 +3211,8 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 		AC_MSG_RESULT([Cannot link against libqt!])
 		AC_MSG_RESULT([If QT is installed, please specify the path to the library])
 		AC_MSG_RESULT([using the option --with-qt-libs=DIR or the environment variable QTDIR.])
+		AC_MSG_RESULT()
+		AC_MSG_RESULT([Another possible reason is threading support. Have a look at  the OpenMS installation documentation!])
 		CF_ERROR
 	else
 		AC_MSG_RESULT(yes)

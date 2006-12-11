@@ -52,7 +52,7 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 	
-	This wrapper component serves for getting peptide identifications
+	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
 	<ol>	
@@ -92,7 +92,7 @@ using namespace std;
 
 	<br>			
 	If your Mascot server is installed on the same computer as the 
-	TOPP components the MascotAdapter can be executed in mode 1. 
+	TOPP applications the MascotAdapter can be executed in mode 1. 
 	Otherwise the Mascot engine has to be executed manually assisted
 	by mode 2 and mode 3. The identification steps then look like:
 	
@@ -109,7 +109,7 @@ using namespace std;
 			@code ./nph-mascot.exe 1 -commandline -f mascotOutFile < mascotGenericFormatFile @endcode
 		</li>
 		<li>
-			copy mascotOutFile to the server on which the TOPP components are installed
+			copy mascotOutFile to the server on which the TOPP applications are installed
 		</li>
 		<li>
 			# execute MascotAdapter in mode 3			

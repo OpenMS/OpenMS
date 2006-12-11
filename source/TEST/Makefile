@@ -434,7 +434,7 @@ applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
 
 clean:	default_clean
-	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* $(EXECUTABLES)
+	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* $(EXECUTABLES)
 	@cd TOPP && make clean
 
 # Create data files for MzData, MzXML, ANDIFile with variable number of scans

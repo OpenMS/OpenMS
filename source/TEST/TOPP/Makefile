@@ -78,7 +78,7 @@ UNCONDITIONAL_PIPELINE_TESTS =\
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature*
+CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature* model*
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
@@ -397,10 +397,16 @@ FileMerger_test: $(NUMERICDIFF)
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
+	
+	@$(ECHO) "- Test 1: sequence file"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
 	@$(call TEST_FILE_EQUAL,IDFilter_1_output.analysisXML,IDFilter_1_output.tmp)
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pepfr 1 -protfr 1)
+	
+	@$(ECHO) "- Test 2: threshold fractions"
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.analysisXML,IDFilter_2_output.tmp)
+	
+	@$(ECHO) "- Test 3: exclusion peptides"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
 

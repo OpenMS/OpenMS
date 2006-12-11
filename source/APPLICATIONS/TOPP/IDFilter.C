@@ -29,15 +29,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <string>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,65 +41,53 @@ using namespace std;
 /**
 	@page IDFilter IDFilter
 	
-	@brief Filters identifications depending on certain criteria.
+	@brief Filters Filters identification engine results by different criteria.
 	
-	This component is used to filter the identifications found by
+	This tool is used to filter the identifications found by
 	an identification tool like Mascot&copy;. The identifications 
 	can be filtered by different criteria.
 	
 	<ul>
 		<li> 
-			peptide significance threshold fraction: This parameter 
+			<b>peptide significance threshold</b>:<br> This parameter 
 			specifies which amount of the significance threshold should 
 			be reached by a peptide to be kept. If for example a peptide
 			has score 30 and the significance threshold is 40, the 
 			peptide will only be kept by the filter if the significance 
-			threshold fraction is set to 0.75 or lower. The value for this
-			parameter can be set in the ini file with the 
-			<b>peptide_significance_threshold_fraction</b> parameter or in the
-			shell via the <b>pepfr</b> parameter.
+			threshold fraction is set to 0.75 or lower.
 		</li> 
 		<li> 
-			protein significance threshold fraction: This parameter 
+			<b>protein significance threshold</b>:<br> This parameter 
 			behaves in the same way as the peptide significance threshold 
 			fraction parameter. The only difference is that it is used
-			to filter protein hits. The value for this
-			parameter can be set in the ini file with the 
-			<b>protein_significance_threshold_fraction</b> parameter or in the
-			shell via the <b>protfr</b> parameter.
+			to filter protein hits.
 		</li>
 		<li>
-			sequences file (in FASTA format): If you know which proteins
+			<b>peptide seqences</b>:<br> If you know which proteins
 			are in the measured sample you can specify a FASTA file 
-			which contains the protein sequences of the sample. All 
+			which contains the protein sequences of those proteins. All 
 			peptides which are not a substring of a protein contained
-			in the sequences file will be filtered out. The name of the
-			sequences file can be specified by the <b>sequences_file</b>
-			parameter.
+			in the sequences file will be filtered out. 
 		</li>
 		<li>
-			retention time: To filter identifications according to their 
-			predicted retention times you have to set two additional parameters
-			in the ini file <b>total_gradient_time</b> which is the total 
-			number of seconds that the gradient took and <b>allowed_deviation</b>
-			which defines a factor for the amount of deviation from the original
-			retention time. To use this filter mode you have to supply an
-			analysisXML file that is produced by the RTPredict component.
+			<b>predicted retention time</b>:<br> To filter identifications according to their 
+			predicted retention times you have to set two parameters: The total 
+			number of seconds that the gradient ran (warum ?????) and the maximum allowed deviation from the original
+			retention time. This filter can only be applied to AnalysisXML files produced by RTPredict.
 		</li>
 		<li>
-			exclusion peptides: With this option you can specify an AnalysisXML file.
+			<b>exclusion peptides</b>:<br> For this option you specify an AnalysisXML file.
 			All peptides that are present in both files (in-file and exclusion peptides
-			file) will be dropped. The name of the exclusion peptides file can be
-			specified by the <b>exclusion_peptides_file</b>	parameter.
+			file) will be dropped.
 		</li>
 		<li>
-			strict: If this flag is set, only the best hit of a spectrum is kept.
+			<b>best hits only</b>:<br> Only the best hit of a spectrum is kept.
 			If there is more than one hit for a spectrum with the maximal score then
-			none of the hits will be kept. You can specify this option by using the
-			<b>strict</b> parameter.
+			none of the hits will be kept.
 		</li>
 	</ul>
 	
+	@todo write test for filtering by retention time (Nico)
 */
 
 // We do not want this class to show up in the docu:
@@ -115,100 +95,38 @@ using namespace std;
 
 
 class TOPPIDFilter
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase("IDFilter")
+		: TOPPBase2("IDFilter","filters identification engine results by different criteria")
 	{
-			
+		
 	}
 	
  protected:
-	void printToolUsage_() const
+	void registerOptionsAndFlags_()
 	{
-		cerr << endl
-				 << getToolName() << " -- annotates MS/MS spectra using Mascot" << endl
-				 << "Version: " << VersionInfo::getVersion() << endl
-				 << endl
-				 << "Usage:" << endl
-				 << " " << getToolName() << " [options]" << endl
-				 << endl
-				 << "Options are:" << endl
-				 << "  -in <file>   		          input file in mzData " 
-				 << "(default read from INI file)" << endl
-				 << "  -out <file>  		          output file in analysisXML/Mascot generic format "
-				 << "(default read from INI file)" << endl
-				 << "  -strict      		          flag indicating strict filtering (default read from INI file)" << endl
-				 << "  -sequences_file	          Filename of a fasta file containing protein sequences. "
-				 << "All peptides that are not a substring of" 
-				 << " a sequence in this file are "
-				 << "filtered out (default read from INI file)." << endl
-				 << "  -pepfr                          the fraction of the peptide significance threshold that should be"
-				 << " reached by a peptide hit" << endl
-				 << "  -protfr                         the fraction of the protein significance threshold that should be"
-				 << " reached by a protein hit" << endl
-				 << "  -exclusion_peptides_file        if this AnalysisXML file is given all peptides having the same"
-				 << " sequence as any in the AnalysisXML file will be dropped" << endl
-				 << endl ;
-	}
-		
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "  in                                         input file" << endl
-				 << "  out                                        output file" << endl
-				 << "  strict                                     flag indicating strict filtering" << endl
-				 << "  sequences_file                             Filename of a fasta file containing protein sequences. "
-				 << "All peptides that are not a substring of" 
-				 << " a sequence in this file are filtered out." << endl
-				 << "  peptide_significance_threshold_fraction    the fraction of the peptide significance threshold that should be"
-				 << " reached by a peptide hit" << endl
-				 << "  protein_significance_threshold_fraction    the fraction of the protein significance threshold that should be"
-				 << " reached by a protein hit" << endl
-				 << "  exclusion_peptides_file                    if this AnalysisXML file is given all peptides having the same"
-				 << " sequence as any in the AnalysisXML file will be dropped" << endl
-                                 << "  total_gradient_time                        the total time of the gradient (for RT filtering)" << endl
-                                 << "  allowed_deviation                          the allowed deviation of measured and predicted " 
-                                 << "normalised retention time (for RT filtering)" << endl
-                                 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"strict\" value=\"false\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"protein_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"peptide_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"sequences_file\" value=\"sequences.fasta\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"exclusion_peptides_file\" value=\"peptides.analysisXML\" type=\"string\"/>" << endl 					 
-				 << "  <ITEM name=\"total_gradient_time\" value=\"3600\" type=\"double\"/>" << endl
-				 << "  <ITEM name=\"allowed_deviation\" value=\"0.05\" type=\"double\"/>" << endl; 					 
-	}		
-
-	void setOptionsAndFlags_()
-	{
-		options_["-out"] = "out";
-		options_["-in"] = "in";
-		options_["-pepfr"] = "peptide_significance_threshold_fraction";
-		options_["-protfr"] = "protein_significance_threshold_fraction";
-		options_["-sequences_file"] = "sequences_file";
-		options_["-exclusion_peptides_file"] = "exclusion_peptides_file";
-		options_["-total_gradient_time"] = "total_gradient_time";
-		options_["-allowed_deviation"] = "allowed_deviation";
-		flags_["-strict"] = "strict";
+		registerStringOption_("in","<file>","","input file in AnalysisXML format");
+		registerStringOption_("out","<file>","","output file in AnalysisXML format");	
+		registerStringOption_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
+																											 "All peptides that are not a substring of a sequence in this file are filtered out",false);
+		registerStringOption_("exclusion_peptides_file","<file>","","An AnalysisXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
+		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
+		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
+		registerDoubleOption_("total_gradient_time","<time>",0.0,"the total time the HPLC gradient ran",false);	
+		registerDoubleOption_("allowed_deviation","<dev>",0.0,"absolut/relativ???? Auch keine Docu in IDFilter!",false);	
+		registerFlag_("best_hits","If this flag is set only the highest scoring hit is kept.\n"
+															"If there is are two or more highest scoring hits, none are kept.");
 	}
 
 	ExitCodes main_(int , char**)
 	{
 	
 		//-------------------------------------------------------------
-		// parsing parameters
+		// varaibles
 		//-------------------------------------------------------------
 			
-		String inputfile_name;
-		String outputfile_name;
 		IDFilter filter;
 		AnalysisXMLFile analysisXML_file;
 		vector<ProteinIdentification> protein_identifications;
@@ -217,122 +135,46 @@ class TOPPIDFilter
 		vector<IdentificationData> filtered_identifications;
 		Identification filtered_identification;
 		vector<UnsignedInt> charges;
-		Real protein_significance_threshold_fraction = 1;
-		Real peptide_significance_threshold_fraction = 1;
-		bool strict = false;
-		String sequences_file_name = "";
-		String exclusion_peptides_file_name = "";
-		FASTAFile fasta_file;
 		vector< pair< String, String > > sequences;
 		map<String, double> predicted_retention_times;
 		DoubleReal predicted_sigma;
-		Real total_gradient_time = 0.f;
-		DoubleReal allowed_deviation = 0.;
 		vector<String> exclusion_peptides;
-							
-		//input file names and types
-		inputfile_name = getParamAsString_("in");			
-		writeDebug_(String("Input file: ") + inputfile_name, 1);
-		if (inputfile_name == "")
-		{
-			writeLog_("No input file specified. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
-	
-		//output file names and types
-		outputfile_name = getParamAsString_("out");
-		writeDebug_(String("Output file: ") + outputfile_name, 1);
-		if (outputfile_name == "")
-		{
-			writeLog_("No output file specified. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}				
-
-		peptide_significance_threshold_fraction = getParamAsString_("peptide_significance_threshold_fraction", String("0.f")).toFloat();
-		writeDebug_(String("Peptide significance threshold fraction: ") + 
-								String(peptide_significance_threshold_fraction), 1);
-
-		protein_significance_threshold_fraction = getParamAsString_("protein_significance_threshold_fraction", String("0.f")).toFloat();
-		writeDebug_(String("Protein significance threshold fraction: ") + 
-								String(protein_significance_threshold_fraction), 1);
-
-		if (getParamAsBool_("strict", false))
-		{				
-			writeDebug_("strict filtering (if there is more than one best hit for one spectrum, discard all of them)", 1);
-			strict = true;
-		}
-		else
-		{
-			writeDebug_(String("no strict filtering (if there is more than one best hit for one spectrum, take all of them)"), 1);				
-		}
-
-
-		sequences_file_name = getParamAsString_("sequences_file");
-		if (sequences_file_name != "")
-		{
-			writeDebug_(String("Filter sequences in file: ") + sequences_file_name, 1);
-		}
-
-		exclusion_peptides_file_name = getParamAsString_("exclusion_peptides_file");
-		if (exclusion_peptides_file_name != "")
-		{
-			writeDebug_(String("Exclusion peptides File: ") + exclusion_peptides_file_name, 1);
-		}
-			
-		if ((total_gradient_time 
-				 = getParamAsString_("total_gradient_time", String("0.f")).toFloat())
-				!= 0.f)
-		{
-			writeDebug_(String("Total gradient time: ") + String(total_gradient_time) +
-									String(" used for filtering"), 1);
-		}
-			
-		if ((allowed_deviation 
-				 = getParamAsString_("allowed_deviation", "0.f").toFloat()) 
-				!= 0.f)
-		{
-			writeDebug_(String("allowed deviation: ") + String(allowed_deviation), 1);
-		}
-			
+		
 		//-------------------------------------------------------------
-		// testing whether input and output files are accessible
+		// parsing parameters
 		//-------------------------------------------------------------
-	
-		if (!File::exists(inputfile_name))
+			
+		String inputfile_name = getStringOption_("in");			
+		inputFileReadable_(inputfile_name);
+		
+		String outputfile_name = getStringOption_("out");
+		outputFileWritable_(outputfile_name);
+		
+		double peptide_significance_threshold_fraction = getDoubleOption_("pep_fraction");
+		double protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
+		
+		String sequences_file_name = getStringOption_("sequences_file");
+		if (sequences_file_name!="")
 		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
+			inputFileReadable_(sequences_file_name);
 		}
-		if (!File::readable(inputfile_name))
+		
+		String exclusion_peptides_file_name = getStringOption_("exclusion_peptides_file");
+		if (exclusion_peptides_file_name!="")
 		{
-			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
+			inputFileReadable_(exclusion_peptides_file_name);
 		}
-		if (File::empty(inputfile_name))
-		{
-			throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
-		}		
-		if (sequences_file_name != "")
-		{
-			if (!File::readable(sequences_file_name))
-			{
-				sequences_file_name = "";
-			}
-			if (sequences_file_name != "")
-			{ 
-				writeDebug_("Sequences file <" + sequences_file_name + "> used for" + " filtering", 1);
-			}
-		}
-		if (!File::writable(outputfile_name))
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
-		}
+		
+		double total_gradient_time = getDoubleOption_("total_gradient_time");
+		double allowed_deviation = getDoubleOption_("allowed_deviation");
+
+		bool strict = getFlag_("best_hits");
 	
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
 	
-		if (total_gradient_time != 0.f)
+		if (total_gradient_time != 0.0)
 		{
 			analysisXML_file.load(inputfile_name,
 														protein_identifications, 
@@ -348,7 +190,7 @@ class TOPPIDFilter
 		}
 		if (sequences_file_name != "")
 		{
-			fasta_file.load(sequences_file_name,sequences);				
+			FASTAFile().load(sequences_file_name,sequences);				
 		}
 			
 		if (exclusion_peptides_file_name  != "")
@@ -373,8 +215,7 @@ class TOPPIDFilter
 						
 		/// Filtering identifications	by thresholds
 		for(UnsignedInt i = 0; i < identifications.size(); i++)
-		{
-                  
+		{       
 			filter.filterIdentificationsByThresholds(identifications[i].id, 
 																							 peptide_significance_threshold_fraction, 
 																							 protein_significance_threshold_fraction,
@@ -386,7 +227,8 @@ class TOPPIDFilter
 																							 sequences,
 																							 filtered_identification);
 			}
-			if (total_gradient_time != 0.f)
+			
+			if (total_gradient_time != 0.0)
 			{
 				Identification temp_identification = filtered_identification;
 				filter.filterIdentificationsByRetentionTimes(temp_identification, 
@@ -428,7 +270,7 @@ class TOPPIDFilter
 		// writing output
 		//-------------------------------------------------------------
 		
-		if (total_gradient_time != 0.f)
+		if (total_gradient_time != 0.0)
 		{
 			analysisXML_file.store(outputfile_name,
 														 protein_identifications, 

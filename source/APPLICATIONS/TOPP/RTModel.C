@@ -105,16 +105,16 @@ using namespace std;
 	with <b>number_of_runs</b>.
 	
 	<br>
-	Consequently you have two choices to use this component:
+	Consequently you have two choices to use this application:
 	
 	<ol>
 		<li> 
-			Set the parameters of the svm: The RTModel component will train 
+			Set the parameters of the svm: The RTModel application will train 
 			the svm with the training data and store the svm model
 		</li>
 		<li>
 			Give a range of parameters for which a CV should be performed:
-			The RTModel component will perform a CV to find the best 
+			The RTModel application will perform a CV to find the best 
 			parameter combination in the given range and afterwars train
 			the svm with the best parameters and the whole training data.
 			Afterwards the model will be stored.

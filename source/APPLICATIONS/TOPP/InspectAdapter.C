@@ -48,7 +48,7 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via Inspect.
 	
-	This wrapper component serves for getting peptide identifications
+	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
 	<ol>	
