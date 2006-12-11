@@ -320,6 +320,7 @@ namespace OpenMS
             UnsignedInt n = map.size();
             for (UnsignedInt j = 0; j < n; ++j)
             {
+//             std::cout << "insert " << map[j] << std::endl;
               // Test in which cell this element is included
               // and apply the corresponding transformation
               typename GridType::iterator grid_it = transformations_[i].begin();
@@ -327,6 +328,7 @@ namespace OpenMS
               {
                 if (grid_it->encloses(map[j].getPosition()))
                 {
+//                   std::cout << "At map " << j << " GRID cell " << *grid_it << std::endl;
                   // apply transform for the singleton group element
                   IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
                   PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
@@ -344,9 +346,10 @@ namespace OpenMS
 
                   out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
-
+//                   std::cout << "Map " << i << " before " << map[j] << " insert " << index_tuple << std::endl;
                   map[j].getPosition() = pos;
                   map[j].insert(index_tuple);
+                  break;
                 }
                 grid_it++;
               } // end while (grid)
