@@ -171,7 +171,10 @@ class TOPPIDFilter
 				 << " reached by a protein hit" << endl
 				 << "  exclusion_peptides_file                    if this AnalysisXML file is given all peptides having the same"
 				 << " sequence as any in the AnalysisXML file will be dropped" << endl
-				 << endl
+                                 << "  total_gradient_time                        the total time of the gradient (for RT filtering)" << endl
+                                 << "  allowed_deviation                          the allowed deviation of measured and predicted " 
+                                 << "normalised retention time (for RT filtering)" << endl
+                                 << endl
 				 << "INI File example section:" << endl
 				 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
 				 << "  <ITEM name=\"out\" value=\"output.analysisXML\" type=\"string\"/>" << endl
@@ -179,7 +182,9 @@ class TOPPIDFilter
 				 << "  <ITEM name=\"protein_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
 				 << "  <ITEM name=\"peptide_significance_threshold_fraction\" value=\"1\" type=\"string\"/>" << endl
 				 << "  <ITEM name=\"sequences_file\" value=\"sequences.fasta\" type=\"string\"/>" << endl
-				 << "  <ITEM name=\"exclusion_peptides_file\" value=\"peptides.analysisXML\" type=\"string\"/>" << endl; 					 
+				 << "  <ITEM name=\"exclusion_peptides_file\" value=\"peptides.analysisXML\" type=\"string\"/>" << endl 					 
+				 << "  <ITEM name=\"total_gradient_time\" value=\"3600\" type=\"double\"/>" << endl
+				 << "  <ITEM name=\"allowed_deviation\" value=\"0.05\" type=\"double\"/>" << endl; 					 
 	}		
 
 	void setOptionsAndFlags_()
@@ -190,6 +195,8 @@ class TOPPIDFilter
 		options_["-protfr"] = "protein_significance_threshold_fraction";
 		options_["-sequences_file"] = "sequences_file";
 		options_["-exclusion_peptides_file"] = "exclusion_peptides_file";
+		options_["-total_gradient_time"] = "total_gradient_time";
+		options_["-allowed_deviation"] = "allowed_deviation";
 		flags_["-strict"] = "strict";
 	}
 
@@ -207,8 +214,6 @@ class TOPPIDFilter
 		vector<ProteinIdentification> protein_identifications;
 		vector<IdentificationData> identifications;
 		vector<IdentificationData> identifications_exclusion;
-		vector<Real> precursor_retention_times;
-		vector<Real> precursor_mz_values;
 		vector<IdentificationData> filtered_identifications;
 		Identification filtered_identification;
 		vector<UnsignedInt> charges;
@@ -222,7 +227,7 @@ class TOPPIDFilter
 		map<String, double> predicted_retention_times;
 		DoubleReal predicted_sigma;
 		Real total_gradient_time = 0.f;
-		DoubleReal allowed_deviation = 10;
+		DoubleReal allowed_deviation = 0.;
 		vector<String> exclusion_peptides;
 							
 		//input file names and types
@@ -386,7 +391,7 @@ class TOPPIDFilter
 				Identification temp_identification = filtered_identification;
 				filter.filterIdentificationsByRetentionTimes(temp_identification, 
 																										 predicted_retention_times,
-																										 precursor_retention_times[i],
+																										 identifications[i].rt,
 																										 predicted_sigma,
 																										 allowed_deviation,
 																										 total_gradient_time,
