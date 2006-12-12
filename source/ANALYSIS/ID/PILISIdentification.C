@@ -38,7 +38,8 @@ namespace OpenMS
 	
 	PILISIdentification::PILISIdentification()
 		:	sequence_db_(0),
-			hmm_model_(0)
+			hmm_model_(0),
+			scorer_(0)
 	{
 		param_.setValue("prcr_m_tol", double(3.0));
 		param_.setValue("max_candidates", 200);
@@ -67,6 +68,7 @@ namespace OpenMS
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& /*PILIS_id*/)
+		: scorer_(0)
 	{
 		// TODO
 	}
@@ -87,120 +89,118 @@ namespace OpenMS
 	
 	void PILISIdentification::getIdentifications(vector<Identification>& ids, const PeakMap& exp)
 	{
-		// get the parameters
-		double pre_tol = (double)param_.getValue("prcr_m_tol");
-		//double peak_tol = (double)param_.getValue("pk_m_tol");
-		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
-		//unsigned int hits = (unsigned int)param_.getValue("hits");
-		String score_name = param_.getValue("score_name");
-
-		// scoring
-		//CompareFunctor* scorer = Factory<CompareFunctor>::create(score_name);
-		ZhangSimilarityScore* scorer = new ZhangSimilarityScore();
-			
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 		{
 			if (it->getMSLevel() != 2)
 			{
 				continue;
 			}
-			double pre_pos = it->getPrecursorPeak().getPosition()[0];
-
-			if (pre_pos < 200) // TODO
-			{
-				cerr << "PILISIdentification: spectrum does not have a precursor peak set" << endl;
-				continue;
-			}
-			vector<PILISSequenceDB::PepStruct> cand_peptides;
-			sequence_db_->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-			cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
-	
-			HashMap<String, Size> sequence_to_charge;
-
-			// get simple spectra for pre-eliminate most of the candidates
-			Identification pre_id;
-			for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
-			{
-				//AASequence peptide_sequence(it1->peptide);
-				// TODO parameter settings
-				PeakSpectrum spec;
-				//tsg.getSpectrum(spec, peptide_sequence, it1->charge);
-				getSpectrum_(spec, it1->peptide, it1->charge);
-				double score = (*scorer)(*it, spec);
-				PeptideHit peptide_hit(score, "Zhang", 0, it1->peptide);
-				pre_id.insertPeptideHit(peptide_hit);
-
-				sequence_to_charge[it1->peptide] = it1->charge;
-			}
-
-			pre_id.assignRanks();
 
 			Identification id;
-			for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
-			{
-				String sequence = pre_id.getPeptideHits()[i].getSequence();
-				AASequence peptide_sequence(sequence);
-				PeakSpectrum spec;
-				hmm_model_->getSpectrum(spec, peptide_sequence, sequence_to_charge[sequence]);
-				
-				// normalize the spectra and add intensity to too small peaks
-				// TODO remove cheating
-    		double max(0);
-  			for (PeakSpectrum::ConstIterator it1 = spec.begin(); it1 != spec.end(); ++it1)
-  			{
-    			if (max < it1->getIntensity())
-    			{
-      			max = it1->getIntensity();
-    			}
-  			}
-
-  			for (PeakSpectrum::Iterator it1 = spec.begin(); it1 != spec.end(); ++it1)
-  			{
-    			it1->setIntensity(it1->getIntensity()/max);
-  			}
-
-    		for (PeakSpectrum::Iterator it1 = spec.begin(); it1 != spec.end(); ++it1)
-    		{
-      		if (it1->getIntensity() < 0.01 && it1->getMetaValue("IonName") != "")
-      		{
-        		it1->setIntensity(0.01);
-      		}
-    		}
-
-				double score = (*scorer)(*it, spec);
-				//cerr << it->size() << " " << spec.size() << " " << score << endl;
-				PeptideHit peptide_hit(score, "Zhang", 0, sequence);
-				id.insertPeptideHit(peptide_hit);
-				//cerr << peptide_sequence << " " << score << endl;
-			}
-
-			id.assignRanks();
-
-			if (id.getPeptideHits().size() > 0)
-			{
-				cerr << id.getPeptideHits().begin()->getSequence() << " " << id.getPeptideHits().begin()->getScore() << endl;
-			}
+			getIdentification(id, *it);	
 			ids.push_back(id);
 		}
+		return;
+	}
+
+	void PILISIdentification::getIdentification(Identification& id, const PeakSpectrum& spec)
+	{
+		if (spec.getMSLevel() != 2)
+		{
+			return;
+		}
+		
+		double pre_tol = (double)param_.getValue("prcr_m_tol");
+		String score_name = param_.getValue("score_name");
+	
+		double pre_pos = spec.getPrecursorPeak().getPosition()[0];
+
+    if (pre_pos < 200) // TODO
+    {
+      cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec.getPrecursorPeak().getCharge() << endl;
+      return;
+    }
+		vector<PILISSequenceDB::PepStruct> cand_peptides;
+    sequence_db_->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
+    //cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
+
+		Identification pre_id;
+		getPreIdentification_(pre_id, spec, cand_peptides);
+
+		getFinalIdentification_(id, spec, pre_id);
 
 		return;
 	}
 
-	void PILISIdentification::getIdentification(Identification& id, const PeakSpectrum& exp)
+	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
-		double pre_tol = (double)param_.getValue("prcr_m_tol");
+		sequence_to_charge_.clear();
+
+    // get simple spectra for pre-eliminate most of the candidates
+    for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
+    {
+      // TODO parameter settings
+      PeakSpectrum sim_spec;
+      getSpectrum_(sim_spec, it1->peptide, it1->charge);
+      double score = (*scorer_)(sim_spec, spec);
+      PeptideHit peptide_hit(score, "Zhang", 0, it1->peptide);
+      id.insertPeptideHit(peptide_hit);
+
+			sequence_to_charge_[it1->peptide] = it1->charge;
+    }
+
+    id.assignRanks();
+		return;
+	}
+
+	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
+	{
 		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
-		String score_name = param_.getValue("score_name");
+		for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
+    {
+      String sequence = pre_id.getPeptideHits()[i].getSequence();
+      AASequence peptide_sequence(sequence);
+      PeakSpectrum sim_spec;
+      hmm_model_->getSpectrum(sim_spec, peptide_sequence, sequence_to_charge_[sequence]);
 
-	}
+      // normalize the spectra and add intensity to too small peaks
+      // TODO remove cheating
+      double max(0);
+      for (PeakSpectrum::ConstIterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
+      {
+        if (max < it1->getIntensity())
+        {
+          max = it1->getIntensity();
+        }
+      }
 
-	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides, CompareFunctor* scorer)
-	{
+      for (PeakSpectrum::Iterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
+      {
+        it1->setIntensity(it1->getIntensity()/max);
+      }
 
-	}
+      for (PeakSpectrum::Iterator it1 = sim_spec.begin(); it1 != sim_spec.end(); ++it1)
+      {
+        if (it1->getIntensity() < 0.01 && it1->getMetaValue("IonName") != "")
+        {
+          it1->setIntensity(0.01);
+        }
+      }
 
-	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id, CompareFunctor* scorer)
-	{
+      double score = (*scorer_)(sim_spec, spec);
+      //cerr << it->size() << " " << spec.size() << " " << score << endl;
+      PeptideHit peptide_hit(score, "Zhang", 0, sequence);
+      id.insertPeptideHit(peptide_hit);
+      //cerr << peptide_sequence << " " << score << endl;
+    }
+
+    id.assignRanks();
+
+    //if (id.getPeptideHits().size() > 0)
+    //{
+    //  cerr << id.getPeptideHits().begin()->getSequence() << " " << id.getPeptideHits().begin()->getScore() << endl;
+    //}
+	
 		return;
 	}
 	
@@ -287,6 +287,17 @@ namespace OpenMS
 	void PILISIdentification::setParam(const Param& param)
 	{
 		param_ = param;
+	}
+
+	void PILISIdentification::setScoringType(const String& name)
+	{
+		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(name);
+		scoring_type_ = name;
+	}
+
+	const String& PILISIdentification::getScoringType() const
+	{
+		return scoring_type_;
 	}
 }
 

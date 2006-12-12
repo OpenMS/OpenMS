@@ -46,7 +46,7 @@ namespace OpenMS
 		identifications. Simply call getIdentifications with a PeakMap.
 	*/
 	// forward declarations
-	class CompareFunctor;
+	class PeakSpectrumCompareFunctor;
 	
 	class PILISIdentification
 	{
@@ -78,6 +78,11 @@ namespace OpenMS
 			/// sets the model to be used for the identification run
 			void setModel(PILISModel* hmm_model);
 
+			/// set scoring type; all PeakSpectrumCompareFunctor are allowed
+			void setScoringType(const String& name);
+
+			const String& getScoringType() const;
+			
 			/// performs an identification run on a PeakMap
 			void getIdentifications(std::vector<Identification>& ids, const PeakMap& exp);
 
@@ -100,10 +105,10 @@ namespace OpenMS
 			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
 		
 			/// 
-			void getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides, CompareFunctor* scorer);
+			void getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
 
 			///
-			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id, CompareFunctor* scorer);
+			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id);
 			
 			Param param_;
 
@@ -113,6 +118,12 @@ namespace OpenMS
 
 			HashMap<char, double> aa_weight_;
 
+			PeakSpectrumCompareFunctor* scorer_;
+
+			String scoring_type_;
+		
+			HashMap<String, Size> sequence_to_charge_;
+			
 			Peak p_;
 	};
 }
