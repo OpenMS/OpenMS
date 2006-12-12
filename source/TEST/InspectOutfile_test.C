@@ -81,29 +81,29 @@ CHECK(vector< UnsignedInt > load(const string& result_filename, vector< Identifi
 RESULT
 
 CHECK(void generateTrieDB(const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append = false, const std::string species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
-	file.generateTrieDB("data/FASTAFile_test.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE("InspectOutfile_test.trie", "data/FASTAFile_test.trie")
-	TEST_FILE("InspectOutfile_test.index", "data/FASTAFile_test.index")
+	file.generateTrieDB("data/Inspect_Sequest_FASTAFile_test.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
+	TEST_FILE("InspectOutfile_test.trie", "data/Inspect_Sequest_FASTAFile_test.trie")
+	TEST_FILE("InspectOutfile_test.index", "data/Inspect_Sequest_FASTAFile_test.index")
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 	
-	file.generateTrieDB("data/FASTAFile_test2.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE("InspectOutfile_test.trie", "data/FASTAFile_test2.trie")
-	TEST_FILE("InspectOutfile_test.index", "data/FASTAFile_test2.index")
+	file.generateTrieDB("data/Inspect_Sequest_FASTAFile_test2.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
+	TEST_FILE("InspectOutfile_test.trie", "data/Inspect_Sequest_FASTAFile_test2.trie")
+	TEST_FILE("InspectOutfile_test.index", "data/Inspect_Sequest_FASTAFile_test2.index")
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 RESULT
 
 CHECK(void compressTrieDB(const std::string& database_filename, const std::string& index_filename, const std::vector< UnsignedInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
 	vector< UnsignedInt > wanted_records(1, 0);
-	file.compressTrieDB("data/FASTAFile_test.trie", "data/FASTAFile_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true);
+	file.compressTrieDB("data/Inspect_Sequest_FASTAFile_test.trie", "data/Inspect_Sequest_FASTAFile_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true);
 
 	bool append = true;
 	wanted_records.clear();
-	file.compressTrieDB("data/FASTAFile_test2.trie", "data/FASTAFile_test2.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
+	file.compressTrieDB("data/Inspect_Sequest_FASTAFile_test2.trie", "data/Inspect_Sequest_FASTAFile_test2.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
 
 	wanted_records.push_back(1);
-	file.compressTrieDB("data/FASTAFile_test.trie", "data/FASTAFile_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
+	file.compressTrieDB("data/Inspect_Sequest_FASTAFile_test.trie", "data/Inspect_Sequest_FASTAFile_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
 
 	wanted_records.clear();
 	wanted_records.push_back(0);
@@ -113,8 +113,8 @@ CHECK(void compressTrieDB(const std::string& database_filename, const std::strin
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 
-	TEST_FILE("InspectOutfile_test2.trie", "data/FASTAFile_test.trie")
-	TEST_FILE("InspectOutfile_test2.index", "data/FASTAFile_test.index")
+	TEST_FILE("InspectOutfile_test2.trie", "data/Inspect_Sequest_FASTAFile_test.trie")
+	TEST_FILE("InspectOutfile_test2.index", "data/Inspect_Sequest_FASTAFile_test.index")
 
 
 	remove("InspectOutfile_test2.trie");
@@ -130,12 +130,12 @@ CHECK(void getSequences(const String& database_filename, const map< Unsigned, Un
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 
-	file.getSequences("data/FASTAFile_test.trie", rn_position_map, found_sequences);
+	file.getSequences("data/Inspect_Sequest_FASTAFile_test.trie", rn_position_map, found_sequences);
 	if ( found_sequences.size() == 1 )
 	{
 		TEST_EQUAL(found_sequences.front(), sequences.front())
 
-		file.getSequences("data/FASTAFile_test2.trie", rn_position_map, found_sequences);
+		file.getSequences("data/Inspect_Sequest_FASTAFile_test2.trie", rn_position_map, found_sequences);
 
 		TEST_EQUAL((sequences == found_sequences), true)
 	}
@@ -209,7 +209,7 @@ RESULT
 
 CHECK(void getLabels(const string& source_database_filename, string& ac_label, string& sequence_start_label, string& sequence_end_label, string& comment_label, string& species_label) throw (Exception::FileNotFound, Exception::ParseError))
 	string ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
-	file.getLabels("data/FASTAFile_test.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
+	file.getLabels("data/Inspect_Sequest_FASTAFile_test.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 	TEST_EQUAL(ac_label, ">")
 	TEST_EQUAL(sequence_start_label, ">")
 	TEST_EQUAL(sequence_end_label, ">")

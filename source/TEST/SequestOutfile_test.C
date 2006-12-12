@@ -124,7 +124,7 @@ CHECK(void getSequences(const String& database_filename, const map< String, Unsi
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
 	vector< pair< String, UnsignedInt > > found;
 	
-	file.getSequences("data/FASTAFile_test.fasta", ac_position_map, found_sequences, found, not_found);
+	file.getSequences("data/Inspect_Sequest_FASTAFile_test.fasta", ac_position_map, found_sequences, found, not_found);
 	TEST_EQUAL(found.size(), 2)
 	TEST_EQUAL(not_found.size(), 2)
 	if ( found.size() == 2 && not_found.size() == 2 )
@@ -140,7 +140,7 @@ CHECK(void getSequences(const String& database_filename, const map< String, Unsi
 		TEST_EQUAL(sequences[3], found_sequences[0])
 		TEST_EQUAL(sequences[1], found_sequences[1])
 
-		file.getSequences("data/FASTAFile_test2.fasta", not_found, found_sequences, found, not_found);
+		file.getSequences("data/Inspect_Sequest_FASTAFile_test2.fasta", not_found, found_sequences, found, not_found);
 		TEST_EQUAL(found.size(), 4)
 		TEST_EQUAL(not_found.size(), 0)
 
