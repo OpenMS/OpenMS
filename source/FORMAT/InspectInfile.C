@@ -39,9 +39,7 @@ namespace OpenMS
 		PM_tolerance_(-1.0),
 		ion_tolerance_(-1.0),
 		multicharge_(2),
-		tag_count_a_(-1),
-		tag_count_b_(-1),
-		twopass_(2)
+		tag_count_(-1)
 	{
 	}
 	
@@ -49,7 +47,6 @@ namespace OpenMS
 	InspectInfile::InspectInfile(
 		const InspectInfile& inspect_infile):
 		spectra_(inspect_infile.getSpectra()),
-		sequence_file_(inspect_infile.getSequenceFile()),
 		protease_(inspect_infile.getProtease()),
 		mod_(inspect_infile.getMod()),
 		mods_(inspect_infile.getMods()),
@@ -57,12 +54,9 @@ namespace OpenMS
 		maxptmsize_(inspect_infile.getMaxPTMsize()),
 		PM_tolerance_(inspect_infile.getPMTolerance()),
 		ion_tolerance_(inspect_infile.getIonTolerance()),
-		jumpscores_(inspect_infile.getJumpscores()),
 		multicharge_(inspect_infile.getMulticharge()),
 		instrument_(inspect_infile.getInstrument()),
-		tag_count_a_(inspect_infile.getTagCountA()),
-		tag_count_b_(inspect_infile.getTagCountB()),
-		twopass_(inspect_infile.getTwopass())
+		tag_count_(inspect_infile.getTagCount())
 	{
 	}
 	
@@ -78,7 +72,6 @@ namespace OpenMS
 		if (this != &inspect_infile)
 		{
 			spectra_ = inspect_infile.getSpectra();
-			sequence_file_ = inspect_infile.getSequenceFile();
 			protease_ = inspect_infile.getProtease();
 			mod_ = inspect_infile.getMod();
 			mods_ = inspect_infile.getMods();
@@ -86,12 +79,9 @@ namespace OpenMS
 			maxptmsize_ = inspect_infile.getMaxPTMsize();
 			PM_tolerance_ = inspect_infile.getPMTolerance();
 			ion_tolerance_ = inspect_infile.getIonTolerance();
-			jumpscores_ = inspect_infile.getJumpscores();
 			multicharge_ = inspect_infile.getMulticharge();
 			instrument_ = inspect_infile.getInstrument();
-			tag_count_a_ = inspect_infile.getTagCountA();
-			tag_count_b_ = inspect_infile.getTagCountB();
-			twopass_ = inspect_infile.getTwopass();
+			tag_count_ = inspect_infile.getTagCount();
 		}
 		return *this;
 	}
@@ -108,8 +98,6 @@ namespace OpenMS
 		ofs << "spectra," << spectra_ << endl;
 
 		if ( !db_.empty() ) ofs << "db," << db_ << endl;
-
-		if ( !sequence_file_.empty() ) ofs << "sequence_file," << sequence_file_ << endl;
 
 		if ( !protease_.empty() ) ofs << "protease," << protease_ << endl;
 
@@ -133,17 +121,11 @@ namespace OpenMS
 
 		if ( ion_tolerance_ >= 0 ) ofs << "IonTolerance," << ion_tolerance_ << endl;
 
-		if ( !jumpscores_.empty() ) ofs << "jumpscores," << jumpscores_ << endl;
-
 		if ( multicharge_ != 2 ) ofs << "multicharge," << multicharge_ << endl;
 
 		if ( !instrument_.empty() ) ofs << "instrument," << instrument_ << endl;
 
-		if ( tag_count_a_ >= 0 ) ofs << "TagCountA," << tag_count_a_ << endl;
-
-		if ( tag_count_a_ >= 0 ) ofs << "TagCountB," << tag_count_b_ << endl;
-
-		if ( twopass_ != 2 ) ofs << "twopass," << twopass_ << endl;
+		if ( tag_count_ >= 0 ) ofs << "TagCount," << tag_count_ << endl;
 
 		ofs.close();
 		ofs.clear();
@@ -157,10 +139,6 @@ namespace OpenMS
 	const String& InspectInfile::getDb() const {return db_;}
 
 	void InspectInfile::setDb(const String& db) {db_ = db;}
-
-	const String& InspectInfile::getSequenceFile() const {return sequence_file_;}
-
-	void InspectInfile::setSequenceFile(const String& sequence_file) {sequence_file_ = sequence_file;}
 
 	const String& InspectInfile::getProtease() const {return protease_;}
 
@@ -194,10 +172,6 @@ namespace OpenMS
 
 	void InspectInfile::setIonTolerance(DoubleReal ion_tolerance) {ion_tolerance_ = ion_tolerance;}
 
-	const String& InspectInfile::getJumpscores() const {return jumpscores_;}
-
-	void InspectInfile::setJumpscores(const String& jumpscores) {jumpscores_ = jumpscores;}
-
 	const UnsignedInt InspectInfile::getMulticharge() const {return multicharge_;}
 
 	void InspectInfile::setMulticharge(UnsignedInt multicharge) {multicharge_ = multicharge;}
@@ -206,15 +180,7 @@ namespace OpenMS
 
 	void InspectInfile::setInstrument(const String& instrument) {instrument_ = instrument;}
 
-	const SignedInt InspectInfile::getTagCountA() const {return tag_count_a_;}
+	const SignedInt InspectInfile::getTagCount() const {return tag_count_;}
 
-	void InspectInfile::setTagCountA(SignedInt tag_count_a) {tag_count_a_ = tag_count_a;}
-
-	const SignedInt InspectInfile::getTagCountB() const {return tag_count_b_;}
-
-	void InspectInfile::setTagCountB(SignedInt tag_count_b) {tag_count_b_ = tag_count_b;}
-
-	const UnsignedInt InspectInfile::getTwopass() const {return twopass_;}
-
-	void InspectInfile::setTwopass(UnsignedInt twopass) {twopass_ = twopass;}
+	void InspectInfile::setTagCount(SignedInt tag_count) {tag_count_ = tag_count;}
 } // namespace OpenMS

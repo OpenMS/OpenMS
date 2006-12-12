@@ -178,7 +178,11 @@ EXECUTABLES_FORMAT = \
 	DGridFile_test\
 	MzDataFile_test\
 	PeakFileOptions_test\
-	PeakTypeEstimator_test
+	PeakTypeEstimator_test\
+	InspectInfile_test\
+	InspectOutfile_test\
+	SequestInfile_test\
+	SequestOutfile_test
 
 #MATH
 

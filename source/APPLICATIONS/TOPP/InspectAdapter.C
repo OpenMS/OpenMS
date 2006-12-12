@@ -29,12 +29,10 @@
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <stdlib.h>
 #include <vector>
-
-#include <qfile.h>
-#include <qfileinfo.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -99,7 +97,7 @@ using namespace std;
 				</li>
 	</ol>
 	
-	@todo look for possible crash codes of inspect and catching them; extract by-ions, read PTMs from ini file and from input, compute protein score?, catch exceptions to close files (Martin)
+	@todo extract by-ions, compute protein score? (Martin)
 	
 */
 
@@ -141,7 +139,7 @@ class TOPPInspectAdapter
 						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << endl
 						<< "  -prcr_m_tol         the precursor mass tolerance" << endl
 						<< "  -pk_m_tol           the peak mass tolerance" << endl
-						<< "  -mods <MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>;..." << endl
+						<< "  -mods <MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>:..." << endl
 						<< "                      modifications i.e. [80,STY,opt,phosphorylation]" << endl
 						<< "                      MASS and RESIDUES are mandatory" << endl
 						<< "                      Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << endl
@@ -150,11 +148,7 @@ class TOPPInspectAdapter
 						<< "  -o <file>           direct output file from inspect" << endl
 						<< "  -trie_dbs <file1>,... names of database(s) in trie format" << endl
 						<< "  -max_mods_pp        number of PTMs permitted in a single peptide." << endl
-//						<< "  -twopass            use two-pass search: first pass uses fewer tags, produces list of proteins" << endl
-						<< "                      to be re-searched in second pass" << endl
-//						<< "  -TagCountA          number of tags for the first pass" << endl
-//						<< "  -TagCountB          number of tags for the second pass OR number of tags to use in a one-pass search" << endl
-						<< "  -jumpscores <file>  file to specify PTM frequencies, for use in tag generation. This is more accurate tagging than the" << endl
+						<< "  -tag_count          number of tags to generate" << endl
 						<< "  -no_tmp_dbs         no temporary databases are used" << endl
 						<< "  -new_db             name of the merged trie database" << endl
 						<< "                      an index file with extension \".index\" will be created." << endl
@@ -168,8 +162,7 @@ class TOPPInspectAdapter
 						<< "  -min_spp            minimum number of spectra a protein has to annotate to be added to the database" << endl
 						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << endl
 						<< "                      (-1 is #spectra / #proteins * 2)" << endl
-						<< "  -maxptmsize         maximum modification size (in Da) to consider" << endl
-						<< "                      default behavior (where tags can contain any PTM), but requires the creation of the jump frequency file" << endl;
+						<< "  -maxptmsize         maximum modification size (in Da) to consider" << endl;
 		}
 
 
@@ -191,16 +184,13 @@ class TOPPInspectAdapter
 			options_["-new_db"] = "new_db";
 			options_["-snd_db"] = "snd_db";
 			options_["-protease"] = "protease";
-			options_["-jumpscores"] = "jumpscores";
 			options_["-instrument"] = "instrument";
 			options_["-mods"] = "mods";
 			options_["-max_mods_pp"] = "max_mods_pp";
 			options_["-prcr_m_tol"] = "prcr_m_tol";
 			options_["-pk_m_tol"] = "pk_m_tol";
 			flags_["-multicharge"] = "multicharge";
-// 			options_["-TagCountA"] = "TagCountA";
-// 			options_["-TagCountB"] = "TagCountB";
-//			flags_["-twopass"] = "twopass";
+			options_["-tag_count"] = "tag_count";
 			options_["-out"] = "out";
 			options_["-inspect_output"] = "inspect_output";
 			flags_["-blind_only"] = "blind_only";
@@ -280,11 +270,6 @@ class TOPPInspectAdapter
 				substrings,
 				dbs,
 				seq_files;
-// 				mod_types;
-// 				mod_types.push_back("fix");
-// 				mod_types.push_back("cterminal");
-// 				mod_types.push_back("nterminal");
-// 				mod_types.push_back("opt");
 			
 			vector < vector< String > > mod;
 			
@@ -316,8 +301,8 @@ class TOPPInspectAdapter
 			
 			SignedInt
 				min_annotated_spectra_per_protein;
-
-			QFileInfo file_info;
+			
+			char separator = '/';
 			
 			
 			//-------------------------------------------------------------
@@ -344,9 +329,8 @@ class TOPPInspectAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				file_info.setFile(temp_data_dir);
-				temp_data_dir = file_info.absFilePath().ascii();
-				ensurePathChar(temp_data_dir);
+				File::absolutePath(temp_data_dir);
+				temp_data_dir.ensureLastChar(separator);
 			}
 			
 			string_buffer = getParamAsString_("in");
@@ -358,16 +342,14 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				file_info.setFile(string_buffer);
-				string_buffer = file_info.absFilePath().ascii();
+				File::absolutePath(string_buffer);
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
 					if ( inspect_out ) inspect_output_filename = getParamAsString_("inspect_output", temp_data_dir + "tmp.direct.inspect.output");
 				}
 				else inspect_output_filename = string_buffer;
-				file_info.setFile(inspect_output_filename);
-				inspect_output_filename = file_info.absFilePath().ascii();
+				File::absolutePath(inspect_output_filename);
 			}
 			
 			string_buffer = getParamAsString_("out");
@@ -378,8 +360,7 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				file_info.setFile(string_buffer);
-				string_buffer = file_info.absFilePath().ascii();
+				File::absolutePath(string_buffer);
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
 			}
@@ -389,8 +370,7 @@ class TOPPInspectAdapter
 				inspect_input_filename = getParamAsString_("inspect_input");
 				if ( inspect_input_filename.empty() ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
 				
-				file_info.setFile(inspect_input_filename);
-				inspect_input_filename = file_info.absFilePath().ascii();
+				File::absolutePath(inspect_input_filename);
 			}
 			
 			inspect_dir = getParamAsString_("inspect_dir");
@@ -399,9 +379,8 @@ class TOPPInspectAdapter
 				writeLog_("No inspect directory file specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			file_info.setFile(inspect_dir);
-			inspect_dir = file_info.absFilePath().ascii();
-			ensurePathChar(inspect_dir);
+			File::absolutePath(inspect_dir);
+			inspect_dir.ensureLastChar(separator);
 			
 			blind_only = getParamAsBool_("blind_only");
 			
@@ -436,22 +415,17 @@ class TOPPInspectAdapter
 				blind = getParamAsBool_("blind");
 				if ( blind && inspect_in && !inspect_out )
 				{
-// 					writeLog_("A blind search with prior run to minimize the database can only be run in full mode. Aborting!"); mode. Aborting!" << endl;
-// 					return ILLEGAL_PARAMETERS;
 					blind = false;
 					blind_only = true;
 				}
 				
 				db_filename = getParamAsString_("new_db");
-				if ( db_filename.empty() )
+				if ( db_filename.empty() && (!seq_files.empty() || dbs.size() != 1) )
 				{
 					if ( !inspect_out )
 					{
-						if ( !blind )
-						{
-							writeLog_("No name for new trie database given. Aborting!");
-							return ILLEGAL_PARAMETERS;
-						}
+								writeLog_("No name for new trie database given. Aborting!");
+								return ILLEGAL_PARAMETERS;
 					}
 					else
 					{
@@ -470,8 +444,10 @@ class TOPPInspectAdapter
 				}
 				else
 				{
-					file_info.setFile(db_filename);
-					db_filename = file_info.absFilePath().ascii();
+					// if only one trie database is given, this one is used
+					if ( db_filename.empty() ) db_filename = dbs.front();
+					
+					File::absolutePath(db_filename);
 					if ( db_filename.hasSuffix(".trie") )
 					{
 						inspect_infile.setDb(db_filename);
@@ -504,8 +480,7 @@ class TOPPInspectAdapter
 				}
 				else if ( blind )
 				{
-					file_info.setFile(snd_db);
-					snd_db = file_info.absFilePath().ascii();
+					File::absolutePath(snd_db);
 					if ( snd_db.hasSuffix(".trie") )
 					{
 						snd_db_filename = snd_db;
@@ -522,7 +497,7 @@ class TOPPInspectAdapter
 				if ( !blind_only )
 				{
 					string_buffer = getParamAsString_("mods");
-					string_buffer.split(';', substrings);
+					string_buffer.split(':', substrings);
 					
 					if ( substrings.empty() && !string_buffer.empty() ) substrings.push_back(string_buffer);
 					// for each modification get the mass, residues, type (optional) and name (optional)
@@ -552,7 +527,6 @@ class TOPPInspectAdapter
 				}
 				
 				inspect_infile.setProtease(getParamAsString_("protease"));
-				inspect_infile.setJumpscores(getParamAsString_("jumpscores"));
 				inspect_infile.setInstrument(getParamAsString_("instrument"));
 				
 				inspect_infile.setMods(getParamAsInt_("max_mods_pp", -1));
@@ -586,29 +560,16 @@ class TOPPInspectAdapter
 
 				if ( getParamAsBool_("multicharge") ) inspect_infile.setMulticharge(1);
 
-// 				string_buffer = getParamAsString_("TagCountA");
-// 				if ( !string_buffer.empty() )
-// 				{
-// 					inspect_infile.setTagCountA(getParamAsInt_("TagCountA"));
-// 					if ( (inspect_infile.getTagCountA() < 0) )
-// 					{
-// 						writeLog_("Illegal number of tags (TagCountA <0) given. Aborting!");
-// 						return ILLEGAL_PARAMETERS;
-// 					}
-// 				}
-// 
-// 				string_buffer = getParamAsString_("TagCountB");
-// 				if ( !string_buffer.empty() )
-// 				{
-// 					inspect_infile.setTagCountB(getParamAsInt_("TagCountB"));
-// 					if ( (inspect_infile.getTagCountB() < 0) )
-// 					{
-// 						writeLog_("Illegal number of tags (TagCountB <0) given. Aborting!");
-// 						return ILLEGAL_PARAMETERS;
-// 					}
-// 				}
-
-// 				if ( getParamAsBool_("twopass") ) inspect_infile.setTwopass(true);
+				string_buffer = getParamAsString_("tag_count");
+				if ( !string_buffer.empty() )
+				{
+					inspect_infile.setTagCount(getParamAsInt_("tag_count"));
+					if ( (inspect_infile.getTagCount() < 0) )
+					{
+						writeLog_("Illegal number of tags (tag_count <0) given. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+				}
 				
 				string_buffer = getParamAsString_("maxptmsize");
 				if ( !string_buffer.empty() )
@@ -651,92 +612,63 @@ class TOPPInspectAdapter
 			// (3) running program according to parameters
 			//-------------------------------------------------------------
 			// checking accessability of files
-			QFile file;
 			
 			// the file for the inspect output
 			if ( (inspect_in && inspect_out) || (inspect_in && blind) )
 			{
-				file.setName(inspect_output_filename);
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(inspect_output_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_output_filename);
-				}
-				file.close();
-			}
-			
-			if ( !inspect_infile.getJumpscores().empty() )
-			{
-				file_info.setFile(inspect_infile.getJumpscores());
-				if ( !file_info.isReadable() )
-				{
-					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_infile.getJumpscores());
 				}
 			}
 			
 			// output file
 			if ( inspect_out )
 			{
-				file.setName(output_filename);
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(output_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
 				}
-				file.close();
 			}
 			
 			vector< String > not_accessable, accessable_db, idx, accessable_seq;
+			
 			if ( inspect_in )
 			{
-				file.setName(inspect_input_filename.c_str());
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !File::writable(inspect_input_filename) )
 				{
-					file.close();
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, inspect_input_filename);
 				}
-				file.close();
 				
 				// database and index
-				file.setName(db_filename.c_str());
-				file.open(IO_WriteOnly);
-				if ( !file.isWritable() )
+				if ( !seq_files.empty() || dbs.size() != 1 )
 				{
-					file.close();
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
+					if ( !File::writable(db_filename) )
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, db_filename);
+					}
+					if ( !File::writable(idx_filename) )
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
+					}
 				}
-				file.close();
-				file.setName(idx_filename);
-				file.open( IO_WriteOnly );
-				if ( !file.isWritable() )
-				{
-					file.close();
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, idx_filename);
-				}
-				file.close();
 				
 				// given databases and sequence files
 				for ( vector< String >::iterator db_i = dbs.begin(); db_i != dbs.end(); ++db_i )
 				{
-					file_info.setFile(*db_i);
-					db_i->assign(file_info.absFilePath().ascii());
+					File::absolutePath(*db_i);
 					
-					file_info.setFile(*db_i);
-					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+					if ( !File::exists(*db_i) ) not_accessable.push_back(*db_i);
+					else if ( !File::readable(*db_i) ) not_accessable.push_back(*db_i);
+					else if ( File::empty(*db_i) ) not_accessable.push_back(*db_i);
 					else // if the file is accessable, try to find the corresponding index file and check it
 					{
 						if ( db_i->hasSuffix(".trie") ) string_buffer = db_i->substr(0, db_i->length()-4) + "index";
 						else string_buffer = *db_i + "index";
 						
-						file_info.setFile(string_buffer.c_str());
-						if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-						else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-						else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+						if ( !File::exists(string_buffer) ) not_accessable.push_back(*db_i);
+						else if ( !File::readable(string_buffer) ) not_accessable.push_back(*db_i);
+						else if ( File::empty(string_buffer) ) not_accessable.push_back(*db_i);
 						else
 						{
 							accessable_db.push_back(*db_i);
@@ -747,15 +679,14 @@ class TOPPInspectAdapter
 				
 				for ( vector< String >::iterator db_i = seq_files.begin(); db_i != seq_files.end(); ++db_i )
 				{
-					file_info.setFile(*db_i);
-					db_i->assign(file_info.absFilePath().ascii());
+					File::absolutePath(*db_i);
 					
-					file_info.setFile(*db_i);
-					if ( !file_info.exists() ) not_accessable.push_back(*db_i);
-					else if ( !file_info.isReadable() ) not_accessable.push_back(*db_i);
-					else if ( emptyFile(*db_i) ) not_accessable.push_back(*db_i);
+					if ( !File::exists(*db_i) ) not_accessable.push_back(*db_i);
+					else if ( !File::readable(*db_i) ) not_accessable.push_back(*db_i);
+					else if ( File::empty(*db_i) ) not_accessable.push_back(*db_i);
 					else accessable_seq.push_back(*db_i);
 				}
+				
 				if ( (not_accessable.size() ) == (dbs.size() + seq_files.size()) )
 				{
 					writeLog_("All of the given databases are either not existent, not readable or empty. Aborting!");
@@ -773,38 +704,26 @@ class TOPPInspectAdapter
 				// second database and index
 				if ( blind )
 				{
-					file.setName(snd_db_filename);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(snd_db_filename) )
 					{
-						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_db_filename);
 					}
-					file.close();
-					file.setName(snd_idx_filename);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(snd_idx_filename) )
 					{
-						file.close();
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_idx_filename);
 					}
-					file.close();
 				}
 				
 				// the on-screen output of inspect
 				if ( inspect_out )
 				{
-					file.setName(inspect_logfile);
-					file.open(IO_WriteOnly);
-					if ( !file.isWritable() )
+					if ( !File::writable(inspect_logfile) )
 					{
 						writeLog_(String(" Could not write in temp data directory: ")
 								+ temp_data_dir + inspect_logfile
 								+ String(" Aborting!"));
-						file.close();
 						return ILLEGAL_PARAMETERS;
 					}
-					file.close();
 				}
 			}
 			
@@ -813,24 +732,23 @@ class TOPPInspectAdapter
 			// creating the input file and converting and merging the databases
 			if ( inspect_in )
 			{
-				// merging the trie databases (all but the first databases are appended)
-				vector< String >::const_iterator idx_i = idx.begin();
-				for ( vector< String >::const_iterator db_i = accessable_db.begin(); db_i != accessable_db.end(); ++db_i, ++idx_i )
+				if ( !seq_files.empty() || dbs.size() != 1 ) // don't do it, if only one trie database is given
 				{
-					inspect_outfile.compressTrieDB(*db_i, *idx_i, vector< UnsignedInt >(), db_filename,  idx_filename, (db_i != accessable_db.begin()) );
+					// merging the trie databases (all but the first databases are appended)
+					vector< String >::const_iterator idx_i = idx.begin();
+					for ( vector< String >::const_iterator db_i = accessable_db.begin(); db_i != accessable_db.end(); ++db_i, ++idx_i )
+					{
+						inspect_outfile.compressTrieDB(*db_i, *idx_i, vector< UnsignedInt >(), db_filename,  idx_filename, (db_i != accessable_db.begin()) );
+					}
+					
+					// converting and merging the other databases (all but the first database are appended)
+					for ( vector< String >::const_iterator db_i = accessable_seq.begin(); db_i != accessable_seq.end(); ++db_i )
+					{
+						inspect_outfile.generateTrieDB(*db_i, db_filename,  idx_filename, ( (db_i != accessable_seq.begin()) || (!accessable_db.empty()) ));
+					}
 				}
 				
-				// converting and merging the other databases (all but the first database are appended)
-				for ( vector< String >::const_iterator db_i = accessable_seq.begin(); db_i != accessable_seq.end(); ++db_i )
-				{
-					inspect_outfile.generateTrieDB(*db_i, db_filename,  idx_filename, ( (db_i != accessable_seq.begin()) || (!accessable_db.empty()) ));
-				}
-				
-				if ( blind_only )
-				{
-					inspect_infile.setMulticharge(false);
-					inspect_infile.setBlind(true);
-				}
+				if ( blind_only ) inspect_infile.setBlind(true);
 				
 				inspect_infile.store(inspect_input_filename);
 			}
@@ -878,7 +796,6 @@ class TOPPInspectAdapter
 				
 				// setting the database name to the new database
 				inspect_infile.setDb(snd_db_filename);
-				inspect_infile.setSequenceFile("");
 				inspect_infile.setBlind(true);
 				inspect_infile.getMod().clear();
 				inspect_infile.store(inspect_input_filename);
@@ -922,8 +839,16 @@ class TOPPInspectAdapter
 					vector< IdentificationData > identifications;
 					ProteinIdentification protein_identification;
 					
-
-					vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
+					try
+					{
+						vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
+					}
+					catch( Exception::ParseError pe )
+					{
+						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
+						writeLog_(pe.getMessage());
+						return INPUT_FILE_CORRUPT;
+					}
 					
 					vector< ProteinIdentification > protein_identifications;
 					protein_identifications.push_back(protein_identification);

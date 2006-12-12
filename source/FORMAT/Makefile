@@ -41,9 +41,10 @@ CPP_SOURCES=\
 	PersistentObject.C\
 	MascotInfile.C\
 	MascotOutfile.C\
-	InspectFile.C\
 	InspectInfile.C\
 	InspectOutfile.C\
+	SequestInfile.C\
+	SequestOutfile.C\
 	TextFile.C\
 	UniqueIdGenerator.C\
 	FASTAFile.C\
@@ -59,9 +60,6 @@ CPP_SOURCES=\
 	SchemaFile.C\
 	PeakFileOptions.C\
 	PeakTypeEstimator.C
-
-#	SequestInfile.C\
-#	SequestOutfile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ifeq ($(NETCDF_SUPPORT),true)

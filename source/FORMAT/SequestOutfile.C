@@ -39,6 +39,7 @@ namespace OpenMS
 		vector< IdentificationData >&	identifications,
 		ProteinIdentification&	protein_identification,
 		const Real& p_value_threshold,
+		const vector< Real >& pvalues,
 		const string& database,
 		const string& snd_database)
 	throw(
@@ -60,236 +61,90 @@ namespace OpenMS
 			ac_position_map.insert(make_pair(phit_i->getAccession(), ac_position_map.size()));
 		}
 		
-		// (0) preparations
+		String
+			accession,
+			accession_type,
+			score_type;
+		
+		DateTime datetime;
+		Real precursor_mz_value;
+		UnsignedInt
+			precursor_mass_type,
+			ion_mass_type,
+			number_of_columns,
+			displayed_peptides,
+			proteins_per_peptide;
+			
+		SignedInt
+			charge,
+			number_column,
+			rank_sp_column,
+			id_column,
+			mh_column,
+			delta_cn_column,
+			xcorr_column,
+			sp_column,
+			sf_column,
+			ions_column,
+			reference_column,
+			peptide_column,
+			score_column;
+		
+		readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns, displayed_peptides);
+		
 		// open the result
-		ifstream result_file( result_filename.c_str());
+		ifstream result_file(result_filename.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
 		
-		// get the date and time
-		DateTime datetime, datetime_empty;
-		datetime.clear();
-		datetime_empty.clear();
-		// search for the first line with a date: mm/dd/yyyy
-		while ( (getline(result_file, line)) && (datetime == datetime_empty) )
+		UnsignedInt line_number = 0; // used to report in which line an error occured
+		while ( getline(result_file, line) ) // skip all lines until the one with '---'
 		{
-			if ( !line.empty() ) line.resize(line.length()-1);
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.trim();
-			line.split(',', substrings);
-			
-			if ( (!substrings.empty()) && (substrings[0].size() == 10) && (substrings[0][2] == '/') && (substrings[0][5] == '/') )
-			{
-				datetime.setDate(substrings[0]);
-				buffer = substrings[1];
-				buffer.trim();
-				buffer.split(' ', substrings);
-				// 12:00 = 12:00 PM; 24:00 = 12:00 AM
-				SignedInt hour = atoi(substrings[0].substr(0,2).c_str());
-				if ( (hour == 12) && (substrings[1] == "AM") ) substrings[0].replace(0, 2, "00");
-				else if ( (hour != 12) && (substrings[1] == "PM") )
-				{
-					hour += 12;
-					substrings[0].replace(0, 2, String(hour));
-					string x = "abc";
-					x.replace(0,3, "def");
-				}
-				substrings[0].append(":00");
-				datetime.setTime(substrings[0]);
-			}
+			++line_number;
+			if ( line.hasPrefix("---") ) break;
 		}
-		if ( datetime == datetime_empty )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no time found!" , result_filename);
-		}
-		
-		// get the precursor mass
-		if ( !line.empty() ) line.resize(line.length()-1);
-		line.trim();
 		
 		Identification* query;
-		if ( line.hasPrefix("(M+H)+ mass = ") )
-		{
-			line.erase(0, String("(M+H)+ mass = ").length());
-			line.split(' ', substrings);
-			precursor_mz_values.push_back(atof(substrings[0].c_str()));
-			
-			identifications.push_back(Identification());
-			query = &identifications.back();
-			query->setCharge(atoi(substrings[3].substr(1,2).c_str()));
-		}
-		else
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no precursor mass found!" , result_filename);
-		}
+		identifications.push_back(IdentificationData());
+		identifications.back().mz = precursor_mz_value;
+		
+		query = &(identifications.back().id);
+		query->setCharge(charge);
 		
 		vector< String > databases;
-		
 		databases.push_back(database);
 		if ( !snd_database.empty() ) databases.push_back(snd_database);
-
-		while ( getline(result_file, line) ) // skip all lines until the one with 'display top'
-		{
-			if ( !line.empty() ) line.resize(line.length()-1);
-			line.trim();
-			if ( line.hasPrefix("display top") ) break;
-		}
-		// get the number of peptides displayed
-		line.split(',', substrings);
-		if ( !substrings[0].hasPrefix("display top ") )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No number of displayed peptides found!" , result_filename);
-		}
-		UnsignedInt displayed_peptides = String("display top ").length();
-		displayed_peptides = atoi(substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).c_str());
-		
-		// skip the next three lines
-		while ( getline(result_file, line) )
-		{
-			if ( !line.empty() ) line.resize(line.length()-1);
-			line.trim();
-			if ( line.hasPrefix("#") ) break;
-		}
-		if ( !line.hasPrefix("#") )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough lines in file (no table header found)!" , result_filename);
-		}
-		
-		// retrieve the number of lines and get the needed column numbers
-		SignedInt number_column = -1;
-		SignedInt rank_Sp_column = -1;
-		SignedInt id_column = -1;
-		SignedInt MH_column = -1;
-		SignedInt delt_Cn_column = -1;
-		SignedInt XCorr_column = -1;
-		SignedInt Sp_column = -1;
-		SignedInt Sf_column = -1;
-		//SignedInt P_column = -1;
-		SignedInt ions_column = -1;
-		SignedInt reference_column = -1;
-		SignedInt peptide_column = -1;
-		
-		// get the single columns (seperated by "  ")
-		line.split(' ', substrings);
-		
-		// remove the empty strings
-		for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
-		{
-			i->trim();
-			if ( i->empty() ) i = substrings.erase(i);
-			else ++i;
-		}
-		UnsignedInt number_of_columns = substrings.size();
-		
-		// get the numbers of the columns
-		for ( vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
-		{
-			if ( !iter->compare("#") )
-			{
-				number_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Rank/Sp") )
-			{
-				rank_Sp_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Id#") )
-			{
-				id_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("(M+H)+") )
-			{
-				MH_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("deltCn") )
-			{
-				delt_Cn_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("XCorr") )
-			{
-				XCorr_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Sp") )
-			{
-				Sp_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Sf") )
-			{
-				Sf_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Ions") )
-			{
-				ions_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Reference") )
-			{
-				reference_column = (iter - substrings.begin());
-			}
-			else if ( !iter->compare("Peptide") )
-			{
-				peptide_column = (iter - substrings.begin());
-			}
-		}
-		// check whether the columns are available in the table header
-		if ( (number_column == -1) || (rank_Sp_column == -1) ||  (id_column == -1) || (MH_column == -1) || (delt_Cn_column == -1) || (XCorr_column == -1) || (Sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#', 'Rank/Sp', 'Id#', '(M+H)+', 'deltCn', 'XCorr', 'Sp', 'Ions', 'Reference' or 'Peptide' is missing!" , result_filename);
-		}
-		// skip the next line
-		if ( !getline(result_file, line) )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-		}
-		if ( !line.empty() ) line.resize(line.length()-1);
 		
 		PeptideHit peptide_hit;
 		ProteinHit protein_hit;
-		string accession, accession_type;
-		UnsignedInt line_number = 0; // used to report in which line an error occured
 		
-		SignedInt proteins_per_peptide;
-		SignedInt score_column = (Sf_column == -1) ? Sp_column : Sf_column;
-		String score_type = (Sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
+		score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
+
+		vector< Real >::const_iterator p_value = pvalues.begin();
 		
-		for ( UnsignedInt i = 0; i < displayed_peptides; ++i )
+		for ( UnsignedInt i = 0; i < displayed_peptides; ++i, ++p_value )
 		{
-			if ( !getline(result_file, line) )
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , result_filename);
-			}
-			if ( !line.empty() ) line.resize(line.length()-1);
+			// if less peptides were found than may be displayed, break
+			if ( !getline(result_file, line) ) break;
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			
-			if ( !getColumns(line, substrings, number_of_columns, reference_column) ) break; // if less peptides were found than may be displayed, break
+			getColumns(line, substrings, number_of_columns, reference_column);
 			++line_number;
 			
 			// check whether the line has enough columns
 			if (substrings.size() < number_of_columns )
 			{
-				char buffer[10];
-				sprintf(buffer, "%i", line_number);
-				string error_message = "wrong number of columns in row ";
-				error_message.append(buffer);
-				error_message.append(" " + line + " ");
-				error_message.append("! (");
-				sprintf(buffer, "%i", substrings.size());
-				error_message.append(buffer);
-				error_message.append(" present, should be ");
-				sprintf(buffer, "%i", number_of_columns);
-				error_message.append(buffer);
-				error_message.append(")");
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.c_str() , result_filename);
+				stringstream error_message;
+				error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
+				result_file.close();
+				result_file.clear();
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 			}
-			
-			// get the peptide information and insert it
-			peptide_hit.clear();
-			peptide_hit.setScore(atof(substrings[score_column].c_str()));
-			peptide_hit.setScoreType(score_type);
-			
-			peptide_hit.setSequence(substrings[peptide_column].substr(2, substrings[peptide_column].length()-4));
-			peptide_hit.setRank(atoi(substrings[rank_Sp_column].substr(0, substrings[rank_Sp_column].find('/')).c_str()));
-			
-			// get the protein information
-			
+
 			// check whether there are multiple proteins that belong to this peptide
 			if ( substrings[reference_column].find_last_of('+') != string::npos )
 			{
@@ -299,61 +154,76 @@ namespace OpenMS
 				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
 			}
 			else proteins_per_peptide = 0;
-			
-			protein_hit.clear();
-			getACAndACType(substrings[reference_column], accession, accession_type);
-			protein_hit.setAccession(accession);
-			protein_hit.setAccessionType(accession_type);
-			protein_hit.setRank(ac_position_map.size());
-			// ### score einfach zusammenrechnen?
-			//protein_hit.setScore(0.0);
-			//protein_hit.setScoreType(score_type);
-			
-			if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
-			
-			peptide_hit.addProteinIndex(datetime, accession);
-			
-			for ( SignedInt i = 0; i < proteins_per_peptide; ++i )
+			// get the peptide information and insert it
+			if ( p_value != pvalues.end() && *p_value <= p_value_threshold )
 			{
-				getline(result_file, line);
-				if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
-				line.trim();
-				line.erase(0,3); // all these lines look like '0  gi|1584947|prf||2123446B gamma sar'
+				peptide_hit.clear();
+				peptide_hit.setScore(atof(substrings[score_column].c_str()));
+				peptide_hit.setScoreType(score_type);
 				
+				peptide_hit.setSequence(substrings[peptide_column].substr(2, substrings[peptide_column].length()-4));
+				peptide_hit.setRank(atoi(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).c_str()));
+				
+				// get the protein information
 				protein_hit.clear();
-				getACAndACType(substrings[1], accession, accession_type);
+				getACAndACType(substrings[reference_column], accession, accession_type);
 				protein_hit.setAccession(accession);
 				protein_hit.setAccessionType(accession_type);
 				protein_hit.setRank(ac_position_map.size());
-				// ### score einfach zusammenrechnen?
-				//protein_hit.setScore(0.0);
-				//protein_hit.setScoreType(score_type);
+				// score einfach zusammenrechnen?
+	//			protein_hit.setScore(0.0);
+	//			protein_hit.setScoreType(score_type);
 				
 				if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
 				
 				peptide_hit.addProteinIndex(datetime, accession);
+				
+				for ( UnsignedInt i = 0; i < proteins_per_peptide; ++i )
+				{
+					getline(result_file, line);
+					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+					line.trim();
+					line.erase(0,3); // all these lines look like '0  gi|1584947|prf||2123446B gamma sar'
+					
+					protein_hit.clear();
+					getACAndACType(substrings[1], accession, accession_type);
+					protein_hit.setAccession(accession);
+					protein_hit.setAccessionType(accession_type);
+					protein_hit.setRank(ac_position_map.size());
+					// score einfach zusammenrechnen?
+	//				protein_hit.setScore(0.0);
+	//				protein_hit.setScoreType(score_type);
+					
+					if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
+					
+					peptide_hit.addProteinIndex(datetime, accession);
+				}
+				
+				updatePeptideHits(peptide_hit, query->getPeptideHits());
 			}
-			
-			updatePeptideHits(peptide_hit, query->getPeptideHits());
-		} // result file read
+			else
+			{
+				for ( UnsignedInt i = 0; i < proteins_per_peptide; ++i ) getline(result_file, line);
+			}
+		}
 		result_file.close();
 		
 		// get the sequences of the protein
-// 		vector< String > sequences;
-// 		map< String, UnsignedInt > not_found;
-// 		vector< pair< String, UnsignedInt > > found;
-// 		for ( vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
-// 		{
-// 			getSequences(*db_i, ac_position_map, sequences, found, not_found);
-// 			
-// 			if ( db_i != databases.begin() ) ac_position_map = not_found;
-// 		}
-// 		
-// 		vector< String >::const_iterator seq_i = sequences.begin();
-// 		for ( vector< pair< String, UnsignedInt > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i)
-// 		{
-// 			protein_hits[protein_i->second].setSequence(*seq_i);
-// 		}
+//		vector< String > sequences;
+//		map< String, UnsignedInt > not_found;
+//		vector< pair< String, UnsignedInt > > found;
+//		for ( vector< String >::const_iterator db_i = databases.begin(); db_i != databases.end(); ++db_i )
+//		{
+//			getSequences(*db_i, ac_position_map, sequences, found, not_found);
+//			
+//			if ( db_i != databases.begin() ) ac_position_map = not_found;
+//		}
+//
+//		vector< String >::const_iterator seq_i = sequences.begin();
+//		for ( vector< pair< String, UnsignedInt > >::const_iterator protein_i = found.begin(); protein_i != found.end(); ++protein_i, ++seq_i)
+//		{
+//			protein_hits[protein_i->second].setSequence(*seq_i);
+//		}
 //		
 //		sequences.clear();
 //		found.clear();
@@ -372,7 +242,7 @@ namespace OpenMS
 		}
 		else // if several out-files were used, the first query owns a vector with protein hits
 		{
-			identifications.front().setProteinHits(vector< ProteinHit >());
+			identifications.front().id.setProteinHits(vector< ProteinHit >());
 		}
 		
 		peptide_hit.clear();
@@ -445,6 +315,7 @@ namespace OpenMS
 		// if there are more columns than should be, there were spaces in the protein column
 		for ( vector< String >::iterator s_i = substrings.begin()+reference_column; substrings.size() > number_of_columns; )
 		{
+			s_i->append(" ");
 			s_i->append(*(s_i+1));
 			substrings.erase(s_i+1);
 		}
@@ -463,14 +334,13 @@ namespace OpenMS
 	throw (
 		Exception::FileNotFound)
 	{
-		sequences.clear();
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
 		}
 		
-		String line, accession, old_accession, accession_type, sequence;
+		String line, accession, accession_type, sequence;
 		not_found = ac_position_map;
 		map< String, UnsignedInt >::iterator nf_i = not_found.end();
 		while ( getline(database_file, line) && !not_found.empty() )
@@ -491,9 +361,7 @@ namespace OpenMS
 					found.push_back(*nf_i);
 					not_found.erase(nf_i);
 				}
-				if ( !old_accession.empty() ) nf_i = not_found.find(old_accession);
-				else nf_i = not_found.find(accession); // for the first protein in the database, there's no predecessing protein
-				old_accession = accession;
+				nf_i = not_found.find(accession); // for the first protein in the database, there's no predecessing protein
 				sequence.clear();
 			}
 			else if ( nf_i != not_found.end() ) sequence.append(line);
@@ -594,17 +462,24 @@ namespace OpenMS
 		}
 		else
 		{
-			size_t pos1 = line.find('(', 0);
-			size_t pos2;
-			if ( pos1 != string::npos )
+			size_t pos1 = line.find('|');
+			accession = line.substr(0, pos1);
+			if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+			else
 			{
-				pos2 = line.find(')', ++pos1);
-				if ( pos2 != string::npos )
+				pos1 = line.find('(', 0);
+				size_t pos2;
+				if ( pos1 != string::npos )
 				{
-					accession = line.substr(pos1, pos2 - pos1);
-					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
-					else accession.clear();
+					pos2 = line.find(')', ++pos1);
+					if ( pos2 != string::npos )
+					{
+						accession = line.substr(pos1, pos2 - pos1);
+						if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+						else accession.clear();
+					}
 				}
+				else accession.clear();
 			}
 		}
 		if ( accession.empty() )
@@ -654,6 +529,411 @@ namespace OpenMS
 			}
 		}
 		return false;
+	}
+
+	void
+	SequestOutfile::readOutHeader(
+		const string& result_filename,
+		DateTime& datetime,
+		Real& precursor_mz_value,
+		SignedInt& charge,
+		UnsignedInt& precursor_mass_type,
+		UnsignedInt& ion_mass_type,
+		SignedInt& number_column,
+		SignedInt& rank_sp_column,
+		SignedInt& id_column,
+		SignedInt& mh_column,
+		SignedInt& delta_cn_column,
+		SignedInt& xcorr_column,
+		SignedInt& sp_column,
+		SignedInt& sf_column,
+//		SignedInt& P_column,
+		SignedInt& ions_column,
+		SignedInt& reference_column,
+		SignedInt& peptide_column,
+		SignedInt& score_column,
+		UnsignedInt& number_of_columns,
+		UnsignedInt& displayed_peptides)
+	throw(
+		Exception::FileNotFound,
+		Exception::ParseError)
+	{
+		// open the result
+		ifstream result_file( result_filename.c_str());
+		if ( !result_file )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+		}
+
+		String line, buffer;
+		vector< String > substrings;
+		
+		// get the date and time
+		DateTime datetime_empty;
+		datetime.clear();
+		datetime_empty.clear();
+		// search for the first line with a date: mm/dd/yyyy
+		while ( (getline(result_file, line)) && (datetime == datetime_empty) )
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			line.split(',', substrings);
+			
+			if ( (!substrings.empty()) && (substrings[0].size() == 10) && (substrings[0][2] == '/') && (substrings[0][5] == '/') )
+			{
+				datetime.setDate(substrings[0]);
+				buffer = substrings[1];
+				buffer.trim();
+				buffer.split(' ', substrings);
+				// 12:00 = 12:00 PM; 24:00 = 12:00 AM
+				SignedInt hour = atoi(substrings[0].substr(0,2).c_str());
+				if ( (hour == 12) && (substrings[1] == "AM") ) substrings[0].replace(0, 2, "00");
+				else if ( (hour != 12) && (substrings[1] == "PM") )
+				{
+					hour += 12;
+					substrings[0].replace(0, 2, String(hour));
+				}
+				substrings[0].append(":00");
+				datetime.setTime(substrings[0]);
+			}
+		}
+		if ( datetime == datetime_empty )
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no time found!" , result_filename);
+		}
+		
+		// get the precursor mass
+		if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+		line.trim();
+
+		if ( line.hasPrefix("(M+H)+ mass = ") )
+		{
+			line.erase(0, String("(M+H)+ mass = ").length());
+			line.split(' ', substrings);
+			precursor_mz_value = substrings[0].toFloat();
+			charge = substrings[3].substr(1,2).toInt();
+			line = *(--substrings.end());
+			line.split('/', substrings);
+			substrings[0].toUpper();
+			substrings[1].toUpper();
+			precursor_mass_type = ( substrings[0] == "MONO" ) ? 1 : 0;
+			ion_mass_type = ( substrings[1] == "MONO" ) ? 1 : 0;
+		}
+		else
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no precursor mass found!" , result_filename);
+		}
+		
+		while ( getline(result_file, line) ) // skip all lines until the one with 'display top'
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			if ( line.hasPrefix("display top") ) break;
+		}
+		// get the number of peptides displayed
+		line.split(',', substrings);
+		if ( !substrings[0].hasPrefix("display top ") )
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No number of displayed peptides found!" , result_filename);
+		}
+		displayed_peptides = String("display top ").length();
+		displayed_peptides = atoi(substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).c_str());
+		
+		// skip the next three lines
+		while ( getline(result_file, line) )
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			if ( line.hasPrefix("#") ) break;
+		}
+		if ( !line.hasPrefix("#") )
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough lines in file (no table header found)!" , result_filename);
+		}
+		
+		// retrieve the number of lines and get the needed column numbers
+		number_column = -1;
+		rank_sp_column = -1;
+		id_column = -1;
+		mh_column = -1;
+		delta_cn_column = -1;
+		xcorr_column = -1;
+		sp_column = -1;
+		sf_column = -1;
+		//P_column = -1;
+		ions_column = -1;
+		reference_column = -1;
+		peptide_column = -1;
+		
+		// get the single columns
+		line.split(' ', substrings);
+		
+		// remove the empty strings
+		for ( vector< String >::iterator i = substrings.begin(); i != substrings.end(); )
+		{
+			i->trim();
+			if ( i->empty() ) i = substrings.erase(i);
+			else ++i;
+		}
+		number_of_columns = substrings.size();
+		
+		// get the numbers of the columns
+		for ( vector< String >::const_iterator iter = substrings.begin(); iter != substrings.end(); ++iter)
+		{
+			if ( !iter->compare("#") )
+			{
+				number_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Rank/Sp") )
+			{
+				rank_sp_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Id#") )
+			{
+				id_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("(M+H)+") )
+			{
+				mh_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("deltCn") )
+			{
+				delta_cn_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("XCorr") )
+			{
+				xcorr_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Sp") )
+			{
+				sp_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Sf") )
+			{
+				sf_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Ions") )
+			{
+				ions_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Reference") )
+			{
+				reference_column = (iter - substrings.begin());
+			}
+			else if ( !iter->compare("Peptide") )
+			{
+				peptide_column = (iter - substrings.begin());
+			}
+		}
+		// check whether the columns are available in the table header
+		if ( (number_column == -1) || (rank_sp_column == -1) ||  (id_column == -1) || (mh_column == -1) || (delta_cn_column == -1) || (xcorr_column == -1) || (sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
+		{
+			result_file.close();
+			result_file.clear();
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#', 'Rank/Sp', 'Id#', '(M+H)+', 'deltCn', 'XCorr', 'Sp', 'Ions', 'Reference' or 'Peptide' is missing!" , result_filename);
+		}
+		
+		score_column = (sf_column == -1) ? sp_column : sf_column;
+		
+		result_file.close();
+		result_file.clear();
+	}
+
+	void
+	SequestOutfile::out2SummaryHtml(
+		string out_filename,
+		const string& summary_filename,
+		const string& database_filename,
+		bool& append)
+	throw(
+		Exception::FileNotFound,
+		Exception::ParseError,
+		Exception::UnableToCreateFile)
+	{
+		ofstream summary;
+		// write the fileheader, if not in append mode (one fileheader only)
+		if ( !append )
+		{
+			summary.open(summary_filename.c_str());
+			if ( !summary )
+			{
+				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, summary_filename);
+			}
+			summary << "<HTML>" << endl << "<HEAD><TITLE>HTML-SUMMARY</TITLE></HEAD>" << endl << "<BODY BGCOLOR=\"#FFFFFF\">" << endl << "<PRE><FONT COLOR=\"green\">HTML-SUMMARY</FONT>" << endl  << endl << "<FONT COLOR=\"green\">   #    File                          MH+                  XCorr    dCn      Sp    RSp    Ions   Ref                                    Sequence</FONT>" << endl << "<FONT COLOR=\"green\">  ----  --------------------------  -------------------    ------  -----   ------  ---   ------  ----------------------------------  -------------------</FONT>" << endl;
+			append = true;
+		}
+		else summary.open(summary_filename.c_str(), ios::out | ios::app);
+		if ( !summary )
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, summary_filename);
+		}
+		
+		DateTime datetime;
+		Real
+			precursor_mz_value,
+			last_delta_cn;
+			UnsignedInt
+			precursor_mass_type,
+			ion_mass_type,
+			number_of_columns,
+			displayed_peptides;
+		
+		SignedInt
+			charge,
+			number_column,
+			rank_sp_column,
+			id_column,
+			mh_column,
+			delta_cn_column,
+			xcorr_column,
+			sp_column,
+			sf_column,
+			ions_column,
+			reference_column,
+			peptide_column,
+			score_column;
+		
+		readOutHeader(out_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns, displayed_peptides);
+		
+		// open the result file
+		ifstream out_file(out_filename.c_str());
+		if ( !out_file )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_filename);
+		}
+
+		QFileInfo file_info(out_filename);
+		out_filename = file_info.fileName().ascii();
+
+		String line, line_buffer;
+		stringstream line_ss;
+		vector< String > substrings;
+		UnsignedInt line_number = 0;
+		while ( getline(out_file, line) ) // skip all lines until the one with '---'
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			++line_number;
+			if ( line.hasPrefix("---") ) break;
+		}
+		
+		UnsignedInt proteins_per_peptide;
+		for ( UnsignedInt i = 0; i < displayed_peptides; ++i )
+		{
+			if ( !getline(out_file, line) )
+			{
+				out_file.close();
+				out_file.clear();
+				summary.close();
+				summary.clear();
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "not enough lines in file!" , out_filename);
+			}
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			
+			if ( !getColumns(line, substrings, number_of_columns, reference_column) ) break; // if less peptides were found than may be displayed, break
+			++line_number;
+			
+			// check whether the line has enough columns
+			if (substrings.size() < number_of_columns )
+			{
+				stringstream error_message;
+				error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , out_filename);
+			}
+			
+			// check whether there are multiple proteins that belong to this peptide
+			if ( substrings[reference_column].find_last_of('+') != string::npos )
+			{
+				// save the number of multiple proteins
+				proteins_per_peptide = atoi(substrings[reference_column].substr(substrings[reference_column].find_last_of('+')).c_str());
+				// and remove this number from the string
+				substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
+			}
+			else proteins_per_peptide = 0;
+			if ( i ) line_buffer.replace(line_buffer.find("###"), 3, String(substrings[delta_cn_column].toFloat() - last_delta_cn));
+			summary << line_buffer;
+			last_delta_cn = substrings[delta_cn_column].toFloat();
+			
+			substrings[reference_column].remove('>');
+			line_ss.str("");
+			line_ss << i+1 << " " << out_filename.substr(0, out_filename.length() - 4) << " " << substrings[mh_column] << " (" << precursor_mz_value - substrings[mh_column].toFloat() << ") " << substrings[xcorr_column] << " " << "###" << " " << substrings[sp_column] << " " << substrings[rank_sp_column].substr(substrings[rank_sp_column].find('/') + 1) << " " << substrings[ions_column] << " <A HREF=\"/cgi-bin/comet-fastadb.cgi?Ref=" << substrings[reference_column] << "&amp;Db=" << database_filename << "&amp;NucDb=0&amp;Pep=" << substrings[peptide_column].substr(2,  substrings[peptide_column].length() - 4 ) << "&amp;MassType=" << ion_mass_type << "\">" <<  substrings[reference_column] << "</A> " << substrings[peptide_column][0] << ".<A HREF=\"http://www.ncbi.nlm.nih.gov\">" << substrings[peptide_column].substr(2,  substrings[peptide_column].length() - 4 ) << "</A>." << substrings[peptide_column][substrings[peptide_column].length() - 1] << endl;
+			
+			line_buffer = line_ss.str();
+			
+			for ( UnsignedInt prot = 0; prot < proteins_per_peptide; ++prot )
+			{
+				getline(out_file, line);
+			}
+		}
+		
+		out_file.close();
+		out_file.clear();
+		summary.close();
+		summary.clear();
+	}
+	
+	void
+	finishSummaryHtml(
+		const string& summary_filename
+	)
+	throw(
+		Exception::UnableToCreateFile)
+	{
+		ofstream summary(summary_filename.c_str(), ios::out | ios::app);
+		if ( !summary )
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, summary_filename);
+		}
+		summary << "</BODY></HTML>" << endl;
+		summary.close();
+		summary.clear();
+	}
+	
+	map< String, vector< Real > >
+	SequestOutfile::getPeptidePValues(
+		const string& out_dir,
+		const string& prob_filename)
+	throw(
+		Exception::FileNotFound,
+		Exception::ParseError)
+	{
+		ifstream prob_file(prob_filename.c_str());
+		if ( !prob_file )
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, prob_filename);
+		}
+		
+		// the probability file has one line for each peptide
+		// each line consists of filename\tprobability\tstuff/negonly
+		String line, filename;
+		vector< String > substrings;
+		map< String, vector< Real > > filenames_and_pvalues;
+		vector< Real >* pvalues;
+		while ( getline(prob_file, line) )
+		{
+			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.split('\t', substrings);
+			substrings[0].insert(0, out_dir);
+			substrings[0].append(".out");
+			if ( filename != substrings[0] ) // if a new filename is found, insert a vector and set the pointer accordingly
+			{
+				filenames_and_pvalues[substrings[0]] = vector< Real >();
+				filename = substrings[0];
+				pvalues = &filenames_and_pvalues[filename];
+			}
+			if ( substrings[2] == "negonly" ) pvalues->push_back(1.0);
+			else pvalues->push_back(1.0 - substrings[1].toFloat());
+		}
+		
+		return filenames_and_pvalues;
 	}
 	
 } //namespace OpenMS

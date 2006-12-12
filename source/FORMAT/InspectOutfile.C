@@ -42,21 +42,19 @@ namespace OpenMS
 		vector< IdentificationData >& identifications,
 		ProteinIdentification& protein_identification,
 		Real p_value_threshold)
-//		const string& database_filename)
 	throw (
 		Exception::FileNotFound,
 		Exception::ParseError,
 		Exception::IllegalArgument)
 	{
-		vector< PeptideHit > peptide_hits;
 		vector< ProteinHit > protein_hits;
-		
+
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
 		}
-		
+
 		// get the header
 		enum columns
 		{
@@ -80,7 +78,7 @@ namespace OpenMS
 		UnsignedInt number_of_columns = 16;
 		String line;
 		vector<String> substrings;
-		
+
 		//	 record number, position in protein_hits
 		map< UnsignedInt, UnsignedInt > rn_position_map;
 		Identification* query = NULL;
@@ -93,6 +91,7 @@ namespace OpenMS
 		string accession, accession_type, spectrum_file;
 		UnsignedInt record_number, scan_number, start, end;
 		UnsignedInt rank = 0;
+		UnsignedInt peptide_hits;
 		UnsignedInt line_number = 0; // used to report in which line an error occured
 		UnsignedInt scans = 0;
 		vector< UnsignedInt > corrupted_lines;
@@ -105,13 +104,13 @@ namespace OpenMS
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
-		
+
 		while ( getline(result_file, line) )
 		{
 			++line_number;
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 			line.split('\t', substrings);
-			
+
 			// check whether the line has enough columns
 			if ( substrings.size() != number_of_columns )
 			{
@@ -122,16 +121,16 @@ namespace OpenMS
 				corrupted_lines.push_back(line_number);
 				continue;
 			}
-			
+
 			// the is a header which is skipped
 			if ( substrings[0] == "#SpectrumFile" ) continue;
-			
+
 			// take only those peptides whose p-value is less or equal the given threshold
 			if ( substrings[p_value_column].toFloat() > p_value_threshold ) continue;
-			
+
 			// get accession number and type
 			getACAndACType(substrings[protein_column], accession, accession_type);
-			
+
 			record_number = substrings[record_number_column].toInt();
 			
 			// if a new protein is found, get the rank and insert it
@@ -139,7 +138,7 @@ namespace OpenMS
 			{
 				// map the record number to the size in protein hits
 				rn_position_map[record_number] = protein_hits.size();
-				
+
 				protein_hit.clear();
 				protein_hit.setRank(rn_position_map.size());
 				protein_hit.setAccession(accession);
@@ -184,8 +183,9 @@ namespace OpenMS
 			peptide_hit.setRank(++rank);
 			peptide_hit.addProteinIndex(datetime, accession);
 			
-			rank -= updatePeptideHits(peptide_hit, query->getPeptideHits());
-			updatePeptideHits(peptide_hit, peptide_hits);
+			peptide_hits = query->getPeptideHits().size();
+			updatePeptideHits(peptide_hit, query->getPeptideHits());
+			rank -= ( peptide_hits == query->getPeptideHits().size() );
 		}
 		// result file read
 		result_file.close();
@@ -207,8 +207,8 @@ namespace OpenMS
 //		}
 		
 		// get the precursor retention times and mz values
-		getPrecursorRTandMZ(files_and_scan_numbers, identifications, scans);
-		
+		getPrecursorRTandMZ(files_and_scan_numbers, identifications);
+
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
 		if ( identifications.size() == 1 )
 		{
@@ -219,7 +219,6 @@ namespace OpenMS
 		protein_identification.setProteinHits(protein_hits);
 		protein_identification.setDateTime(datetime);
 		
-		peptide_hits.clear();
 		protein_hits.clear();
 		peptide_hit.clear();
 		protein_hit.clear();
@@ -227,7 +226,7 @@ namespace OpenMS
 		rn_position_map.clear();
 		return corrupted_lines;
   }
-	
+
 	vector< UnsignedInt >
 	InspectOutfile::getSequences(
 		const string& database_filename,
@@ -248,7 +247,7 @@ namespace OpenMS
 		database.seekg(0, ios::end);
 		streampos sp = database.tellg();
 		database.seekg(0, ios::beg);
-		
+
 		for ( map< UnsignedInt, UnsignedInt >::const_iterator wr_i = wanted_records.begin(); wr_i !=  wanted_records.end(); ++wr_i )
 		{
 			for ( ; seen_records < wr_i->first; ++seen_records )
@@ -260,21 +259,19 @@ namespace OpenMS
 			if ( sequences.back().empty() ) not_found.push_back(wr_i->first);
 			sequence.str("");
 		}
-		
+
 		// close the filestreams
 		database.close();
 		database.clear();
 		
 		return not_found;
 	}
-
+	
 	void
 	InspectOutfile::getACAndACType(
 		String line,
 		string& accession,
 		string& accession_type)
-	throw (
-		Exception::ParseError)
 	{
 		pair<string, string> p;
 		// if it's a FASTA line
@@ -290,16 +287,44 @@ namespace OpenMS
 		}
 		else if ( line.hasPrefix("gi") )
 		{
-			UnsignedInt snd = line.find('|', 3);
-			UnsignedInt third = line.find('|', ++snd);
-			++third;
-			accession = line.substr(third, line.find('|', third)-third);
-			accession_type = line.substr(snd, third-1-snd);
+			size_t snd = line.find('|', 3);
+			size_t third;
+			if ( snd != string::npos )
+			{
+				third = line.find('|', ++snd) + 1;
+				
+				accession = line.substr(third, line.find('|', third)-third);
+				accession_type = line.substr(snd, third-1-snd);
+			}
 			if ( accession_type == "gb" ) accession_type = "GenBank";
 			else if ( accession_type == "emb" ) accession_type = "EMBL";
 			else if ( accession_type == "dbj" ) accession_type = "DDBJ";
 			else if ( accession_type == "ref" ) accession_type = "NCBI";
 			else if ( (accession_type == "sp") || (accession_type == "tr") ) accession_type = "SwissProt";
+			else if ( accession_type == "gnl" )
+			{
+				accession_type = accession;
+				snd = line.find('|', third);
+				third = line.find('|', ++snd);
+				if ( third != string::npos ) accession = line.substr(snd, third-snd);
+				else
+				{
+					third = line.find(' ', snd);
+					if ( third != string::npos ) accession = line.substr(snd, third-snd);
+					else accession = line.substr(snd);
+				}
+			}
+			else
+			{
+				accession_type = "gi";
+				if ( snd != string::npos ) accession = line.substr(3, snd-4);
+				else
+				{
+					if ( snd == string::npos ) snd = line.find(' ', 3);
+					if ( snd != string::npos ) accession = line.substr(3, snd-3);
+					else accession = line.substr(3);
+				}
+			}
 		}
 		else if ( line.hasPrefix("ref") )
 		{
@@ -327,8 +352,8 @@ namespace OpenMS
 		}
 		else
 		{
-			string::size_type pos1 = line.find('(', 0);
-			string::size_type pos2;
+			size_t pos1 = line.find('(', 0);
+			size_t pos2;
 			if ( pos1 != string::npos )
 			{
 				pos2 = line.find(')', ++pos1);
@@ -338,6 +363,13 @@ namespace OpenMS
 					if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
 					else accession.clear();
 				}
+			}
+			else
+			{
+				pos1 = line.find('|');
+				accession = line.substr(0, pos1);
+				if ( (accession.size() == 6) && (String("OPQ").find(accession[0], 0) != string::npos) ) accession_type = "SwissProt";
+				else accession.clear();
 			}
 		}
 		if ( accession.empty() )
@@ -352,20 +384,20 @@ namespace OpenMS
 		PeptideHit& peptide_hit,
 		vector< PeptideHit >& peptide_hits)
 	{
-		vector< PeptideHit >::iterator pep_hit_i;
-		for ( pep_hit_i = peptide_hits.begin(); pep_hit_i != peptide_hits.end(); ++pep_hit_i)
-		{
-			if ( (pep_hit_i->getSequence() == peptide_hit.getSequence()) && (pep_hit_i->getScore() == peptide_hit.getScore()) ) break;
-		}
-		
 		// a peptide hit may only be inserted if it's score type matches the one of the existing hits
 		if ( (peptide_hits.empty()) || (peptide_hits[0].getScoreType() == peptide_hit.getScoreType()) )
 		{
+			// search for the peptide hit
+			vector< PeptideHit >::iterator pep_hit_i;
+			for ( pep_hit_i = peptide_hits.begin(); pep_hit_i != peptide_hits.end(); ++pep_hit_i)
+			{
+				if ( (pep_hit_i->getSequence() == peptide_hit.getSequence()) && (pep_hit_i->getScore() == peptide_hit.getScore()) ) break;
+			}
 			// if a new peptide is found, insert it
 			if ( pep_hit_i == peptide_hits.end() )
 			{
 				peptide_hits.push_back(peptide_hit);
-				return false;
+				return true;
 			}
 			// if the peptide has already been inserted, insert additional protein hits
 			else
@@ -392,15 +424,13 @@ namespace OpenMS
 	void
 	InspectOutfile::getPrecursorRTandMZ(
 		const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers,
-		vector< IdentificationData >& ids,
-		UnsignedInt scans)
+		vector< IdentificationData >& ids)
 	throw(
 		Exception::ParseError)
 	{
 		MSExperiment<> experiment;
-		ids.clear();
-		ids.reserve(scans);
 		
+		UnsignedInt pos = 0;
 		for ( vector< pair< String, vector< UnsignedInt > > >::const_iterator fs_i = files_and_scan_numbers.begin(); fs_i != files_and_scan_numbers.end(); ++fs_i )
 		{
 			try
@@ -409,26 +439,17 @@ namespace OpenMS
 			}
 			catch (Exception::ParseError pe) // if it's not a MzXML, it's supposed to be an MzData
 			{
-// 				try
-// 				{
 					MzDataFile().load(fs_i->first, experiment);
-// 				}
-// 				catch (Exception::ParseError pe) // other formats are not supported (yet)
-// 				{
-// 					precursor_mz_values.insert(precursor_mz_values.end(), fs_i->second.size(), 0.0);
-// 					precursor_retention_times.insert(precursor_retention_times.end(), fs_i->second.size(), 0.0);
-// 				}
 			}
 			
 			if ( experiment.size() < fs_i->second.back() )
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enought scans in file! (" + String(experiment.size()) + " available, should be " + String(fs_i->second.back()) + ")", fs_i->first);
 			}
-
 			for ( vector< UnsignedInt >::const_iterator scan_i = fs_i->second.begin(); scan_i != fs_i->second.end(); ++scan_i )
 			{
-				ids[*scan_i].mz = experiment[*scan_i].getPrecursorPeak().getPosition()[0];
-				ids[*scan_i].rt = experiment[*scan_i].getRetentionTime();
+				ids[pos].mz = experiment[*scan_i].getPrecursorPeak().getPosition()[0];
+				ids[pos++].rt = experiment[*scan_i].getRetentionTime();
 			}
 		}
 	}
@@ -437,7 +458,7 @@ namespace OpenMS
 	InspectOutfile::compressTrieDB(
 		const string& database_filename,
 		const string& index_filename,
-		const vector< UnsignedInt >& wanted_records,
+		vector< UnsignedInt >& wanted_records,
 		const string& snd_database_filename,
 		const string& snd_index_filename,
 		bool append)
@@ -467,50 +488,10 @@ namespace OpenMS
 		index.seekg(0, ios::end);
 		streampos index_length = index.tellg();
 		index.seekg(0, ios::beg);
-		// if all records are selected, just copy the files
+		bool empty_records = wanted_records.empty();
 		if ( wanted_records.empty() )
 		{
-			database.seekg(0, ios::end);
-			streampos db_length = database.tellg();
-			database.seekg(0, ios::beg);
-			
-			char* buffer = (char*) malloc( max(db_length, index_length) );
-			if ( buffer != NULL )
-			{
-				database.readsome(buffer, db_length);
-				database.close();
-				
-				ofstream snd_database(snd_database_filename.c_str());
-				if ( !snd_database )
-				{
-					index.close();
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database_filename);
-				}
-				snd_database.write(buffer, db_length);
-				snd_database.close();
-				snd_database.clear();
-				
-				index.read(buffer, index_length);
-				index.close();
-				ofstream snd_index(snd_index_filename.c_str());
-				if ( !snd_index )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_index_filename);
-				}
-				snd_index.write(buffer, index_length);
-				snd_index.close();
-				snd_index.clear();
-				
-				free(buffer);
-			}
-			else
-			{
-				database.close();
-				index.close();
-				throw Exception::OutOfMemory (__FILE__, __LINE__, __PRETTY_FUNCTION__, max(db_length, index_length));
-			}
-
-			return;
+			for ( UnsignedInt i = 0; i < index_length / record_length_; ++i ) wanted_records.push_back(i);
 		}
 		
 		// take the wanted records, copy their sequences to the new db and write the index file accordingly
@@ -545,12 +526,12 @@ namespace OpenMS
 			append = true;
 			
 			// go to the beginning of the sequence
-			memcpy(&database_pos, index_record + db_pos_length_, db_pos_length_);
+			memcpy(&database_pos, index_record + db_pos_length_, trie_db_pos_length_);
 			database.seekg(database_pos);
 			
 			// store the corresponding index for the second database
 			snd_database_pos = snd_database.tellp(); // get the position in the second database
-			memcpy(index_record + db_pos_length_, &snd_database_pos, db_pos_length_); // and copy to its place in the index record
+			memcpy(index_record + db_pos_length_, &snd_database_pos, trie_db_pos_length_); // and copy to its place in the index record
 			snd_index.write((char*) index_record, record_length_); // because only the trie-db position changed, not the position in the original database, nor the protein name
 			
 			// store the sequence
@@ -559,6 +540,7 @@ namespace OpenMS
 			sequence.str("");
 		}
 		
+		if ( empty_records ) wanted_records.clear();
 		delete(index_record);
 		index.close();
 		database.close();
@@ -679,8 +661,6 @@ namespace OpenMS
 						memset(protein_name_pos, 0, protein_name_length_); // clear the protein name
 						// read at most protein_name_length_ characters from the record name and write them to the record
 						protein_name = line.substr(pos, protein_name_length_);
-						protein_name.remove(';');
-						protein_name.remove(',');
 						protein_name.substitute('>', '}');
 						memcpy(protein_name_pos, protein_name.c_str(), protein_name.length());
 
@@ -756,6 +736,7 @@ namespace OpenMS
 				sequence_start_label = ">";
 				sequence_end_label = ">";
 				comment_label = ";";
+				species_label = ">";
 			}
 			else if ( line.hasPrefix("SQ") )
 			{
@@ -785,7 +766,6 @@ namespace OpenMS
 		Exception::ParseError,
 		Exception::IllegalArgument)
 	{
-		
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{

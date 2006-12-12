@@ -52,6 +52,7 @@ EXECUTABLES=\
 	IDFilter\
 	MascotAdapter\
 	InspectAdapter\
+	SequestAdapter\
 	PeakPicker\
 	LabeledMatcher\
 	MapDewarper\
@@ -68,8 +69,6 @@ EXECUTABLES=\
 	Resampler\
 	FeatureFinder\
 	PILISIdentification
-
-#	SequestAdapter\
 
 
 all: $(EXECUTABLES)
