@@ -28,7 +28,15 @@
 #define OPENMS_FORMAT_INSPECTOUTFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <fstream>
 #include <iostream>
@@ -43,8 +51,7 @@ namespace OpenMS
 		
 		This class serves to read in an Inspect outfile and write an AnalysisXML file
 		
-		@todo write test (Martin)
-		@todo do not write methode parameters and throws in different lines as some scripts cannot parse this. This has to be changed in all headers(Martin)
+		@todo write test(Martin)
 		
 		@ingroup FileIO
 	*/
@@ -55,91 +62,32 @@ namespace OpenMS
 			InspectOutfile();
 			
 			/// load the results of an Inspect search
-			std::vector< UnsignedInt >
-			load(
-				const std::string& result_filename,
-				std::vector< IdentificationData >& identifications,
-				ProteinIdentification& protein_identification,
-				Real p_value_threshold)
-//				const std::string& database_filename)
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError,
-				Exception::IllegalArgument);
+			std::vector< UnsignedInt > load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 			
-			std::vector< UnsignedInt >
-			getWantedRecords(
-				const std::string& result_filename,
-				Real p_value_threshold)
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError,
-				Exception::IllegalArgument);
+			std::vector< UnsignedInt > getWantedRecords(const std::string& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
 
 			/// generates a trie database from another one, using the wanted records only
-			void
-			compressTrieDB(
-				const std::string& database_filename,
-				const std::string& index_filename,
-				const std::vector< UnsignedInt >& wanted_records,
-				const std::string& snd_database_filename,
-				const std::string& snd_index_filename,
-				bool append = false)
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError,
-				Exception::UnableToCreateFile);
+			void compressTrieDB(const std::string& database_filename, const std::string& index_filename, std::vector< UnsignedInt >& wanted_records, const std::string& snd_database_filename, const std::string& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			/// generates a trie database from a given one (the type of database is determined by getLabels)
-			void
-			generateTrieDB(
-				const std::string& source_database_filename,
-				const std::string& database_filename,
-				const std::string& index_filename,
-				bool append = false,
-				const std::string species = "")
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError,
-				Exception::UnableToCreateFile);
+			void generateTrieDB(const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append = false, const std::string species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 			
-		protected:
+		//protected:
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
-			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
+			void getACAndACType(String line, std::string& accession, std::string& accession_type);
 			
 			/// either insert the new peptide hit or update it's protein indices
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
 
-			/// retvrive
-			void getPrecursorRTandMZ(
-				const std::vector< std::pair< String, std::vector< UnsignedInt > > >& files_and_scan_numbers,
-				std::vector< IdentificationData >& ids,
-				UnsignedInt scans)
-			throw(
-				Exception::ParseError);
+			/// retvrieve the precursor retention time and mz value
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids) throw(Exception::ParseError);
 
 			/// retrieve the labes of a given database (at the moment FASTA and Swissprot)
-			void
-			getLabels(
-				const std::string& source_database_filename,
-				std::string& ac_label,
-				std::string& sequence_start_label,
-				std::string& sequence_end_label,
-				std::string& comment_label,
-				std::string& species_label)
-			throw (
-				Exception::FileNotFound,
-				Exception::ParseError);
+			void getLabels(const std::string& source_database_filename, std::string& ac_label, std::string& sequence_start_label, std::string& sequence_end_label, std::string& comment_label, std::string& species_label) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve sequences from a trie database
-			std::vector< UnsignedInt >
-			getSequences(
-				const std::string& database_filename,
-				const std::map< UnsignedInt, UnsignedInt >& wanted_records, // < record number, number of protein in a vector >
-				std::vector< String >& sequences)
-			throw (
-				Exception::FileNotFound);
+			std::vector< UnsignedInt > getSequences(const std::string& database_filename, const std::map< UnsignedInt, UnsignedInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
 
 			/// a record in the index file that belongs to a trie database consists of three parts
 			/// 1) the protein's position in the original database

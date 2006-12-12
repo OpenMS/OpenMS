@@ -27,54 +27,75 @@
 #ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
 #define OPENMS_FORMAT_SEQUESTOUTFILE_H
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <map>
 #include <string>
+#include <vector>
+
+#include <qfileinfo.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Representation of an Sequest outfile.
+	/**
+		@brief Representation of an Sequest outfile.
 		
 		@todo move ensurePathChar (rename to 'ensurePathEnding') to String and add test(Martin)
-		@todo use split of OpenMS::String instead of own version (Martin)
 		@todo check whether every getline may throw an exception (Martin)
-		@todo what to do when sequences cannot be found (right now: return empty sequence) (Martin)
-		@todo make conform with coding convention (Martin)
-  	@todo write test(Martin)
-  	
-  	@ingroup FileIO
-  */
-  class SequestOutfile
-  {
-    public:
-      // Constructor
-      SequestOutfile();
+		
+		@ingroup FileIO
+	*/
+	class SequestOutfile
+	{
+		public:
+			/// Constructor
+			SequestOutfile();
 			
-			void load(const std::string& result_filename, std::vector< IdentificationData >&	identifications, ProteinIdentification&	protein_identification, const double& p_value_threshold, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			 /**
+				@brief loads data from a Mascot outfile
+				
+				@param filename the file to be loaded
+				@param identifications the identifications
+				@param protein_identifications the protein identifications
+				@param precursor_mz_values the mz values of the precursors corresponding to the identifications
+				@param p_value_threshold the significance level (for the peptide hit scores)
+				
+				This class serves to read in a Sequest outfile. The information can be
+				retrieved via the load function.
+				
+				@ingroup FileIO
+				*/
+			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification&	protein_identification, const Real& p_value_threshold, const std::vector< Real >& pvalues, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
+
+			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
+
+			void out2SummaryHtml(std::string out_filename, const std::string& summary_filename, const std::string& database_filename, bool& append) throw(Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+
+			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound, Exception::ParseError);
 			
-		protected:
-			// split a string into substrings using splitter
-			bool split(const String& s, const String& splitter, std::vector<String>& substrings);
+		//protected:
+			/// retrieve columns from a Sequest outfile line
+			bool getColumns(const String& line, std::vector< String >& substrings, UnsignedInt number_of_columns, UnsignedInt reference_column);
 			
-			// retrieve columns from a Sequest Outfile line
-			bool getColumns(const String& line, std::vector< String >& substrings, unsigned int number_of_columns, unsigned int reference_column);
+			/// retrieve sequences from a FASTA database
+			void getSequences(const String& database_filename, const std::map< String, UnsignedInt >& ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, UnsignedInt > >& found, std::map< String, UnsignedInt >& not_found) throw (Exception::FileNotFound);
+				
+			/// retrieve the accession type and accession number from a protein description line
+			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
+			void getACAndACType(String line, std::string& accession, std::string& accession_type);
 			
-			// retrieve sequences from a FASTA database
-			void getSequences(const String& database_filename, std::map< String, unsigned int > ac_position_map, std::vector< String >& sequences, std::vector< std::pair< String, unsigned int > >& found, std::map< String, unsigned int >& not_found) throw (Exception::FileNotFound);
-			
-			void getACAndACType(String line, std::string& accession, std::string& accession_type) throw (Exception::ParseError);
-			
+			/// either insert the new peptide hit or update it's protein indices
 			bool updatePeptideHits(PeptideHit& peptide_hit, std::vector< PeptideHit >& peptide_hits);
-			
-			// make sure there's a char marking the string as directory
-			void ensurePathChar(std::string& path, char path_char = '/');
-			
-			std::string pathDir(const std::string& filename, char slash = '/');
-			
-			std::string fileName(const std::string& filename, char slash = '/');
+
+			void readOutHeader(const std::string& result_filename, DateTime& datetime, Real& precursor_mz_value, SignedInt& charge, UnsignedInt& precursor_mass_type, UnsignedInt& ion_mass_type, SignedInt& number_column, SignedInt& rank_sp_column, SignedInt& id_column, SignedInt& mh_column, SignedInt& delta_cn_column, SignedInt& xcorr_column, SignedInt& sp_column, SignedInt& sf_column, SignedInt& ions_column, SignedInt& reference_column, SignedInt& peptide_column, SignedInt& score_column, UnsignedInt& number_of_columns, UnsignedInt& displayed_peptides) throw(Exception::FileNotFound, Exception::ParseError);
    };
 	
 } //namespace OpenMS
