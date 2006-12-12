@@ -736,9 +736,10 @@ class TOPPInspectAdapter
 				{
 					// merging the trie databases (all but the first databases are appended)
 					vector< String >::const_iterator idx_i = idx.begin();
+					vector< UnsignedInt > v;
 					for ( vector< String >::const_iterator db_i = accessable_db.begin(); db_i != accessable_db.end(); ++db_i, ++idx_i )
 					{
-						inspect_outfile.compressTrieDB(*db_i, *idx_i, vector< UnsignedInt >(), db_filename,  idx_filename, (db_i != accessable_db.begin()) );
+						inspect_outfile.compressTrieDB(*db_i, *idx_i, v, db_filename,  idx_filename, (db_i != accessable_db.begin()) );
 					}
 					
 					// converting and merging the other databases (all but the first database are appended)
