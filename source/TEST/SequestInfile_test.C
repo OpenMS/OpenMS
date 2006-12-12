@@ -450,10 +450,10 @@ RESULT
 masses.clear();
 
 CHECK(void store(const String& filename))
-	// here a fixed name has to be used as it has to be in the template
-	file.store("SequestInfile_test.txt");
-	TEST_FILE("SequestInfile_test.txt", "data/SequestInfile_test_template1.txt");
-	//remove("SequestInfile_test.txt");
+	String filename;
+	NEW_TMP_FILE(filename)
+	file.store(filename);
+	TEST_FILE(filename.c_str(), "data/SequestInfile_test_template1.txt");
 RESULT
 
 /////////////////////////////////////////////////////////////

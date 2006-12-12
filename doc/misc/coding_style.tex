@@ -64,6 +64,16 @@ line. We recommend method (a).
 However, this is mainly a question of personal style, so no explicit checking
 is performed to enforce this rule.
 
+\subsection{Method declarations}
+OpenMS uses some tools to validate that all declared methods are tested.
+These tools require that the method declarations are formatted in a specific 
+way:
+\begin{itemize}
+	\item All method arguments must be listed in one line. Spreading them over serveral lines is not permitted.
+	\item No semicolons after method implementations in a header are permitted although they are syntactiacally correct.
+	\item Nested class declations should not be used unless absolutely required.
+\end{itemize}
+
 \subsection{Sample .h file}
 
 \begin{footnotesize}
@@ -492,6 +502,9 @@ empty strings, negative values, zero, null pointers etc.).
 Please activate the keyword substitution of '\$Id\$' for all tests with the following command:\\
 {\tt svn propset svn:keywords Id <file>}.
 
+\subsection{Suplementary files}
+If a test needs suplementary files, put these files in the {\tt OpenMS/source/TEST/data/} folder.
+The name of suplementary files has to begin with the name of the tested class.
 
 \subsection{Structure of a test program}
 
