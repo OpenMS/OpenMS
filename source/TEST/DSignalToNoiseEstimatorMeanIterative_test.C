@@ -32,7 +32,7 @@
 
 ///////////////////////////
 
-START_TEST(DSignalToNoiseEstimatorMeanIterative, "$Id: DSignalToNoiseEstimatorMeanIterative_test.C 727 2006-11-15 17:01:14Z ch_b $")
+START_TEST(DSignalToNoiseEstimatorMeanIterative, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

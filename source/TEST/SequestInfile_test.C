@@ -41,7 +41,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SequestInfile, "$Id: SequestInfile_test.C 585 2006-11-08 18:03:33Z martin_langwisch $")
+START_TEST(SequestInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 

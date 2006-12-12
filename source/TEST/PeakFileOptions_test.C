@@ -39,7 +39,7 @@ DRange<1> makeRange(float a, float b)
 	return DRange<1>(pa, pb);
 }
 
-START_TEST(PeakFileOptions, "$Id: PeakFileOptions_test.C 985 2006-12-05 21:25:51Z kadauke $")
+START_TEST(PeakFileOptions, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

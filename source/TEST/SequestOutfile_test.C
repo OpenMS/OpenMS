@@ -32,7 +32,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-START_TEST(String, "$Id: SequestOutfile_test.C 175 2006-09-11 12:58:38Z martinlangwisch $")
+START_TEST(String, "$Id$")
 
 
 SequestOutfile* ptr = 0;
