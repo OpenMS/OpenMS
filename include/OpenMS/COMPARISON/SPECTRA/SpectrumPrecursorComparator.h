@@ -27,7 +27,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 
 namespace OpenMS
 {
@@ -37,7 +37,7 @@ namespace OpenMS
 
 		@ingroup SpectraComparison
   */
-  class SpectrumPrecursorComparator : public CompareFunctor
+  class SpectrumPrecursorComparator : public PeakSpectrumCompareFunctor
   {
   public:
 
@@ -50,7 +50,7 @@ namespace OpenMS
     SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source);
 
     /// destructor 
-    ~SpectrumPrecursorComparator();
+    virtual ~SpectrumPrecursorComparator();
 		// @}
 
 		// @name Operators
@@ -58,14 +58,15 @@ namespace OpenMS
     /// assignment operator 
     SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source);
 
-		///
-		double operator () (const ClusterSpectrum& csa,const ClusterSpectrum& csb) const;
+		double operator () (const PeakSpectrum&, const PeakSpectrum&) const;
+
+		double operator () (const PeakSpectrum&) const;
 		// @}
 		
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create() { return new SpectrumPrecursorComparator(); }
+    static PeakSpectrumCompareFunctor* create() { return new SpectrumPrecursorComparator(); }
 
 		///
 		static const String getName()

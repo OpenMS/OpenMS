@@ -76,7 +76,7 @@ namespace OpenMS
     QComboBox* cfbox_;
     QComboBox* ppbox_;
 
-    CompareFunctor* cfp_;
+    PeakSpectrumCompareFunctor* cfp_;
     std::vector<PreprocessingFunctor*> mowers_;
     double binsize_;
 		uint binspread_;

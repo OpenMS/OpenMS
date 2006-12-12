@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
 #include <cmath> 
 
@@ -34,22 +34,21 @@ using namespace std;
 namespace OpenMS
 {
   BinnedRepMutualInformation::BinnedRepMutualInformation()
+		:	BinnedRepCompareFunctor()
   {
 		name_ = BinnedRepMutualInformation::getName();
     defaults_.setValue("intervals", 3);
-    usebins_ = true;
 		param_ = defaults_;
   }
 
   BinnedRepMutualInformation::BinnedRepMutualInformation(const BinnedRepMutualInformation& source)
-    : CompareFunctor(source)
+    : BinnedRepCompareFunctor(source)
   {
   }
 
   BinnedRepMutualInformation& BinnedRepMutualInformation::operator = (const BinnedRepMutualInformation& source)
   {
-    CompareFunctor::operator = (source);
-		usebins_ = source.usebins_;
+    BinnedRepCompareFunctor::operator = (source);
     return *this;
   }
 
@@ -57,15 +56,20 @@ namespace OpenMS
   {
   }
 
-  double BinnedRepMutualInformation::operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const
+	double BinnedRepMutualInformation::operator () (const BinnedRep& a) const
+	{
+		return operator () (a, a);
+	}
+	
+  double BinnedRepMutualInformation::operator () (const BinnedRep& a, const BinnedRep& b) const
   {
     uint intervals = (unsigned int)param_.getValue("intervals");
    
-    const BinnedRep& b = csb.getBinrep();
-    const BinnedRep& a = csa.getBinrep();
+    //const BinnedRep& b = csb.getBinrep();
+    //const BinnedRep& a = csa.getBinrep();
     
-    double filterfactor = filter(csa,csb);
-    if (filterfactor < 1e-12) return 0;
+    //double filterfactor = filter(csa,csb);
+    //if (filterfactor < 1e-12) return 0;
     //number of pairs where a falls into interval i and b falls into interval j
     vector<vector<double> > n = vector<vector<double> >(intervals, vector<double>(intervals, 0.0));
     //marginal frequencies for x and y
@@ -173,7 +177,7 @@ namespace OpenMS
 				}
       }
     }
-    return result * filterfactor;
+    return result;
   }
 
 }

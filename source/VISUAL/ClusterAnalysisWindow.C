@@ -33,7 +33,6 @@
 #include <OpenMS/VISUAL/ClusterExperimentView.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -235,7 +234,7 @@ namespace OpenMS
     vector<double> autocorr(size);
     if ( current_matrix_ ) delete current_matrix_;
     current_matrix_ = new vector<vector<double> >(size,vector<double>(size));
-    const CompareFunctor* cfp = clusterrun_.getSimFunc();
+    const PeakSpectrumCompareFunctor* cfp = clusterrun_.getSimFunc();
     if ( !cfp )
     {
       QMessageBox::critical(this,"error while creating similarity matrix","no compare and preprocessfunctions found\nclick on a clusterrun or enter them yourself");
@@ -243,7 +242,7 @@ namespace OpenMS
     }
     for ( uint i = 0; i < size; ++i )
     {
-      autocorr[i] = (*cfp)(current_cspectra_[i],current_cspectra_[i]);
+      //autocorr[i] = (*cfp)(current_cspectra_[i],current_cspectra_[i]);
     }
     for ( uint i = 0; i < size; ++i )
     {
@@ -265,7 +264,8 @@ namespace OpenMS
   {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     fillspecListView_(x,y);
-    if ( clusterrun_.getSimFunc() && !clusterrun_.getSimFunc()->usebins() )
+    
+		if ( clusterrun_.getSimFunc()/* && !clusterrun_.getSimFunc()->usebins()*/ )
     {
       topbin_->hide();
       bottombin_->hide();

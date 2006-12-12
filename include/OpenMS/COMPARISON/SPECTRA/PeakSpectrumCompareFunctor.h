@@ -24,64 +24,64 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SEQUESTCOMPAREFUNCTOR_H
-#define OPENMS_COMPARISON_SPECTRA_SEQUESTCOMPAREFUNCTOR_H
+#ifndef OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
+#define OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
 
   /**
-  	@brief SequestCompareFunctor compares the peptide annotations from sequest, based on sequence and deltaCn
-  
-  	@param isobaric
-    	if isobaric is one, not the sequences, but the fragment sizes are compared<br>
-    	if isobaric is zero, only the sequences are compared <br>
-  	@param maxdeltaCN compare sequences with at most that deltaCn <br>
-  	@param tolerance mass tolerance for fragment masses <br>
+		@defgroup Comparison Comparison
+	*/
 
+	/**
+		@defgroup SpectraComparison Spectra Comparison
+
+		@ingroup Comparison
+	*/
+
+	/**
+	
+		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
+	
+  	PeakSpectrumCompareFunctor classes return a value for a pair of PeakSpectrum objects
+  	ideally the value should reflect the similarity of the pair
+  	similarities of spectra should be > 0
+		
 		@ingroup SpectraComparison
   */
-  class SequestCompareFunctor : public CompareFunctor
+  class PeakSpectrumCompareFunctor : public FactoryProduct
   {
+
   public:
 
-		// @name Constructors and Destructors
-		// @{
     /// default constructor
-    SequestCompareFunctor();
+    PeakSpectrumCompareFunctor();
 
     /// copy constructor
-    SequestCompareFunctor(const SequestCompareFunctor& source);
+    PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source);
 
     /// destructor
-    virtual ~SequestCompareFunctor();
-		// @}
+    virtual ~PeakSpectrumCompareFunctor();
 
-		// @name Operators
     /// assignment operator
-    SequestCompareFunctor& operator = (const SequestCompareFunctor& source);
+    PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source);
 
-		///
-		double operator () (const ClusterSpectrum& a, const ClusterSpectrum& b) const;
-		// @}
+    /// function call operator, calculates the similarity
+    virtual double operator () (const PeakSpectrum&, const PeakSpectrum&) const = 0;
 
-		// @name Accessors
-		// @{
-		///
-    static CompareFunctor* create() { return new SequestCompareFunctor(); }
+		/// calculates self similarity
+		virtual double operator () (const PeakSpectrum&) const = 0;
 
-		///
-		static const String getName()
-		{
-			return "SequestCompareFunctor";
-		}
+		/// registers all derived products 
+		static void registerChildren();
 
-    /// similarity based on fragment sizes
-    double matchIsobaric(const String& seq1, const String& seq2) const;
-		// @}
-		
+  protected:
+
   };
+
 }
-#endif // OPENMS_COMPARISON_SPECTRA_SEQUESTCOMPAREFUNCTOR_H
+#endif // OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H

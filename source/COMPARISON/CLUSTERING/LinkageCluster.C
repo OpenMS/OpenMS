@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/CLUSTERING/LinkageCluster.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/DATASTRUCTURES/SparseVector.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
@@ -117,7 +116,7 @@ namespace OpenMS
             if ( fabs(autocorr[j]) < 1e-8 )
             {
               clusterrunp->preprocess((*cspectrap)[j]->spec());
-              autocorr[j] = (*clusterrunp->getSimFunc())(*(*cspectrap)[j],*(*cspectrap)[j]);
+              //autocorr[j] = (*clusterrunp->getSimFunc())(*(*cspectrap)[j],*(*cspectrap)[j]);
               // by convention all autocorrs of useful spectra are > 0 
               if ( autocorr[j] < 1e-8 ) autocorr[j] = -1;
             }

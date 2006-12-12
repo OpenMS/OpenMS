@@ -24,10 +24,12 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H
-#define OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H
+#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPCOMPAREFUNCTOR_H
+#define OPENMS_COMPARISON_SPECTRA_BINNEDREPCOMPAREFUNCTOR_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 
 namespace OpenMS
 {
@@ -46,9 +48,9 @@ namespace OpenMS
 	
 		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
 	
-  	CompareFunctor classes return a value for a pair of ClusterSpectrum objects<br>
-  	ideally the value should reflect the similarity of the pair<br>
-  	similarities of spectra should be > 0<br>
+  	BinnedRepCompareFunctor classes return a value for a pair of BinnedRep objects
+  	ideally the value should reflect the similarity of the pair
+  	similarities of spectra should be > 0
 		
   	@param filterwindow
 		
@@ -56,48 +58,33 @@ namespace OpenMS
 
 		@ingroup SpectraComparison
   */
-	class ClusterSpectrum;
-	
-  class CompareFunctor : public FactoryProduct
+  class BinnedRepCompareFunctor : public FactoryProduct
   {
 
   public:
 
     /// default constructor
-    CompareFunctor();
+    BinnedRepCompareFunctor();
 
     /// copy constructor
-    CompareFunctor(const CompareFunctor& source);
+    BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source);
 
     /// destructor
-    virtual ~CompareFunctor();
+    virtual ~BinnedRepCompareFunctor();
 
     /// assignment operator
-    CompareFunctor& operator = (const CompareFunctor& source);
+    BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source);
 
     /// function call operator, calculates the similarity
-    virtual double operator () (const ClusterSpectrum&, const ClusterSpectrum&) const { return 0; }
+    virtual double operator () (const BinnedRep&, const BinnedRep&) const = 0;
 
     /// function call operator, calculates the self similarity
-    double operator () (const ClusterSpectrum& a) const { return (*this)(a, a); }
-
-    /// preliminary check for similarity
-    double filter(const ClusterSpectrum&, const ClusterSpectrum&) const;
-
-    /// returns type of compared spectrum representation
-    bool usebins() const { return usebins_; }
+    virtual double operator () (const BinnedRep& a) const = 0;
 
 		/// registers all derived products 
 		static void registerChildren();
 
   protected:
-
-    /**
-    type of spectrum representation the CompareFunctor operates on <br>
-      usebin_ = 1 => bin representation <br>
-      usebin_ = 0 => stick spectrum representation<br>
-    */
-    bool usebins_;
 
   };
 

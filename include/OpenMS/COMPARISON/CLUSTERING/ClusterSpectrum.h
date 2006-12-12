@@ -27,8 +27,8 @@
 #ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERSPECTRUM_H
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERSPECTRUM_H
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
@@ -85,16 +85,16 @@ namespace OpenMS
     ClusterSpectrum();
 
     /** @brief copy spec <br> */
-    ClusterSpectrum(const MSSpectrum< DPeak<1> >& spec, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
+    ClusterSpectrum(const PeakSpectrum& spec, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
     /** @brief use specp <br> */
-    ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
+    ClusterSpectrum(PeakSpectrum* specp, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
     /** @brief use binrepp <br> */
     ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp = 0);
 
     /** @brief use specp and binrepp <br> */
-    ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, BinnedRep* binrepp);
+    ClusterSpectrum(PeakSpectrum* specp, BinnedRep* binrepp);
 
     /** @brief copy constructor <br> */
     ClusterSpectrum(const ClusterSpectrum& source);
@@ -115,11 +115,11 @@ namespace OpenMS
     const uint& getBinSpread() const { return binspread_;}
     PeptideHit getTophit() const;
     const BinnedRep& getBinrep() const;
-    const MSSpectrum< DPeak<1> >& getSpec() const;
+    const PeakSpectrum& getSpec() const;
     //@}
 
     /** @brief write accessor for stick spectrum <br> */
-    MSSpectrum< DPeak<1> >& spec();
+    PeakSpectrum& spec();
 
     /** @brief delete pointers to stick and bin spectrum <br> */
     void strip() const;
@@ -133,7 +133,7 @@ namespace OpenMS
 
     //declared mutable so the appropriate representation can created inside
     //const accessor
-    mutable MSSpectrum< DPeak<1> >* specp_;
+    mutable PeakSpectrum* specp_;
     mutable BinnedRep* binrepp_;
     DBAdapter* adapterp_;
     double binsize_;

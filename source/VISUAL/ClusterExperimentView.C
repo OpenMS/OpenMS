@@ -27,7 +27,6 @@
 
 #include <OpenMS/VISUAL/DIALOGS/SortDialog.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <qpopupmenu.h>
 #include <qaction.h>
@@ -284,7 +283,7 @@ namespace OpenMS
               setItem(row+1,0,new QTableItem(this,QTableItem::Never,"    Preprocessing"));
               setItem(row+1,1,new QTableItem(this,QTableItem::Never,QString(": %1").arg(clex_[crnr].getPreprocessqueue().size())));
               setItem(row+2,0,new QTableItem(this,QTableItem::Never,"    CompareFunctor"));
-              setItem(row+2,1,new QTableItem(this,QTableItem::Never,clex_[crnr].getSimFunc()->getName().c_str()));
+              //setItem(row+2,1,new QTableItem(this,QTableItem::Never,clex_[crnr].getSimFunc()->getName().c_str()));
               setItem(row+3,0,new QTableItem(this,QTableItem::Never,"    ClusterFunctor"));
               setItem(row+3,1,new QTableItem(this,QTableItem::Never,clex_[crnr].getClusterFunc()->getName().c_str()));
               setItem(row+4,0,new QTableItem(this,QTableItem::Never,"    Clustering"));
@@ -328,7 +327,7 @@ namespace OpenMS
       case SIMFUNC:
         {
           crnr = findParentClusterRun_(row,SIMFUNC);
-          emit showFactoryProduct(clex_[crnr].getSimFunc());
+          //emit showFactoryProduct(clex_[crnr].getSimFunc());
           break;
         }
       case CLUSTERFUNC:

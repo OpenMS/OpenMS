@@ -84,8 +84,8 @@ namespace OpenMS
   {
   }
 
-  ClusterSpectrum::ClusterSpectrum(const MSSpectrum< DPeak<1> >& spec,DBAdapter* adapterp, double binsize , uint binspread )
-    : specp_(new MSSpectrum< DPeak<1> >(spec)), 
+  ClusterSpectrum::ClusterSpectrum(const PeakSpectrum& spec,DBAdapter* adapterp, double binsize , uint binspread )
+    : specp_(new PeakSpectrum(spec)), 
     	binrepp_(0),
     	adapterp_(adapterp),
     	binsize_(binsize),
@@ -100,7 +100,7 @@ namespace OpenMS
   }
   
   
-  ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, DBAdapter* adapterp, double binsize, uint binspread)
+  ClusterSpectrum::ClusterSpectrum(PeakSpectrum* specp, DBAdapter* adapterp, double binsize, uint binspread)
     : specp_(specp),
     	binrepp_(0),
     	adapterp_(adapterp), 
@@ -130,7 +130,7 @@ namespace OpenMS
     updatecache_();
   }
 
-  ClusterSpectrum::ClusterSpectrum(MSSpectrum< DPeak<1> >* specp, BinnedRep* binrepp)
+  ClusterSpectrum::ClusterSpectrum(PeakSpectrum* specp, BinnedRep* binrepp)
     : specp_(specp),
     	binrepp_(binrepp),
     	adapterp_(0),
@@ -163,7 +163,7 @@ namespace OpenMS
   {
     if ( source.specp_ )
     {
-      specp_ = new MSSpectrum< DPeak<1> >(*source.specp_);
+      specp_ = new PeakSpectrum(*source.specp_);
     }
     if ( source.binrepp_ )
     {
@@ -177,7 +177,7 @@ namespace OpenMS
     binrepp_ = 0;
     if ( source.specp_ )
     {
-      specp_ = new MSSpectrum< DPeak<1> >(*source.specp_);
+      specp_ = new PeakSpectrum(*source.specp_);
     }
     if ( source.binrepp_ )
     {
@@ -263,7 +263,7 @@ namespace OpenMS
     }
   }
 
-  const MSSpectrum< DPeak<1> >& ClusterSpectrum::getSpec() const
+  const PeakSpectrum& ClusterSpectrum::getSpec() const
   {
     return const_cast<ClusterSpectrum*>(this)->spec();
   }
@@ -271,7 +271,7 @@ namespace OpenMS
   /** 
   do not use with python!
   */
-  MSSpectrum< DPeak<1> >& ClusterSpectrum::spec()
+  PeakSpectrum& ClusterSpectrum::spec()
   {
     // in case spec is changed, binrep needs to be recreated
     if ( binrepp_ )
@@ -287,7 +287,7 @@ namespace OpenMS
       }
       else 
       {
-        throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no MSSpectrum< DPeak<1> > in ClusterSpectrum and no DBAdapter* given");
+        throw WrongRepresentation(__FILE__, __LINE__, __PRETTY_FUNCTION__,"no PeakSpectrum in ClusterSpectrum and no DBAdapter* given");
       }
     }
     else 
@@ -298,7 +298,7 @@ namespace OpenMS
       }
       else
       {
-        //specp_ = dynamic_cast<MSSpectrum< DPeak<1> >*>(adapterp_->createObject(id_)); //TODO Persistence
+        //specp_ = dynamic_cast<PeakSpectrum*>(adapterp_->createObject(id_)); //TODO Persistence
         
         specp_->getContainer().sortByPosition();
         if (specp_)

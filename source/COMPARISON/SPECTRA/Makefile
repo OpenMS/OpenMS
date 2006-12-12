@@ -37,9 +37,9 @@ CPP_SOURCES=\
 	BinnedRepMutualInformation.C\
 	BinnedRepSumAgreeingIntensities.C\
 	BinnedRepSharedPeakCount.C\
-	SequestCompareFunctor.C\
 	SpectrumPrecursorComparator.C\
-	CompareFunctor.C\
+	PeakSpectrumCompareFunctor.C\
+	BinnedRepCompareFunctor.C\
 	ZhangSimilarityScore.C
 	
 

@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -61,32 +60,35 @@ RESULT
 
 CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
 	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
 
-	ClusterSpectrum csa(spec, 0, 1, 1);
+	//ClusterSpectrum csa(spec, 0, 1, 1);
+	//BinnedRep csa(spec, 1, 1);
+	
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
-	ClusterSpectrum csb(spec2, 0, 1, 1);
-
-	double score = (*e_ptr)(csa, csb);
+	//ClusterSpectrum csb(spec2, 0, 1, 1);	
+	//BinnedRep csb(spec, 1, 1);
+	
+	double score = (*e_ptr)(spec1, spec2);
 
 	PRECISION(0.1)
 	/// @todo next to equality tests fail, don't know why (andreas)
 	TEST_REAL_EQUAL(score, 10145.4)
 
-	score = (*e_ptr)(csa, csa);
+	score = (*e_ptr)(spec1, spec1);
 
 	TEST_REAL_EQUAL(score, 12295.5)
 	
 	SpectrumCheapDPCorr corr;
-	score = corr(csa, csb);
+	score = corr(spec1, spec2);
 	TEST_REAL_EQUAL(score, 10145.4)
 
-	score = corr(csa, csa);
+	score = corr(spec1, spec1);
 
 	TEST_REAL_EQUAL(score, 12295.5)
 	

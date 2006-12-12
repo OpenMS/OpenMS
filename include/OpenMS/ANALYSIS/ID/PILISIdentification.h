@@ -45,6 +45,9 @@ namespace OpenMS
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
 		identifications. Simply call getIdentifications with a PeakMap.
 	*/
+	// forward declarations
+	class CompareFunctor;
+	
 	class PILISIdentification
 	{
 
@@ -69,29 +72,48 @@ namespace OpenMS
 			/** @name Accessors
 			 */
 			//@{
-			///
+			/// sets the sequence DB to be used for the identification runs
 			void setSequenceDB(PILISSequenceDB* sequence_db);
 
-			///
+			/// sets the model to be used for the identification run
 			void setModel(PILISModel* hmm_model);
 
-			///
+			/// performs an identification run on a PeakMap
 			void getIdentifications(std::vector<Identification>& ids, const PeakMap& exp);
 
-			/// returns the parameters
+			/// performs an identification run on a PeakSpectrum
+			void getIdentification(Identification& id, const PeakSpectrum& spectrum);
+
+			/// mutable access to the parameters
 			Param& getParam();
 
+			/// non-mutable access to the parameters
+			const Param& getParam() const;
+			
 			/// sets the parameters
 			void setParam(const Param& param);
 			//@}
 
 		protected:
 
+			/// fast method to create spectra for pre scoring
+			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
+		
+			/// 
+			void getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides, CompareFunctor* scorer);
+
+			///
+			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id, CompareFunctor* scorer);
+			
 			Param param_;
 
 			PILISSequenceDB* sequence_db_;
 
 			PILISModel* hmm_model_;
+
+			HashMap<char, double> aa_weight_;
+
+			Peak p_;
 	};
 }
 

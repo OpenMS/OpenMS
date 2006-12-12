@@ -72,11 +72,11 @@ namespace OpenMS
     if ( source.datasetp_) datasetp_ = new ClusterNode( *source.datasetp_);
     if ( source.medianp_ ) 
     {
-      medianp_ = new MSSpectrum< DPeak<1> >(*source.medianp_);
+      medianp_ = new PeakSpectrum(*source.medianp_);
     }
     if ( source.centroidp_ ) 
     {
-      centroidp_ = new MSSpectrum< DPeak<1> >(*source.centroidp_);
+      centroidp_ = new PeakSpectrum(*source.centroidp_);
     }
   }
 
@@ -87,22 +87,22 @@ namespace OpenMS
     delete medianp_;
   }
 
-  MSSpectrum< DPeak<1> >& Cluster::median() 
+  PeakSpectrum& Cluster::median() 
   {
     return *medianp_;
   }
   
-  MSSpectrum< DPeak<1> >& Cluster::centroid()
+  PeakSpectrum& Cluster::centroid()
   {
     return *centroidp_;
   }
  
-  const MSSpectrum< DPeak<1> >& Cluster::median() const
+  const PeakSpectrum& Cluster::median() const
   {
     return *medianp_;
   }
   
-  const MSSpectrum< DPeak<1> >& Cluster::centroid() const
+  const PeakSpectrum& Cluster::centroid() const
   {
     return *centroidp_;
   }
@@ -140,7 +140,7 @@ namespace OpenMS
 //    {
 //      adapter.preWritePointer("PEAKLIST1D",medianp_);
 //      adapter.writeConnectedPointer("info",&medianp_->,(int)medianp_);
-//      for ( MSSpectrum< DPeak<1> >::iterator dit = medianp_->getContainer().begin();
+//      for ( PeakSpectrum::iterator dit = medianp_->getContainer().begin();
 //          dit != medianp_->getContainer().end(); ++dit )
 //      {
 //        adapter.writeConnectedPointer("peak",&*dit,(int)medianp_);
@@ -173,8 +173,8 @@ namespace OpenMS
     for(list<int>::const_iterator cit = datasetp_->children().begin(); cit != datasetp_->children().end(); ++cit )
     {
       ++size_;
-      //Spectrum< DPeak<1> >* spec = dynamic_cast<MSSpectrum< DPeak<1> >*>(adapterp->createObject(*cit));//TODO Persistence
-      MSSpectrum< DPeak<1> >* spec = 0;
+      //Spectrum< DPeak<1> >* spec = dynamic_cast<PeakSpectrum*>(adapterp->createObject(*cit));//TODO Persistence
+      PeakSpectrum* spec = 0;
       
       if ( !spec ) 
       {
@@ -211,7 +211,7 @@ namespace OpenMS
     }
   }
   
-  MSSpectrum< DPeak<1> >* Cluster::findcentroid_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp )
+  PeakSpectrum* Cluster::findcentroid_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp )
   {
     vector<ClusterSpectrum> spectra;
     loadClusterNode(adapterp);
@@ -225,7 +225,7 @@ namespace OpenMS
     vector<double> autocorr;
     for ( uint i = 0; i < spectra.size(); ++i )
     {
-      autocorr.push_back((*crp->getSimFunc())(spectra[i]));
+      autocorr.push_back((*crp->getSimFunc())(spectra[i].getSpec()));
     }
     
     for ( uint i = 0; i < spectra.size(); ++i )
@@ -255,11 +255,11 @@ namespace OpenMS
       }
     }
     
-    return new MSSpectrum< DPeak<1> >(spectra[maxidx].getSpec());
+    return new PeakSpectrum(spectra[maxidx].getSpec());
 
   }
   
-  MSSpectrum< DPeak<1> >* Cluster::findmedian_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp )
+  PeakSpectrum* Cluster::findmedian_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp )
   {
     vector<ClusterSpectrum> spectra;
     loadClusterNode(adapterp);
@@ -270,13 +270,13 @@ namespace OpenMS
       spectra.push_back(spectrum);
     }
     SpectrumCheapDPCorr merger;
-    MSSpectrum< DPeak<1> >* curspecp = new MSSpectrum< DPeak<1> >(spectra[0].getSpec());
+    PeakSpectrum* curspecp = new PeakSpectrum(spectra[0].getSpec());
     for ( uint i = 1; i < spectra.size(); ++i )
     {
       merger.setFactor(1.0/(i+1));
       merger(*curspecp,spectra[i].getSpec());
       delete curspecp;
-      curspecp = new MSSpectrum< DPeak<1> >(merger.lastconsensus());
+      curspecp = new PeakSpectrum(merger.lastconsensus());
     }
     return curspecp;
   }

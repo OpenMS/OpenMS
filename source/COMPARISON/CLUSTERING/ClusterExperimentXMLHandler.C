@@ -32,7 +32,6 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 
@@ -176,7 +175,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0)
       {
-        forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
+        //forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;
@@ -191,7 +190,7 @@ namespace OpenMS
       const char* name = XMLString::transcode(attributes.getValue(XMLString::transcode("name")));
       if (name != 0 )
       {
-        forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
+        //forwardconfigurablep_ = Factory<CompareFunctor>::instance()->create(name);
         if (!forwardconfigurablep_)
         {
 					const Locator* loc = 0;
@@ -315,7 +314,7 @@ namespace OpenMS
     {
       if (forwardconfigurablep_)
       {
-        CompareFunctor* tmp = dynamic_cast<CompareFunctor*>(forwardconfigurablep_);
+        PeakSpectrumCompareFunctor* tmp = 0/*dynamic_cast<CompareFunctor*>(forwardconfigurablep_)*/;
         if (tmp) crun_.setSimFunc(tmp);
         forwardconfigurablep_ = 0;
       }

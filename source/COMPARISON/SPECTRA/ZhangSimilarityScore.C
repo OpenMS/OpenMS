@@ -34,7 +34,7 @@ using namespace std;
 namespace OpenMS
 {
   ZhangSimilarityScore::ZhangSimilarityScore()
-    : CompareFunctor()
+    : PeakSpectrumCompareFunctor()
   {
 		name_ = ZhangSimilarityScore::getName();
 		defaults_.setValue("epsilon", 0.2);
@@ -42,7 +42,7 @@ namespace OpenMS
   }
 
   ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore& source)
-    : CompareFunctor(source)
+    : PeakSpectrumCompareFunctor(source)
   {
   }
 
@@ -52,10 +52,15 @@ namespace OpenMS
 
   ZhangSimilarityScore& ZhangSimilarityScore::operator = (const ZhangSimilarityScore& source)
   {
-    CompareFunctor::operator = (source);
+    PeakSpectrumCompareFunctor::operator = (source);
     return *this;
   }
 
+	double ZhangSimilarityScore::operator () (const PeakSpectrum& spec) const
+	{
+		return operator () (spec, spec);
+	}
+	
   double ZhangSimilarityScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
 		const double epsilon = (double)param_.getValue("epsilon");

@@ -29,7 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -59,31 +59,26 @@ CHECK(BinnedRepSpectrumContrastAngle(const BinnedRepSpectrumContrastAngle& sourc
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
+CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-
-	ClusterSpectrum csa(spec, 0, 1, 1);
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
+	BinnedRep br1(spec1, 1.0, 1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file.load("data/Transformers_tests_2.dta", spec2);
+	BinnedRep br2(spec2, 1.0, 1);
+	
 
-	ClusterSpectrum csb(spec2, 0, 1, 1);
-
-	double score = (*e_ptr)(csa, csb);
+	double score = (*e_ptr)(br1, br2);
 	
 	TEST_REAL_EQUAL(score, 1.93279)
 	
-	score = (*e_ptr)(csa, csa);
+	score = (*e_ptr)(br1, br1);
 
 	TEST_REAL_EQUAL(score, 12.3812)
 	
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

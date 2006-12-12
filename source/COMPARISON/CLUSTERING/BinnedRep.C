@@ -56,6 +56,20 @@ namespace OpenMS
     }
   }
 
+	BinnedRep::BinnedRep(const PeakSpectrum& spectrum, double binsize, uint spread)
+		: bins_(),
+			binsize_(binsize),
+			spread_(spread),
+			begin_(0),
+			end_(0),
+			id_(0),
+			retention_(0),
+			parent_m_z_(0),
+			precursorpeakcharge_(0)
+	{
+		*this << spectrum;
+	}
+	
   BinnedRep::BinnedRep(const BinnedRep& source)
     :bins_(source.bins_), binsize_(source.binsize_),spread_(source.spread_), begin_(source.begin_), end_(source.end_), id_(source.id_), retention_(source.retention_), parent_m_z_(source.parent_m_z_),precursorpeakcharge_(source.precursorpeakcharge_)
   {
@@ -126,28 +140,29 @@ namespace OpenMS
     bins_.clear();
   }
 
-  const MSSpectrum< DPeak<1> >& operator<<(BinnedRep& binrep ,const MSSpectrum< DPeak<1> >& spectrum)
+ 	void operator << (BinnedRep& binrep, const PeakSpectrum& spectrum)
   {
     binrep.clear_();
-    //set information from MSSpectrum< DPeak<1> >
+    //set information from PeakSpectrum TODO
     binrep.id_ = spectrum.getPersistenceId();
     binrep.retention_ = spectrum.getRetentionTime();
     binrep.parent_m_z_ = spectrum.getPrecursorPeak().getPosition()[0];
     binrep.precursorpeakcharge_ = spectrum.getPrecursorPeak().getCharge();
     
-    if ( spectrum.getContainer().size() )
+    if (spectrum.getContainer().size())
     {
       //calculate size of needed container 
-      binrep.begin_ = ((int)(spectrum.begin()->getPosition()[0]/binrep.binsize_))*binrep.binsize_;
-      binrep.end_ =((int)((spectrum.end()-1)->getPosition()[0]/binrep.binsize_))*binrep.binsize_;
+      binrep.begin_ = ((int)(spectrum.begin()->getPosition()[0]/binrep.binsize_)) * binrep.binsize_;
+      binrep.end_ =((int)((spectrum.end()-1)->getPosition()[0]/binrep.binsize_)) * binrep.binsize_;
       int size = (int) ((binrep.end_ - binrep.begin_) / binrep.binsize_ + 3 ); // +3 is safety distance for rounding errors
       binrep.bins_.resize(size);
       
       //iterate over Peaks and throw them into bins
-      for ( MSSpectrum< DPeak<1> >::ConstIterator cit = spectrum.begin(); cit != spectrum.end(); ++cit)
+      for (PeakSpectrum::ConstIterator cit = spectrum.begin(); cit != spectrum.end(); ++cit)
       {
-        uint position = (uint) ((cit->getPosition()[0]-binrep.begin_)/binrep.binsize_);
-        try {
+        uint position = (uint) ((cit->getPosition()[0]-binrep.begin_) / binrep.binsize_);
+        try 
+				{
           binrep.bins_[position] =  binrep.bins_.at(position) + cit->getIntensity();
         }
         catch (out_of_range&)
@@ -158,11 +173,11 @@ namespace OpenMS
         //insert into neighbouring bins according to spread
         if (binrep.spread_ > 0 )
         {
-          for ( uint i = 1; i <= binrep.spread_ && position + i < binrep.size(); ++i ) 
+          for (uint i = 1; i <= binrep.spread_ && position + i < binrep.size(); ++i)
           {
             binrep.bins_[position+i] = binrep.bins_[position+i]+ cit->getIntensity();
           }
-          for ( uint i = 1; i <= binrep.spread_ && position >= i ; ++i )
+          for (uint i = 1; i <= binrep.spread_ && position >= i ; ++i)
           {
             binrep.bins_[position-i]  = binrep.bins_[position -i]+cit->getIntensity();
           }
@@ -170,6 +185,6 @@ namespace OpenMS
       }
       binrep.normalize(); //some other functions depend on normalized binreps
     }
-    return spectrum;
+    return;
   }
 } 

@@ -27,7 +27,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_ZHANGSIMILARITYSCORE_H
 #define OPENMS_COMPARISON_SPECTRA_ZHANGSIMILARITYSCORE_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -38,14 +38,14 @@ namespace OpenMS
 
 		The details of the score can be found in:
 		Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
-		Anal. Chem., 76 (14), 3908 -3922, 2004
+		Anal. Chem., 76 (14), 3908 - 3922, 2004
 
 		@param epsilon - defines the absolut error of the mass spectrometer; default value is 0.2 Th
 		
 		@ingroup SpectraComparison
   */
 	
-  class ZhangSimilarityScore : public CompareFunctor
+  class ZhangSimilarityScore : public PeakSpectrumCompareFunctor
   {
   public:
 	
@@ -68,12 +68,14 @@ namespace OpenMS
 	
 		/// 
 		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+
+		double operator () (const PeakSpectrum& spec) const;
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create() { return new ZhangSimilarityScore(); }
+    static PeakSpectrumCompareFunctor* create() { return new ZhangSimilarityScore(); }
 
 		///
 		static const String getName()

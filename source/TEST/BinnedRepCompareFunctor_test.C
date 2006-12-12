@@ -23,13 +23,14 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
+//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -38,51 +39,25 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(SequestCompareFunctor, "$Id$")
+START_TEST(BinnedRepCompareFunctor, "$Id:$")
 
 /////////////////////////////////////////////////////////////
 
-SequestCompareFunctor* e_ptr = 0;
-CHECK(SequestCompareFunctor())
-	e_ptr = new SequestCompareFunctor;
+BinnedRepCompareFunctor* e_ptr = 0;
+CHECK(BinnedRepCompareFunctor())
+	e_ptr = new BinnedRepCompareFunctor;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~SequestCompareFunctor())
+CHECK(~BinnedRepCompareFunctor())
 	delete e_ptr;
 RESULT
 
-e_ptr = new SequestCompareFunctor();
+e_ptr = new BinnedRepCompareFunctor();
 
-CHECK(SequestCompareFunctor(const SequestCompareFunctor& source))
-	SequestCompareFunctor copy(*e_ptr);
+CHECK(BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source))
+	BinnedRepCompareFunctor copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
-RESULT
-
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-
-	ClusterSpectrum csa(spec, 0, 1, 1);
-
-	DTAFile dta_file2;
-	PeakSpectrum spec2;
-	dta_file.load("data/Transformers_tests_2.dta", spec2);
-
-	ClusterSpectrum csb(spec2, 0, 1, 1);
-	
-	double score = (*e_ptr)(csa, csb);
-
-	TEST_REAL_EQUAL(score, 0.0)
-
-	score = (*e_ptr)(csa, csa);
-
-	TEST_REAL_EQUAL(score, 0.0)
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), false)
 RESULT
 
 delete e_ptr;

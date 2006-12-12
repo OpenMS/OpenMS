@@ -29,6 +29,7 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/SYSTEM/File.h>
 
 //#include <iostream>
 #include <cmath>
@@ -118,11 +119,62 @@ namespace OpenMS
 		#endif
 
 		// read the base model (actually directly in the HMM implemented)
+		if (!File::exists(base_filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+    }
+    if (!File::readable(base_filename))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+    }
+    if (File::empty(base_filename))
+    {
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+    }
 		hmm_.readFromFile(base_filename);
 
 		// read the precursor and loss models
+		if (!File::exists(precursor_filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
+    }
+    if (!File::readable(precursor_filename))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
+    }
+    if (File::empty(precursor_filename))
+    {
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
+    }
 		parseModelFile(precursor_filename, &hmm_precursor_);
+
+		if (!File::exists(b_loss_filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
+    }
+    if (!File::readable(b_loss_filename))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
+    }
+    if (File::empty(b_loss_filename))
+    {
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
+    }
 		parseModelFile(b_loss_filename, &hmms_losses_[Residue::BIon]);
+
+
+		if (!File::exists(y_loss_filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
+    }
+    if (!File::readable(y_loss_filename))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
+    }
+    if (File::empty(y_loss_filename))
+    {
+      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
+    }
 		parseModelFile(y_loss_filename, &hmms_losses_[Residue::YIon]);
 		
 		return;
@@ -1873,9 +1925,9 @@ namespace OpenMS
 
 	void PILISModel::initPrecursorModel_()
 	{
-		parseModelFile(String("/share/usr/bertsch/Diplom_sources/model_precursor.dat"), &hmm_precursor_);
-		hmm_precursor_.disableTransitions();
-		hmm_precursor_.buildSynonyms();
+		//parseModelFile(String("model_precursor.dat"), &hmm_precursor_);
+		//hmm_precursor_.disableTransitions();
+		//hmm_precursor_.buildSynonyms();
 	}
 
 	void PILISModel::initLossModels_()

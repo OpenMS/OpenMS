@@ -25,10 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterIdentificator.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 
@@ -80,14 +78,14 @@ namespace OpenMS
 
   uint ClusterIdentificator::existsAsReference(String sequence,uint charge)
   {
-    SequestCompareFunctor scf;
+    //SequestCompareFunctor scf;
     double mass = SpectrumGenerator::instance()->getPeptidemass(sequence)+charge;
     vector<const Cluster*> candidates = getCandidateClusters_(mass,charge);
     uint result = 0;
     for (vector<const Cluster*>::const_iterator cvit = candidates.begin(); cvit != candidates.end(); ++cvit )
     {
-      const Cluster* clusterp = *cvit;
-      if ( scf.matchIsobaric(clusterp->sequence(),sequence) > 0.5 && clusterp->median().getPrecursorPeak().getCharge() ==  (int) charge ) ++result;
+      //const Cluster* clusterp = *cvit;
+      //if ( scf.matchIsobaric(clusterp->sequence(),sequence) > 0.5 && clusterp->median().getPrecursorPeak().getCharge() ==  (int) charge ) ++result;
     }
     return result;
   }
@@ -172,7 +170,7 @@ namespace OpenMS
       String information = String(ss.str());
       sequence = (*cvit)->sequence();
       ss.str("");
-      ss << clusterrunp_->getSimFunc()->getName() << "_similarity"; 
+      //ss << clusterrunp_->getSimFunc()->getName() << "_similarity"; 
       scoretype = ss.str();
       result.insertPeptideHit(PeptideHit(score,scoretype,0,sequence));
     }

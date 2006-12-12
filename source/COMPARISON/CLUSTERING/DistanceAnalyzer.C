@@ -26,7 +26,6 @@
 //
 #include <OpenMS/COMPARISON/CLUSTERING/DistanceAnalyzer.h>
 #include <OpenMS/MATH/STATISTICS/ROCCurve.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
 
@@ -90,7 +89,7 @@ namespace OpenMS
       {
         clusters[cmit->first]->push_back(ClusterSpectrum(*cit,adapterp_,clusterrunp_->getBinSize(),clusterrunp_->getBinSpread()));
         if ( clusterrunp_ ) clusterrunp_->preprocess(clusters[cmit->first]->rbegin()->spec());
-        autocorr[cmit->first].push_back((*clusterrunp_->getSimFunc())(*clusters[cmit->first]->rbegin()));
+        //autocorr[cmit->first].push_back((*clusterrunp_->getSimFunc())(*clusters[cmit->first]->rbegin()));
       }
     }
     for(map<int,ClusterNode*>::const_iterator cmit = clustering.begin(); cmit != clustering.end(); ++cmit)

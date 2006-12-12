@@ -27,7 +27,6 @@
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/FactoryProductDialog.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 
 #include <qinputdialog.h>
@@ -92,9 +91,9 @@ namespace OpenMS
 
   void ClusterRunWidget::usecf()
   {
-    delete cfp_;
-    cfp_ = Factory<CompareFunctor>::instance()->create(cfbox_->currentText().ascii());
-    configure_(cfp_);
+    //delete cfp_;
+    //cfp_ = Factory<PeakSpectrumCompareFunctor>::instance()->create(cfbox_->currentText().ascii());
+    //configure_(cfp_);
   }
 
   void ClusterRunWidget::addpp()
@@ -131,11 +130,11 @@ namespace OpenMS
     {
       usecf();
     }
-    if ( cfp_->usebins() )
-    {
-      binsize_ = QInputDialog::getDouble("OpenMS-CAt","please insert binsize",1);
-      binspread_ = QInputDialog::getInteger("OpenMS-CAt","please insert binspread");
-    }
+    //if ( cfp_->usebins() )
+    //{
+    //  binsize_ = QInputDialog::getDouble("OpenMS-CAt","please insert binsize",1);
+    //  binspread_ = QInputDialog::getInteger("OpenMS-CAt","please insert binspread");
+    //}
     accept();
   }
 

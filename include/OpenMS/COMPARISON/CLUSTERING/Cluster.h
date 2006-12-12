@@ -28,8 +28,8 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTER_H
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterNode.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
 #include <map>
@@ -51,7 +51,7 @@ namespace OpenMS
     /** @brief constructor <br> */
     Cluster( const ClusterNode& clusterr, const ClusterExperiment::ClusterRun* crp , DBAdapter* adapterp );
     /** @brief constructor <br> */
-    Cluster( const std::vector<int>& dataset, MSSpectrum< DPeak<1> > median, MSSpectrum< DPeak<1> > centroid);
+    Cluster( const std::vector<int>& dataset, PeakSpectrum median, PeakSpectrum centroid);
 
     /** @brief copy constructor <br> */
     Cluster( const Cluster& source);
@@ -75,15 +75,15 @@ namespace OpenMS
     ClusterNode* datasetp(){return datasetp_;};
 
     /** @brief median is constructed using SpectrumCheapDPCorr <br> */
-    const MSSpectrum< DPeak<1> >& median() const;
+    const PeakSpectrum& median() const;
 
     /** @brief centroid is the spectrum that has the least distance to all <br> */
-    const MSSpectrum< DPeak<1> >& centroid() const;
+    const PeakSpectrum& centroid() const;
 
     /** @brief write access to median*/
-    MSSpectrum< DPeak<1> >& median() ; 
+    PeakSpectrum& median() ; 
     /** @brief write access to centroid*/
-    MSSpectrum< DPeak<1> >& centroid() ;
+    PeakSpectrum& centroid() ;
 
     /** @brief assignment operator <br> */
     Cluster& operator=(const Cluster& source);
@@ -121,10 +121,10 @@ namespace OpenMS
 
 
     /** @brief find centroid <br> */
-    MSSpectrum< DPeak<1> >* findcentroid_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp );
+    PeakSpectrum* findcentroid_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp );
 
     /** @brief construct median <br> */
-    MSSpectrum< DPeak<1> >* findmedian_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp );
+    PeakSpectrum* findmedian_( const ClusterExperiment::ClusterRun* crp, DBAdapter* adapterp );
 
     void updatesizes_(DBAdapter* adapterp);
 
@@ -136,12 +136,12 @@ namespace OpenMS
     /**
     median spectrum
     */
-    MSSpectrum< DPeak<1> >* medianp_;
+    PeakSpectrum* medianp_;
 
     /**
     centroid spectrum
     */
-    MSSpectrum< DPeak<1> >* centroidp_;
+    PeakSpectrum* centroidp_;
 
     double minmass_;
 

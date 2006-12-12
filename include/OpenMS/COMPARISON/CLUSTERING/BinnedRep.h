@@ -29,7 +29,7 @@
 #define OPENMS_COMPARISON_CLUSTERING_BINNEDREP_H
 
 #include <vector>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/BinnedSparseVector.h>
 
 
@@ -37,7 +37,7 @@ namespace OpenMS
 {
   typedef double intensity;
   /**
-	  @brief Bin Representation of a 1D MSSpectrum (stick spectrum)
+	  @brief Bin Representation of a 1D PeakSpectrum (stick spectrum)
 	  
 	  Bin Dimensions: <br>
 	    BinSize = size of the bins <br>
@@ -63,11 +63,13 @@ namespace OpenMS
     /** @brief constructor with declaration of bin dimensions<br> */
     BinnedRep(const double, const uint = 0);
 
+		BinnedRep(const PeakSpectrum& spec, double binsize = 1.0, uint binspread = 0);
+		
     /** @brief copy constructor <br> */
     BinnedRep(const BinnedRep& source);
 
     /** @brief destructor <br> */
-    ~BinnedRep();
+    virtual ~BinnedRep();
 
     /** @brief assignment operator <br> */
     BinnedRep& operator = (const BinnedRep& source);
@@ -95,7 +97,7 @@ namespace OpenMS
     intensity operator[] (int) const ;
     //@}
     /** @brief fill bins with stick spectrum <br> */
-    friend const MSSpectrum< DPeak<1> >& operator<<(BinnedRep&,const MSSpectrum< DPeak<1> >&);
+    friend void operator<<(BinnedRep&,const PeakSpectrum&);
 
     /** @brief scale all peaks from 0 to 1 */
     void normalize();

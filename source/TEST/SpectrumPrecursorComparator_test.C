@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -59,30 +58,22 @@ CHECK(SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
+CHECK(double operator () (const PeakSpectrum& csa, const PeakSpectrum& csb) const)
 	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-
-	ClusterSpectrum csa(spec, 0, 1, 1);
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
-	ClusterSpectrum csb(spec2, 0, 1, 1);
-
-	double score = (*e_ptr)(csa, csb);
+	double score = (*e_ptr)(spec1, spec2);
 
 	TEST_REAL_EQUAL(score, 1.7685)
 
-	score = (*e_ptr)(csa, csa);
+	score = (*e_ptr)(spec1, spec1);
 
 	TEST_REAL_EQUAL(score, 2)
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_REAL_EQUAL(e_ptr->usebins(), false)
 RESULT
 
 delete e_ptr;

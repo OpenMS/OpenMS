@@ -394,7 +394,7 @@ namespace OpenMS
     }
   }
 
-  void ClusterExperiment::setSimFunc(CompareFunctor* funcp,int pos)
+  void ClusterExperiment::setSimFunc(PeakSpectrumCompareFunctor* funcp,int pos)
   {
     if (pos == -1)
     {

@@ -26,7 +26,6 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 
@@ -35,32 +34,38 @@ using namespace std;
 namespace OpenMS
 {
   BinnedRepSumAgreeingIntensities::BinnedRepSumAgreeingIntensities()
+		: BinnedRepCompareFunctor()
   {
 		name_ = BinnedRepSumAgreeingIntensities::getName();
-    usebins_ = true;
   }
 
   BinnedRepSumAgreeingIntensities::BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& source)
-    :CompareFunctor(source)
+    : BinnedRepCompareFunctor(source)
   {
   }
 
   BinnedRepSumAgreeingIntensities& BinnedRepSumAgreeingIntensities::operator=(const BinnedRepSumAgreeingIntensities& source)
   {
-    CompareFunctor::operator=(source);
+    BinnedRepCompareFunctor::operator=(source);
     return *this;
   }
   
   BinnedRepSumAgreeingIntensities::~BinnedRepSumAgreeingIntensities()
   {
   }
+	
+	double BinnedRepSumAgreeingIntensities::operator () (const BinnedRep& a) const
+	{
+		return operator () (a, a);
+	}
 
-  double BinnedRepSumAgreeingIntensities::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
+	
+  double BinnedRepSumAgreeingIntensities::operator () (const BinnedRep& a, const BinnedRep& b) const
   {
-    const BinnedRep& a = csa.getBinrep();
-    const BinnedRep& b = csb.getBinrep();
-    double filterfactor = filter(csa,csb);
-    if ( filterfactor < 1e-12 ) return 0;
+    //const BinnedRep& a = csa.getBinrep();
+    //const BinnedRep& b = csb.getBinrep();
+    //double filterfactor = filter(csa,csb);
+    //if ( filterfactor < 1e-12 ) return 0;
     double similarity = 0;
     double agreedIntensity = 0;
     double suma = 0;
@@ -107,7 +112,7 @@ namespace OpenMS
       suma+= *ait;
       ait.hop();
     }
-    return 2/(suma+sumb)*similarity * filterfactor;
+    return 2/(suma+sumb)*similarity;
   }
 
 }

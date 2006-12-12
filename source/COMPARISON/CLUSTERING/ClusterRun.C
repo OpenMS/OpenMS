@@ -29,13 +29,11 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
 #include <OpenMS/FORMAT/DataSetInfo.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/COMPARISON/CLUSTERING/AnalysisFunctor.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/helper.h>
@@ -135,7 +133,7 @@ namespace OpenMS
     {
       delete mit->second;
     }
-    delete sim_funcp_;
+    //delete sim_funcp_;
     for (vector<PreprocessingFunctor*>::iterator lit = preprocess_queue_.begin(); lit != preprocess_queue_.end() ;++lit)
     {
       delete *lit;
@@ -168,7 +166,7 @@ namespace OpenMS
     return preprocess_queue_.size() -1;
   }
 
-  void ClusterExperiment::ClusterRun::setSimFunc(CompareFunctor* sim_func)
+  void ClusterExperiment::ClusterRun::setSimFunc(PeakSpectrumCompareFunctor* sim_func)
   {
     didrun_ = 0;
     sim_funcp_ = sim_func;
@@ -193,7 +191,7 @@ namespace OpenMS
     return analysis_queue_.size() -1;
   }
 
-  void ClusterExperiment::ClusterRun::preprocess(MSSpectrum< DPeak<1> >& spec) const
+  void ClusterExperiment::ClusterRun::preprocess(PeakSpectrum& spec) const
   {
     for (vector<PreprocessingFunctor*>::const_iterator it = preprocess_queue_.begin(); it != preprocess_queue_.end(); ++it)
     {
@@ -389,10 +387,10 @@ namespace OpenMS
       {
         document << "<Norm mean = \"none\"/>\n";
       }
-      if ( sim_funcp_->usebins() )
-      {
-        document << "<Bins size = \"" << binsize_  << "\" spread = \"" << binspread_<< "\"/>\n"; 
-      }
+      //if ( sim_funcp_->usebins() )
+      //{
+       // document << "<Bins size = \"" << binsize_  << "\" spread = \"" << binspread_<< "\"/>\n"; 
+      //}
       document << "<SimFunc " ;
       // TODO sim_funcp_->save(document,ind);
       document << indent(--ind);
@@ -623,14 +621,14 @@ namespace OpenMS
   
   double ClusterExperiment::ClusterRun::similarity(const ClusterSpectrum& a, const ClusterSpectrum& b) const
   {
-    double autocorr_a = (*sim_funcp_)(a,a);
-    double autocorr_b = (*sim_funcp_)(b,b);
-    return similarity(a,b,autocorr_a,autocorr_b);
+    double autocorr_a = 0;//(*sim_funcp_)(a.getSpec(), a.getSpec());
+    double autocorr_b = 0;//(*sim_funcp_)(b.getSpec(), b.getSpec());
+    return similarity(a, b, autocorr_a, autocorr_b);
   }
   
   double ClusterExperiment::ClusterRun::similarity(const ClusterSpectrum& a, const ClusterSpectrum& b,double autocorr_a, double autocorr_b) const
   {
-    if ( norm_ == none ) return (*sim_funcp_)(a,b);
+    if ( norm_ == none ) return 0/*(*sim_funcp_)(a.getSpec(), b.getSpec())*/;
     if ( autocorr_a < 1e-8 )
     {
       cerr << a.id() << " has self similarity == 0 ! Thats unlikely\n";
@@ -644,11 +642,11 @@ namespace OpenMS
     double result;
     if ( norm_ == arithmetic )
     {
-      result = (*sim_funcp_)(a,b)/(autocorr_a/2+autocorr_b/2);
+      //result = (*sim_funcp_)(a.getSpec(), b.getSpec())/(autocorr_a/2+autocorr_b/2);
     }
     else if ( norm_ == geometric )
     {
-      result = (*sim_funcp_)(a,b)/sqrt(autocorr_a*autocorr_b);
+      //result = (*sim_funcp_)(a.getSpec(), b.getSpec())/sqrt(autocorr_a*autocorr_b);
     }
     else
     {

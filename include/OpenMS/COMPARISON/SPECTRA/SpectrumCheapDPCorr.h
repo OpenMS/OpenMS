@@ -27,9 +27,9 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -58,7 +58,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class SpectrumCheapDPCorr : public CompareFunctor
+  class SpectrumCheapDPCorr : public PeakSpectrumCompareFunctor
   {
   public:
 	
@@ -78,15 +78,16 @@ namespace OpenMS
 		// @{
     /// assignment operator
     SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source);
-	
-		/// 
-		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+
+		double operator () (const PeakSpectrum&, const PeakSpectrum&) const;
+
+		double operator () (const PeakSpectrum&) const;
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create() { return new SpectrumCheapDPCorr(); }
+    static PeakSpectrumCompareFunctor* create() { return new SpectrumCheapDPCorr(); }
 
 		///
 		static const String getName()
@@ -95,7 +96,7 @@ namespace OpenMS
 		}
 
     /// return consensus spectrum from last funtion call operator
-    const MSSpectrum< DPeak<1> >& lastconsensus() const;
+    const PeakSpectrum& lastconsensus() const;
 
 		///
 		HashMap<Size, Size> getPeakMap() const;
@@ -107,7 +108,7 @@ namespace OpenMS
   private:
 
     /// O(n^2) dynamical programming
-    double dynprog_(const MSSpectrum<DPeak<1> >&, const MSSpectrum< DPeak<1> >&, int, int, int, int) const;
+    double dynprog_(const PeakSpectrum&, const PeakSpectrum&, int, int, int, int) const;
 
     /// similarity of two peaks
     double comparepeaks_(double posa, double posb, double inta, double intb) const;
@@ -115,7 +116,7 @@ namespace OpenMS
     static const String info_;
 
     /// consensus spectrum of the last comparison
-    mutable MSSpectrum< DPeak<1> > lastconsensus_;
+    mutable PeakSpectrum lastconsensus_;
 
     /// should peaks with no alignment partner be kept in the consensus?
     bool keeppeaks_;

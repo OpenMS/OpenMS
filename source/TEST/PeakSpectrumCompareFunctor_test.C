@@ -29,8 +29,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -39,47 +38,25 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(CompareFunctor, "$Id$")
+START_TEST(PeakSpectrumCompareFunctor, "$Id:$")
 
 /////////////////////////////////////////////////////////////
 
-CompareFunctor* e_ptr = 0;
-CHECK(CompareFunctor())
-	e_ptr = new CompareFunctor;
+PeakSpectrumCompareFunctor* e_ptr = 0;
+CHECK(PeakSpectrumCompareFunctor())
+	e_ptr = new PeakSpectrumCompareFunctor;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~CompareFunctor())
+CHECK(~PeakSpectrumCompareFunctor())
 	delete e_ptr;
 RESULT
 
-e_ptr = new CompareFunctor();
+e_ptr = new PeakSpectrumCompareFunctor();
 
-CHECK(CompareFunctor(const CompareFunctor& source))
-	CompareFunctor copy(*e_ptr);
+CHECK(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
+	PeakSpectrumCompareFunctor copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
-RESULT
-
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-
-	DTAFile dta_file2;
-	PeakSpectrum spec2;
-	dta_file2.load("data/Transformers_tests_2.dta", spec2);
-
-	double filter = e_ptr->filter(spec, spec);
-	
-	TEST_REAL_EQUAL(filter, 1.0)
-
-	filter = e_ptr->filter(spec, spec2);
-
-	TEST_REAL_EQUAL(filter, 1.0)
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), false)
 RESULT
 
 delete e_ptr;

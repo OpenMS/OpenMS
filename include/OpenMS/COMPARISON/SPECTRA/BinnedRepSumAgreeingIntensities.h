@@ -28,7 +28,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPSUMAGREEINGINTENSITIES_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSUMAGREEINGINTENSITIES_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
 
 namespace OpenMS
 {
@@ -41,7 +41,7 @@ namespace OpenMS
 			@ingroup SpectraComparison
   */
   class BinnedRepSumAgreeingIntensities
-    : public CompareFunctor
+    : public BinnedRepCompareFunctor
   {
   public:
 
@@ -63,13 +63,16 @@ namespace OpenMS
     BinnedRepSumAgreeingIntensities& operator = (const BinnedRepSumAgreeingIntensities& source);
 
 		///
-		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+		double operator () (const BinnedRep& csa, const BinnedRep& csb) const;
+
+		///
+		double operator () (const BinnedRep& a) const;
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create() { return new BinnedRepSumAgreeingIntensities(); }
+    static BinnedRepCompareFunctor* create() { return new BinnedRepSumAgreeingIntensities(); }
 
 		///
 		static const String getName()

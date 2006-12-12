@@ -27,6 +27,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 
 #include <OpenMS/METADATA/Identification.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <cmath>
 
@@ -295,12 +296,12 @@ namespace OpenMS
     return mass;
   }
 
-  MSSpectrum< DPeak<1> >* SpectrumGenerator::getSpectrum(const String& seq) const
+  PeakSpectrum* SpectrumGenerator::getSpectrum(const String& seq) const
   {
     // current method only for tryptic digest, creates spectra from peptides
     // with charge state 2, 1 H+ C-Terminal, 1 mobile
     // resulting fragments have charge +1
-    MSSpectrum< DPeak<1> >* specp = new MSSpectrum< DPeak<1> >();
+    PeakSpectrum* specp = new PeakSpectrum();
     // sequest dta have mass of charge state 1
     double mass = getPeptidemass(seq)+2;
     map<double,pair<double,String> > fragments;

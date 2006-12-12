@@ -24,16 +24,11 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSharedPeakCount.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SequestCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
@@ -45,42 +40,34 @@ using namespace std;
 
 namespace OpenMS
 {
-  CompareFunctor::CompareFunctor()
-		: FactoryProduct(),
-			usebins_(false)
+  PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor()
+		: FactoryProduct()
   {
-		name_ = CompareFunctor::getName();
+		name_ = PeakSpectrumCompareFunctor::getName();
     defaults_.setValue("filterwindow", 2.3);
 		param_ = defaults_;
   }
   
-  CompareFunctor::CompareFunctor(const CompareFunctor& source)
-		:	FactoryProduct(source),
-			usebins_(source.usebins_)
+  PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source)
+		:	FactoryProduct(source)
   {
   }
  
-	CompareFunctor::~CompareFunctor()
+	PeakSpectrumCompareFunctor::~PeakSpectrumCompareFunctor()
 	{
 	}
  
-  CompareFunctor& CompareFunctor::operator=(const CompareFunctor& source)
+  PeakSpectrumCompareFunctor& PeakSpectrumCompareFunctor::operator=(const PeakSpectrumCompareFunctor& source)
   {
     FactoryProduct::operator=(source);
-    usebins_ = source.usebins_;
     return *this;
   }
  
-	void CompareFunctor::registerChildren()
+	void PeakSpectrumCompareFunctor::registerChildren()
 	{
-    Factory<CompareFunctor>::registerProduct(BinnedRepSpectrumContrastAngle::getName(), &BinnedRepSpectrumContrastAngle::create);
-    Factory<CompareFunctor>::registerProduct(BinnedRepMutualInformation::getName(), &BinnedRepMutualInformation::create);
-    Factory<CompareFunctor>::registerProduct(BinnedRepSumAgreeingIntensities::getName(), &BinnedRepSumAgreeingIntensities::create);
-    Factory<CompareFunctor>::registerProduct(BinnedRepSharedPeakCount::getName(), &BinnedRepSharedPeakCount::create);
-    Factory<CompareFunctor>::registerProduct(SpectrumCheapDPCorr::getName(), &SpectrumCheapDPCorr::create);
-    Factory<CompareFunctor>::registerProduct(SpectrumPrecursorComparator::getName(), &SpectrumPrecursorComparator::create);
-    Factory<CompareFunctor>::registerProduct(SequestCompareFunctor::getName(), &SequestCompareFunctor::create);
-		Factory<CompareFunctor>::registerProduct(ZhangSimilarityScore::getName(), &ZhangSimilarityScore::create);
+    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getName(), &SpectrumCheapDPCorr::create);
+    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getName(), &SpectrumPrecursorComparator::create);
+		Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getName(), &ZhangSimilarityScore::create);
 	}
 	
   /**
@@ -89,7 +76,8 @@ namespace OpenMS
   difference bigger than the <i>filterwindow</i>, spectra with different parent 
   charge states or bin-representation spectra with different binning parameters  
   */
-	double CompareFunctor::filter(const ClusterSpectrum& a, const ClusterSpectrum& b) const
+	/*
+	double PeakSpectrumCompareFunctor::filter(const ClusterSpectrum& a, const ClusterSpectrum& b) const
   {
     double filterwindow = (double)param_.getValue("filterwindow");
     double factor = 1;
@@ -110,5 +98,6 @@ namespace OpenMS
     if (fabs(a.getParentMass() - b.getParentMass()) > filterwindow) return 0;
     return factor;
   }
+	*/
 
 }

@@ -28,7 +28,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPMUTUALINFORMATION_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
 
 namespace OpenMS
 {
@@ -45,7 +45,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
   class BinnedRepMutualInformation
-    : public CompareFunctor
+    : public BinnedRepCompareFunctor
   {
   public:
 
@@ -67,13 +67,15 @@ namespace OpenMS
     BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source);
 
 		///
-		double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const;
+		double operator () (const BinnedRep& csa, const BinnedRep& csb) const;
+
+		double operator () (const BinnedRep& a) const;
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create() {return new BinnedRepMutualInformation();}
+    static BinnedRepCompareFunctor* create() {return new BinnedRepMutualInformation();}
 
 		///
 		static const String getName()

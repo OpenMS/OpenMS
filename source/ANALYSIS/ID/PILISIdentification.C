@@ -43,6 +43,27 @@ namespace OpenMS
 		param_.setValue("prcr_m_tol", double(3.0));
 		param_.setValue("max_candidates", 200);
 		param_.setValue("score_name", "ZhangSimilarityScore");
+
+		aa_weight_['K'] = 128.095;
+  	aa_weight_['M'] = 131.04;
+  	aa_weight_['F'] = 147.068;
+  	aa_weight_['P'] = 97.0528;
+  	aa_weight_['S'] = 87.032;
+  	aa_weight_['T'] = 101.048;
+  	aa_weight_['W'] = 186.079;
+  	aa_weight_['Y'] = 163.063;
+  	aa_weight_['V'] = 99.0684;
+  	aa_weight_['A'] = 71.0371;
+  	aa_weight_['R'] = 156.101;
+  	aa_weight_['N'] = 114.043;
+  	aa_weight_['D'] = 115.027;
+  	aa_weight_['C'] = 161.015;
+  	aa_weight_['E'] = 129.043;
+  	aa_weight_['Q'] = 128.059;
+  	aa_weight_['G'] = 57.0215;
+  	aa_weight_['H'] = 137.059;
+  	aa_weight_['I'] = 113.084;
+  	aa_weight_['L'] = 113.084;
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& /*PILIS_id*/)
@@ -63,7 +84,7 @@ namespace OpenMS
 	{
 		hmm_model_ = hmm_model;
 	}
-
+	
 	void PILISIdentification::getIdentifications(vector<Identification>& ids, const PeakMap& exp)
 	{
 		// get the parameters
@@ -74,26 +95,37 @@ namespace OpenMS
 		String score_name = param_.getValue("score_name");
 
 		// scoring
-		CompareFunctor* scorer = Factory<CompareFunctor>::create(score_name);
+		//CompareFunctor* scorer = Factory<CompareFunctor>::create(score_name);
+		ZhangSimilarityScore* scorer = new ZhangSimilarityScore();
 			
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 		{
+			if (it->getMSLevel() != 2)
+			{
+				continue;
+			}
 			double pre_pos = it->getPrecursorPeak().getPosition()[0];
+
+			if (pre_pos < 200) // TODO
+			{
+				cerr << "PILISIdentification: spectrum does not have a precursor peak set" << endl;
+				continue;
+			}
 			vector<PILISSequenceDB::PepStruct> cand_peptides;
 			sequence_db_->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-			cerr << "#cand peptides: " << cand_peptides.size() << endl;
+			cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 	
 			HashMap<String, Size> sequence_to_charge;
 
 			// get simple spectra for pre-eliminate most of the candidates
-			TheoreticalSpectrumGenerator tsg;
 			Identification pre_id;
 			for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
 			{
-				AASequence peptide_sequence(it1->peptide);
+				//AASequence peptide_sequence(it1->peptide);
 				// TODO parameter settings
 				PeakSpectrum spec;
-				tsg.getSpectrum(spec, peptide_sequence, it1->charge);
+				//tsg.getSpectrum(spec, peptide_sequence, it1->charge);
+				getSpectrum_(spec, it1->peptide, it1->charge);
 				double score = (*scorer)(*it, spec);
 				PeptideHit peptide_hit(score, "Zhang", 0, it1->peptide);
 				pre_id.insertPeptideHit(peptide_hit);
@@ -102,7 +134,6 @@ namespace OpenMS
 			}
 
 			pre_id.assignRanks();
-
 
 			Identification id;
 			for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
@@ -137,23 +168,122 @@ namespace OpenMS
     		}
 
 				double score = (*scorer)(*it, spec);
+				//cerr << it->size() << " " << spec.size() << " " << score << endl;
 				PeptideHit peptide_hit(score, "Zhang", 0, sequence);
 				id.insertPeptideHit(peptide_hit);
 				//cerr << peptide_sequence << " " << score << endl;
 			}
 
 			id.assignRanks();
+
+			if (id.getPeptideHits().size() > 0)
+			{
+				cerr << id.getPeptideHits().begin()->getSequence() << " " << id.getPeptideHits().begin()->getScore() << endl;
+			}
 			ids.push_back(id);
 		}
 
 		return;
 	}
 
+	void PILISIdentification::getIdentification(Identification& id, const PeakSpectrum& exp)
+	{
+		double pre_tol = (double)param_.getValue("prcr_m_tol");
+		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
+		String score_name = param_.getValue("score_name");
+
+	}
+
+	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides, CompareFunctor* scorer)
+	{
+
+	}
+
+	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id, CompareFunctor* scorer)
+	{
+		return;
+	}
+	
+	void PILISIdentification::getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge)
+	{
+		double b_pos(1);
+		double y_pos(19);
+		bool b_H2O_loss(false), b_NH3_loss(false), y_H2O_loss(false), y_NH3_loss(false);
+		for (Size i = 0; i != sequence.size(); ++i)
+		{
+			char aa(sequence[i]);
+			b_pos += aa_weight_[aa];
+			
+			char aa2(sequence[sequence.size() - i - 1]);
+			y_pos += aa_weight_[aa2];
+			for (int z = 1; z <= charge; ++z)
+			{
+				// b-ions
+				p_.setPosition((b_pos + z)/z);
+				p_.setIntensity(0.8);
+				spec.getContainer().push_back(p_);
+
+				// b-ion losses
+				if (b_H2O_loss || aa == 'S' || aa == 'T' || aa == 'E' || aa == 'D')
+				{
+					b_H2O_loss = true;
+					p_.setPosition((b_pos + z - 18.0)/z);
+					p_.setIntensity(0.1);
+					spec.getContainer().push_back(p_);
+				}
+				if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
+				{
+					b_NH3_loss = true;
+					p_.setPosition((b_pos + z - 17.0)/z);
+					p_.setIntensity(0.1);
+					spec.getContainer().push_back(p_);
+				}
+
+				// a-ions
+				p_.setPosition((b_pos +z - 28.0)/z);
+				p_.setIntensity(0.3);
+				spec.getContainer().push_back(p_);
+				
+				// y-ions
+				p_.setPosition((y_pos + z)/z);
+				p_.setIntensity(1.0);
+				spec.getContainer().push_back(p_);
+
+				if (y_H2O_loss || aa2 == 'S' || aa2 == 'T' || aa2 == 'E' || aa2 == 'D' || aa2 == 'Q')
+				{
+					y_H2O_loss = true;
+					p_.setPosition((y_pos + z - 18.0)/z);
+					if (aa2 != 'Q')
+					{
+						p_.setIntensity(0.2);
+					}
+					else
+					{
+						p_.setIntensity(1);
+					}
+					spec.getContainer().push_back(p_);
+				}
+				if (y_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
+				{
+					y_NH3_loss = true;
+					p_.setPosition((y_pos + z - 17.0)/z);
+					p_.setIntensity(0.2);
+				}
+			}
+		}
+		return;
+	}
+	
 	Param& PILISIdentification::getParam()
 	{
 		return param_;
 	}
 
+	const Param& PILISIdentification::getParam() const
+	{
+		return param_;
+	}
+	
 	void PILISIdentification::setParam(const Param& param)
 	{
 		param_ = param;

@@ -27,7 +27,7 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDREPSPECTRUMCONTRASTANGLE_H
 #define OPENMS_COMPARISON_SPECTRA_BINNEDREPSPECTRUMCONTRASTANGLE_H
 
-#include <OpenMS/COMPARISON/SPECTRA/CompareFunctor.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
 
 namespace OpenMS
 {
@@ -41,7 +41,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
   class BinnedRepSpectrumContrastAngle
-    : public CompareFunctor
+    : public BinnedRepCompareFunctor
   {
   public:
 
@@ -63,13 +63,15 @@ namespace OpenMS
     BinnedRepSpectrumContrastAngle& operator = (const BinnedRepSpectrumContrastAngle& source);
 
 		///
-		double operator () (const ClusterSpectrum& a, const ClusterSpectrum& b) const;
+		double operator () (const BinnedRep& a, const BinnedRep& b) const;
+
+		double operator () (const BinnedRep& a) const;
 		// @}
 
 		// @name Accessors
 		// @{
 		///
-    static CompareFunctor* create(){return new BinnedRepSpectrumContrastAngle();}
+    static BinnedRepCompareFunctor* create(){return new BinnedRepSpectrumContrastAngle();}
 
 		///
 		static const String getName()

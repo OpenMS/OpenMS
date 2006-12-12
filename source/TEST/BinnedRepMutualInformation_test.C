@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
@@ -59,25 +58,21 @@ CHECK(BinnedRepMutualInformation(const BinnedRepMutualInformation& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb))
+CHECK(double operator () (const BinnedRep& a, const BinnedRep& b))
 	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-	ClusterSpectrum cs1(spec, 0, 1, 1);
-
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
+	BinnedRep br1(spec1, 1.0, 1);
+	
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file2.load("data/Transformers_tests_2.dta", spec2);
-	ClusterSpectrum cs2(spec2, 0, 1, 1);	
-
-	double score = (*e_ptr)(cs1, cs2);
+	BinnedRep br2(spec2, 1.0, 1);
+	
+	double score = (*e_ptr)(br1, br2);
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(score, 0.0322523)
 
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

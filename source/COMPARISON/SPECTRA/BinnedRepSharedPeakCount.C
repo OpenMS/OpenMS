@@ -26,7 +26,6 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSharedPeakCount.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 
@@ -36,19 +35,19 @@ namespace OpenMS
 {
 
   BinnedRepSharedPeakCount::BinnedRepSharedPeakCount()
+		: BinnedRepCompareFunctor()
   {
 		name_ = BinnedRepSharedPeakCount::getName();
-    usebins_ = true;
   }
 
   BinnedRepSharedPeakCount::BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source)
-    :CompareFunctor(source)
+    : BinnedRepCompareFunctor(source)
   {
   }
 
   BinnedRepSharedPeakCount& BinnedRepSharedPeakCount::operator= (const BinnedRepSharedPeakCount& source)
   {
-    CompareFunctor::operator=(source);
+    BinnedRepCompareFunctor::operator=(source);
     return *this;
   }
   
@@ -56,13 +55,18 @@ namespace OpenMS
   {
   }
 
-  double BinnedRepSharedPeakCount::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
+	double BinnedRepSharedPeakCount::operator () (const BinnedRep& a) const
+	{
+		return operator () (a, a);
+	}
+	
+  double BinnedRepSharedPeakCount::operator()(const BinnedRep& a, const BinnedRep& b)const
   {
     double cutoff = 0;
-    const BinnedRep& a = csa.getBinrep();
-    const BinnedRep& b = csb.getBinrep();
-    double filterfactor = filter(csa,csb);
-    if ( filterfactor < 1e-12 ) return 0;
+    //const BinnedRep& a = csa.getBinrep();
+    //const BinnedRep& b = csb.getBinrep();
+    //double filterfactor = filter(csa,csb);
+    //if ( filterfactor < 1e-12 ) return 0;
     double similarity = 0;
     BinnedRep::const_iterator ait = a.begin();
     BinnedRep::const_iterator bit = b.begin();
@@ -89,7 +93,7 @@ namespace OpenMS
         bit.hop();
       } 
     }
-    return similarity * filterfactor;
+    return similarity;
   }
 
 }

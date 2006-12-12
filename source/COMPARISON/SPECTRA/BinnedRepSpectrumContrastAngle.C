@@ -26,7 +26,6 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle.h>
 #include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 
@@ -35,19 +34,19 @@ using namespace std;
 namespace OpenMS
 {
   BinnedRepSpectrumContrastAngle::BinnedRepSpectrumContrastAngle()
+		: BinnedRepCompareFunctor()
   {
 		name_ = BinnedRepSpectrumContrastAngle::getName();
-    usebins_ = true;
   }
 
   BinnedRepSpectrumContrastAngle::BinnedRepSpectrumContrastAngle(const BinnedRepSpectrumContrastAngle& source)
-    : CompareFunctor(source)
+    : BinnedRepCompareFunctor(source)
   {
   }
 
   BinnedRepSpectrumContrastAngle& BinnedRepSpectrumContrastAngle::operator= (const BinnedRepSpectrumContrastAngle& source)
   {
-    CompareFunctor::operator=(source);
+		BinnedRepCompareFunctor::operator=(source);
     return *this;
   }
   
@@ -55,18 +54,22 @@ namespace OpenMS
   {
   }
 
-  double BinnedRepSpectrumContrastAngle::operator()(const ClusterSpectrum& csa, const ClusterSpectrum& csb) const
+	double BinnedRepSpectrumContrastAngle::operator () (const BinnedRep& a) const
+	{
+		return operator () (a, a);
+	}
+	
+  double BinnedRepSpectrumContrastAngle::operator()(const BinnedRep& csa, const BinnedRep& csb) const
   {
     //all binreps do this, check if sizes are similar, if bindimensions are compatible...
     double similarity(0), sum_a(0), sum_b(0);
     
-    BinnedRep a = csa.getBinrep();
+    BinnedRep a = csa;
 		a.normalize();
-    BinnedRep b = csb.getBinrep();
+    BinnedRep b = csb;
 		b.normalize();
-    double filterfactor = filter(csa,csb);
-    if ( filterfactor < 1e-12 ) return 0;
-    BinnedRep::const_iterator ait = a.begin();
+    
+		BinnedRep::const_iterator ait = a.begin();
     BinnedRep::const_iterator bit = b.begin();
     
     //go to overlapping region of both binreps
@@ -105,7 +108,7 @@ namespace OpenMS
       }
     }
 		//similarity /= sqrt(sum_a * sum_b);
-    return similarity * filterfactor;
+    return similarity;
   }
 
 }

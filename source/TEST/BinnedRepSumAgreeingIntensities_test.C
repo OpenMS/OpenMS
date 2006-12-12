@@ -59,32 +59,27 @@ CHECK(BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& sou
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb) const)
+CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
-	TEST_EQUAL(spec.size(), 121)
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
+	TEST_EQUAL(spec1.size(), 121)
 
-	ClusterSpectrum csa(spec, 0, 1, 1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
 	dta_file2.load("data/Transformers_tests_2.dta", spec2);
 
-	ClusterSpectrum csb(spec2, 0, 1, 1);
+	BinnedRep br1(spec1, 1.0, 1), br2(spec2, 1.0, 1);
 
-	double score = (*e_ptr)(csa, csb);
+	double score = (*e_ptr)(br1, br2);
 
 	TEST_REAL_EQUAL(score, 0.0934876)
 
-	score = (*e_ptr)(csa, csa);
+	score = (*e_ptr)(br1, br1);
 
 	TEST_REAL_EQUAL(score, 1.0)
 
-RESULT
-
-CHECK(bool usebins() const)
-	TEST_EQUAL(e_ptr->usebins(), true)
 RESULT
 
 delete e_ptr;

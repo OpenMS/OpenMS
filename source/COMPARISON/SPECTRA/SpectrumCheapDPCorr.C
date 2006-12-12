@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
 
 #include <cmath>
 
@@ -41,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
   SpectrumCheapDPCorr::SpectrumCheapDPCorr()
-    : CompareFunctor(),
+    : PeakSpectrumCompareFunctor(),
 			lastconsensus_()
   {
 		name_ = SpectrumCheapDPCorr::getName();
@@ -49,12 +48,11 @@ namespace OpenMS
     defaults_.setValue("int_cnt", 0); 
     defaults_.setValue("keeppeaks", 0);
 		param_ = defaults_;
-    usebins_ = false;
     factor_ = 0.5;
   }
 
   SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source)
-    : CompareFunctor(source),
+    : PeakSpectrumCompareFunctor(source),
 			lastconsensus_(source.lastconsensus_),
 			factor_(source.factor_)
   {
@@ -66,7 +64,7 @@ namespace OpenMS
 
   SpectrumCheapDPCorr& SpectrumCheapDPCorr::operator = (const SpectrumCheapDPCorr& source)
   {
-    CompareFunctor::operator = (source);
+    PeakSpectrumCompareFunctor::operator = (source);
     lastconsensus_ = source.lastconsensus_;
 		factor_ = source.factor_;
     return *this;
@@ -81,34 +79,34 @@ namespace OpenMS
     else
     {
 			// TODO exception
-      // cerr << "factor should be between 0 and 1, ignored\n";
+      //cerr << "factor should be between 0 and 1, ignored\n";
     }
   }
   
-  
+ 	double SpectrumCheapDPCorr::operator () (const PeakSpectrum& csa) const
+	{
+		return operator()(csa, csa);
+	}
+	
   /**
   looks for peak pairs where there is just one or none possibility for alignment
   and aligns them (if possible). The rest is aligned using dynprog_
   */
-  double SpectrumCheapDPCorr::operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb)const
+  double SpectrumCheapDPCorr::operator () (const PeakSpectrum& x, const PeakSpectrum& y) const
   { 
     double var = (double)param_.getValue("variation");
-    double score = 0;
-    double filterfactor = filter(csa, csb);
-    const MSSpectrum< DPeak<1> >& x = csa.getSpec();
-    const MSSpectrum< DPeak<1> >& y = csb.getSpec();
+    double score(0);
     bool keeppeaks_ = (int)param_.getValue("keeppeaks");
     
-    lastconsensus_ = MSSpectrum< DPeak<1> >();
-    lastconsensus_.getPrecursorPeak().getPosition()[0] = (x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0]) / 2;
-    lastconsensus_.getPrecursorPeak().getCharge() = x.getPrecursorPeak().getCharge();
+    lastconsensus_ = PeakSpectrum();
+    lastconsensus_.getPrecursorPeak().setPosition((x.getPrecursorPeak().getPosition()[0] + y.getPrecursorPeak().getPosition()[0]) / 2);
+    lastconsensus_.getPrecursorPeak().setCharge(x.getPrecursorPeak().getCharge());
 		peak_map_.clear();
     
-    if (filterfactor < 1e-12) return 0;
     int xpos = 0;
     int ypos = 0;
-    MSSpectrum< DPeak<1> >::const_iterator xit = x.getContainer().begin();
-    MSSpectrum< DPeak<1> >::const_iterator yit = y.getContainer().begin();
+		PeakSpectrum::ConstIterator xit = x.getContainer().begin();
+		PeakSpectrum::ConstIterator yit = y.getContainer().begin();
     while (xit != x.getContainer().end() && yit != y.getContainer().end())
     {
       double variation = (xit->getPosition()[0] + yit->getPosition()[0]) / 2 * var; 
@@ -198,10 +196,10 @@ namespace OpenMS
       }
     }
     factor_ = 0.5;
-    return score * filterfactor;
+    return score;
   }
 
-  double SpectrumCheapDPCorr::dynprog_(const MSSpectrum< DPeak<1> >& x, const MSSpectrum< DPeak<1> >& y, int xstart, int xend, int ystart, int yend) const
+  double SpectrumCheapDPCorr::dynprog_(const PeakSpectrum& x, const PeakSpectrum& y, int xstart, int xend, int ystart, int yend) const
   {
 		#ifdef SPECTRUMCHEAPDPCORR_DEBUG
 		cerr << "SpectrumCheapDPCorr::dynprog_(const DDiscreteSpectrum<1>& x, const DDiscreteSpectrum<1>& y, " << xstart << ", "<< xend << ", " <<  ystart << ", " << yend << ")" <<  endl;
@@ -288,7 +286,7 @@ namespace OpenMS
     return dparray[xend-xstart+1][yend-ystart+1]; 
   }
  
-  const MSSpectrum< DPeak<1> >& SpectrumCheapDPCorr::lastconsensus() const 
+  const PeakSpectrum& SpectrumCheapDPCorr::lastconsensus() const 
 	{
  		return lastconsensus_;
 	}

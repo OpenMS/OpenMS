@@ -44,7 +44,7 @@ namespace OpenMS
   class FactoryProduct;
   class ClusterFunctor;
   class AnalysisFunctor;
-  class CompareFunctor;
+  class PeakSpectrumCompareFunctor;
   class PreprocessingFunctor;
   class DBAdapter;
   class Cluster;
@@ -198,7 +198,7 @@ namespace OpenMS
       void setBinSpread(uint);
       void setNorm(Norm);
       int addMower(PreprocessingFunctor*);
-      void setSimFunc(CompareFunctor* );
+      void setSimFunc(PeakSpectrumCompareFunctor* );
       void setClusterFunc(ClusterFunctor*);
       int addAnalysisFunctor(AnalysisFunctor*);
       //@}
@@ -209,7 +209,7 @@ namespace OpenMS
       const uint& getBinSpread() const { return binspread_;}
       const Norm& getNorm() const { return norm_;}
       const std::map<int,ClusterNode*>& getClustering() const { return clusters_;}
-      inline const CompareFunctor* getSimFunc() const {return sim_funcp_;}
+      inline const PeakSpectrumCompareFunctor* getSimFunc() const {return sim_funcp_;}
       const std::vector<PreprocessingFunctor*>& getPreprocessqueue() const {return preprocess_queue_;}
       const ClusterFunctor* getClusterFunc() const { return cluster_funcp_;}
       /** @brief read access to the underlying ClusterExperiment::Analysis <br> */
@@ -287,7 +287,7 @@ namespace OpenMS
       //@}
 
       bool didrun_;
-      CompareFunctor* sim_funcp_;
+      PeakSpectrumCompareFunctor* sim_funcp_;
       std::vector<PreprocessingFunctor*> preprocess_queue_;
       ClusterFunctor* cluster_funcp_;
       std::vector<Analysis> analysis_queue_;
@@ -345,7 +345,7 @@ namespace OpenMS
     void setNorm(Norm norm, int pos = -1);
     int addMower(PreprocessingFunctor* funcp, int pos = -1);
     void setClusterFunc(ClusterFunctor* funcp, int pos = -1);
-    void setSimFunc(CompareFunctor* funcp, int pos = -1);
+    void setSimFunc(PeakSpectrumCompareFunctor* funcp, int pos = -1);
     int addAnalysisFunctor(AnalysisFunctor* func, int pos = -1);
     //@}
 
