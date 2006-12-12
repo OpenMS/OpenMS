@@ -300,7 +300,7 @@ class TOPPResampler
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{
 				typedef MSExperimentType::SpectrumType SpectrumType;
-				SpectrumType & spectrum = exp_resampled[row_index];
+				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // retention times must be increasing
 
 				spectrum.setRetentionTime( bilip.index2key_0( row_index ) );
 				spectrum.setMSLevel(1);
