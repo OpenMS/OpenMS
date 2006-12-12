@@ -83,7 +83,7 @@ class TOPPFileInfo
 	
 			//file names
 			String in = getStringOption_("in");
-			
+			inputFileReadable_(in);
 			//file type
 			FileHandler fh;
 			FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));

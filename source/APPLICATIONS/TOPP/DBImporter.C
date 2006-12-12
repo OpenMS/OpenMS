@@ -78,7 +78,9 @@ class TOPPDBImporter
 			String db,user,password,host,in;
 			SignedInt port;
 			
-			in = getStringOption_("in");			
+			in = getStringOption_("in");
+			inputFileReadable_(in);
+				
 			db = getStringOption_("db");
 			user = getStringOption_("user");
 			password = getStringOption_("password");

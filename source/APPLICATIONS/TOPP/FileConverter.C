@@ -86,6 +86,7 @@ class TOPPFileConverter
 	
 		//input file names
 		String in = getStringOption_("in");
+		inputFileReadable_(in);	
 			
 		//input file type
 		FileHandler fh;

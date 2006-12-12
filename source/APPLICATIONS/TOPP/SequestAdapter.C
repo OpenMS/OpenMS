@@ -578,16 +578,7 @@ class TOPPSequestAdapter
 					file_info.setFile(*spec_i);
 					String common_name = temp_data_dir + string(file_info.fileName().ascii());
 					
-					try
-					{
-						MzXMLFile().load(*spec_i, msexperiment);
-					}
-					catch ( Exception::ParseError pe )
-					{
-						writeLog_("Error loading mzXML file. Aborting!");
-						printUsage_();
-						return PARSE_ERROR;
-					}
+					MzXMLFile().load(*spec_i, msexperiment);
 					
 					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, prob_charge, filenames_and_precursor_retention_times, make_dtas);
 					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + file_info.fileName().ascii());
@@ -1154,16 +1145,7 @@ class TOPPSequestAdapter
 				file_info.setFile(*spec_i);
 				String common_name = temp_data_dir + string(file_info.fileName().ascii());
 				
-				try
-				{
-					MzXMLFile().load(*spec_i, msexperiment);
-				}
-				catch ( Exception::ParseError pe )
-				{
-					writeLog_("Error loading mzXML file. Aborting!");
-					printUsage_();
-					return PARSE_ERROR;
-				}
+				MzXMLFile().load(*spec_i, msexperiment);
 				
 				//return UNKNOWN_ERROR;
 				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, prob_charge, filenames_and_precursor_retention_times, make_dtas);

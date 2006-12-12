@@ -154,6 +154,9 @@ class TOPPFileMerger
 				filename = line;
 			}
 			
+			//check if file is ok
+			inputFileReadable_(filename);	
+			
 			//load file 
 			fh.loadExperiment(filename,in,force_type);
 			if (in.size()==0)

@@ -922,17 +922,9 @@ class TOPPInspectAdapter
 					vector< IdentificationData > identifications;
 					ProteinIdentification protein_identification;
 					
-					try
-					{
-						vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
-//				const std::string& database_filename)
-					}
-					catch( Exception::ParseError pe )
-					{
-						deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
-						writeLog_(pe.getMessage());
-						return INPUT_FILE_CORRUPT;
-					}
+
+					vector< UnsignedInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, identifications, protein_identification, p_value_threshold);
+					
 					vector< ProteinIdentification > protein_identifications;
 					protein_identifications.push_back(protein_identification);
 					

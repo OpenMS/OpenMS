@@ -80,7 +80,8 @@ class TOPPFileFilter
 			// parameter handling
 			//-------------------------------------------------------------
 	
-			String in = getStringOption_("in");			
+			String in = getStringOption_("in");
+			inputFileReadable_(in);	
 			String out = getStringOption_("out");
 	
 			//ranges
