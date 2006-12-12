@@ -66,7 +66,7 @@ class TOPPDTAExtractor
 			registerStringOption_("mz","[min]:[max]",":","m/z range of precursor peaks to extract.\n"
 																									 "This option is ignored for MS level 1", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range of spectra to extract", false);
-			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract", false);
+			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 		}
 	
 		ExitCodes main_(int , char**)
