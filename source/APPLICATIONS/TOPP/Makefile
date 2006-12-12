@@ -54,7 +54,7 @@ EXECUTABLES=\
 	InspectAdapter\
 	PeakPicker\
 	LabeledMatcher\
-	Dewarper\
+	MapDewarper\
 	FeaturePairSplitter\
 	DTAExtractor\
 	DBExporter\
@@ -156,7 +156,7 @@ SpectrumLibMatcher: SpectrumLibMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 
-Dewarper: Dewarper.o
+MapDewarper: MapDewarper.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
 	cp $@ $(OPENMS_PATH)/bin/   
 

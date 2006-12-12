@@ -72,7 +72,7 @@
   - <b>Map alignment</b>
     - \subpage MapAlignment
     - \subpage MapMatcher
-		- \subpage Dewarper
+		- \subpage MapDewarper
   - <b>Misc</b>
    	- \subpage AdditiveSeries
   	- \subpage MapStatistics

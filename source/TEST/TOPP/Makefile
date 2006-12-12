@@ -36,7 +36,7 @@ UNCONDITIONAL_TESTS = \
 	DBExporter_test \
 	DBImporter_test \
 	DTAExtractor_test \
-	Dewarper_test \
+	MapDewarper_test \
 	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
@@ -248,11 +248,11 @@ DTAExtractor_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,DTAExtractor_3_output.dta,DTAExtractor.tmp)
 
 
-Dewarper_test: $(NUMERICDIFF)
+MapDewarper_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "Dewarper:"
-	@$(call RUN_PROG_OPT,Dewarper,-feat Dewarper_1_feat.xml -grid Dewarper_1_grid.xml -out Dewarper_1_out.tmp )
-	@$(call TEST_FILE_EQUAL,Dewarper_1_out.xml,Dewarper_1_out.tmp)
+	@$(ECHO) "MapDewarper:"
+	@$(call RUN_PROG_OPT,MapDewarper,-feat MapDewarper_1_feat.xml -grid MapDewarper_1_grid.xml -out MapDewarper_1_out.tmp )
+	@$(call TEST_FILE_EQUAL,MapDewarper_1_out.xml,MapDewarper_1_out.tmp)
 
 FeatureFinder_test: $(NUMERICDIFF)
 	@$(ECHO) ""

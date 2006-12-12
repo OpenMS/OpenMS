@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page Dewarper Dewarper
+	@page MapDewarper MapDewarper
 	
 	@brief Dewarps a feature map by applying a transform to
 	the coordinates of each feature.
@@ -56,12 +56,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPDewarper
+class TOPPMapDewarper
       : public TOPPBase2
 {
 public:
-  TOPPDewarper()
-      : TOPPBase2("Dewarper","Dewarps a feature map by applying a transform to the coordinates")
+  TOPPMapDewarper()
+      : TOPPBase2("MapDewarper","Dewarps a feature map by applying a transform to the coordinates")
   {
   }
 
@@ -116,7 +116,7 @@ protected:
 
 int main( int argc, char ** argv )
 {
-  TOPPDewarper tool;
+  TOPPMapDewarper tool;
   return tool.main(argc,argv);
 }
 

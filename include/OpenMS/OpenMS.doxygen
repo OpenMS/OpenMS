@@ -63,7 +63,7 @@
 		- ohne quadtree
 		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
-		- Visualisierung von FeaturePeairs
+		- Visualisierung von FeaturePeairs -> TOPP tool ändern
 	- DB
 	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)
