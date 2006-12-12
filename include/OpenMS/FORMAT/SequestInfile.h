@@ -43,6 +43,7 @@ namespace OpenMS
 		Creates a sequest.params file for Sequest search from a peak list.
   	
   	@todo write test(Martin)
+  	@todo write docu(Martin)
   	
   	@ingroup FileIO
 	*/
