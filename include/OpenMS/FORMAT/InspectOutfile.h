@@ -51,8 +51,6 @@ namespace OpenMS
 		
 		This class serves to read in an Inspect outfile and write an AnalysisXML file
 		
-		@todo write test(Martin)
-		
 		@ingroup FileIO
 	*/
 	class InspectOutfile
@@ -72,7 +70,7 @@ namespace OpenMS
 			/// generates a trie database from a given one (the type of database is determined by getLabels)
 			void generateTrieDB(const std::string& source_database_filename, const std::string& database_filename, const std::string& index_filename, bool append = false, const std::string species = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 			
-		//protected:
+
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, std::string& accession, std::string& accession_type);
@@ -89,6 +87,7 @@ namespace OpenMS
 			/// retrieve sequences from a trie database
 			std::vector< UnsignedInt > getSequences(const std::string& database_filename, const std::map< UnsignedInt, UnsignedInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
 
+		protected:
 			/// a record in the index file that belongs to a trie database consists of three parts
 			/// 1) the protein's position in the original database
 			/// 2) the proteins's position in the trie database

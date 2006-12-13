@@ -48,7 +48,6 @@ namespace OpenMS
 	/**
 		@brief Representation of an Sequest outfile.
 		
-		@todo move ensurePathChar (rename to 'ensurePathEnding') to String and add test(Martin)
 		@todo check whether every getline may throw an exception (Martin)
 		
 		@ingroup FileIO
@@ -81,7 +80,6 @@ namespace OpenMS
 
 			std::map< String, std::vector< Real > > getPeptidePValues(const std::string& out_dir, const std::string& prob_filename) throw (Exception::FileNotFound, Exception::ParseError);
 			
-		//protected:
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector< String >& substrings, UnsignedInt number_of_columns, UnsignedInt reference_column);
 			
