@@ -109,6 +109,10 @@ CHECK(bool getColumns(const String& line, vector< String >& substrings, Unsigned
 	TEST_EQUAL(file.getColumns("", substrings, 12, 10), false)
 	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
 	TEST_EQUAL((columns == substrings), true)
+	
+	line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT+2   C.ETQAWSIATILETLYDL.-";
+	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
+	TEST_EQUAL((columns == substrings), true)
 RESULT
 
 CHECK(void getSequences(const String& database_filename, const map< String, UnsignedInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UnsignedInt > >& found, map< String, UnsignedInt >& not_found) throw (Exception::FileNotFound))
