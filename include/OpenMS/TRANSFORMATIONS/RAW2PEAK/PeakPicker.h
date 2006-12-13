@@ -50,8 +50,6 @@ namespace OpenMS
   /**
      @brief This class is the base class for every peak picker.
      
-     @todo Warn when Param values are given, that are not needed (Eva)
-     
      @ingroup PeakPicking
   */
   class PeakPicker
@@ -94,7 +92,8 @@ namespace OpenMS
     /// Mutable access to the threshold of the height
     inline void setPeakBound(const float& peak_bound) 
     { 
-    	peak_bound_ = peak_bound;  
+    	peak_bound_ = peak_bound;
+    	param_.setValue("thresholds:peak_bound",peak_bound);
     }
 
     /// Non-mutable access to the threshold of the peak height in the MS 2 level
@@ -105,7 +104,8 @@ namespace OpenMS
     /// Mutable access to the threshold of the peak height in the MS 2 level
     inline void setPeakBoundMs2Level(const float& peak_bound_ms2_level) 
     { 
-    	peak_bound_ms2_level_ = peak_bound_ms2_level; 
+    	peak_bound_ms2_level_ = peak_bound_ms2_level;
+    	param_.setValue("thresholds:peak_bound_ms2_level",peak_bound_ms2_level); 
     }
 
     /// Non-mutable access to the signal to noise threshold
@@ -116,7 +116,8 @@ namespace OpenMS
     /// Mutable access to the signal to noise threshold
     inline void setSignalToNoiseLevel(const float& signal_to_noise) 
     { 
-    	signal_to_noise_ = signal_to_noise; 
+    	signal_to_noise_ = signal_to_noise;
+    	param_.setValue("thresholds:signal_to_noise",signal_to_noise);
     }
 
     /// Non-mutable access to the fwhm threshold
@@ -128,6 +129,7 @@ namespace OpenMS
     inline void setFwhmBound(const float& fwhm) 
     {
     	fwhm_bound_ = fwhm; 
+    	param_.setValue("thresholds:fwhm_bound",fwhm);
     }
 
 		/**

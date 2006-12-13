@@ -101,24 +101,19 @@ namespace OpenMS
       /// Constructor
       SavitzkyGolaySVDFilter();
 
-      /** Class constructor setting the coefficients in the filter.
-          fS is the frameSize while M is the order of the smoothing polynomial.
-      */
-      /// Class constructor setting the coefficients in the filter. Please note that the frame size must be odd and that the order of the polynomial is more less than the frame size.
-      SavitzkyGolaySVDFilter(const Param& parameters) throw (Exception::InvalidValue);
-
-
       /// Copy constructor
       inline SavitzkyGolaySVDFilter(const SavitzkyGolaySVDFilter& s)
           : SmoothFilter(s),
-          param_(s.param_),
+          defaults_(s.defaults_),
           frame_size_(s.frame_size_),
           order_(s.order_)
-      { }
+      {
+      }
 
       /// Destructor
       virtual ~SavitzkyGolaySVDFilter()
-      { }
+      {
+      }
 
       /// Assignment operator
       inline SavitzkyGolaySVDFilter& operator=(const SavitzkyGolaySVDFilter& s)
@@ -129,8 +124,7 @@ namespace OpenMS
           return *this;
         }
 
-        param_ = s.param_;
-
+        defaults_ = s.defaults_;
         frame_size_=s.frame_size_;
         coeffs_=s.coeffs_;
         order_=s.order_;
@@ -156,13 +150,8 @@ namespace OpenMS
       /// Mutable access to the length of the window
       void setWindowSize(const unsigned int& frame_size);
 
-      /// Non-mutable access to the parameter object
-      inline const Param& getParam() const
-      {
-        return param_;
-      }
-      /// Mutable access to the parameter object
-      void setParam(const Param& param) throw (Exception::InvalidValue);
+      /// Sets the parameters through a Param
+      void setParam(Param param) throw (Exception::InvalidValue);
 
 
       /** @brief Applies the convolution with the filter coefficients to an given iterator range.
@@ -396,8 +385,8 @@ namespace OpenMS
       }
 
     protected:
-      /// Parameter object
-      Param param_;
+      /// parameter defaults
+      Param defaults_;
       /// Size of the filter kernel (number of pre-tabulated coefficients)
       unsigned int frame_size_;
       /// The order of the smoothing polynomial.

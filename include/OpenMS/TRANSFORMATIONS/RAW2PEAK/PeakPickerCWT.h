@@ -148,6 +148,7 @@ namespace OpenMS
       inline void setSearchRadius(const unsigned int& radius)
       {
         radius_ = radius;
+      	param_.setValue("thresholds:search_radius",(SignedInt)radius);      	
       }
 
       /// Non-mutable access to the scale of the wavelet transform
@@ -159,6 +160,7 @@ namespace OpenMS
       inline void setWaveletScale(const float& scale)
       {
         scale_ = scale;
+				param_.setValue("wavelet_transform:scale",scale);
       }
 
       /// Non-mutable access to the threshold of the height
@@ -187,6 +189,7 @@ namespace OpenMS
       inline void setPeakCorrBound(const float& peak_corr_bound)
       {
         peak_corr_bound_ = peak_corr_bound;
+				param_.setValue("thresholds:correlation",peak_corr_bound);
       }
 
       /// Non-mutable access to the noise level
@@ -198,6 +201,7 @@ namespace OpenMS
       inline void setNoiseLevel(const float& noise_level)
       {
         noise_level_ = noise_level;
+        param_.setValue("thresholds:noise_level",noise_level);
       }
 
       /// Non-mutable access to the optimization switch
@@ -209,6 +213,14 @@ namespace OpenMS
       inline void setOptimizationFlag(const bool& optimization)
       {
         optimization_ = optimization;
+        if (optimization)
+        {
+        	param_.setValue("Optimization:skip_optimization","no");
+        }
+				else
+				{
+        	param_.setValue("Optimization:skip_optimization","yes");
+        }	
       }
       //@}
 

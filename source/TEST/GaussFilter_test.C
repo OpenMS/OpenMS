@@ -79,23 +79,6 @@ CHECK((GaussFilter(const GaussFilter& g)))
   TEST_REAL_EQUAL(gauss_copy.getSpacing(),0.01)
 RESULT
 
-CHECK((GaussFilter(const Param& parameters) throw(Exception::InvalidValue)))
-  Param p;
-  p.setValue("gaussian_width",1.6);
-  GaussFilter gauss(p);
-  
-  TEST_REAL_EQUAL(gauss.getSigma(),.2);
-  TEST_REAL_EQUAL(gauss.getKernelWidth(),1.6);
-RESULT
-
-CHECK((const Param& getParam() const))
-  Param p;
-  p.setValue("gaussian_width",1.6);
-  const GaussFilter gauss(p);
-
-  TEST_EQUAL(gauss.getParam() == p, true);
-RESULT
-
 CHECK((const double& getSigma() const))
   const GaussFilter gaussian;
 
@@ -133,7 +116,8 @@ RESULT
 CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
   Param p;
   p.setValue("gaussian_width",1.6);
-  GaussFilter gaussian(p);
+  GaussFilter gaussian;
+  gaussian.setParam(p);
 
   TEST_REAL_EQUAL(gaussian.getSigma(),0.2);
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);

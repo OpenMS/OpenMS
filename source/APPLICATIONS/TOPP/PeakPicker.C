@@ -89,6 +89,7 @@ class TOPPPeakPicker
 							"  </NODE>\n"
 							"  <NODE name=\"thresholds\">\n"
 							"    <ITEM name=\"peak_bound\" value=\"100\" type=\"float\" />\n"
+							"    <ITEM name=\"peak_bound_ms2_level\" value=\"30\" type=\"float\" />\n"
 							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
 							"  </NODE>\n"
 							"</NODE>");
@@ -116,11 +117,11 @@ class TOPPPeakPicker
     //optimization
     if (optimize_peaks)
     {
-      pepi_param.setValue("skip_optimization","no");
+      pepi_param.setValue("Optimization:skip_optimization","no");
     }
     else
     {
-      pepi_param.setValue("skip_optimization","yes");
+      pepi_param.setValue("Optimization:skip_optimization","yes");
     }
 		
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);

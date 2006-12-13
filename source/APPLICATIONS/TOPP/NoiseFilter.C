@@ -129,7 +129,8 @@ class TOPPNoiseFilter
       {	
       	Param filter_param = getParam_().copy("sgolay:",true);
   			writeDebug_("Parameters passed to SavitzkyGolaySVDFilter", filter_param,3);
-  			SavitzkyGolaySVDFilter sgolay( filter_param );
+  			SavitzkyGolaySVDFilter sgolay;
+  			sgolay.setParam( filter_param );
         
         LinearResampler lin_resampler;
         lin_resampler.setSpacing(spacing);
@@ -187,7 +188,8 @@ class TOPPNoiseFilter
       {	
       	Param filter_param = getParam_().copy("gaussian:",true);
   			writeDebug_("Parameters passed to GaussFilter", filter_param,3);
-        GaussFilter gauss(filter_param);
+        GaussFilter gauss;
+        gauss.setParam(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }
 

@@ -33,6 +33,9 @@
 
 namespace OpenMS
 {
+	/**
+		@brief Base class for all noise filter implementations
+	*/
   class SmoothFilter
   {
     public:

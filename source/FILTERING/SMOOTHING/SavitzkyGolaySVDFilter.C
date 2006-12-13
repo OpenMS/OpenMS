@@ -35,65 +35,27 @@ namespace OpenMS
   SavitzkyGolaySVDFilter::SavitzkyGolaySVDFilter()
       : SmoothFilter()
   {
+  	defaults_.setValue("frame_length",17);
+  	defaults_.setValue("polynomial_order",4);
     frame_size_=17;
     order_=4;
-
-    coeffs_.resize(frame_size_*(frame_size_/2+1));
-
-    computeCoeffs_();
-  }
-
-  SavitzkyGolaySVDFilter::SavitzkyGolaySVDFilter(const Param& parameters) throw (Exception::InvalidValue)
-  {
-    param_ = parameters;
-
-    // if a smoothing parameter is missed in the param object the value should be substituted by a dv value
-    DataValue dv = param_.getValue("frame_length");
-    if (dv.isEmpty() || dv.toString() == "")
-      frame_size_ = 17;
-    else
-      frame_size_ = (int)dv;
-
-    if (!isOdd(frame_size_))
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size hast to be an odd integer!", String(frame_size_));
-    }
-
-    dv = param_.getValue("polynomial_order");
-    if (dv.isEmpty() || dv.toString() == "")
-      order_ = 4;
-    else
-      order_ = (unsigned int)dv;
-
-
-    if (frame_size_ <= order_)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
-    }
-
-    coeffs_.clear();
+    
     coeffs_.resize(frame_size_*(frame_size_/2+1));
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setParam(const Param& param) throw (Exception::InvalidValue)
+  void SavitzkyGolaySVDFilter::setParam(Param param) throw (Exception::InvalidValue)
   {
-
-    param_ = param;
-
-    // read the new parameter
-    DataValue dv = param_.getValue("frame_length");
-    if (!(dv.isEmpty() || dv.toString() == ""))
-      frame_size_ = (int)dv;
-
+		param.setDefaults(defaults_);
+    param.checkDefaults(defaults_);
+    
+    frame_size_ = (int)param.getValue("frame_length");
     if (!isOdd(frame_size_))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size has to be an odd integer!", String(frame_size_));
     }
 
-    dv = param_.getValue("polynomial_order");
-    if (!(dv.isEmpty() || dv.toString() == ""))
-      order_ = (unsigned int)dv;
+    order_ = (unsigned int)param.getValue("polynomial_order");
 
     if (frame_size_ <= order_)
     {

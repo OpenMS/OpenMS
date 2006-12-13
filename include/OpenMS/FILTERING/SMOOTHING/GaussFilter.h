@@ -62,6 +62,10 @@ namespace OpenMS
       /// Constructor
       inline GaussFilter()
       {
+      	//Parameter settings
+      	defaults_.setValue("gaussian_width",0.8);
+        
+        //members
         sigma_ = .1;
         spacing_ = 0.01;
 
@@ -80,23 +84,22 @@ namespace OpenMS
           : SmoothFilter(g),
           sigma_(g.sigma_),
           spacing_(g.spacing_),
-          param_(g.param_)
-      { }
+          defaults_(g.defaults_)
+      {
+      }
 
       /// Destructor
       virtual ~GaussFilter()
-      {   }
+      {
+      }
 
       /// Assignment operator
       inline GaussFilter& operator=(const GaussFilter& s)
       {
         // take care of self assignments
-        if (this == &s)
-        {
-          return *this;
-        }
+        if (this == &s) return *this;
 
-        param_ = s.param_;
+        defaults_ = s.defaults_;
 
         spacing_=s.spacing_;
         coeffs_=s.coeffs_;
@@ -113,10 +116,11 @@ namespace OpenMS
       /// Mutable access to the sigma
       inline void setSigma(const double& sigma)
       {
-        sigma_=sigma;
+        sigma_ = sigma;
         spacing_ = 4*sigma_ / 50;
         init(sigma_,spacing_);
       }
+      
       /// Non-mutable access to the kernel width
       inline double getKernelWidth() const
       {
@@ -128,6 +132,7 @@ namespace OpenMS
         sigma_ = kernel_width / 8.;
         init(sigma_,spacing_);
       }
+      
       /// Non-mutable access to the spacing
       inline const double& getSpacing() const
       {
@@ -140,21 +145,17 @@ namespace OpenMS
         OPENMS_PRECONDITION((4*sigma_ > spacing), "You have to choose a smaller spacing for the kernel coefficients!" );
         init(sigma_,spacing_);
       }
-      /// Non-mutable access to the parameter object
-      inline const Param& getParam() const
+      
+      /// Sets the parameters through a Param
+      inline void setParam(Param param) throw (Exception::InvalidValue)
       {
-        return param_;
-      }
-      /// Mutable access to the parameter object
-      inline void setParam(const Param& param) throw (Exception::InvalidValue)
-      {
-        param_ = param;
-        DataValue dv = param_.getValue("gaussian_width");
-
-        if (!(dv.isEmpty() || dv.toString() == ""))
+      	param.setDefaults(defaults_);
+      	param.checkDefaults(defaults_);
+      	
+        DataValue dv = param.getValue("gaussian_width");
+        if (dv.toString() != "")
         {
-          double kernel_width = 0.;
-          kernel_width = (float)dv;
+          double kernel_width = (float)dv;
 
           if (kernel_width <= 0)
           {
@@ -359,7 +360,7 @@ namespace OpenMS
       /// The spacing of the pre-tabulated kernel coefficients
       double spacing_;
       /// Parameter object
-      Param param_;
+      Param defaults_;
 
 
       /// Computes the value of the gaussian distribution (mean=0 and standard deviation=sigma) at position x

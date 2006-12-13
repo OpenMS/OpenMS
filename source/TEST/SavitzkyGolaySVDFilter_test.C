@@ -55,16 +55,6 @@ CHECK((~SavitzkyGolaySVDFilter()))
   delete dsg_ptr;
 RESULT
 
-CHECK((SavitzkyGolaySVDFilter(const Param& parameters) throw(Exception::InvalidValue)))
-  Param p;
-  p.setValue("polynomial_order",2);
-  p.setValue("frame_length",3);
-  SavitzkyGolaySVDFilter sgolay(p);
-
-  TEST_EQUAL(sgolay.getOrder(), 2)
-  TEST_EQUAL(sgolay.getWindowSize(), 3)
-RESULT
-
 CHECK((SavitzkyGolaySVDFilter& operator=(const SavitzkyGolaySVDFilter& s)))
   SavitzkyGolaySVDFilter sgolay;
   sgolay.setOrder(4);
@@ -84,16 +74,6 @@ CHECK((SavitzkyGolaySVDFilter(const SavitzkyGolaySVDFilter& s)))
   SavitzkyGolaySVDFilter sgolay_copy(sgolay);
   TEST_REAL_EQUAL(sgolay_copy.getOrder(),sgolay.getOrder())
   TEST_EQUAL(sgolay_copy.getWindowSize(),sgolay.getWindowSize())
-RESULT
-
-CHECK((const Param& getParam() const))
-  Param p;
-  p.setValue("polynomial_order",2);
-  p.setValue("frame_length",3);
-  const SavitzkyGolaySVDFilter sgolay(p);
-
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("polynomial_order"),2);
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("frame_length"),3);
 RESULT
 
 CHECK((const unsigned int& getOrder() const))
@@ -128,8 +108,8 @@ CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
   SavitzkyGolaySVDFilter sgolay;
   sgolay.setParam(p);
 
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("polynomial_order"),2);
-  TEST_REAL_EQUAL(sgolay.getParam().getValue("frame_length"),3);
+  TEST_REAL_EQUAL(sgolay.getOrder(),2);
+  TEST_REAL_EQUAL(sgolay.getWindowSize(),3);
 RESULT
 
 CHECK((void setWindowSize(const unsigned int& frame_size)))
