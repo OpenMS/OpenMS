@@ -60,8 +60,9 @@ namespace OpenMS
      
      If a piecewise shift is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension.     
-     
-  **/
+  		
+  	 @todo Make this class complain about unknown parameters (Eva)   
+  */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
   {
