@@ -101,29 +101,37 @@ namespace OpenMS
 
 		protected:
 
-			/// fast method to create spectra for pre scoring
+			/// fast method to create spectra for pre-scoring
 			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
 		
-			/// 
+			/// performs a pre-scoring of the given spec with very simple spectra from the candidate peptides
 			void getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
 
-			///
+			/// performs a identification via spectra comparison with the PILISModel spectrum generator
 			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id);
-			
+		
+			/// the params 
 			Param param_;
 
+			/// the sequence database for the candidate peptides
 			PILISSequenceDB* sequence_db_;
 
+			/// the model for spectra simulation
 			PILISModel* hmm_model_;
 
+			/// amino acids weights for the simple spectra generator
 			HashMap<char, double> aa_weight_;
 
+			/// scorer for spectra comparison
 			PeakSpectrumCompareFunctor* scorer_;
 
+			/// name of the scorer
 			String scoring_type_;
 		
+			/// holds the charge of a given candidate sequence; needed because sequence with different charge state might be possible candidates
 			HashMap<String, Size> sequence_to_charge_;
 			
+			/// a peaks, just to not instantiate it over and over again
 			Peak p_;
 	};
 }

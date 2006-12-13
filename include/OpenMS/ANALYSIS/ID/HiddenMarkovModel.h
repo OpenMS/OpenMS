@@ -61,45 +61,49 @@ namespace OpenMS
 			/// destructor
 			virtual ~HMMState();
 			//@}
-			
+		
 			///
+			const HMMState& operator = (const HMMState&);
+		
+			/** Accessors
+			*/
+			//@{
+			/// sets the name of the state
 			void setName(const String&);
 			
-			///
+			/// returns the name of the state
 			const String& getName() const;
 
-			/// 
-			const HMMState& operator = (const HMMState&);
-
-			///
+			/// return the emission probability of the state
 			double getEmissionProbability() const;
 
-			///
+			/// sets the emission probability
 			void setEmissionProbability(double ep);
 
-			///
+			/// sets the hidden property to the state
 			void setHidden(bool hidden);
 
-			///
+			/// returns true if the state is hidden
 			bool isHidden() const;
 
-			///
+			/// adds the given predecessor state to the list
 			void addPredecessorState(HMMState* state);
 
-			///
+			/// deletes the given predecessor state from the list
 			void deletePredecessorState(HMMState* state);
 
-			///
+			/// add the given successor state to the list
 			void addSuccessorState(HMMState* state);
 
-			///
+			/// deletes the given successor state from the list
 			void deleteSuccessorState(HMMState* state);
 
-			///
+			/// returns the predecessor states of the state
 			const std::set<HMMState*>& getPredecessorStates() const;
 
-			///
+			/// return the successor states of the state
 			const std::set<HMMState*>& getSuccessorStates() const;
+			//@}
 
 		protected:
 	
@@ -143,144 +147,163 @@ namespace OpenMS
 			/// destructor
 			virtual ~HiddenMarkovModel();
 			//@}
-		
-			///
-			void writetoYGFFile(const String& filename);
-	
-			///
-			void writeToFile(const String& filename);
-
-			///
-			void readFromFile(const String& filename);
-
-			///
-			double getTransitionProbability(HMMState*, HMMState*) const;
-
-			///
-			double getTransitionProbability(const String&, const String&) const;
-
-			///
-			void setTransitionProbability(HMMState*, HMMState*, double prob);
-
-			///
-			void setTransitionProbability(const String&, const String&, double prob);
-			
-			///
-			const Size getNumberOfStates() const;
-
-			///
-			void addNewState(HMMState*);
-
-			//void addSynonymState(const String& name, const String& synonym);
-
-			///
-			void addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2);
 
 			///
 			const HiddenMarkovModel& operator = (const HiddenMarkovModel&);
+			
+			/** Accessors
+			*/
+			//@{
+			/** @brief writes the HMM into a file in YGF format
 
-			///
+					TODO link
+			*/
+			void writetoYGFFile(const String& filename);
+	
+			/// writes the HMM to a file
+			void writeToFile(const String& filename);
+
+			/// read a HMM from the given file
+			void readFromFile(const String& filename);
+
+			/// returns the transition probability of the given states
+			double getTransitionProbability(HMMState*, HMMState*) const;
+
+			/// returns the transition probability of the given state names
+			double getTransitionProbability(const String&, const String&) const;
+
+			/// sets the transition probability of the given states to prob
+			void setTransitionProbability(HMMState*, HMMState*, double prob);
+
+			/// sets the transition probability of the given state names to prob
+			void setTransitionProbability(const String&, const String&, double prob);
+			
+			/// return the number of states
+			const Size getNumberOfStates() const;
+
+			/// registers a new state to the HMM
+			void addNewState(HMMState*);
+
+			/// add a new synonym transition to the given state names
+			void addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2);
+
+			/// evaluate the HMM, estimates the transition probabilities from the training
 			void evaluate();
 
-			///
+			/// trains the HMM; initial probabilities and emission probabilities of the emitting states should be set
 			void train();
 
-			///
+			/// sets the initial transition probability of the given state to prob
 			void setTrainingInitialTransitionProbability(HMMState*, double prob);
 
-			///
+			/// sets the initial transition probability of the given state to prob
 			void setTrainingInitialTransitionProbability(const String&, double prob);
 
-			///
+			/// clears the initial probabilities 
 			void clearTrainingInitialTransitionProbabilities();
 
-			///
+			/// sets the emission probability of the given state to prob
 			void setTrainingEmissionProbability(HMMState*, double prob);
 
-			///
+			/// sets the emission probability of the given state to prob
 			void setTrainingEmissionProbability(const String&, double prob);
 
-			///
+			/// clear the emission probabilities
 			void clearTrainingEmissionProbabilities();
 
-			///
-			void enableTransition(HMMState*, HMMState*);
+			/// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
+			void enableTransition(HMMState* s1, HMMState* s2);
 
-			///
+			/// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
 			void enableTransition(const String&, const String&);
 
-			///
+			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
 			void disableTransition(HMMState*, HMMState*);
 
-			///
+			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
 			void disableTransition(const String&, const String&);
 
-			///
+			/// disables all transitions
 			void disableTransitions();
 
-			///
+			/// calculates the emission probabilities of the HMM (of course only of the non-hidden states)
 			void calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs);
 
-			///
+			/// writes some stats to cerr
 			void dump();
 
-			///
+			/// writes some info of the forward "matrix" to cerr
 			void forwardDump(); 
 
-			///
+			/// builds a synonyms structure, needed when synonyms are used
 			void buildSynonyms();
 
-			///
+			/// estimates the transition probabilities of not trained transitions by averages similar trained ones
 			void estimateUntrainedTransitions();
 
-			///
+			/// returns the state with the given name
 			HMMState* getState(const String& name);
 
-			///
+			/// returns the state with the given name
 			const HMMState* getState(const String& name) const;
+			//@}
 			
 		protected:
 			
-			///
+			/// performs the forward algorithm
 			void calculateForwardPart_();
 
-			///
+			/// performs the backward algorithm
 			void calculateBackwardPart_();
 
-			///
+			/// returns the forward variable 
 			double getForwardVariable_(HMMState*);
 
-			///
+			/// returns the backward variable
 			double getBackwardVariable_(HMMState*);
 
 		private:
 
+			// transition probs
 			HashMap<HMMState*, HashMap<HMMState*, double> > trans_;
 
+			// transition prob counts
 			HashMap<HMMState*, HashMap<HMMState*, double> > count_trans_;
 
+			// transition probs from one training step			
 			HashMap<HMMState*, HashMap<HMMState*, double> > train_count_trans_;
 
+			// number of training steps of the transitions
 			HashMap<HMMState*, HashMap<HMMState*, Size> > training_steps_count_;
 
+			// forward variables
 			HashMap<HMMState*, double> forward_;
 
+			// backward variables
 			HashMap<HMMState*, double> backward_;
 
+			// name to state mapping
 			HashMap<String, HMMState*> name_to_state_;
 
+			// emission probabilities
 			HashMap<HMMState*, double> train_emission_prob_;
 
+			// initial transition probabilities
 			HashMap<HMMState*, double> init_train_prob_;
 
+			// all states of the HMM
 			std::set<HMMState*> states_;
 
+			// trained transitions
 			std::set<std::pair<HMMState*, HMMState*> > trained_trans_;
 
+			// synonym transitions mapping
 			HashMap<String, HashMap<String, std::pair<String, String> > > synonym_trans_names_;
 
+			// synonym transitions
 			HashMap<HMMState*, HashMap<HMMState*, std::pair<HMMState*, HMMState*> > > synonym_trans_;
 
+			// transitions which are enabled
 			HashMap<HMMState*, std::set<HMMState*> > enabled_trans_;
 	};
 }

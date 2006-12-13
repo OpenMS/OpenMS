@@ -42,8 +42,11 @@ namespace OpenMS
 	}
 
 	PILISSequenceDB::PILISSequenceDB(const PILISSequenceDB& db)
+		: proteins_(db.proteins_),
+			peptides_(db.peptides_),
+			factor_(db.factor_),
+			replace_X_and_L_(db.replace_X_and_L_)
 	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	
 	PILISSequenceDB::~PILISSequenceDB()
@@ -74,16 +77,44 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISSequenceDB::addFASTAFile(const String& filename)
+	void PILISSequenceDB::addFASTAFile(const String& /*filename*/)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 
-	void PILISSequenceDB::digestSequencesTryptic(Size missed_cleavages)
+	void PILISSequenceDB::digestProteinsTryptic(Size missed_cleavages)
 	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		for (vector<pair<String, String> >::const_iterator it = proteins_.begin(); it != proteins_.end(); ++it)
+		{
+			vector<String> peptides;
+			digestTryptic_(it->second, peptides, missed_cleavages);
+
+			for (vector<String>::const_iterator it1 = peptides.begin(); it1 != peptides.end(); ++it1)
+			{
+				addPeptide_(*it1);
+			}
+		}
 	}
 
+	void PILISSequenceDB::addPeptide_(const String& peptide)
+	{
+		if (!has(peptide))
+		{
+			AASequence peptide_sequence(peptide);
+			double weight = peptide_sequence.getAverageWeight(Residue::Full, 2)/2.0;
+			PepStruct p;
+			p.peptide = peptide;
+			p.weight = weight;
+			p.charge = 2;
+			peptides_[(Size)(weight * factor_)].push_back(p);
+
+			weight = peptide_sequence.getAverageWeight(Residue::Full, 1);
+			p.weight = weight;
+			p.charge = 1;
+			peptides_[(Size)(weight * factor_)].push_back(p);
+		}
+	}
+	
 	bool PILISSequenceDB::has(const String& peptide)
 	{
 		// TODO replace Z by K,Q
@@ -101,7 +132,7 @@ namespace OpenMS
 		try 
 		{
 			AASequence peptide_sequence(peptide);
-			double weight = peptide_sequence.getAverageWeight(Residue::Full, 2);
+			double weight = peptide_sequence.getAverageWeight(Residue::Full, 2)/2.0;
 
 			for (vector<PepStruct>::const_iterator it = peptides_[(Size)(weight * factor_)].begin(); it != peptides_[(Size)(weight * factor_)].end(); ++it)
 			{
@@ -185,6 +216,49 @@ namespace OpenMS
 			count += it->second.size();
 		}
 		return count;
+	}
+
+	unsigned int PILISSequenceDB::countProteins() const
+	{
+		return proteins_.size();
+	}
+
+	void PILISSequenceDB::digestTryptic_(const String& seq, vector<String>& peptides, Size missedcleavages)
+	{
+		// trypsin cuts C-terminal to K,R, and not before proline
+    for (Size i=0; i != seq.size(); ++i)
+    {
+     	if (seq[i] == 'K' || seq[i] == 'R')
+     	{
+       	Size j = i + 1;
+       	for (Size k = 0; k <= missedcleavages; ++k)
+       	{
+         	while (j < seq.size() && !(seq[j] == 'K' || seq[j] == 'R'))
+         	{
+           	++j;
+         	}
+         	if (seq[j] == 'K' || seq[j] == 'R')
+         	{
+           	if (j - i > 2)
+           	{
+             	if (j + 1 != seq.size() && seq[j + 1] != 'P')
+             	{
+               	peptides.push_back(seq.substr(i + 1, j - i));
+             	}
+             	else
+             	{
+               	if (j + 1 == seq.size())
+               	{
+                 	peptides.push_back(seq.substr(i + 1, j - i));
+               	}
+             	}
+           	}
+         	}
+         	++j;
+       	}
+     	}
+    }
+		return;
 	}
 }
 

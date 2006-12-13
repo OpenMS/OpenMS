@@ -37,70 +37,101 @@
 namespace OpenMS 
 {
 	class AASequence;
-	
+
+	/** @brief A proton distribution model to calculate the proton distribution over charged peptides
+	 	
+			The model uses proton affinity values of backbone nitrogens and sidechains to calculate the 
+			proton distribution of charged peptide among these sites. The possible sites are the peptide
+			bonds between the amino acids, the side chains and the C-terminus and N-terminus. The calculation
+			is done calculating a Boltzmann distribution of the sites.
+
+			Details and the proton affinities can be found in
+			Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
+	    Anal. Chem., 76 (14), 3908 - 3922, 2004
+
+			A proton distribution can be calculated using the getProtonDistribution method. The backbone 
+			probabilities are reported in the first parameter (index 0 for the N-terminus, index 1 for the 
+			first peptide bond...), the site chain probabilities are reported in the second parameter 
+			(index 0, for the first amino acid...). The peptide and the number of protons as well as type 
+			of peptide (can be Reside::YIon for peptides and y-ions and any other ion type).
+
+			Charge state intensities of differently charged equal (e.g. y7+ and y7++) ions can be calculated
+			using the getChargeStateIntensities function. 
+	*/
 	class ProtonDistributionModel 
 	{
 		public:
-						
+			
+			/** Constructor and destructors
+			*/
+			//@{
+			/// default constructor
 			ProtonDistributionModel();
 
+			/// copy constructor
 			ProtonDistributionModel(const ProtonDistributionModel& model);
 			
+			/// destructor
 			virtual ~ProtonDistributionModel();
+			//@}
 
+			/// assignment operator 
 			ProtonDistributionModel& operator = (const ProtonDistributionModel& pdm);
 
+			/** @name Enumerations
+			*/
+			//@{
+			/// the type of fragmentation
       enum FragmentationType
       {
         ChargeDirected = 0,
         ChargeRemote,
         SideChain
       };
+			//@}
 
-			void getProtonDistribution(	HashMap<Size, double>& bb_charges, 
-																	HashMap<Size, double>& sc_charges, 
-																	const AASequence& peptide,
-																	int charge,
-																	Residue::ResidueType res_type = Residue::YIon);
+			/** @brief calculates a proton distribution of the given charged peptide
+			
+					@param bb_charges the calculated probabilities of the backbone sites (including N-terminus and C-terminus)
+					@param sc_charges the calculated probabilities of the side chain sites
+					@param peptide the peptide
+					@param charge the charge
+					@param res_type the type of the ion given in peptide. Peptides are handled as y-ions, i.e. Residue::YIon
+			*/
+			void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
 
-			void getChargeStateIntensities(	const AASequence& peptide,
-																			const AASequence& n_term_ion,
-																			const AASequence& c_term_ion,
-																			int charge,
-																			Residue::ResidueType n_term_type,
-																			double& n_term1,
-																			double& c_term1,
-																			double& n_term2,
-																			double& c_term2,
-																			FragmentationType type);
+			/** @brief calculates the charge state intensities of different charge states of the same ion
+					
+					@param peptide the peptide
+					@param n_term_ion the prefix ion sequence
+					@param c_term_ion the suffix ion sequence
+					@param charge the charge
+					@param n_term_type the ion type of the N-terminal ion; valid values are Residue::AIon, Residue::BIon
+					@param n_term1 the probability of seeing a singly charged prefix ion 
+					@param c_term1 the probability of seeing a singly charged suffix ion
+					@param n_term2 the probability of seeing a doubly charged prefix ion
+					@param c_term2 the probability of seeing a doubly charged suffix ion
+					@param type the type of fragmentation (charge-directed, charge-remote of side chain)
+			*/
+			void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type);
 
+			/// sets the proton distributions of the whole peptide, they are needed for the getChargeStateIntensities_ method and need to be recalculated each time if not given
 			void setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, const HashMap<Size, double>& sc_charge);
 
 			protected:
 
-			void calculateProtonDistribution_(const AASequence& peptide, 
-																				int charge, 
-																				Residue::ResidueType res_type = Residue::YIon, 
-																				bool fixed_proton = false, 
-																				Size cleavage_site = 0,
-																				bool use_most_basic_site = false);
+			// calculates the proton distribtion
+			void calculateProtonDistribution_(const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, Size cleavage_site = 0, bool use_most_basic_site = false);
 	
+			// returns the proton affinity of the peptide with the given charge and ion type
 			double getProtonAffinity_(const AASequence& ion, int charge, Residue::ResidueType res_type);
 
 			// returns the (relative) Intensities of the possible charge states of the ion from peptide
 			std::vector<double> getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type);
 
-			void calcChargeStateIntensities_( const AASequence& peptide, 
-																				const AASequence& n_term_ion,
-																				const AASequence& c_term_ion,
-																				int charge, 
-																				Residue::ResidueType n_term_type,
-																				double& n_term1,
-																				double& c_term1,
-																				double& n_term2,
-																				double& c_term2,
-																				FragmentationType type);
+			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
+			// initializes the parameters needed for the calculation
 			void init_();
 
 			HashMap<Size, double> sc_charge_;
@@ -108,9 +139,13 @@ namespace OpenMS
 			HashMap<Size, double> sc_charge_full_;
 			HashMap<Size, double> bb_charge_full_;
 
+			// contains the side chain proton affinities
 			HashMap<String, double> gb_sc_;
+			// contains the backbone proton affinity contributions of the left amino acid
 			HashMap<String, double> gb_bb_l_;
+			// contains the backbone proton affinity contributions of the right amino acid
 			HashMap<String, double> gb_bb_r_;
+
 
 			double E_;
 			double E_c_term_;

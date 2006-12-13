@@ -75,7 +75,7 @@ namespace OpenMS
 			void initModel();
 
 			/** @name Accessors
-			 */
+			*/
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
 			void train(const PeakSpectrum&, const AASequence& peptide, UnsignedInt charge);
@@ -88,7 +88,7 @@ namespace OpenMS
 			*/ 
 			void readFromFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename);
 
-			/// ????
+			/// writes the HMM to the given file in the YGF format
 			void writetoYGFFile(const String& filename);
 
 			/** writes the model parameters into the given files
