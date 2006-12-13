@@ -266,16 +266,12 @@ namespace OpenMS
 		line.split(' ', substrings);
 
 		// remove any empty strings
-		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
-		{
-			s_i->trim();
-			if ( s_i->empty() ) substrings.erase(s_i);
-			else ++s_i;
-		}
+		substrings.erase(remove(substrings.begin(),substrings.end(),""),substrings.end());
 
 		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
-		// if there are three columns, the middle one being a '/', they are merged
+			cout << "'" << *s_i << "' '" << *(s_i+1) << "'" << endl;
+			// if there are three columns, the middle one being a '/', they are merged
 			if ( s_i+1 != substrings.end() )
 			{
 				if ( ((*(s_i+1)) == "/") && (s_i+2 != substrings.end()) )
@@ -296,7 +292,7 @@ namespace OpenMS
 					s_i->append(*(s_i+1));
 					substrings.erase(s_i+1);
 				}
-			// if there are two columns and the second is a number preceeded by a '+', they are merged
+				// if there are two columns and the second is a number preceeded by a '+', they are merged
 				else if ( (*(s_i+1))[0] == '+' )
 				{
 					bool is_digit = true;
@@ -306,6 +302,7 @@ namespace OpenMS
 						s_i->append(*(s_i+1));
 						substrings.erase(s_i+1);
 					}
+					else ++s_i;
 				}
 				else ++s_i;
 			}

@@ -179,7 +179,7 @@ bench:	dummy
 
 # build TOPP tools
 TOPP:
-	@cd APPLICATIONS/TOPP/ && make
+	@cd APPLICATIONS/TOPP/ && make && cd ../../
 
 # test TOPP tools
 TOPPtest:
