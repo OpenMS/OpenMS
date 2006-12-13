@@ -45,6 +45,7 @@ namespace OpenMS
 		type_(source.type_),
 	  comment_(source.comment_),
 	  instrument_settings_(source.instrument_settings_),
+	  source_file_(source.source_file_),
 	  acquisition_info_(source.acquisition_info_),
 	  meta_info_descriptions_(source.meta_info_descriptions_),
 	  precursor_(source.precursor_),
@@ -66,6 +67,7 @@ namespace OpenMS
     comment_ = source.comment_;
     instrument_settings_ = source.instrument_settings_;
     acquisition_info_ = source.acquisition_info_;
+    source_file_ = source.source_file_;
     meta_info_descriptions_ = source.meta_info_descriptions_;
     precursor_ = source.precursor_;
     identification_ = source.identification_;
@@ -80,6 +82,7 @@ namespace OpenMS
 	    comment_ == rhs.comment_ &&
 	    instrument_settings_ == rhs.instrument_settings_ &&
 	    acquisition_info_ == rhs.acquisition_info_ &&
+		  source_file_ == rhs.source_file_ &&
 	    meta_info_descriptions_ == rhs.meta_info_descriptions_ &&
 	    precursor_ == rhs.precursor_ &&
 	    identification_ == rhs.identification_
@@ -139,6 +142,21 @@ namespace OpenMS
 	void SpectrumSettings::setAcquisitionInfo(const AcquisitionInfo& acquisition_info)
 	{
 	  acquisition_info_ = acquisition_info; 
+	}
+	
+	const SourceFile& SpectrumSettings::getSourceFile() const 
+	{
+	  return source_file_; 
+	}
+	
+	SourceFile&  SpectrumSettings::getSourceFile()
+	{
+	  return source_file_; 
+	}
+	
+	void SpectrumSettings::setSourceFile(const SourceFile& source_file)
+	{
+	  source_file_ = source_file; 
 	}
 	
 	const std::map<String,MetaInfoDescription>& SpectrumSettings::getMetaInfoDescriptions() const 

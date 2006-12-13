@@ -110,6 +110,13 @@ namespace OpenMS
       /// sets the acquisition info
       void setAcquisitionInfo(const AcquisitionInfo& acquisition_info);
 			
+			/// returns a const reference to the source file
+      const SourceFile& getSourceFile() const;
+      /// returns a mutable reference to the source file
+      SourceFile& getSourceFile();
+      /// sets the source file
+      void setSourceFile(const SourceFile& source_file);
+			
 			/// returns a const reference to the description of the meta values used in the peaks
       const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const;
       /// returns a mutable reference to the description of the meta values used in the peaks
@@ -135,6 +142,7 @@ namespace OpenMS
     	SpectrumType type_;
       String comment_;
       InstrumentSettings instrument_settings_;
+      SourceFile source_file_;
       AcquisitionInfo acquisition_info_;
       std::map<String,MetaInfoDescription> meta_info_descriptions_;
       Precursor precursor_;

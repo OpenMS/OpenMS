@@ -69,6 +69,25 @@ CHECK((const AcquisitionInfo& getAcquisitionInfo() const))
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
 RESULT
 
+CHECK((SourceFile& getSourceFile()))
+	SpectrumSettings tmp;
+	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), true);
+RESULT
+
+CHECK((void setSourceFile(const SourceFile& source_file)))
+	SpectrumSettings tmp;
+	SourceFile sf;
+	sf.setNameOfFile("test");
+	tmp.setSourceFile(sf);
+	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), false);
+RESULT
+
+CHECK((const SourceFile& getSourceFile() const))
+	SpectrumSettings tmp;
+	tmp.getSourceFile().setNameOfFile("test");
+	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), false);
+RESULT
+
 CHECK((const InstrumentSettings& getInstrumentSettings() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), true);	  
