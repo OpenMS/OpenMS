@@ -75,7 +75,7 @@ class TOPPPeakPicker
   {
   	registerStringOption_("in","<file>","","input mzData file (raw data)");
 		registerStringOption_("out","<file>","","output mzData file (peak data)");
-    registerFlag_("optimize_peaks","flag that turns on for the optimization of peak parameters");
+    registerFlag_("optimize_peaks","flag that turns on the optimization of peak parameters");
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
 							"<NODE algorithm>\n"
@@ -116,11 +116,11 @@ class TOPPPeakPicker
     //optimization
     if (optimize_peaks)
     {
-      pepi_param.setValue("Optimization:SkipOptimization","no");
+      pepi_param.setValue("skip_optimization","no");
     }
     else
     {
-      pepi_param.setValue("Optimization:SkipOptimization","yes");
+      pepi_param.setValue("skip_optimization","yes");
     }
 		
 		writeDebug_("Parameters passed to PeakPickerCWT", pepi_param,3);

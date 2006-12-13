@@ -414,46 +414,13 @@ namespace OpenMS
           {
             struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
-            DataValue dv = param_.getValue("Optimization:Penalties:Position");
-            if (dv.isEmpty() || dv.toString() == "")
-              penalties.pos = 0.;
-            else
-              penalties.pos = (float)dv;
-
-            dv = param_.getValue("Optimization:Penalties:LeftWidth");
-            if (dv.isEmpty() || dv.toString() == "")
-              penalties.lWidth = 1.;
-            else
-              penalties.lWidth = (float)dv;
-
-            dv = param_.getValue("Optimization:Penalties:RightWidth");
-            if (dv.isEmpty() || dv.toString() == "")
-              penalties.rWidth = 1.;
-            else
-              penalties.rWidth = (float)dv;
-
-            unsigned int max_iteration;
-            dv = param_.getValue("Optimization:Iterations");
-            if (dv.isEmpty() || dv.toString() == "")
-              max_iteration = 15;
-            else
-              max_iteration = (unsigned int)dv;
-
-            double eps_abs;
-            dv = param_.getValue("Optimization:DeltaAbsError");
-            if (dv.isEmpty() || dv.toString() == "")
-              eps_abs = 1e-04f;
-            else
-              eps_abs = (double)dv;
-
-            double eps_rel;
-            dv = param_.getValue("Optimization:DeltaRelError");
-            if (dv.isEmpty() || dv.toString() == "")
-              eps_rel = 1e-04f;
-            else
-              eps_rel = (double)dv;
-
-            OptimizePick opt(penalties,max_iteration,eps_abs,eps_rel);
+            penalties.pos = (float)param_.getValue("Optimization:Penalties:Position");
+            penalties.lWidth = (float)param_.getValue("Optimization:Penalties:LeftWidth");
+            penalties.rWidth = (float)param_.getValue("Optimization:Penalties:RightWidth");
+            OptimizePick opt(penalties,
+            								 (unsigned int)param_.getValue("Optimization:Iterations"), 
+            								 (double)param_.getValue("Optimization:DeltaAbsError"), 
+            								 (double)param_.getValue("Optimization:DeltaRelError"));
             opt.optimize(peak_shapes_);
 
             // compute the new correlation coefficients

@@ -52,7 +52,7 @@ RESULT
 CHECK(setParam)
   Param param;
   param.setValue("thresholds:correlation",0.8);
-  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("Optimization:skip_optimization","yes");
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
@@ -69,7 +69,7 @@ RESULT
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   Param param;
   param.setValue("thresholds:correlation",0.8);
-  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("Optimization:skip_optimization","yes");
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
@@ -88,7 +88,7 @@ RESULT
 CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   Param param;
   param.setValue("thresholds:correlation",0.8);
-  param.setValue("optimization:skip_optimization","yes");
+  param.setValue("Optimization:skip_optimization","yes");
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);

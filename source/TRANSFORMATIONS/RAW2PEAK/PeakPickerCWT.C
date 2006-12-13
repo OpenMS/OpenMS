@@ -45,11 +45,19 @@ namespace OpenMS
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
   	defaults_.setValue("thresholds:correlation",0.5);
-  	defaults_.setValue("optimization:skip_optimization","yes");
   	defaults_.setValue("wavelet_transform:scale",0.15);
   	defaults_.setValue("wavelet_transform:spacing",0.001);
   	defaults_.setValue("thresholds:noise_level",0.1);
    	defaults_.setValue("thresholds:search_radius",3); 	
+		
+		//Optimization parameters
+  	defaults_.setValue("Optimization:skip_optimization","yes");
+		defaults_.setValue("Optimization:Penalties:Position",0.0);
+		defaults_.setValue("Optimization:Penalties:LeftWidth",1.0); 	
+		defaults_.setValue("Optimization:Penalties:RightWidth",1.0); 	
+		defaults_.setValue("Optimization:Iterations",15); 	
+		defaults_.setValue("Optimization:DeltaAbsError",1e-04f); 	
+		defaults_.setValue("Optimization:DeltaRelError",1e-04f); 	
   	
 		setParam(Param());
   }
@@ -63,7 +71,7 @@ namespace OpenMS
 		PeakPicker::setParam(param);
 		
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
-    String opt = param_.getValue("optimization:skip_optimization").toString();
+    String opt = param_.getValue("Optimization:skip_optimization").toString();
 		if (opt=="yes")
 		{
     	optimization_ = false;
@@ -74,7 +82,7 @@ namespace OpenMS
     }
     else
     {
-    	cerr << "Warning: PeakPickerCWT option 'optimization:skip_optimization' should be 'yes' or 'no'!"
+    	cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
     			 << " It is set to '" << opt << "'" << endl;
     }
     scale_ = (float)param_.getValue("wavelet_transform:scale");

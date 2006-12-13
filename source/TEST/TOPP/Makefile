@@ -110,6 +110,7 @@ help:
 	@$(ECHO) "  - 'make [default]' normal execution"
 	@$(ECHO) "  - 'make debug'     debug mode (no deletion of tmp/log files and diff output)"
 	@$(ECHO) "  - 'make verbose'   verbose mode (activates tool output to stdout and stderr)"
+	@$(ECHO) "  - 'make dv'        verbose and debug mode"
 	@$(ECHO) ""
 	@$(ECHO) "To execute only single tests with special modes use:"
 	@$(ECHO) "  - 'make <target>'           normal execution"
@@ -166,6 +167,13 @@ else
 # extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
 RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null 2>&1
 endif
+
+#######################################################################
+# VERBOSE AND DEBUG MODE
+# Changes in verbose mode are:
+# - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
+dv: 
+	@$(MAKE) VERBOSE=1 DEBUG=1 default
 
 ###########################################################################################
 # This function checks whether two files are equal (up to whitespace).  To
