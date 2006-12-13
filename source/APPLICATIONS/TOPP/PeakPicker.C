@@ -77,6 +77,22 @@ class TOPPPeakPicker
 		registerStringOption_("out","<file>","","output mzData file (peak data)");
     registerFlag_("optimize_peaks","flag that turns on for the optimization of peak parameters");
 		addEmptyLine_();
+  	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
+							"<NODE algorithm>\n"
+							"  <NODE name=\"signal_to_noise_estimation\">\n"
+							"    <ITEM name=\"bucket\" value=\"10\" type=\"int\" />\n"
+							"    <ITEM name=\"window\" value=\"700\" type=\"int\" />\n"
+							"  </NODE>\n"
+							"  <ITEM name=\"optimize_peaks\" value=\"off\" type=\"string\"/>\n"
+							"  <NODE name=\"wavelet_transform\">\n"
+							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
+							"  </NODE>\n"
+							"  <NODE name=\"thresholds\">\n"
+							"    <ITEM name=\"peak_bound\" value=\"100\" type=\"float\" />\n"
+							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
+							"  </NODE>\n"
+							"</NODE>");
+		addEmptyLine_();
   	addText_("This application implements an algorithm for peak picking as\n"
 				     "described in Lange et al. (2006) Proc. PSB-06. ");
   }
@@ -95,7 +111,7 @@ class TOPPPeakPicker
     //-------------------------------------------------------------
     // Init peak picker
     //-------------------------------------------------------------
-		Param pepi_param = getParam_();
+		Param pepi_param = getParam_().copy("algorithm:",true);
 		
     //optimization
     if (optimize_peaks)

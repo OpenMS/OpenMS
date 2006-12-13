@@ -429,28 +429,6 @@ namespace OpenMS
 		/// Checks if an output file is writable
 		void outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
 		//@}
-
-
-		/**
-			 @brief Returns a new Param object containing all entries that start with @p prefix.
-  	
-			 @p prefix should contain a ':' at the end if you want to extract a
-			 subtree.  In this case, "inherit" tags are supported.
-			 This agrees with the convention that getIniLocation_() ends with a ':'.
-
-			 Inheritance of parameters is supported as follows: If the subtree
-			 specified by prefix contains an <code>&lt;ITEM name="inherit"
-			 value="other:place" type="string"/&gt;</code>, then everything from
-			 <code>other:place</code> is inherited.  This works recursively, but at
-			 most 15 steps.  Otherwise an exception is thrown (e.g. to detect
-			 cycles).  (BTW, it is not an error if <code>other:place</code> is not an
-			 existing <code>&lt;NODE&gt;</code>)
-
-			 Otherwise not only nodes, but as well values with that prefix are
-			 copied.  (I am yet to see a useful application for this...)
-
-		*/
-		Param getParamCopy_( const std::string& prefix ) const;
 		
 		/**
 			@brief Checks top-level entries of @p param according to the the information during registration
@@ -467,7 +445,7 @@ namespace OpenMS
 
 		/**
 			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
-			ys
+
 			Returns a Param that contains everything you can get by the getParamAs...() methods.
 		*/
 		Param const& getParam_() const;

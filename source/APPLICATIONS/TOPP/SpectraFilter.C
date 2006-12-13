@@ -162,7 +162,7 @@ class TOPPSpectraFilter
 			// for every filter
 			for (vector<PreprocessingFunctor*>::iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				Param filter_param = getParamCopy_(getIniLocation_()+(*it)->getName()+":");
+				Param filter_param = getParam_().copy((*it)->getName()+":");
 				writeDebug_("Used filter parameters", filter_param, 3);
 				writeDebug_("Applying filter: " +  (*it)->getName(), 1);
 				(*it)->setParam(filter_param);

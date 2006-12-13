@@ -90,11 +90,6 @@ class TOPPBaseTest
 			return getIniLocation_();
 		}
 
-		Param getParamCopy( const std::string& prefix ) const
-		{
-			return getParamCopy_(prefix);
-		}
-
 		void inputFileReadable(const String& filename) const
 		{
 			inputFileReadable_(filename);
@@ -294,10 +289,6 @@ CHECK(void outputFileWritable_(const String& filename) const)
 	String filename;
 	NEW_TMP_FILE(filename);
 	TOPPBaseTest().outputFileWritable(filename);
-RESULT
-
-CHECK(Param getParamCopy_( const std::string& prefix ) const)
-	//TODO
 RESULT
 
 CHECK(Param getParam_( const std::string& prefix ) const)

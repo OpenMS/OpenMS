@@ -488,12 +488,12 @@ namespace OpenMS
 		if (debug_level_>=(SignedInt)min_level)
 		{
 			cout 	<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-						<< Date::now() << ' ' << getIniLocation_() << ": " << text<< endl
+						<< Date::now() << ' ' << getIniLocation_() << " " << text<< endl
 						<< param 
 						<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 			enableLogging_();
 			log_  << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
-						<< Date::now() << ' ' << getIniLocation_() << ": " << text<< endl
+						<< Date::now() << ' ' << getIniLocation_() << " " << text<< endl
 						<< param 
 						<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 		}
@@ -652,11 +652,6 @@ namespace OpenMS
 	Param const& TOPPBase2::getParam_() const
 	{
 		return param_;
-	}
-
-	Param TOPPBase2::getParamCopy_(const string& prefix) const
-	{
-		return param_inifile_.copyWithInherit(prefix,true,"");
 	}
 
 	void TOPPBase2::enableLogging_() const

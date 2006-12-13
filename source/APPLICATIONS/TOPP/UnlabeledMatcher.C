@@ -87,6 +87,11 @@ class TOPPUnlabeledMatcher
 			registerStringOption_("in2","<file>","","input feature file 2");
 			registerStringOption_("pairs","<file>","","output file: XML formatted list of feature pairs");
 			registerStringOption_("grid","<file>","","output file: grid covering the feature map");
+
+			addEmptyLine_();
+			addText_("All other options can be given only in the 'algorithm' seciton  of the INI file.\n"
+							 "For a detailled description, please have a look at the doxygen documentation.\n"
+							 "How the docu can be built is explained in OpenMS/doc/index.html.");
     }
 
     ExitCodes main_(int , char**)
@@ -115,8 +120,6 @@ class TOPPUnlabeledMatcher
         writeLog_(String("Reading input file ") + (index+1) + ", `" + inputfile[index] + '\'');
         feature_file[index].load(inputfile[index],feature_map[index]);
       }
-
-			writeDebug_("Parameters passed to PoseClusteringMapMatcher", getParam_(),3);
 			
       //-------------------------------------------------------------
 
@@ -125,8 +128,11 @@ class TOPPUnlabeledMatcher
       FeaturePairVector feature_pair_vector;
 
       PoseClusteringPairwiseMapMatcher<> poseclust_feature_matcher;
+			
+			Param param_alg = getParam_().copy("algorithm:",true);
+			writeDebug_("Parameters passed to PoseClusteringMapMatcher", param_alg,3);
 
-      poseclust_feature_matcher.setParam(getParam_());
+      poseclust_feature_matcher.setParam(param_alg);
 
       for ( Size index = 0; index < 2; ++index )
       {

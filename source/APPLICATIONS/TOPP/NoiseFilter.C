@@ -78,7 +78,16 @@ class TOPPNoiseFilter
 			registerStringOption_("out","<file>","","output mzData file (raw data)");
       registerStringOption_("filter_type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'");
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
-      addEmptyLine_();
+			addEmptyLine_();
+	  	addText_("Parameters for the algorithms can be given in the INI file only:\n"
+								"<NODE name=\"sgolay\">\n"
+								"  <ITEM name=\"frame_length\" value=\"9\" type=\"int\"/>\n"
+								"  <ITEM name=\"polynomial_order\" value=\"4\" type=\"int\"/>\n"
+								"</NODE>\n"
+								"<NODE name=\"gaussian\">\n"
+								"  <ITEM name=\"gaussian_width\" value=\"0.8\" type=\"float\" />\n"
+								"</NODE>");
+			addEmptyLine_();
 			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option).\n"
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
     }
@@ -118,7 +127,9 @@ class TOPPNoiseFilter
 
       if (filter_type == "sgolay")
       {	
-  			SavitzkyGolaySVDFilter sgolay( getParam_() );
+      	Param filter_param = getParam_().copy("sgolay:",true);
+  			writeDebug_("Parameters passed to SavitzkyGolaySVDFilter", filter_param,3);
+  			SavitzkyGolaySVDFilter sgolay( filter_param );
         
         LinearResampler lin_resampler;
         lin_resampler.setSpacing(spacing);
@@ -174,7 +185,9 @@ class TOPPNoiseFilter
       }
       else if (filter_type == "gaussian")
       {	
-        GaussFilter gauss( getParam_() );
+      	Param filter_param = getParam_().copy("gaussian:",true);
+  			writeDebug_("Parameters passed to GaussFilter", filter_param,3);
+        GaussFilter gauss(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }
 

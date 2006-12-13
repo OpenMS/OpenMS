@@ -179,11 +179,13 @@ bench:	dummy
 
 # build TOPP tools
 TOPP:
-	@cd APPLICATIONS/TOPP/ && make && cd ../../
+	@cd APPLICATIONS/TOPP/ && make
+	@cd $(OPENMS_PATH)/source/
 
 # test TOPP tools
 TOPPtest:
 	@cd TEST/TOPP/ && make
+	@cd $(OPENMS_PATH)/source/
 
 #
 #    special targets - internal use only! 

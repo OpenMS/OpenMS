@@ -93,6 +93,7 @@ class TOPPFeatureFinder
 		
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used.\n"
+						 "They can be given only in the 'algorithm' seciton  of the INI file.\n"
 						 "For a detailled description, please have a look at the doxygen documentation.\n"
 						 "How the docu can be built is explained in OpenMS/doc/index.html.");
 		
@@ -113,7 +114,7 @@ class TOPPFeatureFinder
 		MzDataFile().load(in,exp);
 
 		FeatureFinder ff;
-		Param const& feafi_param = getParam_();
+		Param const& feafi_param = getParam_().copy("algorithm:",true);
 
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 		

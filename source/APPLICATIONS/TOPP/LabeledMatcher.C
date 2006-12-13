@@ -136,7 +136,7 @@ class TOPPLabeledMatcher
 	
 	    PairMatcher pm(features);
 	
-	    Param pm_param = getParamCopy_(getIniLocation_()+"algorithm:");
+	    Param pm_param = getParam_().copy("algorithm:",true);
 	    writeDebug_("Parameters passed to PairMatcher", pm_param, 3);
 	    pm.setParam(pm_param);
 	

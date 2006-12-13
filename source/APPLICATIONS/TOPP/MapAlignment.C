@@ -54,6 +54,7 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
    @brief Aligns multiple element maps (e.g. feature or peak maps) to one consensus map.
    
    @todo Type (mzData or featureXML) map_type abfangen (try)
+   @todo Encapsulate algorithm parameters in 'algorithm' section (Eva)
    
    @ingroup TOPP
 */
