@@ -126,10 +126,14 @@ for i in $* ; do
 		# subtest failed
 		echo "Failure in test $i."
 		echo "	Please check the log file: \"$i.log\"."
-		echo "	The last few lines are:"
+		echo "	The failed lines are:"
 		echo "--------------------------------------------"
 		( ./$i -V 2>&1 |cat > $i.log ) 2>/dev/null
-		tail -5 $i.log
+		grep -2 " - $" $i.log
+		echo "--------------------------------------------"
+		echo "	The last few lines are:"
+		echo "--------------------------------------------"
+		tail -3 $i.log
 		echo "--------------------------------------------"
 		if test -f core ; then
 			rm core
