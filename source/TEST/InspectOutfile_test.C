@@ -185,8 +185,8 @@ RESULT
 
 CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< UnsignedInt > > >& files_and_scan_numbers, std::vector< IdentificationData >& ids))
 	vector< pair< String, vector< UnsignedInt > > > files_and_scan_numbers;
-	files_and_scan_numbers.push_back(make_pair("data/MzXMLFile_test_1.mzXML", vector< UnsignedInt >(1, 3)));
-	files_and_scan_numbers.push_back(make_pair("data/MzXMLFile_test_4.mzXML", vector< UnsignedInt >(1, 3)));
+	files_and_scan_numbers.push_back(make_pair("data/MzXMLFile_test_1.mzXML", vector< UnsignedInt >(1, 4)));
+	files_and_scan_numbers.push_back(make_pair("data/MzXMLFile_test_4.mzXML", vector< UnsignedInt >(1, 4)));
 	
 	vector< IdentificationData > ids, ids_found;
 	ids_found.push_back(IdentificationData());
