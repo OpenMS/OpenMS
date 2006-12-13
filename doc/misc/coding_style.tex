@@ -165,7 +165,13 @@ Each OpenMS class has to provide the following minimal interface:
     virtual ~Test();
  
     /// assignment operator
-    Test& operator = (const Test& test);
+    Test& operator = (const Test& test)
+    {
+      //ALWAYS CHECK FOR SELF ASSIGMENT!
+      if (this == &test) return *this;
+      //...
+      return *this;
+    }
   };
 \end{verbatim}
 Note that the destructor should be a virtual function, unless you have a very

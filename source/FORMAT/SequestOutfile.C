@@ -270,7 +270,7 @@ namespace OpenMS
 
 		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
-			cout << "'" << *s_i << "' '" << *(s_i+1) << "'" << endl;
+			//cout << "'" << *s_i << "' '" << *(s_i+1) << "'" << endl;
 			// if there are three columns, the middle one being a '/', they are merged
 			if ( s_i+1 != substrings.end() )
 			{

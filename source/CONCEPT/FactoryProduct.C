@@ -30,14 +30,19 @@ using namespace std;
 
 namespace OpenMS
 {
-	FactoryProduct::FactoryProduct(): param_(), defaults_(), check_defaults_(true), name_()
+	FactoryProduct::FactoryProduct(): 
+		param_(), 
+		defaults_(), 
+		check_defaults_(true), 
+		name_()
 	{
 	}
 
 	FactoryProduct::FactoryProduct(const FactoryProduct& source)
-		: name_(source.name_)
+		: defaults_(source.defaults_),
+			check_defaults_(source.check_defaults_),
+			name_(source.name_)
 	{
-		defaults_ = source.defaults_;
 		setParam(source.getParam());
 	}
 
@@ -47,9 +52,13 @@ namespace OpenMS
 
 	FactoryProduct& FactoryProduct::operator = (const FactoryProduct& source)
 	{
+		if (this == &source) return *this;
+		
 		defaults_ = source.defaults_;
-		setParam(source.getParam());
 		name_ = source.name_;
+		check_defaults_ = source.check_defaults_;
+		setParam(source.getParam());
+		
 		return *this;
 	}
 

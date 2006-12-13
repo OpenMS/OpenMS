@@ -46,7 +46,7 @@ namespace OpenMS
   PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source)
     : FactoryProduct(source)
   {
-		name_ = source.getName();
+		
   }
 
 	PreprocessingFunctor::~PreprocessingFunctor()

@@ -49,51 +49,21 @@ CHECK((~PeakPickerCWT()))
   delete ptr;
 RESULT
 
-CHECK((PeakPickerCWT(const String& filename)))
+CHECK(setParam)
   Param param;
   param.setValue("thresholds:correlation",0.8);
   param.setValue("optimization:skip_optimization","yes");
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
-  
-  String file("bla.xml");
-  NEW_TMP_FILE(file)
-  param.store(file);
-    
-  PeakPickerCWT pp(file);
-  TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
-  TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.8)
-  TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
-  TEST_EQUAL(pp.getOptimizationFlag() == false, true)
-  TEST_REAL_EQUAL(pp.getSearchRadius(),2)
-RESULT
-
-CHECK((PeakPickerCWT(const Param& parameters)))
-  Param param;
-  param.setValue("thresholds:correlation",0.8);
-  param.setValue("optimization:skip_optimization","yes");
-  param.setValue("wavelet_transform:scale",0.3);
-  param.setValue("thresholds:noise_level",9);
-  param.setValue("thresholds:search_radius",2);
-  
-  PeakPickerCWT pp(param);
-  TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
-  TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.8)
-  TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
-  TEST_EQUAL(pp.getOptimizationFlag() == false, true)
-  TEST_REAL_EQUAL(pp.getSearchRadius(),2)
-  TEST_EQUAL(pp.getParam() == param, true)
-RESULT
-
-CHECK((ContinuousWaveletTransformNumIntegration& getWaveletTransform()))
-  ContinuousWaveletTransformNumIntegration cwt;
-  cwt.setSpacing(0.1);
   
   PeakPickerCWT pp;
-  pp.getWaveletTransform() = cwt;
-  
-  TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
+  pp.setParam(param);
+  TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
+  TEST_REAL_EQUAL(pp.getPeakCorrBound(),0.8)
+  TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
+  TEST_EQUAL(pp.getOptimizationFlag() == false, true)
+  TEST_REAL_EQUAL(pp.getSearchRadius(),2)
 RESULT
 
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
@@ -104,7 +74,8 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
   
-  PeakPickerCWT pp(param);
+  PeakPickerCWT pp;
+  pp.setParam(param);
   PeakPickerCWT pp_copy;
   pp_copy = pp;
   TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)
@@ -112,7 +83,6 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
-  TEST_EQUAL(pp_copy.getParam() == param, true)
 RESULT
 
 CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
@@ -123,14 +93,15 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
   
-  PeakPickerCWT pp(param);
+  PeakPickerCWT pp;
+  pp.setParam(param);
+  
   PeakPickerCWT pp_copy(pp);
   TEST_REAL_EQUAL(pp_copy.getWaveletScale(),0.3)
   TEST_REAL_EQUAL(pp_copy.getPeakCorrBound(),0.8)
   TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
-  TEST_EQUAL(pp_copy.getParam() == param, true)
 RESULT
 
 MzDataFile mz_data_file;
@@ -190,7 +161,7 @@ RESULT
 CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
   PeakPickerCWT pp;
   
-  TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0.001)
+  TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0.0)
 RESULT
 
 CHECK((const bool& getOptimizationFlag() const))
@@ -207,16 +178,12 @@ RESULT
 
 CHECK((const float& getPeakBoundCWT() const))
   PeakPickerCWT pp;
-  PRECISION(0.001)
-  
-  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),59.5499)
+  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),0.0)
 RESULT
 
 CHECK((const float& getPeakBoundMs2LevelCWT() const))
   PeakPickerCWT pp;
-  PRECISION(0.001)
-  
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),14.8875)
+  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),0.0)
 RESULT
 
 CHECK((const float& getPeakCorrBound() const))
@@ -243,64 +210,6 @@ CHECK((const std::vector<PeakShape>& getPeakShapes() const))
   TEST_REAL_EQUAL(pp.getPeakShapes().size(),0)
 RESULT
 
-CHECK((float& getPeakBoundCWT()))
-  PeakPickerCWT pp;
-  
-  pp.getPeakBoundCWT() = 41;  
-  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),41)
-RESULT
-
-
-CHECK((float& getNoiseLevel()))
-  PeakPickerCWT pp;
-  
-  pp.getNoiseLevel() = 12;
-  TEST_REAL_EQUAL(pp.getNoiseLevel(),12)
-RESULT
-
-CHECK((bool& getOptimizationFlag()))
-  PeakPickerCWT pp;
-  
-  pp.getOptimizationFlag() = true;
-  TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
-RESULT
-
-CHECK((float& getPeakBoundMs2LevelCWT()))
-  PeakPickerCWT pp;
-  
-  pp.getPeakBoundMs2LevelCWT() = 13.1;
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),13.1)
-RESULT
-
-CHECK((float& getPeakCorrBound()))
-  PeakPickerCWT pp;
-  
-  pp.getPeakCorrBound() = 1.;
-  TEST_REAL_EQUAL(pp.getPeakCorrBound(),1.)
-RESULT
-
-CHECK((float& getWaveletScale()))
-  PeakPickerCWT pp;
-  
-  pp.getWaveletScale() = 0.3;
-  TEST_REAL_EQUAL(pp.getWaveletScale(),0.3)
-RESULT
-
-CHECK((unsigned int& getSearchRadius()))
-  PeakPickerCWT pp;
-  
-  pp.getSearchRadius() = 1;
-  TEST_REAL_EQUAL(pp.getSearchRadius(),1)
-RESULT
-
-CHECK((std::vector<PeakShape>& getPeakShapes()))
-  PeakPickerCWT pp;
-  
-  std::vector<PeakShape> shapes;
-  pp.getPeakShapes() = shapes;
-  TEST_EQUAL(shapes.size() == pp.getPeakShapes().size(), true)  
-RESULT
-
 CHECK((void setNoiseLevel(const float& noise_level)))
   PeakPickerCWT pp;
   
@@ -315,57 +224,11 @@ CHECK((void setOptimizationFlag(const bool& optimization)))
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
 RESULT
 
-CHECK((void setPeakBoundCWT(const float peak_bound_cwt)))
-  PeakPickerCWT pp;
-  
-  pp.setPeakBoundCWT(41);  
-  TEST_REAL_EQUAL(pp.getPeakBoundCWT(),41)
-RESULT
-
-CHECK((void setPeakBoundMs2LevelCWT(const float& peak_bound_ms2_level_cwt)))
-   PeakPickerCWT pp;
-   
-    pp.setPeakBoundMs2LevelCWT(12);
-   TEST_REAL_EQUAL(pp.getPeakBoundMs2LevelCWT(),12)
-RESULT
-
-CHECK((void setPeakCorrBound(const float& peak_corr_bound)))
-  PeakPickerCWT pp;
-  
-  pp.setPeakCorrBound(1.);
-  TEST_REAL_EQUAL(pp.getPeakCorrBound(),1.)
-RESULT
-
-CHECK((void setPeakShapes(const std::vector<PeakShape>& peak_shapes)))
-  PeakPickerCWT pp;
-  
-  std::vector<PeakShape> shapes;
-  pp.setPeakShapes(shapes);
-  TEST_EQUAL(shapes.size() == pp.getPeakShapes().size(), true) 
-RESULT
-
-CHECK((void setSearchRadius(const unsigned int& radius)))
-  PeakPickerCWT pp;
-  
-  pp.setSearchRadius(1);
-  TEST_REAL_EQUAL(pp.getSearchRadius(),1)
-RESULT
-
 CHECK((void setWaveletScale(const float& scale)))
   PeakPickerCWT pp;
   
   pp.setWaveletScale(0.1);
   TEST_REAL_EQUAL(pp.getWaveletScale(),0.1)
-RESULT
-
-CHECK((void setWaveletTransform(const ContinuousWaveletTransformNumIntegration& wt)))
-  ContinuousWaveletTransformNumIntegration cwt;
-  cwt.setSpacing(0.1);
-  
-  PeakPickerCWT pp;
-  pp.setWaveletTransform(cwt);
-  
-  TEST_REAL_EQUAL(cwt.getSpacing(),pp.getWaveletTransform().getSpacing())
 RESULT
 
 /////////////////////////////////////////////////////////////

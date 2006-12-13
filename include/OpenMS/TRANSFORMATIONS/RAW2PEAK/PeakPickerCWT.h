@@ -88,12 +88,6 @@ namespace OpenMS
       /// Constructor
       PeakPickerCWT();
 
-      /// Constructor given a param object
-      PeakPickerCWT(const Param& parameters);
-
-      /// Constructor given the name of a param file
-      PeakPickerCWT(const String& filename);
-
       /// Copy constructor
       PeakPickerCWT(const PeakPickerCWT& pp)
           : PeakPicker(pp),
@@ -104,7 +98,8 @@ namespace OpenMS
           peak_corr_bound_(pp.peak_corr_bound_),
           noise_level_(pp.noise_level_),
           optimization_(pp.optimization_)
-      {}
+      {
+      }
 
       /// Destructor
       virtual ~PeakPickerCWT();
@@ -137,40 +132,15 @@ namespace OpenMS
       {
         return peak_shapes_;
       }
-      /// Mutable access to the vector of peak shapes
-      inline std::vector<PeakShape>& getPeakShapes()
-      {
-        return peak_shapes_;
-      }
-      /// Mutable access to the vector of peak shapes
-      inline void setPeakShapes(const std::vector<PeakShape>&  peak_shapes)
-      {
-        peak_shapes_ = peak_shapes;
-      }
 
       /// Non-mutable access to the wavelet transform
       inline const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const
       {
         return wt_;
       }
-      /// Mutable access to the wavelet transform
-      inline ContinuousWaveletTransformNumIntegration& getWaveletTransform()
-      {
-        return wt_;
-      }
-      /// Mutable access to the wavelet transform
-      inline void setWaveletTransform(const ContinuousWaveletTransformNumIntegration& wt)
-      {
-        wt_ = wt;
-      }
 
       /// Non-mutable access to the search radius for the peak maximum
       inline const unsigned int& getSearchRadius() const
-      {
-        return radius_;
-      }
-      /// Mutable access to the search radius for the peak maximum
-      inline unsigned int& getSearchRadius()
       {
         return radius_;
       }
@@ -185,18 +155,10 @@ namespace OpenMS
       {
         return scale_;
       }
-
-      /// Mutable access to the scale of the wavelet transform
-      inline float& getWaveletScale()
-      {
-        return scale_;
-      }
-
       /// Mutable access to the scale of the wavelet transform
       inline void setWaveletScale(const float& scale)
       {
         scale_ = scale;
-        calculatePeakBoundCWT_();
       }
 
       /// Non-mutable access to the threshold of the height
@@ -205,59 +167,19 @@ namespace OpenMS
         return peak_bound_;
       }
 
-      /// Mutable access to the threshold of the height
-      inline float& getPeakBound()
-      {
-        return peak_bound_;
-      }
-
-      /// Mutable access to the threshold of the height
-      virtual void setPeakBound(const float& peak_bound)
-      {
-        peak_bound_ = peak_bound;
-        calculatePeakBoundCWT_();
-      }
-
-
       /// Non-mutable access to the peak bound in the wavelet transform for the MS 1 level
       inline const float& getPeakBoundCWT() const
       {
         return peak_bound_cwt_;
       }
-      /// Mutable access to the peak bound in the wavelet transform for the MS 1 level
-      inline float& getPeakBoundCWT()
-      {
-        return peak_bound_cwt_;
-      }
-      /// Mutable access to the peak bound in the wavelet transform for the MS 1 level
-      inline void setPeakBoundCWT(const float peak_bound_cwt)
-      {
-        peak_bound_cwt_ = peak_bound_cwt;
-      }
-
       /// Non-mutable access to the peak bound in the wavelet transform for the MS 2 level
       inline const float& getPeakBoundMs2LevelCWT() const
       {
         return peak_bound_ms2_level_cwt_;
       }
-      /// Mutable access to the peak bound in the wavelet transform for the MS 2 level
-      inline float& getPeakBoundMs2LevelCWT()
-      {
-        return peak_bound_ms2_level_cwt_;
-      }
-      /// Mutable access to the peak bound in the wavelet transform for the MS 2 level
-      inline void setPeakBoundMs2LevelCWT(const float& peak_bound_ms2_level_cwt)
-      {
-        peak_bound_ms2_level_cwt_ = peak_bound_ms2_level_cwt;
-      }
 
       /// Non-mutable access to the minimum peak correlation coefficient
       inline const float& getPeakCorrBound() const
-      {
-        return peak_corr_bound_;
-      }
-      /// Mutable access to the minimum peak correlation coefficient
-      inline float& getPeakCorrBound()
       {
         return peak_corr_bound_;
       }
@@ -273,24 +195,13 @@ namespace OpenMS
         return noise_level_;
       }
       /// Mutable access to the noise level
-      inline float& getNoiseLevel()
-      {
-        return noise_level_;
-      }
-      /// Mutable access to the noise level
       inline void setNoiseLevel(const float& noise_level)
       {
         noise_level_ = noise_level;
-        calculatePeakBoundCWT_();
       }
 
       /// Non-mutable access to the optimization switch
       inline const bool& getOptimizationFlag() const
-      {
-        return optimization_;
-      }
-      /// Mutable access to the optimization switch
-      inline bool& getOptimizationFlag()
       {
         return optimization_;
       }
@@ -321,6 +232,11 @@ namespace OpenMS
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
       {
+      	if (peak_bound_cwt_==0.0 || peak_bound_ms2_level_cwt_==0.0)
+      	{
+      		initializeWT_();
+      	}
+      	
         // empty spectra shouldn't be picked
         if(first == last)
           return;
@@ -751,8 +667,12 @@ namespace OpenMS
       /// This function fills the members of a picked peak of type OutputPeakType.
       template <typename OutputPeakType>
       void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
-      {}
+      {
+      }
 
+    	// docu in base class
+    	virtual void setParam(Param param);
+    	
     protected:
       /// Container the determined peak shapes
       std::vector<PeakShape> peak_shapes_;
@@ -880,7 +800,7 @@ namespace OpenMS
       /// Computes the value of a theroretical lorentz peak at position x
       double lorentz_(double height, double lambda, double pos, double x);
 
-      /** @brief Computes the threshold for the peak height in the wavelet transform.
+      /** @brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
 
           Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
         for the continious wavelet transform. 
@@ -888,7 +808,7 @@ namespace OpenMS
         is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
         lorentzian peak we have a peak bound in the wavelet transform. 
       */
-      void calculatePeakBoundCWT_();
+      void initializeWT_();
 
   }
   ; // end PeakPickerCWT

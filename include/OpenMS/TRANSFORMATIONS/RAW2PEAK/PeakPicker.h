@@ -59,82 +59,96 @@ namespace OpenMS
 
   public:
     /// Constructor
-    PeakPicker()
-        : peak_bound_(200),
-        peak_bound_ms2_level_(50),
-        signal_to_noise_(3),
-    fwhm_bound_(0.2) {}
-
-    /// Constructor given the name of a param file
-    PeakPicker(const String& param_filename);
-
-    /// Constructor given a param object
-    PeakPicker(const Param& parameters);
+    PeakPicker();
 
     /// Copy constructor
     PeakPicker(const PeakPicker& pp);
 
     /// Destructor
     virtual ~PeakPicker()
-    {   }
-
-    /// Assignment operator
-    inline PeakPicker& operator=(const PeakPicker& pp)
-    {
-      // take care of self assignments
-      if (this == &pp)
-      {
-        return *this;
-      }
-
-      param_ = pp.param_;
-      peak_bound_=pp.peak_bound_;
-      peak_bound_ms2_level_=pp.peak_bound_ms2_level_;
-      signal_to_noise_=pp.signal_to_noise_;
-      fwhm_bound_ = pp.fwhm_bound_;
-
-      return *this;
+    {	
     }
 
+    /// Assignment operator
+    PeakPicker& operator=(const PeakPicker& pp)
+	  {
+	    // take care of self assignments
+	    if (this == &pp)
+	    {
+	      return *this;
+	    }
+			param_ = pp.param_;
+	    peak_bound_= pp.peak_bound_;
+	    peak_bound_ms2_level_= pp.peak_bound_ms2_level_;
+	    signal_to_noise_= pp.signal_to_noise_;
+	    fwhm_bound_ = pp.fwhm_bound_;
+	
+	    return *this;
+	  }
+
     /// Non-mutable access to the threshold of the height
-    inline const float& getPeakBound() const { return peak_bound_; }
+    inline const float& getPeakBound() const 
+    { 
+    	return peak_bound_; 
+    }
     /// Mutable access to the threshold of the height
-    inline float& getPeakBound()  { return peak_bound_; }
-    /// Mutable access to the threshold of the height
-    virtual void setPeakBound(const float& peak_bound) { peak_bound_ = peak_bound;  }
+    inline void setPeakBound(const float& peak_bound) 
+    { 
+    	peak_bound_ = peak_bound;  
+    }
 
     /// Non-mutable access to the threshold of the peak height in the MS 2 level
-    inline const float& getPeakBoundMs2Level() const { return peak_bound_ms2_level_; }
+    inline const float& getPeakBoundMs2Level() const 
+    {
+    	return peak_bound_ms2_level_;
+    }
     /// Mutable access to the threshold of the peak height in the MS 2 level
-    inline float& getPeakBoundMs2Level() { return peak_bound_ms2_level_; }
-    /// Mutable access to the threshold of the peak height in the MS 2 level
-    inline void setPeakBoundMs2Level(const float& peak_bound_ms2_level) { peak_bound_ms2_level_ = peak_bound_ms2_level; }
+    inline void setPeakBoundMs2Level(const float& peak_bound_ms2_level) 
+    { 
+    	peak_bound_ms2_level_ = peak_bound_ms2_level; 
+    }
 
     /// Non-mutable access to the signal to noise threshold
-    inline const float& getSignalToNoiseLevel() const { return signal_to_noise_; }
+    inline const float& getSignalToNoiseLevel() const 
+    { 
+    	return signal_to_noise_; 
+    }
     /// Mutable access to the signal to noise threshold
-    inline float& getSignalToNoiseLevel() { return signal_to_noise_; }
-    /// Mutable access to the signal to noise threshold
-    inline void setSignalToNoiseLevel(const float& signal_to_noise) { signal_to_noise_ = signal_to_noise; }
+    inline void setSignalToNoiseLevel(const float& signal_to_noise) 
+    { 
+    	signal_to_noise_ = signal_to_noise; 
+    }
 
     /// Non-mutable access to the fwhm threshold
-    inline const float& getFwhmBound() const { return fwhm_bound_; }
+    inline const float& getFwhmBound() const 
+    { 
+    	return fwhm_bound_; 
+    }
     /// Mutable access to the fwhm threshold
-    inline float& getFwhmBound() { return fwhm_bound_; }
-    /// Mutable access to the fwhm threshold
-    inline void setFwhmBound(const float& fwhm) { fwhm_bound_ = fwhm; }
+    inline void setFwhmBound(const float& fwhm) 
+    {
+    	fwhm_bound_ = fwhm; 
+    }
 
-    /// Non-mutable access to the parameter object
-    inline const Param& getParam() const { return param_; }
-    /// Mutable access to the parameter object
-    inline Param& getParam() { return param_; }
-    /// Mutable access to the parameter object
-    inline void setParam(const Param& param) { param_ = param; }
-
+		/**
+			@brief Checks the give parameters against defaults_ and copies them to member variables.
+			
+			Call this method in the constructor of derived classes after the defaults_ are set!
+			
+			@note Overwrite this method in derived classes! You need to copy the subclass-specific parameters to members as well! 
+		*/
+		virtual void setParam(Param param);
+		
+		/// Returns the set parameters
+		const Param& getParam() const;
+		
   protected:
-    /// Parameter object
-    Param param_;
+		/// passed parameters
+		Param param_;
 
+		/// default parameters
+		Param defaults_;
+		
     /// Threshold for the peak height in the MS 1 level
     float peak_bound_;
 

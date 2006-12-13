@@ -23,63 +23,52 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 
 namespace OpenMS
 {
-  PeakPicker::PeakPicker(const String& filename)
+	PeakPicker::PeakPicker()
+    : peak_bound_(0.0),
+    peak_bound_ms2_level_(0.0),
+    signal_to_noise_(0.0),
+    fwhm_bound_(0.0)
   {
-    param_.load(filename);
-
-    // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-    DataValue dv;
-    dv = param_.getValue("thresholds:signal_to_noise");
-    if (dv.isEmpty() || dv.toString() == "") signal_to_noise_ = 5;
-    else signal_to_noise_ = (float)dv;
-
-    dv = param_.getValue("thresholds:peak_bound");
-    if (dv.isEmpty() || dv.toString() == "") peak_bound_ = 200;
-    else peak_bound_ = (float)dv;
-
-    dv = param_.getValue("thresholds:peak_bound_ms2_level");
-    if (dv.isEmpty() || dv.toString() == "") peak_bound_ms2_level_ = 30;
-    else peak_bound_ms2_level_ = (float)dv;
-    	
-    dv = param_.getValue("thresholds:fwhm_bound");
-    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
-    else fwhm_bound_ = (float)dv;
+  	defaults_.setValue("thresholds:signal_to_noise",3.0);
+  	defaults_.setValue("thresholds:peak_bound",200.0);
+  	defaults_.setValue("thresholds:peak_bound_ms2_level",50.0);
+  	defaults_.setValue("thresholds:fwhm_bound",0.2);
   }
-
-  PeakPicker::PeakPicker(const Param& parameters)
-  {
-    param_ = parameters;
-
-    // if a peak picking parameter is missed in the param object the value should be substituted by a dv value
-    DataValue dv;
-    dv = param_.getValue("thresholds:signal_to_noise");
-    if (dv.isEmpty() || dv.toString() == "") signal_to_noise_ = 3;
-    else signal_to_noise_ = (float)dv;
-
-    dv = param_.getValue("thresholds:peak_bound");
-    if (dv.isEmpty() || dv.toString() == "") peak_bound_ = 200;
-    else peak_bound_ = (float)dv;
-
-    dv = param_.getValue("thresholds:peak_bound_ms2_level");
-    if (dv.isEmpty() || dv.toString() == "") peak_bound_ms2_level_ = 30;
-    else peak_bound_ms2_level_ = (float)dv;
-    	
-    dv = param_.getValue("thresholds:fwhm_bound");
-    if (dv.isEmpty() || dv.toString() == "") fwhm_bound_ = 0.2;
-    else fwhm_bound_ = (float)dv;
-  }
+	
+	void PeakPicker::setParam(Param param)
+	{
+		//set mission defaults
+		param.setDefaults(defaults_);
+		//check given parameters
+		param.checkDefaults(defaults_);
+		
+		//copy
+  	param_ = param;
+  	
+  	//copy to members
+    signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
+		peak_bound_ = (float)param_.getValue("thresholds:peak_bound");
+		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
+    fwhm_bound_ = (float)param_.getValue("thresholds:fwhm_bound");
+	}
 
   PeakPicker::PeakPicker(const PeakPicker& pp)
-      : param_(pp.param_), 
-      peak_bound_(pp.peak_bound_),
-      peak_bound_ms2_level_(pp.peak_bound_ms2_level_),
-      signal_to_noise_(pp.signal_to_noise_),
-      fwhm_bound_(pp.fwhm_bound_)     
-{}
+	  : param_(pp.param_),
+	  peak_bound_(pp.peak_bound_),
+	  peak_bound_ms2_level_(pp.peak_bound_ms2_level_),
+	  signal_to_noise_(pp.signal_to_noise_),
+	  fwhm_bound_(pp.fwhm_bound_)     
+	{
+	}
+
+	const Param& PeakPicker::getParam() const
+	{
+		return param_;
+	}
+
 } // namespace OpenMS
