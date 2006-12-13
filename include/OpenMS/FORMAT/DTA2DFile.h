@@ -29,6 +29,7 @@
 
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 #include <fstream>
 #include <iostream>
@@ -53,6 +54,9 @@ namespace OpenMS
   */
   class DTA2DFile
   {
+    private:
+      PeakFileOptions options_;
+
     public:
 
 			/** @name Type definitions */
@@ -180,9 +184,16 @@ namespace OpenMS
 						}
 						//std::cout <<"'"<< strings[0] << "' '" << strings[1] << "' '" << strings[2] << "'"<< std::endl;
 						//fill peak
+						double mz = strings[mz_dim].toDouble();
 						p.setIntensity(strings[int_dim].toDouble());
-						p.getPosition()[0] = strings[mz_dim].toDouble();
-						rt = strings[rt_dim].toDouble();
+						p.getPosition()[0] = mz;
+						rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
+						
+						if (options_.hasMZRange() && !options_.getMZRange().encloses(DPosition<1>(mz))
+						 || options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(rt)))
+						{
+							continue; // if peak is out of specified range
+						}
 					}
 					// conversion to double or something else could have gone wrong
 					catch ( Exception::Base & e )
@@ -198,14 +209,14 @@ namespace OpenMS
 							map.push_back(spec);  // if not initial Spectrum
 						}
 						spec.getContainer().clear();
-						if (time_in_minutes)
+/*						if (time_in_minutes)
 						{
 							spec.setRetentionTime(rt*60.0);
 						}
 						else
-						{
+						{*/
 							spec.setRetentionTime(rt);
-						}
+// 						}
 					}
 					//insert peak into the spectrum
 					spec.getContainer().push_back(p);

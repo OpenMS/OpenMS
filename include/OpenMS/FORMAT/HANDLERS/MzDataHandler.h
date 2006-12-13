@@ -682,11 +682,15 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < peak_count_ ; n++)
 				{
-					spec_->insert(spec_->end(), PeakType());
-					spec_->back().getIntensity() = getDatum(ptrs,INTENS,n);
-					spec_->back().getPosition()[0] = getDatum(ptrs,MZ,n);
-					//read supplemental data for derived classes (do nothing for DPeak)
-					readPeakSupplementalData_(ptrs,spec_->back(),n);
+					double mz = getDatum(ptrs,MZ,n);
+					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
+					{
+						spec_->insert(spec_->end(), PeakType());
+						spec_->back().getIntensity() = getDatum(ptrs,INTENS,n);
+						spec_->back().getPosition()[0] = mz;
+						//read supplemental data for derived classes (do nothing for DPeak)
+						readPeakSupplementalData_(ptrs,spec_->back(),n);
+					}
 				}
 			}
 		}

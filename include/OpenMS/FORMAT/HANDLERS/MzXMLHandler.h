@@ -954,10 +954,13 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < ( 2 * peak_count_) ; n += 2)
 				{
-					
-					peak_->getPosition()[0] = data[n];
-					peak_->setIntensity(data[n+1]);
- 					++peak_;
+					// check if peak in in the specified range
+					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					{
+						peak_->getPosition()[0] = data[n];
+						peak_->setIntensity(data[n+1]);
+						++peak_;
+					}
  				}
 			}
 			else	//precision 32
@@ -967,9 +970,12 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					peak_->getPosition()[0] = data[n];
-					peak_->setIntensity(data[n+1]);
-     			++peak_;
+					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					{
+						peak_->getPosition()[0] = data[n];
+						peak_->setIntensity(data[n+1]);
+						++peak_;
+					}
 				}
 			}
 		}
