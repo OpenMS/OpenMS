@@ -65,7 +65,12 @@ namespace OpenMS
       /// sets the file path
       void setPathToFile(const String& path_path_to_file);
 			
-			/// returns the file type
+      /// returns the file size in MB
+      const float& getFileSize() const;
+      /// sets the file size in MB
+      void setFileSize(const float& file_size);
+
+ 			/// returns the file type
       const String& getFileType() const;
      	/// sets the file type
       void setFileType(const String& file_type);
@@ -75,9 +80,13 @@ namespace OpenMS
       /// sets the source file's SHA1 hash value
       void setSha1(const String& sha1);
 
+	    /// returns if the SourceFile is empty
+	    bool isFileEmpty() const;
+
     protected:
 			String name_of_file_;
 			String path_to_file_;
+			float file_size_;
 			String file_type_;
 			String sha1_;
   };

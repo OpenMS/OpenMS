@@ -48,15 +48,42 @@ CHECK(~SourceFile())
 	delete ptr;
 RESULT
 
+CHECK(bool isFileEmpty())
+  SourceFile * tmp = new SourceFile();
+  TEST_EQUAL(tmp->isFileEmpty(),true);
+  tmp->setFileSize(1);
+  TEST_EQUAL(tmp->isFileEmpty(),false);
+  tmp = new SourceFile();
+  tmp->setPathToFile("path");
+  TEST_EQUAL(tmp->isFileEmpty(),false);
+  tmp = new SourceFile();
+  tmp->setNameOfFile("name");
+  TEST_EQUAL(tmp->isFileEmpty(),false);
+  tmp = new SourceFile();
+  tmp->setFileType("RAWDATA");
+  TEST_EQUAL(tmp->isFileEmpty(),false);
+RESULT
+
+CHECK(const float& getFileSize() const)
+  SourceFile tmp;
+  TEST_EQUAL(tmp.getFileSize(),0);
+RESULT
+
+CHECK(void setFileSize(const float& file_size))
+  SourceFile tmp;
+	tmp.setFileSize(1.667);
+  TEST_REAL_EQUAL(tmp.getFileSize(),1.667);
+RESULT
+
 CHECK(const String& getFileType() const)
   SourceFile tmp;
-  TEST_EQUAL(tmp.getFileType(),"");
+  TEST_EQUAL(tmp.getFileType(), "");
 RESULT
 
 CHECK(void setFileType(const String& file_type))
   SourceFile tmp;
-	tmp.setFileType("mp3");
-  TEST_EQUAL(tmp.getFileType(),"mp3");
+	tmp.setFileType("PEAKDATA");
+  TEST_EQUAL(tmp.getFileType(), "PEAKDATA");
 RESULT
 
 CHECK(const String& getNameOfFile() const)
@@ -94,13 +121,13 @@ RESULT
 
 CHECK(SourceFile(const SourceFile& source))
 	SourceFile tmp;
-	tmp.setFileType("mp3");
+	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 	SourceFile tmp2(tmp);
-	TEST_EQUAL(tmp2.getFileType(),"mp3");
+	TEST_EQUAL(tmp2.getFileType(), "CALIBRATIONINFO");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
@@ -108,7 +135,7 @@ RESULT
 
 CHECK(SourceFile& operator= (const SourceFile& source))
 	SourceFile tmp;
-	tmp.setFileType("mp3");
+	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
@@ -116,14 +143,14 @@ CHECK(SourceFile& operator= (const SourceFile& source))
 	//normal assignment
 	SourceFile tmp2;
 	tmp2 = tmp;
-	TEST_EQUAL(tmp2.getFileType(),"mp3");
+	TEST_EQUAL(tmp2.getFileType(),"PUBLICATION");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getSha1(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 	//assignment of empty object
 	tmp2 = SourceFile();
-	TEST_EQUAL(tmp2.getFileType(),"");
+	TEST_EQUAL(tmp2.getFileType(), "");
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
 	TEST_EQUAL(tmp2.getSha1(),"");
@@ -134,7 +161,7 @@ CHECK(bool operator== (const SourceFile& rhs) const)
 	
 	TEST_EQUAL(tmp==tmp2, true);
 	
-	tmp2.setFileType("mp3");
+	tmp2.setFileType("PARAMETERSFILE");
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -155,7 +182,7 @@ CHECK(bool operator!= (const SourceFile& rhs) const)
 	
 	TEST_EQUAL(tmp!=tmp2, false);
 	
-	tmp2.setFileType("mp3");
+	tmp2.setFileType("MISC");
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
