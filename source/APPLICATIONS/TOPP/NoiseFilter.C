@@ -90,6 +90,8 @@ class TOPPNoiseFilter
 			addEmptyLine_();
 			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option).\n"
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
+    	registerSubsection_("sgolay");
+    	registerSubsection_("gaussian");
     }
 
     ExitCodes main_(int , char**)

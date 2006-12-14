@@ -249,6 +249,9 @@ namespace OpenMS
 
 		/// Storage location for parameter information
 		std::vector<ParameterInformation> parameters_;
+
+		/// Storage location for allowed subsections
+		std::vector<String> subsections_;
 		
 		/// Finds the the entry in the parameters_ array that has the name @p name
 		const ParameterInformation& findEntry_(const String& name) const throw (Exception::UnregisteredParameter);
@@ -392,7 +395,15 @@ namespace OpenMS
 		
 		///Returns the value of a previously registered flag
 		bool getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType);
-	
+
+		/**
+			@brief Registers an allowed subsection in the INI file.
+			
+			Use this method to register subsections that are passed to algorithms
+			
+			@see checkParam_
+		*/
+		void registerSubsection_(const String& name);
 		//@}
 		
 		/// Prints the tool-specific command line options and appends the common options.
@@ -433,7 +444,8 @@ namespace OpenMS
 		/**
 			@brief Checks top-level entries of @p param according to the the information during registration
 			
-			Only top-lvel entries are checked, subsections are ignored.
+			Only top-lvel entries and allowed subsections are checked.
+			Checking the content of the subsection is the duty of the algorithm it is passed to.
 			
 			This method does not abort execution of the tool, but will warn the user through stderr!
 			

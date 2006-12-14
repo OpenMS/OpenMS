@@ -64,10 +64,15 @@ namespace OpenMS
 	
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
-		for (UnsignedInt i=0; i<getDataSetCount(); i++)
+		//delete feature trees
+		for (UnsignedInt i=0; i<feature_trees_.size(); i++)
+		{
+			if (feature_trees_[i]) delete feature_trees_[i];
+		}
+		//delete trees
+		for (UnsignedInt i=0; i<trees_.size(); i++)
 		{
 			if (trees_[i]) delete trees_[i];
-			if (feature_trees_[i]) delete feature_trees_[i];
 		}
 	}
 	

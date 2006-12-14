@@ -92,6 +92,7 @@ class TOPPUnlabeledMatcher
 			addText_("All other options can be given only in the 'algorithm' seciton  of the INI file.\n"
 							 "For a detailled description, please have a look at the doxygen documentation.\n"
 							 "How the docu can be built is explained in OpenMS/doc/index.html.");
+    	registerSubsection_("algorithm");
     }
 
     ExitCodes main_(int , char**)

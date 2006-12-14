@@ -100,6 +100,7 @@ class TOPPFeatureFinder
 		addEmptyLine_();
 		addText_("This application implements an algorithm for peptide feature detection\n"
 						 "as described in Groepl et al. (2005) Proc. CompLife 05.");
+		registerSubsection_("algorithm");
 	}
 	
 	ExitCodes main_(int , char**)

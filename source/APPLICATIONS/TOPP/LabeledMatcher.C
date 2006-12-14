@@ -89,7 +89,7 @@ class TOPPLabeledMatcher
 			addEmptyLine_();
 			addText_("Note: The mz_pair_dist is added while the rt_pair_dist is substracted when searching pairs.\n"
 			         "      This is due to the fact, that the heavier peptide normally elutes earlier!");
-
+			registerSubsection_("algorithm");
 	  }
 	
 	  ExitCodes main_(int , char**)

@@ -140,6 +140,10 @@ class AdditiveSeries
 							"    <ITEM name=\"MZ\" value=\"689.9\" type=\"float\">\n"
 							"    <ITEM name=\"RT\" value=\"1246\" type=\"float\">\n"
 							"  </NODE>");
+    	registerSubsection_("Files");
+    	registerSubsection_("Concentrations");
+    	registerSubsection_("Feature");
+    	registerSubsection_("Standard");
     }
 
 

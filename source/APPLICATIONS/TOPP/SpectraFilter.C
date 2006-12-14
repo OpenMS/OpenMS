@@ -108,6 +108,15 @@ class TOPPSpectraFilter
 							 "  <NODE name=\"ThresholdMower\">\n"
 							 "    <ITEM name=\"threshold\" value=\"5.0\" type=\"float\"/>\n"
 							 "  </NODE>");
+			// register one section for each algorithm
+			registerSubsection_("NLargest");
+			registerSubsection_("ParentPeakMower");
+			registerSubsection_("SqrtMower");
+			registerSubsection_("ThresholdMower");
+			registerSubsection_("WindowMower");
+			registerSubsection_("Normalizer");
+			registerSubsection_("Scaler");
+			registerSubsection_("BernNorm");
 		}
 		
 		ExitCodes main_(int , char**)

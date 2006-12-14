@@ -687,8 +687,14 @@ namespace OpenMS
 	{
 		for (Param::ConstIterator it = param.begin(); it!=param.end(); ++it)
 		{
+			//subsections
 			if (String(it->first).has(':'))
 			{
+				String sec = String(it->first).prefix(':');
+				if (find(subsections_.begin(), subsections_.end(), sec)==subsections_.end())
+				{
+					writeLog_("Warning: Unknown subsection '" + sec + "' in '" + filename + "'!");
+				}
 				continue;
 			}
 			//if no such parameter is registered an exception is thrown
@@ -776,6 +782,10 @@ namespace OpenMS
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
+	}
+	void TOPPBase2::registerSubsection_(const String& name)
+	{
+		subsections_.push_back(name);
 	}
 
 } // namespace OpenMS
