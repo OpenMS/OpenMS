@@ -488,13 +488,15 @@ Resampler_test: $(NUMERICDIFF)
 RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.analysisXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,RTModel_1_output.tmp,RTModel_1_output.model)
 
 
 RTPredict_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
-	@$(ECHO) "	... todo ..."
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.analysisXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
+	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.analysisXML)
 
 
 SequestAdapter_test: $(NUMERICDIFF)
