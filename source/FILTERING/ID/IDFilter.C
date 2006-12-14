@@ -193,7 +193,6 @@ namespace OpenMS
   																											filtered_protein_hits);
 			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setCharge(identification.getCharge());  																								
 			filtered_identification.setDateTime(date);
 			filtered_identification.assignRanks();  																								
 		}
@@ -251,7 +250,6 @@ namespace OpenMS
   																											filtered_protein_hits);
 			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setCharge(identification.getCharge());  																								
 			filtered_identification.setDateTime(date);
 			filtered_identification.assignRanks();  																								
 		}
@@ -327,7 +325,6 @@ namespace OpenMS
   																								filtered_protein_hits);
 			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setCharge(identification.getCharge());  																								
 			filtered_identification.setDateTime(date);  																								
 		}
 	}
@@ -424,7 +421,6 @@ namespace OpenMS
 		{
 			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setCharge(identification.getCharge());  																								
 			filtered_identification.setDateTime(date);  																								
 		}
 	}
@@ -467,7 +463,6 @@ namespace OpenMS
   																											identification.getProteinHits());
 			filtered_identification.setPeptideSignificanceThreshold(identification.getPeptideSignificanceThreshold());
 			filtered_identification.setProteinSignificanceThreshold(identification.getProteinSignificanceThreshold());  																								
-			filtered_identification.setCharge(identification.getCharge());
 			filtered_identification.setDateTime(date);  																								
 		}
 	}
