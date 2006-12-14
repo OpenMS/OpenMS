@@ -195,7 +195,7 @@ namespace OpenMS
 																 					UnsignedInt number_of_partitions,
 																 					UnsignedInt number_of_runs,
 																 					bool 			  additive_step_size = true,
-																 					bool output = true);
+																 					bool output = false);
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the model.		      
