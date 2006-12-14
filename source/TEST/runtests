@@ -124,16 +124,16 @@ for i in $* ; do
 
 		# rerun it in verbose mode to find out which
 		# subtest failed
-		echo "Failure in test $i."
-		echo "	Please check the log file: \"$i.log\"."
-		echo "	The failed lines are:"
+		echo "FAILED"
 		echo "--------------------------------------------"
+		echo "Please check the log file: \"$i.log\"."
+		echo "--------------------------------------------"
+		echo "The failed lines are:"
 		( ./$i -V 2>&1 |cat > $i.log ) 2>/dev/null
-		grep -2 " - $" $i.log
+		grep " - $" $i.log
 		echo "--------------------------------------------"
-		echo "	The last few lines are:"
-		echo "--------------------------------------------"
-		tail -3 $i.log
+		echo "The last two lines are:"
+		tail -2 $i.log
 		echo "--------------------------------------------"
 		if test -f core ; then
 			rm core

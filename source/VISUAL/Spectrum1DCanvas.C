@@ -34,6 +34,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DCanvasPDP.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace std;
 
@@ -832,7 +833,15 @@ namespace OpenMS
 	
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
-	
+		if (getCurrentDataType() == DT_PEAK)
+		{
+			PeakTypeEstimator pte;
+			if (pte.estimateType(currentDataSet_()[0].begin(),currentDataSet_()[0].end()) == SpectrumSettings::RAWDATA)
+			{
+				draw_modes_.back() = DM_CONNECTEDLINES;
+			}
+		}
+		
 		//set visibility to true
 		layer_visible_.push_back(true);
 	
