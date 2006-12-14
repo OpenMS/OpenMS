@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 /**
-  @page TOPPView TOPPView - A MS data viewer
+  @page TOPPView TOPPView
   
   TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
   and several other text-based file formats. It also supports viewing data from an OpenMS database.

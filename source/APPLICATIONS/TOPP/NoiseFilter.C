@@ -54,7 +54,6 @@ using namespace std;
    sharp cutoffs, and low passband ripple.
  
    @note Use a Gaussian filter  which has approximately the same width as your mass peaks.
-        (The default value is 0.8 Th.)
  
    @ingroup TOPP
 */
