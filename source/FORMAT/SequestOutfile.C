@@ -113,7 +113,6 @@ namespace OpenMS
 		identifications.back().mz = precursor_mz_value;
 		
 		query = &(identifications.back().id);
-		query->setCharge(charge);
 		
 		vector< String > databases;
 		databases.push_back(database);
@@ -160,6 +159,7 @@ namespace OpenMS
 				peptide_hit.clear();
 				peptide_hit.setScore(atof(substrings[score_column].c_str()));
 				peptide_hit.setScoreType(score_type);
+				peptide_hit.setCharge(charge);
 				
 				peptide_hit.setSequence(substrings[peptide_column].substr(2, substrings[peptide_column].length()-4));
 				peptide_hit.setRank(atoi(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).c_str()));
@@ -395,7 +395,7 @@ namespace OpenMS
 		else if ( line.hasPrefix("gi") )
 		{
 			size_t snd = line.find('|', 3);
-			size_t third;
+			size_t third(0);
 			if ( snd != string::npos )
 			{
 				third = line.find('|', ++snd) + 1;
@@ -775,28 +775,28 @@ namespace OpenMS
 		
 		DateTime datetime;
 		Real
-			precursor_mz_value,
-			last_delta_cn;
+			precursor_mz_value(0),
+			last_delta_cn(0);
 			UnsignedInt
-			precursor_mass_type,
-			ion_mass_type,
-			number_of_columns,
-			displayed_peptides;
+			precursor_mass_type(0),
+			ion_mass_type(0),
+			number_of_columns(0),
+			displayed_peptides(0);
 		
 		SignedInt
-			charge,
-			number_column,
-			rank_sp_column,
-			id_column,
-			mh_column,
-			delta_cn_column,
-			xcorr_column,
-			sp_column,
-			sf_column,
-			ions_column,
-			reference_column,
-			peptide_column,
-			score_column;
+			charge(0),
+			number_column(0),
+			rank_sp_column(0),
+			id_column(0),
+			mh_column(0),
+			delta_cn_column(0),
+			xcorr_column(0),
+			sp_column(0),
+			sf_column(0),
+			ions_column(0),
+			reference_column(0),
+			peptide_column(0),
+			score_column(0);
 		
 		readOutHeader(out_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns, displayed_peptides);
 		
@@ -913,7 +913,7 @@ namespace OpenMS
 		String line, filename;
 		vector< String > substrings;
 		map< String, vector< Real > > filenames_and_pvalues;
-		vector< Real >* pvalues;
+		vector< Real >* pvalues(0);
 		while ( getline(prob_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);

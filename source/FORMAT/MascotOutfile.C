@@ -43,9 +43,7 @@ namespace OpenMS
   {
   }
 
-	void MascotOutfile::load(String 											filename,
-													std::vector<IdentificationData>& 	identifications,
-													Real                          p) throw (Exception::ParseError)
+	void MascotOutfile::load(String filename,	std::vector<IdentificationData>& identifications,	Real p) throw (Exception::ParseError)
 	{
   	TextFile f(filename);
   	vector<PeptideHit>::iterator peptide_hit_iterator;
@@ -57,6 +55,7 @@ namespace OpenMS
 		map<UnsignedInt, UnsignedInt>::iterator indices_iterator;
 		int temp_int;
 		IdentificationData temp_identification;
+		vector<SignedInt> charges;
 		SignedInt temp_charge = 0;
 		String temp_identifier = "";
 		vector<Real> temp_scores;
@@ -157,11 +156,11 @@ namespace OpenMS
 			temp_charge = String(parts[1].trim()[0]).toInt();
 			if (String(parts[1].trim()[1]) == "+")
 			{
-				temp_identification.id.setCharge(temp_charge);
+				charges.push_back(temp_charge);
 			}
 			else
 			{
-				temp_identification.id.setCharge((-1 * temp_charge));				
+				charges.push_back((-1 * temp_charge));				
 			}
 			parts.clear();
 			temp_identification.mz = parts[0].toFloat();
@@ -275,6 +274,7 @@ namespace OpenMS
 				temp_score = parts[7].toFloat();			
 				hit.setScore(temp_score);
 				hit.setScoreType("Mascot");
+				hit.setCharge(charges[i]);
 	  		
 	  		hit.setRank(counter);
 	   		//(2.3) insert into hits vector

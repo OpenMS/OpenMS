@@ -57,7 +57,6 @@ CHECK(vector< UnsignedInt > load(const string& result_filename, vector< Identifi
 	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.001);
 	
 	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getCharge(), 1)
 	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 1)
 	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), -257)
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "KKLE")
@@ -68,7 +67,6 @@ CHECK(vector< UnsignedInt > load(const string& result_filename, vector< Identifi
 	file.load("data/InspectOutfile.out", identifications, protein_identification, 0.01);
 	
 	TEST_EQUAL(identifications.size(), 1)
-	TEST_EQUAL(identifications[0].id.getCharge(), 1)
 	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
 	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), -1456)
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "EKIE")

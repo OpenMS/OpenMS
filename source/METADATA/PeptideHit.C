@@ -34,8 +34,11 @@ namespace OpenMS
 {
 	// default constructor
   PeptideHit::PeptideHit()
-			:	//PersistentObject(),
-				score_(0), score_type_(""), rank_(0), sequence_("")
+			:	score_(0), 
+				score_type_(""), 
+				rank_(0), 
+				charge_(0), 
+				sequence_("")
   {
   }
   
@@ -43,11 +46,12 @@ namespace OpenMS
   PeptideHit::PeptideHit(double score, 
   											 std::string score_type, 
   											 uint rank, 
+												 SignedInt charge,
   											 String sequence)
-    	: //PersistentObject(),
-    		score_(score), 
+    	: score_(score), 
     		score_type_(score_type), 
-    		rank_(rank), 
+    		rank_(rank),
+				charge_(charge),
     		sequence_(sequence)
   {
   	sequence_.trim();
@@ -58,8 +62,9 @@ namespace OpenMS
     	: //PersistentObject(source),
 				score_(source.score_), 
 				score_type_(source.score_type_), 
-				rank_(source.rank_), 
-				sequence_(source.sequence_), 
+				rank_(source.rank_),
+				charge_(source.charge_),
+				sequence_(source.sequence_),
 				corresponding_protein_indices_(source.corresponding_protein_indices_)
   {
   }
@@ -77,6 +82,7 @@ namespace OpenMS
     score_type_.erase();
     sequence_.erase();
     rank_ = 0;
+		charge_ = 0;
     corresponding_protein_indices_.clear();
   }
    
@@ -88,6 +94,7 @@ namespace OpenMS
   	}  			
     //PersistentObject::operator= (source);
     score_ = source.score_;
+		charge_ = source.charge_;
     score_type_ = source.score_type_;
 		rank_  = source.rank_;
     sequence_ = source.sequence_;
@@ -100,16 +107,14 @@ namespace OpenMS
 		return score_ == rhs.score_ 
 			&& score_type_ == rhs.score_type_ 
 			&& rank_ == rhs.rank_ 
+			&& charge_ == rhs.charge_
 			&& sequence_ == rhs.sequence_
 			&& corresponding_protein_indices_ == rhs.corresponding_protein_indices_;
 	}
 
 	bool PeptideHit::operator != (const PeptideHit& rhs) const	
 	{
-		return score_ != rhs.score_ 
-			|| score_type_ != rhs.score_type_ 
-			|| rank_ != rhs.rank_ 
-			|| sequence_ != rhs.sequence_;
+		return !(*this == rhs);
 	}
 	
 	void PeptideHit::addProteinIndex(const pair<String, String>& index) 
@@ -162,11 +167,21 @@ namespace OpenMS
 	{
 		return sequence_;
 	}
+
+	SignedInt PeptideHit::getCharge() const
+	{
+		return charge_;
+	}
 	
 	void PeptideHit::setSequence(const String& sequence) 
 	{
 		sequence_ = sequence; 
 		sequence_.trim();
+	}
+
+	void PeptideHit::setCharge(SignedInt charge)
+	{
+		charge_ = charge;
 	}
 	
 	// returns the corresponding protein indices

@@ -35,7 +35,6 @@ namespace OpenMS {
 
   Identification::Identification()
     : ProteinIdentification(),
-    	charge_(0), 
     	peptide_hits_(), 
     	peptide_significance_threshold_(0) 
   {
@@ -43,7 +42,6 @@ namespace OpenMS {
 
   Identification::Identification(const Identification& source) : 
   	ProteinIdentification(source), 
-  	charge_(source.charge_), 
   	peptide_hits_(source.peptide_hits_), 
   	peptide_significance_threshold_(source.peptide_significance_threshold_) 
   {
@@ -79,22 +77,9 @@ namespace OpenMS {
 		peptide_significance_threshold_ = value;
 	}
 
-	// retrival of the charge of the used precursor
-  SignedInt Identification::getCharge() const 
-  { 
-  	return charge_;
-  }
-
-	// setting of the charge of the used precursor
-	void Identification::setCharge(SignedInt value) 
-	{ 
-		charge_ = value;
-	}
-
   void Identification::clear()
   {
    date_.clear();
-	 charge_ = 0;
    peptide_significance_threshold_ = 0;
    protein_significance_threshold_ = 0;
    peptide_hits_.clear();
@@ -109,7 +94,6 @@ namespace OpenMS {
   	}
     //PersistentObject::operator=(source);
     date_ = source.date_;
-		charge_ = source.charge_;
     peptide_hits_ = source.peptide_hits_;
     protein_hits_ = source.protein_hits_;
     peptide_significance_threshold_ = source.peptide_significance_threshold_;
@@ -121,7 +105,6 @@ namespace OpenMS {
 	bool Identification::operator == (const Identification& rhs) const
 	{
 		return date_ == rhs.getDateTime() 
-						&& charge_ == rhs.getCharge()
 						&& peptide_hits_ == rhs.getPeptideHits()
 						&& protein_hits_ == rhs.getProteinHits()
 						&& peptide_significance_threshold_ == rhs.getPeptideSignificanceThreshold()
@@ -131,7 +114,7 @@ namespace OpenMS {
 	// Inequality operator
 	bool Identification::operator != (const Identification& rhs) const
 	{
-		return !(operator==(rhs));						 
+		return !(*this == rhs);						 
 	}
 	
 	// inserts a peptide hit if the peptide hit has the same score type as the existing hits
@@ -191,7 +174,6 @@ namespace OpenMS {
 						&& protein_significance_threshold_ == 0
 						&& protein_hits_.size() == 0
 						&& peptide_hits_.size() == 0
-						&& charge_ == 0
 						&& date_ == temp_date);		
 	}
 	

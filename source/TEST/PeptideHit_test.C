@@ -48,6 +48,7 @@ std::string score_type = "XCorr";
 uint rank = 3;
 String sequence = "ARRAY";
 std::string sequence2 = "  ARRAY  ";
+SignedInt charge;
 
 PeptideHit* ptr1 = 0;
 
@@ -57,6 +58,7 @@ CHECK((PeptideHit()))
 	TEST_EQUAL(ptr1->getScore(), 0)
 	TEST_EQUAL(ptr1->getScoreType(), "")
 	TEST_EQUAL(ptr1->getRank(), 0)
+	TEST_EQUAL(ptr1->getCharge(), 0)
 	TEST_EQUAL(ptr1->getSequence(), "")
 RESULT
 
@@ -64,17 +66,18 @@ CHECK((~PeptideHit()))
 	delete ptr1;
 RESULT
 
-CHECK((PeptideHit(double score, std::string score_type, uint rank, String sequence)))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+CHECK((PeptideHit(double score, std::string score_type, uint rank, charge, String sequence)))
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 	TEST_EQUAL(ptr1->getRank(), rank)
+	TEST_EQUAL(ptr1->getCharge(), charge)
 	TEST_EQUAL(ptr1->getSequence(), sequence)
 RESULT
 
 CHECK((PeptideHit& operator=(const PeptideHit& source)))
 	PeptideHit hit;
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	hit = *ptr1;
 	TEST_EQUAL(hit.getScore(), ptr1->getScore())
 	TEST_EQUAL(hit.getScoreType(), ptr1->getScoreType())
@@ -139,27 +142,27 @@ CHECK((bool operator != (const PeptideHit& rhs) const))
 RESULT
 
 CHECK((float getScore() const))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 RESULT
 
 CHECK((const std::string& getScoreType() const))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
 RESULT
 
 CHECK((UnsignedInt getRank() const))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getRank(), rank)
 RESULT
 
 CHECK((String getSequence() const))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getSequence(), sequence)
 RESULT
 
 CHECK((void clear()))
-	ptr1 = new PeptideHit(score, score_type, rank, sequence);
+	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	ptr1->clear();
 	TEST_EQUAL(ptr1->getScore(), 0)
 	TEST_EQUAL(ptr1->getScoreType(), "")

@@ -56,13 +56,14 @@ namespace OpenMS
     PeptideHit(double score, 
     					 std::string score_type, 
     					 uint rank, 
+							 SignedInt charge,
     					 String sequence);
 
 		/// copy constructor
     PeptideHit(const PeptideHit& source);
 				
 		/// destructor
-    ~PeptideHit();
+    virtual ~PeptideHit();
     //@}
     
 		/// assignment operator
@@ -77,45 +78,59 @@ namespace OpenMS
 		
     /// returns the score of the peptide hit 
     float getScore() const;
-    /// returns the type of the score
+    
+		/// returns the type of the score
     const std::string& getScoreType() const;
+		
 		/// returns the rank of the peptide hit
     UnsignedInt getRank() const;
+		
 		/// returns the peptide sequence without trailing or following spaces
   	String getSequence() const;
+		
+		/// returns the carge of the peptide
+		SignedInt getCharge() const;
+		
 		/// returns the corresponding protein indices
 		const std::vector< std::pair<String, String> >& getProteinIndices() const;
+		
 		/// returns a mutable reference to the corresponding protein indices
 		std::vector< std::pair<String, String> >& getProteinIndices();
 
-			/**
-				@brief Sets the references to the protein hits of this peptide hit
-			 	
-				The format of one reference is < DateTime, Accession >
-			*/
+		/**
+			@brief Sets the references to the protein hits of this peptide hit
+		 	
+			The format of one reference is < DateTime, Accession >
+		*/
 	  void setProteinIndices(const std::vector< std::pair<String, String> >& indices);
-    /// sets the score of the peptide hit 
+    
+		/// sets the score of the peptide hit 
     void setScore(const double& score);
-    /// sets the type of the score
+    
+		/// sets the type of the score
     void setScoreType(const std::string& score_type);
+
 		/// sets the rank
     void setRank(UnsignedInt newrank);
     
 		/// sets the peptide sequence
 		void setSequence(const String& sequence);
 
-			/**
-				@brief Adds a references to a protein hit of this peptide hit
-			 	
-				The format of one reference is < DateTime, Accession >
-			*/
+		/// sets the charge of the peptide
+		void setCharge(SignedInt charge);
+		
+		/**
+			@brief Adds a references to a protein hit of this peptide hit
+		 	
+			The format of one reference is < DateTime, Accession >
+		*/
 		void addProteinIndex(const std::pair<String, String>& index); 
 				
-			/**
-				@brief Adds a references to a protein hit of this peptide hit
+		/**
+			@brief Adds a references to a protein hit of this peptide hit
 			 	
-				The format of one reference is < DateTime, Accession >
-			*/
+			The format of one reference is < DateTime, Accession >
+		*/
 		void addProteinIndex(const DateTime& date, const String& accession); 
 
     //@}
@@ -127,6 +142,10 @@ namespace OpenMS
     std::string score_type_;    	///< the score type of the peptide hit 
 		UnsignedInt rank_;    				///< the position(rank) where the hit 
 																	///< appeared in the hit list
+
+		/// the charge of the peptide
+		SignedInt charge_;
+		
     String sequence_;							///< the amino acid sequence of the 
     															///< peptide hit
     std::vector< std::pair<String, String> > corresponding_protein_indices_; ///< the indices 

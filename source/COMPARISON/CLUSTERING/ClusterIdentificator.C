@@ -172,7 +172,7 @@ namespace OpenMS
       ss.str("");
       //ss << clusterrunp_->getSimFunc()->getName() << "_similarity"; 
       scoretype = ss.str();
-      result.insertPeptideHit(PeptideHit(score,scoretype,0,sequence));
+      result.insertPeptideHit(PeptideHit(score,scoretype, 0, 0, sequence));
     }
     result.sort();
     result.assignRanks();

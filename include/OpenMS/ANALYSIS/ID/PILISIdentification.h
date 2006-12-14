@@ -128,9 +128,6 @@ namespace OpenMS
 			/// name of the scorer
 			String scoring_type_;
 		
-			/// holds the charge of a given candidate sequence; needed because sequence with different charge state might be possible candidates
-			HashMap<String, Size> sequence_to_charge_;
-			
 			/// a peaks, just to not instantiate it over and over again
 			Peak p_;
 	};

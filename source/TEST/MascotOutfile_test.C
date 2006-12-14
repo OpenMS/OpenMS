@@ -60,10 +60,6 @@ CHECK((void load(String filename, std::vector<Identification>& identifications, 
 						identifications);
 
 	TEST_EQUAL(identifications.size(), 4)	
-	TEST_EQUAL(identifications[0].id.getCharge(), -2)	
-	TEST_EQUAL(identifications[1].id.getCharge(), 3)	
-	TEST_EQUAL(identifications[2].id.getCharge(), 3)	
-	TEST_EQUAL(identifications[3].id.getCharge(), 3)	
 	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 1)	
 	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)	
 	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 10)	

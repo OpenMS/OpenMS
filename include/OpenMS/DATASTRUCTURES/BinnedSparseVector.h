@@ -250,7 +250,7 @@ namespace OpenMS
     BinnedSparseVector(const BinnedSparseVector& source);
     
     /// destructor
-    ~BinnedSparseVector();
+    virtual ~BinnedSparseVector();
 		// @}
 
 		// @name Operators

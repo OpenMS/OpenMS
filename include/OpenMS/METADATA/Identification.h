@@ -54,7 +54,7 @@ namespace OpenMS
     Identification();
     
     /// destructor
-    ~Identification();
+    virtual ~Identification();
     
     /// copy constructor
     Identification(const Identification& source);
@@ -87,12 +87,6 @@ namespace OpenMS
 
 		/// setting of the peptide significance threshold value
 		void setPeptideSignificanceThreshold(float value);
-
-		/// retrival of the charge of the used precursor
-    SignedInt getCharge() const;
-
-		/// setting of the charge of the used precursor
-		void setCharge(SignedInt value);
 
 		/// clears all information of this instance
     void clear();
@@ -170,7 +164,6 @@ namespace OpenMS
 
   protected:
 
-    SignedInt charge_;																///< the charge of the precursor that was used
     std::vector<PeptideHit> peptide_hits_;						///< a list containing the peptide hits
     float peptide_significance_threshold_;						///< the peptide significance threshold
   };

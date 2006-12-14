@@ -71,7 +71,6 @@ CHECK((Identification()))
 	ptr1 = new Identification();
 	TEST_NOT_EQUAL(ptr1, 0)
 	TEST_NOT_EQUAL(&(ptr1->getDateTime()), 0)
-	TEST_EQUAL(ptr1->getCharge(), 0)
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), 0)
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), 0)
 	TEST_NOT_EQUAL(&(ptr1->getProteinHits()), 0)
@@ -80,14 +79,12 @@ RESULT
 
 CHECK((Identification(const Identification& source)))
 	ptr1 = new Identification();
-	ptr1->setCharge(charge);
 	ptr1->setDateTime(date);
 	ptr1->setPeptideSignificanceThreshold(peptide_significance_threshold);
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
 	ptr1->setPeptideAndProteinHits(peptide_hits, protein_hits);
 	ptr2 = new Identification(*ptr1);
 	TEST_EQUAL(ptr1->getDateTime() == ptr2->getDateTime(), true)
-	TEST_EQUAL(ptr1->getCharge(), ptr2->getCharge())
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), ptr2->getProteinSignificanceThreshold())
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), ptr2->getPeptideSignificanceThreshold())
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
@@ -103,14 +100,12 @@ RESULT
 
 CHECK((Identification& operator=(const Identification& source)))
 	ptr1 = new Identification();
-	ptr1->setCharge(charge);
 	ptr1->setDateTime(date);
 	ptr1->setPeptideSignificanceThreshold(peptide_significance_threshold);
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
 	ptr1->setPeptideAndProteinHits(peptide_hits, protein_hits);
 	*ptr2 = *ptr1;
 	TEST_EQUAL(ptr1->getDateTime() == ptr2->getDateTime(), true)
-	TEST_EQUAL(ptr1->getCharge(), ptr2->getCharge())
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), ptr2->getProteinSignificanceThreshold())
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), ptr2->getPeptideSignificanceThreshold())
 	TEST_EQUAL(ptr1->getPeptideHits().size() == 1, true)
@@ -124,9 +119,6 @@ CHECK((bool operator != (const Identification& rhs) const))
 	Identification search2;
 	
 	TEST_EQUAL(search1 != search2, false)
-	search1.setCharge(charge);
-	TEST_EQUAL(search1 != search2, true)
-	search2.setCharge(charge);
 	TEST_EQUAL(search1 != search2, false)	
 	search1.setDateTime(date);
 	TEST_EQUAL(search1 != search2, true)	
@@ -151,10 +143,6 @@ CHECK((bool operator == (const Identification& rhs) const))
 	Identification search2;
 	
 	TEST_EQUAL(search1 == search2, true)
-	search1.setCharge(charge);
-	TEST_EQUAL(search1 == search2, false)
-	search2.setCharge(charge);
-	TEST_EQUAL(search1 == search2, true)	
 	search1.setDateTime(date);
 	TEST_EQUAL(search1 == search2, false)	
 	search2.setDateTime(date);
@@ -194,23 +182,16 @@ CHECK((const std::vector<PeptideHit>& getPeptideHits() const))
 	TEST_EQUAL(temp_hit == peptide_hit, true)	
 RESULT
 
-CHECK((SignedInt getCharge() const))
-	ptr1 = new Identification();
-	ptr1->setCharge(charge);
-	TEST_EQUAL(ptr1->getCharge(), charge)
-RESULT
 
 CHECK((void clear()))
 	DateTime test_date;
 	ptr1 = new Identification();
-	ptr1->setCharge(charge);
 	ptr1->setDateTime(date);
 	ptr1->setPeptideSignificanceThreshold(peptide_significance_threshold);
 	ptr1->setProteinSignificanceThreshold(protein_significance_threshold);
 	ptr1->setPeptideAndProteinHits(peptide_hits, protein_hits);
 	ptr1->clear();
 	TEST_EQUAL(ptr1->getDateTime() == test_date, true)
-	TEST_EQUAL(ptr1->getCharge(), 0)
 	TEST_EQUAL(ptr1->getPeptideSignificanceThreshold(), 0)
 	TEST_EQUAL(ptr1->getProteinSignificanceThreshold(), 0)
 	TEST_EQUAL(ptr1->getProteinHits().size() == 0, true)
@@ -229,12 +210,6 @@ CHECK((void insertProteinHit(const ProteinHit& input)))
 	ptr1->insertProteinHit(protein_hit);
 	TEST_EQUAL(ptr1->getProteinHits().size() == 1, true)
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)
-RESULT
-
-CHECK((void setCharge(SignedInt value)))
-	ptr1 = new Identification();
-	ptr1->setCharge(charge);
-	TEST_EQUAL(ptr1->getCharge(), charge)
 RESULT
 
 CHECK((void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits,  const std::vector<ProteinHit>& protein_hits)))
@@ -264,9 +239,6 @@ CHECK((bool empty() const))
 	TEST_EQUAL(ptr1->empty(), false)
 	ptr1->clear();
 	ptr1->setDateTime(date);	
-	TEST_EQUAL(ptr1->empty(), false)
-	ptr1->clear();
-	ptr1->setCharge(2);	
 	TEST_EQUAL(ptr1->empty(), false)
 	ptr1->clear();
 RESULT

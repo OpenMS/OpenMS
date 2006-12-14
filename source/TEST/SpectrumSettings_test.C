@@ -162,11 +162,9 @@ CHECK((void setIdentifications(const std::vector<Identification>& identification
 	TEST_EQUAL(tmp.getIdentifications().size(),0);
 	
 	Identification dbs;
-	dbs.setCharge(5);
 	vec.push_back(dbs);
 	tmp.setIdentifications(vec);
 	TEST_EQUAL(tmp.getIdentifications().size(),1);
-	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),5);
 RESULT
 
 CHECK((std::vector<Identification>& getIdentifications()))
@@ -174,9 +172,7 @@ CHECK((std::vector<Identification>& getIdentifications()))
 	vector<Identification> vec;
 	
 	tmp.getIdentifications().resize(1);
-	tmp.getIdentifications()[0].setCharge(6);
 	TEST_EQUAL(tmp.getIdentifications().size(),1);
-	TEST_EQUAL(tmp.getIdentifications()[0].getCharge(),6);
 RESULT
 
 CHECK((const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const))

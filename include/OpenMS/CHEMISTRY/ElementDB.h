@@ -132,7 +132,7 @@ namespace OpenMS
 
 			ElementDB& operator = (const ElementDB& db);
 
-			~ElementDB();
+			virtual ~ElementDB();
 	};
 
 } // namespace OpenMS

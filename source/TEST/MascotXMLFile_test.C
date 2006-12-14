@@ -88,8 +88,6 @@ CHECK((void load(const String& filename, ProteinIdentification* protein_identifi
 	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
 	
 	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_EQUAL(identifications[0].id.getCharge(), 3)
-	TEST_EQUAL(identifications[1].id.getCharge(), 2)
 	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
 	
 	peptide_hit = identifications[0].id.getPeptideHits()[0];

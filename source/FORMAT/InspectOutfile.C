@@ -155,7 +155,6 @@ namespace OpenMS
 				identifications.push_back(IdentificationData());
 				query = &(identifications.back().id);
 				
-				query->setCharge(substrings[charge_column].toInt());
 				query->setPeptideSignificanceThreshold(p_value_threshold);
 				query->setDateTime(datetime);
 				rank = 0;
@@ -175,6 +174,7 @@ namespace OpenMS
 			
 			// get the peptide infos from the new peptide and insert it
 			peptide_hit.clear();
+			peptide_hit.setCharge(substrings[charge_column].toInt());
 			peptide_hit.setScore(substrings[MQ_score_column].toFloat());
 			peptide_hit.setScoreType("Inspect");
 			start = substrings[peptide_column].find('.')+1;
@@ -288,7 +288,7 @@ namespace OpenMS
 		else if ( line.hasPrefix("gi") )
 		{
 			size_t snd = line.find('|', 3);
-			size_t third;
+			size_t third(0);
 			if ( snd != string::npos )
 			{
 				third = line.find('|', ++snd) + 1;
@@ -439,13 +439,14 @@ namespace OpenMS
 			}
 			catch (Exception::ParseError pe) // if it's not a MzXML, it's supposed to be an MzData
 			{
-					MzDataFile().load(fs_i->first, experiment);
+				MzDataFile().load(fs_i->first, experiment);
 			}
 			
 			if ( experiment.size() < fs_i->second.back() )
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enought scans in file! (" + String(experiment.size()) + " available, should be " + String(fs_i->second.back()) + ")", fs_i->first);
 			}
+			
 			for ( vector< UnsignedInt >::const_iterator scan_i = fs_i->second.begin(); scan_i != fs_i->second.end(); ++scan_i )
 			{
 				ids[pos].mz = experiment[*scan_i - 1].getPrecursorPeak().getPosition()[0];

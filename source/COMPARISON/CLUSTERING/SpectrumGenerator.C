@@ -374,7 +374,7 @@ namespace OpenMS
     }
   
     Identification dbs;
-    dbs.insertPeptideHit(PeptideHit(0.5,"probability", 1, seq));
+    dbs.insertPeptideHit(PeptideHit(0.5,"probability", 1, 2, seq));
     specp->getIdentifications().push_back(dbs);
     
     return specp;

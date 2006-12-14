@@ -54,7 +54,7 @@ dtafile.load("data/Transformers_tests.dta",*spec);
 dtafile.load("data/Transformers_tests.dta",*spec2);
 
 Identification dbs;
-dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1,"RRYA"));
+dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1, 1, "RRYA"));
 spec->getIdentifications().push_back(dbs);
 
 CHECK(ClusterSpectrum::ClusterSpectrum())

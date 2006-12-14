@@ -396,7 +396,7 @@ namespace OpenMS
 							);
 	
 			/// destructor
-			~Residue();
+			virtual ~Residue();
 			//@}
 			
 			/** @name Assignment

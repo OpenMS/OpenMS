@@ -168,7 +168,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_exp_z")
 		{
-			id_data_[peptide_identification_index_].id.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
+			actual_peptide_hit_.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_score")

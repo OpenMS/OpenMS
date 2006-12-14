@@ -134,8 +134,6 @@ namespace OpenMS
 
 	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
-		sequence_to_charge_.clear();
-
     // get simple spectra for pre-eliminate most of the candidates
     for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
@@ -143,10 +141,8 @@ namespace OpenMS
       PeakSpectrum sim_spec;
       getSpectrum_(sim_spec, it1->peptide, it1->charge);
       double score = (*scorer_)(sim_spec, spec);
-      PeptideHit peptide_hit(score, "Zhang", 0, it1->peptide);
+      PeptideHit peptide_hit(score, "Zhang", 0, it1->charge, it1->peptide);
       id.insertPeptideHit(peptide_hit);
-
-			sequence_to_charge_[it1->peptide] = it1->charge;
     }
 
     id.assignRanks();
@@ -161,7 +157,7 @@ namespace OpenMS
       String sequence = pre_id.getPeptideHits()[i].getSequence();
       AASequence peptide_sequence(sequence);
       PeakSpectrum sim_spec;
-      hmm_model_->getSpectrum(sim_spec, peptide_sequence, sequence_to_charge_[sequence]);
+      hmm_model_->getSpectrum(sim_spec, peptide_sequence, pre_id.getPeptideHits()[i].getCharge());
 
       // normalize the spectra and add intensity to too small peaks
       // TODO remove cheating
@@ -189,7 +185,7 @@ namespace OpenMS
 
       double score = (*scorer_)(sim_spec, spec);
       //cerr << it->size() << " " << spec.size() << " " << score << endl;
-      PeptideHit peptide_hit(score, "Zhang", 0, sequence);
+      PeptideHit peptide_hit(score, "Zhang", 0, pre_id.getPeptideHits()[i].getCharge(), sequence);
       id.insertPeptideHit(peptide_hit);
       //cerr << peptide_sequence << " " << score << endl;
     }

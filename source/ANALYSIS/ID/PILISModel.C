@@ -955,12 +955,12 @@ namespace OpenMS
 		hmm_.estimateUntrainedTransitions();
 
 		hmm_precursor_.evaluate();
-		hmm_precursor_.dump();
+		//hmm_precursor_.dump();
 
 		for (HashMap<Residue::ResidueType, HiddenMarkovModelLight>::Iterator it = hmms_losses_.begin(); it != hmms_losses_.end(); ++it)
 		{
 			it->second.evaluate();
-			it->second.dump();
+			//it->second.dump();
 		}
 	}
 

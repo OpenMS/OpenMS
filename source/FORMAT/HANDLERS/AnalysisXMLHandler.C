@@ -307,7 +307,7 @@ namespace OpenMS
   														*peptide_hits_it,
   														const_id_data_[i].id.getPeptideSignificanceThreshold(),
   														i,
-  														const_id_data_[i].id.getCharge(), 
+  														peptide_hits_it->getCharge(), 
   														const_id_data_[i].rt,
   														const_id_data_[i].mz,
   														const_id_data_[i].id.getDateTime(),
@@ -382,7 +382,7 @@ namespace OpenMS
   														*peptide_hits_it,
   														const_id_data_[i].id.getPeptideSignificanceThreshold(),
   														i,
-  														const_id_data_[i].id.getCharge(), 
+  														peptide_hits_it->getCharge(),
   														const_id_data_[i].rt,
   														const_id_data_[i].mz,
   														const_id_data_[i].id.getDateTime(),
@@ -454,7 +454,7 @@ namespace OpenMS
 												*peptide_hits_it,
 												const_id_data_[i].id.getPeptideSignificanceThreshold(),
 												i,
-												const_id_data_[i].id.getCharge(), 
+												peptide_hits_it->getCharge(), 
 												const_id_data_[i].rt,
 												const_id_data_[i].mz,
 												const_id_data_[i].id.getDateTime(),
@@ -485,7 +485,10 @@ namespace OpenMS
 			}
 			else if (attribute_value == "precursor_charge")
 			{
-				(*id_data_)[peptide_identification_index_].id.setCharge(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
+				if (inside_peptide_)
+				{
+					actual_peptide_hit_.setCharge(((String) XMLString::transcode(attributes.getValue(1u))).toInt());
+				}
 			}
 			else if (attribute_value == "precursor_retention_time")
 			{
@@ -787,7 +790,7 @@ namespace OpenMS
 				<< shift << "\t<userParam name=\"score\" value=\""
 				<< hit.getScore() << "\" />\n"
 				<< shift << "\t<userParam name=\"score_type\" value=\""
-				<< hit.getScoreType() << "\" />\n"
+				<< hit.getScoreType() << "\"/>\n"
 				<< shift << "\t<userParam name=\"date_group_index\" value=\""
 				<< date_group_index << "\"/>\n"
 				<<  shift << "</peptide>\n";
