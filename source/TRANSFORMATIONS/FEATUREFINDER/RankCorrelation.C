@@ -58,10 +58,28 @@ namespace OpenMS
 		std::sort(ranks_data.begin(),ranks_data.end());
 		std::sort(ranks_model.begin(),ranks_model.end());
 
+		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+		{
+			std::cout << "Intensity data: " << ranks_data[i] << std::endl;
+		}
+		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+		{
+			std::cout << "Intensity model: " << ranks_model[i] << std::endl;
+		}		
+		
 		compute_rank(ranks_data);
 		compute_rank(ranks_model);
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
+		
+		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+		{
+			std::cout << "Rank data: " << ranks_data[i] << std::endl;
+		}
+		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+		{
+			std::cout << "Rank model: " << ranks_model[i] << std::endl;
+		}		
 				
 		IntensityType sum_model_data   = 0;
 				
@@ -75,6 +93,9 @@ namespace OpenMS
 			sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
+		
+		std::cout << "sqsum_data : " << sqsum_data << std::endl;
+		std::cout << "sqsum_model : " << sqsum_model << std::endl;
 		
 		// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
@@ -100,10 +121,19 @@ namespace OpenMS
 				
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const CoordinateType coord = traits_->getPeak(*it).getPosition()[dim];;
+			const CoordinateType coord = traits_->getPeak(*it).getPosition()[dim];
 			ranks_data.push_back(traits_->getPeakIntensity(*it));
 			ranks_model.push_back( model.getIntensity( coord ) );
 		}
+		
+		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+		{
+			std::cout << "Intensity data: " << ranks_data[i] << std::endl;
+		}
+		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+		{
+			std::cout << "Intensity model: " << ranks_model[i] << std::endl;
+		}		
 				
 		// compute ranks of data and model
 		std::sort(ranks_data.begin(),ranks_data.end() );
@@ -113,6 +143,15 @@ namespace OpenMS
 		compute_rank(ranks_model);
 		
 		int mu = (ranks_data.size() + 1) / 2; // mean of ranks
+		
+		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
+		{
+			std::cout << "Rank data: " << ranks_data[i] << std::endl;
+		}
+		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
+		{
+			std::cout << "Rank model: " << ranks_model[i] << std::endl;
+		}				
 		
 		IntensityType sum_model_data   = 0;
 				
@@ -127,10 +166,14 @@ namespace OpenMS
 			sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
 		}
 		
-		double corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
-		
-		// check for division by zero
+		std::cout << "sqsum_data : " << sqsum_data << std::endl;
+		std::cout << "sqsum_model : " << sqsum_model << std::endl;
+				
+			// check for division by zero
 		if ( ! sqsum_data || ! sqsum_model ) return 0;		
+		
+		double corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
+			
 		return fabs(corr);
 		}
 }

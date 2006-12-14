@@ -134,7 +134,7 @@ public:
 		
 				map_.setBufferSize( exp.getBufferSize() );
 				map_.updateBuffer();
-	
+				
 				// copy scanwise such that we can remove tandem spectra
 				for (UnsignedInt i=0; i<exp.size(); ++i)
 				{
@@ -377,7 +377,6 @@ public:
         {
             while (true)
             {
-//                	UnsignedInt seed = seeders[0]->nextSeed();
 								IndexSet seed_region = seeders[0]->nextSeed();
 
                 watch.start();

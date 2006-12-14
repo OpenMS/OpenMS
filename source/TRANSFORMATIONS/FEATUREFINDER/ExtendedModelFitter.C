@@ -380,17 +380,8 @@ namespace OpenMS
 			}
 		}
 		
-
-// 		DPeakArray<2> dpa;
-// 		final->getSamples(dpa);
-// 		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
-// 		{
-// 			if (it->getIntensity()>0.1)
-// 				file << it->getPosition()[RT] << " " << it->getPosition()[MZ] << " " << it->getIntensity() << "\n";
-// 		}
-		
 		// wrote peaks remaining after model fit
-		fname = "feature"+String(counter_) + String(counter_) + "_" + String(rt) + "_" + String(mz);
+		fname = "feature"+String(counter_) +  "_" + String(rt) + "_" + String(mz);
 		ofstream file2(fname.c_str()); 
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{

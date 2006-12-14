@@ -78,21 +78,22 @@ namespace OpenMS
 	{
 			unsigned long j=0,ji,jt;
 			float rank;
-			unsigned int n = w.size();
+			unsigned int n = (w.size()-2);
 			
 			while (j < n) 
 			{
 					if (w[j+1] != w[j]) 
 					{ 
+						 // no tie
 						w[j]=j;
 						++j;
 					} 
 					else 
 					{
-						// tie 
-						for (jt=j+1;jt<=n && w[jt]==w[j];jt++);
+						// tie, replace by mean rank 
+						for (jt=j+1;jt<=n && w[jt]==w[j]; ++jt);
 						rank=0.5*(j+jt-1); // mean rank of tie
-						for (ji=j;ji<=(jt-1);ji++) w[ji]=rank; 
+						for (ji=j;ji<=(jt-1);++ji) w[ji]=rank; 
 						j=jt;
 					}
 		}

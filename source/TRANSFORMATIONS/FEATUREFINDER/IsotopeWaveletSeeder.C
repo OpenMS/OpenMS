@@ -36,16 +36,17 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
         BaseSeeder(), is_initialized_(false),
         peak_cut_off_(5), waveletLength_(0),
         avMZSpacing_(0), min_spacing_(0),
-        rt_votes_cutoff_(3), max_charge_(5),
-				intensity_factor_(0), avg_intensity_factor_(0)
+        rt_votes_cutoff_(3), intensity_factor_(0), 
+				avg_intensity_factor_(0)
 {
     name_ = IsotopeWaveletSeeder::getName();
 
 		// minimal number of scans for an isotopic pattern
 		defaults_.setValue("rtvotes_cutoff",5);
 
-		// max charge state examined
+		// max and min charge states examined
 		defaults_.setValue("max_charge",5);
+		defaults_.setValue("min_charge",1);
 		
 		// intensity threshold in wt
 		defaults_.setValue("intensity_factor",1.5);
@@ -70,15 +71,17 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
     if (!is_initialized_)
     {
         // reading params
-				rt_votes_cutoff_         = param_.getValue("rtvotes_cutoff");
+				rt_votes_cutoff_           = param_.getValue("rtvotes_cutoff");
 				intensity_factor_          = param_.getValue("intensity_factor");
 				avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
-				max_charge_              = param_.getValue("max_charge");
 				mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
 				mass_tolerance_left_   = param_.getValue("mass_tolerance_left");
 				
+				UnsignedInt max_charge		= param_.getValue("max_charge");
+				UnsignedInt min_charge		= param_.getValue("min_charge"); 
+				
         // store charge states
-        for (UnsignedInt i=1;i<=max_charge_;++i) charges_.push_back(i);           
+        for (UnsignedInt i=min_charge;i<=max_charge;++i) charges_.push_back(i);           
 
         // compute spacings
         computeSpacings_();
@@ -103,14 +106,13 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
             DPeakArray<1, PeakType> current_scan = traits_->getData()[i].getContainer();
 
 						#ifdef DEBUG_FEATUREFINDER
-
-//             String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
-//             std::ofstream outfile(filename.c_str());
-//             for (UnsignedInt k=0; k<current_scan.size();++k)
-//             {
-//                 outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
-//             }
-//             outfile.close();
+            String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
+            std::ofstream outfile(filename.c_str());
+            for (UnsignedInt k=0; k<current_scan.size();++k)
+            {
+                outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
+            }
+            outfile.close();
 					  #endif
 						
 						// align and sum
@@ -119,7 +121,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 						std::cout << "Spectrum " << i << " (" << current_rt << ") of " << nr_scans << std::endl;
 
             // store peak data, once for each charge state
-            pwts = new std::vector<DPeakArray<1, PeakType > > (max_charge_, traits_->getData()[i].getContainer() );
+            pwts = new std::vector<DPeakArray<1, PeakType > > (charges_.size(), traits_->getData()[i].getContainer() );
             wt_thresholds = new std::vector<double> (charges_.size(), 0);
 
             // compute wavelet transform
@@ -134,36 +136,36 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
         filterHashByRTVotes();
 
 				#ifdef DEBUG_FEATUREFINDER
-//         CoordinateType min_mass = traits_->getData().getMin().Y();
-// 
-//         for (SweepLineHash::const_iterator citer = hash_.begin();
-//                 citer != hash_.end();
-//                 ++citer)
-//         {
-// 				
-//             std::cout << "m/z range: ";
-//             std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
-//             std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
-// 												
-//             for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
-//                   iter_cl2 != citer->second.first.end();
-//                   ++iter_cl2)
-//             {
-//                 std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
-// 
-//                 for (std::list<double>::const_iterator iter_l = citer->
-//                         second.second.begin();
-//                         iter_l != citer->second.second.end();
-//                         ++iter_l)
-//                 {
-//                     std::cout << *iter_l << " ";
-//                 }
-//                 std::cout << " | " << std::endl;
-//             }	// end of times
-// 
-//             std::cout << "----------------------------------------------------------------" << std::endl;
-// 
-//         }
+        CoordinateType min_mass = traits_->getData().getMin().Y();
+
+        for (SweepLineHash::const_iterator citer = hash_.begin();
+                citer != hash_.end();
+                ++citer)
+        {
+				
+            std::cout << "m/z range: ";
+            std::cout << (min_mass + (citer->first-1)*avMZSpacing_) << " ";
+            std::cout << (min_mass+ (citer->first)*avMZSpacing_) << " " << std::endl;
+												
+            for (std::list<UnsignedInt>::const_iterator iter_cl2 = citer->second.first.begin();
+                  iter_cl2 != citer->second.first.end();
+                  ++iter_cl2)
+            {
+                std::cout << "rt: " <<  traits_->getData()[*iter_cl2].getRetentionTime() << " |  ";
+
+                for (std::list<double>::const_iterator iter_l = citer->
+                        second.second.begin();
+                        iter_l != citer->second.second.end();
+                        ++iter_l)
+                {
+                    std::cout << *iter_l << " ";
+                }
+                std::cout << " | " << std::endl;
+            }	// end of times
+
+            std::cout << "----------------------------------------------------------------" << std::endl;
+
+        }
 				#endif
 				
 				hash_iter_ = hash_.begin();		
@@ -179,11 +181,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 		CoordinateType min_mass = traits_->getData().getMin().Y();
 		CoordinateType mass_to_find = min_mass + (hash_iter_->first-1)*avMZSpacing_;
 		IndexSet region_;		
-		
-		#ifdef DEBUG_FEATUREFINDER
-		std::cout << "Mass bin is " << mass_to_find << std::endl;
-		#endif
-		
+			
 		// check all scans that support this isotopic pattern
 		for (std::list<UnsignedInt>::const_iterator iter_cl2 = hash_iter_->second.first.begin(); 
 		  		iter_cl2 != hash_iter_->second.first.end(); 
@@ -288,7 +286,9 @@ void IsotopeWaveletSeeder::generateGammaValues_()
 
     double query = 0;
     UnsignedInt counter=0;
-    while (query <= (max_charge_*peak_cut_off_ +1) )
+		UnsignedInt max_charge = param_.getValue("max_charge");
+		
+    while (query <= (max_charge*peak_cut_off_ +1) )
     {
         preComputedGamma_[counter] = tgamma (query);
         query += min_spacing_;
@@ -388,7 +388,6 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 				//Since all wavelet functions have the same length, we can simply use phis[0].size()
         for (UnsignedInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
         {	
-
             for (UnsignedInt m=0; m<charges_.size(); ++m)
             {
                 sums[m] += signal[j].getIntensity()*phis[m][k];
@@ -450,9 +449,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 
         sort (c_candidate.begin(), c_candidate.end(), 	ReverseComparator< DRawDataPoint<2>::IntensityLess>() );
         c_av_intens = getAbsMean (candidates[c], 0, candidates[c].size());
-
-
-
+				
         for (iter=c_candidate.begin(); iter != c_candidate.end(); ++iter)
         {
      	   		if (iter->getIntensity() <= (*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) break;
@@ -464,14 +461,14 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
         
 				// write debug output
-// 				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
-//         std::ofstream outfile(filename.c_str());
-// 				containerType::iterator write_iter;
-//         for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
-//         {
-//             outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
-//         }
-//         outfile.close();
+				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
+        std::ofstream outfile(filename.c_str());
+				containerType::iterator write_iter;
+        for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
+        {
+            outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
+        }
+        outfile.close();
 				#endif
 				
         c_candidate.erase (iter, c_candidate.end());
@@ -532,7 +529,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 
 		
     //Now, since we computed all scores, we can hash all mz positions
-    unsigned int numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
+    UnsignedInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
     //This is a vector telling us the next mz position in charge i we have to hash
     std::vector<UnsignedInt> positions (numOfCharges, 0);
 		

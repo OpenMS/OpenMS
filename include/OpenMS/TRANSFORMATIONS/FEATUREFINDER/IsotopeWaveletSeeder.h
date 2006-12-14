@@ -214,8 +214,6 @@ namespace OpenMS
 		UnsignedInt rt_votes_cutoff_;
 		/// Charge states being tested
 		ChargeVector charges_;
-		/// Maximum charge state tested
-		UnsignedInt max_charge_;
 		//// Hash storing the detected regions
 		SweepLineHash hash_;
 		/// Stores the Gamme function

@@ -74,7 +74,7 @@ namespace OpenMS
 		
 		model_iter = model_intensities.begin();
 		data_iter   = data_intensities.begin();
-		
+				
 		for ( ;model_iter != model_intensities.end(); ++model_iter)
 		{
 			cross_product_sum += ( *model_iter - model_avg) * ( *data_iter - data_avg);
@@ -85,9 +85,8 @@ namespace OpenMS
 		}
 		
 		if ( ! data_square_sum || ! model_square_sum ) return 0;
-		
 		double corr = cross_product_sum / sqrt(data_square_sum * model_square_sum);
-		
+				
 		UnsignedInt df = set.size()-2;
 		double t_stat = sqrt(df) * (corr / sqrt(1 - corr*corr)); 
 		
