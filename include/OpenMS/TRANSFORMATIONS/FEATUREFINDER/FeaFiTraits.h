@@ -297,8 +297,11 @@ public:
         
 				UnsignedInt peak_index = piter.getPeakNumber();
 				
-        if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
+//         if (peak_index>=map_.getSize())
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", peak_index, map_.getSize());
+
+				if (peak_index>=map_.getSize())
+					NoSuccessor(__FILE__, __LINE__, "getNextRt()",index);
 
         return peak_index;
     }
@@ -310,9 +313,7 @@ public:
     */
     UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
-				//std::cout << "getPrevRt(" << index << ")" << std::endl;
-				
-        if (index>=map_.getSize())
+		     if (index>=map_.getSize())
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
 				
         const PeakType p = getPeak(index);
@@ -328,8 +329,11 @@ public:
   
         UnsignedInt peak_index = piter.getPeakNumber();
 				
-        if (peak_index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
+//         if (peak_index>=map_.getSize())
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", peak_index, map_.getSize());
+						
+				if (peak_index>=map_.getSize())
+					NoSuccessor(__FILE__, __LINE__, "getPrevRt()", index);
 
         return peak_index;
     }

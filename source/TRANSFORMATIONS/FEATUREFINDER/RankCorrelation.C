@@ -58,15 +58,6 @@ namespace OpenMS
 		std::sort(ranks_data.begin(),ranks_data.end());
 		std::sort(ranks_model.begin(),ranks_model.end());
 
-		for (UnsignedInt i=0; i< ranks_data.size(); ++i)
-		{
-			std::cout << "Intensity data: " << ranks_data[i] << std::endl;
-		}
-		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
-		{
-			std::cout << "Intensity model: " << ranks_model[i] << std::endl;
-		}		
-		
 		compute_rank(ranks_data);
 		compute_rank(ranks_model);
 		
@@ -79,8 +70,7 @@ namespace OpenMS
 		for (UnsignedInt i=0; i< ranks_model.size(); ++i)
 		{
 			std::cout << "Rank model: " << ranks_model[i] << std::endl;
-		}		
-				
+		}						
 		IntensityType sum_model_data   = 0;
 				
 		IntensityType sqsum_data   = 0;
