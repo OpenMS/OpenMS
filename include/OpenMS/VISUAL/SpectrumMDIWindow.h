@@ -110,7 +110,20 @@ namespace OpenMS
 
         for (StringListIterator it=begin; it!=end; ++it)
         {
-          addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+          if (it->find("+")==std::string::npos)
+          {
+          	addSpectrum(*it,true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+        	}
+        	else
+        	{        		
+        		std::vector<String> parts;
+        		String(*it).split('+',parts);
+        		addSpectrum(parts[0],true,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+        		for (std::vector<String>::const_iterator it2 = parts.begin()+1; it2 != parts.end(); ++it2)
+        		{
+        			addSpectrum(*it2,false,getPrefAsString("Preferences:DefaultMapView")=="2D",true,mow);
+        		}
+        	}
         }
         maximizeActiveSpectrum();
         tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));
