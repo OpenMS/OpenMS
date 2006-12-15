@@ -35,6 +35,7 @@
 
 #include <map>
 #include <iostream>
+#include <stack>
 
 namespace OpenMS
 {
@@ -87,7 +88,9 @@ namespace OpenMS
     protected:
     	/// Default construtctor not implemented => protected
     	SchemaHandler();
-    	
+			
+			std::stack<bool> skip_tag_;
+			
 			/// is parser currently in tag with given index?
 			std::vector<bool> is_parser_in_tag_;
 
@@ -108,6 +111,9 @@ namespace OpenMS
 
 			/// pointer to attributes of current tag
 			const xercesc::Attributes* atts_;
+			
+			/// skip parsing of the current tag
+			void skipTag_();
 
 			/// Find the enum-value that corresponds to the string @p value in map with index @p index
 			UnsignedInt str2enum_(UnsignedInt index, const String& value, const char* message="");

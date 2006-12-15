@@ -29,6 +29,7 @@
 
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 namespace OpenMS
 {
@@ -66,7 +67,11 @@ namespace OpenMS
 		/// stores the map @p feature_map in file with name @p filename.
 		void store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile);
 		//@}
+	
+		PeakFileOptions& getOptions() { return options_; }
 
+	protected:
+		PeakFileOptions options_;
 	};
 
 } // namespace OpenMS

@@ -175,7 +175,7 @@ namespace OpenMS
 
 		/// spectrum counter (spectra without peaks are not written)
 		UnsignedInt spec_write_counter_;
-
+		
 		/// Add name, value and description to a given MetaInfo object
 		void setAddInfo(MetaInfoInterface& info, const String& name, const String& value, const String& description)
 		{
@@ -276,6 +276,7 @@ namespace OpenMS
   	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
 		int tag = enterTag(qname, attributes);
+		if (skip_tag_.top()) return;
 		
 		String tmp_str;
 		switch(tag)
@@ -550,14 +551,13 @@ namespace OpenMS
 						break;
 					}
 					
-					exp_->push_back(SpectrumType());
-					spec_ = &(exp_->back());
+					SpectrumType spec;
 					
 					// required attributes
 					tmp_str = getAttributeAsString(MSLEVEL);
 					if (tmp_str != "")
 					{
-						spec_->setMSLevel(asSignedInt_(tmp_str));
+						spec.setMSLevel(asSignedInt_(tmp_str));
 					}
 					else
 					{
@@ -574,15 +574,13 @@ namespace OpenMS
 					{
 						error("'scan' tag misses required attribute 'peaksCount'");
 					}
-					spec_->resize(peak_count_);
-					peak_ = spec_->begin();
 
 					// optional attributes
 					for (UnsignedInt i=0; i<attributes.getLength(); i++)
 					{
 						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
 						String value = xercesc::XMLString::transcode(attributes.getValue(i));
-						InstrumentSettings& sett = spec_->getInstrumentSettings();
+						InstrumentSettings& sett = spec.getInstrumentSettings();
 						switch (att)
 							{
 							case POLARITY:
@@ -593,7 +591,7 @@ namespace OpenMS
 								break;
 							case RETTIME:
 								value.trim();
-								spec_->setRetentionTime( asFloat_(value.substr(2,value.size()-3)));
+								spec.setRetentionTime( asFloat_(value.substr(2,value.size()-3)));
 								//std::cout << spec_->getRetentionTime() << std::endl;
 								break;
 							case STARTMZ:
@@ -609,12 +607,25 @@ namespace OpenMS
 								exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
 								break;
 							case CENTROIDED:
-								if (asBool_(value)) spec_->setType(SpectrumSettings::PEAKS);
+								if (asBool_(value)) spec.setType(SpectrumSettings::PEAKS);
 								break;
 							case COLLENERGY:
-								spec_->getPrecursor().setActivationEnergy(asFloat_(value));
+								spec.getPrecursor().setActivationEnergy(asFloat_(value));
 								break;
 							}
+					}
+					
+					// check if the scan is in the desired range
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec.getRetentionTime()))
+					 || options_.hasMSLevels() && !options_.containsMSLevel(spec.getMSLevel()))
+					{
+						// skip this tag
+						skipTag_();
+					} else {
+						exp_->push_back(spec);
+						spec_ = &(exp_->back());
+						spec_->resize(peak_count_);
+						peak_ = spec_->begin();
 					}
 				}
 				break;
@@ -933,7 +944,9 @@ namespace OpenMS
   {
   	//std::cout << " -- Ende -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
   	
+  	bool skip = skip_tag_.top();
 		int tag = leaveTag(qname);
+		if (skip) return;
 
 		if (tag==INSTRUMENT && analyzer_)
 		{
@@ -955,7 +968,8 @@ namespace OpenMS
 				for (Size n = 0 ; n < ( 2 * peak_count_) ; n += 2)
 				{
 					// check if peak in in the specified range
-					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
 						peak_->getPosition()[0] = data[n];
 						peak_->setIntensity(data[n+1]);
@@ -970,7 +984,8 @@ namespace OpenMS
 				//push_back the peaks into the container
 				for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 				{
-					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
 						peak_->getPosition()[0] = data[n];
 						peak_->setIntensity(data[n+1]);

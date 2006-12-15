@@ -41,6 +41,7 @@ namespace OpenMS
 	{
 		feature_map.clear();
 		Internal::DFeatureMapHandler<2> handler(feature_map,filename);
+		handler.setOptions(options_);
 		parse_(filename, &handler);
 	}
 

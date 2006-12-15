@@ -851,7 +851,10 @@ namespace OpenMS
 				writeBinary(os,spec.size(),"intenArrayBinary");
 
 				// write the supplementary data for picked peaks (is a no-op otherwise)
-				this->writeDerivedPeakSupplementalData_(os, spec.getContainer());
+				if (options_.getWriteSupplementalData())
+				{
+					this->writeDerivedPeakSupplementalData_(os, spec.getContainer());
+				}
 
 				os <<"\t\t</spectrum>\n";
 			}

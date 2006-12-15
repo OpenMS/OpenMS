@@ -26,12 +26,16 @@
 
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 
+#include <algorithm>
+
 namespace OpenMS
 {
 	PeakFileOptions::PeakFileOptions()
 		: metadata_only_(false),
+			write_supplemental_data_(true),
 			has_rt_range_(false),
-			has_mz_range_(false)
+			has_mz_range_(false),
+			has_intensity_range_(false)
 	{
 	}
 	
@@ -49,13 +53,23 @@ namespace OpenMS
 		return metadata_only_;
 	}
 	
+	void PeakFileOptions::setWriteSupplementalData(bool write)
+	{
+		write_supplemental_data_ = write;
+	}
+	
+	bool PeakFileOptions::getWriteSupplementalData() const
+	{
+		return write_supplemental_data_;
+	}
+	
 	void PeakFileOptions::setRTRange(const DRange<1>& range)
 	{
 		rt_range_ = range;
 		has_rt_range_ = true;
 	}
 	
-	bool PeakFileOptions::hasRTRange()
+	bool PeakFileOptions::hasRTRange() const
 	{
 		return has_rt_range_;
 	}
@@ -71,7 +85,7 @@ namespace OpenMS
 		has_mz_range_ = true;
 	}
 
-	bool PeakFileOptions::hasMZRange()
+	bool PeakFileOptions::hasMZRange() const
 	{
 		return has_mz_range_;
 	}
@@ -79,5 +93,51 @@ namespace OpenMS
 	const DRange<1>& PeakFileOptions::getMZRange() const
 	{
 		return mz_range_;
+	}
+	
+	void PeakFileOptions::setIntensityRange(const DRange<1>& range)
+	{
+		intensity_range_ = range;
+		has_intensity_range_ = true;
+	}
+	
+	bool PeakFileOptions::hasIntensityRange() const
+	{
+		return has_intensity_range_;
+	}
+	
+	const DRange<1>& PeakFileOptions::getIntensityRange() const
+	{
+		return intensity_range_;
+	}
+	
+	void PeakFileOptions::setMSLevels(const PeakFileOptions::MSLevels& levels)
+	{
+		ms_levels_ = levels;
+	}
+	
+	void PeakFileOptions::addMSLevel(int level)
+	{
+		ms_levels_.push_back(level);
+	}
+	
+	void PeakFileOptions::clearMSLevels()
+	{
+		ms_levels_.clear();
+	}
+	
+	bool PeakFileOptions::hasMSLevels() const
+	{
+		return !ms_levels_.empty();
+	}
+	
+	bool PeakFileOptions::containsMSLevel(int level) const
+	{
+		return find(ms_levels_.begin(), ms_levels_.end(), level) != ms_levels_.end();
+	}
+	
+	const PeakFileOptions::MSLevels& PeakFileOptions::getMSLevels() const
+	{
+		return ms_levels_;
 	}
 } // namespace OpenMS

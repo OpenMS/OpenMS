@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -139,6 +140,8 @@ namespace OpenMS
 
 			///Writes the contents to a stream
 			void writeTo(std::ostream& os);
+			
+			void setOptions(const PeakFileOptions& options) { options_ = options; }
 
     protected:
 		// Feature map pointer for reading
@@ -172,6 +175,8 @@ namespace OpenMS
 		*/
 		enum MapTypes {	TAGMAP, ATTMAP, MAP_NUM };
 
+		PeakFileOptions options_;
+		
 		/**@name temporary datastructures to hold parsed data */
     //@{
 		FeatureType* feature_;

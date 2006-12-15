@@ -75,6 +75,7 @@ namespace OpenMS
 			const throw (Exception::UnableToCreateFile)
 			{
 				Internal::MzDataHandler<MapType> handler(map,filename);
+				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
 		

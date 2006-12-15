@@ -56,11 +56,20 @@ namespace OpenMS
 		
 	}
 
+	void SchemaHandler::skipTag_()
+	{
+		skip_tag_.pop();
+		skip_tag_.push(true);
+	}
+	
 	UnsignedInt SchemaHandler::leaveTag(const XMLCh* const qname)
 	{
 		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
 		is_parser_in_tag_[tag] = false;
 		atts_ = 0;
+		
+		skip_tag_.pop();
+		
 		return tag;
 	}
 	
@@ -70,6 +79,12 @@ namespace OpenMS
 		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 		atts_ = &attributes;
+		
+		if (!skip_tag_.empty())
+			skip_tag_.push(skip_tag_.top());
+		else
+			skip_tag_.push(false);
+		
 		return tag;
 	}
 	
