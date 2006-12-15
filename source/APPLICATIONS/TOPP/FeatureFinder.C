@@ -50,26 +50,36 @@ using namespace std;
   In the next step, we iteratively fit a model of the isotope profile and the retention time to
   these data points. Data points with a low probability under this model are removed from the
   feature region. The intensity of the feature is then given by the sum of the data points included
-  in its regions.<br>
-  There are several parameters that can be used to fine-tune the behaviour of the algorithm. Here we
-  give only an overview, for a detailed description of all parameters, please have a look at the
-  Doxygen Documentation.
+  in its regions.
   
-  <ul>
-	<li><b>min_intensity</b> :
-	minimum intensity of a seed
-	</li>
-	<li><b>priority_thr</b> :
-	The priority of data point is a function of its intensity and
-	its distance from the seed. Data points with a priority below this
-	threshold are not included into the feature region.</li>
-	<li><b>min_quality</b> :
-	minimum quality of feature, if smaller feature will be discarded</li>
-	<li><b>intensity_cutoff_factor</b>
-	For each data points in the feature region, we compute its probability given
-	the model. Data points with a probability below this cutoff are discarded.</li>
-  </ul>
-		
+  <b>Seeding:</b><br>
+  Right now only the seeder with the ID <tt>SimpleSeeder</tt> should be used.
+  The critical parameters for this seeder are:
+  - <b>min_intensity</b> the minimum intensity to consider a data point as seed
+  
+  <b>Extension:</b><br>
+  Right now only the extender with the ID <tt>SimpleExtender</tt> should be used.
+	- <b>priority_thr</b> The priority of data point is a function of its intensity and its distance from the seed. 
+												Data points with a priority below this threshold are not included into the feature region.
+  - <b>dist_mz_up</b> determines how far from the seed data points are searched in direction to higher m/z
+  - <b>dist_mz_down</b> determines how far from the seed data points are searched in direction to lower m/z
+  - <b>dist_rt_up</b> determines how far from the seed data points are searched in direction to higher RT
+  - <b>dist_rt_down</b> determines how far from the seed data points are searched in direction to lower RT
+  
+  <b>Model fitting:</b><br>
+	Right now only the model fitter with the ID <tt>SimpleModelFitter</tt> should be used.
+	- <b>min_num_peaks:extended</b> the miniumum number of data points that a extended area has to contain
+	- <b>min_num_peaks:final</b> the minimum number of data points that a feature has to contain
+	- <b>model_type:first</b> min charge to consider for the model
+	- <b>model_type:last</b> max charge to consider for the model
+	- <b>quality:type</b> how the quality of a feature is measured. Use 'Correlation'. 
+	- <b>quality:minimum</b> min quality that a feature has to achieve
+	- <b>isotope_model:stdev:first</b> first std deviation for isotope model peaks to try
+	- <b>isotope_model:stdev:last</b> last std deviation for isotope model peaks to try
+	- <b>isotope_model:stdev:step</b> steps in between first and last std deviation for isotope model peaks
+	- <b>intensity_cutoff_factor</b> intensity ratio (compared to seed)
+	
+	@todo add more docu: tolerance_stdev_bounding_box, intensity_cutoff_factor, mz:interpolation_step, rt:interpolation_step (Ole)
 */
 
 // We do not want this class to show up in the docu:
