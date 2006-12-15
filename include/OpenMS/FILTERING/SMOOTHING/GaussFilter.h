@@ -199,6 +199,7 @@ namespace OpenMS
 
 #ifdef DEBUG_FILTERING
         std::cout << "KernelWidth: " << 8*sigma_ << std::endl;
+        std::cout << "Spacing: " << spacing_ << std::endl;
 #endif
 
         InputPeakIterator help = first;
@@ -557,8 +558,7 @@ namespace OpenMS
           << "* " << coeffs_right
           << std::endl;
 #endif
-
-          norm += fabs((help-1)->getPos()-help->getPos()) / 2. * (coeffs_left + coeffs_right);
+          norm += fabs(help->getPos() - (help+1)->getPos()) / 2. * (coeffs_left + coeffs_right);
 
           v+= fabs(help->getPos() - (help+1)->getPos()) / 2. * (help->getIntensity()*coeffs_left + (help+1)->getIntensity()*coeffs_right);
           ++help;
