@@ -1385,23 +1385,28 @@ namespace OpenMS
 			currentDataSet_().updateRanges(1);
 			disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
 			recalculate_ = true;
+			currentDataSet_().sortSpectra(true);
 		}
-				
+		
 		//overall values update
-		currentDataSet_().sortSpectra(true);
 		updateRanges_(current_data_,0,1,2);
 				
 		AreaType tmp_area;
 		tmp_area.assign(overall_data_range_);
 		
+		//cout << "New overall area: " << tmp_area << endl;
 		//cout << "Recalculating Quadtree: "<<Date::now() << endl;
+		//recalculate old quadtrees if the combined layers cover a larger area now
 		if (tmp_area != visible_area_)
 		{		
-			for (UnsignedInt data_set=0; data_set<getDataSetCount(); data_set++)
+			for (UnsignedInt data_set=0; data_set<getDataSetCount()-1; data_set++)
 			{
 				reconstructQuadtree_(data_set, tmp_area, true);
 			}
 		}
+		//recalculate the new quadtree in any case
+		reconstructQuadtree_(getDataSetCount()-1, tmp_area, true);
+		
 		//cout << "intensityModeChange_: "<<Date::now() << endl;
 		intensityModeChange_();
 		

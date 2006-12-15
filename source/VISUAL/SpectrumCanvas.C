@@ -456,12 +456,10 @@ namespace OpenMS
 
 	void SpectrumCanvas::updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
 	{
-		
 		if (data_set >= getDataSetCount())
 		{
 			return;
 		}
-		
 		
 		//update mz and RT
 		DRange<3>::PositionType min = overall_data_range_.min();
@@ -469,37 +467,45 @@ namespace OpenMS
 		if(show_reduced_)
 		{
 			if (type_[data_set]==DT_PEAK)
-					{
-						if (reduced_datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = reduced_datasets_[data_set].getMinMZ();
-						if (reduced_datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = reduced_datasets_[data_set].getMaxMZ();
-						if (reduced_datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = reduced_datasets_[data_set].getMinRT();
-						if (reduced_datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = reduced_datasets_[data_set].getMaxRT();
-						if (reduced_datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = reduced_datasets_[data_set].getMinInt();
-						if (reduced_datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = reduced_datasets_[data_set].getMaxInt();
-					}
-			
+			{
+				if (reduced_datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = reduced_datasets_[data_set].getMinMZ();
+				if (reduced_datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = reduced_datasets_[data_set].getMaxMZ();
+				if (reduced_datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = reduced_datasets_[data_set].getMinRT();
+				if (reduced_datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = reduced_datasets_[data_set].getMaxRT();
+				if (reduced_datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = reduced_datasets_[data_set].getMinInt();
+				if (reduced_datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = reduced_datasets_[data_set].getMaxInt();
+			}
+			else
+			{
+				if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
+				if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
+				if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
+				if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
+				if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
+				if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
+			}			
 		}
 		else
+		{
+			if (type_[data_set]==DT_PEAK)
 			{
-				if (type_[data_set]==DT_PEAK)
-					{
-						if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
-						if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
-						if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
-						if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
-						if (datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = datasets_[data_set].getMinInt();
-						if (datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = datasets_[data_set].getMaxInt();
-					}
-				else
-					{
-						if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
-						if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
-						if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
-						if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
-						if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
-						if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
-					}
+				if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
+				if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
+				if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
+				if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
+				if (datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = datasets_[data_set].getMinInt();
+				if (datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = datasets_[data_set].getMaxInt();
 			}
+			else
+			{
+				if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
+				if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
+				if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
+				if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
+				if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
+				if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
+			}
+		}
 		overall_data_range_.setMin(min);
 		overall_data_range_.setMax(max);
 		
