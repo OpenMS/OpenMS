@@ -316,7 +316,6 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ExtendedModelFitter_test\
 	SimpleSeeder_test\
 	Correlation_test\
-	RankCorrelation_test\
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
 	PeakPicker_test\
@@ -324,6 +323,8 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
 	PeakPickerCWT_test
+
+# 	RankCorrelation_test\
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\
