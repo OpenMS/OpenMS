@@ -142,8 +142,8 @@ namespace OpenMS
 				
 			if (current_peak.getIntensity() < (intensity_sum_ * min_intensity_contribution_) )
 			{
-// 				std::cout << "Skipping point because of low intensity contribution. " << std::endl;
-// 				std::cout << current_peak.getIntensity() << " " << (intensity_sum_ * min_intensity_contribution_) << std::endl;
+				std::cout << "Skipping point because of low intensity contribution. " << std::endl;
+				std::cout << current_peak.getIntensity() << " " << (intensity_sum_ * min_intensity_contribution_) << std::endl;
 				continue;			 
 			}
 			

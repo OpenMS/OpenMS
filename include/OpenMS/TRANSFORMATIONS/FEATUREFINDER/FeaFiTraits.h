@@ -179,7 +179,6 @@ public:
 				std::cout << "This map contains " << map_.size() << " scans ";
 				std::cout << "and " << map_.getSize() << " data points. " << std::endl;
 
-				std::cout << "Setting flags. " << std::endl;
         // resize internal data structures
         flags_.reserve(map_.getSize());
 
