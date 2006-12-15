@@ -489,6 +489,7 @@ RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.analysisXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
+	@$(SED) -i 's/^probA.*$$/# (removed probA line)/g' RTModel_1_output.tmp RTModel_1_output.tmp
 	@$(call TEST_FILE_EQUAL,RTModel_1_output.tmp,RTModel_1_output.model)
 
 

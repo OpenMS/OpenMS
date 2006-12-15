@@ -28,15 +28,9 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
-
-#include <fstream>
-#include <iostream>
 #include <map>
-#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -132,183 +126,76 @@ using namespace std;
 
 
 class TOPPRTModel
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPRTModel()
-			: TOPPBase("RTModel")
+			: TOPPBase2("RTModel","Builds a model for retention time prediction of peptides from a training set")
 		{
 			
 		}
 	
 	protected:
-		void printToolUsage_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr << endl
-		       << getToolName() << " -- Builds a model for retention time" 
-		       << " prediction of peptides. Peptides with the associated"
-		       << " retention times are used to train the model."
-		       << "Version: " << VersionInfo::getVersion() << endl
-		       << endl
-		       << "Usage:" << endl
-					 << " " << getToolName() << " [options]" << endl
-					 << endl
-					 << "Options are:" << endl
-					 << "  -in <file>              input file in analysisXML format (default read from INI file)" << endl
-					 << "  -out <file>             output file: the model in libsvm format (default read from INI file)" << endl
-					 << "  -total_gradient_time    the time (in seconds) of the gradient (default read from INI file)" << endl
-					 << "  -c                      the penalty parameter of the svm (default read from INI file)" << endl
-					 << "  -nu                     the nu parameter of the svm (for nu-SVR) (default read from INI file)" << endl
-					 << "  -degree                 the degree parameter of the kernel function of the svm (default read from INI file)" << endl
-					 << "  -p                      the epsilon parameter of the svm (for epsilon-SVR) (default read from INI file)" << endl
-					 << "  -kernel_type            the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID) (default read from INI file)" << endl
-					 << "  -svm_type               the type of the svm (nu-SVR or epsilon-SVR) (default read from INI file)" << endl
-					 << endl ;
-		}
-	
-		void setOptionsAndFlags_()
-		{
-			options_["-out"] = "out";
-			options_["-in"] = "in";
-			options_["-total_gradient_time"] = "total_gradient_time";
-			options_["-c"] = "c";
-			options_["-nu"] = "nu";
-			options_["-degree"] = "degree";
-			options_["-p"] = "p";
-			options_["-kernel_type"] = "kernel_type";
-			options_["-svm_type"] = "svm_type";
-			options_["--help"] = "help";
-		}
-	
-		void printToolHelpOpt_() const
-		{
-			cerr << endl
-		       << getToolName() << endl
-		       << endl
-		       << "INI options:" << endl
-					 << "  in                        input file" << endl
-					 << "  out                       output file" << endl
-					 << "  total_gradient_time       the time (in seconds) of the gradient" << endl
-					 << "  c                         the penalty parameter of the svm" << endl
-					 << "  nu                        the nu parameter of the svm (for nu-SVR)" << endl
-					 << "  degree                    the degree parameter of the kernel function of the svm" << endl
-					 << "  p                         the epsilon parameter of the svm (for epsilon-SVR)" << endl
-					 << "  kernel_type               the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID)" << endl
-					 << "  svm_type                  the type of the svm (nu-SVR or epsilon-SVR)" << endl
-					 << endl << endl
-					 << "INI File example section:" << endl
-					 << "  <ITEM name=\"in\" value=\"input.analysisXML\" type=\"string\"/>" << endl
-					 << "  <ITEM name=\"out\" value=\"svm.model\" type=\"string\"/>" << endl
-					 << "  <!-- The penalty parameter for generalisation. -->" << endl
-  		     << "  <ITEM name=\"c\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"c_start\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"c_step_size\" value=\"0.3\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"c_stop\" value=\"2\" type=\"float\"/>" << endl
-  		     << "  <!-- The nu parameter in NU_SVR. -->" << endl
-  		     << "  <ITEM name=\"nu\" value=\"0.5\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"nu_start\" value=\"0.4\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"nu_step_size\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"nu_stop\" value=\"0.6\" type=\"float\"/>" << endl
-  		     << "  <!-- The degree of the polynomial kernel. -->" << endl
-  		     << "  <ITEM name=\"degree\" value=\"1\" type=\"int\"/>" << endl
-  		     << "  <ITEM name=\"degree_start\" value=\"1\" type=\"int\"/>" << endl
-  		     << "  <ITEM name=\"degree_step_size\" value=\"1\" type=\"int\"/>" << endl
-  		     << "  <ITEM name=\"degree_stop\" value=\"3\" type=\"int\"/>" << endl
-  		     << "  <!-- The epsilon parameter in EPSILON_SVR (not used in this example)-->" << endl
-  		     << "  <ITEM name=\"p\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"p_start\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"p_step_size\" value=\"0.1\" type=\"float\"/>" << endl
-  		     << "  <ITEM name=\"p_stop\" value=\"0.2\" type=\"float\"/>" << endl;
- 
- 					 
+			registerStringOption_("in","<file>","","input file in analysisXML format");
+			registerStringOption_("out","<file>","","output file: the model in libsvm format");
+			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR)",false);
+			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
+			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
+			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
+			registerStringOption_("kernel_type","<type>","RBF","the kernel type of the svm (LINEAR, RBF, POLY or SIGMOID)",false);
+			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm",false);
+			registerDoubleOption_("total_gradient_time","<time>",0.0,"the time (in seconds) of the gradient");
+			addEmptyLine_();
+			addText_("Parameters for the grid search / cross validation:");
+			registerIntOption_("number_of_runs","<n>",50,"????",false);
+			registerIntOption_("number_of_partitions","<n>",10,"????",false);
+			registerIntOption_("degree_start","<int>",0,"starting point of degree",false);
+			registerIntOption_("degree_step_size","<int>",0,"starting point of degree",false);
+			registerIntOption_("degree_stop","<int>",0,"starting point of degree",false);
+			registerDoubleOption_("p_start","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("p_step_size","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("p_stop","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("c_start","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("c_step_size","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("c_stop","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("nu_start","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("nu_step_size","<float>",0.0,"starting point of degree",false);
+			registerDoubleOption_("nu_stop","<float>",0.0,"starting point of degree",false);
 		}
 
 		ExitCodes main_(int , char**)
 		{
-			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
-			String ini_location;
-			// path to the log file
-			String logfile = "";
-			// log filestream (as long as the real logfile is not setermined yet)
-			ofstream log;
-			String inputfile_name;
-			String outputfile_name;
-		  vector<ProteinIdentification> protein_identifications;
+			vector<ProteinIdentification> protein_identifications;
 		  vector<IdentificationData> identifications;
-		  vector<DoubleReal> training_retention_times_double;
 		  vector< String > training_peptides;
 		  vector< DoubleReal > training_retention_times;
-		  UnsignedInt temp_size = 0;
 		  PeptideHit temp_peptide_hit;
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
 			svm_problem* encoded_training_sample;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			String type = "";
-			String parameter = "";
-			Real total_gradient_time = 1.f;
 			map<SVM_parameter_type, DoubleReal> start_values;
 			map<SVM_parameter_type, DoubleReal> step_sizes;
 			map<SVM_parameter_type, DoubleReal> end_values;
-			UnsignedInt number_of_partitions = 5;
-			UnsignedInt number_of_runs = 20;
+			UnsignedInt number_of_partitions;
+			UnsignedInt number_of_runs;
 			DoubleReal cv_quality;
-			UnsignedInt degree_start = 0;
-			UnsignedInt degree_step_size = 0;
-			UnsignedInt degree_stop = 0;
-			DoubleReal c_start = 0;
-			DoubleReal c_step_size = 0;
-			DoubleReal c_stop = 0;
-			DoubleReal nu_start = 0;
-			DoubleReal nu_step_size = 0;
-			DoubleReal nu_stop = 0;
-			DoubleReal p_start = 0;
-			DoubleReal p_step_size = 0;
-			DoubleReal p_stop = 0;
 			map<SVM_parameter_type, DoubleReal>* optimized_parameters;
 			map<SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
-			String start;
-			String stop;
-			String step_size;
-			String debug_string;
 			UnsignedInt maximum_sequence_length = 50;
 	
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			
-			//input file names and types
-			inputfile_name = getParamAsString_("in");			
-			writeDebug_(String("Input file: ") + inputfile_name, 1);
-			if (inputfile_name == "")
-			{
-				writeLog_("No input file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
-	
-			//output file names and types
-			outputfile_name = getParamAsString_("out");
-			writeDebug_(String("Output file: ") + outputfile_name, 1);
-			if (outputfile_name == "")
-			{
-				writeLog_("No output file specified. Aborting!");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}				
-
-
-			total_gradient_time = getParamAsString_("total_gradient_time", "0.f").toFloat();
-			writeDebug_(String("Total gradient time: ") + String(total_gradient_time), 1);
-			if (total_gradient_time == 0.f)
-			{
-				writeLog_("Total gradient time has to be specified. Aborting!");
-				return ILLEGAL_PARAMETERS;
-			}				
-
- 			type = getParamAsString_("svm_type", "NU_SVR");
-			writeDebug_(String("Svm type: ") + type, 1);
-			
+			String inputfile_name = getStringOption_("in");
+			inputFileReadable_(inputfile_name);
+			String outputfile_name = getStringOption_("out");
+			outputFileWritable_(outputfile_name);
+			Real total_gradient_time = getDoubleOption_("total_gradient_time");		
+ 			//SVR type
+ 			String type = getStringOption_("svm_type");
 			if (type == "NU_SVR")
 			{
 				svm.setParameter(SVM_TYPE, NU_SVR);
@@ -316,10 +203,15 @@ class TOPPRTModel
 			else if (type == "EPSILON_SVR")
 			{
 				svm.setParameter(SVM_TYPE, EPSILON_SVR);
-			}			
-
- 			type = getParamAsString_("kernel_type", "POLY");
-			writeDebug_(String("Kernel type: ") + type, 1);
+			}
+			else
+			{
+				writeLog_("Unknown svm type given. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;		
+			}
+			//Kernel type
+ 			type = getStringOption_("kernel_type");
 			if (type == "POLY")
 			{
 				svm.setParameter(KERNEL_TYPE, POLY);
@@ -328,151 +220,82 @@ class TOPPRTModel
 			{
 				svm.setParameter(KERNEL_TYPE, LINEAR);
 			}			
-
- 			parameter = getParamAsString_("c", "1");
-			writeDebug_(String("c: ") + parameter, 1);
-			svm.setParameter(C, parameter.toDouble());
-
- 			parameter = getParamAsString_("nu", "0.5");
- 			if (svm.getIntParameter(SVM_TYPE) == NU_SVR)
- 			{
-				writeDebug_(String("nu: ") + parameter, 1);
-				svm.setParameter(NU, parameter.toDouble());
+			else if (type == "RBF")
+			{
+				svm.setParameter(KERNEL_TYPE, RBF);
 			}
-
- 			parameter = getParamAsString_("degree", "1");
-			writeDebug_(String("degree: ") + parameter, 1);
-			svm.setParameter(DEGREE, parameter.toInt());
-
- 			parameter = getParamAsString_("p", "0.1");
- 			if (svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
- 			{
-				writeDebug_(String("p (epsilon in Epsilon SVR): ") + parameter, 1);
-				svm.setParameter(P, parameter.toDouble());
+			else if (type == "SIGMOID")
+			{
+				svm.setParameter(KERNEL_TYPE, SIGMOID);
 			}
-
-			start = getParamAsString_("degree_start");
-			step_size = getParamAsString_("degree_step_size");
-			stop = getParamAsString_("degree_stop");
-
-			if (start != "" && step_size != "" && stop != "")
+			else
 			{
-				degree_start = start.toInt();
-				degree_step_size = step_size.toInt();
-				degree_stop = stop.toInt();
-				start_values.insert(make_pair(DEGREE, degree_start));
-				step_sizes.insert(make_pair(DEGREE, degree_step_size));
-				end_values.insert(make_pair(DEGREE, degree_stop));
-				
-				debug_string = "CV from degree = " + String(degree_start) +
-					 " to degree = " + String(degree_stop) + " with step size " + 
-					 String(degree_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
-			start = getParamAsString_("p_start");
-			step_size = getParamAsString_("p_step_size");
-			stop = getParamAsString_("p_stop");
-
-			if (start != "" 
-					&& step_size != "" 
-					&& stop != "" 
-					&& svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
-			{
-				p_start = start.toFloat();
-				p_step_size = step_size.toFloat();
-				p_stop = stop.toFloat();
-				start_values.insert(make_pair(P, p_start));
-				step_sizes.insert(make_pair(P, p_step_size));
-				end_values.insert(make_pair(P, p_stop));
-				
-				debug_string = "CV from p = " + String(p_start) +
-					 " to p = " + String(p_stop) + " with step size " + 
-					 String(p_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
-			start = getParamAsString_("c_start");
-			step_size = getParamAsString_("c_step_size");
-			stop = getParamAsString_("c_stop");
-
-			if (start != "" && step_size != "" && stop != "")
-			{
-				c_start = start.toFloat();
-				c_step_size = step_size.toFloat();
-				c_stop = stop.toFloat();
-				start_values.insert(make_pair(C, c_start));
-				step_sizes.insert(make_pair(C, c_step_size));
-				end_values.insert(make_pair(C, c_stop));
-				
-				debug_string = "CV from c = " + String(c_start) +
-					 " to c = " + String(c_stop) + " with step size " + 
-					 String(c_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
-			start = getParamAsString_("nu_start");
-			step_size = getParamAsString_("nu_step_size");
-			stop = getParamAsString_("nu_stop");
-
-			if (start != "" 
-					&& step_size != "" 
-					&& stop != "" 
-					&& svm.getIntParameter(SVM_TYPE) == NU_SVR)
-			{
-				nu_start = start.toFloat();
-				nu_step_size = step_size.toFloat();
-				nu_stop = stop.toFloat();
-				start_values.insert(make_pair(NU, nu_start));
-				step_sizes.insert(make_pair(NU, nu_step_size));
-				end_values.insert(make_pair(NU, nu_stop));
-				
-				debug_string = "CV from nu = " + String(nu_start) +
-					 " to nu = " + String(nu_stop) + " with step size " + 
-					 String(nu_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
-			if (start_values.size() > 0)
-			{
- 				number_of_runs = getParamAsString_("number_of_runs", "50").toInt();
-				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
-
- 				number_of_partitions = getParamAsString_("number_of_partitions", "10").toInt();
-				writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);
-			}
-						
-			//-------------------------------------------------------------
-			// testing whether input and output files are accessible
-			//-------------------------------------------------------------
-	
-			if (!File::exists(inputfile_name))
-			{
-				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
-			}
-			if (!File::readable(inputfile_name))
-			{
-				throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);			
-			}
-			if (File::empty(inputfile_name))
-			{
-				throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, inputfile_name);
+				writeLog_("Unknown kernel type given. Aborting!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;		
 			}
 			
-			if (!File::writable(outputfile_name))
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, outputfile_name);
+			//parameters		
+			svm.setParameter(C, getDoubleOption_("c"));
+			svm.setParameter(DEGREE, getIntOption_("degree"));
+ 			if (svm.getIntParameter(SVM_TYPE) == NU_SVR)
+ 			{
+				svm.setParameter(NU, getDoubleOption_("nu"));
 			}
+ 			else if (svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
+ 			{
+				svm.setParameter(P, getDoubleOption_("p"));
+			}
+			
+			//grid search parameters
+			UnsignedInt degree_start = getIntOption_("degree_start");
+			UnsignedInt degree_step_size = getIntOption_("degree_step_size");
+			UnsignedInt degree_stop = getIntOption_("degree_stop");
+			if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
+			{
+				start_values.insert(make_pair(DEGREE, degree_start));
+				step_sizes.insert(make_pair(DEGREE, degree_step_size));
+				end_values.insert(make_pair(DEGREE, degree_stop));	
+			}
+			
+			DoubleReal p_start = getDoubleOption_("p_start");
+			DoubleReal p_step_size = getDoubleOption_("p_step_size");
+			DoubleReal p_stop = getDoubleOption_("p_stop");
+			if (p_start != 0.0  && p_step_size != 0.0  && p_stop != 0.0  && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
+			{
+				start_values.insert(make_pair(P, p_start));
+				step_sizes.insert(make_pair(P, p_step_size));
+				end_values.insert(make_pair(P, p_stop));	
+			}
+			
+			DoubleReal c_start = getDoubleOption_("c_start");
+			DoubleReal c_step_size = getDoubleOption_("c_step_size");
+			DoubleReal c_stop = getDoubleOption_("c_stop");
+			if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
+			{
+				start_values.insert(make_pair(C, c_start));
+				step_sizes.insert(make_pair(C, c_step_size));
+				end_values.insert(make_pair(C, c_stop));	
+			}			
+
+			DoubleReal nu_start = getDoubleOption_("nu_start");
+			DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
+			DoubleReal nu_stop = getDoubleOption_("nu_stop");
+			if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
+			{
+				start_values.insert(make_pair(NU, nu_start));
+				step_sizes.insert(make_pair(NU, nu_step_size));
+				end_values.insert(make_pair(NU, nu_stop));	
+			}			
+
+			number_of_runs = getIntOption_("number_of_runs");
+			number_of_partitions = getIntOption_("number_of_partitions");
 			
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
 			
-			
-			
-			AnalysisXMLFile().load(inputfile_name,
-														protein_identifications,
-														identifications);
+			AnalysisXMLFile().load(inputfile_name, protein_identifications, identifications);
 		  													
 			//-------------------------------------------------------------
 			// calculations
@@ -480,7 +303,8 @@ class TOPPRTModel
 
 			for(UnsignedInt i = 0; i < identifications.size(); i++)
 			{
-				if ((temp_size = identifications[i].id.getPeptideHits().size()) > 0)
+				UnsignedInt temp_size = identifications[i].id.getPeptideHits().size();
+				if (temp_size > 0)
 				{
 					if (temp_size == 1)
 					{
@@ -524,7 +348,7 @@ class TOPPRTModel
 																	 												number_of_partitions,
 																	 												number_of_runs);
 																	 												
-				debug_string = "Best parameters found in cross validation:";
+				String debug_string = "Best parameters found in cross validation:";
 
 				for(parameters_iterator = optimized_parameters->begin();
 						parameters_iterator != optimized_parameters->end();

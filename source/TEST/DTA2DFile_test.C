@@ -116,14 +116,24 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
 	DPeakArray<2> array;
 	e.get2DData(array);
-	TEST_EQUAL(array.size(), 9);
-	ABORT_IF(array.size() != 9)
+	TEST_EQUAL(array.size(), 11);
+	ABORT_IF(array.size() != 11)
 
 	DPeakArray<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
+	++it2;
+
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
+	++it2;
+
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 231.51)
@@ -173,9 +183,15 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 	ABORT_IF(e3.size() != 9)
 
 	MSExperiment<DRawDataPoint<1> >::const_iterator it3(e3.begin());
-	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 230.02)
+	TEST_EQUAL(it3->size(), 3);
+	ABORT_IF(it3->size() != 3)
 	TEST_REAL_EQUAL(it3->getRetentionTime(), 4711.1)
+	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 230.02)
 	TEST_REAL_EQUAL(it3->getContainer()[0].getIntensity(), 47218.89)
+	TEST_REAL_EQUAL(it3->getContainer()[1].getPosition()[0], 430.02)
+	TEST_REAL_EQUAL(it3->getContainer()[1].getIntensity(), 47219.89)
+	TEST_REAL_EQUAL(it3->getContainer()[2].getPosition()[0], 630.02)
+	TEST_REAL_EQUAL(it3->getContainer()[2].getIntensity(), 47210.89)
 	++it3;
 
 	TEST_REAL_EQUAL(it3->getContainer()[0].getPosition()[0], 231.51)
@@ -221,6 +237,7 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
   MSExperiment<> e4;
 
   dta.load("data/DTA2DFile_test_3.dta2d",e4);
+  TEST_EQUAL(e4.size(),9)
 	TEST_REAL_EQUAL(e4[0].getRetentionTime(), 282666)
 	TEST_REAL_EQUAL(e4[1].getRetentionTime(), 282672)
 	TEST_REAL_EQUAL(e4[2].getRetentionTime(), 282678)
@@ -243,14 +260,24 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 	f.load(tmp_filename,e2);
 	DPeakArray<2> array;
 	e2.get2DData(array);
-	TEST_EQUAL(array.size(), 9);
-	ABORT_IF(array.size() != 9)
+	TEST_EQUAL(array.size(), 11);
+	ABORT_IF(array.size() != 11)
 
 	DPeakArray<2>::ConstIterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
+	++it2;
+
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
+	++it2;
+
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it2->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
 	++it2;
 
 	TEST_REAL_EQUAL(it2->getPosition()[Dims::MZ], 231.51)
@@ -296,14 +323,24 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 	f.load(tmp_filename,e3);
 	DPeakArray<2,DRawDataPoint<2> > array2;
 	e2.get2DData(array2);
-	TEST_EQUAL(array2.size(), 9);
-	ABORT_IF(array2.size() != 9)
+	TEST_EQUAL(array2.size(), 11);
+	ABORT_IF(array2.size() != 11)
 
 	DPeakArray<2,DRawDataPoint<2> >::ConstIterator it3 = array2.begin();
 
 	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 230.02)
 	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
 	TEST_REAL_EQUAL(it3->getIntensity(), 47218.89)
+	++it3;
+
+	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 430.02)
+	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getIntensity(), 47219.89)
+	++it3;
+
+	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 630.02)
+	TEST_REAL_EQUAL(it3->getPosition()[Dims::RT], 4711.1)
+	TEST_REAL_EQUAL(it3->getIntensity(), 47210.89)
 	++it3;
 
 	TEST_REAL_EQUAL(it3->getPosition()[Dims::MZ], 231.51)

@@ -52,8 +52,6 @@ using namespace std;
    @note The length (given in Thomson) of the structuring element should be wider than the
 	 maximal peak width in the raw data.
 
-	 @todo Parameter struc_elem_length does not work as expected (Eva)
-
    @ingroup TOPP
 */
 

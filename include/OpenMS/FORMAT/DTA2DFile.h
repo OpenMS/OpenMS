@@ -47,9 +47,11 @@ namespace OpenMS
 		
 	  If the first line starts with '#', a different order is defined by the 
 	  the order of the keywords 'MIN' (retention time in minutes) or 'SEC' (retention time in seconds), 'MZ', and 'INT'.
-	  <BR>
+	  
 	  Example: '\#MZ MIN INT'
-  
+  	
+  	The peaks of one retention time have to be in subsequent lines.
+  	
   	@ingroup FileIO
   */
   class DTA2DFile
@@ -202,21 +204,16 @@ namespace OpenMS
 					}
 		
 					// Retention time changed -> new Spectrum
+					//std::cout << "rt: " << rt << " spec: " <<  spec.getRetentionTime() << "test: "<< rt-spec.getRetentionTime()<< std::endl;
 					if (rt != spec.getRetentionTime())
 					{
-						if (spec.getRetentionTime() >= 0)
+						if (spec.getRetentionTime() >= 0) // if not initial Spectrum
 						{
-							map.push_back(spec);  // if not initial Spectrum
+							map.push_back(spec);  
+							//std::cout << "NEW SPEC"<< std::endl;
 						}
 						spec.getContainer().clear();
-/*						if (time_in_minutes)
-						{
-							spec.setRetentionTime(rt*60.0);
-						}
-						else
-						{*/
-							spec.setRetentionTime(rt);
-// 						}
+						spec.setRetentionTime(rt);
 					}
 					//insert peak into the spectrum
 					spec.getContainer().push_back(p);

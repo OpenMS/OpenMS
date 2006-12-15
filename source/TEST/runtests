@@ -132,8 +132,8 @@ for i in $* ; do
 		( ./$i -V 2>&1 |cat > $i.log ) 2>/dev/null
 		grep " - $" $i.log
 		echo "--------------------------------------------"
-		echo "The last two lines are:"
-		tail -2 $i.log
+		echo "The last three lines are:"
+		tail -3 $i.log
 		echo "--------------------------------------------"
 		if test -f core ; then
 			rm core

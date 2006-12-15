@@ -69,7 +69,7 @@ class TOPPFileFilter
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
-			registerStringOption_("level","-level i[,j]...","1,2,3","MS levels to extract", false);
+			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 			registerFlag_("remove_zoom","flag that removes zoom scans");
 		}
 	

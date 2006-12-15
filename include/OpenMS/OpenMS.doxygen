@@ -57,13 +57,13 @@
 	TODO (Hiwis):
 	- XML:
 		- Base 64
-		- mzXML/mzData sicherstellen dass alle Versionen getestet werden
-		- Einschränkungen: Metadata, RT, m/z, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
+		- Einschränkungen: int, levels, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
 	- TOPPView:
 		- ohne quadtree
 		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
 		- Visualisierung von FeaturePeairs -> TOPP tool ändern
+		- Messen bei 1D
 	- DB
 	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)

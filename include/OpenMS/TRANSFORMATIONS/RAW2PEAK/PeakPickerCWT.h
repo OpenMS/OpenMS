@@ -504,9 +504,7 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "Pick Scan " << input_it->getRetentionTime()<< std::endl;
-#endif
+          std::cout << "PeakPicker: Picking Scan " << input_it->getRetentionTime()<< std::endl;
           StopWatch timer;
           timer.start();
 

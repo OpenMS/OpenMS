@@ -68,6 +68,9 @@ using namespace std;
 	-# Set the parameters <tt>peak_bound</tt>, <tt>peak_bound_ms2_level</tt>, <tt>fwhm_bound</tt> 
 		and <tt>scale</tt> in an INI file.
 		- <tt>scale</tt> can be set to the equal to the <tt>peak_bound</tt> parameter.
+	
+	@todo INI file for NoiseFilter, PeakPicker and MapAlignment
+	
 	@ingroup TOPP
 */
 

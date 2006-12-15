@@ -47,7 +47,6 @@ using namespace std;
 		<LI> NLargest -- keeps the n most intensive peaks of each spectrum
 		<LI> ParentPeakMower -- reduces the intensity of the parent peak
 		<LI> SqrtMower -- set each intensity to the square root of the original intensity
-		<LI> ThresholdMower -- removes peaks lower than a threshold intensity
 		<LI> WindowMower -- keeps the biggest peaks in a sliding window
 		<LI> Normalizer -- Normalizes the peaks in the spectrum with different modes (to_one, to_TIC)
 		<LI> Scaler -- Scales the peaks according to their rank
@@ -90,8 +89,6 @@ class TOPPSpectraFilter
 							 "    - consider_NH3_loss: whether NH3 loss peaks from the precursor should be removed [1]\n"
 							 "    - consider_H2O_loss: whether H2O loss peaks from the precursor shoudl be removed [1]\n"
 							 "  - SqrtMower: set each intensity to the square root of the original intensity\n"
-							 "  - ThresholdMower: removes peaks lower than a threshold intensity\n"
-							 "    - threshold: intensity threshold [0.05]\n"
 							 "  - WindowMower: keeps the most abundand peaks in a sliding window\n"
 							 "    - windowsize: the size of the sliding window along the m/z axis [50]\n"
 							 "    - peakcount: the number of peaks that should be kept [2]\n"
@@ -104,15 +101,14 @@ class TOPPSpectraFilter
 							 "    - threshold - ??? [0.1]");
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.\n"
-							 "Example parameters section for the 'ThresholdMower':\n"
-							 "  <NODE name=\"ThresholdMower\">\n"
-							 "    <ITEM name=\"threshold\" value=\"5.0\" type=\"float\"/>\n"
+							 "Example parameters section for the 'NLargest':\n"
+							 "  <NODE name=\"NLargest\">\n"
+							 "    <ITEM name=\"n\" value=\"100\" type=\"float\"/>\n"
 							 "  </NODE>");
 			// register one section for each algorithm
 			registerSubsection_("NLargest");
 			registerSubsection_("ParentPeakMower");
 			registerSubsection_("SqrtMower");
-			registerSubsection_("ThresholdMower");
 			registerSubsection_("WindowMower");
 			registerSubsection_("Normalizer");
 			registerSubsection_("Scaler");
