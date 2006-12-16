@@ -404,6 +404,28 @@ namespace OpenMS
 			@see checkParam_
 		*/
 		void registerSubsection_(const String& name);
+		
+		/**
+			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
+
+			Returns a Param that contains everything you can get by the getParamAs...() methods.
+		*/
+		Param const& getParam_() const;
+
+		/**
+			@brief Checks top-level entries of @p param according to the the information during registration
+			
+			Only top-lvel entries and allowed subsections are checked.
+			Checking the content of the subsection is the duty of the algorithm it is passed to.
+			
+			This method does not abort execution of the tool, but will warn the user through stderr!
+			It is called automatically in the main method
+			
+			@param param Parameters to check
+			@param filename The source file name
+			@param location Exact location inside the source file
+		*/
+		void checkParam_(const Param& param, const String& filename, const String& location) const;
 		//@}
 		
 		/// Prints the tool-specific command line options and appends the common options.
@@ -440,28 +462,6 @@ namespace OpenMS
 		/// Checks if an output file is writable
 		void outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
 		//@}
-		
-		/**
-			@brief Checks top-level entries of @p param according to the the information during registration
-			
-			Only top-lvel entries and allowed subsections are checked.
-			Checking the content of the subsection is the duty of the algorithm it is passed to.
-			
-			This method does not abort execution of the tool, but will warn the user through stderr!
-			
-			@param param Parameters to check
-			@param filename The source file name
-			@param location Exact location inside the source file
-		*/
-		void checkParam_(const Param& param, const String& filename, const String& location) const;
-
-		/**
-			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
-
-			Returns a Param that contains everything you can get by the getParamAs...() methods.
-		*/
-		Param const& getParam_() const;
-		
   };
 
 } // namespace OpenMS

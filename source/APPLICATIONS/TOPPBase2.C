@@ -67,6 +67,7 @@ namespace OpenMS
 		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false);
+		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
 		registerFlag_("-help","Shows this help");
 		
 		// prepare options and flags for command line parsing
@@ -118,7 +119,47 @@ namespace OpenMS
 			printUsage_();
 			return EXECUTION_OK;
 		}
-			
+		
+		// '-write_ini' given
+		String ini_file = (String)param_cmdline_.getValue("write_ini");
+		if (ini_file != "")
+		{
+			outputFileWritable_(ini_file);
+			Param tmp;
+			String loc = tool_name_ + ":1:";
+			//parameters
+			for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+			{
+				if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
+				{
+					switch(it->type)
+					{
+						case ParameterInformation::STRING:
+							tmp.setValue(loc + it->name,it->default_value);
+							break;
+						case ParameterInformation::DOUBLE:
+							tmp.setValue(loc + it->name,String(it->default_value).toDouble());
+							break;
+						case ParameterInformation::INT:
+							tmp.setValue(loc + it->name,String(it->default_value).toInt());
+							break;
+						case ParameterInformation::FLAG:
+							tmp.setValue(loc + it->name,"off");
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			//subsections
+			for(vector<String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+			{
+				tmp.setValue(loc + *it + ":dummy" , "Replace this ITEM with your seettings!");
+			}
+			tmp.store(ini_file);
+			return EXECUTION_OK;
+		}
+		
 		// test if unknown options were given
 		if (!param_cmdline_.getValue("unknown").isEmpty())
 		{
@@ -783,9 +824,9 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 	}
+
 	void TOPPBase2::registerSubsection_(const String& name)
 	{
 		subsections_.push_back(name);
 	}
-
 } // namespace OpenMS

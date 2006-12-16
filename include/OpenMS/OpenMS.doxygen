@@ -48,7 +48,9 @@
 
 /*	
 	TODO:
+	- VISUAL/SpectrumMDIWindow -> APPLICATIONS/TOPPView
 	- Release
+		- Valgrind
 	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
 	  - HP Installtion: TOPP dazu
 	  - HP Team
@@ -62,7 +64,7 @@
 		- ohne quadtree
 		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
-		- Visualisierung von FeaturePeairs -> TOPP tool ändern
+		- Visualisierung von FeaturePairs -> TOPP tool ändern
 		- Messen bei 1D
 	- DB
 	  - neue DB erstellen in TOPP tools
