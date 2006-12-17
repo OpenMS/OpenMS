@@ -270,7 +270,6 @@ namespace OpenMS
 
 		for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
 		{
-			//cout << "'" << *s_i << "' '" << *(s_i+1) << "'" << endl;
 			// if there are three columns, the middle one being a '/', they are merged
 			if ( s_i+1 != substrings.end() )
 			{
@@ -295,8 +294,10 @@ namespace OpenMS
 				// if there are two columns and the second is a number preceeded by a '+', they are merged
 				else if ( (*(s_i+1))[0] == '+' )
 				{
+std::cout << "###" << *s_i << "###\t###" << *(s_i+1) << "###" << std::endl;
 					bool is_digit = true;
-					for ( UnsignedInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= isdigit((*(s_i+1))[i]);
+					for ( UnsignedInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= (bool) isdigit((*(s_i+1))[i]);
+std::cout << (is_digit) << "\t + is seperated!" << std::endl;
 					if ( is_digit && ((s_i+1)->length()-1) )
 					{
 						s_i->append(*(s_i+1));
