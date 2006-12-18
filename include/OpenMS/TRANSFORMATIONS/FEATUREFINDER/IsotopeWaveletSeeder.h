@@ -228,6 +228,8 @@ namespace OpenMS
 		CoordinateType mass_tolerance_right_;
 		/// Determines distance of right box frame from monoisotopic bin
 		CoordinateType mass_tolerance_left_;
+		/// Tolerance for scan alignment
+		CoordinateType tolerance_scansum_;
 		
   };
 }

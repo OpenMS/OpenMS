@@ -58,6 +58,8 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
 		
 		// number of scans used for alignment
     defaults_.setValue("scans_to_sumup",5);
+		
+		defaults_.setValue("tolerance_scansum",0.1);
 				
     param_ = defaults_;
 }
@@ -76,6 +78,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 				avg_intensity_factor_   = param_.getValue("avg_intensity_factor");
 				mass_tolerance_right_ = param_.getValue("mass_tolerance_right");
 				mass_tolerance_left_   = param_.getValue("mass_tolerance_left");
+				tolerance_scansum_   = param_.getValue("tolerance_scansum");
 				
 				UnsignedInt max_charge		= param_.getValue("max_charge");
 				UnsignedInt min_charge		= param_.getValue("min_charge"); 
@@ -741,7 +744,7 @@ void IsotopeWaveletSeeder::AlignAndSum_(ContainerType& scan, ContainerType& neig
     if (scan.size() == 0 || neighbour.size() == 0)
         return;
 
-    double mass_tolerance = 0.1;
+//     double mass_tolerance = 0.1;
 
     UnsignedInt index_newscan = 0;
     for (UnsignedInt k=0; k<neighbour.size(); ++k)
@@ -762,11 +765,11 @@ void IsotopeWaveletSeeder::AlignAndSum_(ContainerType& scan, ContainerType& neig
             double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);
 
             // check which neighbour is closer
-            if (left_diff < right_diff && (left_diff < mass_tolerance) )
+            if (left_diff < right_diff && (left_diff < tolerance_scansum_) )
             {
                 scan[ (index_newscan-1) ].setIntensity( scan[ (index_newscan-1) ].getIntensity() + p.getIntensity() );
             }
-            else if (right_diff < mass_tolerance)
+            else if (right_diff < tolerance_scansum_)
             {
                 scan[ (index_newscan) ].setIntensity( scan[ (index_newscan) ].getIntensity() + p.getIntensity() );
             }
@@ -774,7 +777,7 @@ void IsotopeWaveletSeeder::AlignAndSum_(ContainerType& scan, ContainerType& neig
         else // no left neighbour available
         {
             double right_diff = fabs(scan[index_newscan].getPosition()[0] - mass);
-            if (right_diff < mass_tolerance)
+            if (right_diff < tolerance_scansum_)
             {
                 scan[index_newscan].getIntensity() += p.getIntensity();
             }
