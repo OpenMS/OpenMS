@@ -254,13 +254,13 @@ namespace OpenMS
 		treatments_.insert(it,tmp);
 	}
 	
-	const SampleTreatment& Sample::getTreatment(UnsignedInt position) throw (Exception::IndexOverflow)
+	const SampleTreatment& Sample::getTreatment(UnsignedInt position) const throw (Exception::IndexOverflow)
 	{
 		if (position >= treatments_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,position,treatments_.size());
 		}
-		list<SampleTreatment*>::iterator it = treatments_.begin();
+		list<SampleTreatment*>::const_iterator it = treatments_.begin();
 		for (UnsignedInt i=0; i<position; ++i)
 		{
 			++it;
@@ -285,7 +285,7 @@ namespace OpenMS
 	}
 	
 	
-	SignedInt Sample::countTreatments()
+	const SignedInt Sample::countTreatments() const
 	{
 		return treatments_.size();
 	}
