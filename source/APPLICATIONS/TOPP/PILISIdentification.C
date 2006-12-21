@@ -29,7 +29,9 @@
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <typeinfo>
 
 using namespace OpenMS;
@@ -50,7 +52,7 @@ class TOPPPILISIdentification
 {
 	public:
 		TOPPPILISIdentification()
-			: TOPPBase2("PILISIdentification", "can apply several spectra filters to the spectra")
+			: TOPPBase2("PILISIdentification", "performs an identification with the PILIS engine")
 		{
 		}
 	
@@ -60,7 +62,6 @@ class TOPPPILISIdentification
 		{
 			registerStringOption_("in", "<file>", "", "input file in MzData format");
 			registerStringOption_("out", "<file>", "", "output file in MzData format");
-			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filter to be applied");
 			addEmptyLine_();
 		}
 		
@@ -87,31 +88,42 @@ class TOPPPILISIdentification
       //-------------------------------------------------------------
 			
 			PILISModel* model = new PILISModel();
-			model->initModel();
 
 			PILISSequenceDB* db = new PILISSequenceDB();
 			
-			cerr << "beginning with ids" << endl;
-			
 			vector<Identification> ids;
 			PILISIdentification PILIS_id;
-
+			
 			PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
+			PILIS_id.setScoringType("ZhangSimilarityScore");
 			
-			PILIS_id.getIdentifications(ids, exp);
-		
-			//debugging
-			for (vector<Identification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+			Size no(1);
+			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
-				cerr << it->getPeptideHits().begin()->getSequence() << " " << it->getPeptideHits().begin()->getScore() << endl;
+				if (it->getMSLevel() == 2)
+				{
+					Identification id;
+					PILIS_id.getIdentification(id, *it);
+					ids.push_back(id);
+				}
 			}
-			
+		
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-			
-			f.store(out, exp);
+		
+			vector<IdentificationData> id_data;
+			for (vector<Identification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+			{
+				IdentificationData id_data_tmp;
+				id_data_tmp.rt = 0;
+				id_data_tmp.mz = 0;
+				id_data_tmp.id = *it;
+				id_data.push_back(id_data_tmp);
+			}
+
+			AnalysisXMLFile().store(out, vector<ProteinIdentification>(), id_data);
 			
 			return EXECUTION_OK;
 		}

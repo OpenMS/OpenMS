@@ -37,8 +37,9 @@
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS 
 {
@@ -50,7 +51,7 @@ namespace OpenMS
 		PILIS uses a HMM based structure to model the population of fragment ions
 		from a peptide. The spectrum generator can be accessed via the getSpectrum
 		method.
-	*/		
+	*/	
 	class PILISModel 
 	{
 		public:
@@ -69,11 +70,8 @@ namespace OpenMS
 			//@}
 
 			/// assignment operator
-			void operator = (const PILISModel& mode);
+			PILISModel& operator = (const PILISModel& mode);
 			
-			/// does the initialization of the model
-			void initModel();
-
 			/** @name Accessors
 			*/
 			//@{
@@ -81,23 +79,17 @@ namespace OpenMS
 			void train(const PeakSpectrum&, const AASequence& peptide, UnsignedInt charge);
 
 			/** reads the model parameters from the given files
-			    @param base_filename filename of the base model
-					@param precursor_filename filename of the precursor model
-					@param b_loss_filename filename of the b-ion loss model
-					@param y_loss_filename filename of the y-ion loss model
+			    @param filename filename of the model
 			*/ 
-			void readFromFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename);
+			void readFromFile(const String& filename);
 
 			/// writes the HMM to the given file in the YGF format
 			void writetoYGFFile(const String& filename);
 
 			/** writes the model parameters into the given files
-			    @param base_filename filename of the base model
-					@param precursor_filename filename of the precursor model
-					@param b_loss_filename filename of the b-ion loss model
-					@param y_loss_filename filename of the y-ion loss model
+			    @param filename filename of the base model
 			*/			 
-			void writeToFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename);
+			void writeToFile(const String& filename);
 
 			/// greedy specturm aligner, should be replaced by a better algorithm
 			void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
@@ -235,9 +227,12 @@ namespace OpenMS
 
 			/// add peaks to spectrum
 			void addPeaks_(double mz, int charge, double mz_offset, double intensity, PeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
+		
+			/// parse the base model
+			void parseBaseModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end);
 			
 			/// parse model file of losses and precursor models
-			void parseModelFile(const String& filename, HiddenMarkovModelLight* model);
+			void parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model);
 
 			/// residue db used
 			static ResidueDB res_db_;

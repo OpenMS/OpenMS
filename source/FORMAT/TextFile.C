@@ -39,7 +39,10 @@ namespace OpenMS
 	{
 		
 	}
-	
+
+	TextFile::~TextFile()
+	{
+	}
 	
 	TextFile::TextFile(const String& filename, bool trim_lines) 
 		throw (Exception::FileNotFound)
@@ -113,6 +116,10 @@ namespace OpenMS
 		return search(begin(),text,trim);
 	}
 	
+	TextFile::ConstIterator TextFile::search(const String& text, bool trim) const
+  {
+    return search(begin(),text,trim);
+  }
 	
 	TextFile::Iterator TextFile::search(const Iterator& start, const String& text, bool trim)
 	{
@@ -143,6 +150,37 @@ namespace OpenMS
 		//nothing found
 		return end();
 	}
+
+  TextFile::ConstIterator TextFile::search(const ConstIterator& start, const String& text, bool trim) const
+  {
+    String pattern = text;
+    if (trim)
+    {
+      pattern.trim();
+    }
+
+    String tmp;
+
+    ConstIterator it = start;
+
+    while(it!=end())
+    {
+      tmp = *it;
+      if (trim)
+      {
+        if (tmp.trim().hasPrefix(pattern)) return it;
+      }
+      else
+      {
+        if (tmp.hasPrefix(pattern)) return it;
+      }
+      ++it;
+    }
+
+    //nothing found
+    return end();
+  }
+
 	
 	TextFile::Iterator TextFile::searchSuffix(const Iterator& start, const String& text, bool trim)
 	{
@@ -174,10 +212,47 @@ namespace OpenMS
 		return end();		
 	}
 
+  TextFile::ConstIterator TextFile::searchSuffix(const ConstIterator& start, const String& text, bool trim) const
+  {
+    String pattern = text;
+    if (trim)
+    {
+      pattern.trim();
+    }
+
+    String tmp;
+
+    ConstIterator it = start;
+
+    while(it!=end())
+    {
+      tmp = *it;
+      if (trim)
+      {
+        if (tmp.trim().hasSuffix(pattern)) return it;
+      }
+      else
+      {
+        if (tmp.hasSuffix(pattern)) return it;
+      }
+      ++it;
+    }
+
+    //nothing found
+    return end();
+  }
+
+
 	TextFile::Iterator TextFile::searchSuffix(const String& text, bool trim)
 	{
 		return searchSuffix(begin(),text,trim);		
 	}
+
+  TextFile::ConstIterator TextFile::searchSuffix(const String& text, bool trim) const
+  {
+    return searchSuffix(begin(),text,trim);
+  }
+
 
 	String TextFile::asString() const
 	{

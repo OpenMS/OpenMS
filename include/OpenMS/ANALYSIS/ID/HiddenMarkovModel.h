@@ -74,12 +74,6 @@ namespace OpenMS
 			/// returns the name of the state
 			const String& getName() const;
 
-			/// return the emission probability of the state
-			double getEmissionProbability() const;
-
-			/// sets the emission probability
-			void setEmissionProbability(double ep);
-
 			/// sets the hidden property to the state
 			void setHidden(bool hidden);
 
@@ -112,9 +106,6 @@ namespace OpenMS
 			
 			///
 			String name_;
-
-			///
-			double emission_prob_;
 
 			///
 			std::set<HMMState*> pre_states_;
@@ -160,11 +151,11 @@ namespace OpenMS
 			*/
 			void writetoYGFFile(const String& filename);
 	
-			/// writes the HMM to a file
-			void writeToFile(const String& filename);
+			/// writes the HMM into an outstream
+			void write(std::ostream& out);
 
 			/// read a HMM from the given file
-			void readFromFile(const String& filename);
+			//void readFromFile(const String& filename);
 
 			/// returns the transition probability of the given states
 			double getTransitionProbability(HMMState*, HMMState*) const;
@@ -246,6 +237,9 @@ namespace OpenMS
 
 			/// returns the state with the given name
 			const HMMState* getState(const String& name) const;
+
+			/// clear alls data
+			void clear();
 			//@}
 			
 		protected:

@@ -60,6 +60,9 @@ namespace OpenMS
     	///Default constructor
 			TextFile();
 
+			/// destructor
+			virtual ~TextFile();
+			
     	/**
     		@brief Constructor with filename
     	
@@ -120,6 +123,43 @@ namespace OpenMS
 				It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
     	*/
 			Iterator searchSuffix(const String& text, bool trim=false);
+
+      /**
+        @brief Searches for the first line that starts with @p text beginning at line @p start
+
+        @param start the line to start the search in
+        @param text the text to find
+        @param trim wether the line is trimmed before
+        @return returns an iterator to the matching line. If no line matches, end() is returned
+      */
+      ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const;
+
+      /**
+        @brief Searches for the first line that starts with @p text
+
+        This is an overloaded member function, provided for convenience.<br>
+        It behaves essentially like the above function but the search is start at the beginning of the file
+      */
+      ConstIterator search(const String& text, bool trim=false) const;
+
+      /**
+        @brief Searches for the first line that ends with @p text beginning at line @p start
+
+        @param start the line to start the search in
+        @param text the text to find
+        @param trim wether the line is trimmed before
+        @return returns an iterator to the matching line. If no line matches, end() is returned
+      */
+      ConstIterator searchSuffix(const ConstIterator& start, const String& text, bool trim=false) const;
+
+      /**
+        @brief Searches for the first line that ends with @p text
+
+        This is an overloaded member function, provided for convenience.
+
+        It behaves essentially like searchSuffix(const Iterator&, const String&, bool) but the search starts at the beginning of the file
+      */
+      ConstIterator searchSuffix(const String& text, bool trim=false) const;
 			
 			/// Return the content as a single String
 			String asString() const;

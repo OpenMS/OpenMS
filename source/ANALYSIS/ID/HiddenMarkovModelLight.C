@@ -879,25 +879,25 @@ namespace OpenMS
 		id_to_name_[id] = name;
 	}
 
-	void HiddenMarkovModelLight::writeToFile(const String& filename)
+	void HiddenMarkovModelLight::write(ostream& out)
 	{
-		ofstream outfile(filename.c_str());
+		//ofstream outfile(filename.c_str());
 		// states
 		for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
 		{
-			outfile << "State " << id_to_name_[(*it)->getIdentifier()];
+			out << "State " << id_to_name_[(*it)->getIdentifier()];
 			if (!(*it)->isHidden())
 			{
-				outfile << " false";
+				out << " false";
 			}
-			outfile << endl;
+			out << endl;
 		}
 		// transitions
 		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
 		{
 			for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
-				outfile << "Transition " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << it2->second << endl;
+				out << "Transition " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << it2->second << endl;
 			}
 		}
 		// synonym transitions
@@ -905,7 +905,7 @@ namespace OpenMS
 		{
 			for (HashMap<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
-				outfile << "Synonym " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << id_to_name_[it2->second.first->getIdentifier()] << " " << id_to_name_[it2->second.second->getIdentifier()] << endl;
+				out << "Synonym " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << id_to_name_[it2->second.first->getIdentifier()] << " " << id_to_name_[it2->second.second->getIdentifier()] << endl;
 			}
 		}
 	}

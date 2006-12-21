@@ -41,26 +41,21 @@ using namespace std;
 
 namespace OpenMS 
 {
-	// HMMSTATE 
+	// HMMState implementation
 	HMMState::HMMState(bool hidden)
-		: hidden_(hidden),
-			emission_prob_(0)/*,
-			synonym_base_state_(0)*/
+		: hidden_(hidden)
 	{
 	}
 
 	HMMState::HMMState(const String& name, bool hidden)
 		: hidden_(hidden),
-			name_(name),
-			emission_prob_(0)/*,
-			synonym_base_state_(0)*/
+			name_(name)
 	{
 	}
 
 	HMMState::HMMState(const HMMState& state)
 		: hidden_(state.hidden_),
 			name_(state.name_),
-			emission_prob_(state.emission_prob_),
 			pre_states_(state.pre_states_),
 			succ_states_(state.succ_states_)
 	{
@@ -84,7 +79,6 @@ namespace OpenMS
 	{
 		hidden_ = state.hidden_;
 		name_ = state.name_;
-		emission_prob_ = state.emission_prob_;
 		pre_states_ = state.pre_states_;
 		succ_states_ = state.succ_states_;
 		return *this;
@@ -128,16 +122,6 @@ namespace OpenMS
 	void HMMState::setHidden(bool hidden)
 	{
 		hidden_ = hidden;
-	}
-
-	void HMMState::setEmissionProbability(double emission_prob)
-	{
-		emission_prob_ = emission_prob;
-	}
-
-	double HMMState::getEmissionProbability() const
-	{
-		return emission_prob_;
 	}
 
 	// The hidden markov model
@@ -239,45 +223,72 @@ namespace OpenMS
 		
 	}
 
-	void HiddenMarkovModel::writeToFile(const String& filename)
+	void HiddenMarkovModel::write(ostream& out)
 	{
-		ofstream out(filename.c_str());
-		out << "#states_:" << endl;
+		// write states
 		for (set<HMMState*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
 		{
-			out << "name_: " << (*it)->getName() << endl;
-			out << "hidden_: ";
-			if ((*it)->isHidden())
+			out << "State " << (*it)->getName();
+
+			if (!(*it)->isHidden())
 			{
-				out << "true" << endl;
+				out << " false";
 			}
-			else
-			{
-				out << "false" << endl;
-			}
+			out << endl;
 		}
-		
-		out << "#trans_:" << endl;
+
+		// write transitions
 		for (HashMap<HMMState*, HashMap<HMMState*, double> >::ConstIterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
 		{
 			for (HashMap<HMMState*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
-				out << it1->first->getName() << " -> " << it2->first->getName() << " " << it2->second << endl; 
+				out << "Transition " << it1->first->getName() << " " << it2->first->getName() << " " << it2->second << endl;
 			}
 		}
-
-		out << "#synonym_trans_:" << endl;
+	
+		// write synonyms
+		/*
 		for (HashMap<String, HashMap<String, pair<String, String> > >::ConstIterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
 		{
 			for (HashMap<String, pair<String, String> >::ConstIterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
-				out << it->first << " " << it2->first << " " << it2->second.first << " " << it2->second.second << endl;
+				out << "Synonym " << it->first << " " << it2->first << " " << it2->second.first << " " << it2->second.second << endl;
 			}
-		}
-		out.close();
+		}*/
+
+    for (HashMap<HMMState*, HashMap<HMMState*, std::pair<HMMState*, HMMState*> > >::ConstIterator it1 = synonym_trans_.begin(); it1 != synonym_trans_.end(); ++it1)
+    {
+      for (HashMap<HMMState*, std::pair<HMMState*, HMMState*> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+				//cerr << "Synonym " << it1->first->getName() << " " << it2->first->getName() << " " << it2->second.first->getName() << " " << it2->second.second->getName() << endl;
+        out << "Synonym " << it1->first->getName() << " " << it2->first->getName() << " " << it2->second.first->getName() << " " << it2->second.second->getName() << endl;
+      }
+    }
+
+		return;
+	}
+
+	void HiddenMarkovModel::clear()
+	{
+		for (set<HMMState*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
+    {
+      delete *it;
+    }
+    trans_.clear();
+    count_trans_.clear();
+    forward_.clear();
+    backward_.clear();
+    name_to_state_.clear();
+    train_emission_prob_.clear();
+    init_train_prob_.clear();
+    states_.clear();
+    trained_trans_.clear();
+    synonym_trans_.clear();
+    synonym_trans_names_.clear();	
 		return;
 	}
 	
+	/*
 	void HiddenMarkovModel::readFromFile(const String& filename)
 	{
 		// clear old model
@@ -379,6 +390,7 @@ namespace OpenMS
 		dump();
 		#endif
 	}
+*/
 	
 	const Size HiddenMarkovModel::getNumberOfStates() const
 	{
@@ -400,6 +412,22 @@ namespace OpenMS
 
 	void HiddenMarkovModel::addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2)
 	{
+		if (!name_to_state_.has(name1))
+		{
+			cerr << "state '" << name1 << "' unknown" << endl;
+		}
+    if (!name_to_state_.has(name2))
+    {
+      cerr << "state '" << name2 << "' unknown" << endl;
+    }
+    if (!name_to_state_.has(synonym1))
+    {
+      cerr << "state '" << synonym1 << "' unknown" << endl;
+    }
+    if (!name_to_state_.has(synonym2))
+    {
+      cerr << "state '" << synonym2 << "' unknown" << endl;
+    }
 		synonym_trans_names_[synonym1][synonym2] = make_pair<String, String>(name1, name2);
 	}
 
@@ -777,6 +805,7 @@ namespace OpenMS
 
 	void HiddenMarkovModel::estimateUntrainedTransitions()
 	{
+		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 		cerr << "Transition training stats" << endl;
 		for (HashMap<HMMState*, HashMap<HMMState*, Size> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
@@ -787,6 +816,7 @@ namespace OpenMS
 		}
 
 		cerr << "Estimation" << endl;
+		#endif
 		String residues("ACDEFGHIKMNPQRSTVWY");
 		
 		vector<String> suffixe;
@@ -823,7 +853,9 @@ namespace OpenMS
 
 					if (count != 0)
 					{
+						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 						cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
+						#endif
 						trans_[name_to_state_[aa1 + aa2 + "bxyz"]][s2] = sum/double(count);
 						trans_[name_to_state_[aa1 + aa2 + "bxyz"]][end_state] = 1 - sum/double(count);
 					}
@@ -858,7 +890,9 @@ namespace OpenMS
           }
 					if (count != 0)
 					{
+						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 	          cerr << "setting transitions of " << aa1 << aa2 << "axyz -> axyz to " << sum/double(count) << endl;
+						#endif
   	        trans_[name_to_state_[aa1 + aa2 + "axyz"]][s2] = sum/double(count);
     	      trans_[name_to_state_[aa1 + aa2 + "axyz"]][end_state] = 1 - sum/double(count);
 					}

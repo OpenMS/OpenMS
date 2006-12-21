@@ -65,6 +65,14 @@ namespace OpenMS
   	aa_weight_['H'] = 137.059;
   	aa_weight_['I'] = 113.084;
   	aa_weight_['L'] = 113.084;
+
+		// debug
+		//PeakSpectrum spec;
+		//getSpectrum_(spec, "IFSQVGK", 1);
+		//for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+		//{
+		//	cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
+		//}
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& /*PILIS_id*/)
@@ -122,7 +130,7 @@ namespace OpenMS
     }
 		vector<PILISSequenceDB::PepStruct> cand_peptides;
     sequence_db_->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-    //cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
+    cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		Identification pre_id;
 		getPreIdentification_(pre_id, spec, cand_peptides);
@@ -134,12 +142,20 @@ namespace OpenMS
 
 	void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
 	{
+		//cerr << "void PILISIdentification::getPreIdentification_(Identification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)" << endl;
     // get simple spectra for pre-eliminate most of the candidates
     for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
       // TODO parameter settings
       PeakSpectrum sim_spec;
       getSpectrum_(sim_spec, it1->peptide, it1->charge);
+
+			//cerr << it1->peptide << " " << it1->charge << endl;
+			for (PeakSpectrum::ConstIterator it = sim_spec.begin(); it != sim_spec.end(); ++it)
+			{
+				//cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
+			}
+			
       double score = (*scorer_)(sim_spec, spec);
       PeptideHit peptide_hit(score, "Zhang", 0, it1->charge, it1->peptide);
       id.insertPeptideHit(peptide_hit);
@@ -151,6 +167,7 @@ namespace OpenMS
 
 	void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)
 	{
+		//cerr << "void PILISIdentification::getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id)" << endl;
 		unsigned int max_candidates = (unsigned int)param_.getValue("max_candidates");
 		for (Size i = 0; i < pre_id.getPeptideHits().size() && i < max_candidates; ++i)
     {
@@ -202,8 +219,8 @@ namespace OpenMS
 	
 	void PILISIdentification::getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge)
 	{
-		double b_pos(1);
-		double y_pos(19);
+		double b_pos(0);
+		double y_pos(18);
 		bool b_H2O_loss(false), b_NH3_loss(false), y_H2O_loss(false), y_NH3_loss(false);
 		for (Size i = 0; i != sequence.size(); ++i)
 		{
@@ -267,6 +284,9 @@ namespace OpenMS
 				}
 			}
 		}
+
+		spec.getContainer().sortByPosition();
+		
 		return;
 	}
 	

@@ -31,15 +31,11 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/File.h>
 
-//#include <iostream>
 #include <cmath>
-//#include <limits>
-//#include <iomanip>
 #include <sstream>
-//#include <set>
-#include <fstream>
 #include <algorithm>
 #include <numeric>
+#include <fstream>
 
 #define MODEL_DEPTH 4	// length of the model (symmetric)
 											// the first n and the last cleavage sites are modeled
@@ -99,40 +95,95 @@ namespace OpenMS
 
 	PILISModel::PILISModel()
 	{
+					/*
+		default_.setValue("upper_mz", 2000.0);
+		default_.setValue("lower_mz", 200.0);
+		default_.setValue("charge_remote_threshold", 0.2);
+		default_.setValue("charge_remote_factor", 1.0);
+		default_.setValue("charge_directed_threshold", 0.3);
+		default_.setValue("charge_directed_factor", 1.0);
+		default_.setValue("side_chain_intensity_threshold", 0.0);
+		default_.setValue("side_chain_factor", 1.0);
+		default_.setValue("model_depth", 4);
+		default_.setValue("visible_model_depth", 30);
+
+		param_ = default_;*/
+
+		initLossModels_();
 	}
 
 	PILISModel::~PILISModel()
 	{
 	}
 
-	void PILISModel::initModel()
+	PILISModel::PILISModel(const PILISModel& model)
 	{
-		initModel_();
-		initLossModels_();
-		initPrecursorModel_();
+		// TODO
 	}
 
-	void PILISModel::readFromFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename )
+	PILISModel& PILISModel::operator = (const PILISModel& model)
 	{
-		#ifdef SIM_DEBUG
-		cerr << "reading from file '" << file_name << "'" << endl;
-		#endif
+		if (this == &model)
+		{
+			return *this;
+		}
+		// TODO
+		return *this;
+	}
+	
+	void PILISModel::readFromFile(const String& filename)
+	{
 
-		// read the base model (actually directly in the HMM implemented)
-		if (!File::exists(base_filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+		// read the model
+		if (!File::exists(filename))
+ 	  {
+ 	   	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    if (!File::readable(base_filename))
+    if (!File::readable(filename))
     {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+     	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    if (File::empty(base_filename))
+    if (File::empty(filename))
     {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, base_filename);
+     	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-		hmm_.readFromFile(base_filename);
+		//hmm_.readFromFile(filename);
 
+		TextFile file;
+		file.load(filename, true);
+
+		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
+		String begin_marker("BASE_MODEL_BEGIN"), end_marker("BASE_MODEL_END");
+		it_begin = file.search(it_begin, begin_marker);
+		it_end = file.search(it_begin, end_marker);
+		//cerr << *it_begin << " " << *it_end << endl;
+		parseBaseModel_(++it_begin, it_end);
+
+		// seek to next interval
+		begin_marker = "PRECURSOR_MODEL_BEGIN";
+		end_marker = "PRECURSOR_MODEL_END";
+		it_begin = file.search(it_end, begin_marker);
+		it_end = file.search(it_begin, end_marker);
+		//cerr << *it_begin << " " << *it_end << endl;
+		parseHMMLightModel_(++it_begin, it_end, hmm_precursor_);
+
+		// loss models
+		begin_marker = "BION_LOSS_MODEL_BEGIN";
+		end_marker = "BION_LOSS_MODEL_END";
+		it_begin = file.search(it_end, begin_marker);
+		it_end = file.search(it_begin, end_marker);
+		//cerr << *it_begin << " " << *it_end << endl;
+		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[Residue::BIon]);
+		
+		// y-ion loss model
+		begin_marker = "YION_LOSS_MODEL_BEGIN";
+		end_marker = "YION_LOSS_MODEL_END";
+		it_begin = file.search(it_end, begin_marker);
+		it_end = file.search(it_begin, end_marker);
+		//cerr << *it_begin << " " << *it_end << endl;
+		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[Residue::YIon]);
+		
+		/*
 		// read the precursor and loss models
 		if (!File::exists(precursor_filename))
     {
@@ -176,7 +227,7 @@ namespace OpenMS
       throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
     }
 		parseModelFile(y_loss_filename, &hmms_losses_[Residue::YIon]);
-		
+		*/
 		return;
 	}
 
@@ -186,19 +237,37 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::writeToFiles(const String& base_filename, const String& precursor_filename, const String& b_loss_filename, const String& y_loss_filename)
+	void PILISModel::writeToFile(const String& filename)
 	{
+		
 		#ifdef SIM_DEBUG
 		cerr << "writing to file '" << file_name << "'" << endl;
 		#endif
 
+		ofstream out(filename.c_str());
+		out << "BASE_MODEL_BEGIN" << endl;
+		hmm_.write(out);
+		out << "BASE_MODEL_END" << endl;
+
+		out << "PRECURSOR_MODEL_BEGIN" << endl;
+		hmm_precursor_.write(out);
+		out << "PRECURSOR_MODEL_END" << endl;
+
+		out << "BION_LOSS_MODEL_BEGIN" << endl;
+		hmms_losses_[Residue::BIon].write(out);
+		out << "BION_LOSS_MODEL_END" << endl;
+
+		out << "YION_LOSS_MODEL_BEGIN" << endl;
+		hmms_losses_[Residue::YIon].write(out);
+		out << "YION_LOSS_MODEL_END" << endl;
+		
 		// write the base model file
-		hmm_.writeToFile(base_filename);
+		//hmm_.writeToFile(filename);
 
 		// write the precursor and loss models
-		hmm_precursor_.writeToFile(precursor_filename);
-		hmms_losses_[Residue::BIon].writeToFile(b_loss_filename);
-		hmms_losses_[Residue::YIon].writeToFile(y_loss_filename);
+		//hmm_precursor_.writeToFile(precursor_filename);
+		//hmms_losses_[Residue::BIon].writeToFile(b_loss_filename);
+		//hmms_losses_[Residue::YIon].writeToFile(y_loss_filename);
 		return;
 	}
 
@@ -806,10 +875,10 @@ namespace OpenMS
     // NH3 loss pathways
     if (peptide.has("K"))
     {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_E);
-      hmm_precursor_.enableTransition(PRE_H2O_E, PRE_MH_H2O);
-      hmm_precursor_.enableTransition(PRE_H2O_E, PRE_END);
-      hmm_precursor_.enableTransition(PRE_H2O_E, PRE_MH);
+      hmm_precursor_.enableTransition(PRE_ION, PRE_NH3_K);
+      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_MH_NH3);
+      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_END);
+      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_MH);
     }
 
     if (peptide.has("R"))
@@ -1607,6 +1676,7 @@ namespace OpenMS
 	
 	void PILISModel::initModel_()
 	{
+		/*
 		cerr << ">> Init model " << endl;
 
 		hmm_.addNewState(new HMMState(String("endcenter"), false));
@@ -1793,11 +1863,11 @@ namespace OpenMS
 				hmm_.setTransitionProbability("BBcenter", "AAcenter", 0.5);
 
 				hmm_.addSynonymTransition("CRcenter", "Acenter", "CR"+String(i), "A"+String(i));
-				hmm_.addSynonymTransition("CRcenter", "Acenter", "CRk-"+String(i), "Ak-"+String());
+				hmm_.addSynonymTransition("CRcenter", "Acenter", "CRk-"+String(i), "Ak-"+String(i));
 				hmm_.setTransitionProbability("CRcenter", "Acenter", 0.5);
 
         hmm_.addSynonymTransition("SCcenter", "ASCcenter", "SC"+String(i), "ASC"+String(i));
-        hmm_.addSynonymTransition("SCcenter", "ASCcenter", "SCk-"+String(i), "ASCk-"+String());
+        hmm_.addSynonymTransition("SCcenter", "ASCcenter", "SCk-"+String(i), "ASCk-"+String(i));
         hmm_.setTransitionProbability("SCcenter", "ASCcenter", 0.5);
 			}
 			
@@ -1921,6 +1991,7 @@ namespace OpenMS
 		hmm_.disableTransitions();
 		hmm_.buildSynonyms();
 		cerr << "#states=" << hmm_.getNumberOfStates() << endl;
+		*/
 	}
 
 	void PILISModel::initPrecursorModel_()
@@ -2034,23 +2105,86 @@ namespace OpenMS
 		
 	}
 
-	void PILISModel::parseModelFile(const String& filename, HiddenMarkovModelLight* model)
+	void PILISModel::parseBaseModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end)
 	{
-		ifstream infile(filename.c_str());
-		char buf[100];
+		if (begin == end)
+    {
+      return;
+    }
+		
+		//Size num_syn(0);
+    for (TextFile::ConstIterator it = begin; it != end; ++it)
+    {
+      String line = *it;
+      // comment?
+			//cerr << line << endl;
+      if (line[0] == '#')
+      {
+        continue;
+      }
 
-		while (infile.getline(buf, 100, '\n'))
+      vector<String> split;
+      line.split(' ', split);
+
+      if (split.size() > 0)
+      {
+        String id = split[0];
+
+        if (id == "State")
+        {
+          bool hidden(true);
+          if (split.size() != 2 && split[2] == "false")
+          {
+            hidden = false;
+          }
+          hmm_.addNewState(new HMMState(split[1], hidden));
+					//cerr << "added new state: '" << split[1] << "', " << hidden << endl;
+          continue;
+        }
+
+        if (id == "Synonym")
+        {
+					//++num_syn;
+					//hmm_.addSynonymTransition(split[1], split[2], split[3], split[4]);
+					hmm_.addSynonymTransition(split[3], split[4], split[1], split[2]);
+          continue;
+        }
+
+        if (id == "Transition")
+        {
+          hmm_.setTransitionProbability(split[1], split[2], split[3].toFloat());
+          continue;
+        }
+      }
+    }
+    //hmm_.disableTransitions();
+		hmm_.buildSynonyms();
+
+		hmm_.disableTransitions();
+	
+		//cerr << hmm_.getNumberOfStates() << endl;
+		
+		return;
+	}
+	
+	void PILISModel::parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model)
+	{
+		if (begin == end)
 		{
+			return;
+		}
+
+		for (TextFile::ConstIterator it = begin; it != end; ++it)
+		{	
+			String line = *it;
 			// comment?
-			if (buf[0] == '#')
+			if (line[0] == '#')
 			{
 				continue;
 			}
 
-			//cerr << String(buf) << endl;
-
 			vector<String> split;
-			String(buf).split(' ', split);
+			line.split(' ', split);
 
 			if (split.size() > 0)
 			{
@@ -2058,14 +2192,14 @@ namespace OpenMS
 			
 				if (id == "State")
 				{
-					bool hidden(false);
-					if (split.size() == 2 || split[2] == "true")
+					bool hidden(true);
+					if (split.size() != 2 && split[2] == "false")
 					{
-						hidden = true;
+						hidden = false;
 					}
 					if (name_to_enum_.has(split[1]))
 					{
-						model->addNewState(new HMMStateLight(name_to_enum_[split[1]], hidden));
+						model.addNewState(new HMMStateLight(name_to_enum_[split[1]], hidden));
 					}
 					else
 					{
@@ -2094,7 +2228,7 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, "", "'" + split[4] + "'", " state not found");
           }
 
-					model->addSynonymTransition(name_to_enum_[split[1]], name_to_enum_[split[2]], name_to_enum_[split[3]], name_to_enum_[split[4]]);
+					model.addSynonymTransition(name_to_enum_[split[3]], name_to_enum_[split[4]], name_to_enum_[split[1]], name_to_enum_[split[2]]);
 					continue;
 				}
 			
@@ -2108,13 +2242,13 @@ namespace OpenMS
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, "", "'" + split[2] + "'", " state not found");
 					}
-					model->setTransitionProbability(name_to_enum_[split[1]], name_to_enum_[split[2]], split[3].toFloat());
+					model.setTransitionProbability(name_to_enum_[split[1]], name_to_enum_[split[2]], split[3].toFloat());
 					continue;
 				}
 			}
 		}
-		model->disableTransitions();
-		model->buildSynonyms();
+		model.disableTransitions();
+		model.buildSynonyms();
 	}
 
 } // namespace OpenMS

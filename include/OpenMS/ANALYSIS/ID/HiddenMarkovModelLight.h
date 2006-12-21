@@ -109,7 +109,6 @@ namespace OpenMS
 			std::set<HMMStateLight*> succ_states_;
 	};
 
-				
 	class HiddenMarkovModelLight
 	{
 		/**
@@ -142,7 +141,7 @@ namespace OpenMS
 			void writetoYGFFile(const String& filename);
 	
 			///
-			void writeToFile(const String& filename);
+			void write(std::ostream& out);
 
 			///
 			void readFromFile(const String& filename);
