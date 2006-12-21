@@ -33,6 +33,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/DBConnection.h>
+#include <OpenMS/METADATA/Digestion.h>
+#include <OpenMS/METADATA/Modification.h>
 
 //QT includes
 #include <qsqlquery.h>
@@ -40,6 +42,7 @@
 
 //std and STL includes
 #include <string>
+#include <map>
 
 namespace OpenMS
 {	
@@ -87,16 +90,48 @@ namespace OpenMS
 			/**
 				@brief Stores, updates or deletes MetaInfo data
 				
-				@return the id of the new MetaInfo table raw
+				@return the id of the new META_MetaInfo table row
 			*/
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);
 			
 			/**
-				@brief Loads MetaInfo data
+				@brief Loads MetaInfo data from database
 				
 			*/
 			void loadMetaInfo_(UID id, MetaInfoInterface& info);
-  };
+			
+			/**
+				@brief Conditionally deletes MetaInfo data from database
+				
+			*/
+			void deleteMetaInfo_(const String& parent_table, const String& condition);
+			
+			/**
+				@brief Stores, updates or deletes file information
+				
+				@return the id of the new META_File table row
+			*/
+			UID storeFile_(const String& parent_table, UID parent_id, const SourceFile& file);
+			
+			/**
+				@brief Loads file information
+				
+			*/
+			void loadFile_(UID id, SourceFile& file);
+  
+  			/**
+				@brief Stores, updates or deletes sample information
+				
+				@return the id of the new META_Sample table row
+			*/
+			UID storeSample_(const Sample& sample, UID exp_id, UID parent_id);
+			
+			/**
+				@brief Loads sample information
+				
+			*/
+			void loadSample_(UID id, Sample& sample);
+};
 
 
 //------------------------------------------- IMPLEMENTATION OF TEMPLATE METHODS ----------------------------------
@@ -110,6 +145,9 @@ namespace OpenMS
 		bool new_entry;          // stores if the current object is already in the DB
 		QSqlQuery result;        // place to store the query results in
 		int parent_id;           // stores parent_id of meta information
+		UID acquisition_info_id; // stores id of acquisition_info
+		UID meta_id;             // stores MetaInfo id of meta information that was just stored
+		UID meta_parent_id;      // stores parent ID of MetaInfo that will be stored
 		
 		//----------------------------------------------------------------------------------------
 		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
@@ -141,7 +179,318 @@ namespace OpenMS
 			exp.setPersistenceId(db_con_.getAutoId());
 		}
 		
-		storeMetaInfo_("META_MSExperiment",exp.getPersistenceId(), exp);
+		storeMetaInfo_("META_MSExperiment", exp.getPersistenceId(), exp);
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- SAMPLE ------------------------------------------ 
+		//----------------------------------------------------------------------------------------
+		
+		query.str("");
+		deleteMetaInfo_("META_Sample", "fid_MSExperiment=" + String(exp.getPersistenceId()));
+		// also delete all referenced content of META_SampleTreatment, META_Digestion and META_Modification
+		query << "DELETE FROM META_Sample WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
+		storeSample_(exp.getSample(), exp.getPersistenceId(), 0);
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- CONTACTPERSON ----------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const std::vector<ContactPerson>& contacts = exp.getContacts();
+		
+		query.str("");
+		deleteMetaInfo_("META_ContactPerson", "fid_MSExperiment=" + String(exp.getPersistenceId()));
+		query << "DELETE FROM META_ContactPerson WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
+		db_con_.executeQuery(query.str(), result);
+			
+		for (std::vector<ContactPerson>::const_iterator contact_it = contacts.begin(); contact_it != contacts.end(); contact_it++)
+		{
+			query.str("");
+			query << "INSERT INTO META_ContactPerson SET ";
+			query << "fid_MSExperiment='" << exp.getPersistenceId() << "'";
+//			query << ",PreName='" << contact_it->getPreName() << "'";
+			query << ",LastName='" << contact_it->getName() << "'";
+			query << ",Affiliation='" << contact_it->getInstitution() << "'";
+			query << ",Email='" << contact_it->getEmail() << "'";
+			query << ",Comment='" << contact_it->getContactInfo() << "'";
+			
+			db_con_.executeQuery(query.str(), result);
+			parent_id = db_con_.getAutoId();
+			
+			storeMetaInfo_("META_ContactPerson", parent_id, *contact_it);
+		}
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- HPLC -------------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const HPLC& hplc = exp.getHPLC();
+		query.str("");
+		
+		if (new_entry)
+		{
+			query << "INSERT INTO META_HPLC SET ";
+			query << "fid_MSExperiment='" << exp.getPersistenceId() << "',";
+			end = "";
+		}
+		else
+		{
+			query << "SELECT id FROM META_HPLC WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
+			db_con_.executeQuery(query.str(),result);
+			result.first();
+			parent_id = result.value(0).asInt();
+			
+			query.str("");
+			query << "UPDATE META_HPLC SET ";
+			end = " WHERE fid_MSExperiment='" + String (exp.getPersistenceId()) + "'";
+		}
+		
+		query << "InstrumentName='" << hplc.getInstrument() << "'";
+		query << ",ColumnName='" << hplc.getColumn() << "'";
+//		query << ",GradientBeginTime=" << hplc.getColumn();
+//		query << ",GradientEndTime=" << hplc.getColumn();
+		query << ",Description='" << hplc.getComment() << "'";
+		query << ",Flux=" << hplc.getFlux();
+		query << ",Pressure=" << hplc.getPressure();
+		query << ",Temperature=" << hplc.getTemperature();
+		
+		query << end;
+		db_con_.executeQuery(query.str(),result);
+		
+		if (new_entry)
+		{
+			parent_id = db_con_.getAutoId();
+		}
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- GRADIENT* --------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const Gradient& gradient = exp.getHPLC().getGradient();
+		const std::vector <String>& eluents = gradient.getEluents();
+		const std::vector <SignedInt>& time = gradient.getTimepoints();
+		const std::vector< std::vector< UnsignedInt > >& percentages = gradient.getPercentages();
+		std::stringstream query_eluents, query_time, query_percentages;
+		UID eluents_id, time_id;
+		
+		query.str("");
+		query << "DELETE FROM META_GradientEluent WHERE fid_HPLC=" << parent_id;
+		db_con_.executeQuery(query.str(),result);
+		query.str("");
+		query << "DELETE FROM META_GradientTime WHERE fid_HPLC=" << parent_id;
+		db_con_.executeQuery(query.str(),result);
+		
+		// also delete contents of META_GradientPercentage!
+		
+		if (! eluents.empty())
+		{
+			query_eluents.str("");
+			query_eluents << "INSERT INTO META_GradientEluent (fid_HPLC, Name) VALUES ";
+			for (std::vector<String>::const_iterator eluents_it = eluents.begin(); eluents_it != eluents.end(); eluents_it++)
+			{
+				query_eluents << "(";
+				query_eluents << parent_id;
+				query_eluents << ",'" << *eluents_it << "'";
+				query_eluents << "),";
+			}
+			db_con_.executeQuery(String(query_eluents.str()).substr(0,-1),result);
+			eluents_id = db_con_.getAutoId();
+		}
+		
+		if (! time.empty())
+		{
+			query_time.str("");
+			query_time << "INSERT INTO META_GradientTime (fid_HPLC, Time) VALUES ";
+			for (std::vector<SignedInt>::const_iterator time_it = time.begin(); time_it != time.end(); time_it++)
+			{
+				query_time << "(";
+				query_time << parent_id;
+				query_time << "," << *time_it;
+				query_time << "),";
+			}
+			db_con_.executeQuery(String(query_time.str()).substr(0,-1),result);
+			time_id = db_con_.getAutoId();
+		}
+		
+		if (! percentages.empty() && ! eluents.empty() && ! time.empty())
+		{
+			query_percentages.str("");
+			query_percentages << "INSERT INTO META_GradientPercentage (fid_GradientEluent, fid_GradientTime, Percentage) VALUES ";
+			int i = 0;
+			// iterate over eluents
+			for (std::vector< std::vector< UnsignedInt> >::const_iterator percent_outer_it = percentages.begin(); percent_outer_it != percentages.end(); percent_outer_it++)
+			{
+				int j = 0;
+				// iterate over timepoints
+				for (std::vector< UnsignedInt>::const_iterator percent_inner_it = (*percent_outer_it).begin(); percent_inner_it != (*percent_outer_it).end(); percent_inner_it++)
+				{
+					query_percentages << "(";
+					query_percentages << eluents_id + i;
+					query_percentages << "," << time_id + j;
+					query_percentages << "," << *percent_inner_it;
+					query_percentages << "),";
+					j++;
+				}
+				i++;
+			}
+			db_con_.executeQuery(String(query_percentages.str()).substr(0,-1),result);
+		}
+			
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- INSTRUMENT -------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const Instrument& instrument = exp.getInstrument();
+		query.str("");
+		
+		if (new_entry)
+		{
+			query << "INSERT INTO META_MSInstrument SET ";
+			query << "fid_MSExperiment='" << exp.getPersistenceId() << "',";
+			end = "";
+		}
+		else
+		{
+			query << "SELECT id FROM META_MSInstrument WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
+			db_con_.executeQuery(query.str(),result);
+			result.first();
+			parent_id = result.value(0).asInt();
+			
+			query.str("");
+			query << "UPDATE META_MSInstrument SET ";
+			end = " WHERE fid_MSExperiment='" + String (exp.getPersistenceId()) + "'";
+		}
+		
+		query << "Model='" << instrument.getModel() << "'";
+		query << ",Vendor='" << instrument.getVendor() << "'";
+		query << ",Description='" << instrument.getCustomizations() << "'";
+		
+		query << end;
+		db_con_.executeQuery(query.str(),result);
+		
+		if (new_entry)
+		{
+			parent_id = db_con_.getAutoId();
+		}
+
+		storeMetaInfo_("META_MSInstrument", parent_id, instrument);
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- IONDETECTOR ------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const IonDetector& detector = exp.getInstrument().getIonDetector();
+		query.str("");
+		
+		if (new_entry)
+		{
+			query << "INSERT INTO META_IonDetector SET ";
+			query << "fid_MSInstrument='" << parent_id << "',";
+			end = "";
+		}
+		else
+		{
+			query << "SELECT id FROM META_IonDetector WHERE fid_MSInstrument='" << parent_id << "'";
+			db_con_.executeQuery(query.str(),result);
+			result.first();
+			meta_parent_id = result.value(0).asInt();
+			
+			query.str("");
+			query << "UPDATE META_IonDetector SET ";
+			end = " WHERE fid_MSInstrument='" + String (parent_id) + "'";
+		}
+		
+		query << "AcquisitionMode=" << (1u+detector.getAcquisitionMode());
+		query << ",Type=" << (1u+detector.getType());
+		query << ",Resolution=" << detector.getResolution();
+		query << ",ADCSamplingFrequency=" << detector.getADCSamplingFrequency();
+		
+		query << end;
+		db_con_.executeQuery(query.str(),result);
+		
+		if (new_entry)
+		{
+			meta_parent_id = db_con_.getAutoId();
+		}
+
+		storeMetaInfo_("META_IonDetector", meta_parent_id, detector);
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- IONSOURCE --------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		
+		const IonSource& source = exp.getInstrument().getIonSource();
+		query.str("");
+		
+		if (new_entry)
+		{
+			query << "INSERT INTO META_IonSource SET ";
+			query << "fid_MSInstrument='" << parent_id << "',";
+			end = "";
+		}
+		else
+		{
+			query << "SELECT id FROM META_IonSource WHERE fid_MSInstrument='" << parent_id << "'";
+			db_con_.executeQuery(query.str(),result);
+			
+			query.str("");
+			query << "UPDATE META_IonSource SET ";
+			end = " WHERE fid_MSInstrument='" + String (parent_id) + "'";
+			
+			result.first();
+			meta_parent_id = result.value(0).asInt();
+		}
+		
+		query << "InletType=" << (1u+source.getInletType());
+		query << ",IonizationMethod=" << (1u+source.getIonizationMethod());
+		query << ",IonizationMode=" << (1u+source.getPolarity());
+		
+		query << end;
+		db_con_.executeQuery(query.str(),result);
+		
+		if (new_entry)
+		{
+			meta_parent_id = db_con_.getAutoId();
+		}
+
+		storeMetaInfo_("META_IonSource", meta_parent_id, source);
+		
+		//----------------------------------------------------------------------------------------
+		//-------------------------------------- MASSANALYZER ------------------------------------ 
+		//----------------------------------------------------------------------------------------
+		
+		const std::vector<MassAnalyzer>& analyzers = exp.getInstrument().getMassAnalyzers();
+		query.str("");
+		
+		deleteMetaInfo_("META_MassAnalyzer", "fid_MSInstrument=" + String(parent_id));
+		query << "DELETE FROM META_MassAnalyzer WHERE fid_MSInstrument='" << parent_id << "'";
+		db_con_.executeQuery(query.str(),result);
+			
+		for (std::vector<MassAnalyzer>::const_iterator analyzer_it = analyzers.begin(); analyzer_it != analyzers.end(); analyzer_it++)
+		{
+			query.str("");
+			query << "INSERT INTO META_MassAnalyzer SET ";
+			query << "fid_MSInstrument='" << parent_id << "'";
+			query << ",Accuracy=" << analyzer_it->getAccuracy();
+			query << ",FinalMSExponent=" << analyzer_it->getFinalMSExponent();
+			query << ",IsolationWidth=" << analyzer_it->getIsolationWidth();
+			query << ",MagneticFieldStrength=" << analyzer_it->getMagneticFieldStrength();
+			query << ",ReflectronState=" << (1u+analyzer_it->getReflectronState());
+			query << ",Resolution=" << analyzer_it->getResolution();
+			query << ",ResolutionMethod=" << (1u+analyzer_it->getResolutionMethod());
+			query << ",ResolutionType=" << (1u+analyzer_it->getResolutionType());
+			query << ",ScanDirection=" << (1u+analyzer_it->getScanDirection());
+			query << ",ScanFunction=" << (1u+analyzer_it->getScanFunction());
+			query << ",ScanLaw=" << (1u+analyzer_it->getScanLaw());
+			query << ",ScanRate=" << analyzer_it->getScanRate();
+			query << ",ScanTime=" << analyzer_it->getScanTime();
+			query << ",TandemScanningMethod=" << (1u+analyzer_it->getTandemScanMethod());
+			query << ",TOFPathLength=" << analyzer_it->getTOFTotalPathLength();
+			query << ",Type=" << (1u+analyzer_it->getType());
+			
+			db_con_.executeQuery(query.str(),result);
+			storeMetaInfo_("META_MassAnalyzer", db_con_.getAutoId(), *analyzer_it);
+		}
 		
 		//----------------------------------------------------------------------------------------
 		//-------------------------------------- SPECTRUM ---------------------------------------- 
@@ -174,14 +523,68 @@ namespace OpenMS
 			//TODO: MassType (average/monoisotopic)
 			//TODO: TIC
 			
+			
 			query << end;
 			db_con_.executeQuery(query.str(),result);
 			if (new_entry)
 			{
 				exp_it->setPersistenceId(db_con_.getAutoId());
 			}
-			storeMetaInfo_("DATA_Spectrum",exp_it->getPersistenceId(), *exp_it);
+			storeFile_("DATA_Spectrum", exp_it->getPersistenceId(), exp_it->getSourceFile());
+			meta_id = storeMetaInfo_("DATA_Spectrum", exp_it->getPersistenceId(), *exp_it);
 			
+			
+			//----------------------------------------------------------------------------------------
+			//--------------------------------- METAINFODESCRIPTION ---------------------------------- 
+			//----------------------------------------------------------------------------------------
+			
+			const std::map<String,MetaInfoDescription>& desc = exp_it->getMetaInfoDescriptions();
+			
+			for (std::map<String,MetaInfoDescription>::const_iterator desc_it = desc.begin(); desc_it != desc.end(); ++desc_it)
+			{
+				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
+				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs 
+				// and META_MetaInfos in the database.
+				query.str("");
+				query << "SELECT id FROM META_MetaInfoDescription WHERE fid_Spectrum=";
+				query << exp_it->getPersistenceId();
+				query << " AND Name='" << desc_it->first << "'";
+				
+				db_con_.executeQuery(query.str(), result);
+				
+				query.str("");
+				
+				if (result.size() > 0)
+				{
+					parent_id = result.value(0).asInt();
+					new_entry = false;
+					query << "UPDATE META_MetaInfoDescription SET ";
+					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
+					end += " AND Name='" + String(desc_it->first) + "'";
+				}
+				else
+				{
+					new_entry = true;
+					query << "INSERT INTO META_MetaInfoDescription SET ";
+					query << "fid_Spectrum='" << exp_it->getPersistenceId() << "', ";
+					query << "Name='" << desc_it->first << "',";
+					end = "";
+				}
+				
+				query << "Description='" << desc_it->second.getComment() << "'";
+				query << end;
+				
+				db_con_.executeQuery(query.str(), result);
+				if (new_entry)
+				{
+					parent_id = db_con_.getAutoId();
+				}
+				
+				storeFile_("META_MetaInfoDescription", parent_id, desc_it->second.getSourceFile());
+				storeMetaInfo_("META_MetaInfoDescription", parent_id, desc_it->second);
+			}
+			
+
 			//----------------------------------------------------------------------------------------
 			//-------------------------------------- PRECURSOR --------------------------------------- 
 			//----------------------------------------------------------------------------------------
@@ -219,6 +622,8 @@ namespace OpenMS
 				query << ",ActivationEnergyUnit=" << (1u+exp_it->getPrecursor().getActivationEnergyUnit());		
 				//activation energy
 				query << ",ActivationEnergy='" << exp_it->getPrecursor().getActivationEnergy() << "'";
+				//window size
+				query << ",WindowSize='" << exp_it->getPrecursor().getWindowSize() << "'";
 				
 				query << end;
 				db_con_.executeQuery(query.str(),result);
@@ -231,13 +636,13 @@ namespace OpenMS
 			//---------------------------------------- PEAKS ----------------------------------------- 
 			//----------------------------------------------------------------------------------------
 			query.str("");
-			tmp = String(exp_it->getPersistenceId());
-			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum='" + tmp + "'",result);
+			deleteMetaInfo_("DATA_Peak", "fid_Spectrum=" + String(exp_it->getPersistenceId()));
+			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum=" + String(exp_it->getPersistenceId()), result);
 			query << "INSERT INTO DATA_Peak (fid_Spectrum,Intensity,mz) VALUES ";
-			tmp = String("('")+tmp+"','";
+			tmp = "(" + String(exp_it->getPersistenceId()) + ",'";
 			for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
 			{
-				//FC (Spectrum)
+				//Foreign Key (Spectrum)
 				query << tmp;
 				//Intensity
 				query << spec_it->getIntensity() << "','";
@@ -245,8 +650,15 @@ namespace OpenMS
 				query << spec_it->getPosition()[0] << "'),";
 			}
 			db_con_.executeQuery(String(query.str()).substr(0,-1),result);
-			// TODO: call storeMetaInfo_() and loadMetaInfo_() for each Peak
-			// storeMetaInfo_("DATA_Peak", parent_id, spec_it);
+			
+			// We know that all inserted peaks have IDs beginning from last_insert_id() (= ID of first inserted entry
+			// of last insert operation), so we can insert Meta Information without actually fetching the ID
+			UID insert_id = db_con_.getAutoId();
+			for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
+			{
+				storeMetaInfo_("DATA_Peak", insert_id, *spec_it);
+				insert_id++;
+			}
 			
 			//----------------------------------------------------------------------------------------
 			//---------------------------------- INSTRUMENT SETTINGS --------------------------------- 
@@ -279,10 +691,65 @@ namespace OpenMS
 			query << "ScanMode=" << (1u+settings.getScanMode());
 			query << end;
 			
-			db_con_.executeQuery(query.str(),result);
+			db_con_.executeQuery(query.str(), result);
 		
 			if (new_entry) parent_id = db_con_.getAutoId();
 			storeMetaInfo_("META_InstrumentSettings", parent_id, exp_it->getInstrumentSettings());
+			
+			//----------------------------------------------------------------------------------------
+			//--------------------------------- ACQUISITIONINFO -------------------------------------- 
+			//----------------------------------------------------------------------------------------
+			
+			const AcquisitionInfo & info = exp_it->getAcquisitionInfo();
+			
+			query.str("");
+			
+			if (new_entry)
+			{
+				query << "INSERT INTO META_AcquisitionInfo SET fid_Spectrum=" << exp_it->getPersistenceId() << ",";
+				end = "";
+			}
+			else
+			{
+				query << "SELECT id FROM META_AcquisitionInfo WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
+				db_con_.executeQuery(query.str(),result);
+				result.first();
+				acquisition_info_id = result.value(0).asInt();
+					
+				query.str("");
+				query << "UPDATE META_AcquisitionInfo SET ";
+				end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
+			}
+
+			query << "MethodOfCombination='" << info.getMethodOfCombination() << "'";
+			query << end;
+			
+			db_con_.executeQuery(query.str(), result);
+			if (new_entry)
+			{
+				acquisition_info_id = db_con_.getAutoId();
+			}
+		
+			//----------------------------------------------------------------------------------------
+			//----------------------------------- ACQUISITION ---------------------------------------- 
+			//----------------------------------------------------------------------------------------
+			
+			query.str("");
+			deleteMetaInfo_("META_Acquisition", "fid_AcquisitionInfo=" + String(parent_id));
+			query << "DELETE FROM META_Acquisition WHERE fid_AcquisitionInfo=" << parent_id;
+			db_con_.executeQuery(query.str(), result);
+				
+			for (std::vector<Acquisition>::const_iterator info_it = info.begin(); info_it != info.end(); info_it++)
+			{
+				query.str("");
+				query << "INSERT INTO META_Acquisition SET fid_AcquisitionInfo=" << acquisition_info_id << ",";
+				query << "Number=" << info_it->getNumber();
+				
+				db_con_.executeQuery(query.str(), result);
+				parent_id = db_con_.getAutoId();
+				
+				storeMetaInfo_("META_Acquisition", parent_id, *info_it);
+			}
 		}
 	}
 
@@ -292,6 +759,7 @@ namespace OpenMS
 		std::stringstream query; // query to build
 		String tmp;              // temporary data
 		QSqlQuery result;        // place to store the query results in
+		UID parent_id;					 // holds ID of parent data set
 		
 		query << "SELECT Type-1,Date,fid_MetaInfo,Description FROM META_MSExperiment WHERE id='" << id << "'";
 		db_con_.executeQuery(query.str(),result);
@@ -307,6 +775,179 @@ namespace OpenMS
 		}
 		exp.setComment(result.value(3).asString().ascii());
 		loadMetaInfo_(result.value(2).asInt(),exp);
+		
+		// Sample
+		Sample sample;
+		query.str("");
+		// finding root of recursive sample tree
+		query << "SELECT id FROM META_Sample WHERE fid_MSExperiment='" << id << "' AND fid_Sample IS NULL";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		loadSample_ (result.value(0).asInt(), sample);
+		exp.setSample(sample);
+		
+		// ContactPerson
+		ContactPerson contact;
+		query.str("");
+		query << "SELECT PreName,LastName,Affiliation,Email,Comment,fid_MetaInfo FROM META_ContactPerson WHERE fid_MSExperiment='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		result.first();
+		while(result.isValid())
+		{
+	//		contact.setPreName(result.value(0).toString().ascii());
+			contact.setName(result.value(1).toString().ascii());
+			contact.setInstitution(result.value(2).toString().ascii());
+			contact.setEmail(result.value(3).toString().ascii());
+			contact.setContactInfo(result.value(4).toString().ascii());
+			loadMetaInfo_(result.value(5).asInt(),contact);
+			result.next();
+			exp.getContacts().push_back(contact);
+		}
+		
+		// HPLC
+		query.str("");
+		query << "SELECT id,InstrumentName,ColumnName,GradientBeginTime,GradientEndTime,Description,Flux,Pressure,Temperature FROM META_HPLC WHERE fid_MSExperiment='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		parent_id=result.value(0).asInt();
+		exp.getHPLC().setInstrument(result.value(1).toString().ascii());
+		exp.getHPLC().setColumn(result.value(2).toString().ascii());
+//		exp.getHPLC().setGradientBeginTime(result.value(3).asInt());
+//		exp.getHPLC().setGradientEndTime(result.value(4).asInt());
+		exp.getHPLC().setComment(result.value(5).toString().ascii());
+		exp.getHPLC().setFlux(result.value(6).asInt());
+		exp.getHPLC().setPressure(result.value(7).asInt());
+		exp.getHPLC().setTemperature(result.value(8).asInt());
+		
+		// Gradient*
+		// I tried taking the big query apart in order to skip the double join, but this leads to
+		// the problem of saving all requested keys in a vector in order to request the percentages (complex).
+		// I'll still preserve the code in order to optimize in the future. Maybe I was just being blind.
+		
+		String last_name;
+		bool timepoints_done;
+		query.str("");
+		/*
+		query << "SELECT id,Name FROM META_GradientEluent WHERE fid_HPLC=" << parent_id;
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		while(result.isValid())
+		{
+			exp.getHPLC().getGradient().addEluent(result.value(0).toString().ascii());
+			result.next();
+		}
+		
+		query.str("");
+		query << "SELECT id,Time FROM META_GradientTime WHERE fid_HPLC=" << parent_id;
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		while(result.isValid())
+		{
+			exp.getHPLC().getGradient().addTimepoint(result.value(0).asInt());
+			result.next();
+		}
+		*/
+		
+		query << "SELECT Name,Time,Percentage FROM META_GradientEluent, META_GradientTime, META_GradientPercentage WHERE META_GradientEluent.fid_HPLC=" << parent_id << " AND fid_GradientEluent=META_GradientEluent.id AND fid_GradientTime=META_GradientTime.id";
+		db_con_.executeQuery(query.str(),result);		
+		result.first();
+		
+		if (result.isValid())
+		{
+			last_name = result.value(0).toString().ascii();
+			timepoints_done = false;
+			exp.getHPLC().getGradient().addEluent(last_name);
+		}
+		
+		while(result.isValid())
+		{
+			if (result.value(0).toString().ascii() != last_name)
+			{
+				exp.getHPLC().getGradient().addEluent(result.value(0).toString().ascii());
+				timepoints_done = true;
+			}
+			
+			if (timepoints_done == false)
+			{
+				exp.getHPLC().getGradient().addTimepoint(result.value(1).asInt());
+			}
+			
+			exp.getHPLC().getGradient().setPercentage(result.value(0).toString().ascii(), result.value(1).asInt(), result.value(2).asInt());
+			
+			last_name = result.value(0).toString().ascii();
+			result.next();
+		}
+		
+		// Instrument
+		query.str("");
+		query << "SELECT id,Model,Vendor,Description,fid_MetaInfo FROM META_MSInstrument WHERE fid_MSExperiment='" << id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		parent_id = result.value(0).asInt();
+		exp.getInstrument().setModel(result.value(1).toString().ascii());
+		exp.getInstrument().setVendor(result.value(2).toString().ascii());
+		exp.getInstrument().setCustomizations(result.value(3).toString().ascii());
+		loadMetaInfo_(result.value(4).asInt(),exp.getInstrument());
+		
+		// IonDetector
+		query.str("");
+		query << "SELECT AcquisitionMode-1,Type-1,Resolution,ADCSamplingFrequency,fid_MetaInfo FROM META_IonDetector WHERE fid_MSInstrument='" << parent_id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		exp.getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).asInt());
+		exp.getInstrument().getIonDetector().setType((IonDetector::Type) result.value(1).asInt());
+		exp.getInstrument().getIonDetector().setResolution(result.value(2).toDouble());
+		exp.getInstrument().getIonDetector().setADCSamplingFrequency(result.value(3).toDouble());
+		loadMetaInfo_(result.value(4).asInt(),exp.getInstrument().getIonDetector());
+		
+		// IonSource
+		query.str("");
+		query << "SELECT InletType-1,IonizationMethod-1,IonizationMode-1,fid_MetaInfo FROM META_IonSource WHERE fid_MSInstrument='" << parent_id << "'";
+		db_con_.executeQuery(query.str(),result);
+		result.first();
+		
+		exp.getInstrument().getIonSource().setInletType((IonSource::InletType) result.value(0).asInt());
+		exp.getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) result.value(1).asInt());
+		exp.getInstrument().getIonSource().setPolarity((IonSource::Polarity) result.value(2).toDouble());
+		loadMetaInfo_(result.value(3).asInt(),exp.getInstrument().getIonSource());
+		
+		// MassAnalyzers
+		MassAnalyzer analyzer;
+		std::vector<MassAnalyzer> analyzers;
+		query.str("");
+		query << "SELECT Accuracy,FinalMSExponent,IsolationWidth,MagneticFieldStrength,ReflectronState-1,Resolution,ResolutionMethod-1,ResolutionType-1,ScanDirection-1,ScanFunction-1,ScanLaw-1,ScanRate,ScanTime,TandemScanningMethod-1,TOFPathLength,Type-1,fid_MetaInfo FROM META_MassAnalyzer WHERE fid_MSInstrument='" << parent_id << "'";
+		db_con_.executeQuery(query.str(),result);
+		
+		result.first();
+		while(result.isValid())
+		{
+			analyzer.setAccuracy(result.value(0).toDouble());
+			analyzer.setFinalMSExponent(result.value(1).asInt());
+			analyzer.setIsolationWidth(result.value(2).toDouble());
+			analyzer.setMagneticFieldStrength(result.value(3).toDouble());
+			analyzer.setReflectronState((MassAnalyzer::ReflectronState) result.value(4).asInt());
+			analyzer.setResolution(result.value(5).toDouble());
+			analyzer.setResolutionMethod((MassAnalyzer::ResolutionMethod) result.value(6).asInt());
+			analyzer.setResolutionType((MassAnalyzer::ResolutionType) result.value(7).asInt());
+			analyzer.setScanDirection((MassAnalyzer::ScanDirection) result.value(8).asInt());
+			analyzer.setScanFunction((MassAnalyzer::ScanFunction) result.value(9).asInt());
+			analyzer.setScanLaw((MassAnalyzer::ScanLaw) result.value(10).asInt());
+			analyzer.setScanRate(result.value(11).toDouble());
+			analyzer.setScanTime(result.value(12).toDouble());
+			analyzer.setTandemScanMethod((MassAnalyzer::TandemScanningMethod) result.value(13).asInt());
+			analyzer.setTOFTotalPathLength(result.value(14).toDouble());
+			analyzer.setType((MassAnalyzer::AnalyzerType) result.value(15).asInt());
+			loadMetaInfo_(result.value(16).asInt(), analyzer);
+			
+			analyzers.push_back(analyzer);
+			result.next();
+		}
+		exp.getInstrument().setMassAnalyzers(analyzers);
 		
 		//spectra
 		query.str("");
@@ -332,11 +973,12 @@ namespace OpenMS
 	{
 		spec = SpectrumType();
 		
-		std::stringstream query; // query to build
-		QSqlQuery result;        // place to store the query results in
+		std::stringstream query;     // query to build
+		QSqlQuery result;            // place to store the query results in
 		InstrumentSettings settings; // stores settings that are read from DB
+		UID parent_id;               // stores parent_id of Acquisition
 		
-		query << "SELECT Type-1,RetentionTime,MSLevel,Description,fid_MetaInfo FROM DATA_Spectrum WHERE id='" << id << "'";
+		query << "SELECT Type-1,RetentionTime,MSLevel,Description,fid_MetaInfo,fid_File FROM DATA_Spectrum WHERE id='" << id << "'";
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
@@ -346,10 +988,11 @@ namespace OpenMS
 		spec.setMSLevel(result.value(2).asInt());
 		spec.setComment(result.value(3).asString().ascii());
 		loadMetaInfo_(result.value(4).asInt(),spec);
+		loadFile_(result.value(5).asInt(),spec.getSourceFile());
 		
 		// Instrument settings
 		query.str("");
-		query << "SELECT MZRangeBegin, MZRangeEnd, Polarity-1, ScanMode-1, fid_MetaInfo FROM META_InstrumentSettings WHERE id='" << id << "'";
+		query << "SELECT MZRangeBegin, MZRangeEnd, Polarity-1, ScanMode-1, fid_MetaInfo FROM META_InstrumentSettings WHERE fid_Spectrum=" << id;
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
@@ -360,12 +1003,58 @@ namespace OpenMS
 		spec.setInstrumentSettings(settings);
 		loadMetaInfo_(result.value(4).asInt(),spec.getInstrumentSettings());
 
-		//precursor
+		// AcquisitionInfo
+		query.str("");
+		query << "SELECT id, MethodOfCombination FROM META_AcquisitionInfo WHERE fid_Spectrum=" << id;
+		db_con_.executeQuery(query.str(),result);
+		result.first();
 		
+		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).asString().ascii());
+		parent_id = result.value(0).asInt();
+		
+		// Acquisition
+		query.str("");
+		query << "SELECT Number,fid_MetaInfo FROM META_Acquisition WHERE fid_AcquisitionInfo='" << parent_id << "' ORDER BY id ASC";
+		db_con_.executeQuery(query.str(),result);
+
+		Acquisition acquisition;
+		
+		result.first();
+		while(result.isValid())
+		{
+			acquisition.setNumber(result.value(0).asInt());
+			loadMetaInfo_(result.value(1).toInt(), acquisition);
+			spec.getAcquisitionInfo().push_back(acquisition);
+			result.next();
+		}
+		
+		// MetaInfoDescription
+		query.str("");
+		query << "SELECT Name, Description, fid_MetaInfo, fid_File FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
+
+		db_con_.executeQuery(query.str(), result);
+		result.first();
+		
+		std::map<String,MetaInfoDescription> descriptions;
+		MetaInfoDescription desc;
+		
+		while(result.isValid())
+		{
+			desc.setName(result.value(0).asString().ascii());
+			desc.setComment(result.value(1).asString().ascii());
+			loadMetaInfo_(result.value(2).asInt(), desc);
+			loadFile_(result.value(3).asInt(),desc.getSourceFile());
+			
+			descriptions[result.value(0).asString().ascii()] = desc;
+			result.next();
+		}
+		spec.setMetaInfoDescriptions (descriptions);
+
+		//precursor
 		if(spec.getMSLevel()>1)
 		{
 			query.str("");
-			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
+			query << "SELECT mz,Intensity,Charge,ActivationMethod-1,ActivationEnergyUnit-1,ActivationEnergy,WindowSize,fid_MetaInfo FROM DATA_Precursor WHERE fid_Spectrum='" << id << "'";
 			db_con_.executeQuery(query.str(),result);
 			result.first();
 			spec.getPrecursorPeak().getPosition()[0] = (result.value(0).toDouble());
@@ -374,13 +1063,13 @@ namespace OpenMS
 			spec.getPrecursor().setActivationMethod((Precursor::ActivationMethod)(result.value(3).asInt()));
 			spec.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)(result.value(4).asInt()));
 			spec.getPrecursor().setActivationEnergy(result.value(5).toDouble());
-			loadMetaInfo_(result.value(6).asInt(),spec.getPrecursor());
+			spec.getPrecursor().setWindowSize(result.value(6).toDouble());
+			loadMetaInfo_(result.value(7).asInt(),spec.getPrecursor());
 		}
 		
 		//Peaks
-		
 		query.str("");
-		query << "SELECT mz,Intensity FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ORDER BY mz ASC";
+		query << "SELECT mz,Intensity,fid_MetaInfo FROM DATA_Peak WHERE fid_Spectrum='" << id << "' ORDER BY mz ASC";
 		db_con_.executeQuery(query.str(),result);
 
 		typename SpectrumType::PeakType p;
@@ -389,6 +1078,7 @@ namespace OpenMS
 		{
 			p.getPosition()[0] = result.value(0).toDouble();
 			p.setIntensity(result.value(1).toDouble());
+			loadMetaInfo_(result.value(2).toInt(), p);
 			spec.push_back(p);
 			result.next();
 		}
