@@ -73,6 +73,7 @@ CREATE TABLE DATA_Precursor (
   ActivationMethod enum('UNKNOWN','CID','PSD','PD','SID') NOT NULL default 'UNKNOWN',
   ActivationEnergy float default NULL,
   ActivationEnergyUnit enum('UNKNOWN','EV','PERCENT') NOT NULL default 'UNKNOWN',
+  WindowSize float NOT NULL DEFAULT '0',
   PRIMARY KEY  (id),
   KEY peak_list (fid_Spectrum),
   KEY fid_MetaInfo (fid_MetaInfo)
@@ -250,7 +251,6 @@ CREATE TABLE META_AcquisitionInfo (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Spectrum bigint(20) unsigned NOT NULL default '0',
   MethodOfCombination varchar(30) collate latin1_general_ci NOT NULL default '',
-  SpectrumType varchar(30) collate latin1_general_ci NOT NULL default '',
   PRIMARY KEY  (id),
   KEY fid_Spectrum (fid_Spectrum)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
@@ -300,7 +300,9 @@ CREATE TABLE META_File (
   id bigint(20) unsigned NOT NULL auto_increment,
   FileName varchar(50) collate latin1_general_ci NOT NULL default '',
   FilePath varchar(80) collate latin1_general_ci NOT NULL default '',
-  `Type` enum('RawData','PeakData','CalibrationInfo','Publication','ParametersFile','Misc') collate latin1_general_ci NOT NULL default 'Misc',
+	sha1 varchar(40) collate latin1_general_ci NOT NULL default '',
+  Size float unsigned NOT NULL default '0',
+  `Type` text collate latin1_general_ci NOT NULL default '',
   PRIMARY KEY  (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
@@ -567,9 +569,9 @@ CREATE TABLE META_Sample (
   fid_MetaInfo bigint(20) unsigned default NULL,
   Name varchar(30) default NULL,
   SampleID varchar(30) default NULL,
-  Mass varchar(30) default NULL,
-  Volume varchar(30) default NULL,
-  Concentration varchar(30) default NULL,
+  Mass float default NULL,
+  Volume float default NULL,
+  Concentration float default NULL,
   State enum('UNKNOWN','SOLID','LIQUID','GAS','SOLUTION','EULSION','SUSPENSION') NOT NULL default 'UNKNOWN',
   Organism varchar(40) default NULL,
   Description text character set latin1 collate latin1_general_ci NOT NULL,
@@ -588,8 +590,8 @@ CREATE TABLE META_Sample (
 CREATE TABLE META_SampleTreatment (
   id bigint(20) unsigned NOT NULL auto_increment,
   fid_Sample bigint(20) unsigned NOT NULL default '0',
-  fid_Digestion bigint(20) unsigned NOT NULL default '0',
-  fid_Modification bigint(20) unsigned NOT NULL default '0',
+  fid_Digestion bigint(20) unsigned default NULL,
+  fid_Modification bigint(20) unsigned default NULL,
   fid_MetaInfo bigint(20) unsigned default NULL,
   Description text collate latin1_general_ci NOT NULL,
   PRIMARY KEY  (id),
