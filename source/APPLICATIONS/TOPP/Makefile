@@ -68,6 +68,7 @@ EXECUTABLES=\
 	SpectraFilter\
 	Resampler\
 	FeatureFinder\
+	PILISModel\
 	PILISIdentification
 
 
@@ -97,132 +98,136 @@ test:
 
 MapStatistics: MapStatistics.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/             
+	$(CP) $@ $(OPENMS_PATH)/bin/             
 
 MapMatcher: MapMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 NoiseFilter: NoiseFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 BaselineFilter: BaselineFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 AdditiveSeries: AdditiveSeries.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 RTModel: RTModel.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 RTPredict: RTPredict.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FileConverter: FileConverter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FileInfo: FileInfo.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FileFilter: FileFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 TOPPView: TOPPView.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FeatureFinder: FeatureFinder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 SpectrumComparator: SpectrumComparator.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 SpectrumLibBuilder: SpectrumLibBuilder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 SpectrumLibMatcher: SpectrumLibMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 MapDewarper: MapDewarper.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 PeakPicker: PeakPicker.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 IDFilter: IDFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FeaturePairSplitter: FeaturePairSplitter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 DBExporter: DBExporter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 DBImporter: DBImporter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 LabeledMatcher: LabeledMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 MascotAdapter: MascotAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 InspectAdapter: InspectAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 SequestAdapter: SequestAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(OPENMS_PATH)/bin/
 
 Resampler: Resampler.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 UnlabeledMatcher: UnlabeledMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 FileMerger: FileMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 SpectraFilter: SpectraFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 DTAExtractor: DTAExtractor.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(OPENMS_PATH)/bin/
 
 MapAlignment: MapAlignment.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 AnalysisXMLMerger: AnalysisXMLMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(OPENMS_PATH)/bin/   
 
 PILISIdentification: PILISIdentification.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	cp $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(OPENMS_PATH)/bin/
+
+PILISModel: PILISModel.o
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
+	$(CP) $@ $(OPENMS_PATH)/bin/
