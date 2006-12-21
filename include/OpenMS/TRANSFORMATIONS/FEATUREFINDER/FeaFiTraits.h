@@ -238,7 +238,7 @@ public:
             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index, map_.getSize());
         if (index >= (map_.getSize()-1) )
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getNextMz", index);
-
+							
         // check whether we walked out of the current scan i.e. the retention
         // time has changed
         if (getPeakRt(index) != getPeakRt(index+1))
@@ -267,7 +267,7 @@ public:
         // time has changed (same problem as above in nextMz() )
         if (getPeakRt(index) != getPeakRt(index-1))
             throw NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevMz", index);
-
+						
         // same as above
         return --index;
     }
@@ -299,8 +299,8 @@ public:
 //         if (peak_index>=map_.getSize())
 //             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", peak_index, map_.getSize());
 
-				if (peak_index>=map_.getSize())
-					NoSuccessor(__FILE__, __LINE__, "getNextRt()",index);
+				if (peak_index>=map_.getSize() )
+					NoSuccessor(__FILE__, __LINE__, "getNextRt()",peak_index);
 
         return peak_index;
     }
@@ -312,8 +312,13 @@ public:
     */
     UnsignedInt getPrevRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
+				// if we are at the beginning of the peak vector, there will be no previous peak ;-)
+				if (index == 0)
+					throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+		
 		     if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
+							 throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
+// 							throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
 				
         const PeakType p = getPeak(index);
         MapType::PIterator piter;
@@ -331,8 +336,8 @@ public:
 //         if (peak_index>=map_.getSize())
 //             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", peak_index, map_.getSize());
 						
-				if (peak_index>=map_.getSize())
-					NoSuccessor(__FILE__, __LINE__, "getPrevRt()", index);
+				if (peak_index>=map_.getSize() )
+					NoSuccessor(__FILE__, __LINE__, "getPrevRt()", peak_index);
 
         return peak_index;
     }

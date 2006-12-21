@@ -76,28 +76,30 @@ namespace OpenMS
 	/// Computes the rank of the sorted vector @p w (taken from "Numerical Recipies in C") 	
 	void compute_rank(IntensityVector& w)
 	{
-			unsigned long j=0,ji,jt;
+			unsigned long j=1,ji,jt;
 			float rank;
-			unsigned int n = (w.size()-2);
+			unsigned int n = w.size();
 			
 			while (j < n) 
 			{
-					if (w[j+1] != w[j]) 
+					if (w[j] != w[j-1]) 
 					{ 
 						 // no tie
-						w[j]=j;
+						w[j-1]=j;
 						++j;
 					} 
 					else 
 					{
 						// tie, replace by mean rank 
-						for (jt=j+1;jt<=n && w[jt]==w[j]; ++jt);
+						for (jt=j+1;jt<=n && w[jt-1]==w[j-1]; ++jt);
 						rank=0.5*(j+jt-1); // mean rank of tie
+						
 						for (ji=j;ji<=(jt-1);++ji) w[ji]=rank; 
+						
 						j=jt;
 					}
 		}
-		if (j == n) w[n]=n; 
+		if (j == n) w[n-1]=n; 
 	}			 	 
 	
 

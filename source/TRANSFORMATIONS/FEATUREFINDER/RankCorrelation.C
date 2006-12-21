@@ -123,8 +123,9 @@ namespace OpenMS
 				
 		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 		{
-			const CoordinateType coord = traits_->getPeak(*it).getPosition()[dim];
-			ranks_data.push_back(traits_->getPeakIntensity(*it));
+			const DRawDataPoint<2>& peak = traits_->getPeak(*it);
+			const CoordinateType coord = peak.getPosition()[dim];
+			ranks_data.push_back(peak.getIntensity());
 			ranks_model.push_back( model.getIntensity( coord ) );
 		}
 		

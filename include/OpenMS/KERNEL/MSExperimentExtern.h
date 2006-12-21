@@ -1094,11 +1094,13 @@ public:
 
     /// Mutable access to peak with index @p
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
-    {
-// 				std::cout << "getPeak(" << index << ")" << std::endl;
-				
+    {				
 				if (index > nr_dpoints_)
+				{
+						std::cout << "getPeak(" << index << ")" << std::endl;
+						std::cout << "Data points: " << nr_dpoints_ << std::endl;
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
+				}
 				
 				UnsignedInt scan_index = 0;
 				UnsignedInt peak_index = 0;
@@ -1159,11 +1161,14 @@ public:
     /// const access to peak with index @p (call updateRanges() before using this method)
     const DRawDataPoint<2> getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow)
     {
-// 				std::cout << "getPeak(" << index << ") const" << std::endl;
+
 				
 				if (index > nr_dpoints_)
+				{
+						std::cout << "getPeak(" << index << ") const" << std::endl;
+						std::cout << "Data points: " << nr_dpoints_ << std::endl;
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				
+				}
 				UnsignedInt scan_index = 0;
 				UnsignedInt peak_index = 0;
 				

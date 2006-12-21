@@ -237,6 +237,8 @@ namespace OpenMS
 		/// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
 		ProbabilityType priority_threshold_;
 		
+		PositionType seed_;
+		
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H

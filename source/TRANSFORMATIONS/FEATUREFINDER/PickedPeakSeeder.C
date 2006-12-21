@@ -192,10 +192,9 @@ void PickedPeakSeeder::sweep_()
                     // save current rt and m/z
                     iso_map_[mz_in_hash].scans_.push_back( traits_->getPeakRt(curr_peak) );
 
-#ifdef DEBUG_FEATUREFINDER
-
+										#ifdef DEBUG_FEATUREFINDER
                     std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
-#endif
+										#endif
 
                 }
 

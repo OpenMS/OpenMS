@@ -113,6 +113,8 @@ namespace OpenMS
 		PeakType seed        = traits_->getPeak(seed_index);
 		last_pos_extracted_  = seed.getPosition();
 		
+		seed_ = traits_->getPeak(seed_index).getPosition();
+		
 		std::cout << "New seed at " << seed << std::endl;
 		
 		intensity_threshold_ = intensity_factor_ * seed.getIntensity();
@@ -135,6 +137,11 @@ namespace OpenMS
 			boundary_.pop();
 			
 			const UnsignedInt  current_index = index_priority.index;
+			if (current_index > traits_->getNumberOfPeaks())
+			{
+				std::cout << "WARNING: Index too large " << current_index << std::endl;
+				continue;
+			}
 			const PeakType current_peak  		= traits_->getPeak(current_index);
 			
 			// skip this point if its intensity is too large
@@ -188,13 +195,13 @@ namespace OpenMS
 	bool SimpleExtender::isTooFarFromCentroid_(UnsignedInt current_peak)
 	{
 
+		if (current_peak > traits_->getNumberOfPeaks() ) return false;
+	
 		PeakType p = traits_->getPeak(current_peak);
-    FeaFiTraits::PositionType const curr_mean = running_avg_.getPosition();
-
-    if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
-				 p.getPosition()[MZ] < curr_mean[MZ] - dist_mz_down_ ||
-				 p.getPosition()[RT] > curr_mean[RT] + dist_rt_up_   ||
-				 p.getPosition()[RT] < curr_mean[RT] - dist_rt_down_ )
+		if ( p.getPosition()[MZ] > seed_[MZ] + dist_mz_up_   ||
+				 p.getPosition()[MZ] < seed_[MZ] - dist_mz_down_ ||
+				 p.getPosition()[RT] > seed_[RT] + dist_rt_up_   ||
+				 p.getPosition()[RT] < seed_[RT] - dist_rt_down_ )
     {
 			// close enough
 			return true;
@@ -202,6 +209,20 @@ namespace OpenMS
 		
 		// too far away from centroid of region
     return false;
+		
+//     FeaFiTraits::PositionType const curr_mean = running_avg_.getPosition();
+// 
+//     if ( p.getPosition()[MZ] > curr_mean[MZ] + dist_mz_up_   ||
+// 				 p.getPosition()[MZ] < curr_mean[MZ] - dist_mz_down_ ||
+// 				 p.getPosition()[RT] > curr_mean[RT] + dist_rt_up_   ||
+// 				 p.getPosition()[RT] < curr_mean[RT] - dist_rt_down_ )
+//     {
+// 			// close enough
+// 			return true;
+//     }
+// 		
+// 		// too far away from centroid of region
+//     return false;
 	}
 
 	void SimpleExtender::moveMzUp_(UnsignedInt current_index)
