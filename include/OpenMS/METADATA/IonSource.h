@@ -82,7 +82,7 @@ namespace OpenMS
 			/// returns the ionization mode
       Polarity getPolarity() const;
       /// sets the ionization mode
-      void setPolarity(Polarity ploarity);
+      void setPolarity(Polarity polarity);
 
     protected:
 	    InletType inlet_type_;
