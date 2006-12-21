@@ -133,9 +133,9 @@ namespace OpenMS
       /// sets the MS/MS scanning method
       void setTandemScanMethod(TandemScanningMethod tandem_scan_method);
 			
-			/// returns the refelctron state (for TOF)
+			/// returns the reflectron state (for TOF)
       ReflectronState getReflectronState() const;
-      /// sets the refelctron state (for TOF)
+      /// sets the reflectron state (for TOF)
       void setReflectronState(ReflectronState reflecton_state);
 			
 			/**
