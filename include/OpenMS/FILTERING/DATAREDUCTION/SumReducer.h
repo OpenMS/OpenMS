@@ -31,13 +31,13 @@
 
 namespace OpenMS
 {
+		/**
+			@brief Reduces the amount of data in an experiment by summing the
+			intensities of neighboring peaks.
+		*/
 	class SumReducer
 	  : public DataReducer
 	{
-		/**
-			@brief Reduces the amount of data in an experiment by summing the intensities of neighboring peaks.
-			
-		*/
 		public:
 		 	///constructor
 			SumReducer();
