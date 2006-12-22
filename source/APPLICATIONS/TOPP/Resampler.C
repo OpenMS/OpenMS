@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 
 using namespace OpenMS;
@@ -54,79 +54,45 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPResampler
-	: public TOPPBase
+	: public TOPPBase2
 {
  public:
 	TOPPResampler()
-		: TOPPBase("Resampler")
+		: TOPPBase2("Resampler", "transform an LC-MS map into a resampled map or an pgm image")
 	{
 			
 	}
 	
  protected:
-	void printToolUsage_() const
+
+	void registerOptionsAndFlags_()
 	{
-		cerr << endl
-				 << getToolName() << " -- transform an LC-MS map into a resampled map or an pgm image." << endl
-				 << "Version: " << VersionInfo::getVersion() << endl
-				 << endl
-				 << "Usage:" << endl
-				 << "  " << getToolName() << " [options]" << endl
-				 << endl <<
-			"Options are:\n"
-			"   -in <file>        input file\n"
-			"   -out <file>       output file (mzData format)\n"
-			"   -pgm <file>       output file (plain PGM image format)\n"
-			"\n"
-			" Parameters affecting the resampling\n"
-			"   -rt min:max       retention time range in input to be resampled\n"
-			"   -rows <number>    number of spectra in output (rows in image)\n"
-			"   -mz min:max       mass-to-charge range in input to be resampled\n"
-			"   -cols <number>    peaks per spectrum in output (columns in image)\n"
-			"   -transpose        flag to transpose the resampled matrix (RT vs. m/z)\n"
-			"                     (Note that transposition flips the view around \"/\",\n"
-			"                     not \"\\\", since dimensions run bottom-up left-right)\n"
-			"\n"
-			" Parameters affecting the conversion from intensity to brightness:\n"
-			"   -maxval <number>  maximum brightness\n"
-			"   -scale <number>   scaling factor for brightness\n"
-			"   -gamma <number>   apply gamma correction\n"
-			"   -reverse          flag to switch on reverse video\n"
-				 << endl;
+		registerStringOption_("in","<file>","","input file in MzData format");
+
+		// Note that we can have two output files.  At least one of them should be
+		// specified.
+		registerStringOption_("out","<file>","","output file in MzData format", false);
+		registerStringOption_("pgm","<file>","","output file in plain PGM format", false);
+		addText_("(Either -out or -pgm must be specified.)");
+
+		addEmptyLine_();
+		addText_("Parameters affecting the resampling:");
+		registerStringOption_("mz","[min]:[max]",":","mass-to-charge range in input to be resampled", false);
+		registerStringOption_("rt","[min]:[max]",":","retention time range in input to be resampled", false);
+		registerIntOption_("rows","<number>",101,"number of spectra in output (rows in image)", false);
+		registerIntOption_("cols","<number>",101,"peaks per spectrum in output (columns in image)", false);
+		registerFlag_("transpose","flag to transpose the resampled matrix (RT vs. m/z)\n"
+									"(Note that transposition flips the view around \"/\",\n"
+									"not \"\\\", since dimensions run bottom-up left-right)");
+
+		addEmptyLine_();
+		addText_("Parameters affecting the conversion from intensity to brightness:");
+		registerIntOption_("maxval","<number>",255,"maximum brightness",false);
+		registerDoubleOption_("scale","<factor>",0,"scaling factor for brightness",false);
+		registerDoubleOption_("gamma","<value>",1.,"apply gamma correction",false);
+		registerFlag_("reverse","flag to switch on reverse video");
 	}
-	
-	void printToolHelpOpt_() const
-	{
-		cerr << endl
-				 << getToolName() << endl
-				 << endl
-				 << "INI options:" << endl
-				 << "" << endl
-				 << "... to be documented ..." << endl
-				 << "" << endl
-				 << "  in        input file name" << endl
-				 << endl
-				 << "INI File example section:" << endl
-				 << "  <ITEM name=\"in\" value=\"example.mzData\" type=\"string\"/>" << endl
-				 << "  ... and so on ..." << endl;
-	}
-	
-	void setOptionsAndFlags_()
-	{
-		options_["-in"] = "in";
-		options_["-out"] = "out";
-		options_["-pgm"] = "pgm";
-		options_["-rows"] = "rows";
-		options_["-cols"] = "cols";
-		options_["-mz"] = "mz";
-		options_["-rt"] = "rt";
-		options_["-maxval"] = "maxval";
-		options_["-scale"] = "scale";
-		options_["-gamma"] = "gamma";
-		flags_["-reverse"] = "reverse";
-		flags_["-transpose"] = "transpose";
-	}
-	
+
 	ExitCodes main_(int , char**)
 	{
 	
@@ -135,17 +101,35 @@ class TOPPResampler
 		//-------------------------------------------------------------
 	
 		//file names
-		String in = getParamAsString_("in");
-		writeDebug_(String("Input file: ") + in, 1);
-			
-		//file names
-		String out = getParamAsString_("out");
-		writeDebug_(String("Output file (mzData format): ") + out, 1);
 
-		//file names
-		String pgm = getParamAsString_("pgm");
-		writeDebug_(String("Output file (plain PGM image format): ") + pgm, 1);
-			
+		String in = getStringOption_("in");
+		inputFileReadable_(in);
+					
+		String out = getStringOption_("out");
+		TOPPBase2::ParameterInformation const & pi_out = findEntry_("out");
+		bool has_out = (out != pi_out.default_value);
+
+		String pgm = getStringOption_("pgm");
+		TOPPBase2::ParameterInformation const & pi_pgm = findEntry_("pgm");
+		bool has_pgm = (pgm != pi_pgm.default_value);
+
+		if ( !has_out && !has_pgm )
+		{
+			writeLog_("You need to specify an output destination using parameters \"out\" or \"pgm\".");
+			return MISSING_PARAMETERS;
+		}
+
+		if ( has_out )
+		{
+			outputFileWritable_(out);
+		}
+		
+		if ( has_pgm )
+		{
+			outputFileWritable_(pgm);
+		}
+		
+
 		typedef MSExperiment< DPeak<1> > MSExperimentType;
 
 		MSExperimentType exp;
@@ -165,8 +149,8 @@ class TOPPResampler
 			"  IT: " << exp.getMinInt() << ":" << exp.getMaxInt() << "\n"
 			;
 
-		String rt = getParamAsString_("rt",":");
-		String mz = getParamAsString_("mz",":");
+		String rt = getStringOption_("rt");
+		String mz = getStringOption_("mz");
 		String tmp;
 		double rt_l, rt_u, mz_l, mz_u;
 
@@ -223,14 +207,14 @@ class TOPPResampler
 			return ILLEGAL_PARAMETERS;			
 		}
 
-		int rows = getParamAsInt_("rows",100);
+		int rows = getIntOption_("rows");
 		if ( rows < 1 )
 		{
 			writeLog_("Error: must have at least 1 row.");
 			return ILLEGAL_PARAMETERS;
 		}
 
-		int cols = getParamAsInt_("cols",100);
+		int cols = getIntOption_("cols");
 		if ( cols < 1 )
 		{
 			writeLog_("Error: must have at least 1 column.");
@@ -241,7 +225,7 @@ class TOPPResampler
 		BilinearInterpolation<double,double> bilip;
 		bilip.getData().resize(rows,cols);
 
-		bool transpose = getParamAsBool_("transpose",false);
+		bool transpose = getFlag_("transpose");
 		if ( !transpose )
 		{ // not transposed
 			
@@ -267,10 +251,10 @@ class TOPPResampler
 
 		} // if
 				
-		int maxval = getParamAsInt_("maxval",255);
-		double scale = getParamAsDouble_("scale",0.);
-		double gamma = getParamAsDouble_("gamma",1.);
-		bool reverse = getParamAsBool_("reverse",false);
+		int maxval = getIntOption_("maxval");
+		double scale = getDoubleOption_("scale");
+		double gamma = getDoubleOption_("gamma");
+		bool reverse = getFlag_("reverse");
 
 
 		if ( !pgm.empty() )
@@ -300,7 +284,7 @@ class TOPPResampler
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{
 				typedef MSExperimentType::SpectrumType SpectrumType;
-				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // retention times must be increasing
+				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again
 
 				spectrum.setRetentionTime( bilip.index2key_0( row_index ) );
 				spectrum.setMSLevel(1);
