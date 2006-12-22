@@ -129,7 +129,7 @@ namespace OpenMS
 					param_inifile_.load( (String)value_ini );
 					param_instance_ = param_inifile_.copy( getIniLocation(), true, "" );
 					writeDebug_("Parameters from instance section:",param_instance_,2);
-					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation(), true, "" );
+					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation(), "" );
 					writeDebug_("Parameters from instance section, including inherited ones:",param_instance_inherited_,2);
 					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true, "" );
 					writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
@@ -431,7 +431,7 @@ namespace OpenMS
 
 	Param TOPPBase::getParamCopy_(const string& prefix) const
 	{
-		return param_inifile_.copyWithInherit(prefix,true,"");
+		return param_inifile_.copyWithInherit(prefix,"");
 	}
 
 	void TOPPBase::enableLogging_() const

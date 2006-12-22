@@ -192,7 +192,7 @@ namespace OpenMS
 					param_inifile_.load( (String)value_ini );
 					param_instance_ = param_inifile_.copy( getIniLocation_(), true, "" );
 					writeDebug_("Parameters from instance section:",param_instance_,2);
-					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation_(), true, "" );
+					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation_(), "" );
 					writeDebug_("Parameters from instance section, including inherited ones:",param_instance_inherited_,2);
 					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true, "" );
 					writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
@@ -207,7 +207,7 @@ namespace OpenMS
 				writeDebug_("Applying defaults to common section without tool name:",param_common_,2);
 				param_.setDefaults( param_common_ );
 
-				// check if all parameters are registered and have the correct type				
+				// check if all parameters are registered and have the correct type
 				checkParam_(param_instance_inherited_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
 				checkParam_(param_common_, (String)value_ini, "common::" );
@@ -728,7 +728,7 @@ namespace OpenMS
 	{
 		for (Param::ConstIterator it = param.begin(); it!=param.end(); ++it)
 		{
-			//subsections
+			// subsections
 			if (String(it->first).has(':'))
 			{
 				String sec = String(it->first).prefix(':');
@@ -738,7 +738,7 @@ namespace OpenMS
 				}
 				continue;
 			}
-			//if no such parameter is registered an exception is thrown
+			// if no such parameter is registered an exception is thrown
 			try
 			{
 				//check type

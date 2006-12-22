@@ -77,21 +77,22 @@ namespace OpenMS
 	/**
 		 @brief Base class for TOPP Applications.
 		
-		 You have to implement the virtual methods @ref printToolUsage_, @ref printToolHelpOpt_, @ref registerOptionsAndFlags_ 
-		 and @ref main_ only.
+		 You have to implement the virtual methods @ref printToolUsage_(), @ref
+		 printToolHelpOpt_(), @ref registerOptionsAndFlags_() and @ref main_()
+		 only.
 		 
 		 @todo complete the tests (Clemens)
 		 
 		 To move from TOPPBase to TOPPBase2:
-		 <OL>
-		 	 <LI> Change include to TOPPBase2
-		 	 <LI> Change constructors to TOPPBase2 (move tool description to constructors)
-		 	 <LI> rename setOptionsAndFlags to registerOptionsAndFlags_
-		 	 <LI> Add registration (name, argument text, default value, description, required=true)
-		 	 <LI> replace getParamAs... with new Methods (delete writeDebug entries for parameters if present. Dubug output is now generated in the get-Method)
-		 	 <LI> delete printToolUsage_ and printToolHelpOpt_ methods
-		 	 <LI> use IO file checks
-		 </OL>
+		 -# Change include to TOPPBase2
+		 -# Change constructors to TOPPBase2 (move tool description to constructors)
+		 -# rename setOptionsAndFlags to registerOptionsAndFlags_()
+		 -# Add registration (name, argument text, default value, description, required=true)
+		 -# replace getParamAs... with new Methods. (Delete writeDebug entries for parameters if present.
+			      Debug output is now generated in the get-Method)
+		 -# delete printToolUsage_ and printToolHelpOpt_ methods
+		 -# use IO file checks
+		 .
 	*/
   class TOPPBase2
   {
@@ -123,27 +124,26 @@ namespace OpenMS
 		/// Main routine of all TOPP applications
 		ExitCodes main(int argc , char** argv);
 
-	 private:
 		/// Stuct that captures all information of a parameter
 		struct ParameterInformation
 		{
 			/// Parameter types
 			enum ParameterTypes
 			{
+				NONE=0,  ///< Undefined type
 				STRING,  ///< String parameter
 				DOUBLE,  ///< Floating point number parameter
 				INT,     ///< Integer parameter
 				FLAG,    ///< Parameter without argument
 				TEXT,    ///< Left aligned text, see @ref addText_
-				NEWLINE, ///< An empty line, see @ref addEmptyLine_
-				NONE     ///< Undefined type
+				NEWLINE  ///< An empty line, see @ref addEmptyLine_
 			};
 			
 			/// name of the parameter (internal and external)
 			std::string name;
 			/// type of the parameter
 			ParameterTypes type;
-			/// default value of the parameterstored as string
+			/// default value of the parameter stored as string
 			std::string default_value;
 			/// description of the parameter
 			std::string description;
@@ -187,6 +187,8 @@ namespace OpenMS
 			}
 
 		};
+
+	 private:
 
 		/// Tool name.  This is assigned once and for all in the constructor.
 		String const tool_name_;
@@ -253,9 +255,6 @@ namespace OpenMS
 		/// Storage location for allowed subsections
 		std::vector<String> subsections_;
 		
-		/// Finds the the entry in the parameters_ array that has the name @p name
-		const ParameterInformation& findEntry_(const String& name) const throw (Exception::UnregisteredParameter);
-
 		/** 
 			@name Internal parameter handling
 		 */
@@ -336,7 +335,7 @@ namespace OpenMS
 		 */
 		//@{				
 		/**
-			 @brief Sets the valid commannd line options (with argument) and flags (without argument).
+			 @brief Sets the valid command line options (with argument) and flags (without argument).
 				
 			 The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
 		*/
@@ -349,7 +348,7 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
-			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
+			@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
 		void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true);
 		
@@ -360,7 +359,7 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
-			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
+			@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
 		void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true);
 		
@@ -371,9 +370,21 @@ namespace OpenMS
 			@param argument Argument description text for the help output
 			@param default_value Default argument
 			@param description Description of the parameter. Indentation of newline is done automatically.
-			@param required If the user has to previde a value i.e. if the value has to differ from the default (checked in get-method)
+			@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
 		*/
 		void registerIntOption_(const String& name, const String& argument, SignedInt default_value, const String& description, bool required = true);
+		
+		/// Registers a flag
+		void registerFlag_(const String& name, const String& description);
+
+		/**
+			@brief Registers an allowed subsection in the INI file.
+			
+			Use this method to register subsections that are passed to algorithms
+			
+			@see checkParam_
+		*/
+		void registerSubsection_(const String& name);
 		
 		/// Adds an empty line between registered variables in the documentation.
 		void addEmptyLine_();
@@ -381,9 +392,6 @@ namespace OpenMS
 		/// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
 		void addText_(const String& text);
 		
-		/// Registers a flag
-		void registerFlag_(const String& name, const String& description);
-
 		///Returns the value of a previously registered string option
 		String getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType);
 		
@@ -396,15 +404,9 @@ namespace OpenMS
 		///Returns the value of a previously registered flag
 		bool getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType);
 
-		/**
-			@brief Registers an allowed subsection in the INI file.
-			
-			Use this method to register subsections that are passed to algorithms
-			
-			@see checkParam_
-		*/
-		void registerSubsection_(const String& name);
-		
+		/// Finds the the entry in the parameters_ array that has the name @p name
+		const ParameterInformation& findEntry_(const String& name) const throw (Exception::UnregisteredParameter);
+
 		/**
 			@brief Return <em>all</em> parameters relevant to this TOPP tool. 
 
