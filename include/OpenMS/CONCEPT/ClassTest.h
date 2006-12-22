@@ -184,7 +184,9 @@ int main(int argc, char **argv)\
     	std::cout << std::endl << "    (caught exception of type ";\
 			std::cout << e.getName();\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))\
-				std::cout << " outside a subtest, which was thrown in line " << e.getLine() << " of file " << e.getFile();\
+				std::cout << " outside a subtest, which was thrown in line " << e.getLine()\
+									<< " of file " << e.getFile()\
+									<< " in function " << e.getFunction();\
 			std::cout << " while looking for file " << e.getFilename();\
 			std::cout << " - unexpected!) " << std::endl;\
 		}\
@@ -202,7 +204,9 @@ int main(int argc, char **argv)\
     	std::cout << std::endl << "    (caught exception of type ";\
 			std::cout << e.getName();\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))\
-				std::cout << " outside a subtest, which was thrown in line " << e.getLine() << " of file " << e.getFile();\
+				std::cout << " outside a subtest, which was thrown in line " << e.getLine()\
+									<< " of file " << e.getFile()\
+									<< " in function " << e.getFunction();\
 			std::cout << " - unexpected!) " << std::endl;\
 			std::cout << "    (message is: " << e.what() << ")" << std::endl;\
 		}\
@@ -333,7 +337,9 @@ int main(int argc, char **argv)\
     	std::cout << std::endl << "    (caught exception of type ";\
 			std::cout << e.getName();\
 			if ((e.getLine() > 0) && (!(e.getFile() == "")))\
-				std::cout << " outside a subtest, which was thrown in line " << e.getLine() << " of file " << e.getFile();\
+				std::cout << " outside a subtest, which was thrown in line " << e.getLine()\
+									<< " of file " << e.getFile()\
+									<< " in function " << e.getFunction();\
 			std::cout << " while looking for file " << e.getFilename();\
 			std::cout << " - unexpected!) " << std::endl;\
 		}\
@@ -354,6 +360,9 @@ int main(int argc, char **argv)\
       std::cout << e.getName();\
       if ((e.getLine() > 0) && (!(e.getFile() == "")))\
         std::cout << ", which was thrown in line " << e.getLine() << " of file " << e.getFile();\
+				std::cout << " outside a subtest, which was thrown in line " << e.getLine()\
+									<< " of file " << e.getFile()\
+									<< " in function " << e.getFunction();\
       std::cout << " - unexpected!) " << std::endl;\
 			std::cout << "    (message is: " << e.what() << ")" << std::endl;\
     }\

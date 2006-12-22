@@ -62,12 +62,13 @@ namespace OpenMS
 		  as parameters. These two values are interpreted as the current filename
 		  and line number and is usually printed in case of an uncaught exception.
 		  To support this feature, each <b>throw</b> directive should look as
-		  follows:
-			\code
-			throw Exception::Exception(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			\endcode
-			Remember that <code>__FILE__</code>, <code>__LINE__</code> and <code>__PRETTY_FUNCTION__</code> are built-in
-		  preprocessor macros that hold the desired information.
+		  follows: \code throw Exception::Exception(__FILE__, __LINE__,
+		  __PRETTY_FUNCTION__); \endcode Remember that <code>__FILE__</code> and
+		  <code>__LINE__</code> are built-in preprocessor macros that hold the
+		  desired information.  <code>__PRETTY_FUNCTION__</code> is replaced by
+		  the GNU G++ compiler with the demangled name of the current function.
+		  (For other compilers it is <code>#define</code>d as "<unknown>" in
+		  config.h.)
 
 			OpenMS provides its own
 			Exception::GlobalExceptionHandler::terminate() handler. This
