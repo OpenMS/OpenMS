@@ -92,7 +92,7 @@ namespace OpenMS
     void setValue(const std::string& key, const std::string& value);
 
     /**
-			 @brief Get a value by it's key.
+			 @brief Get a value by its key.
 
 			 To check if there is no value for the given key, compare the return value with DataValue::EMPTY
     */
@@ -108,8 +108,7 @@ namespace OpenMS
     ///Insert all values of @p para and adds the prefix @p prefix.
     void insert(String prefix, const Param& para);
     ///Remove all entries that start with @p prefix.
-    void remove
-		(const std::string& prefix);
+    void remove(const std::string& prefix);
 
     /**
     	@brief Insert all values of @p para and adds the prefix @p prefix, if the values are not already set.
@@ -141,10 +140,14 @@ namespace OpenMS
     */
 		Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const;
 	
-		/** @brief Like copy(), but with support for "inherit" items.  These are
-				 only considered for nodes, i.e. if the @p prefix ends with a ':'.
+		/** @brief Like copy(), but with support for "inherit" items.
+				
+				Inheritance is considered for "nodes" only, i.e. if old_prefix ends
+				with ':'.  The old_prefix is <em>always</em> removed and replaced with
+				new_prefix.  (Keeping old_prefix seems to make no sense in combination
+				with inheritance.)
 		 */
-    Param copyWithInherit(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const;
+    Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const;
 
     ///Write XML file.
     void store(const std::string& filename) const throw (Exception::UnableToCreateFile);

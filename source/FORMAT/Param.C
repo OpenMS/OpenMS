@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Param.h>
@@ -102,7 +102,7 @@ namespace OpenMS
 	
 	void Param::insert(String prefix, const Param& para)
 	{
-		if (prefix=="")
+		if (prefix.empty() )
 		{
 			for(map<string,DataValue>::const_iterator it = para.values_.begin(); it != para.values_.end();++it)
 			{
@@ -121,7 +121,7 @@ namespace OpenMS
 
 	void Param::setDefaults(const Param& defaults, String prefix, bool showMessage)
 	{
-		if (prefix!="")
+		if ( !prefix.empty() )
 		{
 			prefix.ensureLastChar(':');
 		}	
@@ -155,20 +155,22 @@ namespace OpenMS
 
 	Param Param::copy(const string& prefix, bool remove_prefix, String new_prefix) const
 	{
-		if (new_prefix != "")
+		if (!new_prefix.empty())
 		{
 			new_prefix.ensureLastChar(':');
 		}
 		
 		Param out;
 		string key;
-		map<string,DataValue>::const_iterator it = values_.lower_bound(prefix);
-		while ( (it != values_.end()) && (it->first.size() >= prefix.size()) && (it->first.substr(0,prefix.size())==prefix))
+		for ( map<string,DataValue>::const_iterator it = values_.lower_bound(prefix);
+					(it != values_.end()) && (it->first.size() >= prefix.size()) && (it->first.substr(0,prefix.size())==prefix);
+					++it
+				)
 		{
 			//remove old prefix
 			if (remove_prefix)
 			{
-				key = it->first.substr(prefix.size(),it->first.size() - prefix.size() );
+				key = it->first.substr(prefix.size(),it->first.size() - prefix.size());
 			}
 			else
 			{
@@ -176,26 +178,25 @@ namespace OpenMS
 			}
 			
 			// add new prefix
-			if (new_prefix != "")
+			if (!new_prefix.empty())
 			{
 				key = new_prefix + key;
 			}
 			
 			out.values_[key]=it->second;
-			++it;	
 		}
 		return out;
 	}
 
-	Param Param::copyWithInherit(const std::string& prefix, bool remove_prefix, const std::string& new_prefix) const
+	Param Param::copyWithInherit(const std::string& old_prefix, const std::string& new_prefix) const
 	{
-		if ( *prefix.rbegin() != ':' )
+		if ( *old_prefix.rbegin() != ':' )
 		{
-			return copy( prefix, remove_prefix, new_prefix );
+			return copy( old_prefix, true, new_prefix );
 		}
 		else
 		{
-			Param result = copy( prefix, remove_prefix, "" );
+			Param result = copy( old_prefix, true, "" );
 			int inheritance_steps = 0;
 			DataValue const * inherit_path_value = & result.getValue("inherit");
 			while ( ! inherit_path_value->isEmpty() )
@@ -207,6 +208,7 @@ namespace OpenMS
 						( __FILE__, __LINE__, __PRETTY_FUNCTION__,
 							"<ITEM name=\"inherit\" ... />",
 							String("Too many inheritance steps (")+inheritance_steps_max+" allowed).  Perhaps there is a cycle?"
+							+" old_prefix="+old_prefix+ " new_prefix="+new_prefix+" inherit_path="+inherit_path
 						);
 				}
 				result.remove("inherit");
@@ -537,7 +539,7 @@ namespace OpenMS
 	{
 		//Extract right parameters
 		map<string,DataValue> check;
-		if (prefix=="")
+		if ( prefix.empty() )
 		{
 			check = values_;
 		}	
@@ -552,7 +554,7 @@ namespace OpenMS
 			if (defaults.values_.find(it->first)==defaults.values_.end())
 			{
 				os << "Warning: Unknown parameter '" << it->first << "' found";
-				if (prefix!="") os << " in '" << prefix << "'";
+				if (!prefix.empty()) os << " in '" << prefix << "'";
 				os << "!" << endl;
 			}
 		}

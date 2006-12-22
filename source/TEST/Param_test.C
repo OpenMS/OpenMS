@@ -254,6 +254,91 @@ CHECK(Param copy(const std::string& prefix, bool remove_prefix=false, const std:
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
+CHECK(Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const)
+{
+	Param p0;
+	p0.setValue("test:float",17.4f);
+	p0.setValue("test:inherit","test2");
+	p0.setValue("test:int",17);
+	p0.setValue("test:string","test,test,test");
+
+	p0.setValue("test2:double",18.2);
+	p0.setValue("test2:float",17.5f);
+	p0.setValue("test2:inherit","test3:test3a");
+	p0.setValue("test2:string","test2");
+
+	p0.setValue("test3:bla","wrong");
+	p0.setValue("test3:test3a:anotherint",99);
+	p0.setValue("test3:test3a:bla","blubber");
+	p0.setValue("test3:test3a:inherit","non-existent:location");
+
+	Param p2;
+
+	p2 = p0.copyWithInherit("notthere:");
+	TEST_EQUAL((p2==Param()),true)
+
+	p2 = p0.copyWithInherit("test:","new_prefix");
+	TEST_EQUAL(float(p2.getValue("new_prefix:float")), 17.4f);
+	TEST_STRING_EQUAL(p2.getValue("new_prefix:string"), "test,test,test");
+	TEST_EQUAL(int(p2.getValue("new_prefix:int")), 17);
+	TEST_EQUAL(double(p2.getValue("new_prefix:double")), 18.2);
+	TEST_EQUAL(p2.getValue("new_prefix:nostring"), p2.getValue("novaluehere"));
+	TEST_EQUAL(int(p2.getValue("new_prefix:anotherint")), 99);
+	TEST_STRING_EQUAL(p2.getValue("new_prefix:bla"), "blubber");
+	TEST_EQUAL(p2.getValue("new_prefix:inherit"), p2.getValue("novaluehere"));
+
+	Param p3;
+
+	p3.setValue("circle1:inherit","circle2");
+	p3.setValue("circle1:iwashere1","incircle1");
+	p3.setValue("circle2:inherit","circle3");
+	p3.setValue("circle2:iwashere2","incircle2");
+	p3.setValue("circle3:inherit","circle4");
+	p3.setValue("circle3:iwashere3","incircle3");
+	p3.setValue("circle4:inherit","circle1");
+	p3.setValue("circle4:iwashere4","incircle4");
+	STATUS(p3);
+
+	Param p4;
+	// p3.copyWithInherit("circle1:"); // debugging
+	TEST_EXCEPTION(Exception::ParseError, p4 = p3.copyWithInherit("circle1:"));
+	STATUS(p4);
+
+	p3.remove("circle4:inherit");
+
+	// without new_prefix
+	{
+		p4 = p3.copyWithInherit("circle1:");
+		
+		Param p5;
+		
+		p5.setValue("iwashere1","incircle1");
+		p5.setValue("iwashere2","incircle2");
+		p5.setValue("iwashere3","incircle3");
+		p5.setValue("iwashere4","incircle4");
+		STATUS(p5);
+
+		TEST_EQUAL(p4==p5,true);
+	}
+
+	// with new_prefix
+	{
+		p4 = p3.copyWithInherit("circle1:","new_prefix");
+		
+		Param p5;
+		
+		p5.setValue("new_prefix:iwashere1","incircle1");
+		p5.setValue("new_prefix:iwashere2","incircle2");
+		p5.setValue("new_prefix:iwashere3","incircle3");
+		p5.setValue("new_prefix:iwashere4","incircle4");
+		STATUS(p5);
+
+		TEST_EQUAL(p4==p5,true);
+	}
+	
+}
+RESULT
+
 CHECK(void setDefaults(const Param& defaults, String prefix="", bool showMessage=true))
 	Param defaults;
 	defaults.setValue("float",1.0f);	
