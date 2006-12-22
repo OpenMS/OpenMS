@@ -318,10 +318,10 @@ namespace OpenMS
 			f.setCharge(static_cast<IsotopeModel*>(final->getModel(MZ))->getCharge());
 		}
 		// if we used a simple Gaussian model to fit the feature, we can't say anything about
-		// its charge state. So we simply assume that it has charge one.
+		// its charge state. The value 0 indicates that charge state is undetermined.
 		else 
 		{
-			f.setCharge(1);		
+			f.setCharge(0);		
 		}
 
 		int const intensity_choice = param_.getValue("feature_intensity_sum");
