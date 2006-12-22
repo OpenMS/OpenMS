@@ -106,7 +106,6 @@ namespace OpenMS
 		 <td>distance between two isotopes of charge +1</td></tr>
 		 </table>
 		 
-		 @todo Fix charge problem in test line 142 (Clemens)
   */
 
 
