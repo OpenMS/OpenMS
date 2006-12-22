@@ -97,7 +97,7 @@
 #include <qwindowsstyle.h>
 
 //OpenMS
-#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
+#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -158,7 +158,7 @@ int main( int argc, char ** argv )
 	try
 	{
 	  QApplication a( argc, argv );
-	  SpectrumMDIWindow* mw = SpectrumMDIWindow::instance();
+	  TOPPViewBase* mw = TOPPViewBase::instance();
 	  a.setMainWidget(mw);
 	  if (!param.getValue("ini").isEmpty())
 	  {

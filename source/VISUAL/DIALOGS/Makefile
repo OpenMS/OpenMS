@@ -40,7 +40,7 @@ THISLIB=$(LIBNAME)
 GUI_CPP_SOURCES=\
 	PreferencesDialog.C\
 	PreferencesDialogPage.C\
-	SpectrumMDIWindowPDP.C\
+	TOPPViewBasePDP.C\
 	Spectrum1DWidgetPDP.C\
 	Spectrum1DCanvasPDP.C\
 	Spectrum2DWidgetPDP.C\
@@ -66,7 +66,6 @@ GUI_CPP_SOURCES=\
 GUI_MOC_SOURCES=\
 	PreferencesDialog_moc.C\
 	PreferencesDialogPage_moc.C\
-	SpectrumMDIWindowPDP_moc.C\
 	Spectrum1DWidgetPDP_moc.C\
 	Spectrum1DCanvasPDP_moc.C\
 	Spectrum2DWidgetPDP_moc.C\
@@ -93,7 +92,8 @@ GUI_MOC_SOURCES=\
 	BaselineFilteringDialog_moc.C\
 	SortDialog_moc.C\
 	FeaFiDialogTemplate_moc.C\
-	FeaFiDialog_moc.C
+	FeaFiDialog_moc.C\
+	TOPPViewBasePDP_moc.C
 
 GUI_UIC_SOURCES=\
 	Spectrum1DGoToDialogTemplate.C\
@@ -148,8 +148,8 @@ collectlib:	echodir
 
 include ../../config.mak
 
-SpectrumMDIWindowPDP_moc.C:  $(HEADER_DIR)/SpectrumMDIWindowPDP.h
-	$(MOC) $(HEADER_DIR)/SpectrumMDIWindowPDP.h -o SpectrumMDIWindowPDP_moc.C
+TOPPViewBasePDP_moc.C:  $(HEADER_DIR)/TOPPViewBasePDP.h
+	$(MOC) $(HEADER_DIR)/TOPPViewBasePDP.h -o TOPPViewBasePDP_moc.C
 
 AxisWidgetPDP_moc.C:  $(HEADER_DIR)/AxisWidgetPDP.h
 	$(MOC) $(HEADER_DIR)/AxisWidgetPDP.h -o AxisWidgetPDP_moc.C

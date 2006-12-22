@@ -176,7 +176,7 @@ namespace OpenMS
 	signals:
 		/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
 		void modesChanged(QWidget*);
-		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
+		/// Displays a status message. See TOPPViewBase::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
 		/// Displays peak information in the status bar (m/z, RT, intensity)
 		void sendCursorStatus(double,double,double);

@@ -59,19 +59,17 @@ namespace OpenMS
   class SpectrumWindow;
 
   /**
-  	@brief MDI window for several SpectrumWindow instances
-  	
-  	@ingroup spectrum_widgets
+  	@brief MDI window of TOPPView tool
   	
   	@todo catch exceptions in sgolay (Eva)
   */
-  class SpectrumMDIWindow : public QMainWindow, public PreferencesManager
+  class TOPPViewBase : public QMainWindow, public PreferencesManager
   {
       Q_OBJECT
 
     public:
-      /// Access is possible only through this method as SpectrumMDIWindow is a singleton
-      static SpectrumMDIWindow* instance();
+      /// Access is possible only through this method as TOPPViewBase is a singleton
+      static TOPPViewBase* instance();
 
       /**
       	@brief Opens and displays a spectrum form a file
@@ -212,11 +210,11 @@ namespace OpenMS
 
     protected:
       ///singleton instance
-      static SpectrumMDIWindow* instance_;
+      static TOPPViewBase* instance_;
       ///not accessable as this class is a singleton
-      SpectrumMDIWindow(QWidget* parent=0, const char* name="SpectrumMDIWindow", WFlags f=0);
+      TOPPViewBase(QWidget* parent=0, const char* name="TOPPViewBase", WFlags f=0);
       ///not accessable as this class is a singleton
-      ~SpectrumMDIWindow();
+      ~TOPPViewBase();
 
       /// Adds a tab for the window in the tabbar
       void addTab_(SpectrumWindow*, const String&);

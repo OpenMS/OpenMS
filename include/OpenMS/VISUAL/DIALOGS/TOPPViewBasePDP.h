@@ -29,7 +29,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
-#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
+#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 
 class QComboBox;
 class QLineEdit;
@@ -44,16 +44,16 @@ namespace OpenMS
 	
 	namespace Internal
 	{
-		///Preferences dialog page of a SpectrumMDIWindow (internal use only)	
-		class SpectrumMDIWindowPDP: public PreferencesDialogPage
+		///Preferences dialog page of a TOPPViewBase (internal use only)	
+		class TOPPViewBasePDP: public PreferencesDialogPage
 		{
 			Q_OBJECT
 			
 		public:
 			/// Constructor
-			SpectrumMDIWindowPDP( SpectrumMDIWindow* manager, QWidget* parent = 0, const char* name = "SpectrumMDIWindowPDP", WFlags f = 0);
+			TOPPViewBasePDP( TOPPViewBase* manager, QWidget* parent = 0, const char* name = "TOPPViewBasePDP", WFlags f = 0);
 			///  Destructor
-			virtual ~SpectrumMDIWindowPDP();
+			virtual ~TOPPViewBasePDP();
 			// Docu in base class
 			virtual void load();
 			// Docu in base class

@@ -48,13 +48,13 @@
 
 /*	
 	TODO:
-	- VISUAL/SpectrumMDIWindow -> APPLICATIONS/TOPPView
 	- Release
 		- Valgrind
 	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
 	  - HP Installtion: TOPP dazu
 	  - HP Team
 	  - HP Publications
+	  - HP Tutorial: remove methods from images
 	
 	TODO (Hiwis):
 	- XML:

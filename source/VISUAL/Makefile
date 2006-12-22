@@ -52,7 +52,6 @@ GUI_CPP_SOURCES=\
 	Spectrum3DOpenGLCanvas.C\
 	Spectrum3DWidget.C\
 	Spectrum3DWindow.C\
-	SpectrumMDIWindow.C\
 	EnhancedTabBar.C\
 	AxisWidget.C\
 	ColorSelector.C\
@@ -85,7 +84,6 @@ GUI_MOC_SOURCES=\
 	Spectrum3DOpenGLCanvas_moc.C\
 	Spectrum3DWidget_moc.C\
 	Spectrum3DWindow_moc.C\
-	SpectrumMDIWindow_moc.C\
 	EnhancedTabBar_moc.C\
 	AxisWidget_moc.C\
 	ColorSelector_moc.C\
@@ -235,9 +233,6 @@ Spectrum3DWidget_moc.C:  $(HEADER_DIR)/Spectrum3DWidget.h
 
 Spectrum3DWindow_moc.C:  $(HEADER_DIR)/Spectrum3DWindow.h
 	$(MOC) $(HEADER_DIR)/Spectrum3DWindow.h -o Spectrum3DWindow_moc.C
-
-SpectrumMDIWindow_moc.C:  $(HEADER_DIR)/SpectrumMDIWindow.h
-	$(MOC) $(HEADER_DIR)/SpectrumMDIWindow.h -o SpectrumMDIWindow_moc.C
 
 EnhancedTabBar_moc.C:  $(HEADER_DIR)/EnhancedTabBar.h
 	$(MOC) $(HEADER_DIR)/EnhancedTabBar.h -o EnhancedTabBar_moc.C

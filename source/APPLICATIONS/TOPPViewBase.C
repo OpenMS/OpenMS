@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectrumMDIWindow.h>
+#include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 
 #ifdef DB_DEF
 #include <OpenMS/FORMAT/DBConnection.h>
@@ -38,7 +38,7 @@
 #endif
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewBasePDP.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -90,32 +90,32 @@
 #include <sstream>
 
 //action modes
-#include "ICONS/zoom.xpm"
-#include "ICONS/translate.xpm"
-#include "ICONS/select.xpm"
-#include "ICONS/measure.xpm"
+#include "../VISUAL/ICONS/zoom.xpm"
+#include "../VISUAL/ICONS/translate.xpm"
+#include "../VISUAL/ICONS/select.xpm"
+#include "../VISUAL/ICONS/measure.xpm"
 
 //intensity modes
-#include "ICONS/lin.xpm"
-#include "ICONS/log.xpm"
-#include "ICONS/percentage.xpm"
-#include "ICONS/snap.xpm"
+#include "../VISUAL/ICONS/lin.xpm"
+#include "../VISUAL/ICONS/log.xpm"
+#include "../VISUAL/ICONS/percentage.xpm"
+#include "../VISUAL/ICONS/snap.xpm"
 
 //common
-#include "ICONS/grid.xpm"
-#include "ICONS/print.xpm"
-#include "ICONS/reset_zoom.xpm"
-#include "ICONS/tile_horizontal.xpm"
-#include "ICONS/tile_vertical.xpm"
+#include "../VISUAL/ICONS/grid.xpm"
+#include "../VISUAL/ICONS/print.xpm"
+#include "../VISUAL/ICONS/reset_zoom.xpm"
+#include "../VISUAL/ICONS/tile_horizontal.xpm"
+#include "../VISUAL/ICONS/tile_vertical.xpm"
 
 //1d
-#include "ICONS/lines.xpm"
-#include "ICONS/peaks.xpm"
+#include "../VISUAL/ICONS/lines.xpm"
+#include "../VISUAL/ICONS/peaks.xpm"
 
 //2d
-#include "ICONS/points.xpm"
-#include "ICONS/colors.xpm"
-#include "ICONS/contours.xpm"
+#include "../VISUAL/ICONS/points.xpm"
+#include "../VISUAL/ICONS/colors.xpm"
+#include "../VISUAL/ICONS/contours.xpm"
 
 
 
@@ -126,18 +126,18 @@ namespace OpenMS
   using namespace Internal;
 	using namespace Math;
 	
-  SpectrumMDIWindow* SpectrumMDIWindow::instance_ = 0;
+  TOPPViewBase* TOPPViewBase::instance_ = 0;
 
-  SpectrumMDIWindow* SpectrumMDIWindow::instance()
+  TOPPViewBase* TOPPViewBase::instance()
   {
     if (!instance_)
     {
-      instance_ = new SpectrumMDIWindow();
+      instance_ = new TOPPViewBase();
     }
     return instance_;
   }
 
-  SpectrumMDIWindow::SpectrumMDIWindow(QWidget* parent, const char* name, WFlags f):
+  TOPPViewBase::TOPPViewBase(QWidget* parent, const char* name, WFlags f):
       QMainWindow(parent,name,f),
 
       PreferencesManager(),
@@ -246,7 +246,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumMDIWindow::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
+  void TOPPViewBase::addDBSpectrum(UnsignedInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
   {
 #ifdef DB_DEF
     //DBConnection for all DB queries
@@ -412,7 +412,7 @@ namespace OpenMS
 #endif
   }
 
-  float SpectrumMDIWindow::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
+  float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
   {
     float noise = 0.0;
     UnsignedInt count = 0;
@@ -443,7 +443,7 @@ namespace OpenMS
     return noise;
   }
 
-  void SpectrumMDIWindow::preferencesDialog()
+  void TOPPViewBase::preferencesDialog()
   {
     setActive(true);
     if (showPreferencesDialog())
@@ -452,7 +452,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
   {
     //for comparison
     String filename_lower(filename);
@@ -607,7 +607,7 @@ namespace OpenMS
     //cout << "Done: "<<Date::now() << endl;
   }
 
-  void SpectrumMDIWindow::addRecentFile_(const String& filename)
+  void TOPPViewBase::addRecentFile_(const String& filename)
   {
     //get number of files in list from settings
     UnsignedInt number_of_recent_files_ = UnsignedInt(prefs_.getValue("Preferences:NumberOfRecentFiles"));
@@ -636,7 +636,7 @@ namespace OpenMS
     updateRecentMenu_();
   }
 
-  void SpectrumMDIWindow::updateRecentMenu_()
+  void TOPPViewBase::updateRecentMenu_()
   {
     //update recent file menu
     recent_menu_->clear();
@@ -647,7 +647,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumMDIWindow::addTab_(SpectrumWindow* w, const String& tabCaption)
+  void TOPPViewBase::addTab_(SpectrumWindow* w, const String& tabCaption)
   {
     //add to tab bar (map the address of the widget and the pointer)
     QTab* tab = new QTab(tabCaption.c_str());
@@ -660,7 +660,7 @@ namespace OpenMS
 
   }
 
-  void SpectrumMDIWindow::maximizeActiveSpectrum()
+  void TOPPViewBase::maximizeActiveSpectrum()
   {
     if (ws_->activeWindow())
     {
@@ -668,7 +668,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::focusSpectrumByAddress(int address)
+  void TOPPViewBase::focusSpectrumByAddress(int address)
   {
 
     QWidget* m_w = id_map_[address];
@@ -678,7 +678,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::saveImage()
+  void TOPPViewBase::saveImage()
   {
     //check if there is a active window
     SpectrumWindow* window = activeWindow_();
@@ -707,7 +707,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::print()
+  void TOPPViewBase::print()
   {
 #ifndef QT_NO_PRINTER
     SpectrumWindow* window = activeWindow_();
@@ -736,7 +736,7 @@ namespace OpenMS
 
   }
 
-  void SpectrumMDIWindow::closeFile()
+  void TOPPViewBase::closeFile()
   {
     //check if there is a active window
     if (ws_->activeWindow())
@@ -745,19 +745,19 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::closeFileByTab(OpenMS::SignedInt tab_identifier_)
+  void TOPPViewBase::closeFileByTab(OpenMS::SignedInt tab_identifier_)
   {
     SpectrumWindow* window = id_map_[tab_identifier_];
     window->close();
   }
 
-  SpectrumMDIWindow::~SpectrumMDIWindow()
+  TOPPViewBase::~TOPPViewBase()
   {
     //do not add anything here. This class is a singleton
     //use closeEvent(...) to do the cleanup
   }
 
-  void SpectrumMDIWindow::createToolBar_()
+  void TOPPViewBase::createToolBar_()
   {
     tool_bar_ = new QToolBar(this,"toolbar");
 
@@ -849,7 +849,7 @@ namespace OpenMS
     connect(dm_contours_2d_, SIGNAL(toggled(bool)), this, SLOT(showContours(bool)));
   }
 
-  void SpectrumMDIWindow::linkActiveTo(const QString& path)
+  void TOPPViewBase::linkActiveTo(const QString& path)
   {
     unlinkActive_();
     if (path!="<unlinked>")
@@ -875,7 +875,7 @@ namespace OpenMS
 
   }
 
-  void SpectrumMDIWindow::unlinkActive_()
+  void TOPPViewBase::unlinkActive_()
   {
     int active_address = PointerSizeInt(&(*ws_->activeWindow()));
     int active_linked_to_address = link_map_[active_address];
@@ -890,7 +890,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::showStatusMessage(string msg, OpenMS::UnsignedInt time)
+  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UnsignedInt time)
   {
     if (time==0)
     {
@@ -903,7 +903,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::showCursorStatus(double mz, double intensity, double rt)
+  void TOPPViewBase::showCursorStatus(double mz, double intensity, double rt)
   {
     message_label_->setText("");
     if (mz==-1)
@@ -933,7 +933,7 @@ namespace OpenMS
     statusBar()->repaint();
   }
 
-  void SpectrumMDIWindow::showGridLines(bool b)
+  void TOPPViewBase::showGridLines(bool b)
   {
     SpectrumWindow* window = activeWindow_();
     if (window!=0)
@@ -942,7 +942,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::resetZoom()
+  void TOPPViewBase::resetZoom()
   {
     SpectrumWindow* window = activeWindow_();
     if (window!=0)
@@ -951,7 +951,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::setActionMode(QAction* a)
+  void TOPPViewBase::setActionMode(QAction* a)
   {
     SpectrumWindow* w = activeWindow_();
     if (w)
@@ -970,7 +970,7 @@ namespace OpenMS
     };
   }
 
-  void SpectrumMDIWindow::setIntensityMode(QAction* a)
+  void TOPPViewBase::setIntensityMode(QAction* a)
   {
     SpectrumWindow* w = activeWindow_();
     if (w)
@@ -989,7 +989,7 @@ namespace OpenMS
     };
   }
 
-  void SpectrumMDIWindow::setDrawMode1D(QAction* a)
+  void TOPPViewBase::setDrawMode1D(QAction* a)
   {
     Spectrum1DWindow* w = active1DWindow_();
     if (w)
@@ -1004,7 +1004,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::showPoints(bool on)
+  void TOPPViewBase::showPoints(bool on)
   {
     if (Spectrum2DWindow* win = active2DWindow_())
     {
@@ -1012,7 +1012,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::showSurface(bool on)
+  void TOPPViewBase::showSurface(bool on)
   {
     if (Spectrum2DWindow* win = active2DWindow_())
     {
@@ -1020,7 +1020,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::showContours(bool on)
+  void TOPPViewBase::showContours(bool on)
   {
     if (Spectrum2DWindow* win = active2DWindow_())
     {
@@ -1028,7 +1028,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::updateToolbar(QWidget* /*widget*/)
+  void TOPPViewBase::updateToolbar(QWidget* /*widget*/)
   {
     SpectrumWindow* w = activeWindow_();
 
@@ -1153,7 +1153,7 @@ namespace OpenMS
     updateLayerbar();
   }
 
-  void SpectrumMDIWindow::updateLayerbar()
+  void TOPPViewBase::updateLayerbar()
   {
 
     layer_bar_->hide();
@@ -1195,7 +1195,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumMDIWindow::updateTabBar(QWidget* w)
+  void TOPPViewBase::updateTabBar(QWidget* w)
   {
     if (w)
     {
@@ -1203,7 +1203,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::tileVertical()
+  void TOPPViewBase::tileVertical()
   {
     // primitive horizontal tiling
     QWidgetList windows = ws_->windowList();
@@ -1236,7 +1236,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::tileHorizontal()
+  void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
     QWidgetList windows = ws_->windowList();
@@ -1268,13 +1268,13 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::removeWidgetFromBar(QObject* o)
+  void TOPPViewBase::removeWidgetFromBar(QObject* o)
   {
     tab_bar_->removeTab(tab_bar_->tab(PointerSizeInt(&(*o))));
     id_map_.erase(PointerSizeInt(&(*o)));
   }
 
-  void SpectrumMDIWindow::connectWindowSignals_(SpectrumWindow* sw)
+  void TOPPViewBase::connectWindowSignals_(SpectrumWindow* sw)
   {
     connect(sw->widget()->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolbar(QWidget*)));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UnsignedInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UnsignedInt)));
@@ -1292,7 +1292,7 @@ namespace OpenMS
   }
 
   //! returns selected peaks of active spectrum framed by \c data_set_.begin() and the last peak BEFORE \c data_set_.end();
-  vector<MSExperiment<>::SpectrumType::Iterator> SpectrumMDIWindow::getActiveSpectrumSelectedPeaks()
+  vector<MSExperiment<>::SpectrumType::Iterator> TOPPViewBase::getActiveSpectrumSelectedPeaks()
   {
     Spectrum1DWindow* w1 = active1DWindow_();
     if (w1)
@@ -1302,7 +1302,7 @@ namespace OpenMS
     return vector<MSExperiment<>::SpectrumType::Iterator>();
   }
 
-  void SpectrumMDIWindow::gotoDialog()
+  void TOPPViewBase::gotoDialog()
   {
     SpectrumWindow* w = activeWindow_();
     if (w)
@@ -1312,7 +1312,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumMDIWindow::showPeaklistActiveSpectrum()
+  void TOPPViewBase::showPeaklistActiveSpectrum()
   {
     std::vector<MSExperiment<>::SpectrumType::Iterator> peaks = getActiveSpectrumSelectedPeaks();
 
@@ -1345,7 +1345,7 @@ namespace OpenMS
 
   }
 
-  void SpectrumMDIWindow::smoothActiveSpectrum()
+  void TOPPViewBase::smoothActiveSpectrum()
   {
     SmoothingDialog dialog(this,"Open Smoothing Dialog");
     if (dialog.exec())
@@ -1556,7 +1556,7 @@ namespace OpenMS
 
 
 
-  void SpectrumMDIWindow::baselineFilteringActiveSpectrum()
+  void TOPPViewBase::baselineFilteringActiveSpectrum()
   {
     BaselineFilteringDialog dialog(this,"Open Smoothing Dialog");
     if (dialog.exec())
@@ -1682,7 +1682,7 @@ namespace OpenMS
 
 
 
-  void SpectrumMDIWindow::pickActiveSpectrum()
+  void TOPPViewBase::pickActiveSpectrum()
   {
     PeakPickingDialog dialog(this,"Open Peak Picking Dialog");
     if (dialog.exec())
@@ -1755,12 +1755,12 @@ namespace OpenMS
     }
   }
 
-  SpectrumWindow*  SpectrumMDIWindow::activeWindow_() const
+  SpectrumWindow*  TOPPViewBase::activeWindow_() const
   {
     return dynamic_cast<SpectrumWindow*>(ws_->activeWindow());
   }
 
-  Spectrum1DWindow* SpectrumMDIWindow::active1DWindow_() const
+  Spectrum1DWindow* TOPPViewBase::active1DWindow_() const
   {
     Spectrum1DWindow* s1;
     if ((s1 = dynamic_cast<Spectrum1DWindow*>(ws_->activeWindow()))
@@ -1771,7 +1771,7 @@ namespace OpenMS
     return 0;
   }
 
-  Spectrum2DWindow* SpectrumMDIWindow::active2DWindow_() const
+  Spectrum2DWindow* TOPPViewBase::active2DWindow_() const
   {
     Spectrum2DWindow* s2;
     if ((s2 = dynamic_cast<Spectrum2DWindow*>(ws_->activeWindow()))
@@ -1782,7 +1782,7 @@ namespace OpenMS
     return 0;
   }
 
-  Spectrum3DWindow* SpectrumMDIWindow::active3DWindow_() const
+  Spectrum3DWindow* TOPPViewBase::active3DWindow_() const
   {
     Spectrum3DWindow* s3;
     if ((s3 = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
@@ -1793,12 +1793,12 @@ namespace OpenMS
     return 0;
   }
 
-  PreferencesDialogPage* SpectrumMDIWindow::createPreferences(QWidget* parent)
+  PreferencesDialogPage* TOPPViewBase::createPreferences(QWidget* parent)
   {
-    return new SpectrumMDIWindowPDP(this,parent);
+    return new TOPPViewBasePDP(this,parent);
   }
 
-  void SpectrumMDIWindow::loadPreferences(string filename)
+  void TOPPViewBase::loadPreferences(string filename)
   {
     //compose default ini file path
     String default_ini_file;
@@ -1851,7 +1851,7 @@ namespace OpenMS
     updateRecentMenu_();
   }
 
-  void SpectrumMDIWindow::savePreferences()
+  void TOPPViewBase::savePreferences()
   {
     // replace recent files
     prefs_.remove("Preferences:RecentFiles");
@@ -1872,7 +1872,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumMDIWindow::checkPreferences_()
+  void TOPPViewBase::checkPreferences_()
   {
     Param default_preferences;
 
@@ -1923,7 +1923,7 @@ namespace OpenMS
     prefs_.setDefaults(default_preferences,"Preferences");
   }
 
-  void SpectrumMDIWindow::openRecentFile(int i)
+  void TOPPViewBase::openRecentFile(int i)
   {
     setCursor(Qt::WaitCursor);
     OpenDialog::Mower mow = OpenDialog::NO_MOWER;
@@ -1935,7 +1935,7 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
 
-  void SpectrumMDIWindow::findFeaturesActiveSpectrum()
+  void TOPPViewBase::findFeaturesActiveSpectrum()
   {
 #ifdef CGAL_DEF
     Spectrum2DWindow* w = active2DWindow_();
@@ -1961,13 +1961,13 @@ namespace OpenMS
 #endif
   }
 
-  void SpectrumMDIWindow::closeEvent(QCloseEvent * e)
+  void TOPPViewBase::closeEvent(QCloseEvent * e)
   {
     savePreferences();
     e->accept();
   }
 
-  void SpectrumMDIWindow::windowClosed()
+  void TOPPViewBase::windowClosed()
   {
     // close tab bar, when last window is closed
     if (ws_->windowList().count()==1)
@@ -1977,7 +1977,7 @@ namespace OpenMS
   }
 
 
-  void SpectrumMDIWindow::openSpectrumDialog()
+  void TOPPViewBase::openSpectrumDialog()
   {
     OpenDialog dialog(prefs_,this,"Open Spectrum Dialog");
     if (dialog.exec())

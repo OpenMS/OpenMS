@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/SpectrumMDIWindowPDP.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewBasePDP.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -53,7 +53,7 @@ namespace OpenMS
 	{
 
 
-		SpectrumMDIWindowPDP::SpectrumMDIWindowPDP( SpectrumMDIWindow* manager, QWidget* parent, const char* name, WFlags f)
+		TOPPViewBasePDP::TOPPViewBasePDP( TOPPViewBase* manager, QWidget* parent, const char* name, WFlags f)
 			:PreferencesDialogPage(manager,parent,name,f)
 		{
 			help_ = "This is the preferences dialog of the main window!"
@@ -290,12 +290,12 @@ namespace OpenMS
 			load();
 		}
 	
-		SpectrumMDIWindowPDP::~SpectrumMDIWindowPDP()
+		TOPPViewBasePDP::~TOPPViewBasePDP()
 		{
 		
 		}
 		
-		void SpectrumMDIWindowPDP::load()
+		void TOPPViewBasePDP::load()
 		{
 			//general
 			main_default_path_->setText(manager_->getPrefAsString("Preferences:DefaultPath").c_str());
@@ -367,7 +367,7 @@ namespace OpenMS
 		
 		}
 		
-		void SpectrumMDIWindowPDP::save()
+		void TOPPViewBasePDP::save()
 		{
 			//main
 			manager_->setPref("Preferences:DefaultPath", main_default_path_->text().ascii());
@@ -449,7 +449,7 @@ namespace OpenMS
 		
 		}
 		
-		void SpectrumMDIWindowPDP::browseDefaultPath_()
+		void TOPPViewBasePDP::browseDefaultPath_()
 		{
 			QString path = QFileDialog::getExistingDirectory(main_default_path_->text(), this, "get existing directory", "Choose a directory", TRUE );
 			if (path!="")

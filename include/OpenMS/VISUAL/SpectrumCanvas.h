@@ -461,7 +461,7 @@ namespace OpenMS
 		*/
 		void contextMenu(QPoint pos);
 
-		/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
+		/// Displays a status message. See TOPPViewBase::showStatusMessage .
 		void sendStatusMessage(std::string, OpenMS::UnsignedInt);
 			
 		/// Forces recalculation of axis ticks in the connected widget.

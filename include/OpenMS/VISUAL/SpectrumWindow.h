@@ -83,7 +83,7 @@ namespace OpenMS
 			void setMainPreferences(const Param& prefs);
 			
 		signals:
-			/// Display a status message. See SpectrumMDIWindow::showStatusMessage .
+			/// Display a status message. See TOPPViewBase::showStatusMessage .
 			void sendStatusMessage(std::string,OpenMS::UnsignedInt);
 			/// Display coordinates (mz, rt, intensity)
 			void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
@@ -93,7 +93,7 @@ namespace OpenMS
 		  void openPreferences();
 			
 		public slots:
-			/// Displays a status message. See SpectrumMDIWindow::showStatusMessage .
+			/// Displays a status message. See TOPPViewBase::showStatusMessage .
 			void showStatusMessage(std::string,OpenMS::UnsignedInt);
 			/// Displays coordinates (mz, rt, intensity)
 			void showCursorStatus(double mz, double intens, double rt);
