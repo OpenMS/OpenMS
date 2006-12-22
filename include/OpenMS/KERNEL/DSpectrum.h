@@ -465,8 +465,8 @@ namespace OpenMS
 	    void setRetentionTime(CoordinateType rt, CoordinateType start=0, CoordinateType stop=0) 
 	    { 
 	    	retention_time_= rt; 
-			retention_start_ = start;
-			retention_stop_ = stop;
+				retention_start_ = start;
+				retention_stop_ = stop;
 	    }
 	    
 	    /**
