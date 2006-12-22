@@ -584,7 +584,7 @@ public:
         // genarete new temp file and copy the old one
 				std::remove( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
-        copyTmpFile__(source.file_name_);
+        copyTmpFile_(source.file_name_);
     }
 
     /// Destructor
@@ -617,7 +617,7 @@ public:
         std::remove( file_name_ .c_str());
         file_name_ = "msexp_" + String(std::rand());
         // and copy the old one
-        copyTmpFile__(source.file_name_);
+        copyTmpFile_(source.file_name_);
 				
         return *this;
     }
@@ -884,7 +884,7 @@ public:
             {
                 // yes => store scan at current buffer position and then overwrite
 // 								std::cout << "Position in buffer occupied. Writing to hard disk and then overwrite." << std::endl;
-                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
             }
 
             exp_[buffer_index_] = spec;
@@ -895,7 +895,7 @@ public:
         {
 // 	         	std::cout << "Buffer full. Overwriting buffer at pos 0."   << std::endl;
             buffer_index_ = 0; 																		// reset buffer index
-            writeScan(buffer2scan_[buffer_index_],  exp_[buffer_index_] ); 		// write content of buffer to temp. file
+            writeScan_(buffer2scan_[buffer_index_],  exp_[buffer_index_] ); 		// write content of buffer to temp. file
             exp_[buffer_index_] = spec;														// store new spectrum
 
             scan2buffer_.push_back(buffer_index_);
@@ -914,7 +914,7 @@ public:
         if (buffer2scan_[b] != n)
 				{	
 // 						std::cout << "scan not in buffer." << std::endl;
-            storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+            storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 				 }
         b = scan2buffer_[n];
         return exp_[b];
@@ -923,15 +923,13 @@ public:
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference operator[] (size_type n) const
     {
-				std::cout << "operator[" << n << "] const" << std::endl;
+// 				std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
-				std::cout << "b = " << b << std::endl;
-				std::cout << scan2buffer_.size() << " " << buffer2scan_.size() <<  std::endl;
         if (buffer2scan_[b] != n)
         {
 //             std::cout << "scan not in buffer." << std::endl;
-            storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+            storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
         }
         b = scan2buffer_[n];
         return exp_[b];
@@ -946,7 +944,7 @@ public:
         if (buffer2scan_[b] != n) 
 				{
 // 					std::cout << "scan not in buffer." << std::endl;
-           storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+           storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 				}
         b = scan2buffer_[n];
         return exp_.at(b);
@@ -961,7 +959,7 @@ public:
         if (buffer2scan_[b] != n)
         {    
 // 					std::cout << "scan not in buffer." << std::endl;
-					storeInBuffer(n);	// scan is not in buffer, needs to be read from file
+					storeInBuffer_(n);	// scan is not in buffer, needs to be read from file
 				}
         b = scan2buffer_[n];
         return exp_.at(b);
@@ -1211,9 +1209,7 @@ public:
 					
 // 					last_scan_index_ = (it - spectra_lengths_.begin() );    
 				}
-				
-				
-				
+							
 				// all information was  collected, compile peak and continue
 				DRawDataPoint<2> rp;
 				rp.getPosition()[0] = ((*this)[scan_index]).getRetentionTime();
@@ -1294,12 +1290,10 @@ protected:
 		
 		/// MS levels of the data
     std::vector<UnsignedInt> ms_levels_;
-
+		
     /// reads a scan from the temp file and stores it in the buffer
-    void storeInBuffer(const size_type& n)
+    void storeInBuffer_(const size_type& n)
     {
-        //         std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
-
         // check if buffer is full
         if (buffer_index_ < buffer_size_)
         {
@@ -1310,10 +1304,10 @@ protected:
             if (current_scan_ > buffer_size_)
             {
                 // yes => store scan at current buffer position and then overwrite
-                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
             }
 
-            readScan(n,exp_[buffer_index_]);
+            readScan_(n,exp_[buffer_index_]);
             scan2buffer_[n] = buffer_index_;
             buffer2scan_[buffer_index_++] = n;
         }
@@ -1326,71 +1320,24 @@ protected:
             // check if size of buffer is set to zero
             if (buffer_size_ > 0 )
             {
-                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
-                readScan(n,exp_[buffer_index_]);
+                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+                readScan_(n,exp_[buffer_index_]);
                 scan2buffer_[n]                      = buffer_index_;
                 buffer2scan_[buffer_index_++] = n;
             }
             else // buffer size is set to zero
             {
-                throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer()");
+                throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer_()");
             }
         }
     }
-
-    void storeInBuffer(const size_type& n) const
-    {
-        // 		std::cout << "storeInBuffer :: spectra at " << n << " is not in buffer. " << std::endl;
-
-        // check if buffer is full
-        if (buffer_index_ < buffer_size_)
-        {
-            //             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
-            // 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
-
-            // test if we already wrote at this buffer position
-            if (current_scan_ > buffer_size_)
-            {
-                // yes => store scan at current buffer position and then overwrite
-                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
-            }
-
-            readScan(n,exp_[buffer_index_]);
-            scan2buffer_[n] = buffer_index_;
-            buffer2scan_[buffer_index_++] = n;
-        }
-        else
-        {
-            // 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
-            // buffer is full, therefore we overwrite the first entry
-            buffer_index_ = 0;
-
-            // check if size of buffer is set to zero
-            if (buffer_size_ > 0 )
-            {
-                writeScan(buffer2scan_[buffer_index_], exp_[buffer_index_] );
-                readScan(n,exp_[buffer_index_]);
-                scan2buffer_[n]                      = buffer_index_;
-                buffer2scan_[buffer_index_++] = n;
-            }
-            else // buffer size is set to zero
-            {
-                throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer()");
-            }
-        }
-    }
-
-    /// write spectrum to file
-    void writeScan(const size_type& index, const SpectrumType& spec) const
-    {
-// 				std::cout << "Writing at " << index << std::endl;
-        pFile_ = fopen(file_name_.c_str(),"a");
-        CoordinateType rt  = spec.getRetentionTime();
-				UnsignedInt  mslvl = spec.getMSLevel();
+		
+		/// open the temporary file in mode @p mode
+		off_t openFile_(const  off_t& pos, const char* mode) const
+		{
+				pFile_ = fopen(file_name_.c_str(),mode);
 				
-        off_t pos;
-        // determine position in file and store it
-        if ( ( pos = ftello(pFile_) ) < 0)
+				if ( ftello(pFile_) < 0)
         {
             std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
             std::cout << "Error code: " << errno << std::endl;
@@ -1400,16 +1347,94 @@ protected:
                 std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
                 std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
                 std::cout << "file became too large." << std::endl;
-                throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan()",pos,sizeof(off_t));
+                throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan_()",pos,sizeof(off_t));
             }
 
         }
+				
+				if (pos > 0)
+				{
+					std::cout << "pos: " << pos << std::endl;
+					fseeko(pFile_, pos,SEEK_SET);
+				}
+				
+				return ftello(pFile_);		
+		}
+
+		/// Stores spectrum with number @p n in buffer
+    void storeInBuffer_(const size_type& n) const
+    {
+        // 		std::cout << "storeInBuffer_ :: spectra at " << n << " is not in buffer. " << std::endl;
+
+        // check if buffer is full
+        if (buffer_index_ < buffer_size_)
+        {
+            //             std::cout << "buffer is not full, inserting scan at " << buffer_index_ << std::endl;
+            // 			std::cout << scan2buffer_.size() << "  " << buffer2scan_.size() << std::endl;
+
+            // test if we already wrote at this buffer position
+            if (current_scan_ > buffer_size_)
+            {
+                // yes => store scan at current buffer position and then overwrite
+                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+            }
+
+            readScan_(n,exp_[buffer_index_]);
+            scan2buffer_[n] = buffer_index_;
+            buffer2scan_[buffer_index_++] = n;
+        }
+        else
+        {
+            // 			std::cout << "buffer is full, inserting scan at first position " << std::endl;
+            // buffer is full, therefore we overwrite the first entry
+            buffer_index_ = 0;
+
+            // check if size of buffer is set to zero
+            if (buffer_size_ > 0 )
+            {
+                writeScan_(buffer2scan_[buffer_index_], exp_[buffer_index_] );
+                readScan_(n,exp_[buffer_index_]);
+                scan2buffer_[n]                      = buffer_index_;
+                buffer2scan_[buffer_index_++] = n;
+            }
+            else // buffer size is set to zero
+            {
+                throw Exception::OutOfRange(__FILE__, __LINE__,"MSExperimentExtern::storeInBuffer_()");
+            }
+        }
+    }
+
+    /// write spectrum to file
+    void writeScan_(const size_type& index, const SpectrumType& spec) const
+    {
+// 				std::cout << "Writing at " << index << std::endl;
+// 				pFile_ = fopen(file_name_.c_str(),"a");
+        CoordinateType rt  = spec.getRetentionTime();
+				UnsignedInt  mslvl = spec.getMSLevel();
+				
+//         off_t pos = 0.0;
+        // determine position in file and store it
+//         if ( ( pos = ftello(pFile_) ) < 0)
+//         {
+//             std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
+//             std::cout << "Error code: " << errno << std::endl;
+//             if (errno == EOVERFLOW)
+//             {
+//                 std::cout << "An overflow of the position index was encountered." << std::endl;
+//                 std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
+//                 std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+//                 std::cout << "file became too large." << std::endl;
+//                 throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::writeScan_()",pos,sizeof(off_t));
+//             }
+// 
+//         }
 
         // test if this scan was already written and store its offset
         if (index >= scan_sizes_.size() )
         {
 						// scan was not written yet => append writing position
-            scan_location_.push_back( pos );
+            scan_location_.push_back( openFile_(0,"a") );			
+						scan_sizes_.push_back(spec.getContainer().size());			
         }
         else
         {
@@ -1417,19 +1442,22 @@ protected:
             if (scan_sizes_[index] == spec.size() )
             {
                 // write at old position
-                pos = scan_location_[index];
-                fseeko(pFile_,pos,SEEK_SET);
+                off_t pos = scan_location_[index];
+								openFile_(pos,"w");
+                //fseeko(pFile_,pos,SEEK_SET);
             }
             else
             {
                 // size has changed, forget old position and append
 								std::cout << "Size has changed: "  << scan_location_[index] << " " << spec.size() << std::endl;
-                scan_location_[index] = pos;
+								scan_location_[index] = openFile_(0,"a");
+								scan_sizes_[index] = spec.getContainer().size();	// update scan size
+//                 scan_location_[index] = pos;
             }
 
         }
 
-        // 		std::cout << "writeScan: writing scan " << index << " at " << ftello(pFile_) << std::endl;
+        // 		std::cout << "writeScan_: writing scan " << index << " at " << ftello(pFile_) << std::endl;
 				// store retention time and ms level first
         fwrite(&rt,sizeof(CoordinateType),1,pFile_);
 				fwrite(&mslvl,sizeof(UnsignedInt),1,pFile_);
@@ -1443,40 +1471,45 @@ protected:
         fclose(pFile_);
 
         // test if this scan was already written and store its size
-        if (index >= scan_sizes_.size() )
-        {
-            scan_sizes_.push_back(spec.getContainer().size());
-        }
-        else
-        {
-            scan_sizes_[index] = spec.getContainer().size();
-        }
+//         if (index >= scan_sizes_.size() )
+//         {
+//             scan_sizes_.push_back(spec.getContainer().size());
+//         }
+//         else
+//         {
+//             scan_sizes_[index] = spec.getContainer().size();
+//         }
 
     } // end of write(spectrum)
 
     /// Reads a spectrum from a file
-    void readScan(const size_type& index, SpectrumType& spec)  const
+    void readScan_(const size_type& index, SpectrumType& spec)  const
     {
-        pFile_ = fopen(file_name_.c_str(),"r");
+        //pFile_ = fopen(file_name_.c_str(),"r");
+				
+			
 
         // set stream to starting point of last writing action
 // 				std::cout << "Reading from " << file_name_ << std::endl;
 // 				std::cout << "Retrieving reading offset: " << scan_location_.size() << " " << index << std::endl;
         off_t pos = scan_location_.at(index);
-//         std::cout << " readScan: reading scan " << index << " from " << pos << std::endl;
-        if ( fseeko(pFile_,pos,SEEK_SET) != 0)
-        {
-            std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
-            std::cout << "Error code: " << errno << std::endl;
-            if (errno == EOVERFLOW)
-            {
-                std::cout << "An overflow of the position index was encountered." << std::endl;
-                std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
-                std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-                std::cout << "file became too large." << std::endl;
-                throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan()",pos,sizeof(off_t));
-            }
-        }
+				
+				openFile_(pos,"r");
+				
+//         std::cout << " readScan_: reading scan " << index << " from " << pos << std::endl;
+//         if ( fseeko(pFile_,pos,SEEK_SET) != 0)
+//         {
+//             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
+//             std::cout << "Error code: " << errno << std::endl;
+//             if (errno == EOVERFLOW)
+//             {
+//                 std::cout << "An overflow of the position index was encountered." << std::endl;
+//                 std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64"  << std::endl;
+//                 std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+//                 std::cout << "file became too large." << std::endl;
+//                 throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",pos,sizeof(off_t));
+//             }
+//         }
 
         // 		std::cout << "Reading rt. " << std::endl;
         // read retention time
@@ -1507,7 +1540,7 @@ protected:
     }	// end of read const
 
     /// copies the content of the tempory file
-    void copyTmpFile__(String source)
+    void copyTmpFile_(String source)
     {
 //     		std::cout << "Copying temporary file " << source << std::endl;
 				std::ifstream input(source.c_str());
