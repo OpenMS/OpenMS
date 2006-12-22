@@ -78,11 +78,6 @@ namespace OpenMS
 			/// sets the model to be used for the identification run
 			void setModel(PILISModel* hmm_model);
 
-			/// set scoring type; all PeakSpectrumCompareFunctor are allowed
-			void setScoringType(const String& name);
-
-			const String& getScoringType() const;
-			
 			/// performs an identification run on a PeakMap
 			void getIdentifications(std::vector<Identification>& ids, const PeakMap& exp);
 
@@ -97,6 +92,15 @@ namespace OpenMS
 			
 			/// sets the parameters
 			void setParam(const Param& param);
+
+			/// resets the parameters to default values
+			void resetToDefaults();
+
+			/// sets the scoring type, all PeakSpectrumCompareFunctors are allowed
+			void setScoringType(const String& type);
+
+			/// gets the scoring type set, or an empty string
+			const String& getScoringType() const;
 			//@}
 
 		protected:
@@ -112,6 +116,9 @@ namespace OpenMS
 		
 			/// the params 
 			Param param_;
+
+			/// default parameter
+			Param defaults_;
 
 			/// the sequence database for the candidate peptides
 			PILISSequenceDB* sequence_db_;

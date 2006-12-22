@@ -96,10 +96,10 @@ namespace OpenMS
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge);
-			//@}
 
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
+			//@}
 
 		protected:
 
@@ -138,14 +138,8 @@ namespace OpenMS
 			};
 			
 			/// initializes the model
-			void initModel_();
+			void initModels_();
 	
-			/// initializes the precursor model
-			void initPrecursorModel_();
-
-			/// initializes the loss models
-			void initLossModels_();
-
 			/// the states of the precursor and loss states
 			enum States_
 			{
@@ -258,6 +252,11 @@ namespace OpenMS
 			/// enum to name mapping of the losses/precursor states
 			HashMap<States_, String> enum_to_name_;
 
+			/// params_ of the model
+			Param param_;
+
+			/// default parameters of the model
+			Param default_;
 	};
 }
 #endif

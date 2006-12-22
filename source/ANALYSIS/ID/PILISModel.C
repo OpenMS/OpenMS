@@ -37,29 +37,6 @@
 #include <numeric>
 #include <fstream>
 
-#define MODEL_DEPTH 4	// length of the model (symmetric)
-											// the first n and the last cleavage sites are modeled
-											// the center cleavage sites are considered as equal
-#define VISIBLE_MODEL_DEPTH 30  // this is the maximal residue size which can be processed
-																// the difference to MODEL_DEPTH is mapped to the center states
-
-#define UPPER_MZ 2000.0
-#define LOWER_MZ 200.0
-
-#define CHARGE_REMOTE_THRESHOLD 0.2
-#define CHARGE_REMOTE_FACTOR 1 
-
-#define CHARGE_DIRECTED_FACTOR 1
-#define CHARGE_DIRECTED_THRESHOLD 0.3
-
-#define SIDE_CHAIN_FACTOR 1
-
-#define SIDE_CHAIN_INTENSITY_THRESHOLD 0.00
-
-#define PROTON_LOSS_FACTOR 0.3
-#define PROTON_LOSS_DIFF 18000
-#define PROTON_LOSS_POWER 1
-
 #define TRAINING_DEBUG
 #undef  TRAINING_DEBUG
 
@@ -70,16 +47,11 @@
 #undef  ALIGMENT_DEBUG
 
 // TODO's from refactoring
-// 	- name_to_formula replacing by id.estimateDis...
-// 	- implement loss training/prediction from the files
-// 	- reduce the model to visible size ????
 // 	- replace getSpectrumAlignment by better, separate method. DP ????
 
 // TODO refactoring of the pieces:
 // 			- spectra alignment
 //			-	method to get peak intensities via spectra comparison
-//			- proton distribution (interface, communication?!?)
-//			- cleanup / optimization (very important getSpectrum(...) and related
 
 // TODO parameter for upper and lower m/z boundaries
 // TODO rewrite of neutral losses (depend on which charges?), do it like Pre?
@@ -94,8 +66,7 @@ namespace OpenMS
 	ResidueDB PILISModel::res_db_;
 
 	PILISModel::PILISModel()
-	{
-					/*
+	{	
 		default_.setValue("upper_mz", 2000.0);
 		default_.setValue("lower_mz", 200.0);
 		default_.setValue("charge_remote_threshold", 0.2);
@@ -107,9 +78,9 @@ namespace OpenMS
 		default_.setValue("model_depth", 4);
 		default_.setValue("visible_model_depth", 30);
 
-		param_ = default_;*/
+		param_ = default_;
 
-		initLossModels_();
+		initModels_();
 	}
 
 	PILISModel::~PILISModel()
@@ -147,87 +118,30 @@ namespace OpenMS
     {
      	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-		//hmm_.readFromFile(filename);
 
 		TextFile file;
 		file.load(filename, true);
 
 		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
-		String begin_marker("BASE_MODEL_BEGIN"), end_marker("BASE_MODEL_END");
-		it_begin = file.search(it_begin, begin_marker);
-		it_end = file.search(it_begin, end_marker);
-		//cerr << *it_begin << " " << *it_end << endl;
+		it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
+		it_end = file.search(it_begin, "BASE_MODEL_END");
 		parseBaseModel_(++it_begin, it_end);
 
 		// seek to next interval
-		begin_marker = "PRECURSOR_MODEL_BEGIN";
-		end_marker = "PRECURSOR_MODEL_END";
-		it_begin = file.search(it_end, begin_marker);
-		it_end = file.search(it_begin, end_marker);
-		//cerr << *it_begin << " " << *it_end << endl;
+		it_begin = file.search(it_end, "PRECURSOR_MODEL_BEGIN");
+		it_end = file.search(it_begin, "PRECURSOR_MODEL_END");
 		parseHMMLightModel_(++it_begin, it_end, hmm_precursor_);
 
 		// loss models
-		begin_marker = "BION_LOSS_MODEL_BEGIN";
-		end_marker = "BION_LOSS_MODEL_END";
-		it_begin = file.search(it_end, begin_marker);
-		it_end = file.search(it_begin, end_marker);
-		//cerr << *it_begin << " " << *it_end << endl;
+		it_begin = file.search(it_end, "BION_LOSS_MODEL_BEGIN");
+		it_end = file.search(it_begin, "BION_LOSS_MODEL_END");
 		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[Residue::BIon]);
 		
 		// y-ion loss model
-		begin_marker = "YION_LOSS_MODEL_BEGIN";
-		end_marker = "YION_LOSS_MODEL_END";
-		it_begin = file.search(it_end, begin_marker);
-		it_end = file.search(it_begin, end_marker);
-		//cerr << *it_begin << " " << *it_end << endl;
+		it_begin = file.search(it_end, "YION_LOSS_MODEL_BEGIN");
+		it_end = file.search(it_begin, "YION_LOSS_MODEL_END");
 		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[Residue::YIon]);
 		
-		/*
-		// read the precursor and loss models
-		if (!File::exists(precursor_filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
-    }
-    if (!File::readable(precursor_filename))
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
-    }
-    if (File::empty(precursor_filename))
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, precursor_filename);
-    }
-		parseModelFile(precursor_filename, &hmm_precursor_);
-
-		if (!File::exists(b_loss_filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
-    }
-    if (!File::readable(b_loss_filename))
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
-    }
-    if (File::empty(b_loss_filename))
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, b_loss_filename);
-    }
-		parseModelFile(b_loss_filename, &hmms_losses_[Residue::BIon]);
-
-
-		if (!File::exists(y_loss_filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
-    }
-    if (!File::readable(y_loss_filename))
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
-    }
-    if (File::empty(y_loss_filename))
-    {
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, y_loss_filename);
-    }
-		parseModelFile(y_loss_filename, &hmms_losses_[Residue::YIon]);
-		*/
 		return;
 	}
 
@@ -261,13 +175,6 @@ namespace OpenMS
 		hmms_losses_[Residue::YIon].write(out);
 		out << "YION_LOSS_MODEL_END" << endl;
 		
-		// write the base model file
-		//hmm_.writeToFile(filename);
-
-		// write the precursor and loss models
-		//hmm_precursor_.writeToFile(precursor_filename);
-		//hmms_losses_[Residue::BIon].writeToFile(b_loss_filename);
-		//hmms_losses_[Residue::YIon].writeToFile(y_loss_filename);
 		return;
 	}
 
@@ -1587,9 +1494,9 @@ namespace OpenMS
     }
 
     charge_dir_tmp = bb_sum;
-    if (bb_sum < CHARGE_DIRECTED_THRESHOLD)
+    if (bb_sum < (double)param_.getValue("charge_directed_threshold")/*CHARGE_DIRECTED_THRESHOLD*/)
     {
-      charge_dir_tmp = CHARGE_DIRECTED_THRESHOLD;
+      charge_dir_tmp = (double)param_.getValue("charge_directed_threshold")/*CHARGE_DIRECTED_THRESHOLD*/;
 			is_charge_remote = true;
     }
 
@@ -1598,21 +1505,21 @@ namespace OpenMS
 					
 		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-      bb_init.push_back(bb_charges[i+1] * charge_dir_tmp * CHARGE_DIRECTED_FACTOR);
+      bb_init.push_back(bb_charges[i+1] * charge_dir_tmp * (double)param_.getValue("charge_directed_factor")/*CHARGE_DIRECTED_FACTOR*/);
       String aa(peptide[i]->getOneLetterCode());
       if (sc_charges.has(i))
       {
-        if ((aa == "K" || aa == "R" || aa == "H") /*&& bb_sum < CHARGE_REMOTE_THRESHOLD*/)
+        if ((aa == "K" || aa == "R" || aa == "H") /*&& bb_sum < (double)param_.getValue("charge_remote_threshold")*/)
         {
-          sc_init.push_back(sc_charges[i] * bb_avg * SIDE_CHAIN_FACTOR);
+          sc_init.push_back(sc_charges[i] * bb_avg * (double)param_.getValue("side_chain_factor") /*SIDE_CHAIN_FACTOR*/);
         }
         else
         {
           sc_init.push_back(0.0);
         }
-        if (bb_sum < CHARGE_REMOTE_THRESHOLD && (aa == "D" || aa == "E"))
+        if (bb_sum < (double)param_.getValue("charge_remote_threshold") /*CHARGE_REMOTE_THRESHOLD*/ && (aa == "D" || aa == "E"))
         {
-          cr_init.push_back(((1 - bb_sum) * bb_avg /** sc_charge[i]*/) * CHARGE_REMOTE_FACTOR);
+          cr_init.push_back(((1 - bb_sum) * bb_avg /** sc_charge[i]*/) * (double)param_.getValue("charge_remote_factor")/*CHARGE_REMOTE_FACTOR*/);
         }
         else
         {
@@ -1660,7 +1567,7 @@ namespace OpenMS
 				p.setMetaValue("IonName", string(name.c_str()));
 			}
 
-			if (pos >= LOWER_MZ && pos <= UPPER_MZ)
+			if (pos >= (double)param_.getValue("lower_mz") && pos <= (double)param_.getValue("upper_mz"))
 			{
 				p.setIntensity(intensity * it->second);
 				spectrum.getContainer().push_back(p);
@@ -1674,9 +1581,9 @@ namespace OpenMS
 		return;
 	}
 	
+	/*
 	void PILISModel::initModel_()
 	{
-		/*
 		cerr << ">> Init model " << endl;
 
 		hmm_.addNewState(new HMMState(String("endcenter"), false));
@@ -1991,17 +1898,9 @@ namespace OpenMS
 		hmm_.disableTransitions();
 		hmm_.buildSynonyms();
 		cerr << "#states=" << hmm_.getNumberOfStates() << endl;
-		*/
-	}
+	}*/
 
-	void PILISModel::initPrecursorModel_()
-	{
-		//parseModelFile(String("model_precursor.dat"), &hmm_precursor_);
-		//hmm_precursor_.disableTransitions();
-		//hmm_precursor_.buildSynonyms();
-	}
-
-	void PILISModel::initLossModels_()
+	void PILISModel::initModels_()
 	{
 		name_to_enum_["b-H2O"] = B_H2O;
     name_to_enum_["b-NH3"] = B_NH3;

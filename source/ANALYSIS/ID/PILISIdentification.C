@@ -37,13 +37,13 @@ namespace OpenMS
 {
 	
 	PILISIdentification::PILISIdentification()
-		:	sequence_db_(0),
-			hmm_model_(0),
+		:	sequence_db_(new PILISSequenceDB()),
+			hmm_model_(new PILISModel()),
 			scorer_(0)
 	{
-		param_.setValue("prcr_m_tol", double(3.0));
-		param_.setValue("max_candidates", 200);
-		param_.setValue("score_name", "ZhangSimilarityScore");
+		defaults_.setValue("prcr_m_tol", double(3.0));
+		defaults_.setValue("max_candidates", 200);
+		defaults_.setValue("score_name", "ZhangSimilarityScore");
 
 		aa_weight_['K'] = 128.095;
   	aa_weight_['M'] = 131.04;
@@ -66,19 +66,16 @@ namespace OpenMS
   	aa_weight_['I'] = 113.084;
   	aa_weight_['L'] = 113.084;
 
-		// debug
-		//PeakSpectrum spec;
-		//getSpectrum_(spec, "IFSQVGK", 1);
-		//for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
-		//{
-		//	cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
-		//}
+		param_ = defaults_;
+		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
+		scoring_type_ = (String)defaults_.getValue("score_name");
 	}
 
-	PILISIdentification::PILISIdentification(const PILISIdentification& /*PILIS_id*/)
-		: scorer_(0)
+	PILISIdentification::PILISIdentification(const PILISIdentification& PILIS_id)
+		: sequence_db_(new PILISSequenceDB(*PILIS_id.sequence_db_)),
+			hmm_model_(new PILISModel(*PILIS_id.hmm_model_)),
+			scorer_(Factory<PeakSpectrumCompareFunctor>::create(PILIS_id.scorer_->getName()))
 	{
-		// TODO
 	}
 	
 	PILISIdentification::~PILISIdentification()
@@ -298,6 +295,12 @@ namespace OpenMS
 	const Param& PILISIdentification::getParam() const
 	{
 		return param_;
+	}
+
+	void PILISIdentification::resetToDefaults()
+	{
+		param_ = defaults_;
+		return;
 	}
 	
 	void PILISIdentification::setParam(const Param& param)
