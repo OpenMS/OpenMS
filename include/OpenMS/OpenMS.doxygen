@@ -65,7 +65,8 @@
 		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
 		- Visualisierung von FeaturePairs -> TOPP tool ändern
-		- Messen bei 1D
+		- Messen in 1D
+		- Reduktion in 2D
 	- DB
 	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)
