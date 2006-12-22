@@ -3,7 +3,10 @@
 
 \documentclass[a4]{article}
 \usepackage{a4wide}
-\usepackage{times}
+
+%\usepackage{times}% replaces typewriter with courier - but cm typewriter is nicer
+\def\rmdefault{ppl}% replaces roman fonts with postscript times font
+
 \title{OpenMS coding conventions}
 \date{$ $Rev$ $}
 \author{}
@@ -185,7 +188,7 @@ of setMember(...) and getMember() methods.
 This is necessary as accessors that return references to a member cannot be wrapped with Python!\\
 There is one exception to this strict rule. For members that are too large to be
 read with the get-method, modified and written back with the set-method, the
-get-method may return a reference to the member. {\bf But} then an additiolal const
+get-method may return a reference to the member. {\bf But} then an additional const
 get-method has to be implemented! 
 
 \section{Exception handling}
@@ -288,7 +291,7 @@ type. It should not prefix the variable name.
 {\tt void hello();} (ordinary function, no arguments) \\
 {\tt int countPeaks(PeakArray const\& p);} (ordinary function) \\
 {\tt bool ignore(string\& /* name */);} (ordinary function with an unused argument) \\
-{\tt bool isAdjacentTo(Peak const * const * const \& p);} (an ordinary function :-) \\
+{\tt bool isAdjacentTo(Peak const * const * const \& p) const;} (an ordinary function :-) \\
 {\tt bool doSomething\_(int i, string\& name);} (protected or private member function)
 \end{example}
 
@@ -303,10 +306,14 @@ type. It should not prefix the variable name.
   {\tt enum DimensionId\_ \{ MZ = 0, RT = 1 \};} (enumerated values)
 \end{example}
 (You should avoid using the preprocessor anyway.  Normally, \texttt{const} and
-\texttt{enum} will suffice unless you want to do a really bad thing.)
+\texttt{enum} will suffice unless something very special.)
 
+\subsection{Parameters}
 
-
+Parameters in .ini files and elsewhere are named like the things they
+represent.  (By a parameter we mean the \emph{keys} used in the \texttt{Param}
+class.)  Typically this will be public member variables or public class names
+(e.g.\ in case of factories).
 
 % \subsection{Quiz}
 
@@ -411,7 +418,7 @@ class Test
       @brief Dummy function.
       
       A normal member taking two arguments and returning an integer value.
-      The paramter @p dummy_a is an integer.
+      The parameter @p dummy_a is an integer.
       @param dummy_a an integer argument.
       @param dummy_s a constant character pointer.
       @see Test()
