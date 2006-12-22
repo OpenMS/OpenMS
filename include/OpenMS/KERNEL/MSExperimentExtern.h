@@ -923,9 +923,11 @@ public:
     /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
     const_reference operator[] (size_type n) const
     {
-// 				std::cout << "operator[" << n << "] const" << std::endl;
+				std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
+				std::cout << "b = " << b << std::endl;
+				std::cout << scan2buffer_.size() << " " << buffer2scan_.size() <<  std::endl;
         if (buffer2scan_[b] != n)
         {
 //             std::cout << "scan not in buffer." << std::endl;
@@ -1094,13 +1096,11 @@ public:
 
     /// Mutable access to peak with index @p
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
-    {				
+    {
+// 				std::cout << "getPeak(" << index << ")" << std::endl;
+				
 				if (index > nr_dpoints_)
-				{
-						std::cout << "getPeak(" << index << ")" << std::endl;
-						std::cout << "Data points: " << nr_dpoints_ << std::endl;
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				}
 				
 				UnsignedInt scan_index = 0;
 				UnsignedInt peak_index = 0;
@@ -1161,14 +1161,11 @@ public:
     /// const access to peak with index @p (call updateRanges() before using this method)
     const DRawDataPoint<2> getPeak(const UnsignedInt index) const throw (Exception::IndexOverflow)
     {
-
+// 				std::cout << "getPeak(" << index << ") const" << std::endl;
 				
 				if (index > nr_dpoints_)
-				{
-						std::cout << "getPeak(" << index << ") const" << std::endl;
-						std::cout << "Data points: " << nr_dpoints_ << std::endl;
             throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);
-				}
+				
 				UnsignedInt scan_index = 0;
 				UnsignedInt peak_index = 0;
 				

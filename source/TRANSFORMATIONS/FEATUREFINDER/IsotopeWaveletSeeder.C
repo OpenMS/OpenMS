@@ -216,13 +216,12 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 					  	  && traits_->getPeakRt( (peak_index - p) ) == miso_rt
 							 	&& traits_->getPeakMz( peak_index) - traits_->getPeakMz( (peak_index - p) ) < mass_tolerance_right_  )
 						{
-// 							std::cout << "adding " << (peak_index - p) << " at mass " << traits_->getPeakMz( (peak_index - p) ) << std::endl;
 					 		region_.add( (peak_index - p) );
 						}
 					}
 		
 				CoordinateType mass_distance = 0;							
-				UnsignedInt nr_peaks = traits_->getNumberOfPeaks();
+				int nr_peaks = traits_->getNumberOfPeaks();
 				
 				// walk to the right
 				while (mass_distance < mass_tolerance_left_
@@ -231,7 +230,6 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 				{
 					++peak_index;
 					region_.add(peak_index);
-// 					std::cout << "adding " << (peak_index) << " at mass " << traits_->getPeakMz( peak_index) << std::endl;
 					mass_distance = (traits_->getPeakMz(peak_index+1) - miso_mass);
 				} 
 												
@@ -422,9 +420,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
     std::vector<double> int_mins (candidates[0].size(),INT_MIN), zeros (candidates[0].size(),0);
     WaveletCollection scoresC (candidates.size(), zeros);
 		
-		CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
-
-    std::vector<unsigned int> start_indices, end_indices;
+		std::vector<unsigned int> start_indices, end_indices;
     //In order to determine the start and end indices, we first need to know the width of the region one should consider
     //to estimate the mean and the sd of the pattern candidate.
     //That region is defined by the position of the heighest amplitude +/- waveletLength_.
@@ -464,6 +460,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 // 				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
 //         
 // 				// write debug output
+//				CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
 // 				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
 //         std::ofstream outfile(filename.c_str());
 // 				containerType::iterator write_iter;
