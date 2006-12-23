@@ -37,9 +37,11 @@ namespace OpenMS
 {
 	
 	PILISIdentification::PILISIdentification()
-		:	sequence_db_(new PILISSequenceDB()),
-			hmm_model_(new PILISModel()),
-			scorer_(0)
+		:	sequence_db_(0),
+			hmm_model_(0),
+			scorer_(0),
+			own_sequence_db_(false),
+			own_model_(false)
 	{
 		defaults_.setValue("prcr_m_tol", double(3.0));
 		defaults_.setValue("max_candidates", 200);
@@ -72,24 +74,64 @@ namespace OpenMS
 	}
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& PILIS_id)
-		: sequence_db_(new PILISSequenceDB(*PILIS_id.sequence_db_)),
-			hmm_model_(new PILISModel(*PILIS_id.hmm_model_)),
-			scorer_(Factory<PeakSpectrumCompareFunctor>::create(PILIS_id.scorer_->getName()))
+		: sequence_db_(0),
+			hmm_model_(0),
+			scorer_(Factory<PeakSpectrumCompareFunctor>::create(PILIS_id.scorer_->getName())),
+			own_sequence_db_(false),
+			own_model_(false)
 	{
 	}
 	
 	PILISIdentification::~PILISIdentification()
 	{
+		if (own_sequence_db_)
+		{
+			delete sequence_db_;
+		}
+		if (own_model_)
+		{
+			delete hmm_model_;
+		}
 	}
 
 	void PILISIdentification::setSequenceDB(PILISSequenceDB* sequence_db)
 	{
+		if (own_sequence_db_)
+		{
+			delete sequence_db_;
+			own_sequence_db_ = false;
+		}
 		sequence_db_ = sequence_db;
 	}
 
 	void PILISIdentification::setModel(PILISModel* hmm_model)
 	{
+		if (own_model_)
+		{
+			delete hmm_model_;
+			own_model_ = false;
+		}
 		hmm_model_ = hmm_model;
+	}
+	
+	PILISModel* PILISIdentification::getPILISModel_()
+	{
+		if (hmm_model_ == 0)
+		{
+			hmm_model_ = new PILISModel();
+			own_model_ = true;
+		}
+		return hmm_model_;
+	}
+
+	PILISSequenceDB* PILISIdentification::getSequenceDB_()
+	{
+		if (sequence_db_ == 0)
+		{
+			sequence_db_ = new PILISSequenceDB();
+			own_sequence_db_ = true;
+		}
+		return sequence_db_;
 	}
 	
 	void PILISIdentification::getIdentifications(vector<Identification>& ids, const PeakMap& exp)
@@ -126,7 +168,7 @@ namespace OpenMS
       return;
     }
 		vector<PILISSequenceDB::PepStruct> cand_peptides;
-    sequence_db_->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
+    getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
     cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		Identification pre_id;
@@ -171,7 +213,7 @@ namespace OpenMS
       String sequence = pre_id.getPeptideHits()[i].getSequence();
       AASequence peptide_sequence(sequence);
       PeakSpectrum sim_spec;
-      hmm_model_->getSpectrum(sim_spec, peptide_sequence, pre_id.getPeptideHits()[i].getCharge());
+      getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getPeptideHits()[i].getCharge());
 
       // normalize the spectra and add intensity to too small peaks
       // TODO remove cheating
@@ -300,6 +342,8 @@ namespace OpenMS
 	void PILISIdentification::resetToDefaults()
 	{
 		param_ = defaults_;
+		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));
+		scoring_type_ = (String)defaults_.getValue("score_name");
 		return;
 	}
 	

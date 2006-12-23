@@ -113,7 +113,13 @@ namespace OpenMS
 
 			/// performs a identification via spectra comparison with the PILISModel spectrum generator
 			void getFinalIdentification_(Identification& id, const PeakSpectrum& spec, const Identification& pre_id);
-		
+	
+			/// returns the model pointer
+			PILISModel* getPILISModel_();
+
+			/// returns the sequence database pointer
+			PILISSequenceDB* getSequenceDB_();
+			
 			/// the params 
 			Param param_;
 
@@ -137,6 +143,12 @@ namespace OpenMS
 		
 			/// a peaks, just to not instantiate it over and over again
 			Peak p_;
+
+			/// flag whether the istance has a internal sequence db
+			bool own_sequence_db_;
+
+			/// flag whether the istance has a internal model
+			bool own_model_;
 	};
 }
 
