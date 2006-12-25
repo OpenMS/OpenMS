@@ -291,8 +291,11 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
-	IDFeatureMapper_test
-
+	IDFeatureMapper_test\
+	ProtonDistributionModel_test\
+	PILISSequenceDB_test\
+	PILISModel_test\
+	PILISIdentification_test
 # APPLICATIONS
 
 EXECUTABLES_APPLICATIONS = \

@@ -115,7 +115,7 @@ namespace OpenMS
 		}
 	}
 	
-	bool PILISSequenceDB::has(const String& peptide)
+	bool PILISSequenceDB::has(const String& peptide) const
 	{
 		// TODO replace Z by K,Q
 		for (Size i = 0; i != peptide.size(); ++i)
@@ -133,6 +133,10 @@ namespace OpenMS
 		{
 			AASequence peptide_sequence(peptide);
 			double weight = peptide_sequence.getAverageWeight(Residue::Full, 2)/2.0;
+			if (!peptides_.has((Size)(weight * factor_)))
+			{
+				return false;
+			}
 
 			for (vector<PepStruct>::const_iterator it = peptides_[(Size)(weight * factor_)].begin(); it != peptides_[(Size)(weight * factor_)].end(); ++it)
 			{

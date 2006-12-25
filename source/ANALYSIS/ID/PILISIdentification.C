@@ -169,7 +169,7 @@ namespace OpenMS
     }
 		vector<PILISSequenceDB::PepStruct> cand_peptides;
     getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-    cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
+    //cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		Identification pre_id;
 		getPreIdentification_(pre_id, spec, cand_peptides);

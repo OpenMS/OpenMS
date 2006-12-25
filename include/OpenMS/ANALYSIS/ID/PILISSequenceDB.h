@@ -112,7 +112,7 @@ namespace OpenMS
 			unsigned int countProteins() const;
 			
 			/// returns true if the peptide is contained in the database
-			bool has(const String& peptide);
+			bool has(const String& peptide) const;
 			//@}
 
 		protected:
