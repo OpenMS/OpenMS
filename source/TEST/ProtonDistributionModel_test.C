@@ -1,0 +1,98 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <iostream>
+
+#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
+///////////////////////////
+
+START_TEST(ProtonDistributionModel, "$Id:$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+ProtonDistributionModel* ptr = 0;
+
+CHECK(ProtonDistributionModel())
+	ptr = new ProtonDistributionModel();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(virtual ~ProtonDistributionModel())
+	delete ptr;
+RESULT
+
+ptr = new ProtonDistributionModel();
+
+CHECK(void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
+	HashMap<Size, double> bb_charges, sc_charges;
+	double bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
+	AASequence peptide("DFPIANGER");
+	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
+	for (Size i = 0; i <= peptide.size(); ++i)
+	{
+		TEST_REAL_EQUAL(bb_charges[i], bb_tmp[i])
+	}
+
+	double sc_tmp[] = {2.7239e-23, 0, 0, 0, 0, 7.77547e-15, 0, 1.15343e-22, 1};
+	for (Size i = 0; i != peptide.size(); ++i)
+	{
+		TEST_REAL_EQUAL(sc_charges[i], sc_tmp[i])
+	}
+
+RESULT
+
+CHECK(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type))
+	HashMap<Size, double> bb_charges, sc_charges;
+	AASequence peptide("DFPIANGER");
+	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
+	
+	// set the full proton distribution
+	ptr->setPeptideProtonDistribution(bb_charges, sc_charges);
+
+	double n_term1(0), n_term2(0), c_term1(0), c_term2(0);
+	AASequence pre1("DFP"), suf1("IANGER");
+	ptr->getChargeStateIntensities(peptide, pre1, suf1, 1, Residue::YIon, n_term1, c_term1, n_term2, c_term2, ProtonDistributionModel::ChargeDirected);
+	TEST_REAL_EQUAL(n_term1, 0.0);
+	TEST_REAL_EQUAL(n_term2, 0.0);
+	TEST_REAL_EQUAL(c_term1, 1.0);
+	TEST_REAL_EQUAL(c_term2, 0.0);
+
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST
