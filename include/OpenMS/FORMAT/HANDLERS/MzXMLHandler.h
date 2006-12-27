@@ -58,7 +58,6 @@ namespace OpenMS
 			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(&exp),	
 				cexp_(0),
-				peak_(),
 				spec_(0),
 				analyzer_(0),
 				decoder_(),
@@ -75,7 +74,6 @@ namespace OpenMS
 			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
 				exp_(0), 
 				cexp_(&exp),
-				peak_(),
 				spec_(),
 				decoder_(),
 				peak_count_(0),
@@ -161,7 +159,6 @@ namespace OpenMS
 		
 		/**@name temporary datastructures to hold parsed data */
     //@{
-   		PeakIterator peak_;
 		SpectrumType* spec_;
 		MassAnalyzer* analyzer_;
 		MetaInfoDescription* meta_;
@@ -224,6 +221,8 @@ namespace OpenMS
 	template <typename MapType>
   void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
+    if (skip_tag_.top()) return;
+    
   	//std::cout << " -- Chars -- "<< xercesc::XMLString::transcode(chars) << " -- " << std::endl;
   		
 		if(is_parser_in_tag_[PEAKS] && !options_.getMetadataOnly())
@@ -237,7 +236,7 @@ namespace OpenMS
 		{
 			
 		}
-		else if (	is_parser_in_tag_[PRECURSORMZ] && !options_.getMetadataOnly())
+		else if (	is_parser_in_tag_[PRECURSORMZ] && !options_.getMetadataOnly() && spec_ != 0)
 		{
 			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
 		}
@@ -251,7 +250,7 @@ namespace OpenMS
 			{
 				setAddInfo(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
 			}
-			else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly())
+			else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly() && spec_ != 0)
 			{
 				spec_->setComment( xercesc::XMLString::transcode(chars) );
 			}
@@ -464,7 +463,7 @@ namespace OpenMS
 				break;
 			case PRECURSORMZ:
 				{
-					if (options_.getMetadataOnly()) break;
+					if (!spec_ || options_.getMetadataOnly()) break;
 					
 					PrecursorPeakType& peak = spec_->getPrecursorPeak();
 					
@@ -620,12 +619,11 @@ namespace OpenMS
 					 || options_.hasMSLevels() && !options_.containsMSLevel(spec.getMSLevel()))
 					{
 						// skip this tag
+						spec_ = 0;
 						skipTag_();
 					} else {
 						exp_->push_back(spec);
 						spec_ = &(exp_->back());
-						spec_->resize(peak_count_);
-						peak_ = spec_->begin();
 					}
 				}
 				break;
@@ -953,7 +951,7 @@ namespace OpenMS
 			analyzer_ = 0;
 		}
 		
-		if (tag==PEAKS)
+		if (tag==PEAKS && spec_ != 0)
 		{
 			//std::cout << "reading scan" << std::endl;
 			if (char_rest_=="" || options_.getMetadataOnly()) // no peaks
@@ -971,9 +969,10 @@ namespace OpenMS
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
-						peak_->getPosition()[0] = data[n];
-						peak_->setIntensity(data[n+1]);
-						++peak_;
+						PeakType peak;
+						peak.getPosition()[0] = data[n];
+						peak.setIntensity(data[n+1]);
+						spec_->push_back(peak);
 					}
  				}
 			}
@@ -987,9 +986,10 @@ namespace OpenMS
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
 					{
-						peak_->getPosition()[0] = data[n];
-						peak_->setIntensity(data[n+1]);
-						++peak_;
+						PeakType peak;
+						peak.getPosition()[0] = data[n];
+						peak.setIntensity(data[n+1]);
+						spec_->push_back(peak);
 					}
 				}
 			}

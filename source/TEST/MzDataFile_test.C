@@ -31,15 +31,21 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 
+using namespace OpenMS;
+using namespace std;
+
+DRange<1> makeRange(float a, float b)
+{
+	DPosition<1> pa(a), pb(b);
+	return DRange<1>(pa, pb);
+}
+
 ///////////////////////////
 
 START_TEST(MzDataFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace std;
 
 MzDataFile* ptr = 0;
 CHECK((MzDataFile()))
@@ -618,6 +624,119 @@ CHECK([EXTRA] load with metadata-only flag)
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
+CHECK([EXTRA] load with selected MS levels)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzDataFile mzdata;
+	
+	// load only MS level 1
+	mzdata.getOptions().addMSLevel(1);
+	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	TEST_EQUAL(e.size(), 2)
+	TEST_EQUAL(e[0].getContainer().size(), 1)
+	TEST_EQUAL(e[1].getContainer().size(), 5)
+	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
+	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
+	
+	// load all MS levels
+	mzdata.getOptions().clearMSLevels();
+	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	TEST_EQUAL(e.size(), 3)
+	TEST_EQUAL(e[0].getContainer().size(), 1)
+	TEST_EQUAL(e[1].getContainer().size(), 3)
+	TEST_EQUAL(e[2].getContainer().size(), 5)
+	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
+	TEST_REAL_EQUAL(e[1].getMSLevel(), 2)
+	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
+RESULT
+
+CHECK([EXTRA] load with RT range)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzDataFile mzdata;
+	
+	mzdata.getOptions().setRTRange(makeRange(100, 200));
+	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	//---------------------------------------------------------------------------
+	// 60 : (120,100)
+	// 120: (110,100) (120,200) (130,100)
+	// 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
+	//--------------------------------------------------------------------------- 
+	TEST_EQUAL(e.size(), 2)
+	TEST_REAL_EQUAL(e[0].getMSLevel(), 2)
+	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
+	TEST_REAL_EQUAL(e[0].getRetentionTime(), 120)
+	TEST_REAL_EQUAL(e[1].getRetentionTime(), 180)
+RESULT
+
+CHECK([EXTRA] load with MZ range)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzDataFile mzdata;
+	
+	mzdata.getOptions().setMZRange(makeRange(115, 135));
+	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	//---------------------------------------------------------------------------
+	// 60 : +(120,100)
+	// 120: -(110,100) +(120,200) +(130,100)
+	// 180: -(100,100) -(110,200) +(120,300) +(130,200) -(140,100)
+	//--------------------------------------------------------------------------- 
+	TEST_EQUAL(e.size(), 3)
+
+	TEST_EQUAL(e[0].getContainer().size(), 1)
+	TEST_EQUAL(e[1].getContainer().size(), 2)
+	TEST_EQUAL(e[2].getContainer().size(), 2)
+
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 100)
+
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 300)
+
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
+RESULT
+
+CHECK([EXTRA] load with intensity range)
+	PRECISION(0.01)
+
+	MSExperiment< DRawDataPoint<1> > e;
+	MzDataFile mzdata;
+	
+	mzdata.getOptions().setIntensityRange(makeRange(150, 350));
+	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	//---------------------------------------------------------------------------
+	// 60 : -(120,100)
+	// 120: -(110,100) +(120,200) -(130,100)
+	// 180: -(100,100) +(110,200) +(120,300) +(130,200) -(140,100)
+	//--------------------------------------------------------------------------- 
+	TEST_EQUAL(e.size(), 3)
+
+	TEST_EQUAL(e[0].getContainer().size(), 0)
+	TEST_EQUAL(e[1].getContainer().size(), 1)
+	TEST_EQUAL(e[2].getContainer().size(), 3)
+
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 200)
+
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 300)
+
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
+RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
   MSExperiment< DPickedPeak<1> > e1, e2;

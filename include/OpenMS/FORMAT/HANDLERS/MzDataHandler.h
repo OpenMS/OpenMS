@@ -68,7 +68,7 @@ namespace OpenMS
 					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
-					spec_(0),	prec_(0),	acq_(0),
+					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
 					decoder_(2),
@@ -84,7 +84,7 @@ namespace OpenMS
 					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),
-					spec_(0),	prec_(0),	acq_(0),
+					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
 					decoder_(2),
@@ -175,7 +175,7 @@ namespace OpenMS
 			//@{
 				
 			Size peak_count_;
-			SpectrumType* spec_;
+			SpectrumType spec_;
 			Precursor* prec_;
 			Acquisition* acq_;
 			String meta_id_;
@@ -285,7 +285,7 @@ namespace OpenMS
 	  				case COMMENTS:		// <comment> is child of more than one other tags
 							if (is_parser_in_tag_[ACQDESC])
 							{
-								spec_->setComment( xercesc::XMLString::transcode(chars) );
+								spec_.setComment( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
@@ -301,15 +301,15 @@ namespace OpenMS
 							break;
 					  case ARRAYNAME:
 							array_name_.push_back(xercesc::XMLString::transcode(chars));
-							if (spec_->getMetaInfoDescriptions().find(meta_id_) != spec_->getMetaInfoDescriptions().end())
+							if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].setName(xercesc::XMLString::transcode(chars));
+								spec_.getMetaInfoDescriptions()[meta_id_].setName(xercesc::XMLString::transcode(chars));
 							}
 							break;
 						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
@@ -319,7 +319,7 @@ namespace OpenMS
 						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
@@ -329,7 +329,7 @@ namespace OpenMS
 						case FILETYPE: // <fileType> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_->getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( xercesc::XMLString::transcode(chars) );
 							}
 							else
 							{
@@ -399,8 +399,8 @@ namespace OpenMS
 					meta_id_ = getAttributeAsString(ID);
 					break;
 				case SPECTRUM:
-					exp_->push_back(SpectrumType());
-					spec_ = &(exp_->back());
+// 					exp_->push_back(SpectrumType());
+					spec_ = SpectrumType();
 					break;
 			  case SPECTRUMLIST:
 			  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
@@ -411,44 +411,59 @@ namespace OpenMS
 					tmp_type = getAttributeAsString(SPECTRUMTYPE);
 					if  (tmp_type == "CentroidMassSpectrum")
 					{
-						spec_->setType(SpectrumSettings::PEAKS);
+						spec_.setType(SpectrumSettings::PEAKS);
 					}
 					else if (tmp_type == "ContinuumMassSpectrum")
 					{
-						spec_->setType(SpectrumSettings::RAWDATA);
+						spec_.setType(SpectrumSettings::RAWDATA);
 					}
 					else
 					{
-						spec_->setType(SpectrumSettings::UNKNOWN);
+						spec_.setType(SpectrumSettings::UNKNOWN);
 					}
 					
-					spec_->getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
+					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString(METHOD_OF_COMBINATION));
 					break;
 				case ACQUISITION:
 					{
-						spec_->getAcquisitionInfo().insert(spec_->getAcquisitionInfo().end(), Acquisition());
-						acq_ = &(spec_->getAcquisitionInfo().back());
+						spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
+						acq_ = &(spec_.getAcquisitionInfo().back());
 						acq_->setNumber(asSignedInt_(getAttributeAsString(ACQNUMBER)));
 					}	
 					break;
-				case SPECTRUMINSTRUMENT: case ACQINSTRUMENT:
+				case SPECTRUMINSTRUMENT:
+				case ACQINSTRUMENT:
 				{
-					spec_->setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
+					spec_.setMSLevel(asSignedInt_(getAttributeAsString(MSLEVEL)));
 					String start = getAttributeAsString(MZRANGE_START);
 					String stop = getAttributeAsString(MZRANGE_STOP);
 					
 					if  (start != "")
 					{
-						spec_->getInstrumentSettings().setMzRangeStart(asDouble_(start));
+						spec_.getInstrumentSettings().setMzRangeStart(asDouble_(start));
 					}
 					if  (stop != "")
 					{
-						spec_->getInstrumentSettings().setMzRangeStop(asDouble_(stop));
+						spec_.getInstrumentSettings().setMzRangeStop(asDouble_(stop));
 					}
+					
+					if (options_.hasMSLevels())
+					{
+						if (!options_.containsMSLevel(spec_.getMSLevel()))
+						{
+							// HACK: skip the top 4 tags: spectrum, spectrumDesc, SpectrumSettings and spectrumInstrument
+							if (is_parser_in_tag_[SPECTRUM] && is_parser_in_tag_[SPECTRUMDESC] && is_parser_in_tag_[SPECTRUMSETTINGS])
+							{
+								for (int i = 0; i != 4; ++i) skip_tag_.pop();
+								for (int i = 0; i != 4; ++i) skip_tag_.push(true);
+							}
+						}
+					}
+					
 					break;
 				}
 				case PRECURSOR:
-					prec_ = &(spec_->getPrecursor());
+					prec_ = &(spec_.getPrecursor());
 					//UNHANDLED: "spectrumRef";
 					break;
 				case SUPDESC:
@@ -464,7 +479,7 @@ namespace OpenMS
 					{
 						peak_count_ = asSignedInt_(getAttributeAsString(LENGTH));
 						//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
-						spec_->getContainer().reserve(peak_count_);
+						spec_.getContainer().reserve(peak_count_);
 					}
 					break;
 				case MZDATA:
@@ -501,6 +516,8 @@ namespace OpenMS
 					return;
 				}
 			}
+			
+			bool skip = skip_tag_.top();
 
 			int tag = leaveTag(qname);
 
@@ -528,7 +545,12 @@ namespace OpenMS
 				}
 				break;
 			case SPECTRUM:
-				fillData_();
+				if (!skip)
+				{
+					fillData_();
+					exp_->push_back(spec_);
+				}
+				
 				data_.clear();
 				array_name_.clear();
 				precisions_.clear();
@@ -542,7 +564,7 @@ namespace OpenMS
 		{
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
-				setAddInfo(spec_->getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
+				setAddInfo(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
 			}
 			else if(is_parser_in_tag_[ACQUISITION])
 			{
@@ -550,7 +572,7 @@ namespace OpenMS
 			}
 			else if (is_parser_in_tag_[IONSELECTION])
 			{
-				setAddInfo(spec_->getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
+				setAddInfo(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
 			}
 			else if (is_parser_in_tag_[ACTIVATION])
 			{
@@ -558,7 +580,7 @@ namespace OpenMS
 			}
 			else if (is_parser_in_tag_[SUPDATADESC])
 			{
-				setAddInfo(spec_->getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
+				setAddInfo(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
 			}
 			else
 			{
@@ -573,17 +595,27 @@ namespace OpenMS
 			std::string error = "";
 			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
 			{
-				InstrumentSettings& sett = spec_->getInstrumentSettings();
+				InstrumentSettings& sett = spec_.getInstrumentSettings();
+				bool skip = false;
+				
 				switch (ont)
 				{
 					case SCANMODE:
 						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value) );
 						break;
 					case TIMEMIN:
-						spec_->setRetentionTime(asFloat_(value)*60); //Minutes to seconds
+						spec_.setRetentionTime(asFloat_(value)*60); //Minutes to seconds
+						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRetentionTime())))
+						{
+							skip = true;
+						}
 						break;
 					case TIMESEC:
-						spec_->setRetentionTime(asFloat_(value));
+						spec_.setRetentionTime(asFloat_(value));
+						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRetentionTime())))
+						{
+							skip = true;
+						}
 						break;
 					case POLARITY:
 						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP, value) );
@@ -591,22 +623,34 @@ namespace OpenMS
 				  default:      
 				  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
 				}
+				
+				if (skip)
+				{
+					// HACK: skip the top five tags: spectrum, spectrumDesc, spectrumSettings, {spectrum,acq}Instrument and cvParam
+					if (is_parser_in_tag_[SPECTRUM] && is_parser_in_tag_[SPECTRUMDESC] && is_parser_in_tag_[SPECTRUMSETTINGS])
+					{
+						for (int i = 0; i != 5; ++i) skip_tag_.pop();
+						for (int i = 0; i != 5; ++i) skip_tag_.push(true);
+						
+						return;
+					}
+				}
 			}
 			else if (is_parser_in_tag_[IONSELECTION]) 
 			{
 				switch (ont)
 				{
 					case MZ_ONT:
-						spec_->getPrecursorPeak().getPosition()[0] = asFloat_(value);
+						spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);
 						break;
 					case CHARGESTATE:
-						spec_->getPrecursorPeak().setCharge(asSignedInt_(value));
+						spec_.getPrecursorPeak().setCharge(asSignedInt_(value));
 						break;
 					case INTENSITY:
-						spec_->getPrecursorPeak().getIntensity() = asFloat_(value);
+						spec_.getPrecursorPeak().getIntensity() = asFloat_(value);
 						break;
 					case IUNITS:
-						setAddInfo(spec_->getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
+						setAddInfo(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
 						break;
 					default:
 						error = "PrecursorList.Precursor.IonSelection.UserParam";
@@ -683,13 +727,15 @@ namespace OpenMS
 				for (Size n = 0 ; n < peak_count_ ; n++)
 				{
 					double mz = getDatum(ptrs,MZ,n);
-					if (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
+					double intensity = getDatum(ptrs,INTENS,n);
+					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
+					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
-						spec_->insert(spec_->end(), PeakType());
-						spec_->back().getIntensity() = getDatum(ptrs,INTENS,n);
-						spec_->back().getPosition()[0] = mz;
+						spec_.insert(spec_.end(), PeakType());
+						spec_.back().getIntensity() = intensity;
+						spec_.back().getPosition()[0] = mz;
 						//read supplemental data for derived classes (do nothing for DPeak)
-						readPeakSupplementalData_(ptrs,spec_->back(),n);
+						readPeakSupplementalData_(ptrs,spec_.back(),n);
 					}
 				}
 			}
