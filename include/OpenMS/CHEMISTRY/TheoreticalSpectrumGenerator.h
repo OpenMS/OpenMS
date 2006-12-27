@@ -38,7 +38,6 @@ namespace OpenMS
 	/** 
 		@brief Generates theoretical spectra with various options
 		
-		@todo write tests (Andreas)
 		@todo replace SpectrumGenerator in CLUSTERING (Andreas)
 		
 		@ingroup Chemistry
@@ -54,7 +53,7 @@ namespace OpenMS
 			TheoreticalSpectrumGenerator();
 
 			/// copy constructor
-			TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator&);
+			TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source);
 
 			/// destructor
 			virtual ~TheoreticalSpectrumGenerator();

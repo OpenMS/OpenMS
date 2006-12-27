@@ -250,11 +250,14 @@ EXECUTABLES_COMPARISON=\
 	ClusterSpectrum_test\
 	ClusterFunctor_test\
 	AnalysisFunctor_test\
+	BinnedRepCompareFunctor_test\
 	BinnedRepMutualInformation_test\
 	BinnedRepSpectrumContrastAngle_test\
 	BinnedRepSharedPeakCount_test\
 	BinnedRepSumAgreeingIntensities_test\
-	SpectrumPrecursorComparator_test
+	PeakSpectrumCompareFunctor_test\
+	SpectrumPrecursorComparator_test\
+	ZhangSimilarityScore_test
 
 #CHEMISTRY
 
@@ -266,7 +269,8 @@ EXECUTABLES_CHEMISTRY = \
 	Residue_test\
 	ResidueDB_test\
 	AASequence_test\
-	EnzymaticDigestion_test
+	EnzymaticDigestion_test\
+	TheoreticalSpectrumGenerator_test
 
 #ANALYSIS
 
@@ -295,7 +299,9 @@ EXECUTABLES_ANALYSIS_ID =\
 	ProtonDistributionModel_test\
 	PILISSequenceDB_test\
 	PILISModel_test\
-	PILISIdentification_test
+	PILISIdentification_test\
+	HiddenMarkovModelLight_test\
+	HiddenMarkovModel_test
 # APPLICATIONS
 
 EXECUTABLES_APPLICATIONS = \

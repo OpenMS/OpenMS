@@ -42,8 +42,8 @@ using namespace std;
 namespace OpenMS 
 {
 	// HMMState implementation
-	HMMState::HMMState(bool hidden)
-		: hidden_(hidden)
+	HMMState::HMMState()
+		: hidden_(true)
 	{
 	}
 
@@ -149,11 +149,19 @@ namespace OpenMS
 
 	HMMState* HiddenMarkovModel::getState(const String& name)
 	{
+		if (!name_to_state_.has(name))
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+		}
 		return name_to_state_[name];
 	}
 
 	const HMMState* HiddenMarkovModel::getState(const String& name) const
 	{
+		if (!name_to_state_.has(name))
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+		}
 		return name_to_state_[name];
 	}
 	
@@ -449,6 +457,19 @@ namespace OpenMS
 		training_steps_count_[name_to_state_[s1]][name_to_state_[s2]] = 0;
 	}
 
+	double HiddenMarkovModel::getTransitionProbability(const String& s1, const String& s2) const
+	{
+		if (!name_to_state_.has(s1))
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
+		}
+		if (!name_to_state_.has(s2))
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
+		}
+		return getTransitionProbability(name_to_state_[s1], name_to_state_[s2]);
+	}
+	
 	double HiddenMarkovModel::getTransitionProbability(HMMState* s1, HMMState* s2) const
 	{
 		HMMState* state1 = s1;

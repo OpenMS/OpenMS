@@ -49,8 +49,8 @@ namespace OpenMS
 			/** @name Constructors and destructors
 			*/
 			//@{
-			/// default constructor with option to create hidden/visible state
-			HMMState(bool hidden = true);
+			/// default constructor
+			HMMState();
 			
 			/// copy constructor
 			HMMState(const HMMState& state);
@@ -158,13 +158,13 @@ namespace OpenMS
 			//void readFromFile(const String& filename);
 
 			/// returns the transition probability of the given states
-			double getTransitionProbability(HMMState*, HMMState*) const;
+			double getTransitionProbability(HMMState* s1, HMMState* s2) const;
 
 			/// returns the transition probability of the given state names
-			double getTransitionProbability(const String&, const String&) const;
+			double getTransitionProbability(const String& s1, const String& s2) const;
 
 			/// sets the transition probability of the given states to prob
-			void setTransitionProbability(HMMState*, HMMState*, double prob);
+			void setTransitionProbability(HMMState* s1, HMMState* s2, double prob);
 
 			/// sets the transition probability of the given state names to prob
 			void setTransitionProbability(const String&, const String&, double prob);
@@ -173,7 +173,7 @@ namespace OpenMS
 			const Size getNumberOfStates() const;
 
 			/// registers a new state to the HMM
-			void addNewState(HMMState*);
+			void addNewState(HMMState* state);
 
 			/// add a new synonym transition to the given state names
 			void addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2);

@@ -23,54 +23,39 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+#include <iostream>
+
+#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+
+///////////////////////////
+
+START_TEST(ZhangSimilarityScore, "$Id:$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
+ZhangSimilarityScore* ptr = 0;
 
-START_TEST(PeakSpectrumCompareFunctor, "$Id$")
-
-/////////////////////////////////////////////////////////////
-
-CHECK(PeakSpectrumCompareFunctor())
-  // nothing to check
+CHECK(ZhangSimilarityScore())
+	ptr = new ZhangSimilarityScore();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
-  // nothing to check
+CHECK(virtual ~ZhangSimilarityScore())
+	delete ptr;
 RESULT
 
-CHECK(virtual ~PeakSpectrumCompareFunctor())
-  // nothing to check
-RESULT
-
-CHECK(PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source))
-  // nothing to check
-RESULT
-
-CHECK(virtual double operator () (const PeakSpectrum&, const PeakSpectrum&) const = 0)
-  // nothing to check
-RESULT
-
-CHECK(virtual double operator () (const PeakSpectrum& a) const = 0)
-  // nothing to check
-RESULT
-
-CHECK(static void registerChildren())
-  PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
-  c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
-  c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
-RESULT
-
+ptr = new ZhangSimilarityScore();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

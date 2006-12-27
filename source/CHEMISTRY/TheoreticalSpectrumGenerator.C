@@ -260,10 +260,67 @@ namespace OpenMS
 	}
 
 
-	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& /*spec*/, const AASequence& /*peptide*/, int /*charge*/)
+	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, int charge)
 	{
-		// TODO
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		bool add_metainfo((int)param_.getValue("add_metainfo"));
+		double pre_int((double)param_.getValue("precursor_intensity"));
+		double pre_int_H2O((double)param_.getValue("precursor_H2O_intensity"));
+		double pre_int_NH3((double)param_.getValue("precursor_NH3_intensity"));
+		bool add_isotopes((int)param_.getValue("add_isotopes"));
+    //int max_isotope((int)param_.getValue("max_isotope"));
+		
+		if (add_isotopes)
+		{
+			// TODO
+		}
+		else
+		{
+			// precursor peak
+			p_.setPosition(peptide.getAverageWeight(Residue::Full, charge)/double(charge));
+			p_.setIntensity(pre_int);
+			if (add_metainfo)
+			{
+				String name("[M+H]+");
+				if (charge == 2)
+				{
+					name = "[M+2H]++";
+				}
+				p_.setMetaValue("IonName", name);
+			}
+			
+			spec.getContainer().push_back(p_);
+
+			// loss peaks of the precursor
+			p_.setPosition((peptide.getAverageWeight(Residue::Full, charge) - Formulas::H2O.getAverageWeight())/double(charge));
+			p_.setIntensity(pre_int_H2O);
+			
+			if (add_metainfo)
+			{
+				String name("[M+H]-H2O+");
+				if (charge == 2)
+				{
+					name = "[M+2H]-H2O++";
+				}
+				p_.setMetaValue("IonName", name);
+			}
+			spec.getContainer().push_back(p_);
+
+      p_.setPosition((peptide.getAverageWeight(Residue::Full, charge) - Formulas::NH3.getAverageWeight())/double(charge));
+      p_.setIntensity(pre_int_NH3);
+
+      if (add_metainfo)
+      {
+        String name("[M+H]-NH3+");
+        if (charge == 2)
+        {
+          name = "[M+2H]-NH3++";
+        }
+        p_.setMetaValue("IonName", name);
+      }
+      spec.getContainer().push_back(p_);
+
+		}
+		
 	}
 
 	void TheoreticalSpectrumGenerator::setParam(const Param& param)

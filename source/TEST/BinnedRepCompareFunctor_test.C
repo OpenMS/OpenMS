@@ -30,37 +30,46 @@
 ///////////////////////////
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
-#include <OpenMS/COMPARISON/CLUSTERING/BinnedRep.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
 ///////////////////////////
 
-START_TEST(BinnedRepCompareFunctor, "$Id:$")
+START_TEST(BinnedRepCompareFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-BinnedRepCompareFunctor* e_ptr = 0;
 CHECK(BinnedRepCompareFunctor())
-	e_ptr = new BinnedRepCompareFunctor;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	// nothing to check
 RESULT
-
-CHECK(~BinnedRepCompareFunctor())
-	delete e_ptr;
-RESULT
-
-e_ptr = new BinnedRepCompareFunctor();
 
 CHECK(BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source))
-	BinnedRepCompareFunctor copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	// nothing to check
 RESULT
 
-delete e_ptr;
+CHECK(virtual ~BinnedRepCompareFunctor())
+	// nothing to check
+RESULT
+
+CHECK(BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source))
+	// nothing to check
+RESULT
+
+CHECK(virtual double operator () (const BinnedRep&, const BinnedRep&) const = 0)
+	// nothing to check
+RESULT
+
+CHECK(virtual double operator () (const BinnedRep& a) const = 0)
+	// nothing to check
+RESULT
+
+CHECK(static void registerChildren())
+	BinnedRepCompareFunctor* c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSpectrumContrastAngle");
+	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSharedPeakCount");
+	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSumAgreeingIntensities");
+	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepMutualInformation");
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
