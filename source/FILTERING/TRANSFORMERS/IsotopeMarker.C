@@ -51,9 +51,12 @@ namespace OpenMS
   {
   }
 
-  IsotopeMarker& IsotopeMarker::operator=(const IsotopeMarker& source)
+  IsotopeMarker& IsotopeMarker::operator = (const IsotopeMarker& source)
   {
-    PeakMarker::operator=(source);
+		if (this != &source)
+		{
+    	PeakMarker::operator=(source);
+		}
     return *this;
   }
 

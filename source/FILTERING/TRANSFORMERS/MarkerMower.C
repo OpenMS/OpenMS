@@ -59,7 +59,10 @@ namespace OpenMS
 
   MarkerMower& MarkerMower::operator=(const MarkerMower& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

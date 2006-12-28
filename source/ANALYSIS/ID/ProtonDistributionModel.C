@@ -49,6 +49,38 @@ namespace OpenMS
 	{
 	}
 
+	ProtonDistributionModel::ProtonDistributionModel(const ProtonDistributionModel& model)
+		: sc_charge_(model.sc_charge_),
+	    bb_charge_(model.bb_charge_),
+			sc_charge_full_(model.sc_charge_full_),
+			bb_charge_full_(model.bb_charge_full_),
+			gb_sc_(model.gb_sc_),
+			gb_bb_l_(model.gb_bb_l_),
+			gb_bb_r_(model.gb_bb_r_),
+			E_(model.E_),
+			E_c_term_(model.E_c_term_),
+			E_n_term_(model.E_n_term_)
+	{
+	}
+	
+	ProtonDistributionModel& ProtonDistributionModel::operator = (const ProtonDistributionModel& model)
+	{
+		if (this != &model)
+		{
+			sc_charge_ = model.sc_charge_;
+      bb_charge_  = model.bb_charge_;
+      sc_charge_full_ = model.sc_charge_full_;
+      bb_charge_full_ = model.bb_charge_full_;
+      gb_sc_ = model.gb_sc_;
+      gb_bb_l_ = model.gb_bb_l_;
+      gb_bb_r_ = model.gb_bb_r_;
+      E_ = model.E_;
+      E_c_term_ = model.E_c_term_;
+      E_n_term_ = model.E_n_term_;
+		}
+		return *this;
+	}
+	
 	void ProtonDistributionModel::setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, const HashMap<Size, double>& sc_charge)
 	{
 		bb_charge_full_ = bb_charge;

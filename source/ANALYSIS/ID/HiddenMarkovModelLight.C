@@ -42,8 +42,8 @@ using namespace std;
 namespace OpenMS 
 {
 	// HMMSTATE 
-	HMMStateLight::HMMStateLight(bool hidden)
-		: hidden_(hidden)
+	HMMStateLight::HMMStateLight()
+		: hidden_(true)
 	{
 	}
 
@@ -366,6 +366,19 @@ namespace OpenMS
 		training_steps_count_[id_to_state_[s1]][id_to_state_[s2]] = 0;
 	}
 
+  double HiddenMarkovModelLight::getTransitionProbability(Size s1, Size s2) const
+  {
+    if (!id_to_state_.has(s1))
+    {
+      throw Exception::ElementNotFound<Size>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
+    }
+    if (!id_to_state_.has(s2))
+    {
+      throw Exception::ElementNotFound<Size>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
+    }
+    return getTransitionProbability(id_to_state_[s1], id_to_state_[s2]);
+  }
+
 	double HiddenMarkovModelLight::getTransitionProbability(HMMStateLight* s1, HMMStateLight* s2) const
 	{
 		HMMStateLight* state1 = s1;
@@ -586,12 +599,12 @@ namespace OpenMS
 		}
 	}
 
-	void HiddenMarkovModelLight::setTrainingInitialTransitionProbability(Size state, double prob)
+	void HiddenMarkovModelLight::setInitialTransitionProbability(Size state, double prob)
 	{
 		init_train_prob_[id_to_state_[state]] = prob;
 	}
 
-	void HiddenMarkovModelLight::clearTrainingInitialTransitionProbabilities()
+	void HiddenMarkovModelLight::clearInitialTransitionProbabilities()
 	{
 		init_train_prob_.clear();
 	}

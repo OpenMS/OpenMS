@@ -52,7 +52,10 @@ namespace OpenMS
 
   ZhangSimilarityScore& ZhangSimilarityScore::operator = (const ZhangSimilarityScore& source)
   {
-    PeakSpectrumCompareFunctor::operator = (source);
+		if (this != &source)
+		{
+    	PeakSpectrumCompareFunctor::operator = (source);
+		}
     return *this;
   }
 

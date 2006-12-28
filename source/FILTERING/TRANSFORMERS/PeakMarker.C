@@ -43,9 +43,12 @@ namespace OpenMS
 	{
 	}
 
-  PeakMarker& PeakMarker::operator=(const PeakMarker& source)
+  PeakMarker& PeakMarker::operator = (const PeakMarker& source)
   {
-    FactoryProduct::operator=(source);
+		if (this != &source)
+		{
+    	FactoryProduct::operator=(source);
+		}
     return *this;
   }
 }

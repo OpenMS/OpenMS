@@ -50,7 +50,10 @@ namespace OpenMS
 
 	ComplementFilter& ComplementFilter::operator = (const ComplementFilter& source)
 	{
-		FilterFunctor::operator = (source);
+		if (this != &source)
+		{
+			FilterFunctor::operator = (source);
+		}
 		return *this;
 	}
 

@@ -67,6 +67,15 @@ namespace OpenMS
 		: param_(rhs.param_)
 	{
 	}
+
+	TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator = (const TheoreticalSpectrumGenerator& rhs)
+	{
+		if (this != &rhs)
+		{
+			param_ = rhs.param_;
+		}
+		return *this;
+	}
 	
 	TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator()
 	{

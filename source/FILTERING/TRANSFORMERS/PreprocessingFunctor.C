@@ -66,9 +66,12 @@ namespace OpenMS
     Factory<PreprocessingFunctor>::registerProduct(ParentPeakMower::getName(), &ParentPeakMower::create);
 	}
 	
-  PreprocessingFunctor& PreprocessingFunctor::operator=(const PreprocessingFunctor& source)
+  PreprocessingFunctor& PreprocessingFunctor::operator = (const PreprocessingFunctor& source)
   {
-   	FactoryProduct::operator=(source);
+		if (this != &source)
+		{
+   		FactoryProduct::operator=(source);
+		}
     return *this;
   }
 }

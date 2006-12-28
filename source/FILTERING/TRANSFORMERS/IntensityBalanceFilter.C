@@ -41,9 +41,12 @@ namespace OpenMS
   {
   }
   
-  IntensityBalanceFilter& IntensityBalanceFilter::operator=(const IntensityBalanceFilter& source)
+  IntensityBalanceFilter& IntensityBalanceFilter::operator = (const IntensityBalanceFilter& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
   

@@ -257,6 +257,9 @@ namespace OpenMS
 
 			/// default parameters of the model
 			Param default_;
+
+			/// true if the instance is valid
+			bool valid_;
 	};
 }
 #endif

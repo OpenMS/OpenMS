@@ -46,6 +46,7 @@ using namespace std;
 HiddenMarkovModelLight* ptr = 0;
 HMMStateLight* state_ptr = 0;
 HMMStateLight* state_ptr2 = 0;
+HMMStateLight* state_ptr3 = new HMMStateLight(0, true);
 
 // Hidden Markov Model State Tests
 CHECK(HMMStateLight())
@@ -79,6 +80,7 @@ RESULT
 CHECK(void setIdentifier(Size id))
 	state_ptr->setIdentifier(1234);
 	TEST_EQUAL(state_ptr->getIdentifier(), 1234)
+	state_ptr->setIdentifier(27);
 RESULT
 
 CHECK(void setHidden(bool hidden))
@@ -121,16 +123,118 @@ RESULT
 
 // Hidden Markov Model Tests
 CHECK(HiddenMarkovModelLight())
-	ptr = new HiddenMarkovModelLight();
-	TEST_NOT_EQUAL(ptr, 0)
+  ptr = new HiddenMarkovModelLight();
+  TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK(virtual ~HiddenMarkovModelLight())
-	delete ptr;
+  delete ptr;
 RESULT
 
 ptr = new HiddenMarkovModelLight();
 
+CHECK(const getNumberOfStates() const)
+  TEST_EQUAL(ptr->getNumberOfStates(), 0)
+RESULT
+
+CHECK(void addNewState(HMMState* state))
+  ptr->addNewState(state_ptr);
+  TEST_EQUAL(ptr->getNumberOfStates(), 1)
+  ptr->addNewState(state_ptr2);
+  ptr->addNewState(state_ptr3);
+RESULT
+
+CHECK(HMMState* getState(const String& name))
+  TEST_EQUAL(ptr->getState(27), state_ptr)
+RESULT
+
+CHECK(double getTransitionProbability(const String& s1, const String& s2) const)
+  TEST_REAL_EQUAL(ptr->getTransitionProbability(27, 123), 0.0)
+RESULT
+
+CHECK(double getTransitionProbability(HMMState* s1, HMMState* s2) const)
+  TEST_REAL_EQUAL(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.0)
+RESULT
+
+CHECK(void setTransitionProbability(const String& s1, const String& s2, double prob))
+  ptr->setTransitionProbability(27, 123, 0.3);
+  TEST_REAL_EQUAL(ptr->getTransitionProbability(27, 123), 0.3)
+RESULT
+
+CHECK(void setTransitionProbability(HMMState* s1, HMMState* s2, double prob))
+  ptr->setTransitionProbability(state_ptr, state_ptr2, 0.4);
+  TEST_REAL_EQUAL(ptr->getTransitionProbability(state_ptr, state_ptr2), 0.4)
+RESULT
+
+CHECK(void addSynonymTransition(const String& name1, const String& name2, const String& synonym1, const String& synonym2))
+  HMMStateLight* s1 = new HMMStateLight(28);
+  HMMStateLight* s2 = new HMMStateLight(124);
+  ptr->addNewState(s1);
+  ptr->addNewState(s2);
+  ptr->addSynonymTransition(27, 123, 28, 124);
+RESULT
+
+CHECK(void buildSynonyms())
+  ptr->buildSynonyms();
+  TEST_REAL_EQUAL(ptr->getTransitionProbability(28, 124), 0.4)
+RESULT
+
+CHECK(void setInitialTransitionProbability(const String& state, double prob))
+
+RESULT
+
+CHECK(void setInitialTransitionProbability(HMMState* state, double prob))
+
+RESULT
+
+CHECK(void setTrainingEmissionProbability(const String& state, double prob))
+
+RESULT
+
+CHECK(void setTrainingEmissionProbability(HMMState* state, double prob))
+
+RESULT
+
+CHECK(void enableTransition(HMMState* s1, HMMState* s2))
+
+RESULT
+
+CHECK(void enableTransition(const String& s1, const String& s2))
+
+RESULT
+
+CHECK(void disableTransition(HMMState* s1, HMMState* s2))
+
+RESULT
+
+CHECK(void disableTransition(const String& s1, const String& s2))
+
+RESULT
+
+CHECK(void disableTransitions())
+  ptr->disableTransitions();
+RESULT
+
+CHECK(void calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs))
+
+RESULT
+
+CHECK(void train())
+
+RESULT
+
+CHECK(void evaluate())
+
+RESULT
+
+CHECK(void estimateUntrainedTransitions())
+
+RESULT
+
+//CHECK(void clear())
+//	ptr->clear();
+//  TEST_EQUAL(ptr->getNumberOfStates(), 0)
+//RESULT
 
 
 /////////////////////////////////////////////////////////////

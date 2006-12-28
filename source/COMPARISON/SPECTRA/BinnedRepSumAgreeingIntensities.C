@@ -46,7 +46,10 @@ namespace OpenMS
 
   BinnedRepSumAgreeingIntensities& BinnedRepSumAgreeingIntensities::operator=(const BinnedRepSumAgreeingIntensities& source)
   {
-    BinnedRepCompareFunctor::operator=(source);
+		if (this != &source)
+		{
+    	BinnedRepCompareFunctor::operator=(source);
+		}
     return *this;
   }
   

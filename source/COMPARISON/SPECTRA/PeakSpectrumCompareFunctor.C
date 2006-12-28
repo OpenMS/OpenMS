@@ -59,7 +59,10 @@ namespace OpenMS
  
   PeakSpectrumCompareFunctor& PeakSpectrumCompareFunctor::operator=(const PeakSpectrumCompareFunctor& source)
   {
-    FactoryProduct::operator=(source);
+		if (this != &source)
+		{
+    	FactoryProduct::operator=(source);
+		}
     return *this;
   }
  

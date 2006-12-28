@@ -47,9 +47,12 @@ namespace OpenMS
 		name_ = source.getName();
   }
     
-  PeakPosBins& PeakPosBins::operator=(const PeakPosBins& source)
+  PeakPosBins& PeakPosBins::operator = (const PeakPosBins& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
 

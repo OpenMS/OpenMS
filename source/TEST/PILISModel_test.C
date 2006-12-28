@@ -67,15 +67,33 @@ CHECK(void writeToFile(const String& filename))
 	ptr->writeToFile(temp_filename);
 RESULT
 
-CHECK(void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2))
-	
-RESULT
-
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UnsignedInt charge))
 	PeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
 	TEST_EQUAL(spec.size(), 104)
 RESULT
+
+CHECK(void getSpectrumAlignment(HashMap<Size, Size>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2))
+	PeakSpectrum sim, exp;
+	ptr->getSpectrum(sim, peptide, 1);
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", exp);
+	sim.getContainer().sortByPosition();
+	
+	HashMap<Size, Size> peak_map;
+	ptr->getSpectrumAlignment(peak_map, sim, exp);
+	TEST_EQUAL(peak_map.size(), 73);
+	for (HashMap<Size, Size>::ConstIterator it = peak_map.begin(); it != peak_map.end(); ++it)
+	{
+		bool in_error_range(false);
+		double diff(sim.getContainer()[it->first].getPosition()[0] - exp.getContainer()[it->second].getPosition()[0]);
+		if (fabs(diff) < 0.004 * sim.getContainer()[it->first].getPosition()[0])
+		{
+			in_error_range = true;
+		}
+		TEST_EQUAL(in_error_range, true);
+	}
+RESULT
+
 
 CHECK(void train(const PeakSpectrum&, const AASequence& peptide, UnsignedInt charge))
 	PeakSpectrum spec;

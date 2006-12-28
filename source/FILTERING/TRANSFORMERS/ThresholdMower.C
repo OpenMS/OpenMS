@@ -47,9 +47,12 @@ namespace OpenMS
   {
   }
 
-  ThresholdMower& ThresholdMower::operator=(const ThresholdMower& source)
+  ThresholdMower& ThresholdMower::operator = (const ThresholdMower& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

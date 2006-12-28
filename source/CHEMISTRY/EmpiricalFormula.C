@@ -182,8 +182,11 @@ namespace OpenMS
 
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator = (const EmpiricalFormula& formula)
 	{
-		formula_ = formula.formula_;
-		charge_ = formula.charge_;
+		if (this != &formula)
+		{
+			formula_ = formula.formula_;
+			charge_ = formula.charge_;
+		}
 		return *this;
 	}
 

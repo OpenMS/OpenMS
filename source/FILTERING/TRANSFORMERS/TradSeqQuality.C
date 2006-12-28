@@ -54,9 +54,12 @@ namespace OpenMS{
   {
   }
     
-  TradSeqQuality& TradSeqQuality::operator=(const TradSeqQuality& source )
+  TradSeqQuality& TradSeqQuality::operator = (const TradSeqQuality& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
 

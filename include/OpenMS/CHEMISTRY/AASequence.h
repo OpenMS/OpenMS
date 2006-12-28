@@ -80,6 +80,9 @@ namespace OpenMS
 			virtual ~AASequence();
 			//@}
 
+			/// assignment operator
+			AASequence& operator = (const AASequence& rhs);
+			
 			/** @name Accessors
 			*/
 			//@{

@@ -42,12 +42,12 @@ namespace OpenMS
   {
   }
 
-  SqrtMower& SqrtMower::operator=(const SqrtMower& source)
+  SqrtMower& SqrtMower::operator = (const SqrtMower& source)
   {
-  	if (this == &source) return *this;
-  	
-    PreprocessingFunctor::operator=(source);
-    
+  	if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
   

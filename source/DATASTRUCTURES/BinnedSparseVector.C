@@ -58,36 +58,45 @@ namespace OpenMS
   }
  
   // only save zeros
-  BinnedSparseVector::DoubleProxy& BinnedSparseVector::DoubleProxy::operator=(const BinnedSparseVector::DoubleProxy& rhs)
+  BinnedSparseVector::DoubleProxy& BinnedSparseVector::DoubleProxy::operator = (const BinnedSparseVector::DoubleProxy& rhs)
   {
-    double value = 0;
-    map<uint,double>::const_iterator cmit = rhs.vec_.values_.find(rhs.index_);
-    if ( cmit != rhs.vec_.values_.end() )
-    {
-      value = cmit->second;
-    }
-    if ( fabs(value) > 1e-8 )
-    {
-      vec_.values_[index_] = value;
-    }
-    else if ( vec_.values_.find(index_) != vec_.values_.end() )
-    {
-      vec_.values_[index_] = value;
-    }
+		if (this != &rhs)
+		{
+    	double value = 0;
+    	map<uint, double>::const_iterator cmit = rhs.vec_.values_.find(rhs.index_);
+    	if (cmit != rhs.vec_.values_.end())
+    	{
+      	value = cmit->second;
+    	}
+    	if (fabs(value) > 1e-8)
+    	{
+      	vec_.values_[index_] = value;
+    	}
+    	else 
+			{
+				if (vec_.values_.find(index_) != vec_.values_.end())
+    		{
+      		vec_.values_[index_] = value;
+    		}
+			}
+		}
     return *this;
   }
 
   // only save zeros
   BinnedSparseVector::DoubleProxy& BinnedSparseVector::DoubleProxy::operator=(double val)
   {
-    if ( fabs(val) > 1e-8 )
+    if (fabs(val) > 1e-8)
     {
-      vec_.values_[index_] = val;
+     	vec_.values_[index_] = val;
     }
-    else if ( vec_.values_.find(index_) != vec_.values_.end() )
-    {
-      vec_.values_[index_] = val;
-    }
+    else 
+		{
+			if (vec_.values_.find(index_) != vec_.values_.end())
+    	{
+     		vec_.values_[index_] = val;
+    	}
+		}
     return *this;
   }
  
@@ -106,10 +115,13 @@ namespace OpenMS
   {
   }
 
-  BinnedSparseVector& BinnedSparseVector::operator=( const BinnedSparseVector& source)
+  BinnedSparseVector& BinnedSparseVector::operator = (const BinnedSparseVector& source)
   {
-    values_ = source.values_;
-    size_ = source.size_;
+		if (this != &source)
+		{
+    	values_ = source.values_;
+    	size_ = source.size_;
+		}
     return *this;
   }
   

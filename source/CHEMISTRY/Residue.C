@@ -61,17 +61,20 @@ namespace OpenMS
 
 	const Residue::Modification& Residue::Modification::operator = (const Modification& modification)
 	{
-		name_ = modification.name_;
-		name_prefix_ = modification.name_prefix_;
-		short_name_ = modification.short_name_;
-		synonyms_ = modification.synonyms_;
-		add_formula_ = modification.add_formula_;
-		add_average_weight_ = modification.add_average_weight_;
-		add_mono_weight_ = modification.add_mono_weight_;
-		del_formula_ = modification.del_formula_;
-		del_average_weight_ = modification.del_average_weight_;
-		del_mono_weight_ = modification.del_mono_weight_;
-		valid_residues_ = modification.valid_residues_;
+		if (this != &modification)
+		{
+			name_ = modification.name_;
+			name_prefix_ = modification.name_prefix_;
+			short_name_ = modification.short_name_;
+			synonyms_ = modification.synonyms_;
+			add_formula_ = modification.add_formula_;
+			add_average_weight_ = modification.add_average_weight_;
+			add_mono_weight_ = modification.add_mono_weight_;
+			del_formula_ = modification.del_formula_;
+			del_average_weight_ = modification.del_average_weight_;
+			del_mono_weight_ = modification.del_mono_weight_;
+			valid_residues_ = modification.valid_residues_;
+		}
 		return *this;
 	}
 	
@@ -282,26 +285,29 @@ namespace OpenMS
 
 	const Residue& Residue::operator = (const Residue& residue)
 	{
-		name_ = residue.name_;
-		short_name_ = residue.short_name_;
-		synonyms_ = residue.synonyms_;
-		three_letter_code_ = residue.three_letter_code_;
-		one_letter_code_ = residue.one_letter_code_;
-		formula_ = residue.formula_;
-		internal_formula_ = residue.internal_formula_;
-		average_weight_ = residue.average_weight_;
-		mono_weight_ = residue.mono_weight_;
-		is_modified_ = residue.is_modified_;
-		pre_mod_name_ = residue.pre_mod_name_;
-		modification_ = residue.modification_;
-		loss_name_ = residue.loss_name_;
-		loss_formula_ = residue.loss_formula_;
-		loss_average_weight_ = residue.loss_average_weight_;
-		loss_mono_weight_ = residue.loss_mono_weight_;
-		low_mass_ions_ = residue.low_mass_ions_;
-		pka_ = residue.pka_;
-		pkb_ = residue.pkb_;
-		pkc_ = residue.pkc_;
+		if (this != &residue)
+		{
+			name_ = residue.name_;
+			short_name_ = residue.short_name_;
+			synonyms_ = residue.synonyms_;
+			three_letter_code_ = residue.three_letter_code_;
+			one_letter_code_ = residue.one_letter_code_;
+			formula_ = residue.formula_;
+			internal_formula_ = residue.internal_formula_;
+			average_weight_ = residue.average_weight_;
+			mono_weight_ = residue.mono_weight_;
+			is_modified_ = residue.is_modified_;
+			pre_mod_name_ = residue.pre_mod_name_;
+			modification_ = residue.modification_;
+			loss_name_ = residue.loss_name_;
+			loss_formula_ = residue.loss_formula_;
+			loss_average_weight_ = residue.loss_average_weight_;
+			loss_mono_weight_ = residue.loss_mono_weight_;
+			low_mass_ions_ = residue.low_mass_ions_;
+			pka_ = residue.pka_;
+			pkb_ = residue.pkb_;
+			pkc_ = residue.pkc_;
+		}
 		return *this;
 	}
 

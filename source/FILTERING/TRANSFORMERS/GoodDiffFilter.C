@@ -70,10 +70,13 @@ namespace OpenMS
   {
   }
   
-  GoodDiffFilter& GoodDiffFilter::operator=(const GoodDiffFilter& source)
+  GoodDiffFilter& GoodDiffFilter::operator = (const GoodDiffFilter& source)
   {
-    FilterFunctor::operator=(source);
-    aamass_ = source.aamass_;
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+    	aamass_ = source.aamass_;
+		}
     return *this;
   }
 

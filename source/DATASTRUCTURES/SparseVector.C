@@ -55,30 +55,37 @@ namespace OpenMS
     }
   }
 
-  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator=(const SparseVector::DoubleProxy& rhs)
+  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator = (const SparseVector::DoubleProxy& rhs)
   {
-    SparseVector::valuetype value = 0;
-    if ( rhs.index_ >= rhs.vec_.middle_ && rhs.index_ < rhs.vec_.middle_ + rhs.vec_.rightarray_.size())
-    {
-      value = rhs.vec_.rightarray_.at(rhs.index_ - rhs.vec_.middle_);
-    }
-    else if (rhs.index_ >= rhs.vec_.firstentry_ && rhs.index_ < rhs.vec_.middle_)
-    {
-      value = rhs.vec_.leftarray_.at(rhs.index_ - rhs.vec_.firstentry_);
-    }
-    if( fabs(value) > 1e-8)
-    {
-      vec_.insert(index_,value);
-    }
+		if (this != &rhs)
+		{
+    	SparseVector::valuetype value = 0;
+    	if (rhs.index_ >= rhs.vec_.middle_ && rhs.index_ < rhs.vec_.middle_ + rhs.vec_.rightarray_.size())
+    	{
+      	value = rhs.vec_.rightarray_.at(rhs.index_ - rhs.vec_.middle_);
+    	}
+    	else 
+			{
+				if (rhs.index_ >= rhs.vec_.firstentry_ && rhs.index_ < rhs.vec_.middle_)
+    		{
+      		value = rhs.vec_.leftarray_.at(rhs.index_ - rhs.vec_.firstentry_);
+    		}
+			}
+    	if(fabs(value) > 1e-8)
+    	{
+      	vec_.insert(index_,value);
+    	}
+		}
     return *this;
   }
 
-  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator=(SparseVector::valuetype val)
+  SparseVector::DoubleProxy& SparseVector::DoubleProxy::operator = (SparseVector::valuetype val)
   {
-    if ( fabs(val) > 1e-8 )
-    {
-      vec_.insert(index_,val);
-    }
+   	if (fabs(val) > 1e-8)
+   	{
+     	vec_.insert(index_,val);
+   	}
+
     return *this;
   }
   
@@ -107,12 +114,15 @@ namespace OpenMS
   {
   }
   
-  SparseVector& SparseVector::operator=(const SparseVector& source)
+  SparseVector& SparseVector::operator = (const SparseVector& source)
   {
-    middle_=source.middle_;
-    firstentry_=source.firstentry_;
-    rightarray_=source.rightarray_;
-    leftarray_=source.leftarray_;
+		if (this != &source)
+		{
+	    middle_ = source.middle_;
+  	  firstentry_ = source.firstentry_;
+    	rightarray_ = source.rightarray_;
+    	leftarray_ = source.leftarray_;
+		}
     return *this;
   }
   

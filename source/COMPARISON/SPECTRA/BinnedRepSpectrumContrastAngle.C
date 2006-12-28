@@ -46,7 +46,10 @@ namespace OpenMS
 
   BinnedRepSpectrumContrastAngle& BinnedRepSpectrumContrastAngle::operator= (const BinnedRepSpectrumContrastAngle& source)
   {
-		BinnedRepCompareFunctor::operator=(source);
+		if (this != &source)
+		{
+			BinnedRepCompareFunctor::operator=(source);
+		}
     return *this;
   }
   

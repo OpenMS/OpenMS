@@ -45,9 +45,12 @@ namespace OpenMS
 		name_ = source.getName();
   }
 
-  ParentFilter& ParentFilter::operator=(const ParentFilter& source)
+  ParentFilter& ParentFilter::operator = (const ParentFilter& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
 

@@ -201,6 +201,10 @@ class TOPPMascotAdapter
 			registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
 			registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
+			registerDoubleOption_("_sigthreshold", "<num>", 0, "significance threshold", false);
+			registerDoubleOption_("pep_homol", "<num>", 1, "peptide homology threshold", false);
+			registerDoubleOption_("pep_ident", "<num>", 1, "peptide ident threshold", false);
+			registerIntOption_("pep_rank", "<num>", 1, "peptide rank", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
@@ -485,9 +489,9 @@ class TOPPMascotAdapter
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
 					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
-						"/" + mascot_outfile_name + " _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
-						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=1 pep_ident=1 pep_seq=1 " + 
-						"show_header=1 show_queries=1 > " + mascotXML_file_name + ";";
+						"/" + mascot_outfile_name + " _sigthreshold=0 _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
+						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=0 pep_ident=0 pep_seq=1 " + 
+						"show_header=1 show_queries=1 pep_rank=1 > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
 					{

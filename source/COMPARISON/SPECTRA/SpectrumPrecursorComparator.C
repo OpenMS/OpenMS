@@ -51,7 +51,10 @@ namespace OpenMS
 
   SpectrumPrecursorComparator& SpectrumPrecursorComparator::operator=(const SpectrumPrecursorComparator& source)
   {
-    PeakSpectrumCompareFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PeakSpectrumCompareFunctor::operator=(source);
+		}
     return *this;
   }
 

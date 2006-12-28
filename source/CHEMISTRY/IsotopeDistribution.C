@@ -68,8 +68,11 @@ namespace OpenMS
 
 	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator = (const IsotopeDistribution& iso)
 	{
-		distribution_ = iso.distribution_;
-		max_isotope_ = iso.max_isotope_;
+		if (this != &iso)
+		{
+			distribution_ = iso.distribution_;
+			max_isotope_ = iso.max_isotope_;
+		}
 		return *this;
 	}
 

@@ -49,9 +49,12 @@ namespace OpenMS
   {
   }
 
-  Normalizer& Normalizer::operator=(const Normalizer& source)
+  Normalizer& Normalizer::operator = (const Normalizer& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

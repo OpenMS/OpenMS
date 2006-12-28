@@ -61,7 +61,10 @@ namespace OpenMS
 
   NLargest& NLargest::operator=(const NLargest& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

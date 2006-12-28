@@ -55,9 +55,12 @@ namespace OpenMS
   {
   }
   
-  FilterFunctor& FilterFunctor::operator=(const FilterFunctor& source)
+  FilterFunctor& FilterFunctor::operator = (const FilterFunctor& source)
   {
-    FactoryProduct::operator=(source);
+		if (this != &source)
+		{
+    	FactoryProduct::operator=(source);
+		}
     return *this;
   }
 	

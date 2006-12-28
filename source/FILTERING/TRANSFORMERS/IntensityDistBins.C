@@ -49,7 +49,10 @@ namespace OpenMS
 
   IntensityDistBins& IntensityDistBins::operator = (const IntensityDistBins& source)
   {
-    FilterFunctor::operator = (source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator = (source);
+		}
     return *this;
   }
   

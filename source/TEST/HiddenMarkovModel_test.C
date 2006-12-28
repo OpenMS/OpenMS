@@ -179,7 +179,57 @@ CHECK(void buildSynonyms())
 	TEST_REAL_EQUAL(ptr->getTransitionProbability("state_name_hidden2", "state_name_emitting2"), 0.4)
 RESULT
 
+CHECK(void setInitialTransitionProbability(const String& state, double prob))
 
+RESULT
+
+CHECK(void setInitialTransitionProbability(HMMState* state, double prob))
+
+RESULT
+
+CHECK(void setTrainingEmissionProbability(const String& state, double prob))
+
+RESULT
+
+CHECK(void setTrainingEmissionProbability(HMMState* state, double prob))
+
+RESULT
+			
+CHECK(void enableTransition(HMMState* s1, HMMState* s2))
+
+RESULT
+
+CHECK(void enableTransition(const String& s1, const String& s2))
+
+RESULT
+
+CHECK(void disableTransition(HMMState* s1, HMMState* s2))
+				
+RESULT
+
+CHECK(void disableTransition(const String& s1, const String& s2))
+				
+RESULT
+
+CHECK(void disableTransitions())
+	ptr->disableTransitions();
+RESULT
+
+CHECK(void calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs))
+
+RESULT
+
+CHECK(void train())
+				
+RESULT
+
+CHECK(void evaluate())
+				
+RESULT
+
+CHECK(void estimateUntrainedTransitions())
+
+RESULT
 
 CHECK(void clear())
 	ptr->clear();

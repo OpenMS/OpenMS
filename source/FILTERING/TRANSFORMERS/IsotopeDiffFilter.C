@@ -50,7 +50,10 @@ namespace OpenMS
   
   IsotopeDiffFilter& IsotopeDiffFilter::operator=(const IsotopeDiffFilter& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
   

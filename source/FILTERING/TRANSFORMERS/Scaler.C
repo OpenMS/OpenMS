@@ -44,9 +44,12 @@ namespace OpenMS
   {
   }
 
-  Scaler& Scaler::operator=(const Scaler& source)
+  Scaler& Scaler::operator = (const Scaler& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

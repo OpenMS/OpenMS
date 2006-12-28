@@ -58,6 +58,15 @@ namespace OpenMS
 	{
 	}
 
+	AASequence& AASequence::operator = (const AASequence& rhs)
+	{
+		if (this != &rhs)
+		{
+			peptide_ = rhs.peptide_;
+		}
+		return *this;
+	}
+	
 	const Residue* AASequence::getResidue(SignedInt index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{

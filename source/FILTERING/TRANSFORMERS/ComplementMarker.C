@@ -47,9 +47,12 @@ namespace OpenMS
   {
   }
 
-  ComplementMarker& ComplementMarker::operator=(const ComplementMarker& source)
+  ComplementMarker& ComplementMarker::operator = (const ComplementMarker& source)
   {
-    PeakMarker::operator=(source);
+		if (this != &source)
+		{
+    	PeakMarker::operator=(source);
+		}
     return *this;
   }
 

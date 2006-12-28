@@ -43,9 +43,12 @@ namespace OpenMS
   {
   }
 
-  WindowMower& WindowMower::operator=(const WindowMower& source)
+  WindowMower& WindowMower::operator = (const WindowMower& source)
   {
-    PreprocessingFunctor::operator=(source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator=(source);
+		}
     return *this;
   }
 

@@ -43,7 +43,10 @@ namespace OpenMS{
     
   KellerQuality& KellerQuality::operator = (const KellerQuality& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
   

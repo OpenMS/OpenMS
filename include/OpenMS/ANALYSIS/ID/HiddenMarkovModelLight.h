@@ -52,8 +52,8 @@ namespace OpenMS
 			/** @name Constructors and destructors
 			 */
 			//@{
-			/// default constructor with visibility option (default hidden)
-			HMMStateLight(bool hidden = true);
+			/// default constructor
+			HMMStateLight();
 			
 			/// copy constructor
 			HMMStateLight(const HMMStateLight& state);
@@ -177,13 +177,13 @@ namespace OpenMS
 			void train();
 
 			///
-			void setTrainingInitialTransitionProbability(HMMStateLight*, double prob);
+			void setInitialTransitionProbability(HMMStateLight*, double prob);
 
 			///
-			void setTrainingInitialTransitionProbability(Size id, double prob);
+			void setInitialTransitionProbability(Size id, double prob);
 
 			///
-			void clearTrainingInitialTransitionProbabilities();
+			void clearInitialTransitionProbabilities();
 
 			///
 			void setTrainingEmissionProbability(HMMStateLight*, double prob);

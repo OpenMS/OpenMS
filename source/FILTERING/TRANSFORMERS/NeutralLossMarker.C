@@ -52,7 +52,10 @@ namespace OpenMS
 
   NeutralLossMarker& NeutralLossMarker::operator=(const NeutralLossMarker& source)
   {
-    PeakMarker::operator=(source);
+		if (this != &source)
+		{
+    	PeakMarker::operator=(source);
+		}
     return *this;
   }
 

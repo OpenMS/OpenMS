@@ -58,9 +58,12 @@ namespace OpenMS
 	{
 	}
  
-  BinnedRepCompareFunctor& BinnedRepCompareFunctor::operator=(const BinnedRepCompareFunctor& source)
+  BinnedRepCompareFunctor& BinnedRepCompareFunctor::operator = (const BinnedRepCompareFunctor& source)
   {
-    FactoryProduct::operator=(source);
+		if (this != &source)
+		{
+    	FactoryProduct::operator=(source);
+		}
     return *this;
   }
  

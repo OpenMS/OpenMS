@@ -64,9 +64,12 @@ namespace OpenMS
 
   SpectrumCheapDPCorr& SpectrumCheapDPCorr::operator = (const SpectrumCheapDPCorr& source)
   {
-    PeakSpectrumCompareFunctor::operator = (source);
-    lastconsensus_ = source.lastconsensus_;
-		factor_ = source.factor_;
+		if (this != &source)
+		{
+    	PeakSpectrumCompareFunctor::operator = (source);
+    	lastconsensus_ = source.lastconsensus_;
+			factor_ = source.factor_;
+		}
     return *this;
   }
 

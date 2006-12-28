@@ -185,19 +185,19 @@ namespace OpenMS
 			void train();
 
 			/// sets the initial transition probability of the given state to prob
-			void setTrainingInitialTransitionProbability(HMMState*, double prob);
+			void setInitialTransitionProbability(HMMState* state, double prob);
 
 			/// sets the initial transition probability of the given state to prob
-			void setTrainingInitialTransitionProbability(const String&, double prob);
+			void setInitialTransitionProbability(const String& state, double prob);
 
 			/// clears the initial probabilities 
-			void clearTrainingInitialTransitionProbabilities();
+			void clearInitialTransitionProbabilities();
 
 			/// sets the emission probability of the given state to prob
-			void setTrainingEmissionProbability(HMMState*, double prob);
+			void setTrainingEmissionProbability(HMMState* state, double prob);
 
 			/// sets the emission probability of the given state to prob
-			void setTrainingEmissionProbability(const String&, double prob);
+			void setTrainingEmissionProbability(const String& state, double prob);
 
 			/// clear the emission probabilities
 			void clearTrainingEmissionProbabilities();
@@ -206,13 +206,13 @@ namespace OpenMS
 			void enableTransition(HMMState* s1, HMMState* s2);
 
 			/// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
-			void enableTransition(const String&, const String&);
+			void enableTransition(const String& s1, const String& s2);
 
 			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
-			void disableTransition(HMMState*, HMMState*);
+			void disableTransition(HMMState* s1, HMMState* s2);
 
 			/// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
-			void disableTransition(const String&, const String&);
+			void disableTransition(const String& s1, const String& s2);
 
 			/// disables all transitions
 			void disableTransitions();
@@ -238,7 +238,7 @@ namespace OpenMS
 			/// returns the state with the given name
 			const HMMState* getState(const String& name) const;
 
-			/// clear alls data
+			/// clears all data
 			void clear();
 			//@}
 			
@@ -283,7 +283,7 @@ namespace OpenMS
 			HashMap<HMMState*, double> train_emission_prob_;
 
 			// initial transition probabilities
-			HashMap<HMMState*, double> init_train_prob_;
+			HashMap<HMMState*, double> init_prob_;
 
 			// all states of the HMM
 			std::set<HMMState*> states_;

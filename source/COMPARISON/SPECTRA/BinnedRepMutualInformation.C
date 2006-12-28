@@ -48,7 +48,10 @@ namespace OpenMS
 
   BinnedRepMutualInformation& BinnedRepMutualInformation::operator = (const BinnedRepMutualInformation& source)
   {
-    BinnedRepCompareFunctor::operator = (source);
+		if (this != &source)
+		{
+    	BinnedRepCompareFunctor::operator = (source);
+		}
     return *this;
   }
 

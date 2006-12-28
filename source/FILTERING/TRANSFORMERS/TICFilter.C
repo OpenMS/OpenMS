@@ -48,9 +48,12 @@ namespace OpenMS
   {
   }
 
-  TICFilter& TICFilter::operator=(const TICFilter& source)
+  TICFilter& TICFilter::operator = (const TICFilter& source)
   {
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
   

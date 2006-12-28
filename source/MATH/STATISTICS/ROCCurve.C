@@ -48,11 +48,14 @@ namespace OpenMS
 	  {
 	  }
 	
-	  ROCCurve& ROCCurve::operator=( const ROCCurve& source )
+	  ROCCurve& ROCCurve::operator = (const ROCCurve& source)
 	  {
-	    score_clas_pairs_ = source.score_clas_pairs_;
-	    pos_ = source.pos_;
-	    neg_ = source.neg_;
+			if (this != &source)
+			{
+	    	score_clas_pairs_ = source.score_clas_pairs_;
+	    	pos_ = source.pos_;
+	    	neg_ = source.neg_;
+			}
 	    return *this;
 	  }
 	

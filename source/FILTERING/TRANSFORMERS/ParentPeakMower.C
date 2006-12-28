@@ -58,7 +58,10 @@ namespace OpenMS
 
   ParentPeakMower& ParentPeakMower::operator = (const ParentPeakMower& source)
   {
-    PreprocessingFunctor::operator = (source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator = (source);
+		}
     return *this;
   }
 

@@ -171,7 +171,7 @@ namespace OpenMS
 		HashMap<HMMState*, vector<HMMState*> > transitions;
 		
 		stack<HMMState*> s;
-		for (HashMap<HMMState*, double>::ConstIterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (HashMap<HMMState*, double>::ConstIterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
 		{
 			s.push(it->first);
 		}
@@ -288,7 +288,7 @@ namespace OpenMS
     backward_.clear();
     name_to_state_.clear();
     train_emission_prob_.clear();
-    init_train_prob_.clear();
+    init_prob_.clear();
     states_.clear();
     trained_trans_.clear();
     synonym_trans_.clear();
@@ -310,7 +310,7 @@ namespace OpenMS
 		backward_.clear();
 		name_to_state_.clear();
 		train_emission_prob_.clear();
-		init_train_prob_.clear();
+		init_prob_.clear();
 		states_.clear();
 		trained_trans_.clear();
 		synonym_trans_.clear();
@@ -571,12 +571,12 @@ namespace OpenMS
 	{
 		forward_.clear();
 		set<HMMState*> succ;
-		for (HashMap<HMMState*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (HashMap<HMMState*, double>::Iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
 		{
 			forward_[it->first] = it->second;
 		}
 		
-		for (HashMap<HMMState*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (HashMap<HMMState*, double>::Iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
 		{
 			succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 		
@@ -684,14 +684,14 @@ namespace OpenMS
 		}
 	}
 
-	void HiddenMarkovModel::setTrainingInitialTransitionProbability(const String& state, double prob)
+	void HiddenMarkovModel::setInitialTransitionProbability(const String& state, double prob)
 	{
-		init_train_prob_[name_to_state_[state]] = prob;
+		init_prob_[name_to_state_[state]] = prob;
 	}
 
-	void HiddenMarkovModel::clearTrainingInitialTransitionProbabilities()
+	void HiddenMarkovModel::clearInitialTransitionProbabilities()
 	{
-		init_train_prob_.clear();
+		init_prob_.clear();
 	}
 
 	void HiddenMarkovModel::setTrainingEmissionProbability(const String& state, double prob)
@@ -742,7 +742,7 @@ namespace OpenMS
 
 	void HiddenMarkovModel::calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs)
 	{
-		HashMap<HMMState*, double> states = init_train_prob_;
+		HashMap<HMMState*, double> states = init_prob_;
 
 		while (states.size() != 0)
 		{
@@ -795,7 +795,7 @@ namespace OpenMS
 	void HiddenMarkovModel::forwardDump()
 	{
    set<HMMState*> succ;
-    for (HashMap<HMMState*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+    for (HashMap<HMMState*, double>::Iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
     {
       succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 

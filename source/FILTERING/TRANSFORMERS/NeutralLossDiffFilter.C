@@ -49,9 +49,12 @@ namespace OpenMS
 		name_ = source.getName();
   }
   
-  NeutralLossDiffFilter& NeutralLossDiffFilter::operator=(const NeutralLossDiffFilter& source)
+  NeutralLossDiffFilter& NeutralLossDiffFilter::operator = (const NeutralLossDiffFilter& source)
   { 
-    FilterFunctor::operator=(source);
+		if (this != &source)
+		{
+    	FilterFunctor::operator=(source);
+		}
     return *this;
   }
 

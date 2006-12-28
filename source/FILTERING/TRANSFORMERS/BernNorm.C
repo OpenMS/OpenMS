@@ -53,7 +53,10 @@ namespace OpenMS
 
   BernNorm& BernNorm::operator = (const BernNorm& source)
   {
-    PreprocessingFunctor::operator = (source);
+		if (this != &source)
+		{
+    	PreprocessingFunctor::operator = (source);
+		}
     return *this;
   }
 

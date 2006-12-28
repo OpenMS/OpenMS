@@ -57,8 +57,11 @@ namespace OpenMS
   
   PeakDiffBins& PeakDiffBins::operator = (const PeakDiffBins& source)
   {
-    FilterFunctor::operator = (source);
-    mask_ = source.mask_;
+		if (this != &source)
+		{
+    	FilterFunctor::operator = (source);
+    	mask_ = source.mask_;
+		}
     return *this;
   }
   

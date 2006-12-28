@@ -60,7 +60,7 @@ namespace OpenMS
 			//@}
 			
 			/// assignment operator 
-			TheoreticalSpectrumGenerator operator = (const TheoreticalSpectrumGenerator& tsg);
+			TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg);
 
 			/** @name Acessors
 			 */
