@@ -40,8 +40,6 @@ namespace OpenMS
 
 	/**
 		@defgroup SpectraComparison Spectra Comparison
-
-		@ingroup Comparison
 	*/
 
 	/**
@@ -56,7 +54,7 @@ namespace OpenMS
 		
     maximum mass difference for spectra that get similarity > 0
 
-		@ingroup SpectraComparison
+		@ingroup Comparison
   */
   class BinnedRepCompareFunctor : public FactoryProduct
   {

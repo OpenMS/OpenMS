@@ -205,6 +205,10 @@ class TOPPMascotAdapter
 			registerDoubleOption_("pep_homol", "<num>", 1, "peptide homology threshold", false);
 			registerDoubleOption_("pep_ident", "<num>", 1, "peptide ident threshold", false);
 			registerIntOption_("pep_rank", "<num>", 1, "peptide rank", false);
+			registerDoubleOption_("prot_score", "<num>", 1, "protein score", false);
+			registerDoubleOption_("pep_score", "<num>", 1, "peptide score", false);
+			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
+			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
@@ -245,8 +249,10 @@ class TOPPMascotAdapter
 			vector<IdentificationData> identifications;
 			vector<SignedInt> charges;
 			vector<String> parts;
-			DoubleReal precursor_mass_tolerance;
-			DoubleReal peak_mass_tolerance;
+			DoubleReal precursor_mass_tolerance(0);
+			DoubleReal peak_mass_tolerance(0);
+			double pep_ident(0), sigthreshold(0), pep_homol(0), prot_score(0), pep_score(0);
+			int pep_rank(0), pep_exp_z(0), show_unassigned(0);
 			String temp_charge;
 			string db;
 			string hits;
@@ -273,7 +279,7 @@ class TOPPMascotAdapter
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-						
+			
 			inputfile_name = getStringOption_("in");			
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
 			if (inputfile_name == "")
@@ -312,6 +318,15 @@ class TOPPMascotAdapter
 				cleavage = getStringOption_("cleavage");
 				missed_cleavages = getIntOption_("missed_cleavages");
 				mass_type = getStringOption_("mass_type");
+			
+				sigthreshold = getDoubleOption_("_sigthreshold");
+				pep_homol = getDoubleOption_("pep_homol");
+				pep_ident = getDoubleOption_("pep_ident");
+				pep_rank = getIntOption_("pep_rank");
+				pep_exp_z = getIntOption_("pep_exp_z");
+				show_unassigned = getIntOption_("show_unassigned");
+				prot_score = getDoubleOption_("prot_score");
+				pep_score = getDoubleOption_("pep_score");
 				
 				instrument = getStringOption_("instrument");
 				precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
@@ -489,9 +504,10 @@ class TOPPMascotAdapter
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
 					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
-						"/" + mascot_outfile_name + " _sigthreshold=0 _showsubset=1 show_same_sets=1 show_unassigned=1 " + 
-						"prot_score=1 pep_exp_z=1 pep_score=1 pep_homol=0 pep_ident=0 pep_seq=1 " + 
-						"show_header=1 show_queries=1 pep_rank=1 > " + mascotXML_file_name + ";";
+						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
+						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
+						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 " + 
+						"show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
 					{

@@ -77,7 +77,7 @@ namespace OpenMS
 			/** @brief adds peptides from a file
 
 					The file should have the following format:
-					Three columns filled with <sequence> <weight> <charge>
+					Three columns filled with <code> sequence weight charge </code>
 			*/
 			void addPeptidesFromFile(const String& filename);
 

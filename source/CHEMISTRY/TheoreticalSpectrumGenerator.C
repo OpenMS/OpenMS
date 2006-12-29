@@ -269,7 +269,7 @@ namespace OpenMS
 	}
 
 
-	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, int charge)
+	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge)
 	{
 		bool add_metainfo((int)param_.getValue("add_metainfo"));
 		double pre_int((double)param_.getValue("precursor_intensity"));

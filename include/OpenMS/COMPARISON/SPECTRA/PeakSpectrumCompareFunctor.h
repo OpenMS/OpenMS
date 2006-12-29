@@ -33,16 +33,6 @@
 namespace OpenMS
 {
 
-  /**
-		@defgroup Comparison Comparison
-	*/
-
-	/**
-		@defgroup SpectraComparison Spectra Comparison
-
-		@ingroup Comparison
-	*/
-
 	/**
 	
 		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
@@ -51,7 +41,7 @@ namespace OpenMS
   	ideally the value should reflect the similarity of the pair
   	similarities of spectra should be > 0
 		
-		@ingroup SpectraComparison
+		@ingroup Comparison
   */
   class PeakSpectrumCompareFunctor : public FactoryProduct
   {
