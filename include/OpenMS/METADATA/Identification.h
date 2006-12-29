@@ -179,17 +179,6 @@ namespace OpenMS
 		{
 			return rt==rhs.rt && mz==rhs.mz &&  id==rhs.id;
 		}
-
-		IdentificationData& operator==(const IdentificationData& rhs)
-		{
-			if (&rhs==this) return *this;
-			
-			rt=rhs.rt;
-			mz=rhs.mz;
-			id=rhs.id;
-			
-			return *this;
-		}
 	};
 } //namespace OpenMS
 #endif // OPENMS_METADATA_IDENTIFICATION_H

@@ -140,12 +140,6 @@ namespace OpenMS
 
     void makeReducedDataSet();
 
-		DataModes data_mode_;
-
-		int current_data_mode_;
-
-		Param reduction_param_;
-		//reduction
 		/// number of peaks in the dataset
 		int sum_of_peaks_;
 		/// area of the dataset

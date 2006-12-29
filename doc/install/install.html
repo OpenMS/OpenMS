@@ -148,7 +148,8 @@
   <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
   <BR>
   <b>Note:</b> Version 4.x is not supported!
-  
+	<b>Note:</b> If you want to use the preinstalled binaries, make sure that
+	the qt-devel package is installed.  
 
   <p>Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
@@ -173,16 +174,6 @@
   -plugin-sql-&lt;driver&gt; to enable database support. There is a
   QT driver for a lot of SQL database provided by QT. Check the QT
   manual for details.</p>
-
-  <p>If our mysql installation is not in the standard path, it was
-  necessary to add <code>-I/&lt;path_to_mysql_includes&gt;</code>
-  and <code>-L/&lt;path_to_mysql_libraries&gt;</code>. We observed
-  that in some platforms Qt's configure searches the -I and -L
-  paths only <i>after</i> the system default locations. Thus you
-  are probably best off <i>using the same GCC and Qt versions as
-  the rest of your system,</i> if possible. This applies in
-  particular if your system already comes along with a Qt
-  installation (which is usually the case for linux).</p>
   
   <a name="contrib" id="contrib"></a>
   <h3>Installing the other required libraries (using the contrib package)</h3>

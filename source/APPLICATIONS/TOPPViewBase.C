@@ -386,10 +386,8 @@ namespace OpenMS
       cutoff = estimateNoise_(*exp);
       cout << "Estimated noise level: " << cutoff << endl;
     }
-
-    exp->setName(caption);
     w->widget()->canvas()->finishAdding(cutoff);
-
+		w->widget()->canvas()->setCurrentLayerName(caption);
     //use_mower
 
     //do for all windows
@@ -546,8 +544,8 @@ namespace OpenMS
         QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
-      map.setName(caption);
       w->widget()->canvas()->addDataSet(map);
+      w->widget()->canvas()->setCurrentLayerName(caption);
     }
     else
     {
@@ -555,7 +553,6 @@ namespace OpenMS
       SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
       try
       {
-        //cout << "Loading data: "<<Date::now() << endl;
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
       catch(Exception::Base& e)
@@ -581,22 +578,16 @@ namespace OpenMS
       if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
       {
         cutoff = estimateNoise_(*exp);
-        //cout << "Estimated noise level: " << cutoff << endl;
       }
-      exp->setName(caption);  // set layername
-      //cout << "FinishAdding: "<<Date::now() << endl;
       w->widget()->canvas()->finishAdding(cutoff);
-      //cout << "Done FinishAdding: "<<Date::now() << endl;
+      w->widget()->canvas()->setCurrentLayerName(caption);
     }
-    //cout << "updateLayerbar: "<<Date::now() << endl;
     updateLayerbar();
 
-    //cout << "maximize: "<<Date::now() << endl;
     if(maximize)
     {
       w->showMaximized();
     }
-    //cout << "signals: "<<Date::now() << endl;
     if (as_new_window)
     {
       connectWindowSignals_(w);
@@ -604,7 +595,6 @@ namespace OpenMS
       addClient(w,filename);
       addTab_(w,caption);
     }
-    //cout << "Done: "<<Date::now() << endl;
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -1180,10 +1170,10 @@ namespace OpenMS
       return;
     }
 
-    for (UnsignedInt i = 0; i<cc->getDataSetCount(); ++i)
+    for (UnsignedInt i = 0; i<cc->getLayerCount(); ++i)
     {
-      layer_manager_->addLayer(cc->getDataSetName(i));
-      layer_manager_->setVisible(i,cc->isDataSetVisible(i));
+      layer_manager_->addLayer(cc->getLayer(i).name);
+      layer_manager_->setVisible(i,cc->getLayer(i).visible);
     }
 
     layer_manager_->activate(cc->activeDataSetIndex());
@@ -1363,9 +1353,8 @@ namespace OpenMS
         const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
 				
 				//add new layer
-        String new_name = exp_raw.getName()+"(smoothed)";
+        String new_name = w->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
         Spectrum1DCanvas::ExperimentType& exp_smoothed = w->widget()->canvas()->addEmptyDataSet();
-        exp_smoothed.setName(new_name); // set layername
 
         // add one spectrum
         exp_smoothed.resize(1);
@@ -1418,7 +1407,7 @@ namespace OpenMS
 	        {
 	        	QMessageBox::warning(this,"Order of the smoothing polynomial too large!","Choose a smaller order or enlarge the width of the smoothing kernel.");
 	        	w->widget()->canvas()->finishAdding();
-	        	
+	        	w->widget()->canvas()->setCurrentLayerName(new_name);
 						return;
 	        }
         }
@@ -1451,12 +1440,11 @@ namespace OpenMS
           Spectrum2DWindow* w_smoothed = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_smoothed->setMainPreferences(prefs_);
-          String new_name = exp_raw.getName()+" (smoothed)";
+          String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
 
           Spectrum2DCanvas::ExperimentType& exp2 = w_smoothed->widget()->canvas()->addEmptyDataSet();
-          exp2.setName(new_name); // set layername
 
-          String filename = exp_raw.getName()+"_smoothed";
+          String filename = w2->widget()->canvas()->getCurrentLayer().name+"_smoothed";
 
 					// savitzky golay filtering
 
@@ -1539,7 +1527,8 @@ namespace OpenMS
           }
            
 	      	w_smoothed->widget()->canvas()->finishAdding();
-	
+					w_smoothed->widget()->canvas()->setCurrentLayerName(new_name);
+					
 	        connectWindowSignals_(w_smoothed);
 	        w_smoothed->setCaption(new_name);
 	        addClient(w_smoothed,filename);
@@ -1572,9 +1561,8 @@ namespace OpenMS
         bool resampling_flag = dialog.getResampling();
 
         //add new layer
-        String new_name = exp_raw.getName()+" (smoothed)";
+        String new_name = w->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
         Spectrum1DCanvas::ExperimentType& exp_filtered = w->widget()->canvas()->addEmptyDataSet();
-        exp_filtered.setName(new_name); // set layername
 
         // add one spectrum
         exp_filtered.resize(1);
@@ -1599,6 +1587,7 @@ namespace OpenMS
         }
 
         w->widget()->canvas()->finishAdding();
+        w->widget()->canvas()->setCurrentLayerName(new_name);
       }
       else
       {
@@ -1615,12 +1604,11 @@ namespace OpenMS
           Spectrum2DWindow* w_tophat = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_tophat->setMainPreferences(prefs_);
-          String new_name = w2->widget()->canvas()->currentDataSet().getName()+" (filtered)";
+          String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (filtered)";
 
           Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyDataSet();
-          exp_filtered.setName(new_name); // set layername
 
-          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_filtered";
+          String filename = w2->widget()->canvas()->getCurrentLayer().name+"_filtered";
 
           // Resampling before baseline filtering?
           if (resampling_flag)
@@ -1663,7 +1651,7 @@ namespace OpenMS
           }
 
           w_tophat->widget()->canvas()->finishAdding();
-
+          w_tophat->widget()->canvas()->setCurrentLayerName(new_name);
           connectWindowSignals_(w_tophat);
           w_tophat->setCaption(new_name);
           addClient(w_tophat,filename);
@@ -1702,9 +1690,8 @@ namespace OpenMS
       if (w!=0)
       {
         //add new layer
-        String new_name = w->widget()->canvas()->currentDataSet().getName()+" (picked)";
+        String new_name = w->widget()->canvas()->getCurrentLayer().name+" (picked)";
         Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
-        exp.setName(new_name); // set layername
 
         // add one spectrum
         exp.resize(1);
@@ -1718,6 +1705,7 @@ namespace OpenMS
         }
 
         w->widget()->canvas()->finishAdding();
+        w->widget()->canvas()->setCurrentLayerName(new_name);
       }
       else
       {
@@ -1729,16 +1717,16 @@ namespace OpenMS
           Spectrum2DWindow* w_picked = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_picked->setMainPreferences(prefs_);
-          String new_name = w2->widget()->canvas()->currentDataSet().getName()+"(picked)";
+          String new_name = w2->widget()->canvas()->getCurrentLayer().name+"(picked)";
 
           Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyDataSet();
-          exp2.setName(new_name); // set layername
 
-          String filename = w2->widget()->canvas()->currentDataSet().getName()+"_picked";
+          String filename = w2->widget()->canvas()->getCurrentLayer().name+"_picked";
 
           peak_picker.pickExperiment(w2->widget()->canvas()->currentDataSet(),exp2);
 
           w_picked->widget()->canvas()->finishAdding();
+          w_picked->widget()->canvas()->setCurrentLayerName(new_name);
 
           connectWindowSignals_(w_picked);
           w_picked->setCaption(new_name);
@@ -1949,12 +1937,11 @@ namespace OpenMS
 
         SpectrumCanvas::ExperimentType in = w->widget()->canvas()->currentDataSet();
         finder.setData(in);
-
         DFeatureMap<2> map = finder.run();
 
         //display features
-        map.setName("Features: "+in.getName());
         w->widget()->canvas()->addDataSet(map);
+        w->widget()->canvas()->setCurrentLayerName(w->widget()->canvas()->getCurrentLayer().name+" (features)");
         updateLayerbar();
       }
     }

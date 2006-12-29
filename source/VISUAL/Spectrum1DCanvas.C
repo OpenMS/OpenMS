@@ -52,12 +52,12 @@ namespace OpenMS
 	//change the current data set
 	void Spectrum1DCanvas::activateDataSet(int data_set)
 	{
-		if (data_set >= int(getDataSetCount()))
+		if (data_set >= int(getLayerCount()))
 		{
 			return ;
 		}
 		
-		current_data_ = data_set;
+		current_layer_ = data_set;
 			
 		// no peak is selected
 		nearest_peak_ = currentDataSet_()[0].end();
@@ -378,11 +378,11 @@ namespace OpenMS
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
 		temp.getPosition()[0] = interval_start;
-		SpectrumIteratorType left_it = lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
+		SpectrumIteratorType left_it = lower_bound(visible_begin_[current_layer_], visible_end_[current_layer_], temp, PeakType::PositionLess());
 	
 		// get iterator on first peak with higher position than interval_end
 		temp.getPosition()[0] = interval_end;
-		SpectrumIteratorType	right_it = lower_bound(visible_begin_[current_data_], visible_end_[current_data_], temp, PeakType::PositionLess());
+		SpectrumIteratorType	right_it = lower_bound(visible_begin_[current_layer_], visible_end_[current_layer_], temp, PeakType::PositionLess());
 	
 		//debug code:
 		//	cout << "left_it and *left_it: "  << left_it->getPosition()[0] << " " << left_it->getIntensity() << endl;
@@ -458,35 +458,31 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::removeDataSet(int data_set)
 	{
-		if (data_set >= int(getDataSetCount()))
+		if (data_set >= int(getLayerCount()))
 		{
 			return;
 		}
 	
 		//remove settings
-		datasets_.erase(datasets_.begin()+data_set);
-		features_.erase(features_.begin()+data_set);
-		type_.erase(type_.begin()+data_set);
-		disp_ints_.erase(disp_ints_.begin()+data_set);	
-		layer_visible_.erase(layer_visible_.begin()+data_set);
+		layers_.erase(layers_.begin()+data_set);
 		draw_modes_.erase(draw_modes_.begin()+data_set);
 	
 		//refresh values of visible_begin_ and visible_end_
 		visible_begin_.clear();
 		visible_end_.clear();
-		for (UnsignedInt index=0; index < getDataSetCount(); ++index)
+		for (UnsignedInt index=0; index < getLayerCount(); ++index)
 		{
 			visible_begin_.push_back(getDataSet_(index)[0].begin());
 			visible_end_.push_back(getDataSet_(index)[0].end());
 		}
 	
 		//update current data set
-		if (current_data_ >= getDataSetCount())
+		if (current_layer_ >= getLayerCount())
 		{
-			current_data_ = getDataSetCount()-1;
+			current_layer_ = getLayerCount()-1;
 		}
 	
-		if (datasets_.empty())
+		if (layers_.empty())
 		{
 			resetRanges_();
 			return;
@@ -521,16 +517,16 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
 	{
-		if (draw_modes_[current_data_]!=mode)
+		if (draw_modes_[current_layer_]!=mode)
 		{
-			draw_modes_[current_data_] = mode;
+			draw_modes_[current_layer_] = mode;
 			invalidate_();
 		}
 	}
 
 	Spectrum1DCanvas::DrawModes Spectrum1DCanvas::getDrawMode() const
 	{ 
-		return draw_modes_[current_data_]; 
+		return draw_modes_[current_layer_]; 
 	}
 
 	
@@ -559,9 +555,11 @@ namespace OpenMS
 		
 		QPoint p, p0;
 		bool custom_color;
+		double min_int = getLayer(index).min_int;
+		double max_int = getLayer(index).max_int;
 		for (SpectrumIteratorType it = visible_begin_[index]; it != visible_end_[index]; ++it)
 		{
-			if (it->getIntensity() < disp_ints_[index].first || it->getIntensity() > disp_ints_[index].second)
+			if (it->getIntensity() < min_int || it->getIntensity() > max_int)
 			{
 				continue;
 			}
@@ -727,9 +725,9 @@ namespace OpenMS
 		emit recalculateAxes();
 		paintGridLines_(&painter_);
 		
-		for (UnsignedInt i=0; i< getDataSetCount();++i)
+		for (UnsignedInt i=0; i< getLayerCount();++i)
 		{
-			if (layer_visible_[i]==false)
+			if (!getLayer(i).visible)
 			{
 				continue;
 			}
@@ -768,10 +766,10 @@ namespace OpenMS
 			return;
 		}
 	
-		if (!datasets_.empty())
+		if (!layers_.empty())
 		{
 			// get iterators on peaks that outline the visible area
-			for (UnsignedInt i=0; i<getDataSetCount();++i)
+			for (UnsignedInt i=0; i<getLayerCount();++i)
 			{
 				visible_begin_[i] = getDataSet_(i)[0].MZBegin(new_area.minX());
 				visible_end_[i]   = getDataSet_(i)[0].MZBegin(new_area.maxX());
@@ -779,7 +777,7 @@ namespace OpenMS
 			
 			if (action_mode_ != AM_SELECT)
 			{
-				nearest_peak_ = visible_end_[current_data_];
+				nearest_peak_ = visible_end_[current_layer_];
 			}
 
 			recalculateSnapFactor_();	
@@ -814,18 +812,19 @@ namespace OpenMS
 
 	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
-		current_data_ = getDataSetCount()-1;
+		current_layer_ = getLayerCount()-1;
 		currentDataSet_().updateRanges();
 		
 		if (currentDataSet().size()==0 || currentDataSet().getSize()==0)
 		{
-			datasets_.resize(getDataSetCount()-1);
-			current_data_ = current_data_-1;
+			layers_.resize(getLayerCount()-1);
+			current_layer_ = current_layer_-1;
 			return -1;
 		}
 
 		//set displayed intensity range
-		disp_ints_.push_back(pair<float,float>(low_intensity_cutoff,currentDataSet().getMaxInt()));
+		getCurrentLayer_().min_int = low_intensity_cutoff;
+		getCurrentLayer_().max_int = currentDataSet().getMaxInt();
 	
 		//add new values to visible_begin_ and visible_end_
 		visible_begin_.push_back(currentDataSet_()[0].begin());
@@ -833,17 +832,12 @@ namespace OpenMS
 	
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
-		if (getCurrentDataType() == DT_PEAK)
+		//estimate peak type
+		PeakTypeEstimator pte;
+		if (pte.estimateType(currentDataSet_()[0].begin(),currentDataSet_()[0].end()) == SpectrumSettings::RAWDATA)
 		{
-			PeakTypeEstimator pte;
-			if (pte.estimateType(currentDataSet_()[0].begin(),currentDataSet_()[0].end()) == SpectrumSettings::RAWDATA)
-			{
-				draw_modes_.back() = DM_CONNECTEDLINES;
-			}
+			draw_modes_.back() = DM_CONNECTEDLINES;
 		}
-		
-		//set visibility to true
-		layer_visible_.push_back(true);
 	
 		// sort peaks in accending order of position
 		currentDataSet_()[0].getContainer().sortByPosition();
@@ -860,7 +854,7 @@ namespace OpenMS
 		
 		emit layerActivated(this);
 		
-		return current_data_;
+		return current_layer_;
 	}
 
   void Spectrum1DCanvas::recalculateSnapFactor_()
@@ -868,7 +862,7 @@ namespace OpenMS
 		if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UnsignedInt i=0; i<getDataSetCount();++i)
+			for (UnsignedInt i=0; i<getLayerCount();++i)
 			{
 				SpectrumIteratorType tmp  = max_element(visible_begin_[i], visible_end_[i], PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 

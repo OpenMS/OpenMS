@@ -48,6 +48,11 @@
 
 /*	
 	TODO:
+	- name aus MSExperiment und DFeatureMap entfernen?
+	- TOPPView
+		- DB und Features testen
+		- LayerData[1/2/3]D?
+		- ContextMenu Layers -> seg fault
 	- Release
 		- Valgrind
 	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
@@ -62,11 +67,12 @@
 		- Einschränkungen: int, levels, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
 	- TOPPView:
 		- ohne quadtree
-		- Struct für Layers, so daß alles zusammen ist
 		- Preferences für Layers
 		- Visualisierung von FeaturePairs -> TOPP tool ändern
 		- Messen in 1D
 		- Reduktion in 2D
+	- MSExperiment
+	  - AreaIterator mit min/max int als Filter
 	- DB
 	  - neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)

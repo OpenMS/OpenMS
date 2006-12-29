@@ -52,16 +52,15 @@ namespace OpenMS
 			buffer_(0),
 			action_mode_(AM_ZOOM),
 			intensity_mode_(IM_NONE),
-			disp_ints_(),
+			layers_(),
 			mz_to_x_axis_(true),
 			pen_width_(0),
 			show_grid_(true),
 			show_reduced_(false),
 			recalculate_(false),
-			current_data_(0),
+			current_layer_(0),
 			spectrum_widget_(0),
-			datasets_(),
-			features_(),
+			datareducer_(0),
 			percentage_factor_(1.0),
 			snap_factor_(1.0)
 	{
@@ -75,8 +74,7 @@ namespace OpenMS
 	  createCustomMouseCursors_();
 	  
 	  //reserve enough space for 20 datasets
-	  datasets_.reserve(20);
-	  features_.reserve(20);
+	  layers_.reserve(10);
 	  
 		// we need to initialize the painting buffer in the
 		// constructor for maximum performance
@@ -121,7 +119,8 @@ namespace OpenMS
 	
 	void SpectrumCanvas::setDispInt(float min, float max)
 	{
-		disp_ints_[current_data_] = make_pair(min,max);
+		layers_[current_layer_].min_int = min;
+		layers_[current_layer_].max_int = max;
 		intensityDistributionChange_();
 	}
 	
@@ -307,144 +306,39 @@ namespace OpenMS
 	
 	UnsignedInt SpectrumCanvas::activeDataSetIndex() const
 	{
-		return current_data_;	
+		return current_layer_;	
 	}
-	
-	UnsignedInt SpectrumCanvas::getDataSetCount() const
-	{
- 		if(show_reduced_)
-		{
-			return reduced_datasets_.size();
-		}
-		 
-		return datasets_.size();
-	}
-		
-	const String& SpectrumCanvas::getDataSetName(UnsignedInt index) const
-	{
-		if (index >= getDataSetCount())
-		{
-			return String::EMPTY;
-		}
- 		else if(show_reduced_)
- 		{
-			return reduced_datasets_[index].getName();
- 		}
-		else if (type_[index] == DT_PEAK)
-		{
-			return datasets_[index].getName();
-		}
-		else
-		{
-			return features_[index].getName();
-		}
-	}
-	
-	bool SpectrumCanvas::isDataSetVisible(UnsignedInt index) const
-	{
-		return layer_visible_[index];
-	}		
 
 	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyDataSet()
 	{
-		UnsignedInt newcount = getDataSetCount()+1;
-		datasets_.resize(newcount);
-		features_.resize(newcount);
-		type_.push_back(DT_PEAK);
-		return datasets_[newcount-1];
-	}
-
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet_(UnsignedInt index) throw (Exception::IndexOverflow)
-	{
-		if (index >= getDataSetCount())
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,index,getDataSetCount()-1);
-		}
-		if(show_reduced_)
-		{
-			return reduced_datasets_[index];
-		}
-		return datasets_[index];
-	}
-
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::currentDataSet_() throw (Exception::IndexOverflow)
-	{
-		if (getDataSetCount()==0)
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
-		}
-		if(show_reduced_)
-		{
-			return reduced_datasets_[current_data_];
-		}
-		return datasets_[current_data_];
-	}
-
-	const SpectrumCanvas::FeatureMapType& SpectrumCanvas::currentFeatureMap() const throw (Exception::IndexOverflow)
-	{
-		if (getDataSetCount()==0)
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
-		}
-		return features_[current_data_];
-	}
-
-	SpectrumCanvas::FeatureMapType& SpectrumCanvas::currentFeatureMap_() throw (Exception::IndexOverflow)
-	{
-		if (getDataSetCount()==0)
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
-		}
-		return features_[current_data_];
-	}
-
-	const SpectrumCanvas::ExperimentType& SpectrumCanvas::getDataSet(UnsignedInt index) const throw (Exception::IndexOverflow)
-	{
-		if (index >= getDataSetCount())
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,index,getDataSetCount()-1);
-		}
-		if(show_reduced_)
-		{
-			return reduced_datasets_[index];
-		}
-		return datasets_[index];
-	}
-
-	const SpectrumCanvas::ExperimentType& SpectrumCanvas::currentDataSet() const throw (Exception::IndexOverflow)
-	{
-		if (getDataSetCount()==0)
-		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,0,0);
-		}
-		if(show_reduced_)
-		{
-			return reduced_datasets_[current_data_];
-		}
-		return datasets_[current_data_];
+		UnsignedInt newcount = getLayerCount()+1;
+		layers_.resize(newcount);
+		layers_.back().type = LayerData::DT_PEAK;
+		return layers_[newcount-1].peaks;
 	}
 
 	SignedInt SpectrumCanvas::addDataSet(const ExperimentType& in)
 	{	
-		datasets_.push_back(in);
-		features_.push_back(FeatureMapType());
-		type_.push_back(DT_PEAK);
+		layers_.resize(getLayerCount()+1);
+		layers_.back().peaks = in;
+		layers_.back().type = LayerData::DT_PEAK;
 		return finishAdding();
 	}
 
 	SignedInt SpectrumCanvas::addDataSet(const FeatureMapType& in)
 	{
-		datasets_.push_back(ExperimentType());	
-		features_.push_back(in);
-		type_.push_back(DT_FEATURE);
+		layers_.resize(layers_.size()+1);
+		layers_.back().features = in;
+		layers_.back().type = LayerData::DT_FEATURE;
 		return finishAdding();
 	}
 	
 	void SpectrumCanvas::changeVisibility(int i , bool b)
 	{
-		if (layer_visible_[i]!=b)
+		LayerData& layer = getLayer_(i);
+		if (layer.visible!=b)
 		{
-			layer_visible_[i]=b;
+			layer.visible=b;
 			invalidate_();
 		}
 	}
@@ -456,7 +350,7 @@ namespace OpenMS
 
 	void SpectrumCanvas::updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
 	{
-		if (data_set >= getDataSetCount())
+		if (data_set >= getLayerCount())
 		{
 			return;
 		}
@@ -464,48 +358,42 @@ namespace OpenMS
 		//update mz and RT
 		DRange<3>::PositionType min = overall_data_range_.min();
 		DRange<3>::PositionType max = overall_data_range_.max();
-		if(show_reduced_)
+		
+		if (getLayer(data_set).type==LayerData::DT_PEAK)
 		{
-			if (type_[data_set]==DT_PEAK)
+			if(show_reduced_)
 			{
-				if (reduced_datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = reduced_datasets_[data_set].getMinMZ();
-				if (reduced_datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = reduced_datasets_[data_set].getMaxMZ();
-				if (reduced_datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = reduced_datasets_[data_set].getMinRT();
-				if (reduced_datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = reduced_datasets_[data_set].getMaxRT();
-				if (reduced_datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = reduced_datasets_[data_set].getMinInt();
-				if (reduced_datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = reduced_datasets_[data_set].getMaxInt();
+				const ExperimentType& red = getLayer(data_set).reduced;
+				if (red.getMinMZ() < min[mz_dim]) min[mz_dim] = red.getMinMZ();
+				if (red.getMaxMZ() > max[mz_dim]) max[mz_dim] = red.getMaxMZ();
+				if (red.getMinRT() < min[rt_dim]) min[rt_dim] = red.getMinRT();
+				if (red.getMaxRT() > max[rt_dim]) max[rt_dim] = red.getMaxRT();
+				if (red.getMinInt() < min[it_dim]) min[it_dim] = red.getMinInt();
+				if (red.getMaxInt() > max[it_dim]) max[it_dim] = red.getMaxInt();
 			}
 			else
 			{
-				if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
-				if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
-				if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
-				if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
-				if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
-				if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
-			}			
+				const ExperimentType& peaks = getLayer(data_set).peaks;
+				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
+				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
+				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
+				if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
+				if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
+				if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
+		
+			}
 		}
 		else
 		{
-			if (type_[data_set]==DT_PEAK)
-			{
-				if (datasets_[data_set].getMinMZ() < min[mz_dim]) min[mz_dim] = datasets_[data_set].getMinMZ();
-				if (datasets_[data_set].getMaxMZ() > max[mz_dim]) max[mz_dim] = datasets_[data_set].getMaxMZ();
-				if (datasets_[data_set].getMinRT() < min[rt_dim]) min[rt_dim] = datasets_[data_set].getMinRT();
-				if (datasets_[data_set].getMaxRT() > max[rt_dim]) max[rt_dim] = datasets_[data_set].getMaxRT();
-				if (datasets_[data_set].getMinInt() < min[it_dim]) min[it_dim] = datasets_[data_set].getMinInt();
-				if (datasets_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = datasets_[data_set].getMaxInt();
-			}
-			else
-			{
-				if (features_[data_set].getMin()[1] < min[mz_dim]) min[mz_dim] = features_[data_set].getMin()[1];
-				if (features_[data_set].getMax()[1] > max[mz_dim]) max[mz_dim] = features_[data_set].getMax()[1];
-				if (features_[data_set].getMin()[0] < min[rt_dim]) min[rt_dim] = features_[data_set].getMin()[0];
-				if (features_[data_set].getMax()[0] > max[rt_dim]) max[rt_dim] = features_[data_set].getMax()[0];
-				if (features_[data_set].getMinInt() < min[it_dim]) min[it_dim] = features_[data_set].getMinInt();
-				if (features_[data_set].getMaxInt() > max[it_dim]) max[it_dim] = features_[data_set].getMaxInt();
-			}
+			const FeatureMapType& feat = getLayer(data_set).features;
+			if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
+			if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
+			if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];
+			if (feat.getMax()[0] > max[rt_dim]) max[rt_dim] = feat.getMax()[0];
+			if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
+			if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
 		}
+
 		overall_data_range_.setMin(min);
 		overall_data_range_.setMax(max);
 		
@@ -522,7 +410,7 @@ namespace OpenMS
 	{
 		resetRanges_();
 		
-		for (UnsignedInt i=0; i< getDataSetCount(); ++i)
+		for (UnsignedInt i=0; i< getLayerCount(); ++i)
 		{
 			updateRanges_(i, mz_dim, rt_dim, it_dim);
 		}
@@ -552,11 +440,6 @@ namespace OpenMS
 	void SpectrumCanvas::verticalScrollBarChange(int /*value*/)
 	{
 		
-	}
-	
-	SpectrumCanvas::DataType SpectrumCanvas::getCurrentDataType() const
-	{
-		return type_[current_data_];
 	}
 		
 } //namespace

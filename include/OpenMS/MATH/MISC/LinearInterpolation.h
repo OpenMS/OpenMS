@@ -56,7 +56,7 @@ namespace OpenMS
 			 interpolated values for a given x-coordinate position of the data and
 			 the derivative of the data.
 
-			 See also @seealso class BilinearInterpolation.
+			 @see BilinearInterpolation
 
 			 @ingroup Math
 		*/

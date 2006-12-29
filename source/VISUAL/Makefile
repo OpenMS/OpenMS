@@ -39,6 +39,7 @@ THISLIB=$(LIBNAME)
 
 # These depend on QT:
 GUI_CPP_SOURCES=\
+	LayerData.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
 	SpectrumWindow.C\

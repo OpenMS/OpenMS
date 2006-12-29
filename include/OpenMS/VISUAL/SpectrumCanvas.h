@@ -31,9 +31,8 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/PreferencesManager.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 //STL
 #include <stack>
@@ -71,15 +70,15 @@ namespace OpenMS
 	class SpectrumCanvas : public QWidget, public PreferencesManager
 	{
 		Q_OBJECT
-		
+	
 	public:
 		/**	@name Type definitions */
 		//@{
 		
 		/// Main data type (experiment)
-		typedef MSExperiment<> ExperimentType;
+		typedef LayerData::ExperimentType ExperimentType;
 		/// Main data type (features)
-		typedef DFeatureMap<2> FeatureMapType;
+		typedef LayerData::FeatureMapType FeatureMapType;
 		/// Spectrum type
 		typedef ExperimentType::SpectrumType SpectrumType;
 		/// Spectrum iterator type (iterates over peaks)
@@ -111,13 +110,6 @@ namespace OpenMS
 			IM_LOG,			    ///< Log mode: f(x)=ln(x)
 			IM_PERCENTAGE,  ///< Shows intensities normalized by dataset maximum: f(x)=x/max(x)*100
 			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
-		};
-
-		///Dataset types
-		enum DataType
-		{
-			DT_PEAK,		    ///< Peak/Raw data
-			DT_FEATURE	    ///< Feature data
 		};
 		
 		//@}
@@ -216,26 +208,16 @@ namespace OpenMS
 			return show_grid_; 
 		}
 		
-		/**
-			@brief Returns the minimum displayed intensity for the current layer
-			
-			Returns the minimum intensity a peak needs to be shown
-			@return the minimum displayed intensity
-		*/
-		inline float getMinDispInt() const 
-		{ 
-			return disp_ints_[current_data_].first; 
+		inline const LayerData& getLayer(UnsignedInt index) const
+		{
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			return layers_[index];
 		}
-		
-		/**
-			@brief Returns the maximum displayed intensity for the current layer
-			
-			Returns the maximum intensity a peak can have to be shown
-			@return the maximum displayed intensity
-		*/
-		inline float getMaxDispInt() const 
-		{ 
-			return disp_ints_[current_data_].second;
+
+		inline const LayerData& getCurrentLayer() const
+		{
+			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			return layers_[current_layer_];
 		}
 		
 		/**
@@ -287,31 +269,41 @@ namespace OpenMS
 		/** 
 			@name Dataset handling methods
 			
-			@note see changeVisibility(int,bool) as well.
+			@see changeVisibility
 		*/
-		//@{	
-		/// Returns the data type of the current dataset
-		DataType getCurrentDataType() const;
-		/// Returns the number of datasets
-		UnsignedInt getDataSetCount() const;
-		/// Returns the @p index'th dataset (not mutable)
-		const ExperimentType& getDataSet(UnsignedInt index) const throw (Exception::IndexOverflow);
-		/// Returns the active dataset (not mutable)
-		const ExperimentType& currentDataSet() const throw (Exception::IndexOverflow);
-		/// Returns the active dataset of feature (not mutable)
-		const FeatureMapType& currentFeatureMap() const throw (Exception::IndexOverflow);
-		/// Returns the name associated with dataset @p index
-		const String& getDataSetName(UnsignedInt index) const;		
-		/// Returns true if dataset @p index is visible. false otherwise
-		bool isDataSetVisible(UnsignedInt index) const;			
-		/// Returns the index of the active dataset
+		//@{
+		/// Returns the number of layers
+		inline UnsignedInt getLayerCount() const
+		{
+			return layers_.size();
+		}
+		/// Returns the peak data (reduced or normal) of the @p index'th layer (not mutable)
+		inline const ExperimentType& getDataSet(UnsignedInt index) const 
+		{
+			if(show_reduced_)
+			{
+				return getLayer(index).reduced;
+			}
+			return getLayer(index).peaks;
+		}
+		/// Returns the peak data (reduced or normal) of the active layer (not mutable)
+		inline const ExperimentType& currentDataSet() const
+		{
+			if(show_reduced_)
+			{
+				return getLayer(current_layer_).reduced;
+			}
+			return getLayer(current_layer_).peaks;
+		}
+			
+		/// Returns the index of the active layer
 		UnsignedInt activeDataSetIndex() const;
 		///change the active spectrum (the one that is used for selecting and so on)
 		virtual void activateDataSet(int data_set)=0;
 		///removes the dataset with index @p data_set
 		virtual void removeDataSet(int data_set)=0;
 		/**
-    	@brief Adds another dataset to fill afterwards
+    	@brief Adds another peak dataset to fill afterwards
     	
     	Call finishAdding(float) after you filled the dataset!
     	
@@ -346,26 +338,58 @@ namespace OpenMS
 		/// Returns the minimum intensity of the active spectrum
 		inline double getCurrentMinIntensity() const 
 		{ 
-			if (getCurrentDataType()==DT_PEAK)
+			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
 				return currentDataSet().getMinInt(); 
 			}
 			else
 			{
-				return currentFeatureMap().getMinInt(); 
+				return getCurrentLayer().features.getMinInt(); 
 			}
 		}
 
 		/// Returns the maximum intensity of the active spectrum
 		inline double getCurrentMaxIntensity() const 
 		{ 
-			if (getCurrentDataType()==DT_PEAK)
+			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
 				return currentDataSet().getMaxInt(); 
 			}
 			else
 			{
-				return currentFeatureMap().getMaxInt(); 
+				return getCurrentLayer().features.getMaxInt(); 
+			}
+		}
+
+		/// Returns the minimum intensity of the active spectrum
+		inline double getMinIntensity(UnsignedInt index) const 
+		{ 
+			if (getLayer(index).type==LayerData::DT_PEAK)
+			{
+				return currentDataSet().getMinInt(); 
+			}
+			else
+			{
+				return getLayer(index).features.getMinInt(); 
+			}
+		}
+
+		/// Returns the maximum intensity of the active spectrum
+		inline void setCurrentLayerName(const String& name) 
+		{ 
+		  getCurrentLayer_().name = name; 
+		}
+
+		/// Returns the maximum intensity of the active spectrum
+		inline double getMaxIntensity(UnsignedInt index) const 
+		{ 
+			if (getLayer(index).type==LayerData::DT_PEAK)
+			{
+				return getDataSet(index).getMaxInt(); 
+			}
+			else
+			{
+				return getLayer(index).features.getMaxInt(); 
 			}
 		}
 
@@ -474,13 +498,38 @@ namespace OpenMS
 		void updateHScrollbar(float,float,float,float);
 	protected:
 
+		inline LayerData& getLayer_(UnsignedInt index)
+		{
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			return layers_[index];
+		}
+
+		inline LayerData& getCurrentLayer_()
+		{
+			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			return getLayer_(current_layer_);
+		}
+
 		/// Returns the @p index'th dataset (mutable)
-		ExperimentType& getDataSet_(UnsignedInt index) throw (Exception::IndexOverflow);
+		inline ExperimentType& getDataSet_(UnsignedInt index)
+		{
+			if(show_reduced_)
+			{
+				return getLayer_(index).reduced;
+			}
+			return getLayer_(index).peaks;
+		}
+		
 		/// Returns the active dataset (mutable)
-		ExperimentType& currentDataSet_() throw (Exception::IndexOverflow);
-		/// Returns the active dataset of feature (mutable)
-		FeatureMapType& currentFeatureMap_() throw (Exception::IndexOverflow);
-				
+		inline ExperimentType& currentDataSet_()
+		{
+			if(show_reduced_)
+			{
+				return getCurrentLayer_().reduced;
+			}
+			return getCurrentLayer_().peaks;
+		}
+	
 		/**
 			@brief QT resize event of the widget
 			
@@ -633,8 +682,8 @@ namespace OpenMS
 		/// Stores the used intensity mode function
 		IntensityModes intensity_mode_;
 		
-		/// Stores the minimum/maximum displayed intensities for all layers
-		std::vector< std::pair<float,float> > disp_ints_;
+		/// Layer data
+		std::vector< LayerData > layers_;
 		
 		/// Stores the mapping of m/z
 		bool mz_to_x_axis_;
@@ -648,12 +697,11 @@ namespace OpenMS
 		/**
 			@brief Updates data and intensity range with the values of dataset @p data_set
 			
-			@param data_set Index of the dataset in datasets_
+			@param data_set layer index
 			@param mz_dim Index of m/z in overall_data_range_
 			@param rt_dim Index of RT in overall_data_range_			
 			@param it_dim Index of intensity in overall_data_range_	
 			
-			@see datasets_
 			@see overall_data_range_
 			
 			@note Make sure the updateRanges() of the datasets has been called before this method is called
@@ -677,7 +725,6 @@ namespace OpenMS
 			@param rt_dim Index of RT in overall_data_range_		
 			@param it_dim Index of intensity in overall_data_range_	
 			
-			@see datasets_
 			@see overall_data_range_
 		*/
 		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
@@ -710,30 +757,17 @@ namespace OpenMS
 		/// The cursor used in while the view is dragged in the @c translate action mode
 		QCursor cursor_translate_in_progress_;
 
-		/// Stores the index of the currently marked dataset in the layerbar.
-		UnsignedInt current_data_;
-
-		/// Stores for each layer, if it is shown
-		std::vector<bool> layer_visible_;
+		/// Stores the index of the currently active layer.
+		UnsignedInt current_layer_;
 
 		/// Changes the size of the paint buffer to the currently required size
 		void adjustBuffer_();
 		
 		/// Back-pointer to the enclosing spectrum widget
 		SpectrumWidget* spectrum_widget_;
-		
-		/// Array of datasets
-		std::vector<ExperimentType > datasets_;
-		/// Array of reduced datasets
-		std::vector<ExperimentType > reduced_datasets_;
 
-		/// pointer of the used datareduction 
+		/// pointer to the used datareducer implementation
 		DataReducer * datareducer_;
-
-		/// Array of datasets
-		std::vector<FeatureMapType > features_;
-		
-		std::vector<DataType> type_;
 		
 		/// start position of mouse actions
 		QPoint last_mouse_pos_;

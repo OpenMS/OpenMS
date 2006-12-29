@@ -137,7 +137,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
   switch(canvas_3d_.action_mode_)
   {
   case SpectrumCanvas::AM_ZOOM:
-      if(canvas_3d_.getDataSetCount()!=0 )
+      if(canvas_3d_.getLayerCount()!=0 )
       {
         if(show_zoom_selection_)
         {
@@ -167,7 +167,7 @@ void Spectrum3DOpenGLCanvas::initializeGL()
       
   case SpectrumCanvas::AM_TRANSLATE:  
     
-    if(canvas_3d_.getDataSetCount()!=0)
+    if(canvas_3d_.getLayerCount()!=0)
     {
       if(canvas_3d_.show_grid_)
       {
@@ -338,7 +338,7 @@ void Spectrum3DOpenGLCanvas::paintGL()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if(canvas_3d_.getDataSetCount()!=0)
+	if(canvas_3d_.getLayerCount()!=0)
 	{
 		switch (canvas_3d_.action_mode_)
 		{
@@ -505,7 +505,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 								{
 									result = QString("%1").arg(grid_intensity_log_[0][i]);
 									renderText (-corner_-result.length()-3.0, 
-															-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_data_),
+															-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
 															-near_-2*corner_,
 															result,
 															font);
@@ -569,7 +569,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 									double intensity = (double)grid_intensity_[0][i]/pow(10,expo);
 									result = QString("%1").arg(intensity,0,'f',1);
 									renderText (-corner_-result.length()-width_/200.0-5.0, 
-															-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_data_),
+															-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_),
 															-near_-2*corner_,
 															result,
 															font);
@@ -579,7 +579,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 									double intensity = (double)grid_intensity_[1][i]/pow(10,expo);
 									result = QString("%1").arg(intensity,0,'f',1);
 									renderText (-corner_-result.length()-width_/200.0-5.0, 
-															-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
+															-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_),
 															-near_-2*corner_,
 															result,
 															font);
@@ -592,7 +592,7 @@ GLuint Spectrum3DOpenGLCanvas::makeLegend()
 									double intensity = (double)grid_intensity_[2][i]/pow(10,expo);
 									result = QString("%1").arg(intensity,0,'f',1);
 									renderText (-corner_-result.length()-width_/200.0-5.0, 
-															-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
+															-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_),
 															-near_-2*corner_,
 															result,
 															font);
@@ -709,10 +709,14 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 		case 0:
 		case 1:
 		case 2:
-			for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
+			for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
 			{
-				if(canvas_3d_.layer_visible_[i]==true)
+				if(canvas_3d_.getLayer(i).visible)
 				{	
+					
+					double min_int = canvas_3d_.getLayer(i).min_int;
+					double max_int = canvas_3d_.getLayer(i).max_int;
+					
 					for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 							 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 							 ++spec_it)
@@ -725,7 +729,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 								 it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); 
 								 ++it)
 						{	
-							if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+							if(it->getIntensity()>= min_int && it->getIntensity()<= max_int)
 							{
 								glBegin(GL_POINTS);
 								if(int(canvas_3d_.getPref("Preferences:3D:Dot:Mode")))
@@ -740,7 +744,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 										qglColor(QColor( gradient_.precalculatedColorAt(log10(it->getIntensity()))));
 										break;
 									case SpectrumCanvas::IM_PERCENTAGE:	
-										intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
+										intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
 										qglColor(QColor( gradient_.precalculatedColorAt(intensity )));
 										break;
 									case SpectrumCanvas::IM_SNAP:
@@ -790,10 +794,13 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 		case 1:
 		case 2:	
 
-	for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
+	for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
 	{	
-		if(canvas_3d_.isDataSetVisible(i))
+		if(canvas_3d_.getLayer(i).visible)
 		{	
+			double min_int = canvas_3d_.getLayer(i).min_int;
+			double max_int = canvas_3d_.getLayer(i).max_int;
+			
 			for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 					 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 					 ++spec_it)
@@ -804,7 +811,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 				}
 				for (BaseSpectrum::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
 				{			
-					if(it->getIntensity()>= canvas_3d_.disp_ints_[i].first && it->getIntensity()<= canvas_3d_.disp_ints_[i].second)
+					if(it->getIntensity()>= min_int && it->getIntensity()<=max_int)
 					{
 						glBegin(GL_LINES);
 			
@@ -816,7 +823,7 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 							
 							case SpectrumCanvas::IM_PERCENTAGE:	
 								
-								intensity = it->getIntensity() * 100.0 /canvas_3d_.datasets_[i].getMaxInt();
+								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
 								qglColor(QColor( gradient_.precalculatedColorAt(0)));
 								glVertex3d(-corner_+(GLfloat)scaledRT(spec_it->getRetentionTime()), 
 													 -corner_,
@@ -1083,19 +1090,19 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 					for(UnsignedInt i = 0;i<grid_intensity_log_[0].size();i++)
 						{	
 							glVertex3d(-corner_, 
-												 -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_data_),
+												 -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
 												 -near_-2*corner_);
 							glVertex3d( -corner_+3.0, 
-													-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_data_),
+													-corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_),
 													-near_-2*corner_-3.0);
 						}
 					for(UnsignedInt i = 0;i<grid_intensity_log_[1].size();i++)
 						{
 							glVertex3d(-corner_, 
-												 -corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_data_),
+												 -corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_layer_),
 												 -near_-2*corner_);
 							glVertex3d( -corner_+2.0, 
-													-corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_data_),
+													-corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_layer_),
 													-near_-2*corner_-2.0);
 						}
 				}
@@ -1123,10 +1130,10 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 					for(UnsignedInt i = 0;i<grid_intensity_[0].size();i++)
 						{	
 							glVertex3d(-corner_, 
-												 -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_data_),
+												 -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_),
 												 -near_-2*corner_);
 							glVertex3d( -corner_+4.0, 
-													-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_data_),
+													-corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_),
 													-near_-2*corner_-4.0);
 						}
 				}
@@ -1135,10 +1142,10 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 					for(UnsignedInt i = 0;i<grid_intensity_[1].size();i++)
 								{
 									glVertex3d(-corner_, 
-														 -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
+														 -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_),
 														 -near_-2*corner_);
 									glVertex3d( -corner_+3.0, 
-															-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_data_),
+															-corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_),
 															-near_-2*corner_-3.0);
 								}
 				}
@@ -1147,10 +1154,10 @@ GLuint Spectrum3DOpenGLCanvas::makeAxesLabel()
 					for(UnsignedInt i = 0;i<grid_intensity_[2].size();i++)
 						{ 
 							glVertex3d(-corner_, 
-												 -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
+												 -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_),
 												 -near_-2*corner_);
 							glVertex3d( -corner_+2.0, 
-													-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_data_),
+													-corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_),
 																-near_-2*corner_-2.0);
 						}
 				}
@@ -1209,7 +1216,7 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int data_set)
 		scaledintensity = ( scaledintensity * 2.0 * corner_)/(canvas_3d_.overall_data_range_.max_[2]-canvas_3d_.overall_data_range_.min_[2]);
 		break;
 	case  SpectrumCanvas::IM_PERCENTAGE: 
- 		scaledintensity =  intensity * 100.0 /canvas_3d_.getDataSet(data_set).getMaxInt();
+ 		scaledintensity =  intensity * 100.0 /canvas_3d_.getMaxIntensity(data_set);
 		scaledintensity = scaledintensity * 2.0 * corner_/100.0;	
 		break;	
 	case SpectrumCanvas::IM_LOG:
@@ -1420,7 +1427,7 @@ void Spectrum3DOpenGLCanvas::updateIntensityScale()
 	int_scale_.min_[0]= canvas_3d_.overall_data_range_.max_[2];
 	int_scale_.max_[0]= canvas_3d_.overall_data_range_.min_[2];
 	
-		for(UnsignedInt i =0;i<canvas_3d_.getDataSetCount();i++)
+		for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{
 				for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
 						 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 

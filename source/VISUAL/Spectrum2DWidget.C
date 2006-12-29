@@ -82,7 +82,7 @@ namespace OpenMS
 	{
 		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 		
-		if (canvas()->getCurrentDataType()==SpectrumCanvas::DT_PEAK)
+		if (canvas()->getCurrentLayer().type==LayerData::DT_PEAK)
 		{
 			for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
 			{
@@ -98,7 +98,7 @@ namespace OpenMS
 		}
 		else
 		{
-			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas()->currentFeatureMap().begin(); it != canvas()->currentFeatureMap().end(); ++it)
+			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas()->getCurrentLayer().features.begin(); it != canvas()->getCurrentLayer().features.end(); ++it)
 			{
 				tmp.inc(it->getIntensity());
 			}
