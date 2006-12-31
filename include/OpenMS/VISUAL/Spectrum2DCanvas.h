@@ -189,9 +189,9 @@ namespace OpenMS
       bool dotsAreShown();
 
       // Docu in base class
-      void activateDataSet(int data_set);
+      void activateLayer(int layer_index);
       // Docu in base class
-      void removeDataSet(int data_set);
+      void removeLayer(int layer_index);
       // Docu in base class
       SignedInt finishAdding(float low_intensity_cutoff = 0);
       // Docu in base class
@@ -230,10 +230,10 @@ namespace OpenMS
       	Paints the peaks as small ellipses. The peaks are colored according to the
       	selected dot gradient.
       	
-      	@param data_set The index of the dataset.
+      	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintDots_(UnsignedInt data_set, QPainter* p);
+      void paintDots_(UnsignedInt layer_index, QPainter* p);
 
       /**
       	@brief Paints data as a height map.
@@ -242,10 +242,10 @@ namespace OpenMS
       	The data is shown as a height map such that higher
       	areas are enclosed by more lines than lower areas.
       	
-      	@param data_set The index of the dataset.
+      	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintContours_(UnsignedInt data_set, QPainter* p);
+      void paintContours_(UnsignedInt layer_index, QPainter* p);
 
       /**
       	@brief Paints data as a colored surface gradient.
@@ -254,18 +254,18 @@ namespace OpenMS
       	The data is shown according to the gradien which can be
       	set with the setSurfaceGradient() member function.
       	
-      	@param data_set The index of the dataset.
+      	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintSurface_(UnsignedInt data_set, QPainter* p);
+      void paintSurface_(UnsignedInt layer_index, QPainter* p);
 
       /**
       	@brief Paints convex hulls of features.
       	
-      	@param data_set The index of the dataset.
+      	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintConvexHulls_(UnsignedInt data_set, QPainter* p);
+      void paintConvexHulls_(UnsignedInt layer_index, QPainter* p);
 
       // Docu in base class
       virtual void intensityModeChange_();
@@ -316,10 +316,10 @@ namespace OpenMS
       */
       const QColor& heightColor_(float val, const MultiGradient& gradient);
 
-      /// Performs the marching squares calculations for a dataset and stores the matrix in marching_squares_matrices_
-      void calculateMarchingSquareMatrix_(UnsignedInt data_set);
+      /// Performs the marching squares calculations for a layer and stores the matrix in marching_squares_matrices_
+      void calculateMarchingSquareMatrix_(UnsignedInt layer_index);
       /// Returns the marching square cell with the smallest data coordinates
-      AreaType getOriginCell_(UnsignedInt data_set);
+      AreaType getOriginCell_(UnsignedInt layer_index);
 
       /// Highlights peak under cursor and start/stop peak for measurement
       void highlightPeaks_();
@@ -345,19 +345,19 @@ namespace OpenMS
       */
       std::vector<FeatureQuadTreeType_*> feature_trees_;
 
-      /// Rebuilts the quadtree corresponding to dataset @p data_set with the new area @p new_area
-      void reconstructQuadtree_(UnsignedInt data_set, const AreaType& new_area, bool warn_on_identical_position = false);
+      /// Rebuilts the quadtree corresponding to layer @p layer_index with the new area @p new_area
+      void reconstructQuadtree_(UnsignedInt layer_index, const AreaType& new_area, bool warn_on_identical_position = false);
 
-      /// marching squares matrices for the datasets
+      /// marching squares matrices for the layers
       std::vector< std::vector< std::vector<float> > > marching_squares_matrices_;
-      /// Contains the highes value in the marching squares matrix foreach dataset
+      /// Contains the highes value in the marching squares matrix foreach layer
       std::vector<float> max_values_;
 
-      /// Flags whether or not to show the height map for each dataset
+      /// Flags whether or not to show the height map for each layer
       std::vector<bool> show_contours_;
-      /// Flags whether or not to show the surface gradient for each dataset
+      /// Flags whether or not to show the surface gradient for each layer
       std::vector<bool> show_surface_;
-      /// Flags whether or not to show individual peaks for each dataset
+      /// Flags whether or not to show individual peaks for each layer
       std::vector<bool> show_dots_;
 
       /// the nearest peak to the mouse cursor.

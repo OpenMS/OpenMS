@@ -84,7 +84,7 @@ namespace OpenMS
 		
 		if (canvas()->getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->currentDataSet().begin(); spec_it != canvas()->currentDataSet().end(); ++spec_it)
+			for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentPeakData().begin(); spec_it != canvas()->getCurrentPeakData().end(); ++spec_it)
 			{
 				if (spec_it->getMSLevel()!=1)
 				{

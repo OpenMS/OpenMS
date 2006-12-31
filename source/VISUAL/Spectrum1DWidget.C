@@ -102,7 +102,7 @@ namespace OpenMS
 	{
 		Histogram<UnsignedInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 	
-		for (Spectrum1DCanvas::ExperimentType::SpectrumType::ConstIterator it = canvas()->currentDataSet()[0].begin(); it != canvas()->currentDataSet()[0].end(); ++it)
+		for (Spectrum1DCanvas::ExperimentType::SpectrumType::ConstIterator it = canvas()->getCurrentPeakData()[0].begin(); it != canvas()->getCurrentPeakData()[0].end(); ++it)
 		{
 			tmp.inc(it->getIntensity());
 		}

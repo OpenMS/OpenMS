@@ -221,8 +221,8 @@ namespace OpenMS
     topbin_->loadSpectrum(exp[0]);
     bottombin_->loadSpectrum(exp[0]);
     
-    topspec_->canvas()->addDataSet(exp);
-    bottomspec_->canvas()->addDataSet(exp); 
+    topspec_->canvas()->addLayer(exp);
+    bottomspec_->canvas()->addLayer(exp); 
   }
 
 
@@ -275,11 +275,11 @@ namespace OpenMS
 	    //conversion TODO:remove
 	    MSExperiment<> exp;
 	    exp.push_back(current_cspectra_[x].getSpec());
-	    topspec_->canvas()->addDataSet(exp);
+	    topspec_->canvas()->addLayer(exp);
 	    
 	    exp.clear();
 	    exp.push_back(current_cspectra_[y].getSpec());
-	    bottomspec_->canvas()->addDataSet(exp); 
+	    bottomspec_->canvas()->addLayer(exp); 
       
       current_cspectra_[x].spec().updateRanges();
       current_cspectra_[y].spec().updateRanges();

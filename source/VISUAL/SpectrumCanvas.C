@@ -73,7 +73,7 @@ namespace OpenMS
 		resetRanges_();
 	  createCustomMouseCursors_();
 	  
-	  //reserve enough space for 20 datasets
+	  //reserve enough space to avoid copying dat
 	  layers_.reserve(10);
 	  
 		// we need to initialize the painting buffer in the
@@ -304,12 +304,12 @@ namespace OpenMS
 		prefs_ = prefs;
 	}
 	
-	UnsignedInt SpectrumCanvas::activeDataSetIndex() const
+	UnsignedInt SpectrumCanvas::activeLayerIndex() const
 	{
 		return current_layer_;	
 	}
 
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyDataSet()
+	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer()
 	{
 		UnsignedInt newcount = getLayerCount()+1;
 		layers_.resize(newcount);
@@ -317,7 +317,7 @@ namespace OpenMS
 		return layers_[newcount-1].peaks;
 	}
 
-	SignedInt SpectrumCanvas::addDataSet(const ExperimentType& in)
+	SignedInt SpectrumCanvas::addLayer(const ExperimentType& in)
 	{	
 		layers_.resize(getLayerCount()+1);
 		layers_.back().peaks = in;
@@ -325,7 +325,7 @@ namespace OpenMS
 		return finishAdding();
 	}
 
-	SignedInt SpectrumCanvas::addDataSet(const FeatureMapType& in)
+	SignedInt SpectrumCanvas::addLayer(const FeatureMapType& in)
 	{
 		layers_.resize(layers_.size()+1);
 		layers_.back().features = in;
@@ -348,9 +348,9 @@ namespace OpenMS
   	return overall_data_range_;
   }
 
-	void SpectrumCanvas::updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
+	void SpectrumCanvas::updateRanges_(UnsignedInt layer_index, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim)
 	{
-		if (data_set >= getLayerCount())
+		if (layer_index >= getLayerCount())
 		{
 			return;
 		}
@@ -359,11 +359,11 @@ namespace OpenMS
 		DRange<3>::PositionType min = overall_data_range_.min();
 		DRange<3>::PositionType max = overall_data_range_.max();
 		
-		if (getLayer(data_set).type==LayerData::DT_PEAK)
+		if (getLayer(layer_index).type==LayerData::DT_PEAK)
 		{
 			if(show_reduced_)
 			{
-				const ExperimentType& red = getLayer(data_set).reduced;
+				const ExperimentType& red = getLayer(layer_index).reduced;
 				if (red.getMinMZ() < min[mz_dim]) min[mz_dim] = red.getMinMZ();
 				if (red.getMaxMZ() > max[mz_dim]) max[mz_dim] = red.getMaxMZ();
 				if (red.getMinRT() < min[rt_dim]) min[rt_dim] = red.getMinRT();
@@ -373,7 +373,7 @@ namespace OpenMS
 			}
 			else
 			{
-				const ExperimentType& peaks = getLayer(data_set).peaks;
+				const ExperimentType& peaks = getLayer(layer_index).peaks;
 				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
 				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
 				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
@@ -385,7 +385,7 @@ namespace OpenMS
 		}
 		else
 		{
-			const FeatureMapType& feat = getLayer(data_set).features;
+			const FeatureMapType& feat = getLayer(layer_index).features;
 			if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
 			if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
 			if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];

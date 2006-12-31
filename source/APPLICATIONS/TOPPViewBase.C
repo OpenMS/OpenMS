@@ -287,7 +287,7 @@ namespace OpenMS
         UID spectrum_id = result.value(0).toInt();
 
         //load data
-        exp = &(w->widget()->canvas()->addEmptyDataSet());
+        exp = &(w->widget()->canvas()->addEmptyPeakLayer());
         exp->resize(1);
         dba.loadSpectrum(spectrum_id,(*exp)[0]);
       }
@@ -302,7 +302,7 @@ namespace OpenMS
           w = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
 
           //load spectrum
-          exp = &(w->widget()->canvas()->addEmptyDataSet());
+          exp = &(w->widget()->canvas()->addEmptyPeakLayer());
           dba.loadExperiment(db_id, (*exp));
         }
         //create 3D view
@@ -313,7 +313,7 @@ namespace OpenMS
           w = new Spectrum3DWindow(ws_, "Spectrum3DWindow", WDestructiveClose);
 
           //load data
-          exp = &(w->widget()->canvas()->addEmptyDataSet());
+          exp = &(w->widget()->canvas()->addEmptyPeakLayer());
           dba.loadExperiment(db_id, *exp);
         }
       }
@@ -340,7 +340,7 @@ namespace OpenMS
           UID spectrum_id = result.value(0).toInt();
 
           //load data
-	        exp = &(w->widget()->canvas()->addEmptyDataSet());
+	        exp = &(w->widget()->canvas()->addEmptyPeakLayer());
 	        exp->resize(1);
 	        dba.loadSpectrum(spectrum_id,(*exp)[0]);
         }
@@ -363,7 +363,7 @@ namespace OpenMS
           w = w2;
 
           //load data
-          exp = &(w->widget()->canvas()->addEmptyDataSet());
+          exp = &(w->widget()->canvas()->addEmptyPeakLayer());
           dba.loadExperiment(db_id, (*exp));
         }
         //create 3D view
@@ -373,7 +373,7 @@ namespace OpenMS
           w = w3;
 
           //load data
-          exp = &(w->widget()->canvas()->addEmptyDataSet());
+          exp = &(w->widget()->canvas()->addEmptyPeakLayer());
           dba.loadExperiment(db_id, (*exp));
         }
       }
@@ -544,13 +544,13 @@ namespace OpenMS
         QMessageBox::warning(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
-      w->widget()->canvas()->addDataSet(map);
+      w->widget()->canvas()->addLayer(map);
       w->widget()->canvas()->setCurrentLayerName(caption);
     }
     else
     {
       //try to read the data from file (raw/peak data)
-      SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyDataSet());
+      SpectrumCanvas::ExperimentType* exp = &(w->widget()->canvas()->addEmptyPeakLayer());
       try
       {
         FileHandler().loadExperiment(filename,*exp, force_type);
@@ -567,7 +567,7 @@ namespace OpenMS
         delete(w);
         w = new Spectrum1DWindow(ws_,"Spectrum1DWindow",WDestructiveClose);
         w->setMainPreferences(prefs_);
-        exp = &(w->widget()->canvas()->addEmptyDataSet());
+        exp = &(w->widget()->canvas()->addEmptyPeakLayer());
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
 
@@ -1176,11 +1176,11 @@ namespace OpenMS
       layer_manager_->setVisible(i,cc->getLayer(i).visible);
     }
 
-    layer_manager_->activate(cc->activeDataSetIndex());
+    layer_manager_->activate(cc->activeLayerIndex());
 
     connect(layer_manager_,SIGNAL(visibilityChanged(int, bool)),cc,SLOT(changeVisibility(int, bool)));
-    connect(layer_manager_,SIGNAL(activatedChanged(int)),cc,SLOT(activateDataSet(int)));
-    connect(layer_manager_,SIGNAL(removed(int)),cc,SLOT(removeDataSet(int)));
+    connect(layer_manager_,SIGNAL(activatedChanged(int)),cc,SLOT(activateLayer(int)));
+    connect(layer_manager_,SIGNAL(removed(int)),cc,SLOT(removeLayer(int)));
     layer_bar_->show();
   }
 
@@ -1281,7 +1281,7 @@ namespace OpenMS
   	}
   }
 
-  //! returns selected peaks of active spectrum framed by \c data_set_.begin() and the last peak BEFORE \c data_set_.end();
+  //! returns selected peaks of active spectrum framed by \c layer_index_.begin() and the last peak BEFORE \c layer_index_.end();
   vector<MSExperiment<>::SpectrumType::Iterator> TOPPViewBase::getActiveSpectrumSelectedPeaks()
   {
     Spectrum1DWindow* w1 = active1DWindow_();
@@ -1350,11 +1350,11 @@ namespace OpenMS
       if (w!=0)
       {
       	// raw data spectrum
-        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->getCurrentPeakData();
 				
 				//add new layer
         String new_name = w->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
-        Spectrum1DCanvas::ExperimentType& exp_smoothed = w->widget()->canvas()->addEmptyDataSet();
+        Spectrum1DCanvas::ExperimentType& exp_smoothed = w->widget()->canvas()->addEmptyPeakLayer();
 
         // add one spectrum
         exp_smoothed.resize(1);
@@ -1434,7 +1434,7 @@ namespace OpenMS
         Spectrum2DWindow* w2 = active2DWindow_();
         if (w2!=0)
         {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->currentDataSet();
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->getCurrentPeakData();
           	
          	//add new window for picked peaks
           Spectrum2DWindow* w_smoothed = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
@@ -1442,7 +1442,7 @@ namespace OpenMS
           w_smoothed->setMainPreferences(prefs_);
           String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
 
-          Spectrum2DCanvas::ExperimentType& exp2 = w_smoothed->widget()->canvas()->addEmptyDataSet();
+          Spectrum2DCanvas::ExperimentType& exp2 = w_smoothed->widget()->canvas()->addEmptyPeakLayer();
 
           String filename = w2->widget()->canvas()->getCurrentLayer().name+"_smoothed";
 
@@ -1554,7 +1554,7 @@ namespace OpenMS
       Spectrum1DWindow* w = active1DWindow_();
       if (w!=0)
       {
-        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->currentDataSet();
+        const Spectrum1DCanvas::ExperimentType& exp_raw = w->widget()->canvas()->getCurrentPeakData();
         TopHatFilter tophat;
         tophat.setStrucElemSize(dialog.getStrucElemWidth());
 
@@ -1562,7 +1562,7 @@ namespace OpenMS
 
         //add new layer
         String new_name = w->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
-        Spectrum1DCanvas::ExperimentType& exp_filtered = w->widget()->canvas()->addEmptyDataSet();
+        Spectrum1DCanvas::ExperimentType& exp_filtered = w->widget()->canvas()->addEmptyPeakLayer();
 
         // add one spectrum
         exp_filtered.resize(1);
@@ -1594,7 +1594,7 @@ namespace OpenMS
         Spectrum2DWindow* w2 = active2DWindow_();
         if (w2!=0)
         {
-          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->currentDataSet();
+          const Spectrum2DCanvas::ExperimentType& exp_raw = w2->widget()->canvas()->getCurrentPeakData();
           TopHatFilter tophat;
           tophat.setStrucElemSize(dialog.getStrucElemWidth());
 
@@ -1606,7 +1606,7 @@ namespace OpenMS
           w_tophat->setMainPreferences(prefs_);
           String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (filtered)";
 
-          Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyDataSet();
+          Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyPeakLayer();
 
           String filename = w2->widget()->canvas()->getCurrentLayer().name+"_filtered";
 
@@ -1691,12 +1691,12 @@ namespace OpenMS
       {
         //add new layer
         String new_name = w->widget()->canvas()->getCurrentLayer().name+" (picked)";
-        Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyDataSet();
+        Spectrum1DCanvas::ExperimentType& exp = w->widget()->canvas()->addEmptyPeakLayer();
 
         // add one spectrum
         exp.resize(1);
         // pick peaks
-        peak_picker.pick(w->widget()->canvas()->currentDataSet()[0].begin(),w->widget()->canvas()->currentDataSet()[0].end(),exp[0]);
+        peak_picker.pick(w->widget()->canvas()->getCurrentPeakData()[0].begin(),w->widget()->canvas()->getCurrentPeakData()[0].end(),exp[0]);
 
         //color picked peaks
         for (Spectrum1DCanvas::ExperimentType::SpectrumType::Iterator it = exp[0].begin(); it!= exp[0].end(); ++it)
@@ -1719,11 +1719,11 @@ namespace OpenMS
           w_picked->setMainPreferences(prefs_);
           String new_name = w2->widget()->canvas()->getCurrentLayer().name+"(picked)";
 
-          Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyDataSet();
+          Spectrum2DCanvas::ExperimentType& exp2 = w_picked->widget()->canvas()->addEmptyPeakLayer();
 
           String filename = w2->widget()->canvas()->getCurrentLayer().name+"_picked";
 
-          peak_picker.pickExperiment(w2->widget()->canvas()->currentDataSet(),exp2);
+          peak_picker.pickExperiment(w2->widget()->canvas()->getCurrentPeakData(),exp2);
 
           w_picked->widget()->canvas()->finishAdding();
           w_picked->widget()->canvas()->setCurrentLayerName(new_name);
@@ -1935,12 +1935,12 @@ namespace OpenMS
         //find features
         FeatureFinder& finder = dialog.getFeatureFinder();
 
-        SpectrumCanvas::ExperimentType in = w->widget()->canvas()->currentDataSet();
+        SpectrumCanvas::ExperimentType in = w->widget()->canvas()->getCurrentPeakData();
         finder.setData(in);
         DFeatureMap<2> map = finder.run();
 
         //display features
-        w->widget()->canvas()->addDataSet(map);
+        w->widget()->canvas()->addLayer(map);
         w->widget()->canvas()->setCurrentLayerName(w->widget()->canvas()->getCurrentLayer().name+" (features)");
         updateLayerbar();
       }

@@ -87,8 +87,7 @@ namespace OpenMS
 			DFeatureMap()
 				: Base(),
 				ExperimentalSettings(),
-				RangeManagerType(),
-				name_()
+				RangeManagerType()
 			{
 				
 			}
@@ -97,8 +96,7 @@ namespace OpenMS
 			DFeatureMap(const DFeatureMap& map) 
 				: Base(map),
 				ExperimentalSettings(map),
-				RangeManagerType(map),
-				name_(map.name_)
+				RangeManagerType(map)
 			{
 			
 			}
@@ -119,7 +117,6 @@ namespace OpenMS
 				Base::operator=(rhs);
 				RangeManagerType::operator=(rhs);
 				ExperimentalSettings::operator=(rhs);
-				name_=rhs.name_;
 				
 				return *this;
 			}
@@ -130,8 +127,7 @@ namespace OpenMS
 				return
 					std::operator==(*this, rhs) &&
 					RangeManagerType::operator==(rhs) &&
-					ExperimentalSettings::operator==(rhs) &&
-					name_ == rhs.name_
+					ExperimentalSettings::operator==(rhs) 
 					;				
 			}
 				
@@ -180,18 +176,6 @@ namespace OpenMS
 			}
 			/// Serialization
 			friend class boost::serialization::access;
-		
-			/// Returns the name
-			const String& getName() const
-			{
-				return name_;
-			}
-	
-			/// Sets the name
-			void setName(const String& name)
-			{
-				name_ = name;
-			}
 			
 			// Docu in base class
 			void updateRanges()
@@ -199,11 +183,6 @@ namespace OpenMS
 				this->clearRanges();
 				updateRanges_(this->begin(),this->end());
 			}
-			
-		protected:
-			
-			/// Name or Identifier of the feature map
-			String name_;
 	};
 	
 	/// Print content of a feature map to a stream.

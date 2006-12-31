@@ -60,17 +60,6 @@ CHECK(~DFeatureMap<2>())
 	delete pl_ptr;
 RESULT
 
-CHECK(const String& getName() const)
-	DFeatureMap<2> tmp;
-	TEST_EQUAL(tmp.getName(), "")
-RESULT
-
-CHECK(void setName(const String& name))
-	DFeatureMap<2> tmp;
-	tmp.setName("TEST");
-	TEST_EQUAL(tmp.getName(), "TEST")
-RESULT
-
 DFeature<2> feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
@@ -108,14 +97,12 @@ CHECK(DFeatureMap<2>(const DFeatureMap& p))
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
-	map1.setName("test");
 	map1.updateRanges();
 	map1.setType(ExperimentalSettings::MS);
 		
 	DFeatureMap<2> map2(map1);
 	
 	TEST_EQUAL(map2.size(),3);
-	TEST_EQUAL(map2.getName(),"test");
   TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
   TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
 RESULT
@@ -125,7 +112,6 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
-	map1.setName("test");
 	map1.updateRanges();
 	map1.setType(ExperimentalSettings::MS);
 	
@@ -134,7 +120,6 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
 	map2 = map1;
 	
 	TEST_EQUAL(map2.size(),3);
-	TEST_EQUAL(map2.getName(),"test");
     TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
     TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
   	
@@ -142,7 +127,6 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
      map2 = DFeatureMap<2>();
 	
 	TEST_EQUAL(map2.size(),0);
-	TEST_EQUAL(map2.getName(),"");
 	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<DFeatureMap<2>::IntensityType>::max())
 	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<DFeatureMap<2>::IntensityType>::max())
   TEST_EQUAL(map2.getType(),ExperimentalSettings::UNKNOWN)
@@ -154,10 +138,6 @@ CHECK(bool operator == (const DFeatureMap& rhs) const)
 	TEST_EQUAL(empty==edit, true);
 	
 	edit.setType(ExperimentalSettings::MS);
-	TEST_EQUAL(empty==edit, false);
-	
-	edit = empty;
-	edit.setName("TEST");
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
@@ -178,10 +158,6 @@ CHECK(bool operator != (const DFeatureMap& rhs) const)
 	TEST_EQUAL(empty!=edit, false);
 	
 	edit.setType(ExperimentalSettings::MS);
-	TEST_EQUAL(empty!=edit, true);
-	
-	edit = empty;
-	edit.setName("TEST");
 	TEST_EQUAL(empty!=edit, true);
 	
 	edit = empty;

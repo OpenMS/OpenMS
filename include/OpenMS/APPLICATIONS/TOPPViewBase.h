@@ -126,7 +126,7 @@ namespace OpenMS
         maximizeActiveSpectrum();
         tab_bar_->setCurrentTab(PointerSizeInt(&(*ws_->activeWindow())));
       }
-      /// returns selected peaks of the active spectrum framed by \c data_set_.begin() and the last peak BEFORE \c data_set_.end();
+      /// returns selected peaks of the active spectrum framed by \c layer_index_.begin() and the last peak BEFORE \c layer_index_.end();
       std::vector<MSExperiment<>::SpectrumType::Iterator> getActiveSpectrumSelectedPeaks();
 
       /**

@@ -83,13 +83,13 @@ SignedInt Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
 	}
 	
 	current_layer_ = getLayerCount()-1;
-	currentDataSet_().sortSpectra(true);
-	currentDataSet_().updateRanges(1);	
+	currentPeakData_().sortSpectra(true);
+	currentPeakData_().updateRanges(1);	
 	recalculateRanges_(1,0,2);
 	//values for datareduction
-	sum_of_peaks_ = currentDataSet().getSize();
-	area_ = (currentDataSet().getMaxRT()-currentDataSet().getMinRT())*(currentDataSet().getMaxMZ()-currentDataSet().getMinMZ());
-	peaks_per_rt_ = (int)floor(sum_of_peaks_/currentDataSet().size());
+	sum_of_peaks_ = getCurrentPeakData().getSize();
+	area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
+	peaks_per_rt_ = (int)floor(sum_of_peaks_/getCurrentPeakData().size());
 
  	if(getPrefAsString("Preferences:3D:Reduction:Mode")!="Reduction OFF")
  	{
@@ -235,13 +235,13 @@ void Spectrum3DCanvas::actionModeChange_()
 	}
 }
 
-void Spectrum3DCanvas::activateDataSet(int data_set)
+void Spectrum3DCanvas::activateLayer(int layer_index)
 {
-	if ((data_set >= int(getLayerCount())) || data_set==int(current_layer_))
+	if ((layer_index >= int(getLayerCount())) || layer_index==int(current_layer_))
 	{
 		return ;
 	}
-	current_layer_ = data_set;
+	current_layer_ = layer_index;
 	emit layerActivated(this);
 	invalidate_();
 }
@@ -273,13 +273,13 @@ void Spectrum3DCanvas::intensityModeChange_()
 	repaintAll();
 }
 
-void Spectrum3DCanvas::removeDataSet(int data_set)
+void Spectrum3DCanvas::removeLayer(int layer_index)
 {
-	if (data_set >= int(getLayerCount()))
+	if (layer_index >= int(getLayerCount()))
 	{
 		return;
 	}
-	layers_.erase(layers_.begin()+data_set);
+	layers_.erase(layers_.begin()+layer_index);
 	recalculateRanges_(1,0,2);
 	visible_area_.assign(overall_data_range_);
 	repaintAll();

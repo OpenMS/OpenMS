@@ -717,8 +717,8 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsTopView()
 					double min_int = canvas_3d_.getLayer(i).min_int;
 					double max_int = canvas_3d_.getLayer(i).max_int;
 					
-					for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-							 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
+					for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
+							 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 							 ++spec_it)
 					{
 						if (spec_it->getMSLevel()!=1)
@@ -801,8 +801,8 @@ GLuint Spectrum3DOpenGLCanvas::makeDataAsStick()
 			double min_int = canvas_3d_.getLayer(i).min_int;
 			double max_int = canvas_3d_.getLayer(i).max_int;
 			
-			for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-					 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
+			for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
+					 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 					 ++spec_it)
 			{
 				if (spec_it->getMSLevel()!=1)
@@ -1202,7 +1202,7 @@ double Spectrum3DOpenGLCanvas::scaledInversMZ(double mz)
 	return i_mz;
 }
 
-double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int data_set)
+double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int layer_index)
 {
 	double scaledintensity= 0;
 	switch(canvas_3d_.intensity_mode_)
@@ -1216,7 +1216,7 @@ double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int data_set)
 		scaledintensity = ( scaledintensity * 2.0 * corner_)/(canvas_3d_.overall_data_range_.max_[2]-canvas_3d_.overall_data_range_.min_[2]);
 		break;
 	case  SpectrumCanvas::IM_PERCENTAGE: 
- 		scaledintensity =  intensity * 100.0 /canvas_3d_.getMaxIntensity(data_set);
+ 		scaledintensity =  intensity * 100.0 /canvas_3d_.getMaxIntensity(layer_index);
 		scaledintensity = scaledintensity * 2.0 * corner_/100.0;	
 		break;	
 	case SpectrumCanvas::IM_LOG:
@@ -1429,8 +1429,8 @@ void Spectrum3DOpenGLCanvas::updateIntensityScale()
 	
 		for(UnsignedInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{
-				for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getDataSet(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-						 spec_it != canvas_3d_.getDataSet(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
+				for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
+						 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
 						 ++spec_it)
 				{
 					for (BaseSpectrum::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
@@ -1454,7 +1454,7 @@ void Spectrum3DOpenGLCanvas::setDotGradient(const std::string& gradient)
 {	
 	gradient_.fromString(gradient);
 }
-// recalculates the gradient of dataset number i 
+// recalculates the gradient of layer number i 
 void Spectrum3DOpenGLCanvas::recalculateDotGradient_()
 {
 	switch(canvas_3d_.intensity_mode_)

@@ -49,20 +49,20 @@ namespace OpenMS
 		
 	}
 	
-	//change the current data set
-	void Spectrum1DCanvas::activateDataSet(int data_set)
+	//change the current layer
+	void Spectrum1DCanvas::activateLayer(int layer_index)
 	{
-		if (data_set >= int(getLayerCount()))
+		if (layer_index >= int(getLayerCount()))
 		{
 			return ;
 		}
 		
-		current_layer_ = data_set;
+		current_layer_ = layer_index;
 			
 		// no peak is selected
-		nearest_peak_ = currentDataSet_()[0].end();
+		nearest_peak_ = currentPeakData_()[0].end();
 		selected_peaks_.clear();
-		selected_peaks_.push_back(currentDataSet_()[0].begin());
+		selected_peaks_.push_back(currentPeakData_()[0].begin());
 		
 		emit layerActivated(this);
 	}
@@ -140,7 +140,7 @@ namespace OpenMS
 					emit contextMenu(e->globalPos());
 				}
 				// Peak selection
-				else if (nearest_peak_ != currentDataSet_()[0].end())
+				else if (nearest_peak_ != currentPeakData_()[0].end())
 				{
 					if (!nearest_peak_->metaValueExists(4) || (UnsignedInt)(nearest_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
 					{
@@ -253,7 +253,7 @@ namespace OpenMS
 		if (e->button() == LeftButton && action_mode_ == AM_SELECT)
 		{
 			SpectrumIteratorType i = findPeakAtPosition(e->pos());
-			if (i != currentDataSet_()[0].end())
+			if (i != currentPeakData_()[0].end())
 			{
 				i->metaRegistry().registerName("extended_label","","");
 				if (i->metaValueExists("extended_label"))
@@ -355,7 +355,7 @@ namespace OpenMS
 		//	1. step:
 		//		transform interval [P.x, P.x+1.0) into diagramm metrics: [P.x, P.x+1.0) => [d.x1, d.x2)
 		//	2. step:
-		//		find the 2 iterators in the data set that points to the first peak that falls into this interval
+		//		find the 2 iterators in the layer that points to the first peak that falls into this interval
 		//		and the first, that falls off the interval
 		//	Depending on how many peaks (if any) lie between this two iterators further decisions have to be made
 		//  Case 0: no peak
@@ -391,7 +391,7 @@ namespace OpenMS
 		if (left_it == right_it)
 		{
 		//	cout << "case 0: no peak" << endl;	// debug code
-			return currentDataSet_()[0].end();  // both are equal => no peak falls into this interval
+			return currentPeakData_()[0].end();  // both are equal => no peak falls into this interval
 		}
 	
 		if (left_it == right_it-1 )
@@ -456,27 +456,27 @@ namespace OpenMS
 	//////////////////////////////////////////////////////////////////////////////////
 	// SLOTS
 	
-	void Spectrum1DCanvas::removeDataSet(int data_set)
+	void Spectrum1DCanvas::removeLayer(int layer_index)
 	{
-		if (data_set >= int(getLayerCount()))
+		if (layer_index >= int(getLayerCount()))
 		{
 			return;
 		}
 	
 		//remove settings
-		layers_.erase(layers_.begin()+data_set);
-		draw_modes_.erase(draw_modes_.begin()+data_set);
+		layers_.erase(layers_.begin()+layer_index);
+		draw_modes_.erase(draw_modes_.begin()+layer_index);
 	
 		//refresh values of visible_begin_ and visible_end_
 		visible_begin_.clear();
 		visible_end_.clear();
 		for (UnsignedInt index=0; index < getLayerCount(); ++index)
 		{
-			visible_begin_.push_back(getDataSet_(index)[0].begin());
-			visible_end_.push_back(getDataSet_(index)[0].end());
+			visible_begin_.push_back(getPeakData_(index)[0].begin());
+			visible_end_.push_back(getPeakData_(index)[0].end());
 		}
 	
-		//update current data set
+		//update current layer
 		if (current_layer_ >= getLayerCount())
 		{
 			current_layer_ = getLayerCount()-1;
@@ -551,7 +551,7 @@ namespace OpenMS
 		painter_.setPen(norm_pen_);
 		
 		//Factor to stretch the log value to the shown intensity interval
-		float log_factor = getDataSet(index).getMaxInt()/log(getDataSet(index).getMaxInt());
+		float log_factor = getPeakData(index).getMaxInt()/log(getPeakData(index).getMaxInt());
 		
 		QPoint p, p0;
 		bool custom_color;
@@ -609,18 +609,18 @@ namespace OpenMS
 		painter_.setPen(norm_pen_);
 
 		//Factor to stretch the log value to the shown intensity interval
-		float log_factor = getDataSet(index).getMaxInt()/log(getDataSet(index).getMaxInt());
+		float log_factor = getPeakData(index).getMaxInt()/log(getPeakData(index).getMaxInt());
 		
 		//cases where 1 or 0 points are shown
 		if (visible_begin_[index]==visible_end_[index])
 		{
 			// check cases where no peak at all is visible
-			if (visible_begin_[index] == getDataSet_(index)[0].end()) 
+			if (visible_begin_[index] == getPeakData_(index)[0].end()) 
 			{
 				painter_.restore();
 				return;
 			}
-			if (visible_end_[index] == getDataSet_(index)[0].begin())
+			if (visible_end_[index] == getPeakData_(index)[0].begin())
 			{
 				painter_.restore();
 				return;
@@ -684,13 +684,13 @@ namespace OpenMS
 		}
 	
 		// clipping on left side
-		if (visible_begin_[index] > getDataSet_(index)[0].begin())
+		if (visible_begin_[index] > getPeakData_(index)[0].begin())
 		{
 			painter_.drawLine(dataToWidget_(*(visible_begin_[index]-1)), dataToWidget_(*(visible_begin_[index])));
 		}
 	
 		// clipping on right side
-		if (visible_end_[index] < getDataSet_(index)[0].end())
+		if (visible_end_[index] < getPeakData_(index)[0].end())
 		{
 			painter_.drawLine( dataToWidget_(*(visible_end_[index]-1)), dataToWidget_(*(visible_end_[index])));
 		}
@@ -734,7 +734,7 @@ namespace OpenMS
 	
 			if (intensity_mode_ == IM_PERCENTAGE)
 			{
-				percentage_factor_ = overall_data_range_.max()[1]/getDataSet(i)[0].getMaxInt();
+				percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
 			}
 			else 
 			{
@@ -771,8 +771,8 @@ namespace OpenMS
 			// get iterators on peaks that outline the visible area
 			for (UnsignedInt i=0; i<getLayerCount();++i)
 			{
-				visible_begin_[i] = getDataSet_(i)[0].MZBegin(new_area.minX());
-				visible_end_[i]   = getDataSet_(i)[0].MZBegin(new_area.maxX());
+				visible_begin_[i] = getPeakData_(i)[0].MZBegin(new_area.minX());
+				visible_end_[i]   = getPeakData_(i)[0].MZBegin(new_area.maxX());
 			}
 			
 			if (action_mode_ != AM_SELECT)
@@ -796,10 +796,10 @@ namespace OpenMS
 	{
 		vector<SpectrumIteratorType> result = selected_peaks_;
 		
-		//to also have the last peak of the spectrum as border: add the peak BEFORE currentDataSet()[0].end()
-		if (!currentDataSet()[0].empty())
+		//to also have the last peak of the spectrum as border: add the peak BEFORE getCurrentPeakData()[0].end()
+		if (!getCurrentPeakData()[0].empty())
 		{
-			result.push_back((currentDataSet_()[0].end() - 1));
+			result.push_back((currentPeakData_()[0].end() - 1));
 		}
 	
 		return result; 
@@ -813,9 +813,9 @@ namespace OpenMS
 	SignedInt Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
 	{
 		current_layer_ = getLayerCount()-1;
-		currentDataSet_().updateRanges();
+		currentPeakData_().updateRanges();
 		
-		if (currentDataSet().size()==0 || currentDataSet().getSize()==0)
+		if (getCurrentPeakData().size()==0 || getCurrentPeakData().getSize()==0)
 		{
 			layers_.resize(getLayerCount()-1);
 			current_layer_ = current_layer_-1;
@@ -824,23 +824,23 @@ namespace OpenMS
 
 		//set displayed intensity range
 		getCurrentLayer_().min_int = low_intensity_cutoff;
-		getCurrentLayer_().max_int = currentDataSet().getMaxInt();
+		getCurrentLayer_().max_int = getCurrentPeakData().getMaxInt();
 	
 		//add new values to visible_begin_ and visible_end_
-		visible_begin_.push_back(currentDataSet_()[0].begin());
-		visible_end_.push_back(currentDataSet_()[0].end());
+		visible_begin_.push_back(currentPeakData_()[0].begin());
+		visible_end_.push_back(currentPeakData_()[0].end());
 	
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
 		//estimate peak type
 		PeakTypeEstimator pte;
-		if (pte.estimateType(currentDataSet_()[0].begin(),currentDataSet_()[0].end()) == SpectrumSettings::RAWDATA)
+		if (pte.estimateType(currentPeakData_()[0].begin(),currentPeakData_()[0].end()) == SpectrumSettings::RAWDATA)
 		{
 			draw_modes_.back() = DM_CONNECTEDLINES;
 		}
 	
 		// sort peaks in accending order of position
-		currentDataSet_()[0].getContainer().sortByPosition();
+		currentPeakData_()[0].getContainer().sortByPosition();
 		
 		//update ranges
 		recalculateRanges_(0,2,1);

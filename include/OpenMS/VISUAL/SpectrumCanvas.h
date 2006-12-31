@@ -108,7 +108,7 @@ namespace OpenMS
 		{
 			IM_NONE,		    ///< Normal mode: f(x)=x
 			IM_LOG,			    ///< Log mode: f(x)=ln(x)
-			IM_PERCENTAGE,  ///< Shows intensities normalized by dataset maximum: f(x)=x/max(x)*100
+			IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
 			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
 		};
 		
@@ -207,13 +207,14 @@ namespace OpenMS
 		{ 
 			return show_grid_; 
 		}
-		
+		/// returns the layer data with index @p index
 		inline const LayerData& getLayer(UnsignedInt index) const
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return layers_[index];
 		}
-
+		
+		/// returns the layer data of the active layer
 		inline const LayerData& getCurrentLayer() const
 		{
 			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
@@ -278,7 +279,7 @@ namespace OpenMS
 			return layers_.size();
 		}
 		/// Returns the peak data (reduced or normal) of the @p index'th layer (not mutable)
-		inline const ExperimentType& getDataSet(UnsignedInt index) const 
+		inline const ExperimentType& getPeakData(UnsignedInt index) const 
 		{
 			if(show_reduced_)
 			{
@@ -287,7 +288,7 @@ namespace OpenMS
 			return getLayer(index).peaks;
 		}
 		/// Returns the peak data (reduced or normal) of the active layer (not mutable)
-		inline const ExperimentType& currentDataSet() const
+		inline const ExperimentType& getCurrentPeakData() const
 		{
 			if(show_reduced_)
 			{
@@ -297,50 +298,50 @@ namespace OpenMS
 		}
 			
 		/// Returns the index of the active layer
-		UnsignedInt activeDataSetIndex() const;
-		///change the active spectrum (the one that is used for selecting and so on)
-		virtual void activateDataSet(int data_set)=0;
-		///removes the dataset with index @p data_set
-		virtual void removeDataSet(int data_set)=0;
+		UnsignedInt activeLayerIndex() const;
+		///change the active layer (the one that is used for selecting and so on)
+		virtual void activateLayer(int layer_index)=0;
+		///removes the layer with index @p layer_index
+		virtual void removeLayer(int layer_index)=0;
 		/**
-    	@brief Adds another peak dataset to fill afterwards
+    	@brief Adds another peak layer to fill afterwards
     	
-    	Call finishAdding(float) after you filled the dataset!
+    	Call finishAdding(float) after you filled the layer!
     	
-    	@return reference to the new dataset
+    	@return reference to the new layer
     */
-    ExperimentType& addEmptyDataSet();
+    ExperimentType& addEmptyPeakLayer();
 		/**
-			@brief Finish adding data after call to addEmtpyDataSet()
+			@brief Finish adding data after call to addEmptyPeakLayer()
 		
-			You can use this method instead of addDataSet (add by copy).
-			First call addEmptyDataSet(),then fill returned reference and finally call finishAdding(float).
+			You can use this method instead of addLayer (add by copy).
+			First call addEmptyPeakLayer(),then fill returned reference and finally call finishAdding(float).
 		
-			@return the index of the new dataset
+			@return the index of the new layer
 		*/
 		virtual SignedInt finishAdding(float low_intensity_cutoff = 0) = 0;
 		/**
-			@brief Add another dataset by copy
+			@brief Add a peak data layer (data is copied)
 		
-			@return the index of the new dataset. -1 if no new dataset was created.
+			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		SignedInt addDataSet(const ExperimentType&);
+		SignedInt addLayer(const ExperimentType&);
 
 		/**
-			@brief Add another feature dataset by copy
+			@brief Add a feature data layer (data is copied)
 		
-			@return the index of the new dataset. -1 if no new dataset was created.
+			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		SignedInt addDataSet(const FeatureMapType&);
+		SignedInt addLayer(const FeatureMapType&);
 		
 		//@}
 		
-		/// Returns the minimum intensity of the active spectrum
+		/// Returns the minimum intensity of the active layer
 		inline double getCurrentMinIntensity() const 
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
-				return currentDataSet().getMinInt(); 
+				return getCurrentPeakData().getMinInt(); 
 			}
 			else
 			{
@@ -348,12 +349,12 @@ namespace OpenMS
 			}
 		}
 
-		/// Returns the maximum intensity of the active spectrum
+		/// Returns the maximum intensity of the active layer
 		inline double getCurrentMaxIntensity() const 
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
-				return currentDataSet().getMaxInt(); 
+				return getCurrentPeakData().getMaxInt(); 
 			}
 			else
 			{
@@ -361,12 +362,12 @@ namespace OpenMS
 			}
 		}
 
-		/// Returns the minimum intensity of the active spectrum
+		/// Returns the minimum intensity of the layer with index @p index
 		inline double getMinIntensity(UnsignedInt index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
-				return currentDataSet().getMinInt(); 
+				return getCurrentPeakData().getMinInt(); 
 			}
 			else
 			{
@@ -374,18 +375,18 @@ namespace OpenMS
 			}
 		}
 
-		/// Returns the maximum intensity of the active spectrum
+		/// Returns the name of the layer with index @p index
 		inline void setCurrentLayerName(const String& name) 
 		{ 
 		  getCurrentLayer_().name = name; 
 		}
 
-		/// Returns the maximum intensity of the active spectrum
+		/// Returns the maximum intensity of the active layer
 		inline double getMaxIntensity(UnsignedInt index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
-				return getDataSet(index).getMaxInt(); 
+				return getPeakData(index).getMaxInt(); 
 			}
 			else
 			{
@@ -417,10 +418,10 @@ namespace OpenMS
 		
 	public slots:
 		/**
-			@brief change the visibility of a spectrum
+			@brief change the visibility of a layer
 		
-			@param i the index of the dataset
-			@param b true if spectrum is supposed to be visible
+			@param i the index of the layer
+			@param b true if layer is supposed to be visible
 		*/
 		void changeVisibility(int i, bool b);
 
@@ -510,8 +511,8 @@ namespace OpenMS
 			return getLayer_(current_layer_);
 		}
 
-		/// Returns the @p index'th dataset (mutable)
-		inline ExperimentType& getDataSet_(UnsignedInt index)
+		/// Returns the @p index'th layer (mutable)
+		inline ExperimentType& getPeakData_(UnsignedInt index)
 		{
 			if(show_reduced_)
 			{
@@ -520,8 +521,8 @@ namespace OpenMS
 			return getLayer_(index).peaks;
 		}
 		
-		/// Returns the active dataset (mutable)
-		inline ExperimentType& currentDataSet_()
+		/// Returns the active layer (mutable)
+		inline ExperimentType& currentPeakData_()
 		{
 			if(show_reduced_)
 			{
@@ -667,7 +668,7 @@ namespace OpenMS
 		/**
 			@brief Paints grid lines
 			
-			Helper function to paint grid lines for the spectrum view
+			Helper function to paint grid lines
 			
 			@param p the QPainter to paint the grid lines on
 		*/
@@ -695,18 +696,18 @@ namespace OpenMS
 		AreaType visible_area_;
 
 		/**
-			@brief Updates data and intensity range with the values of dataset @p data_set
+			@brief Updates data and intensity range with the values of layer @p layer_index
 			
-			@param data_set layer index
+			@param layer_index layer index
 			@param mz_dim Index of m/z in overall_data_range_
 			@param rt_dim Index of RT in overall_data_range_			
 			@param it_dim Index of intensity in overall_data_range_	
 			
 			@see overall_data_range_
 			
-			@note Make sure the updateRanges() of the datasets has been called before this method is called
+			@note Make sure the updateRanges() of the layers has been called before this method is called
 		*/
-		void updateRanges_(UnsignedInt data_set, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
+		void updateRanges_(UnsignedInt layer_index, UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
 
 		/**
 			@brief Resets data and range to +/- infinity
@@ -719,7 +720,7 @@ namespace OpenMS
 			@brief Recalculates the data range.
 			
 			This method calls resetRanges_() followed by updateRanges_(UnsignedInt,UnsignedInt,UnsignedInt,UnsignedInt)
-			for all datasets.
+			for all layers.
 	
 			@param mz_dim Index of m/z in overall_data_range_
 			@param rt_dim Index of RT in overall_data_range_		
@@ -729,13 +730,13 @@ namespace OpenMS
 		*/
 		void recalculateRanges_(UnsignedInt mz_dim, UnsignedInt rt_dim, UnsignedInt it_dim);
 		
-		/// Stores the data range (m/z and RT) of all datasets
+		/// Stores the data range (m/z and RT) of all layers
 		DRange<3> overall_data_range_;
 		
 		/// Stores whether or not to show a grid.
 		bool show_grid_;
 		
-		/// Flag for reduced data sets
+		/// Flag for reduced displaying of peak layers
 		bool show_reduced_;
 		
 		/// The zoom stack. This is dealt with in the changeVisibleArea_() and zoomBack_() functions.
@@ -775,7 +776,7 @@ namespace OpenMS
 		/**
 			@brief Intensity scaling factor for relative scale with multiple layers.
 			
-			In this mode all datasets are scaled to the same maximum.
+			In this mode all layers are scaled to the same maximum.
 		*/
 		double percentage_factor_;
 		

@@ -90,7 +90,7 @@ namespace OpenMS
 		/// Function to mark a peak with an icon
 		inline void setPeakIcon(unsigned int index, unsigned int icon) 
 		{ 
-			currentDataSet_()[0].getContainer()[index].setMetaValue(UnsignedInt(4),SignedInt(icon)); 
+			currentPeakData_()[0].getContainer()[index].setMetaValue(UnsignedInt(4),SignedInt(icon)); 
 		}
 
 		/**
@@ -100,10 +100,10 @@ namespace OpenMS
 		*/
 		std::vector<SpectrumIteratorType> getSelectedPeaks();
 		
-		/// Returns the draw mode of the current dataset
+		/// Returns the draw mode of the current layer
 		DrawModes getDrawMode() const;
 
-		/// Sets draw mode of the current dataset
+		/// Sets draw mode of the current layer
 		void setDrawMode(DrawModes mode);
 		
 		// Docu in base class
@@ -114,9 +114,9 @@ namespace OpenMS
 		
 	public slots:
 		// Docu in base class
-		void activateDataSet(int data_set);
+		void activateLayer(int layer_index);
 		// Docu in base class
-		void removeDataSet(int data_set);
+		void removeLayer(int layer_index);
 		// Docu in base class
 		SignedInt finishAdding(float low_intensity_cutoff = 0);
 		
@@ -191,9 +191,9 @@ namespace OpenMS
 		/// pen for drawing of icons
 		QPen icon_pen_; 
 
-		/// Draws peaks for dataset @p index
+		/// Draws peaks for layer @p index
 		void drawPeaks_(UnsignedInt index);
-		/// Draws connectedLines for dataset @p index
+		/// Draws connectedLines for layer @p index
 		void drawConnectedLines_(UnsignedInt index);
 
 		/// QT Event

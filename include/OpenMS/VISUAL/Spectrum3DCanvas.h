@@ -140,9 +140,9 @@ namespace OpenMS
 
     void makeReducedDataSet();
 
-		/// number of peaks in the dataset
+		/// number of peaks in the layer
 		int sum_of_peaks_;
-		/// area of the dataset
+		/// area of the layer
 		double area_;
 		///peak per RT
 		int peaks_per_rt_;
@@ -151,9 +151,9 @@ public slots:
     ///shows the contextmenu at position p
     void showContextMenu(QPoint p);
     // Docu in base class
-    void activateDataSet(int data_set);
+    void activateLayer(int layer_index);
     // Docu in base class
-    void removeDataSet(int data_set);
+    void removeLayer(int layer_index);
   };
   
 } //namespace

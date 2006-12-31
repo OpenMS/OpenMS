@@ -48,11 +48,10 @@
 
 /*	
 	TODO:
-	- name aus MSExperiment und DFeatureMap entfernen?
+	- name aus MSExperiment entfernen?
 	- TOPPView
 		- DB und Features testen
-		- LayerData[1/2/3]D?
-		- ContextMenu Layers -> seg fault
+		- ContextMenu Layers -> seg fault, preferences for layers?
 	- Release
 		- Valgrind
 	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
