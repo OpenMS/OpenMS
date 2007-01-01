@@ -59,13 +59,11 @@ CHECK(MSExperiment(const MSExperiment& source))
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setName("Name");
   tmp.resize(1);
-  tmp[0].setName("bla4711");
   
   MSExperiment<> tmp2(tmp);
   TEST_EQUAL(tmp2.getContacts().size(),1);  
   TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
-  TEST_EQUAL(tmp2[0].getName(),"bla4711");
 RESULT
 
 CHECK(MSExperiment& operator= (const MSExperiment& source))
@@ -73,14 +71,12 @@ CHECK(MSExperiment& operator= (const MSExperiment& source))
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setName("Name");
   tmp.resize(1);
-  tmp[0].setName("bla4711");
   
   MSExperiment<> tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);  
   TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
-  TEST_EQUAL(tmp2[0].getName(),"bla4711");
 
   tmp2 = MSExperiment<>();
   TEST_EQUAL(tmp2.getContacts().size(),0);  
@@ -745,17 +741,6 @@ CHECK(void sortSpectra(bool sort_mz))
 	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
-CHECK(const String& getName() const)
-	MSExperiment<> exp;
-	TEST_EQUAL("",exp.getName());
-RESULT
-
-CHECK(void setName(const String& name))
-	MSExperiment<> exp;
-	exp.setName("bla");
-	TEST_EQUAL("bla",exp.getName());
-RESULT
-
 CHECK(void reset())
 	DPeakArray<2> plist;
 	
@@ -769,7 +754,6 @@ CHECK(void reset())
 		
 	MSExperiment<> exp;
 	exp.set2DData(plist);
-	exp.setName("bla");
 	exp.updateRanges();
 	
 	exp.reset();

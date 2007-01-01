@@ -267,7 +267,6 @@ public:
             ms_levels_(),
             nr_dpoints_(0),
             spectra_lengths_(),
-            name_(),
 						last_scan_index_(0)
     {
     }
@@ -281,7 +280,6 @@ public:
             ms_levels_(source.ms_levels_),
             nr_dpoints_(source.nr_dpoints_),
             spectra_lengths_(source.spectra_lengths_),
-            name_(source.name_),
 						last_scan_index_(source.last_scan_index_)
     {
     }
@@ -304,7 +302,6 @@ public:
 				ms_levels_           = source.ms_levels_;
         nr_dpoints_					 = source.nr_dpoints_;
 				spectra_lengths_	 = source.spectra_lengths_;
-				name_                 = source.name_;
 				last_scan_index_ = source.last_scan_index_;
 				
         return *this;
@@ -401,20 +398,8 @@ public:
 				spectrum->back().getPosition()[0] = iter->getPosition()[MZ];
 			}
     }
-
-    /// Returns the name
-    const String& getName() const
-    {
-      return name_;
-    }
-
-    /// Sets the name
-    void setName(const String& name)
-    {
-      name_ = name;
-    }
-
-   /// Returns an iterator pointing at the first peak
+    
+		/// Returns an iterator pointing at the first peak
     PIterator peakBegin()
     {
       return PIterator( (unsigned int) 0 , this->at(0).getRetentionTime(), (unsigned int) 0 , *this) ;
@@ -794,8 +779,6 @@ protected:
     UnsignedInt nr_dpoints_;
     /// Sums of consecutive spectrum lengths
     std::vector<UnsignedInt> spectra_lengths_;
-    /// Name string
-    String name_;
 		/// Index of last scan retrieved
 		mutable UnsignedInt last_scan_index_;
 };

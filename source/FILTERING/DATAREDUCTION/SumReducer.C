@@ -41,11 +41,6 @@ namespace OpenMS
   
 	void SumReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
-		// set name
-		string name = "sum_reduced_";
-		name+=in.getName();
-		out.setName(name);
-	
 		double reduction = (double)param_.getValue("Rangeperstep") ;
 	// 	cout<<reduction<<endl;
 		double distance;

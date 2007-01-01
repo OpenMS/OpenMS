@@ -40,10 +40,6 @@ namespace OpenMS
   
  	void MaxReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
-		string name = "max_reduced_";
-		name+=in.getName();
-		out.setName(name);	
-		
 		UnsignedInt peaks_per_bin = (UnsignedInt)(param_.getValue("Peaksperstep"));
  		
 		out.resize(in.size());

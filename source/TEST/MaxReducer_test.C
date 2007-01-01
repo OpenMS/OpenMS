@@ -58,7 +58,6 @@ CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
   MSExperiment<> in;
   MSExperiment<> out;
   FileHandler().loadExperiment("data/MaxReducer_test.dta2d",in);
-  in.setName("MaxReducer_test.dta2d");
   Param param;	
   MaxReducer maxreducer;
   param.setValue("Peaksperstep",3);

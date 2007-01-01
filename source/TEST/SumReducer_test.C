@@ -56,7 +56,6 @@ CHECK( virtual  void applyReduction(const  MSExperiment<>& , MSExperiment<>&  ))
   MSExperiment<> in;
   MSExperiment<> out;
   FileHandler().loadExperiment("data/SumReducer_test.dta2d",in);
-  in.setName("SumReducer_test.dta2d");
   Param param;	
   SumReducer sumreducer;
   param.setValue("Rangeperstep",0.5);
