@@ -76,6 +76,8 @@ namespace OpenMS
       /// Destructor
       ~DTA2DFile();
       //@}
+      
+      PeakFileOptions& getOptions() { return options_; }
 
       /**
       	@brief Loads a map from a DTA2D file.
@@ -187,12 +189,14 @@ namespace OpenMS
 						//std::cout <<"'"<< strings[0] << "' '" << strings[1] << "' '" << strings[2] << "'"<< std::endl;
 						//fill peak
 						double mz = strings[mz_dim].toDouble();
-						p.setIntensity(strings[int_dim].toDouble());
+						double intensity = strings[int_dim].toDouble();
+						p.setIntensity(intensity);
 						p.getPosition()[0] = mz;
 						rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
 						
-						if (options_.hasMZRange() && !options_.getMZRange().encloses(DPosition<1>(mz))
-						 || options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(rt)))
+						if ((options_.hasMZRange() && !options_.getMZRange().encloses(DPosition<1>(mz)))
+						 || (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(rt)))
+						 || (options_.hasIntensityRange() && !options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 						{
 							continue; // if peak is out of specified range
 						}

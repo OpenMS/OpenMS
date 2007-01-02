@@ -32,14 +32,21 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+using namespace OpenMS;
+using namespace std;
+
+DRange<1> makeRange(float a, float b)
+{
+	DPosition<1> pa(a), pb(b);
+	return DRange<1>(pa, pb);
+}
+
 ///////////////////////////
 
 START_TEST(DTAFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
 
 typedef DTA2DFile::DimensionDescription Dims;
 
@@ -383,6 +390,69 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 	TEST_REAL_EQUAL(it3->getIntensity(), 73629.98)
 
 
+RESULT
+
+CHECK([EXTRA] load with RT range)
+	PRECISION(0.01)
+
+	MSExperiment<> e;
+	DTA2DFile dta;
+
+	dta.getOptions().setRTRange(makeRange(282670, 282685));
+	dta.load("data/DTA2DFile_test_3.dta2d",e);
+	TEST_REAL_EQUAL(e[0].getRetentionTime(), 282672)
+	TEST_REAL_EQUAL(e[1].getRetentionTime(), 282678)
+	TEST_REAL_EQUAL(e[2].getRetentionTime(), 282684)
+RESULT
+
+CHECK([EXTRA] load with MZ range)
+	PRECISION(0.01)
+
+	MSExperiment<> e;
+	DTA2DFile dta;
+
+	dta.getOptions().setMZRange(makeRange(150, 220));
+	dta.load("data/DTA2DFile_test_1.dta2d",e);
+
+	MSExperiment<>::const_iterator it(e.begin());
+	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 169.65)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 189.30)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 202.28)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 207.82)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 219.72)
+RESULT
+
+CHECK([EXTRA] load with intensity range)
+	PRECISION(0.01)
+
+	MSExperiment<> e;
+	DTA2DFile dta;
+
+	dta.getOptions().setIntensityRange(makeRange(30000, 70000));
+	dta.load("data/DTA2DFile_test_1.dta2d",e);
+
+	MSExperiment<>::const_iterator it(e.begin());
+	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 47218.89)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 61870.99)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 62074.22)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 53737.85)
+	++it;
+
+	TEST_REAL_EQUAL(it->getContainer()[0].getIntensity(), 49410.25)
 RESULT
 
 /////////////////////////////////////////////////////////////
