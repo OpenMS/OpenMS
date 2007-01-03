@@ -59,12 +59,12 @@ vector< pair<String, String> > references;
 
 date.set("2006-03-09 11:31:52");
 
-CHECK(MascotXMLFile())
+CHECK((MascotXMLFile()))
 	ptr = new MascotXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(const String& filename, ProteinIdentification* protein_identification, std::vector<IdentificationData>& identifications) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
+CHECK((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<IdentificationData>& id_data ) const throw(Exception::FileNotFound, Exception::ParseError)))
 
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							protein_identification, 
@@ -119,10 +119,6 @@ CHECK((void load(const String& filename, ProteinIdentification* protein_identifi
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-RESULT
-
-CHECK(~MascotXMLFile())
-	delete ptr;
 RESULT
 
 /////////////////////////////////////////////////////////////

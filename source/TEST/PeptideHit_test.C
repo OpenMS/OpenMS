@@ -66,7 +66,7 @@ CHECK((~PeptideHit()))
 	delete ptr1;
 RESULT
 
-CHECK((PeptideHit(double score, std::string score_type, uint rank, charge, String sequence)))
+CHECK((PeptideHit(double score, std::string score_type, uint rank, SignedInt charge, String sequence)))
 	ptr1 = new PeptideHit(score, score_type, rank, charge, sequence);
 	TEST_EQUAL(ptr1->getScore(), score)
 	TEST_EQUAL(ptr1->getScoreType(), score_type)
@@ -284,6 +284,20 @@ CHECK((const std::vector< std::pair<String, String>& getProteinIndices() const))
 	TEST_EQUAL(indices[1].first == String("2006-12-12 11:59:59"), true)
 	TEST_EQUAL(indices[1].second == String("ACD392"), true)
 
+RESULT
+
+CHECK(SignedInt getCharge() const)
+	PeptideHit hit;
+	
+	hit.setCharge(-43);
+	TEST_EQUAL(-43, hit.getCharge())
+RESULT
+
+CHECK(void setCharge(SignedInt charge))
+	PeptideHit hit;
+	
+	hit.setCharge(-43);
+	TEST_EQUAL(-43, hit.getCharge())
 RESULT
 
 /////////////////////////////////////////////////////////////
