@@ -34,7 +34,7 @@ namespace OpenMS
 {
   PeakPickerCWT::PeakPickerCWT()
       : PeakPicker(),
-      	
+
       radius_(0),
       scale_(0.0),
       peak_bound_cwt_(0.0),
@@ -44,52 +44,51 @@ namespace OpenMS
       optimization_(false)
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-  	defaults_.setValue("thresholds:correlation",0.5);
-  	defaults_.setValue("wavelet_transform:scale",0.15);
-  	defaults_.setValue("wavelet_transform:spacing",0.001);
-  	defaults_.setValue("thresholds:noise_level",0.1);
-   	defaults_.setValue("thresholds:search_radius",3); 	
-		
-		//Optimization parameters
-  	defaults_.setValue("Optimization:skip_optimization","yes");
-		defaults_.setValue("Optimization:Penalties:Position",0.0);
-		defaults_.setValue("Optimization:Penalties:LeftWidth",1.0); 	
-		defaults_.setValue("Optimization:Penalties:RightWidth",1.0); 	
-		defaults_.setValue("Optimization:Iterations",15); 	
-		defaults_.setValue("Optimization:DeltaAbsError",1e-04f); 	
-		defaults_.setValue("Optimization:DeltaRelError",1e-04f); 	
-  	
-		setParam(Param());
+    defaults_.setValue("thresholds:correlation",0.5);
+    defaults_.setValue("wavelet_transform:scale",0.15);
+    defaults_.setValue("wavelet_transform:spacing",0.001);
+    defaults_.setValue("thresholds:noise_level",0.1);
+    defaults_.setValue("thresholds:search_radius",3);
+
+    //Optimization parameters
+    defaults_.setValue("Optimization:skip_optimization","yes");
+    defaults_.setValue("Optimization:Penalties:Position",0.0);
+    defaults_.setValue("Optimization:Penalties:LeftWidth",1.0);
+    defaults_.setValue("Optimization:Penalties:RightWidth",1.0);
+    defaults_.setValue("Optimization:Iterations",15);
+    defaults_.setValue("Optimization:DeltaAbsError",1e-04f);
+    defaults_.setValue("Optimization:DeltaRelError",1e-04f);
+
+    setParam(Param());
   }
 
   PeakPickerCWT::~PeakPickerCWT()
-	{
-	}
-	
-	void PeakPickerCWT::setParam(Param param)
-	{
-		PeakPicker::setParam(param);
-		
+  {}
+
+  void PeakPickerCWT::setParam(Param param)
+  {
+    PeakPicker::setParam(param);
+
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
     String opt = param_.getValue("Optimization:skip_optimization").toString();
-		if (opt=="yes")
-		{
-    	optimization_ = false;
+    if (opt=="yes")
+    {
+      optimization_ = false;
     }
     else if (opt=="no")
     {
-    	optimization_ = true;
+      optimization_ = true;
     }
     else
     {
-    	cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
-    			 << " It is set to '" << opt << "'" << endl;
+      cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
+      << " It is set to '" << opt << "'" << endl;
     }
     scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
     radius_ = (int)param_.getValue("thresholds:search_radius");
-	}
-	
+  }
+
   bool PeakPickerCWT::getMaxPosition_
   ( RawDataPointIterator first,
     RawDataPointIterator last,
@@ -464,10 +463,10 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "PeakPickerCWT<D>::initialize_ peak_bound_" << peak_bound_ <<  std::endl;
 #endif
-  	//initialize wavelet transformer
+    //initialize wavelet transformer
     wt_.init(scale_, (double)param_.getValue("wavelet_transform:spacing"));
-    
-		//calculate peak bound in CWT
+
+    //calculate peak bound in CWT
 
     // build a lorentz peak of height peak_bound_
     // compute its cwt, and compute the resulting height
@@ -566,23 +565,23 @@ namespace OpenMS
     double left_intensity  =  area.left->getIntensity();
     double right_intensity = area.right->getIntensity();
 
-    //avoid zero width
-    float minimal_endpoint_centroid_distance=0.01;
-    if (  (fabs( area.left->getPos()-area.centroid_position[0]) < minimal_endpoint_centroid_distance)
-          ||(fabs(area.right->getPos()-area.centroid_position[0]) < minimal_endpoint_centroid_distance) )
-    {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "The distance between centroid and the endpoints is too small!" << std::endl;
-#endif
-
-      return PeakShape();
-    }
-
     if (enable_centroid_fit)
     {
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "Fit at the peak centroid" << std::endl;
 #endif
+
+      //avoid zero width
+      float minimal_endpoint_centroid_distance=0.01;
+      if (  (fabs( area.left->getPos()-area.centroid_position[0]) < minimal_endpoint_centroid_distance)
+            ||(fabs(area.right->getPos()-area.centroid_position[0]) < minimal_endpoint_centroid_distance) )
+      {
+#ifdef DEBUG_PEAK_PICKING
+        std::cout << "The distance between centroid and the endpoints is too small!" << std::endl;
+#endif
+
+        return PeakShape();
+      }
       // the maximal position was taken directly from the cwt.
       // first we do a "regular" fit of the left half
       // TODO: avoid zero width!
