@@ -104,7 +104,7 @@ CHECK(IDFilter(const IDFilter& source))
   TEST_EQUAL(ptr1->getProteins() == ptr2->getProteins(), true)
 RESULT
 
-CHECK(const Identification& filterIdentificationsByProteins(const Identification& identification))
+CHECK(void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification))
 	Identification identification2;
 	ProteinIdentification protein_identification2;
   vector< pair<String, String> > proteins;
@@ -135,7 +135,7 @@ CHECK(const Identification& filterIdentificationsByProteins(const Identification
 
 RESULT
 
-CHECK((const Identification& filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins)))
+CHECK((void filterIdentificationsByProteins(const Identification& identification, std::vector< std::pair<String, String> > proteins, Identification& filtered_identification)))
 	Identification identification2;
 	ProteinIdentification protein_identification2;
   vector< pair<String, String> > proteins;
@@ -165,7 +165,7 @@ CHECK((const Identification& filterIdentificationsByProteins(const Identificatio
     
 RESULT
 
-CHECK((const Identification& filterIdentificationsByThresholds(const Identification& identification, bool strict = false)))
+CHECK((void filterIdentificationsByThresholds(const Identification& identification, Identification& filtered_identification)))
 	Identification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -185,7 +185,7 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 	
 RESULT
 
-CHECK((const Identification& filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, bool strict = false)))
+CHECK((void filterIdentificationsByThresholds(const Identification& identification, const double& peptide_threshold_fraction, const double& protein_threshold_fraction, Identification& filtered_identification)))
 	Identification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -212,7 +212,7 @@ CHECK((const Identification& filterIdentificationsByThresholds(const Identificat
 
 RESULT
 
-CHECK((const Identification& filterIdentificationsByExclusionPeptides(const Identification& identification, std::vector<String> peptides)))
+CHECK((void filterIdentificationsByExclusionPeptides(const Identification& identification, std::vector<String> peptides, Identification& filtered_identification)))
 	Identification identification2;
 	vector<PeptideHit> peptide_hits;
 	vector<ProteinHit> protein_hits;
@@ -293,6 +293,111 @@ CHECK((void setProteins(const std::vector< std::pair<String, String> >& proteins
 	ptr1 = new IDFilter();
 	ptr1->setProteins(proteins);
 	TEST_EQUAL(ptr1->getProteins() == proteins, true)
+RESULT
+
+CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector< std::pair<String, String> >proteins)))
+	MSExperiment< DPeak<1> > experiment;
+  vector< pair<String, String> > proteins;
+  vector< Identification > ids;
+	Identification identification2;
+	vector<PeptideHit> peptide_hits;
+	vector<ProteinHit> protein_hits;
+  
+  ids.push_back(identification);
+
+  proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
+  proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
+	
+	for(UnsignedInt i = 0; i < 5; ++i)
+	{
+		experiment.push_back(MSSpectrum< DPeak<1> >());
+	}
+	experiment[3].setMSLevel(2);
+	experiment[3].setIdentifications(ids);
+	
+	ptr1->filterIdentificationsByProteins(experiment, proteins);
+
+	identification2 = experiment[3].getIdentifications()[0];
+	peptide_hits = identification2.getPeptideHits();
+
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[0].getScoreType() , "Mascot")
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL(peptide_hits[1].getSequence() , "THPYGHAIVAGIERYPSK")
+	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 11.26)
+	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
+	TEST_EQUAL(peptide_hits[1].getRank() , 2)	
+	
+RESULT
+
+CHECK((template<class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT >& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
+	MSExperiment< DPeak<1> > experiment;
+  vector< Identification > ids;
+	Identification identification2;
+	vector<PeptideHit> peptide_hits;
+	vector<ProteinHit> protein_hits;
+  
+  ids.push_back(identification);
+	
+	for(UnsignedInt i = 0; i < 5; ++i)
+	{
+		experiment.push_back(MSSpectrum< DPeak<1> >());
+	}
+	experiment[3].setMSLevel(2);
+	experiment[3].setIdentifications(ids);
+
+	ptr1->filterIdentificationsByThresholds(experiment, 1, 1);
+	identification2 = experiment[3].getIdentifications()[0];
+	peptide_hits = identification2.getPeptideHits();
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[0].getScoreType() , "Mascot")
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL(peptide_hits[1].getSequence() , "MRSLGYVAVISAVATDTDK")
+	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
+	protein_hits = protein_identification.getProteinHits();
+	TEST_EQUAL(protein_hits.size(), 50)
+	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
+	ptr1->filterIdentificationsByThresholds(experiment, 1.3, 1);
+	identification2 = experiment[3].getIdentifications()[0];
+	peptide_hits = identification2.getPeptideHits();
+	TEST_EQUAL(peptide_hits.size(), 0)
+
+RESULT
+
+CHECK((void filterIdentificationsByBestHits(const Identification& identification, Identification& filtered_identification, bool strict = false)))
+	Identification identification2;
+	vector<PeptideHit> peptide_hits;
+	vector<ProteinHit> protein_hits;
+	bool strict = true;
+	
+	ptr1 = new IDFilter();
+
+	ptr1->filterIdentificationsByBestHits(identification, identification2, strict);
+	peptide_hits = identification2.getPeptideHits();
+	TEST_EQUAL(peptide_hits.size(), 0)
+	ptr1->filterIdentificationsByBestHits(identification, identification2);
+	peptide_hits = identification2.getPeptideHits();
+	TEST_EQUAL(peptide_hits.size(), 2)
+	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_REAL_EQUAL(peptide_hits[0].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[0].getScoreType() , "Mascot")
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL(peptide_hits[1].getSequence() , "MRSLGYVAVISAVATDTDK")
+	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 33.85)
+	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getScoreType() , "Mascot")
+
+	delete ptr1;		
+RESULT
+
+CHECK((void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, double>& predicted_retention_times, double measured_retention_time, double predicted_sigma, double allowed_deviation, double total_gradient_time, Identification& filtered_identification)))
+
 RESULT
 
 CHECK(~IDFilter())
