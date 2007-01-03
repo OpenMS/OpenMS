@@ -47,15 +47,11 @@ using namespace std;
 AnalysisXMLFile* ptr;
 AnalysisXMLFile xml_file;
 
-CHECK(AnalysisXMLFile())
+CHECK((AnalysisXMLFile()))
 	ptr = new AnalysisXMLFile();
 RESULT
 
-CHECK(~AnalysisXMLFile())
-	delete ptr;
-RESULT
-
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& identifications) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data) const throw(Exception::FileNotFound, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications;
@@ -104,7 +100,7 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>& pro
 	
 RESULT
 
-CHECK((void load(const String& filename, std::vector<ProteinIdentification>* protein_identifications, std::vector<IdentificationData>* identifications, std::map<String, double>* predicted_retention_times, DoubleReal* predicted_sigma) const throw(Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector<ProteinIdentification>& protein_identifications, std::vector<IdentificationData>& id_data, std::map<String, double>& predicted_retention_times, DoubleReal& predicted_sigma) const throw(Exception::FileNotFound, Exception::ParseError)))
 
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 
@@ -165,70 +161,7 @@ CHECK((void load(const String& filename, std::vector<ProteinIdentification>* pro
 
 RESULT
 
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& identifications) const throw(Exception::UnableToCreateFile)))
-	vector<ProteinIdentification> protein_identifications; 
-	vector<IdentificationData> identifications; 
-	vector<ProteinIdentification> protein_identifications2; 
-	vector<IdentificationData> identifications2; 
-
-	String temp_filename = "data/AnalysisXMLFile_test_2.analysisXML";
-
-	NEW_TMP_FILE(temp_filename)
-	xml_file.load("data/AnalysisXMLFile_test.analysisXML", 
-							protein_identifications2, 
-				   		identifications2);
-	xml_file.store(temp_filename, 
-							    protein_identifications2, 
-				   				identifications2);
-	xml_file.load(temp_filename, 
-							protein_identifications, 
-				   		identifications);
-
-	TEST_EQUAL(protein_identifications == protein_identifications2, true)							
-	TEST_EQUAL(identifications == identifications2, true)																						
-
-	TEST_EQUAL(identifications.size(), 3)
-	TEST_EQUAL(identifications[0].rt, 120)
-	TEST_EQUAL(identifications[1].rt, 150)
-	TEST_EQUAL(identifications[2].rt, 160)
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(identifications[0].mz, 789.83)
-	TEST_REAL_EQUAL(identifications[1].mz, 135.29)
-	TEST_REAL_EQUAL(identifications[2].mz, 982.58)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideSignificanceThreshold(), 31.8621)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideSignificanceThreshold(), 12)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideSignificanceThreshold(), 19)
-	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 2)
-	TEST_EQUAL(identifications[1].id.getPeptideHits().size(), 1)
-	TEST_EQUAL(identifications[2].id.getPeptideHits().size(), 2)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 33.85)
-	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[1].getScore(), 33.12)
-	TEST_REAL_EQUAL(identifications[1].id.getPeptideHits()[0].getScore(), 43.9)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[0].getScore(), 5.41)
-	TEST_REAL_EQUAL(identifications[2].id.getPeptideHits()[1].getScore(), 7.87)
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-	TEST_EQUAL(identifications[0].id.getPeptideHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	TEST_EQUAL(identifications[1].id.getPeptideHits()[0].getSequence(), "HSKLSAK")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[0].getSequence(), "RASNSPQDPQSATAHSFR")
-	TEST_EQUAL(identifications[2].id.getPeptideHits()[1].getSequence(), "MYSTVGPA")
-	TEST_EQUAL(protein_identifications.size(), 1)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccession(), "AAN17824")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccession(), "GN1736")
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[0].getScore(), 103.55)
-	TEST_REAL_EQUAL(protein_identifications[0].getProteinHits()[1].getScore(), 67.85)
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getScoreType(), "Mascot")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[0].getAccessionType(), "SwissProt")
-	TEST_EQUAL(protein_identifications[0].getProteinHits()[1].getAccessionType(), "SwissProt")
-									
-RESULT
-
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& identifications) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data) const throw(Exception::UnableToCreateFile)))
 												
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 
@@ -286,7 +219,7 @@ CHECK((void store(String filename, const std::vector<ProteinIdentification>& pro
 									
 RESULT
 
-CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& identifications, DoubleReal predicted_sigma) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const std::vector<ProteinIdentification>& protein_identifications, const std::vector<IdentificationData>& id_data, const std::map<String, double>& predicted_retention_times, DoubleReal predicted_sigma) const throw(Exception::UnableToCreateFile)))
 												
 	vector<ProteinIdentification> protein_identifications; 
 	vector<IdentificationData> identifications; 

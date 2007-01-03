@@ -52,7 +52,7 @@ CHECK(MascotOutfile())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(String filename, std::vector<Identification>& identifications, std::vector<Real>& rt, std::vector<Real>& mz, Real p = 0.05) throw(Exception::ParseError)))
+CHECK((void load(String filename, std::vector<IdentificationData>& identifications, Real p = 0.05) throw(Exception::ParseError)))
 	ptr = new MascotOutfile();
 	vector<IdentificationData> identifications;
 
