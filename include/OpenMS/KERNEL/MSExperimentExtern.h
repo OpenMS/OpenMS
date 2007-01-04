@@ -926,7 +926,7 @@ public:
 // 				std::cout << "operator[" << n << "] const" << std::endl;
         // test if current scan is in buffer
         UnsignedInt b = scan2buffer_[n];
-        if (buffer2scan_[b] != n)
+				if (buffer2scan_[b] != n)
         {
 //             std::cout << "scan not in buffer." << std::endl;
             storeInBuffer_(n);	// scan is not in buffer, needs to be read from file

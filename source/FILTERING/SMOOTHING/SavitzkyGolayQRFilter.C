@@ -140,6 +140,8 @@ namespace OpenMS
       //get one row of the inverse \f$ (A^TA)^{-1} \f$ by the QR decomposition with only a single backsubstitution.
       OPENMS_PRECONDITION((qr_success != 1),"QR Decomposition of the normal equations is not possible!");
 
+			++qr_success; // suppresses compiler warning 
+			
       // we compute the coefficients
       for (k = -nl, kk = frame_size_-1; k <= m; k++, kk--)
       {
