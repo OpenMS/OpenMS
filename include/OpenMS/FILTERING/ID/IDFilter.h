@@ -95,8 +95,8 @@ namespace OpenMS
 			void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification);
 
       /// filters a protein identification corresponding to the given proteins
-	void filterIdentificationsByProteins(const ProteinIdentification&     identification, 
-                                             ProteinIdentification&           filtered_identification);
+			void filterIdentificationsByProteins(const ProteinIdentification&     identification, 
+                                           ProteinIdentification&           filtered_identification);
         
       /// filters the peptides of a identification corresponding to the retention times
 			void filterIdentificationsByRetentionTimes(const Identification& identification, const std::map<String, double>& predicted_retention_times, double measured_retention_time, double predicted_sigma, double allowed_deviation, double total_gradient_time, Identification& filtered_identification);
@@ -123,7 +123,7 @@ namespace OpenMS
 					
 					if (experiment[i].getMSLevel() == 2)
 					{
-						temp_identifications = experiment[i].getIdentification();
+						temp_identifications = experiment[i].getIdentifications();
 						if (temp_identifications.size() > 0)
 						{
 							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
@@ -134,7 +134,7 @@ namespace OpenMS
 									filtered_identifications.push_back(temp_identification);
 								}
 							}
-							experiment[i].setIdentification(filtered_identifications);
+							experiment[i].setIdentifications(filtered_identifications);
 							filtered_identifications.clear();					
 						}
 					}
@@ -150,14 +150,14 @@ namespace OpenMS
 				std::vector<Identification> filtered_identifications;
 				Identification temp_identification;
 				
-				proteins_ = proteins;
+				setProteins(proteins);
 		
 				for(unsigned int i = 0; i < experiment.size(); i++)
 				{		
 					
 					if (experiment[i].getMSLevel() == 2)
 					{
-						temp_identifications = experiment[i].getIdentification();
+						temp_identifications = experiment[i].getIdentifications();
 						if (temp_identifications.size() > 0)
 						{
 							for(UnsignedInt j = 0; j < temp_identifications.size(); j++)
@@ -166,9 +166,9 @@ namespace OpenMS
 								if (!temp_identification.empty())
 								{
 									filtered_identifications.push_back(temp_identification);
-								}
+                }
 							}
-							experiment[i].setIdentification(filtered_identifications);					
+							experiment[i].setIdentifications(filtered_identifications);					
 							filtered_identifications.clear();					
 						}
 					}
