@@ -135,6 +135,9 @@ namespace OpenMS
 				ComparatorType.  Otherwise the result will be garbage (like with std::unique_copy()).
 				Note that <code>this->size() == this->scan_position_.size() + 1</code>
 				because the first one deals with ranges (pairs).
+				
+				@NOTE: Use the peak iterators peakBegin() and peakEnd() to initialize the DS.
+				
 		*/
 		void init ( PeakIterator _begin, PeakIterator const _end ) throw ()
 		{

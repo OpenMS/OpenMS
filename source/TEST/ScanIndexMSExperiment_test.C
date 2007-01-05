@@ -29,13 +29,13 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/ScanIndex.h>
+#include <OpenMS/DATASTRUCTURES/ScanIndexMSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
 
-START_TEST(ScanIndex, "$Id$")
+START_TEST(ScanIndex, "$Id: ScanIndexMSExperiment_test.C 585 2006-10-05 13:30:33Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,18 +44,19 @@ using namespace OpenMS;
 using namespace std;
 
 typedef DPeakArray<2> PeakVector;
+typedef MSExperiment< > ExpType;
 
 /////////////////////////////////////////////////////////////
 
-ScanIndex<PeakVector>* index_ptr = 0;
+ScanIndexMSExperiment<ExpType>* index_ptr = 0;
 
-CHECK(ScanIndex())
-	index_ptr = new ScanIndex<PeakVector>;
+CHECK(ScanIndexMSExperiment())
+	index_ptr = new ScanIndexMSExperiment<ExpType>;
 	TEST_NOT_EQUAL(index_ptr, 0)
 	TEST_EQUAL(index_ptr->size(), 0)
 RESULT
 
-CHECK(~ScanIndex())
+CHECK(~ScanIndexMSExperiment())
 	delete index_ptr;
 RESULT
 
@@ -93,10 +94,13 @@ peak4.getIntensity() = 3.0;
 peak4.getPosition() = pos4;
 dpa.push_back(peak4);
 
-ScanIndex<PeakVector> scani;
+ExpType exp;
+exp.set2DData(dpa);
+
+ScanIndexMSExperiment<ExpType> scani;
 	
 CHECK(init())
-	scani.init(dpa.begin(),dpa.end());
+	scani.init(exp.peakBegin(),exp.peakEnd());
 	TEST_EQUAL(scani.size(),5);	
 RESULT
 

@@ -50,6 +50,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	IndexSet_test\
 	RunningAveragePosition_test\
 	ScanIndex_test\
+	ScanIndexMSExperiment_test\
 	DIntervalBase_test\
 	DRange_test\
 	DBoundingBox_test\
@@ -311,8 +312,15 @@ EXECUTABLES_APPLICATIONS = \
 
 EXECUTABLES_TRANSFORMATIONS = \
 	FeatureFinder_test\
+	BaseExtender_test\
+	BaseModelFitter_test\
+	BaseSeeder_test\
+	BaseQuality_test\
 	FeaFiTraits_test\
+	FeaFiModule_test\
 	BaseModel_test\
+	ModelDescription_test\
+	InterpolationModel_test\
 	GaussModel_test\
 	BiGaussModel_test\
 	IsotopeModel_test\
@@ -325,6 +333,7 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ExtendedModelFitter_test\
 	SimpleSeeder_test\
 	Correlation_test\
+	EuclideanDistance_test\
 	RankCorrelation_test\
 	ContinuousWaveletTransform_test\
 	PeakShape_test\

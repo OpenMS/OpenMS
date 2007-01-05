@@ -432,7 +432,7 @@ void MarrWaveletSeeder::sweep_()
 								traits_->getPeakFlag(  current_offset + this_peak) = FeaFiTraits::SEED;
 
                 // walk to the left
-                while ( fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak > 0)
+                while ( this_peak > 0 && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
                 {
                     --this_peak;
                     iso_map_[mz_in_hash].peaks_.add(current_offset + this_peak);
@@ -443,11 +443,10 @@ void MarrWaveletSeeder::sweep_()
                     next_intensity = current_scan[ this_peak ].getIntensity();
                 }
 
-                UnsignedInt nr_peaks = traits_->getNumberOfPeaks();
                 this_peak = local_maxima[z];
 
                 // walk to the right
-                while ( fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  && this_peak < nr_peaks)
+                while ( this_peak < (current_scan.size()-1) && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
                 {
                     ++this_peak;
                     iso_map_[mz_in_hash].peaks_.add(current_offset + this_peak);

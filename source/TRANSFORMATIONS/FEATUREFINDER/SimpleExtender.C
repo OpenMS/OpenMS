@@ -315,6 +315,8 @@ namespace OpenMS
 
 	void SimpleExtender::checkNeighbour_(UnsignedInt current_index)
 	{
+		if (current_index > traits_->getNumberOfPeaks() ) return;
+	
 		PeakType p = traits_->getPeak(current_index);
     // we don't care about points with intensity zero (or < 0 which might occur if TopHatFilter was applied)
     if (p.getIntensity() <= 0) 	return;

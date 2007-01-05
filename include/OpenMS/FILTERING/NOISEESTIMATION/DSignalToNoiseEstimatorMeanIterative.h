@@ -237,8 +237,8 @@ namespace OpenMS
         max_intensity_         (ne.max_intensity_),
         auto_max_intensity_    (ne.auto_max_intensity_), 
         auto_mode_             (ne.auto_mode_),
-        is_result_valid_       (ne.is_result_valid_),
-        stn_estimates_         (ne.stn_estimates_)
+        stn_estimates_         (ne.stn_estimates_),
+				 is_result_valid_       (ne.is_result_valid_)
     {
       param_  = ne.getParam();
     }
@@ -268,9 +268,8 @@ namespace OpenMS
       auto_max_intensity_     = ne.auto_max_intensity_;  
       auto_mode_              = ne.auto_mode_;
       param_                  = ne.getParam();
-      is_result_valid_        = ne.is_result_valid_;
       stn_estimates_          = ne.stn_estimates_;
-      
+      is_result_valid_        = ne.is_result_valid_;
       return *this;
     }
     //@}

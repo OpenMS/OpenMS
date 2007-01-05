@@ -226,12 +226,14 @@ void PickedPeakSeeder::sweep_()
             iso_curr_scan.push_back(traits_->getPeakMz(curr_peak));
 
             // check distance to next peak
-            if ( (curr_peak+1) >= nr_peaks )
-                break;
+            if ( (curr_peak+1) >= nr_peaks )  break;
+              
             dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak));
-
+						
             if (testDistance2NextPeak_(dist2nextpeak) != current_charge)
             {
+								// if distance to next peak does not correspond to a isotopic spacing, just add one more peak 
+								// and continue
                 iso_map_[mz_in_hash].peaks_.add(curr_peak + 1);
                 continue;
             }
@@ -243,7 +245,6 @@ void PickedPeakSeeder::sweep_()
                 iso_map_[mz_in_hash].peaks_.add(curr_peak);				// save peak in cluster
                 ++curr_peak;
                 dist2nextpeak = ( traits_->getPeakMz(curr_peak+1) -  traits_->getPeakMz(curr_peak)); // get distance to next peak
-
             } // end while(...)
 
         } // end of if (charge > 0)
