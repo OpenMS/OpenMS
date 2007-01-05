@@ -112,6 +112,7 @@ CHECK((double getSVRProbability()))
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -242,7 +243,7 @@ CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*>* cons
 	}
 RESULT
 
-CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UnsignedInt number_of_partitions, UnsignedInt number_of_runs, bool output = true)))
+CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UnsignedInt number_of_partitions, UnsignedInt number_of_runs, bool additive_step_size = true, bool output = false)))
 	map<SVM_parameter_type, DoubleReal> start_values;
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
@@ -258,6 +259,7 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -300,6 +302,7 @@ CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -330,6 +333,7 @@ CHECK((std::vector<DoubleReal>* predict(struct svm_problem* predictProblem)))
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -365,6 +369,7 @@ CHECK((void loadModel(std::string modelFilename)))
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -378,6 +383,7 @@ CHECK((void loadModel(std::string modelFilename)))
 	}
 	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
 	svm.train(problem);
+	predicted_labels1 = svm.predict(problem);
 	
 	String filename = "svm.model";
 	NEW_TMP_FILE(filename)
@@ -385,16 +391,13 @@ CHECK((void loadModel(std::string modelFilename)))
 	svm2.loadModel(filename);
 	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), POLY);
 	TEST_EQUAL(svm2.getIntParameter(KERNEL_TYPE), POLY);
-	predicted_labels1 = svm.predict(problem);
 	predicted_labels2 = svm2.predict(problem);
 	TEST_NOT_EQUAL(predicted_labels1->size(), 0)
 	TEST_EQUAL(predicted_labels1->size(), predicted_labels2->size())
-		/*
 	for(UnsignedInt i = 0; i < predicted_labels1->size(); i++)
 	{
 		TEST_REAL_EQUAL((*predicted_labels1)[i], (*predicted_labels2)[i])
 	}
-		*/
 RESULT
 
 CHECK((void saveModel(std::string modelFilename)))
@@ -411,6 +414,7 @@ CHECK((void saveModel(std::string modelFilename)))
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
+		temp_vector.clear();
 		for(UnsignedInt i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
@@ -434,12 +438,11 @@ CHECK((void saveModel(std::string modelFilename)))
 	TEST_NOT_EQUAL(predicted_labels1->size(), 0)
 	TEST_NOT_EQUAL(predicted_labels2->size(), 0)
 	TEST_EQUAL(predicted_labels1->size(), predicted_labels2->size())
-		/*
+
 	for(UnsignedInt i = 0; i < predicted_labels1->size(); i++)
 	{
 		TEST_REAL_EQUAL((*predicted_labels1)[i], (*predicted_labels2)[i])
 	}
-		*/
 RESULT
 
 /////////////////////////////////////////////////////////////
