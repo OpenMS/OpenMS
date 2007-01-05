@@ -363,7 +363,7 @@ namespace OpenMS
         double x_i = fabs(Y[i] - (intercept_ + slope_ * X[i]));
         sum += x_i;
       }
-      stand_dev_residuals_ = sqrt(chi_squared_ - (sum*sum)/N)/(N-1);
+      stand_dev_residuals_ = sqrt((chi_squared_ - (sum*sum)/N)/(N-1));
 
       // The Standard error of the slope
       stand_error_slope_=stand_dev_residuals_/sqrt(s_XX);
