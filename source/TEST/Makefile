@@ -341,7 +341,10 @@ EXECUTABLES_TRANSFORMATIONS = \
 	ExtractSignalRegions_test\
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
-	PeakPickerCWT_test
+	PeakPickerCWT_test\
+	MarrWaveletSeeder_test\
+	IsotopeWaveletSeeder_test\
+	PickedPeakSeeder_test
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\

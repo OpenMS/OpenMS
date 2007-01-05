@@ -23,90 +23,89 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
+//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
+
+#include <OpenMS/FORMAT/MzDataFile.h>
 
 ///////////////////////////
 
-START_TEST(BaseExtender, "$Id: BaseExtender_test.C 500 2006-09-06 16:39:00Z ole_st $")
+START_TEST(MarrWaveletSeeder, "$Id: MarrWaveletSeeder_test.C 921 2006-11-26 20:00:44Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
-class TestExtender : public BaseExtender
+enum DimensionId
 {
-  public:
-	TestExtender(): BaseExtender()
-	{
-		name_ = TestExtender::getName();
-	}
-
-	const IndexSet& extend(const IndexSet& /*seed_region*/)
-	{
-		return region_;	
-	}
-	
-	static const String getName(){ return "TestExtender"; }
-
+	RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
+	MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
 };
 
+
 // default ctor
-TestExtender* ptr = 0;
-CHECK(TestExtender())
-	ptr = new TestExtender();
+MarrWaveletSeeder* ptr = 0;
+CHECK(MarrWaveletSeeder())
+	ptr = new MarrWaveletSeeder();
+  TEST_EQUAL(ptr->getName(), "MarrWaveletSeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-// destructor
-CHECK(~TestExtender())
+CHECK(~MarrWaveletSeeder())
 	delete ptr;
 RESULT
 
-// assignment operator
-CHECK(TestExtender& operator = (const TestExtender& source))
-	TestExtender tm1;
-  TestExtender tm2;
-  tm2 = tm1;
-
-  TestExtender tm3;
-
-  tm1 = TestExtender();
-	TEST_EQUAL(tm3,tm2)
-RESULT
-
-// copy constructor
-CHECK(TestExtender(const TestExtender& source))
-	TestExtender fp1;	
+CHECK(nextSeed())
+  MarrWaveletSeeder seeder;
+  FeaFiTraits* traits = new FeaFiTraits();
  
-  TestExtender fp2(fp1);
-
-  TestExtender fp3;
- 
-  fp1 = TestExtender();
-	TEST_EQUAL(fp2, fp3)
-RESULT
-
-CHECK(const IndexSet& extend(const IndexSet& seed_region))
-	TestExtender text;
-	IndexSet inds;
-	inds.add(6);
-	IndexSet result = text.extend(inds);
-	IndexSet empty;
-  TEST_EQUAL(result, empty)
-RESULT
-
-CHECK(static void registerChildren())
-	// not much happening here
+	MSExperiment<DPeak<1> > exp;
+	MzDataFile().load("data/MarrWaveletTestData.mzData",exp);
+	
+	traits->setData(exp);
+	
+	seeder.setTraits(traits);
+	
+	Param param;
+  param.setValue("min_number_scans",0);
+	seeder.setParam(param);
+		
+	IndexSet region;
+	Index peak;
+	
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
+	TEST_EQUAL(traits->getPeakIntensity(peak),792);	
+	
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
+	TEST_EQUAL(traits->getPeakIntensity(peak),4492);					
+	
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
+	TEST_EQUAL(traits->getPeakIntensity(peak),2061);		
+	
+	region = seeder.nextSeed();
+	peak =  *(region.begin());
+	TEST_EQUAL(traits->getPeakIntensity(peak),1697);		
+	 
 RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+

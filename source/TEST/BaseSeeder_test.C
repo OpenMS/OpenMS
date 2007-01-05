@@ -104,6 +104,10 @@ CHECK(IndexSet nextSeed() throw (NoSuccessor))
 	TEST_EQUAL(s.nextSeed(),almost_empty);
 RESULT
 
+CHECK(static void registerChildren())
+	// not much happening here
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -141,7 +141,7 @@ void MarrWaveletSeeder::sweep_()
         current_rt       = traits_->getData()[currscan_index].getRetentionTime();
 				
 				if (currscan_index == 0)
-					current_offset = traits_->getData().getSpectraLengths()[currscan_index];
+					current_offset = 0;
 				else
 					current_offset = traits_->getData().getSpectraLengths()[currscan_index-1];	
 					

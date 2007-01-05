@@ -104,6 +104,9 @@ CHECK(DFeature<2> fit(const IndexSet& /*extension*/) throw(UnableToFit))
   TEST_EQUAL(result, empty)
 RESULT
 	
+CHECK(static void registerChildren())
+	// not much happening here
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

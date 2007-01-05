@@ -280,8 +280,9 @@ public:
     UnsignedInt getNextRt(const UnsignedInt index) throw (Exception::IndexOverflow, NoSuccessor)
     {
         if (index>=map_.getSize())
-            throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
-
+//             throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getNextRt", index, map_.getSize());
+								NoSuccessor(__FILE__, __LINE__, "getNextRt()",index);
+								
         const PeakType p  = map_.getPeak(index);
 
         MapType::PIterator piter;
@@ -317,8 +318,8 @@ public:
 					throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
 		
 		     if (index>=map_.getSize())
-							 throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
-// 							throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
+// 							 throw Exception::IndexOverflow(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index, map_.getSize());
+								throw  NoSuccessor(__FILE__, __LINE__, "FeaFiTraits::getPrevRt", index);
 				
         const PeakType p = getPeak(index);
         MapType::PIterator piter;

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="OpenMS:">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="0">
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<spectrumList count="1">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1450.36"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="82">r+oRRE5qE0T0fxNE2JQTRIqUFUQNFBZESxUZROOqGkSEwBpEu9YcRCbsHESXAR1EQJUdRAGsHkTi1h9EHgAgRNYVIETa1iBEChYjRC6WI0QhdCZEJncnRM6WJ0S4VSpE1RcsRAZYLETBqRNE/HQVREUFGURzlBpEetUaRPwWHUT8hB1EwKQdRJaUHkTBwB5EESsgRHHmIESgAyNEMjcjRM5kJkTLhiZEelYnRPa2J0RiNipEOwssRE4kLERuSCxEGmgsRCkUEkSD9RhEhukaRIOqHERSKR1EA7UdRMHVHkQx7x9E4/YgRO31IkSOJiNEgn4mRN6UJkQtOydEwdUnRJkyLEQ+dyxEJfQRRPSTHESb6R5EbQUhRL3VIkS6pSZElSssRK+HLERa5BFErwQSRPxTHUTjFSFELLcmRKiXLES40xFE7GsdRA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="82">AMibRQCelEYASI1GADw7RgAgf0UAwGVFAKipRQBUPkYAXERGgNDIRwCGw0cAImRHAFDyRQBQDUYA2JtFAEQORgCYKEYABBpGAEDNRQAAb0UAnC5GALgaRgBsBUYAyI1FAKQbRoA4gEcAiJVFABByRQAAg0UAoB1FADQDRgCazkYA+KRFADCvRQDgNUUA5AxGANi5RQAMNUYAgE1FACiHRQAUC0YAFBVGAHBcRQCgeEUAwE5FAOCJRQD0D0YAQyxHAHdWRwDQrUUAwHdFAEB4RQAgGEUACBBGADBoRQAw4UUA8AhFAGwdRgCQVUUAQEhFAHgORgBQ+UUAUChFABBnRQDg8EUA0P9GANABRgDQVUUAEFRFALCyRQDwKkUAEHFFADCyRQCYdUYAKNNFALi+RQAgUkUA4JBFADAgRQAICEYAAB9FAAD7RA==</data>
+			</intenArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>
