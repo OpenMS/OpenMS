@@ -34,7 +34,7 @@
 namespace OpenMS
 {
 	/**
-		This class represents a D-dimensional grid over a LC/MS map.	
+		@brief This class represents a D-dimensional grid over a LC/MS map.	
 	
 	*/
 	template<Size D> 

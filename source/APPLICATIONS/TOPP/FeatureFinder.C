@@ -102,14 +102,15 @@ class TOPPFeatureFinder
 		registerStringOption_("out","<file>","","output file in feature format");
 		
 		addEmptyLine_();
+		addText_("This application implements an algorithm for peptide feature detection\n"
+						 "as described in Groepl et al. (2005) Proc. CompLife 05.");
+		
+		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used.\n"
 						 "They can be given only in the 'algorithm' seciton  of the INI file.\n"
 						 "For a detailled description, please have a look at the doxygen documentation.\n"
-						 "How the docu can be built is explained in OpenMS/doc/index.html.");
+						 "How the docu can be built is explained in OpenMS/doc/index.html.");	
 		
-		addEmptyLine_();
-		addText_("This application implements an algorithm for peptide feature detection\n"
-						 "as described in Groepl et al. (2005) Proc. CompLife 05.");
 		registerSubsection_("algorithm");
 	}
 	

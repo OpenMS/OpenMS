@@ -51,8 +51,7 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	/** @brief XML Handler for a DFeaturePairVector i.e. a vector consisting
-	    of pairs of features as there are produced by the FeatureMatcher.	 
+	/** @brief XML Handler for a DFeaturePairVector 
 	 */
   template <Size D, typename FeatureT = DFeature<D> >
   class DFeaturePairsHandler

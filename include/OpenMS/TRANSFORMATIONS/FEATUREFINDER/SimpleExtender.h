@@ -156,10 +156,11 @@ namespace OpenMS
   		
   		UnsignedInt index;
   		ProbabilityType priority;
-  		  		
+  		
+			/// @brief Compares two indizes by priority.		
   		struct PriorityLess
   		{  			 			  			
-  			/// Compare two indizes by priority.
+  			
   			inline bool operator() (const IndexWithPriority& x, const IndexWithPriority& y) const
 				{
     			return x.priority < y.priority;

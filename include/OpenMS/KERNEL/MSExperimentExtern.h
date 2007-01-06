@@ -1351,7 +1351,7 @@ protected:
 				
 				if (pos > 0)
 				{
-					std::cout << "Setting stream to position : " << pos << std::endl;
+					//std::cout << "Setting stream to position : " << pos << std::endl;
 					//fseeko(pFile_, pos,SEEK_SET);
 					if ( fseeko(pFile_,pos,SEEK_SET) != 0)
         	{
@@ -1418,7 +1418,7 @@ protected:
     /// write spectrum to file
     void writeScan_(const size_type& index, const SpectrumType& spec) const
     {
-				std::cout << "Writing scan " << index << std::endl;
+				//std::cout << "Writing scan " << index << std::endl;
 // 				pFile_ = fopen(file_name_.c_str(),"a");
         CoordinateType rt  = spec.getRetentionTime();
 				UnsignedInt  mslvl = spec.getMSLevel();
@@ -1453,7 +1453,7 @@ protected:
             if (scan_sizes_[index] == spec.size() )
             {
                 // write at old position
-                std::cout << "Size has not changed. Overwriting" << std::endl;
+               // std::cout << "Size has not changed. Overwriting" << std::endl;
 								off_t pos = scan_location_[index];
 								openFile_(pos,"rb+");
                 //fseeko(pFile_,pos,SEEK_SET);
@@ -1461,7 +1461,7 @@ protected:
             else
             {
                 // size has changed, forget old position and append
-								std::cout << "Size has changed. Old "  << scan_sizes_[index] << " new " << spec.size() << std::endl;
+							//	std::cout << "Size has changed. Old "  << scan_sizes_[index] << " new " << spec.size() << std::endl;
 								scan_location_[index] = openFile_(0,"a");
 								scan_sizes_[index] = spec.getContainer().size();	// update scan size
 //                 scan_location_[index] = pos;
@@ -1469,13 +1469,13 @@ protected:
 
         }
 
-        std::cout << "writeScan_: writing scan " << index << " at " << ftello(pFile_) << std::endl;
-				std::cout << "Writing rt: " << rt << " and mslvl " << mslvl << std::endl;
+       // std::cout << "writeScan_: writing scan " << index << " at " << ftello(pFile_) << std::endl;
+			//	std::cout << "Writing rt: " << rt << " and mslvl " << mslvl << std::endl;
 				// store retention time and ms level first
 //         fwrite(&rt,sizeof(CoordinateType),1,pFile_);
 				if ( fwrite(&rt,sizeof(rt),1,pFile_) == 0 )
 				{
-					std::cout << "Error writing retention time" << std::endl;
+				  std::cout << "Error writing retention time" << std::endl;
 					throw Exception::IndexOverflow(__FILE__, __LINE__,"MSExperimentExtern::readScan_()",1,sizeof(off_t));
 				}
 				//fwrite(&mslvl,sizeof(UnsignedInt),1,pFile_);
@@ -1486,7 +1486,7 @@ protected:
 				}			
 				
 //         size_t sizeof_peak =  sizeof(PeakType);
-				std::cout << "Writing " << spec.getContainer().size() << " peaks." << std::endl;
+//				std::cout << "Writing " << spec.getContainer().size() << " peaks." << std::endl;
 // 				std::cout << "Peak size: " << sizeof_peak << std::endl;
 //         for (typename ContainerType::const_iterator cit = spec.getContainer().begin();
 //                 cit != spec.getContainer().end(); ++cit)
@@ -1535,9 +1535,9 @@ protected:
 // 				std::cout << "Retrieving reading offset: " << scan_location_.size() << " " << index << std::endl;
         off_t pos = scan_location_[index];
 				
-				off_t p2 = openFile_(pos,"rb");
+				/*off_t p2 =*/ openFile_(pos,"rb");
 				
-				std::cout << "readScan_: reading scan " << index << " from " << p2 << std::endl;
+//				std::cout << "readScan_: reading scan " << index << " from " << p2 << std::endl;
 //         if ( fseeko(pFile_,pos,SEEK_SET) != 0)
 //         {
 //             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
@@ -1557,16 +1557,16 @@ protected:
         CoordinateType rt = 0;
 				UnsignedInt mslvl = 0;
         fread(&rt,sizeof(CoordinateType),1,pFile_);
-				std::cout << "Reading rt: " << rt << std::endl;
+	//			std::cout << "Reading rt: " << rt << std::endl;
 				fread(&mslvl,sizeof(UnsignedInt),1,pFile_);
-				std::cout << "Reading ms level: " << mslvl << std::endl;
+	//			std::cout << "Reading ms level: " << mslvl << std::endl;
 	
         spec.setRetentionTime(rt);
 				spec.setMSLevel(mslvl);
 				unsigned int nr_peaks = scan_sizes_[index];
-        std::cout << "Reading peaks: " << nr_peaks << std::endl;
-				std::cout << "Stream position: " << p2 << std::endl;
-				std::cout << "Desired position: " << pos << std::endl;
+   //     std::cout << "Reading peaks: " << nr_peaks << std::endl;
+	//			std::cout << "Stream position: " << p2 << std::endl;
+	//			std::cout << "Desired position: " << pos << std::endl;
         spec.getContainer().clear();
         spec.resize(nr_peaks);
 

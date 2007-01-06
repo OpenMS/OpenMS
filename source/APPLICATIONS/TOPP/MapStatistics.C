@@ -71,7 +71,7 @@ class MapStatistics
 {
 public:
 	MapStatistics()
-	  : TOPPBase2("MapStatistics","Computes a statistical summary for features / peak intensities and qualities in a map")
+	  : TOPPBase2("MapStatistics","Computes a five-number summary of peak intensities in a LC-MS map")
 	{
 	}
 
@@ -83,9 +83,10 @@ protected:
 		registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
 			                                          "Valid types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureFile'", false);
 		registerStringOption_("out","<file>","","output file in XML format");
+		addEmptyLine_();
+		addText_("This TOPP application can be applied to raw, picked (centroided) data and feature maps.");	
 	}
-
-
+	
 	ExitCodes main_(int , char**)
 	{
 

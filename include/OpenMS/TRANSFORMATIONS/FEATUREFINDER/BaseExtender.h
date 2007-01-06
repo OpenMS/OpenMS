@@ -34,7 +34,7 @@
 namespace OpenMS
 {
 
-  /**   Abstract base class for Extender-Module of FeatureFinder.
+  /**  @brief Abstract base class for Extender-Module of FeatureFinder.
     
  			Every derived class has to implement the static functions
       "T* create()" and "const String getName()" (see FactoryProduct for details).

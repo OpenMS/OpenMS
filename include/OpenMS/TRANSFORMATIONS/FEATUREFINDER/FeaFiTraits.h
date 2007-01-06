@@ -581,8 +581,7 @@ protected:
 
 namespace Internal
 {
-/// Iterator adapter that makes operator*()
-/// return intensity of the corresponding peak
+/// @brief makes operator*() return intensity of the corresponding peak
 struct IntensityIterator : IndexSet::const_iterator
 {
     IntensityIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
@@ -597,8 +596,7 @@ protected:
     FeaFiTraits const * traits_;
 };
 
-/// Iterator adapter that makes operator*()
-/// return mz of the corresponding peak
+///  @brief Makes operator*() return mz of the corresponding peak
 struct MzIterator : IndexSet::const_iterator
 {
     MzIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
@@ -613,8 +611,7 @@ protected:
     FeaFiTraits const * traits_;
 };
 
-/// Iterator adapter that makes operator*()
-/// return retention time of the corresponding peak
+/// @brief Makes operator*() return retention time of the corresponding peak
 struct RtIterator : IndexSet::const_iterator
 {
     RtIterator ( IndexSet::const_iterator const & iter, FeaFiTraits const * traits )
