@@ -50,7 +50,6 @@ ifeq ($(ENABLE_GUI),true)
   	DistanceAnalyzer.C\
 		ClusterNode.C\
   	helper.C\
-  	SpectrumGenerator.C\
 		ClusterExperimentXMLHandler.C
 endif
 		

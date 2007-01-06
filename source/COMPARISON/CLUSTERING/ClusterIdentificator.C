@@ -26,9 +26,9 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterIdentificator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterSpectrum.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <algorithm>
 #include <sstream>
@@ -79,7 +79,8 @@ namespace OpenMS
   uint ClusterIdentificator::existsAsReference(String sequence,uint charge)
   {
     //SequestCompareFunctor scf;
-    double mass = SpectrumGenerator::instance()->getPeptidemass(sequence)+charge;
+    //double mass = SpectrumGenerator::instance()->getPeptidemass(sequence)+charge;
+		double mass = AASequence(sequence).getAverageWeight(Residue::Full, charge);
     vector<const Cluster*> candidates = getCandidateClusters_(mass,charge);
     uint result = 0;
     for (vector<const Cluster*>::const_iterator cvit = candidates.begin(); cvit != candidates.end(); ++cvit )

@@ -39,7 +39,6 @@
 #include <OpenMS/VISUAL/ClusterRunWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/DIALOGS/InspectDialog.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
 
 #include <qpixmap.h>
 #include <qmenubar.h>
