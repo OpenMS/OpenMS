@@ -28,7 +28,7 @@
 #define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 #include <map>
 #include <vector>
@@ -91,7 +91,10 @@ namespace OpenMS
       	double mz = spectrum.getContainer()[i].getPosition()[0];
       	double intensity = spectrum.getContainer()[i].getIntensity();
       	uint j = i+1;
-      	std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
+
+      	//std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
+				IsotopeDistribution id;
+				id.estimateFromPeptideWeight(mz);
       	while (j < spectrum.getContainer().size() && spectrum.getContainer()[j].getPosition()[0] <= mz + 3 + mzvariation)
       	{
         	double curmz = spectrum.getContainer()[j].getPosition()[0];
@@ -102,7 +105,7 @@ namespace OpenMS
           	++j;
           	continue;
         	}
-        	if (std::fabs(isotopes[iso].second-curIntensity) < invariation * isotopes[iso].second)
+        	if (std::fabs(/*isotopes[iso].second*/id.getContainer().begin()->second * intensity - curIntensity) < invariation * id.getContainer().begin()->second * intensity/*isotopes[iso].second*/)
         	{
           	isotopemarks[mz]++;
         	  isotopemarks[curmz]++;
