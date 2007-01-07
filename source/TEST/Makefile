@@ -111,6 +111,7 @@ EXECUTABLES_KERNEL =\
 	DPeak_test\
 	DPickedPeak_test\
 	DPeakArray_test\
+	DPeakConstReferenceArray_test\
 	DSpectrum_test\
 	ComparatorUtils_test\
 	StandardTypes_test\
@@ -283,6 +284,8 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
+	IndexTuple_test\
+	Group_test\
 	DFeaturePair_test\
 	DFeaturePairVector_test\
 	DGridCell_test\
@@ -292,7 +295,9 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DMapMatcherRegression_test\
 	DMapDewarper_test\
 	BasePairFinder_test\
-	BaseSuperimposer_test
+	BaseSuperimposer_test\
+	BasePairwiseMapMatcher_test\
+	PoseClusteringPairwiseMapMatcher_test
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
