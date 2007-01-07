@@ -34,17 +34,17 @@ using namespace OpenMS;
 using namespace std;
 
 typedef DLinearMapping< 1, KernelTraits > TransformationType;
-typedef DFeature<2, KernelTraits> FeatureType;
-typedef DFeatureMap<2, FeatureType> FeatureMapType;
+typedef DFeature<2, KernelTraits> ElementType;
+typedef DFeatureMap<2, ElementType> ElementMapType;
 
-class TestSuperimposer : public BaseSuperimposer<FeatureMapType>
+class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 {
   public:
-	TestSuperimposer() : BaseSuperimposer<FeatureMapType>(){}
-	TestSuperimposer(const TestSuperimposer& bpf) : BaseSuperimposer<FeatureMapType>(bpf){}
+	TestSuperimposer() : BaseSuperimposer<ElementMapType>(){}
+	TestSuperimposer(const TestSuperimposer& bpf) : BaseSuperimposer<ElementMapType>(bpf){}
 	TestSuperimposer& operator=(const TestSuperimposer& bpf)
 	{
-		 BaseSuperimposer<FeatureMapType>::operator=(bpf);
+		 BaseSuperimposer<ElementMapType>::operator=(bpf);
 		 return *this;
 	}
 	virtual void run() 
@@ -70,22 +70,22 @@ RESULT
 CHECK(BaseSuperimposer& operator = (BaseSuperimposer source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
+  ElementMapType first;
+  ElementMapType second;
   TransformationType trafo(1.,2.);
  
   TestSuperimposer bsi;
   bsi.setParam(param);
-  bsi.setFeatureMap(0,first);
-  bsi.setFeatureMap(1,second);
+  bsi.setElementMap(0,first);
+  bsi.setElementMap(1,second);
   bsi.setTransformation(0,trafo);
   
   TestSuperimposer bsi_copy;
   bsi_copy = bsi;
   
   TEST_EQUAL(bsi.getParam() == bsi_copy.getParam(),true)
-  TEST_EQUAL(&(bsi.getFeatureMap(0)) == &(bsi_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bsi.getFeatureMap(1)) == &(bsi_copy.getFeatureMap(1)),true)
+  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
@@ -93,21 +93,21 @@ RESULT
 CHECK(BaseSuperimposer(const BaseSuperimposer& source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
+  ElementMapType first;
+  ElementMapType second;
   TransformationType trafo(1.,2.);
  
   TestSuperimposer bsi;
   bsi.setParam(param);
-  bsi.setFeatureMap(0,first);
-  bsi.setFeatureMap(1,second);
+  bsi.setElementMap(0,first);
+  bsi.setElementMap(1,second);
   bsi.setTransformation(0,trafo);
   
   TestSuperimposer bsi_copy(bsi);
   
   TEST_EQUAL(bsi.getParam() == bsi_copy.getParam(),true)
-  TEST_EQUAL(&(bsi.getFeatureMap(0)) == &(bsi_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bsi.getFeatureMap(1)) == &(bsi_copy.getFeatureMap(1)),true)
+  TEST_EQUAL(&(bsi.getElementMap(0)) == &(bsi_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bsi.getElementMap(1)) == &(bsi_copy.getElementMap(1)),true)
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
@@ -129,16 +129,16 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(bsi_copy.getParam() == param,true)
 RESULT
 
-CHECK(const PointMapType& getFeatureMap(Size index))
+CHECK(const PointMapType& getElementMap(Size index))
   // ???
 RESULT
 
-CHECK(const PointMapType& getFeatureMap(Size index) const)
-  FeatureMapType map;
+CHECK(const PointMapType& getElementMap(Size index) const)
+  ElementMapType map;
   TestSuperimposer bpf;
-  bpf.setFeatureMap(0,map);
+  bpf.setElementMap(0,map);
   const TestSuperimposer bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getFeatureMap(0)) == &map,true)
+  TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
 CHECK(const TransformationType& getTransformation(Size dim) const)
@@ -155,11 +155,11 @@ CHECK(void run())
   // ???
 RESULT
 
-CHECK((void setFeatureMap(Size const index, const PointMapType& feature_map)))
-  FeatureMapType map;
+CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
+  ElementMapType map;
   TestSuperimposer bsi;
-  bsi.setFeatureMap(0,map);
-  TEST_EQUAL(&(bsi.getFeatureMap(0)) == &map,true)
+  bsi.setElementMap(0,map);
+  TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
 RESULT
 
 CHECK(void setParam(const Param& param))
