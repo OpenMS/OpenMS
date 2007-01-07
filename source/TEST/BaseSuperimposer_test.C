@@ -112,14 +112,6 @@ CHECK(BaseSuperimposer(const BaseSuperimposer& source))
   TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(Param& getParam())
-  Param param;
-  param.setValue("bla",3);
-  TestSuperimposer bpf;
-  bpf.getParam()=param;
-  TEST_EQUAL(bpf.getParam() == param,true)
-RESULT
-
 CHECK(const Param& getParam() const)
   Param param;
   param.setValue("bla",3);

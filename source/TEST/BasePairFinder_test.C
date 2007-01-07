@@ -113,14 +113,6 @@ CHECK(BasePairFinder(const BasePairFinder& source))
 	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
 RESULT
 
-CHECK(Param& getParam())
-  Param param;
-  param.setValue("bla",3);
-  TestPairFinder bpf;
-  bpf.setParam(param);
-  TEST_EQUAL(bpf.getParam() == param,true)
-RESULT
-
 CHECK(const ElementPairVectorType getElementPairs() const)
 	ElementPairVectorType pairs;
 	TestPairFinder bpf;
