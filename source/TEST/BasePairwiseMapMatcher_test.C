@@ -33,21 +33,21 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DFeature<2, KernelTraits> FeatureType;
-typedef DFeatureMap<2, FeatureType> FeatureMapType;
-typedef DFeaturePair < 2, FeatureType > FeaturePairType;
-typedef DFeaturePairVector < 2, FeatureType > FeaturePairVectorType;
+typedef DFeature<2, KernelTraits> ElementType;
+typedef DFeatureMap<2, ElementType> ElementMapType;
+typedef DFeaturePair < 2, ElementType > ElementPairType;
+typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 typedef DGrid<2> GridType;
 typedef DPosition < 2, KernelTraits > PositionType;
 
-class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<FeatureMapType>
+class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<ElementMapType>
 {
   public:
-  TestPairwiseMapMatcher() : BasePairwiseMapMatcher<FeatureMapType>(){}
-  TestPairwiseMapMatcher(const TestPairwiseMapMatcher& bpf) : BasePairwiseMapMatcher<FeatureMapType>(bpf){}
+  TestPairwiseMapMatcher() : BasePairwiseMapMatcher<ElementMapType>(){}
+  TestPairwiseMapMatcher(const TestPairwiseMapMatcher& bpf) : BasePairwiseMapMatcher<ElementMapType>(bpf){}
   TestPairwiseMapMatcher& operator=(const TestPairwiseMapMatcher& bpf)
   {
-     BasePairwiseMapMatcher<FeatureMapType>::operator=(bpf);
+     BasePairwiseMapMatcher<ElementMapType>::operator=(bpf);
      return *this;
   }
   virtual void run() 
@@ -73,44 +73,44 @@ RESULT
 CHECK(BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
+  ElementMapType first;
+  ElementMapType second;
   
   TestPairwiseMapMatcher bpmm;
   bpmm.setParam(param);
-  bpmm.setFeatureMap(0,first);
-  bpmm.setFeatureMap(1,second);
+  bpmm.setElementMap(0,first);
+  bpmm.setElementMap(1,second);
   
   TestPairwiseMapMatcher bpmm_copy;
   bpmm_copy = bpmm;
   
   TEST_EQUAL(bpmm.getParam() == bpmm_copy.getParam(),true)
-  TEST_EQUAL(&(bpmm.getFeatureMap(0)) == &(bpmm_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bpmm.getFeatureMap(1)) == &(bpmm_copy.getFeatureMap(1)),true)
+  TEST_EQUAL(&(bpmm.getElementMap(0)) == &(bpmm_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
 RESULT
 
 CHECK(BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
+  ElementMapType first;
+  ElementMapType second;
   
   TestPairwiseMapMatcher bpmm;
   bpmm.setParam(param);
-  bpmm.setFeatureMap(0,first);
-  bpmm.setFeatureMap(1,second);
+  bpmm.setElementMap(0,first);
+  bpmm.setElementMap(1,second);
   
   TestPairwiseMapMatcher bpmm_copy(bpmm);
   
   TEST_EQUAL(bpmm.getParam() == bpmm_copy.getParam(),true)
-  TEST_EQUAL(&(bpmm.getFeatureMap(0)) == &(bpmm_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bpmm.getFeatureMap(1)) == &(bpmm_copy.getFeatureMap(1)),true)
+  TEST_EQUAL(&(bpmm.getElementMap(0)) == &(bpmm_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
 RESULT
 
-CHECK(const FeaturePairVectorType& getFeaturePairs() const)
+CHECK(const ElementPairVectorType& getElementPairs() const)
   TestPairwiseMapMatcher bpmm;
   
-  TEST_EQUAL(bpmm.getFeaturePairs().size() == 0,true)
+  TEST_EQUAL(bpmm.getElementPairs().size() == 0,true)
 RESULT
 
 
@@ -131,22 +131,22 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(bpmm_copy.getParam() == param,true)
 RESULT
 
-CHECK(const PointMapType& getFeatureMap(Size index) const)
-  FeatureMapType first;
-  FeatureMapType second;
+CHECK(const PointMapType& getElementMap(Size index) const)
+  ElementMapType first;
+  ElementMapType second;
   
   TestPairwiseMapMatcher bpmm;
-  bpmm.setFeatureMap(0,first);
-  bpmm.setFeatureMap(1,second);
+  bpmm.setElementMap(0,first);
+  bpmm.setElementMap(1,second);
   
-  TEST_EQUAL(&(bpmm.getFeatureMap(0)) == &first,true)
-  TEST_EQUAL(&(bpmm.getFeatureMap(1)) == &second,true)
+  TEST_EQUAL(&(bpmm.getElementMap(0)) == &first,true)
+  TEST_EQUAL(&(bpmm.getElementMap(1)) == &second,true)
 RESULT
 
 CHECK(void initGridTransformation(const PointMapType& scene_map))
-  FeatureMapType scene;
-  FeatureType feat1;
-  FeatureType feat2;
+  ElementMapType scene;
+  ElementType feat1;
+  ElementType feat2;
   PositionType pos1(0,0);
   PositionType pos2(2,3);
   feat1.setPosition(pos1);
@@ -186,12 +186,12 @@ CHECK(static void registerChildren())
   // ???
 RESULT
 
-CHECK((void setFeatureMap(Size const index, const PointMapType& feature_map)))
-  FeatureMapType first;
+CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
+  ElementMapType first;
   TestPairwiseMapMatcher bpmm;
-  bpmm.setFeatureMap(0,first);
+  bpmm.setElementMap(0,first);
    
-  TEST_EQUAL(&(bpmm.getFeatureMap(0)) == &first,true)
+  TEST_EQUAL(&(bpmm.getElementMap(0)) == &first,true)
 RESULT
 
 CHECK(void setParam(const Param& param))

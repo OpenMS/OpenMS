@@ -34,19 +34,19 @@ using namespace OpenMS;
 using namespace std;
 
 typedef DLinearMapping< 1, KernelTraits > TransformationType;
-typedef DFeature<2, KernelTraits> FeatureType;
-typedef DFeatureMap<2, FeatureType> FeatureMapType;
-typedef DFeaturePair < 2, FeatureType > FeaturePairType;
-typedef DFeaturePairVector < 2, FeatureType > FeaturePairVectorType;
+typedef DFeature<2, KernelTraits> ElementType;
+typedef DFeatureMap<2, ElementType> ElementMapType;
+typedef DFeaturePair < 2, ElementType > ElementPairType;
+typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
-class TestPairFinder : public BasePairFinder<FeatureMapType>
+class TestPairFinder : public BasePairFinder<ElementMapType>
 {
   public:
-	TestPairFinder() : BasePairFinder<FeatureMapType>(){}
-	TestPairFinder(const TestPairFinder& bpf) : BasePairFinder<FeatureMapType>(bpf){}
+	TestPairFinder() : BasePairFinder<ElementMapType>(){}
+	TestPairFinder(const TestPairFinder& bpf) : BasePairFinder<ElementMapType>(bpf){}
 	TestPairFinder& operator=(const TestPairFinder& bpf)
 	{
-		 BasePairFinder<FeatureMapType>::operator=(bpf);
+		 BasePairFinder<ElementMapType>::operator=(bpf);
 		 return *this;
 	}
 	virtual void run() 
@@ -73,61 +73,61 @@ RESULT
 CHECK(BasePairFinder& operator = (BasePairFinder source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
-  FeaturePairVectorType pairs;
+  ElementMapType first;
+  ElementMapType second;
+  ElementPairVectorType pairs;
   
   TestPairFinder bpf;
   bpf.setParam(param);
-  bpf.setFeatureMap(0,first);
-  bpf.setFeatureMap(1,second);
-  bpf.setFeaturePairs(pairs);
+  bpf.setElementMap(0,first);
+  bpf.setElementMap(1,second);
+  bpf.setElementPairs(pairs);
   
   TestPairFinder bpf_copy;
   bpf_copy = bpf;
   
   TEST_EQUAL(bpf.getParam() == bpf_copy.getParam(),true)
-  TEST_EQUAL(&(bpf.getFeatureMap(0)) == &(bpf_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bpf.getFeatureMap(1)) == &(bpf_copy.getFeatureMap(1)),true)
-	TEST_EQUAL(&(bpf.getFeaturePairs()) == &(bpf_copy.getFeaturePairs()),true)
+  TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
+	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
 RESULT
 
 CHECK(BasePairFinder(const BasePairFinder& source))
   Param param;
   param.setValue("bla",3);
-  FeatureMapType first;
-  FeatureMapType second;
-  FeaturePairVectorType pairs;
+  ElementMapType first;
+  ElementMapType second;
+  ElementPairVectorType pairs;
   
   TestPairFinder bpf;
   bpf.setParam(param);
-  bpf.setFeatureMap(0,first);
-  bpf.setFeatureMap(1,second);
-  bpf.setFeaturePairs(pairs);
+  bpf.setElementMap(0,first);
+  bpf.setElementMap(1,second);
+  bpf.setElementPairs(pairs);
   
   TestPairFinder bpf_copy(bpf);
   
   TEST_EQUAL(bpf.getParam() == bpf_copy.getParam(),true)
-  TEST_EQUAL(&(bpf.getFeatureMap(0)) == &(bpf_copy.getFeatureMap(0)),true)
-  TEST_EQUAL(&(bpf.getFeatureMap(1)) == &(bpf_copy.getFeatureMap(1)),true)
-	TEST_EQUAL(&(bpf.getFeaturePairs()) == &(bpf_copy.getFeaturePairs()),true)
+  TEST_EQUAL(&(bpf.getElementMap(0)) == &(bpf_copy.getElementMap(0)),true)
+  TEST_EQUAL(&(bpf.getElementMap(1)) == &(bpf_copy.getElementMap(1)),true)
+	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
 RESULT
 
 CHECK(Param& getParam())
   Param param;
   param.setValue("bla",3);
   TestPairFinder bpf;
-  bpf.getParam()=param;
+  bpf.setParam(param);
   TEST_EQUAL(bpf.getParam() == param,true)
 RESULT
 
-CHECK(const FeaturePairVectorType getFeaturePairs() const)
-	FeaturePairVectorType pairs;
+CHECK(const ElementPairVectorType getElementPairs() const)
+	ElementPairVectorType pairs;
 	TestPairFinder bpf;
-	bpf.setFeaturePairs(pairs);
+	bpf.setElementPairs(pairs);
   const TestPairFinder bpf_copy(bpf);
   
-  TEST_EQUAL(&(bpf_copy.getFeaturePairs()) == &pairs,true)
+  TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
 CHECK(const Param& getParam() const)
@@ -140,12 +140,12 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(bpf_copy.getParam() == param,true)
 RESULT
 
-CHECK(const PointMapType& getFeatureMap(Size index) const)
-  FeatureMapType map;
+CHECK(const PointMapType& getElementMap(Size index) const)
+  ElementMapType map;
   TestPairFinder bpf;
-  bpf.setFeatureMap(0,map);
+  bpf.setElementMap(0,map);
   const TestPairFinder bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getFeatureMap(0)) == &map,true)
+  TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
 CHECK(static void registerChildren())
@@ -156,19 +156,19 @@ CHECK(void run())
   // ???
 RESULT
 
-CHECK((void setFeatureMap(Size const index, const PointMapType& feature_map)))
-  FeatureMapType map;
+CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
+  ElementMapType map;
   TestPairFinder bpf;
-  bpf.setFeatureMap(0,map);
-  TEST_EQUAL(&(bpf.getFeatureMap(0)) == &map,true)
+  bpf.setElementMap(0,map);
+  TEST_EQUAL(&(bpf.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(void setFeaturePairs(FeaturePairVectorType& feature_pairs))
-  FeaturePairVectorType pairs;
+CHECK(void setElementPairs(ElementPairVectorType& Element_pairs))
+  ElementPairVectorType pairs;
   TestPairFinder bpf;
-  bpf.setFeaturePairs(pairs);
+  bpf.setElementPairs(pairs);
   const TestPairFinder bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getFeaturePairs()) == &pairs,true)
+  TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
 CHECK(void setParam(const Param& param))
