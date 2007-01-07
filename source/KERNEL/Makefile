@@ -46,7 +46,6 @@ CPP_SOURCES= \
 	MSExperiment.C\
 	MSExperimentExtern.C\
 	DPeakConstReferenceArray.C\
-	DPeakReferenceArray.C\
 	ConsensusFeature.C\
 	ConsensusPeak.C
 
