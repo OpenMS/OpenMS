@@ -39,9 +39,8 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 
-#if defined OPENMS_DEBUG && ! defined PoseClusteringPairwiseMapMatcher
 #define V_PoseClusteringPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
-#endif
+
 
 
 namespace OpenMS
