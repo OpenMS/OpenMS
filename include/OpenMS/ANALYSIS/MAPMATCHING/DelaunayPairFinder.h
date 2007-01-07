@@ -42,21 +42,25 @@ namespace OpenMS
 {
 
   /**
-     @brief This class implements a feature pair finding algorithm.
+     @brief This class implements an element pair finding algorithm.
 
      This class implements a point pair finding algorithm.
-     It works on two point maps, a vector of feature pairs, 
-     and a transformation defined for the second feature map (if no
-     transformation is given, the pairs are found in the two origianl maps).
-     To speed up the search for feature pairs it uses the delaunay triangulation
-     of CGAL.
+     It offers a method to determine element pairs in two element maps,
+     given two point maps and a transformation defined for the second element map (if no
+     transformation is given, the pairs are found in the two original maps). 
+     The pair finder also offers a method to compute consensus elements given 
+     two element maps. This algorithm is similar to the pair finding method as mentioned above,
+     but it implies that the scene map is already dewarped.
+           
+     To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
+     uses the CGAL delaunay triangulation for the nearest neighbour search.
 
-     Policy for copy constructor and assignment: grid_, feature_map_, and
-     feature_pairs_ are maintained as pointers and taken shallow copies.  But
-     param_ is deep.
-     
      The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
-
+     
+     @NOTE The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
+     more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
+     we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
+     E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
   **/
 
 
@@ -71,9 +75,9 @@ namespace OpenMS
         MZ = DimensionDescriptionType::MZ
     };
 
-      /** Symbolic names for indices of feature maps etc.
-            This should make things more understandable and maintainable.
-             */
+      /** Symbolic names for indices of element maps etc.
+          This should make things more understandable and maintainable.
+      */
       enum Maps
       {
         MODEL = 0,
@@ -89,18 +93,13 @@ namespace OpenMS
       typedef typename Base::IntensityType          IntensityType;
       typedef typename Base::PointType              PointType;
       typedef typename Base::PointMapType           PointMapType;
-      typedef typename Base::FeaturePairType        FeaturePairType;
-      //@}
+      typedef typename Base::ElementPairType        ElementPairType;
 
       using Base::param_;
-      using Base::feature_map_;
-      using Base::feature_pairs_;
+      using Base::element_map_;
+      using Base::element_pairs_;
       using Base::transformation_;
-      //@}
 
-
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       DelaunayPairFinder()
           : Base()
@@ -128,8 +127,8 @@ namespace OpenMS
           return *this;
 
         //Base::operator = (source);  FactoryProduct::operator = (source);
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
         transformation_[RT] = source.transformation_[RT];
         transformation_[MZ] = source.transformation_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
@@ -142,22 +141,21 @@ namespace OpenMS
       /// Destructor
       virtual ~DelaunayPairFinder()
     {}
-      //@}
 
-      /// returns an instance of this class
+      /// Returns an instance of this class
       static BasePairFinder<PointMapType>* create()
       {
         return new DelaunayPairFinder();
       }
 
-      /// returns the name of this module
+      /// Returns the name of this module
       static const String getName()
       {
         return "delaunay";
       }
 
-      // nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
-      // the corresponding feature and a unique key
+      /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
+      /// the corresponding element and an unique key
     class Point : public CGAL::Point_2< CGAL::Cartesian<double> >
       {
         public:
@@ -166,26 +164,26 @@ namespace OpenMS
 
           inline Point() : Base()
           {
-            feature = 0;
+            element = 0;
             key = 0;
           }
 
           inline Point(const Base& cgal_point) : Base(cgal_point)
           {
-            feature = 0;
+            element = 0;
             key = 0;
           }
 
           inline Point(Base::RT hx, Base::RT hy, const PointType& f, UnsignedInt k=0)
               : Base(hx,hy)
           {
-            feature = &f;
+            element = &f;
             key = k;
           }
 
           inline Point(Base::RT hx, Base::RT hy) : Base(hx,hy)
           {
-            feature = 0;
+            element = 0;
             key = 0;
           }
 
@@ -197,7 +195,7 @@ namespace OpenMS
               : Point_2(source),
               key(source.key)
           {
-            feature = source.feature;
+            element = source.element;
           }
 
           ///  Assignment operator
@@ -206,18 +204,18 @@ namespace OpenMS
             if (this==&source)
               return *this;
 
-            feature = source.feature;
+            element = source.element;
             key = source.key;
             Base::operator=(source);
             return *this;
           }
 
-          const PointType* feature;
+          const PointType* element;
           UnsignedInt key;
       };
 
-      // to construct a delaunay triangulation with our Point class we have to write an own
-      // geometric traits class and the operator() to generate a Point given a CGAL circle
+      /// To construct a delaunay triangulation with our Point class we have to write an own
+      /// geometric traits class and the operator() (that generates a Point given a CGAL circle)
     class  GeometricTraits : public CGAL::Cartesian<double>
       {
         public:
@@ -241,6 +239,43 @@ namespace OpenMS
 
       typedef CGAL::Point_set_2< GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< GeometricTraits > > > Point_set_2;
       typedef typename Point_set_2::Vertex_handle Vertex_handle;
+      
+      
+      /// Get diff intercept
+      double getDiffIntercept(const UnsignedInt& dim)
+      {
+        return diff_intercept_[dim];
+      }
+      
+      /// Set diff intercept
+      void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
+      {
+       diff_intercept_[dim] = intercept;
+      }
+      
+      /// Get max_pair_distance_
+      float getMaxPairDistance(const UnsignedInt& dim)
+      {
+        return max_pair_distance_[dim];
+      }
+      
+      /// Set max_pair_distance_
+      void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
+      {
+       max_pair_distance_[dim] = max_pair_distance;
+      }
+      
+      /// Get precision
+      float getPrecision(const UnsignedInt& dim)
+      {
+        return precision_[dim];
+      }
+      
+      /// Set precision
+      void setPrecision(const UnsignedInt& dim, const float& precision)
+      {
+       precision_[dim] = precision;
+      }
 
       /// Estimates the transformation for each grid cell
       virtual void run()
@@ -249,22 +284,22 @@ namespace OpenMS
 
         parseParam_();
 
-        V_DelaunayPairFinder("DelaunayPairFinder::run(): find feature pairs");
+        V_DelaunayPairFinder("DelaunayPairFinder::run(): find element pairs");
 
-        findFeaturePairs();
+        findElementPairs();
       };
 
-      /// The actual algorithm for finding feature pairs.
-      void findFeaturePairs()
+      /// The actual algorithm for finding element pairs.
+      void findElementPairs()
       {
         parseParam_();
 
-        const PointMapType& reference_map = *(feature_map_[MODEL]);
-        const PointMapType& transformed_map = *(feature_map_[SCENE]);
+        const PointMapType& reference_map = *(element_map_[MODEL]);
+        const PointMapType& transformed_map = *(element_map_[SCENE]);
 
-#define V_findFeaturePairs_(bla) // V_DelaunayPairFinder(bla)
+#define V_findElementPairs_(bla) V_DelaunayPairFinder(bla)
 
-        V_findFeaturePairs_("@@@ findFeaturePairs_()");
+        V_findElementPairs_("@@@ findElementPairs_()");
 
         Size n = reference_map.size();
 
@@ -280,38 +315,38 @@ namespace OpenMS
         // compute the delaunay triangulation
         Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
 
-        V_findFeaturePairs_("Translation rt " << transformation_[RT].getParam());
-        V_findFeaturePairs_("Translation mz " << transformation_[MZ].getParam());
+        V_findElementPairs_("Translation rt " << transformation_[RT].getParam());
+        V_findElementPairs_("Translation mz " << transformation_[MZ].getParam());
 
-        // Initialize a hash map for the features of reference_map to avoid that features of the reference map occur in several feature pairs
+        // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
         std::vector< SignedInt > lookup_table(n,-1);
-        std::vector< std::pair< const PointType*,const PointType*> > all_feature_pairs;
+        std::vector< std::pair< const PointType*,const PointType*> > all_element_pairs;
 
-        UnsignedInt index_act_feature_pair = 0;
-        // take each point in the first data map and search for its neighbours in the second feature map (within a given (transformed) range)
+        UnsignedInt index_act_element_pair = 0;
+        // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
         for ( Size fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
         {
           // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
           double rt_pos = transformed_map[fi1].getPosition()[RT];
           double mz_pos = transformed_map[fi1].getPosition()[MZ];
 
-          V_findFeaturePairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
+          V_findElementPairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
           transformation_[RT].apply(rt_pos);
           transformation_[MZ].apply(mz_pos);
 
           mz_pos /= (diff_intercept_[MZ] / diff_intercept_[RT]);
           Point transformed_pos(rt_pos,mz_pos);
 
-          V_findFeaturePairs_("Transformed Position is : " << transformed_pos );
+          V_findElementPairs_("Transformed Position is : " << transformed_pos );
 
           std::vector< Vertex_handle > resulting_range;
           p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
 
-          V_findFeaturePairs_("Neighbouring points : ");
+          V_findElementPairs_("Neighbouring points : ");
           for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
           {
-            V_findFeaturePairs_((*it)->point());
-            V_findFeaturePairs_(*((*it)->point().feature));
+            V_findElementPairs_((*it)->point());
+            V_findElementPairs_(*((*it)->point().element));
           }
 
           // if the first neighbour is close enough to act_pos and the second_nearest neighbour lies far enough from the nearest neighbour
@@ -323,24 +358,24 @@ namespace OpenMS
               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
           {
-            all_feature_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.feature,&transformed_map[fi1]));
+            all_element_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.element,&transformed_map[fi1]));
 
-            SignedInt feature_key = resulting_range[0]->point().key;
-            // if the feature already part of a FeaturePair the value in the lookup_table becomes -2
-            if ( lookup_table[feature_key] > -1)
+            SignedInt element_key = resulting_range[0]->point().key;
+            // if the element already part of a ElementPair the value in the lookup_table becomes -2
+            if ( lookup_table[element_key] > -1)
             {
-              lookup_table[feature_key] = -2;
+              lookup_table[element_key] = -2;
             }
-            // otherwise if the feature is until now no part of a feature pair,
-            // set the value in the lookup_table to the index of the pair in the all_feature_pairs vector
+            // otherwise if the element is until now no part of a element pair,
+            // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
             else
             {
-              if ( lookup_table[feature_key] == -1)
+              if ( lookup_table[element_key] == -1)
               {
-                lookup_table[feature_key] = index_act_feature_pair;
+                lookup_table[element_key] = index_act_element_pair;
               }
             }
-            ++index_act_feature_pair;
+            ++index_act_element_pair;
           }
         }
 
@@ -349,19 +384,20 @@ namespace OpenMS
           SignedInt pair_key = lookup_table[i];
           if ( pair_key > -1 )
           {
-            feature_pairs_->push_back(FeaturePairType(*(all_feature_pairs[pair_key].second),*(all_feature_pairs[pair_key].first)));
-            //             std::cout << "Delaunay PUSH Pairs " << (*(all_feature_pairs[pair_key].second)).getPosition()[RT] << ' '
-            //                       << (*(all_feature_pairs[pair_key].second)).getPosition()[MZ] << " and "
-            //                       << (*(all_feature_pairs[pair_key].first)).getPosition()[RT] << ' '
-            //                       << (*(all_feature_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;
+            element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
+            //             std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
+            //             << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
+            //             << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
+            //             << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;
           }
         }
-#undef V_findFeaturePairs_
+#undef V_findElementPairs_
 
-      } // findFeaturePairs_
+      } // findElementPairs_
 
 
-      /// The actual algorithm for consensus map computing.
+      /// The actual algorithm for finding consensus consensus elements.
+      /// Elements in the first_map are aligned to elements in the second_map, so the second_map contains the resulting consensus elements.
       template < typename ResultMapType >
       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
       {
@@ -388,15 +424,15 @@ namespace OpenMS
         timer.stop();
         V_computeConsensusMap("End delaunay triangulation after " << timer.getCPUTime() << "s");
 
-        // Initialize a hash map for the features of reference_map to avoid that features of the reference map occur in several feature pairs
+        // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
         std::vector< SignedInt > lookup_table(n,-1);
-        std::vector< std::pair< const PointType*, PointType*> > all_feature_pairs;
+        std::vector< std::pair< const PointType*, PointType*> > all_element_pairs;
 
         UnsignedInt trans_single = 0;
         UnsignedInt ref_single = 0;
         UnsignedInt pairs = 0;
-        UnsignedInt index_act_feature_pair = 0;
-        // take each point in the first data map and search for its neighbours in the second feature map (within a given (transformed) range)
+        UnsignedInt index_act_element_pair = 0;
+        // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
         for ( Size fi1 = 0; fi1 < second_map.size(); ++fi1 )
         {
           // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
@@ -410,39 +446,30 @@ namespace OpenMS
           std::vector< Vertex_handle > resulting_range;
           p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
 
-          //           V_computeConsensusMap("Neighbouring points : ");
-          //           for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
-          //           {
-          //             V_computeConsensusMap((*it)->point());
-          //             V_computeConsensusMap(*((*it)->point().feature));
-          //           }
-
           Point nearest = resulting_range[0]->point();
           Point second_nearest = resulting_range[1]->point();
-          //           if (((fabs(transformed_pos[RT] - nearest.hx())  < max_pair_distance_[RT])
-          //                &&  (fabs(transformed_pos[MZ] - nearest.hy())  < max_pair_distance_[MZ]))
-          //               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
-          //                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+
           if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
                &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
               && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
                   || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
           {
-            all_feature_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.feature,&(second_map[fi1])));
-            V_computeConsensusMap("Push first: " << *(nearest.feature))
+            all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
+            V_computeConsensusMap("Push first: " << *(nearest.element))
             V_computeConsensusMap("Push second: " << second_map[fi1])
 
-            SignedInt feature_key = resulting_range[0]->point().key;
-            // if the feature a is already part of a FeaturePair (a,b) do:
-            //    if (the feature c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
+            SignedInt element_key = resulting_range[0]->point().key;
+
+            // if the element a is already part of a ElementPair (a,b) do:
+            //    if (the element c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
             //    --> push (a,c)
             //    else
             //    --> the value in the lookup_table becomes -2 because the mapping is not unique
-            if ( lookup_table[feature_key] > -1)
+            if ( lookup_table[element_key] > -1)
             {
-              SignedInt pair_key = lookup_table[feature_key];
-              const PointType& first_map_a = *(all_feature_pairs[pair_key].first);
-              PointType& second_map_b = *(all_feature_pairs[pair_key].second);
+              SignedInt pair_key = lookup_table[element_key];
+              const PointType& first_map_a = *(all_element_pairs[pair_key].first);
+              PointType& second_map_b = *(all_element_pairs[pair_key].second);
               PointType& second_map_c = second_map[fi1];
 
               V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
@@ -453,7 +480,7 @@ namespace OpenMS
               if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
                   && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
               {
-                lookup_table[feature_key] = index_act_feature_pair;
+                lookup_table[element_key] = index_act_element_pair;
                 V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
               }
               else
@@ -475,31 +502,31 @@ namespace OpenMS
                         < sqrt(pow((first_map_a.getPosition()[RT] - second_map_c.getPosition()[RT]), 2)
                                + pow((first_map_a.getPosition()[MZ] - second_map_c.getPosition()[RT]), 2)))
                     {
-                      lookup_table[feature_key] = index_act_feature_pair;
+                      lookup_table[element_key] = index_act_element_pair;
                       V_computeConsensusMap("take a and c");
                     }
                   }
                   else
                   {
-                    lookup_table[feature_key] = -2;
+                    lookup_table[element_key] = -2;
                     ++trans_single;
                   }
                 }
               }
             }
-            // otherwise if the feature is until now no part of a feature pair,
-            // set the value in the lookup_table to the index of the pair in the all_feature_pairs vector
+            // otherwise if the element is until now no part of a element pair,
+            // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
             else
             {
-              if ( lookup_table[feature_key] == -1)
+              if ( lookup_table[element_key] == -1)
               {
-                lookup_table[feature_key] = index_act_feature_pair;
+                lookup_table[element_key] = index_act_element_pair;
               }
             }
-            ++index_act_feature_pair;
+            ++index_act_element_pair;
           }
-          // no corresponding feature in reference map
-          // add a singleton consensus feature
+          // no corresponding element in reference map
+          // add a singleton consensus element
           else
           {
             ++trans_single;
@@ -512,16 +539,16 @@ namespace OpenMS
           SignedInt pair_key = lookup_table[i];
           if ( pair_key > -1 )
           {
-            IndexTuple< ElementMapT > index_tuple(*((all_feature_pairs[pair_key].first)->begin()));
-            V_computeConsensusMap("First: " << *((all_feature_pairs[pair_key].first)))
-            V_computeConsensusMap("Second: " << *((all_feature_pairs[pair_key].second)))
-            (all_feature_pairs[pair_key].second)->insert(index_tuple);
+            IndexTuple< ElementMapT > index_tuple(*((all_element_pairs[pair_key].first)->begin()));
+            V_computeConsensusMap("First: " << *((all_element_pairs[pair_key].first)))
+            V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
+            (all_element_pairs[pair_key].second)->insert(index_tuple);
             ++pairs;
           }
-          // add a singleton consensus feature
+          // add a singleton consensus element
           else
           {
-            single_elements_first_map.push_back(positions_reference_map[i].feature);
+            single_elements_first_map.push_back(positions_reference_map[i].element);
             ++ref_single;
           }
         }
@@ -542,18 +569,14 @@ namespace OpenMS
 
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
-
       /// A parameter for similarity_().
       double diff_intercept_[2];
-      // allowed distance from a feature neighbour
+      /// To uniquely assign an element e1 of the scene map to another element e2 in the model map 
+      /// all elements in the scene map have to lie at least max_pair_distance_ far from e1 and
+      /// all elements in the model map have to lie at least max_pair_distance_ far from e2.
       float max_pair_distance_[2];
-      // precision of the retention time and mz values
+      /// Only points that differ not more than precision_ can be assigned as a pair
       float precision_[2];
-      //@}
 
       /// Parses the parameters, assigns their values to instance members.
       void parseParam_()
@@ -562,55 +585,69 @@ namespace OpenMS
         V_parseParam_("@@@ parseParam_()");
 
         String param_name_prefix = "similarity:max_pair_distance:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        DataValue data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = param_.getValue(param_name);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-          }
-          else
-          {
-            max_pair_distance_[dimension] = (float)data_value;
-            V_parseParam_(param_name<< ": "<< max_pair_distance_[dimension]);
-          }
+          max_pair_distance_[RT] = 3;
+        }
+        else
+        {
+          max_pair_distance_[RT] = data_value;
+        }
+
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          max_pair_distance_[MZ] = 1;
+        }
+        else
+        {
+          max_pair_distance_[MZ] = data_value;
         }
 
         param_name_prefix = "similarity:precision:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = param_.getValue(param_name);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-          }
-          else
-          {
-            precision_[dimension] = (float)data_value;
-            V_parseParam_(param_name<< ": "<< precision_[dimension]);
-          }
+          precision_[RT] = 20;
+        }
+        else
+        {
+          precision_[RT] = data_value;
+        }
+
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          precision_[MZ] = 5;
+        }
+        else
+        {
+          precision_[MZ] = data_value;
         }
 
         param_name_prefix = "similarity:diff_intercept:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name =
-            param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = param_.getValue(param_name);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-          }
-          else
-          {
-            diff_intercept_[dimension] = (double)data_value;
-            V_parseParam_(param_name<< ": "<< diff_intercept_[dimension]);
-          }
+          diff_intercept_[RT] = 1;
+        }
+        else
+        {
+          diff_intercept_[RT] = data_value;
+        }
+
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          diff_intercept_[MZ] = 0.1;
+        }
+        else
+        {
+          diff_intercept_[MZ] = data_value;
         }
 #undef V_parseParam_
 

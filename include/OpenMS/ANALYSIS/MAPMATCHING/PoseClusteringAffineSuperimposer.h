@@ -51,7 +51,7 @@ namespace OpenMS
   /**
      @brief Superimposer that uses pose clustering to find a good shift
 
-     While the feature positions can have D dimensions, only the first two are
+     While the element positions can have D dimensions, only the first two are
      used to find a shift.
   **/
   template < typename MapT = DFeatureMap<2> >
@@ -63,9 +63,8 @@ namespace OpenMS
       /** @name Type definitions
        */
       //@{
-      /// Defines the coordinates of peaks / features.
+      /// Defines the coordinates of elements.
       typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
-      /// Defines the coordinates of peaks / features.
       enum DimensionId
       {
         RT = DimensionDescriptionType::RT,
@@ -78,7 +77,7 @@ namespace OpenMS
         SCALING = 1
     };
 
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
           This should make things more understandable and maintainable.
            */
       enum Maps
@@ -118,7 +117,7 @@ namespace OpenMS
       typedef std::map< PairType, QualityType> AffineTransformationMapType;
       //@}
       using Base::param_;
-      using Base::feature_map_;
+      using Base::element_map_;
       using Base::final_transformation_;
 
       //------------------------------------------------------------
@@ -156,7 +155,7 @@ namespace OpenMS
       /// estimates the transformation for each grid cell
       virtual void run()
       {
-        if ( !this->feature_map_[MODEL]->empty() && !this->feature_map_[SCENE]->empty() )
+        if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
         {
           parseParam_();
           preprocess_();
@@ -165,7 +164,7 @@ namespace OpenMS
         }
         else
         {
-          std::cerr << "PoseClusteringAffineSuperimposer::run():  Oops, one of the feature maps is empty!\n";
+          std::cerr << "PoseClusteringAffineSuperimposer::run():  Oops, one of the element maps is empty!\n";
         }
       }
 
@@ -343,9 +342,9 @@ namespace OpenMS
 #define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
 
         // build an array of pointer to all elements in the model map
-        PeakPointerArray model_map(feature_map_[MODEL]->begin(), feature_map_[MODEL]->end());
+        PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
         // build an array of pointer to all elements in the scene map
-        PeakPointerArray scene_map(feature_map_[SCENE]->begin(), feature_map_[SCENE]->end());
+        PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
 
         // for each element (rt_m,mz_m) of the model map
         // search for corresponding elements (rt_i,mz_i) in the scene map
@@ -749,7 +748,7 @@ namespace OpenMS
       std::vector< std::vector< const PointType* > >
       scene_map_partners_;
 
-      /// Matrix of shifts associated with buckets of feature_map_[SCENE].
+      /// Matrix of shifts associated with buckets of element_map_[SCENE].
       AffineTransformationMapType rt_hash_;
 
       AffineTransformationMapType mz_hash_;

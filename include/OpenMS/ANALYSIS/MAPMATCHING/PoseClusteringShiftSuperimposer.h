@@ -49,7 +49,7 @@ namespace OpenMS
   /**
      @brief Superimposer that uses pose clustering to find a good shift
 
-     While the feature positions can have D dimensions, only the first two are
+     While the element positions can have D dimensions, only the first two are
      used to find a shift.
   **/
   template < typename MapT = DFeatureMap<2> >
@@ -61,16 +61,15 @@ namespace OpenMS
       /** @name Type definitions
        */
       //@{
-      /// Defines the coordinates of peaks / features.
+      /// Defines the coordinates of peaks / elements.
       typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
-      /// Defines the coordinates of peaks / features.
       enum DimensionId
       {
         RT = DimensionDescriptionType::RT,
         MZ = DimensionDescriptionType::MZ
     };
 
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
           This should make things more understandable and maintainable.
            */
       enum Maps
@@ -191,8 +190,8 @@ namespace OpenMS
       typedef typename Base::PointMapType PointMapType;
       typedef DBoundingBox<2,TraitsType>  PositionBoundingBoxType;
       typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
-      typedef std::vector <Size> FeatureBucketType;
-      typedef Matrix < FeatureBucketType > FeatureBucketMatrixType;
+      typedef std::vector <Size> ElementBucketType;
+      typedef Matrix < ElementBucketType > ElementBucketMatrixType;
       typedef Shift ShiftType;
       typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
       typedef Matrix < ShiftType > ShiftMatrixType;
@@ -200,8 +199,8 @@ namespace OpenMS
       //@}
       using Base::setParam;
       using Base::getParam;
-      using Base::setFeatureMap;
-      using Base::getFeatureMap;
+      using Base::setElementMap;
+      using Base::getElementMap;
       using Base::final_transformation_;
 
       //------------------------------------------------------------
@@ -241,21 +240,21 @@ namespace OpenMS
       virtual void run()
       {
         /// clear the member
-        feature_bucket_[RT].clear();
-        feature_bucket_[MZ].clear();
+        element_bucket_[RT].clear();
+        element_bucket_[MZ].clear();
         shift_bucket_.clear();
         //         shift_matrix_.clear();
 
-        if ( !this->feature_map_[MODEL]->empty() && !this->feature_map_[SCENE]->empty() )
+        if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
         {
           parseParam_();
-          computeFeatureBuckets_();
+          computeElementBuckets_();
           computeShiftBuckets_();
           computeShift_();
         }
         else
         {
-          std::cerr << "PoseClusteringShiftSuperimposer::run():  Oops, one of the feature maps is empty!\n";
+          std::cerr << "PoseClusteringShiftSuperimposer::run():  Oops, one of the element maps is empty!\n";
         }
       }
 
@@ -284,82 +283,95 @@ namespace OpenMS
 #define V_parseParam_(bla) V_PoseClusteringShiftSuperimposer(bla)
         V_parseParam_("@@@ parseParam_()");
 
-        // Initialize feature_bucket_size_ with values from param_.
+        // Initialize element_bucket_size_ with values from param_.
         std::string fm_bs = "feature_map:bucket_size:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string fm_bs_dn = fm_bs + DimensionDescriptionType::dimension_name_short[0];
+        DataValue data_value = getParam().getValue(fm_bs_dn);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string fm_bs_dn = fm_bs + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = getParam().getValue(fm_bs_dn);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,fm_bs_dn);
-          }
-          else
-          {
-            feature_bucket_size_[dimension] = data_value;
-            V_parseParam_(fm_bs_dn<< ": "<<feature_bucket_size_[dimension]);
-          }
+          element_bucket_size_[RT] = 150;
+        }
+        else
+        {
+          element_bucket_size_[RT] = data_value;
+        }
+        
+        fm_bs_dn = fm_bs + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          element_bucket_size_[MZ] = 4;
+        }
+        else
+        {
+          element_bucket_size_[MZ] = data_value;
         }
 
         // Initialize shift_bucket_size_ with values from param_.
         std::string tm_bs  = "transformation_space:shift_bucket_size:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string tm_bs_dn = tm_bs + DimensionDescriptionType::dimension_name_short[0];
+        data_value = getParam().getValue(tm_bs_dn);
+        if ( data_value == DataValue::EMPTY )
         {
-          String tm_bs_dn
-          = tm_bs
-            + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = getParam().getValue(tm_bs_dn);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,tm_bs_dn);
-          }
-          else
-          {
-            shift_bucket_size_[dimension] = data_value;
-            V_parseParam_(tm_bs_dn<< ": "<<shift_bucket_size_[dimension]);
-          }
+          shift_bucket_size_[RT] = 5;
+        }
+        else
+        {
+          shift_bucket_size_[RT] = data_value;
+        }
+        tm_bs_dn = tm_bs + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          shift_bucket_size_[MZ] = .1;
+        }
+        else
+        {
+          shift_bucket_size_[MZ] = data_value;
         }
 
-        // Initialize feature_bucket_window_ with values from param_.
+        // Initialize element_bucket_window_ with values from param_.
         std::string tm_fbw = "feature_map:bucket_window:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string tm_fbw_dn = tm_fbw + DimensionDescriptionType::dimension_name_short[0];
+        data_value = getParam().getValue(tm_fbw_dn);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string tm_fbw_dn
-          = tm_fbw
-            + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = getParam().getValue(tm_fbw_dn);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,tm_fbw_dn);
-          }
-          else
-          {
-            feature_bucket_window_[dimension] = data_value;
-            V_parseParam_(tm_fbw_dn<< ": "<<feature_bucket_window_[dimension]);
-          }
+          element_bucket_window_[RT] = 2;
+        }
+        else
+        {
+          element_bucket_window_[RT] = data_value;
+        }
+
+        tm_bs_dn = tm_fbw + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          element_bucket_window_[MZ] = 1;
+        }
+        else
+        {
+          element_bucket_window_[MZ] = data_value;
         }
 
         // Initialize shift_bucket_window_ with values from param_.
         std::string const tm_tbw = "transformation_space:bucket_window_shift:";
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string tm_tbw_dn = tm_tbw + DimensionDescriptionType::dimension_name_short[0];
+        data_value = getParam().getValue(tm_tbw_dn);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string tm_tbw_dn
-          = tm_tbw
-            + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = getParam().getValue(tm_tbw_dn);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,tm_tbw_dn);
-          }
-          else
-          {
-            shift_bucket_window_[dimension] = data_value;
-            V_parseParam_(tm_tbw_dn<< ": "<<shift_bucket_window_[dimension]);
-          }
+          shift_bucket_window_[RT] = 2;
+        }
+        else
+        {
+          shift_bucket_window_[RT] = data_value;
+        }
+
+        tm_bs_dn = tm_tbw + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          shift_bucket_window_[MZ] = 1;
+        }
+        else
+        {
+          shift_bucket_window_[MZ] = data_value;
         }
 
 #undef V_parseParam_
@@ -367,28 +379,28 @@ namespace OpenMS
       }
 
 
-      /**@brief Fill the buckets with the indices of the corresponding features.
+      /**@brief Fill the buckets with the indices of the corresponding elements.
        */
-      void computeFeatureBuckets_()
+      void computeElementBuckets_()
       {
-#define V_computeFeatureBuckets_(bla) V_PoseClusteringShiftSuperimposer(bla)
-        V_computeFeatureBuckets_("@@@ computeFeatureBuckets_()");
+#define V_computeElementBuckets_(bla) V_PoseClusteringShiftSuperimposer(bla)
+        V_computeElementBuckets_("@@@ computeElementBuckets_()");
 
         // Shorthands ...
-        PositionType & fbs = feature_bucket_size_;
+        PositionType & fbs = element_bucket_size_;
 
         for ( Size map_index = 0; map_index < 2; ++map_index )
         {
           // Shorthands ...
-          V_computeFeatureBuckets_("\n--- map_index: "<<map_index);
-          PointMapType const     & fm     = getFeatureMap(map_index);
-          PositionBoundingBoxType  & fmpbb  = feature_map_position_bounding_box_[map_index] ;
-          IntensityBoundingBoxType & fmibb  = feature_map_intensity_bounding_box_[map_index];
+          V_computeElementBuckets_("\n--- map_index: "<<map_index);
+          PointMapType const     & fm     = getElementMap(map_index);
+          PositionBoundingBoxType  & fmpbb  = element_map_position_bounding_box_[map_index] ;
+          IntensityBoundingBoxType & fmibb  = element_map_intensity_bounding_box_[map_index];
 
           fmpbb.clear();
           fmibb.clear();
 
-          // Compute the bounding box for the feature map, with respect to
+          // Compute the bounding box for the element map, with respect to
           // position and intensity.
           for ( typename PointMapType::ConstIterator fm_iter = fm.begin();
                 fm_iter != fm.end();
@@ -398,52 +410,52 @@ namespace OpenMS
             fmpbb.enlarge(fm_iter->getPosition());
             fmibb.enlarge(fm_iter->getIntensity());
           }
-          V_computeFeatureBuckets_("fmpbb: "<<fmpbb<<"fmibb: "<<fmibb);
+          V_computeElementBuckets_("fmpbb: "<<fmpbb<<"fmibb: "<<fmibb);
         }
 
-        // Next we will enlarge each feature_map_position_bounding_box_ such
+        // Next we will enlarge each element_map_position_bounding_box_ such
         // that all buckets will have the same diagonal.  To provide against
         // rounding errors, we allocate one bucket more than needed (in each
         // dimension) and shift the grid by one-half of the difference.
         for ( Size map_index = 0; map_index < 2; ++map_index )
         {
           // Shorthands ...
-          V_computeFeatureBuckets_("\n--- map_index: "<<map_index);
-          PointMapType          const & fm     = getFeatureMap(map_index);
-          PositionBoundingBoxType const & fmpbb  = feature_map_position_bounding_box_[map_index] ;
-          PositionBoundingBoxType       & fmpbbe = feature_map_position_bounding_box_enlarged_[map_index] ;
-          FeatureBucketMatrixType       & fb     = feature_bucket_[map_index];
+          V_computeElementBuckets_("\n--- map_index: "<<map_index);
+          PointMapType          const & fm     = getElementMap(map_index);
+          PositionBoundingBoxType const & fmpbb  = element_map_position_bounding_box_[map_index] ;
+          PositionBoundingBoxType       & fmpbbe = element_map_position_bounding_box_enlarged_[map_index] ;
+          ElementBucketMatrixType       & fb     = element_bucket_[map_index];
 
           // Compute num_buckets.  Compute extra margin to make bounding box a
-          // multiple of feature buckets.
+          // multiple of element buckets.
           PositionType const diagonal = fmpbb.diagonal();
           PositionType diagonal_enlarged;
-          V_computeFeatureBuckets_("diagonal: " << diagonal);
+          V_computeElementBuckets_("diagonal: " << diagonal);
           int num_buckets[2];
           for ( Size dimension = 0; dimension < 2; ++dimension)
           {
             num_buckets[dimension] = int(1.1 + diagonal[dimension]/fbs[dimension]);
             diagonal_enlarged[dimension] = fbs[dimension] * num_buckets[dimension];
           }
-          V_computeFeatureBuckets_("num_buckets: "<<num_buckets[RT]<<' '<<num_buckets[MZ]);
-          V_computeFeatureBuckets_("diagonal_enlarged: "<<diagonal_enlarged);
+          V_computeElementBuckets_("num_buckets: "<<num_buckets[RT]<<' '<<num_buckets[MZ]);
+          V_computeElementBuckets_("diagonal_enlarged: "<<diagonal_enlarged);
 
           // The extra margin.
-          PositionType extra_feature_bucket_size_(diagonal_enlarged-diagonal);
-          extra_feature_bucket_size_ /= 2;
-          V_computeFeatureBuckets_("efbs: " << extra_feature_bucket_size_);
+          PositionType extra_element_bucket_size_(diagonal_enlarged-diagonal);
+          extra_element_bucket_size_ /= 2;
+          V_computeElementBuckets_("efbs: " << extra_element_bucket_size_);
 
-          // Compute the enlarged feature map bounding box accordingly.
+          // Compute the enlarged element map bounding box accordingly.
           fmpbbe.clear();
-          fmpbbe.enlarge( fmpbb.min() - extra_feature_bucket_size_ );
-          fmpbbe.enlarge( fmpbb.max() + extra_feature_bucket_size_ );
-          V_computeFeatureBuckets_("fmpbbe: "<<fmpbbe);
+          fmpbbe.enlarge( fmpbb.min() - extra_element_bucket_size_ );
+          fmpbbe.enlarge( fmpbb.max() + extra_element_bucket_size_ );
+          V_computeElementBuckets_("fmpbbe: "<<fmpbbe);
 
-          // Resize feature_bucket_[map_index] accordingly.
+          // Resize element_bucket_[map_index] accordingly.
           fb.resize(num_buckets[RT],num_buckets[MZ]);
-          V_computeFeatureBuckets_("rows: "<<fb.rows()<<"  cols: "<<fb.cols());
+          V_computeElementBuckets_("rows: "<<fb.rows()<<"  cols: "<<fb.cols());
 
-          // Now, finally, we store the indices of the features in their
+          // Now, finally, we store the indices of the elements in their
           // corresponding buckets.
           PositionType const & fmpbbe_min = fmpbbe.min();
           for ( Size index= 0; index < fm.size(); ++index )
@@ -453,41 +465,41 @@ namespace OpenMS
           }
 
           // Optionally, write debug output as specified in param.
-          String feature_buckets_file_base = getParam().getValue("debug:feature_buckets_file");
-          if ( !feature_buckets_file_base.empty() )
+          String element_buckets_file_base = getParam().getValue("debug:feature_buckets_file");
+          if ( !element_buckets_file_base.empty() )
           {
-            String const feature_buckets_file = feature_buckets_file_base+String(map_index?"_SCENE":"_MODEL");
-            std::ofstream dump_file(feature_buckets_file.c_str());
-            std::cerr << "### Writing "<<feature_buckets_file<<std::endl;
-            dump_file << "# " << feature_buckets_file << " generated " << Date::now() << std::endl;
-            dump_file << "# Positions of features in non-empty feature buckets" << std::endl;
-            for ( FeatureBucketMatrixType::ConstIterator iter = fb.begin(); iter != fb.end(); ++iter)
+            String const element_buckets_file = element_buckets_file_base+String(map_index?"_SCENE":"_MODEL");
+            std::ofstream dump_file(element_buckets_file.c_str());
+            std::cerr << "### Writing "<<element_buckets_file<<std::endl;
+            dump_file << "# " << element_buckets_file << " generated " << Date::now() << std::endl;
+            dump_file << "# Positions of elements in non-empty element buckets" << std::endl;
+            for ( ElementBucketMatrixType::ConstIterator iter = fb.begin(); iter != fb.end(); ++iter)
             {
               if (iter->empty())
                 continue;
               std::pair<Size,Size> row_col = fb.indexPair(iter-fb.begin());
               dump_file << row_col.first << ' ' << row_col.second << " #bucket" << std::endl;
-              for ( FeatureBucketType::const_iterator viter = iter->begin(); viter != iter->end(); ++viter)
+              for ( ElementBucketType::const_iterator viter = iter->begin(); viter != iter->end(); ++viter)
               {
                 dump_file << fm[*viter].getPosition()[RT] <<' '<<fm[*viter].getPosition()[MZ] << std::endl;
               }
               dump_file << std::endl;
             }
-            dump_file << "# " << feature_buckets_file << " EOF " << Date::now() << std::endl;
+            dump_file << "# " << element_buckets_file << " EOF " << Date::now() << std::endl;
           }
         }
 
         return;
-#undef V_computeFeatureBuckets_
+#undef V_computeElementBuckets_
 
-      } // computeFeatureBuckets_
+      } // computeElementBuckets_
 
 
       //----------------------------------------------------------------------
 
       /**@brief Fill the buckets of shifts.
 
-      Note that computeFeatureBuckets_() must have been called before to make
+      Note that computeElementBuckets_() must have been called before to make
       this work properly.
       */
       void computeShiftBuckets_()
@@ -501,16 +513,16 @@ namespace OpenMS
         PositionType                 & tbs     = shift_bucket_size_;
         PositionBoundingBoxType      & tbb     = shift_bounding_box_ ;
         PositionBoundingBoxType      & tbbe    = shift_bounding_box_enlarged_ ;
-        Size                   const (&fbw)[2] = feature_bucket_window_;
+        Size                   const (&fbw)[2] = element_bucket_window_;
         //         ShiftMatrixType        & tm      = shift_matrix_;
 
         // Compute the bounding box for the shift map
         {
           tbb.clear();
-          tbb.enlarge ( feature_map_position_bounding_box_[SCENE].min() - feature_map_position_bounding_box_[MODEL].min() );
-          tbb.enlarge ( feature_map_position_bounding_box_[SCENE].min() - feature_map_position_bounding_box_[MODEL].max() );
-          tbb.enlarge ( feature_map_position_bounding_box_[SCENE].max() - feature_map_position_bounding_box_[MODEL].min() );
-          tbb.enlarge ( feature_map_position_bounding_box_[SCENE].max() - feature_map_position_bounding_box_[MODEL].max() );
+          tbb.enlarge ( element_map_position_bounding_box_[SCENE].min() - element_map_position_bounding_box_[MODEL].min() );
+          tbb.enlarge ( element_map_position_bounding_box_[SCENE].min() - element_map_position_bounding_box_[MODEL].max() );
+          tbb.enlarge ( element_map_position_bounding_box_[SCENE].max() - element_map_position_bounding_box_[MODEL].min() );
+          tbb.enlarge ( element_map_position_bounding_box_[SCENE].max() - element_map_position_bounding_box_[MODEL].max() );
         }
         V_computeShiftBuckets_("tbb: "<<tbb);
 
@@ -550,16 +562,16 @@ namespace OpenMS
         std::fill(tb.begin(),tb.end(),QualityType(0));
 
 
-        // Resize shift_matrix_ according to feature_bucket_[MZ]
-        //         tm.resize(feature_bucket_[MZ].sizePair());
+        // Resize shift_matrix_ according to element_bucket_[MZ]
+        //         tm.resize(element_bucket_[MZ].sizePair());
 
-        // Now we store the shifts for all relevant feature pairs in their
+        // Now we store the shifts for all relevant element pairs in their
         // corresponding buckets.  Each shift is distributed among its
         // four neighboring "buckets", with weights according to the distances
         // from these corner points.  Note that the outer two loops (over i and
-        // j) enumerate the "image" (feature_bucket_[MZ]), then we search for
-        // "pre-images" (feature_bucket_[0}) in the two inner loops (over k and
-        // l).  (And of course, finally, we enumerate all feature pairs.)  This
+        // j) enumerate the "image" (element_bucket_[MZ]), then we search for
+        // "pre-images" (element_bucket_[0}) in the two inner loops (over k and
+        // l).  (And of course, finally, we enumerate all element pairs.)  This
         // way we can associate the shifts vectors to buckets of the
         // image, and when we will later apply it, we will not change the
         // pre-image, which might be a consensus or so.
@@ -572,64 +584,64 @@ namespace OpenMS
 
         PositionType const & tbbe_min = tbbe.min();
 
-        // Compute the index shift of corresponding feature buckets of model and scene.
+        // Compute the index shift of corresponding element buckets of model and scene.
         PositionType const fmpbbe_min_offset =
-          feature_map_position_bounding_box_enlarged_[SCENE].min() -
-          feature_map_position_bounding_box_enlarged_[MODEL].min();
-        int const feature_buckets_index_offset_RT = int ( fmpbbe_min_offset[RT] / feature_bucket_size_[RT] );
-        int const feature_buckets_index_offset_MZ = int ( fmpbbe_min_offset[MZ] / feature_bucket_size_[MZ] );
+          element_map_position_bounding_box_enlarged_[SCENE].min() -
+          element_map_position_bounding_box_enlarged_[MODEL].min();
+        int const element_buckets_index_offset_RT = int ( fmpbbe_min_offset[RT] / element_bucket_size_[RT] );
+        int const element_buckets_index_offset_MZ = int ( fmpbbe_min_offset[MZ] / element_bucket_size_[MZ] );
 
         // iterate over buckets of scene
         for ( Size scene_bucket_index_RT = 0;
-              scene_bucket_index_RT < feature_bucket_[SCENE].rows();
+              scene_bucket_index_RT < element_bucket_[SCENE].rows();
               ++scene_bucket_index_RT
             )
         {
           for ( Size scene_bucket_index_MZ = 0;
-                scene_bucket_index_MZ < feature_bucket_[SCENE].cols();
+                scene_bucket_index_MZ < element_bucket_[SCENE].cols();
                 ++scene_bucket_index_MZ
               )
           {
 
             // compute the corresponding bucket in the model
-            int const model_bucket_index_center_RT = scene_bucket_index_RT + feature_buckets_index_offset_RT;
-            int const model_bucket_index_center_MZ = scene_bucket_index_MZ + feature_buckets_index_offset_MZ;
+            int const model_bucket_index_center_RT = scene_bucket_index_RT + element_buckets_index_offset_RT;
+            int const model_bucket_index_center_MZ = scene_bucket_index_MZ + element_buckets_index_offset_MZ;
 
             // iterate over buckets of model
             for ( int model_bucket_index_RT
                   =  std::max<int>( model_bucket_index_center_RT - fbw[RT], 0 );
                   model_bucket_index_RT
-                  <= std::min<int>( model_bucket_index_center_RT + fbw[RT], feature_bucket_[MODEL].rows()-1 );
+                  <= std::min<int>( model_bucket_index_center_RT + fbw[RT], element_bucket_[MODEL].rows()-1 );
                   ++model_bucket_index_RT
                 )
             {
               for ( int model_bucket_index_MZ
                     =  std::max<int>( model_bucket_index_center_MZ - fbw[MZ], 0 );
                     model_bucket_index_MZ
-                    <= std::min<int>( model_bucket_index_center_MZ + fbw[MZ], feature_bucket_[MODEL].cols()-1 );
+                    <= std::min<int>( model_bucket_index_center_MZ + fbw[MZ], element_bucket_[MODEL].cols()-1 );
                     ++model_bucket_index_MZ
                   )
               {
-                // iterate over pairs of features for this pair of buckets
-                int number_of_considered_feature_pairs_for_this_pair_of_buckets = 0;
-                FeatureBucketType const & model_feature_bucket
-                = feature_bucket_[MODEL]
+                // iterate over pairs of elements for this pair of buckets
+                int number_of_considered_element_pairs_for_this_pair_of_buckets = 0;
+                ElementBucketType const & model_element_bucket
+                = element_bucket_[MODEL]
                   ( model_bucket_index_RT, model_bucket_index_MZ );
-                for ( FeatureBucketType::const_iterator model_iter = model_feature_bucket.begin();
-                      model_iter != model_feature_bucket.end();
+                for ( ElementBucketType::const_iterator model_iter = model_element_bucket.begin();
+                      model_iter != model_element_bucket.end();
                       ++model_iter
                     )
                 {
-                  FeatureBucketType const & scene_feature_bucket
-                  = feature_bucket_[SCENE]( scene_bucket_index_RT, scene_bucket_index_MZ );
-                  for ( FeatureBucketType::const_iterator scene_iter = scene_feature_bucket.begin();
-                        scene_iter != scene_feature_bucket.end();
+                  ElementBucketType const & scene_element_bucket
+                  = element_bucket_[SCENE]( scene_bucket_index_RT, scene_bucket_index_MZ );
+                  for ( ElementBucketType::const_iterator scene_iter = scene_element_bucket.begin();
+                        scene_iter != scene_element_bucket.end();
                         ++scene_iter
                       )
                   {
-                    // Compute the shift corresponding to a pair of features.
-                    ShiftType shift = shift_( getFeatureMap(0)[*model_iter],
-                                              getFeatureMap(1)[*scene_iter] );
+                    // Compute the shift corresponding to a pair of elements.
+                    ShiftType shift = shift_( getElementMap(0)[*model_iter],
+                                              getElementMap(1)[*scene_iter] );
                     //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
                     //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
 
@@ -668,10 +680,10 @@ namespace OpenMS
                     factor = bucket_fraction[RT] * bucket_fraction[MZ];
                     tb( bucket_index[RT] + 1, bucket_index[MZ] + 1 ) += tq * factor;
 
-                    ++number_of_considered_feature_pairs_for_this_pair_of_buckets;
+                    ++number_of_considered_element_pairs_for_this_pair_of_buckets;
 
                     if ( progress_dots &&
-                         ! (number_of_considered_feature_pairs_for_this_pair_of_buckets % progress_dots)
+                         ! (number_of_considered_element_pairs_for_this_pair_of_buckets % progress_dots)
                        )
                     {
                       std::cout << 'H' << std::flush;
@@ -681,14 +693,14 @@ namespace OpenMS
                 } // for model_iter
 
 #if 0 // debug output
-                if ( number_of_considered_feature_pairs_for_this_pair_of_buckets )
+                if ( number_of_considered_element_pairs_for_this_pair_of_buckets )
                 {
                   std::cout <<
                   "s_b_i_RT, _MZ, m_b_i_c_RT, _MZ, m_b_i_RT, _MZ, number_pairs: " <<
                   scene_bucket_index_RT<<' '<<scene_bucket_index_MZ<<' '<<
                   model_bucket_index_center_RT<<' '<<model_bucket_index_center_MZ<<' '<<
                   model_bucket_index_RT<<' '<<model_bucket_index_MZ<<' '<<
-                  number_of_considered_feature_pairs_for_this_pair_of_buckets
+                  number_of_considered_element_pairs_for_this_pair_of_buckets
                   ;
                 }
 #endif
@@ -808,23 +820,23 @@ namespace OpenMS
 
       //----------------------------------------------------------------------
 
-      /**@brief Compute the shift and similarity for a pair of features;
+      /**@brief Compute the shift and similarity for a pair of elements;
          larger quality values are better.
 
-         The returned value should express our confidence that one feature might
+         The returned value should express our confidence that one element might
          possibly be matched to the other.
 
          Currently this will just calculate the ratio of intensities, either
          "left/right" or "right/left", such that a value between 0 and 1 is
          returned.
 
-         \todo Take the quality of the features themselves into account, i.e.,
+         \todo Take the quality of the elements themselves into account, i.e.,
          how good they fit to their model.
       */
       ShiftType shift_( PointType const & left, PointType const & right ) const
       {
 
-        // @todo Take the quality of the features themselves into account, i.e. how good they fit to their model.
+        // @todo Take the quality of the elements themselves into account, i.e. how good they fit to their model.
 
         ShiftType shift;
         shift.setPosition(right.getPosition() - left.getPosition());
@@ -842,21 +854,21 @@ namespace OpenMS
        */
       //@{
 
-      /// Holds the bounding box of all input features.
-      PositionBoundingBoxType  feature_map_position_bounding_box_[2];
+      /// Holds the bounding box of all input elements.
+      PositionBoundingBoxType  element_map_position_bounding_box_[2];
 
-      /// Holds the enlarged bounding box for all input features.  It is larger
+      /// Holds the enlarged bounding box for all input elements.  It is larger
       /// by about half of a bucket in all directions.
-      PositionBoundingBoxType  feature_map_position_bounding_box_enlarged_[2];
+      PositionBoundingBoxType  element_map_position_bounding_box_enlarged_[2];
 
-      /// Holds a bounding box for the input feature intensities.
-      IntensityBoundingBoxType feature_map_intensity_bounding_box_[2];
+      /// Holds a bounding box for the input element intensities.
+      IntensityBoundingBoxType element_map_intensity_bounding_box_[2];
 
-      /// Feature indices are stored in theses buckets.
-      FeatureBucketMatrixType feature_bucket_[2];
+      /// Element indices are stored in theses buckets.
+      ElementBucketMatrixType element_bucket_[2];
 
       /// Diagonal size of each bucket.
-      PositionType feature_bucket_size_;
+      PositionType element_bucket_size_;
 
       /// Shifts are stored (summed up) in these buckets.
       ShiftQualityMatrixType shift_bucket_;
@@ -871,9 +883,9 @@ namespace OpenMS
       /// Diagonal size of each bucket in shift_bucket_.
       PositionType shift_bucket_size_;
 
-      /// Number of surrounding buckets of feature indices to be considered when
+      /// Number of surrounding buckets of element indices to be considered when
       /// computing shifts.
-      Size feature_bucket_window_[2];
+      Size element_bucket_window_[2];
 
       /// Number of surrounding buckets of shift indices to be considered when
       /// computing shifts.

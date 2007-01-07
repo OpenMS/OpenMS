@@ -399,8 +399,8 @@ namespace OpenMS
             {
               UnsignedInt element_index = asUnsignedInt_(tmp_str);
 
-              act_index_tuple.getMapIndex() = map_index;
-              act_index_tuple.getElementIndex() = element_index;
+              act_index_tuple.setMapIndex(map_index);
+              act_index_tuple.setElementIndex(element_index);
               act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
               act_cons_element_.insert(act_index_tuple);
               act_cons_element_.getPosition() = pos_;

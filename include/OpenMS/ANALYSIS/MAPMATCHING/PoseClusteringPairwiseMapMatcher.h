@@ -40,42 +40,44 @@
 
 
 #if defined OPENMS_DEBUG && ! defined PoseClusteringPairwiseMapMatcher
-#define V_PoseClusteringPairwiseMapMatcher(bla)  std::cout << bla << std::endl;
-#else
-#define V_PoseClusteringPairwiseMapMatcher(bla)
+#define V_PoseClusteringPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
 #endif
 
 
 namespace OpenMS
 {
   /**
-     @brief This class represents a feature matching algorithm.
-
-     It works on two feature maps and computes a vector of corresponding features
-     in both maps (given by a feature pairs vector). 
-     Therefore it first estimates the shift, which maps one feature map
-     onto the other. This is done by the PoseClusteringShiftSuperimposer or the PoseClusteringAffineSuperimposer class. 
-     Afterwards using the transformation the corresponding features in both maps 
-     can be determined using the DSimplePairFinder class.
+     @brief This class represents a point matching algorithm.
      
-     If a piecewise shift is assumed, the user can define a grid by setting 
-     the number of buckets in the RT as well as the MZ dimension.     
-  		
-  	 @todo Make this class complain about unknown parameters (Eva)   
+     It works on two point maps and computes a vector of corresponding points
+     in both maps (given by a point pairs vector). 
+     A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     (wheras DFeature is the default element type).
+
+     Therefore it first estimates the transformation, which maps one point map
+     onto the other. This is done by a superimposer class 
+     (e.g. PoseClusteringShiftSuperimposer or the PoseClusteringAffineSuperimposer).
+     Afterwards a pairfinder class (e.g. SimplePairFinder or DelaunayPairFinder) 
+     dewarps the data and searches for corresponding points in both maps.
+          
+     @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
+     the number of buckets in the RT as well as the MZ dimension.   
+     Call initGridTransformation() before run()!   
+     
+     @todo Make this class complain about unknown parameters (Eva)   
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
   {
     public:
       typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
-      /// Defines the coordinates of peaks / features.
+      /// Defines the coordinates of elements
       enum DimensionId
       {
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
-
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
             This should make things more understandable and maintainable.
              */
       enum Maps
@@ -84,15 +86,11 @@ namespace OpenMS
         SCENE = 1
     };
 
-
-      /** @name Type definitions
-       */
-      //@{
       /// Base
       typedef BasePairwiseMapMatcher<MapT> Base;
 
       typedef typename Base::PointMapType PointMapType;
-      typedef typename Base::FeatureType FeatureType;
+      typedef typename Base::ElementType ElementType;
       typedef typename Base::TraitsType TraitsType;
       typedef typename Base::PositionType PositionType;
       typedef typename Base::CoordinateType CoordinateType;
@@ -102,17 +100,14 @@ namespace OpenMS
       typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 
       using Base::param_;
-      using Base::feature_map_;
+      using Base::element_map_;
       using Base::grid_;
-      using Base::all_feature_pairs_;
+      using Base::all_element_pairs_;
       using Base::bounding_box_scene_map_;
       using Base::box_size_;
       using Base::number_buckets_;
-      //@}
 
 
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       PoseClusteringPairwiseMapMatcher()
           : Base()
@@ -125,8 +120,14 @@ namespace OpenMS
       PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
           : Base(source)
       {
-        pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
-        superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
+        if (pair_finder_ != 0)
+        {
+          pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
+        }
+        if (superimposer_ != 0)
+        {
+          superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
+        }
       }
 
       ///  Assignment operator
@@ -136,39 +137,35 @@ namespace OpenMS
           return *this;
 
         Base::operator = (source);
-        pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
-        superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
+        if (pair_finder_ != 0 )
+        {
+          pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
+        }
+        if (superimposer_ != 0)
+        {
+          superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
+        }
 
         return *this;
       }
 
       /// Destructor
       virtual ~PoseClusteringPairwiseMapMatcher()
-    {}
-      //@}
+      {}
 
-      /// returns an instance of this class
+      /// Returns an instance of this class
       static BasePairwiseMapMatcher<MapT>* create()
       {
         return new PoseClusteringPairwiseMapMatcher();
       }
 
-
-      /// returns the name of this module
+      /// Returns the name of this module
       static const String getName()
       {
         return "poseclustering_pairwise";
       }
 
-
-      /** @name Accesssor methods
-       */
-      //@{
-      /// TODO get and set feature pairs of a given grid cell?, and all feature pairs
-      //@}
-
-
-      /// Estimates the transformation for each grid cell
+      /// Estimates the transformation for each grid cell and searches for element pairs.
       virtual void run()
       {
         DataValue data_value = param_.getValue("pair_finder");
@@ -185,55 +182,50 @@ namespace OpenMS
         // compute the bounding boxes of the grid cells and initialize the grid transformation
         if (grid_.size() == 0)
         {
-          initGridTransformation(*(feature_map_[SCENE]));
+          initGridTransformation(*(element_map_[SCENE]));
         }
 
-        // assign each feature of the scene map to the grid cells and build a pointer map for each grid cell
-        PeakConstReferenceMapType scene_pointer_map(feature_map_[SCENE]->begin(), feature_map_[SCENE]->end());
+        // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
+        PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
         Size number_grid_cells = grid_.size();
         std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
         buildGrid_(scene_pointer_map,scene_grid_maps);
 
-        // initialize a pointer map with the features of the first (model or reference) map
-        PeakConstReferenceMapType model_pointer_map(feature_map_[MODEL]->begin(), feature_map_[MODEL]->end());
+        // initialize a pointer map with the elements of the first (model or reference) map
+        PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
 
-        // compute the matching of each scene's grid cell features and all the features of the model map
+        // compute the matching of each scene's grid cell elements and all the elements of the model map
         computeMatching_(model_pointer_map,scene_grid_maps);
 
-        //         String all_feature_pairs_gnuplot_file =
-        //           param_.getValue("debug:all_feature_pairs_gnuplot_file");
-        //         if ( !all_feature_pairs_gnuplot_file.empty() )
+        //         String all_element_pairs_gnuplot_file =
+        //           param_.getValue("debug:all_element_pairs_gnuplot_file");
+        //         if ( !all_element_pairs_gnuplot_file.empty() )
         //         {
-        //           pair_finder_->dumpFeaturePairs(all_feature_pairs_gnuplot_file);
+        //           pair_finder_->dumpFeaturePairs(all_element_pairs_gnuplot_file);
         //         }
       }
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
-      /// This class computes the shift for the best mapping of one feature map to another
+      /// This class computes the shift for the best mapping of one element map to another
       BaseSuperimposer<PeakConstReferenceMapType>* superimposer_;
-      /// Given the shift, the pair_finder_ searches for corresponding features in the two maps
+      /// Given the shift, the pair_finder_ searches for corresponding elements in the two maps
       BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
-      //@}
 
-      /// compute the matching of each grid cell
+      /// Computes the matching between each grid cell in the scene map and the model map
       void computeMatching_(const PeakConstReferenceMapType& model_map, const std::vector<PeakConstReferenceMapType>& scene_grid_maps)
       {
 #define V_computeMatching_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
 
-        pair_finder_->setFeatureMap(MODEL, model_map);
+        pair_finder_->setElementMap(MODEL, model_map);
 
         if (superimposer_ !=0 )
         {
           // same model map for all superpositions
-          superimposer_->setFeatureMap(MODEL, model_map);
+          superimposer_->setElementMap(MODEL, model_map);
         }
 
         String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
-        String feature_buckets_file = param_.getValue("debug:feature_buckets_file");
+        String element_buckets_file = param_.getValue("debug:feature_buckets_file");
 
         // iterate over all grid cells of the scene map
         for (Size i = 0; i < scene_grid_maps.size(); ++i)
@@ -245,20 +237,7 @@ namespace OpenMS
             {
               V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
 
-              superimposer_->setFeatureMap(SCENE, scene_grid_maps[i]);
-
-              //             // optional debug output: buckets of the shift map
-              //             if ( !shift_buckets_file.empty() )
-              //             {
-              //               superimposer_->getParam().setValue("debug:shift_buckets_file", shift_buckets_file+String(i).fillLeft('0',3));
-              //             }
-              //
-              //             // optional debug output: buckets of the feature maps
-              //             if ( !feature_buckets_file.empty() )
-              //             {
-              //               superimposer_->getParam().setValue("debug:feature_buckets_file", feature_buckets_file+String(i).fillLeft('0',3));
-              //             }
-
+              superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
               superimposer_->run();
 
               // ???? copy array to vector -- but the old Grid class will be replaced anyway
@@ -279,18 +258,19 @@ namespace OpenMS
               V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
             }
 
-            pair_finder_->setFeaturePairs(*all_feature_pairs_);
-            pair_finder_->setFeatureMap(SCENE, scene_grid_maps[i]);
+            pair_finder_->setElementPairs(all_element_pairs_);
+            pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
 
             V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
             pair_finder_->run();
           }
         }
 #undef V_computeMatching_
+
       }
 
 
-      /// initialize a peak pointer map for each grid cell of the scene (second) map
+      /// Initializes a peak pointer map for each grid cell of the scene (second) map
       void buildGrid_(const PeakConstReferenceMapType& scene_map, std::vector<PeakConstReferenceMapType>& scene_grid_maps)
       {
 #define V_buildGrid_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
@@ -307,57 +287,17 @@ namespace OpenMS
 
         for (Size i = 0; i < scene_grid_maps.size(); ++i)
         {
-          // V_buildGrid_((grid_transformation_.getGridCells())[i]);
-#if 1 // debug less verbose
           V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
-#else
-
+          
           for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
           {
             V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
           }
-#endif
-
         }
 #undef V_buildGrid_
-
       }
-
-      /// Parses the parameters, assigns their values to instance members.
-      void parseParam_()
-      {
-#define V_parseParam_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
-        V_parseParam_("@@@ parseParam_()");
-        {
-          /// Check the user defined size of the grid cells
-          std::string param_name_prefix = "number_buckets:";
-          PositionType number_buckets;
-          for ( Size dimension = 0; dimension < 2; ++dimension)
-          {
-            std::string param_name =
-              param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-            DataValue data_value = param_.getValue(param_name);
-            if ( data_value == DataValue::EMPTY )
-            {
-              throw Exception::ElementNotFound<std::string>
-              (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-            }
-            else
-            {
-              number_buckets_[dimension] = data_value;
-              V_parseParam_(param_name<< ": "<<number_buckets_[dimension]);
-            }
-          }
-        }
-#undef V_parseParam_
-
-      } // parseParam_
-
-
   }
   ; // PoseClusteringPairwiseMapMatcher
-
-
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_DBASEFEATUREMATCHER_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGPAIRWISEMAPMATCHER_H

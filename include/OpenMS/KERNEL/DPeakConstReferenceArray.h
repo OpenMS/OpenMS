@@ -40,17 +40,14 @@ namespace OpenMS
 {
 
   /**
-    @brief A container for (composite) features.
-
-    A map is a container holding D-dimensional features,
-    which in turn represent chemical entities (peptides, proteins, etc.) found
-    in a D-dimensional experiment.
-    To avoid copy actions this class only holds pointer to the const elements of a container.
-    You can insert new elements, but it is not possible to change existing ones. The class does not
-    Maps are implemented as vectors of features and have basically the same interface
-    as an STL vector has (model of Random Access Container and Back Insertion Sequence).
-    Maps are typically created from peak data of 2D runs through the FeatureFinder.
-
+    @brief This container holds pointer to the elements of another container.
+    
+    If you for example want to sort the elements of a constant container, you have to copy the whole container.
+    To avoid copy actions this class only holds pointer to the constant elements of a container. 
+    It behaves like a DPeakArray. You can insert new elements, but it is not possible to change existing ones.
+    (E.g. generating a DPeakConstReferenceArray pointer_array of a DFeatureMap feature_map is done by:
+    pointer_array(feature_map.begin(),feature_map.end()))
+    
     @ingroup Kernel, Serialization
   */
   template <typename MapT>
@@ -66,15 +63,12 @@ namespace OpenMS
       friend class DPeakConstReferenceArray;
 
     public:
-      /** @name Type definitions */
-      //@{
       typedef IteratorPeakT IteratorPeakType;
       typedef IteratorPeakType value_type;
       typedef typename std::vector<IteratorPeakType*>::difference_type difference_type;
       typedef const value_type& reference;
       typedef const value_type* pointer;
       typedef std::random_access_iterator_tag iterator_category;
-      //@}
 
       DPeakConstReferenceArrayConstIterator()
       {}
@@ -376,8 +370,8 @@ namespace OpenMS
     /// See std::vector documentation.
     void push_back(const PeakType& x)
     {
-      const PeakType* feature = &x;
-      vector_.push_back(feature);
+      const PeakType* element = &x;
+      vector_.push_back(element);
     }
 
     /// See std::vector documentation.
@@ -592,21 +586,21 @@ namespace OpenMS
     }
 
     /// See std::vector documentation.
-    Iterator insert(Iterator pos, const PeakType& feature)
+    Iterator insert(Iterator pos, const PeakType& element)
     {
-      const PeakType* pointer = &feature;
+      const PeakType* pointer = &element;
       vector_.insert(vector_.begin()+pos.position_,pointer);
       return pos;
     }
 
     /// See std::vector documentation.
-    void insert(Iterator pos, size_type n, const PeakType& feature)
+    void insert(Iterator pos, size_type n, const PeakType& element)
     {
       const PeakType* pointer;
       std::vector<const PeakType*> tmp;
       for (size_type i=0;i<n;i++)
       {
-        pointer = &feature;
+        pointer = &element;
         tmp.push_back(pointer);
       }
       vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
@@ -670,7 +664,7 @@ namespace OpenMS
       vector_=std::vector<const PeakType*>(n);
     }
     /// See std::vector documentation.
-    DPeakConstReferenceArray(size_type n, const PeakType& feature)
+    DPeakConstReferenceArray(size_type n, const PeakType& element)
         : capacity_(0),
         base_container_ptr_(0)
     {
@@ -681,11 +675,11 @@ namespace OpenMS
         :  capacity_(0),
         base_container_ptr_(p.base_container_ptr_)
     {
-      const PeakType* feature;
+      const PeakType* element;
       for (ConstIterator it=p.begin(); it!=p.end();++it)
       {
-        feature = &(*it);
-        vector_.push_back(feature);
+        element = &(*it);
+        vector_.push_back(element);
       }
     }
     /// See std::vector documentation.
@@ -706,11 +700,11 @@ namespace OpenMS
         :  capacity_(0),
         base_container_ptr_(&p)
     {
-      const PeakType* feature;
+      const PeakType* element;
       for (typename BaseMapType::iterator it = p.begin(); it != p.end(); ++it)
       {
-        feature = &(*it);
-        vector_.push_back(feature);
+        element = &(*it);
+        vector_.push_back(element);
       }
     }
 
@@ -727,11 +721,11 @@ namespace OpenMS
       base_container_ptr_ = rhs.base_container_ptr_;
       clear();
       reserve(rhs.size());
-      const PeakType* feature;
+      const PeakType* element;
       for (ConstIterator it=rhs.begin(); it!=rhs.end();++it)
       {
-        feature = &(it);
-        vector_.push_back(feature);
+        element = &(*it);
+        vector_.push_back(element);
       }
 
       return *this;
@@ -759,20 +753,20 @@ namespace OpenMS
     */
     //@{
 
-    /// Sorts the features by intensity
+    /// Sorts the elements by intensity
     void sortByIntensity()
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator < typename PeakType::IntensityLess > () );
     }
 
-    /// Lexicographically sorts the features by their position.
+    /// Lexicographically sorts the elements by their position.
     void sortByPosition()
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator<typename PeakType::PositionLess>() );
     }
 
     /**
-      @brief Sorts the features by one dimension of their position.
+      @brief Sorts the elements by one dimension of their position.
 
       It is only sorted according to dimentsion @p i .
     */
@@ -782,14 +776,14 @@ namespace OpenMS
 
     /**
       @name Generic sorting function templates.
-      Any feature comparator can be
+      Any element comparator can be
       given as template argument.  You can also give the comparator as an
       argument to the function template (this is useful if the comparator is
       not default constructed, but keep in mind that STL copies comparators
       a lot).
 
-      <p> Thus your can e.g. write <code>features.sortByComparator <
-      DFeature<1>::IntensityLess > ()</code>, if features have type
+      <p> Thus your can e.g. write <code>elements.sortByComparator <
+      DFeature<1>::IntensityLess > ()</code>, if elements have type
       <code>DPeakConstReferenceArray < 1, DFeature <1> ></code>.
     */
     //@{
@@ -871,7 +865,7 @@ namespace OpenMS
   void DPeakConstReferenceArray<MapT>::sortByNthPosition(UnsignedInt i)
 		throw (Exception::NotImplemented)
   {
-    OPENMS_PRECONDITION(i < Index(MapT::DIMENSION), "illegal dimension")
+    OPENMS_PRECONDITION(i < Index(PeakType::DIMENSION), "illegal dimension")
     if (i==0)
     {
       std::sort(vector_.begin(), vector_.end(), PointerComparator< typename PeakType::template NthPositionLess<0> >() );
