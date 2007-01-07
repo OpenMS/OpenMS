@@ -213,10 +213,10 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-      reference operator [] (difference_type n)
-      {
-        return *((*this)+n);
-      }
+//      reference operator [] (difference_type n)
+//      {
+//        return *((*this)+n);
+//      }
 
     protected:
 
@@ -267,10 +267,10 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-      typename DPeakConstReferenceArrayIterator::reference operator [] (typename DPeakConstReferenceArrayIterator::difference_type n)
-      {
-        return *((*this)+n);
-      }
+//      typename DPeakConstReferenceArrayIterator::reference operator [] (typename DPeakConstReferenceArrayIterator::difference_type n)
+//      {
+//        return *((*this)+n);
+//      }
 
       DPeakConstReferenceArrayIterator& operator ++ ()
       {
@@ -396,10 +396,12 @@ namespace OpenMS
     void reserve(size_type n)
     {
       size_type cap = capacity();
+      
       if (n>cap)
       {
         vector_.reserve(n);
-      }
+        capacity_ = n;
+       }
     }
 
     /// See std::vector documentation.
@@ -459,33 +461,14 @@ namespace OpenMS
     /// See std::vector documentation.
     void resize(size_type new_size, const PeakType& t=PeakType())
     {
-      size_type old_size = vector_.size();
-      if (new_size<old_size)
-      {
-        vector_.resize(new_size);
-      }
-      else if (new_size>old_size)
-      {
-        vector_.resize(new_size);
-      }
+      vector_.resize(new_size,&t);
+      capacity_ = vector_.capacity();
     }
 
-    /// See std::vector documentation.
-    reference front()
-    {
-      return *(begin());
-    }
-
-    /// See std::vector documentation.
+   	/// See std::vector documentation.
     const_reference front() const
     {
       return *(begin());
-    }
-
-    /// See std::vector documentation.
-    reference back()
-    {
-      return *(end()-1);
     }
 
     /// See std::vector documentation.
@@ -614,7 +597,7 @@ namespace OpenMS
       std::vector<const PeakType*> tmp;
       for (InputIterator it=f;it!=l;++it)
       {
-        pointer = (&it->clone());
+        pointer = &(*it);
         tmp.push_back(pointer);
       }
       vector_.insert(vector_.begin()+pos.position_,tmp.begin(),tmp.end());
@@ -668,7 +651,7 @@ namespace OpenMS
         : capacity_(0),
         base_container_ptr_(0)
     {
-      vector_=std::vector<const PeakType*>(n);
+      vector_=std::vector<const PeakType*>(n,&element);
     }
     /// See std::vector documentation.
     DPeakConstReferenceArray(const DPeakConstReferenceArray& p)
