@@ -40,29 +40,33 @@ namespace OpenMS
 {
 
   /**
-     @brief The base class of all superimposer algorithms.
+    @brief The base class of all superimposer algorithms.
 
      This class defines the basic interface for all superimposer
-     algorithms. It works on two feature maps and estimates the transformation
-     which maps one map (scene map) onto the other (model map).
-
-     The matching shall minimize the shift in retention time and m/z between
-     the two maps after a suitable transformation, yet have large cardinality.
-
+     algorithms. It works on two element maps (DFeatureMap is the default map type, 
+     but you can also use a pointer map like DPeakConstReferenceArray) and 
+     computes a transformation, that maps the elements of one map (scene map) 
+     as near as possible to the elements in the other map (model map).
+     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     (wheras DFeature is the default element type).
+     
+     Policy for copy constructor and assignment: element_map_ is
+     maintained as pointer and taken shallow copy. 
+     But param_ is deep.
   **/
 
   template <typename MapT = DFeatureMap<2> >
   class BaseSuperimposer : public FactoryProduct
   {
     public:
-      /// Defines the coordinates of peaks / features.
+      /// Defines the coordinates of elements.
       enum DimensionId
       {
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
       This should make things more understandable and maintainable. 
       */
       enum Maps
@@ -71,13 +75,10 @@ namespace OpenMS
         SCENE = 1
     };
 
-      /** @name Type definitions
-       */
-      //@{
-      /// Container for input features
+      /// Container for input elements
       typedef MapT PointMapType;
 
-      /// Type of features considered here
+      /// Type of elements considered here
       typedef typename PointMapType::value_type PointType;
 
       /// Traits type
@@ -95,44 +96,33 @@ namespace OpenMS
       /// Type of estimated transformation
       typedef DLinearMapping< 1, TraitsType > TransformationType;
 
-      //@}
-
-
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       BaseSuperimposer()
           : FactoryProduct(),
           	param_(),
           final_transformation_()
       {
-        feature_map_[MODEL] = 0;
-        feature_map_[SCENE] = 0;
+        element_map_[MODEL] = 0;
+        element_map_[SCENE] = 0;
       }
 
-      /** @brief Copy constructor
-
-      The final transformation member has to be copied in the derived classes!
-      */
+      /// Copy constructor 
       BaseSuperimposer(const BaseSuperimposer& source)
           : FactoryProduct(source),
           	param_(source.param_)
       {
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
         final_transformation_[RT] = source.final_transformation_[RT];
         final_transformation_[MZ] = source.final_transformation_[MZ];
       }
 
-      /** @brief  Assignment operator
-
-      The final transformation member has to be assigned in the derived classes!
-      */
+      /// Assignment operator
       virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
       {
         param_ = source.param_;
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
         final_transformation_[RT] = source.final_transformation_[RT];
         final_transformation_[MZ] = source.final_transformation_[MZ];
         return *this;
@@ -142,23 +132,11 @@ namespace OpenMS
       virtual ~BaseSuperimposer()
       {
       }
-      //@}
-
-      /** @name Accesssor methods
-       */
-      //@{
-
 
       /// Set param class
       void setParam(const Param& param)
       {
         param_ = param;
-      }
-
-      /// Get param class
-      Param& getParam()
-      {
-        return param_;
       }
 
       /// Get param class (non-mutable)
@@ -167,71 +145,55 @@ namespace OpenMS
         return param_;
       }
 
-
-      /// Set feature map
-      void setFeatureMap(Size const index, const PointMapType& feature_map)
+      /// Set element map
+      void setElementMap(Size const index, const PointMapType& element_map)
       {
-        feature_map_[index] = &feature_map;
+        element_map_[index] = &element_map;
       }
 
-      /// Get feature map
-      const PointMapType& getFeatureMap(Size index)
+      /// Get element map
+      const PointMapType& getElementMap(Size index)
       {
-        return *feature_map_[index];
+        return *element_map_[index];
       }
 
-      /// Get feature maps (non-mutable)
-      const PointMapType& getFeatureMap(Size index) const
+      /// Get element maps (non-mutable)
+      const PointMapType& getElementMap(Size index) const
       {
-        return *feature_map_[index];
+        return *element_map_[index];
       }
 
-      //------------------------------------------------------------
-
-      /** @name Accesssor methods
-      */
-      /// Set
+      /// Set transformation
       void setTransformation(Size dim, const TransformationType& trafo)
       {
         final_transformation_[dim] = trafo;
       }
 
-      /// Get shift in dimension dim
+      /// Get transformation
       const TransformationType& getTransformation(Size dim) const
       {
         return final_transformation_[dim];
       }
 
-      //@}
-
       /// Estimates the transformation for each grid cell
       virtual void run() = 0;
       
 
-      /// register all derived classes here
+      /// Register all derived classes here
       static void registerChildren();
 
-
     protected:
-
-      /** @name Data members
-       */
-      //@{
-
       /// Param class containing the parameters for the map matching phase
       Param param_;
 
-      /// Two maps of features to be matched
-      PointMapType const * feature_map_[2];
+      /// Two maps of elements to be matched
+      PointMapType const * element_map_[2];
 
       /// Final transformation
       TransformationType final_transformation_[2];
-
-      //@}
-
   }
   ; // BaseSuperimposer
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BaseSuperimposer_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H

@@ -36,22 +36,22 @@
 #define V_SimplePairFinder(bla)
 #endif
 
-
 namespace OpenMS
 {
 
   /**
      @brief This class implements a simple point pair finding algorithm.
 
-     This class implements a feature pair finding algorithm.
-     It works on two feature maps, a vector of feature pairs, 
-     and a transformation defined for the second feature map (if no
-     transformation is given, the pairs are found in the two original maps).
-
-     Policy for copy constructor and assignment: grid_, feature_map_, and
-     feature_pairs_ are maintained as pointers and taken shallow copies.  But
-     param_ is deep.
-
+     This class implements a point pair finding algorithm.
+     It offers a method to determine element pairs in two element maps,
+     given two point maps and a transformation defined for the second element map (if no
+     transformation is given, the pairs are found in the two original maps). 
+     
+     @NOTE This pair finder do not offer a method to compute consensus elements given 
+     two element maps!
+     
+     @todo Description of the similarity measure (Clemens).
+    
   **/
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class SimplePairFinder : public BasePairFinder< MapT >
@@ -64,7 +64,7 @@ namespace OpenMS
         MZ = DimensionDescriptionType::MZ
     };
 
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
             This should make things more understandable and maintainable.
              */
       enum Maps
@@ -73,10 +73,6 @@ namespace OpenMS
         SCENE = 1
     };
 
-
-      /** @name Type definitions
-       */
-      //@{
       typedef BasePairFinder< MapT > Base;
       typedef typename Base::TraitsType             TraitsType;
 
@@ -85,19 +81,15 @@ namespace OpenMS
       typedef typename Base::IntensityType          IntensityType;
       typedef typename Base::PointType              PointType;
       typedef typename Base::PointMapType           PointMapType;
-      typedef typename Base::FeaturePairType        FeaturePairType;
-      typedef typename Base::FeaturePairVectorType  FeaturePairVectorType;
+      typedef typename Base::ElementPairType        ElementPairType;
+      typedef typename Base::ElementPairVectorType  ElementPairVectorType;
       typedef typename Base::TransformationType     TransformationType;
 
       using Base::param_;
-      using Base::feature_map_;
-      using Base::feature_pairs_;
+      using Base::element_map_;
+      using Base::element_pairs_;
       using Base::transformation_;
-      //@}
-
-
-      ///@name Constructors, destructor and assignment
-      //@{
+      
       /// Constructor
       SimplePairFinder()
           : Base(),
@@ -117,9 +109,9 @@ namespace OpenMS
       virtual SimplePairFinder& operator = (SimplePairFinder source)
       {
         param_ = source.param_;
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
-        feature_pairs_ = source.feature_pairs_;
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
+        element_pairs_ = source.element_pairs_;
         diff_intercept_[RT] = source.diff_intercept_[RT];
         diff_intercept_[MZ] = source.diff_intercept_[MZ];
         diff_exponent_[RT] = source.diff_exponent_[RT];
@@ -134,7 +126,6 @@ namespace OpenMS
       /// Destructor
       virtual ~SimplePairFinder()
       {}
-      //@}
 
       /// returns an instance of this class
       static BasePairFinder<PointMapType>* create()
@@ -160,14 +151,14 @@ namespace OpenMS
 
         parseParam_();
 
-        Size n = feature_map_[SCENE]->size();
+        Size n = element_map_[SCENE]->size();
 
         transformed_positions_second_map_.clear();
         transformed_positions_second_map_.resize(n);
 
         for (Size i = 0; i < n; ++i)
         {
-          transformed_positions_second_map_[i] = (*feature_map_[SCENE])[i].getPosition();
+          transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
         }
 
         V_run("SimplePairFinder::run(): apply transformation");
@@ -180,30 +171,24 @@ namespace OpenMS
           }
         }
 
-        V_run("SimplePairFinder::run(): find feature pairs");
+        V_run("SimplePairFinder::run(): find element pairs");
 #undef V_run
 
-        findFeaturePairs_();
+        findElementPairs_();
       };
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
       /// A parameter for similarity_().
       QualityType diff_exponent_[2];
 
       /// A parameter for similarity_().
       QualityType diff_intercept_[2];
 
-      /// A parameter for findFeaturePairs_().
+      /// A parameter for findElementPairs_().
       QualityType pair_min_quality_;
 
-      /// The vector of transformed feature positions of the second map
+      /// The vector of transformed element positions of the second map
       std::vector<PositionType> transformed_positions_second_map_;
-
-      //@}
 
       /// Parses the parameters, assigns their values to instance members.
       void parseParam_()
@@ -270,36 +255,36 @@ namespace OpenMS
 
       } // parseParam_
 
-      /// The actual algorithm for finding feature pairs.
-      void findFeaturePairs_()
+      /// The actual algorithm for finding element pairs.
+      void findElementPairs_()
       {
-#define V_findFeaturePairs_(bla) V_SimplePairFinder(bla)
-        V_findFeaturePairs_("@@@ findFeaturePairs_()");
+#define V_findElementPairs_(bla) V_SimplePairFinder(bla)
+        V_findElementPairs_("@@@ findElementPairs_()");
 
         // progress dots
         DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
         int progress_dots
         = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
-        int number_of_considered_feature_pairs = 0;
+        int number_of_considered_element_pairs = 0;
 
-        // For each feature in map 0, find his/her best friend in map 1
-        std::vector<Size>        best_companion_index_0(feature_map_[MODEL]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_0(feature_map_[MODEL]->size(),0);
-        for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++fi0 )
+        // For each element in map 0, find his/her best friend in map 1
+        std::vector<Size>        best_companion_index_0(element_map_[MODEL]->size(),Size(-1));
+        std::vector<QualityType> best_companion_quality_0(element_map_[MODEL]->size(),0);
+        for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
         {
           QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi1 = 0; fi1 < feature_map_[SCENE]->size(); ++ fi1 )
+          for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
           {
-            QualityType quality = similarity_( (*feature_map_[MODEL])[fi0], (*feature_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+            QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
             if ( quality > best_quality )
             {
               best_quality = quality;
               best_companion_index_0[fi0] = fi1;
             }
 
-            ++number_of_considered_feature_pairs;
+            ++number_of_considered_element_pairs;
             if ( progress_dots &&
-                 ! (number_of_considered_feature_pairs % progress_dots)
+                 ! (number_of_considered_element_pairs % progress_dots)
                )
             {
               std::cout << '-' << std::flush;
@@ -309,24 +294,24 @@ namespace OpenMS
           best_companion_quality_0[fi0] = best_quality;
         }
 
-        // For each feature in map 1, find his/her best friend in map 0
-        std::vector<Size>        best_companion_index_1(feature_map_[SCENE]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_1(feature_map_[SCENE]->size(),0);
-        for ( Size fi1 = 0; fi1 < feature_map_[SCENE]->size(); ++fi1 )
+        // For each element in map 1, find his/her best friend in map 0
+        std::vector<Size>        best_companion_index_1(element_map_[SCENE]->size(),Size(-1));
+        std::vector<QualityType> best_companion_quality_1(element_map_[SCENE]->size(),0);
+        for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
         {
           QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++ fi0 )
+          for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
           {
-            QualityType quality = similarity_ ( (*feature_map_[MODEL])[fi0], (*feature_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+            QualityType quality = similarity_ ( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
             if ( quality > best_quality )
             {
               best_quality = quality;
               best_companion_index_1[fi1] = fi0;
             }
 
-            ++number_of_considered_feature_pairs;
+            ++number_of_considered_element_pairs;
             if ( progress_dots &&
-                 ! (number_of_considered_feature_pairs % progress_dots)
+                 ! (number_of_considered_element_pairs % progress_dots)
                )
             {
               std::cout << '+' << std::flush;
@@ -337,8 +322,8 @@ namespace OpenMS
         }
 
         // And if both like each other, they become a pair.
-        // feature_pairs_->clear();
-        for ( Size fi0 = 0; fi0 < feature_map_[MODEL]->size(); ++fi0 )
+        // element_pairs_->clear();
+        for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
         {
           // fi0 likes someone ...
           if ( best_companion_quality_0[fi0] > pair_min_quality_ )
@@ -349,9 +334,9 @@ namespace OpenMS
                  best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
                )
             {
-              feature_pairs_->push_back
-              ( FeaturePairType ( (*feature_map_[MODEL])[fi0],
-                                  (*feature_map_[SCENE])[best_companion_of_fi0],
+              element_pairs_->push_back
+              ( ElementPairType ( (*element_map_[MODEL])[fi0],
+                                  (*element_map_[SCENE])[best_companion_of_fi0],
                                   best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
                                 )
               );
@@ -359,14 +344,14 @@ namespace OpenMS
           }
         }
 
-#undef V_findFeaturePairs_
+#undef V_findElementPairs_
 
-      } // findFeaturePairs_
+      } // findElementPairs_
 
-      /**@brief Compute the similarity for a pair of features; larger quality
+      /**@brief Compute the similarity for a pair of elements; larger quality
         values are better.
 
-        The returned value should express our confidence that one feature might
+        The returned value should express our confidence that one element might
         possibly be matched to the other.
 
         The details here are kind of alchemy ...

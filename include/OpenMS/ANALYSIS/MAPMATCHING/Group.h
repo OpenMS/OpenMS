@@ -35,19 +35,15 @@
 namespace OpenMS
 {
   /**
-    @brief A group of D-dimensional elements.
+    @brief A group of IndexTuple.
     
+    This class stores a set of IndexTuple.
   */
   template < typename ContainerType >
   class Group : public std::set
           < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess >
     {
     public:
-
-      /**
-        @name Type definitions
-      */
-      //@{
       typedef std::set
         < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess > Base;
 
@@ -66,11 +62,7 @@ namespace OpenMS
       //@}
 
       typedef IndexTuple< ContainerType > Element;
-      //@}
 
-      /** @name Constructors and Destructor
-      */
-      //@{
       /// Default constructor
       Group() : Base()
     {}
@@ -93,12 +85,6 @@ namespace OpenMS
       /// Destructor
       virtual ~Group()
     {}
-      //@}
-
-      /** @name Accessors */
-      //@{
-
-      //@}
 
       /// Returns the number of elements
       inline const unsigned int count() const
@@ -112,7 +98,7 @@ namespace OpenMS
         return (this->size() == 0);
       }
 
-
+      /// Inserts an element into the group
       std::pair< typename Base::iterator, bool >
       insert(const Element& elem) throw (Exception::InvalidValue)
       {
@@ -121,7 +107,6 @@ namespace OpenMS
 
         if (pr.second == false)
         {
-          std::cout << "Can not insert " << elem << std::endl;
           throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",(String)(elem.getMapIndex())) ;
         }
         else
@@ -129,7 +114,6 @@ namespace OpenMS
           return pr;
         }
       }
-
 
       /// Equality operator
       virtual bool operator == (const Group& group) const
@@ -143,9 +127,6 @@ namespace OpenMS
         return !(std::operator==(group,*this));
       }
 
-      /**@name Serialization
-       */
-      //@{
     public:
       /// Serialization interface
       //     template<class Archive>
@@ -173,7 +154,6 @@ namespace OpenMS
     }
     return os;
   }
-
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_GROUP_H

@@ -30,11 +30,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
-
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
@@ -46,46 +44,53 @@ namespace OpenMS
   /**
      @brief The base class of all pairwise point matching algorithms.
 
-     The base class of all point matching algorithms.
-     A point can be a raw data point, a peak or a feature.
      This class defines the basic interface for all point matching
-     algorithms.  It works on two point maps and computes a vector of corresponding points
+     algorithms.  
+     It works on two point maps and computes a vector of corresponding points
      in both maps (given by a point pairs vector). 
+     A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     (wheras DFeature is the default element type).
+     
      The point pairs created by the algorithm solve a
      (bipartite) matching problem between two point maps.
-
-     The matching shall minimize the shift in retention time and m/z between
-     the two maps after a suitable transformation, yet have large cardinality.
-
+     Therefore first a transformation is estimated, that maps the one map 
+     (the so called scene map) onto the other map (the so called model map).
+     Given the transformation correspoinding elements in the two maps are determined.
+     
+     @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
+     the number of buckets in the RT as well as the MZ dimension. 
+     Call initGridTransformation() before run()!
+     
+     @ingroup Analysis
   **/
+  
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairwiseMapMatcher : public FactoryProduct
   {
     public:
-      /// Defines the coordinates of peaks / features.
+      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      
+      /// Defines the coordinates of elements
       enum DimensionId
       {
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
-      /** @name Type definitions
-       */
-      //@{
-      /// Container for input features
+      /// Container for input elements
       typedef MapT PointMapType;
 
-      /// Type of features considered here
-      typedef typename PointMapType::value_type FeatureType;
+      /// Type of elements considered here
+      typedef typename PointMapType::value_type ElementType;
 
       /// Traits type
-      typedef typename FeatureType::TraitsType TraitsType;
+      typedef typename ElementType::TraitsType TraitsType;
 
-      /// Type of feature pairs
-      typedef DFeaturePair < 2, FeatureType > FeaturePairType;
+      /// Type of element pairs
+      typedef DFeaturePair < 2, ElementType > ElementPairType;
 
-      /// Container for generated feature pairs
-      typedef DFeaturePairVector < 2, FeatureType > FeaturePairVectorType;
+      /// Container for generated element pairs
+      typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
       /// Grid
       typedef DGrid<2> GridType;
@@ -98,30 +103,31 @@ namespace OpenMS
 
       /// Coordinate
       typedef typename TraitsType::CoordinateType CoordinateType;
-      //@}
 
 
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       BasePairwiseMapMatcher()
           : FactoryProduct(),
           param_()
       {
-        feature_map_[0] = 0;
-        feature_map_[1] = 0;
+        element_map_[0] = 0;
+        element_map_[1] = 0;
+        number_buckets_[0] = 1;
+        number_buckets_[1] = 1;
       }
 
       /// Copy constructor
       BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
           : FactoryProduct(source),
           param_(source.param_),
+          all_element_pairs_(source.all_element_pairs_),
           bounding_box_scene_map_(source.bounding_box_scene_map_),
-          box_size_(source.box_size_),
-          number_buckets_(source.number_buckets_)
+          box_size_(source.box_size_)
       {
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
+        element_map_[0] = source.element_map_[0];
+        element_map_[1] = source.element_map_[1];
+        number_buckets_[0] = source.number_buckets_[0];
+        number_buckets_[1] = source.number_buckets_[1];
         grid_ = source.grid_;
       }
 
@@ -131,24 +137,21 @@ namespace OpenMS
         FactoryProduct::operator = (source);
 
         param_ = source.param_;
-        feature_map_[0] = source.feature_map_[0];
-        feature_map_[1] = source.feature_map_[1];
+        element_map_[0] = source.element_map_[0];
+        element_map_[1] = source.element_map_[1];
+        all_element_pairs_ = source.all_element_pairs_;
         grid_ = source.grid_;
         bounding_box_scene_map_ = source.bounding_box_scene_map_;
         box_size_ = source.box_size_;
-        number_buckets_ = source.number_buckets_;
+        number_buckets_[0] = source.number_buckets_[0];
+        number_buckets_[1] = source.number_buckets_[1];
         return *this;
       }
 
       /// Destructor
       virtual ~BasePairwiseMapMatcher()
       {}
-      //@}
-
-      /** @name Accesssor methods
-       */
-      //@{
-
+      
       /// Set param
       void setParam(const Param& param)
       {
@@ -162,29 +165,22 @@ namespace OpenMS
         return param_;
       }
 
-
-      /// Set feature map
-      void setFeatureMap(Size const index, const PointMapType& feature_map)
+      /// Set element map
+      void setElementMap(Size const index, const PointMapType& element_map)
       {
-        feature_map_[index] = &feature_map;
+        element_map_[index] = &element_map;
       }
 
-      /// Get feature map (non-mutable)
-      const PointMapType& getFeatureMap(Size index) const
+      /// Get element map 
+      const PointMapType& getElementMap(Size index) const
       {
-        return *feature_map_[index];
+        return *element_map_[index];
       }
 
-      /// Set feature pair list
-      void setFeaturePairs(FeaturePairVectorType& feature_pairs)
+      /// Get element pair list 
+      const ElementPairVectorType& getElementPairs() const
       {
-        all_feature_pairs_ = &feature_pairs;
-      }
-
-      /// Get feature pair list (non-mutable)
-      const FeaturePairVectorType& getFeaturePairs() const
-      {
-        return *all_feature_pairs_;
+        return all_element_pairs_;
       }
 
       /// Get grid
@@ -193,26 +189,25 @@ namespace OpenMS
         return grid_;
       }
 
-      /// Get grid
-      GridType& getGrid()
+      /// Set number of buckets in dimension index
+      void setNumberBuckets(Size const index, UnsignedInt number)
       {
-        return grid_;
+        number_buckets_[index] = number;
       }
 
-      /// Set grid
-      void setGrid(const GridType& grid)
+      /// Get number of buckets in dimension index
+      UnsignedInt getNumberBuckets(Size index) const
       {
-        grid_ = grid;
+        return number_buckets_[index];
       }
-      //@}
 
-      /// register all derived classes here
+      /// Register all derived classes here
       static void registerChildren();
 
-      /// Estimates the transformation for each grid cell
+      /// Determine corresponding elements (element pairs)
       virtual void run() = 0;
 
-      /// Initializes the grid for the scene map given the number of buckets in rt and mz
+      /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
       void initGridTransformation(const PointMapType& scene_map)
       {
         // compute the minimal and maximal positions of the second map (the map, which should be transformed)
@@ -231,6 +226,7 @@ namespace OpenMS
         {
           box_size_[i] = (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) / ( number_buckets_[i] - 0.01 );
         }
+        std::cout << "number_buckets_ " << number_buckets_[0] << ' ' << number_buckets_[1] << std::endl;
 
         // initialize the grid cells of the grid_
         for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
@@ -250,24 +246,19 @@ namespace OpenMS
 
 
 
-      //  int dumpFeaturePairs(const String& filename); // code is below
+      //  int dumpElementPairs(const String& filename); // code is below
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
-
       /// Param class containing the parameters for the map matching phase
       Param param_;
 
-      /// Two maps of features to be matched
-      PointMapType const * feature_map_[2];
+      /// Two maps of elements to be matched
+      PointMapType const * element_map_[2];
 
-      /// Each element of the vector corresponds to all feature pairs of one gridcell
-      FeaturePairVectorType* all_feature_pairs_;
+      /// Each element of the vector corresponds to all element pairs of one gridcell
+      ElementPairVectorType all_element_pairs_;
 
-      /// The estimated transformation between the two feature maps
+      /// The estimated transformation between the two element maps
       GridType grid_;
 
       /// Bounding box of the second map
@@ -276,59 +267,72 @@ namespace OpenMS
       /// Size of the grid cells
       PositionType box_size_;
 
-      /// Number of buckets in each dimension
-      PositionType number_buckets_;
-      //@}
+      /// Number of buckets in each dimension 
+      UnsignedInt number_buckets_[2];
 
-      /// Parse the parameter
-      virtual void parseParam_() = 0;
-
-  }
+      /// Parses the parameters, assigns their values to instance members.
+      void parseParam_()
+      {
+        /// Check the user defined size of the grid cells
+        std::string param_name_prefix = "number_buckets:";
+        PositionType number_buckets;
+        for ( Size dimension = 0; dimension < 2; ++dimension)
+        {
+          std::string param_name =
+            param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
+          DataValue data_value = param_.getValue(param_name);
+          if ( data_value != DataValue::EMPTY )
+          {
+            number_buckets_[dimension] = data_value;
+          }
+        }
+      } // parseParam_
+ }
   ; // BasePairwiseMapMatcher
 
 
   //   template < typename MapT >
-  //   int BasePairwiseMapMatcher<MapT>::dumpFeaturePairs(const String& filename)
+  //   int BasePairwiseMapMatcher<MapT>::dumpElementPairs(const String& filename)
   //   {
-  //     // V_dumpFeaturePairs() is used for a few comments about the files being
+  //     // V_dumpElementPairs() is used for a few comments about the files being
   //     // written.
-  // #define V_dumpFeaturePairs(bla) std::cerr << bla << std::endl;
-  //     V_dumpFeaturePairs("### Writing "<<filename);
+  // #define V_dumpElementPairs(bla) std::cerr << bla << std::endl;
+  //     V_dumpElementPairs("### Writing "<<filename);
   //     std::ofstream dump_file(filename.c_str());
   //     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
   //     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-  //     for ( Size fp = 0; fp < getFeaturePairs().size(); ++fp )
+  //     for ( Size fp = 0; fp < getElementPairs().size(); ++fp )
   //     {
   //       dump_file << fp << ' '
-  //       << getFeaturePairs()[fp].getQuality() << ' '
-  //       << getFeaturePairs()[fp].getFirst().getPosition()[RT] << ' '
-  //       << getFeaturePairs()[fp].getFirst().getPosition()[MZ] << ' '
-  //       << getFeaturePairs()[fp].getFirst().getIntensity() << ' '
-  //       << getFeaturePairs()[fp].getFirst().getOverallQuality() << ' '
-  //       << getFeaturePairs()[fp].getSecond().getPosition()[RT] << ' '
-  //       << getFeaturePairs()[fp].getSecond().getPosition()[MZ] << ' '
-  //       << getFeaturePairs()[fp].getSecond().getIntensity() << ' '
-  //       << getFeaturePairs()[fp].getSecond().getOverallQuality() << ' '
+  //       << getElementPairs()[fp].getQuality() << ' '
+  //       << getElementPairs()[fp].getFirst().getPosition()[RT] << ' '
+  //       << getElementPairs()[fp].getFirst().getPosition()[MZ] << ' '
+  //       << getElementPairs()[fp].getFirst().getIntensity() << ' '
+  //       << getElementPairs()[fp].getFirst().getOverallQuality() << ' '
+  //       << getElementPairs()[fp].getSecond().getPosition()[RT] << ' '
+  //       << getElementPairs()[fp].getSecond().getPosition()[MZ] << ' '
+  //       << getElementPairs()[fp].getSecond().getIntensity() << ' '
+  //       << getElementPairs()[fp].getSecond().getOverallQuality() << ' '
   //       << std::endl;
   //     }
   //     dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
   //     std::string dump_filename_gp = filename + ".gp";
-  //     V_dumpFeaturePairs("### Writing "<<dump_filename_gp);
+  //     V_dumpElementPairs("### Writing "<<dump_filename_gp);
   //     std::ofstream dump_file_gp(dump_filename_gp.c_str());
   //     dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
   //     dump_file_gp <<
-  //     "# Gnuplot script to view feature pairs\n"
+  //     "# Gnuplot script to view element pairs\n"
   //     "plot   \"" << filename <<"\" using 3:4 title \"map 1\"\n"
   //     "replot \"" << filename <<"\" using 7:8 title \"map 2\"\n"
   //     "replot \"" << filename <<"\" using 3:4:($7-$3):($8-$4) w vectors nohead title \"pairs\"\n"
   //     ;
   //     dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
-  //     V_dumpFeaturePairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
-  // #undef V_dumpFeaturePairs
+  //     V_dumpElementPairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
+  // #undef V_dumpElementPairs
   //
   //     return 0;
   //   }
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_DBASEFEATUREMATCHER_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_H

@@ -43,28 +43,33 @@ namespace OpenMS
 {
 
   /**
-     @brief The base class of all feature pair finding algorithms.
+     @brief The base class of all element pair finding algorithms.
 
-     This class defines the basic interface for all feature pair finding 
-     algorithms. It works on two feature maps (DFeatureMap< D, Traits, DFeature< D, Traits > >
-     is the default map type, but you can also use a pointer map like 
-     DPeakConstReferenceArray<2, KernelTraits, DFeatureMap<2> >), a vector of feature
-     pairs, and a transformation defined for the second feature map (if no
+     This class defines the basic interface for all element pair finding 
+     algorithms. It works on two element maps (DFeatureMap is the default map type, 
+     but you can also use a pointer map like DPeakConstReferenceArray),
+     and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps).
+     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     (wheras DFeature is the default element type).
+          
+     Policy for copy constructor and assignment: element_map_ is 
+     maintained as pointer and taken shallow copy. 
+     But param_ is deep.
 
   **/
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairFinder : public FactoryProduct
   {
     public:
-      /// Defines the coordinates of peaks / features.
+      /// Defines the coordinates of elements.
       enum DimensionId
       {
         RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
         MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
     };
 
-      /** Symbolic names for indices of feature maps etc.
+      /** Symbolic names for indices of element maps etc.
             This should make things more understandable and maintainable.
              */
       enum Maps
@@ -73,14 +78,10 @@ namespace OpenMS
         SCENE = 1
     };
 
-
-      /** @name Type definitions
-       */
-      //@{
-      /// Container for input features
+      /// Container for input elements
       typedef MapT PointMapType;
 
-      /// Type of features considered here
+      /// Type of elements considered here
       typedef typename PointMapType::value_type PointType;
 
       /// Traits type
@@ -95,27 +96,23 @@ namespace OpenMS
       //// Intensity
       typedef typename TraitsType::IntensityType IntensityType;
 
-      /// Type of feature pairs
-      typedef DFeaturePair < 2, PointType > FeaturePairType;
+      /// Type of element pairs
+      typedef DFeaturePair < 2, PointType > ElementPairType;
 
-      /// Container for generated feature pairs
-      typedef DFeaturePairVector < 2, PointType > FeaturePairVectorType;
+      /// Container for generated element pairs
+      typedef DFeaturePairVector < 2, PointType > ElementPairVectorType;
 
       /// Type of estimated transformation
       typedef DLinearMapping< 1, TraitsType > TransformationType;
-      //@}
 
-
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       BasePairFinder()
           : FactoryProduct(),
           param_(),
-          feature_pairs_(0)
+          element_pairs_(0)
       {
-        feature_map_[MODEL] = 0;
-        feature_map_[SCENE] = 0;
+        element_map_[MODEL] = 0;
+        element_map_[SCENE] = 0;
         transformation_[RT].setSlope(1);
         transformation_[RT].setIntercept(0);
         transformation_[MZ].setSlope(1);
@@ -127,10 +124,10 @@ namespace OpenMS
       BasePairFinder(const BasePairFinder& source)
           : FactoryProduct(source),
           param_(source.param_),
-          feature_pairs_(source.feature_pairs_)
+          element_pairs_(source.element_pairs_)
       {
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
         transformation_[RT] = source.transformation_[RT];
         transformation_[MZ] = source.transformation_[MZ];
       }
@@ -142,9 +139,9 @@ namespace OpenMS
           return *this;
 
         FactoryProduct::operator = (source);
-        feature_map_[MODEL] = source.feature_map_[MODEL];
-        feature_map_[SCENE] = source.feature_map_[SCENE];
-        feature_pairs_ = source.feature_pairs_;
+        element_map_[MODEL] = source.element_map_[MODEL];
+        element_map_[SCENE] = source.element_map_[SCENE];
+        element_pairs_ = source.element_pairs_;
         transformation_[RT] = source.transformation_[RT];
         transformation_[MZ] = source.transformation_[MZ];
         return *this;
@@ -153,100 +150,88 @@ namespace OpenMS
       /// Destructor
       virtual ~BasePairFinder()
     {}
-      //@}
-
-      /** @name Accesssor methods
-       */
-      //@{
 
       /// Set param class
       void setParam(const Param& param)
       {
         param_ = param;
       }
-      /// Get param class
-      Param& getParam()
-      {
-        return param_;
-      }
+      
       /// Get param class (non-mutable)
       const Param& getParam() const
       {
         return param_;
       }
-      /// Set feature map by arg
-      void setFeatureMap(Size const index, const PointMapType& feature_map)
+      
+      /// Set element map by arg
+      void setElementMap(Size const index, const PointMapType& element_map)
       {
-        feature_map_[index] = &feature_map;
+        element_map_[index] = &element_map;
       }
 
-      /// Get feature maps by arg (non-mutable)
-      const PointMapType& getFeatureMap(Size index) const
+      /// Get element maps by arg (non-mutable)
+      const PointMapType& getElementMap(Size index) const
       {
-        return *feature_map_[index];
+        return *element_map_[index];
       }
-      /// Set feature pair list
-      void setFeaturePairs(FeaturePairVectorType& feature_pairs)
+      
+      /// Set element pair list
+      void setElementPairs(ElementPairVectorType& element_pairs)
       {
-        feature_pairs_ = &feature_pairs;
+        element_pairs_ = &element_pairs;
       }
 
-      /// Get feature pair list (non-mutable)
-      const FeaturePairVectorType& getFeaturePairs() const
+      /// Get element pair list (non-mutable)
+      const ElementPairVectorType& getElementPairs() const
       {
-        return *feature_pairs_;
+        return *element_pairs_;
       }
-      /// Set
+      
+      /// Set transformation
       void setTransformation(Size dim, const TransformationType& trafo)
       {
         transformation_[dim] = trafo;
       }
 
-      /// Get shift in dimension dim
+      /// Get transformation
       const TransformationType& getTransformation(Size dim) const
       {
         return transformation_[dim];
       }
-      //@}
 
-      /// register all derived classes here
+      /// Register all derived classes here
       static void registerChildren();
 
-      /**@brief Write a debug dump of feature pairs, e.g. for viewing the result
+      /**@brief Write a debug dump of element pairs, e.g. for viewing the result
          with Gnuplot.  The details (e.g. output destination) are controlled by
          param_.  Returns 0 upon success and -1 if no debug dump was requested
          according to param_.  You might invoke this at the end of run() in
          derived classes.
 
-         The base class will treat parameter "debug:dump_feature_pairs" as a
-         string, namely the filename for the feature pair data and append ".gp"
+         The base class will treat parameter "debug:dump_element_pairs" as a
+         string, namely the filename for the element pair data and append ".gp"
          to that filename for a gnuplot script.
        */
-      virtual int dumpFeaturePairs(const String& filename); // code is below
+      virtual int dumpElementPairs(const String& filename); // code is below
 
       /// Estimates the transformation for each grid cell
       virtual void run() = 0;
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
       /// Param class containing the parameters for the map matching phase
       Param param_;
 
-      /// Two maps of features to be matched
-      PointMapType const * feature_map_[2];
+      /// Two maps of elements to be matched
+      PointMapType const * element_map_[2];
 
-      // Transformation in rt and mz dimension
+      /// Transformation in rt and mz dimension
       TransformationType transformation_[2];
 
-      /// Vector of pairs of features that have been identified by the feature matcher
-      mutable FeaturePairVectorType * feature_pairs_;
+      /// Vector of pairs of elements that have been identified by the element matcher
+      mutable ElementPairVectorType * element_pairs_;
 
 
-      //@}
-
+      /// Given a position element positoon this method computes the grid cell that covers this point.
       SignedInt computeGridCellIndex_(const PositionType& pos, const DGrid<2>& grid) throw (Exception::InvalidValue)
       {
         UnsignedInt index = 0;
@@ -267,45 +252,44 @@ namespace OpenMS
 
 
   template <typename MapT >
-  int BasePairFinder<MapT>::dumpFeaturePairs(const String& filename)
+  int BasePairFinder<MapT>::dumpElementPairs(const String& filename)
   {
-    // V_dumpFeaturePairs() is used for a few comments about the files being
+    // V_dumpElementPairs() is used for a few comments about the files being
     // written.  We are silent unless output is actually being written, so
     // it is defined here inside the "else" branch.
-#define V_dumpFeaturePairs(bla) std::cerr << bla << std::endl;
-    V_dumpFeaturePairs("### Writing "<<filename);
+#define V_dumpElementPairs(bla) std::cerr << bla << std::endl;
+    V_dumpElementPairs("### Writing "<<filename);
     std::ofstream dump_file(filename.c_str());
     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-    for ( Size fp = 0; fp < getFeaturePairs().size(); ++fp )
+    for ( Size fp = 0; fp < getElementPairs().size(); ++fp )
     {
       dump_file << fp << ' '
-      << getFeaturePairs()[fp].getFirst().getPosition()[RT] << ' '
-      << getFeaturePairs()[fp].getFirst().getPosition()[MZ] << ' '
-      << getFeaturePairs()[fp].getFirst().getIntensity() << ' '
-      << getFeaturePairs()[fp].getSecond().getPosition()[RT] << ' '
-      << getFeaturePairs()[fp].getSecond().getPosition()[MZ] << ' '
-      << getFeaturePairs()[fp].getSecond().getIntensity() << ' '
+      << getElementPairs()[fp].getFirst().getPosition()[RT] << ' '
+      << getElementPairs()[fp].getFirst().getPosition()[MZ] << ' '
+      << getElementPairs()[fp].getFirst().getIntensity() << ' '
+      << getElementPairs()[fp].getSecond().getPosition()[RT] << ' '
+      << getElementPairs()[fp].getSecond().getPosition()[MZ] << ' '
+      << getElementPairs()[fp].getSecond().getIntensity() << ' '
       << std::endl;
     }
     dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
     std::string dump_filename_gp = filename + ".gp";
-    V_dumpFeaturePairs("### Writing "<<dump_filename_gp);
+    V_dumpElementPairs("### Writing "<<dump_filename_gp);
     std::ofstream dump_file_gp(dump_filename_gp.c_str());
     dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
     dump_file_gp <<
-    "# Gnuplot script to view feature pairs\n"
+    "# Gnuplot script to view element pairs\n"
     "plot   \"" << filename <<"\" using 2:3 title \"map 1\"\n"
     "replot \"" << filename <<"\" using 5:6 title \"map 2\"\n"
     "replot \"" << filename <<"\" using 2:3:($5-$2):($6-$3) w vectors nohead title \"pairs\"\n"
     ;
     dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
-    V_dumpFeaturePairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
-#undef V_dumpFeaturePairs
+    V_dumpElementPairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
+#undef V_dumpElementPairs
 
     return 0;
   }
-
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BasePairFinder_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H

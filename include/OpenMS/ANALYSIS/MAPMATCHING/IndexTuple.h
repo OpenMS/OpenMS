@@ -36,30 +36,26 @@
 namespace OpenMS
 {
   /**
-    @brief 
+    @brief This class stores some needful information of an element.
+    
+    The IndexTuple class is used during map matching. 
+    It stores next to an element's index (within a container), a pointer to the element itself,
+    an index of the map it is contained as well as the transformed position of the element.
+            
   */
 
   template < typename ContainerType = DFeatureMap<2, DFeature<2> > >
   class IndexTuple
   {
     public:
-
-      /**
-        @name Type definitions
-      */
-      //@{
       typedef typename ContainerType::value_type ElementType;
       typedef typename ElementType::TraitsType TraitsType;
       typedef DPosition<2, TraitsType> PositionType;
-      //@}
-
-      /** @name Constructors and Destructor
-      */
-      //@{
+      
       /// Default constructor
       IndexTuple()
           : map_index_(0),
-          feature_index_(0),
+          element_index_(0),
           element_pointer_(0)
       {}
 
@@ -67,7 +63,7 @@ namespace OpenMS
       inline IndexTuple(const UnsignedInt& map_index, const UnsignedInt& element_index, const ElementType& element)
       {
         map_index_ = map_index;
-        feature_index_ = element_index;
+        element_index_ = element_index;
         element_pointer_ = const_cast<ElementType*>(&element);
         transformed_position_ = element_pointer_->getPosition();
       }
@@ -76,7 +72,7 @@ namespace OpenMS
       inline IndexTuple(const IndexTuple& source)
       {
         map_index_ = source.map_index_;
-        feature_index_ = source.feature_index_;
+        element_index_ = source.element_index_;
         element_pointer_ = source.element_pointer_;
         transformed_position_ = source.transformed_position_;
       }
@@ -88,7 +84,7 @@ namespace OpenMS
           return *this;
 
         map_index_ = source.map_index_;
-        feature_index_ = source.feature_index_;
+        element_index_ = source.element_index_;
         element_pointer_ = source.element_pointer_;
         transformed_position_ = source.transformed_position_;
         return *this;
@@ -96,21 +92,14 @@ namespace OpenMS
 
       /// Destructor
       virtual ~IndexTuple()
-    {}
-      //@}
-
-      /** @name Accessors */
-      //@{
+      {}
+      
       /// Non-mutable access to the container index
       inline const UnsignedInt& getMapIndex() const
       {
         return map_index_;
       }
-      /// Mutable access to the container index
-      inline UnsignedInt& getMapIndex()
-      {
-        return map_index_;
-      }
+      
       /// Set the container index
       inline void setMapIndex(const UnsignedInt& c)
       {
@@ -120,17 +109,13 @@ namespace OpenMS
       /// Non-mutable access to the element index
       inline const UnsignedInt& getElementIndex() const
       {
-        return feature_index_;
+        return element_index_;
       }
-      /// Mutable access to the element index
-      inline UnsignedInt& getElementIndex()
-      {
-        return feature_index_;
-      }
-      /// Set the container
+      
+      /// Set the element index
       inline void setElementIndex(const UnsignedInt& e)
       {
-        feature_index_= e;
+        element_index_= e;
       }
 
       /// Non-mutable access to the element
@@ -138,7 +123,8 @@ namespace OpenMS
       {
         return *element_pointer_;
       }
-      /// Set the container
+      
+      /// Set the element
       inline void setElement(const ElementType& e)
       {
         element_pointer_ = &e;
@@ -149,29 +135,23 @@ namespace OpenMS
       {
         return transformed_position_;
       }
-      /// Mutable access to the transformed position
-      inline PositionType& getTransformedPosition()
-      {
-        return transformed_position_;
-      }
-      /// Set the container
+      
+      /// Set the transformed position
       inline void setTransformedPosition(const PositionType& p)
       {
         transformed_position_ = p;
       }
-      //@}
-
 
       /// Equality operator
       virtual bool operator == (const IndexTuple& i) const
       {
-        return ((map_index_ == i.map_index_) && (feature_index_ == i.feature_index_) && (element_pointer_ == i.element_pointer_));
+        return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (element_pointer_ == i.element_pointer_));
       }
 
       /// Equality operator
       virtual bool operator != (const IndexTuple& i) const
       {
-        return !((map_index_ == i.map_index_) && (feature_index_ == i.feature_index_) && (element_pointer_ == i.element_pointer_));
+        return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (element_pointer_ == i.element_pointer_));
       }
 
       /// Compare by getOverallQuality()
@@ -185,9 +165,13 @@ namespace OpenMS
       };
 
     protected:
+      /// Transformed element position
       PositionType transformed_position_;
+      /// Index of the element's container
       UnsignedInt map_index_;
-      UnsignedInt feature_index_;
+      /// Index of the element within element's container
+      UnsignedInt element_index_;
+      /// Pointer to the element itself
       const ElementType* element_pointer_;
   };
 
@@ -202,8 +186,6 @@ namespace OpenMS
     << "Map Index: " << cons.getMapIndex() << std::endl;
     return os;
   }
-
-
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMAPPING_INDEXTUPLE_H
