@@ -3,6 +3,6 @@
 	<slope>0.210347</slope>
 	<intercept>0.0782404</intercept>
 	<x_intercept>-0.371959</x_intercept>
-	<confidence_lowerlimit>-0.462661</confidence_lowerlimit>
-	<confidence_upperlimit>-0.288016</confidence_upperlimit>
+	<confidence_lowerlimit>-0.403779</confidence_lowerlimit>
+	<confidence_upperlimit>-0.341014</confidence_upperlimit>
 </results_additiveseries>
