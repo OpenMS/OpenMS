@@ -200,6 +200,11 @@ namespace OpenMS
       {
         return number_buckets_[index];
       }
+      
+      void clearGrid()
+      {
+      	grid_.clear();
+      }
 
       /// Register all derived classes here
       static void registerChildren();

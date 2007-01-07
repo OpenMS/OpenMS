@@ -257,7 +257,7 @@ namespace OpenMS
         DataValue data_value = param_.getValue("matching_algorithm");
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
         pairwise_matcher_->setParam(param_matcher);
-        pairwise_matcher_->setFeatureMap(MODEL,cons_ref_map);
+        pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
         DMapMatcherRegression<ConsensusElementType> lin_regression;
         UnsignedInt number_maps = element_map_vector_.size();
@@ -285,22 +285,20 @@ namespace OpenMS
             std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
 #endif
             // compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
-            pairwise_matcher_->setFeatureMap(SCENE, map);
-            ConsensusElementPairVectorType pairs;
-            pairwise_matcher_->setFeaturePairs(pairs);
-            pairwise_matcher_->getGrid().clear();
+            pairwise_matcher_->setElementMap(SCENE, map);
+            pairwise_matcher_->clearGrid();
             pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
 
-            std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairs.size() << " ***" << std::endl;
+            std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairwise_matcher_->getElementPairs().size() << " ***" << std::endl;
 #endif
 
             // use the linear regression only if there are more than 2 pairs
-            if (pairs.size() > 2)
+            if (pairwise_matcher_->getElementPairs().size() > 2)
             {
               // estimate for each grid cell a better transformation using the element pairs
-              lin_regression.setFeaturePairs(pairs);
+              lin_regression.setFeaturePairs(pairwise_matcher_->getElementPairs());
               lin_regression.setGrid(pairwise_matcher_->getGrid());
               lin_regression.setMinQuality(-1.);
               lin_regression.estimateTransform();
@@ -316,7 +314,7 @@ namespace OpenMS
             String name = "map_" + (String)number_alignments + ".dat";
             std::ofstream out(name.c_str(), std::ios::out);
 #endif
-            // iterate over all features...
+            // iterate over all Elements...
             UnsignedInt n = map.size();
             for (UnsignedInt j = 0; j < n; ++j)
             {
@@ -353,7 +351,7 @@ namespace OpenMS
                 }
                 grid_it++;
               } // end while (grid)
-            } // end while (features)
+            } // end while (Elements)
 
 #ifdef DEBUG_ALIGNMENT
             out.flush();
@@ -465,7 +463,7 @@ namespace OpenMS
         DataValue data_value = param_.getValue("matching_algorithm");
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
         pairwise_matcher_->setParam(param_matcher);
-        pairwise_matcher_->setFeatureMap(MODEL,reference_most_intense);
+        pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
         DMapMatcherRegression< ElementType > lin_regression;
         UnsignedInt number_maps = element_map_vector_.size();
@@ -488,7 +486,7 @@ namespace OpenMS
             buildConsensusMapType_(i,map);
 
             PeakConstReferenceMapType pointer_map((element_map_vector_[i])->begin(), (element_map_vector_[i])->end());
-            pairwise_matcher_->getGrid().clear();
+            pairwise_matcher_->clearGrid();
             pairwise_matcher_->initGridTransformation(pointer_map);
             /* pointer_map.sortByIntensity();
              Size number = (pointer_map.size() > n) ? n : pointer_map.size();
@@ -500,17 +498,15 @@ namespace OpenMS
             std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
 #endif
             // compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
-            pairwise_matcher_->setFeatureMap(SCENE, pointer_map);
-            ElementPairVectorType pairs;
-            pairwise_matcher_->setFeaturePairs(pairs);
+            pairwise_matcher_->setElementMap(SCENE, pointer_map);
             pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
 
-            std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairs.size() << " ***" << std::endl;
+            std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairwise_matcher_->getElementPairs().size() << " ***" << std::endl;
 #endif
             // estimate for each grid cell a better transformation using the element pairs
-            lin_regression.setFeaturePairs(pairs);
+            lin_regression.setFeaturePairs(pairwise_matcher_->getElementPairs());
             lin_regression.setGrid(pairwise_matcher_->getGrid());
             lin_regression.setMinQuality(-1.);
             lin_regression.estimateTransform();
@@ -524,7 +520,7 @@ namespace OpenMS
             String name = "map_" + (String)number_alignments + ".dat";
             std::ofstream out(name.c_str(), std::ios::out);
 #endif
-            // iterate over all features...
+            // iterate over all Elements...
             UnsignedInt n = map.size();
             for (UnsignedInt j = 0; j < n; ++j)
             {
@@ -563,7 +559,7 @@ namespace OpenMS
 #ifdef DEBUG_ALIGNMENT
             out.flush();
 
-            // iterate over all features...
+            // iterate over all Elements...
             n = map.size();
             std::cout << "MAP " << std::endl;
             for (UnsignedInt j = 0; j < n; ++j)

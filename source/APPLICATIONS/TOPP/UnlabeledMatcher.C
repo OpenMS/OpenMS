@@ -139,10 +139,8 @@ class TOPPUnlabeledMatcher
 
       for ( Size index = 0; index < 2; ++index )
       {
-        poseclust_feature_matcher.setFeatureMap(index,feature_map[index]);
+        poseclust_feature_matcher.setElementMap(index,feature_map[index]);
       }
-
-      poseclust_feature_matcher.setFeaturePairs(feature_pair_vector);
 
       writeDebug_("Running algorithm.",1);
 
@@ -150,11 +148,11 @@ class TOPPUnlabeledMatcher
 
       writeDebug_("Running algorithm...done.",1);
 
-      writeDebug_(String("Number of feature pairs: ") + String(poseclust_feature_matcher.getFeaturePairs().size()),1);
+      writeDebug_(String("Number of feature pairs: ") + String(poseclust_feature_matcher.getElementPairs().size()),1);
       writeDebug_(String("Writing feature pairs file `") + pairsfile + "'.",1);
 
       FeaturePairVectorFile feature_pair_vector_file;
-      feature_pair_vector_file.store(pairsfile,poseclust_feature_matcher.getFeaturePairs());
+      feature_pair_vector_file.store(pairsfile,poseclust_feature_matcher.getElementPairs());
 
       writeDebug_(String("Writing grid file `") + gridfilename + "'.",1);
 
