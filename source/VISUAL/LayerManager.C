@@ -93,6 +93,7 @@ namespace OpenMS
 		connect(li,SIGNAL(stateChanged(int, bool)),this,SLOT(itemVisibilityChanged(int, bool)));
 		connect(li,SIGNAL(activated(int)),this,SLOT(itemActivated(int)));
 		connect(li,SIGNAL(removeRequest(int)),this,SLOT(itemRemoveRequest(int)));
+		connect(li,SIGNAL(preferencesRequest(int)),this,SLOT(itemPreferencesRequest(int)));
 		return (items_.size()-1);
 	}
 	
@@ -132,13 +133,12 @@ namespace OpenMS
 		{
 			items_[i]->setIndex(i);
 		}
-	
-	//	for (UnsignedInt i=0; i<items_.size(); ++i)
-	//	{
-	//		cout << items_[i]->getIndex() << " "<< items_[i]->getLabel()<<endl;
-	//	}
 		
 		emit removed(index);
 	}
-
+	
+	void LayerManager::itemPreferencesRequest(int index)
+	{
+		emit showPreferences(index);
+	}
 } //namespace OpenMS

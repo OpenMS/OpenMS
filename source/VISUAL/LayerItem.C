@@ -40,8 +40,7 @@ namespace OpenMS
 
 	LayerItem::LayerItem( QWidget * parent, const char * name, WFlags fl):
 		LayerItemTemplate(parent,name,fl),
-		activated_(false),
-		context_menu_(0)
+		activated_(false)
 	{
 		label->setBuddy(this);
 	}
@@ -103,21 +102,32 @@ namespace OpenMS
 		emit stateChanged(index_, state);
 	}
 	
-	void LayerItem::remove()
+	void LayerItem::contextMenuEvent( QContextMenuEvent* e )
 	{
+		e->accept();
 		
-		emit removeRequest(index_);
-	}
-	
-	void LayerItem::contextMenuEvent( QContextMenuEvent * )
-	{
-		if (index_==0)
+		QPopupMenu* context_menu = new QPopupMenu(this);
+		Q_CHECK_PTR(context_menu);
+		context_menu->insertItem("Preferences",0,0);
+		if (index_!=0)
 		{
-			return;
+			context_menu->insertItem("Delete",1,1);
 		}
-		context_menu_ = new QPopupMenu(this);
-		context_menu_->insertItem("delete",this,SLOT(remove()));
-		context_menu_->exec( QCursor::pos() );
+		//cout << "1" << endl;
+		int result = context_menu->exec( QCursor::pos() );
+		if (result == 0)
+		{
+			//cout << "1.1" << endl;
+			emit preferencesRequest(index_);
+		}
+		else if (result ==1)
+		{
+			//cout << "1.2" << endl;
+			emit removeRequest(index_);
+		}
+		//cout << "2" << endl;
+		delete(context_menu);
+		//cout << "3" << endl;
 	}
 	
 	UnsignedInt  LayerItem::getIndex() const

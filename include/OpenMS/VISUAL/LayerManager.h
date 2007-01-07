@@ -73,6 +73,7 @@ namespace OpenMS
 			virtual void itemVisibilityChanged(int index, bool b);
 			virtual void itemActivated(int index);
 			virtual void itemRemoveRequest(int index);
+			virtual void itemPreferencesRequest(int index);
 	
 		protected:
 			//layout where the layer items are added

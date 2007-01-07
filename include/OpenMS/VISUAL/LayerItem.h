@@ -73,16 +73,14 @@ namespace OpenMS
 	  	void activate();
 	  	/// Deactivates the item
 	  	void deactivate();
-	
+	  		
 	  protected slots:
 	  	virtual void toggled(bool state);
-	  	virtual void remove();
 	  
 	  protected:
 	  	UnsignedInt index_;
 	  	bool activated_;
 	  	String text_;
-	  	QPopupMenu* context_menu_;
 	  	virtual void mousePressEvent ( QMouseEvent * e );
 			void contextMenuEvent( QContextMenuEvent * );
 	};

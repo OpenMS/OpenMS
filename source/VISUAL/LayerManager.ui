@@ -38,6 +38,7 @@
     <signal>activatedChanged(int index)</signal>
     <signal>visibilityChanged(int index, bool visible)</signal>
     <signal>removed(int index)</signal>
+    <signal>showPreferences(int index)</signal>
 </signals>
 <slots>
     <slot>reset()</slot>
