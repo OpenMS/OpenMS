@@ -295,6 +295,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DMapMatcherRegression_test\
 	DMapDewarper_test\
 	BasePairFinder_test\
+	DelaunayPairFinder_test\
 	BaseSuperimposer_test\
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test

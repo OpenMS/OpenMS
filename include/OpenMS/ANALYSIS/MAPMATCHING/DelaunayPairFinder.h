@@ -35,7 +35,7 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
-#define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
+#define V_DelaunayPairFinder(bla)  std::cout << bla << std::endl;
 #define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
@@ -104,16 +104,20 @@ namespace OpenMS
       DelaunayPairFinder()
           : Base()
       {
-        max_pair_distance_[RT] = 0;
-        max_pair_distance_[MZ] = 0;
-        precision_[RT] = 0;
-        precision_[MZ] = 0;
+    		diff_intercept_[RT] = 1;
+    		diff_intercept_[MZ] = 0.1;
+        max_pair_distance_[RT] = 3;
+        max_pair_distance_[MZ] = 1;
+        precision_[RT] = 20;
+        precision_[MZ] = 5;
       }
 
       /// Copy constructor
       DelaunayPairFinder(const DelaunayPairFinder& source)
           : Base(source)
       {
+      	diff_intercept_[RT] = source.diff_intercept_[RT];
+    		diff_intercept_[MZ] = source.diff_intercept_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
         precision_[RT] = source.precision_[RT];
@@ -131,6 +135,8 @@ namespace OpenMS
         element_map_[SCENE] = source.element_map_[SCENE];
         transformation_[RT] = source.transformation_[RT];
         transformation_[MZ] = source.transformation_[MZ];
+        diff_intercept_[RT] = source.diff_intercept_[RT];
+    		diff_intercept_[MZ] = source.diff_intercept_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
         precision_[RT] = source.precision_[RT];
@@ -251,6 +257,9 @@ namespace OpenMS
       void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
       {
        diff_intercept_[dim] = intercept;
+       String param_name_prefix = "similarity:diff_intercept:";
+       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+       param_.setValue(param_name, intercept);
       }
       
       /// Get max_pair_distance_
@@ -263,18 +272,24 @@ namespace OpenMS
       void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
       {
        max_pair_distance_[dim] = max_pair_distance;
+       String param_name_prefix = "similarity:max_pair_distance:";
+       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+       param_.setValue(param_name, max_pair_distance);
       }
       
       /// Get precision
       float getPrecision(const UnsignedInt& dim)
       {
-        return precision_[dim];
+        return precision_[dim];    
       }
       
       /// Set precision
       void setPrecision(const UnsignedInt& dim, const float& precision)
       {
        precision_[dim] = precision;
+       String param_name_prefix = "similarity:precision:";
+       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+       param_.setValue(param_name, precision);
       }
 
       /// Estimates the transformation for each grid cell
@@ -384,11 +399,12 @@ namespace OpenMS
           SignedInt pair_key = lookup_table[i];
           if ( pair_key > -1 )
           {
+          	std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
+                      << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
+                      << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
+                      << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;           
+             
             element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
-            //             std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
-            //             << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
-            //             << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
-            //             << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;
           }
         }
 #undef V_findElementPairs_
