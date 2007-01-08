@@ -71,7 +71,6 @@
 		- Reduktion in 2D
 	- MSExperiment
 	  - AreaIterator mit min/max int als Filter, MS-level als Filter
-	- DB
-	  - neue DB erstellen in TOPP tools
+	- neue DB erstellen in TOPP tools
 	- Debug streams (status, debug, error, warning)
 */
