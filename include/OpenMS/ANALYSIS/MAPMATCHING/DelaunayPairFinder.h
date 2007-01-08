@@ -35,8 +35,8 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
-#define V_DelaunayPairFinder(bla)  std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
+#define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -302,7 +302,7 @@ namespace OpenMS
         V_DelaunayPairFinder("DelaunayPairFinder::run(): find element pairs");
 
         findElementPairs();
-      };
+      }
 
       /// The actual algorithm for finding element pairs.
       void findElementPairs()
@@ -399,10 +399,10 @@ namespace OpenMS
           SignedInt pair_key = lookup_table[i];
           if ( pair_key > -1 )
           {
-          	std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
+          	/*std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
                       << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
                       << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
-                      << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;           
+                      << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;       */    
              
             element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
           }
