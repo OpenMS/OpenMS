@@ -237,7 +237,7 @@ void Spectrum3DCanvas::actionModeChange_()
 
 void Spectrum3DCanvas::activateLayer(int layer_index)
 {
-	if ((layer_index >= int(getLayerCount())) || layer_index==int(current_layer_))
+	if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
 	{
 		return ;
 	}
@@ -275,7 +275,7 @@ void Spectrum3DCanvas::intensityModeChange_()
 
 void Spectrum3DCanvas::removeLayer(int layer_index)
 {
-	if (layer_index >= int(getLayerCount()))
+	if (layer_index<0 || layer_index >= int(getLayerCount()))
 	{
 		return;
 	}

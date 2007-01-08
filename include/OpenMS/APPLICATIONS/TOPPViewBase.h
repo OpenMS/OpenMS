@@ -48,11 +48,12 @@ class QLabel;
 class QRadioButton;
 class QActionGroup;
 class QPopupMenu;
+class QListView;
+class QListViewItem;
 
 namespace OpenMS
 {
   class MultiGradientSelector;
-  class LayerManager;
   class Spectrum1DWindow;
   class Spectrum2DWindow;
   class Spectrum3DWindow;
@@ -183,8 +184,15 @@ namespace OpenMS
       void smoothActiveSpectrum();
       /// Finds features in the active spectrum
       void findFeaturesActiveSpectrum();
-
+			
     protected slots:
+    	/// slot for layer manager selection change
+    	void layerSelectionChange();
+    	/// slot for layer manager context menu
+    	void layerContextMenu(QListViewItem* item, const QPoint& pos, int col);
+    	/// signal for layer manager visibility change (check box)
+    	void layerVisibilityChange(QListViewItem* item, const QPoint& pnt, int col);
+    	
       void closeFileByTab(OpenMS::SignedInt);
       void focusSpectrumByAddress(int);
       void removeWidgetFromBar(QObject*);
@@ -220,8 +228,10 @@ namespace OpenMS
       void addTab_(SpectrumWindow*, const String&);
       /// connect the slots/signals for status messages and mode changes (paint or mouse mode)
       void connectWindowSignals_(SpectrumWindow* sw);
-      ///returns a pointer to the active SpectrumWindow (0 if none is sctive)
+      ///returns a pointer to the active SpectrumWindow (0 if none is active)
       SpectrumWindow*  activeWindow_() const;
+      ///returns a pointer to the active SpectrumCanvas (0 if none is active)
+      SpectrumCanvas*  activeCanvas_() const;
       ///returns a pointer to the active Spectrum1DWindow (0 the active window is no Spectrum1DWindow or there is no active window)
       Spectrum1DWindow* active1DWindow_() const;
       ///returns a pointer to the active Spectrum2DWindow (0 the active window is no Spectrum2DWindow or there is no active window)
@@ -237,7 +247,7 @@ namespace OpenMS
       /// Layer mangment bar
       QToolBar* layer_bar_;
       /// Layer mangment widget
-      LayerManager* layer_manager_;
+      QListView* layer_manager_;
 
       /// Creates the toolbars and connects the signals and slots
       void createToolBar_();

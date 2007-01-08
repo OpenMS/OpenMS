@@ -67,8 +67,6 @@ GUI_CPP_SOURCES=\
 	SimMatrixWidget.C\
 	ScaleWidget.C\
 	ResultView.C\
-	LayerItem.C\
-	LayerManager.C\
 	AxisTickCalculator.C		
 
 GUI_MOC_SOURCES=\
@@ -94,15 +92,9 @@ GUI_MOC_SOURCES=\
 	FactoryProductView_moc.C\
 	SimMatrixWidget_moc.C\
 	ScaleWidget_moc.C\
-	ResultView_moc.C\
-	LayerItemTemplate_moc.C\
-	LayerItem_moc.C\
-	LayerManagerTemplate_moc.C\
-	LayerManager_moc.C
+	ResultView_moc.C
 
-UIC_SOURCES=\
-	LayerItemTemplate.C\
-	LayerManagerTemplate.C
+UIC_SOURCES=
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
@@ -251,11 +243,5 @@ HistogramWidget_moc.C:  $(HEADER_DIR)/HistogramWidget.h
 	$(MOC) $(HEADER_DIR)/HistogramWidget.h -o HistogramWidget_moc.C
 
 ListStack_moc.C:  $(HEADER_DIR)/ListStack.h
-	$(MOC) $(HEADER_DIR)/ListStack.h -o ListStack_moc.C	
-
-LayerItem_moc.C:  $(HEADER_DIR)/LayerItem.h
-	$(MOC) $(HEADER_DIR)/LayerItem.h -o LayerItem_moc.C
-
-LayerManager_moc.C:  $(HEADER_DIR)/LayerManager.h
-	$(MOC) $(HEADER_DIR)/LayerManager.h -o LayerManager_moc.C
+	$(MOC) $(HEADER_DIR)/ListStack.h -o ListStack_moc.C
 

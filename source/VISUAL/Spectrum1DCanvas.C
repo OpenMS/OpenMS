@@ -52,7 +52,7 @@ namespace OpenMS
 	//change the current layer
 	void Spectrum1DCanvas::activateLayer(int layer_index)
 	{
-		if (layer_index >= int(getLayerCount()))
+		if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
 		{
 			return ;
 		}
@@ -458,7 +458,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::removeLayer(int layer_index)
 	{
-		if (layer_index >= int(getLayerCount()))
+		if (layer_index<0 || layer_index >= int(getLayerCount()))
 		{
 			return;
 		}

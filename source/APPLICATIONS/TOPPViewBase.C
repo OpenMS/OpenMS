@@ -48,7 +48,6 @@
 #include <OpenMS/VISUAL/Spectrum2DWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DWindow.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
-#include <OpenMS/VISUAL/LayerManager.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
@@ -83,7 +82,9 @@
 #include <qmenubar.h>
 #include <qstatusbar.h>
 #include <qimage.h>
-
+#include <qlayout.h>
+#include <qlistview.h>
+#include <qheader.h>
 
 // STL
 #include <iostream>
@@ -234,10 +235,18 @@ namespace OpenMS
     setDockEnabled(layer_bar_,DockTop,false);
     setDockEnabled(layer_bar_,DockBottom,false);
 
-    //add Layer Manager
-    layer_manager_ = new LayerManager(layer_bar_, "LayerManager");
+    //add Layer Manager and connect signals
+    layer_manager_ = new QListView(layer_bar_, "LayerManager");
+		layer_manager_->setSizePolicy(QSizePolicy::QSizePolicy::Preferred,QSizePolicy::Minimum);
+		layer_manager_->addColumn("Layer");
+		layer_manager_->setSorting(-1);
+		layer_manager_->setHScrollBarMode(QScrollView::AlwaysOff);
+		layer_manager_->header()->hide();
     layer_bar_->hide();
-
+    connect(layer_manager_,SIGNAL(selectionChanged()),this,SLOT(layerSelectionChange()));
+		connect(layer_manager_,SIGNAL(contextMenuRequested(QListViewItem* ,const QPoint&, int)),this,SLOT(layerContextMenu(QListViewItem*, const QPoint&, int)));
+		connect(layer_manager_,SIGNAL(clicked(QListViewItem*, const QPoint&, int)),this,SLOT(layerVisibilityChange(QListViewItem*, const QPoint&, int)));
+		
     //register meta value names
     MetaInfo::registry().registerName("FeatureDrawMode", "Specify what to draw of the Feature: BoundingBox, ConvexHulls");
 
@@ -1145,45 +1154,133 @@ namespace OpenMS
 
   void TOPPViewBase::updateLayerbar()
   {
-
     layer_bar_->hide();
-    layer_manager_->disconnect(SIGNAL(visibilityChanged(int, bool)));
-    layer_manager_->disconnect(SIGNAL(activatedChanged(int)));
-    layer_manager_->disconnect(SIGNAL(removed(int)));
-    layer_manager_->reset();
+		layer_manager_->clear();
 
-    SpectrumCanvas* cc;
-    if (active1DWindow_() != 0 )
-    {
-      cc = active1DWindow_()->widget()->canvas();
-    }
-    else if (active2DWindow_() != 0 )
-    {
-      cc = active2DWindow_()->widget()->canvas();
-    }
-    else if (active3DWindow_()!= 0 )
-    {
-      cc = active3DWindow_()->widget()->canvas();
-    }
-    else
+    SpectrumCanvas* cc = activeCanvas_();
+    if (cc == 0)
     {
       return;
     }
-
+		QCheckListItem* item = 0;
     for (UnsignedInt i = 0; i<cc->getLayerCount(); ++i)
     {
-      layer_manager_->addLayer(cc->getLayer(i).name);
-      layer_manager_->setVisible(i,cc->getLayer(i).visible);
+    	//add item
+    	item = new QCheckListItem( layer_manager_, item, cc->getLayer(i).name, QCheckListItem::CheckBox );
+    	//set visibility
+    	if (cc->getLayer(i).visible)
+    	{
+    		item->setState(QCheckListItem::On);
+    	}
+    	//highlight active item
+    	if (i == cc->activeLayerIndex())
+    	{
+		    layer_manager_->blockSignals(true);
+				layer_manager_->setSelected(item,true);
+				layer_manager_->blockSignals(false);
+    	}
     }
-
-    layer_manager_->activate(cc->activeLayerIndex());
-
-    connect(layer_manager_,SIGNAL(visibilityChanged(int, bool)),cc,SLOT(changeVisibility(int, bool)));
-    connect(layer_manager_,SIGNAL(activatedChanged(int)),cc,SLOT(activateLayer(int)));
-    connect(layer_manager_,SIGNAL(removed(int)),cc,SLOT(removeLayer(int)));
     layer_bar_->show();
   }
 
+	void TOPPViewBase::layerSelectionChange()
+	{
+		cout << "layerSelectionChange()" << endl;
+		//get current canvas
+		SpectrumCanvas* cc = activeCanvas_();
+		//nothing selcted -> find last active item and select it
+		if (layer_manager_->selectedItem() == 0)
+		{
+			QListViewItemIterator it( layer_manager_ );
+	    for (unsigned int i = 0; i < cc->activeLayerIndex(); ++i) 
+	    {
+				++it;
+	    }
+	    cout << "  RESELECTING: " << cc->activeLayerIndex() << endl;
+	    layer_manager_->blockSignals(true);
+			layer_manager_->setSelected(*it,true);
+			layer_manager_->blockSignals(false);
+		}
+		// new layer selected -> emit signal
+		else
+		{
+	    int i = 0;
+	    QListViewItemIterator it( layer_manager_ );
+	    while (it.current()) 
+	    {
+	      if (it.current()->isSelected())
+	      {
+	      	cout << "  SELECTING: " << i << endl;
+	      	cc->activateLayer(i);
+	      	break;
+	      }
+				++it;
+				++i;
+	    }
+		}
+	}
+
+	void TOPPViewBase::layerContextMenu(QListViewItem* item, const QPoint & pos, int /*col*/)
+	{
+		cout << "layerContextMenu(QListViewItem* item, const QPoint & pos, int col)" << endl;
+		if (item)
+		{
+			QPopupMenu* context_menu = new QPopupMenu(layer_manager_);
+			if (item!=layer_manager_->firstChild())
+			{
+				context_menu->insertItem("Delete",0,0);
+			}
+			context_menu->insertItem("Preferences",1,1);
+			
+			int result = context_menu->exec(pos);
+			//delete
+			if (result == 0)
+			{
+		 		int i = 0;
+		    QListViewItemIterator it( layer_manager_ );
+		    while (it.current()) 
+		    {
+		      if (it.current()==item)
+		      {
+		      	cout << "  REMOVING: " << i << endl;
+						activeCanvas_()->removeLayer(i);
+						updateLayerbar();
+						break;
+		      }
+					++it;
+					++i;
+		    }
+			}
+			//show preferences
+			else if (result == 1)
+			{
+				cout << "TODO: Layer preferences" << endl;
+			}
+			delete (context_menu);
+		}
+	}
+
+	void TOPPViewBase::layerVisibilityChange(QListViewItem* item, const QPoint& /*pnt*/, int /*col*/)
+	{
+		cout << "layerVisibilityChange() " << endl;
+		if (item)
+		{
+			SpectrumCanvas* cc = activeCanvas_();
+			int i = 0;
+	    QListViewItemIterator it( layer_manager_ );
+	    while (it.current()) 
+	    {
+	    	if (((QCheckListItem*)(it.current()))->isOn() != cc->getLayer(i).visible)
+	    	{
+	    		cout << "  SHOWING/HIDING: " << i << endl;
+	    		cc->changeVisibility(i,!cc->getLayer(i).visible);
+	    		break;
+	    	}
+				++it;
+				++i;
+	    }
+		}
+	}
 
   void TOPPViewBase::updateTabBar(QWidget* w)
   {
@@ -1748,11 +1845,20 @@ namespace OpenMS
     return dynamic_cast<SpectrumWindow*>(ws_->activeWindow());
   }
 
+  SpectrumCanvas*  TOPPViewBase::activeCanvas_() const
+  {
+    SpectrumWindow* sw = dynamic_cast<SpectrumWindow*>(ws_->activeWindow());
+    if (sw == 0)
+    {
+    	return 0;
+    }
+    return sw->widget()->canvas();
+  }
+
   Spectrum1DWindow* TOPPViewBase::active1DWindow_() const
   {
     Spectrum1DWindow* s1;
-    if ((s1 = dynamic_cast<Spectrum1DWindow*>(ws_->activeWindow()))
-       )
+    if ((s1 = dynamic_cast<Spectrum1DWindow*>(ws_->activeWindow())))
     {
       return s1;
     }
@@ -1762,8 +1868,7 @@ namespace OpenMS
   Spectrum2DWindow* TOPPViewBase::active2DWindow_() const
   {
     Spectrum2DWindow* s2;
-    if ((s2 = dynamic_cast<Spectrum2DWindow*>(ws_->activeWindow()))
-       )
+    if ((s2 = dynamic_cast<Spectrum2DWindow*>(ws_->activeWindow())))
     {
       return s2;
     }
@@ -1773,8 +1878,7 @@ namespace OpenMS
   Spectrum3DWindow* TOPPViewBase::active3DWindow_() const
   {
     Spectrum3DWindow* s3;
-    if ((s3 = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow()))
-       )
+    if ((s3 = dynamic_cast<Spectrum3DWindow*>(ws_->activeWindow())))
     {
       return s3;
     }
