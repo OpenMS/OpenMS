@@ -38,21 +38,23 @@ using namespace std;
 namespace OpenMS
 {
 
-	LayerItem::LayerItem( QWidget * parent, const char * name, WFlags fl):
+	LayerItem::LayerItem(UnsignedInt index, const std::string& text, QWidget * parent, const char * name, WFlags fl):
 		LayerItemTemplate(parent,name,fl),
 		activated_(false)
 	{
+		index_ = index;
+		text_ = text;
+		label->setText(text.c_str());
 		label->setBuddy(this);
 	}
-	
-	LayerItem::~LayerItem()
+
+	void LayerItem::setIndex(UnsignedInt index)
 	{
-	
+		index_ = index;
 	}
-	
+
 	void LayerItem::mousePressEvent ( QMouseEvent* /*e*/ )
 	{
-		activate();
 		emit activated(index_);
 	}
 	
@@ -81,25 +83,9 @@ namespace OpenMS
 		return activated_;
 	}
 	
-	void LayerItem::setIndex(UnsignedInt index)
-	{
-		index_ = index;
-	}
-	
 	void LayerItem::changeState(bool state)
 	{
 		checkbox->setChecked(state);
-	}
-	
-	void LayerItem::changeLabel(string l)
-	{
-		text_ = l;
-		label->setText(l.c_str());
-	}
-	
-	void LayerItem::toggled(bool state)
-	{
-		emit stateChanged(index_, state);
 	}
 	
 	void LayerItem::contextMenuEvent( QContextMenuEvent* e )
@@ -107,37 +93,38 @@ namespace OpenMS
 		e->accept();
 		
 		QPopupMenu* context_menu = new QPopupMenu(this);
-		Q_CHECK_PTR(context_menu);
 		context_menu->insertItem("Preferences",0,0);
 		if (index_!=0)
 		{
 			context_menu->insertItem("Delete",1,1);
 		}
-		//cout << "1" << endl;
+		
 		int result = context_menu->exec( QCursor::pos() );
 		if (result == 0)
 		{
-			//cout << "1.1" << endl;
+			cout << "TODO" << endl; //????
 			emit preferencesRequest(index_);
 		}
-		else if (result ==1)
+		else if (result == 1)
 		{
-			//cout << "1.2" << endl;
 			emit removeRequest(index_);
 		}
-		//cout << "2" << endl;
-		delete(context_menu);
-		//cout << "3" << endl;
 	}
 	
-	UnsignedInt  LayerItem::getIndex() const
+	UnsignedInt LayerItem::getIndex() const
 	{
 		return index_;
 	}
 	
-	String  LayerItem::getLabel() const
+	const String& LayerItem::getLabel() const
 	{
-		return label->text().ascii();
+		return text_;
 	}
+
+	void LayerItem::toggled(bool state)
+	{
+		emit stateChanged(index_, state);
+	}
+
 
 } //namespace OpenMS

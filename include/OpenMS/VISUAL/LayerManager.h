@@ -59,14 +59,14 @@ namespace OpenMS
 			/// Destructor
 			~LayerManager();
 			/// Sets the checkbox of item @p i to @p b
-			void setVisible(UnsignedInt i, bool b);
+			void setVisible(UnsignedInt index, bool b);
 			/// Activates item @p index
 			void activate(int index);
 		
 		public slots:
-			/// Adds a layer with label @p label
-	  	virtual int addLayer( std::string label );
-	  	/// Removes all layers
+			/// Adds an item with label @p text
+	  	virtual int addLayer( std::string text );
+	  	/// Removes all items
 	  	virtual void reset();
 	  
 		protected slots:
@@ -76,11 +76,10 @@ namespace OpenMS
 			virtual void itemPreferencesRequest(int index);
 	
 		protected:
-			//layout where the layer items are added
-			QVBoxLayout* main_layout_;
-			QVBoxLayout* layout_;
-			std::vector<LayerItem*> items_;
+			/// index of the active item
 			SignedInt activated_item_;
+			/// item count
+			UnsignedInt count_;
 	};
 
 }

@@ -52,9 +52,7 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			LayerItem( QWidget * parent = 0, const char * name = 0, WFlags fl = 0);
-			/// Destructor
-			~LayerItem();
+			LayerItem(UnsignedInt index, const std::string& text, QWidget * parent = 0, const char * name = 0, WFlags fl = 0);
 			/// Sets the index associated with this item
 			void setIndex(UnsignedInt index);
 			/// Returns if this item of the LayerManager is activated
@@ -62,27 +60,30 @@ namespace OpenMS
 			/// Returns the index associated with this item
 			UnsignedInt getIndex() const;
 			/// Return the label of this item
-			String getLabel() const;
+			const String& getLabel() const;
 		
 		public slots:
 			/// Sets wether the checkbox is checked
 	    virtual void changeState(bool state);
-	    /// Changes the label
-	    virtual void changeLabel(std::string l);
-	    /// Activates the item
+	    /// Activates the item (blue background)
 	  	void activate();
-	  	/// Deactivates the item
+	  	/// Deactivates the item (palette background)
 	  	void deactivate();
-	  		
+	  
 	  protected slots:
+	  	/// Slot to recieve toggle changes from the check box
 	  	virtual void toggled(bool state);
 	  
-	  protected:
+	  protected:	  	
+	  	/// Index of the item
 	  	UnsignedInt index_;
+	  	/// Flag that stores if this item is activated (blue background)
 	  	bool activated_;
+	  	/// Text of the item
 	  	String text_;
-	  	virtual void mousePressEvent ( QMouseEvent * e );
-			void contextMenuEvent( QContextMenuEvent * );
+	  	
+	  	virtual void mousePressEvent(QMouseEvent* e);
+			void contextMenuEvent(QContextMenuEvent* e);
 	};
 
 }
