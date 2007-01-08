@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="OpenMS:">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="0">
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<spectrumList count="3">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1023.33"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="2" spectrumRef="-1">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="3">AAAWRAAASEQAAHpE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AACoQQAAsEEAALhB</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="2">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2044.33"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="2" spectrumRef="-1">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="3">AAAWRAAASEQAAHpE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AACoQQAAsEEAALhB</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="3">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="889.32"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="2" spectrumRef="-1">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="3">AAAWRAAASEQAAHpE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AACoQQAAsEEAALhB</data>
+			</intenArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>

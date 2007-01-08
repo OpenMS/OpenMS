@@ -402,6 +402,10 @@ FileMerger_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
 	@$(call TEST_FILE_EQUAL,FileMerger_4_output.txt,FileMerger2.tmp)
 
+	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger_5_output.txt,FileMerger5.tmp)
+				
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"

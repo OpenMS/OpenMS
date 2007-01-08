@@ -77,6 +77,13 @@ class TOPPFileMerger
 		registerFlag_("rt_file","Take retention times from file_list.\n"
 														"If this flag is activated, the file list has to contain a filename and a\n"
 														"retention time separated by tab in each line.");
+		registerFlag_("rt_from_filename", "If this flag is set FileMerger tries to guess the rt of the spectrum.\n"
+																			"This option is useful for merging DTA file, which should contain the\n"
+																			"rt directly followed by a floating point number as the retention time:\n"
+																			"i.e. my_spectrum_rt2795.15.dta"); 
+		registerIntOption_("ms_level", "<num>", 2, "this option is useful for use with DTA files which does not \n"
+																								"contain MS level information. The given level is assigned to the spectra.", false);
+		registerFlag_("user_ms_level", "If this flag is set, the MS level given above is used");
 		addEmptyLine_();
 		addText_("Note: Meta data about the whole experiment is taken from the first file in the list!");
 	}
@@ -101,6 +108,8 @@ class TOPPFileMerger
 		//auto numbering
 		bool auto_number = getFlag_("rt_auto");
 		bool rt_from_file = getFlag_("rt_file");
+		bool user_ms_level = getFlag_("user_ms_level");
+		bool rt_from_filename = getFlag_("rt_from_filename");
 			
 		//-------------------------------------------------------------
 		// loading input
@@ -173,7 +182,7 @@ class TOPPFileMerger
 				}
 			}
 			
-			for ( MSExperiment<DPeak<1> >::const_iterator it2 = in.begin(); it2!=in.end(); ++it2 )
+			for (MSExperiment<DPeak<1> >::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
 			{ 
 				//handle rt
 				++rt_auto;
@@ -190,14 +199,58 @@ class TOPPFileMerger
 				{
 					rt_final = it2->getRetentionTime();
 				}
-				
-				if(rt_final==-1)
+	
+				// guess the retention time from filename
+				if (rt_from_filename)
+				{
+					if (!filename.hasSubstring("rt"))
+					{
+						writeLog_(String("Warning: cannot guess retention time from filename as it does not contain 'rt'"));
+					}
+					for (Size i = 0; i < filename.size(); ++i)
+					{
+						if (filename[i] == 'r' && ++i != filename.size() && filename[i] == 't' && ++i != filename.size() && isdigit(filename[i]))
+						{
+							String rt;
+							while (i != filename.size() && (filename[i] == '.' || isdigit(filename[i])))
+							{
+								rt += filename[i++];
+							}
+							if (rt.size() > 0)
+							{
+								// remove dot from rt3892.98.dta
+								//                          ^
+								if (rt[rt.size() - 1] == '.')
+								{
+									// remove last character
+									rt.erase(rt.end() - 1);
+								}
+							}
+							try 
+							{
+								float tmp = rt.toFloat();
+								rt_final = tmp;
+							}
+							catch (Exception::ConversionError)
+							{
+								 writeLog_(String("Warning: cannot convert the found retention time in a value '" + rt + "'."));
+							}
+						}
+					}
+				}
+
+				// none of the rt methods were successful
+        if(rt_final == -1)
 				{
 					writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto +"' from file '" + filename + "'");
 				}
-					
+				
 				out.push_back(*it2);
 				out.back().setRetentionTime(rt_final);
+				if (user_ms_level)
+				{
+					out.back().setMSLevel((int)getIntOption_("ms_level"));
+				}
 			}
 
 			// copy experimental settings from first file
