@@ -232,6 +232,7 @@ namespace OpenMS
     /// Copy Constructor
     inline DSignalToNoiseEstimatorMedian(const DSignalToNoiseEstimatorMedian&  ne)
       : DSignalToNoiseEstimator<D,PeakIterator>(ne),
+        stn_estimates_         (ne.stn_estimates_),
         win_len_               (ne.win_len_),
         bin_count_             (ne.bin_count_),
         min_required_elements_ (ne.min_required_elements_),
@@ -239,8 +240,7 @@ namespace OpenMS
         max_intensity_         (ne.max_intensity_),
         auto_max_intensity_    (ne.auto_max_intensity_), 
         auto_mode_             (ne.auto_mode_),
-        is_result_valid_       (ne.is_result_valid_),
-        stn_estimates_         (ne.stn_estimates_)
+        is_result_valid_       (ne.is_result_valid_)
     {
       param_  = ne.getParam();
     }

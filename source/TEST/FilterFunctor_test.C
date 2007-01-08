@@ -48,17 +48,17 @@ START_TEST(FilterFunctor, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FilterFunctor* ffp;
-
-Factory<FilterFunctor>* factoryp = Factory<FilterFunctor>::instance();
-
-DTAFile dtafile;
-
-MSSpectrum<DPeak<1> >* spec = new MSSpectrum<DPeak<1> >();
-dtafile.load("data/Transformers_tests.dta",*spec);
-Identification dbs;
-dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1, 1, "RRYA"));
-spec->getIdentifications().push_back(dbs);
+//FilterFunctor* ffp;
+//
+//Factory<FilterFunctor>* factoryp = Factory<FilterFunctor>::instance();
+//
+//DTAFile dtafile;
+//
+//MSSpectrum<DPeak<1> >* spec = new MSSpectrum<DPeak<1> >();
+//dtafile.load("data/Transformers_tests.dta",*spec);
+//Identification dbs;
+//dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1, 1, "RRYA"));
+//spec->getIdentifications().push_back(dbs);
 //ClusterSpectrum cspec(spec);
 //const ClusterSpectrum& ccspec = cspec;
 

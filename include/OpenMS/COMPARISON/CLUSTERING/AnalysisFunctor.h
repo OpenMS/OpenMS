@@ -39,7 +39,9 @@ namespace OpenMS
 	class ClusterNode;
 	
   /**
-  <b>AnalysisFunctor</b> classes analyze the output of a ClusterRun
+	  @brief AnalysisFunctor classes analyze the output of a ClusterRun
+	  
+	  @todo write test
   */
   class AnalysisFunctor : public FactoryProduct
   {

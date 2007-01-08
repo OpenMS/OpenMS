@@ -46,9 +46,9 @@ START_TEST(ClusterFunctor, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ClusterFunctor* cfp;
+//ClusterFunctor* cfp;
 
-Factory<ClusterFunctor>* factoryp = Factory<ClusterFunctor>::instance();
+//Factory<ClusterFunctor>* factoryp = Factory<ClusterFunctor>::instance();
 
 //vector<String> catalogue = factoryp->catalogue("ClusterFunctor");
 

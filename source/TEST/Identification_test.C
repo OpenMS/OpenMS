@@ -49,7 +49,6 @@ using namespace std;
 
 Identification* ptr1 = 0;
 Identification* ptr2 = 0;
-SignedInt charge = 1;
 float peptide_significance_threshold = 42.3;
 float protein_significance_threshold = 63.2;
 std::vector<PeptideHit> peptide_hits;

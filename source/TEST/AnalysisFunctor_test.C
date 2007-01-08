@@ -48,7 +48,7 @@ using namespace std;
 //ClusterExperiment cexp;
 //cexp.load("data/clusterexperiment.xml");
 
-Factory<AnalysisFunctor>* factoryp = Factory<AnalysisFunctor>::instance();
+//Factory<AnalysisFunctor>* factoryp = Factory<AnalysisFunctor>::instance();
 
 //vector<String> catalogue = factoryp->catalogue("AnalysisFunctor");
 

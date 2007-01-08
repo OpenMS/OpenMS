@@ -39,7 +39,9 @@ namespace OpenMS
   class SparseVector;
 
   /**
-  ClusterFunctor classes partition a set of ClusterSpectrum into natural groups<br>
+  	@brief ClusterFunctor classes partition a set of ClusterSpectrum into natural groups
+	  
+	  @todo write test
   */
   class ClusterFunctor : public FactoryProduct
   {

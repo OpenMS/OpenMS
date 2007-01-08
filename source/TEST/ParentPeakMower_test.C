@@ -77,7 +77,7 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	e_ptr->filterSpectrum(spec);
 	double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
-	for (Size z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
+	for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
 	{
 		for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
 		{	
