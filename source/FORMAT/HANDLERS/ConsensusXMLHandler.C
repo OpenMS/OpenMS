@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
-#include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -36,7 +35,7 @@ namespace OpenMS
     /// Load the peaks
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > >::loadFile_< ConsensusFeature<> >(const String& file_name, UnsignedInt id, const ConsensusFeature<>& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap > > >::loadFile_< ConsensusFeature< FeatureMap > >(const String& file_name, UnsignedInt id, const ConsensusFeature< FeatureMap >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError)
     {
       DFeatureMapFile feature_file;
       feature_file.load(file_name,(consensus_map_->getMapVector())[id]);
@@ -45,7 +44,7 @@ namespace OpenMS
     // load MzData
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusPeak<> > >::loadFile_< ConsensusPeak<> >( const String& file_name, UnsignedInt id, const ConsensusPeak<>& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak> > >( const String& file_name, UnsignedInt id, const ConsensusPeak< DPeakArray<2,Peak> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
       MzDataFile mzdata_file;
       MSExperiment< Peak > ms_exp;
@@ -56,7 +55,7 @@ namespace OpenMS
     // load consensusXML
     template <>
     template <>
-    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature<> > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature<> > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature<> > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
       ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(((consensus_map_->getMapVector())[id]),file_name);
 

@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusPeak.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -56,8 +57,8 @@ namespace OpenMS
       
       @brief XML Handler for a consensusXML.
      
-      This class can be used to load the content of a consensusXML file into a consensusMap, as well as to
-      save the content of a StarAlignment object into an XML file. 
+      This class can be used to load the content of a consensusXML file into a consensusMap 
+      or to save the content of a StarAlignment object into an XML file. 
     */
     template < typename AlignmentT >
     class ConsensusXMLHandler
@@ -177,7 +178,9 @@ namespace OpenMS
         /// This function fills the members of a picked peak of type OutputPeakType.
         template <typename ConsensusElementT >
         void loadFile_(const String& /* file_name */, UnsignedInt /* id */, const ConsensusElementT& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
-        {}
+        {
+          std::cout << "Read no file " << std::endl;
+        }
 
         void writeCellList_(std::ostream& os, const GridType& grid)
         {
@@ -252,7 +255,7 @@ namespace OpenMS
           break;
       }
     }
-    
+
     template < typename AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
   {}
@@ -279,13 +282,13 @@ namespace OpenMS
           tmp_str = getAttributeAsString(NAME);
           if (tmp_str != "")
           {
-            if (getAttributeAsString(ID) == "feature_map")
+            if (tmp_str == "feature_map")
             {
               feature_map_flag_ = true;
               consensus_map_flag_ = false;
             }
             else
-              if (getAttributeAsString(ID) == "consensus_map")
+              if (tmp_str == "consensus_map")
               {
                 consensus_map_flag_ = true;
                 feature_map_flag_ = false;
@@ -299,28 +302,25 @@ namespace OpenMS
           {
             UnsignedInt id = asUnsignedInt_(tmp_str);
             tmp_str = getAttributeAsString(NAME);
-            if (tmp_str != "")
+
+            // load FeatureMapXML
+            if (feature_map_flag_)
             {
-              String act_filename = tmp_str;
-              // load FeatureMapXML
-              if (feature_map_flag_)
+              loadFile_(tmp_str,id,act_cons_element_);
+            }
+            // load MzData
+            else
+            {
+              if (consensus_map_flag_)
               {
-                loadFile_(act_filename,id,act_cons_element_);
+                loadFile_(tmp_str,id,act_cons_element_);
               }
-              // load MzData
               else
               {
-                if (consensus_map_flag_)
-                {
-                  loadFile_(act_filename,id,act_cons_element_);
-                }
-                else
-                {
-                  loadFile_(act_filename,id,act_cons_element_);
-                }
+                loadFile_(tmp_str,id,act_cons_element_);
               }
-              consensus_map_->getFilenames()[id]=act_filename;
             }
+            consensus_map_->getFilenames()[id]=tmp_str;
           }
           break;
           case CONSENSUSELEMENT:
@@ -395,6 +395,7 @@ namespace OpenMS
           {
             UnsignedInt map_index = asUnsignedInt_(tmp_str);
             tmp_str = getAttributeAsString(ID);
+
             if (tmp_str != "")
             {
               UnsignedInt element_index = asUnsignedInt_(tmp_str);
@@ -424,7 +425,7 @@ namespace OpenMS
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();
       os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
-      os << "\t<map_type name=\"" << calignment_->getMapType() << "\"/>\n";
+      os << "\t<mapType name=\"" << calignment_->getMapType() << "\"/>\n";
 
       // write aligned maps (mapList)
       UnsignedInt n = map_vector.size();
@@ -491,6 +492,22 @@ namespace OpenMS
       os << "\t</consensusElementList>\n";
       os << "</consensusXML>"<< std::endl;
     }
+
+    /// Load the peaks
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< FeatureMap > > >::loadFile_< ConsensusFeature< FeatureMap > >(const String& file_name, UnsignedInt id, const ConsensusFeature< FeatureMap >& /* c */ ) throw (Exception::FileNotFound, Exception::ParseError);
+
+    // load MzData
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<2,Peak> > > >::loadFile_< ConsensusPeak< DPeakArray<2,Peak> > >( const String& file_name, UnsignedInt id, const ConsensusPeak< DPeakArray<2,Peak> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+
+    // load consensusXML
+    template <>
+    template <>
+    void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > > >(const String& file_name, UnsignedInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError);
+
   } // namespace Internal
 } // namespace OpenMS
 
