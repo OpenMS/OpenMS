@@ -35,6 +35,8 @@
 
 namespace OpenMS
 {
+namespace Internal
+{
 	/**
 		@brief Adaptor class for bidirectional iterator on objects of DPeak<1>
 		
@@ -44,6 +46,8 @@ namespace OpenMS
 		The class has a member  DPeakArray<>::iterator pointing
 		to the current peak. The class also remembers the retention time of the current
 		scan.
+		
+		@deprecated Use the other iterators provided by MSExperiment and MSExperimentExtern.
 	*/
 	template<class ValueT, class ReferenceT, class PointerT, class ExperimentT>
 	class PeakIterator : public std::iterator<std::bidirectional_iterator_tag,  ValueT>
@@ -211,6 +215,7 @@ namespace OpenMS
 		/// Pointer to the experiment
 		ExperimentType* exp_;
 	};
+}
 }
 
 #endif

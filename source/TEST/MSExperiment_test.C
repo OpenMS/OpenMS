@@ -608,6 +608,46 @@ CHECK(PeakIterator())
 	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
+CHECK(AreaIterator())
+	DPeakArray<2> plist;
+	
+	DPeak<2> p1;
+	p1.getPosition()[0] = 1.0;
+	p1.getPosition()[1] = 2.0;
+	plist.push_back(p1);
+		
+	DPeak<2> p2;
+	p2.getPosition()[0] = 1.0;
+	p2.getPosition()[1] = 3.0;
+	plist.push_back(p2);
+		
+	DPeak<2> p3;
+	p3.getPosition()[0] = 2.0;
+	p3.getPosition()[1] = 10.0;
+	plist.push_back(p3);
+	
+	DPeak<2> p4;
+	p4.getPosition()[0] = 2.0;
+	p4.getPosition()[1] = 11.0;
+	plist.push_back(p4);
+	
+	MSExperiment<> exp;
+	exp.set2DData(plist);
+	
+	DPosition<2> lower(0), upper(15);
+	MSExperiment< >::AIterator it = exp.areaBegin(DRange<2>(lower, upper));
+	
+	TEST_EQUAL(it->getPosition()[0],2.0);
+	it++;
+	TEST_EQUAL(it->getPosition()[0],3.0);
+	it++;
+	TEST_EQUAL(it->getPosition()[0],10.0);
+	it++;
+	TEST_EQUAL(it->getPosition()[0],11.0);
+	it++;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
 CHECK(Iterator RTBegin(double rt))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;

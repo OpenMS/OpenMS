@@ -47,7 +47,8 @@ CPP_SOURCES= \
 	MSExperimentExtern.C\
 	DPeakConstReferenceArray.C\
 	ConsensusFeature.C\
-	ConsensusPeak.C
+	ConsensusPeak.C\
+	AreaIterator.C
 
 include ../common.mak
 -include .Dependencies

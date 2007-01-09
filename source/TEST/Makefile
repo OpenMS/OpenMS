@@ -123,7 +123,8 @@ EXECUTABLES_KERNEL =\
 	DimensionDescription_test\
 	MSExperimentExtern_test\
 	ConsensusFeature_test\
-	ConsensusPeak_test
+	ConsensusPeak_test\
+	AreaIterator_test
 	
 #VISUAL
 

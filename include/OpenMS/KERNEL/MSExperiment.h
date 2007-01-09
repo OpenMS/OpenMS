@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/PersistentObject.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/PeakIterator.h>
+#include <OpenMS/KERNEL/AreaIterator.h>
 
 #include<vector>
 #include<algorithm>
@@ -64,7 +65,7 @@ class MSExperiment
             public PersistentObject
 {
     template<class ValueT, class ReferenceT, class PointerT, class ExperimentT>
-    friend class PeakIterator;
+    friend class Internal::PeakIterator;
 
 public:
     /// Spectrum Type
@@ -75,11 +76,21 @@ public:
     typedef typename std::vector<SpectrumType>::iterator Iterator;
     /// Non-mutable iterator
     typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
-		/// Mutable peak iterator type (for a linear traversal of the data structure)
-		typedef PeakIterator<PeakT, PeakT&, PeakT*, MSExperiment<PeakT> > PIterator;
-		/// Immutable peak iterator type (for a linear traversal of the data structure)
-		typedef PeakIterator<PeakT, const PeakT&, const PeakT*, MSExperiment<PeakT> > PConstIterator;
-	
+		/**
+			Mutable peak iterator type (for a linear traversal of the data structure)
+			@deprecated Either use Iterator in combination with SpectrumType::Iterator or AIterator instead.
+		*/
+		typedef Internal::PeakIterator<PeakT, PeakT&, PeakT*, MSExperiment<PeakT> > PIterator;
+		/**
+			Immutable peak iterator type (for a linear traversal of the data structure)
+			@deprecated Either use ConstIterator in combination with SpectrumType::Iterator or AConstIterator instead.
+		*/
+		typedef Internal::PeakIterator<PeakT, const PeakT&, const PeakT*, MSExperiment<PeakT> > PConstIterator;
+		/// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
+		typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, typename SpectrumType::Iterator> AIterator;
+		/// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
+		typedef Internal::AreaIterator<PeakT, const PeakT&, const PeakT*, ConstIterator, typename SpectrumType::ConstIterator> AConstIterator;
+
     /// Peak type
     typedef PeakT PeakType;
     /// Traits types
@@ -263,6 +274,30 @@ public:
 			unsigned int sz = (this->size() - 1);
       return(PConstIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz), *this ) );
     }
+
+		/// Returns an area iterator for @p area
+		AIterator areaBegin(const AreaType& area)
+		{
+			return AIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+		}
+		
+		/// Returns an invalid area iterator marking as the end iterator
+		AIterator areaEnd()
+		{
+			return AIterator();
+		}
+		
+		/// Returns an immutable area iterator for @p area
+		AConstIterator areaBegin(const AreaType& area) const
+		{
+			return AConstIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+		}
+		
+		/// Returns an immutable invalid area iterator marking as the end iterator
+		AConstIterator areaEnd() const
+		{
+			return AConstIterator();
+		}
 
     /**
     	@brief Fast search for spectrum range begin

@@ -66,13 +66,13 @@ class MSExperimentExtern
             : public RangeManager<2, typename PeakT::TraitsType>
 {
     template<class ValueT, class ReferenceT, class PointerT, class ExperimentT>
-    friend class PeakIterator;
+    friend class Internal::PeakIterator;
 
 public:
 
-    ///ConstIterator
-    template <class IteratorPeakT>
-    class MSExperimentExternConstIterator : public std::iterator<std::bidirectional_iterator_tag,  IteratorPeakT>
+    /// Iterator class
+    template <class IteratorPeakT, class ValueT, class ReferenceT, class PointerT>
+    class MSExperimentExternIterator : public std::iterator<std::bidirectional_iterator_tag,  ValueT>
     {
 
         friend class MSExperimentExtern;
@@ -81,36 +81,36 @@ public:
         /**	@name Type definitions */
         //@{
         typedef IteratorPeakT IteratorPeakType;
-        typedef MSSpectrum<IteratorPeakType> value_type;
+        typedef ValueT value_type;
         typedef MSExperimentExtern<IteratorPeakType> ExperimentType;
-        typedef const value_type& reference;
-        typedef const value_type* pointer;
+        typedef ReferenceT reference;
+        typedef PointerT pointer;
         typedef std::random_access_iterator_tag iterator_category;
         typedef unsigned int difference_type;
         //@}
 
-        MSExperimentExternConstIterator()
+        MSExperimentExternIterator()
                 : exp_(0), position_(0)
         {}
 
-        MSExperimentExternConstIterator(const ExperimentType * exp , unsigned int pos)
+        MSExperimentExternIterator(const ExperimentType * exp , unsigned int pos)
         {
             exp_       =  (ExperimentType* ) exp;
             position_ = pos;
         }
 
-        MSExperimentExternConstIterator(ExperimentType * exp , unsigned int pos)
+        MSExperimentExternIterator(ExperimentType * exp , unsigned int pos)
                 : exp_(exp), position_(pos)
         {}
 
-        MSExperimentExternConstIterator(const ExperimentType& source)
+        MSExperimentExternIterator(const ExperimentType& source)
                 : exp_(source.exp_), position_(source.position_)
         {}
 
-        ~MSExperimentExternConstIterator()
+        ~MSExperimentExternIterator()
         {}
 
-        MSExperimentExternConstIterator& operator = (const MSExperimentExternConstIterator& rhs)
+        MSExperimentExternIterator& operator = (const MSExperimentExternIterator& rhs)
         {
             if (this==&rhs)
                 return *this;
@@ -121,182 +121,39 @@ public:
             return *this;
         }
 
-        bool operator < (const MSExperimentExternConstIterator& it) const
+        bool operator < (const MSExperimentExternIterator& it) const
         {
             return position_ < it.position_;
         }
 
-        bool operator > (const MSExperimentExternConstIterator& it) const
+        bool operator > (const MSExperimentExternIterator& it) const
         {
             return position_ > it.position_;
         }
 
-        bool operator <= (const MSExperimentExternConstIterator& it) const
+        bool operator <= (const MSExperimentExternIterator& it) const
         {
             return (position_ < it.position_ || position_ == it.position_);
         }
 
-        bool operator >= (const MSExperimentExternConstIterator& it) const
+        bool operator >= (const MSExperimentExternIterator& it) const
         {
             return (position_ > it.position_ || position_ == it.position_);
         }
 
-        bool operator == (const MSExperimentExternConstIterator& it) const
+        bool operator == (const MSExperimentExternIterator& it) const
         {
             return position_ == it.position_ && exp_ == it.exp_;
         }
 
-        bool operator != (const MSExperimentExternConstIterator& it) const
+        bool operator != (const MSExperimentExternIterator& it) const
         {
             return position_ != it.position_ || exp_ != it.exp_;
         }
 
-        MSExperimentExternConstIterator& operator ++ ()
-        {
-            position_ += 1;
-            return *this;
-        }
-
-        MSExperimentExternConstIterator operator ++ (int)
-        {
-            MSExperimentExternConstIterator tmp(*this);
-            ++(*this);
-            return tmp;
-        }
-
-        MSExperimentExternConstIterator& operator -- ()
-        {
-            position_ -= 1;
-            return *this;
-        }
-
-        MSExperimentExternConstIterator operator -- (int)
-        {
-            MSExperimentExternConstIterator tmp(*this);
-            --(*this);
-            return tmp;
-        }
-
-        MSExperimentExternConstIterator operator - (difference_type n) const
-        {
-            MSExperimentExternConstIterator tmp(*this);
-            tmp.position_ -= n;
-            return tmp;
-        }
-
-        MSExperimentExternConstIterator operator + (difference_type n) const
-        {
-            MSExperimentExternConstIterator tmp(*this);
-            tmp.position_ += n;
-            return tmp;
-        }
-
-        MSExperimentExternConstIterator& operator += (difference_type n)
-        {
-            position_ += n;
-            return *this;
-        }
-
-        MSExperimentExternConstIterator& operator -= (difference_type n)
-        {
-            position_ -= n;
-            return *this;
-        }
-
-        friend difference_type operator - ( const MSExperimentExternConstIterator& i1, const MSExperimentExternConstIterator& i2 )
-        {
-            return (i1.position_ - i2.position_);
-        }
-
-        friend MSExperimentExternConstIterator operator + ( difference_type n, const MSExperimentExternConstIterator& i )
-        {
-            MSExperimentExternConstIterator tmp(i);
-            tmp.position_ += n;
-            return tmp;
-        }
-
-        reference operator * ()
-        {
-            return (*exp_)[position_];
-        }
-
-        pointer operator -> ()
-        {
-            return &((*exp_)[position_]);
-        }
-
-        pointer operator -> () const
-        {
-            return &((*exp_)[position_]);
-        }
-
-        reference operator [] (difference_type n)
-        {
-            return (*this)+n;
-        }
-
-    protected:
-
-        ExperimentType * exp_;
-        unsigned int position_;
-    };
-
-
-    /// Mutable iterator
-    template <class IteratorPeakT>
-		class MSExperimentExternIterator : public MSExperimentExternConstIterator<IteratorPeakT>
-    {
-        friend class MSExperimentExtern;
-
-    public:
-        typedef IteratorPeakT IteratorPeakType;
-        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::value_type& reference;
-        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::value_type* pointer;
-        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::ExperimentType ExperimentType;
-        typedef typename MSExperimentExternConstIterator<IteratorPeakType>::difference_type difference_type;
-
-        using MSExperimentExternConstIterator<IteratorPeakType>::exp_;
-        using MSExperimentExternConstIterator<IteratorPeakType>::position_;
-
-
-        MSExperimentExternIterator()
-                : MSExperimentExternConstIterator<IteratorPeakType>()
-        {}
-
-        MSExperimentExternIterator(ExperimentType * exp, unsigned int position)
-                : MSExperimentExternConstIterator<IteratorPeakType>(exp,position)
-        {}
-
-        MSExperimentExternIterator(const MSExperimentExternIterator<IteratorPeakType>& it)
-                : MSExperimentExternConstIterator<IteratorPeakType>(it)
-        {}
-
-        ~MSExperimentExternIterator()
-        {}
-
-        reference operator * ()
-        {
-            return (*exp_)[position_];
-        }
-
-        pointer operator -> ()
-        {
-            return &((*exp_)[position_]);
-        }
-
-        const pointer operator -> () const
-        {
-            return &((*exp_)[position_]);
-        }
-
-        typename MSExperimentExternIterator::reference operator [] (difference_type n)
-        {
-            return ((*this)+n);
-        }
-
         MSExperimentExternIterator& operator ++ ()
         {
-            MSExperimentExternConstIterator<IteratorPeakType>::position_+=1;
+            position_ += 1;
             return *this;
         }
 
@@ -309,7 +166,7 @@ public:
 
         MSExperimentExternIterator& operator -- ()
         {
-            MSExperimentExternConstIterator<IteratorPeakType>::position_-=1;
+            position_ -= 1;
             return *this;
         }
 
@@ -334,23 +191,48 @@ public:
             return tmp;
         }
 
-        friend MSExperimentExternIterator operator + (difference_type n, const MSExperimentExternIterator& i )
+        MSExperimentExternIterator& operator += (difference_type n)
+        {
+            position_ += n;
+            return *this;
+        }
+
+        MSExperimentExternIterator& operator -= (difference_type n)
+        {
+            position_ -= n;
+            return *this;
+        }
+
+        friend difference_type operator - ( const MSExperimentExternIterator& i1, const MSExperimentExternIterator& i2 )
+        {
+            return (i1.position_ - i2.position_);
+        }
+
+        friend MSExperimentExternIterator operator + ( difference_type n, const MSExperimentExternIterator& i )
         {
             MSExperimentExternIterator tmp(i);
             tmp.position_ += n;
             return tmp;
         }
 
-        MSExperimentExternIterator& operator += (difference_type n)
+        reference operator * ()
         {
-            MSExperimentExternConstIterator<IteratorPeakType>::position_ += n;
-            return *this;
+            return (*exp_)[position_];
         }
 
-        MSExperimentExternIterator& operator -= (difference_type n)
+        pointer operator -> ()
         {
-            MSExperimentExternConstIterator<IteratorPeakType>::position_ -= n;
-            return *this;
+            return &((*exp_)[position_]);
+        }
+
+        pointer operator -> () const
+        {
+            return &((*exp_)[position_]);
+        }
+
+        reference operator [] (difference_type n)
+        {
+            return (*this)+n;
         }
 
         friend void swap(MSExperimentExternIterator& i1, MSExperimentExternIterator& i2)
@@ -362,8 +244,10 @@ public:
 
     protected:
 
-    }
-    ;	// end of class MSExperimentExternIterator
+        ExperimentType * exp_;
+        unsigned int position_;
+    };
+    // end of class MSExperimentExternIterator
 
     typedef PeakT PeakType;
     typedef typename PeakT::IntensityType IntensityType;
@@ -374,12 +258,26 @@ public:
     typedef MSExperiment<PeakType> ExperimentType;
 
     typedef typename PeakType::TraitsType TraitsType;
+    /// Area type
+    typedef DRange<2, TraitsType> AreaType;
     typedef RangeManager<2, TraitsType> RangeManagerType;
 
-    typedef MSExperimentExternIterator<PeakType> Iterator;
-    typedef MSExperimentExternConstIterator<PeakType> ConstIterator;
-    typedef PeakIterator<PeakType, PeakType&, PeakType*, MSExperimentExtern<PeakType> > PIterator;
-    typedef PeakIterator<PeakType, const PeakType&, const PeakType*, MSExperimentExtern<PeakType> > PConstIterator;
+    typedef MSExperimentExternIterator<PeakType, SpectrumType, SpectrumType&, SpectrumType*> Iterator;
+    typedef MSExperimentExternIterator<PeakType, SpectrumType, const SpectrumType&, const SpectrumType*> ConstIterator;
+    /**
+			Mutable peak iterator type (for a linear traversal of the data structure)
+			@deprecated Either use Iterator in combination with SpectrumType::Iterator or AIterator instead.
+		*/
+    typedef Internal::PeakIterator<PeakType, PeakType&, PeakType*, MSExperimentExtern<PeakType> > PIterator;
+		/**
+			Immutable peak iterator type (for a linear traversal of the data structure)
+			@deprecated Either use ConstIterator in combination with SpectrumType::Iterator or AConstIterator instead.
+		*/
+    typedef Internal::PeakIterator<PeakType, const PeakType&, const PeakType*, MSExperimentExtern<PeakType> > PConstIterator;
+		/// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
+		typedef Internal::AreaIterator<PeakType, PeakType&, PeakType*, Iterator, typename SpectrumType::Iterator> AIterator;
+		/// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
+		typedef Internal::AreaIterator<PeakType, const PeakType&, const PeakType*, ConstIterator, typename SpectrumType::ConstIterator> AConstIterator;
     typedef std::reverse_iterator<Iterator> ReverseIterator;
     typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 
@@ -1115,6 +1013,30 @@ public:
         	UnsignedInt sz = (this->size() - 1);
 				 	return(PConstIterator( (unsigned int) ( (*this)[sz].size()), (*this)[ sz ].getRetentionTime(), (unsigned int) (sz),*this ) );
     		}
+		}
+
+		/// Returns an area iterator for @p area
+		AIterator areaBegin(const AreaType& area)
+		{
+			return AIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+		}
+		
+		/// Returns an invalid area iterator marking as the end iterator
+		AIterator areaEnd()
+		{
+			return AIterator();
+		}
+		
+		/// Returns an immutable area iterator for @p area
+		AConstIterator areaBegin(const AreaType& area) const
+		{
+			return AConstIterator(RTBegin(area.minX()), RTEnd(area.maxX()), area.minY(), area.maxY());
+		}
+		
+		/// Returns an immutable invalid area iterator marking as the end iterator
+		AConstIterator areaEnd() const
+		{
+			return AConstIterator();
 		}
 
 protected:
