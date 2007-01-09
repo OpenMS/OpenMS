@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Gröpl $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -131,8 +131,8 @@ class TOPPResampler
 			outputFileWritable_(pgm);
 		}
 		
-
 		typedef MSExperiment< DPeak<1> > MSExperimentType;
+		typedef MSExperimentType::SpectrumType SpectrumType;
 
 		MSExperimentType exp;
 		MzDataFile().load(in,exp);			
@@ -204,10 +204,33 @@ class TOPPResampler
 			bilip.setMapping_0( 0, rt_u, rows-1, rt_l ); // scans run bottom-up
 			bilip.setMapping_1( 0, mz_l, cols-1, mz_u ); // peaks run left-right
 
+			/* Avoid usage of PIterator (this should be somewhat faster). This
+				 define should be removed as soon as the TOPP test (which is yet to be
+				 written) has convinced me that it really works. (Clemens, 2007-01-09)
+			*/			
+#define RESAMPLER_AVOID_PITERATOR 1
+
+#if RESAMPLER_AVOID_PITERATOR
+			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+						spec_iter != exp.end();
+						++spec_iter
+					)
+			{
+				double const rt = spec_iter->getRetentionTime();
+				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
+							peak1_iter != spec_iter->end();
+							++peak1_iter
+						)
+				{
+					bilip.addValue(rt,peak1_iter->getPos(),peak1_iter->getIntensity());
+				}
+			}
+#else
 			for ( MSExperimentType::PIterator iter = exp.peakBegin(); iter != exp.peakEnd(); ++iter )
 			{
 				bilip.addValue(iter.getRt(),iter->getPos(),iter->getIntensity());
 			}
+#endif
 
 		}
 		else
@@ -216,10 +239,29 @@ class TOPPResampler
 			bilip.setMapping_0( 0, mz_u, rows-1, mz_l ); // spectra run bottom-up
 			bilip.setMapping_1( 0, rt_l, cols-1, rt_u ); // scans run left-right
 
+#if RESAMPLER_AVOID_PITERATOR
+			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+						spec_iter != exp.end();
+						++spec_iter
+					)
+			{
+				double const rt = spec_iter->getRetentionTime();
+				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
+							peak1_iter != spec_iter->end();
+							++peak1_iter
+						)
+				{
+					bilip.addValue(peak1_iter->getPos(),rt,peak1_iter->getIntensity());
+				}
+			}
+#else
 			for ( MSExperimentType::PIterator iter = exp.peakBegin(); iter != exp.peakEnd(); ++iter )
 			{
 				bilip.addValue(iter->getPos(),iter.getRt(),iter->getIntensity());
 			}
+#endif
+
+#undef RESAMPLER_AVOID_PITERATOR
 
 		} // if
 				
@@ -255,7 +297,6 @@ class TOPPResampler
 
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{
-				typedef MSExperimentType::SpectrumType SpectrumType;
 				SpectrumType & spectrum = exp_resampled[rows-row_index-1]; // reversed order so that retention times are increasing again
 
 				spectrum.setRetentionTime( bilip.index2key_0( row_index ) );
