@@ -506,6 +506,7 @@ namespace OpenMS
         }
 
         param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
           max_pair_distance_[MZ] = 1;
@@ -528,6 +529,7 @@ namespace OpenMS
         }
 
         param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
           precision_[MZ] = 5;
@@ -550,6 +552,7 @@ namespace OpenMS
         }
 
         param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
           diff_intercept_[MZ] = 0.1;

@@ -122,7 +122,7 @@ CHECK(const Param& getParam() const)
 RESULT
 
 CHECK(const PointMapType& getElementMap(Size index))
-  // ???
+  
 RESULT
 
 CHECK(const PointMapType& getElementMap(Size index) const)
@@ -144,7 +144,7 @@ CHECK(const TransformationType& getTransformation(Size dim) const)
 RESULT
 
 CHECK(void run())
-  // ???
+  
 RESULT
 
 CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))

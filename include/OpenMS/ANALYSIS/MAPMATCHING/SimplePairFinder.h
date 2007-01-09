@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
 #if defined OPENMS_DEBUG && ! defined V_SimplePairFinder
-#define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
+#define V_SimplePairFinder(bla)  std::cout << bla << std::endl;
 #else
 #define V_SimplePairFinder(bla)
 #endif
@@ -250,10 +250,9 @@ namespace OpenMS
       {
 #define V_parseParam_(bla) V_SimplePairFinder(bla)
         V_parseParam_("@@@ parseParam_()");
-
-
+        
         String param_name_prefix = "similarity:diff_exponent:";
-        std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[RT];
         DataValue data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
@@ -263,7 +262,9 @@ namespace OpenMS
         {
           diff_exponent_[RT] = data_value;
         }
-        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[MZ];
+        data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
           diff_exponent_[MZ] = 2;
@@ -284,8 +285,9 @@ namespace OpenMS
         {
           diff_intercept_[RT] = data_value;
         }
-
+        
         param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
         {
           diff_intercept_[MZ] = 0.1;
@@ -294,7 +296,7 @@ namespace OpenMS
         {
           diff_intercept_[MZ] = data_value;
         }
-
+        
         param_name = "similarity:pair_min_quality";
         data_value = param_.getValue(param_name);
         if ( data_value == DataValue::EMPTY )
@@ -330,6 +332,7 @@ namespace OpenMS
           for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
           {
             QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+            std::cout << (*element_map_[MODEL])[fi0] << ' ' << (*element_map_[SCENE])[fi0] << quality << std::endl;
             if ( quality > best_quality )
             {
               best_quality = quality;
@@ -356,7 +359,8 @@ namespace OpenMS
           QualityType best_quality = -std::numeric_limits<QualityType>::max();
           for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
           {
-            QualityType quality = similarity_ ( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+            QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+            std::cout << (*element_map_[MODEL])[fi0] << ' ' << (*element_map_[SCENE])[fi0] << quality << std::endl;
             if ( quality > best_quality )
             {
               best_quality = quality;

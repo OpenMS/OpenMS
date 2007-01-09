@@ -179,11 +179,11 @@ CHECK((void setNumberBuckets(Size const index, UnsignedInt number)))
 RESULT 
 
 CHECK(void run())
-  // ???
+ 
 RESULT
 
 CHECK(static void registerChildren())
-  // ???
+  
 RESULT
 
 CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))

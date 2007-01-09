@@ -141,11 +141,11 @@ CHECK(const PointMapType& getElementMap(Size index) const)
 RESULT
 
 CHECK(static void registerChildren())
-  // ???
+  
 RESULT
 
 CHECK(void run())
-  // ???
+  
 RESULT
 
 CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
