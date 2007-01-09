@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
 #if defined OPENMS_DEBUG && ! defined V_SimplePairFinder
-#define V_SimplePairFinder(bla)  std::cout << bla << std::endl;
+#define V_SimplePairFinder(bla) //  std::cout << bla << std::endl;
 #else
 #define V_SimplePairFinder(bla)
 #endif
@@ -332,7 +332,6 @@ namespace OpenMS
           for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
           {
             QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
-            std::cout << (*element_map_[MODEL])[fi0] << ' ' << (*element_map_[SCENE])[fi0] << quality << std::endl;
             if ( quality > best_quality )
             {
               best_quality = quality;
@@ -360,7 +359,6 @@ namespace OpenMS
           for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
           {
             QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
-            std::cout << (*element_map_[MODEL])[fi0] << ' ' << (*element_map_[SCENE])[fi0] << quality << std::endl;
             if ( quality > best_quality )
             {
               best_quality = quality;
