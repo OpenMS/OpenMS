@@ -440,9 +440,9 @@ public:
     /// Assignment operator
     MSExperimentExtern & operator= (const MSExperimentExtern& source)
     {
-        if (&source == this)
-            return *this;
-
+        if (&source == this) return *this;
+        
+				RangeManagerType::operator=(source);
         buffer_size_         = source.buffer_size_;
         scan_location_     = source.scan_location_;
         current_scan_      = source.current_scan_;

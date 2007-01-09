@@ -131,10 +131,10 @@ public:
     /// Assignment operator
     MSExperiment& operator= (const MSExperiment& source)
     {
-        if (&source == this)
-            return *this;
+        if (&source == this) return *this;
 
         std::vector<MSSpectrum<PeakT> >::operator=(source);
+        RangeManagerType::operator=(source);
         ExperimentalSettings::operator=(source);
         PersistentObject::operator=(source);
 				

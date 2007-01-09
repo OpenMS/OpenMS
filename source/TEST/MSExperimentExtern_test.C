@@ -73,13 +73,23 @@ CHECK(MSExperimentExtern& operator= (const MSExperimentExtern& source))
   tmp.getContacts()[0].setName("Name");
   tmp.setBufferSize(1);
   tmp.updateBuffer();
-  
+  MSSpectrum<> spec;
+  DPeak<1> p;
+  p.setPos(5.0);
+  spec.push_back(p);
+  p.setPos(10.0);
+  spec.push_back(p);
+  tmp.push_back(spec);
+  tmp.updateRanges();
+
   MSExperimentExtern<> tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);  
   TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
   TEST_EQUAL(tmp2.getBufferSize(),1);
-
+	TEST_REAL_EQUAL(tmp2.getMin()[1],5.0);
+	TEST_REAL_EQUAL(tmp2.getMax()[1],10.0);
+	
   tmp2 = MSExperimentExtern<>();
   TEST_EQUAL(tmp2.getContacts().size(),0);  
   TEST_EQUAL(tmp2.getBufferSize(),100);

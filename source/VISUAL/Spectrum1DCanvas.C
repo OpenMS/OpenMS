@@ -502,7 +502,6 @@ namespace OpenMS
 		tmp.assign(overall_data_range_);
 		changeVisibleArea_(tmp);
 	
-		//
 		if (overall_data_range_.maxX() - overall_data_range_.minX() <1.0)
 		{
 			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0);

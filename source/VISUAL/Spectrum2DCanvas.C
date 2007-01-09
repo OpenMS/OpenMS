@@ -1407,14 +1407,12 @@ namespace OpenMS
 		//recalculate the new quadtree in any case
 		reconstructQuadtree_(getLayerCount()-1, tmp_area, true);
 		
-		//cout << "intensityModeChange_: "<<Date::now() << endl;
 		intensityModeChange_();
 		
 		emit sendStatusMessage("",0);
 		setCursor(Qt::ArrowCursor);
 		
 		emit layerActivated(this);
-		//cout << "resetZoom(): "<<Date::now() << endl;
 		
 		if (getLayerCount()==1)
 		{

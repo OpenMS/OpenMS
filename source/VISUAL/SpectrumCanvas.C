@@ -393,7 +393,7 @@ namespace OpenMS
 			if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
 			if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
 		}
-
+		
 		overall_data_range_.setMin(min);
 		overall_data_range_.setMax(max);
 		

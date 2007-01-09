@@ -165,6 +165,7 @@ namespace OpenMS
     ws_=new QWorkspace(dummy);
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolbar(QWidget*)));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerbar()));
     box_layout->addWidget(ws_);
 
     // File menu
@@ -1147,13 +1148,11 @@ namespace OpenMS
       am_measure_->setEnabled(false);
       am_select_->setEnabled(false);
     }
-
-    //layer manager
-    updateLayerbar();
   }
 
   void TOPPViewBase::updateLayerbar()
   {
+  	//cout << "updateLayerbar()" << endl;
     layer_bar_->hide();
 		layer_manager_->clear();
 
@@ -1185,7 +1184,7 @@ namespace OpenMS
 
 	void TOPPViewBase::layerSelectionChange()
 	{
-		cout << "layerSelectionChange()" << endl;
+		//cout << "layerSelectionChange()" << endl;
 		//get current canvas
 		SpectrumCanvas* cc = activeCanvas_();
 		//nothing selcted -> find last active item and select it
@@ -1196,12 +1195,12 @@ namespace OpenMS
 	    {
 				++it;
 	    }
-	    cout << "  RESELECTING: " << cc->activeLayerIndex() << endl;
+	    //cout << "  RESELECTING: " << cc->activeLayerIndex() << endl;
 	    layer_manager_->blockSignals(true);
 			layer_manager_->setSelected(*it,true);
 			layer_manager_->blockSignals(false);
 		}
-		// new layer selected -> emit signal
+		// new layer selected -> highlight it
 		else
 		{
 	    int i = 0;
@@ -1210,8 +1209,12 @@ namespace OpenMS
 	    {
 	      if (it.current()->isSelected())
 	      {
-	      	cout << "  SELECTING: " << i << endl;
+	      	//cout << "  SELECTING: " << i << endl;
+	      	layer_manager_->blockSignals(true);
+	      	layer_manager_->setSelected(*it,true);
+	      	layer_manager_->blockSignals(false);
 	      	cc->activateLayer(i);
+	      	//cout << "  SELECTED: " << i << endl;
 	      	break;
 	      }
 				++it;
@@ -1222,7 +1225,7 @@ namespace OpenMS
 
 	void TOPPViewBase::layerContextMenu(QListViewItem* item, const QPoint & pos, int /*col*/)
 	{
-		cout << "layerContextMenu(QListViewItem* item, const QPoint & pos, int col)" << endl;
+		//cout << "layerContextMenu(QListViewItem* item, const QPoint & pos, int col)" << endl;
 		if (item)
 		{
 			QPopupMenu* context_menu = new QPopupMenu(layer_manager_);
@@ -1230,7 +1233,8 @@ namespace OpenMS
 			{
 				context_menu->insertItem("Delete",0,0);
 			}
-			context_menu->insertItem("Preferences",1,1);
+			//TODO Layer preferences
+			//context_menu->insertItem("Preferences",1,1);
 			
 			int result = context_menu->exec(pos);
 			//delete
@@ -1242,7 +1246,7 @@ namespace OpenMS
 		    {
 		      if (it.current()==item)
 		      {
-		      	cout << "  REMOVING: " << i << endl;
+		      	//cout << "  REMOVING: " << i << endl;
 						activeCanvas_()->removeLayer(i);
 						updateLayerbar();
 						break;
@@ -1254,7 +1258,7 @@ namespace OpenMS
 			//show preferences
 			else if (result == 1)
 			{
-				cout << "TODO: Layer preferences" << endl;
+				//TODO Layer preferences
 			}
 			delete (context_menu);
 		}
@@ -1262,7 +1266,7 @@ namespace OpenMS
 
 	void TOPPViewBase::layerVisibilityChange(QListViewItem* item, const QPoint& /*pnt*/, int /*col*/)
 	{
-		cout << "layerVisibilityChange() " << endl;
+		//cout << "layerVisibilityChange() " << endl;
 		if (item)
 		{
 			SpectrumCanvas* cc = activeCanvas_();
@@ -1272,7 +1276,7 @@ namespace OpenMS
 	    {
 	    	if (((QCheckListItem*)(it.current()))->isOn() != cc->getLayer(i).visible)
 	    	{
-	    		cout << "  SHOWING/HIDING: " << i << endl;
+	    		//cout << "  SHOWING/HIDING: " << i << endl;
 	    		cc->changeVisibility(i,!cc->getLayer(i).visible);
 	    		break;
 	    	}

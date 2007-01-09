@@ -71,13 +71,21 @@ CHECK(MSExperiment& operator= (const MSExperiment& source))
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setName("Name");
   tmp.resize(1);
+  DPeak<1> p;
+  p.setPos(5.0);
+  tmp[0].push_back(p);
+  p.setPos(10.0);
+  tmp[0].push_back(p);
+  tmp.updateRanges();
   
   MSExperiment<> tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);  
   TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
-
+	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0);
+	TEST_REAL_EQUAL(tmp2.getMaxMZ(),10.0);
+	
   tmp2 = MSExperiment<>();
   TEST_EQUAL(tmp2.getContacts().size(),0);  
   TEST_EQUAL(tmp2.size(),0);
