@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
 #if defined OPENMS_DEBUG && ! defined V_SimplePairFinder
-#define V_SimplePairFinder(bla) //  std::cout << bla << std::endl;
+#define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
 #else
 #define V_SimplePairFinder(bla)
 #endif
@@ -89,25 +89,36 @@ namespace OpenMS
       using Base::element_map_;
       using Base::element_pairs_;
       using Base::transformation_;
-      
+
       /// Constructor
       SimplePairFinder()
           : Base(),
-          pair_min_quality_(0)
-      {}
+          pair_min_quality_(0.01)
+      {
+        diff_intercept_[RT] = 1;
+        diff_intercept_[MZ] = 0.1;
+        diff_exponent_[RT] = 2;
+        diff_exponent_[MZ] = 1;
+      }
 
       /// Copy constructor
       SimplePairFinder(const SimplePairFinder& source)
           : Base(source),
-          diff_exponent_(source.diff_exponent_),
-          diff_intercept_(source.diff_intercept_),
           pair_min_quality_(source.pair_min_quality_),
           transformed_positions_second_map_(source.transformed_positions_second_map_)
-      {}
+      {
+        diff_intercept_[RT] = source.diff_intercept_[RT];
+        diff_intercept_[MZ] = source.diff_intercept_[MZ];
+        diff_exponent_[RT] = source.diff_exponent_[RT];
+        diff_exponent_[MZ] = source.diff_exponent_[MZ];
+      }
 
       ///  Assignment operator
       virtual SimplePairFinder& operator = (SimplePairFinder source)
       {
+        if (&source==this)
+          return *this;
+          
         param_ = source.param_;
         element_map_[MODEL] = source.element_map_[MODEL];
         element_map_[SCENE] = source.element_map_[SCENE];
@@ -125,7 +136,7 @@ namespace OpenMS
 
       /// Destructor
       virtual ~SimplePairFinder()
-      {}
+    {}
 
       /// returns an instance of this class
       static BasePairFinder<PointMapType>* create()
@@ -139,9 +150,53 @@ namespace OpenMS
         return "simple";
       }
 
-      template < typename ResultMapType >
-      void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
-      {}
+      /// Get diff exponent
+      double getDiffExponent(const UnsignedInt& dim)
+      {
+        return diff_exponent_[dim];
+      }
+
+      /// Set diff exponent
+      void setDiffExponent(const UnsignedInt& dim, const double& exponent)
+      {
+        diff_exponent_[dim] = exponent;
+        String param_name_prefix = "similarity:diff_exponent:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, exponent);
+      }
+
+      /// Get diff intercept
+      double getDiffIntercept(const UnsignedInt& dim)
+      {
+        return diff_intercept_[dim];
+      }
+
+      /// Set diff intercept
+      void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
+      {
+        diff_intercept_[dim] = intercept;
+        String param_name_prefix = "similarity:diff_intercept:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, intercept);
+      }
+
+      /// Get pair min quality
+      double getPairMinQuality()
+      {
+        return pair_min_quality_;
+      }
+
+      /// Set pair min quality
+      void setPairMinQuality(const double& quality)
+      {
+        pair_min_quality_ = quality;
+        String param_name = "similarity:pair_min_quality";
+        param_.setValue(param_name, quality);
+      }
+
+      //       template < typename ResultMapType >
+      //       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
+      //       {}
 
       /// Estimates the transformation for each grid cell
       virtual void run()
@@ -175,7 +230,7 @@ namespace OpenMS
 #undef V_run
 
         findElementPairs_();
-      };
+      }
 
     protected:
       /// A parameter for similarity_().
@@ -196,61 +251,60 @@ namespace OpenMS
 #define V_parseParam_(bla) V_SimplePairFinder(bla)
         V_parseParam_("@@@ parseParam_()");
 
+
+        String param_name_prefix = "similarity:diff_exponent:";
+        std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        DataValue data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name_prefix = "similarity:diff_exponent:";
-          for ( Size dimension = 0; dimension < 2; ++dimension)
-          {
-            std::string param_name =
-              param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-            DataValue data_value = param_.getValue(param_name);
-            if ( data_value == DataValue::EMPTY )
-            {
-              throw Exception::ElementNotFound<std::string>
-              (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-            }
-            else
-            {
-              diff_exponent_[dimension] = data_value;
-              V_parseParam_(param_name<< ": "<<diff_exponent_[dimension]);
-            }
-          }
+          diff_exponent_[RT] = 1;
+        }
+        else
+        {
+          diff_exponent_[RT] = data_value;
+        }
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
+        {
+          diff_exponent_[MZ] = 2;
+        }
+        else
+        {
+          diff_exponent_[MZ] = data_value;
         }
 
+        param_name_prefix = "similarity:diff_intercept:";
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+        data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name_prefix = "similarity:diff_intercept:";
-          for ( Size dimension = 0; dimension < 2; ++dimension)
-          {
-            std::string param_name =
-              param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-            DataValue data_value = param_.getValue(param_name);
-            if ( data_value == DataValue::EMPTY )
-            {
-              throw Exception::ElementNotFound<std::string>
-              (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-            }
-            else
-            {
-              diff_intercept_[dimension] = data_value;
-              V_parseParam_(param_name<< ": "<<diff_intercept_[dimension]);
-            }
-          }
+          diff_intercept_[RT] = 1;
+        }
+        else
+        {
+          diff_intercept_[RT] = data_value;
         }
 
+        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+        if ( data_value == DataValue::EMPTY )
         {
-          std::string param_name = "similarity:pair_min_quality";
-          DataValue data_value = param_.getValue(param_name);
-          if ( data_value == DataValue::EMPTY )
-          {
-            throw Exception::ElementNotFound<std::string>
-            (__FILE__,__LINE__,__PRETTY_FUNCTION__,param_name);
-          }
-          else
-          {
-            pair_min_quality_ = data_value;
-            V_parseParam_(param_name<< ": "<<pair_min_quality_);
-          }
+          diff_intercept_[MZ] = 0.1;
+        }
+        else
+        {
+          diff_intercept_[MZ] = data_value;
         }
 
+        param_name = "similarity:pair_min_quality";
+        data_value = param_.getValue(param_name);
+        if ( data_value == DataValue::EMPTY )
+        {
+          pair_min_quality_ = 0.01;
+        }
+        else
+        {
+          pair_min_quality_ = data_value;
+        }
 #undef V_parseParam_
 
       } // parseParam_
@@ -349,12 +403,12 @@ namespace OpenMS
       } // findElementPairs_
 
       /**@brief Compute the similarity for a pair of elements; larger quality
-        values are better.
+      values are better.
 
-        The returned value should express our confidence that one element might
-        possibly be matched to the other.
+      The returned value should express our confidence that one element might
+      possibly be matched to the other.
 
-        The details here are kind of alchemy ...
+      The details here are kind of alchemy ...
       */
       QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
       {

@@ -36,7 +36,7 @@
 #include <CGAL/Point_set_2.h>
 
 #define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -104,8 +104,8 @@ namespace OpenMS
       DelaunayPairFinder()
           : Base()
       {
-    		diff_intercept_[RT] = 1;
-    		diff_intercept_[MZ] = 0.1;
+        diff_intercept_[RT] = 1;
+        diff_intercept_[MZ] = 0.1;
         max_pair_distance_[RT] = 3;
         max_pair_distance_[MZ] = 1;
         precision_[RT] = 20;
@@ -116,8 +116,8 @@ namespace OpenMS
       DelaunayPairFinder(const DelaunayPairFinder& source)
           : Base(source)
       {
-      	diff_intercept_[RT] = source.diff_intercept_[RT];
-    		diff_intercept_[MZ] = source.diff_intercept_[MZ];
+        diff_intercept_[RT] = source.diff_intercept_[RT];
+        diff_intercept_[MZ] = source.diff_intercept_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
         precision_[RT] = source.precision_[RT];
@@ -131,12 +131,13 @@ namespace OpenMS
           return *this;
 
         //Base::operator = (source);  FactoryProduct::operator = (source);
+        param_ = source.param_;
         element_map_[MODEL] = source.element_map_[MODEL];
         element_map_[SCENE] = source.element_map_[SCENE];
         transformation_[RT] = source.transformation_[RT];
         transformation_[MZ] = source.transformation_[MZ];
         diff_intercept_[RT] = source.diff_intercept_[RT];
-    		diff_intercept_[MZ] = source.diff_intercept_[MZ];
+        diff_intercept_[MZ] = source.diff_intercept_[MZ];
         max_pair_distance_[RT] = source.max_pair_distance_[RT];
         max_pair_distance_[MZ] = source.max_pair_distance_[MZ];
         precision_[RT] = source.precision_[RT];
@@ -245,51 +246,51 @@ namespace OpenMS
 
       typedef CGAL::Point_set_2< GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< GeometricTraits > > > Point_set_2;
       typedef typename Point_set_2::Vertex_handle Vertex_handle;
-      
-      
+
+
       /// Get diff intercept
       double getDiffIntercept(const UnsignedInt& dim)
       {
         return diff_intercept_[dim];
       }
-      
+
       /// Set diff intercept
       void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
       {
-       diff_intercept_[dim] = intercept;
-       String param_name_prefix = "similarity:diff_intercept:";
-       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-       param_.setValue(param_name, intercept);
+        diff_intercept_[dim] = intercept;
+        String param_name_prefix = "similarity:diff_intercept:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, intercept);
       }
-      
+
       /// Get max_pair_distance_
       float getMaxPairDistance(const UnsignedInt& dim)
       {
         return max_pair_distance_[dim];
       }
-      
+
       /// Set max_pair_distance_
       void setMaxPairDistance(const UnsignedInt& dim, const float& max_pair_distance)
       {
-       max_pair_distance_[dim] = max_pair_distance;
-       String param_name_prefix = "similarity:max_pair_distance:";
-       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-       param_.setValue(param_name, max_pair_distance);
+        max_pair_distance_[dim] = max_pair_distance;
+        String param_name_prefix = "similarity:max_pair_distance:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, max_pair_distance);
       }
-      
+
       /// Get precision
       float getPrecision(const UnsignedInt& dim)
       {
-        return precision_[dim];    
+        return precision_[dim];
       }
-      
+
       /// Set precision
       void setPrecision(const UnsignedInt& dim, const float& precision)
       {
-       precision_[dim] = precision;
-       String param_name_prefix = "similarity:precision:";
-       String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-       param_.setValue(param_name, precision);
+        precision_[dim] = precision;
+        String param_name_prefix = "similarity:precision:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, precision);
       }
 
       /// Estimates the transformation for each grid cell
@@ -301,116 +302,8 @@ namespace OpenMS
 
         V_DelaunayPairFinder("DelaunayPairFinder::run(): find element pairs");
 
-        findElementPairs();
+        findElementPairs_();
       }
-
-      /// The actual algorithm for finding element pairs.
-      void findElementPairs()
-      {
-        parseParam_();
-
-        const PointMapType& reference_map = *(element_map_[MODEL]);
-        const PointMapType& transformed_map = *(element_map_[SCENE]);
-
-#define V_findElementPairs_(bla) V_DelaunayPairFinder(bla)
-
-        V_findElementPairs_("@@@ findElementPairs_()");
-
-        Size n = reference_map.size();
-
-        // Vector to fill the point set for triangulation
-        // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RT]) ~ deviation(diff_intercept_[MZ])
-        std::vector< Point > positions_reference_map;
-        for (Size i = 0; i < n; ++i)
-        {
-          positions_reference_map.push_back(Point(reference_map[i].getPosition()[RT],
-                                                  reference_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
-        }
-
-        // compute the delaunay triangulation
-        Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
-
-        V_findElementPairs_("Translation rt " << transformation_[RT].getParam());
-        V_findElementPairs_("Translation mz " << transformation_[MZ].getParam());
-
-        // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
-        std::vector< SignedInt > lookup_table(n,-1);
-        std::vector< std::pair< const PointType*,const PointType*> > all_element_pairs;
-
-        UnsignedInt index_act_element_pair = 0;
-        // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
-        for ( Size fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
-        {
-          // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
-          double rt_pos = transformed_map[fi1].getPosition()[RT];
-          double mz_pos = transformed_map[fi1].getPosition()[MZ];
-
-          V_findElementPairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
-          transformation_[RT].apply(rt_pos);
-          transformation_[MZ].apply(mz_pos);
-
-          mz_pos /= (diff_intercept_[MZ] / diff_intercept_[RT]);
-          Point transformed_pos(rt_pos,mz_pos);
-
-          V_findElementPairs_("Transformed Position is : " << transformed_pos );
-
-          std::vector< Vertex_handle > resulting_range;
-          p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
-
-          V_findElementPairs_("Neighbouring points : ");
-          for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
-          {
-            V_findElementPairs_((*it)->point());
-            V_findElementPairs_(*((*it)->point().element));
-          }
-
-          // if the first neighbour is close enough to act_pos and the second_nearest neighbour lies far enough from the nearest neighbour
-          Point nearest = resulting_range[0]->point();
-          Point second_nearest = resulting_range[1]->point();
-
-          if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
-               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
-              && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
-                  || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
-          {
-            all_element_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.element,&transformed_map[fi1]));
-
-            SignedInt element_key = resulting_range[0]->point().key;
-            // if the element already part of a ElementPair the value in the lookup_table becomes -2
-            if ( lookup_table[element_key] > -1)
-            {
-              lookup_table[element_key] = -2;
-            }
-            // otherwise if the element is until now no part of a element pair,
-            // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
-            else
-            {
-              if ( lookup_table[element_key] == -1)
-              {
-                lookup_table[element_key] = index_act_element_pair;
-              }
-            }
-            ++index_act_element_pair;
-          }
-        }
-
-        for (Size i = 0; i < n; ++i)
-        {
-          SignedInt pair_key = lookup_table[i];
-          if ( pair_key > -1 )
-          {
-          	/*std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
-                      << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
-                      << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
-                      << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;       */    
-             
-            element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
-          }
-        }
-#undef V_findElementPairs_
-
-      } // findElementPairs_
-
 
       /// The actual algorithm for finding consensus consensus elements.
       /// Elements in the first_map are aligned to elements in the second_map, so the second_map contains the resulting consensus elements.
@@ -587,7 +480,7 @@ namespace OpenMS
     protected:
       /// A parameter for similarity_().
       double diff_intercept_[2];
-      /// To uniquely assign an element e1 of the scene map to another element e2 in the model map 
+      /// To uniquely assign an element e1 of the scene map to another element e2 in the model map
       /// all elements in the scene map have to lie at least max_pair_distance_ far from e1 and
       /// all elements in the model map have to lie at least max_pair_distance_ far from e2.
       float max_pair_distance_[2];
@@ -668,6 +561,115 @@ namespace OpenMS
 #undef V_parseParam_
 
       } // parseParam_
+
+
+      /// The actual algorithm for finding element pairs.
+      void findElementPairs_()
+      {
+        parseParam_();
+
+        const PointMapType& reference_map = *(element_map_[MODEL]);
+        const PointMapType& transformed_map = *(element_map_[SCENE]);
+
+#define V_findElementPairs_(bla) V_DelaunayPairFinder(bla)
+
+        V_findElementPairs_("@@@ findElementPairs_()");
+
+        Size n = reference_map.size();
+
+        // Vector to fill the point set for triangulation
+        // Penalize a deviation in mz more than in rt: deviation(diff_intercept_[RT]) ~ deviation(diff_intercept_[MZ])
+        std::vector< Point > positions_reference_map;
+        for (Size i = 0; i < n; ++i)
+        {
+          positions_reference_map.push_back(Point(reference_map[i].getPosition()[RT],
+                                                  reference_map[i].getPosition()[MZ] / (diff_intercept_[MZ] / diff_intercept_[RT]),reference_map[i],i));
+        }
+
+        // compute the delaunay triangulation
+        Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
+
+        V_findElementPairs_("Translation rt " << transformation_[RT].getParam());
+        V_findElementPairs_("Translation mz " << transformation_[MZ].getParam());
+
+        // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
+        std::vector< SignedInt > lookup_table(n,-1);
+        std::vector< std::pair< const PointType*,const PointType*> > all_element_pairs;
+
+        UnsignedInt index_act_element_pair = 0;
+        // take each point in the first data map and search for its neighbours in the second element map (within a given (transformed) range)
+        for ( Size fi1 = 0; fi1 < transformed_map.size(); ++fi1 )
+        {
+          // compute the transformed iso-rectangle (upper_left,bottom_left,bottom_right,upper_right) for the range query
+          double rt_pos = transformed_map[fi1].getPosition()[RT];
+          double mz_pos = transformed_map[fi1].getPosition()[MZ];
+
+          V_findElementPairs_("Search for two nearest neighbours of " << rt_pos << ' ' << transformed_map[fi1].getPosition()[MZ] );
+          transformation_[RT].apply(rt_pos);
+          transformation_[MZ].apply(mz_pos);
+
+          mz_pos /= (diff_intercept_[MZ] / diff_intercept_[RT]);
+          Point transformed_pos(rt_pos,mz_pos);
+
+          V_findElementPairs_("Transformed Position is : " << transformed_pos );
+
+          std::vector< Vertex_handle > resulting_range;
+          p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
+
+          V_findElementPairs_("Neighbouring points : ");
+          for (typename std::vector< Vertex_handle >::const_iterator it = resulting_range.begin(); it != resulting_range.end(); it++)
+          {
+            V_findElementPairs_((*it)->point());
+            V_findElementPairs_(*((*it)->point().element));
+          }
+
+          // if the first neighbour is close enough to act_pos and the second_nearest neighbour lies far enough from the nearest neighbour
+          Point nearest = resulting_range[0]->point();
+          Point second_nearest = resulting_range[1]->point();
+
+          if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
+               &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
+              && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
+                  || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+          {
+            all_element_pairs.push_back(std::pair<const PointType*,const PointType*>(nearest.element,&transformed_map[fi1]));
+
+            SignedInt element_key = resulting_range[0]->point().key;
+            // if the element already part of a ElementPair the value in the lookup_table becomes -2
+            if ( lookup_table[element_key] > -1)
+            {
+              lookup_table[element_key] = -2;
+            }
+            // otherwise if the element is until now no part of a element pair,
+            // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
+            else
+            {
+              if ( lookup_table[element_key] == -1)
+              {
+                lookup_table[element_key] = index_act_element_pair;
+              }
+            }
+            ++index_act_element_pair;
+          }
+        }
+
+        for (Size i = 0; i < n; ++i)
+        {
+          SignedInt pair_key = lookup_table[i];
+          if ( pair_key > -1 )
+          {
+            /*std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
+                      << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
+                      << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
+                      << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;       */
+
+            element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
+          }
+        }
+#undef V_findElementPairs_
+
+      } // findElementPairs_
+
   }
   ; // DelaunayPairFinder
 } // namespace OpenMS

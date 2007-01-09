@@ -92,14 +92,16 @@ namespace OpenMS
       {
         try
         {
-          this->insert(IndexTuple(map_index,feature_index,feature));
+          IndexTuple i(map_index,feature_index,feature);
+          i.setTransformedPosition(feature.getPosition());
+          this->insert(i);
         }
         catch(Exception::InvalidValue)
         {}
 
         this->getPosition() = feature.getPosition();
         this->getIntensity() = feature.getIntensity();
-
+        
         position_range_.setMinMax(feature.getPosition(),feature.getPosition());
         intensity_range_.setMinMax(feature.getIntensity(),feature.getIntensity());
       }
@@ -110,8 +112,12 @@ namespace OpenMS
       {
         try
         {
-          this->insert(IndexTuple(map_1_index,feature_index_1, feature_1));
-          this->insert(IndexTuple(map_2_index,feature_index_2, feature_2));
+          IndexTuple i1(map_1_index,feature_index_1, feature_1);
+          i1.setTransformedPosition(feature_1.getPosition());
+          this->insert(i1);
+          IndexTuple i2(map_2_index,feature_index_2, feature_2);
+          i2.setTransformedPosition(feature_2.getPosition());
+          this->insert(i2);
         }
         catch(Exception::InvalidValue)
         {}
@@ -123,7 +129,9 @@ namespace OpenMS
       ConsensusFeature(const UnsignedInt& map_index, const UnsignedInt& feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
-        this->insert(IndexTuple(map_index,feature_index,feature));
+        IndexTuple i(map_index,feature_index,feature);
+        i.setTransformedPosition(feature.getPosition());
+        this->insert(i);
 
         computeConsensus_();
       }

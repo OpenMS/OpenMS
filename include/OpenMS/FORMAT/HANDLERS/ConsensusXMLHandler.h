@@ -402,6 +402,14 @@ namespace OpenMS
 
               act_index_tuple.setMapIndex(map_index);
               act_index_tuple.setElementIndex(element_index);
+              
+              tmp_str = getAttributeAsString(RT_ATT);
+              PositionType pos;
+              pos[0] = asDouble_(tmp_str);
+              tmp_str = getAttributeAsString(MZ_ATT);
+              pos[1] = asDouble_(tmp_str);
+              
+              act_index_tuple.setTransformedPosition(pos);
               act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
               act_cons_element_.insert(act_index_tuple);
               act_cons_element_.getPosition() = pos_;
@@ -452,7 +460,6 @@ namespace OpenMS
       {
         if (s != ref_index)
         {
-
           os << "\t\t<transformation id=\"" << (j+1) << "\" name=\"AffineTransformation\"/>\n";
           os << "\t";
           writeCellList_(os,transformation_vector[s]);
@@ -482,8 +489,8 @@ namespace OpenMS
         {
           os  << "\t\t\t\t<element id=\"" << it->getElementIndex()
           << "\" map=\"" << it->getMapIndex()
-          << "\" rt=\"" << it->getElement().getPosition()[0]
-          << "\" mz=\"" << it->getElement().getPosition()[1]
+          << "\" rt=\"" << it->getTransformedPosition()[0]
+          << "\" mz=\"" << it->getTransformedPosition()[1]
           << "\" it=\"" << it->getElement().getIntensity() << "\"/>\n";
         }
         os << "\t\t\t</groupedElementList>\n";

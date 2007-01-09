@@ -101,7 +101,7 @@ namespace OpenMS
 
 
       /// Non-mutable access to the maps
-      inline const  std::vector < typename ConsensusElementType::ElementContainerType >& getMapVector() const
+      inline const std::vector < typename ConsensusElementType::ElementContainerType >& getMapVector() const
       {
         return map_vector_;
       }

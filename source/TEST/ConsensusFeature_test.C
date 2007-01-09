@@ -161,6 +161,8 @@ CHECK((ConsensusFeature(const UnsignedInt& map_1_index, const UnsignedInt& featu
   TEST_REAL_EQUAL(cons3.getPosition()[0],1.5)
   TEST_REAL_EQUAL(cons3.getPosition()[1],2.5)
   TEST_REAL_EQUAL(cons3.getIntensity(),200)
+  std::cout << "cons3.getPositionRange() " << cons3.getPositionRange() << std::endl;
+  std::cout << "pos_range " << pos_range << std::endl;
   TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
   ConsensusFeature<>::Group::const_iterator it = cons3.begin();

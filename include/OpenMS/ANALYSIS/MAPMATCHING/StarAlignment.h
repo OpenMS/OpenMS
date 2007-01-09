@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 
 #define DEBUG_ALIGNMENT
@@ -52,7 +53,7 @@ namespace OpenMS
      a reference map is chosen and the other maps are aligned to the reference map.
           
   **/
-  template < typename ConsensusElementT = ConsensusFeature<> >
+  template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >
   {
     public:
@@ -318,18 +319,17 @@ namespace OpenMS
             UnsignedInt n = map.size();
             for (UnsignedInt j = 0; j < n; ++j)
             {
-//             std::cout << "insert " << map[j] << std::endl;
+              //             std::cout << "insert " << map[j] << std::endl;
               // Test in which cell this element is included
               // and apply the corresponding transformation
               typename GridType::iterator grid_it = transformations_[i].begin();
               while ((grid_it != (transformations_[i]).end()))
               {
+                IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
+                PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
                 if (grid_it->encloses(map[j].getPosition()))
                 {
-//                   std::cout << "At map " << j << " GRID cell " << *grid_it << std::endl;
                   // apply transform for the singleton group element
-                  IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector_[i]))[j]);
-                  PositionType pos = (*(element_map_vector_[i]))[j].getPosition();
                   if (grid_it->getMappings().size() != 0)
                   {
                     DLinearMapping<1>* mapping_rt = dynamic_cast<DLinearMapping<1>* >(grid_it->getMappings()[RT]);
@@ -344,18 +344,16 @@ namespace OpenMS
 
                   out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
-//                   std::cout << "Map " << i << " before " << map[j] << " insert " << index_tuple << std::endl;
                   map[j].getPosition() = pos;
                   map[j].insert(index_tuple);
                   break;
                 }
                 grid_it++;
               } // end while (grid)
-            } // end while (Elements)
+            } // end for (Elements)
 
 #ifdef DEBUG_ALIGNMENT
             out.flush();
-
             std::cout << "*** Compute the consensus of the reference map and map " << i << " ***" << std::endl;
 #endif
             // compute the consensus of the reference map and map i
@@ -364,7 +362,6 @@ namespace OpenMS
             pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT
-
             std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
             ++number_alignments;
             std::ofstream out_cons("ConsensusMap",std::ios::out);
@@ -511,8 +508,6 @@ namespace OpenMS
             lin_regression.setMinQuality(-1.);
             lin_regression.estimateTransform();
 
-            std::cout << lin_regression.getGrid() << std::endl;
-
             transformations_[i] = lin_regression.getGrid();
 
 #ifdef DEBUG_ALIGNMENT
@@ -543,13 +538,11 @@ namespace OpenMS
                   index_tuple.setTransformedPosition(pos);
 
 #ifdef DEBUG_ALIGNMENT
-
                   out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
 
                   map[j].getPosition() = pos;
                   map[j].insert(index_tuple);
-                  std::cout << "MAP element " << map[j] << std::endl;
                 }
                 grid_it++;
 
@@ -558,15 +551,6 @@ namespace OpenMS
 
 #ifdef DEBUG_ALIGNMENT
             out.flush();
-
-            // iterate over all Elements...
-            n = map.size();
-            std::cout << "MAP " << std::endl;
-            for (UnsignedInt j = 0; j < n; ++j)
-            {
-              std::cout << map[j] << '\n';
-            }
-            std::cout.flush();
 
             std::cout << "*** Compute the consensus of the reference map and map " << i << " ***" << std::endl;
 #endif
