@@ -184,7 +184,8 @@ EXECUTABLES_FORMAT = \
 	InspectInfile_test\
 	InspectOutfile_test\
 	SequestInfile_test\
-	SequestOutfile_test
+	SequestOutfile_test\
+	ConsensusXMLFile_test
 
 #MATH
 
@@ -296,6 +297,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DMapDewarper_test\
 	BasePairFinder_test\
 	DelaunayPairFinder_test\
+	SimplePairFinder_test\
 	BaseSuperimposer_test\
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test
