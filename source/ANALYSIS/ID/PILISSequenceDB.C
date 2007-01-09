@@ -147,6 +147,10 @@ namespace OpenMS
 			}
 
 			weight = peptide_sequence.getAverageWeight(Residue::Full, 1);
+			if (!peptides_.has((Size)(weight * factor_)))
+			{
+				return false;
+			}
 			for (vector<PepStruct>::const_iterator it = peptides_[(Size)(weight * factor_)].begin(); it != peptides_[(Size)(weight * factor_)].end(); ++it)
  	   	{
  	    	if (it->peptide == peptide)
