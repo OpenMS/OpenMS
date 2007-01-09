@@ -92,8 +92,9 @@ namespace OpenMS
       {
         try
         {
-          this->insert(IndexTuple(map_index,peak_index,peak)
-                      );
+          IndexTuple i(map_index,peak_index,peak);
+          i.setTransformedPosition(peak.getPosition());
+          this->insert(IndexTuple(map_index,peak_index,peak));
         }
         catch(Exception::InvalidValue)
         {}
@@ -112,8 +113,12 @@ namespace OpenMS
       {
         try
         {
-          this->insert(IndexTuple(map_1_index,peak_index_1, peak_1));
-          this->insert(IndexTuple(map_2_index,peak_index_2, peak_2));
+          IndexTuple i1(map_1_index,peak_index_1, peak_1);
+          i1.setTransformedPosition(peak_1.getPosition());
+          this->insert(i1);
+          IndexTuple i2(map_2_index,peak_index_2, peak_2);
+          i2.setTransformedPosition(peak_2.getPosition());
+          this->insert(i2);
         }
         catch(Exception::InvalidValue)
         {}
@@ -125,6 +130,8 @@ namespace OpenMS
       ConsensusPeak(const UnsignedInt& map_index, const UnsignedInt& peak_index, const ElementType& peak, const ConsensusPeak& c_peak)
       {
         Group::operator=(c_peak);
+        IndexTuple i(map_index,peak_index,peak);
+        i.setTransformedPosition(peak.getPosition());
         this->insert(IndexTuple(map_index,peak_index,peak));
 
         computeConsensus_();
@@ -300,11 +307,11 @@ namespace OpenMS
     for (typename ConsensusPeak<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it, ++i)
     {
       os  << "Element: " << i << '\n'
-          << "Transformed Position: " << it->getTransformedPosition() << '\n'
-          << "Original Position: " << it->getElement() << '\n'
-          << "Element index " << it->getElementIndex() << '\n'
-          << "Map index " << it->getMapIndex() << std::endl;
-      
+      << "Transformed Position: " << it->getTransformedPosition() << '\n'
+      << "Original Position: " << it->getElement() << '\n'
+      << "Element index " << it->getElementIndex() << '\n'
+      << "Map index " << it->getMapIndex() << std::endl;
+
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 
