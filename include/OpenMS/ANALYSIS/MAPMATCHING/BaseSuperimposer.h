@@ -99,17 +99,17 @@ namespace OpenMS
       /// Constructor
       BaseSuperimposer()
           : FactoryProduct(),
-          	param_(),
+          param_(),
           final_transformation_()
       {
         element_map_[MODEL] = 0;
         element_map_[SCENE] = 0;
       }
 
-      /// Copy constructor 
+      /// Copy constructor
       BaseSuperimposer(const BaseSuperimposer& source)
           : FactoryProduct(source),
-          	param_(source.param_)
+          param_(source.param_)
       {
         element_map_[MODEL] = source.element_map_[MODEL];
         element_map_[SCENE] = source.element_map_[SCENE];
@@ -120,6 +120,9 @@ namespace OpenMS
       /// Assignment operator
       virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
       {
+        if (&source==this)
+          return *this;
+        
         param_ = source.param_;
         element_map_[MODEL] = source.element_map_[MODEL];
         element_map_[SCENE] = source.element_map_[SCENE];
@@ -130,8 +133,7 @@ namespace OpenMS
 
       /// Destructor
       virtual ~BaseSuperimposer()
-      {
-      }
+    {}
 
       /// Set param class
       void setParam(const Param& param)
@@ -177,7 +179,7 @@ namespace OpenMS
 
       /// Estimates the transformation for each grid cell
       virtual void run() = 0;
-      
+
 
       /// Register all derived classes here
       static void registerChildren();

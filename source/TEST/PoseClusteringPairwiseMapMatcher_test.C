@@ -93,7 +93,7 @@ CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>(const PoseClusteringPairw
 RESULT
 
 CHECK(static BasePairwiseMapMatcher<MapT>* create())
-  // ???
+  
 RESULT
 
 CHECK(static const String getName())

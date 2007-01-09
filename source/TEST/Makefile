@@ -300,6 +300,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DelaunayPairFinder_test\
 	SimplePairFinder_test\
 	BaseSuperimposer_test\
+	PoseClusteringAffineSuperimposer_test\
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test
 

@@ -231,7 +231,6 @@ namespace OpenMS
         {
           box_size_[i] = (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) / ( number_buckets_[i] - 0.01 );
         }
-        std::cout << "number_buckets_ " << number_buckets_[0] << ' ' << number_buckets_[1] << std::endl;
 
         // initialize the grid cells of the grid_
         for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
