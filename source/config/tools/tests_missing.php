@@ -128,17 +128,17 @@ foreach($test_names as $name)
 //----------------------------------------Which tests do nothing -------------------------------------------
 
 print "\n\n-- TESTS THAT ARE PROBABLY NOT COMPLETE --\n\n";
-print "Name CHECKs TESTS\n";
+print str_pad("Name", 50).str_pad("Checks", 7).str_pad("Tests", 7).str_pad("Todos", 7)."Reasons\n";
 
 foreach($test_names as $name)
 {
 	$file = file("$path/source/TEST/$name"."_test.C");
 	$check = 0;
 	$test = 0;
+	$todo = 0;
 	foreach($file as $line)
 	{
 		$line = trim($line);
-		
 		if ($line[0].$line[1]!="//")
 		{
 			if (substr($line,0,5)=="CHECK")
@@ -150,9 +150,28 @@ foreach($test_names as $name)
 				$test++;
 			}
 		}
+		if (strpos($line,"???")!==FALSE || strpos($line,"TODO")!==FALSE)
+		{
+			$todo++;
+		}
 	}
-	if ($check<3 || $test < $check)
-	print "$name $check $test\n";
+	$reason = "";
+	if ($check<3)
+	{
+		$reason .= "too_few_checks ";
+	}
+	if ($test < 0.5*$check)
+	{
+		$reason .= "more_checks_than_tests ";
+	}
+	if ($todo != 0)
+	{
+		$reason .= "todos ";
+	}
+	if ($reason != "")
+	{
+		print str_pad($name, 50).str_pad($check, 7).str_pad($test, 7).str_pad($todo, 7).$reason."\n";
+	}
 }
 
 ?>

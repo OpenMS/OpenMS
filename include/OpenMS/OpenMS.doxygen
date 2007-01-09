@@ -69,6 +69,7 @@
 		- Visualisierung von FeaturePairs -> TOPP tool ändern
 		- Messen in 1D
 		- Reduktion in 2D
+		- Feature markiert -> konvexe Hülle markiert
 	- MSExperiment
 	  - AreaIterator mit min/max int als Filter, MS-level als Filter
 	- neue DB erstellen in TOPP tools
