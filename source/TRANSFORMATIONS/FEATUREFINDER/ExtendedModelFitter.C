@@ -369,7 +369,7 @@ namespace OpenMS
 		CoordinateType mz = f.getPosition()[MZ];
 		
 		// write feature model 
-		String fname = "model"+ String(counter_) + "_" + String(rt) + "_" + String(mz);
+		String fname = String("model")+ String(counter_) + "_" + String(rt) + "_" + String(mz);
 		ofstream file(fname.c_str()); 
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{
@@ -381,7 +381,7 @@ namespace OpenMS
 		}
 		
 		// wrote peaks remaining after model fit
-		fname = "feature"+String(counter_) +  "_" + String(rt) + "_" + String(mz);
+		fname = String("feature") + String(counter_) +  "_" + String(rt) + "_" + String(mz);
 		ofstream file2(fname.c_str()); 
 		for (IndexSetIter it=model_set.begin(); it!=model_set.end(); ++it) 
 		{

@@ -672,30 +672,30 @@ namespace OpenMS
 
 	String String::operator+ (char c) const
 	{
-		stringstream s;
-		s << *this << c;
-		return s.str();
+		String tmp(*this);
+		tmp.push_back(c);
+		return tmp;
 	}
 
 	String String::operator+ (const char* s) const
 	{
-		stringstream t;
-		t << *this << s;
-		return t.str();
+		String tmp(*this);
+		tmp.append(s);
+		return tmp;
 	}
 
 		String String::operator+ (const String& s) const
 	{
-		stringstream t;
-		t << *this << s;
-		return t.str();
+		String tmp(*this);
+		tmp.insert(tmp.end(),s.begin(),s.end());
+		return tmp;
 	}
 		
 		String String::operator+ (const std::string& s) const
 	{
-		stringstream t;
-		t << *this << s;
-		return t.str();
+		String tmp(*this);
+		tmp.insert(tmp.end(),s.begin(),s.end());
+		return tmp;
 	}
 
 } // namespace OpenMS
