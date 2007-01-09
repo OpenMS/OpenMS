@@ -829,4 +829,20 @@ namespace OpenMS
 	{
 		subsections_.push_back(name);
 	}
+
+	void TOPPBase2::parseRange_(const String& text, double& low, double& high) const
+	{
+		String tmp = text.prefix(':');
+		if (tmp!="")
+		{
+			low = tmp.toDouble();
+		}
+		tmp = "";
+		tmp = text.suffix(':');
+		if (tmp!="")
+		{
+			high = tmp.toDouble();
+		}
+	}
+
 } // namespace OpenMS

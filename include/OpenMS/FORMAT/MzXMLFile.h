@@ -48,7 +48,8 @@ namespace OpenMS
 			MzXMLFile();
 			///Destructor
 			~MzXMLFile();
-
+			
+			/// Mutable access to the options for loading/storing 
 			PeakFileOptions& getOptions() { return options_; }
 
 			/**

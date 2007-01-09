@@ -101,42 +101,15 @@ class TOPPFileFilter
 			try
 			{
 				//rt
-				tmp = rt.prefix(':');
-				if (tmp!="")
-				{
-					rt_l = tmp.toDouble();
-				}
-				tmp = rt.suffix(':');
-				if (tmp!="")
-				{
-					rt_u = tmp.toDouble();
-				}
+				parseRange_(rt,rt_l,rt_u);
 				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
 				
 				//mz
-				tmp = mz.prefix(':');
-				if (tmp!="")
-				{
-					mz_l = tmp.toDouble();
-				}
-				tmp = mz.suffix(':');
-				if (tmp!="")
-				{
-					mz_u = tmp.toDouble();
-				}
+				parseRange_(mz,mz_l,mz_u);
 				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
 				
 				//int
-				tmp = it.prefix(':');
-				if (tmp!="")
-				{
-					it_l = tmp.toDouble();
-				}
-				tmp = it.suffix(':');
-				if (tmp!="")
-				{
-					it_u = tmp.toDouble();
-				}
+				parseRange_(it,it_l,it_u);
 				writeDebug_("int lower/upper bound: " + String(it_l) + " / " + String(it_u),1);	
 	
 				//levels
@@ -176,6 +149,9 @@ class TOPPFileFilter
 			
 			MSExperiment< > exp;
 			MzDataFile f;
+			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
+			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
+			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
 			f.load(in,exp);						
 		
 			//-------------------------------------------------------------
@@ -192,20 +168,7 @@ class TOPPFileFilter
 			{
 				exp.erase(remove_if(exp.begin(), exp.end(), ScanModePredicate<MSExperiment< >::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
 			}
-			
-			//remove rt range (discards whole spectra)
-			exp.erase(remove_if(exp.begin(), exp.end(), RTRange<MSExperiment< >::SpectrumType>(rt_l, rt_u, true)), exp.end());
-			
-			
-			for (MSExperiment< >::iterator it = exp.begin(); it!= exp.end(); ++it)
-			{
-				//remove int range (might be a lot more than mz)
-				it->getContainer().erase(remove_if(it->begin(), it->end(), IntensityRange<MSExperiment< >::PeakType>(it_l, it_u, true)), it->end());
 				
-				//remove mz range
-				it->getContainer().erase(remove_if(it->begin(), it->end(), MzRange<MSExperiment< >::PeakType>(mz_l, mz_u, true)), it->end());
-			}
-			
 			//remove empty scans
 			exp.erase(remove_if(exp.begin(), exp.end(), SpectrumEmptyPredicate<MSExperiment< >::SpectrumType>()), exp.end());
 			

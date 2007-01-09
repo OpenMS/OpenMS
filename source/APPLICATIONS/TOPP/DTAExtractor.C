@@ -97,31 +97,13 @@ class TOPPDTAExtractor
 			try
 			{
 				//rt
-				tmp = rt.prefix(':');
-				if (tmp!="")
-				{
-					rt_l = tmp.toDouble();
-				}
-				tmp = rt.suffix(':');
-				if (tmp!="")
-				{
-					rt_u = tmp.toDouble();
-				}
+				parseRange_(rt,rt_l,rt_u);
 				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
 				
 				//mz
-				tmp = mz.prefix(':');
-				if (tmp!="")
-				{
-					mz_l = tmp.toDouble();
-				}
-				tmp = mz.suffix(':');
-				if (tmp!="")
-				{
-					mz_u = tmp.toDouble();
-				}
+				parseRange_(mz,mz_l,mz_u);
 				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
-
+				
 				//levels
 				tmp = level;
 				if (level.has(',')) //several levels given
@@ -159,6 +141,7 @@ class TOPPDTAExtractor
 			
 			MSExperiment< > exp;
 			MzDataFile f;
+			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
 			f.load(in,exp);						
 
 			DTAFile dta;
@@ -180,13 +163,6 @@ class TOPPDTAExtractor
 				}
 				if (!in_level_range) continue;
 				
-				//check for rt
-				double rt = it->getRetentionTime();	
-				if (rt<rt_l || rt>rt_u)
-				{
-					continue;
-				}
-				
 				//store spectra
 				if (it->getMSLevel()>1)
 				{
@@ -195,11 +171,11 @@ class TOPPDTAExtractor
 					{
 						continue;
 					}		
-					dta.store(out+"_RT"+String(rt)+"_MZ"+String(mz)+".dta", *it);
+					dta.store(out+"_RT"+String(it->getRetentionTime())+"_MZ"+String(mz)+".dta", *it);
 				}
 				else
 				{
-					dta.store(out+"_RT"+String(rt)+".dta", *it);
+					dta.store(out+"_RT"+String(it->getRetentionTime())+".dta", *it);
 				}
 			}
 			

@@ -464,8 +464,13 @@ namespace OpenMS
 		/// Checks if an output file is writable
 		void outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile);
 		//@}
+		
+		/// Helper function that parses a range string ([a]:[b]) into to variables 
+		void parseRange_(const String& text, double& low, double& high) const;
   };
+	
 
+	
 } // namespace OpenMS
 
 #endif //OPENMS_APPLICATIONS_TOPP_TOPPBASE_H

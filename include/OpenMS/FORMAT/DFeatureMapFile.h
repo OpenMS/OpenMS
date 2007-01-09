@@ -67,7 +67,8 @@ namespace OpenMS
 		/// stores the map @p feature_map in file with name @p filename.
 		void store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile);
 		//@}
-	
+		
+		/// Mutable access to the options for loading/storing 
 		PeakFileOptions& getOptions() { return options_; }
 
 	protected:

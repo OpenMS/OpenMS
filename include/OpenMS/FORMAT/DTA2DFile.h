@@ -77,6 +77,7 @@ namespace OpenMS
       ~DTA2DFile();
       //@}
       
+      /// Mutable access to the options for loading/storing 
       PeakFileOptions& getOptions() { return options_; }
 
       /**

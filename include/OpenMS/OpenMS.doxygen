@@ -48,12 +48,10 @@
 
 /*	
 	TODO:
-	- TOPPView
-		- DB und Features testen
-		- Einschränkungen Files -> TOPP tools
-		- TOPPBase entfernen
+	- TOPPBase entfernen
 	- Release
 		- Valgrind
+		- Test alle mit SVN-ID austatten
 	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
 	  - HP Installtion: TOPP dazu
 	  - HP Team
@@ -61,8 +59,7 @@
 	
 	TODO (Hiwis):
 	- XML:
-		- Base 64
-		- Einschränkungen: int, levels, keine Zusatz-Peaktdaten (DPickedPeak) schreiben
+		- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
 	- TOPPView:
 		- ohne quadtree
 		- Preferences für Layers

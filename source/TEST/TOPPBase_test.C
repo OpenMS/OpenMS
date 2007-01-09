@@ -99,6 +99,11 @@ class TOPPBaseTest
 		{
 			outputFileWritable_(filename);
 		}
+
+		void parseRange(const String& text, double& low, double& high) const
+		{
+			parseRange_(text, low, high);
+		}
 		
 };
 
@@ -289,6 +294,33 @@ CHECK(void outputFileWritable_(const String& filename) const)
 	String filename;
 	NEW_TMP_FILE(filename);
 	TOPPBaseTest().outputFileWritable(filename);
+RESULT
+
+CHECK(void parseRange_(const String& text, double& low, double& high) const)
+	TOPPBaseTest topp;
+	double a = -1.0;
+	double b = -1.0;
+	String s;
+	
+	s = ":";
+	topp.parseRange(s,a,b);
+	TEST_REAL_EQUAL(a,-1.0);
+	TEST_REAL_EQUAL(b,-1.0);
+	
+	s = "4.5:";
+	topp.parseRange(s,a,b);
+	TEST_REAL_EQUAL(a,4.5);
+	TEST_REAL_EQUAL(b,-1.0);
+	
+	s = ":5.5";
+	topp.parseRange(s,a,b);
+	TEST_REAL_EQUAL(a,4.5);
+	TEST_REAL_EQUAL(b,5.5);
+	
+	s = "6.5:7.5";
+	topp.parseRange(s,a,b);
+	TEST_REAL_EQUAL(a,6.5);
+	TEST_REAL_EQUAL(b,7.5);
 RESULT
 
 CHECK(Param getParam_( const std::string& prefix ) const)

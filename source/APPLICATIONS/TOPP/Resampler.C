@@ -44,9 +44,11 @@ using namespace std;
 /**
 	@page Resampler Resampler
 	
-	@brief doc missing
+	@brief
 	
-	longer doc missing
+	@todo write docu (Clemens)
+	@todo write test (Clemens)
+	@todo use MzDataFile::getOptions() to load only the necessary part of the file? (Marc,Clemens)
 	
 */
 
@@ -158,45 +160,15 @@ class TOPPResampler
 		try
 		{
 			//rt
-			tmp = rt.prefix(':');
-			if (tmp!="")
-			{
-				rt_l = tmp.toDouble();
-			}
-			else
-			{
-				rt_l = exp.getMinRT();
-			}
-			tmp = rt.suffix(':');
-			if (tmp!="")
-			{
-				rt_u = tmp.toDouble();
-			}
-			else
-			{
-				rt_u = exp.getMaxRT();
-			}
+			rt_l = exp.getMinRT();
+			rt_u = exp.getMaxRT();
+			parseRange_(rt,rt_l,rt_u);
 			writeDebug_("rt lower:upper bound: " + String(rt_l) + " : " + String(rt_u),1);	
 				
 			//mz
-			tmp = mz.prefix(':');
-			if (tmp!="")
-			{
-				mz_l = tmp.toDouble();
-			}
- 			else
-			{
-				mz_l = exp.getMinMZ();
-			}
-			tmp = mz.suffix(':');
-			if (tmp!="")
-			{
-				mz_u = tmp.toDouble();
-			}
- 			else
-			{
-				mz_u = exp.getMaxMZ();
-			}
+			mz_l = exp.getMinMZ();
+			mz_u = exp.getMaxMZ();
+			parseRange_(mz,mz_l,mz_u);
 			writeDebug_("mz lower:upper bound: " + String(mz_l) + " : " + String(mz_u),1);	
 				
 		}
