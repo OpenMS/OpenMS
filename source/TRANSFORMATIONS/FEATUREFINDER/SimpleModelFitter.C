@@ -144,13 +144,15 @@ namespace OpenMS
 		min_[RT] -= stdev_rt1_;
 		max_[RT] += stdev_rt2_;
 
-		// Test different charges and stdevs
+		// Test charges and stdevs
 		const int first_model = param_.getValue("mz:model_type:first");
 		const int last_model = param_.getValue("mz:model_type:last");
-		for ( ; stdev <= last; stdev += step)
+		for ( ; stdev < last; stdev += step)
 		{
-			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
+			std::cout << "Testing stdev: " << stdev << std::endl;
+			for (int mz_fit_type = first_model; mz_fit_type < last_model; ++mz_fit_type)
 			{
+				std::cout << "mz_fit_type : " << mz_fit_type << std::endl;
 				quality = fit_(set, static_cast<MzFitting>(mz_fit_type), BIGAUSS, stdev);
 				if (quality > max_quality)
 				{
@@ -325,15 +327,6 @@ namespace OpenMS
 				file << p.getPosition()[RT] << " " << p.getPosition()[MZ] << " " << final->getIntensity( p.getPosition() ) << "\n";						
 			}
 		}
-		
-
-// 		DPeakArray<2> dpa;
-// 		final->getSamples(dpa);
-// 		for (DPeakArray<2>::iterator it=dpa.begin(); it!=dpa.end(); ++it)
-// 		{
-// 			if (it->getIntensity()>0.1)
-// 				file << it->getPosition()[RT] << " " << it->getPosition()[MZ] << " " << it->getIntensity() << "\n";
-// 		}
 		
 		// wrote peaks remaining after model fit
 		fname = "feature"+String(counter_) + String(counter_) + "_" + String(rt) + "_" + String(mz);

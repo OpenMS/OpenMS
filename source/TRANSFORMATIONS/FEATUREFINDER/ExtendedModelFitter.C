@@ -198,9 +198,9 @@ namespace OpenMS
 		/// Test different charges and stdevs
 		const int first_model = param_.getValue("mz:model_type:first");
 		const int last_model = param_.getValue("mz:model_type:last");
-		for ( ; stdev <= last; stdev += step)
+		for ( ; stdev < last; stdev += step)
 		{
-			for (int mz_fit_type = first_model; mz_fit_type <= last_model; ++mz_fit_type)
+			for (int mz_fit_type = first_model; mz_fit_type < last_model; ++mz_fit_type)
 			{
 				if (profile_=="LmaGauss")
 					quality = fit_(set, static_cast<MzFitting>(mz_fit_type), LMAGAUSS, stdev);
@@ -253,12 +253,6 @@ namespace OpenMS
 		}
 		// Print number of selected peaks after cutoff
 		std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
-
-// 		max_quality = quality_->evaluate(model_set, *final); // recalculate quality after cutoff
-// 		
-// 		std::ofstream outfile( "qualities", std::ios_base::app  );
-// 		outfile << max_quality << std::endl;
-// 		outfile.close();
 
 		// not enough peaks left for feature
 		if (model_set.size() < static_cast<Size>(param_.getValue("min_num_peaks:final")))

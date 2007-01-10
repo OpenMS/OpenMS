@@ -741,8 +741,6 @@ void IsotopeWaveletSeeder::AlignAndSum_(ContainerType& scan, ContainerType& neig
     if (scan.size() == 0 || neighbour.size() == 0)
         return;
 
-//     double mass_tolerance = 0.1;
-
     UnsignedInt index_newscan = 0;
     for (UnsignedInt k=0; k<neighbour.size(); ++k)
     {
