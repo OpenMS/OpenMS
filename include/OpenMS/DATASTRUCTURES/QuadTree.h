@@ -143,7 +143,7 @@ namespace OpenMS
 		...
 		for (QuadTree<double, double>::Iterator i
 		     = tr.begin(AreaType(1, 1, 20, 20));
-		     i != tr.end(); i++) {
+		     i != tr.end(); ++i) {
 		  cout << *i << endl;
 		}
 		@endcode
@@ -320,7 +320,7 @@ namespace OpenMS
 			// the specified area.
 			for (QuadTree<double, some_struct>::Iterator i
 			     = tr.begin(AreaType(1, 1, 20, 20));
-			     i != tr.end(); i++) {
+			     i != tr.end(); ++i) {
 			  i->print();
 			}
 			@endcode
