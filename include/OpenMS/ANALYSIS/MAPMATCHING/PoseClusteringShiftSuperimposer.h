@@ -47,20 +47,23 @@ namespace OpenMS
 {
 
   /**
-     @brief Superimposer that uses pose clustering to find a good shift
+  @brief Superimposer that uses a voting scheme to find a good translation.
 
-     While the element positions can have D dimensions, only the first two are
-     used to find a shift.
+     It works on two element maps (DFeatureMap is the default map type, 
+     but you can also use a pointer map like DPeakConstReferenceArray) and 
+     computes a translation, that maps the elements of one map (scene map) 
+     as near as possible to the elements in the other map (model map).
+     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     (wheras DFeature is the default element type).
+     
+     This superimposer hashs all possible shifts and defines the 
+     translation with the most votes as the best one.        
   **/
   template < typename MapT = DFeatureMap<2> >
   class PoseClusteringShiftSuperimposer
         : public BaseSuperimposer< MapT >
   {
     public:
-
-      /** @name Type definitions
-       */
-      //@{
       /// Defines the coordinates of peaks / elements.
       typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
       enum DimensionId
@@ -79,7 +82,6 @@ namespace OpenMS
     };
 
       typedef BaseSuperimposer< MapT > Base;
-      //@}
 
     protected:
       // We need this to make the intensity bounding box use the intensity type
@@ -179,9 +181,6 @@ namespace OpenMS
           QualityType quality_;
       };
 
-      /** @name Type definitions
-       */
-      //@{
       typedef typename Base::TraitsType TraitsType;
       typedef typename Base::QualityType QualityType;
       typedef typename Base::PositionType PositionType;
@@ -196,33 +195,63 @@ namespace OpenMS
       typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
       typedef Matrix < ShiftType > ShiftMatrixType;
       typedef DLinearMapping< 1, TraitsType > FinalShiftType;
-      //@}
+
       using Base::setParam;
       using Base::getParam;
+      using Base::param_;
       using Base::setElementMap;
       using Base::getElementMap;
       using Base::final_transformation_;
 
-      //------------------------------------------------------------
-
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       PoseClusteringShiftSuperimposer()
           : Base()
       {
-        std::cout << "Shift " << std::endl;
+        shift_bucket_size_[0] = 5;
+        shift_bucket_size_[1] = 0.1;
+        element_bucket_window_[0] = 150;
+        element_bucket_window_[1] = 4;
+        shift_bucket_window_[0] = 2;
+        shift_bucket_window_[1] = 1;
       }
 
       /// Copy constructor
       PoseClusteringShiftSuperimposer(const PoseClusteringShiftSuperimposer& source)
-          : Base(source)
-      {}
+          : Base(source),
+          element_bucket_size_(source.element_bucket_size_),
+          shift_bucket_(source.shift_bucket_),
+          shift_bounding_box_(source.shift_bounding_box_),
+          shift_bounding_box_enlarged_(source.shift_bounding_box_enlarged_)
+      {
+        shift_bucket_size_[0] = source.shift_bucket_size_[0];
+        shift_bucket_size_[1] = source.shift_bucket_size_[1];
+        shift_bucket_window_[0] = source.shift_bucket_window_[0];
+        shift_bucket_window_[1] = source.shift_bucket_window_[1];
+        element_bucket_[0] = source.element_bucket_[0];
+        element_bucket_[1] = source.element_bucket_[1];
+        element_bucket_window_[0] = source.element_bucket_window_[0];
+        element_bucket_window_[1] = source.element_bucket_window_[1];
+      }
 
       ///  Assignment operator
       PoseClusteringShiftSuperimposer& operator = (const PoseClusteringShiftSuperimposer& source)
       {
+        if (&source==this)
+          return *this;
+
         Base::operator=(source);
+        element_bucket_[0] = source.element_bucket_[0];
+        element_bucket_[1] = source.element_bucket_[1];
+        element_bucket_size_ = source.element_bucket_size_;
+        shift_bucket_ = source.shift_bucket_;
+        shift_bounding_box_ = source.shift_bounding_box_;
+        shift_bounding_box_enlarged_ = source.shift_bounding_box_enlarged_;
+        shift_bucket_size_[0] = source.shift_bucket_size_[0];
+        shift_bucket_size_[1] = source.shift_bucket_size_[1];
+        shift_bucket_window_[0] = source.shift_bucket_window_[0];
+        shift_bucket_window_[1] = source.shift_bucket_window_[1];
+        element_bucket_window_[0] = source.element_bucket_window_[0];
+        element_bucket_window_[1] = source.element_bucket_window_[1];
         return *this;
       }
 
@@ -231,19 +260,14 @@ namespace OpenMS
       {
         V_PoseClusteringShiftSuperimposer("~PoseClusteringShiftSuperimposer");
       }
-      //@}
 
-
-      //----------------------------------------------------------------------
-
-      /// estimates the transformation for each grid cell
+      /// Estimates the transformation for each grid cell
       virtual void run()
       {
-        /// clear the member
+        // clear the member
         element_bucket_[RT].clear();
         element_bucket_[MZ].clear();
         shift_bucket_.clear();
-        //         shift_matrix_.clear();
 
         if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
         {
@@ -258,32 +282,70 @@ namespace OpenMS
         }
       }
 
-      /// returns an instance of this class
+      /// Returns an instance of this class
       static BaseSuperimposer<PointMapType>* create()
       {
         return new PoseClusteringShiftSuperimposer();
       }
 
-      /// returns the name of this module
+      /// Returns the name of this module
       static const String getName()
       {
         return "poseclustering_shift";
       }
 
+
+      /// Set size of shift buckets (in dimension dim)
+      void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
+      {
+        shift_bucket_size_[dim] = shift_bucket_size;
+        String param_name_prefix = "transformation_space:shift_bucket_size:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, shift_bucket_size);
+      }
+
+      /// Get size of shift buckets (in dimension dim)
+      double getShiftBucketSize(UnsignedInt dim) const
+      {
+        return shift_bucket_size_[dim];
+      }
+
+      /// Set number of neighbouring element buckets to be considered for the calculation of the final transformation (in dimension dim)
+      void setElementBucketWindow(UnsignedInt dim, Size element_bucket_window)
+      {
+        element_bucket_window_[dim] = element_bucket_window;
+        String param_name_prefix = "feature_map:bucket_window:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, (int)element_bucket_window);
+      }
+
+      /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+      Size getElementBucketWindow(UnsignedInt dim) const
+      {
+        return element_bucket_window_[dim];
+      }
+
+      /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+      void setShiftBucketWindow(UnsignedInt dim, Size shift_bucket_window)
+      {
+        shift_bucket_window_[dim] = shift_bucket_window;
+        String param_name_prefix = "transformation_space:bucket_window_shift:";
+        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+        param_.setValue(param_name, (int)shift_bucket_window);
+      }
+
+      /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+      Size getShiftBucketWindow(UnsignedInt dim) const
+      {
+        return shift_bucket_window_[dim];
+      }
     protected:
-
-      //----------------------------------------------------------------------
-
-      /** @name Methods
-       */
-      //@{
-
       void parseParam_()
       {
 #define V_parseParam_(bla) V_PoseClusteringShiftSuperimposer(bla)
         V_parseParam_("@@@ parseParam_()");
 
-        // Initialize element_bucket_size_ with values from param_.
+        // Initialize element_bucket_size_ with values from getParam().
         std::string fm_bs = "feature_map:bucket_size:";
         std::string fm_bs_dn = fm_bs + DimensionDescriptionType::dimension_name_short[0];
         DataValue data_value = getParam().getValue(fm_bs_dn);
@@ -295,7 +357,7 @@ namespace OpenMS
         {
           element_bucket_size_[RT] = data_value;
         }
-        
+
         fm_bs_dn = fm_bs + DimensionDescriptionType::dimension_name_short[1];
         if ( data_value == DataValue::EMPTY )
         {
@@ -306,7 +368,7 @@ namespace OpenMS
           element_bucket_size_[MZ] = data_value;
         }
 
-        // Initialize shift_bucket_size_ with values from param_.
+        // Initialize shift_bucket_size_ with values from getParam().
         std::string tm_bs  = "transformation_space:shift_bucket_size:";
         std::string tm_bs_dn = tm_bs + DimensionDescriptionType::dimension_name_short[0];
         data_value = getParam().getValue(tm_bs_dn);
@@ -328,7 +390,7 @@ namespace OpenMS
           shift_bucket_size_[MZ] = data_value;
         }
 
-        // Initialize element_bucket_window_ with values from param_.
+        // Initialize element_bucket_window_ with values from getParam().
         std::string tm_fbw = "feature_map:bucket_window:";
         std::string tm_fbw_dn = tm_fbw + DimensionDescriptionType::dimension_name_short[0];
         data_value = getParam().getValue(tm_fbw_dn);
@@ -351,7 +413,7 @@ namespace OpenMS
           element_bucket_window_[MZ] = data_value;
         }
 
-        // Initialize shift_bucket_window_ with values from param_.
+        // Initialize shift_bucket_window_ with values from getParam().
         std::string const tm_tbw = "transformation_space:bucket_window_shift:";
         std::string tm_tbw_dn = tm_tbw + DimensionDescriptionType::dimension_name_short[0];
         data_value = getParam().getValue(tm_tbw_dn);
@@ -378,9 +440,7 @@ namespace OpenMS
 
       }
 
-
-      /**@brief Fill the buckets with the indices of the corresponding elements.
-       */
+      /// Fill the buckets with the indices of the corresponding elements.
       void computeElementBuckets_()
       {
 #define V_computeElementBuckets_(bla) V_PoseClusteringShiftSuperimposer(bla)
@@ -495,8 +555,6 @@ namespace OpenMS
       } // computeElementBuckets_
 
 
-      //----------------------------------------------------------------------
-
       /**@brief Fill the buckets of shifts.
 
       Note that computeElementBuckets_() must have been called before to make
@@ -578,7 +636,7 @@ namespace OpenMS
 #define V_computeShiftBuckets_enumeration(bla) V_computeShiftBuckets_(bla)
 
         // progress dots
-        DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
+        DataValue const & param_progress_dots = this->getParam().getValue("debug:progress_dots");
         int progress_dots
         = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
 
@@ -744,8 +802,6 @@ namespace OpenMS
 
 
 
-      //----------------------------------------------------------------------
-
       /**@brief Compute the shift.
 
       Note that shift_buckets_ must have been calculated before.
@@ -818,7 +874,6 @@ namespace OpenMS
 
       } // computeShift_
 
-      //----------------------------------------------------------------------
 
       /**@brief Compute the shift and similarity for a pair of elements;
          larger quality values are better.
@@ -846,13 +901,6 @@ namespace OpenMS
         shift.setQuality( result <= 1. ? result : 1. / result );
         return shift;
       }
-
-      //@} // Methods
-
-
-      /** @name Data members
-       */
-      //@{
 
       /// Holds the bounding box of all input elements.
       PositionBoundingBoxType  element_map_position_bounding_box_[2];
@@ -890,8 +938,6 @@ namespace OpenMS
       /// Number of surrounding buckets of shift indices to be considered when
       /// computing shifts.
       Size shift_bucket_window_[2];
-      //@}
-
   }
   ; // PoseClusteringShiftSuperimposer
 

@@ -49,7 +49,7 @@ namespace OpenMS
 {
 
   /**
-  @brief Superimposer that uses a voting schema to find a good affine transformation.
+  @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
      It works on two element maps (DFeatureMap is the default map type, 
      but you can also use a pointer map like DPeakConstReferenceArray) and 
