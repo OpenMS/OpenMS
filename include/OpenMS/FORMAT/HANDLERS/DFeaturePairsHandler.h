@@ -51,14 +51,14 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	/** @brief XML Handler for a DFeaturePairVector 
+	/** @brief XML Handler for a DFeaturePairVector
 	 */
   template <Size D, typename FeatureT = DFeature<D> >
   class DFeaturePairsHandler
 		: public SchemaHandler
   {
     public:
-    	/**
+	/**
 				@name Type definitions
 			*/
 			//@{
@@ -67,7 +67,7 @@ namespace OpenMS
 			typedef const FeatureType& ConstReference;
 			typedef typename FeatureType::ConvexHullVector ConvexHullVector;
 			typedef typename FeatureType::ConvexHullType ConvexHullType;
-			
+
 			// STL compatibility
 			typedef FeatureType value_type;
 			typedef FeatureType* pointer;
@@ -75,7 +75,7 @@ namespace OpenMS
 			typedef Reference reference;
 			typedef ConstReference const_reference;
 			//@}
-						
+
       /**@name Constructors and destructor */
       //@{
       ///
@@ -83,38 +83,38 @@ namespace OpenMS
       : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				pairs_(&map), cpairs_(0),
 				id_generator_(UniqueIdGenerator::instance()),
-				pair_(), feature_()		
-  		{
+				pair_(), feature_()
+		{
 				fillMaps_(Schemes::DFeaturePairs[schema_]);
 				setMaps_(TAGMAP, ATTMAP);
 			}
-      
+
       ///
       DFeaturePairsHandler(const DFeaturePairVector<D,FeatureType>& map, const String& filename)
       : SchemaHandler(TAG_NUM,MAP_NUM,filename),
 				pairs_(0), cpairs_(&map),
 				id_generator_(UniqueIdGenerator::instance()),
-				pair_(), feature_()	
-  		{
+				pair_(), feature_()
+		{
 				fillMaps_(Schemes::DFeaturePairs[schema_]);
 				setMaps_(TAGMAP, ATTMAP);
 			}
       ///
-      virtual ~DFeaturePairsHandler() 
+      virtual ~DFeaturePairsHandler()
       {
       }
       //@}
 
 			// Docu in base class
       virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-			
+
 			// Docu in base class
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
+
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, const unsigned int length);
 
-  		/// Print the contents to a stream
+		/// Print the contents to a stream
 			void writeTo(std::ostream& os);
 
 		protected:
@@ -136,7 +136,7 @@ namespace OpenMS
 			Add no elements to the enum after TAG_NUM.
 		*/
 		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
-		
+
 		/** @brief indices for enum2str-maps used by DFeatureMapFile
 
 			Used to access enum2str_().
@@ -151,13 +151,13 @@ namespace OpenMS
 		/// Vector of pairs to be written
 		const DFeaturePairVector<D,FeatureType>* cpairs_;
 		/// ID generator
-		UniqueIdGenerator id_generator_; 
+		UniqueIdGenerator id_generator_;
 
 		/// The current coordinates
 		UnsignedInt current_pcoord_;
 		UnsignedInt current_qcoord_;
 		UnsignedInt current_hcoord_;
-			
+
 		// temporary datastructures to hold parsed data
 		DFeaturePair<D, FeatureType>* pair_;
 		FeatureType* feature_;
@@ -180,8 +180,8 @@ namespace OpenMS
 		String tmp_str;
 		switch(tag)
 		{
-			case FEATURE: 	 feature_        = new DFeature<D>(); break;
-			case PAIR:		 	 pair_	         = new DFeaturePair<D>(); break;
+			case FEATURE:	 feature_        = new DFeature<D>(); break;
+			case PAIR:			 pair_	         = new DFeaturePair<D>(); break;
 			case QUALITY:
 				tmp_str = getAttributeAsString(DIM);
 				current_qcoord_ = asUnsignedInt_(tmp_str);
@@ -190,34 +190,34 @@ namespace OpenMS
 				tmp_str = getAttributeAsString(DIM);
 				current_pcoord_ = asUnsignedInt_(tmp_str);
 				break;
-  		case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
-  		case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
-  		case HPOSITION:
+		case CONVEXHULL: current_chull_  = new ConvexHullType(); break;
+		case HULLPOINT:  hull_position_  = new DPosition<D>(); break;
+		case HPOSITION:
 				tmp_str = getAttributeAsString(DIM);
-  			current_hcoord_ = asUnsignedInt_(tmp_str);
-  			break;
-  		case FEATMODEL:
-  			model_desc_ = new ModelDescription<D>();
-  			param_ = new Param();
-  			tmp_str = getAttributeAsString(NAME);
-  			if (tmp_str != "")
-  				model_desc_->setName(tmp_str);
-  			break;
-  		case PARAM:
-  		{
-  			String name = getAttributeAsString(NAME);
+			current_hcoord_ = asUnsignedInt_(tmp_str);
+			break;
+		case FEATMODEL:
+			model_desc_ = new ModelDescription<D>();
+			param_ = new Param();
+			tmp_str = getAttributeAsString(NAME);
+			if (tmp_str != "")
+				model_desc_->setName(tmp_str);
+			break;
+		case PARAM:
+		{
+			String name = getAttributeAsString(NAME);
 				String value = getAttributeAsString(VALUE);
-  			if (name != "" && value != "")
+			if (name != "" && value != "")
 					param_->setValue(name, value);
-		  	break;
+			break;
 		  }
 		 }
 	}
 
   template <Size D, typename FeatureT>
   void DFeaturePairsHandler<D,FeatureT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
- 	{
- 	  int tag = leaveTag(qname);
+	{
+	  int tag = leaveTag(qname);
 		switch(tag) {
 			case FIRST:
 				pair_->setFirst(*feature_);
@@ -266,7 +266,7 @@ namespace OpenMS
 					case PAIRQUALITY:			pair_->setQuality(asDouble_(xercesc::XMLString::transcode(chars)));
 				}
 			}
-   	}
+	}
   }
 
 	template <Size D, typename FeatureT>
@@ -310,8 +310,8 @@ namespace OpenMS
 
 
 	template <Size D, typename FeatureT>
- 	void DFeaturePairsHandler<D,FeatureT>::writeFeature_(std::ostream& os, FeatureType dfeat)
- 	{
+	void DFeaturePairsHandler<D,FeatureT>::writeFeature_(std::ostream& os, FeatureType dfeat)
+	{
 		os << "\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
 
 		DPosition<D> pos = dfeat.getPosition();
@@ -319,7 +319,7 @@ namespace OpenMS
 
 		for (UnsignedInt i=0; i<dpos_size;i++)
 		{
-			os <<	"\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" << 	std::endl;
+			os <<	"\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<	std::endl;
 		}
 
 		os << "\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << std::endl;
@@ -376,10 +376,18 @@ namespace OpenMS
 		} // end  for ( ... hull_count..)
 
 		os << "\t</feature>\n";
- 	}
+	}
 
 
 	} // namespace Internal
 } // namespace OpenMS
 
 #endif
+
+
+// Please leave the page-feed character (Ctrl-L) in the following line,
+// otherwise emacs will not select c++ mode when opening this file.
+
+// Thanks!
+
+// EOF
