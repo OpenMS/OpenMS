@@ -199,7 +199,8 @@ framework rather than an application, it should give the programmer ways to
 catch and correct errors.
 The recommended procedure to handle -- even fatal -- errors is to throw an exception. Uncaught
 exception will result in a call to {\tt abort} thereby terminating the
-program.\\
+program.
+
 All exceptions used in OpenMS are derived from \texttt{Exception::Base}
 defined in \texttt{CONCEPT/Exception.h}. A default constructor should not be
 implemented for these exceptions. Instead, the constructor of all derived
@@ -208,15 +209,24 @@ exceptions should have the following signature:
   AnyException(const char* file, int line, const char* function[, ...]);
 \end{verbatim}
 Additional arguments are possible but should provide default values (see
-{\tt IndexOverflow} for an example).\\
+{\tt IndexOverflow} for an example).
+
 The {\tt throw} directive for each exception should be of the form
 \begin{verbatim}
   throw AnyException(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 \end{verbatim}
-to simplify debugging. {\tt \_\_FILE\_\_}, {\tt \_\_LINE\_\_} and {\tt \_\_PRETTY\_FUNCTION\_\_} are preprocessor
-macros filled in by the compiler. {\bf GeneralException} provides two methods
-({\tt getFile} and {\tt getLine}) that allow the localization of the
-exception's cause.\\
+to simplify debugging.  {\tt \_\_FILE\_\_} and {\tt \_\_LINE\_\_} are preprocessor
+macros.  {\tt \_\_PRETTY\_FUNCTION\_\_} is filled in by the GNU compiler and
+\verb|#define|d to \verb|"<unknown>"| on other platforms. {\bf GeneralException} provides two
+methods ({\tt getFile} and {\tt getLine}) that allow the localization of the
+exception's cause.
+
+\section{Iterators}
+
+In simple looping constructs, iterators are generally preferable to indexed
+access.  Prefer ``\verb|++i|'' to ``\verb|i++|'', because the preincrement operator can safe
+a copy constructor.  Use \verb|const_iterators| where possible to help
+avoiding unwanted side effects.
 
 \section{Naming conventions}
 
@@ -312,7 +322,7 @@ type. It should not prefix the variable name.
 
 Parameters in .ini files and elsewhere are named like the things they
 represent.  (By a parameter we mean the \emph{keys} used in the \texttt{Param}
-class.)  Typically this will be public member variables or public class names
+class.)  Typically this will be tool names, public member variables, or public class names
 (e.g.\ in case of factories).
 
 % \subsection{Quiz}
