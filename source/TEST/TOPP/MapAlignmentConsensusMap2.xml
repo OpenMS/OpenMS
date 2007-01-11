@@ -2,8 +2,8 @@
 <consensusXML>
 	<mapList count="2">
 	<mapType name="feature_map"/>
-		<map id="0" name ="data/MapAlignmentFeatureMap1.xml" count="144 "/>
-		<map id="1" name ="data/MapAlignmentFeatureMap2.xml" count="144 "/>
+		<map id="0" name ="MapAlignmentFeatureMap1.xml" count="144 "/>
+		<map id="1" name ="MapAlignmentFeatureMap2.xml" count="144 "/>
 	</mapList>
 	<alignmentMethod name="StarAlignmemt">
 		<matching_algorithm name="poseclustering_pairwise"/>
@@ -17,11 +17,11 @@
 				<range rtMin="1816" rtMax="3108.3" mzMin="603.449" mzMax="1002.35"/>
 				<mappinglist>
 					<rtMapping name="DLinearMapping">
-						<param name="DLinearMapping:intercept" value="-5.99959"/>
+						<param name="DLinearMapping:intercept" value="-5.99967"/>
 						<param name="DLinearMapping:slope" value="0.5"/>
 					</rtMapping>
 					<mzMapping name="DLinearMapping">
-						<param name="DLinearMapping:intercept" value="-0.0990517"/>
+						<param name="DLinearMapping:intercept" value="-0.0987618"/>
 						<param name="DLinearMapping:slope" value="0.999999"/>
 					</mzMapping>
 				</mappinglist>

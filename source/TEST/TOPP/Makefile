@@ -438,9 +438,19 @@ LabeledMatcher_test: $(NUMERICDIFF)
 
 MapAlignment_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "MapAlignment:"
-	@$(ECHO) "	... todo ..."
 
+	@$(ECHO) "- Test 1: feature files"
+	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_consensus.xml, MapAlignment_1_feature_output.tmp)
+
+	@$(ECHO) "- Test 2: peak files"
+	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_consensus.xml, MapAlignment_1_peak_output.tmp)
+
+	@$(ECHO) "- Test 3: consensus files"
+	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_consensus.xml, MapAlignment_1_consensus_output.tmp)
+	
 
 MapMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""

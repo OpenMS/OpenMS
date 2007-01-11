@@ -62,8 +62,6 @@ namespace OpenMS
      @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension.   
      Call initGridTransformation() before run()!   
-     
-     @todo Make this class complain about unknown parameters (Eva)   
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
@@ -118,8 +116,7 @@ namespace OpenMS
       /// Copy constructor
       PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
           : Base(source)
-      {
-      }
+      {}
 
       ///  Assignment operator
       PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)
@@ -134,7 +131,7 @@ namespace OpenMS
 
       /// Destructor
       virtual ~PoseClusteringPairwiseMapMatcher()
-      {}
+    {}
 
       /// Returns an instance of this class
       static BasePairwiseMapMatcher<MapT>* create()
@@ -152,8 +149,16 @@ namespace OpenMS
       virtual void run()
       {
         DataValue data_value = param_.getValue("pair_finder");
-        pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
-        pair_finder_->setParam(param_);
+        if (data_value != DataValue::EMPTY)
+        {
+          pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
+          pair_finder_->setParam(param_);
+        }
+        else
+        {
+          pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create("simple");
+          pair_finder_->setParam(param_);
+        }
 
         data_value = param_.getValue("superimposer");
         if (data_value != DataValue::EMPTY)
@@ -271,13 +276,14 @@ namespace OpenMS
         for (Size i = 0; i < scene_grid_maps.size(); ++i)
         {
           V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
-          
+
           for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
           {
             V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
           }
         }
 #undef V_buildGrid_
+
       }
   }
   ; // PoseClusteringPairwiseMapMatcher

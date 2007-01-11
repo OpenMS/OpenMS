@@ -89,6 +89,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   
   NEW_TMP_FILE(tmp_filename);
   cons_file.store(tmp_filename,alignment);
+  PRECISION(0.01)
   TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
 RESULT
 

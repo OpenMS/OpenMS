@@ -31,8 +31,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,10 +52,7 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
    @page MapAlignment MapAlignment
  
    @brief Aligns multiple element maps (e.g. feature or peak maps) to one consensus map.
-   
-   @todo Type (mzData or featureXML) map_type abfangen (try)
-   @todo Encapsulate algorithm parameters in 'algorithm' section (Eva)
-   
+      
    @ingroup TOPP
 */
 
@@ -63,66 +60,51 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 /// @cond TOPPCLASSES
 
 class TOPPMapAlignment
-      : public TOPPBase
+      : public TOPPBase2
 {
 
   public:
     TOPPMapAlignment()
-        : TOPPBase("MapAlignment")
+        : TOPPBase2("MapAlignment","aligns multiple feature, peak or consensus maps")
     {}
 
-  protected:
-    void printToolUsage_() const
+  protected: 
+    void registerOptionsAndFlags_()
     {
-      cerr << endl
-      << getToolName() << " -- aligns multiple element (e.g. feature or peak) maps" << endl
-      << "Version: " << VersionInfo::getVersion() << endl
-      << endl
-      << "Usage:" << endl
-      << " " << getToolName() << " [options]" << endl
-      << endl
-      << "Options are:" << endl
-      << "  -out <file>       output consensusXML file name" << endl;
+      registerStringOption_("out","<file>","","output consensusXML file name");
+      
+      addEmptyLine_();
+      addText_("This application implements an algorithm for the alignment of mulitple maps.\n"
+               "It accepts feature maps (in featureXML), peak maps (in mzData) or consensus maps (in ConsensusXML)\n"
+               "Note: If you use consensus maps , the consensus elements are used as normal elements and you will\n"
+               "loose the former consensus information.");
+
+      addEmptyLine_();
+      addText_("This tool requires an INI file with at least the names of the input files and the map_type.\n"
+               "Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file.");
+      
+      registerSubsection_("algorithm");
     }
 
-    void printToolHelpOpt_() const
-    {
-      cerr << endl
-      << getToolName() << endl
-      << endl;
-      //         << "INI options:" << endl
-      //         << "  optimize_peaks   flag that turns on for the optimization of peak parameters" << endl
-      //         << "  in <file>        input mzData file name" << endl
-      //         << "  out <file>       output mzData file name" << endl
-      //         << endl
-      //         << "INI File example section:" << endl
-      //         << "  <ITEM name=\"in\" value=\"input.mzData\" type=\"string\"/>" << endl
-      //         << "  <ITEM name=\"out\" value=\"output.mzData\" type=\"string\"/>" << endl
-      //         << "  <ITEM name=\"optimize_peaks\" value=\"\" type=\"string\"/>" << endl;
-    }
-
-    void setOptionsAndFlags_()
-    {
-      options_["-out"] = "out";
-    }
 
     ExitCodes main_(int , char**)
     {
       //output file name
-      String out = getParamAsString_("out");
+      String out = getStringOption_("out");
 
       //-------------------------------------------------------------
       // parameter handling
       //-------------------------------------------------------------
-      Param mapali_param = getParam_();
+      Param const& mapali_param = getParam_().copy("algorithm:",true);
+      std::cout << getParam_() << std::endl;
+      
       writeDebug_("Parameters:", mapali_param, 2);
-
-      Param files_param = mapali_param.copy("Files:",true);
+      
+      Param files_param = getParam_().copy("file_names:",true);
       writeDebug_("Files parameters:", files_param, 2);
       Param::ConstIterator pit = files_param.begin();
 
-      String map_type = mapali_param.getValue("map_type");
-
+      String map_type = getParam_().getValue("algorithm:map_type");
       //-------------------------------------------------------------
       // loading input and initialize the alignment object
       //-------------------------------------------------------------
@@ -142,7 +124,15 @@ class TOPPMapAlignment
         {
           file_names.push_back(pit->second);
           // load the feature file into a feature_map
-          feature_file.load(pit->second, feature_maps[i]);
+          try
+          {
+            feature_file.load(pit->second, feature_maps[i]);
+          }
+          catch(Exception::FileNotFound& e)
+          {
+            writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+            return INPUT_FILE_NOT_FOUND;
+          }
           map_vector.push_back(&(feature_maps[i]));
           pit++;
           ++i;
@@ -177,7 +167,16 @@ class TOPPMapAlignment
             file_names.push_back(pit->second);
             // load the feature file into a feature_maps
             PeakMap ms_exp;
-            mzdata_file.load(pit->second, ms_exp);
+
+            try
+            {
+              mzdata_file.load(pit->second, ms_exp);
+            }
+            catch(Exception::FileNotFound& e)
+            {
+              writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+              return INPUT_FILE_NOT_FOUND;
+            }
             ms_exp.get2DData(peak_maps[i]);
             map_vector.push_back(&(peak_maps[i]));
             pit++;
@@ -198,7 +197,7 @@ class TOPPMapAlignment
         {
           StarAlignment< ConsensusFeature< ConsensusMapType > > alignment;
           alignment.setParam(mapali_param);
-          
+
           ConsensusXMLFile cons_file;
           std::vector< String > file_names;
           // Vector for the feature maps
@@ -211,7 +210,15 @@ class TOPPMapAlignment
           {
             file_names.push_back(pit->second);
             // load the feature file into a feature_map
-            cons_file.load(pit->second, cons_maps[i]);
+            try
+            {
+              cons_file.load(pit->second, cons_maps[i]);
+            }
+            catch(Exception::FileNotFound& e)
+            {
+              writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+              return INPUT_FILE_NOT_FOUND;
+            }
             map_vector.push_back(&(cons_maps[i]));
             pit++;
             ++i;
@@ -225,6 +232,11 @@ class TOPPMapAlignment
           // writing output
           //-------------------------------------------------------------
           cons_file.store(out,alignment);
+        }
+        else
+        {
+          writeLog_(String("Unknown map type '") + map_type + "' (valid map types are 'feature_map', 'peak_map' and 'consensus_map'. Aborting!");
+          return ILLEGAL_PARAMETERS;
         }
 
       return EXECUTION_OK;

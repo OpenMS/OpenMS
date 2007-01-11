@@ -77,9 +77,8 @@ namespace OpenMS
 	/**
 		 @brief Base class for TOPP Applications.
 		
-		 You have to implement the virtual methods @ref printToolUsage_(), @ref
-		 printToolHelpOpt_(), @ref registerOptionsAndFlags_() and @ref main_()
-		 only.
+		 You have to implement the virtual methods @ref registerOptionsAndFlags_() 
+     and @ref main_() only.
 		 
 		 @todo complete the tests (Clemens)
 		 

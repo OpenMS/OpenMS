@@ -59,6 +59,9 @@ namespace OpenMS
      elements are grouped together. 
      At the end of the alignment the resulting final_consensus_map_ covers the elements 
      of all maps, whereas corresponding elements are arranged together into ConsensusFeature or ConsensusPeak.
+     
+     @Note: If you use consensus maps , the consensus elements are used as normal elements and you will
+     loose the former consensus information.
   **/
   template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >
