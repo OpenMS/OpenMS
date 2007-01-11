@@ -30,6 +30,12 @@ perfectly ok not to use tabs at all.  In emacs, you can replace all tabs with
 the right number of spaces by typing the following keys: \texttt{C-x h} (to
 mark the whole buffer), then \texttt{M-x untabify RET}.
 
+All lines are terminated UNIX-type by a LF character.  If you have
+accidentally inserted CRLF or CR line endings when edting on a Windows or Mac
+system, you can fix that later on with the \verb|dos2unix| command.  Using a
+consistent style for line endings is important to make commands like
+\verb|svn praise| helpful.
+
 Matching pairs of opening and closing curly braces should be set to the same
 column:
 \begin{verbatim}
@@ -537,7 +543,8 @@ The name of suplementary files has to begin with the name of the tested class.
         \item {\tt END\_TEST} \\ End of a class test file (cleanup)
         \item {\tt CHECK(name)} \\ Start of a single test, e.g. for a method
         \item {\tt RESULT} \\ End of a single test
-        \item {\tt STATUS(message)} \\ shows a status message e.g. used to show the progress of a test preparations, that take a while
+        \item {\tt STATUS(message)} \\ Shows a status message e.g.\ used to show the progress of a test preparations that take a while
+        \item {\tt ABORT\_IF(condition)} \\ Skip remainder of substest if condition holds
 \end{itemize}
 
 \subsubsection{Comparison macros}
@@ -545,6 +552,7 @@ The name of suplementary files has to begin with the name of the tested class.
         \item {\tt TEST\_EQUAL(a, b)}.\\ Tests if two expressions are equal
         \item {\tt TEST\_NOT\_EQUAL(a, b)}.\\ Tests if two expressions are not equal
         \item {\tt TEST\_REAL\_EQUAL(a, b)} \\ Tests if two real numbers are equal (within a margin)
+        \item {\tt TEST\_STRING\_EQUAL(a, b)} \\ Tests if \texttt a and \texttt b are equal as strings
         \item {\tt PRECISION(double)} \\ Sets the margin for TEST\_REAL\_EQUAL(a, b)
         \item {\tt TEST\_EXCEPTION(exception, expression)} \\ Tests if the expression throws the exception
         \item {\tt TEST\_FILE(file, template\_file)} \\ Tests if two files are identical
