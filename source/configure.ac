@@ -650,6 +650,11 @@ dnl
 CF_PYTHON
 
 dnl
+dnl		valgrind support (leak cehcking for the BALL tests)
+dnl
+CF_VALGRIND
+
+dnl
 dnl	Include the default OpenMS include path and uniquify the list.
 dnl
 OPENMS_INCLUDES="-I${OPENMS_PATH}/include ${OPENMS_INCLUDES}"

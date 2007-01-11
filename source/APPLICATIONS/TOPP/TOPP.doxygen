@@ -38,7 +38,7 @@
   - <b>-log <file></b> Location of the log file (default: 'TOPP.log')
   - <b>-instance <n></b> Instance number for the TOPP INI file (default: '1')
   - <b>-debug <n></b> Sets the debug level (default: '0')
-  - <b>write_ini <file></b> Writes an example INI file
+  - <b>-write_ini <file></b> Writes an example INI file
   - <b>--help</b> Shows a help page for the command line and INI file options
 
  	The TOPP tools are devided into several subgroups:
@@ -69,6 +69,7 @@
     - \subpage SequestAdapter
  		- \subpage RTPredict
  		- \subpage RTModel    
+ 		- \subpage PILISModel
  		- \subpage PILISIdentification
   - <b>Map alignment</b>
     - \subpage MapAlignment

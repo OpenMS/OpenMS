@@ -123,7 +123,6 @@ PYTHON_LIBS       = @PYTHON_LIBS@
 VALGRIND = @VALGRIND@
 VALGRIND_OPTS = @VALGRIND_OPTS@
 
-
 # These are standard flags. CXXFLAGS to compile, LDFLAGS to link programs
 # DEFINES and DEBUG are both part of CXXFLAGS
 # ADD_CXXFLAGS are also passed on to the C++ compiler

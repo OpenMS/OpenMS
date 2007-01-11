@@ -41,21 +41,26 @@
 	
 	Documentation of the TOPP tools can be found \subpage TOPP "here".
 
-	@author   Oliver Kohlbacher
-	@author   Knut Reinert
-
+	@author Andreas Bertsch
+	@author Clemens Gröpl
+	@author Oliver Kohlbacher
+	@author Eva Lange
+	@author Nico Pfeifer
+	@author Knut Reinert
+	@author Ole Schulz-Trieglaff
+	@author Marc Sturm
 */
 
 /*	
 	TODO:
-	- TOPPBase entfernen
+	- TOPPView
+		- FloatKernel statt DoubleKernel?
 	- Release
+		- TOPPBase entfernen	
+		- Cluster-Klassen entfernen
 		- Valgrind
 		- Test alle mit SVN-ID austatten
-	  - HP TOPP: nur noch Tools aufzählen und auf interne Docu verlinken
-	  - HP Installtion: TOPP dazu
-	  - HP Team
-	  - HP Publications
+		- HP updaten
 	
 	TODO (Hiwis):
 	- XML:

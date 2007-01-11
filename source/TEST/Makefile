@@ -382,13 +382,10 @@ EXECUTABLES = \
 # default target
 all:	$(EXECUTABLES)
 
-# test for completeness of tests
-check_test:	../config/check_test
-	@L=`wc -l check_test.lst|awk '{print $$1}'` ; I=1 ; while test $${I} -le $${L} ; do ../config/check_test ../../include/OpenMS/`cat check_test.lst|sed -n $${I}p` ; I=`expr $${I} + 1`; done
-
 # required for clean and depend
 CPP_SOURCES=$(EXECUTABLES:=.C)
 OBJECTS=$(EXECUTABLES:=.o)
+VALGRINDS=$(EXECUTABLES:=.vgr)
 
 include ../common.mak
 -include .Dependencies
@@ -409,9 +406,13 @@ endif
 
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
-#
+
 %%.C:
 	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.C $(LDFLAGS) -o $@ $(LIBS)
+
+.o.vgr: 
+	@$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.o $(LDFLAGS) -o $@ $(LIBS)
+	$(VALGRIND) $(VALGRIND_OPTS) $* 2>$*.vgr || true
 
 dummy:
 
@@ -471,10 +472,12 @@ applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
 
 clean:	default_clean
-	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* $(EXECUTABLES)
+	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr $(EXECUTABLES)
 	@cd TOPP && make clean
 
 # Create data files for MzData, MzXML, ANDIFile with variable number of scans
 # Call: format_data [#scans] [filename] (i.e. format_data 100 tmp)
 format_data:	format_data.o
 	$(CXX)	$(LDFLAGS) -o format_data format_data.o $(LIBS)
+
+valgrind: $(VALGRINDS)

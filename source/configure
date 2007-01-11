@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER ENABLE_DB LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS BOOST_SUPPORT BOOST_INCLUDES BOOST_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS PAGER ENABLE_DB LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP OPENMS_HAS_XDR LEX LEXLIB LEX_OUTPUT_ROOT YACC OPENMS_HAS_FLEX_YACC NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS BOOST_SUPPORT BOOST_INCLUDES BOOST_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS FFTW_SUPPORT FFTW_INCLUDES FFTW_LIBS OpenMS_HAS_FFTW OpenMS_HAS_FFTW_H OpenMS_HAS_FFTW_FLOAT OpenMS_HAS_FFTW_DOUBLE OpenMS_HAS_FFTW_LONG_DOUBLE LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT GUI_INCLUDES MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS ADDITIONAL_COMMENTS TEMPLATE_DIR SUBDIRS GUI_STATIC_LIB GUISUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -21424,7 +21424,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Xlib.h.
+  # Guess where to find include files, by looking for Intrinsic.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -21432,7 +21432,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -21459,7 +21459,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Xlib.h"; then
+  if test -r "$ac_dir/X11/Intrinsic.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -21480,11 +21480,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 int
 main ()
 {
-XrmInitialize ()
+XtMalloc (0)
   ;
   return 0;
 }
@@ -25087,6 +25087,75 @@ echo "${ECHO_T}${SIP_INC_PATH}" >&6
 	fi
 
 
+
+			 			# Extract the first word of "valgrind", so it can be a program name with args.
+set dummy valgrind; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_VALGRIND+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $VALGRIND in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_VALGRIND="$VALGRIND" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_VALGRIND="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_VALGRIND" && ac_cv_path_VALGRIND="valgrind"
+  ;;
+esac
+fi
+VALGRIND=$ac_cv_path_VALGRIND
+
+if test -n "$VALGRIND"; then
+  echo "$as_me:$LINENO: result: $VALGRIND" >&5
+echo "${ECHO_T}$VALGRIND" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	VALGRIND=$VALGRIND
+
+	if test "${VALGRIND}" != "valgrind" ; then
+		echo "$as_me:$LINENO: checking valgrind version" >&5
+echo $ECHO_N "checking valgrind version... $ECHO_C" >&6
+
+		VALGRIND_VERSION=`${VALGRIND} --version | tr -d "a-zA-Z-_" 2>&1`
+		VALGRIND_VERS_NUM=`echo ${VALGRIND_VERSION}| ${CUT} -d\  -f1`
+		VALGRIND_VERS_MAJOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f1`
+		VALGRIND_VERS_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f2`
+		VALGRIND_VERS_MINOR_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f3`
+		echo "$as_me:$LINENO: result: ${VALGRIND_VERSION} (${VALGRIND_VERS_MAJOR}.${VALGRIND_VERS_MINOR})" >&5
+echo "${ECHO_T}${VALGRIND_VERSION} (${VALGRIND_VERS_MAJOR}.${VALGRIND_VERS_MINOR})" >&6
+
+
+		if test "${VALGRIND_VERS_MAJOR}" = "2" -a "${VALGRIND_VERS_MINOR}" -gt "0" ; then
+			VALGRIND_OPTS="--tool=memcheck  --num-callers=20 --show-below-main=yes -v --leak-check=yes --leak-resolution=high --show-reachable=yes"
+
+		else
+			VALGRIND_OPTS="-v --leak-check=yes --leak-resolution=high"
+
+		fi
+	else
+		VALGRIND_OPTS="-v --leak-check=yes --leak-resolution=high"
+
+	fi
+
+
 OPENMS_INCLUDES="-I${OPENMS_PATH}/include ${OPENMS_INCLUDES}"
 
 	ac_u_bar=""
@@ -25974,6 +26043,8 @@ s,@PYTHON_INCLUDES@,$PYTHON_INCLUDES,;t t
 s,@PYTHON_SUPPORT@,$PYTHON_SUPPORT,;t t
 s,@PYTHON_LIBS@,$PYTHON_LIBS,;t t
 s,@PYTHON_EXECUTABLE@,$PYTHON_EXECUTABLE,;t t
+s,@VALGRIND@,$VALGRIND,;t t
+s,@VALGRIND_OPTS@,$VALGRIND_OPTS,;t t
 s,@OPENMS_PATH@,$OPENMS_PATH,;t t
 s,@OPENMS_INCLUDES@,$OPENMS_INCLUDES,;t t
 s,@OPENMS_LIBS@,$OPENMS_LIBS,;t t
