@@ -124,6 +124,7 @@ EXECUTABLES_KERNEL =\
 	MSExperimentExtern_test\
 	ConsensusFeature_test\
 	ConsensusPeak_test\
+	ConsensusMap_test\
 	AreaIterator_test
 	
 #VISUAL
