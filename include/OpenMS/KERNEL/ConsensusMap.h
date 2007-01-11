@@ -79,16 +79,6 @@ class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
     ConsensusMap(typename Base::size_type n) : Base(n)
     {}
 
-    /// Creates a ConsensusMap with n copies of element
-    ConsensusMap(typename Base::size_type n, const ConsensusElementType& element) : Base(n,element)
-    {}
-
-    /// Creates a ConsensusMap with a copy of a range.
-    template <class InputIterator>
-    ConsensusMap(InputIterator f, InputIterator l) : Base(f,l)
-    {}
-
-
     /// Assignment operator
     ConsensusMap& operator = (const ConsensusMap& source)
     {
@@ -115,7 +105,7 @@ class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
     /// Mutable access to the maps
     inline void setMapVector(const std::vector < typename ConsensusElementType::ElementContainerType >& map_vector)
     {
-      return map_vector_ = map_vector;
+      map_vector_ = map_vector;
     }
 
     /// Non-mutable access to the filenames
@@ -132,7 +122,7 @@ class ConsensusMap : public DPeakArray< 2, ConsensusElementT >
     /// Mutable access to filenames
     inline void setFilenames(const std::vector < String >& filenames)
     {
-      return filenames_ = filenames;
+      filenames_ = filenames;
     }
 
   protected:
