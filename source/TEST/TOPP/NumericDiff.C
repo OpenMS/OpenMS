@@ -31,6 +31,8 @@
 #include <limits> // for NaN
 #include <sstream>
 
+/// @Todo Think about another distance than the ratio because of infinite ratios for really small values? (e.g. 0 and 10^-15)? (Clemens)
+
 int argc = 0;
 char ** argv = 0;
 
