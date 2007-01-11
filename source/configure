@@ -3194,6 +3194,91 @@ echo "$as_me: error: Aborted." >&2;}
 	fi
 
 
+	# Extract the first word of "find", so it can be a program name with args.
+set dummy find; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_FIND+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $FIND in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_FIND="$FIND" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_FIND="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_FIND" && ac_cv_path_FIND="no"
+  ;;
+esac
+fi
+FIND=$ac_cv_path_FIND
+
+if test -n "$FIND"; then
+  echo "$as_me:$LINENO: result: $FIND" >&5
+echo "${ECHO_T}$FIND" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	if test $FIND = no ; then
+		echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+		echo "$as_me:$LINENO: result: This script requires the unix command find, but cannot find it." >&5
+echo "${ECHO_T}This script requires the unix command find, but cannot find it." >&6
+		echo "$as_me:$LINENO: result: Please add the correct path to find to your \$PATH variable" >&5
+echo "${ECHO_T}Please add the correct path to find to your \$PATH variable" >&6
+		echo "$as_me:$LINENO: result: and restart configure." >&5
+echo "${ECHO_T}and restart configure." >&6
+		echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+	echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+	echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+	echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+	echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+	echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+	echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+	echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+	echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+	TARFILE=conf.diag.tar
+	if test -f $TARFILE ; then
+		${RM} $TARFILE ;
+	fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+	{ { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+		exit
+	fi
+
+
 	# Extract the first word of "egrep", so it can be a program name with args.
 set dummy egrep; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5

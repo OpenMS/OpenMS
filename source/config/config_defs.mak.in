@@ -75,6 +75,9 @@ MV = @MV@
 STRIP = @STRIP@
 # the echo command (on some platforms with an additional -e to expand '\n')
 ECHO = @ECHO_COMMAND@
+# the find command
+FIND = @FIND@
+
 
 OS       = @OS@
 # name of your OS

@@ -412,7 +412,7 @@ endif
 
 .o.vgr: 
 	@$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.o $(LDFLAGS) -o $@ $(LIBS)
-	$(VALGRIND) $(VALGRIND_OPTS) $* 2>$*.vgr || true
+	$(VALGRIND) $(VALGRIND_OPTS) $* >& $*.vgr || true
 
 dummy:
 
@@ -472,7 +472,7 @@ applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
 
 clean:	default_clean
-	@$(RM) -rf *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr $(EXECUTABLES)
+	@$(RM) -rf -- *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr *.output $(EXECUTABLES)
 	@cd TOPP && make clean
 
 # Create data files for MzData, MzXML, ANDIFile with variable number of scans
@@ -480,4 +480,14 @@ clean:	default_clean
 format_data:	format_data.o
 	$(CXX)	$(LDFLAGS) -o format_data format_data.o $(LIBS)
 
+#creates a .vgr-file with valgrind check output for each test
 valgrind: $(VALGRINDS)
+
+#creates a .chk-file each test where check_test complains
+check_test:
+	@for i in `${FIND} ../../include/OpenMS/DATASTRUCTURES/ -name "*.h"`; do \
+	 if test -f `basename $$i .h`_test.C; then \
+	 	../config/tools/check_test $$i `basename $$i .h`_test.C >& `basename $$i .h`_test.chk; \
+	 fi; \
+	done; \
+	${FIND} . -name "*.chk" -size 0 -exec rm {} \;

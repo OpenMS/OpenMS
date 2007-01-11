@@ -831,11 +831,8 @@ CHECK([EXTRA]  load/store for empty scans)
 	MSExperiment<> e2;
 	e2.resize(5);
 
-	cout << "TEST1" << endl;
 	f.store(tmp_filename,e2);
-	cout << "TEST2" << endl;
 	f.load(tmp_filename,e2);
-	cout << "TEST3" << endl;
 	
 	e2.updateRanges();
 	
