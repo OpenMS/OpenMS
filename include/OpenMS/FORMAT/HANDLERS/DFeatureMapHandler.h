@@ -462,3 +462,11 @@ namespace OpenMS
 } // namespace OpenMS
 
 #endif
+
+
+// Please leave the page-feed character (Ctrl-L) in the following line,
+// otherwise emacs will not select c++ mode when opening this file.
+
+// Thanks!
+
+// EOF

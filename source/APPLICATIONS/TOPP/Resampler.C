@@ -59,7 +59,6 @@ using namespace std;
 	@todo use MzDataFile::getOptions() to load only the necessary part of the file? (Marc,Clemens)
 	@todo output IT range (Clemens)
 	@todo maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
-*/
 
 */
 

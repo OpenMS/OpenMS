@@ -21,20 +21,20 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange$
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPMATCHER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DBASEMAPMATCHER_H
 
-#include<OpenMS/KERNEL/DFeature.h>
-#include<OpenMS/KERNEL/DimensionDescription.h>
+#include <OpenMS/KERNEL/DFeature.h>
+#include <OpenMS/KERNEL/DimensionDescription.h>
 
-#include<OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 
 #include <utility>
 
@@ -129,7 +129,7 @@ namespace OpenMS
         return grid_;
       }
       /// Get grid (non-mutable)
-      Grid& getGrid() const
+      const Grid & getGrid() const
       {
         return grid_;
       }

@@ -60,6 +60,8 @@ namespace OpenMS
      @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension. 
      Call initGridTransformation() before run()!
+
+		 @todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
      
      @ingroup Analysis
   **/
@@ -226,10 +228,12 @@ namespace OpenMS
 
         // compute the grid sizes in each dimension
         // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
-        // TODO: find a better way that does not use a magic constant
+        // TODO: find a better way that does not use such a magic constant. As is, the bounding box reported in the output is incorrect!
         for (Size i = 0; i < 2; ++i)
         {
-          box_size_[i] = (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) / ( number_buckets_[i] - 0.01 );
+          box_size_[i] =
+						(bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) /
+						( number_buckets_[i] - 0.01 /* <- magic constant */);
         }
 
         // initialize the grid cells of the grid_
@@ -242,8 +246,7 @@ namespace OpenMS
             CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
             CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
 
-            DGridCell<2,TraitsType> cell(x_min, y_min, x_max, y_max);
-            grid_.push_back(cell);
+						grid_.push_back(DGridCell<2,TraitsType>(x_min, y_min, x_max, y_max));
           }
         }
       } // initGridTransformation_

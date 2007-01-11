@@ -60,9 +60,9 @@ namespace OpenMS
 template <typename PeakT = DPeak<1> >
 class MSExperiment
             : public std::vector<MSSpectrum<PeakT> >,
-            public RangeManager<2, typename PeakT::TraitsType>,
-            public ExperimentalSettings,
-            public PersistentObject
+							public RangeManager<2, typename PeakT::TraitsType>,
+							public ExperimentalSettings,
+							public PersistentObject
 {
     template<class ValueT, class ReferenceT, class PointerT, class ExperimentT>
     friend class Internal::PeakIterator;
