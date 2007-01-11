@@ -28,6 +28,7 @@
 #define OPENMS_KERNEL_CONSENSUSMAP_H
 
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
