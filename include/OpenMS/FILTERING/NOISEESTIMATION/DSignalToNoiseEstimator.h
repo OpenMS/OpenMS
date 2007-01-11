@@ -47,16 +47,9 @@ namespace OpenMS
   class DSignalToNoiseEstimator
   {
   public:
-    /** @name Type definitions
-    */
-    //@{
     typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
-    ///
-    //@}
 
-    /** @name Constructors and Destructor
-    */
-    //@{
+    /// Constructor
     inline DSignalToNoiseEstimator()
         : first_(0),
         last_(0)
@@ -74,7 +67,7 @@ namespace OpenMS
         }
     }
 
-    ///
+    /// Constructor
     inline DSignalToNoiseEstimator(const Param& parameters): first_(0), last_(0), param_(parameters)
     {
       if (D == 1)
@@ -89,7 +82,8 @@ namespace OpenMS
           mz_dim_ = DimensionDescription::MZ;
         }
     }
-    ///
+    
+    /// Copy constructor
     inline DSignalToNoiseEstimator(const DSignalToNoiseEstimator&  ne)
         : mz_dim_(ne.mz_dim_),
         rt_dim_(ne.rt_dim_),
@@ -97,16 +91,12 @@ namespace OpenMS
         last_(ne.last_),
         param_(ne.param_)
     {}
-    ///
+    
+    /// Destructor
     virtual ~DSignalToNoiseEstimator()
     {}
-    //@}
 
-
-    /** @name Assignement
-    */
-    //@{
-    ///
+    /// Assignment operator
     inline DSignalToNoiseEstimator& operator=(const DSignalToNoiseEstimator& ne)
     {
       mz_dim_=ne.mz_dim_;
@@ -117,22 +107,17 @@ namespace OpenMS
 
       return *this;
     }
-    //@}
 
     /** @name Initialisation of the raw data intervall
+        
+        Set the start and endpoint of the raw data intervall, for which signal to noise ratios should be estimated
     */
-    //@{
-    /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios should be estimated
     virtual void init(PeakIterator it_begin, PeakIterator it_end)
     {
       first_=it_begin;
       last_=it_end;
     }
-    //@}
 
-    /** Accessors
-     */
-    //@{
     /// Non-mutable access to mz dimension
     inline const int& getMZdim() const { return mz_dim_; }
     /// Mutable access to the mz dimensin
@@ -165,13 +150,10 @@ namespace OpenMS
     inline const Param& getParam() const { return param_; }
     /// Mutable access to the parameter object
     inline void setParam(const Param& param) { param_ = param; }
-    //@}
 
-    /** @name Signal To Noise Estimation
-     */
-    //@
+    
+    /// Signal To Noise Estimation
     virtual double getSignalToNoise(PeakIterator data_point) = 0;
-    //@}
 
   protected:
     /// m/z dimension
