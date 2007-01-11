@@ -485,9 +485,12 @@ valgrind: $(VALGRINDS)
 
 #creates a .chk-file each test where check_test complains
 check_test:
-	@for i in `${FIND} ../../include/OpenMS/DATASTRUCTURES/ -name "*.h"`; do \
+	@for i in `${FIND} ../../include/OpenMS/ -name "*.h"`; do \
 	 if test -f `basename $$i .h`_test.C; then \
 	 	../config/tools/check_test $$i `basename $$i .h`_test.C >& `basename $$i .h`_test.chk; \
 	 fi; \
 	done; \
-	${FIND} . -name "*.chk" -size 0 -exec rm {} \;
+	${FIND} . -name "*.chk" -size 0 -exec rm {} \; ; \
+	for i in `${FIND} . -name "*.chk"`; do \
+	 	$(GREP) "Maintainer" `basename $$i .chk`.C >> $$i; \
+	done;
