@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -38,25 +38,25 @@
 namespace OpenMS
 {
 	/**
-		@brief Facilitates file handling by file type recognition.
-		
-		This class provides file type recognition from the file name and
-		from the file content.
-		
-		It also offer a common interface to load MSExperiment data
-		and allows querying for supported file types.
-		
-		@ingroup FileIO
+		 @brief Facilitates file handling by file type recognition.
+
+		 This class provides file type recognition from the file name and
+		 from the file content.
+
+		 It also offer a common interface to load MSExperiment data
+		 and allows querying for supported file types.
+
+		 @ingroup FileIO
 	*/
 	class FileHandler
 	{
-		public:
-			/**
-				@brief The known file types.
-				
-				@see nameToType and typeToName
-			*/
-			enum Type
+	 public:
+		/**
+			 @brief The known file types.
+
+			 @see nameToType and typeToName
+		*/
+		enum Type
 			{
 				UNKNOWN,        ///< Unknown file extension
 				DTA,            ///< DTA file (.dta)
@@ -67,38 +67,45 @@ namespace OpenMS
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
-			
-			/// String representations of the file types
-			static const std::string NamesOfTypes[SIZE_OF_TYPE];
-			
-			/// Determines the file type from a file name
-			Type getTypeByFileName(const String& filename);
 
-			/// Determines the file type of XML files by parsing the first few lines
-			Type getTypeByContent(const String& filename) throw (Exception::FileNotFound);
-			
-			/// Converts a file type name into a Type
-			Type nameToType(const String& name);
-			
-			/// Converts a Type into a file type name
-			String typeToName(Type type);
+		/// String representations of the file types
+		static const std::string NamesOfTypes[SIZE_OF_TYPE];
 
-			/// Returns if the file type is supported in this build of the library
-			bool isSupported(Type type);
-			
-			/**
-				@brief Loads a file into an MSExperiment
-				
-				@param filename the Filename of the file to load.
-				@param exp The MSExperiment to load the data into.
-				@param force_type Forces to load the file with that file type.<BR>
-				                  If no type is forced, it is determined from the extention ( or from the content if that fails).
-				
-				@return true if the file could be loaded, false otherwise
-			*/
-			template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN)
+		/// Determines the file type from a file name
+		Type getTypeByFileName(const String& filename);
+
+		/// Determines the file type of XML files by parsing the first few lines
+		Type getTypeByContent(const String& filename) throw (Exception::FileNotFound);
+
+		/// Converts a file type name into a Type
+		Type nameToType(const String& name);
+
+		/// Converts a Type into a file type name
+		String typeToName(Type type);
+
+		/// Returns if the file type is supported in this build of the library
+		bool isSupported(Type type);
+
+		/**
+			 @brief Loads a file into an MSExperiment
+
+			 @param filename the Filename of the file to load.
+			 @param exp The MSExperiment to load the data into.
+			 @param force_type Forces to load the file with that file type.<BR>
+			 If no type is forced, it is determined from the extention ( or from the content if that fails).
+
+			 @return true if the file could be loaded, false otherwise
+		*/
+		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN)
+		{
+			Type type;
+			if (force_type != UNKNOWN)
 			{
-				Type type = getTypeByFileName(filename);
+				type = force_type;
+			}
+			else
+			{
+				type = getTypeByFileName(filename);
 				try
 				{
 					if (type == UNKNOWN)
@@ -108,47 +115,44 @@ namespace OpenMS
 				}
 				catch(Exception::FileNotFound)
 				{
-					
-				}
-				
-				if (force_type != UNKNOWN)
-				{
-					type = force_type;
-				}
-				
-				//load right file
-				switch(type)
-				{
-					case DTA:
-						exp.reset();
-						exp.resize(1);
-					  DTAFile().load(filename,exp[0]);
-					  return true;
-						break;
-					case DTA2D:
-						DTA2DFile().load(filename,exp);
-						return true;
-						break;
-					case MZXML:
-						MzXMLFile().load(filename,exp);
-						return true;
-						break;
-					case MZDATA:
-						MzDataFile().load(filename,exp);
-						return true;
-						break;
-#ifdef ANDIMS_DEF
-					case ANDIMS:
-						ANDIFile().load(filename,exp);
-						return true;
-						break;
-#endif
-					default:
-						return false;
+					// ???? I assume this is the intended behavior?  (Clemens asking Marc, 2006-01-11)
+					return false;
 				}
 			}
+
+			//load right file
+			switch(type)
+			{
+			case DTA:
+				exp.reset();
+				exp.resize(1);
+				DTAFile().load(filename,exp[0]);
+				return true;
+				break;
+			case DTA2D:
+				DTA2DFile().load(filename,exp);
+				return true;
+				break;
+			case MZXML:
+				MzXMLFile().load(filename,exp);
+				return true;
+				break;
+			case MZDATA:
+				MzDataFile().load(filename,exp);
+				return true;
+				break;
+#ifdef ANDIMS_DEF
+			case ANDIMS:
+				ANDIFile().load(filename,exp);
+				return true;
+				break;
+#endif
+			default:
+				return false;
+			}
+		}
 	};
-	
+
 } //namespace
 
 #endif //OPENMS_FORMAT_FILEHANDLER_H

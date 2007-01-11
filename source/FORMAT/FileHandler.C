@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -63,8 +63,8 @@ namespace OpenMS
 		{
 			return FEATURE;
 		}
-		
-		return UNKNOWN;		
+
+		return UNKNOWN;
 
 	}
 
@@ -73,7 +73,7 @@ namespace OpenMS
 		String tmp = name;
 		tmp.toUpper();
 		String tmp2;
-		
+
 		for (int i=0; i < SIZE_OF_TYPE; ++i)
 		{
 			tmp2 = NamesOfTypes[i];
@@ -83,10 +83,10 @@ namespace OpenMS
 				return (Type)i;
 			}
 		}
-		
-		return UNKNOWN;		
+
+		return UNKNOWN;
 	}
-	
+
 	String FileHandler::typeToName(Type type)
 	{
 		return NamesOfTypes[type];
@@ -96,22 +96,22 @@ namespace OpenMS
 	{
 		switch (type)
 		{
-			case DTA:
-			  return true;
-			case DTA2D:
-				return true;
-			case MZXML:
-				return true;
-			case MZDATA:
-				return true;
-			case FEATURE:
-				return true;
+		case DTA:
+			return true;
+		case DTA2D:
+			return true;
+		case MZXML:
+			return true;
+		case MZDATA:
+			return true;
+		case FEATURE:
+			return true;
 #ifdef ANDIMS_DEF
-			case ANDIMS:
-				return true;
+		case ANDIMS:
+			return true;
 #endif
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    
+
     //load first 5 lines
     String input, tmp;
     for (UnsignedInt i=0; i<5; ++i)
@@ -130,14 +130,13 @@ namespace OpenMS
 			getline(is,tmp,'\n');
 			input += tmp;
     }
-		
+
 		//Search for strings
     if (input.find("mzXML")!=string::npos) return MZXML;
     if (input.find("mzData")!=string::npos) return MZDATA;
     if (input.find("featureMap")!=string::npos) return FEATURE;
-		
+
 		return UNKNOWN;
 	}
 
-} //namespace
-
+} // namespace OpenMS
