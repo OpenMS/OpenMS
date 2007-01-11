@@ -44,12 +44,23 @@ using namespace std;
 /**
 	@page Resampler Resampler
 	
-	@brief
+	@brief Resampler can be used to transform an LC/MS map into a resampled map or a pgm image.
+
+	The input is first resampled into a matrix using bilinear interpolation.
+	Then the content of the matrix is written into a mzData File or a pgm image
+ 	(pgm = portable network graphics, a very simple image file format).
+	The output has a uniform spacing in both dimensions regardless of the input.
+	You can output the data in transposed order, reverse video, with gamma correction, etc.
 	
-	@todo write docu (Clemens)
+	Most of the functionality is implemented in Bilinearinterpolation and Matrix.
+
 	@todo write test (Clemens)
+	@todo support for a better graphics format like png - use Qt (Clemens,Marc)
 	@todo use MzDataFile::getOptions() to load only the necessary part of the file? (Marc,Clemens)
-	
+	@todo output IT range (Clemens)
+	@todo maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
+*/
+
 */
 
 // We do not want this class to show up in the docu:
@@ -60,9 +71,8 @@ class TOPPResampler
 {
  public:
 	TOPPResampler()
-		: TOPPBase2("Resampler", "transform an LC-MS map into a resampled map or an pgm image")
+	: TOPPBase2("Resampler", "transform an LC/MS map into a resampled map or a pgm image")
 	{
-			
 	}
 	
  protected:
@@ -332,10 +342,3 @@ int main( int argc, char ** argv )
 }
 
 /// @endcond
-
-
-// TODO
-/*
-	- output IT range
-	- enable one-dimensional resampling ("-cols auto -rows auto")
-*/
