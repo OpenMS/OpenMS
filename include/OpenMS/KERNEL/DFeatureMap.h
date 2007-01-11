@@ -55,8 +55,8 @@ namespace OpenMS
 	template <Size D, typename FeatureT = DFeature<D> >
 	class DFeatureMap
 		: public std::vector<FeatureT>,
-			public ExperimentalSettings,
-			public RangeManager<D>
+			public RangeManager<D, typename FeatureT::TraitsType>,
+			public ExperimentalSettings
 	{
 	 public:
 			/**	
@@ -86,8 +86,8 @@ namespace OpenMS
 			/// Default constructor
 			DFeatureMap()
 				: Base(),
-				ExperimentalSettings(),
-				RangeManagerType()
+					RangeManagerType(),
+					ExperimentalSettings()
 			{
 				
 			}
@@ -95,8 +95,8 @@ namespace OpenMS
 			/// Copy constructor
 			DFeatureMap(const DFeatureMap& map) 
 				: Base(map),
-				ExperimentalSettings(map),
-				RangeManagerType(map)
+					RangeManagerType(map),
+					ExperimentalSettings(map)
 			{
 			
 			}
