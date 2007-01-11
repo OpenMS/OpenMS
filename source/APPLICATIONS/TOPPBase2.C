@@ -726,6 +726,7 @@ namespace OpenMS
 
 	void TOPPBase2::checkParam_(const Param& param, const String& filename, const String& location) const
 	{
+		//cout << endl << "--"<< location<< "--" << endl << param << endl << endl;
 		for (Param::ConstIterator it = param.begin(); it!=param.end(); ++it)
 		{
 			// subsections
@@ -734,7 +735,10 @@ namespace OpenMS
 				String sec = String(it->first).prefix(':');
 				if (find(subsections_.begin(), subsections_.end(), sec)==subsections_.end())
 				{
-					writeLog_("Warning: Unknown subsection '" + sec + "' in '" + filename + "'!");
+					if (!(location == "common::" && sec==tool_name_) )
+					{
+						writeLog_("Warning: Unknown subsection '" + sec + "' in '" + filename + "' (location '"+location+"')!");
+					}
 				}
 				continue;
 			}

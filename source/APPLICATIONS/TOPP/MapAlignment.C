@@ -96,8 +96,6 @@ class TOPPMapAlignment
       // parameter handling
       //-------------------------------------------------------------
       Param const& mapali_param = getParam_().copy("algorithm:",true);
-      std::cout << getParam_() << std::endl;
-      
       writeDebug_("Parameters:", mapali_param, 2);
       
       Param files_param = getParam_().copy("file_names:",true);
