@@ -69,12 +69,15 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("in","<file>","","input file");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from input file extension)\n"
-		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'.\n"
-																	              "'FeatureFile' can be converted, but will lose feature specific information", false);
+		registerStringOption_("in_type", "<type>", "",
+													"input file type (default: determined from input file extension)\n"
+													"Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS'.\n"
+													"'FeatureFile' can be converted, but will lose feature specific information", false);
 		registerStringOption_("out","<file>","","output file");
-		registerStringOption_("out_type","<type>","","output file type (default: determined from output file extension)\n"
-		                              	             "Valid output types are: 'mzData', 'mzXML', 'DTA2D'", false);
+		registerStringOption_("out_type", "<type>", "",
+													"output file type (default: determined from output file extension)\n"
+													"Valid output types are: 'mzData', 'mzXML', 'DTA2D'.\n"
+													"'FeatureFile' can be generated using defaults for feature specific information", false);
 	}
 	
 	ExitCodes main_(int , char**)
@@ -112,8 +115,13 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
-		MSExperiment< DPeak<1> > exp;
-			
+		typedef MSExperiment< DPeak<1> > MSExperimentType;
+		MSExperimentType exp;
+		
+		typedef MSExperimentType::SpectrumType SpectrumType;
+
+		typedef DFeatureMap<2> FeatureMapType;
+
 		writeDebug_(String("Loading input file"), 1);
 			
 		if (in_type == FileHandler::FEATURE)
@@ -122,7 +130,7 @@ class TOPPFileConverter
 			// However you will lose information and waste memory.
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting features to peaks. You will lose information!");	
-			DFeatureMap<2> fm;
+			FeatureMapType fm;
 			DFeatureMapFile().load(in,fm);
 			fm.sortByPosition();
 			exp.set2DData(fm);
@@ -155,6 +163,41 @@ class TOPPFileConverter
 		else if (out_type == FileHandler::DTA2D)
 		{
 			DTA2DFile().store(out,exp);			
+		}
+		else if (out_type == FileHandler::FEATURE)
+		{
+			// This works because DFeature<DIM> is derived from DPeak<DIM>.
+			// However the feature specific information is only defaulted.
+			// Enough reasons to issue a warning!
+			writeLog_("Warning: Converting peaks into features.  This is only a hack - use at your own risk!");	
+			FeatureMapType feature_map;
+			static_cast<ExperimentalSettings>(feature_map) = exp;
+			feature_map.reserve(exp.getSize());
+			typedef FeatureMapType::FeatureType FeatureType;
+			FeatureType feature;
+			feature.setQuality(0,1); // override default
+			feature.setQuality(1,1); // override default
+			feature.setOverallQuality(1); // override default
+			for ( MSExperimentType::ConstIterator spec_iter = exp.begin();
+						spec_iter != exp.end();
+						++spec_iter
+					)
+			{
+				feature.setPos( DimensionDescription<DimensionDescriptionTagLCMS>::RT,
+												spec_iter->getRetentionTime() );
+				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
+							peak1_iter != spec_iter->end();
+							++peak1_iter
+						)
+				{
+					feature.setPos( DimensionDescription<DimensionDescriptionTagLCMS>::MZ,
+												  peak1_iter->getPos() );
+					feature.setIntensity(peak1_iter->getIntensity());
+					feature_map.push_back(feature);
+				}
+			}
+			feature_map.updateRanges();
+			DFeatureMapFile().store(out,feature_map);
 		}
 		else
 		{
