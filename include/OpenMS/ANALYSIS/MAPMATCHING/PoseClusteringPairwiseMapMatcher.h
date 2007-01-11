@@ -119,14 +119,6 @@ namespace OpenMS
       PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
           : Base(source)
       {
-        if (pair_finder_ != 0)
-        {
-          pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
-        }
-        if (superimposer_ != 0)
-        {
-          superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
-        }
       }
 
       ///  Assignment operator
@@ -136,14 +128,6 @@ namespace OpenMS
           return *this;
 
         Base::operator = (source);
-        if (pair_finder_ != 0 )
-        {
-          pair_finder_ = Factory< BasePairFinder<PeakConstReferenceMapType> >::create((source.pair_finder_)->getName());
-        }
-        if (superimposer_ != 0)
-        {
-          superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create((source.superimposer_)->getName());
-        }
 
         return *this;
       }

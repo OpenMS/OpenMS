@@ -303,7 +303,9 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test\
 	BasePairwiseMapMatcher_test\
-	PoseClusteringPairwiseMapMatcher_test
+	PoseClusteringPairwiseMapMatcher_test\
+	BaseAlignment_test\
+	StarAlignment_test
 
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\

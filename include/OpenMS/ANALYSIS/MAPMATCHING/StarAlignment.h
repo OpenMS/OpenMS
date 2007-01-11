@@ -43,15 +43,22 @@
 
 namespace OpenMS
 {
-
   /**
      @brief A star alignment class.
      
-     This class aligns elements of multiple element maps (e.g. feature maps). 
-     Corresponding elements (e.g. features) are grouped together and stored as a consensus
-     element (e.g. consensus feature). This class computes a star-alignment, that means 
-     a reference map is chosen and the other maps are aligned to the reference map.
-          
+     This class aligns elements of multiple element maps. 
+     An element can be a DPeak, a DFeature, a ConsensusPeak or a ConsensusFeature.
+     Corresponding elements are grouped together and stored as a consensus element.
+     This class computes a star-alignment, that means a reference map is chosen 
+     and in a first step all maps are mapped onto the reference map using the 
+     PoseClusteringPairwiseMapMatcher. 
+     In the second the final_consensus_map_ is determined. 
+     At the beginning of the alignment the final_consensus_map_ contains all elements 
+     of the reference_map as single consensus elements.
+     Each transformed map is successive aligned to the final_consensus_map_ and corresponding
+     elements are grouped together. 
+     At the end of the alignment the resulting final_consensus_map_ covers the elements 
+     of all maps, whereas corresponding elements are arranged together into ConsensusFeature or ConsensusPeak.
   **/
   template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >
@@ -72,9 +79,7 @@ namespace OpenMS
         MODEL = 0,
         SCENE = 1
     };
-      /** @name Type definitions
-       */
-      //@{
+
       /// Base class
       typedef BaseAlignment< ConsensusElementT > Base;
       typedef typename Base::ConsensusElementType ConsensusElementType;
@@ -97,39 +102,36 @@ namespace OpenMS
       //// Intensity
       typedef typename TraitsType::IntensityType IntensityType;
 
-      /// Type of feature pairs
+      /// Type of element pairs
       typedef DFeaturePair < 2, ConsensusElementType > ElementPairType;
 
-      /// Container for generated consensus feature pairs
+      /// Container for generated consensus element pairs
       typedef DFeaturePairVector < 2, ConsensusElementType > ConsensusElementPairVectorType;
 
-      /// Container for generated feature pairs
+      /// Container for generated element pairs
       typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
       /// Type of estimated transformation
       typedef DGrid< 2 > GridType;
-      //@}
 
       using Base::element_map_vector_;
-      using Base::reference_map_index_;
       using Base::param_;
       using Base::final_consensus_map_;
       using Base::file_names_;
       using Base::map_type_;
-      using Base::assignReferenceMap_;
       using Base::pair_finder_;
 
-
-      ///@name Constructors, destructor and assignment
-      //@{
       /// Constructor
       StarAlignment()
-          : Base()
+          : Base(),
+          reference_map_index_(0)
       {}
 
       /// Copy constructor
       StarAlignment(const StarAlignment& source)
-          : Base(source)
+          : Base(source),
+          transformations_(source.transformations_),
+          reference_map_index_(source.reference_map_index_)
       {}
 
       ///  Assignment operator
@@ -137,6 +139,10 @@ namespace OpenMS
       {
         if (&source==this)
           return *this;
+        
+        Base::operator = (source);
+        transformations_ = source.transformations_;
+        reference_map_index_ = source.reference_map_index_;
 
         return *this;
       }
@@ -144,28 +150,35 @@ namespace OpenMS
       /// Destructor
       virtual ~StarAlignment()
     {}
-      //@}
 
-      /** @name Accesssor methods
-       */
-      //@{
       /// Mutable access to the transformations
       void setTransformationVector(const std::vector< GridType >& transformations)
       {
         transformations_ = transformations;
-      }
-      /// Mutable access to the transformations
-      std::vector< GridType >& getTransformationVector()
-      {
-        return transformations_;
       }
       /// Non-mutable access to the transformations
       const std::vector< GridType >& getTransformationVector() const
       {
         return transformations_;
       }
-      //@}
 
+      /// Mutable access to the index of the reference map
+      void setReferenceMapIndex(UnsignedInt index) throw (Exception::InvalidValue)
+      {
+        if (index > element_map_vector_.size())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The index is not contained in the vector of element containers.","") ;
+        }
+        else
+        {
+          reference_map_index_ = index;
+        }
+      }
+      /// Non-mutable access to the index of the reference map
+      const UnsignedInt& getReferenceMapIndex() const
+      {
+        return reference_map_index_;
+      }
 
       /// Estimates the transformation for each grid cell
       virtual void run() throw (Exception::InvalidValue)
@@ -198,13 +211,15 @@ namespace OpenMS
         String tree;
         UnsignedInt n = element_map_vector_.size();
         tree = '(';
+        UnsignedInt j = 0;
         for (UnsignedInt i = 0; i < n; ++i)
         {
           if (i != reference_map_index_)
           {
             tree = tree + '(' + reference_map_index_ + ":0," + i + ':' + (i+1) + "):0";
+            ++j;
 
-            if (i < (n-1))
+            if (j < (n-1))
             {
               tree = tree + ',';
             }
@@ -216,16 +231,32 @@ namespace OpenMS
       }
 
     protected:
-
-      /** @name Data members
-       */
-      //@{
-      /// transformations
+      /// The transformation vector
       std::vector< GridType > transformations_;
-      //@}
+
+      /// Index of the reference map
+      UnsignedInt reference_map_index_;
 
 
-      // align all maps to the reference map
+      /// Define the map with the most elements as the reference map
+      void assignReferenceMap_()
+      {
+        UnsignedInt n = element_map_vector_.size();
+        UnsignedInt ref_index = 0;
+        UnsignedInt max_number = element_map_vector_[ref_index]->size();
+
+        for (UnsignedInt i = 1; i < n; ++i)
+        {
+          if (n > max_number)
+          {
+            max_number = n;
+            ref_index = i;
+          }
+        }
+        reference_map_index_ = ref_index;
+      }
+
+      /// Align all feature maps to the reference map
       void alignMultipleFeatureMaps_()
       {
 
@@ -344,6 +375,7 @@ namespace OpenMS
 
                   out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
+
                   map[j].getPosition() = pos;
                   map[j].insert(index_tuple);
                   break;
@@ -362,6 +394,7 @@ namespace OpenMS
             pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT
+
             std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
             ++number_alignments;
             std::ofstream out_cons("ConsensusMap",std::ios::out);
@@ -423,7 +456,7 @@ namespace OpenMS
 
       }
 
-      // align all maps to the reference map
+      /// Align all peak maps to the reference map
       void alignMultiplePeakMaps_()
       {
 
@@ -538,6 +571,7 @@ namespace OpenMS
                   index_tuple.setTransformedPosition(pos);
 
 #ifdef DEBUG_ALIGNMENT
+
                   out << map[j].getPosition()[RT] << ' ' << map[j].getPosition()[MZ] << ' ' << pos[RT] << ' ' << pos[MZ] << '\n';
 #endif
 

@@ -37,7 +37,6 @@ typedef DFeature<2, KernelTraits> ElementType;
 typedef DFeatureMap<2, ElementType> ElementMapType;
 typedef DFeaturePair < 2, ElementType > ElementPairType;
 typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
-typedef DGrid<2> GridType;
 typedef DPosition < 2, KernelTraits > PositionType;
 
 START_TEST(PoseClusteringPairwiseMapMatcher<ElementMapType>, "$Id$")
