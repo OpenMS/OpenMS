@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?><!-- -*- mode: nxml; tab-width: 2 -*- -->
+<celllist>
+<cell nr="0">
+	<first>
+		<fposition dim="0">1656.27</fposition>
+		<fposition dim="1">117.059</fposition>
+	</first>
+	<second>
+		<sposition dim="0">3464.65</sposition>
+		<sposition dim="1">444.424</sposition>
+	</second>
+	<mappinglist>
+		<mapping name="DLinearMapping">
+			<param name="DLinearMapping:intercept" value="13.6054"></param>
+			<param name="DLinearMapping:slope" value="1.006"></param>
+		</mapping>
+		<mapping name="DLinearMapping">
+			<param name="DLinearMapping:intercept" value="0.00116097"></param>
+			<param name="DLinearMapping:slope" value="0.999993"></param>
+		</mapping>
+	</mappinglist>
+</cell>
+</celllist>

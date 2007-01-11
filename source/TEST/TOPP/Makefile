@@ -54,17 +54,16 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SequestAdapter_test \
 	SpectraFilter_test
-	
 
 ifeq ($(CGAL_SUPPORT),true)
-CGAL_TESTS=\
-	UnlabeledMatcher_test\
+CGAL_TESTS= \
+	UnlabeledMatcher_test \
 	MapAlignment_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
-LIBSVM_TESTS=\
-	RTModel_test\
+LIBSVM_TESTS= \
+	RTModel_test \
 	RTPredict_test
 endif
 
@@ -72,10 +71,13 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 
 # Tests for processing pipelines using several tools
 
-UNCONDITIONAL_PIPELINE_TESTS =\
-	MyoQuant_test
+UNCONDITIONAL_PIPELINE_TESTS = \
+	MyoQuant_test 
 
-TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
+CGAL_PIPELINE_TESTS = \
+	PairwiseSuperposition_test
+
+TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature* model*
@@ -125,7 +127,7 @@ help:
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
 # - temporary files (*.tmp) are not deleted after the execution
-debug: 
+debug:
 	@$(MAKE) DEBUG=1 default
 
 # Diff that allows for slight numeric differences
@@ -147,7 +149,7 @@ endif
 # VERBOSE MODE
 # Changes in verbose mode are:
 # - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
-verbose: 
+verbose:
 	@$(MAKE) VERBOSE=1 default
 
 # This function runs a TOPP tool with given options.  To invoke the program,
@@ -172,7 +174,7 @@ endif
 # VERBOSE AND DEBUG MODE
 # Changes in verbose mode are:
 # - RUN_PROG_OPT will not redirect the console output (stdout and stderr) of the program to /dev/null
-dv: 
+dv:
 	@$(MAKE) VERBOSE=1 DEBUG=1 default
 
 ###########################################################################################
@@ -283,7 +285,7 @@ FeaturePairSplitter_test: $(NUMERICDIFF)
 	-out2 FeaturePairSplitter_1_out2.tmp \
 	-qual FeaturePairSplitter_1_qual.tmp \
 	-dump FeaturePairSplitter_1_dump.tmp)
-	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp 
+	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp
 	@$(SED) -i 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp FeaturePairSplitter_1_dump.tmp
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
@@ -405,19 +407,19 @@ FileMerger_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger_5_output.txt,FileMerger5.tmp)
-				
+
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
-	
+
 	@$(ECHO) "- Test 1: sequence file"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
 	@$(call TEST_FILE_EQUAL,IDFilter_1_output.analysisXML,IDFilter_1_output.tmp)
-	
+
 	@$(ECHO) "- Test 2: threshold fractions"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.analysisXML,IDFilter_2_output.tmp)
-	
+
 	@$(ECHO) "- Test 3: exclusion peptides"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.analysisXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_input.analysisXML)
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.analysisXML,IDFilter_3_output.tmp)
@@ -450,13 +452,14 @@ MapAlignment_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 3: consensus files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_consensus.xml, MapAlignment_1_consensus_output.tmp)
-	
+
 
 MapMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
-	@$(ECHO) "	... todo ..."
-
+	@$(ECHO) "- Test 1: stand alone"
+	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.pairs -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
+	@$(call TEST_FILE_EQUAL,MapMatcher_1_output.grid,MapMatcher_1_output_grid.tmp)
 
 MapStatistics_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -477,12 +480,12 @@ MascotAdapter_test: $(NUMERICDIFF)
 
 NoiseFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "NoiseFilter:"	
-	
+	@$(ECHO) "NoiseFilter:"
+
 	@$(ECHO) "- Test 1: Gaussian filter"
 	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type gaussian -in  RawData_input.mzData -out NoiseFilter_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp, NoiseFilter_1_output.mzData)
-	
+
 	@$(ECHO) "- Test 2: Savitzky Golay filter"
 	@$(call RUN_PROG_OPT,NoiseFilter,	-ini NoiseFilter_2_parameters.ini -filter_type sgolay -resampling 0.2 -in  RawData_input.mzData -out NoiseFilter_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp, NoiseFilter_2_output.mzData)
@@ -532,7 +535,7 @@ SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 3: -filter ThresholdMower,SqrtMower -ini SpectraFilter_3_parameters.ini"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini SpectraFilter_3_parameters.ini -filters SqrtMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
-	
+
 
 UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -562,3 +565,20 @@ MyoQuant_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"
 	@$(ECHO) "	... todo ..."
+
+PairwiseSuperposition_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "PairwiseSuperposition_test:"
+	@$(ECHO) "- Test 1: UnlabeledMatcher, MapMatcher, and MapDewarper"
+	@$(ECHO) "	PairwiseSuperposition_1_input1.feat shall be transformed into PairwiseSuperposition_1_output1.feat"
+	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.feat"
+	@$(ECHO) "  Find pairs using simple UnlabeledMatcher..."
+	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.feat -in2 PairwiseSuperposition_1_input2.feat -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.grid,PairwiseSuperposition_1_output1_grid.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.pairs,PairwiseSuperposition_1_output1_pairs.tmp)
+	@$(ECHO) "  Find affine map by linear regression using MapMatcher..."
+	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.pairs -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2.grid,PairwiseSuperposition_1_output2_grid.tmp)
+	@$(ECHO) "  Apply affine map using MapDewarper..."
+	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.feat -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.feat,PairwiseSuperposition_1_output1_feat.tmp)
