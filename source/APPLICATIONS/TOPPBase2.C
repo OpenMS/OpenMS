@@ -251,57 +251,57 @@ namespace OpenMS
 		catch(Exception::UnableToCreateFile& e)
 		{
 			writeLog_(String("Error: Unable to write file (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!",1);
 			return CANNOT_WRITE_OUTPUT_FILE;
 		}	
 		catch(Exception::FileNotFound& e)
 		{
 			writeLog_(String("Error: File not found (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_NOT_FOUND;
 		}
 		catch(Exception::FileNotReadable& e)
 		{
 			writeLog_(String("Error: File not readable (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_NOT_READABLE;
 		}
 		catch(Exception::FileEmpty& e)
 		{
 			writeLog_(String("Error: File empty (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_EMPTY;
 		}
 		catch(Exception::ParseError& e)
 		{
 			writeLog_(String("Error: Unable to read file (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INPUT_FILE_CORRUPT;
 		}
 		catch(Exception::RequiredParameterNotGiven& e)
 		{
 			writeLog_(String("Error: The required parameter '") + e.what() + "' was not given!");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return MISSING_PARAMETERS;
 		}
 		///Internal errors because of wrong use of this class
 		catch(Exception::UnregisteredParameter& e)
 		{
 			writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
 		catch(Exception::WrongParameterType& e)
 		{
 			writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
 		///All other errors
 		catch(Exception::Base& e)
 		{
 			writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");
-			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + "!",1);
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return UNKNOWN_ERROR;
 		}
 	  
