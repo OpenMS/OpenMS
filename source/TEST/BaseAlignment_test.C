@@ -182,6 +182,17 @@ CHECK(void setElementMapVector(const std::vector< ElementContainerType* >& eleme
   TEST_EQUAL(al.getElementMapVector()[0] == &map, true)
 RESULT
 
+CHECK(std::vector< ElementContainerType* >& getElementMapVector())
+  TestAlignment al;
+  vector<FeatureMap*> map_vector;
+  FeatureMap map;
+  map_vector.push_back(&map);
+  al.getElementMapVector() = map_vector;
+
+  TEST_EQUAL(al.getElementMapVector().size() == 1, true)
+  TEST_EQUAL(al.getElementMapVector()[0] == &map, true)
+RESULT
+
 CHECK(void setFileNames(const std::vector< String >& file_names))
   TestAlignment al;
   String name="blub";

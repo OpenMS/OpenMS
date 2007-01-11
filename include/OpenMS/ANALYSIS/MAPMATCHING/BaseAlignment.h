@@ -124,6 +124,11 @@ namespace OpenMS
       {
         element_map_vector_ = element_map_vector;
       }
+      /// Mutable access to the vector of maps
+      std::vector< ElementContainerType* >& getElementMapVector() 
+      {
+        return element_map_vector_;
+      }
       /// Non-mutable access to the vector of maps
       const std::vector< ElementContainerType* >& getElementMapVector() const
       {
