@@ -269,6 +269,28 @@ namespace OpenMS
       // Do something depending on the tag
       switch(tag)
       {
+          case CONSENSUSXML:
+          break;
+          case ALIGNMENT:
+          break;
+          case ALIGNMENTMETHOD:
+          break;
+          case MATCHINGALGORITHM:
+          break;
+          case CONSENSUSALGORITHM:
+          break;
+          case ALIGNMENTNEWICKTREE:
+          break;
+          case TRANSFORMATIONLIST:
+          break;
+          case TRANSFORMATION:
+          break;
+          case CELL:
+          break;
+          case CONSENSUSELEMENTLIST:
+          break;
+          case GROUPEDELEMENTLIST:
+          break;
           case MAPLIST:
           tmp_str = getAttributeAsString(COUNT);
           if (tmp_str != "")
@@ -402,13 +424,13 @@ namespace OpenMS
 
               act_index_tuple.setMapIndex(map_index);
               act_index_tuple.setElementIndex(element_index);
-              
+
               tmp_str = getAttributeAsString(RT_ATT);
               PositionType pos;
               pos[0] = asDouble_(tmp_str);
               tmp_str = getAttributeAsString(MZ_ATT);
               pos[1] = asDouble_(tmp_str);
-              
+
               act_index_tuple.setTransformedPosition(pos);
               act_index_tuple.setElement(((consensus_map_->getMapVector())[map_index])[element_index]);
               act_cons_element_.insert(act_index_tuple);
