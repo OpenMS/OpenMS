@@ -48,7 +48,7 @@ using namespace std;
 	'FeatureFile' (OpenMS features) is also supported but will lose feature specific information.
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'
-	
+	'FeatureFile' can be generated using defaults for feature specific information.
 */
 
 // We do not want this class to show up in the docu:
