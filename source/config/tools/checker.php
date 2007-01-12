@@ -24,30 +24,100 @@
 # --------------------------------------------------------------------------
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
-
-include "common_functions.php";
-
-	########################usage###############################
-	if ($argc<2 OR $argc>4)
+	
+	error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+	
+	include "common_functions.php";
+	
+	########################helper functions###############################
+	function printUsage()
 	{
-?>
-Usage: checker.php <Path to OpenMS> [<check option>] [-v]
+		print "Usage: checker.php <Path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
+		print "\n";
+		print "If no user name is given, the tests are performed for all users.\n";
+		print "\n";
+		print "tests:\n";
+		foreach ($GLOBALS["tests"] as $name => $desc)
+		{
+				print "  $name -- $desc\n";
+		}
+		print "\n";
+		print "options:\n";
+		print "  -v     verbose mode\n";
+		print "  --help shows this help\n";
+	}
 
-If no option is given, all tests are executed. Otherwise only the given specfic test is executed.
-
-check options:
-  -g  check if header guards present and correct
-  -h  check headers (tab settings for editors, cvs headers, maintainer)
-  -m  check headers for empty maintainer field
-  -u  check for unneeded includes
-  -c  check for unneeded includes in C-files (results are not always reliable because of forward declarations)
-other options:
-  -v  verbose mode
-<?
-	exit;	
+	function realOutput($text,$user,$verbose)
+	{
+		if ($verbose)
+		{
+			print "------> ";
+		}
+		print $text;
+		if ($user=="all")
+		{
+			return " (".$GLOBALS["file_maintainers"][$filename].")";
+		}
+		print "\n";
 	}
 	
-	######################command line parsing###########################
+	########################declarations###############################
+	$GLOBALS["tests"] = array(
+															"all"				     => "performs all tests (default)",
+															"guards"         => "check if header guards present and correct",
+															"tab"            => "check tab settings for editors",
+															"maintainers"    => "check if maintainers are consistent in header, source and test file",
+															"missing_tests"  => "check for missing tests",
+															"brief"          => "check for doxygen tag @brief",
+															"doxygen_errors" => "check for errors in dogygen-error.log",
+															"check_test"     => "check the class test for completeness",
+															"test_output"    => "check test output for warnings and errors"
+														);
+	
+	$options = array("-u","-t");
+	
+	$flags = array("-v");
+	
+	########################parameter handling###############################
+	
+	#no parameters
+	if ($argc==1 || in_array("--help",$argv))
+	{
+		printUsage();
+		exit;
+	}
+	
+	#wrong parameter count
+	for ($i=1; $i<count($argv); ++$i)
+	{
+		#option
+		if (beginsWith($argv[$i],"-"))
+		{
+			#no path given
+			if ($i==1)
+			{
+				print "\nError: No path given!\n\n";
+				printUsage();
+				exit;
+			}
+			#not registered option or flag
+			if (!in_array($argv[$i],array_merge($options,$flags)))
+			{
+				print "\nError: Unregistered option '".$argv[$i]."'!\n\n";
+				printUsage();
+				exit;
+			}
+			# no argument to an option
+			if (in_array($argv[$i],$options) && ( !isset($argv[$i+1]) || beginsWith($argv[$i+1],"-")))
+			{
+				print "\nError: No argument to option '".$argv[$i]."'!\n\n";
+				printUsage();
+				exit;
+			}
+		}
+	}
+	
+	#remove slash from path
 	if (endsWith($argv[1],"/"))
 	{
 		$path = substr($argv[1],0,-1);
@@ -57,372 +127,411 @@ other options:
 		$path = $argv[1];
 	}
 	
-	$do_all = false;
-	if (!isset($argv[2]) OR ($argv[2]!="-g" AND $argv[2]!="-h" AND $argv[2]!="-u" AND $argv[2]!="-m" AND $argv[2]!="-c"))
-	{
-		$do_all = true;
-	}
-	
+	# verbose
 	$verbose = false;
 	if (in_array("-v",$argv))
 	{
 		$verbose = true;
 	}
 	
-	print "\n\n";
-	#################header guards###############################
-	if ($do_all OR $argv[2]=="-g")
+	#user
+	$user = "all"; 
+	if (in_array("-u",$argv))
 	{
-		
-		$dont_report = array("TypeNameIdStringMiscellanyDefs.h");
-		
-		$files=array();
-		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
-		foreach ($files as $header)
+		$user = $argv[array_search("-u",$argv)+1];
+	}
+	
+	#test
+	$test = "all";
+	if (in_array("-t",$argv))
+	{
+		$test = $argv[array_search("-t",$argv)+1];
+		if (!in_array($test, array_keys($GLOBALS["tests"])))
 		{
-			if ($verbose) print "##file: $header\n";
-			$file = file($header);
-			for ($i=0;$i<count($file);$i++)
-			{
-				$line = trim($file[$i]);
-				if (beginsWith($line,"#ifndef"))
-				{
-					$guard = trim(substr($line,8));
-					$nextline = trim($file[$i+1]);		
-					//header guards
-					if (beginsWith($nextline,"#define") AND trim(substr($nextline,8))==$guard)
-					{
-						$right_guard = includeToGuard(suffix($header,strlen($guard)));
-						if ($right_guard!=$guard OR !beginsWith($guard,"OPENMS_"))
-						{
-							print ">>WRONG HEADER GUARD\n";
-							print "  guard   : $guard\n";
-							print "  filename: $header\n";
-						}					
-						break;
-					}
-				}
-				
-				$class = trim(substr($header,strrpos($header,"/")+1));
-				if ($i==count($file)-1 AND !in_array($class,$dont_report))
-				{
-							print ">>MISSING HEADER GUARD\n";
-							print "  filename: $header\n";
-				}
-			}	
+			print "\nError: Unknown test '$test'!\n\n";
+			printUsage();
+			exit;
 		}
 	}
-
-	#################headers###############################
-	if ($do_all OR $argv[2]=="-h")
+	
+	if ($verbose)
 	{
-		$files=array();
-		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
-		exec("find $path/source/ -name \"*.C\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
-		exec("find $path/source/ -name \"Makefile\"", $files);
-		foreach ($files as $infile)
+		print "Path: '$path'\n";
+		print "User: '$user'\n";
+		print "Test: '$test'\n";
+	}
+	
+	########################################################################
+	########################### MAINTAINERS ################################
+	########################################################################
+	
+	$files=array();
+	exec("cd $path && find include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
+	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+	
+	//look up Maintainer in first 40 lines of files
+	
+	$all_maintainers = array();
+	$files_todo = array();
+	$GLOBALS["file_maintainers"] = array();
+	
+	foreach ($files as $f)
+	{
+		$maintainerline = array();
+		exec("cd $path && head -40 $f | grep Maintainer ", $maintainerline);
+		if (count($maintainerline) == 0)
 		{
-			if ($verbose) print "##file: $infile\n";
-			$file = file($infile);
-			$out = ">>HEADER ERRORS in $infile\n";
-			$ok = true;
-			$maintainer_count = 0;
+			if ($user=="all")
+			{
+				print "No Maintainer lines in '$f'\n";
+				$GLOBALS["file_maintainers"][$f] = "";
+			}
+		}
+		else if (count($maintainerline) > 1)
+		{
+			if ($user=="all")
+			{
+				print "Several maintainer lines in '$f'\n";
+				$GLOBALS["file_maintainers"][$f] = "";
+			}
+		}
+		else
+		{
+			$maintainers = parseMaintainerLine($maintainerline[0]);
+			if (count($maintainers) == 0)
+			{
+				if ($user=="all")
+				{
+					print "No Maintainer for '$f'\n";
+					$GLOBALS["file_maintainers"][$f] = "";
+				}
+			}
+			else
+			{
+				$GLOBALS["file_maintainers"][$f] = implode(", ",$maintainers);
+				
+				#count files per maintainer
+				foreach ($maintainers as $m)
+				{
+					if (!isset($all_maintainers[$m]))
+					{
+						$all_maintainers[$m] = 0;
+					}
+					$all_maintainers[$m]++;
+				}
+				#check for misspelled maintainers
+				if ($user!="all")
+				{
+					foreach ($maintainers as $m)
+					{
+						$dist = levenshtein($m,$user);
+						if ($dist==0)
+						{
+							$files_todo[] = $f;
+						}
+						else if($dist<=4)
+						{
+							print "Possibly misspelled maintainer '$user'<-$dist->'$m' in '$f'\n";
+						}
+					}
+				}
+			}
+		}
+	}
+	//files to parse
+	if ($user == "all")
+	{
+		$files_todo = $files;
+	}
+	if ($verbose)
+	{
+		print "Files:\n";
+		foreach ($files as $f)
+		{
+			print "  $f";
+			if (in_array($f,$files_todo))
+			{
+				print " (todo)";
+			}
+			print "\n";
+		}
+	}
+	
+	//maintainer summary
+	if ($user == "all")
+	{
+		print "\nMaintainers:\n";
+		foreach ($all_maintainers as $m => $c)
+		{
+			print "  $m (File count: $c)\n";
+		}
+	}
+	########################################################################
+	########################### auxilary files #############################
+	########################################################################
+	$called_tests = array();
+	$makefile = file("$path/source/TEST/Makefile");
+	foreach($makefile as $line)
+	{
+		$line = trim($line);
+		if (strpos($line,"_test")!== FALSE && strpos($line,":")===FALSE && $line[0]!="#" && $line[0]!="@")
+		{
+			$called_tests[] = "source/TEST/".strtr($line,array("\\"=>""," "=>"", "	"=>"")).".C";
+		}
+	}
+	$doxygen_errors = array();
+	$errorfile = file("$path/doc/doxygen-error.log");
+	foreach($errorfile as $line)
+	{
+		if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
+		{
+			$pos = strpos($parts[1],"source/");
+			if($pos!==FALSE)
+			{
+				$doxygen_errors[] = substr($parts[1],$pos);
+			}
+			$pos = strpos($parts[1],"include/OpenMS/");
+			if($pos!==FALSE)
+			{
+				$doxygen_errors[] = substr($parts[1],$pos);
+			}
+		}
+	}
+	$doxygen_errors = array_unique($doxygen_errors);
+	
+	########################################################################
+	########################### TESTS ######################################
+	########################################################################
+	foreach ($files_todo as $f)
+	{
+		//file name (without path)
+		$basename = basename($f);
+		//class name (for source and header files)
+		$classname = substr($basename,0,-2);
+		//test name (for source and header files) 
+		$testname = "source/TEST/".$classname."_test.C";
+		
+		// file content
+		$file = file($path."/".$f);
+		
+		if ($verbose)
+		{
+			print "Current File: $f\n";
+		}
+		
+		########################### guards ######################################
+		if ($test == "all" || $test == "guards")
+		{
+			$dont_report = array("TypeNameIdStringMiscellanyDefs.h");
+			
+			if (endsWith($f,".h"))
+			{
+				for ($i=0;$i<count($file);$i++)
+				{
+					$line = trim($file[$i]);
+					if (beginsWith($line,"#ifndef"))
+					{
+						$guard = trim(substr($line,8));
+						$nextline = trim($file[$i+1]);		
+						//header guards
+						if (beginsWith($nextline,"#define") AND trim(substr($nextline,8))==$guard)
+						{
+							$right_guard = includeToGuard(suffix($f,strlen($guard)));
+							if ($right_guard!=$guard OR !beginsWith($guard,"OPENMS_"))
+							{
+								realOutput("Wrong header guard '$guard' in '$f'",$user,$verbose);
+							}					
+							break;
+						}
+					}
+					
+					$class = trim(substr($f,strrpos($f,"/")+1));
+					if ($i==count($file)-1 AND !in_array($class,$dont_report))
+					{
+						realOutput("Missing header guard in '$f' ",$user,$verbose);
+					}
+				}	
+			}
+		}
+	
+		########################### tab settings #####################################
+		if ($test == "all" || $test == "tab")
+		{
 			$tab_count = 0;
 			for ($i=0;$i<min(30,count($file));$i++)
 			{
 				$line = trim($file[$i]);
-				if (strpos($line,"\$Maintainer")!==false )
-				{
-					$maintainer_count++;
-				}
 				if (strpos($line,"vi: set ts=2:")!==false )
 				{
 					$tab_count++;
 				}
 			}
-			if ($maintainer_count!=1)
-			{
-				$out .="  Maintainer lines: $maintainer_count\n";
-				$ok=false;
-			}
 			if ($tab_count!=1)
 			{
-				$out .="  Editor tab settings lines: $tab_count\n";
-				$ok=false;
+				realOutput("Missing tab settings in '$f'",$user,$verbose);
 			}
-			if ($verbose)
-			{ 
-				print "  Maintainer lines: $maintainer_count\n";	
-				print "  Editor tab settings lines: $tab_count\n";	
-			}		
-			if (!$ok)
-			{
-				print $out;
-			}	
 		}
-	}
 
-	#################empty maintainer lines###############################
-	if ($do_all OR $argv[2]=="-m")
-	{
-		$files=array();
-		exec("find $path/include/ -name \"*.h\"", $files);
-		exec("find $path/source/ -name \"*.C\" ! -name \"*_moc.C\" ! -name \"moc_*.C\"", $files);
-		foreach ($files as $infile)
+		########################### maintainers  #####################################
+		if ($test == "all" || $test == "maintainers")
 		{
-			if ($verbose) print "##file: $infile\n";
-			$file = file($infile);
-			
-			for ($i=0;$i<min(30,count($file));$i++)
+			if (endsWith($f,".h") )
 			{
-				if (strpos($file[$i],"\$Maintainer")!==false )
+				# maintainer of test file
+				if (in_array($testname,$files))
 				{
-					if (ereg("Maintainer[:]?[ 	\$]*$",trim($file[$i])))
+					if ($file_maintainers[$testname] != $file_maintainers[$f])
 					{
-						print "Empty maintainer in $infile\n";
+						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$verbose);
+					}
+				}
+				# maintainer of source file
+				$source_name = "source/".substr($f,15,-2).".C";
+				if (in_array($source_name,$files))
+				{
+					if ($file_maintainers[$source_name] != $file_maintainers[$f])
+					{
+						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$verbose);
 					}
 				}
 			}
 		}
-	}
 
-	#################unneeded includes###############################
-	//hide
-	$dont_report = array("config","TypeNameIdStringMiscellanyDefs","Constants","Benchmark","helper");
-	//multiple classes per file (filename => classes)
-	$multiclass = array(
-									"Macros" => array("OPENMS_PRECONDITION","OPENMS_POSTCONDITION"),
-									"ComparatorUtils" => array("PointerComparator","ReverseComparator","LexicographicComparator","pointerComparator","reverseComparator","lexicographicComparator"),
-	 								"MathFunctions" => array("ceil_decimal","round_decimal","intervalTransformation","linear2log","log2linear","isOdd"),
-	 								"HashFunction" => array("hashPointer","hashPJWString","hashElfString","getNextPrime"),
-									"RangeUtils" => array("RTRange","MSLevelRange","ScanModePredicate","SpectrumEmptyPredicate","MzRange","IntensityRange"),
-									"StandardTypes" => array("RawDataPoint","RawDataPoint2D","RawSpectrum","RawMap","Peak","Peak2D","PeakSpectrum","PeakMap","Feature","FeatureMap"),
-									"Types" => array("Distance","Handle","Index","SignedInt","UnsignedInt","Size","Time","HashIndex","Position","Real","DoubleReal","Property","ErrorCode","Byte","PointerSizeUInt","PointerSizeInt","UID"),
-									"Exception" => array("throw","Base"),
-									"DPickedPeak" => array("PeakShapeType","DPickedPeak"),
-									"TimeStamp" => array("PreciseTime","TimeStamp"),
-									"Identification" => array("Identification", "IdentificationData")
-									
-	 							);
-
-	###unneeded includes for header files###
-	if ($do_all OR $argv[2]=="-u")
-	{
-		####unneeded declarations or forward declartion possible###
-		$files=array();
-		exec("find $path/include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
-
-		foreach ($files as $filename)
+		########################### missing tests  #####################################
+		if ($test == "all" || $test == "missing_tests")
 		{
-			$count = array();
-			$forward = array();
-			$file = file($filename);
-			for ($i=0;$i<count($file);$i++)
+			$dont_report = array(
+				"/FORMAT/HANDLERS/",
+				"/VISUAL/",
+				"/CONCEPT/Types.h",
+				"/CONCEPT/Macros.h",
+				"/CONCEPT/Exception.h",
+				"/CONCEPT/Benchmark.h",
+				"/CONCEPT/Constants.h",
+				"/config.h"
+				);
+
+			if (endsWith($f,".h") )
 			{
-				$line = trim($file[$i]);
-				if (isIncludeLine($line,$include))
+				$ignore = false;
+				foreach ($dont_report as $i)
 				{
-					if (beginsWith($include,"OpenMS/"))
+					if (strpos($f,$i)!==FALSE)
 					{
-						$class = substr($include,strrpos($include,"/")+1,-2);
-						if (!in_array($class,$dont_report))
-						{
-							$count["$class"] = 0;
-							$forward["$class"] = 0;
-						}
+						$ignore = true;
+					}		
+				}
+				
+				if (!$ignore)
+				{
+					if (!in_array($testname,$files))
+					{
+						realOutput("Missing test for '$f'",$user,$verbose);
+					}
+					else if (!in_array($testname,$called_tests))
+					{
+						realOutput("Missing test for '$f'",$user,$verbose);
 					}
 				}
-				else
-				{
-					$tokens = tokenize($line."\\");
-					foreach ($count as $class => $number)
-					{
-						$classes = array();
-						//multiple classes per file
-						if (isset($multiclass[$class]))
-						{
-							$classes = $multiclass[$class];
-						}
-						// class name == file name
-						else
-						{
-							$classes[0] = $class;
-						}
-						
-						// scan tokens for class name
-						for ($j = 0; $j != sizeof($tokens); $j++)
-						{
-							if (in_array($tokens[$j], $classes))
-							{
-								$count[$class]++;
-								// check next token: if it is '*' or '&', the include might be unneeded
-								if (isset($tokens[$j + 1]) && ( $tokens[$j + 1] == "*" || $tokens[$j + 1] == "&"))
-								{
-									$forward[$class]++;
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			$out = ">>UNNEEDED INCLUDE in $filename\n";
-			foreach ($count as $class => $number)
-			{
-				if ($number == 0)
-				{
-					$out .= "  $class\n";
-				}
-				else if (isset($forward[$class]) && $forward[$class] == $number)
-				{
-					$out .= "  $class (forward)\n";
-				}
-			}
-			if ($out != ">>UNNEEDED INCLUDE in $filename\n")
-			{
-				print $out;
 			}
 		}
 		
-		###check for duplicate includes###
-		$files=array();
-		exec("find $path/source/ -name \"*.C\" ! -name \"*_test.C\" ! -wholename \"*/EXAMPLES/*\" ! -wholename \"*/TEST/*\"", $files);
-
-		foreach ($files as $filename)
+		########################### @brief  #####################################
+		if ($test == "all" || $test == "brief")
 		{
-			$includes = array();
-			$duplicates = array();
-			$file = file($filename);
-			for ($i=0;$i<count($file);$i++)
+			if (endsWith($f,".h") )
 			{
-				$line = trim($file[$i]);
-				if (isIncludeLine($line,$include))
+				for ($i=0; $i<count($file); ++$i)
 				{
-					if (beginsWith($include,"OpenMS/"))
+					#match a class declaration
+					if (preg_match("/(class|struct)[\s]+[\w]+[\s]*({|:[^:]|$)/i",$file[$i]))
 					{
-						$includes[] = substr($include,strrpos($include,"/")+1,-2);
-					}
-				}
-			}
-			//header for source file
-			$header = substr($filename,0,strpos($filename,"/source/"))."/include/OpenMS/".substr($filename,strpos($filename,"/source/")+8,-2).".h";
-			if (file_exists($header))
-			{
-				$headerfile = file($header);
-			}
-			else
-			{
-				$headerfile = array();
-			}
-			for ($i=0;$i<count($headerfile);$i++)
-			{
-				$line = trim($headerfile[$i]);
-				if (isIncludeLine($line,$include))
-				{
-					if (beginsWith($include,"OpenMS/"))
-					{
-						$class = substr($include,strrpos($include,"/")+1,-2);
-						if (in_array($class,$includes))
+						#take the second line too in case : or { come in the next line
+						if (isset($file[$i+1]) && preg_match("/(class|struct)[\s]+([\w]+)[\s]*({|:[^:])/i",$file[$i].$file[$i+1],$parts))
 						{
-							$duplicates[] = $class;
+							if ($verbose) print "found class declaration in line $i\n";
+							$brief = false;
+							#search for /// comment
+							if (strpos($file[$i-1],"///")!==FALSE)
+							{
+								if ($verbose) print "found /// description in line $j\n";
+								$brief = true;
+							}
+							# backward search for @brief until comment closes 
+							for ($j=$i; $j!=0; --$j)
+							{
+								if (strpos($file[$j],"@brief")!==FALSE)
+								{
+									if ($verbose) print "found @brief description in line $j\n";
+									$brief = true;
+									break;
+								}
+								if (strpos($file[$j],"/**")!==FALSE)
+								{
+									break;
+								}
+							}
+							if (!$brief)
+							{
+								realOutput("No @brief description for '$parts[2]' in '$f'",$user,$verbose);
+							}
 						}
 					}
-				}
-			}
-			if (count($duplicates)!=0)
-			{
-				print ">>UNNEEDED INCLUDE in $filename\n";
-				foreach ($duplicates as $d)
-				{
-					print "  $d\n";
 				}
 			}
 		}
-	}
-
-	###unneeded includes for source files###
-	if ($argv[2]=="-c")
-	{
-		$files=array();
-		exec("find $path/source/ -name \"*.C\" ! -name \"*_test.C\" ! -wholename \"*/EXAMPLES/*\" ! -wholename \"*/TEST/*\"", $files);
-
-		foreach ($files as $filename)
+		
+		########################### doxygen errors  ####################################
+		if ($test == "all" || $test == "doxygen_errors")
 		{
-			$count = array();
-			$file = file($filename);
-			for ($i=0;$i<count($file);$i++)
+			if (in_array($f,$doxygen_errors))
 			{
-				$line = trim($file[$i]);
-				if (isIncludeLine($line,$include))
+				realOutput("Doxygen errors in '$f'",$user,$verbose);
+			}
+		}
+		
+		########################### check_test  #####################################
+		if ($test == "all" || $test == "check_test")
+		{
+			if (endsWith($f,".h") && in_array($testname,$files))
+			{
+				$result = array();
+				exec("$path/source/config/tools/check_test $path/$f $path/$testname 2>&1",$result);
+				if (count($result)!=0)
 				{
-					if (beginsWith($include,"OpenMS/"))
-					{
-						$class = substr($include,strrpos($include,"/")+1,-2);
-						//Do not report header of source file
-						if (!in_array($class,$dont_report) && $class != substr($filename,strrpos($filename,"/")+1,-2))
-						{
-							$count["$class"] = 0;
-						}
-					}
-				}
-				else
-				{
-					foreach ($count as $class => $number)
-					{
-						//multiple classes per file
-						if (isset($multiclass[$class]))
-						{
-							foreach ($multiclass[$class] as $subclass)
-							{
-								if (strpos($line,$subclass)!== FALSE)
-								{
-									$count[$class]++;
-								}
-							}
-						}
-						//class name == file
-						else if (strpos($line,$class)!== FALSE)
-						{
-							$count[$class]++;
-						}
-					}
+					realOutput("check_test errors in '$f'",$user,$verbose);
+					if ($verbose) print implode("\n",$result)."\n";
 				}
 			}
-
-			// find header for source files
-		  $header = substr($filename,0,strpos($filename,"/source/"))."/include/OpenMS/".substr($filename,strpos($filename,"/source/")+8,-2).".h";
-			if (file_exists($header))
+		}
+		
+		########################### warnings test  #####################################
+		if ($test == "all" || $test == "test_output")
+		{
+			$outputfile = substr("$path/$testname",0,-2).".output";
+			if (endsWith($f,".h") && in_array($testname,$files) && file_exists($outputfile))
 			{
-				$headerfile = file($header);
-			}
-			else
-			{
-				$headerfile = array();
-			}
-			
-			$out = ">>UNNEEDED INCLUDE in $filename\n";
-			foreach ($count as $class => $number)
-			{
-				if ($number == 0)
+				$testfile = file($outputfile);
+				foreach ($testfile as $line)
 				{
-					//check for forward declaration
-					$forward_declared = false;
-					foreach ($headerfile as $line)
+					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
 					{
-						if (trim($line)=="class $class;")
-						{
-							$forward_declared = true;
-							break;
-						}
+						if ($verbose) print "$line\n";
+						realOutput("Error/warnings in test output of '$testname'",$user,$verbose);
+						break;
 					}
-					if (!$forward_declared) $out .= "  $class ?\n";
 				}
 			}
-			if ($out != ">>UNNEEDED INCLUDE in $filename\n")
-			{
-				print $out;
-			}
-		}		
+		}
+		
+		########################### warnings make  #####################################
+		//TODO (tee)
+		
+		########################### warnings TOPP  #####################################
+		//TODO (tee)
+		
+		########################### warnings TOPPtest  #################################
+		//TODO (tee)
+		
 	}
-
 ?>

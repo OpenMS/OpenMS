@@ -165,4 +165,21 @@ function tokenize($line)
 	return $result;
 }
 
+function parseMaintainerLine($line)
+{
+	$replacements = array(
+												 "Maintainer"=>"",
+												 ":"=>"",
+												 "/"=>"",
+												 "$"=>"",
+												 "	"=>" ",
+												 "  "=>" ",
+												 "#"=>""
+												);
+	$result = explode(",",strtr($line,$replacements));
+	$result = array_map("trim",$result);
+	$result = array_filter($result,"strlen");
+	return array_unique($result);
+}
+
 ?>
