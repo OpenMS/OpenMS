@@ -39,7 +39,7 @@ namespace OpenMS
   //------------------------------------------------------------
 
   //Tag class for LCMS experiments (it is never instanciated)
-  struct DimensionDescriptionTagLCMS;
+  struct LCMS_Tag;
 
   /**
   	@brief Dimension description for LCMS experiments
@@ -47,7 +47,7 @@ namespace OpenMS
   	@ingroup Kernel
   */
   template <>
-  struct DimensionDescription < DimensionDescriptionTagLCMS >
+  struct DimensionDescription < LCMS_Tag >
   {
     /// This maps symbolic names of the dimensions to numbers.
     enum DimensionId

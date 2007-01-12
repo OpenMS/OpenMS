@@ -44,18 +44,18 @@ unsigned int getDim ()
 
 ///////////////////////////
 
-START_TEST(DimensionDescription<DimensionDescriptionTagLCMS>, "$Id$")
+START_TEST(DimensionDescription<LCMS_Tag>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 
-typedef DimensionDescription<DimensionDescriptionTagLCMS> DDLCMS;
+typedef DimensionDescription<LCMS_Tag> DDLCMS;
 
 DDLCMS * ddlcms_ptr = 0;
 
-STATUS("DDLCMS means DimensionDescription<DimensionDescriptionTagLCMS>")
+STATUS("DDLCMS means DimensionDescription<LCMS_Tag>")
 
 CHECK(DDLCMS())
   ddlcms_ptr = new DDLCMS;

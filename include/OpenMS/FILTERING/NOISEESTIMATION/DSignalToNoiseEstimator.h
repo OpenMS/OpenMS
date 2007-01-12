@@ -47,7 +47,7 @@ namespace OpenMS
   class DSignalToNoiseEstimator
   {
   public:
-    typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+    typedef DimensionDescription < LCMS_Tag > DimensionDescription;
 
     /// Constructor
     inline DSignalToNoiseEstimator()

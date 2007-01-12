@@ -560,7 +560,7 @@ MyoQuant_test: $(NUMERICDIFF)
 	  )
 	@$(ECHO) "	AdditiveSeries, linear regression";
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
-	@ $(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
+	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
 
 	@$(ECHO) ""
 	@$(ECHO) "- Test 2: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, with dewarping"

@@ -54,7 +54,7 @@ namespace OpenMS
 	@ingroup FeatureFinder
 */
 template <UnsignedInt D, typename Traits = KernelTraits,
-typename DimensionTags = DimensionDescriptionTagLCMS>
+typename DimensionTags = LCMS_Tag>
 class ProductModel
             : public BaseModel<D,Traits>
 {

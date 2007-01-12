@@ -126,8 +126,8 @@ class TOPPLabeledMatcher
 	    // sort input file
 	    enum DimensionId
 	    {
-	      RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-	      MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+	      RT = DimensionDescription < LCMS_Tag >::RT,
+	      MZ = DimensionDescription < LCMS_Tag >::MZ
 	    };
 	
 	    typedef DFeature<2>::NthPositionLess< RT > RTless;

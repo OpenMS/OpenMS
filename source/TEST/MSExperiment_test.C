@@ -41,8 +41,8 @@ START_TEST(MSExperiment, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 MSExperiment<>* ptr = 0;
 CHECK(MSExperiment())

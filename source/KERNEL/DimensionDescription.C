@@ -34,25 +34,25 @@ namespace OpenMS
   
   // Dimension description for LCMSMS experiments
 
-  char const * const DimensionDescription < DimensionDescriptionTagLCMS >::dimension_name_short [] =
+  char const * const DimensionDescription < LCMS_Tag >::dimension_name_short [] =
     {
       "RT",
       "MZ"
     };
   
-  char const * const DimensionDescription < DimensionDescriptionTagLCMS >::dimension_name_full [] =
+  char const * const DimensionDescription < LCMS_Tag >::dimension_name_full [] =
     {
       "retention time",
       "mass-to-charge"
     };
   
-  char const * const DimensionDescription < DimensionDescriptionTagLCMS >::dimension_unit_short [] =
+  char const * const DimensionDescription < LCMS_Tag >::dimension_unit_short [] =
     {
       "sec",
       "Th"
     };
   
-  char const * const DimensionDescription < DimensionDescriptionTagLCMS >::dimension_unit_full [] =
+  char const * const DimensionDescription < LCMS_Tag >::dimension_unit_full [] =
     {
       "Seconds",
       "Thomson"

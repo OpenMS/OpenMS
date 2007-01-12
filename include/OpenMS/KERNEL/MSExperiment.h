@@ -185,8 +185,8 @@ public:
     template <class Container>
     void get2DData(Container& cont) const
     {
-        const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-        const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+        const int RT = DimensionDescription < LCMS_Tag >::RT;
 
         for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
         {
@@ -221,8 +221,8 @@ public:
 			// If the container is empty, nothing will happen
 			if (cont.size() == 0) return;
 
-			const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-			const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+			const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+			const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 			typename PeakType::CoordinateType current_rt = - std::numeric_limits<typename PeakType::CoordinateType>::max();
 

@@ -68,7 +68,7 @@ namespace OpenMS
   class DelaunayPairFinder : public BasePairFinder<ConsensusMapT>
   {
     public:
-      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
       enum DimensionId
       {
         RT = DimensionDescriptionType::RT,

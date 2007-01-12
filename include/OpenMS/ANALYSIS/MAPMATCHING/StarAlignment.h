@@ -70,8 +70,8 @@ namespace OpenMS
       /// Defines the coordinates of peaks / features.
       enum DimensionId
       {
-        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+        RT = DimensionDescription < LCMS_Tag >::RT,
+        MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
       /** Symbolic names for indices of feature maps etc.

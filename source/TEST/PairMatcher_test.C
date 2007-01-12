@@ -41,8 +41,8 @@ START_TEST(PairMatcher, "$Id PairMatcher_test.C 139 2006-07-14 10:08:39Z jjoachi
 
 enum DimensionId
 {
-	RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-	MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+	RT = DimensionDescription < LCMS_Tag >::RT,
+	MZ = DimensionDescription < LCMS_Tag >::MZ
 };
 
 typedef PairMatcher::FeatureMapType Features;

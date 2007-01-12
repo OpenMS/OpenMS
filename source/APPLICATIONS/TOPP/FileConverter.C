@@ -183,14 +183,14 @@ class TOPPFileConverter
 						++spec_iter
 					)
 			{
-				feature.setPos( DimensionDescription<DimensionDescriptionTagLCMS>::RT,
+				feature.setPos( DimensionDescription<LCMS_Tag>::RT,
 												spec_iter->getRetentionTime() );
 				for ( SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
 							peak1_iter != spec_iter->end();
 							++peak1_iter
 						)
 				{
-					feature.setPos( DimensionDescription<DimensionDescriptionTagLCMS>::MZ,
+					feature.setPos( DimensionDescription<LCMS_Tag>::MZ,
 												  peak1_iter->getPos() );
 					feature.setIntensity(peak1_iter->getIntensity());
 					feature_map.push_back(feature);

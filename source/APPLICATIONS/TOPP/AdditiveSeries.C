@@ -45,8 +45,8 @@ typedef DFeature<2>::IntensityType IntensityType;
 /// Defines the coordinates of peaks / features.
 enum DimensionId
 {
-  RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-  MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+  RT = DimensionDescription < LCMS_Tag >::RT,
+  MZ = DimensionDescription < LCMS_Tag >::MZ
 };
 
 //-------------------------------------------------------------

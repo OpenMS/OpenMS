@@ -70,13 +70,13 @@ namespace OpenMS
   class BasePairwiseMapMatcher : public FactoryProduct
   {
     public:
-      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
       
       /// Defines the coordinates of elements
       enum DimensionId
       {
-        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+        RT = DimensionDescription < LCMS_Tag >::RT,
+        MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
       /// Container for input elements

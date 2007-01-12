@@ -67,12 +67,12 @@ namespace OpenMS
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
   {
     public:
-      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
       /// Defines the coordinates of elements
       enum DimensionId
       {
-        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+        RT = DimensionDescription < LCMS_Tag >::RT,
+        MZ = DimensionDescription < LCMS_Tag >::MZ
     };
       /** Symbolic names for indices of element maps etc.
             This should make things more understandable and maintainable.

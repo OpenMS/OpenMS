@@ -167,8 +167,8 @@ class TOPPFileInfo
 				DFeatureMapFile().load(in,feat);
 				feat.updateRanges();
 				
-				UnsignedInt mz_dim = DimensionDescription< DimensionDescriptionTagLCMS >::MZ;
-				UnsignedInt rt_dim = DimensionDescription< DimensionDescriptionTagLCMS >::RT;	
+				UnsignedInt mz_dim = DimensionDescription< LCMS_Tag >::MZ;
+				UnsignedInt rt_dim = DimensionDescription< LCMS_Tag >::RT;	
 				
 				cout 
 						 << "Number of features: " << feat.size() << endl

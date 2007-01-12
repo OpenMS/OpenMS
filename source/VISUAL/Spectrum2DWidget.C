@@ -45,8 +45,8 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(sendCursorStatus(double,double,double)),
 		        this, SIGNAL(sendCursorStatus(double,double,double)));
 	
-		x_axis_->setLegend(DimensionDescription < DimensionDescriptionTagLCMS >::dimension_unit_short[Spectrum2DCanvas::MZ]);
-		y_axis_->setLegend(DimensionDescription < DimensionDescriptionTagLCMS >::dimension_unit_short[Spectrum2DCanvas::RT]);
+		x_axis_->setLegend(DimensionDescription < LCMS_Tag >::dimension_unit_short[Spectrum2DCanvas::MZ]);
+		y_axis_->setLegend(DimensionDescription < LCMS_Tag >::dimension_unit_short[Spectrum2DCanvas::RT]);
 			
 		addClient(canvas(), "Canvas", true);
 	

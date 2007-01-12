@@ -41,8 +41,8 @@ START_TEST(MSExperimentExtern, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 MSExperimentExtern<>* ptr = 0;
 CHECK(MSExperimentExternExtern())

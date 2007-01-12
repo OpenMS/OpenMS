@@ -52,7 +52,7 @@ main()
 
 
   // Now we exemplify the DimensionDescription class template
-  typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
+  typedef DimensionDescription < LCMS_Tag > DimDesc;
   typedef DimDesc::DimensionId DimensionId;  
 
 
@@ -91,7 +91,7 @@ main()
 	}
 
 
-  // Of course, you don't need to prefix "DimensionDescription < DimensionDescriptionTagLCMS >::" all the time
+  // Of course, you don't need to prefix "DimensionDescription < LCMS_Tag >::" all the time
   unsigned int const & MZ = DimDesc::MZ;
   unsigned int const & RT = DimDesc::RT;
 

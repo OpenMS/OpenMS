@@ -389,8 +389,8 @@ public:
     template <class Container>
     void get2DData(Container& cont) const
     {
-       	const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-       	const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+       	const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+       	const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 				SpectrumType spec;
 				
@@ -418,8 +418,8 @@ public:
         /// If the container is emptry, nothing will happen
         if (cont.size() == 0) return;
 
-        const int MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ;
-        const int RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT;
+        const int MZ = DimensionDescription < LCMS_Tag >::MZ;
+        const int RT = DimensionDescription < LCMS_Tag >::RT;
 
         typename PeakType::CoordinateType current_rt = -1.0*std::numeric_limits<typename PeakType::CoordinateType>::max();
 

@@ -64,7 +64,7 @@ namespace OpenMS
 			/** @name Type definitions */
 			//@{
 			/// Dimension description
-			typedef DimensionDescription < DimensionDescriptionTagLCMS > DimensionDescription;
+			typedef DimensionDescription < LCMS_Tag > DimensionDescription;
 			/// Enum that defines MZ and RT dimension index
 			enum DimensionId { MZ = DimensionDescription::MZ, RT = DimensionDescription::RT };
 			//@}

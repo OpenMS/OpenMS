@@ -57,7 +57,7 @@ namespace OpenMS
   class SimplePairFinder : public BasePairFinder< MapT >
   {
     public:
-      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
       enum DimensionId
       {
         RT = DimensionDescriptionType::RT,

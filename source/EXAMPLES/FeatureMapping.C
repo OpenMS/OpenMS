@@ -45,8 +45,8 @@ typedef DFeaturePairVector<2> FeaturePairVector;
 
 enum DimensionId
 		{
-			RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT,
-			MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ
+			RT = DimensionDescription < LCMS_Tag >::RT,
+			MZ = DimensionDescription < LCMS_Tag >::MZ
 		};	
 
 /** @brief An example of how the feature mapping classes can be

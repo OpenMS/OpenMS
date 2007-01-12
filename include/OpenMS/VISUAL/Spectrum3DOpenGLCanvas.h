@@ -73,7 +73,7 @@ namespace OpenMS
 		///
 		typedef std::vector<std::vector<double> > GridVector;
 		///
-		typedef DimensionDescription < DimensionDescriptionTagLCMS > DimDesc;
+		typedef DimensionDescription < LCMS_Tag > DimDesc;
 		///
 		enum DimensionId { MZ = DimDesc::MZ, RT = DimDesc::RT };
 		

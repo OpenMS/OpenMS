@@ -74,8 +74,8 @@ namespace OpenMS
       ///Dimensions of the peak/feature data
       enum DimensionId
       {
-        MZ = DimensionDescription < DimensionDescriptionTagLCMS >::MZ,
-        RT = DimensionDescription < DimensionDescriptionTagLCMS >::RT
+        MZ = DimensionDescription < LCMS_Tag >::MZ,
+        RT = DimensionDescription < LCMS_Tag >::RT
     };
 
       ///View modes for 2D dots.

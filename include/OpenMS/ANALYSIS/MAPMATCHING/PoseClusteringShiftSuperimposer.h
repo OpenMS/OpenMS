@@ -65,7 +65,7 @@ namespace OpenMS
   {
     public:
       /// Defines the coordinates of peaks / elements.
-      typedef DimensionDescription<DimensionDescriptionTagLCMS> DimensionDescriptionType;
+      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
       enum DimensionId
       {
         RT = DimensionDescriptionType::RT,
