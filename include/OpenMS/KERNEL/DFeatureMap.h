@@ -48,7 +48,7 @@ namespace OpenMS
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
 				
-		@todo post-release: derive Dimension D from FeatureT and thus eliminate 1st template argument (Ole)
+		@todo post-release: derive Dimension D from FeatureT and thus eliminate 1st template argument (Marcel)
 
 		@ingroup Kernel, Serialization
 	*/
