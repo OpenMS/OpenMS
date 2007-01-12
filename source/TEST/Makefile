@@ -294,6 +294,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DFeaturePairVector_test\
 	DGridCell_test\
 	DGrid_test\
+	DBaseMapping_test\
 	DLinearMapping_test\
 	PairMatcher_test\
 	DMapMatcherRegression_test\

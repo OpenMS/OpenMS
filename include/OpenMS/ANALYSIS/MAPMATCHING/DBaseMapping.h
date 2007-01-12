@@ -29,7 +29,6 @@
 
 #include <OpenMS/KERNEL/KernelTraits.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/FORMAT/Param.h>
@@ -38,7 +37,7 @@ namespace OpenMS
 {
 	/**
 		 @brief This base class represents an coordinate transformation
-		 that can be applied to a feature. 
+		 that can be applied to a DPosition. 
 	  
 	*/
 	template <UnsignedInt D, typename Traits = KernelTraits>		
@@ -58,7 +57,7 @@ namespace OpenMS
 			setParam(source.param_);
 		}
 			
-		/// assignment operator
+		/// Assignment operator
 		DBaseMapping& operator = (const DBaseMapping& rhs)
 		{
 			if (this==&rhs) return *this;
@@ -67,42 +66,35 @@ namespace OpenMS
 			return *this;
 		}		
 		
-		/// equality operator
+		/// Equality operator
 		bool operator == (const DBaseMapping& rhs)
 		{
 			return (param_ == rhs.param_);
 		}	
 		
-		/// inequality operator
+		/// Inequality operator
 		bool operator != (const DBaseMapping& rhs)
 		{
 			return !(param_ == rhs.param_);
 		}	
 		
-		/**	Accessors
-		 */
-		//@{
-		/// set parameters
+		/// Set parameters
 		virtual void setParam(const Param& p) { param_ = p; } 
-		/// get parameters
+		/// Get parameters
 		virtual const Param& getParam() const { return param_; }
-		//@}
 						
-		/// apply the transform to a feature
+		/// Apply the transform to a feature
 		virtual void apply(DPosition<D>& ) const = 0;
 
-		/// apply the transformation
+		/// Apply the transformation
 		virtual void apply( typename Traits::RealType & pos) const = 0;
-		
 	
-		/// return the name of this transformation
+		/// Return the name of this transformation
 		virtual const String getName() = 0;
 					
 	 protected:		
 		/// Parameters defining the transformation
-		Param param_;
-			
-				
+		Param param_;				
 	}; // end of DBaseMapping
 	
 	///Print the contents to a stream.

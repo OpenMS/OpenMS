@@ -370,8 +370,8 @@ CHECK(reference back() const)
 	Peak peak;
 	peak = pl.back();
   
-  TEST_REAL_EQUAL(pl.back().getIntensity(), 1.1)
-  TEST_REAL_EQUAL(pl.back().getPosition()[0], 1.1)
+  TEST_REAL_EQUAL(peak.getIntensity(), 1.1)
+  TEST_REAL_EQUAL(peak.getPosition()[0], 1.1)
 RESULT
 
 CHECK(void pop_back())
