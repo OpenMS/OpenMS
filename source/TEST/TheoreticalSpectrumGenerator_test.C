@@ -54,7 +54,7 @@ CHECK(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
 	// TODO
 RESULT
 
-CHECK(virtual ~TheoreticalSpectrumGenerator())
+CHECK(~TheoreticalSpectrumGenerator())
 	delete ptr;
 RESULT
 

@@ -49,7 +49,7 @@ CHECK(ZhangSimilarityScore())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~ZhangSimilarityScore())
+CHECK(~ZhangSimilarityScore())
 	delete ptr;
 RESULT
 

@@ -39,9 +39,9 @@
 namespace OpenMS 
 {
 	/** 
-	  @brief State for the light weighted Hidden Markov Model implementation
+    @brief State for the light weighted Hidden Markov Model implementation
 
-		The lieghweighted Hidden Markov Model implementation has no Strings for
+		The lightweighted Hidden Markov Model implementation has no Strings for
 		identifications. Instead of Strings unsigned ints are used for identification
 		which can be combined with enums.
 	*/
@@ -109,18 +109,18 @@ namespace OpenMS
 			std::set<HMMStateLight*> succ_states_;
 	};
 
+	/**
+	  @brief Hidden Markov Model without Strings which is faster
+		
+		The light weighted Hidden Markov Model does not make use of Strings. 
+		Instead unsigned ints are used which is much faster. 
+
+		Most of the implemented algorithms can only deal with forward connected
+		HMMs. The HMM implementation also includes an mechanim for alias states 
+		and transitions.
+	*/
 	class HiddenMarkovModelLight
 	{
-		/**
-		  @brief Hidden Markov Model without Strings which is faster
-			
-			The light weighted Hidden Markov Model does not make use of Strings. 
-			Instead unsigned ints are used which is much faster. 
-
-			Most of the implemented algorithms can only deal with forward connected
-			HMMs. The HMM implementation also includes an mechanim for alias states 
-			and transitions.
-		*/
 		public:
 			
 			/** 

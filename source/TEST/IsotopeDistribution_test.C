@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Clemens Groepl, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
@@ -75,7 +75,7 @@ RESULT
 
 IsotopeDistribution* iso = new IsotopeDistribution();
 
-CHECK(setMaxIsotope(Size max_isotope))
+CHECK(void setMaxIsotope(Size max_isotope))
 	iso->setMaxIsotope(117);
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 RESULT

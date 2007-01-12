@@ -53,7 +53,7 @@ CHECK(PILISIdentification())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~PILISIdentification())
+CHECK(~PILISIdentification())
 	delete ptr;
 RESULT
 

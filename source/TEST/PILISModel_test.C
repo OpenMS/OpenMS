@@ -51,7 +51,7 @@ CHECK(PILISModel())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~PILISModel())
+CHECK(~PILISModel())
 	delete ptr;
 RESULT
 

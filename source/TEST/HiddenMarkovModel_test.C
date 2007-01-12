@@ -98,24 +98,24 @@ CHECK(const std::set<HMMState*>& getSuccessorStates() const)
 	TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0)
 RESULT
 
-CHECK(const addPredecessorState(HMMState* state))
+CHECK(void addPredecessorState(HMMState* state))
 	state_ptr->addPredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 1);
 	TEST_EQUAL(*state_ptr->getPredecessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(const deletePredecessorState(HMMState* state))
+CHECK(void deletePredecessorState(HMMState* state))
 	state_ptr->deletePredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 0);
 RESULT
 
-CHECK(const addSuccessorState(HMMState* state))
+CHECK(void addSuccessorState(HMMState* state))
   state_ptr->addSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 1);
   TEST_EQUAL(*state_ptr->getSuccessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(const deleteSuccessorState(HMMState* state))
+CHECK(void deleteSuccessorState(HMMState* state))
   state_ptr->deleteSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0);
 RESULT
@@ -127,13 +127,13 @@ CHECK(HiddenMarkovModel())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~HiddenMarkovModel())
+CHECK(~HiddenMarkovModel())
 	delete ptr;
 RESULT
 
 ptr = new HiddenMarkovModel();
 
-CHECK(const getNumberOfStates() const)
+CHECK(Size getNumberOfStates() const)
 	TEST_EQUAL(ptr->getNumberOfStates(), 0)
 RESULT
 

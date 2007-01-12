@@ -90,32 +90,32 @@ CHECK(void setHidden(bool hidden))
 	TEST_EQUAL(state_ptr->isHidden(), true)
 RESULT
 
-CHECK(const std::set<HMMStateLight*>& getPredecessorStates() const)
+CHECK(void std::set<HMMStateLight*>& getPredecessorStates() const)
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 0)
 RESULT
 
-CHECK(const std::set<HMMStateLight*>& getSuccessorStates() const)
+CHECK(void std::set<HMMStateLight*>& getSuccessorStates() const)
 	TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0)
 RESULT
 
-CHECK(const addPredecessorState(HMMStateLight* state))
+CHECK(void addPredecessorState(HMMStateLight* state))
 	state_ptr->addPredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 1);
 	TEST_EQUAL(*state_ptr->getPredecessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(const deletePredecessorState(HMMStateLight* state))
+CHECK(void deletePredecessorState(HMMStateLight* state))
 	state_ptr->deletePredecessorState(state_ptr2);
 	TEST_EQUAL(state_ptr->getPredecessorStates().size(), 0);
 RESULT
 
-CHECK(const addSuccessorState(HMMStateLight* state))
+CHECK(void addSuccessorState(HMMStateLight* state))
   state_ptr->addSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 1);
   TEST_EQUAL(*state_ptr->getSuccessorStates().begin(), state_ptr2);
 RESULT
 
-CHECK(const deleteSuccessorState(HMMStateLight* state))
+CHECK(void deleteSuccessorState(HMMStateLight* state))
   state_ptr->deleteSuccessorState(state_ptr2);
   TEST_EQUAL(state_ptr->getSuccessorStates().size(), 0);
 RESULT
@@ -127,13 +127,13 @@ CHECK(HiddenMarkovModelLight())
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~HiddenMarkovModelLight())
+CHECK(~HiddenMarkovModelLight())
   delete ptr;
 RESULT
 
 ptr = new HiddenMarkovModelLight();
 
-CHECK(const getNumberOfStates() const)
+CHECK(Size getNumberOfStates() const)
   TEST_EQUAL(ptr->getNumberOfStates(), 0)
 RESULT
 

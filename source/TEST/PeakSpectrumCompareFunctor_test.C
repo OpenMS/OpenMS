@@ -48,7 +48,7 @@ CHECK(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
   // nothing to check
 RESULT
 
-CHECK(virtual ~PeakSpectrumCompareFunctor())
+CHECK(~PeakSpectrumCompareFunctor())
   // nothing to check
 RESULT
 

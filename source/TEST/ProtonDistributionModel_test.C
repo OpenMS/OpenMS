@@ -50,7 +50,7 @@ CHECK(ProtonDistributionModel())
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(virtual ~ProtonDistributionModel())
+CHECK(~ProtonDistributionModel())
 	delete ptr;
 RESULT
 
