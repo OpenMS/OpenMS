@@ -73,10 +73,6 @@ namespace OpenMS
           MZ = DimensionDescription < LCMS_Tag >::MZ
       };
 
-        /**
-        @name Type definitions
-        */
-        //@{
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
         typedef typename AlignmentT::ElementType ElementType;
         typedef typename AlignmentT::ConsensusMapType ConsensusMapType;
@@ -88,10 +84,7 @@ namespace OpenMS
         typedef typename GridCellType::MappingVector MappingVector;
         typedef DPosition<2,TraitsType> PositionType;
 
-        /**@name Constructors and destructor */
-        //@{
-        ///
-
+      /// Constructor
         ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(&consensus_map),
@@ -104,7 +97,7 @@ namespace OpenMS
           setMaps_(TAGMAP, ATTMAP);
         }
 
-        ///
+        /// Copy constructor
         ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
             : SchemaHandler(TAG_NUM,MAP_NUM,filename),
             consensus_map_(0),
@@ -117,10 +110,9 @@ namespace OpenMS
           setMaps_(TAGMAP, ATTMAP);
         }
 
-        ///
+        /// Destructor
         virtual ~ConsensusXMLHandler()
         { }
-        //@}
 
         // Docu in base class
         virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
@@ -157,7 +149,8 @@ namespace OpenMS
         */
         enum Tags { TAGNULL, CONSENSUSXML, MAPLIST, MAPTYPE, MAP, ALIGNMENT, ALIGNMENTMETHOD,
                     MATCHINGALGORITHM, CONSENSUSALGORITHM, ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION,
-                    CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT, TAG_NUM};
+                    CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT,
+                    MAPPINGLIST, RTMAPPING, MZMAPPING, PARAM, TAG_NUM};
 
         /** @brief indices for attributes used by StarAlignment
 
@@ -290,6 +283,14 @@ namespace OpenMS
           case CONSENSUSELEMENTLIST:
           break;
           case GROUPEDELEMENTLIST:
+          break;
+          case MAPPINGLIST:
+          break;
+          case RTMAPPING:
+          break;
+          case MZMAPPING:
+          break;
+          case PARAM:
           break;
           case MAPLIST:
           tmp_str = getAttributeAsString(COUNT);
@@ -466,8 +467,8 @@ namespace OpenMS
       os << "\t</mapList>\n";
 
       os << "\t<alignmentMethod name=\"StarAlignmemt\">\n";
-      os << "\t\t<matching_algorithm name=\"" << calignment_->getParam().getValue("matching_algorithm") << "\"/>\n";
-      os << "\t\t<consensus_algorithm name=\"" << calignment_->getParam().getValue("consensus_algorithm") << "\"/>\n";
+      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParam().getValue("matching_algorithm") << "\"/>\n";
+      os << "\t\t<consensusAlgorithm name=\"" << calignment_->getParam().getValue("consensus_algorithm") << "\"/>\n";
       os << "\t</alignmentMethod>\n";
 
       UnsignedInt ref_index = calignment_->getReferenceMapIndex();
@@ -540,4 +541,4 @@ namespace OpenMS
   } // namespace Internal
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_CONSENSUSXMLHANDLER_H

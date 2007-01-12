@@ -6,8 +6,8 @@
 		<map id="1" name ="MapAlignmentPeakMap2.mzData" count="144 "/>
 	</mapList>
 	<alignmentMethod name="StarAlignmemt">
-		<matching_algorithm name="poseclustering_pairwise"/>
-		<consensus_algorithm name="delaunay"/>
+		<matchingAlgorithm name="poseclustering_pairwise"/>
+		<consensusAlgorithm name="delaunay"/>
 	</alignmentMethod>
 	<alignmentNewickTree> ((0:0,1:2):0)</alignmentNewickTree>
 	<transformationList>

@@ -6,8 +6,8 @@
 		<map id="1" name ="MapAlignmentConsensusMap1.xml" count="158 "/>
 	</mapList>
 	<alignmentMethod name="StarAlignmemt">
-		<matching_algorithm name="poseclustering_pairwise"/>
-		<consensus_algorithm name="delaunay"/>
+		<matchingAlgorithm name="poseclustering_pairwise"/>
+		<consensusAlgorithm name="delaunay"/>
 	</alignmentMethod>
 	<alignmentNewickTree> ((0:0,1:2):0)</alignmentNewickTree>
 	<transformationList>

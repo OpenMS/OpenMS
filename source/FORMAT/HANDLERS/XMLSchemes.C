@@ -299,7 +299,7 @@ namespace OpenMS
 					";consensusXML;mapList;mapType;map;alignment;alignmentMethod;"
 					"matchingAlgorithm;consensusAlgorithm;alignmentNewickTree;transformationList;"
 					"transformation;cell;range;parameters;consensusElementList;consensusElement;"
-					"centroid;groupedElementList;element",
+					"centroid;groupedElementList;element;mappinglist;rtMapping;mzMapping;param",
 					
 					// Attributes
 					";count;name;id;rt;mz;it;rtMin;rtMax;mzMin;mzMax;itMin;itMax;map"
