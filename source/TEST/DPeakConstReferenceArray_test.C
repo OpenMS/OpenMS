@@ -119,7 +119,6 @@ CHECK( empty() const)
   TEST_EQUAL(pl.empty(), false)
 RESULT
 
-
 CHECK([EXTRA] ConstIterator begin() const)
   const DPeakConstReferenceArray<PeakArrayType>& c_pl(pl);
   TEST_EQUAL(c_pl.size(), 3)
@@ -169,6 +168,7 @@ CHECK(void sortByIntensity())
   TEST_REAL_EQUAL(v[0].getIntensity(), peak3.getIntensity())
   TEST_REAL_EQUAL(v[0].getPosition()[0], peak3.getPosition()[0])
 RESULT
+
 
 DPeakConstReferenceArray<PeakArray2DType> pl2;
 
@@ -317,15 +317,17 @@ CHECK(size_type capacity() const)
   TEST_EQUAL(pl.size(), 3)
 RESULT
 
+Peak peak7;
+peak7.getPosition()[0] = 1.1;
+peak7.getIntensity() = 1.1;
+
 CHECK(void reserve(size_type))
   pl.reserve(4);
   TEST_EQUAL(pl.size(), 3)
   TEST_EQUAL(pl.capacity(), 4)
 
-  Peak peak7;
-  peak7.getPosition()[0] = 1.1;
-  peak7.getIntensity() = 1.1;
   pl.push_back(peak7);
+  
   TEST_EQUAL(pl.size(), 4)
   TEST_EQUAL(pl.capacity(), 4)
 RESULT
@@ -338,12 +340,10 @@ CHECK(DPeakConstReferenceArray<PeakArrayType>& operator[] const)
   TEST_REAL_EQUAL(pl[3].getPosition()[0], 1.1)
 RESULT
 
-
 CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n))
-  DPeakArray<1> pl2(2);
+  DPeakConstReferenceArray<PeakArrayType> pl2(2);
+  
   TEST_REAL_EQUAL(pl2.size(), 2)
-  TEST_REAL_EQUAL(pl2[0].getIntensity(), 0)
-  TEST_REAL_EQUAL(pl2[1].getIntensity(), 0)
 RESULT
 
 CHECK(DPeakConstReferenceArray<PeakArrayType>(size_type n, const PeakType& peak))
@@ -360,16 +360,15 @@ RESULT
 CHECK(reference front() const)
   Peak peak;
   peak = pl.front();
-  
+ 
   TEST_REAL_EQUAL(peak.getIntensity(), 1.0)
-  TEST_REAL_EQUAL(peak.getPosition()[0], 2)
-  
+  TEST_REAL_EQUAL(peak.getPosition()[0], 2) 
 RESULT
 
 CHECK(reference back() const)
-	Peak peak;
+ 	Peak peak;
 	peak = pl.back();
-  
+    
   TEST_REAL_EQUAL(peak.getIntensity(), 1.1)
   TEST_REAL_EQUAL(peak.getPosition()[0], 1.1)
 RESULT
@@ -383,18 +382,19 @@ CHECK(void pop_back())
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
+Peak peak8;
+peak8.getPosition()[0] = 2.0;
+peak8.getIntensity() = 1.0;
+
+Peak peak9;
+peak9.getPosition()[0] = 0.0;
+peak9.getIntensity() = 2.5;
+
 CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
   DPeakConstReferenceArray<PeakArrayType> pl2;
   
-  Peak peak1;
-  peak1.getPosition()[0] = 2.0;
-  peak1.getIntensity() = 1.0;
-  pl2.push_back(peak1);
-  
-  Peak peak2;
-  peak2.getPosition()[0] = 0.0;
-	peak2.getIntensity() = 2.5;
-  pl2.push_back(peak2);
+  pl2.push_back(peak8);
+  pl2.push_back(peak9);
 
   TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.0)
   TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.5) 
@@ -422,11 +422,12 @@ CHECK(void swap(DPeakConstReferenceArray<PeakArrayType>))
   TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.5)
 RESULT
 
+Peak peak10;
+peak10.getIntensity() = 4712.0;
 CHECK(iterator insert(iterator pos, const Peak&))
- 	Peak peak1;
-  peak1.getIntensity() = 4712.0;
   TEST_REAL_EQUAL(pl.size(), 3)
-  pl.insert(pl.end(),peak1);
+  pl.insert(pl.end(),peak10);
+  
   TEST_REAL_EQUAL(pl.size(), 4)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 1.0)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.5)
@@ -437,6 +438,7 @@ RESULT
 CHECK(iterator erase(iterator pos))
   TEST_REAL_EQUAL(pl.size(), 4)
   pl.erase(pl.end()-1);
+   
   TEST_REAL_EQUAL(pl.size(), 3)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 1.0)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.5)
@@ -444,10 +446,10 @@ CHECK(iterator erase(iterator pos))
 RESULT
 
 CHECK(iterator insert(iterator pos, size_type n, const Peak&))
-  Peak peak1;
-  peak1.getIntensity() = 4714.0;
+  peak10.getIntensity() = 4714.0;
   TEST_REAL_EQUAL(pl.size(), 3)
-  pl.insert(pl.begin(),3,peak1);
+  pl.insert(pl.begin(),3,peak10);
+  
   TEST_REAL_EQUAL(pl.size(), 6)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 4714.0)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 4714.0)
@@ -460,6 +462,7 @@ RESULT
 CHECK(iterator erase(iterator pos))
   TEST_REAL_EQUAL(pl.size(), 6)
   pl.erase(pl.begin(),pl.begin()+3);
+  
   TEST_REAL_EQUAL(pl.size(), 3)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 1.0)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.5)
@@ -469,6 +472,7 @@ RESULT
 CHECK(iterator insert(iterator pos, InputIterator f, InputIterator l))
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.begin(),pl.begin()+1,pl.end());
+   
   TEST_REAL_EQUAL(pl.size(), 5)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 0.5)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.01)
@@ -534,6 +538,7 @@ CHECK(resize() (shrink))
   TEST_REAL_EQUAL(pl[0].getIntensity(), 0.5)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.01)
   pl.resize(2);
+  
   TEST_REAL_EQUAL(pl.size(), 2)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 0.5)
   TEST_REAL_EQUAL(pl[1].getIntensity(), 0.01)
@@ -542,23 +547,25 @@ RESULT
 CHECK(clear() )
   TEST_REAL_EQUAL(pl.size(), 2)
   pl.clear();
+  
   TEST_REAL_EQUAL(pl.size(), 0)
 RESULT
 
 CHECK(resize() (expand))
   TEST_REAL_EQUAL(pl.size(), 0)
   pl.resize(2);
+ 
   TEST_REAL_EQUAL(pl.size(), 2)
 RESULT
 
-CHECK(resize() (expand))
+Peak peak11;
+peak11.getIntensity()=4713.0; 
+CHECK(resize() (expand)) 
   TEST_REAL_EQUAL(pl.size(), 2)
-  Peak peak;
-  peak.getIntensity()=4713.0;
-  pl.resize(4,peak);
+  
+  pl.resize(4,peak11);
+    
   TEST_EQUAL(pl.size(), 4)
-  TEST_REAL_EQUAL(pl[0].getIntensity(), 0.0)
-  TEST_REAL_EQUAL(pl[1].getIntensity(), 0.0)
   TEST_REAL_EQUAL(pl[2].getIntensity(), 4713.0)
   TEST_REAL_EQUAL(pl[3].getIntensity(), 4713.0)
 RESULT
@@ -622,6 +629,4 @@ RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

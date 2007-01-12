@@ -297,6 +297,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DBaseMapping_test\
 	DLinearMapping_test\
 	PairMatcher_test\
+	DBaseMapMatcher_test\
 	DMapMatcherRegression_test\
 	DMapDewarper_test\
 	BasePairFinder_test\

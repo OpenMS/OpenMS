@@ -30,9 +30,7 @@
 
 #include <OpenMS/KERNEL/DFeature.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePairVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DGrid.h>
 
@@ -63,21 +61,16 @@ namespace OpenMS
         RT = DimensionDescription < LCMS_Tag >::RT,
         MZ = DimensionDescription < LCMS_Tag >::MZ
     };
-
-      /** @name Type definitions
-      */
-      //@{
-      ///
+      /// Element type
       typedef ElementT ElementType;
-      ///
+      /// Traits type
       typedef typename ElementType::TraitsType TraitsType;
       /// The grid is simply a vector of cells.
       typedef DGrid<2> Grid;
       /// The feature pairs are computed by the feature matching class
       typedef DFeaturePairVector< 2, ElementType > FeaturePairVector;
-      ///
+      /// Quality type
       typedef typename TraitsType::QualityType QualityType;
-      //@}
 
       /// Constructor
       DBaseMapMatcher() : min_quality_(-1)
@@ -103,7 +96,7 @@ namespace OpenMS
         return *this;
       }
 
-      /// equality operator
+      /// Equality operator
       bool operator == (const DBaseMapMatcher& rhs)
       {
         return (grid_          == rhs.grid_ &&
@@ -115,9 +108,6 @@ namespace OpenMS
       virtual ~DBaseMapMatcher()
       {}
 
-      /** @name Accesssor methods
-      */
-      //@{
       /// Set grid
       void setGrid(const Grid& g)
       {
@@ -133,6 +123,7 @@ namespace OpenMS
       {
         return grid_;
       }
+      
       /// Set feature pair list
       void setFeaturePairs(const FeaturePairVector& plist)
       {
@@ -148,6 +139,7 @@ namespace OpenMS
       {
         return feature_pairs_;
       }
+      
       /// Set quality
       void setMinQuality(const QualityType& qu)
       {
@@ -163,9 +155,8 @@ namespace OpenMS
       {
         return min_quality_;
       }
-      //@}
 
-      /// estimates the transformation for each grid cell
+      /// Estimates the transformation for each grid cell
       virtual void estimateTransform() = 0;
 
     protected:

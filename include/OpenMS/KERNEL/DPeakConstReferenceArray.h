@@ -213,10 +213,10 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-//      reference operator [] (difference_type n)
-//      {
-//        return *((*this)+n);
-//      }
+      //      reference operator [] (difference_type n)
+      //      {
+      //        return *((*this)+n);
+      //      }
 
     protected:
 
@@ -267,10 +267,10 @@ namespace OpenMS
         return (*vector_)[position_];
       }
 
-//      typename DPeakConstReferenceArrayIterator::reference operator [] (typename DPeakConstReferenceArrayIterator::difference_type n)
-//      {
-//        return *((*this)+n);
-//      }
+      //      typename DPeakConstReferenceArrayIterator::reference operator [] (typename DPeakConstReferenceArrayIterator::difference_type n)
+      //      {
+      //        return *((*this)+n);
+      //      }
 
       DPeakConstReferenceArrayIterator& operator ++ ()
       {
@@ -348,7 +348,7 @@ namespace OpenMS
     //@{
     typedef MapT BaseMapType;
     typedef typename BaseMapType::value_type PeakType;
-		enum { DIMENSION=PeakType::DIMENSION };
+    enum { DIMENSION=PeakType::DIMENSION };
     typedef typename PeakType::TraitsType TraitsType;
     typedef DPeakConstReferenceArrayIterator<const PeakType> Iterator;
     typedef DPeakConstReferenceArrayConstIterator<const PeakType> ConstIterator;
@@ -396,12 +396,12 @@ namespace OpenMS
     void reserve(size_type n)
     {
       size_type cap = capacity();
-      
+
       if (n>cap)
       {
         vector_.reserve(n);
         capacity_ = n;
-       }
+      }
     }
 
     /// See std::vector documentation.
@@ -458,14 +458,21 @@ namespace OpenMS
       return ConstReverseIterator(begin());
     }
 
-    /// See std::vector documentation.
-    void resize(size_type new_size, const PeakType& t=PeakType())
+     /// See std::vector documentation.
+    void resize(size_type new_size)
     {
-      vector_.resize(new_size,&t);
+      vector_.resize(new_size);
+      capacity_ = vector_.capacity();
+    }    
+    
+    /// See std::vector documentation.
+    void resize(size_type new_size, const PeakType& t)
+    {
+      vector_.resize(new_size,&t); 
       capacity_ = vector_.capacity();
     }
-
-   	/// See std::vector documentation.
+    
+    /// See std::vector documentation.
     const_reference front() const
     {
       return *(begin());
@@ -490,10 +497,10 @@ namespace OpenMS
     }
 
     /// See std::vector documentation.
-//     reference operator [](size_type n)
-//     {
-//       return *(vector_[n]);
-//     }
+    //     reference operator [](size_type n)
+    //     {
+    //       return *(vector_[n]);
+    //     }
 
     /// See std::vector documentation.
     const_reference operator [](size_type n) const
@@ -830,9 +837,9 @@ namespace OpenMS
   {
     os << "-- DFEATUREARRAY BEGIN --"<<std::endl;
     for (typename DPeakConstReferenceArray<MapT>::const_iterator it = array.begin();
-				 it!=array.end();
-				 ++it
-				)
+         it!=array.end();
+         ++it
+        )
     {
       os << *it << std::endl;
     }
@@ -846,7 +853,7 @@ namespace OpenMS
 
   template <typename MapT>
   void DPeakConstReferenceArray<MapT>::sortByNthPosition(UnsignedInt i)
-		throw (Exception::NotImplemented)
+  throw (Exception::NotImplemented)
   {
     OPENMS_PRECONDITION(i < Index(PeakType::DIMENSION), "illegal dimension")
     if (i==0)
