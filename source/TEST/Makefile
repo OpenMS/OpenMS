@@ -206,6 +206,7 @@ EXECUTABLES_FILTERING = \
 	LinearResampler_test\
 	TopHatFilter_test\
 	MorphFilter_test\
+	DSignalToNoiseEstimator_test\
 	DSignalToNoiseEstimatorWindowing_test\
 	DSignalToNoiseEstimatorMedian_test\
 	DSignalToNoiseEstimatorMeanIterative_test\
@@ -243,8 +244,6 @@ EXECUTABLES_FILTERING = \
 	KellerQuality_test\
 	SavitzkyGolayQRFilter_test\
 	SavitzkyGolaySVDFilter_test\
-
-#	DSignalToNoiseEstimator_test\
 
 
 #COMPARISON
