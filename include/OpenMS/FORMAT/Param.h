@@ -53,8 +53,6 @@ namespace OpenMS
  	
 		 @note In the XML representation only the types 'int', 'string' ,'float' and 'double' are available.
 	
-		 @todo Produce better error messages and test inheritence (Clemens)
-
 		 @ingroup FileIO
 	*/
 	class Param
