@@ -57,7 +57,7 @@
 		- FloatKernel statt DoubleKernel?
 	- Release
 		- TOPPBase entfernen	
-		- Cluster-Klassen entfernen
+		- Cluster-Klassen entfernen (Andreas)
 		- Valgrind
 		- Test alle mit SVN-ID austatten
 		- HP updaten
@@ -75,7 +75,7 @@
 	- MSExperiment
 	  - AreaIterator mit min/max int als Filter, MS-level als Filter
 	- TOPP DBImporter/DBExporter
-		- credentials file for test
+		- credentials file für Tests
 		- neue DB erstellen in TOPP tools
 		- SVN-ID in DB und checken ob aktuell
 	- Debug streams (status, debug, error, warning)

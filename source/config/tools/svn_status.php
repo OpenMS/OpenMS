@@ -25,13 +25,27 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
-# This script calls svn status and rearranges the output to make it human readable
-#
-# Call the following command in the root directory of an OpenMS SVN working copy:
-# > php -qC source/config/tools/svn_status.php
-
 	error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+	#no parameters
+	if (in_array("--help",$argv))
+	{
+		print "This script calls 'svn status' and sorts the ouptut.\n";
+		print "Additionally it hides OpenMS-specific files that are not under version control.\n";
+		print "\n";
+		print "Call the following command in the root directory of an OpenMS SVN working copy:\n";
+		print "> php -qC source/config/tools/svn_status.php\n";
+		print "\n";
+		print "I recommend the following alias for an SVN update:\n";
+		print "svnup()\n";
+		print "{\n";
+		print "  cd <OpenMS>;\n";
+		print "  svn update;\n";
+		print "  php -qC <OpenMS>/source/config/tools/svn_status.php;\n";
+		print "}\n";
+		print "\n";
+		exit;
+	}
 
 	//different types of files
 	$patched = array();
