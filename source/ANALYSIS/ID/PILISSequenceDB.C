@@ -62,17 +62,38 @@ namespace OpenMS
     	String s = String(line).trim();
     	vector<String> split;
     	s.split(' ', split);
-			String peptide = split[0];
-			if (replace_X_and_L_)
+			if (split.size() == 3)
 			{
-				replace(peptide.begin(), peptide.end(), 'X', 'I');
-				replace(peptide.begin(), peptide.end(), 'L', 'I');
+				String peptide = split[0];
+				if (replace_X_and_L_)
+				{
+					replace(peptide.begin(), peptide.end(), 'X', 'I');
+					replace(peptide.begin(), peptide.end(), 'L', 'I');
+				}
+ 		   	PepStruct new_peptide;
+ 	 	  	new_peptide.peptide = peptide;
+   	 		new_peptide.weight = split[1].toFloat();
+    		new_peptide.charge = split[2].toInt();
+    		peptides_[(Size)(new_peptide.weight * factor_)].push_back(new_peptide);
 			}
-    	PepStruct new_peptide;
-    	new_peptide.peptide = peptide;
-    	new_peptide.weight = split[1].toFloat();
-    	new_peptide.charge = split[2].toInt();
-    	peptides_[(Size)(new_peptide.weight * factor_)].push_back(new_peptide);
+
+			if (split.size() == 0)
+			{
+				// contains only peptide
+				String peptide(s);
+				PepStruct new_peptide;
+
+				// add peptide with charge 1
+				new_peptide.peptide = peptide;
+				new_peptide.weight = AASequence(peptide).getAverageWeight(Residue::Full, 1);
+				new_peptide.charge = 1;
+				peptides_[(Size)(new_peptide.weight * factor_)].push_back(new_peptide);
+
+				// add peptide with charge 2
+				new_peptide.weight = (new_peptide.weight + 1.0)/2.0;
+				new_peptide.charge = 2;
+				peptides_[(Size)(new_peptide.weight * factor_)].push_back(new_peptide);
+			}
   	}
 		return;
 	}

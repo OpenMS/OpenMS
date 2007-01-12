@@ -59,7 +59,6 @@ GUI_CPP_SOURCES=\
 	PeakPickingDialog.C\
 	SmoothingDialog.C\
 	BaselineFilteringDialog.C\
-	SortDialog.C\
 	FeaFiDialog.C
 
 
@@ -90,7 +89,6 @@ GUI_MOC_SOURCES=\
 	SmoothingDialog_moc.C\
 	BaselineFilteringDialogTemplate_moc.C\
 	BaselineFilteringDialog_moc.C\
-	SortDialog_moc.C\
 	FeaFiDialogTemplate_moc.C\
 	FeaFiDialog_moc.C\
 	TOPPViewBasePDP_moc.C
@@ -180,9 +178,6 @@ DBDialog_moc.C:  $(HEADER_DIR)/DBDialog.h
 
 InspectDialog_moc.C:  $(HEADER_DIR)/InspectDialog.h
 	$(MOC) $(HEADER_DIR)/InspectDialog.h -o InspectDialog_moc.C
-
-SortDialog_moc.C:  $(HEADER_DIR)/SortDialog.h
-	$(MOC) $(HEADER_DIR)/SortDialog.h -o SortDialog_moc.C
 
 SaveImageDialog_moc.C:  $(HEADER_DIR)/SaveImageDialog.h
 	$(MOC) $(HEADER_DIR)/SaveImageDialog.h -o SaveImageDialog_moc.C

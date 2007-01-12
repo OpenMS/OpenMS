@@ -251,11 +251,7 @@ EXECUTABLES_FILTERING = \
 EXECUTABLES_COMPARISON=\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
-	ClNode_test\
-	Cluster_test\
 	ClusterSpectrum_test\
-	ClusterFunctor_test\
-	AnalysisFunctor_test\
 	BinnedRepCompareFunctor_test\
 	BinnedRepMutualInformation_test\
 	BinnedRepSpectrumContrastAngle_test\

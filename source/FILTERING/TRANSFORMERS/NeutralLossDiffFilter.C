@@ -61,32 +61,4 @@ namespace OpenMS
   NeutralLossDiffFilter::~NeutralLossDiffFilter()
   {
   }
-/*
-  vector<double> NeutralLossDiffFilter::operator() (const ClusterSpectrum& cspec)
-  {
-    double tolerance = (double)param_.getValue("tolerance");
-    double isodiff = 0;
-    //iterate over all peaks
-    for (int i = 0; i < (int)cspec.getSpec().size(); ++i)
-    {
-      for (int j = 1; i-j >= 0; ++j)
-      {
-        if ( fabs( cspec.getSpec().getContainer()[i-j].getPosition()[0] - 
-	cspec.getSpec().getContainer()[i].getPosition()[0] - 18 ) < tolerance || // water 
-	fabs( cspec.getSpec().getContainer()[i-j].getPosition()[0] - 
-	cspec.getSpec().getContainer()[i].getPosition()[0] - 17 ) < tolerance ) //ammoniom
-        {
-          isodiff += cspec.getSpec().getContainer()[i-j].getIntensity()+
-	  cspec.getSpec().getContainer()[i].getIntensity();
-        }
-        else if ( fabs( cspec.getSpec().getContainer()[i-j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0]  ) > 18 + tolerance )
-        {
-          break;
-        }
-      }
-    }
-    vector<double> result;
-    result.push_back(isodiff);
-    return result;
-  }*/
 }

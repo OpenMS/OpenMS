@@ -60,38 +60,4 @@ namespace OpenMS
   ComplementFilter::~ComplementFilter()
   {
   }
-
-/*
-  vector<double> ComplementFilter::operator() (const ClusterSpectrum& cspec)
-  {
-    double tolerance = (double)param_.getValue("tolerance");
-    double parentmass = cspec.getParentMass();
-    double result = 0;
-    uint j = cspec.getSpec().size() - 1;
-    for (uint i = 0; i < cspec.getSpec().size() && i <= j; ++i)
-    {
-      double sum = cspec.getSpec().getContainer()[i].getPosition()[0] + cspec.getSpec().getContainer()[j].getPosition()[0];
-      if (fabs( sum-parentmass ) < tolerance )
-      {
-        result += cspec.getSpec().getContainer()[i].getIntensity() + cspec.getSpec().getContainer()[j].getIntensity();
-      }
-      else if ( sum < parentmass )
-      {
-        ++i;
-      }
-      else if ( sum > parentmass )
-      {
-        --j;
-      }
-      else 
-      {
-				// @todo another Exception?!?  Which one? ????
-        //throw CanNotHappen(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-      }
-    }
-    vector<double> res;
-    res.push_back(result);
-    return res;
-  }
-	*/
 }

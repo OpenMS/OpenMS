@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  $
+# $Maintainer: Andreas Bertsch $
 # --------------------------------------------------------------------------
 
 
@@ -31,32 +31,18 @@ THISLIB=$(LIBNAME)
 
 include ../../config_defs.mak
 
-
-#conditional compiles
-ifeq ($(ENABLE_GUI),true)
-  DB_SOURCES=\
-  	ClusterIdentificator.C\
-		Cluster.C\
- 		BinnedRep.C \
-  	ClusterExperiment.C\
-  	ClusterRun.C\
-  	Analysis.C\
-  	ClusterRunAnalysisLess.C\
-		AnalysisFunctor.C\
-  	ClusterSpectrum.C\
-		ClusterCompareFunctor.C\
-  	ClusterFunctor.C\
-  	LinkageCluster.C\
-  	DistanceAnalyzer.C\
-		ClusterNode.C\
-  	helper.C\
-		ClusterExperimentXMLHandler.C
+ifeq ($(ENABLE_DB),true)
+DB_CPP_SOURCES=\
+	ClusterSpectrum.C
 endif
-		
 
-CPP_SOURCES = \
-	$(DB_SOURCES)
-  
+CPP_SOURCES=\
+	BinnedRep.C\
+	$(DB_CPP_SOURCES)
+
+
 include ../../common.mak
--include .Dependencies
+
 OPENMS_INCLUDES=$(GUI_INCLUDES)
+
+-include .Dependencies

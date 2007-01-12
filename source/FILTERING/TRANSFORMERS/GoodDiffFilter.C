@@ -83,47 +83,4 @@ namespace OpenMS
   GoodDiffFilter::~GoodDiffFilter()
   {
   }
-/*
-  vector<double> GoodDiffFilter::operator() ( const ClusterSpectrum& cspec)
-  {
-    double tolerance = (double)param_.getValue("tolerance");
-    double gooddiff = 0;
-    //iterate over all peaks
-    double totaldiff = 0;
-    for (uint i = 0; i < cspec.getSpec().size(); ++i)
-    {
-      //look for each peakdifference that is in range of aa residuemasses (56/187), if it could be a aa (aamass)
-      for (uint j = i; i+j < cspec.getSpec().size(); ++j)
-      {
-        double diff =  cspec.getSpec().getContainer()[i+j].getPosition()[0] - cspec.getSpec().getContainer()[i].getPosition()[0];
-        if (diff < 56)
-        {}
-        else if ( diff > 187 )
-        {
-          j = cspec.getSpec().size();
-        }
-        else
-        {
-          totaldiff += cspec.getSpec().getContainer()[i+j].getIntensity()  + cspec.getSpec().getContainer()[i].getIntensity();
-          map<double,char>::const_iterator aait = aamass_.lower_bound(diff);
-          //look for aamasses that fit diff
-          if ( fabs(aait->first - diff ) <= tolerance ) 
-          {
-            gooddiff += cspec.getSpec().getContainer()[i+j].getIntensity()  + cspec.getSpec().getContainer()[i].getIntensity();
-          }
-          else 
-          {
-            ++aait;
-            if (  (aait) != aamass_.end() && fabs ( (aait)->first - diff ) <= tolerance )
-            {
-              gooddiff += cspec.getSpec().getContainer()[i+j].getIntensity()  + cspec.getSpec().getContainer()[i].getIntensity();
-            } 
-          }
-        }
-      }
-    }
-    vector<double> result;
-    result.push_back(gooddiff/totaldiff);
-    return result; 
-  }*/
 }

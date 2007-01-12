@@ -58,22 +58,4 @@ namespace OpenMS
   {
   }
 
-/*
-  vector<double> ParentFilter::operator()(const ClusterSpectrum& cspec)
-  {
-    vector<double> result;
-    result.push_back(0);
-    result.push_back(0);
-    result.push_back(0);
-    try{
-      result.at(cspec.getParentionCharge()-1) = 1;
-    }
-    catch (out_of_range&)
-    {
-      cerr << "charge state not in {1,2,3} in spec " << cspec.id() << endl;
-    }
-    result.push_back(cspec.getParentMass());
-    return result;
-  }
-*/
 }

@@ -100,17 +100,11 @@ UIC_SOURCES=
 ifeq ($(ENABLE_GUI),true)
 	ADD_CPP_SOURCES=\
 		$(GUI_CPP_SOURCES)\
-		BinnedRepWidget.C\
-		ClusterExperimentView.C\
-		ClusterAnalysisWindow.C\
-		ClusterRunWidget.C
+		BinnedRepWidget.C
 	
 	ADD_MOC_SOURCES=\
 		$(GUI_MOC_SOURCES)\
-		BinnedRepWidget_moc.C\
-		ClusterExperimentView_moc.C\
-		ClusterAnalysisWindow_moc.C\
-		ClusterRunWidget_moc.C
+		BinnedRepWidget_moc.C
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)

@@ -60,8 +60,16 @@ class TOPPPILISIdentification
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in", "<file>", "", "input file in MzData format");
-			registerStringOption_("out", "<file>", "", "output file in MzData format");
+			registerStringOption_("in", "<file>", "", "input file in MzData format", true);
+			registerStringOption_("out", "<file>", "", "output file in MzData format", true);
+			registerStringOption_("model_file", "<file", "", "the model file of the PILISModel", true);
+			registerStringOption_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
+																														 "DFPIANGER 1019.09 1\n"
+																														 "where the first column is the peptide, the second the m/z\n"
+																														 "the third the charge. As a alternative the sequence file\n"
+																														 "may contain only peptide sequences each in a separate line\n"
+																														 "repectively", true);
+			registerStringOption_("bla", "", "", "", true);
 			addEmptyLine_();
 		}
 		
@@ -74,7 +82,7 @@ class TOPPPILISIdentification
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
-						
+
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
@@ -83,13 +91,17 @@ class TOPPPILISIdentification
       MzDataFile f;
       f.load(in, exp);
 
+			writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);
+			
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
 			
 			PILISModel* model = new PILISModel();
+			model->readFromFile(getStringOption_("model_file"));
 
 			PILISSequenceDB* db = new PILISSequenceDB();
+			db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
 			
 			vector<Identification> ids;
 			PILISIdentification PILIS_id;
@@ -101,14 +113,20 @@ class TOPPPILISIdentification
 			Size no(1);
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
+				if (it->getMSLevel() == 0)
+				{
+					writeLog_("Warning: MSLevel is 0, assuming MSLevel 2");
+				}
+							
 				if (it->getMSLevel() == 2)
 				{
+					writeDebug_(no + "/" + exp.size(), 1);
 					Identification id;
 					PILIS_id.getIdentification(id, *it);
 					ids.push_back(id);
 				}
 			}
-		
+			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------

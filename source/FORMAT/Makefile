@@ -91,7 +91,7 @@ endif
 FORMAT_DIRS=HANDLERS
 
 #conditional compiles QT
-ifeq ($(ENABEL_DB),true)
+ifeq ($(ENABLE_DB),true)
 	ADD_CPP_SOURCES= $(GUI_CPP_SOURCES) ${DB_CPP_SOURCES}
 else
 	ADD_CPP_SOURCES=  ${DB_CPP_SOURCES}

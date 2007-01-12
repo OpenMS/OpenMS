@@ -61,25 +61,4 @@ namespace OpenMS
   {
   }
 
-	/*
-  vector<double> TICFilter::operator()(const ClusterSpectrum& cspec)
-  {
-    vector<double> result;
-    double TIC = 0;
-    double PTIC = 0;
-    double window = (double)param_.getValue("window");
-    double parentpeak = cspec.getParentMass()/ cspec.getParentionCharge();
-    for (MSSpectrum< DPeak<1> >::const_iterator it = cspec.getSpec().begin(); it != cspec.getSpec().end();++it )
-    {
-      TIC += it->getIntensity();
-      if ( fabs( it->getPosition()[0] - parentpeak )  <  window )
-      {
-        PTIC += it->getIntensity();
-      }
-    }
-    result.push_back(TIC);
-    result.push_back(PTIC);
-    return result;
-  }
-	*/
 }

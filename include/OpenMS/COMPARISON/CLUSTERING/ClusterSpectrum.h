@@ -60,7 +60,7 @@ namespace OpenMS
     {
     public:
       DifferentSpectra(const char* file, int line, const char* function) throw();
-      ~DifferentSpectra() throw();
+      virtual ~DifferentSpectra() throw();
     };
 
     /**
@@ -71,7 +71,7 @@ namespace OpenMS
     public:
       WrongRepresentation(const char* file, int line, const char* function, const char* message
           = "ClusterSpectrum didnt contain what was requested and no DBAdapter was given at Construction") throw();
-      ~WrongRepresentation() throw();
+      virtual ~WrongRepresentation() throw();
     };
 
     /**
