@@ -50,6 +50,7 @@
 	//different types of files
 	$patched = array();
 	$modified = array();
+	$properties_modified = array();
 	$conflict = array();
 	$unknown = array();
 	$added = array();
@@ -57,7 +58,7 @@
 	
 
 	// array with all variables that store different types of files (for output)
-	$vars = array("unknown","patched","modified","added","removed","conflict");
+	$vars = array("unknown","patched","modified","properties_modified","added","removed","conflict");
 
 	$templates_to_ignore=array(
 	"^*.log$",
@@ -110,20 +111,22 @@
 	print "\n";
 	foreach ($lines as $line)
 	{
-		$line = trim($line);
-		// P
+		$line = rtrim($line);
+		// 'P '
 		if (substr($line,0,2)=="P ") $patched[]=substr($line,2);
-		// U
+		// 'U '
 		else if (substr($line,0,2)=="U ") $patched[]=substr($line,2);
-		// M
+		// 'M ' or 'MM'
 		else if (substr($line,0,2)=="M " OR substr($line,0,2)=="MM")  $modified[]=substr($line,2);
-		// C
+		// ' M'
+		else if (substr($line,0,2)==" M")  $properties_modified[]=substr($line,2);
+		// 'C '
 		else if (substr($line,0,2)=="C ") $conflict[]=substr($line,2);
-		// A
+		// 'A '
 		else if (substr($line,0,2)=="A ") $added[]=substr($line,2);
-		// D
+		// 'D '
 		else if (substr($line,0,2)=="D ") $removed[]=substr($line,2);
-		// ?
+		// '? '
 		else if (substr($line,0,2)=="? ")
 		{
 			//files to ignore

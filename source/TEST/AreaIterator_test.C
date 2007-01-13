@@ -34,7 +34,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(AreaIterator, "$Id: PeakFileOptions_test.C 1077 2006-12-15 13:39:54Z kadauke $")
+START_TEST(AreaIterator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

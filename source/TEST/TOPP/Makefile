@@ -229,13 +229,21 @@ BaselineFilter_test: $(NUMERICDIFF)
 DBExporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
-	@$(ECHO) "	... todo ..."
-
+	
+	@if test -f DBExporter_input.ini; then \
+		@$(ECHO) "	... todo ..."; \
+	else \
+		$(ECHO) "  Cannot run test as there is no INI file 'DBExporter_input.ini'"; \
+	fi;
 
 DBImporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
-	@$(ECHO) "	... todo ..."
+	@if test -f DBImporter_input.ini; then \
+		@$(ECHO) "	... todo ..."; \
+	else \
+		$(ECHO) "  Cannot run test as there is no INI file 'DBImporter_input.ini'"; \
+	fi;
 
 
 DTAExtractor_test: $(NUMERICDIFF)

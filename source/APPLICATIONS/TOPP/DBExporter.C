@@ -64,10 +64,10 @@ class TOPPDBExporter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("u", "<user>", "", "user/login of the DB");
-			registerStringOption_("h", "<host>", "localhost", "host name of the DB server", false);
-			registerStringOption_("p", "<password>", "", "password for the user");
-			registerIntOption_("P", "<port>", 3306, "port the DB server is running on", false);
+			registerStringOption_("user", "<user>", "", "user/login of the DB");
+			registerStringOption_("host", "<host>", "localhost", "host name of the DB server", false);
+			registerStringOption_("port", "<password>", "", "password for the user");
+			registerIntOption_("password", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
 			registerIntOption_("id", "<DB id>", 0, "id of the the map to export");
 			registerStringOption_("query", "<query>", "", "a SQL query that returns one or several DB ids of the MSExperiment table");

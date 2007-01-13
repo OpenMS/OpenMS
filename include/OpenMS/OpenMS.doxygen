@@ -61,7 +61,8 @@
 		- Valgrind
 		- Test alle mit SVN-ID austatten
 		- HP updaten
-	
+	- checker.php
+		- Test properties
 	TODO (Hiwis):
 	- XML:
 		- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
@@ -75,7 +76,6 @@
 	- MSExperiment
 	  - AreaIterator mit min/max int als Filter, MS-level als Filter
 	- TOPP DBImporter/DBExporter
-		- credentials file für Tests
 		- neue DB erstellen in TOPP tools
 		- SVN-ID in DB und checken ob aktuell
 	- Debug streams (status, debug, error, warning)

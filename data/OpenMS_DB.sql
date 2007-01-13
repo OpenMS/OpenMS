@@ -645,6 +645,26 @@ CREATE TABLE META_TypeNameValue (
   PRIMARY KEY  (fid_MetaInfo,Name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `ADMIN_Version`
+-- 
+
+CREATE TABLE `ADMIN_Version` (
+  `version` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Dumping data for table `ADMIN_Version`
+-- 
+
+INSERT INTO `ADMIN_Version` (`version`) VALUES ('$Revision$');
+
+-- --------------------------------------------------------
+
 -- 
 -- Constraints for dumped tables
 -- 
