@@ -69,7 +69,7 @@ namespace OpenMS
 		static FilterFunctor* create() { return new PeakDiffBins(); }
 
 		///
-    std::vector<double> operator()(const ClusterSpectrum& spec);
+    std::vector<double> operator () (const ClusterSpectrum& spec);
 
 		///
 		static const String getName()

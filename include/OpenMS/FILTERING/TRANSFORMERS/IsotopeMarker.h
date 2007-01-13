@@ -73,7 +73,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new IsotopeMarker();}
+    static PeakMarker* create() { return new IsotopeMarker();}
 
 		///
 		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)

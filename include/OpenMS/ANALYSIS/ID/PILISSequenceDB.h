@@ -66,7 +66,7 @@ namespace OpenMS
 			//@}
 			
 			/// assignment operator
-			const PILISSequenceDB& operator = (const PILISSequenceDB&);
+			const PILISSequenceDB& operator = (const PILISSequenceDB& rhs);
 
 			/** Accessors
 			*/

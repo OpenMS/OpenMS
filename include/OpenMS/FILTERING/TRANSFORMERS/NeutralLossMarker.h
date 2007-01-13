@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		// @{
 		///
-    static FactoryProduct* create() { return new NeutralLossMarker(); }
+    static PeakMarker* create() { return new NeutralLossMarker(); }
 
 		///
 		template <typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)

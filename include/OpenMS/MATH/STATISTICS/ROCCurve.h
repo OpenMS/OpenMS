@@ -42,30 +42,15 @@ namespace OpenMS
 	namespace Math
 	{
 	  /**
-	  	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values <br>
+	  	@brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values
 	  	
 	  	@ingroup Math
 	  */
 	  class ROCCurve
 	  {
-	  private:
-	  #ifdef CGAL_DEF
-	    typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
-	    typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
-	  #endif
-	
-	    /// predicate for sort()
-	    class simsortdec
-	    {
-	    public:
-	      bool operator()(const std::pair<double,bool>& a, const std::pair<double,bool>& b)
-	      {
-	        return b.first < a.first;
-	      }
-	    };
 	  public:
 		
-	    // @name Cosntructors and Destructors
+	    // @name Constructors and Destructors
 	    // @{
 			/// default constructor
 	    ROCCurve();
@@ -79,7 +64,7 @@ namespace OpenMS
 	
 			// @name Operators
 			// @{
-			/// assignment operators
+			/// assignment operator
 	    ROCCurve& operator = (const ROCCurve& source);
 	    // @}
 	
@@ -92,7 +77,7 @@ namespace OpenMS
 	    double AUC();
 	
 	    /// some points in the ROC Curve
-	    std::vector<std::pair<double,double> > curve(uint resolution = 10);
+	    std::vector<std::pair<double, double> > curve(uint resolution = 10);
 	
 			///
 	    double cutoffPos(double fraction = 0.95);
@@ -102,7 +87,24 @@ namespace OpenMS
 			// @}
 	
 	  private:
-		
+
+    	#ifdef CGAL_DEF
+      typedef CGAL::Point_2<CGAL::Cartesian<double> > Point;
+      typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
+    	#endif
+
+      /// predicate for sort()
+      class simsortdec
+      {
+      	public:
+        	
+					bool operator () (const std::pair<double,bool>& a, const std::pair<double,bool>& b)
+        	{
+          	return b.first < a.first;
+        	}
+      };
+			
+
 	    std::list<std::pair<double,bool> > score_clas_pairs_;
 			
 	    uint pos_;

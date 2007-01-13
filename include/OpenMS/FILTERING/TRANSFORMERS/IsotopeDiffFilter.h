@@ -53,7 +53,7 @@ namespace OpenMS
     IsotopeDiffFilter();
 
     /// copy constructor
-    IsotopeDiffFilter(const IsotopeDiffFilter& source );
+    IsotopeDiffFilter(const IsotopeDiffFilter& source);
 
 		/// destructor
 		virtual ~IsotopeDiffFilter();

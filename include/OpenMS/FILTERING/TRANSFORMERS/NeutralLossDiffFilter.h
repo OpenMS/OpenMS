@@ -51,7 +51,7 @@ namespace OpenMS
     NeutralLossDiffFilter();
 
     /// copy constructor
-    NeutralLossDiffFilter(const NeutralLossDiffFilter& source );
+    NeutralLossDiffFilter(const NeutralLossDiffFilter& source);
 
 		/// destructor
 		virtual ~NeutralLossDiffFilter();

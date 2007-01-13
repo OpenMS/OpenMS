@@ -61,6 +61,9 @@ namespace OpenMS
 
   public:
 
+		/** @name Constructors and Destructors
+		 */
+		//@{
     /// default constructor
     BinnedRepCompareFunctor();
 
@@ -69,18 +72,27 @@ namespace OpenMS
 
     /// destructor
     virtual ~BinnedRepCompareFunctor();
+		//@}
 
+		/** @name Assigment
+		 */
+		//@{
     /// assignment operator
     BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source);
+		//@}
 
+		/** @name Accessors
+		 */
+		//@{
     /// function call operator, calculates the similarity
-    virtual double operator () (const BinnedRep&, const BinnedRep&) const = 0;
+    virtual double operator () (const BinnedRep& s1, const BinnedRep& s1) const = 0;
 
     /// function call operator, calculates the self similarity
     virtual double operator () (const BinnedRep& a) const = 0;
 
 		/// registers all derived products 
 		static void registerChildren();
+		//@}
 
   protected:
 

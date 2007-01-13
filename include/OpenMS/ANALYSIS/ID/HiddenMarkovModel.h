@@ -69,7 +69,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// sets the name of the state
-			void setName(const String&);
+			void setName(const String& name);
 			
 			/// returns the name of the state
 			const String& getName() const;
@@ -167,10 +167,10 @@ namespace OpenMS
 			void setTransitionProbability(HMMState* s1, HMMState* s2, double prob);
 
 			/// sets the transition probability of the given state names to prob
-			void setTransitionProbability(const String&, const String&, double prob);
+			void setTransitionProbability(const String& s1, const String& s2, double prob);
 			
 			/// return the number of states
-			const Size getNumberOfStates() const;
+			Size getNumberOfStates() const;
 
 			/// registers a new state to the HMM
 			void addNewState(HMMState* state);

@@ -105,11 +105,11 @@ namespace OpenMS
 		
 		static const String getName()
 		{
-			return "MowerMarker";
+			return "MarkerMower";
 		}
 
     /// insert new Marker (violates the PreprocessingFunctor interface)
-    void insertmarker(PeakMarker*);
+    void insertmarker(PeakMarker* peak_marker);
 		// @}
 	
 	private: 

@@ -153,16 +153,16 @@ namespace OpenMS
 			double getTransitionProbability(Size id1, Size id2) const;
 
 			///
-			void setTransitionProbability(HMMStateLight*, HMMStateLight*, double prob);
+			void setTransitionProbability(HMMStateLight* s1, HMMStateLight* s2, double prob);
 
 			///
 			void setTransitionProbability(Size id1, Size id2, double prob);
 			
 			///
-			const Size getNumberOfStates() const;
+			Size getNumberOfStates() const;
 	
 			///
-			void addNewState(HMMStateLight*);
+			void addNewState(HMMStateLight* state);
 
 			///
 			void addSynonymTransition(Size name1, Size name2, Size synonym1, Size synonym2);
@@ -177,7 +177,7 @@ namespace OpenMS
 			void train();
 
 			///
-			void setInitialTransitionProbability(HMMStateLight*, double prob);
+			void setInitialTransitionProbability(HMMStateLight* state, double prob);
 
 			///
 			void setInitialTransitionProbability(Size id, double prob);
@@ -186,22 +186,22 @@ namespace OpenMS
 			void clearInitialTransitionProbabilities();
 
 			///
-			void setTrainingEmissionProbability(HMMStateLight*, double prob);
+			void setTrainingEmissionProbability(HMMStateLight* state, double prob);
 
 			///
-			void setTrainingEmissionProbability(Size, double prob);
+			void setTrainingEmissionProbability(Size id, double prob);
 
 			///
 			void clearTrainingEmissionProbabilities();
 
 			///
-			void enableTransition(HMMStateLight*, HMMStateLight*);
+			void enableTransition(HMMStateLight* s1, HMMStateLight* s2);
 
 			///
 			void enableTransition(Size id1, Size id2);
 
 			///
-			void disableTransition(HMMStateLight*, HMMStateLight*);
+			void disableTransition(HMMStateLight* s1, HMMStateLight* s2);
 
 			///
 			void disableTransition(Size id1, Size id2);

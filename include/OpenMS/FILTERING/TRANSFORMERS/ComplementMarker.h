@@ -68,7 +68,7 @@ namespace OpenMS
 		// @name Accessors
 		//@{
 		///
-    static FactoryProduct* create() { return new ComplementMarker(); }
+    static PeakMarker* create() { return new ComplementMarker(); }
 		
 		///
 		template <typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)
