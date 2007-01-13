@@ -60,6 +60,10 @@ CHECK(PeakPosBins(const PeakPosBins& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(PeakPosBins& operator=(const PeakPosBins& source))
+	// TEST
+RESULT
+
 CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -71,6 +75,14 @@ CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 
 	TEST_REAL_EQUAL(filter[0], 129)
 
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "PeakPosBins")
 RESULT
 
 delete e_ptr;

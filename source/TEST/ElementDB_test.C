@@ -47,7 +47,7 @@ CHECK(static const ElementDB* getInstance())
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK("const HashMap<String, const Element*>& getNames() const")
+CHECK((const HashMap<String, const Element*>& getNames() const))
 	HashMap<String, const Element*> names = e_ptr->getNames();
 	const Element * e = e_ptr->getElement("Carbon");
 	TEST_EQUAL(e, names["Carbon"])
@@ -55,14 +55,14 @@ CHECK("const HashMap<String, const Element*>& getNames() const")
 RESULT
 
 
-CHECK("const HashMap<String, const Element*>& getSymbols() const")
+CHECK((const HashMap<String, const Element*>& getSymbols() const))
 	HashMap<String, const Element*> symbols = e_ptr->getSymbols();
 	const Element * e = e_ptr->getElement("Carbon");
 	TEST_EQUAL(e, symbols["C"])
 	TEST_NOT_EQUAL(e, 0)
 RESULT
 
-CHECK("const HashMap<Size, const Element*>& getAtomicNumbers() const")
+CHECK((const HashMap<Size, const Element*>& getAtomicNumbers() const))
 	HashMap<Size, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
 	const Element * e = e_ptr->getElement("Carbon");
 	TEST_EQUAL(e, atomic_numbers[6])

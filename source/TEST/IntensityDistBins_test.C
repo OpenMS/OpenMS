@@ -60,6 +60,10 @@ CHECK(IntensityDistBins(const IntensityDistBins& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(IntensityDistBins& operator = (const IntensityDistBins& source))
+	// TODO
+RESULT
+
 CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -71,6 +75,14 @@ CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 
 	TEST_REAL_EQUAL(filter[0], 0.595041)
 
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "IntensityDistBins")
 RESULT
 
 delete e_ptr;

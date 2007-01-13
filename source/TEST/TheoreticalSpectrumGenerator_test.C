@@ -61,7 +61,7 @@ RESULT
 ptr = new TheoreticalSpectrumGenerator();
 AASequence peptide("IFSQVGK");
 
-CHECK(TheoreticalSpectrumGenerator operator = (const TheoreticalSpectrumGenerator& tsg))
+CHECK(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
 	// TODO
 RESULT
 
@@ -97,7 +97,7 @@ CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::
 	}
 RESULT
 
-CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, int charge = 1))
+CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1))
 	PeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
 	double result[] = {778.916, 760.901, 761.885};
@@ -116,8 +116,20 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, int 
 	
 RESULT
 
-CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, int charge = 1))
-	
+CHECK(Param& getParam())
+	// TODO
+RESULT
+
+CHECK(const Param& getParam() const)
+	// TODO
+RESULT
+
+CHECK(void setParam(const Param& param))
+	// TODO
+RESULT
+
+CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1))
+	// TODO
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -51,24 +51,24 @@ using namespace OpenMS::Math;
 
 ROCCurve* rcp;
 
-CHECK(ROCCurve::ROCCurve())
+CHECK(ROCCurve())
   rcp = new ROCCurve();
   TEST_NOT_EQUAL(rcp, 0)
 RESULT
 
-CHECK(ROCCurve::insertPair())
-  srand( (unsigned)time( NULL ) );
-  for ( uint i = 0; i < 1000; ++i )
+CHECK(void insertPair(double score, bool clas))
+  srand((unsigned)time(NULL));
+  for (uint i = 0; i < 1000; ++i)
   {
     double score = (double)rand()/RAND_MAX;
-    bool clas = ( rand() > RAND_MAX/2 );
-    rcp->insertPair(score,clas);
+    bool clas = (rand() > RAND_MAX/2);
+    rcp->insertPair(score, clas);
   }
 RESULT
 
 #ifdef OPENMS_HAS_CGAL 
 
-CHECK(ROCCurve::AUC())
+CHECK(double AUC())
   double auc = rcp->AUC();
   bool inBounds = ( auc >= 0 && auc <= 1 );
   TEST_EQUAL(inBounds,1)
@@ -76,38 +76,38 @@ RESULT
 
 #endif
 
-CHECK(ROCCurve::curve())
+CHECK((std::vector<std::pair<double, double> curve(uint resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);
   TEST_EQUAL(curvePoints.size(),100)
 RESULT
 
-CHECK(ROCCurve::cutoffPos())
+CHECK(double cutoffPos(double fraction = 0.95))
   double cop = rcp->cutoffPos();
   bool inBounds( cop >=0 && cop <= 1 );
   TEST_EQUAL(inBounds,1)
 RESULT
 
-CHECK(ROCCurve::cutoffNeg())
+CHECK(double cutoffNeg(double fraction = 0.95))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
   TEST_EQUAL(inBounds,1)
 RESULT
 
-CHECK(ROCCurve::ROCCurve(const ROCCurve&))
+CHECK(ROCCurve(const ROCCurve& source))
   ROCCurve crc(*rcp);
   double ccop = crc.cutoffPos();
   double cop = rcp->cutoffPos();
   TEST_REAL_EQUAL(ccop,cop)
 RESULT
 
-CHECK(ROCCurve::operator=(const ROCCurve&))
+CHECK(ROCCurve& operator = (const ROCCurve& source))
   ROCCurve crc = *rcp;
   double ccop = crc.cutoffPos();
   double cop = rcp->cutoffPos();
   TEST_REAL_EQUAL(cop,ccop)
 RESULT
 
-CHECK(ROCCurve::~ROCCurve())
+CHECK(~ROCCurve())
   delete rcp;
 RESULT
 

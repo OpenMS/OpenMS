@@ -59,7 +59,7 @@ Real average_weight(0.12345);
 Real mono_weight(0.123456789);
 
 e_ptr = 0;
-CHECK("Element(const String& name, const String& symbol, Size atomic_number, Real average_weight, Real mono_weight, const Histogram<double, UnsignedInt>& isotopes)")
+CHECK((Element(const String& name, const String& symbol, Size atomic_number, Real average_weight, Real mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
@@ -96,11 +96,11 @@ CHECK(const String& getSymbol() const)
 	TEST_EQUAL(e_ptr->getSymbol(), symbol)
 RESULT
 
-CHECK(void setIsotopeDistribution(const Histogram<double, UnsignedInt>& isotopes))
+CHECK(void setIsotopeDistribution(const IsotopeDistribution& isotopes))
 	e_ptr->setIsotopeDistribution(dist);
 RESULT
 
-CHECK("const Histogram<double, UnsignedInt>& getIsotopeDistribution() const")
+CHECK((const IsotopeDistribution& getIsotopeDistribution() const))
 	TEST_EQUAL(e_ptr->getIsotopeDistribution() == dist, true)
 RESULT
 

@@ -59,6 +59,10 @@ CHECK(ParentFilter(const ParentFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(ParentFilter& operator = (const ParentFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> double apply(SpectrumType& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -67,6 +71,14 @@ CHECK(template <typename SpectrumType> double apply(SpectrumType& spec))
 	double filter = e_ptr->apply(spec);
 
 	TEST_REAL_EQUAL(filter, 2)
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "ParentFilter")
 RESULT
 
 delete e_ptr;

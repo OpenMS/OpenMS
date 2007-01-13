@@ -59,6 +59,10 @@ CHECK(BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& sou
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(BinnedRepSumAgreeingIntensities& operator = (const BinnedRepSumAgreeingIntensities& source))
+	// TODO
+RESULT
+
 CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
@@ -80,6 +84,18 @@ CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 
 	TEST_REAL_EQUAL(score, 1.0)
 
+RESULT
+
+CHECK(double operator () (const BinnedRep& a) const)
+	// TODO
+RESULT
+
+CHECK(static BinnedRepCompareFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "BinnedRepSumAgreeingIntensities")
 RESULT
 
 delete e_ptr;

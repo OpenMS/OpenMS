@@ -84,6 +84,14 @@ CHECK(const String& getName() const)
 	TEST_EQUAL("the_name", m_ptr->getName())
 RESULT
 
+CHECK(void setShortName(const String& name))
+	m_ptr->setShortName("short_name");
+RESULT
+
+CHECK(const String& getShortName() const)
+	TEST_EQUAL("short_name", m_ptr->getShortName())
+RESULT
+
 CHECK(void setNamePrefix(const String& name_prefix))
 	m_ptr->setNamePrefix("the_name_prefix");
 RESULT

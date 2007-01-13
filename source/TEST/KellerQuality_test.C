@@ -60,6 +60,10 @@ CHECK(KellerQuality(const KellerQuality& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(KellerQuality& operator = (const KellerQuality& source))
+	// TODO
+RESULT
+
 CHECK(double operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -71,6 +75,14 @@ CHECK(double operator () (const ClusterSpectrum& spec))
 
 	TEST_REAL_EQUAL(filter, -1000)
 
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "KellerQuality")
 RESULT
 
 delete e_ptr;

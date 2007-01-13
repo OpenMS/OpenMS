@@ -68,12 +68,20 @@ CHECK(IsotopeDistribution(Size max_isotope))
 	delete ptr;
 RESULT
 
+CHECK(IsotopeDistribution(const IsotopeDistribution& isotope_distribution))
+	// TODO
+RESULT
+
 CHECK(~IsotopeDistribution())
 	IsotopeDistribution* ptr = new IsotopeDistribution(117);
 	delete ptr;
 RESULT
 
 IsotopeDistribution* iso = new IsotopeDistribution();
+
+CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distribution))
+	// TODO
+RESULT
 
 CHECK(void setMaxIsotope(Size max_isotope))
 	iso->setMaxIsotope(117);
@@ -111,6 +119,87 @@ CHECK(IsotopeDistribution& operator *= (UnsignedInt factor))
 		TEST_REAL_EQUAL(id.getContainer()[i].second, container[i].second)
 	}
 	
+RESULT
+
+
+CHECK(ConstIterator begin() const)
+
+RESULT
+
+CHECK(ConstIterator end() const)
+
+RESULT
+
+CHECK(IsotopeDistribution operator * (UnsignedInt factor) const)
+
+RESULT
+
+CHECK(IsotopeDistribution& operator += (const IsotopeDistribution& isotope_distribution))
+
+RESULT
+
+CHECK(Iterator begin())
+
+RESULT
+
+CHECK(Iterator end())
+
+RESULT
+
+CHECK(Size getMaxIsotope() const)
+
+RESULT
+
+CHECK(Size size() const)
+
+RESULT
+
+CHECK(UnsignedInt getMax() const)
+
+RESULT
+
+CHECK(UnsignedInt getMin() const)
+
+RESULT
+
+CHECK(bool operator != (const IsotopeDistribution& isotope_distribution) const)
+
+RESULT
+
+CHECK(bool operator == (const IsotopeDistribution& isotope_distribution) const)
+
+RESULT
+
+CHECK(const ContainerType& getContainer() const)
+
+RESULT
+
+CHECK(double getTrimRightCutoff())
+
+RESULT
+
+CHECK(void clear())
+
+RESULT
+
+CHECK(void estimateFromPeptideWeight(double weight))
+
+RESULT
+
+CHECK(void renormalize())
+
+RESULT
+
+CHECK(void set(const ContainerType& distribution))
+	// TODO
+RESULT
+
+CHECK(void setTrimRightCutoff(double const cutoff))
+
+RESULT
+
+CHECK(void trimRight())
+
 RESULT
 
 delete iso;

@@ -55,6 +55,29 @@ RESULT
 
 ptr = new ZhangSimilarityScore();
 
+CHECK(ZhangSimilarityScore(const ZhangSimilarityScore& source))
+	// TODO
+RESULT
+
+CHECK(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
+	// TODO
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& spec) const)
+	// TODO
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+	// TODO
+RESULT
+
+CHECK(static PeakSpectrumCompareFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(ptr->getName(), "ZhangSimilarityScore")
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

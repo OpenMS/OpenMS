@@ -325,7 +325,7 @@ namespace OpenMS
 		#endif
 	}
 	
-	const Size HiddenMarkovModelLight::getNumberOfStates() const
+	Size HiddenMarkovModelLight::getNumberOfStates() const
 	{
 		return states_.size();
 	}

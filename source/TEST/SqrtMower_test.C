@@ -60,6 +60,10 @@ CHECK(SqrtMower(const SqrtMower& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(SqrtMower& operator=(const SqrtMower& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -69,6 +73,22 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
+RESULT
+
+CHECK(static PreprocessingFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "SqrtMower")
+RESULT
+
+CHECK(void filterPeakMap(PeakMap& exp))
+	// TODO
+RESULT
+
+CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+	// TODO
 RESULT
 
 delete e_ptr;

@@ -59,10 +59,29 @@ RESULT
 
 ptr = new PILISIdentification();
 
+CHECK(PILISIdentification(const PILISIdentification& source))
+	// TODO
+RESULT
+
+CHECK(const PILISIdentification& operator = (const PILISIdentification&))
+	// TODO
+RESULT
+
+CHECK(Param& getParam())
+	// TODO
+RESULT
+
+CHECK(const Param& getParam() const)
+	// TODO
+RESULT
+
+CHECK(void setParam(const Param& param))
+	// TODO
+RESULT
+
 CHECK(const String& getScoringType() const)
 	TEST_EQUAL(ptr->getScoringType(), "ZhangSimilarityScore")
 RESULT
-
 CHECK(void setScoringType(const String& type))
 	ptr->setScoringType("SpectrumCheapDPCorr");
 	TEST_EQUAL(ptr->getScoringType(), "SpectrumCheapDPCorr")

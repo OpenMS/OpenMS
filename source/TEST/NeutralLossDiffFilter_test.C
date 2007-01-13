@@ -59,6 +59,10 @@ CHECK(NeutralLossDiffFilter(const NeutralLossDiffFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(NeutralLossDiffFilter& operator = (const NeutralLossDiffFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -70,6 +74,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	e_ptr->getParam().setValue("tolerance", 10);
 	filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 2482.5)
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "NeutralLossDiffFilter");
 RESULT
 
 delete e_ptr;

@@ -59,6 +59,10 @@ CHECK(Normalizer(const Normalizer& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(Normalizer& operator = (const Normalizer& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -84,6 +88,22 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	}
 
 	TEST_REAL_EQUAL(sum, 1.0);	
+RESULT
+
+CHECK(static PreprocessingFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "Normalizer")
+RESULT
+	
+CHECK(void filterPeakMap(PeakMap& exp))
+	// TODO
+RESULT
+
+CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+	// TODO
 RESULT
 
 delete e_ptr;

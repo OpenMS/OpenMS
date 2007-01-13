@@ -59,6 +59,10 @@ CHECK(PeakMarker(const PeakMarker& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(PeakMarker& operator = (const PeakMarker& source))
+	// TODO
+RESULT
+
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////

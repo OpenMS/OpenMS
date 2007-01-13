@@ -231,6 +231,50 @@ CHECK(void estimateUntrainedTransitions())
 
 RESULT
 
+CHECK(HMMState(const HMMState& state))
+	// TODO
+RESULT
+
+CHECK(HiddenMarkovModel(const HiddenMarkovModel& hmm_new))
+	// TODO
+RESULT
+
+CHECK(const HMMState& operator = (const HMMState&))
+	// TODO
+RESULT
+
+CHECK(const HMMState* getState(const String& name) const)
+	// TODO
+RESULT
+
+CHECK(const HiddenMarkovModel& operator = (const HiddenMarkovModel&))
+	// TODO
+RESULT
+
+CHECK(void clearInitialTransitionProbabilities())
+	// TODO
+RESULT
+
+CHECK(void clearTrainingEmissionProbabilities())
+	// TODO
+RESULT
+
+CHECK(void dump())
+	// TODO
+RESULT
+
+CHECK(void forwardDump())
+	// TODO
+RESULT
+
+CHECK(void write(std::ostream& out))
+	// TODO
+RESULT
+
+CHECK(void writetoYGFFile(const String& filename))
+	// TODO
+RESULT
+
 CHECK(void clear())
 	ptr->clear();
 	TEST_EQUAL(ptr->getNumberOfStates(), 0)

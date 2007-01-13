@@ -61,6 +61,10 @@ CHECK(ComplementMarker(const ComplementMarker& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(ComplementMarker& operator = (const ComplementMarker& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -77,6 +81,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 0)
 
+RESULT
+
+CHECK(static PeakMarker* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "ComplementMarker")
 RESULT
 
 delete e_ptr;

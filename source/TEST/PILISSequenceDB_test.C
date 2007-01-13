@@ -57,8 +57,12 @@ RESULT
 
 ptr = new PILISSequenceDB();
 
-CHECK(void addFastaFile(const String& filename)
-	TEST_EXCEPTION(ptr->addFastaFile("dummy_file"), Exception::NotImplemented()))
+CHECK(PILISSequenceDB(const PILISSequenceDB&))
+	// TODO
+RESULT
+
+CHECK(const PILISSequenceDB& operator = (const PILISSequenceDB& rhs))
+	// TODO
 RESULT
 
 CHECK(unsigned int countPeptides() const)
@@ -74,7 +78,7 @@ CHECK(void addPeptidesFromFile(const String& filename))
 	TEST_EQUAL(ptr->countPeptides(), 542)
 RESULT
 
-CHECK(bool has(const String& peptide))
+CHECK(bool has(const String& peptide) const)
 	TEST_EQUAL(ptr->has("DFPIANGER"), true)
 	TEST_EQUAL(ptr->has("DFPIANGERDFPIANGER"), false)
 RESULT
@@ -97,6 +101,30 @@ RESULT
 CHECK(void clearPeptides())
 	ptr->clearPeptides();
 	TEST_EQUAL(ptr->countPeptides(), 0)
+RESULT
+
+CHECK(bool isReplaceXandL() const)
+	// TODO
+RESULT
+
+CHECK(double getFactor() const)
+	// TODO
+RESULT
+
+CHECK(void addFASTAFile(const String& filename))
+	// TODO
+RESULT
+
+CHECK(void digestProteinsTryptic(Size missed_cleavages = 0))
+	// TODO
+RESULT
+
+CHECK(void setFactor(double factor))
+	// TODO
+RESULT
+
+CHECK(void setReplaceXandL(bool replace = true))
+	// TODO
 RESULT
 
 /////////////////////////////////////////////////////////////

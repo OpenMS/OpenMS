@@ -94,7 +94,7 @@ CHECK(double operator () (const ClusterSpectrum& csa, const ClusterSpectrum& csb
 	
 RESULT
 
-CHECK(const MSSpectrum< DPeak<1> >& lastconsensus() const)
+CHECK(const PeakSpectrum& lastconsensus() const)
 	TEST_EQUAL(e_ptr->lastconsensus().size(), 121)
 RESULT
 

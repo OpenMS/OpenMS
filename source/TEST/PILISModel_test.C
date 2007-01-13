@@ -57,6 +57,18 @@ RESULT
 
 ptr = new PILISModel();
 
+CHECK(PILISModel(const PILISModel& model))
+	// TODO
+RESULT
+
+CHECK(PILISModel& operator = (const PILISModel& mode))
+	// TODO
+RESULT
+
+CHECK(void writetoYGFFile(const String& filename))
+	// TODO
+RESULT
+
 CHECK(void readFromFile(const String& filename))
 	ptr->readFromFile("../../data/PILIS/PILIS_default_model.dat");
 RESULT

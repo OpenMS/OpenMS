@@ -59,6 +59,10 @@ CHECK(NLargest(const NLargest& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(NLargest& operator=(const NLargest& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -68,6 +72,22 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	e_ptr->getParam().setValue("n", 10);
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 10)
+RESULT
+
+CHECK(static PreprocessingFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "NLargest")
+RESULT
+
+CHECK(void filterPeakMap(PeakMap& exp))
+	// TODO
+RESULT
+
+CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+	// TODO
 RESULT
 
 delete e_ptr;

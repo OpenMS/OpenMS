@@ -48,45 +48,30 @@ START_TEST(FilterFunctor, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-//FilterFunctor* ffp;
-//
-//Factory<FilterFunctor>* factoryp = Factory<FilterFunctor>::instance();
-//
-//DTAFile dtafile;
-//
-//MSSpectrum<DPeak<1> >* spec = new MSSpectrum<DPeak<1> >();
-//dtafile.load("data/Transformers_tests.dta",*spec);
-//Identification dbs;
-//dbs.insertPeptideHit(PeptideHit(27.0,"Mascot",1, 1, "RRYA"));
-//spec->getIdentifications().push_back(dbs);
-//ClusterSpectrum cspec(spec);
-//const ClusterSpectrum& ccspec = cspec;
+CHECK(FilterFunctor())
+	// nothing to test
+RESULT
 
-//vector<String> catalogue = factoryp->catalogue("FilterFunctor");
+CHECK(FilterFunctor(const FilterFunctor& source))
+	// nothing to test
+RESULT
 
-// go through all registered FilterFunctors and check if they accept a spectrum 
-// and return something
-/*
-for (vector<String>::const_iterator cvit = catalogue.begin(); cvit != catalogue.end(); ++cvit)
-{
-  CHECK()
-    STATUS("ClusterFactory::create("+*cvit+")")
-    ffp = dynamic_cast<FilterFunctor*>(factoryp->create(*cvit));
-    TEST_NOT_EQUAL(ffp, 0)
-  RESULT
+CHECK(FilterFunctor& operator = (const FilterFunctor& source))
+	// nothing to test
+RESULT
 
-  CHECK(FilterFunctor::operator())
-    STATUS(*cvit+"::operator()")
-    //double result = ffp->apply(*spec);
-    //TEST_NOT_EQUAL(result, 0)
-  RESULT
+CHECK(static void registerChildren())
+	// TODO
+RESULT
 
-  delete ffp;
-}
+CHECK(template<typename SpectrumType> double apply(SpectrumType& /* spectrum */))
+	// nothing to test
+RESULT
 
-factoryp->destroy();
+CHECK(~FilterFunctor())
+	// nothing to test
+RESULT
 
-*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -59,6 +59,10 @@ CHECK(IsotopeDiffFilter(const IsotopeDiffFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(IsotopeDiffFilter& operator = (const IsotopeDiffFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -70,6 +74,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	e_ptr->getParam().setValue("tolerance", 10);
 	filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 2162)
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "IsotopeDiffFilter")
 RESULT
 
 delete e_ptr;

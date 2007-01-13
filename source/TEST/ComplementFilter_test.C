@@ -59,6 +59,10 @@ CHECK(ComplementFilter(const ComplementFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(ComplementFilter& operator = (const ComplementFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> double apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -71,6 +75,14 @@ CHECK(template <typename SpectrumType> double apply(SpectrumType& spectrum))
 	filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 132.5)
 	
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "ComplementFilter")
 RESULT
 
 delete e_ptr;

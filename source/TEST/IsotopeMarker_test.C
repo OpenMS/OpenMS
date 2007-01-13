@@ -61,6 +61,10 @@ CHECK(IsotopeMarker(const IsotopeMarker& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(IsotopeMarker& operator=(const IsotopeMarker& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -75,6 +79,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	//e_ptr->getParam().setValue("n", 10);
 	//e_ptr->apply(spec);
 	//TEST_EQUAL(spec.size(), 10)
+RESULT
+
+CHECK(static PeakMarker* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "IsotopeMarker")
 RESULT
 
 delete e_ptr;

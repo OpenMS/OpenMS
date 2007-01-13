@@ -59,6 +59,10 @@ CHECK(GoodDiffFilter(const GoodDiffFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(GoodDiffFilter& operator=(const GoodDiffFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -72,6 +76,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	filter = e_ptr->apply(spec);
 	
 	TEST_REAL_EQUAL(filter, 0.811684)
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "GoodDiffFilter")
 RESULT
 
 delete e_ptr;

@@ -59,6 +59,10 @@ CHECK(BernNorm(const BernNorm& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(BernNorm& operator=(const BernNorm& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -75,6 +79,22 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	TEST_EQUAL(spec.size(), 28)
 
+RESULT
+
+CHECK(static PreprocessingFunctor* create())
+	// TODO
+RESULT
+  
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "BernNorm")
+RESULT
+
+CHECK(void filterPeakMap(PeakMap& exp))
+	// TODO
+RESULT
+			
+CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+	// TODO
 RESULT
 
 delete e_ptr;

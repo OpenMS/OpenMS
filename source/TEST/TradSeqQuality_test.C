@@ -60,6 +60,10 @@ CHECK(TradSeqQuality(const TradSeqQuality& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(TradSeqQuality& operator = (const TradSeqQuality& source))
+	// TODO
+RESULT
+
 CHECK(double operator () (const ClusterSpectrum& spec))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -69,6 +73,14 @@ CHECK(double operator () (const ClusterSpectrum& spec))
 	
 	double filter = (*e_ptr)(cs);
 	TEST_REAL_EQUAL(filter, -1000)
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "TradSeqQuality")
 RESULT
 
 delete e_ptr;

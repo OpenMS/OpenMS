@@ -61,6 +61,10 @@ CHECK(NeutralLossMarker(const NeutralLossMarker& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(NeutralLossMarker& operator = (const NeutralLossMarker& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -75,6 +79,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	marked.clear();
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 49)
+RESULT
+
+CHECK(static PeakMarker* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "NeutralLossMarker")
 RESULT
 
 delete e_ptr;

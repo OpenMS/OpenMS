@@ -59,6 +59,10 @@ CHECK(IntensityBalanceFilter(const IntensityBalanceFilter& source))
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
+CHECK(IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source))
+	// TODO
+RESULT
+
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	DTAFile dta_file;
 	PeakSpectrum spec;
@@ -67,6 +71,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	double filter = e_ptr->apply(spec);
 	TEST_REAL_EQUAL(filter, 0.842697)
 
+RESULT
+
+CHECK(static FilterFunctor* create())
+	// TODO
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "IntensityBalanceFilter")
 RESULT
 
 delete e_ptr;

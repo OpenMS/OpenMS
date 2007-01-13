@@ -41,26 +41,35 @@ using namespace std;
 START_TEST(PreprocessingFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
-/*
-PreprocessingFunctor* e_ptr = 0;
+
 CHECK(PreprocessingFunctor())
-	e_ptr = new PreprocessingFunctor;
-	TEST_NOT_EQUAL(e_ptr, 0)
+	// nothing to check
 RESULT
 
 CHECK(~PreprocessingFunctor())
-	delete e_ptr;
+	// nothing to check
 RESULT
-
-e_ptr = new PreprocessingFunctor();
 
 CHECK(PreprocessingFunctor(const PreprocessingFunctor& source))
-	PreprocessingFunctor copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	// nothing to check
 RESULT
 
-delete e_ptr;
-*/
+CHECK(PreprocessingFunctor& operator = (const PreprocessingFunctor& source))
+	// nothing to check
+RESULT
+
+CHECK(void filterPeakMap(PeakMap& exp))
+	// nothing to check
+RESULT
+
+CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+	// nothing to check
+RESULT
+
+CHECK(static void registerChildren())
+	// TODO
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

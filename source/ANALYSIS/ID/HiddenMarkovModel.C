@@ -400,7 +400,7 @@ namespace OpenMS
 	}
 */
 	
-	const Size HiddenMarkovModel::getNumberOfStates() const
+	Size HiddenMarkovModel::getNumberOfStates() const
 	{
 		return states_.size();
 	}
