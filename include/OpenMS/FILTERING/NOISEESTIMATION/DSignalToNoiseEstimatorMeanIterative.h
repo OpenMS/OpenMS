@@ -86,10 +86,9 @@ namespace OpenMS
     @note 
     Warning to *stderr* if sparse_window_percent > 20
             - percent of windows that have less than "MinReqElementsInWindow" of elements
-              (noise estimates in those windows are simply a constant "NoiseEmptyWindow")
-            .   
+              (noise estimates in those windows are simply a constant "NoiseEmptyWindow").   
     
-    @ingroup Filtering
+  	@ingroup SignalToNoiseEstimators
     
   */
 

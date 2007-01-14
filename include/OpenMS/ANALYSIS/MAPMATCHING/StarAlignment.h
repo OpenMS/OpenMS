@@ -32,8 +32,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DFeaturePair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DMapMatcherRegression.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -60,8 +58,10 @@ namespace OpenMS
      At the end of the alignment the resulting final_consensus_map_ covers the elements 
      of all maps, whereas corresponding elements are arranged together into ConsensusFeature or ConsensusPeak.
      
-     @Note: If you use consensus maps , the consensus elements are used as normal elements and you will
+     @Note If you use consensus maps, the consensus elements are used as normal elements and you will
      loose the former consensus information.
+     
+     @ingroup MapAlignment
   **/
   template < typename ConsensusElementT = ConsensusFeature< FeatureMap > >
   class StarAlignment : public BaseAlignment< ConsensusElementT >

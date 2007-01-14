@@ -37,6 +37,13 @@
 
 namespace OpenMS
 {
+	/**
+    @defgroup Filtering Filtering
+    
+    @defgroup SignalToNoiseEstimators Signal to Noise Estimators
+
+    @ingroup Filtering
+  */
   /**
     @brief  Signal to noise estimator. This class represents the abstract base class of a signal to noise estimator.
 

@@ -34,6 +34,13 @@
 namespace OpenMS
 {
 	/**
+    @defgroup Filtering Filtering
+    
+    @defgroup Smoothers Smoothing Filters
+
+    @ingroup Filtering
+  */
+	/**
 		@brief Base class for all noise filter implementations
 	*/
   class SmoothFilter

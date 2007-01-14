@@ -50,6 +50,8 @@ namespace OpenMS
       to be detected.
       
       @note This filter works only for uniform raw data!
+      
+      @ingroup BaselineFilter
   */
   class TopHatFilter : public MorphFilter
   {

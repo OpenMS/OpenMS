@@ -62,6 +62,8 @@ namespace OpenMS
      @NOTE If a piecewise transformation is assumed, the user can define a grid by setting 
      the number of buckets in the RT as well as the MZ dimension.   
      Call initGridTransformation() before run()!   
+     
+     @ingroup MatchingAlgorithm
   */
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>

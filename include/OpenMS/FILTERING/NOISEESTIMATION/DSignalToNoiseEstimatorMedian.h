@@ -95,7 +95,7 @@ namespace OpenMS
             .  
     
     
-   @ingroup Filtering
+    @ingroup SignalToNoiseEstimators
     
   */
   

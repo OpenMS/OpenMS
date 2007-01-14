@@ -40,6 +40,14 @@
 
 namespace OpenMS
 {
+		/**
+		Map alignment classes.
+
+		This module contains all classes that can be used for the alignment of multiple maps.
+
+		@defgroup MapAlignment Map Alignment
+  */
+  
   /**
      @brief Base alignment class.
      

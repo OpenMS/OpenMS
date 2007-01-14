@@ -51,7 +51,7 @@ namespace OpenMS
 
   TODO: This class is not bug free. Maintainer should check this (Eva)
 
-    @ingroup PeakPicking
+    @ingroup SignalToNoiseEstimators
   */
   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
   class DSignalToNoiseEstimatorWindowing : public DSignalToNoiseEstimator<D, PeakIterator>

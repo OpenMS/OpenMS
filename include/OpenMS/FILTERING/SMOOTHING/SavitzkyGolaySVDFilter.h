@@ -91,6 +91,8 @@ namespace OpenMS
           A polynom order of 4 is recommended.
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
+    
+    @ingroup Smoothers
    
   */
   class SavitzkyGolaySVDFilter : public SmoothFilter
