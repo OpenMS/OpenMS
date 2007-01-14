@@ -356,7 +356,9 @@ EXECUTABLES_TRANSFORMATIONS = \
 	PeakPickerCWT_test\
 	MarrWaveletSeeder_test\
 	IsotopeWaveletSeeder_test\
-	PickedPeakSeeder_test
+	PickedPeakSeeder_test\
+	OptimizePeakDeconvolution_test\
+	TwoDOptimization_test
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\

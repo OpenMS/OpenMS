@@ -56,6 +56,8 @@ CHECK(setParam)
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
+  param.setValue("deconvolution:skip_deconvolution","no");
+  param.setValue("2D_optimization:skip_optimization","no");
   
   PeakPickerCWT pp;
   pp.setParam(param);
@@ -64,6 +66,8 @@ CHECK(setParam)
   TEST_REAL_EQUAL(pp.getNoiseLevel(),9)
   TEST_EQUAL(pp.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp.getSearchRadius(),2)
+	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
+	TEST_EQUAL(pp.get2DOptimizationFlag() == true, true)
 RESULT
 
 CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
@@ -73,6 +77,8 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
+  param.setValue("deconvolution:skip_deconvolution","no");
+  param.setValue("2D_optimization:skip_optimization","no");
   
   PeakPickerCWT pp;
   pp.setParam(param);
@@ -83,6 +89,8 @@ CHECK((PeakPickerCWT& operator=(const PeakPickerCWT& pp)))
   TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
+	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
+	TEST_EQUAL(pp.get2DOptimizationFlag() == true, true)
 RESULT
 
 CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
@@ -92,6 +100,8 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   param.setValue("wavelet_transform:scale",0.3);
   param.setValue("thresholds:noise_level",9);
   param.setValue("thresholds:search_radius",2);
+  param.setValue("deconvolution:skip_deconvolution","no");
+  param.setValue("2D_optimization:skip_optimization","no");
   
   PeakPickerCWT pp;
   pp.setParam(param);
@@ -102,6 +112,8 @@ CHECK((PeakPickerCWT(const PeakPickerCWT& pp)))
   TEST_REAL_EQUAL(pp_copy.getNoiseLevel(),9)
   TEST_EQUAL(pp_copy.getOptimizationFlag() == false, true)
   TEST_REAL_EQUAL(pp_copy.getSearchRadius(),2)
+	TEST_EQUAL(pp.getDeconvolutionFlag() == true, true)
+	TEST_EQUAL(pp.get2DOptimizationFlag() == true, true)	
 RESULT
 
 MzDataFile mz_data_file;
@@ -170,6 +182,19 @@ CHECK((const bool& getOptimizationFlag() const))
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),false)
 RESULT
 
+CHECK((const bool& getDeconvolutionFlag() const))
+  PeakPickerCWT pp;
+  
+  TEST_REAL_EQUAL(pp.getDeconvolutionFlag(),false)
+RESULT
+
+CHECK((const bool& get2DOptimizationFlag() const))
+  PeakPickerCWT pp;
+  
+  TEST_REAL_EQUAL(pp.get2DOptimizationFlag(),false)
+RESULT
+
+	
 CHECK((const float& getNoiseLevel() const))
   PeakPickerCWT pp;
   
@@ -224,6 +249,21 @@ CHECK((void setOptimizationFlag(const bool& optimization)))
   TEST_REAL_EQUAL(pp.getOptimizationFlag(),true)
 RESULT
 
+CHECK((void setDeconvolutionFlag(const bool& deconvolution)))
+  PeakPickerCWT pp;
+  
+  pp.setDeconvolutionFlag(true);
+  TEST_REAL_EQUAL(pp.getDeconvolutionFlag(),true)
+RESULT
+
+CHECK((void set2DOptimizationFlag(const bool& twod_optimization)))
+  PeakPickerCWT pp;
+  
+  pp.set2DOptimizationFlag(true);
+  TEST_REAL_EQUAL(pp.get2DOptimizationFlag(),true)
+RESULT
+	
+	
 CHECK((void setWaveletScale(const float& scale)))
   PeakPickerCWT pp;
   
