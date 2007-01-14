@@ -108,7 +108,8 @@ namespace OpenMS
     template < typename InputPeakIterator >
     void transform(InputPeakIterator begin_input,
                    InputPeakIterator end_input,
-                   float resolution)
+                   float resolution,
+									 unsigned int zeros=0)
     {
 
 #ifdef DEBUG_PEAK_PICKING
@@ -145,19 +146,32 @@ namespace OpenMS
       }
       else
       {
-        unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
+				unsigned int n = (unsigned int) resolution * distance(begin_input, end_input);
         double origin  = begin_input->getPosition()[mz_dim_];
         double spacing = ((end_input-1)->getPosition()[mz_dim_]-origin)/(n-1);
+				
+				// zero-padding at the ends?
+				if(zeros > 0)
+					{
+						std::cout << "zero-padding"<<zeros<<std::endl;
+						n += (2+zeros);
+					}
+        
 
         std::vector<double> processed_input(n);
         signal_.clear();
         signal_.resize(n);
 
         InputPeakIterator it_help = begin_input;
-        processed_input[0]=it_help->getPosition()[mz_dim_];
-
+        if(zeros >0)
+					{
+						processed_input[0]=it_help->getPosition()[mz_dim_] - zeros*spacing;
+						for(unsigned int i = 0; i < zeros; ++i) processed_input[i]=0;
+					}
+				else processed_input[0]=it_help->getIntensity();
+				
         double x;
-        for (unsigned int k=1; k < n; ++k)
+        for (unsigned int k=1; k < n-zeros; ++k)
         {
           x = origin + k*spacing;
           // go to the real data point next to x
@@ -167,6 +181,10 @@ namespace OpenMS
           }
           processed_input[k] = getInterpolatedValue_(x,it_help);
         }
+				if(zeros >0)
+					{
+						for(unsigned int i = 0; i < zeros; ++i) processed_input[n-zeros+i]=0;
+					}
 
         // TODO avoid to compute the cwt for the zeros in signal
         for (unsigned int i=0; i < n; ++i)
