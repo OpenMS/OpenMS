@@ -32,8 +32,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorWindowing.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/DSignalToNoiseEstimatorMedian.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 
@@ -41,7 +43,8 @@
 #include <vector>
 #include <algorithm>
 
-//#define DEBUG_PEAK_PICKING
+#undef DEBUG_PEAK_PICKING
+#undef DEBUG_DECONV
 namespace OpenMS
 {
   /**
@@ -222,6 +225,43 @@ namespace OpenMS
         	param_.setValue("Optimization:skip_optimization","yes");
         }	
       }
+		
+		  /// Non-mutable access to the deconvolution switch
+      inline const bool& getDeconvolutionFlag() const
+      {
+        return deconvolution_;
+      }
+      /// Mutable access to the deconvolution switch
+      inline void setDeconvolutionFlag(const bool& deconvolution)
+      {
+        deconvolution_ = deconvolution;
+        if (deconvolution)
+        {
+        	param_.setValue("deconvolution:skip_deconvolution","no");
+        }
+				else
+				{
+        	param_.setValue("deconvolution:skip_deconvolution","yes");
+        }	
+      }
+		 /// Non-mutable access to the optimization switch
+      inline const bool& get2DOptimizationFlag() const
+      {
+        return two_d_optimization_;
+      }
+      /// Mutable access to the optimization switch
+      inline void set2DOptimizationFlag(const bool& two_d_optimization)
+      {
+        two_d_optimization_ = two_d_optimization;
+        if (two_d_optimization)
+        {
+        	param_.setValue("2D_optimization:skip_optimization","no");
+        }
+				else
+				{
+        	param_.setValue("2D_optimization:skip_optimization","yes");
+        }	
+      }
       //@}
 
 
@@ -274,9 +314,8 @@ namespace OpenMS
         // copy the raw data into a DPeakArray<DRawDataPoint<D> >
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
-        DSignalToNoiseEstimatorWindowing<1, typename RawDataArrayType::const_iterator> sne;
-        sne.setParam(param_);
-
+        DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
+        sne.setParam(param_.copy("SignalToNoiseEstimation"));
         unsigned int n = distance(first, last);
         raw_peak_array.resize(n);
 
@@ -315,11 +354,17 @@ namespace OpenMS
           }
         }
 
+				// thresholds for deconvolution
+				double fwhm_threshold = (float)param_.getValue("deconvolution:fwhm_threshold");
+				double symm_threshold = (float)param_.getValue("deconvolution:asym_threshold");
+
+				
         // Points to the actual maximum position in the raw data
         RawDataPointIterator it_max_pos;
 
         // start the peak picking until no more maxima can be found in the wavelet transform
         unsigned int number_of_peaks = 0;
+		
         do
         {
           number_of_peaks = 0;
@@ -328,7 +373,8 @@ namespace OpenMS
           // compute the continious wavelet transform with resolution 1
           timer.reset();
           timer.start();
-          wt_.transform(it_pick_begin, it_pick_end,1.);
+					int resolution = 1;
+          wt_.transform(it_pick_begin, it_pick_end,resolution);
           timer.stop();
 #ifdef DEBUG_PEAK_PICKING
           std::cout << "TRANSFORM " << timer.getCPUTime() << std::endl;
@@ -349,6 +395,15 @@ namespace OpenMS
                                     ms_level,
                                     direction))
           {
+						// if the signal to noise ratio at the max position is too small
+						// the peak isn't considered
+										
+						if(sne.getSignalToNoise(area.max) < signal_to_noise_)
+							{
+								it_pick_begin = area.max +1;
+								continue;
+							}
+						
             //search for the endpoints of the peak
             regular_endpoints = getPeakEndPoints_(it_pick_begin,
                                                   it_pick_end,
@@ -376,16 +431,23 @@ namespace OpenMS
               // Use the centroid for Optimization
               shape.mz_position=area.centroid_position[0];
 
-              // TEST!!!!!
               if ( (shape.r_value > peak_corr_bound_)
                    && (shape.getFWHM() >= fwhm_bound_))
-                   //&& (sne.getSignalToNoise(area.max) >= signal_to_noise_))
               {
-                shape.getSymmetricMeasure();
-                shape.signal_to_noise = sne.getSignalToNoise(area.max);
-                peak_shapes_.push_back(shape);
-                peak_endpoints.push_back(area.left->getPos());
-                peak_endpoints.push_back(area.right->getPos());
+								shape.signal_to_noise = sne.getSignalToNoise(area.max);
+								// if peak is too broad or asymmetric it needs to be deconvoluted
+								if( deconvolution_  &&(
+										(shape.getFWHM() > fwhm_threshold) ||
+										(shape.getSymmetricMeasure() < symm_threshold)) )
+									{
+										deconvolutePeak_(shape, area,peak_endpoints);
+									}
+								else
+									{
+										peak_shapes_.push_back(shape);
+										peak_endpoints.push_back(area.left->getPos());
+										peak_endpoints.push_back(area.right->getPos());
+									}
                 ++number_of_peaks;
               }
 
@@ -409,6 +471,7 @@ namespace OpenMS
             // search for the next peak
             it_pick_begin = area.right;
             distance_from_scan_border = distance(raw_peak_array.begin(),it_pick_begin);
+		
           } //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt_, area, distance_from_scan_border, ms_level, direction))
           it_pick_begin = raw_peak_array.begin();
         }
@@ -435,11 +498,11 @@ namespace OpenMS
             								 (double)param_.getValue("Optimization:DeltaRelError"));
             opt.optimize(peak_shapes_);
 
-            // compute the new correlation coefficients
-            for (unsigned int i=0, j=0; i < peak_shapes_.size(); ++i, j+=2)
-            {
-              peak_shapes_[i].r_value=opt.correlate(peak_shapes_[i],peak_endpoints[j], peak_endpoints[j+1]);
-            }
+          //   // compute the new correlation coefficients
+//             for (unsigned int i=0, j=0; i < peak_shapes_.size(); ++i, j+=2)
+//             {
+//               peak_shapes_[i].r_value=opt.correlate(peak_shapes_[i],peak_endpoints[j], peak_endpoints[j+1]);
+//             }
           } // if optimization
 
           // write the picked peaks to the outputcontainer
@@ -504,7 +567,9 @@ namespace OpenMS
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);
-          std::cout << "PeakPicker: Picking Scan " << input_it->getRetentionTime()<< std::endl;
+#ifdef DEBUG_PEAK_PICKING
+					std::cout << "PeakPicker: Picking Scan " << input_it->getRetentionTime()<< std::endl;
+#endif
           StopWatch timer;
           timer.start();
 
@@ -531,6 +596,18 @@ namespace OpenMS
             ms_exp_peaks.push_back(spectrum);
           }
         }
+				// sort spectra
+				ms_exp_peaks.sortSpectra(true);
+
+				
+				if(two_d_optimization_)
+					{
+						TwoDOptimization my_2d(param_);
+
+						my_2d.twoDOptimize(first,last,ms_exp_peaks);
+					}
+				// sort spectra
+				ms_exp_peaks.sortSpectra(true);
       }
 
       /** @brief Picks the peaks in a range of MSSpectren (and output data structure MSExperimentExtern).
@@ -657,6 +734,9 @@ namespace OpenMS
       /// The continuous wavelet "transformer"
       ContinuousWaveletTransformNumIntegration wt_;
 
+		  /// The continuous wavelet "transformer" for the deconvolution
+      ContinuousWaveletTransformNumIntegration wtDC_;
+
       /// The search radius for the determination of a peak's maximum position
       unsigned int radius_;
 
@@ -678,6 +758,14 @@ namespace OpenMS
       /// Switch for the optimization of peak parameters
       bool optimization_;
 
+		/// Switch for the deconvolution of peak parameters
+      bool deconvolution_;
+
+		/// Switch for the 2D optimization of peak parameters
+      bool two_d_optimization_;
+
+
+		
 
       /// Initializes the members and parses the parameter object
       void init_();
@@ -786,7 +874,18 @@ namespace OpenMS
         lorentzian peak we have a peak bound in the wavelet transform. 
       */
       void initializeWT_();
+		
+		void deconvolutePeak_(PeakShape& shape,PeakArea_& area,std::vector<double> peak_endpoints);
 
+		int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last,
+													std::vector<double>& peak_values,
+													int direction,int resolution,
+													ContinuousWaveletTransformNumIntegration& wt);
+
+		int determineChargeState_(std::vector<double>& peak_values);
+
+
+		void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width);
   }
   ; // end PeakPickerCWT
 
