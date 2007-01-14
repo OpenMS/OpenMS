@@ -33,12 +33,15 @@ include ../../config_defs.mak
 
 CPP_SOURCES= \
 	ExtractSignalRegions.C\
+	OptimizePick.C\
 	PeakPicker.C\
-	PeakPickerCWT.C\
 	ContinuousWaveletTransform.C\
 	ContinuousWaveletTransformNumIntegration.C\
 	PeakShape.C\
-	OptimizePick.C
+	OptimizePeakDeconvolution.C\
+	TwoDOptimization.C\
+	PeakPickerCWT.C
 
 include ../../common.mak
 -include .Dependencies
+
