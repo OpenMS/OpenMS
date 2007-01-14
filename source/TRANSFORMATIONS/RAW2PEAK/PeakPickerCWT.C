@@ -34,7 +34,7 @@ namespace OpenMS
 {
   PeakPickerCWT::PeakPickerCWT()
       : PeakPicker(),
-
+      	
       radius_(0),
       scale_(0.0),
       peak_bound_cwt_(0.0),
@@ -44,22 +44,52 @@ namespace OpenMS
       optimization_(false)
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
-    defaults_.setValue("thresholds:correlation",0.5);
-    defaults_.setValue("wavelet_transform:scale",0.15);
-    defaults_.setValue("wavelet_transform:spacing",0.001);
-    defaults_.setValue("thresholds:noise_level",0.1);
-    defaults_.setValue("thresholds:search_radius",3);
+  	defaults_.setValue("thresholds:correlation",0.5);
+  	defaults_.setValue("wavelet_transform:scale",0.15);
+  	defaults_.setValue("wavelet_transform:spacing",0.001);
+  	defaults_.setValue("thresholds:noise_level",0.1);
+   	defaults_.setValue("thresholds:search_radius",3); 	
+		
+		//Optimization parameters
+  	defaults_.setValue("Optimization:skip_optimization","yes");
+		defaults_.setValue("Optimization:penalties:position",0.0);
+		defaults_.setValue("Optimization:penalties:left_width",1.0); 	
+		defaults_.setValue("Optimization:penalties:right_width",1.0); 	
+		defaults_.setValue("Optimization:iterations",15); 	
+		defaults_.setValue("Optimization:delta_abs_error",1e-04f); 	
+		defaults_.setValue("Optimization:delta_rel_error",1e-04f);
 
-    //Optimization parameters
-    defaults_.setValue("Optimization:skip_optimization","yes");
-    defaults_.setValue("Optimization:Penalties:Position",0.0);
-    defaults_.setValue("Optimization:Penalties:LeftWidth",1.0);
-    defaults_.setValue("Optimization:Penalties:RightWidth",1.0);
-    defaults_.setValue("Optimization:Iterations",15);
-    defaults_.setValue("Optimization:DeltaAbsError",1e-04f);
-    defaults_.setValue("Optimization:DeltaRelError",1e-04f);
+		// deconvolution parameters
+		defaults_.setValue("deconvolution:penalties:position",0.0);
+		defaults_.setValue("deconvolution:penalties:height",1.0);
+		defaults_.setValue("deconvolution:penalties:left_width",0.0);
+		defaults_.setValue("deconvolution:penalties:right_width",0.0);
+		defaults_.setValue("deconvolution:skip_deconvolution","yes");
+		defaults_.setValue("deconvolution:width_threshold",1.1);
+		defaults_.setValue("deconvolution:asym_threshold",0.3);
+		defaults_.setValue("deconvolution:fwhm_threshold",0.7);
+		defaults_.setValue("deconvolution:delta_abs_error",1e-05f);
+		defaults_.setValue("deconvolution:delta_rel_error",1e-05f);
+		defaults_.setValue("deconvolution:left_width",2);
+		defaults_.setValue("deconvolution:right_width",2);
+		defaults_.setValue("deconvolution:scaling",0.12);
+		defaults_.setValue("deconvolution:iterations",10);
 
-    setParam(Param());
+		// 2D optimization parameters
+		defaults_.setValue("2D_optimization:penalties:position",0.0);
+		defaults_.setValue("2D_optimization:penalties:height",1.0);
+		defaults_.setValue("2D_optimization:penalties:left_width",0.0);
+		defaults_.setValue("2D_optimization:penalties:right_width",0.0);
+		defaults_.setValue("2D_optimization:thresholds:tolerance_mz",0.2);
+		defaults_.setValue("2D_optimization:thresholds:max_peak_distance",1.0);
+		defaults_.setValue("2D_optimization:skip_optimization","yes");
+		defaults_.setValue("2D_optimization:delta_abs_error",1e-05f);
+		defaults_.setValue("2D_optimization:delta_rel_error",1e-05f);
+		defaults_.setValue("2D_optimization:iterations",10);
+		
+		
+  	
+		setParam(Param());
   }
 
   PeakPickerCWT::~PeakPickerCWT()
@@ -81,13 +111,48 @@ namespace OpenMS
     }
     else
     {
-      cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
-      << " It is set to '" << opt << "'" << endl;
+    	cerr << "Warning: PeakPickerCWT option 'Optimization:skip_optimization' should be 'yes' or 'no'!"
+    			 << " It is set to '" << opt << "'" << endl;
     }
     scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
     radius_ = (int)param_.getValue("thresholds:search_radius");
-  }
+
+
+		opt = param_.getValue("deconvolution:skip_deconvolution").toString();
+		if (opt=="yes")
+			{
+				deconvolution_ = false;
+			}
+		else if (opt=="no")
+			{
+				deconvolution_ = true;
+			}
+		else
+			{
+				cerr << "Warning: PeakPickerCWT option 'deconvolution:skip_deconvolution' should be 'yes' or 'no'!"
+						 << " It is set to '" << opt << "'" << endl;
+			}
+
+		opt = param_.getValue("2D_optimization:skip_optimization").toString();
+		if (opt=="yes")
+			{
+				two_d_optimization_ = false;
+			}
+		else if (opt=="no")
+			{
+				two_d_optimization_ = true;
+			}
+		else
+			{
+				cerr << "Warning: PeakPickerCWT option '2D_optimization:skip_optimization' should be 'yes' or 'no'!"
+						 << " It is set to '" << opt << "'" << endl;
+			}
+
+		
+
+	}
+	
 
   bool PeakPickerCWT::getMaxPosition_
   ( RawDataPointIterator first,
@@ -128,7 +193,7 @@ namespace OpenMS
     for(i=start, k=0; i!=end; i+=direction, ++k)
     {
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "Search for max pos in cwt " << std::endl;
+      std::cout << "Search for max pos in cwt " <<  noise_level_cwt <<std::endl;
 #endif
       // Check for maximum in cwt at position i
       if(((wt[i-1] - wt[i]  ) < 0)
@@ -212,9 +277,10 @@ namespace OpenMS
 
     // search for the left endpoint
     while (((it_help-1) > first) && (it_help->getIntensity() > noise_level_))
-    {
+			{
+	
 #ifdef DEBUG_PEAK_PICKING
-      std::cout << "while left endpoint " << std::endl;
+    	std::cout << "while left endpoint " << std::endl;
 #endif
       // if the values are still falling to the left, everything is ok.
       if ((it_help-1)->getIntensity() < it_help->getIntensity())
@@ -222,8 +288,7 @@ namespace OpenMS
         --it_help;
 
 #ifdef DEBUG_PEAK_PICKING
-
-        std::cout << "it_help " << it_help->getPos() << std::endl;
+				      std::cout << "it_help " << it_help->getPos() << std::endl;
 #endif
 
       }
@@ -232,19 +297,17 @@ namespace OpenMS
       {
         if ((it_help-2) <= first)
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "it_help-2) <= first"  << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING        	
+						std::cout << "it_help-2) <= first"  << std::endl;
+#endif      
           break;
         }
         // now check the value to the left of the problematic value
         if ((it_help-2)->getIntensity() > (it_help-1)->getIntensity()) // we probably ran into another peak
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING        	
+         	std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
+#endif        		
           break;
         }
 
@@ -269,22 +332,19 @@ namespace OpenMS
                     : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
-
-        std::cout << "start " << start << " stop " << stop << std::endl;
-#endif
-
+				std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start]  )
                  * (wt_[start]   - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING
-            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()
-            << " " <<  wt_.getSignal()[start].getPos()
-            << " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING            
+            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
+            					<< " " <<  wt_.getSignal()[start].getPos()
+            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif            						
             monoton=false;
             break;
           }
@@ -303,37 +363,33 @@ namespace OpenMS
     // search for the right endpoint ???
     while (((it_help+1) < last) && (it_help->getIntensity() > noise_level_))
     {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "while right endpoint " << std::endl;
-#endif
-      // if the values are still falling to the right, everything is ok.
+#ifdef DEBUG_PEAK_PICKING    	
+    	std::cout << "while right endpoint " << std::endl;
+#endif    		
+			//      if the values are still falling to the right, everything is ok.
       if (it_help->getIntensity() > (it_help+1)->getIntensity())
       {
         ++it_help;
-#ifdef DEBUG_PEAK_PICKING
-
-        std::cout << "it_help " << it_help->getPos() << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING        
+         std::cout << "it_help " << it_help->getPos() << std::endl;
+#endif         	
       }
       // if the values are _rising_, we have to check the cwt
       else
       {
         if ((it_help+2) >= last)
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "it_help+2) <= first"  << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "it_help+2) <= first"  << std::endl;
+#endif        		
           break;
         }
         // now check the value to the right of the problematic value
         if ((it_help+2)->getIntensity() > (it_help+1)->getIntensity()) // we probably ran into another peak
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING        	
+        	std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
+#endif        		
           break;
         }
 
@@ -357,22 +413,19 @@ namespace OpenMS
                     : cwt_pos + ep_radius + (distance_from_scan_border + zeros_left_index + 2);
 
 #ifdef DEBUG_PEAK_PICKING
-
-        std::cout << "start " << start << " stop " << stop << std::endl;
-#endif
-
+				std::cout << "start " << start << " stop " << stop << std::endl;
+#endif					
         for (; start < stop; ++start)
         {
           if (   (wt_[start-1] - wt_[start])
                  * (wt_[start]  - wt_[start+1]) < 0 )
           {
             // different slopes at the sides => stop here
-#ifdef DEBUG_PEAK_PICKING
-            std::cout << "monoton test " << wt_.getSignal()[start-1].getPos()
-            << " " <<  wt_.getSignal()[start].getPos()
-            << " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
-#endif
-
+#ifdef DEBUG_PEAK_PICKING            
+             std::cout << "monoton test " << wt_.getSignal()[start-1].getPos() 
+            					<< " " <<  wt_.getSignal()[start].getPos()
+            					<< " " <<  wt_.getSignal()[start+1].getPos() << std::endl;
+#endif            						
             monoton=false;
             break;
           }
@@ -747,8 +800,403 @@ namespace OpenMS
         return sech;
       }
     }
+  } 
+
+	void PeakPickerCWT::deconvolutePeak_(PeakShape& shape,
+																			 PeakPickerCWT::PeakArea_& area,
+																			 std::vector<double> peak_endpoints)
+	{
+		// scaling for charge one
+		float scaling_DC = (float) param_.getValue("deconvolution:scaling");
+
+		
+		// init and calculate the transform of the signal in the convoluted region
+		// first take the scaling for charge 2
+		wtDC_.init(scaling_DC/2,  wt_.getSpacing());
+		wtDC_.transform(area.left,area.right,2);
+
+
+#ifdef DEBUG_DECONV
+		std::cout << "------------------\n---------------------\nconvoluted area begin "<<area.left->getPos()<<"\tend "<<area.right->getPos()<<std::endl;
+#endif
+		
+		
+		int charge=2,old_peaks;
+		std::vector<double> peak_values,old_peak_values;
+		std::vector<PeakShape> peaks_DC;
+		int peaks = getNumberOfPeaks_(area.left,area.right,peak_values,/*charge*/1,2,wtDC_);
+		
+																											
+		bool correct_scale = false;
+
+ 		//	if(peaks > 1) correct_scale = true;
+		std::vector<double> distances;
+		while(!correct_scale)
+			{
+				old_peaks = peaks;
+				old_peak_values = peak_values;
+#ifdef DEBUG_DECONV
+				std::cout << "current charge: "<< charge << "\t #peaks: " << peaks << std::endl;
+				std::cout << "current scale: "<< scaling_DC/charge<<std::endl;
+#endif
+				correct_scale = true;
+				distances.clear();
+				//check distances between the peaks, if there is a larger one than try a higher charge
+				for(unsigned int i=1; i<peak_values.size()/2;++i)
+					{
+						distances.push_back(peak_values[2*i+1] - peak_values[2*i-1]);
+#ifdef DEBUG_DECONV
+						std::cout << "distances["<< distances.size()-1<<"] = "
+											<< peak_values[2*i+1] - peak_values[2*i-1]
+											<< " ---- "<<peak_values[2*i+1]<< " - " <<peak_values[2*i-1]
+											<< " ---- "<<distances[distances.size()-1]  <<std::endl;
+#endif
+					}
+				if(peaks <=1)
+					{
+						//std::cout << "peaks "<< peaks << "\told_peaks "<< old_peaks << std::endl;
+				
+						++charge;
+						wtDC_.init(scaling_DC/charge,  wt_.getSpacing());
+						wtDC_.transform(area.left,area.right,2);
+						peak_values.clear();
+						peaks = getNumberOfPeaks_(area.left,area.right,peak_values,/*charge,*/1,2,wtDC_);
+						//	std::cout << "peaks "<< peaks << "\told_peaks "<< old_peaks << std::endl;
+						if(peaks <= old_peaks)
+							{
+								//	std::cout << "peaks "<< peaks << "\told_peaks "<< old_peaks << std::endl;
+								peaks = old_peaks;
+								peak_values = old_peak_values;
+								correct_scale = true;
+							}
+						continue;
+					}
+				sort(distances.begin(),distances.end());
+				unsigned int index = static_cast<unsigned int>(floor((distances.size()-1)/2));
+				double median = distances[index];
+#ifdef DEBUG_DECONV
+				std::cout << "median: distance[" << index<<"]= "<<median << std::endl;
+#endif
+				for(;index<distances.size();++index)
+					{
+						// if there is one differing distance try next scale
+						if(distances[index] - median > 0.2 || distances[index] > 1.003/charge+0.15)
+							{
+#ifdef DEBUG_DECONV
+								std::cout << "distance too large: " << distances[index] - median
+													<< " > " <<  0.2 << " or "<<distances[index]<<" > "
+													<<1.003/charge+0.15<<std::endl;
+#endif
+
+								correct_scale = false;
+								break;
+							}
+					}
+				if(!correct_scale)
+					{
+						++charge;
+						wtDC_.init(scaling_DC/charge,  wt_.getSpacing());
+						wtDC_.transform(area.left,area.right,2);
+						peak_values.clear();
+						peaks = getNumberOfPeaks_(area.left,area.right,peak_values,/*charge,*/1,2,wtDC_);
+						if(peaks <= old_peaks)
+							{
+								peaks = old_peaks;
+								peak_values = old_peak_values;
+								correct_scale = true;
+							}
+						
+					}
+			}
+		std::cout << "Number of peaks: "<<peaks << std::endl;
+		// determine the probable charge state
+		// the best result from [charge-1,charge,charge+1] will be taken
+		// if charge equals zero, something bad happened
+		charge = determineChargeState_(peak_values);
+		std::cout << "charge "<<charge<<std::endl;
+		// one peak needn't be deconvoluted
+		if (peaks > 1 && charge >0)
+			{
+				
+				OptimizationFunctions::positions_DC_.clear();
+				OptimizationFunctions::signal_DC_.clear();
+				OptimizationFunctions::peaks_DC_.clear();
+
+				// enter zero-intensity at the left margin
+				OptimizationFunctions::positions_DC_.push_back((area.left)->getPos()-0.2);
+				OptimizationFunctions::signal_DC_.push_back(0);	
+				
+				for (unsigned int i = 0; area.left+i != area.right ;++i)
+					{
+						OptimizationFunctions::positions_DC_.push_back((area.left+i)->getPos());
+						OptimizationFunctions::signal_DC_.push_back((area.left+i)->getIntensity());	
+					}
+				OptimizationFunctions::positions_DC_.push_back((area.right)->getPos());
+				OptimizationFunctions::signal_DC_.push_back((area.right)->getIntensity());	
+
+				OptimizationFunctions::positions_DC_.push_back((area.right)->getPos()+0.2);
+				OptimizationFunctions::signal_DC_.push_back(0);	
+				
+				
+			
+				// initial parameters for the optimization
+				double leftwidth = (float)param_.getValue("deconvolution:left_width");
+				double rightwidth = (float)param_.getValue("deconvolution:right_width");
+			
+				double dist = 1.003 / charge;
+
+				
+				peaks_DC.resize(peaks);
+				PeakShape peak(peak_values[0],peak_values[1],leftwidth,rightwidth,0,PeakShapeType::SECH_PEAK);
+				peaks_DC[0]=peak;
+				//	std::cout<<"peak.mz_position "<<peak.mz_position<<std::endl;
+				for(int i=1;i<peaks;++i)
+					{
+						PeakShape peak(peak_values[2*i],peak_values[1]+i*dist,leftwidth,rightwidth,0,PeakShapeType::SECH_PEAK);
+						peaks_DC[i]=peak;
+						
+#ifdef DEBUG_DECONV
+						std::cout<<"peak.mz_position "<<peak.mz_position<<std::endl;
+#endif
+					}
+				OpenMS::OptimizationFunctions::PenaltyFactorsInt penalties;
+				penalties.height = (float)param_.getValue("deconvolution:penalties:height");
+ 				penalties.pos = (float)param_.getValue("deconvolution:penalties:position");
+				penalties.lWidth = param_.getValue("deconvolution:penalties:left_width");
+				penalties.rWidth = param_.getValue("deconvolution:penalties:right_width");
+
+				unsigned int max_iteration = (int)param_.getValue("deconvolution:iterations");
+
+				double eps_abs = (float)param_.getValue("deconvolution:delta_abs_error");
+				double eps_rel = (float)param_.getValue("deconvolution:delta_rel_error");
+
+				OptimizePeakDeconvolution opt(penalties,max_iteration,eps_abs,eps_rel,charge);
+				
+				int runs=0;
+				
+#ifdef DEBUG_DECONV
+				std::cout<<"OptimizationType: Levenberg-Marquardt mit "<<peaks_DC.size()
+								 <<"peaks\n";
+#endif
+						
+				// if the optimization fails (peaks are too broad) try entering an additional peak
+				while(!opt.optimize(peaks_DC,param_,runs))
+					{
+						++runs;
+						//								if(runs == 3) break;
+						std::cout << "\n\n\nat leat one peak too broad -- adding one peak\n\n"<<std::endl;
+						addPeak_(peaks_DC,area,leftwidth,rightwidth);
+						//OptimizePeakDeconvolution opt2(penalties,max_iteration,eps_abs,eps_rel,charge);
+						//								opt.optimize(peaks_DC,param_,1);
+					}
+						
+      
+						
+				
+#ifdef DEBUG_DECONV
+				
+				std::cout<<" \nLM results:\n";
+				
+				//print gsl results:
+				for(int i=0;i<(int)peaks_DC.size();++i)
+					{
+						std::cout<<"\nposLM("<<i+1<<")="<<peaks_DC[i].mz_position;
+						std::cout<<"\nheightLM("<<i+1<<")="<<peaks_DC[i].height;
+						if(peaks_DC[i].type == PeakShapeType::LORENTZ_PEAK)
+							std::cout<<"\npeak("<<i+1<<")=0\n";
+						else
+							std::cout<<"\npeak("<<i+1<<")=1\n";
+					}
+				std::cout<<"\nlw="<<peaks_DC[0].left_width;			
+				std::cout<<"\nrw="<<peaks_DC[0].right_width<<"\n\n";			
+				
+#endif
+		    double left_endpoint,right_endpoint;
+				for(unsigned int curr_peak=0;curr_peak<peaks_DC.size();++curr_peak)
+					{
+						peak_shapes_.push_back(peaks_DC[curr_peak]);
+		
+						PeakShape p = peaks_DC[curr_peak];
+						if (peaks_DC[curr_peak].type == PeakShapeType::LORENTZ_PEAK)
+							{
+								left_endpoint=p.mz_position+1/p.left_width*sqrt(p.height/1-1);
+								right_endpoint=p.mz_position+1/p.right_width*sqrt(p.height/1-1);
+							}
+						else
+							{
+								left_endpoint=p.mz_position+1/p.left_width*acosh(sqrt(p.height/0.001));
+								right_endpoint=p.mz_position+1/p.right_width*acosh(sqrt(p.height/0.001));
+							}
+						peak_endpoints.push_back(left_endpoint);
+						peak_endpoints.push_back(right_endpoint);
+					}
+				
+				OptimizationFunctions::peaks_DC_.clear();
+				OptimizationFunctions::signal_DC_.clear();
+				OptimizationFunctions::positions_DC_.clear();
+				peaks_DC.clear();
+			}
+		else
+			{
+				peak_shapes_.push_back(shape);
+				peak_endpoints.push_back(area.left->getPos());
+				peak_endpoints.push_back(area.right->getPos());
+			}
+
+		
+	}
+
+
+	void PeakPickerCWT::addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width)
+	{
+		// just enter a peak using equally spaced peak positions
+
+		double peak_width = area.right->getPos() - area.left->getPos();
+		int num_peaks = peaks_DC.size()+1;
+
+		double dist = peak_width / (num_peaks+1);
+
+		// put peak into peak vector using default values for the widths and peak type
+		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,PeakShapeType::SECH_PEAK));
+
+		// adjust the positions and get their initial intensities from the raw data
+		for(int i=0; i < num_peaks; ++i)
+			{
+				peaks_DC[i].mz_position = area.left->getPos() + dist/2 + i*dist;
+
+				std::vector<double>::iterator it_help = lower_bound(OptimizationFunctions::positions_DC_.begin(),
+																														OptimizationFunctions::positions_DC_.end(),
+																														peaks_DC[i].mz_position);
+				if(it_help != OptimizationFunctions::positions_DC_.end())
+					{
+						peaks_DC[i].height =
+							OptimizationFunctions::signal_DC_[distance(OptimizationFunctions::positions_DC_.begin(),it_help)]/10;
+#ifdef DEBUG_DECONV
+						std::cout << "height "<<i<<"   "<<	peaks_DC[i].height<<"\t"
+											<<distance(OptimizationFunctions::positions_DC_.begin(),it_help)<<"\n";
+#endif
+					}
+				else
+					{
+						peaks_DC[i].height =
+							OptimizationFunctions::signal_DC_[OptimizationFunctions::positions_DC_.size()-1];
+#ifdef DEBUG_DECONV
+						std::cout << "else height "<<i<<"   "<<	peaks_DC[i].height<<"\n";
+#endif
+					}
+			}
+		
+		
+	}
+	
+	int PeakPickerCWT::getNumberOfPeaks_(RawDataPointIterator& first,
+																			 RawDataPointIterator& last,
+																			 std::vector<double>& peak_values,
+																			 int direction,
+																			 int resolution,
+																			 ContinuousWaveletTransformNumIntegration& wt)
+  {
+    double noise_level=0.;
+    double noise_level_cwt=0.;
+    
+		noise_level = peak_bound_;
+		noise_level_cwt = peak_bound_cwt_;
+    
+#ifdef DEBUG_DECONV
+    std::cout<<"noise_level = "<<noise_level<<";\tnoise_level_cwt = "<<noise_level_cwt<<";\n";
+		std::cout << "resoltuion "<<resolution <<"\n";
+		std::cout <<"first und last "<< first->getPos() << "\t"<<last->getPos() << std::endl;
+				
+#endif
+
+    int found = 0;
+    
+    int zeros_left_index  = wt.getLeftPaddingIndex();
+    int zeros_right_index = wt.getRightPaddingIndex();
+
+    // The maximum intensity in the signal
+    RawDataPointIterator it_max_pos;
+    //double max_value;T
+    int start = (direction>0) ? zeros_left_index+2 : zeros_right_index-2;
+    int end   = (direction>0) ? zeros_right_index-1  : zeros_left_index+1;
+	
+    int i=0, max_pos;
+    int k=0;
+
+    std::vector<double>::iterator checker;
+		while(wt.getSignal()[start+1].getPos() <= first->getPos())     ++start;
+		//k=i;
+		int offset = start;
+		while(wt.getSignal()[end].getPos() > last->getPos())     --end;
+		for(i=start; i!=end; i+=direction,k+=direction) 
+			{
+
+				// Does a maximum in the wavelet transform at position i exists?
+				if(((wt[i-1] - wt[i]  ) < 0) 
+					 && ((wt[i]   - wt[i+1]) > 0) 
+					&& ( wt[i]   >  noise_level_cwt))					
+					{
+#ifdef DEBUG_DECONV
+						std::cout << "MAX in CWT at " << (first+(i-offset)/resolution)->getPosition()[0]<< " with " << wt[i]
+											<< std::endl;
+
+#endif
+						max_pos=(i-offset)/resolution;
+
+						// if the maximum position is high enough and isn't one of the border points, we return it
+						if(((first+max_pos)->getIntensity() >= noise_level) 
+							 && (((first+max_pos) != first) 
+									 && (first+max_pos)   != (last-1))
+							 )
+							{
+#ifdef DEBUG_DECONV
+								std::cout << "_________REAL Max in CWT at__________ " << (first+max_pos)->getPosition()[0] << "\n";
+#endif
+								peak_values.push_back((first+max_pos)->getIntensity());
+								peak_values.push_back((first+max_pos)->getPos());
+								
+								++found;
+							}
+					
+					}
+      }
+#ifdef DEBUG_DECONV
+		std::cout<<"number of peaks found: "<<found<<"\n";
+#endif
+    return found;
   }
 
+  int PeakPickerCWT::determineChargeState_(std::vector<double>& peak_values)
+  {
+    int charge;
+    int peaks = (int)peak_values.size() / 2;
+    if(peaks>1)
+      {
+				double dif = 0;
+				int i=peaks-1;
+				while(i>0)
+					{
+						dif += fabs(peak_values[2*i+1] - peak_values[2*(i-1)+1]);
+#ifdef DEBUG_DECONV
+						std::cout << "peak_values["<<i <<"] "<< peak_values[2*i+1]
+											<< " peak_values[" <<i-1 <<"] "<< peak_values[2*(i-1)+1]
+											<<" dif["<<i<<"]=" << dif<<std::endl;
+#endif
+						--i;
+					}
+				dif /= peaks-1;
+				charge = (int) round(1/dif);
+				if(isnan(charge) || isinf(charge)) charge = 0;
+#ifdef DEBUG_DECONV
+				std::cout<<"1/dif = "<<1/dif<<";\tcharge = "<<charge<<std::endl;
+#endif
+      }
+    else charge = 1;
+    
+    return charge;
+  }
+
+	
   double PeakPickerCWT::correlate_(const PeakShape& peak,
                                    const PeakPickerCWT::PeakArea_& area,
                                    int direction) const
