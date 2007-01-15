@@ -390,7 +390,7 @@ int main ( int main_argc, char ** main_argv)
 
 		if ( line_num_1_max == -1 && line_num_2_max == -1 )
 		{
-			std::cout << "No numberic differences were found.\n" << std::endl;
+			std::cout << "No numeric differences were found.\n" << std::endl;
 		}
 		else
 		{
