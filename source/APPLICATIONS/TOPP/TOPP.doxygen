@@ -34,11 +34,11 @@
   The OpenMS library has to be built before TOPP.
 
 	Common options of all TOPP tools are:
-  - <b>-ini <file></b> Use the given TOPP INI file
-  - <b>-log <file></b> Location of the log file (default: 'TOPP.log')
-  - <b>-instance <n></b> Instance number for the TOPP INI file (default: '1')
-  - <b>-debug <n></b> Sets the debug level (default: '0')
-  - <b>-write_ini <file></b> Writes an example INI file
+  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
+  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
+  - <b>-instance &lt;n&gt;</b> Instance number for the TOPP INI file (default: '1')
+  - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
+  - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
   - <b>--help</b> Shows a help page for the command line and INI file options
 
  	The TOPP tools are devided into several subgroups:

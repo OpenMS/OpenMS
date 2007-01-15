@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUMMDIWINDOW_H
-#define OPENMS_VISUAL_SPECTRUMMDIWINDOW_H
+#ifndef OPENMS_APPLICATIONS_TOPPVIEWBASE_H
+#define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
 //OpenGL
 #include <OpenMS/config.h>
@@ -336,4 +336,5 @@ namespace OpenMS
   ; //class
 
 } //namespace
-#endif
+
+#endif // OPENMS_APPLICATIONS_TOPPVIEWBASE_H

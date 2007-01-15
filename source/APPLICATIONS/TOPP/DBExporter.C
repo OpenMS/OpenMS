@@ -69,8 +69,8 @@ class TOPPDBExporter
 			registerStringOption_("password", "<password>", "", "password for the user");
 			registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
-			registerIntOption_("id", "<DB id>", 0, "id of the the map to export");
-			registerStringOption_("query", "<query>", "", "a SQL query that returns one or several DB ids of the MSExperiment table");
+			registerIntOption_("id", "<DB id>", 0, "id of the the map to export", false);
+			registerStringOption_("query", "<query>", "", "a SQL query that returns one or several DB ids of the MSExperiment table", false);
 			registerStringOption_("out", "<file>", "", "output file in mzData format (prefixed with DB id and '_' if several files are exported)");
 			addEmptyLine_();
 			addText_("In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.");
@@ -96,7 +96,12 @@ class TOPPDBExporter
 			port = getIntOption_("port");
 			query = getStringOption_("query");
 			id = getIntOption_("id");
-
+			
+			if (id==0 && query == "")
+			{
+				writeLog_("Error: You have to give weither the 'id' option or the 'query' option! Aborting.");
+				return ILLEGAL_PARAMETERS;
+			}
 	
 			//-------------------------------------------------------------
 			// reading input

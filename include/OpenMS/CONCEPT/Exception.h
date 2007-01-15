@@ -67,7 +67,7 @@ namespace OpenMS
 		  <code>__LINE__</code> are built-in preprocessor macros that hold the
 		  desired information.  <code>__PRETTY_FUNCTION__</code> is replaced by
 		  the GNU G++ compiler with the demangled name of the current function.
-		  (For other compilers it is <code>#define</code>d as "<unknown>" in
+		  (For other compilers it is defined as "<unknown>" in
 		  config.h.)
 
 			OpenMS provides its own

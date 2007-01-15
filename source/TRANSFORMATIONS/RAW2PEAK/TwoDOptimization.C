@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 //
 
-
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 
 namespace OpenMS

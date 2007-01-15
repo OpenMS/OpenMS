@@ -409,7 +409,8 @@
 				"/CONCEPT/Benchmark.h",
 				"/CONCEPT/Constants.h",
 				"/config.h",
-				"source/config/tools/check_test.C"
+				"source/config/tools/check_test.C",
+				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				);
 
 			if (endsWith($f,".h") )

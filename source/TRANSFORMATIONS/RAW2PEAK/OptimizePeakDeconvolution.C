@@ -27,7 +27,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 
-
 namespace OpenMS
 {
   

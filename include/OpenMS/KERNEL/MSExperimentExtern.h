@@ -830,7 +830,7 @@ public:
 		/// returns the meta information of this experiment (const access)
 		const ExperimentalSettings& getExperimentalSettings() const { return  exp_; }
 
-    /// Mutable access to peak with index @p
+    /// Mutable access to peak with index @p index
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
     {
 // 				std::cout << "getPeak(" << index << ")" << std::endl;

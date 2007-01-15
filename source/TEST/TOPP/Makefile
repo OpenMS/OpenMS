@@ -33,8 +33,8 @@ UNCONDITIONAL_TESTS = \
 	AdditiveSeries_test \
 	AnalysisXMLMerger_test \
 	BaselineFilter_test \
-	DBExporter_test \
 	DBImporter_test \
+	DBExporter_test \
 	DTAExtractor_test \
 	MapDewarper_test \
 	FeaturePairSplitter_test \
@@ -52,8 +52,10 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SequestAdapter_test\
 	SpectraFilter_test \
-	FeatureFinder_test \
-	PeakPicker_test
+	FeatureFinder_test
+
+# \
+#	PeakPicker_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
@@ -230,7 +232,12 @@ DBExporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
 	@if test -f DBExporter_input.ini; then \
-		$(ECHO) "	... todo ..."; \
+		$(ECHO) "- Test 1: -id"; \
+		$(call RUN_PROG_OPT,DBExporter, -out DBExporter_output.tmp -ini DBExporter_input.ini -id 1); \
+		($(call TEST_FILE_EQUAL,DBExporter_output.tmp,DBImporter_input.mzData)); \
+		$(ECHO) "- Test 2: -query"; \
+		$(call RUN_PROG_OPT,DBExporter, -out DBExporter_output2.tmp -ini DBExporter_input.ini -query 'SELECT 1'); \
+		($(call TEST_FILE_EQUAL,DBExporter_output2.tmp,DBImporter_input.mzData)); \
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBExporter_input.ini'"; \
 	fi;
@@ -239,7 +246,11 @@ DBImporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
 	@if test -f DBImporter_input.ini; then \
-		$(ECHO) "	... todo ..."; \
+		$(ECHO) "- Test 1: -init"; \
+		$(call RUN_PROG_OPT,DBImporter, -init -ini DBImporter_input.ini); \
+		$(ECHO) "- Test 2: -in"; \
+		$(call RUN_PROG_OPT,DBImporter, -in DBImporter_input.mzData -ini DBImporter_input.ini); \
+		$(ECHO) "  The actual test is perfomed by DBExporter!"; \
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBImporter_input.ini'"; \
 	fi;

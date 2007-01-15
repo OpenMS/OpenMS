@@ -480,7 +480,7 @@ public:
     //@}
 
 
-    /// Mutable access to peak with index @p
+    /// Mutable access to peak with index @p index 
     DRawDataPoint<2> getPeak(const UnsignedInt index) throw (Exception::IndexOverflow)
     {
       if (index > nr_dpoints_) throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, nr_dpoints_);

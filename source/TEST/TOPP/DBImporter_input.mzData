@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="OpenMS:">
+	<description>
+		<admin>
+			<sampleName>fruity loops</sampleName>
+			<sampleDescription>
+				<cvParam cvLabel="psi" accession="PSI:1000001" name="SampleNumber" value="007"/>
+				<cvParam cvLabel="psi" accession="PSI:1000004" name="SampleMass" value="30.1"/>
+			</sampleDescription>
+			<contact>
+				<name>Piech</name>
+				<institution>aff</institution>
+			</contact>
+			<contact>
+				<name></name>
+				<institution></institution>
+				<contactInfo>ttss</contactInfo>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+				<cvParam cvLabel="psi" accession="PSI:1000007" name="InletType" value="Direct"/>
+				<cvParam cvLabel="psi" accession="PSI:1000008" name="IonizationType" value="ESI"/>
+				<cvParam cvLabel="psi" accession="PSI:1000009" name="IonizationMode" value="PositiveIonMode"/>
+				<userParam name="label" value="blue"/>
+			</source>
+			<analyzerList count="2">
+				<analyzer>
+					<cvParam cvLabel="psi" accession="PSI:1000011" name="Resolution" value="7.444"/>
+					<cvParam cvLabel="psi" accession="PSI:1000012" name="ResolutionMethod" value="FWHM"/>
+					<cvParam cvLabel="psi" accession="PSI:1000013" name="ResolutionType" value="Constant"/>
+					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="1.2687"/>
+					<cvParam cvLabel="psi" accession="PSI:1000021" name="ReflectronState" value="None"/>
+					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="8.456"/>
+					<cvParam cvLabel="psi" accession="PSI:1000024" name="FinalMSExponent" value="8"/>
+					<cvParam cvLabel="psi" accession="PSI:1000025" name="MagneticFieldStrength" value="9.999"/>
+				</analyzer>
+				<analyzer>
+					<cvParam cvLabel="psi" accession="PSI:1000010" name="AnalyzerType" value="TOF"/>
+					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="5.555"/>
+					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="6.666"/>
+					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="MassScan"/>
+					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
+					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
+					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>
+					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="7.777"/>
+					<userParam name="label" value="pink"/>
+				</analyzer>
+			</analyzerList>
+			<detector>
+				<cvParam cvLabel="psi" accession="PSI:1000026" name="DetectorType" value="Photomultiplier"/>
+				<cvParam cvLabel="psi" accession="PSI:1000027" name="DetectorAcquisitionMode" value="PulseCounting"/>
+				<cvParam cvLabel="psi" accession="PSI:1000028" name="DetectorResolution" value="6.7677"/>
+				<cvParam cvLabel="psi" accession="PSI:1000029" name="ADCSamplingFrequency" value="7.6766"/>
+				<userParam name="label" value="black"/>
+			</detector>
+			<additional>
+				<cvParam cvLabel="psi" accession="PSI:1000030" name="Vendor" value="Porsche K.G. Zuffenhausen"/>
+				<cvParam cvLabel="psi" accession="PSI:1000031" name="Model" value="Porsche 911"/>
+				<cvParam cvLabel="psi" accession="PSI:1000032" name="Customization" value="340 PS"/>
+				<userParam name="label" value="red"/>
+			</additional>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<spectrumList count="2">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<acqSpecification spectrumType="" methodOfCombination="combo" count="1">
+						<acquisition acqNumber="1">
+							<userParam name="icon" value="yet another icon"/>
+						</acquisition>
+					</acqSpecification>
+					<spectrumInstrument msLevel="1" mzRangeStart="3.456" mzRangeStop="7.89">
+						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="SelectedIonDetection"/>
+						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Negative"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1.98"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<supDesc supDataArrayRef="icon">
+				<supDataDesc>
+					<userParam name="icon" value="an icon is an icon is an icon"/>
+				</supDataDesc>
+				<supSourceFile>
+					<nameOfFile>this is the filename</nameOfFile>
+					<pathToFile>/slashdot/</pathToFile>
+					<fileType>RAWDATA</fileType>
+				</supSourceFile>
+			</supDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="3">ZgYWRGYGL0RmBkhE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AEANRAAAG0QAQC9E</data>
+			</intenArrayBinary>
+		</spectrum>
+		<spectrum id="2">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="2" mzRangeStart="3.456" mzRangeStop="7.89">
+						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="SelectedIonDetection"/>
+						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Negative"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3.96"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="2" spectrumRef="1">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="600.1"/>
+							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
+							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="4711"/>
+						</ionSelection>
+						<activation>
+							<userParam name="icon" value="Precursor"/>
+						</activation>
+					</precursor>
+				</precursorList>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="3">XE/IQgBAFkMAQJZD</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AABSQwAAykIAALRC</data>
+			</intenArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>

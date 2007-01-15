@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: Marc Sturm  $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_VISUAL_RUBBERBAND_H
 #define OPENMS_VISUAL_RUBBERBAND_H
@@ -37,6 +36,8 @@ namespace OpenMS
 		@brief Rubber band to select ranges on the screen.
 		
 		Implementation as described in the "C++ GUI Programming with Qt 3" book.
+		
+		@todo replace by the same as used in 2D and 3D? (Marc)
 		
 		@ingroup Visual
 	*/

@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_DPOSITION_H
-#define OPENMS_KERNEL_DPOSITION_H
+#ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
+#define OPENMS_DATASTRUCTURES_DPOSITION_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -388,4 +388,4 @@ namespace OpenMS
 	
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DPOSITION_H
+#endif // OPENMS_DATASTRUCTURES_DPOSITION_H

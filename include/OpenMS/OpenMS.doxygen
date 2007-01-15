@@ -58,8 +58,7 @@
 	- HP updaten
 
 	TODO:
-	- checker.php
-	- Test für DBImporter und DBExporter
+	- checker.php (check_test)
 	- TOPPBase entfernen
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?

@@ -24,6 +24,9 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_APPLICATIONS_TOPPBASE_H
+#define OPENMS_APPLICATIONS_TOPPBASE_H
+
 #include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -290,3 +293,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
+#endif //OPENMS_APPLICATIONS_TOPPBASE_H

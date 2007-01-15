@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUMMDIWINDOWPDP_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUMMDIWINDOWPDP_H
+#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWBASEPDP_H
+#define OPENMS_VISUAL_DIALOGS_TOPPVIEWBASEPDP_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/PreferencesDialogPage.h>
@@ -117,5 +117,5 @@ namespace OpenMS
 	
 } //namespace OpenMS
 
-#endif //OPENMS_VISUAL_DIALOGS_SPECTRUMMDIWINDOWPDP_H
+#endif //OPENMS_VISUAL_DIALOGS_TOPPVIEWBASEPDP_H
 
