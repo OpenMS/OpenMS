@@ -379,7 +379,7 @@ CHECK(bool operator == (const DPickedPeak& rhs) const)
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
-CHECK(bool operator != (const DPickedPeak& rhs) const))
+CHECK(bool operator != (const DPickedPeak& rhs) const)
 	DPickedPeak<1> p1;
 	DPickedPeak<1> p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
