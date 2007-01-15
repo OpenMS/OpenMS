@@ -52,29 +52,28 @@
 */
 
 /*	
+	Release (immer):
+	- Valgrind
+	- Test alle mit SVN-ID austatten
+	- HP updaten
+
 	TODO:
 	- checker.php
 	- Test für DBImporter und DBExporter
-	- TOPPView: FloatKernel statt DoubleKernel?
-	- Release
-		- TOPPBase entfernen
-		- Valgrind
-		- Test alle mit SVN-ID austatten
-		- HP updaten
-	- checker.php
-		- Test properties (Id)
+	- TOPPBase entfernen
+	- TOPPView:
+		- FloatKernel statt DoubleKernel?
+		- Feature markiert -> konvexe Hülle markiert
+		- Preferences für Layers
 
 	TODO (Hiwis):
-	- XML:
-		- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
+	- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
+	- MSExperiment: AreaIterator mit min/max int als Filter, MS-level als Filter
+	- Debug streams (status, debug, error, warning)
 	- TOPPView:
 		- ohne quadtree
-		- Preferences für Layers
 		- Visualisierung von FeaturePairs -> TOPP tool ändern
 		- Messen in 1D
 		- Reduktion in 2D
-		- Feature markiert -> konvexe Hülle markiert
-	- MSExperiment
-	  - AreaIterator mit min/max int als Filter, MS-level als Filter
-	- Debug streams (status, debug, error, warning)
+
 */
