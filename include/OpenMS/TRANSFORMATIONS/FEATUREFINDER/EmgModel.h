@@ -34,6 +34,9 @@
 
 namespace OpenMS
 {
+	/** @brief Exponentially modified gaussian distribution model for elution
+			profiles.
+	 */
 	class EmgModel
 		: public InterpolationModel<>
 	{

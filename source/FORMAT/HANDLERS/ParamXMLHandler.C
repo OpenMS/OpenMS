@@ -38,7 +38,7 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(map<string,DataValue>& values, const String& filename)
+	ParamXMLHandler::ParamXMLHandler(map<std::string,DataValue>& values, const String& filename)
 		: XMLHandler(filename),
 			values_(values)
 	{

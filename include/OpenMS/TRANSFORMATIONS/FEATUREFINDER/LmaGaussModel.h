@@ -34,6 +34,10 @@
 namespace OpenMS
 {
 
+	/** @brief Normal distribution model for elution profiles.
+			
+	To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
+	*/
 	class LmaGaussModel
 		: public InterpolationModel<>
 	{

@@ -33,6 +33,9 @@
 
 namespace OpenMS
 {
+	
+	/** @brief Log-normal distribution model for elution profiles.
+	 */
 	class LogNormalModel
 		: public InterpolationModel<>
 	{

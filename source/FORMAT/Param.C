@@ -441,7 +441,7 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , char **argv, const map<string, string>& options_with_argument, const map<string, string>& options_without_argument, const string& misc, const string& unknown)
+	void Param::parseCommandLine(const int argc , char **argv, const map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc, const std::string& unknown)
 	{
 		//determine misc key
     string misc_key = misc;
