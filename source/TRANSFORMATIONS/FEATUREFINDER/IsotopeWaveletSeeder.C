@@ -45,7 +45,7 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
 		defaults_.setValue("rtvotes_cutoff",5);
 
 		// max and min charge states examined
-		defaults_.setValue("max_charge",5);
+		defaults_.setValue("max_charge",4);
 		defaults_.setValue("min_charge",1);
 		
 		// intensity threshold in wt
@@ -60,6 +60,8 @@ IsotopeWaveletSeeder::IsotopeWaveletSeeder():
     defaults_.setValue("scans_to_sumup",5);
 		
 		defaults_.setValue("tolerance_scansum",0.1);
+		
+		defaults_.setValue("min_samplingrate",0.05);
 				
     param_ = defaults_;
 }
@@ -101,7 +103,8 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
         std::vector<double>* wt_thresholds = NULL;
 
         UnsignedInt nr_scans = traits_->getData().size();
-
+				StopWatch watch;
+				watch.start();
         for (UnsignedInt i=0; i<nr_scans; ++i)
         {
             CoordinateType current_rt = traits_->getData()[i].getRetentionTime();
@@ -109,13 +112,13 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
             DPeakArray<1, PeakType> current_scan = traits_->getData()[i].getContainer();
 
 						#ifdef DEBUG_FEATUREFINDER
-//             String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
-//             std::ofstream outfile(filename.c_str());
-//             for (UnsignedInt k=0; k<current_scan.size();++k)
-//             {
-//                 outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
-//             }
-//             outfile.close();
+            String filename = "scan_" + String( traits_->getData()[i].getRetentionTime() );
+            std::ofstream outfile(filename.c_str());
+            for (UnsignedInt k=0; k<current_scan.size();++k)
+            {
+                outfile << current_scan[k].getPos() << " " << current_scan[k].getIntensity() << std::endl;
+            }
+            outfile.close();
 					  #endif
 						
 						// align and sum
@@ -138,7 +141,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
         // filter detected isotopic pattern
         filterHashByRTVotes();
 
-				#ifdef DEBUG_FEATUREFINDER
+//				#ifdef DEBUG_FEATUREFINDER
 //         CoordinateType min_mass = traits_->getData().getMin().Y();
 // 
 //         for (SweepLineHash::const_iterator citer = hash_.begin();
@@ -169,8 +172,9 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 //             std::cout << "----------------------------------------------------------------" << std::endl;
 // 
 //         }
-				#endif
-				
+//				#endif
+				watch.stop();
+				std::cout << "Time spent for cwt: " << watch.getClockTime() << " [s] " << std::endl;
 				hash_iter_ = hash_.begin();		
 				
 				is_initialized_ = true;
@@ -194,7 +198,7 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
 					
 					if (current_scan >= (traits_->getData().size() ) )
 					{
-// 					std::cout << "Warning: wrong scan number:" << current_scan  << std::endl;
+						// this shouldn't happen ;-)
 						break;
 					}
 							
@@ -277,7 +281,9 @@ void IsotopeWaveletSeeder::computeSpacings_()
     UnsignedInt nr_of_peaks = traits_->getData().getSize();
     avMZSpacing_ = (MZspacing_sum / (double)(nr_of_peaks - rt_counts - 1)); //-1, since there are n data points and hence n-1 spacings
 
-    return;
+		CoordinateType min_sampling = param_.getValue("min_samplingrate");
+		if (avMZSpacing_ < min_sampling)
+				avMZSpacing_ = min_sampling; 
 }
 
 void IsotopeWaveletSeeder::generateGammaValues_()
@@ -286,14 +292,14 @@ void IsotopeWaveletSeeder::generateGammaValues_()
     preComputedGamma_.clear();
 
     double query = 0;
-    UnsignedInt counter=0;
+		UnsignedInt counter=0;
 		UnsignedInt max_charge = param_.getValue("max_charge");
 		
     while (query <= (max_charge*peak_cut_off_ +1) )
     {
         preComputedGamma_[counter] = tgamma (query);
         query += min_spacing_;
-        ++counter;
+				++counter;
     }
     std::cout << " done." << std::endl;
 }
@@ -316,6 +322,7 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 
     for (UnsignedInt i=0; i<signal_size; ++i)
     {
+
         //Now, let's sample the wavelets
         for (charge_iter=charges_.begin(), k=0; charge_iter!=charges_.end(); ++charge_iter, ++k)
         {
@@ -323,32 +330,31 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
             w_sum=0;
             w_s_sum=0;
             realMass = signal[i].getPos() * (*charge_iter);
-//         		std::cout << "realMass: " << realMass << std::endl;
 
             lambda = getLambda (realMass); 	//Lambda determines the distribution (the shape) of the wavelet
-            //std::cout << "Exact: " << integration << "\t" << lambda << "\t" << 1.0/(double)(*charge_iter) << std::endl;
-
-            max_w_monoi_intens=0.25/(*charge_iter);
+	          max_w_monoi_intens=0.25/(*charge_iter);
 
             //Align the maximum monoisotopic peak of the wavelet with some signal point
             UnsignedInt j=0;
             double last=0;
+
             while (cumSpacing < max_w_monoi_intens)
             {
                 cSpacing = signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
                 last=cumSpacing;
                 
-								if (cSpacing < 0)
+								if (cSpacing <= 0)
                     cumSpacing += avMZSpacing_;
                 else //The "normal" case
                     cumSpacing += signal[(i+j+1)%signal_size].getPos() - signal[(i+j)%signal_size].getPos();
-
+										
 								++j;
             }
 
             align_offset = max_w_monoi_intens-last;
 
             cumSpacing=align_offset;
+
             for (UnsignedInt j=0; j<waveletLength_; ++j)
             {
                 tmp_pos = signal[(i+j)%signal_size].getPos();
@@ -385,7 +391,7 @@ void IsotopeWaveletSeeder::fastMultiCorrelate(const DPeakArray<1, PeakType >& si
 
         std::vector<double> sums (charges_.size());
         k=0;
-				
+
 				//Since all wavelet functions have the same length, we can simply use phis[0].size()
         for (UnsignedInt j=i; j<signal_size && k<phis[0].size(); ++j, ++k)
         {	
@@ -433,9 +439,11 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
     std::pair<int, int> c_between;
     int start, end, goto_left;
 
+		ChargeVector::const_iterator charge_iter = charges_.begin();
 
     for (unsigned int c=0; c<candidates.size(); ++c)
     {
+				
 				processed = std::vector<bool> (candidates[0].size(), false); 				//Reset
         containerType c_candidate(candidates[c].size());
         
@@ -455,20 +463,20 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
         }
 
 				#ifdef DEBUG_FEATUREFINDER
-// 				std::cout << "Checking charge state " << (c+1) << std::endl;
-// 				std::cout << "Average intensity: " << c_av_intens << std::endl;
-// 				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
-//         
-// 				// write debug output
-//				CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
-// 				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
-//         std::ofstream outfile(filename.c_str());
-// 				containerType::iterator write_iter;
-//         for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
-//         {
-//             outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
-//         }
-//         outfile.close();
+				std::cout << "Checking charge state " << *charge_iter << std::endl;
+				std::cout << "Average intensity: " << c_av_intens << std::endl;
+				std::cout << "Threshold for wt: " << ((*wt_thresholds)[c]*avg_intensity_factor_*c_av_intens) << std::endl;
+        
+				// write debug output
+				CoordinateType current_rt = traits_->getData()[scan].getRetentionTime();
+				String filename = "cwt_" + String(current_rt) + "_charge_" + String(c+1);
+        std::ofstream outfile(filename.c_str());
+				containerType::iterator write_iter;
+        for (write_iter=c_candidate.begin(); write_iter != c_candidate.end(); ++write_iter)
+        {
+            outfile << write_iter->getPos() << " " << write_iter->getIntensity() << std::endl;
+        }
+        outfile.close();
 				#endif
 				
         c_candidate.erase (iter, c_candidate.end());
@@ -524,9 +532,12 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
             {
                 scoresC[c][c_index] = 0;
             }
-        }
-    }
-
+											
+        } 
+					
+		++charge_iter;
+    } // end of for (unsigned int c=0; c<candidates.size(); ++c)
+		
 		
     //Now, since we computed all scores, we can hash all mz positions
     UnsignedInt numOfCharges = candidates.size(), numOfMZPositions = candidates[0].size();
@@ -583,8 +594,7 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
 				}
         
 				c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().Y()) / avMZSpacing_);
-// 				std::cout << "c_hash_key " << c_hash_key << std::endl;
-				
+
         allZero=true;
         for (iter_cl=charge_scores.begin(); iter_cl!=charge_scores.end(); ++iter_cl)
 				{
@@ -707,8 +717,8 @@ void IsotopeWaveletSeeder::filterHashByRTVotes ()
 
     for (unsigned int i=0; i<toDelete.size(); ++i)
         hash_.erase (toDelete[i]);
-
-    std::cout << "Hash size after filtering: " << hash_.size() << std::endl << std::endl;
+		
+		std::cout << "Hash size after filtering: " << hash_.size() << std::endl << std::endl;
 
 }
 

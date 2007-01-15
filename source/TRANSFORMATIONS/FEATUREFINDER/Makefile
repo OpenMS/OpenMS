@@ -56,7 +56,8 @@ CPP_SOURCES=\
 	MarrWaveletSeeder.C\
 	FeaFiTraits.C\
 	PickedPeakSeeder.C\
-	IsotopeWaveletSeeder.C
+	IsotopeWaveletSeeder.C\
+	MvAvgExtender.C
 
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)
@@ -66,4 +67,4 @@ include ../../common.mak
 -include .Dependencies
 
 # Uncomment this line to get the FeaFi debug output
-#ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
+ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER

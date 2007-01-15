@@ -88,11 +88,11 @@ CHECK(nextSeed())
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),1048);	
+	TEST_EQUAL(traits->getPeakIntensity(peak),1245);	
 	
 	region = seeder.nextSeed();
 	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),2057);					
+	TEST_EQUAL(traits->getPeakIntensity(peak),1512);					
   
 RESULT
 
