@@ -658,14 +658,6 @@ CREATE TABLE `ADMIN_Version` (
 -- --------------------------------------------------------
 
 -- 
--- Dumping data for table `ADMIN_Version`
--- 
-
-INSERT INTO `ADMIN_Version` (`version`) VALUES ('$Revision$');
-
--- --------------------------------------------------------
-
--- 
 -- Constraints for dumped tables
 -- 
 
@@ -887,5 +879,13 @@ ALTER TABLE `META_SpectrumQuality`
 -- 
 ALTER TABLE `META_TypeNameValue`
   ADD CONSTRAINT TypeNameValue_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- --------------------------------------------------------
+
+-- 
+-- Dumping data for table `ADMIN_Version`
+-- 
+
+INSERT INTO `ADMIN_Version` (`version`) VALUES ('$Revision$');
 
 SET FOREIGN_KEY_CHECKS=1;

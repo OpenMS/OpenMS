@@ -260,7 +260,7 @@ int main(int argc, char **argv)\
 	TEST::test = true;\
 	TEST::newline = false;\
 	if (TEST::verbose > 0)\
-		std::cout << "checking " << #test_name << "... " << std::flush;\
+		std::cout << "checking " << #test_name << "... " << std::endl << std::flush;\
 	try\
 	{\
 		while (true)\

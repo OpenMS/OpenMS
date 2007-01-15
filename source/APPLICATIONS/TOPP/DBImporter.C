@@ -61,10 +61,12 @@ class TOPPDBImporter
 		{			
 			registerStringOption_("user", "<user>", "", "user/login of the DB");
 			registerStringOption_("host", "<host>", "localhost", "host name of the DB server", false);
-			registerStringOption_("port", "<password>", "", "password for the user");
-			registerIntOption_("password", "<port>", 3306, "port the DB server is running on", false);
+			registerStringOption_("password", "<password>", "", "password for the user");
+			registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
 			registerStringOption_("in", "<file>", "", "input file in mzData format");
+			registerFlag_("init", "Deletes all tables and sets up a new OpenMS database.\n"
+														"The data of 'in' is not imported!");
 		}
 	
 		ExitCodes main_(int argc , char** argv)
@@ -78,9 +80,15 @@ class TOPPDBImporter
 			String db,user,password,host,in;
 			SignedInt port;
 			
-			in = getStringOption_("in");
-			inputFileReadable_(in);
-				
+			bool init = getFlag_("init");
+			
+			
+			if (!init)
+			{
+				in = getStringOption_("in");
+				inputFileReadable_(in);
+			}
+			
 			db = getStringOption_("db");
 			user = getStringOption_("user");
 			password = getStringOption_("password");
@@ -90,22 +98,27 @@ class TOPPDBImporter
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			
-			//load input file data
-			MSExperiment< > exp;
-			MzDataFile f;
-			
-			f.load(in,exp);			
-			
 			QApplication app(argc,argv,false);
-			
 			DBConnection con;
 			con.connect(db, user, password, host, port);
 			DBAdapter a(con);
 			
-			a.storeExperiment(exp);
+			if (init)
+			{
+				a.createDB();
+			}
+			else
+			{	
+				//load input file data
+				MSExperiment< > exp;
+				MzDataFile f;
+				f.load(in,exp);			
+				
+				//store data
+				a.storeExperiment(exp);
 			
-			writeLog_( String(" written file to DB (id: ") + (double)(exp.getPersistenceId()) + ")");	
+				writeLog_( String(" written file to DB (id: ") + (double)(exp.getPersistenceId()) + ")");	
+			}
 			
 			return EXECUTION_OK;
 		}

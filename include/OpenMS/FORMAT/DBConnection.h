@@ -194,8 +194,6 @@ namespace OpenMS
 				
 				Each line has to be a query or empty.
 				
-				@note This function can be used to create the database tables by reading the file 
-				<tt>/data/OpenMS_DB.sql</tt> from the text file and executing the queries.
 				@param queries A STL-compliant container of OpenMS String objects 
 			*/
 			template <class StringListType>

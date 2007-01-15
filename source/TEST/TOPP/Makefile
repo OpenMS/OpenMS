@@ -37,7 +37,6 @@ UNCONDITIONAL_TESTS = \
 	DBImporter_test \
 	DTAExtractor_test \
 	MapDewarper_test \
-	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
@@ -54,6 +53,8 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SequestAdapter_test \
 	SpectraFilter_test
+
+#	FeatureFinder_test \
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
@@ -72,7 +73,8 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 # Tests for processing pipelines using several tools
 
 UNCONDITIONAL_PIPELINE_TESTS = \
-	MyoQuant_test 
+
+#	MyoQuant_test 
 
 CGAL_PIPELINE_TESTS = \
 	PairwiseSuperposition_test

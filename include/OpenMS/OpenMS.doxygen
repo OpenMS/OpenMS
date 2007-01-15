@@ -53,16 +53,19 @@
 
 /*	
 	TODO:
-	- TOPPView
-		- FloatKernel statt DoubleKernel?
+	- File: add 'static String findFile(const vector<String>& custom_locations) const' + check in OPENMS_PATH (configure) und $OPENMS_PATH (env)
+	- Test für DBImporter und DBExporter
+	- TOPPView: FloatKernel statt DoubleKernel?
 	- Release
 		- TOPPBase entfernen	
 		- Cluster-Klassen entfernen (Andreas)
+		- DataSetInfo entfernen
 		- Valgrind
 		- Test alle mit SVN-ID austatten
 		- HP updaten
 	- checker.php
-		- Test properties
+		- Test properties (Id)
+
 	TODO (Hiwis):
 	- XML:
 		- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
@@ -75,8 +78,5 @@
 		- Feature markiert -> konvexe Hülle markiert
 	- MSExperiment
 	  - AreaIterator mit min/max int als Filter, MS-level als Filter
-	- TOPP DBImporter/DBExporter
-		- neue DB erstellen in TOPP tools
-		- SVN-ID in DB und checken ob aktuell
 	- Debug streams (status, debug, error, warning)
 */

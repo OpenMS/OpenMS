@@ -55,7 +55,7 @@ namespace OpenMS
     
     @ingroup DatabaseIO
     
-    @todo add setup and clear method for the DB (Thomas S.)
+    @todo add support for loading metadata or selection of the data -- PeakFileOptions (Thomas S.)
     @todo add support for missing classes / add missing members to classes(Thomas S.)
   */
  
@@ -80,6 +80,16 @@ namespace OpenMS
 			template <class SpectrumType>
 			void loadSpectrum(UID id, SpectrumType& spec);
 
+			/**
+				@brief Returns true if the DB is up-to-date (Checks the version in ADMIN_Version table).
+				
+				@param warning if this is set, a warning is issued to stderr if the db is not up-to-date. 
+			*/
+			bool checkDBVersion(bool warning);
+			
+			/// Deletes all tables in the database and creates a new OpenMS database
+			void createDB();
+			
     private:
     	/// Reference to the DB connection handed over in the constructor
     	DBConnection& db_con_;
@@ -92,7 +102,7 @@ namespace OpenMS
 				
 				@return the id of the new META_MetaInfo table row
 			*/
-			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);	
 			
 			/**
 				@brief Loads MetaInfo data from database
@@ -148,6 +158,11 @@ namespace OpenMS
 		UID acquisition_info_id; // stores id of acquisition_info
 		UID meta_id;             // stores MetaInfo id of meta information that was just stored
 		UID meta_parent_id;      // stores parent ID of MetaInfo that will be stored
+
+		//----------------------------------------------------------------------------------------
+		//------------------------------- CHECK DB VERSION --------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		if (!checkDBVersion(true)) return;
 		
 		//----------------------------------------------------------------------------------------
 		//------------------------------- EXPERIMENTAL SETTINGS ---------------------------------- 
@@ -756,6 +771,11 @@ namespace OpenMS
 	template <class ExperimentType>
 	void DBAdapter::loadExperiment(UID id, ExperimentType& exp)
 	{
+		//----------------------------------------------------------------------------------------
+		//------------------------------- CHECK DB VERSION --------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		if (!checkDBVersion(true)) return;
+		
 		std::stringstream query; // query to build
 		String tmp;              // temporary data
 		QSqlQuery result;        // place to store the query results in
@@ -971,6 +991,11 @@ namespace OpenMS
 	template <class SpectrumType>
 	void DBAdapter::loadSpectrum(UID id, SpectrumType& spec)
 	{
+		//----------------------------------------------------------------------------------------
+		//------------------------------- CHECK DB VERSION --------------------------------------- 
+		//----------------------------------------------------------------------------------------
+		if (!checkDBVersion(true)) return;
+		
 		spec = SpectrumType();
 		
 		std::stringstream query;     // query to build

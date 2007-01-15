@@ -72,6 +72,8 @@ class TOPPDBExporter
 			registerIntOption_("id", "<DB id>", 0, "id of the the map to export");
 			registerStringOption_("query", "<query>", "", "a SQL query that returns one or several DB ids of the MSExperiment table");
 			registerStringOption_("out", "<file>", "", "output file in mzData format (prefixed with DB id and '_' if several files are exported)");
+			addEmptyLine_();
+			addText_("In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.");
 		}
 	
 		ExitCodes main_(int argc , char** argv)

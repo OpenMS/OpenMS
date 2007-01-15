@@ -86,6 +86,7 @@ What do we do in the current implementation?
 //OpenMS includes
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/FORMAT/DBConnection.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 using namespace std;
 
@@ -544,4 +545,124 @@ namespace OpenMS
 		}
 		sample.setSubsamples(subsamples);
 	}
+	
+	bool DBAdapter::checkDBVersion(bool warning)
+	{
+		QSqlQuery result;
+		try
+		{
+			db_con_.executeQuery("SELECT Version FROM ADMIN_Version", result);
+		}
+		catch(DBConnection::InvalidQuery)
+		{
+			cerr << "Error: This is no OpenMS DB, as there is no table 'ADMIN_Version'!" << endl;
+			return false;
+		}
+		
+		if (result.size()==0)
+		{
+			if (warning)
+			{
+				cerr << "Error: There is no entry in the 'ADMIN_Version' table. This should not happen!" << endl;
+			}
+			return false;
+		}
+		else if (result.size()>1)
+		{
+			if (warning)
+			{
+				cerr << "Error: There are several entries in the 'ADMIN_Version' table. This should not happen!" << endl;
+			}
+			return false;
+		}
+		else
+		{
+			result.first();
+			String db_version = result.value(0).toString().ascii();
+			db_version = db_version.suffix(':');
+			db_version = db_version.prefix('$');
+			db_version.trim();
+			
+			TextFile sql(OPENMS_PATH"/data/OpenMS_DB.sql");
+			for (TextFile::ConstReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
+			{
+				if (it->hasSubstring("$Revision:"))
+				{
+					String file_version = *it;
+					file_version = file_version.suffix(':');
+					file_version = file_version.prefix('$');
+					file_version.trim();
+					if (file_version!=db_version)
+					{
+						if (warning)
+						{
+							cerr << "Error: The given DB (Rev: " << db_version 
+									 << ") has a different revision than OpenMS (Rev: " 
+									 << file_version << ")!"<< endl;
+						}
+						return false;
+					}
+					break;
+				}
+			}
+		}
+		return true;
+	}
+	
+	void DBAdapter::createDB()
+	{
+		// load sql queries
+		TextFile sql(OPENMS_PATH"/data/OpenMS_DB.sql");
+		
+		// delete existing tables
+		QSqlQuery result, dummy;
+		db_con_.executeQuery("SHOW TABLES;", result);
+		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;",dummy);
+		while (result.isValid())
+		{
+			db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString().ascii() + "`;", dummy);
+			result.next();
+		}
+		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;",dummy);
+		
+		// Conversion of phpMyAdmin output to required format
+		// concatenate lines so that one line is one query
+		vector<String> queries;
+		String query, line;
+		
+		bool in_query = false;
+		for (TextFile::ConstIterator it = sql.begin(); it != sql.end(); ++it)
+		{
+			line = *it;
+			line.trim();
+			
+			if (in_query)
+			{
+				// line is empty or comment => query ends
+				if (line=="" || (line.size()>=2 && line[0]=='-' && line[1]=='-'))
+				{
+					queries.push_back(query);
+					in_query = false;
+				}
+				// query continues => append
+				else
+				{
+					query = query + ' ' + line;
+				}
+			}
+			else
+			{
+				// line is not empty and not a comment => query starts
+				if (line!="" && (line.size()<2 || line[0]!='-' || line[1]!='-'))
+				{
+					query = line;
+					in_query = true;
+				}
+			}
+		}
+		
+		// execute queries
+		db_con_.executeQueries(queries);
+	}
+	
 } //namespace
