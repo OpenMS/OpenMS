@@ -510,10 +510,14 @@ around this by writing something like
 % (avoid line break here)
 \mbox{\texttt{Latest SVN \$ \$Date{}:\$ \$}}
 % (/avoid line break here)
-if you want to use it in texts; the one here expands to ``Latest SVN $ $Date:
-2006/04/07 08:21:34 $ $''.  Subversion does not turn on keyword substitution
-by default.  See \texttt{svn -h propset} and \texttt{svn -h proplist} for
-details.
+if you want to use it in texts; the one here expands to
+%
+% Please leave these comments so that the following will be on a single line!
+%
+``Latest SVN $ $Date$ $''. %
+%
+Subversion does not turn on keyword substitution by default.  See \texttt{svn
+  -h propset} and \texttt{svn -h proplist} for details.
 
 
 
