@@ -49,6 +49,7 @@ namespace OpenMS
   	defaults_.setValue("wavelet_transform:spacing",0.001);
   	defaults_.setValue("thresholds:noise_level",0.1);
    	defaults_.setValue("thresholds:search_radius",3); 	
+		defaults_.setValue("thresholds:signal_to_noise",3);
 		
 		//Optimization parameters
   	defaults_.setValue("Optimization:skip_optimization","yes");
@@ -117,7 +118,7 @@ namespace OpenMS
     scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
     radius_ = (int)param_.getValue("thresholds:search_radius");
-
+		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
 
 		opt = param_.getValue("deconvolution:skip_deconvolution").toString();
 		if (opt=="yes")
