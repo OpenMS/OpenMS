@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/DTAFile.h>

@@ -47,7 +47,7 @@
 		print "  --help shows this help\n";
 	}
 
-	function realOutput($text,$user,$verbose)
+	function realOutput($text,$user,$verbose,$filename)
 	{
 		if ($verbose)
 		{
@@ -56,7 +56,7 @@
 		print $text;
 		if ($user=="all")
 		{
-			return " (".$GLOBALS["file_maintainers"][$filename].")";
+			print " (".$GLOBALS["file_maintainers"][$filename].")";
 		}
 		print "\n";
 	}
@@ -167,7 +167,7 @@
 	
 	$files=array();
 	exec("cd $path && find include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
-	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 	
 	//look up Maintainer in first 40 lines of files
 	
@@ -339,7 +339,7 @@
 							$right_guard = includeToGuard(suffix($f,strlen($guard)));
 							if ($right_guard!=$guard OR !beginsWith($guard,"OPENMS_"))
 							{
-								realOutput("Wrong header guard '$guard' in '$f'",$user,$verbose);
+								realOutput("Wrong header guard '$guard' in '$f'",$user,$verbose,$f);
 							}					
 							break;
 						}
@@ -348,7 +348,7 @@
 					$class = trim(substr($f,strrpos($f,"/")+1));
 					if ($i==count($file)-1 AND !in_array($class,$dont_report))
 					{
-						realOutput("Missing header guard in '$f' ",$user,$verbose);
+						realOutput("Missing header guard in '$f' ",$user,$verbose,$f);
 					}
 				}	
 			}
@@ -368,7 +368,7 @@
 			}
 			if ($tab_count!=1)
 			{
-				realOutput("Missing tab settings in '$f'",$user,$verbose);
+				realOutput("Missing tab settings in '$f'",$user,$verbose,$f);
 			}
 		}
 
@@ -382,7 +382,7 @@
 				{
 					if ($file_maintainers[$testname] != $file_maintainers[$f])
 					{
-						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$verbose);
+						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$verbose,$f);
 					}
 				}
 				# maintainer of source file
@@ -391,7 +391,7 @@
 				{
 					if ($file_maintainers[$source_name] != $file_maintainers[$f])
 					{
-						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$verbose);
+						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$verbose,$f);
 					}
 				}
 			}
@@ -408,7 +408,8 @@
 				"/CONCEPT/Exception.h",
 				"/CONCEPT/Benchmark.h",
 				"/CONCEPT/Constants.h",
-				"/config.h"
+				"/config.h",
+				"source/config/tools/check_test.C"
 				);
 
 			if (endsWith($f,".h") )
@@ -426,11 +427,11 @@
 				{
 					if (!in_array($testname,$files))
 					{
-						realOutput("Missing test for '$f'",$user,$verbose);
+						realOutput("Missing test for '$f'",$user,$verbose,$f);
 					}
 					else if (!in_array($testname,$called_tests))
 					{
-						realOutput("Missing test for '$f'",$user,$verbose);
+						realOutput("Test not in Makefile for '$f'",$user,$verbose,$f);
 					}
 				}
 			}
@@ -473,7 +474,7 @@
 							}
 							if (!$brief)
 							{
-								realOutput("No @brief description for '$parts[2]' in '$f'",$user,$verbose);
+								realOutput("No @brief description for '$parts[2]' in '$f'",$user,$verbose,$f);
 							}
 						}
 					}
@@ -486,7 +487,7 @@
 		{
 			if (in_array($f,$doxygen_errors))
 			{
-				realOutput("Doxygen errors in '$f'",$user,$verbose);
+				realOutput("Doxygen errors in '$f'",$user,$verbose,$f);
 			}
 		}
 		
@@ -499,7 +500,7 @@
 				exec("$path/source/config/tools/check_test $path/$f $path/$testname 2>&1",$result);
 				if (count($result)!=0)
 				{
-					realOutput("check_test errors in '$f'",$user,$verbose);
+					realOutput("check_test errors in '$f'",$user,$verbose,$f);
 					if ($verbose) print implode("\n",$result)."\n";
 				}
 			}
@@ -517,7 +518,7 @@
 					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
 					{
 						if ($verbose) print "$line\n";
-						realOutput("Error/warnings in test output of '$testname'",$user,$verbose);
+						realOutput("Error/warnings in test output of '$testname'",$user,$verbose,$testname);
 						break;
 					}
 				}

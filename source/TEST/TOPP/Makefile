@@ -49,12 +49,11 @@ UNCONDITIONAL_TESTS = \
 	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
-	PeakPicker_test \
 	Resampler_test \
-	SequestAdapter_test \
-	SpectraFilter_test
-
-#	FeatureFinder_test \
+	SequestAdapter_test\
+	SpectraFilter_test \
+	FeatureFinder_test \
+	PeakPicker_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \
@@ -73,8 +72,7 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS} ${CGAL_TESTS}
 # Tests for processing pipelines using several tools
 
 UNCONDITIONAL_PIPELINE_TESTS = \
-
-#	MyoQuant_test 
+	MyoQuant_test
 
 CGAL_PIPELINE_TESTS = \
 	PairwiseSuperposition_test
@@ -231,9 +229,8 @@ BaselineFilter_test: $(NUMERICDIFF)
 DBExporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
-	
 	@if test -f DBExporter_input.ini; then \
-		@$(ECHO) "	... todo ..."; \
+		$(ECHO) "	... todo ..."; \
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBExporter_input.ini'"; \
 	fi;
@@ -242,7 +239,7 @@ DBImporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
 	@if test -f DBImporter_input.ini; then \
-		@$(ECHO) "	... todo ..."; \
+		$(ECHO) "	... todo ..."; \
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBImporter_input.ini'"; \
 	fi;

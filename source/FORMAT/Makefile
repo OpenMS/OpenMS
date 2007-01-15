@@ -71,7 +71,6 @@ endif
 ifeq ($(ENABLE_DB),true)
 	DB_CPP_SOURCES=\
 		DBConnection.C\
-		DataSetInfo.C\
 		DBAdapter.C
 endif
 

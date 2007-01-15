@@ -79,6 +79,7 @@
 	"^source/TEST/TOPP/model*$",
 	"^source/TEST/TOPP/region*$",
 	"^source/TEST/TOPP/*.tmp$",
+	"^*core.*$",
 	);
 
 	$templates_to_ignore = str_replace("*","[/.//A-Z0-9a-z_-]*",$templates_to_ignore);
@@ -105,6 +106,8 @@
 		"source/config.h",
 		"source/TEST/TOPP/NumericDiff",
 		"source/TEST/DB_credentials.txt",
+		"source/TEST/TOPP/DBExporter_input.ini",
+		"source/TEST/TOPP/DBImporter_input.ini",
 		);
 	
 	exec("svn status",$lines);

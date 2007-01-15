@@ -25,10 +25,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <qfileinfo.h>
 
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream.h>
 
 using namespace std;
 
@@ -76,6 +80,32 @@ namespace OpenMS
 		f.close();
 		
 		return tmp;
+	}
+
+	String File::find(const String& filename, vector<String> directories)
+	{
+		//add env $OPENMS_PATH
+		if (getenv("OPENMS_PATH") != 0)
+		{
+			directories.push_back(String(getenv("OPENMS_PATH")) + "/data/");
+		}
+		
+		//add data dir in OpenMS built path
+		directories.push_back(OPENMS_PATH"/data/");
+		
+		//look up file
+		for (vector<String>::const_iterator it=directories.begin(); it!=directories.end(); ++it)
+		{
+			String loc = *it;
+			loc.ensureLastChar('/');
+			loc = loc + filename;
+			if (exists(loc))
+			{
+				return loc;
+			}
+		}
+		
+		return "";
 	}
 
 } // namespace OpenMS

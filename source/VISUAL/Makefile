@@ -63,10 +63,6 @@ GUI_CPP_SOURCES=\
 	ListStack.C\
 	PeakIcon.C\
 	MappingInfo.C\
-	FactoryProductView.C\
-	SimMatrixWidget.C\
-	ScaleWidget.C\
-	ResultView.C\
 	AxisTickCalculator.C		
 
 GUI_MOC_SOURCES=\
@@ -88,23 +84,17 @@ GUI_MOC_SOURCES=\
 	ColorSelector_moc.C\
 	MultiGradientSelector_moc.C\
 	HistogramWidget_moc.C\
-	ListStack_moc.C\
-	FactoryProductView_moc.C\
-	SimMatrixWidget_moc.C\
-	ScaleWidget_moc.C\
-	ResultView_moc.C
+	ListStack_moc.C
 
 UIC_SOURCES=
 
 #conditional compiles QT
 ifeq ($(ENABLE_GUI),true)
 	ADD_CPP_SOURCES=\
-		$(GUI_CPP_SOURCES)\
-		BinnedRepWidget.C
+		$(GUI_CPP_SOURCES)
 	
 	ADD_MOC_SOURCES=\
-		$(GUI_MOC_SOURCES)\
-		BinnedRepWidget_moc.C
+		$(GUI_MOC_SOURCES)
 endif
 
 ADD_INCLUDES=$(GUI_INCLUDES)
@@ -158,29 +148,6 @@ collectlib:	echodir
 
 include ../config.mak
 
-BinnedRepWidget_moc.C:  $(HEADER_DIR)/BinnedRepWidget.h
-	$(MOC) $(HEADER_DIR)/BinnedRepWidget.h -o BinnedRepWidget_moc.C
-
-ClusterAnalysisWindow_moc.C:  $(HEADER_DIR)/ClusterAnalysisWindow.h
-	$(MOC) $(HEADER_DIR)/ClusterAnalysisWindow.h -o ClusterAnalysisWindow_moc.C
-
-ClusterExperimentView_moc.C:  $(HEADER_DIR)/ClusterExperimentView.h
-	$(MOC) $(HEADER_DIR)/ClusterExperimentView.h -o ClusterExperimentView_moc.C
-
-ClusterRunWidget_moc.C:  $(HEADER_DIR)/ClusterRunWidget.h
-	$(MOC) $(HEADER_DIR)/ClusterRunWidget.h -o ClusterRunWidget_moc.C
-
-FactoryProductView_moc.C:  $(HEADER_DIR)/FactoryProductView.h
-	$(MOC) $(HEADER_DIR)/FactoryProductView.h -o FactoryProductView_moc.C
-
-ResultView_moc.C:  $(HEADER_DIR)/ResultView.h
-	$(MOC) $(HEADER_DIR)/ResultView.h -o ResultView_moc.C
-
-ScaleWidget_moc.C:  $(HEADER_DIR)/ScaleWidget.h
-	$(MOC) $(HEADER_DIR)/ScaleWidget.h -o ScaleWidget_moc.C
-
-SimMatrixWidget_moc.C:  $(HEADER_DIR)/SimMatrixWidget.h
-	$(MOC) $(HEADER_DIR)/SimMatrixWidget.h -o SimMatrixWidget_moc.C
 
 SpectrumCanvas_moc.C:  $(HEADER_DIR)/SpectrumCanvas.h
 	$(MOC) $(HEADER_DIR)/SpectrumCanvas.h -o SpectrumCanvas_moc.C

@@ -87,6 +87,7 @@ What do we do in the current implementation?
 #include <OpenMS/FORMAT/DBAdapter.h>
 #include <OpenMS/FORMAT/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -583,26 +584,34 @@ namespace OpenMS
 			db_version = db_version.prefix('$');
 			db_version.trim();
 			
-			TextFile sql(OPENMS_PATH"/data/OpenMS_DB.sql");
-			for (TextFile::ConstReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
+			String sql_path = File::find("OpenMS_DB.sql");
+			if (sql_path == "")
 			{
-				if (it->hasSubstring("$Revision:"))
+				cerr << "Warning: Could not verify DB version. Please set the environment variable OPENMS_PATH to the OpenMS directory!" << endl;
+			}
+			else
+			{
+				TextFile sql(sql_path);
+				for (TextFile::ConstReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
 				{
-					String file_version = *it;
-					file_version = file_version.suffix(':');
-					file_version = file_version.prefix('$');
-					file_version.trim();
-					if (file_version!=db_version)
+					if (it->hasSubstring("$Revision:"))
 					{
-						if (warning)
+						String file_version = *it;
+						file_version = file_version.suffix(':');
+						file_version = file_version.prefix('$');
+						file_version.trim();
+						if (file_version!=db_version)
 						{
-							cerr << "Error: The given DB (Rev: " << db_version 
-									 << ") has a different revision than OpenMS (Rev: " 
-									 << file_version << ")!"<< endl;
+							if (warning)
+							{
+								cerr << "Error: The given DB (Rev: " << db_version 
+										 << ") has a different revision than OpenMS (Rev: " 
+										 << file_version << ")!"<< endl;
+							}
+							return false;
 						}
-						return false;
+						break;
 					}
-					break;
 				}
 			}
 		}
@@ -611,6 +620,13 @@ namespace OpenMS
 	
 	void DBAdapter::createDB()
 	{
+		String sql_path = File::find("OpenMS_DB.sql");
+		if (sql_path == "")
+		{
+			cerr << "Error: Could not find the OpenMS DB declaration file. Please set the environment variable OPENMS_PATH to the OpenMS directory!" << endl;
+			return;
+		}
+
 		// load sql queries
 		TextFile sql(OPENMS_PATH"/data/OpenMS_DB.sql");
 		

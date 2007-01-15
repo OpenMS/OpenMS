@@ -25,12 +25,15 @@
 // --------------------------------------------------------------------------
 
 #include <string>
+#include <vector>
 
 #ifndef OPENMS_SYSTEM_FILE_H
 #define OPENMS_SYSTEM_FILE_H
 
 namespace OpenMS
 {
+	class String;
+	
 	/**
 		@brief Basic file handling operations.
 		
@@ -57,6 +60,17 @@ namespace OpenMS
 
 			/// Return true if the file is writable
 			static bool writable(const std::string& file);
+			
+			/**
+				@brief Looks up the location of @p filename
+				
+				First the directories in @p directories are cheched, 
+				then the 'data' directory of the environment variable $OPENMS_PATH is checked,
+				at last the 'data' directory of the OpenMS built directory is checked.
+				
+				If the file is not found there, an empty string is returned.
+			*/
+			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 	};
 
 }

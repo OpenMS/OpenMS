@@ -47,12 +47,9 @@ GUI_CPP_SOURCES=\
 	Spectrum2DCanvasPDP.C\
 	Spectrum3DWidgetPDP.C\
   Spectrum3DCanvasPDP.C\
-	DBDialog.C\
 	SaveImageDialog.C\
 	DBSpectrumSelectorDialog.C\
 	HistogramDialog.C\
-	FactoryProductDialog.C\
-	InspectDialog.C\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
 	OpenDialog.C\
@@ -71,12 +68,9 @@ GUI_MOC_SOURCES=\
 	Spectrum2DCanvasPDP_moc.C\
 	Spectrum3DWidgetPDP_moc.C\
 	Spectrum3DCanvasPDP_moc.C\
-	DBDialog_moc.C\
 	SaveImageDialog_moc.C\
 	DBSpectrumSelectorDialog_moc.C\
 	HistogramDialog_moc.C\
-	FactoryProductDialog_moc.C\
-	InspectDialog_moc.C\
 	Spectrum1DGoToDialogTemplate_moc.C\
 	Spectrum1DGoToDialog_moc.C\
 	Spectrum2DGoToDialogTemplate_moc.C\
@@ -172,12 +166,6 @@ Spectrum3DWidgetPDP_moc.C:  $(HEADER_DIR)/Spectrum3DWidgetPDP.h
 
 FactoryProductDialog_moc.C:  $(HEADER_DIR)/FactoryProductDialog.h
 	$(MOC) $(HEADER_DIR)/FactoryProductDialog.h -o FactoryProductDialog_moc.C
-
-DBDialog_moc.C:  $(HEADER_DIR)/DBDialog.h
-	$(MOC) $(HEADER_DIR)/DBDialog.h -o DBDialog_moc.C
-
-InspectDialog_moc.C:  $(HEADER_DIR)/InspectDialog.h
-	$(MOC) $(HEADER_DIR)/InspectDialog.h -o InspectDialog_moc.C
 
 SaveImageDialog_moc.C:  $(HEADER_DIR)/SaveImageDialog.h
 	$(MOC) $(HEADER_DIR)/SaveImageDialog.h -o SaveImageDialog_moc.C

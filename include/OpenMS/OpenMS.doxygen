@@ -53,13 +53,11 @@
 
 /*	
 	TODO:
-	- File: add 'static String findFile(const vector<String>& custom_locations) const' + check in OPENMS_PATH (configure) und $OPENMS_PATH (env)
+	- checker.php
 	- Test für DBImporter und DBExporter
 	- TOPPView: FloatKernel statt DoubleKernel?
 	- Release
-		- TOPPBase entfernen	
-		- Cluster-Klassen entfernen (Andreas)
-		- DataSetInfo entfernen
+		- TOPPBase entfernen
 		- Valgrind
 		- Test alle mit SVN-ID austatten
 		- HP updaten

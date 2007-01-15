@@ -77,6 +77,13 @@ CHECK(bool writable(const String& file))
 	TEST_EQUAL(File::writable(filename), true)
 RESULT
 
+CHECK(String find(const String& filename, std::vector<String> directories = std::vector<String>()))
+	TEST_EQUAL(File::find("File.h"),"");
+	vector<String> vec;
+	vec.push_back(OPENMS_PATH"/include/OpenMS/SYSTEM/");
+	TEST_NOT_EQUAL(File::find("File.h",vec),"");
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
