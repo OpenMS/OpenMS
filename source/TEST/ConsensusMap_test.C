@@ -49,7 +49,7 @@ CHECK(~ConsensusMap())
 	delete ptr;
 RESULT
 
-CHECK(ConsensusMap& operator = (const ConsensusMap& rhs))
+CHECK(ConsensusMap& operator = (const ConsensusMap& source))
   ConsensusMap<ConsensusFeature < FeatureMap > > cons_map;
   String name="blub";
   vector<String> name_vector(1,name);

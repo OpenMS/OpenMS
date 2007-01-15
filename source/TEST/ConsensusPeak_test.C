@@ -39,7 +39,7 @@ START_TEST(ConsensusPeak, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusPeak<>* ptr = 0;
-CHECK(ConsensusPeak<>())
+CHECK(ConsensusPeak())
 	ptr = new ConsensusPeak<>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
@@ -338,7 +338,7 @@ CHECK(void setPositionRange(const PositionBoundingBoxType& p))
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
 RESULT
 
-CHECK(void setpeaks(const Group& g))
+CHECK(void setPeaks(const Group& g))
   DRange<2> pos_range(0,1,100,200);
   ConsensusPeak<> cons;
   cons.setPositionRange(pos_range);

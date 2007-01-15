@@ -75,7 +75,7 @@ CHECK(const WidthType& getRightWidthParameter() const)
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK(const PeakShapeType& getPeakShape() const)
+CHECK(const PeakShapeType::Enum& getPeakShape() const)
 	const DPickedPeak<10> p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 RESULT
@@ -85,31 +85,12 @@ CHECK(const SignalToNoiseType& getSN() const)
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK(const IntensityType& getIntensity() const)
-	const DPickedPeak<10> p;
-	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-RESULT
-
-CHECK(const PositionType& getPosition() const)
-	const DPickedPeak<10>	p;
-	TEST_REAL_EQUAL(p.getPosition()[0], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[1], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[2], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[3], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[4], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[5], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[6], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[7], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[8], 0.0)
-	TEST_REAL_EQUAL(p.getPosition()[9], 0.0)
-RESULT
-
 CHECK(const ChargeType& getCharge() const)
 	const DPickedPeak<10>	p;
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
-CHECK(RValueType& getRValue())
+CHECK(const RValueType& getRValue() const)
 	DPickedPeak<10>	p;
 	TEST_EQUAL(p.getRValue(), 0)
 RESULT
@@ -229,7 +210,7 @@ CHECK(ChargeType& getCharge())
 RESULT
 
 
-CHECK(DPickedPeak(const DPickedPeak<D>& p))
+CHECK(DPickedPeak(DPickedPeak const& p))
 	DPickedPeak<3>::PositionType pos,pos2;
 
 	pos[0] = 21.21;
@@ -342,7 +323,7 @@ DPickedPeak<3>::PositionType pos, pos2;
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4712));
 RESULT
 
-CHECK(DPickedPeak& operator == (const DPickedPeak& rhs))
+CHECK(bool operator == (const DPickedPeak& rhs) const)
 	DPickedPeak<1> p1;
 	DPickedPeak<1> p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
@@ -398,7 +379,7 @@ CHECK(DPickedPeak& operator == (const DPickedPeak& rhs))
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
-CHECK(DPickedPeak& operator != (const DPickedPeak& rhs))
+CHECK(bool operator != (const DPickedPeak& rhs) const))
 	DPickedPeak<1> p1;
 	DPickedPeak<1> p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)

@@ -73,7 +73,7 @@ CHECK(DGridCell(const DGridCell& gc))
 
 RESULT
 
-CHECK(==)
+CHECK(bool operator == (const DGridCell& rhs) const)
 
 	DGridCell<2> c1(0.0, 0.0, 10.0, 10.0);
 	DGridCell<2> c2(0.0, 0.0, 10.0, 10.0);

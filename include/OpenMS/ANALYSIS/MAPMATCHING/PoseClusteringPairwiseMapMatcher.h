@@ -159,6 +159,7 @@ namespace OpenMS
         else
         {
           pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create("simple");
+          param_.setValue("pair_finder","simple");
           pair_finder_->setParam(param_);
         }
 
