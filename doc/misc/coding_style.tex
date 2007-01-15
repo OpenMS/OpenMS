@@ -221,11 +221,13 @@ The {\tt throw} directive for each exception should be of the form
 \begin{verbatim}
   throw AnyException(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 \end{verbatim}
-to simplify debugging.  {\tt \_\_FILE\_\_} and {\tt \_\_LINE\_\_} are preprocessor
-macros.  {\tt \_\_PRETTY\_FUNCTION\_\_} is filled in by the GNU compiler and
-\verb|#define|d to \verb|"<unknown>"| on other platforms. {\bf GeneralException} provides two
-methods ({\tt getFile} and {\tt getLine}) that allow the localization of the
-exception's cause.
+to simplify debugging.  {\tt \_\_FILE\_\_} and {\tt \_\_LINE\_\_} are standard-defined
+preprocessor macros.  The symbol {\tt \_\_PRETTY\_FUNCTION\_\_} works similar to a
+\verb|char*| and contains the type signature of the function as well as its
+bare name, if the GNU compiler is being used.  It is \verb|#define|d to
+\verb|"<unknown>"| on other platforms. {\bf Exception::Base} provides methods
+({\tt getFile}, {\tt getLine}, {\tt getFunction}) that allow the localization
+of the exception's cause.
 
 \section{Iterators}
 
