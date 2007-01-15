@@ -63,8 +63,6 @@ namespace OpenMS
 		    This class serves to read in a Mascot outfile. The information can be 
 		    retrieved via the load function. This class is only contained to be compatible with previous versions.
 		    You should use the MascotXMLFile instead. 
-		  	
-		  	@ingroup FileIO
 		  */
 			void load(String filename, std::vector<IdentificationData>& identifications, Real p = 0.05) throw (Exception::ParseError);
 
