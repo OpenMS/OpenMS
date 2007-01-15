@@ -86,10 +86,24 @@ CHECK(BaseAlignment& operator = (const BaseAlignment& source))
   vector<String> name_vector(1,name);
   al.setFileNames(name_vector);
   al.setMapType("feature_map");
+  DLinearMapping<1> trafo_rt(0.5,-5.99959);
+  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
+  DBaseMapping<1>* bm_rt = &trafo_rt;
+  DBaseMapping<1>* bm_mz = &trafo_mz;
+  DGrid<2> grid;
+  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
+  std::vector<DBaseMapping<1>*> mapping(2);
+  mapping[0] = bm_rt;
+  mapping[1] = bm_mz;
+  grid[0].setMappings(mapping);
+  std::vector< DGrid<2> > grid_vector(2);
+  grid_vector[1] = grid; 
+  al.setTransformationVector(grid_vector);
 
   TestAlignment al_copy;
   al_copy = al;
 
+  TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
   TEST_EQUAL(al.getParam() == al_copy.getParam(),true)
   TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
@@ -110,9 +124,23 @@ CHECK(BaseAlignment(const BaseAlignment& source))
   vector<String> name_vector(1,name);
   al.setFileNames(name_vector);
   al.setMapType("feature_map");
+  DLinearMapping<1> trafo_rt(0.5,-5.99959);
+  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
+  DBaseMapping<1>* bm_rt = &trafo_rt;
+  DBaseMapping<1>* bm_mz = &trafo_mz;
+  DGrid<2> grid;
+  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
+  std::vector<DBaseMapping<1>*> mapping(2);
+  mapping[0] = bm_rt;
+  mapping[1] = bm_mz;
+  grid[0].setMappings(mapping);
+  std::vector< DGrid<2> > grid_vector(2);
+  grid_vector[1] = grid; 
+  al.setTransformationVector(grid_vector);
 
   TestAlignment al_copy(al);
 
+  TEST_EQUAL(al.getTransformationVector() == al_copy.getTransformationVector(),true)
   TEST_EQUAL(al.getParam() == al_copy.getParam(),true)
   TEST_EQUAL(al_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(al_copy.getFileNames().size() == 1, true)
@@ -165,6 +193,12 @@ CHECK(const std::vector< String >& getFileNames() const)
 
   TEST_EQUAL(al.getFileNames().size() == 1, true)
   TEST_EQUAL((al.getFileNames())[0] == "blub", true)
+RESULT
+
+CHECK(const std::vector< GridType >& getTransformationVector() const)
+  TestAlignment alignment;
+  
+  TEST_EQUAL(alignment.getTransformationVector().size() == 0, true)
 RESULT
 
 CHECK(void run() throw(Exception::InvalidValue))
@@ -225,6 +259,14 @@ CHECK(void setFinalConsensusMap(const std::vector< ConsensusElementType >& final
   al.setFinalConsensusMap(cons_map);
   
   TEST_EQUAL(al.getFinalConsensusMap().size() == 4,true)
+RESULT
+
+CHECK(void setTransformationVector(const std::vector< GridType >& transformations))
+  TestAlignment alignment;
+  std::vector< DGrid<2> > grid_vector(2);
+  alignment.setTransformationVector(grid_vector);
+
+  TEST_EQUAL(alignment.getTransformationVector().size() == 2, true)
 RESULT
 
 /////////////////////////////////////////////////////////////

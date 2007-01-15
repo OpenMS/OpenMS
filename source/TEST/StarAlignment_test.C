@@ -58,21 +58,7 @@ CHECK(StarAlignment& operator = (StarAlignment source))
   param.setValue("matching_algorithm","poseclustering_pairwise");
   param.setValue("consensus_algorithm","delaunay");
   alignment.setParam(param);
-  
-  DLinearMapping<1> trafo_rt(0.5,-5.99959);
-  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
-  DBaseMapping<1>* bm_rt = &trafo_rt;
-  DBaseMapping<1>* bm_mz = &trafo_mz;
-  DGrid<2> grid;
-  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
-  std::vector<DBaseMapping<1>*> mapping(2);
-  mapping[0] = bm_rt;
-  mapping[1] = bm_mz;
-  grid[0].setMappings(mapping);
-  std::vector< DGrid<2> > grid_vector(2);
-  grid_vector[1] = grid; 
-  alignment.setTransformationVector(grid_vector);
-  
+   
   vector<FeatureMap*> map_vector;
   FeatureMap map;
   map_vector.push_back(&map);
@@ -87,7 +73,6 @@ CHECK(StarAlignment& operator = (StarAlignment source))
   StarAlignment< ConsensusFeature<FeatureMap> > alignment_copy;
   alignment_copy = alignment;
 
-  TEST_EQUAL(alignment.getTransformationVector() == alignment_copy.getTransformationVector(),true)
   TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
   TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
@@ -101,21 +86,6 @@ CHECK(StarAlignment(const StarAlignment& source))
   param.setValue("matching_algorithm","poseclustering_pairwise");
   param.setValue("consensus_algorithm","delaunay");
   alignment.setParam(param);
-  
-  DLinearMapping<1> trafo_rt(0.5,-5.99959);
-  DLinearMapping<1> trafo_mz(0.999999,-0.0990517);
-  DBaseMapping<1>* bm_rt = &trafo_rt;
-  DBaseMapping<1>* bm_mz = &trafo_mz;
-  DGrid<2> grid;
-  grid.push_back(DGridCell<2>(1816,603.449,3108.3,1002.35));
-  std::vector<DBaseMapping<1>*> mapping(2);
-  mapping[0] = bm_rt;
-  mapping[1] = bm_mz;
-  grid[0].setMappings(mapping);
-  std::vector< DGrid<2> > grid_vector(2);
-  grid_vector[1] = grid; 
-  alignment.setTransformationVector(grid_vector);
-  
   vector<FeatureMap*> map_vector;
   FeatureMap map;
   map_vector.push_back(&map);
@@ -129,7 +99,6 @@ CHECK(StarAlignment(const StarAlignment& source))
     
   StarAlignment< ConsensusFeature<FeatureMap> > alignment_copy(alignment);
 
-  TEST_EQUAL(alignment.getTransformationVector() == alignment_copy.getTransformationVector(),true)
   TEST_EQUAL(alignment.getParam() == alignment_copy.getParam(),true)
   TEST_EQUAL(alignment_copy.getElementMapVector().size() == 1, true)
   TEST_EQUAL(alignment_copy.getFileNames().size() == 1, true)
@@ -163,12 +132,6 @@ CHECK(const UnsignedInt& getReferenceMapIndex() const)
   StarAlignment< ConsensusFeature<FeatureMap> > alignment;
   
   TEST_REAL_EQUAL(alignment.getReferenceMapIndex(),0)
-RESULT
-
-CHECK(const std::vector< GridType >& getTransformationVector() const)
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
-  
-  TEST_EQUAL(alignment.getTransformationVector().size() == 0, true)
 RESULT
 
 CHECK(void run() throw(Exception::InvalidValue))
@@ -243,14 +206,6 @@ CHECK(void setReferenceMapIndex(UnsignedInt index) throw(Exception::InvalidValue
   alignment.setReferenceMapIndex(2);
   
   TEST_REAL_EQUAL(alignment.getReferenceMapIndex(),2)
-RESULT
-
-CHECK(void setTransformationVector(const std::vector< GridType >& transformations))
-  StarAlignment< ConsensusFeature<FeatureMap> > alignment;
-  std::vector< DGrid<2> > grid_vector(2);
-  alignment.setTransformationVector(grid_vector);
-
-  TEST_EQUAL(alignment.getTransformationVector().size() == 2, true)
 RESULT
 
 /////////////////////////////////////////////////////////////

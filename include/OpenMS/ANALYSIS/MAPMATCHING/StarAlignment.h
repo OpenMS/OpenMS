@@ -89,6 +89,7 @@ namespace OpenMS
     typedef typename Base::ElementType ElementType;
     typedef typename Base::ElementContainerType ElementContainerType;
     typedef typename Base::ConsensusMapType ConsensusMapType;
+    typedef typename Base::GridType GridType;
 
     /// Pointer vector
     typedef DPeakConstReferenceArray< ElementContainerType > PeakConstReferenceMapType;
@@ -114,12 +115,10 @@ namespace OpenMS
     /// Container for generated element pairs
     typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
-    /// Type of estimated transformation
-    typedef DGrid< 2 > GridType;
-
     using Base::element_map_vector_;
     using Base::param_;
     using Base::final_consensus_map_;
+    using Base::transformations_;
     using Base::file_names_;
     using Base::map_type_;
     using Base::pair_finder_;
@@ -133,7 +132,6 @@ namespace OpenMS
     /// Copy constructor
     StarAlignment(const StarAlignment& source)
         : Base(source),
-        transformations_(source.transformations_),
         reference_map_index_(source.reference_map_index_)
     {}
 
@@ -144,7 +142,7 @@ namespace OpenMS
         return *this;
 
       Base::operator = (source);
-      transformations_ = source.transformations_;
+     
       reference_map_index_ = source.reference_map_index_;
 
       return *this;
@@ -153,17 +151,6 @@ namespace OpenMS
     /// Destructor
     virtual ~StarAlignment()
   {}
-
-    /// Mutable access to the transformations
-    void setTransformationVector(const std::vector< GridType >& transformations)
-    {
-      transformations_ = transformations;
-    }
-    /// Non-mutable access to the transformations
-    const std::vector< GridType >& getTransformationVector() const
-    {
-      return transformations_;
-    }
 
     /// Mutable access to the index of the reference map
     void setReferenceMapIndex(UnsignedInt index) throw (Exception::InvalidValue)
@@ -234,9 +221,6 @@ namespace OpenMS
     }
 
   protected:
-    /// The transformation vector
-    std::vector< GridType > transformations_;
-
     /// Index of the reference map
     UnsignedInt reference_map_index_;
 

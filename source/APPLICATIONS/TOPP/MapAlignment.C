@@ -50,7 +50,15 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 /**
    @page MapAlignment MapAlignment
  
-   @brief Aligns multiple element maps (e.g. feature or peak maps) to one consensus map.
+   @brief Aligns multiple element maps to one consensus map.
+   
+   This application implements an algorithm for the alignment of mulitple maps.
+   It accepts feature maps (in featureXML), peak maps (in mzData) or consensus maps (in ConsensusXML).
+   This tool requires an INI file with at least the names of the input files and the map_type.
+   Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file.
+   
+   @Note If you use consensus maps , the consensus elements are used as normal elements and you will
+         loose the former consensus information.
       
    @ingroup TOPP
 */

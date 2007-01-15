@@ -143,7 +143,7 @@ CHECK(static const String getName())
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
-CHECK(void run())
+CHECK(void findElementPairs())
   FeatureMap scene;
   Feature feat1;
   Feature feat2;
@@ -183,7 +183,7 @@ CHECK(void run())
   dpf.setElementMap(1,scene);
   DFeaturePairVector < 2, Feature > pairs;
   dpf.setElementPairs(pairs);
-  dpf.run();
+  dpf.findElementPairs();
   std::cout << pairs.size() << std::endl;
   
   TEST_EQUAL((pairs.begin())->first == feat4, true)

@@ -253,7 +253,7 @@ namespace OpenMS
             pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
 
             V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
-            pair_finder_->run();
+            pair_finder_->findElementPairs();
           }
         }
 #undef V_computeMatching_

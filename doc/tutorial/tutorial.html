@@ -31,7 +31,8 @@
 	<a href="#transformations">Transformations</a> | 
 	<a href="#filtering">Filtering</a> | 
 	<a href="#visual">Visual</a> |
-	<a href="#analysis">Analysis</a>
+	<a href="#analysis">analysis</a>
+	<a href="#alignment">alignment</a>
 
 
   <h2>Kernel<a name="kernel"></h2>
@@ -691,10 +692,68 @@ sgolay.filterExperiment(raw_experiment, filtered_experiment);
 
 
   <h2>Analysis<a name="analysis"></h2> 
-  This folder contains algorithms and modules for the high-level
-  processing and analysis of LC/MS data.
+  The ANALYSIS folder contains algorithms and modules for the high-level processing and analysis of LC/MS data.
+  
+  <h3>MAPMATCHING</h3>
+  <br>
+  The MAPMATHING folder contains classes for <b>Map Alignment</b>.
+  During Map Alignment, we try to identify corresponding elements in multiple maps.
+  This elements can be of type DFeature, DPeak, ConsensusFeature or ConsensusElement.
+  To compute the multiple alignment (that is given by a final consensus map), a reference element map
+  is chosen and all other maps are aligned pairwise to the refernce map.
+  The pairwise alignment is done by classes inherited from BasePairwiseMapMatcher, like the 
+  PoseClusteringPairwiseMapMatcher. 
+  In a first step the PoseClusteringPairwiseMapMatcher uses a superimposer class to estimate 
+  the transformation between the element positions of the two element maps.
+  Given this first estimate of the transformation, reliable element pairs can be selected using a pair finder class.
+  These element pairs serve as a kind of landmarks to estimate (e.g. by a linear regression) again a second more 
+  reliable transformation that maps the positions of one map onto the other.
+  In the second step another pair finder is used to compute the consensus elements in both maps and stores them
+  in a final consensus map.
+  The following code shows how to load multiple feature maps, aligns them and stores the resulting consensus map can be stored in ConsensusXML format. 
+   <pre> 
+// Vector containing the file names of three feature maps 
+std::vector&lt; String > file_names(3);
+// 
+file_names[0] = "FeatureMap1.xml";
+file_names[1] = "FeatureMap2.xml";
+file_names[2] = "FeatureMap3.xml";
 
-  <h3>Map Matching</h3>
+// Vector for the feature maps
+std::vector&lt; FeatureMap &gt; feature_maps(3);
+
+// FeatureXML file handler
+DFeatureMapFile feature_file;
+feature_file.load(file_names[0],feature_maps[0]);
+feature_file.load(file_names[1],feature_maps[1]);
+feature_file.load(file_names[2],feature_maps[2]);
+
+// Initialite a StarAlignment object (that uses default parameters)
+StarAlignment&lt; ConsensusFeature&lt; FeatureMap &gt; &gt; alignment;
+
+// Set the type of the element maps 
+alignment.setMapType("feature_map");
+
+// The alignment needs the references to the feature map
+alignment.getElementMapVector().push_back(&#38(feature_maps[0]));
+alignment.getElementMapVector().push_back(&#38(feature_maps[1]));
+alignment.getElementMapVector().push_back(&#38(feature_maps[2]));
+
+// as well as the file names      
+alignment.setFileNames(file_names);
+
+// Start the alignment  
+alignment.run();
+
+// and store the result in ConsensusXML format      
+ConsensusXMLFile cons_file;
+cons_file.store("Consensus.xml",alignment);
+</pre>
+  <img src="MapAlignment.png" align=left>  
+</body>
+</html>
+
+<!--<h3>Map Matching</h3>
   After a raw data map has been picked and searched for features,
   we need to map features from different maps i.e. experiments onto
   each other before we are able to make meaningful comparisons.
@@ -737,6 +796,4 @@ sgolay.filterExperiment(raw_experiment, filtered_experiment);
   <br>
   The directory <tt>source/EXAMPLES</tt> contains an example
   program which shows how to use the diferent classes and modules
-  in the map mapping workflow. 
-</body>
-</html>
+  in the map mapping workflow. -->

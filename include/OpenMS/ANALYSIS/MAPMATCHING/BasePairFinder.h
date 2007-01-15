@@ -215,7 +215,7 @@ namespace OpenMS
       virtual int dumpElementPairs(const String& filename); // code is below
 
       /// Estimates the transformation for each grid cell
-      virtual void run() = 0;
+      virtual void findElementPairs() = 0;
 
     protected:
       /// Param class containing the parameters for the map matching phase

@@ -180,7 +180,7 @@ CHECK(static const String getName())
   TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
-CHECK(void run())
+CHECK(void findElementPairs())
   FeatureMap scene;
   Feature feat1;
   Feature feat2;
@@ -222,7 +222,7 @@ CHECK(void run())
   dpf.setElementMap(1,scene);
   DFeaturePairVector < 2, Feature > pairs;
   dpf.setElementPairs(pairs);
-  dpf.run();
+  dpf.findElementPairs();
   
   TEST_EQUAL((pairs.begin())->first == feat1, true)
   TEST_EQUAL((pairs.begin())->second == feat4, true)

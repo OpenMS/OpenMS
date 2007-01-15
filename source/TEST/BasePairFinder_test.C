@@ -49,7 +49,7 @@ class TestPairFinder : public BasePairFinder<ElementMapType>
 		 BasePairFinder<ElementMapType>::operator=(bpf);
 		 return *this;
 	}
-	virtual void run() 
+	virtual void findElementPairs() 
 	{
 	}
 
@@ -144,7 +144,7 @@ CHECK(static void registerChildren())
   
 RESULT
 
-CHECK(void run())
+CHECK(void findElementPairs())
   
 RESULT
 

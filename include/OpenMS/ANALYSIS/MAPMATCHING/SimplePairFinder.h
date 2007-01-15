@@ -56,390 +56,379 @@ namespace OpenMS
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class SimplePairFinder : public BasePairFinder< MapT >
   {
-    public:
-      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-      enum DimensionId
-      {
-        RT = DimensionDescriptionType::RT,
-        MZ = DimensionDescriptionType::MZ
+  public:
+    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
+    enum DimensionId
+    {
+      RT = DimensionDescriptionType::RT,
+      MZ = DimensionDescriptionType::MZ
     };
 
-      /** Symbolic names for indices of element maps etc.
-            This should make things more understandable and maintainable.
-             */
-      enum Maps
-      {
-        MODEL = 0,
-        SCENE = 1
+    /** Symbolic names for indices of element maps etc.
+          This should make things more understandable and maintainable.
+           */
+    enum Maps
+    {
+      MODEL = 0,
+      SCENE = 1
     };
 
-      typedef BasePairFinder< MapT > Base;
-      typedef typename Base::TraitsType             TraitsType;
+    typedef BasePairFinder< MapT > Base;
+    typedef typename Base::TraitsType             TraitsType;
 
-      typedef typename Base::QualityType QualityType;
-      typedef typename Base::PositionType           PositionType;
-      typedef typename Base::IntensityType          IntensityType;
-      typedef typename Base::PointType              PointType;
-      typedef typename Base::PointMapType           PointMapType;
-      typedef typename Base::ElementPairType        ElementPairType;
-      typedef typename Base::ElementPairVectorType  ElementPairVectorType;
-      typedef typename Base::TransformationType     TransformationType;
+    typedef typename Base::QualityType QualityType;
+    typedef typename Base::PositionType           PositionType;
+    typedef typename Base::IntensityType          IntensityType;
+    typedef typename Base::PointType              PointType;
+    typedef typename Base::PointMapType           PointMapType;
+    typedef typename Base::ElementPairType        ElementPairType;
+    typedef typename Base::ElementPairVectorType  ElementPairVectorType;
+    typedef typename Base::TransformationType     TransformationType;
 
-      using Base::param_;
-      using Base::element_map_;
-      using Base::element_pairs_;
-      using Base::transformation_;
+    using Base::param_;
+    using Base::element_map_;
+    using Base::element_pairs_;
+    using Base::transformation_;
 
-      /// Constructor
-      SimplePairFinder()
-          : Base(),
-          pair_min_quality_(0.01)
-      {
-        diff_intercept_[RT] = 1;
-        diff_intercept_[MZ] = 0.1;
-        diff_exponent_[RT] = 2;
-        diff_exponent_[MZ] = 1;
-      }
+    /// Constructor
+    SimplePairFinder()
+        : Base(),
+        pair_min_quality_(0.01)
+    {
+      diff_intercept_[RT] = 1;
+      diff_intercept_[MZ] = 0.1;
+      diff_exponent_[RT] = 2;
+      diff_exponent_[MZ] = 1;
+    }
 
-      /// Copy constructor
-      SimplePairFinder(const SimplePairFinder& source)
-          : Base(source),
-          pair_min_quality_(source.pair_min_quality_),
-          transformed_positions_second_map_(source.transformed_positions_second_map_)
-      {
-        diff_intercept_[RT] = source.diff_intercept_[RT];
-        diff_intercept_[MZ] = source.diff_intercept_[MZ];
-        diff_exponent_[RT] = source.diff_exponent_[RT];
-        diff_exponent_[MZ] = source.diff_exponent_[MZ];
-      }
+    /// Copy constructor
+    SimplePairFinder(const SimplePairFinder& source)
+        : Base(source),
+        pair_min_quality_(source.pair_min_quality_),
+        transformed_positions_second_map_(source.transformed_positions_second_map_)
+    {
+      diff_intercept_[RT] = source.diff_intercept_[RT];
+      diff_intercept_[MZ] = source.diff_intercept_[MZ];
+      diff_exponent_[RT] = source.diff_exponent_[RT];
+      diff_exponent_[MZ] = source.diff_exponent_[MZ];
+    }
 
-      ///  Assignment operator
-      virtual SimplePairFinder& operator = (SimplePairFinder source)
-      {
-        if (&source==this)
-          return *this;
-          
-        param_ = source.param_;
-        element_map_[MODEL] = source.element_map_[MODEL];
-        element_map_[SCENE] = source.element_map_[SCENE];
-        element_pairs_ = source.element_pairs_;
-        diff_intercept_[RT] = source.diff_intercept_[RT];
-        diff_intercept_[MZ] = source.diff_intercept_[MZ];
-        diff_exponent_[RT] = source.diff_exponent_[RT];
-        diff_exponent_[MZ] = source.diff_exponent_[MZ];
-        pair_min_quality_ = source.pair_min_quality_;
-        transformed_positions_second_map_ = source.transformed_positions_second_map_;
-        transformation_[RT] = source.transformation_[RT];
-        transformation_[MZ] = source.transformation_[MZ];
+    ///  Assignment operator
+    virtual SimplePairFinder& operator = (SimplePairFinder source)
+    {
+      if (&source==this)
         return *this;
+
+      param_ = source.param_;
+      element_map_[MODEL] = source.element_map_[MODEL];
+      element_map_[SCENE] = source.element_map_[SCENE];
+      element_pairs_ = source.element_pairs_;
+      diff_intercept_[RT] = source.diff_intercept_[RT];
+      diff_intercept_[MZ] = source.diff_intercept_[MZ];
+      diff_exponent_[RT] = source.diff_exponent_[RT];
+      diff_exponent_[MZ] = source.diff_exponent_[MZ];
+      pair_min_quality_ = source.pair_min_quality_;
+      transformed_positions_second_map_ = source.transformed_positions_second_map_;
+      transformation_[RT] = source.transformation_[RT];
+      transformation_[MZ] = source.transformation_[MZ];
+      return *this;
+    }
+
+    /// Destructor
+    virtual ~SimplePairFinder()
+  {}
+
+    /// returns an instance of this class
+    static BasePairFinder<PointMapType>* create()
+    {
+      return new SimplePairFinder();
+    }
+
+    /// returns the name of this module
+    static const String getName()
+    {
+      return "simple";
+    }
+
+    /// Get diff exponent
+    double getDiffExponent(const UnsignedInt& dim)
+    {
+      return diff_exponent_[dim];
+    }
+
+    /// Set diff exponent
+    void setDiffExponent(const UnsignedInt& dim, const double& exponent)
+    {
+      diff_exponent_[dim] = exponent;
+      String param_name_prefix = "similarity:diff_exponent:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, exponent);
+    }
+
+    /// Get diff intercept
+    double getDiffIntercept(const UnsignedInt& dim)
+    {
+      return diff_intercept_[dim];
+    }
+
+    /// Set diff intercept
+    void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
+    {
+      diff_intercept_[dim] = intercept;
+      String param_name_prefix = "similarity:diff_intercept:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, intercept);
+    }
+
+    /// Get pair min quality
+    double getPairMinQuality()
+    {
+      return pair_min_quality_;
+    }
+
+    /// Set pair min quality
+    void setPairMinQuality(const double& quality)
+    {
+      pair_min_quality_ = quality;
+      String param_name = "similarity:pair_min_quality";
+      param_.setValue(param_name, quality);
+    }
+
+    //       template < typename ResultMapType >
+    //       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
+    //       {}
+
+    /// Estimates the transformation for each grid cell
+    virtual void findElementPairs()
+    {
+#define V_findElementPairs(bla) V_SimplePairFinder(bla)
+      parseParam_();
+
+      Size n = element_map_[SCENE]->size();
+
+      transformed_positions_second_map_.clear();
+      transformed_positions_second_map_.resize(n);
+
+      for (Size i = 0; i < n; ++i)
+      {
+        transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
       }
 
-      /// Destructor
-      virtual ~SimplePairFinder()
-    {}
+      V_findElementPairs("SimplePairFinder::run(): apply transformation");
 
-      /// returns an instance of this class
-      static BasePairFinder<PointMapType>* create()
+      for ( Size dim = 0; dim < 2; ++dim )
       {
-        return new SimplePairFinder();
-      }
-
-      /// returns the name of this module
-      static const String getName()
-      {
-        return "simple";
-      }
-
-      /// Get diff exponent
-      double getDiffExponent(const UnsignedInt& dim)
-      {
-        return diff_exponent_[dim];
-      }
-
-      /// Set diff exponent
-      void setDiffExponent(const UnsignedInt& dim, const double& exponent)
-      {
-        diff_exponent_[dim] = exponent;
-        String param_name_prefix = "similarity:diff_exponent:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, exponent);
-      }
-
-      /// Get diff intercept
-      double getDiffIntercept(const UnsignedInt& dim)
-      {
-        return diff_intercept_[dim];
-      }
-
-      /// Set diff intercept
-      void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
-      {
-        diff_intercept_[dim] = intercept;
-        String param_name_prefix = "similarity:diff_intercept:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, intercept);
-      }
-
-      /// Get pair min quality
-      double getPairMinQuality()
-      {
-        return pair_min_quality_;
-      }
-
-      /// Set pair min quality
-      void setPairMinQuality(const double& quality)
-      {
-        pair_min_quality_ = quality;
-        String param_name = "similarity:pair_min_quality";
-        param_.setValue(param_name, quality);
-      }
-
-      //       template < typename ResultMapType >
-      //       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
-      //       {}
-
-      /// Estimates the transformation for each grid cell
-      virtual void run()
-      {
-#define V_run(bla) V_SimplePairFinder(bla)
-        V_run("@@@ run()");
-
-        parseParam_();
-
-        Size n = element_map_[SCENE]->size();
-
-        transformed_positions_second_map_.clear();
-        transformed_positions_second_map_.resize(n);
-
         for (Size i = 0; i < n; ++i)
         {
-          transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
+          transformation_[dim].apply( transformed_positions_second_map_[i][dim] );
         }
-
-        V_run("SimplePairFinder::run(): apply transformation");
-
-        for ( Size dim = 0; dim < 2; ++dim )
-        {
-          for (Size i = 0; i < n; ++i)
-          {
-            transformation_[dim].apply( transformed_positions_second_map_[i][dim] );
-          }
-        }
-
-        V_run("SimplePairFinder::run(): find element pairs");
-#undef V_run
-
-        findElementPairs_();
       }
 
-    protected:
-      /// A parameter for similarity_().
-      QualityType diff_exponent_[2];
+      V_findElementPairs("SimplePairFinder::run(): find element pairs");
 
-      /// A parameter for similarity_().
-      QualityType diff_intercept_[2];
+      // progress dots
+      DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
+      int progress_dots
+      = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
+      int number_of_considered_element_pairs = 0;
 
-      /// A parameter for findElementPairs_().
-      QualityType pair_min_quality_;
-
-      /// The vector of transformed element positions of the second map
-      std::vector<PositionType> transformed_positions_second_map_;
-
-      /// Parses the parameters, assigns their values to instance members.
-      void parseParam_()
+      // For each element in map 0, find his/her best friend in map 1
+      std::vector<Size>        best_companion_index_0(element_map_[MODEL]->size(),Size(-1));
+      std::vector<QualityType> best_companion_quality_0(element_map_[MODEL]->size(),0);
+      for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
       {
-#define V_parseParam_(bla) V_SimplePairFinder(bla)
-        V_parseParam_("@@@ parseParam_()");
-        
-        String param_name_prefix = "similarity:diff_exponent:";
-        std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[RT];
-        DataValue data_value = param_.getValue(param_name);
-        if ( data_value == DataValue::EMPTY )
+        QualityType best_quality = -std::numeric_limits<QualityType>::max();
+        for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
         {
-          diff_exponent_[RT] = 1;
-        }
-        else
-        {
-          diff_exponent_[RT] = data_value;
-        }
-        
-        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[MZ];
-        data_value = param_.getValue(param_name);
-        if ( data_value == DataValue::EMPTY )
-        {
-          diff_exponent_[MZ] = 2;
-        }
-        else
-        {
-          diff_exponent_[MZ] = data_value;
-        }
+          QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+          if ( quality > best_quality )
+          {
+            best_quality = quality;
+            best_companion_index_0[fi0] = fi1;
+          }
 
-        param_name_prefix = "similarity:diff_intercept:";
-        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
-        data_value = param_.getValue(param_name);
-        if ( data_value == DataValue::EMPTY )
-        {
-          diff_intercept_[RT] = 1;
+          ++number_of_considered_element_pairs;
+          if ( progress_dots &&
+               ! (number_of_considered_element_pairs % progress_dots)
+             )
+          {
+            std::cout << '-' << std::flush;
+          }
+
         }
-        else
+        best_companion_quality_0[fi0] = best_quality;
+      }
+
+      // For each element in map 1, find his/her best friend in map 0
+      std::vector<Size>        best_companion_index_1(element_map_[SCENE]->size(),Size(-1));
+      std::vector<QualityType> best_companion_quality_1(element_map_[SCENE]->size(),0);
+      for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
+      {
+        QualityType best_quality = -std::numeric_limits<QualityType>::max();
+        for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
         {
-          diff_intercept_[RT] = data_value;
+          QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+          if ( quality > best_quality )
+          {
+            best_quality = quality;
+            best_companion_index_1[fi1] = fi0;
+          }
+
+          ++number_of_considered_element_pairs;
+          if ( progress_dots &&
+               ! (number_of_considered_element_pairs % progress_dots)
+             )
+          {
+            std::cout << '+' << std::flush;
+          }
+
         }
-        
-        param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
-        data_value = param_.getValue(param_name);
-        if ( data_value == DataValue::EMPTY )
+        best_companion_quality_1[fi1] = best_quality;
+      }
+
+      // And if both like each other, they become a pair.
+      // element_pairs_->clear();
+      for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
+      {
+        // fi0 likes someone ...
+        if ( best_companion_quality_0[fi0] > pair_min_quality_ )
         {
-          diff_intercept_[MZ] = 0.1;
+          // ... who likes him too ...
+          Size best_companion_of_fi0 = best_companion_index_0[fi0];
+          if ( best_companion_index_1[best_companion_of_fi0] == fi0 &&
+               best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
+             )
+          {
+            element_pairs_->push_back
+            ( ElementPairType ( (*element_map_[MODEL])[fi0],
+                                (*element_map_[SCENE])[best_companion_of_fi0],
+                                best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
+                              )
+            );
+          }
         }
-        else
-        {
-          diff_intercept_[MZ] = data_value;
-        }
-        
-        param_name = "similarity:pair_min_quality";
-        data_value = param_.getValue(param_name);
-        if ( data_value == DataValue::EMPTY )
-        {
-          pair_min_quality_ = 0.01;
-        }
-        else
-        {
-          pair_min_quality_ = data_value;
-        }
+      }
+
+#undef V_findElementPairs
+
+    } // findElementPairs
+
+
+  protected:
+    /// A parameter for similarity_().
+    QualityType diff_exponent_[2];
+
+    /// A parameter for similarity_().
+    QualityType diff_intercept_[2];
+
+    /// A parameter for findElementPairs_().
+    QualityType pair_min_quality_;
+
+    /// The vector of transformed element positions of the second map
+    std::vector<PositionType> transformed_positions_second_map_;
+
+    /// Parses the parameters, assigns their values to instance members.
+    void parseParam_()
+    {
+#define V_parseParam_(bla) V_SimplePairFinder(bla)
+      V_parseParam_("@@@ parseParam_()");
+
+      String param_name_prefix = "similarity:diff_exponent:";
+      std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[RT];
+      DataValue data_value = param_.getValue(param_name);
+      if ( data_value == DataValue::EMPTY )
+      {
+        diff_exponent_[RT] = 1;
+      }
+      else
+      {
+        diff_exponent_[RT] = data_value;
+      }
+
+      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[MZ];
+      data_value = param_.getValue(param_name);
+      if ( data_value == DataValue::EMPTY )
+      {
+        diff_exponent_[MZ] = 2;
+      }
+      else
+      {
+        diff_exponent_[MZ] = data_value;
+      }
+
+      param_name_prefix = "similarity:diff_intercept:";
+      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
+      data_value = param_.getValue(param_name);
+      if ( data_value == DataValue::EMPTY )
+      {
+        diff_intercept_[RT] = 1;
+      }
+      else
+      {
+        diff_intercept_[RT] = data_value;
+      }
+
+      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
+      data_value = param_.getValue(param_name);
+      if ( data_value == DataValue::EMPTY )
+      {
+        diff_intercept_[MZ] = 0.1;
+      }
+      else
+      {
+        diff_intercept_[MZ] = data_value;
+      }
+
+      param_name = "similarity:pair_min_quality";
+      data_value = param_.getValue(param_name);
+      if ( data_value == DataValue::EMPTY )
+      {
+        pair_min_quality_ = 0.01;
+      }
+      else
+      {
+        pair_min_quality_ = data_value;
+      }
 #undef V_parseParam_
 
-      } // parseParam_
+    } // parseParam_
 
-      /// The actual algorithm for finding element pairs.
-      void findElementPairs_()
+    /**@brief Compute the similarity for a pair of elements; larger quality
+    values are better.
+
+    The returned value should express our confidence that one element might
+    possibly be matched to the other.
+
+    The details here are kind of alchemy ...
+    */
+    QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
+    {
+      QualityType right_intensity(right.getIntensity());
+      if ( right_intensity == 0 )
+        return 0;
+      QualityType intensity_ratio = left.getIntensity() / right_intensity;
+      if ( intensity_ratio > 1. )
+        intensity_ratio = 1. / intensity_ratio;
+
+      // if the right map is the transformed map, take the transformed right position
+      PositionType position_difference = left.getPosition() - new_position;
+
+      for ( Size dimension = 0; dimension < 2; ++dimension )
       {
-#define V_findElementPairs_(bla) V_SimplePairFinder(bla)
-        V_findElementPairs_("@@@ findElementPairs_()");
-
-        // progress dots
-        DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
-        int progress_dots
-        = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
-        int number_of_considered_element_pairs = 0;
-
-        // For each element in map 0, find his/her best friend in map 1
-        std::vector<Size>        best_companion_index_0(element_map_[MODEL]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_0(element_map_[MODEL]->size(),0);
-        for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
+        // Take the absolute value
+        if ( position_difference[dimension] < 0 )
         {
-          QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
-          {
-            QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
-            if ( quality > best_quality )
-            {
-              best_quality = quality;
-              best_companion_index_0[fi0] = fi1;
-            }
-
-            ++number_of_considered_element_pairs;
-            if ( progress_dots &&
-                 ! (number_of_considered_element_pairs % progress_dots)
-               )
-            {
-              std::cout << '-' << std::flush;
-            }
-
-          }
-          best_companion_quality_0[fi0] = best_quality;
+          position_difference[dimension] = -position_difference[dimension];
         }
-
-        // For each element in map 1, find his/her best friend in map 0
-        std::vector<Size>        best_companion_index_1(element_map_[SCENE]->size(),Size(-1));
-        std::vector<QualityType> best_companion_quality_1(element_map_[SCENE]->size(),0);
-        for ( Size fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
-        {
-          QualityType best_quality = -std::numeric_limits<QualityType>::max();
-          for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
-          {
-            QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
-            if ( quality > best_quality )
-            {
-              best_quality = quality;
-              best_companion_index_1[fi1] = fi0;
-            }
-
-            ++number_of_considered_element_pairs;
-            if ( progress_dots &&
-                 ! (number_of_considered_element_pairs % progress_dots)
-               )
-            {
-              std::cout << '+' << std::flush;
-            }
-
-          }
-          best_companion_quality_1[fi1] = best_quality;
-        }
-
-        // And if both like each other, they become a pair.
-        // element_pairs_->clear();
-        for ( Size fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
-        {
-          // fi0 likes someone ...
-          if ( best_companion_quality_0[fi0] > pair_min_quality_ )
-          {
-            // ... who likes him too ...
-            Size best_companion_of_fi0 = best_companion_index_0[fi0];
-            if ( best_companion_index_1[best_companion_of_fi0] == fi0 &&
-                 best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
-               )
-            {
-              element_pairs_->push_back
-              ( ElementPairType ( (*element_map_[MODEL])[fi0],
-                                  (*element_map_[SCENE])[best_companion_of_fi0],
-                                  best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
-                                )
-              );
-            }
-          }
-        }
-
-#undef V_findElementPairs_
-
-      } // findElementPairs_
-
-      /**@brief Compute the similarity for a pair of elements; larger quality
-      values are better.
-
-      The returned value should express our confidence that one element might
-      possibly be matched to the other.
-
-      The details here are kind of alchemy ...
-      */
-      QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
-      {
-        QualityType right_intensity(right.getIntensity());
-        if ( right_intensity == 0 )
-          return 0;
-        QualityType intensity_ratio = left.getIntensity() / right_intensity;
-        if ( intensity_ratio > 1. )
-          intensity_ratio = 1. / intensity_ratio;
-
-        // if the right map is the transformed map, take the transformed right position
-        PositionType position_difference = left.getPosition() - new_position;
-
-        for ( Size dimension = 0; dimension < 2; ++dimension )
-        {
-          // Take the absolute value
-          if ( position_difference[dimension] < 0 )
-          {
-            position_difference[dimension] = -position_difference[dimension];
-          }
-          // Raise the difference to a (potentially fractional) power
-          position_difference[dimension] =
-            pow(position_difference[dimension],diff_exponent_[dimension]);
-          // Add an absolute number
-          position_difference[dimension] += diff_intercept_[dimension];
-        }
-
-        return intensity_ratio / position_difference[RT] / position_difference[MZ];
+        // Raise the difference to a (potentially fractional) power
+        position_difference[dimension] =
+          pow(position_difference[dimension],diff_exponent_[dimension]);
+        // Add an absolute number
+        position_difference[dimension] += diff_intercept_[dimension];
       }
+
+      return intensity_ratio / position_difference[RT] / position_difference[MZ];
+    }
 
   }
   ; // SimplePairFinder
