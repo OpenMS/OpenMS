@@ -523,7 +523,8 @@ Resampler_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: output mzData"
 	@$(call RUN_PROG_OPT,Resampler,-in Resampler_1_input.mzData -out Resampler_1_output.tmp -cols_mz 20 -rows_rt 15)
-	@$(call TEST_FILE_EQUAL,Resampler_1_output.mzData)
+	@$(call RUN_PROG_OPT,FileConverter,-in Resampler_1_output.tmp -in_type mzData -out Resampler_1_output_dta2d.tmp -out_type dta2d)
+	@$(call TEST_FILE_EQUAL,Resampler_1_output.dta2d,Resampler_1_output_dta2d.tmp)
 
 	@$(ECHO) "- Test 2: output pgm (using default settings)"
 	@$(call RUN_PROG_OPT,Resampler,-in Resampler_1_input.mzData -pgm Resampler_2_output.tmp -cols_mz 20 -rows_rt 15)
