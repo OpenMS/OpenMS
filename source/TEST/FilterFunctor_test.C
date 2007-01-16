@@ -61,7 +61,19 @@ CHECK(FilterFunctor& operator = (const FilterFunctor& source))
 RESULT
 
 CHECK(static void registerChildren())
-	// TODO
+	FilterFunctor* ff = Factory<FilterFunctor>::create("ComplementFilter");
+	ff = Factory<FilterFunctor>::create("IntensityBalanceFilter");
+	ff = Factory<FilterFunctor>::create("IntensityDistBins");
+	ff = Factory<FilterFunctor>::create("NeutralLossDiffFilter");
+	ff = Factory<FilterFunctor>::create("IsotopeDiffFilter");
+	ff = Factory<FilterFunctor>::create("KellerQuality");
+	ff = Factory<FilterFunctor>::create("ParentFilter");
+	ff = Factory<FilterFunctor>::create("TICFilter");
+	ff = Factory<FilterFunctor>::create("PeakDensityFilter");
+	ff = Factory<FilterFunctor>::create("PeakDiffBins");
+	ff = Factory<FilterFunctor>::create("PeakPosBins");
+	ff = Factory<FilterFunctor>::create("TradSeqQuality");
+
 RESULT
 
 CHECK(template<typename SpectrumType> double apply(SpectrumType& /* spectrum */))

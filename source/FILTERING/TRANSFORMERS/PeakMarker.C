@@ -30,12 +30,14 @@ namespace OpenMS
   PeakMarker::PeakMarker()
     : FactoryProduct()
   {
+		check_defaults_ = false;
 		name_ = PeakMarker::getName();
   }
 
   PeakMarker::PeakMarker(const PeakMarker& source)
     : FactoryProduct(source)
   {
+		check_defaults_ = false;
 		name_ = source.getName();
   }
 

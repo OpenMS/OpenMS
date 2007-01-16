@@ -70,7 +70,7 @@ namespace OpenMS
 				*/
 				//@{
 				/// assignment operator
-				const Modification& operator = (const Modification& modification);
+				Modification& operator = (const Modification& modification);
 				//@}
 
 				/** @name Accessors
@@ -403,7 +403,7 @@ namespace OpenMS
 			 */
 			//@{
 			/// assignment operator
-			const Residue& operator = (const Residue& residue);
+			Residue& operator = (const Residue& residue);
 			//@}
 	
 			/** Accessors

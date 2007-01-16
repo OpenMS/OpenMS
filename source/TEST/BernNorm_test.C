@@ -56,11 +56,15 @@ e_ptr = new BernNorm();
 
 CHECK(BernNorm(const BernNorm& source))
 	BernNorm copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(BernNorm& operator=(const BernNorm& source))
-	// TODO
+	BernNorm copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -82,7 +86,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = BernNorm::create();
+	BernNorm bern;
+	TEST_EQUAL(ppf->getParam(), bern.getParam())
+	TEST_EQUAL(ppf->getName(), bern.getName())
 RESULT
   
 CHECK(static const String getName())
@@ -90,11 +97,48 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	delete e_ptr;
+	e_ptr = new BernNorm();
+
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+	
+	PeakMap pm;
+	pm.push_back(spec);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->filterPeakMap(pm);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("C2", 2000.0);
+  e_ptr->filterPeakMap(pm);
+
+  TEST_EQUAL(pm.begin()->size(), 28)
+
+
 RESULT
 			
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	delete e_ptr;
+	e_ptr = new BernNorm();
+
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->filterPeakSpectrum(spec);
+
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("C2", 2000.0);
+  e_ptr->filterPeakSpectrum(spec);
+
+  TEST_EQUAL(spec.size(), 28)
 RESULT
 
 delete e_ptr;

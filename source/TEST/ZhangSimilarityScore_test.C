@@ -77,7 +77,10 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
 RESULT
 
 CHECK(static PeakSpectrumCompareFunctor* create())
-	// TODO
+	PeakSpectrumCompareFunctor* psf = ZhangSimilarityScore::create();
+	ZhangSimilarityScore zhang;
+	TEST_EQUAL(psf->getParam(), zhang.getParam())
+	TEST_EQUAL(psf->getName(), zhang.getName())
 RESULT
 
 CHECK(static const String getName())

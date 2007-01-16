@@ -36,12 +36,14 @@ namespace OpenMS
   ParentFilter::ParentFilter()
     : FilterFunctor()
   {
+		check_defaults_ = false;
 		name_ = ParentFilter::getName();
   }
 
   ParentFilter::ParentFilter(const ParentFilter& source)
     :FilterFunctor(source)
   {
+		check_defaults_ = false;
 		name_ = source.getName();
   }
 

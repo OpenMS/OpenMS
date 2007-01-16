@@ -67,7 +67,7 @@ namespace OpenMS
 			//@}
 		
 			///
-			const PILISIdentification& operator = (const PILISIdentification&);
+			PILISIdentification& operator = (const PILISIdentification&);
 
 			/** @name Accessors
 			 */

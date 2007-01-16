@@ -58,11 +58,34 @@ RESULT
 ptr = new PILISSequenceDB();
 
 CHECK(PILISSequenceDB(const PILISSequenceDB&))
-	// TODO
+	PILISSequenceDB copy(*ptr);
+	TEST_EQUAL(copy.countPeptides(), ptr->countPeptides())
+	TEST_EQUAL(copy.countProteins(), ptr->countProteins())
+	vector<PILISSequenceDB::PepStruct> peptides1, peptides2;
+	copy.getPeptides(peptides1);
+	ptr->getPeptides(peptides2);
+	TEST_EQUAL(peptides1.size(), peptides2.size());
+	for (Size i = 0; i != peptides1.size(); ++i)
+	{
+		TEST_EQUAL(peptides1[i].peptide, peptides2[i].peptide)
+	}
 RESULT
 
 CHECK(const PILISSequenceDB& operator = (const PILISSequenceDB& rhs))
-	// TODO
+	PILISSequenceDB copy;
+	copy = *ptr;
+
+  TEST_EQUAL(copy.countPeptides(), ptr->countPeptides())
+  TEST_EQUAL(copy.countProteins(), ptr->countProteins())
+  vector<PILISSequenceDB::PepStruct> peptides1, peptides2;
+  copy.getPeptides(peptides1);
+  ptr->getPeptides(peptides2);
+  TEST_EQUAL(peptides1.size(), peptides2.size());
+  for (Size i = 0; i != peptides1.size(); ++i)
+  {
+    TEST_EQUAL(peptides1[i].peptide, peptides2[i].peptide)
+  }
+
 RESULT
 
 CHECK(unsigned int countPeptides() const)
@@ -104,27 +127,30 @@ CHECK(void clearPeptides())
 RESULT
 
 CHECK(bool isReplaceXandL() const)
-	// TODO
+	TEST_EQUAL(ptr->isReplaceXandL(), true);
 RESULT
 
 CHECK(double getFactor() const)
-	// TODO
-RESULT
-
-CHECK(void addFASTAFile(const String& filename))
-	// TODO
+	TEST_REAL_EQUAL(ptr->getFactor(), 10.0)
 RESULT
 
 CHECK(void digestProteinsTryptic(Size missed_cleavages = 0))
+	ptr->digestProteinsTryptic();
 	// TODO
 RESULT
 
 CHECK(void setFactor(double factor))
-	// TODO
+	ptr->setFactor(200.0);
+	TEST_REAL_EQUAL(ptr->getFactor(), 200.0)
 RESULT
 
 CHECK(void setReplaceXandL(bool replace = true))
-	// TODO
+	ptr->setReplaceXandL(false);
+	TEST_EQUAL(ptr->isReplaceXandL(), false)
+RESULT
+
+CHECK(void PILISSequenceDB::addFASTAFile(const String& /*filename*/))
+	TEST_EXCEPTION(Exception::NotImplemented, ptr->addFASTAFile("does_not_exist"))
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -72,7 +72,7 @@ namespace OpenMS
 			Size getIdentifier() const;
 
 			///
-			const HMMStateLight& operator = (const HMMStateLight&);
+			HMMStateLight& operator = (const HMMStateLight&);
 
 			///
 			void setHidden(bool hidden);
@@ -168,7 +168,7 @@ namespace OpenMS
 			void addSynonymTransition(Size name1, Size name2, Size synonym1, Size synonym2);
 
 			///
-			const HiddenMarkovModelLight& operator = (const HiddenMarkovModelLight&);
+			HiddenMarkovModelLight& operator = (const HiddenMarkovModelLight&);
 
 			///
 			void evaluate();

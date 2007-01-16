@@ -56,11 +56,15 @@ e_ptr = new PeakMarker();
 
 CHECK(PeakMarker(const PeakMarker& source))
 	PeakMarker copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(PeakMarker& operator = (const PeakMarker& source))
-	// TODO
+	PeakMarker copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+  TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 delete e_ptr;

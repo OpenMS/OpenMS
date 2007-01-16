@@ -56,11 +56,15 @@ e_ptr = new NLargest();
 
 CHECK(NLargest(const NLargest& source))
 	NLargest copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(NLargest& operator=(const NLargest& source))
-	// TODO
+	NLargest copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -75,7 +79,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = NLargest::create();
+	NLargest nlargest;
+	TEST_EQUAL(ppf->getParam(), nlargest.getParam())
+	TEST_EQUAL(ppf->getName(), nlargest.getName())
 RESULT
 
 CHECK(static const String getName())
@@ -83,11 +90,33 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	delete e_ptr;
+	e_ptr = new NLargest();
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("n", 10);
+  e_ptr->filterPeakMap(pm);
+  TEST_EQUAL(pm.begin()->size(), 10)
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	delete e_ptr;
+	e_ptr = new NLargest();
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("n", 10);
+  e_ptr->filterPeakSpectrum(spec);
+  TEST_EQUAL(spec.size(), 10)
 RESULT
 
 delete e_ptr;

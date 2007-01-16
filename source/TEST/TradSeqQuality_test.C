@@ -57,11 +57,15 @@ e_ptr = new TradSeqQuality();
 
 CHECK(TradSeqQuality(const TradSeqQuality& source))
 	TradSeqQuality copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(TradSeqQuality& operator = (const TradSeqQuality& source))
-	// TODO
+	TradSeqQuality copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(double operator () (const ClusterSpectrum& spec))
@@ -76,7 +80,10 @@ CHECK(double operator () (const ClusterSpectrum& spec))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	FilterFunctor* ff = TradSeqQuality::create();
+	TradSeqQuality filter;
+	TEST_EQUAL(ff->getParam(), filter.getParam())
+	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
 CHECK(static const String getName())

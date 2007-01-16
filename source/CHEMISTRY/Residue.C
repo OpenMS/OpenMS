@@ -59,7 +59,7 @@ namespace OpenMS
 	{
 	}
 
-	const Residue::Modification& Residue::Modification::operator = (const Modification& modification)
+	Residue::Modification& Residue::Modification::operator = (const Modification& modification)
 	{
 		if (this != &modification)
 		{
@@ -283,7 +283,7 @@ namespace OpenMS
 	{
 	}
 
-	const Residue& Residue::operator = (const Residue& residue)
+	Residue& Residue::operator = (const Residue& residue)
 	{
 		if (this != &residue)
 		{

@@ -57,11 +57,15 @@ e_ptr = new KellerQuality();
 
 CHECK(KellerQuality(const KellerQuality& source))
 	KellerQuality copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(KellerQuality& operator = (const KellerQuality& source))
-	// TODO
+	KellerQuality copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(double operator () (const ClusterSpectrum& spec))
@@ -78,7 +82,10 @@ CHECK(double operator () (const ClusterSpectrum& spec))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	FilterFunctor* ff = KellerQuality::create();
+	KellerQuality kq;
+	TEST_EQUAL(ff->getParam(), kq.getParam())
+	TEST_EQUAL(ff->getName(), kq.getName())
 RESULT
 
 CHECK(static const String getName())

@@ -56,11 +56,15 @@ e_ptr = new ParentFilter();
 
 CHECK(ParentFilter(const ParentFilter& source))
 	ParentFilter copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(ParentFilter& operator = (const ParentFilter& source))
-	// TODO
+	ParentFilter copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> double apply(SpectrumType& spec))
@@ -74,7 +78,10 @@ CHECK(template <typename SpectrumType> double apply(SpectrumType& spec))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	FilterFunctor* ff = ParentFilter::create();
+	ParentFilter filter;
+	TEST_EQUAL(ff->getParam(), filter.getParam())
+	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
 CHECK(static const String getName())

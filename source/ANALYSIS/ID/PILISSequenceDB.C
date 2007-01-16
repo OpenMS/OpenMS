@@ -48,7 +48,19 @@ namespace OpenMS
 			replace_X_and_L_(db.replace_X_and_L_)
 	{
 	}
-	
+
+	PILISSequenceDB& PILISSequenceDB::operator = (const PILISSequenceDB& rhs)
+	{
+		if (this != &rhs)
+		{
+			proteins_ = rhs.proteins_;
+			peptides_ = rhs.peptides_;
+			factor_ = rhs.factor_;
+			replace_X_and_L_ = rhs.replace_X_and_L_;
+		}
+		return *this;
+	}
+
 	PILISSequenceDB::~PILISSequenceDB()
 	{
 	}

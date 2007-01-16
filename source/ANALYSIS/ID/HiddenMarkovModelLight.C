@@ -75,7 +75,7 @@ namespace OpenMS
 		return id_;
 	}
 
-	const HMMStateLight::HMMStateLight& HMMStateLight::operator = (const HMMStateLight& state)
+	HMMStateLight& HMMStateLight::operator = (const HMMStateLight& state)
 	{
 		hidden_ = state.hidden_;
 		id_ = state.id_;
@@ -138,7 +138,7 @@ namespace OpenMS
 	{
 	}
 
-	const HiddenMarkovModelLight& HiddenMarkovModelLight::operator = (const HiddenMarkovModelLight& hmm)
+	HiddenMarkovModelLight& HiddenMarkovModelLight::operator = (const HiddenMarkovModelLight& hmm)
 	{
 		trans_ = hmm.trans_;
 		count_trans_ = hmm.count_trans_;

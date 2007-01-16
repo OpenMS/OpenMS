@@ -40,6 +40,7 @@ namespace OpenMS
   SqrtMower::SqrtMower(const SqrtMower& source)
     : PreprocessingFunctor(source)
   {
+		check_defaults_ = false;
   }
 
   SqrtMower& SqrtMower::operator = (const SqrtMower& source)

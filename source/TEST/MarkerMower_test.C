@@ -56,11 +56,15 @@ e_ptr = new MarkerMower();
 
 CHECK(MarkerMower(const MarkerMower& source))
 	MarkerMower copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(MarkerMower& operator = (const MarkerMower& source))
-	// TODO
+	MarkerMower copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -75,8 +79,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	PreprocessingFunctor* f = MarkerMower::create();;
-	TEST_EQUAL(f->getName(), "MarkerMower")
+	PreprocessingFunctor* ppf = MarkerMower::create();
+	MarkerMower mower;
+	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
 CHECK(static const String getName())
@@ -84,11 +90,33 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	delete e_ptr;
+	e_ptr = new MarkerMower();
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("n", 10);
+  e_ptr->filterPeakMap(pm);
+  TEST_EQUAL(pm.begin()->size(), 0)
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	delete e_ptr;
+	e_ptr = new MarkerMower();
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("n", 10);
+  e_ptr->filterPeakSpectrum(spec);
+  TEST_EQUAL(spec.size(), 0)
 RESULT
 			
 CHECK(void insertmarker(PeakMarker* peak_marker))

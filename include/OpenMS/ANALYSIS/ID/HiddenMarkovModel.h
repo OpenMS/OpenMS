@@ -63,7 +63,7 @@ namespace OpenMS
 			//@}
 		
 			///
-			const HMMState& operator = (const HMMState&);
+			HMMState& operator = (const HMMState&);
 		
 			/** Accessors
 			*/
@@ -140,7 +140,7 @@ namespace OpenMS
 			//@}
 
 			///
-			const HiddenMarkovModel& operator = (const HiddenMarkovModel&);
+			HiddenMarkovModel& operator = (const HiddenMarkovModel&);
 			
 			/** Accessors
 			*/

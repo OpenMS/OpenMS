@@ -129,7 +129,7 @@ namespace OpenMS
 		return symbol_;
 	}
 
-	const Element& Element::operator = (const Element& element)
+	Element& Element::operator = (const Element& element)
 	{
 		name_ = element.name_;
 		symbol_ = element.symbol_;

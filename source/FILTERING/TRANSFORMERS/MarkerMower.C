@@ -40,6 +40,7 @@ namespace OpenMS
   MarkerMower::MarkerMower()
     : PreprocessingFunctor()
   {
+		check_defaults_ = false;
 		name_ = MarkerMower::getName();
     //todo remove
     //insertmarker(new IsotopeMarker());
@@ -50,6 +51,7 @@ namespace OpenMS
   MarkerMower::MarkerMower(const MarkerMower& source)
     : PreprocessingFunctor(source)
   {
+		check_defaults_ = false;
 		name_ = source.getName();
   }
 

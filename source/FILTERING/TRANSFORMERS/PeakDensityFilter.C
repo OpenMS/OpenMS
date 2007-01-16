@@ -33,12 +33,14 @@ namespace OpenMS
   PeakDensityFilter::PeakDensityFilter()
     :FilterFunctor()
   {
+		check_defaults_ = false;
 		name_ = PeakDensityFilter::getName();
   }
 
   PeakDensityFilter::PeakDensityFilter(const PeakDensityFilter& source )
     :FilterFunctor(source)
   {
+		check_defaults_ = false;
 		name_ = source.getName();
   }
     

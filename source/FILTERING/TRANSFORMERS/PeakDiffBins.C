@@ -35,6 +35,7 @@ namespace OpenMS
     : FilterFunctor(),
 			mask_() 
   {
+		check_defaults_ = false;
 		name_ = PeakDiffBins::getName();
     // value from Bioinformatics, Bern 2004
     double mindiff = 1;
@@ -52,6 +53,7 @@ namespace OpenMS
     : FilterFunctor(source),
 			mask_(source.mask_) 
   {
+		check_defaults_ = false;
 		name_ = source.getName();
   }
   

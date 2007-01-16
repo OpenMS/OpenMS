@@ -114,7 +114,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// assignment operator
-			const Element& operator = (const Element& element);
+			Element& operator = (const Element& element);
 			//@}
 
 			/** @name Predicates

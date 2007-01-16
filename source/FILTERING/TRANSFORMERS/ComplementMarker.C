@@ -33,6 +33,7 @@ namespace OpenMS
   ComplementMarker::ComplementMarker()
     : PeakMarker()
   {
+		name_ = ComplementMarker::getName();
     defaults_.setValue("tolerance", 1);
     defaults_.setValue("marks", 1);
 		param_ = defaults_;

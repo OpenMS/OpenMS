@@ -75,7 +75,7 @@ namespace OpenMS
 		return name_;
 	}
 
-	const HMMState::HMMState& HMMState::operator = (const HMMState& state)
+	HMMState& HMMState::operator = (const HMMState& state)
 	{
 		hidden_ = state.hidden_;
 		name_ = state.name_;
@@ -138,7 +138,7 @@ namespace OpenMS
 	{
 	}
 
-	const HiddenMarkovModel& HiddenMarkovModel::operator = (const HiddenMarkovModel& hmm)
+	HiddenMarkovModel& HiddenMarkovModel::operator = (const HiddenMarkovModel& hmm)
 	{
 		trans_ = hmm.trans_;
 		count_trans_ = hmm.count_trans_;

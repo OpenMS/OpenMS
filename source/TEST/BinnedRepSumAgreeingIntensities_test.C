@@ -56,11 +56,15 @@ e_ptr = new BinnedRepSumAgreeingIntensities();
 
 CHECK(BinnedRepSumAgreeingIntensities(const BinnedRepSumAgreeingIntensities& source))
 	BinnedRepSumAgreeingIntensities copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(BinnedRepSumAgreeingIntensities& operator = (const BinnedRepSumAgreeingIntensities& source))
-	// TODO
+	BinnedRepSumAgreeingIntensities copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
@@ -87,11 +91,23 @@ CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 RESULT
 
 CHECK(double operator () (const BinnedRep& a) const)
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec1;
+  dta_file.load("data/Transformers_tests.dta", spec1);
+  TEST_EQUAL(spec1.size(), 121)
+
+	BinnedRep br1(spec1, 1.0, 1);
+
+	double score = (*e_ptr)(br1, br1);
+
+	TEST_REAL_EQUAL(score, 1.0)
 RESULT
 
 CHECK(static BinnedRepCompareFunctor* create())
-	// TODO
+	BinnedRepCompareFunctor* brcf = BinnedRepSumAgreeingIntensities::create();
+	BinnedRepSumAgreeingIntensities sai;
+	TEST_EQUAL(brcf->getParam(), sai.getParam())
+	TEST_EQUAL(brcf->getName(), sai.getName())
 RESULT
 
 CHECK(static const String getName())

@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(TheoreticalSpectrumGenerator, "$Id:$")
+START_TEST(TheoreticalSpectrumGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,7 +51,8 @@ CHECK(TheoreticalSpectrumGenerator())
 RESULT
 
 CHECK(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
-	// TODO
+	TheoreticalSpectrumGenerator copy(*ptr);
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
 RESULT
 
 CHECK(~TheoreticalSpectrumGenerator())
@@ -62,7 +63,9 @@ ptr = new TheoreticalSpectrumGenerator();
 AASequence peptide("IFSQVGK");
 
 CHECK(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
-	// TODO
+	TheoreticalSpectrumGenerator copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
 RESULT
 
 CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, SignedInt charge = 1))
@@ -117,15 +120,18 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Sign
 RESULT
 
 CHECK(Param& getParam())
-	// TODO
+	ptr->getParam().setValue("is_mutable", "true");
 RESULT
 
 CHECK(const Param& getParam() const)
-	// TODO
+	Param p = ptr->getParam();
 RESULT
 
 CHECK(void setParam(const Param& param))
-	// TODO
+	Param p = ptr->getParam();
+	p.setValue("value_to_test", "true");
+	ptr->setParam(p);
+	TEST_EQUAL(ptr->getParam().getValue("value_to_test"), "true")
 RESULT
 
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, SignedInt charge = 1))

@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(ProtonDistributionModel, "$Id:$")
+START_TEST(ProtonDistributionModel, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -54,17 +54,18 @@ CHECK(~ProtonDistributionModel())
 	delete ptr;
 RESULT
 
+ptr = new ProtonDistributionModel();
+
 CHECK(ProtonDistributionModel(const ProtonDistributionModel& model))
-	// TODO
+	ProtonDistributionModel copy(*ptr);
+	// nothing to do
 RESULT
 
 CHECK(ProtonDistributionModel& operator = (const ProtonDistributionModel& pdm))
-	// TODO
+	ProtonDistributionModel copy;
+	copy = *ptr;
+	// nothing to do
 RESULT
-
-
-
-ptr = new ProtonDistributionModel();
 
 CHECK(void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
 	HashMap<Size, double> bb_charges, sc_charges;
@@ -85,7 +86,11 @@ CHECK(void getProtonDistribution(HashMap<Size, double>& bb_charges, HashMap<Size
 RESULT
 
 CHECK(void setPeptideProtonDistribution(const HashMap<Size, double>& bb_charge, const HashMap<Size, double>& sc_charge))
-	// TODO
+	HashMap<Size, double> bb_charges, sc_charges;
+	AASequence peptide("DFPIANGER");
+	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
+
+	ptr->setPeptideProtonDistribution(bb_charges, sc_charges);
 RESULT
 
 CHECK(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2, FragmentationType type))
