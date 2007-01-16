@@ -42,15 +42,15 @@
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="7">VnubQ0poDkYQOFlFIr01RZAISETYJLZD/H6ZQw==</data>
+				<data precision="32" endian="little" length="7">RMijQ0poDkYQOFlFIr01RZAISETYJLZD/H6ZQw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="7">6LrwPk1R6D6U4MA+fQTDPurk0D5ERr8+/r2mPg==</data>
+				<data precision="32" endian="little" length="7">Gh/zPk1R6D6U4MA+fQTDPurk0D5ERr8+/r2mPg==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="7">vU/WQGVZyUAq79BAM0/NQMSsmkDY/FZADNGJQA==</data>
+				<data precision="32" endian="little" length="7">UvfOQGVZyUAq79BAM0/NQMSsmkDY/FZADNGJQA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>rightWidth</arrayName>
@@ -66,7 +66,7 @@
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="7">lWduP5s8dT/ePH8/+pd6PyylfD8Vbnk/RmB/Pw==</data>
+				<data precision="32" endian="little" length="7">ppxyP5s8dT/ePH8/+pd6PyylfD8Vbnk/RmB/Pw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="8">
 				<arrayName>peakShape</arrayName>
@@ -89,15 +89,15 @@
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="7">Si3IRe2xLkUONY9EGNDSQse0X0SmtvVDIGlvQw==</data>
+				<data precision="32" endian="little" length="7">t7/JRe2xLkUONY9EGNDSQse0X0SmtvVDIGlvQw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="7">4s/CPuxhrD56xdQ+LoQ0PlButj5wBpk+KSC4Pg==</data>
+				<data precision="32" endian="little" length="7">IRbEPuxhrD56xdQ+LoQ0PlButj5wBpk+KSC4Pg==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="7">NRS8QGsky0BWT6NAgP0fQaNQ9UCcUrNAti8TQQ==</data>
+				<data precision="32" endian="little" length="7">EwK5QGsky0BWT6NAgP0fQaNQ9UCcUrNAti8TQQ==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>rightWidth</arrayName>
@@ -113,7 +113,7 @@
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="7">9Ud/P9iDfz/0ZHg/AACAP+xFfz9dSH8/XGZ9Pw==</data>
+				<data precision="32" endian="little" length="7">n1N/P9iDfz/0ZHg/AACAP+xFfz9dSH8/XGZ9Pw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="8">
 				<arrayName>peakShape</arrayName>
