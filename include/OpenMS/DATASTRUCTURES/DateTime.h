@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -33,8 +33,6 @@
 
 namespace OpenMS
 {
-	class String;
-	
 	/**	
 		@brief DateTime Class.
 	
@@ -100,16 +98,14 @@ namespace OpenMS
 				
 				Give the numbers in the following order: month, day, year, hour, minute, second.
 			*/
-			void set(UnsignedInt month, UnsignedInt day, UnsignedInt year,
-							 UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError);
+			void set(UnsignedInt month, UnsignedInt day, UnsignedInt year, UnsignedInt hour, UnsignedInt minute, UnsignedInt second) throw (Exception::ParseError);
 		
 			/**
 				@brief Fills the arguments with the date and the time
 			 	
 			 	Give the numbers in the following order: month, day and year, hour minute, second.
 			*/
-			void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year,
-							 UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
+			void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year, UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
 
 			/**
 				@brief Fills the arguments with the date
@@ -163,6 +159,7 @@ namespace OpenMS
 		protected:
 			UnsignedInt hour_, minute_, second_;
 	};
+	
 } // namespace OPENMS
 
 #endif // OPENMS_DATASTRUCTURES_DATETIME_H
