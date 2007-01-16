@@ -56,11 +56,15 @@ e_ptr = new ParentPeakMower();
 
 CHECK(ParentPeakMower(const ParentPeakMower& source))
 	ParentPeakMower copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(ParentPeakMower& operator = (const ParentPeakMower& source))
-	// TODO
+	ParentPeakMower copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -106,19 +110,104 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = ParentPeakMower::create();
+	ParentPeakMower ppm;
+	TEST_EQUAL(ppf->getParam(), ppm.getParam())
+	TEST_EQUAL(ppf->getName(), ppm.getName())
 RESULT
 
 CHECK(static const String getName())
-	// TODO
+	TEST_EQUAL(e_ptr->getName(), "ParentPeakMower")
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  pm.begin()->setMSLevel(2);
+
+  pm.begin()->getContainer().sortByPosition();
+
+  TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
+
+  double window_size(2.0);
+  e_ptr->getParam().setValue("window_size", window_size);
+  e_ptr->getParam().setValue("default_charge", 2);
+  e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
+  e_ptr->getParam().setValue("set_to_zero", (short)1);
+
+  e_ptr->filterPeakMap(pm);
+  double pre_1_pos(pm.begin()->getPrecursorPeak().getPosition()[0] * pm.begin()->getPrecursorPeak().getCharge());
+  for (SignedInt z = 1; z != pm.begin()->getPrecursorPeak().getCharge(); ++z)
+  {
+    for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
+    {
+      if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+
+      // test if NH3 loss is correct removed
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+    }
+  }
+
+
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+  spec.setMSLevel(2);
+
+  spec.getContainer().sortByPosition();
+
+  TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+
+  double window_size(2.0);
+  e_ptr->getParam().setValue("window_size", window_size);
+  e_ptr->getParam().setValue("default_charge", 2);
+  e_ptr->getParam().setValue("clean_all_charge_states", (short)1);
+  e_ptr->getParam().setValue("set_to_zero", (short)1);
+
+  e_ptr->filterPeakSpectrum(spec);
+  double pre_1_pos(spec.getPrecursorPeak().getPosition()[0] * spec.getPrecursorPeak().getCharge());
+  for (SignedInt z = 1; z != spec.getPrecursorPeak().getCharge(); ++z)
+  {
+    for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    {
+      if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+
+      // test if NH3 loss is correct removed
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+
+      if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
+      {
+        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+      }
+    }
+  }
+
+	
 RESULT
 
 delete e_ptr;

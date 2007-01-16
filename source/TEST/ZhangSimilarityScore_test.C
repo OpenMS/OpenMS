@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(ZhangSimilarityScore, "$Id:$")
+START_TEST(ZhangSimilarityScore, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -56,15 +56,20 @@ RESULT
 ptr = new ZhangSimilarityScore();
 
 CHECK(ZhangSimilarityScore(const ZhangSimilarityScore& source))
-	// TODO
+	ZhangSimilarityScore copy(*ptr);
+	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getParam(), ptr->getParam());
 RESULT
 
 CHECK(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
-	// TODO
+	ZhangSimilarityScore copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getName(), ptr->getName());
+	TEST_EQUAL(copy.getParam(), ptr->getParam());
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& spec) const)
-	// TODO
+	// TODO	
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)

@@ -56,11 +56,15 @@ e_ptr = new WindowMower();
 
 CHECK(WindowMower(const WindowMower& source))
 	WindowMower copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(WindowMower& operator = (const WindowMower& source))
-	// TODO
+	WindowMower copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -79,7 +83,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = WindowMower::create();
+	WindowMower mower;
+	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
 CHECK(static const String getName())
@@ -87,11 +94,35 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("windowsize", 50); // default
+  e_ptr->getParam().setValue("peakcount", 2);
+
+  e_ptr->filterPeakMap(pm);
+
+  TEST_EQUAL(pm.begin()->size(), 56)
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("windowsize", 50); // default
+  e_ptr->getParam().setValue("peakcount", 2);
+
+  e_ptr->filterPeakSpectrum(spec);
+
+  TEST_EQUAL(spec.size(), 56)
 RESULT
 
 delete e_ptr;

@@ -67,7 +67,16 @@ CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
 RESULT
 
 CHECK(static void registerChildren())
-	// TODO
+	PreprocessingFunctor* ppf = Factory<PreprocessingFunctor>::create("ThresholdMower");
+	ppf = Factory<PreprocessingFunctor>::create("WindowMower");
+	ppf = Factory<PreprocessingFunctor>::create("Scaler");
+	ppf = Factory<PreprocessingFunctor>::create("NLargest");
+	ppf = Factory<PreprocessingFunctor>::create("BernNorm");
+	ppf = Factory<PreprocessingFunctor>::create("MarkerMower");
+	ppf = Factory<PreprocessingFunctor>::create("SqrtMower");
+	ppf = Factory<PreprocessingFunctor>::create("Normalizer");
+	ppf = Factory<PreprocessingFunctor>::create("ParentPeakMower");
+
 RESULT
 
 /////////////////////////////////////////////////////////////

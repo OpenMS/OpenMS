@@ -58,11 +58,15 @@ e_ptr = new Scaler();
 
 CHECK(Scaler(const Scaler& source))
 	Scaler copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(Scaler& operator = (const Scaler& source))
-	// TODO
+	Scaler copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -82,7 +86,7 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	// only tested within the factory
 RESULT
 
 CHECK(static const String getName())
@@ -90,11 +94,37 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  e_ptr->filterPeakMap(pm);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  pm.begin()->getContainer().sortByIntensity();
+  TEST_REAL_EQUAL(pm.begin()->begin()->getIntensity(), 96)
+  TEST_REAL_EQUAL((pm.begin()->end()-1)->getIntensity(), 121)
+  TEST_REAL_EQUAL((pm.begin()->end()-1)->getPosition()[0], 136.077)
+
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+  e_ptr->filterPeakSpectrum(spec);
+
+  TEST_EQUAL(spec.size(), 121)
+
+  spec.getContainer().sortByIntensity();
+  TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
+  TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
+  TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
 RESULT
 
 delete e_ptr;

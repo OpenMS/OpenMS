@@ -56,11 +56,15 @@ e_ptr = new TICFilter();
 
 CHECK(TICFilter(const TICFilter& source))
 	TICFilter copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
+	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
 CHECK(TICFilter& operator=(const TICFilter& source))
-	// TODO
+	TICFilter copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
+	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
@@ -73,7 +77,7 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	// nothin to test only within factory test
 RESULT
 
 CHECK(static const String getName())

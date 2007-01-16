@@ -61,7 +61,9 @@ CHECK(SqrtMower(const SqrtMower& source))
 RESULT
 
 CHECK(SqrtMower& operator=(const SqrtMower& source))
-	// TODO
+	SqrtMower copy;
+	copy = *e_ptr;
+	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -76,7 +78,7 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	// nothing to test, only with factory
 RESULT
 
 CHECK(static const String getName())
@@ -84,11 +86,28 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec;
+	dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+	TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
+
+	e_ptr->filterPeakMap(pm);
+	TEST_EQUAL((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+
+	e_ptr->filterPeakSpectrum(spec);
+	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
 delete e_ptr;

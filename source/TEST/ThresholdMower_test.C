@@ -56,11 +56,15 @@ e_ptr = new ThresholdMower();
 
 CHECK(ThresholdMower(const ThresholdMower& source))
 	ThresholdMower copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(ThresholdMower& operator=(const ThresholdMower& source))
-	// TODO
+	ThresholdMower copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -81,7 +85,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = ThresholdMower::create();
+	ThresholdMower mower;
+	TEST_EQUAL(ppf->getParam(), mower.getParam())
+	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
 CHECK(static const String getName())
@@ -89,10 +96,41 @@ CHECK(static const String getName())
 RESULT
 
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("threshold", 1);
+
+  e_ptr->filterPeakMap(pm);
+  TEST_EQUAL(pm.begin()->size(), 121)
+
+  e_ptr->getParam().setValue("threshold", 10);
+  e_ptr->filterPeakMap(pm);
+  TEST_EQUAL(pm.begin()->size(), 14)
+
 RESULT
+
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("threshold", 1);
+
+  e_ptr->filterPeakSpectrum(spec);
+  TEST_EQUAL(spec.size(), 121)
+
+  e_ptr->getParam().setValue("threshold", 10);
+  e_ptr->filterPeakSpectrum(spec);
+  TEST_EQUAL(spec.size(), 14)
 RESULT
 
 delete e_ptr;

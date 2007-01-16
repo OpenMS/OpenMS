@@ -56,11 +56,15 @@ e_ptr = new Normalizer();
 
 CHECK(Normalizer(const Normalizer& source))
 	Normalizer copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(Normalizer& operator = (const Normalizer& source))
-	// TODO
+	Normalizer copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
@@ -91,7 +95,10 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 RESULT
 
 CHECK(static PreprocessingFunctor* create())
-	// TODO
+	PreprocessingFunctor* ppf = Normalizer::create();
+	Normalizer norm;
+	TEST_EQUAL(ppf->getParam(), norm.getParam())
+	TEST_EQUAL(ppf->getName(), norm.getName())
 RESULT
 
 CHECK(static const String getName())
@@ -99,11 +106,66 @@ CHECK(static const String getName())
 RESULT
 	
 CHECK(void filterPeakMap(PeakMap& exp))
-	// TODO
+	delete e_ptr;
+	e_ptr = new Normalizer();
+
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+	PeakMap pm;
+	pm.push_back(spec);
+
+  pm.begin()->getContainer().sortByIntensity();
+
+  TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 46)
+
+  e_ptr->filterPeakMap(pm);
+
+  pm.begin()->getContainer().sortByIntensity();
+
+  TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 1)
+
+  e_ptr->getParam().setValue("method", "to_TIC");
+  e_ptr->filterPeakMap(pm);
+
+  double sum(0);
+  for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
+  {
+    sum += it->getIntensity();
+  }
+
+  TEST_REAL_EQUAL(sum, 1.0);	
 RESULT
 
 CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
-	// TODO
+	delete e_ptr;
+	e_ptr = new Normalizer();
+
+	DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load("data/Transformers_tests.dta", spec);
+
+  spec.getContainer().sortByIntensity();
+
+  TEST_EQUAL(spec.rbegin()->getIntensity(), 46)
+
+  e_ptr->filterPeakSpectrum(spec);
+
+  spec.getContainer().sortByIntensity();
+
+  TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
+
+  e_ptr->getParam().setValue("method", "to_TIC");
+  e_ptr->filterPeakSpectrum(spec);
+
+  double sum(0);
+  for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+  {
+    sum += it->getIntensity();
+  }
+
+  TEST_REAL_EQUAL(sum, 1.0);	
 RESULT
 
 delete e_ptr;
