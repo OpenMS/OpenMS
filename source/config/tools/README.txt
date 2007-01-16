@@ -28,3 +28,6 @@ It fails under the following conditions:
 	- Several variable declarations in one row (int a,b,c;)
 	
 	- Union declarations
+
+	- Pure access declarations
+
