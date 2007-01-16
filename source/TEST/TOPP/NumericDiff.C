@@ -424,6 +424,7 @@ int main ( int main_argc, char ** main_argv)
 
 			if ( is_absdiff_small )
 			{
+				is_absdiff_small = false;
 				continue;
 			}
 
