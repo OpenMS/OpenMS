@@ -39,13 +39,16 @@ namespace OpenMS
 		vector< IdentificationData >&	identifications,
 		ProteinIdentification&	protein_identification,
 		const Real& p_value_threshold,
-		const vector< Real >& pvalues,
-		const string& database,
-		const string& snd_database)
+		vector< Real >& pvalues,
+		const string& database)
 	throw(
 		Exception::FileNotFound,
 		Exception::ParseError)
   {
+		// if no p_values were computed take all peptides
+		bool no_pvalues = pvalues.empty();
+		if ( no_pvalues ) pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
+		
   	// generally used variables
 		String line, buffer;
 		vector< String > substrings;
@@ -116,13 +119,13 @@ namespace OpenMS
 		
 		vector< String > databases;
 		databases.push_back(database);
-		if ( !snd_database.empty() ) databases.push_back(snd_database);
 		
 		PeptideHit peptide_hit;
 		ProteinHit protein_hit;
 		
 		score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
 
+		if ( no_pvalues ) pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
 		vector< Real >::const_iterator p_value = pvalues.begin();
 		
 		for ( UnsignedInt i = 0; i < displayed_peptides; ++i, ++p_value )
@@ -207,6 +210,7 @@ namespace OpenMS
 			}
 		}
 		result_file.close();
+		if ( no_pvalues ) pvalues.clear();
 		
 		// get the sequences of the protein
 //		vector< String > sequences;
@@ -294,10 +298,8 @@ namespace OpenMS
 				// if there are two columns and the second is a number preceeded by a '+', they are merged
 				else if ( (*(s_i+1))[0] == '+' )
 				{
-std::cout << "###" << *s_i << "###\t###" << *(s_i+1) << "###" << std::endl;
 					bool is_digit = true;
 					for ( UnsignedInt i = 1; i < (s_i+1)->length(); ++i ) is_digit &= (bool) isdigit((*(s_i+1))[i]);
-std::cout << (is_digit) << "\t + is seperated!" << std::endl;
 					if ( is_digit && ((s_i+1)->length()-1) )
 					{
 						s_i->append(*(s_i+1));

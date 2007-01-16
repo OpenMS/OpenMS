@@ -72,7 +72,7 @@ namespace OpenMS
 				
 				@ingroup FileIO
 				*/
-			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification&	protein_identification, const Real& p_value_threshold, const std::vector< Real >& pvalues, const std::string& database = "", const std::string& snd_database = "") throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const std::string& result_filename, std::vector< IdentificationData >& identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, std::vector< Real >& pvalues, const std::string& database = "") throw (Exception::FileNotFound, Exception::ParseError);
 
 			void finishSummaryHtml(const std::string& summary_filename) throw (Exception::UnableToCreateFile);
 
