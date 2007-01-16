@@ -369,6 +369,10 @@
 					if ($file_maintainers[$testname] != $file_maintainers[$f])
 					{
 						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$verbose,$f);
+						if ($verbose)
+						{
+							print "  '$file_maintainers[$testname]'<->'$file_maintainers[$f]'\n";
+						}
 					}
 				}
 				# maintainer of source file
@@ -378,6 +382,10 @@
 					if ($file_maintainers[$source_name] != $file_maintainers[$f])
 					{
 						realOutput("Inconsistent maintainers in '$f' and '$source_name'",$user,$verbose,$f);
+						if ($verbose)
+						{
+							print "  '$file_maintainers[$source_name]'<->'$file_maintainers[$f]'\n";
+						}
 					}
 				}
 			}
