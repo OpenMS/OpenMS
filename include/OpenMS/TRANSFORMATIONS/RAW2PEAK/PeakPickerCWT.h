@@ -44,7 +44,7 @@
 #include <algorithm>
 
 #undef DEBUG_PEAK_PICKING
-#undef DEBUG_DECONV
+//#undef DEBUG_DECONV
 namespace OpenMS
 {
   /**
@@ -397,12 +397,13 @@ namespace OpenMS
           {
 						// if the signal to noise ratio at the max position is too small
 						// the peak isn't considered
-										
-						if(sne.getSignalToNoise(area.max) < signal_to_noise_)
+				
+						if((sne.getSignalToNoise(area.max) < signal_to_noise_) && (area.max  != it_pick_end))
 							{
-								it_pick_begin = area.max +1;
+								it_pick_begin = area.max;
 								continue;
 							}
+						else if(area.max >= it_pick_end) break;
 						
             //search for the endpoints of the peak
             regular_endpoints = getPeakEndPoints_(it_pick_begin,
