@@ -36,7 +36,7 @@
 
 ///////////////////////////
 
-START_TEST(PILISModel_test.C, "$Id:$")
+START_TEST(PILISModel_test.C, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -58,11 +58,35 @@ RESULT
 ptr = new PILISModel();
 
 CHECK(PILISModel(const PILISModel& model))
-	// TODO
+	PILISModel copy(*ptr);
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
 RESULT
 
 CHECK(PILISModel& operator = (const PILISModel& mode))
-	// TODO
+	PILISModel copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
+RESULT
+
+CHECK(Param& getParam())
+	ptr->getParam().setValue("bla", "blubb");
+RESULT
+
+CHECK(const Param& getParam() const)
+	Param p(ptr->getParam());
+	TEST_REAL_EQUAL(p.getValue("upper_mz"), 2000.0)
+RESULT
+
+CHECK(void setParam(const Param& param))
+	Param p;
+	p.setValue("blubb", "bla");
+	ptr->setParam(p);
+	TEST_EQUAL(ptr->getParam().getValue("blubb"), "bla")
+RESULT
+
+CHECK(void resetToDefaultParam())
+	ptr->resetToDefaultParam();
+	TEST_REAL_EQUAL(ptr->getParam().getValue("upper_mz"), 2000.0)
 RESULT
 
 CHECK(void writetoYGFFile(const String& filename))

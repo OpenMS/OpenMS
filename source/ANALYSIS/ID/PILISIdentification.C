@@ -73,15 +73,35 @@ namespace OpenMS
 		scoring_type_ = (String)defaults_.getValue("score_name");
 	}
 
-	PILISIdentification::PILISIdentification(const PILISIdentification& PILIS_id)
-		: sequence_db_(0),
+	PILISIdentification::PILISIdentification(const PILISIdentification& rhs)
+		: param_(rhs.param_),
+			defaults_(rhs.defaults_),
+			sequence_db_(0),
 			hmm_model_(0),
-			scorer_(Factory<PeakSpectrumCompareFunctor>::create(PILIS_id.scorer_->getName())),
+			scorer_(Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName())),
+			scoring_type_(scorer_->getName()),
 			own_sequence_db_(false),
 			own_model_(false)
 	{
 	}
-	
+
+	PILISIdentification& PILISIdentification::operator = (const PILISIdentification& rhs)
+	{
+		if (this != &rhs)
+		{
+			sequence_db_ = 0;
+			hmm_model_ = 0;
+			defaults_ = rhs.defaults_;
+			param_ = rhs.param_;
+			scorer_ = Factory<PeakSpectrumCompareFunctor>::create(rhs.scorer_->getName());
+			scoring_type_ = scorer_->getName();
+			own_sequence_db_ = false;
+			own_model_ = false;
+			param_ = rhs.param_;
+		}
+		return *this;
+	}
+
 	PILISIdentification::~PILISIdentification()
 	{
 		if (own_sequence_db_)
@@ -339,7 +359,7 @@ namespace OpenMS
 		return param_;
 	}
 
-	void PILISIdentification::resetToDefaults()
+	void PILISIdentification::resetToDefaultParam()
 	{
 		param_ = defaults_;
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create((String)defaults_.getValue("score_name"));

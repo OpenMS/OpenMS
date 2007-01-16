@@ -56,11 +56,15 @@ e_ptr = new IntensityBalanceFilter();
 
 CHECK(IntensityBalanceFilter(const IntensityBalanceFilter& source))
 	IntensityBalanceFilter copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source))
-	// TODO
+	IntensityBalanceFilter copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
@@ -74,7 +78,10 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	FilterFunctor* ff = IntensityBalanceFilter::create();
+	IntensityBalanceFilter filter;
+	TEST_EQUAL(ff->getParam(), filter.getParam())
+	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
 CHECK(static const String getName())

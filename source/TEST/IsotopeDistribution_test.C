@@ -68,8 +68,20 @@ CHECK(IsotopeDistribution(Size max_isotope))
 	delete ptr;
 RESULT
 
+IsotopeDistribution* iso = new IsotopeDistribution();
+
 CHECK(IsotopeDistribution(const IsotopeDistribution& isotope_distribution))
-	// TODO
+	IsotopeDistribution copy;
+	copy = *iso;
+  for (Size i = 0; i != copy.getContainer().size(); ++i)
+  {
+    TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
+    TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
+  }
+	TEST_EQUAL(copy.getMin(), iso->getMin())
+	TEST_EQUAL(copy.getMax(), iso->getMax())
+	TEST_EQUAL(copy.size(), iso->size())
+	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 RESULT
 
 CHECK(~IsotopeDistribution())
@@ -77,10 +89,18 @@ CHECK(~IsotopeDistribution())
 	delete ptr;
 RESULT
 
-IsotopeDistribution* iso = new IsotopeDistribution();
-
 CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distribution))
-	// TODO
+	IsotopeDistribution copy;
+	copy = *iso;
+	for (Size i = 0; i != copy.getContainer().size(); ++i)
+	{
+		TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
+		TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
+	}
+	TEST_EQUAL(copy.getMin(), iso->getMin())
+	TEST_EQUAL(copy.getMax(), iso->getMax())
+	TEST_EQUAL(copy.size(), iso->size())
+	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 RESULT
 
 CHECK(void setMaxIsotope(Size max_isotope))

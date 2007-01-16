@@ -32,12 +32,14 @@ namespace OpenMS
   Scaler::Scaler()
     : PreprocessingFunctor()
   {
+		check_defaults_ = false;
 		name_ = Scaler::getName();
   }
 
   Scaler::Scaler(const Scaler& source)
     : PreprocessingFunctor(source)
   {
+		check_defaults_ = false;
   }
 
   Scaler::~Scaler()

@@ -60,23 +60,32 @@ RESULT
 ptr = new PILISIdentification();
 
 CHECK(PILISIdentification(const PILISIdentification& source))
-	// TODO
+	PILISIdentification copy(*ptr);
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getScoringType(), "ZhangSimilarityScore")
 RESULT
 
 CHECK(const PILISIdentification& operator = (const PILISIdentification&))
-	// TODO
+	PILISIdentification copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getParam(), ptr->getParam())
+	TEST_EQUAL(copy.getScoringType(), "ZhangSimilarityScore")
 RESULT
 
 CHECK(Param& getParam())
-	// TODO
+	ptr->getParam().setValue("bla", "blubb");
+	TEST_EQUAL(ptr->getParam().getValue("bla"), "blubb")
 RESULT
 
 CHECK(const Param& getParam() const)
-	// TODO
+	Param p(ptr->getParam());
+	TEST_EQUAL(p.getValue("bla"), "blubb")
 RESULT
 
 CHECK(void setParam(const Param& param))
-	// TODO
+	Param p;
+	p.setValue("blubb", "bla");
+	ptr->setParam(p);
 RESULT
 
 CHECK(const String& getScoringType() const)
@@ -87,9 +96,11 @@ CHECK(void setScoringType(const String& type))
 	TEST_EQUAL(ptr->getScoringType(), "SpectrumCheapDPCorr")
 RESULT
 
-CHECK(void resetToDefaults())
-	ptr->resetToDefaults();
+CHECK(void resetToDefaultParam())
+	ptr->resetToDefaultParam();
+	PILISIdentification id;
 	TEST_EQUAL(ptr->getScoringType(), "ZhangSimilarityScore")
+	TEST_EQUAL(ptr->getParam(), id.getParam())
 RESULT
 
 CHECK(void setSequenceDB(PILISSequenceDB* sequence_db))

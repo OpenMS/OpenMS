@@ -58,11 +58,15 @@ e_ptr = new NeutralLossMarker();
 
 CHECK(NeutralLossMarker(const NeutralLossMarker& source))
 	NeutralLossMarker copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(NeutralLossMarker& operator = (const NeutralLossMarker& source))
-	// TODO
+	NeutralLossMarker copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
@@ -82,7 +86,10 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 RESULT
 
 CHECK(static PeakMarker* create())
-	// TODO
+	PeakMarker* pm = NeutralLossMarker::create();
+	NeutralLossMarker marker;
+	TEST_EQUAL(pm->getParam(), marker.getParam())
+	TEST_EQUAL(pm->getName(), marker.getName())
 RESULT
 
 CHECK(static const String getName())

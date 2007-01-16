@@ -57,11 +57,15 @@ e_ptr = new IntensityDistBins();
 
 CHECK(IntensityDistBins(const IntensityDistBins& source))
 	IntensityDistBins copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(IntensityDistBins& operator = (const IntensityDistBins& source))
-	// TODO
+	IntensityDistBins copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
 CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
@@ -78,7 +82,10 @@ CHECK(std::vector<double> operator () (const ClusterSpectrum& spec))
 RESULT
 
 CHECK(static FilterFunctor* create())
-	// TODO
+	FilterFunctor* ff = IntensityDistBins::create();
+	IntensityDistBins filter;
+	TEST_EQUAL(ff->getParam(), filter.getParam())
+	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
 CHECK(static const String getName())

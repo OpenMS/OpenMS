@@ -99,6 +99,18 @@ namespace OpenMS
 
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
+
+			/// mutable access to the parameters
+			Param& getParam();
+
+			/// non-mutable access to the parameters
+			const Param& getParam() const;
+
+			/// set the parameters
+			void setParam(const Param& param);
+
+			/// resets the parameters to the default values
+			void resetToDefaultParam();
 			//@}
 
 		protected:

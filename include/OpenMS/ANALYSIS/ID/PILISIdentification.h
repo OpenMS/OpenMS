@@ -94,7 +94,7 @@ namespace OpenMS
 			void setParam(const Param& param);
 
 			/// resets the parameters to default values
-			void resetToDefaults();
+			void resetToDefaultParam();
 
 			/// sets the scoring type, all PeakSpectrumCompareFunctors are allowed
 			void setScoringType(const String& type);
