@@ -82,13 +82,15 @@ CGAL_PIPELINE_TESTS = \
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log ${NUMERICDIFF} core.* *.TMP region* cut* feature* model*
+CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* cut* feature* model*
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
 
 # Diff that allows for slight numeric differences
-DEVIATION = 1.05
+REL_DEVIATION = 1.01 # relative deviation allowed
+ABS_DEVIATION = 0.01 # absolute deviation allowed
+DEVIATION = $(REL_DEVIATION) $(ABS_DEVIATION)
 NUMERICDIFF = NumericDiff
 
 #######################################################################

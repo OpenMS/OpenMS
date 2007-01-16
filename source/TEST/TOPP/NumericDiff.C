@@ -51,15 +51,23 @@ double ratio_max_allowed = 1.0;
 /// Maximum ratio of numbers observed so far
 double ratio_max = 1.0;
 
+/// Maximum absolute difference of numbers allowed
+double absdiff_max_allowed = 12345;
+
+/// Maximum difference of numbers observed so far
+double absdiff_max = 0.0;
+
 double number_1 = 0;
 char letter_1 = 0;
-bool is_number_1 = 0;
-bool is_space_1 = 0;
+bool is_number_1 = false;
+bool is_space_1 = false;
 
 double number_2 = 0;
 char letter_2 = 0;
-bool is_number_2 = 0;
-bool is_space_2 = 0;
+bool is_number_2 = false;
+bool is_space_2 = false;
+
+bool is_absdiff_small = false; 
 
 int line_num_1 = 0;
 int line_num_2 = 0;
@@ -79,12 +87,13 @@ std::string line_str_2_max;
 void usage()
 {
   std::cerr <<
-    "Usage: " << argv[0] << " file1 file2 ratio [ -q | -Q ]\n"
+    "Usage: " << argv[0] << " file1 file2 ratio absdiff [ -q | -Q ]\n"
     "\n"
     "where\n"
     "\tfile1:      first input file\n"
     "\tfile2:      second input file\n"
     "\tratio:      acceptable relative error (a number >= 1.0)\n"
+    "\tabsdiff:    acceptable absolute error (a number >= 0.0)\n"
 		"\t-q:         quiet mode (no output unless differences detected)\n"
 		"\t-Q:         very quiet mode (absolutely no output)\n"
 		"\n"
@@ -111,7 +120,9 @@ void report ( char* message = "<no message>" )
 			"  numbers:\t" << number_1 << '\t' << number_2 << "\n"
 			"\n"
 			"  ratio_max: " << ratio_max << "\n"
-			"  ratio_max_allowed: " << ratio_max_allowed <<
+			"  ratio_max_allowed: " << ratio_max_allowed << "\n\n"
+			"  absdiff_max: " << absdiff_max << "\n" 
+			"  absdiff_max_allowed: " << absdiff_max_allowed <<
 			"\n\n"
 			"The offending lines (enclosed in ^$) are:\n"
 			"\n" <<
@@ -137,6 +148,7 @@ void report ( char* message = "<no message>" )
 	   file1:      first input file
 	   file2:      second input file
 	   ratio:      acceptable relative error (a number >= 1.0)
+	   absdiff:    acceptable absolute error (a number >= 0.0)
 
      -q:         quiet mode (no output unless differences detected)
      -Q:         very quiet mode (absolutely no output)
@@ -152,14 +164,15 @@ int main ( int main_argc, char ** main_argv)
 	switch ( argc )
 	{
 	case 4:
-		break;
 	case 5:
-		if ( argv[4] == std::string("-q") )
+		break;
+	case 6:
+		if ( argv[5] == std::string("-q") )
 		{
 			verbose = 1;
 			break;
 		}
-		if ( argv[4] == std::string("-Q") )
+		if ( argv[5] == std::string("-Q") )
 		{
 			verbose = 0;
 			break;
@@ -188,11 +201,19 @@ int main ( int main_argc, char ** main_argv)
   ratio_max_allowed = std::strtod(argv[3], 0); // returns zero upon failure
   if ( ! ratio_max_allowed )
   {
-    std::cerr << "Malformed precision argument: '" << argv[3] << "'\n";
+    std::cerr << "Malformed ratio argument: '" << argv[3] << "'\n";
     return 4;
   }
 
+  absdiff_max_allowed = std::strtod(argv[4], 0); // returns zero upon failure
+  if ( absdiff_max_allowed == -12345 )
+  {
+    std::cerr << "Malformed absdiff argument: '" << argv[4] << "'\n";
+    return 5;
+  }
+
 	if ( ratio_max_allowed < 1.0 ) ratio_max_allowed = 1/ratio_max_allowed;
+	if ( absdiff_max_allowed < 0.0 ) absdiff_max_allowed = -absdiff_max_allowed;
 
 	//------------------------------------------------------------
 	// main loop
@@ -277,6 +298,24 @@ int main ( int main_argc, char ** main_argv)
 			{
 				if ( is_number_2 )
 				{ // we are comparing numbers
+
+					// check if absolute difference is small
+					double absdiff = number_1 - number_2;
+					if ( absdiff < 0 )
+					{
+						absdiff = -absdiff;
+					}
+					if ( absdiff > absdiff_max )
+					{
+						absdiff_max = absdiff;
+					}
+					// If absolute difference is small, large relative errors will be
+					// tolerated in the cases below.  But a large absolute difference is
+					// not an error, if relative error is small.  We do not drop out of
+					// the case distinction here because we want to report the relative
+					// error even in case of a successful comparison.
+					is_absdiff_small = ( absdiff <= absdiff_max_allowed );
+					
 					if ( !number_1 )
 					{ // number_1 is zero
 						if (!number_2 )
@@ -285,21 +324,30 @@ int main ( int main_argc, char ** main_argv)
 						}
 						else
 						{
-							report("number_1 is zero, but number_2 is not");
+							if ( !is_absdiff_small )
+							{
+								report("number_1 is zero, but number_2 is not");
+							}
 						}
 					}
 					else
 					{ // number_1 is not zero
 						if ( !number_2 )
 						{
-							report("number_1 is not zero, but number_2 is");
+							if ( !is_absdiff_small )
+							{
+								report("number_1 is not zero, but number_2 is");
+							}
 						}
 						else
 						{ // both numbers are not zero
 							double ratio = number_1 / number_2;
 							if ( ratio < 0 )
 							{
-								report("numbers have different signs");
+								if ( !is_absdiff_small )
+								{
+									report("numbers have different signs");
+								}
 							}
 							else
 							{ // ok, numbers have same sign, but we still need to check their ratio
@@ -317,7 +365,10 @@ int main ( int main_argc, char ** main_argv)
 									line_str_2_max = line_str_2;
 									if ( ratio_max > ratio_max_allowed )
 									{
-										report("ratio of numbers is too large");
+										if ( !is_absdiff_small )
+										{
+											report("ratio of numbers is too large");
+										}
 									}
 								}
 							}
@@ -371,6 +422,11 @@ int main ( int main_argc, char ** main_argv)
 				}
 			}
 
+			if ( is_absdiff_small )
+			{
+				continue;
+			}
+
 			verbose = 10000;
 			report
 				("This cannot happen.  You should never get here ... "
@@ -383,9 +439,11 @@ int main ( int main_argc, char ** main_argv)
 	if ( verbose >= 2 )
 	{
 		std::cout <<
-			argv[0] << ":  Success.\n"
+			argv[0] << ":  Success.\n\n"
 			"  ratio_max: " << ratio_max << "\n"
-			"  ratio_max_allowed: " << ratio_max_allowed << "\n" <<
+			"  ratio_max_allowed: " << ratio_max_allowed << "\n\n"
+			"  absdiff_max: " << absdiff_max << "\n" 
+			"  absdiff_max_allowed: " << absdiff_max_allowed << "\n" <<
 			std::endl;
 
 		if ( line_num_1_max == -1 && line_num_2_max == -1 )
@@ -410,3 +468,5 @@ int main ( int main_argc, char ** main_argv)
 
   return 0;
 }
+
+
