@@ -48,6 +48,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	Date_test\
 	HashMap_test\
 	IndexSet_test\
+	DPosition_test\
 	RunningAveragePosition_test\
 	ScanIndex_test\
 	ScanIndexMSExperiment_test\
@@ -106,7 +107,6 @@ EXECUTABLES_SYSTEM = \
 
 EXECUTABLES_KERNEL =\
 	KernelTraits_test\
-	DPosition_test\
 	DRawDataPoint_test\
 	DPeak_test\
 	DPickedPeak_test\
