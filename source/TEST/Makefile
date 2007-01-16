@@ -126,7 +126,7 @@ EXECUTABLES_KERNEL =\
 	ConsensusPeak_test\
 	ConsensusMap_test\
 	AreaIterator_test
-	
+
 #VISUAL
 
 ifeq ($(ENABLE_GUI),true)
@@ -197,7 +197,8 @@ EXECUTABLES_MATH = \
 	ROCCurve_test\
 	Histogram_test\
 	MathFunctions_test\
-	LinearRegression_test
+	LinearRegression_test\
+	BilinearInterpolation_test\
 
 #FILTERING
 
@@ -411,7 +412,7 @@ endif
 %%.C:
 	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.C $(LDFLAGS) -o $@ $(LIBS)
 
-.o.vgr: 
+.o.vgr:
 	@$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.o $(LDFLAGS) -o $@ $(LIBS)
 	$(VALGRIND) $(VALGRIND_OPTS) $* >& $*.vgr || true
 
