@@ -45,7 +45,7 @@ CHECK(EnzymaticDigestion())
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~EnzymaticDigestion())
+CHECK([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
 RESULT
 

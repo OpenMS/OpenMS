@@ -41,16 +41,16 @@ using namespace OpenMS;
 using namespace std;
 
 DConvexHull<2>* ptr = 0;
-CHECK(DConvexHull())
+CHECK((DConvexHull()))
 	ptr = new DConvexHull<2>;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DConvexHull())
+CHECK(([EXTRA] ~DConvexHull()))
 	delete ptr;
 RESULT
 
-CHECK(const PointType& getPoints() const)
+CHECK((const PointArrayType& getPoints() const))
 	DConvexHull<2> tmp;
 	TEST_EQUAL(tmp.getPoints().size(),0)
 RESULT
@@ -74,7 +74,7 @@ vec2.push_back(p4);
 vec2.push_back(p5);
 vec2.push_back(p6);
 
-CHECK(ConvexHull<D>& operator=(const PointArrayType& points))
+CHECK((DConvexHull& operator=(const PointArrayType& points)))
 	DConvexHull<2> tmp;
 	vector<DPosition<2> > vec3;
 	vec3.push_back(p1);
@@ -88,31 +88,21 @@ CHECK(ConvexHull<D>& operator=(const PointArrayType& points))
 	TEST_EQUAL(tmp.getPoints().size(),3)
 RESULT
 
-CHECK(ConvexHull<D>& operator=(const ConvexHull& rhs))
+CHECK((DConvexHull& operator=(const DConvexHull& rhs)))
 	DConvexHull<2> tmp,tmp2;
 	tmp = vec;
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.getPoints().size(),3)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	DConvexHull<2> tmp;
 	tmp = vec;
 	tmp.clear();
 	TEST_EQUAL(tmp.getPoints().size(),0)	
 RESULT
 
-CHECK(DBoundingBox<D> getBoundingBox() const)
-	DConvexHull<2> tmp;
-	tmp = vec;
-	DBoundingBox<2> bb = tmp.getBoundingBox();
-	TEST_REAL_EQUAL(bb.min()[0],1.0)
-	TEST_REAL_EQUAL(bb.min()[1],0.0)
-	TEST_REAL_EQUAL(bb.max()[0],5.0)
-	TEST_REAL_EQUAL(bb.max()[1],4.0)
-RESULT
-
-CHECK(bool encloses(const PointType& point) const)
+CHECK((bool encloses(const PointType& point) const))
 	DConvexHull<2> tmp;
 	tmp=vec2;
 	TEST_EQUAL(tmp.encloses(DPosition<2>(3.0,3.0)),false)
@@ -126,7 +116,7 @@ CHECK(bool encloses(const PointType& point) const)
 	TEST_EQUAL(tmp.encloses(DPosition<2>(2.5,1.2)),true)
 RESULT
 
-CHECK(bool operator==(const DConvexHull& rhs) const)
+CHECK((bool operator==(const DConvexHull& rhs) const))
 	DConvexHull<2> tmp,tmp2;
 	tmp=vec2;
 	TEST_EQUAL(tmp==tmp2,false)
@@ -136,7 +126,17 @@ CHECK(bool operator==(const DConvexHull& rhs) const)
 	TEST_EQUAL(tmp==tmp2,true)
 RESULT
 
-CHECK(DBoundingBox<D> getBoundingBox() const)
+CHECK((DBoundingBox<D> getBoundingBox() const))
+	//empty
+	DConvexHull<2> tmp2;
+	tmp2 = vec;
+	DBoundingBox<2> bb2 = tmp2.getBoundingBox();
+	TEST_REAL_EQUAL(bb2.min()[0],1.0)
+	TEST_REAL_EQUAL(bb2.min()[1],0.0)
+	TEST_REAL_EQUAL(bb2.max()[0],5.0)
+	TEST_REAL_EQUAL(bb2.max()[1],4.0)
+	
+	//full
 	DConvexHull<2> tmp;
 	DBoundingBox<2> bb;
 
@@ -175,7 +175,7 @@ CHECK(DBoundingBox<D> getBoundingBox() const)
 	TEST_REAL_EQUAL(bb.max()[1],4.0)
 RESULT
 
-CHECK(bool addPoint(const PointType& point))
+CHECK((bool addPoint(const PointType& point)))
 	DConvexHull<2> tmp;
 	tmp=vec2;
 	TEST_EQUAL(tmp.addPoint(DPosition<2>(1.5,1.5)),false)

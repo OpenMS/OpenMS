@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <iostream>
 #include <fstream>
@@ -60,12 +60,12 @@ using namespace std;
 
 
 class TOPPLabeledMatcher
-      : public TOPPBase2
+      : public TOPPBase
 {
 	public:
 		
 	  TOPPLabeledMatcher()
-	    : TOPPBase2("LabeledMatcher","find pairs of labeled features in LC/MS data")
+	    : TOPPBase("LabeledMatcher","find pairs of labeled features in LC/MS data")
 	  {
 	  }
 

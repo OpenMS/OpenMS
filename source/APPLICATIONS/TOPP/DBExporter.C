@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qapplication.h>
 
@@ -52,11 +52,11 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class TOPPDBExporter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPDBExporter()
-			: TOPPBase2("DBExporter","Extracts MS data from a OpenMS database")
+			: TOPPBase("DBExporter","Extracts MS data from a OpenMS database")
 		{
 			
 		}

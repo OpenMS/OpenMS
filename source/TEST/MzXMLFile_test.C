@@ -229,7 +229,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(inst2.getMassAnalyzers()[0].getResolutionMethod(), MassAnalyzer::RESMETHNULL)
 RESULT
 
-CHECK( void load(const String& filename, MSExperimentExtern& map) )
+CHECK([EXTRA] load with MSExperimentExtern)
 	PRECISION(0.01)
 
 	MSExperimentExtern< > e;
@@ -418,7 +418,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	TEST_EQUAL(e1, e2);
 RESULT
 
-CHECK([EXTRA] load/store for Float Kernel Traits)
+CHECK(([EXTRA] load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
@@ -432,7 +432,7 @@ CHECK([EXTRA] load/store for Float Kernel Traits)
 RESULT
 
 // check for Float Kernel traits
-CHECK([EXTRA] load/store for empty scans)
+CHECK(([EXTRA] load/store for empty scans))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 
@@ -449,7 +449,7 @@ CHECK([EXTRA] load/store for empty scans)
 	TEST_EQUAL(e2.getSize(),0);
 RESULT
 
-CHECK([EXTRA] load with optional attributes)
+CHECK(([EXTRA] load with optional attributes))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -494,7 +494,7 @@ CHECK([EXTRA] load with optional attributes)
 	TEST_REAL_EQUAL(e.getProcessingMethod().getIntensityCutoff(), 2);
 RESULT
 
-CHECK([EXTRA] load with metadata only flag)
+CHECK(([EXTRA] load with metadata only flag))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -578,7 +578,7 @@ CHECK([EXTRA] load with metadata only flag)
 	TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
 RESULT
 
-CHECK([EXTRA] load with selected MS levels)
+CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -603,7 +603,7 @@ CHECK([EXTRA] load with selected MS levels)
 	TEST_EQUAL(e.size(), 4)
 RESULT
 
-CHECK([EXTRA] load with selected MZ range)
+CHECK(([EXTRA] load with selected MZ range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -633,7 +633,7 @@ CHECK([EXTRA] load with selected MZ range)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
 RESULT
 
-CHECK([EXTRA] load with RT range)
+CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -665,7 +665,7 @@ CHECK([EXTRA] load with RT range)
 	TEST_REAL_EQUAL(e[1].getContainer()[4].getIntensity(), 100)*/
 RESULT
 
-CHECK([EXTRA] load with intensity range)
+CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -691,7 +691,7 @@ CHECK([EXTRA] load with intensity range)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
 RESULT
 
-CHECK([EXTRA] load/store for nested scans)
+CHECK(([EXTRA] load/store for nested scans))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
   MzXMLFile f;

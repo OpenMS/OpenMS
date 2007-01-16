@@ -26,7 +26,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace OpenMS;
@@ -78,11 +78,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPeakPicker
-      : public TOPPBase2
+      : public TOPPBase
 {
  public:
   TOPPPeakPicker()
-		: TOPPBase2("PeakPicker","find mass spectrometric peaks in LC/MS raw data")
+		: TOPPBase("PeakPicker","find mass spectrometric peaks in LC/MS raw data")
   {
   }
 

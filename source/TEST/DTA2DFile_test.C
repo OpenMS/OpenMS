@@ -51,16 +51,16 @@ START_TEST(DTAFile, "$Id$")
 typedef DTA2DFile::DimensionDescription Dims;
 
 DTA2DFile* ptr = 0;
-CHECK(DTA2DFile())
+CHECK((DTA2DFile()))
 	ptr = new DTA2DFile;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DTA2DFile())
+CHECK((~DTA2DFile()))
 	delete ptr;
 RESULT
 
-CHECK(template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 
 	MSExperiment<> e;
@@ -253,7 +253,7 @@ CHECK(template<typename MapType> void load(const String& filename, MapType& map)
 	
 RESULT
 
-CHECK(template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile))
+CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
 	PRECISION(0.1)
 	std::string tmp_filename;
   MSExperiment<> e;
@@ -392,7 +392,7 @@ CHECK(template<typename MapType> void store(const String& filename, const MapTyp
 
 RESULT
 
-CHECK([EXTRA] load with RT range)
+CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
 	MSExperiment<> e;
@@ -405,7 +405,7 @@ CHECK([EXTRA] load with RT range)
 	TEST_REAL_EQUAL(e[2].getRetentionTime(), 282684)
 RESULT
 
-CHECK([EXTRA] load with MZ range)
+CHECK(([EXTRA] load with MZ range))
 	PRECISION(0.01)
 
 	MSExperiment<> e;
@@ -430,7 +430,7 @@ CHECK([EXTRA] load with MZ range)
 	TEST_REAL_EQUAL(it->getContainer()[0].getPosition()[0], 219.72)
 RESULT
 
-CHECK([EXTRA] load with intensity range)
+CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
 	MSExperiment<> e;

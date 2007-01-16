@@ -45,16 +45,16 @@ const int MZ = DimensionDescription < LCMS_Tag >::MZ;
 const int RT = DimensionDescription < LCMS_Tag >::RT;
 
 MSExperiment<>* ptr = 0;
-CHECK(MSExperiment())
+CHECK((MSExperiment()))
 	ptr = new MSExperiment<>;
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~MSExperiment())
+CHECK(([EXTRA]~MSExperiment()))
 	delete ptr;
 RESULT
 
-CHECK(MSExperiment(const MSExperiment& source))
+CHECK((MSExperiment(const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setName("Name");
@@ -66,7 +66,7 @@ CHECK(MSExperiment(const MSExperiment& source))
   TEST_EQUAL(tmp2.size(),1);
 RESULT
 
-CHECK(MSExperiment& operator= (const MSExperiment& source))
+CHECK((MSExperiment& operator= (const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setName("Name");
@@ -91,7 +91,7 @@ CHECK(MSExperiment& operator= (const MSExperiment& source))
   TEST_EQUAL(tmp2.size(),0);
 RESULT
 
-CHECK(bool operator== (const MSExperiment& rhs) const)
+CHECK((bool operator== (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
 	
 	TEST_EQUAL(edit==empty, true);
@@ -104,7 +104,7 @@ CHECK(bool operator== (const MSExperiment& rhs) const)
 	TEST_EQUAL(edit==empty, false);
 RESULT
 
-CHECK(bool operator!= (const MSExperiment& rhs) const)
+CHECK((bool operator!= (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
 	
 	TEST_EQUAL(edit!=empty, false);
@@ -117,7 +117,7 @@ CHECK(bool operator!= (const MSExperiment& rhs) const)
 	TEST_EQUAL(edit!=empty, true);
 RESULT
 
-CHECK(template<class Container> void get2DData(Container& cont) const)
+CHECK((template<class Container> void get2DData(Container& cont) const))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -211,7 +211,7 @@ CHECK(template<class Container> void get2DData(Container& cont) const)
 	TEST_REAL_EQUAL(it->getPosition()[MZ],25);
 RESULT
 
-CHECK(template<class Container> void set2DData(const Container& cont) throw(Exception::Precondition))
+CHECK((template<class Container> void set2DData(const Container& cont) throw(Exception::Precondition)))
 	MSExperiment<> exp;
 	
 	// create sample data
@@ -249,7 +249,7 @@ CHECK(template<class Container> void set2DData(const Container& cont) throw(Exce
 	
 RESULT
 
-CHECK([EXTRA] MSExperiment<DRawDataPoint<1> >())
+CHECK(([EXTRA] MSExperiment<DRawDataPoint<1> >()))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	tmp.resize(1);
 	tmp[0].getContainer().resize(1);
@@ -257,50 +257,46 @@ CHECK([EXTRA] MSExperiment<DRawDataPoint<1> >())
 	TEST_REAL_EQUAL(tmp[0].getContainer()[0].getPosition()[0],47.11)
 RESULT
 
-CHECK(CoordinateType getMinMZ() const)
+CHECK((CoordinateType getMinMZ() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(CoordinateType getMaxMZ() const)
+CHECK((CoordinateType getMaxMZ() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(CoordinateType getMinRT() const)
+CHECK((CoordinateType getMinRT() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(CoordinateType getMaxRT() const)
+CHECK((CoordinateType getMaxRT() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
+CHECK((const std::vector<UnsignedInt>& getMSLevels() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
+	TEST_EQUAL(tmp.getMSLevels().size(),0)
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(const std::vector<UnsignedInt>& getMSLevels() const)
-	MSExperiment<DRawDataPoint<1> > tmp;
-	TEST_EQUAL(tmp.getMSLevels().size(),0)
-RESULT
-
-CHECK(UnsignedInt getSize() const)
+CHECK((UnsignedInt getSize() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_EQUAL(tmp.getSize(),0)
 RESULT
 
-CHECK(const std::vector<UnsignedInt>& getSpectraLengths() const)
+CHECK((const std::vector<UnsignedInt>& getSpectraLengths() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_EQUAL(tmp.getSpectraLengths().size(),0)
 RESULT
 
-CHECK(const AreaType& getDataRange() const)
+CHECK((const AreaType& getDataRange() const))
 	MSExperiment<DRawDataPoint<1> > tmp;
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
@@ -308,7 +304,7 @@ CHECK(const AreaType& getDataRange() const)
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
-CHECK(void updateRanges())
+CHECK((void updateRanges()))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -442,7 +438,7 @@ CHECK(void updateRanges())
 	
 RESULT
 
-CHECK(void updateRanges(SignedInt ms_level))
+CHECK((void updateRanges(SignedInt ms_level)))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -530,7 +526,7 @@ CHECK(void updateRanges(SignedInt ms_level))
 	
 RESULT
 
-CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
+CHECK((DRawDataPoint<2> getPeak(const UnsignedInt index) throw(Exception::IndexOverflow)))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p1;
@@ -569,7 +565,7 @@ CHECK(DPeak<2> getPeak(UnsignedInt index) throw(Exception::IndexOverflow))
 
 RESULT
 
-CHECK(PeakIterator())
+CHECK((PeakIterator()))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p1;
@@ -608,7 +604,7 @@ CHECK(PeakIterator())
 	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
-CHECK(AreaIterator())
+CHECK((AreaIterator()))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p1;
@@ -648,7 +644,7 @@ CHECK(AreaIterator())
 	TEST_EQUAL(it==exp.areaEnd(),true);
 RESULT
 
-CHECK(Iterator RTBegin(double rt))
+CHECK((Iterator RTBegin(double rt)))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -673,7 +669,7 @@ CHECK(Iterator RTBegin(double rt))
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
-CHECK(Iterator RTEnd(double rt))
+CHECK((Iterator RTEnd(double rt)))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -698,7 +694,7 @@ CHECK(Iterator RTEnd(double rt))
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
-CHECK(ConstIterator RTBegin(double rt) const)
+CHECK((ConstIterator RTBegin(double rt) const))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -723,7 +719,7 @@ CHECK(ConstIterator RTBegin(double rt) const)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
-CHECK(ConstIterator RTEnd(double rt) const)
+CHECK((ConstIterator RTEnd(double rt) const))
 	MSExperiment< DRawDataPoint<1> > tmp;
 	MSSpectrum< DRawDataPoint<1> > s;
 	DRawDataPoint<1> p;
@@ -748,7 +744,7 @@ CHECK(ConstIterator RTEnd(double rt) const)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true) 
 RESULT
 
-CHECK(void sortSpectra(bool sort_mz))
+CHECK((void sortSpectra(bool sort_mz = true)))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p1;
@@ -789,7 +785,7 @@ CHECK(void sortSpectra(bool sort_mz))
 	TEST_EQUAL(rt_it==exp.peakEnd(),true);
 RESULT
 
-CHECK(void reset())
+CHECK((void reset()))
 	DPeakArray<2> plist;
 	
 	DPeak<2> p;
@@ -809,7 +805,7 @@ CHECK(void reset())
 	TEST_EQUAL(exp==MSExperiment<>(),true);
 RESULT
 
-CHECK(const ExperimentalSettings& getExperimentalSettings() const)
+CHECK((const ExperimentalSettings& getExperimentalSettings() const))
 	MSExperiment<> exp;
 	exp.setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");

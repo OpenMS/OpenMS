@@ -37,21 +37,21 @@ using namespace OpenMS;
 START_TEST(SumReducer, "$Id$")
 
 SumReducer * ptr = 0;
-CHECK(SumReducer())
+CHECK((SumReducer()))
 		ptr  = new SumReducer();
     TEST_NOT_EQUAL(ptr,0)
 RESULT
 
-CHECK(~SumReducer())
+CHECK((~SumReducer()))
 			delete ptr;
 RESULT
 
-CHECK(static const  String getName())
+CHECK((static const String getName()))
 	SumReducer s;
   TEST_EQUAL(s.getName(),"SumReducer")	
 RESULT
 
-CHECK( virtual  void applyReduction(const  MSExperiment<>& , MSExperiment<>&  ))
+CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
 	DTA2DFile dta;
   MSExperiment<> in;
   MSExperiment<> out;
@@ -125,6 +125,10 @@ CHECK( virtual  void applyReduction(const  MSExperiment<>& , MSExperiment<>&  ))
 		 
 RESULT
 
+CHECK(static DataReducer* create())
+	DataReducer* ptr2 = SumReducer::create();
+	TEST_EQUAL("SumReducer",ptr2->getName());
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

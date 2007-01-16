@@ -223,13 +223,13 @@ namespace OpenMS
 				return container_.end(); 
 			}
 			
-			 reference operator[] (size_type n)
-    		{
+			reference operator[] (size_type n)
+			{
 				return container_[n];
 			}
 			
-			 const_reference operator[] (size_type n) const
-    		{
+			const_reference operator[] (size_type n) const
+			{
 				return container_[n];
 			}
 						
@@ -438,22 +438,25 @@ namespace OpenMS
 	    { 
 	    	return retention_time_; 
 	    }
-		
-			/// returns the absolute retention time (unit is seconds)
-	    CoordinateType& getRetentionTime()  
+
+			/**
+				@brief returns a mutable reference to the absolute retention time (unit is seconds)
+				
+				This method is needed for the MSExperiment::PeakIterator
+			*/
+	    CoordinateType& getRetentionTime() 
 	    { 
 	    	return retention_time_; 
 	    }
-		
 
 			/// returns the retention time interval start (unit is seconds)
-	    CoordinateType getRetentionTimeStart() const 
+	    const CoordinateType& getRetentionTimeStart() const 
 	    { 
 	    	return retention_start_; 
 	    }
 
 			/// returns the retention time interval stop (unit is seconds)
-	    CoordinateType getRetentionTimeStop() const 
+	    const CoordinateType& getRetentionTimeStop() const 
 	    { 
 	    	return retention_stop_; 
 	    }

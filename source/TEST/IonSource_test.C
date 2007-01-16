@@ -39,12 +39,12 @@ START_TEST(IonSource, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IonSource* ptr = 0;
-CHECK(IonSource())
+CHECK((IonSource()))
 	ptr = new IonSource();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~IonSource())
+CHECK((~IonSource()))
 	delete ptr;
 RESULT
 
@@ -57,40 +57,40 @@ RESULT
       /// polarity of the ion source
       enum Polarity{POLNULL,POSITIVE, NEGATIVE};
 
-CHECK(InletType getInletType() const)
+CHECK((InletType getInletType() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getInletType(),IonSource::INLETNULL);
 RESULT
 
-CHECK(void setInletType(InletType inlet_type))
+CHECK((void setInletType(InletType inlet_type)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   TEST_EQUAL(tmp.getInletType(),IonSource::DIRECT);
 RESULT
 
-CHECK(IonizationMethod getIonizationMethod() const)
+CHECK((IonizationMethod getIonizationMethod() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getIonizationMethod(),IonSource::IONMETHODNULL);
 RESULT
 
-CHECK(void setIonizationMethod(IonizationMethod ionization_type))
+CHECK((void setIonizationMethod(IonizationMethod ionization_type)))
   IonSource tmp;
   tmp.setIonizationMethod(IonSource::ESI);
   TEST_EQUAL(tmp.getIonizationMethod(),IonSource::ESI);
 RESULT
 
-CHECK(Polarity getPolarity() const)
+CHECK((Polarity getPolarity() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
 RESULT
 
-CHECK(void setPolarity(Polarity ploarity))
+CHECK((void setPolarity(Polarity polarity)))
 	IonSource tmp;
   tmp.setPolarity(IonSource::POSITIVE);
   TEST_EQUAL(tmp.getPolarity(),IonSource::POSITIVE);
 RESULT
 
-CHECK(IonSource(const IonSource& source))
+CHECK((IonSource(const IonSource& source)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   tmp.setIonizationMethod(IonSource::ESI);
@@ -104,7 +104,7 @@ CHECK(IonSource(const IonSource& source))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 RESULT
 
-CHECK(IonSource& operator= (const IonSource& source))
+CHECK((IonSource& operator= (const IonSource& source)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   tmp.setIonizationMethod(IonSource::ESI);
@@ -125,7 +125,7 @@ CHECK(IonSource& operator= (const IonSource& source))
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 RESULT
 
-CHECK(bool operator== (const IonSource& rhs) const)
+CHECK((bool operator== (const IonSource& rhs) const))
   IonSource edit,empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -147,7 +147,7 @@ CHECK(bool operator== (const IonSource& rhs) const)
 	TEST_EQUAL(edit==empty,false);
 RESULT
 
-CHECK(bool operator!= (const IonSource& rhs) const)
+CHECK((bool operator!= (const IonSource& rhs) const))
   IonSource edit,empty;
   
   TEST_EQUAL(edit!=empty,false);

@@ -24,7 +24,7 @@
 // $Maintainer: Martin Langwisch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
@@ -105,11 +105,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPInspectAdapter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPInspectAdapter()
-			: TOPPBase("InspectAdapter")
+			: TOPPBase2("InspectAdapter")
 		{}
 	
 	protected:

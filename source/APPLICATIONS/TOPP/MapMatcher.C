@@ -35,7 +35,7 @@
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -69,12 +69,12 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMapMatcher
-	: public TOPPBase2
+	: public TOPPBase
 {
 
  public:
 	TOPPMapMatcher()
-		: TOPPBase2("MapMatcher", "estimate a transformation to map a list of pairs of features in different LC/MS maps onto each other")
+		: TOPPBase("MapMatcher", "estimate a transformation to map a list of pairs of features in different LC/MS maps onto each other")
 	{}
 
  protected:

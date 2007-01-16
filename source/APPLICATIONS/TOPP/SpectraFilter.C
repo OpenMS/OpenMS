@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
@@ -60,11 +60,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPSpectraFilter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPSpectraFilter()
-			: TOPPBase2("SpectraFilter", "can apply several spectra filters to the spectra")
+			: TOPPBase("SpectraFilter", "can apply several spectra filters to the spectra")
 		{
 		}
 	

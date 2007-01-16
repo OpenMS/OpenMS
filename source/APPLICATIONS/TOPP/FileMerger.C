@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -57,11 +57,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileMerger
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPFileMerger()
-		: TOPPBase2("FileMerger","Merges several files into one mzData file")
+		: TOPPBase("FileMerger","Merges several files into one mzData file")
 	{
 			
 	}

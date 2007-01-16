@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
 #include <map>
@@ -97,11 +97,11 @@ enum DimensionId
 /// @cond TOPPCLASSES
 
 class AdditiveSeries
-            : public TOPPBase2
+            : public TOPPBase
 {
 	public:
     AdditiveSeries()
-            : TOPPBase2("AdditiveSeries","computes an additive series to quantify a peptide in a set of samples")
+            : TOPPBase("AdditiveSeries","computes an additive series to quantify a peptide in a set of samples")
     {
     }
 

@@ -48,116 +48,116 @@ PRECISION(0.001)
 
 // default ctor
 Sample* dv_ptr = 0;
-CHECK(Sample())
+CHECK((Sample()))
 	dv_ptr = new Sample;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
 
 // destructor
-CHECK(~Sample())
+CHECK((~Sample()))
 	delete dv_ptr;
 RESULT
 
-CHECK(const String& getName() const)
+CHECK((const String& getName() const))
 	Sample s;
 	TEST_EQUAL(s.getName(),"")
 RESULT
 
-CHECK(const String& getOrganism() const)
+CHECK((const String& getOrganism() const))
 	Sample s;
 	TEST_EQUAL(s.getOrganism(),"")
 RESULT
 
-CHECK(const String& getNumber() const)
+CHECK((const String& getNumber() const))
 	Sample s;
 	TEST_EQUAL(s.getNumber(),"")
 RESULT
 
-CHECK(const String& getComment() const)
+CHECK((const String& getComment() const))
 	Sample s;
 	TEST_EQUAL(s.getComment(),"")
 RESULT
 
-CHECK(SampleState getState() const)
+CHECK((SampleState getState() const))
 	Sample s;
 	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
 RESULT
 
-CHECK(float getMass() const)
+CHECK((float getMass() const))
 	Sample s;
 	TEST_REAL_EQUAL(s.getMass(),0.0)
 RESULT
 
-CHECK(float getVolume() const)
+CHECK((float getVolume() const))
 	Sample s;
 	TEST_REAL_EQUAL(s.getVolume(),0.0)
 RESULT
 
-CHECK(float getConcentration() const)
+CHECK((float getConcentration() const))
 	Sample s;
 	TEST_REAL_EQUAL(s.getConcentration(),0.0)
 RESULT
 
-CHECK(void setName(const String& name))
+CHECK((void setName(const String& name)))
 	Sample s;
 	s.setName("TTEST");
 	TEST_EQUAL(s.getName(),"TTEST")
 RESULT
 
-CHECK(void setOrganism(const String& organism))
+CHECK((void setOrganism(const String& organism)))
 	Sample s;
 	s.setOrganism("TTEST");
 	TEST_EQUAL(s.getOrganism(),"TTEST")
 RESULT
 
-CHECK(void setNumber(const String& number))
+CHECK((void setNumber(const String& number)))
 	Sample s;
 	s.setNumber("Sample4711");
 	TEST_EQUAL(s.getNumber(),"Sample4711")
 RESULT
 
-CHECK(void setComment(const String& comment))
+CHECK((void setComment(const String& comment)))
 	Sample s;
 	s.setComment("Sample Description");
 	TEST_EQUAL(s.getComment(),"Sample Description")
 RESULT
 
-CHECK(void setState(SampleState state))
+CHECK((void setState(SampleState state)))
 	Sample s;
 	s.setState(Sample::LIQUID);
 	TEST_EQUAL(s.getState(),Sample::LIQUID)
 RESULT
 
-CHECK(void setMass(float mass))
+CHECK((void setMass(float mass)))
 	Sample s;
 	s.setMass(4711.2);
 	TEST_REAL_EQUAL(s.getMass(),4711.2)
 RESULT
 
-CHECK(void setVolume(float volume))
+CHECK((void setVolume(float volume)))
 	Sample s;
 	s.setVolume(4711.3);
 	TEST_REAL_EQUAL(s.getVolume(),4711.3)
 RESULT
 
-CHECK(void setConcentration(float concentration))
+CHECK((void setConcentration(float concentration)))
 	Sample s;
 	s.setConcentration(4711.4);
 	TEST_REAL_EQUAL(s.getConcentration(),4711.4)
 RESULT
 
-CHECK(const std::vector<Sample>& getSubsamples() const)
+CHECK((const std::vector<Sample>& getSubsamples() const))
 	Sample s;
 	TEST_EQUAL(s.getSubsamples().size(),0)
 RESULT
 
-CHECK(std::vector<Sample>& getSubsamples())
+CHECK((std::vector<Sample>& getSubsamples()))
 	Sample s,s2;
 	s.getSubsamples().push_back(s2);
 	TEST_EQUAL(s.getSubsamples().size(),1)
 RESULT
 
-CHECK(void setSubsamples(const std::vector<Sample>& subsamples))
+CHECK((void setSubsamples(const std::vector<Sample>& subsamples)))
 	Sample s,s2,s3;
 	vector<Sample> v;
 	
@@ -174,7 +174,7 @@ RESULT
 
 //treatments
 
-CHECK(SignedInt countTreatments())
+CHECK((const SignedInt countTreatments() const))
 	Sample s;
 	TEST_EQUAL(s.countTreatments(),0)
 	Digestion d;
@@ -182,12 +182,12 @@ CHECK(SignedInt countTreatments())
 	TEST_EQUAL(s.countTreatments(),1)
 RESULT
 
-CHECK(const SampleTreatment& getTreatment(UnsignedInt position) throw(Exception::IndexOverflow))
+CHECK((const SampleTreatment& getTreatment(UnsignedInt position) const throw(Exception::IndexOverflow)))
 	Sample s;
 	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 RESULT
 
-CHECK(void addTreatment(const SampleTreatment& treatment, SignedInt before_position=-1) throw(Exception::IndexOverflow))
+CHECK((void addTreatment(const SampleTreatment& treatment, SignedInt before_position=-1) throw(Exception::IndexOverflow)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
@@ -210,7 +210,7 @@ CHECK(void addTreatment(const SampleTreatment& treatment, SignedInt before_posit
 	TEST_REAL_EQUAL((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
 RESULT
 
-CHECK(void removeTreatment(UnsignedInt position) throw(Exception::IndexOverflow))
+CHECK((void removeTreatment(UnsignedInt position) throw(Exception::IndexOverflow)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
@@ -261,7 +261,7 @@ CHECK(void removeTreatment(UnsignedInt position) throw(Exception::IndexOverflow)
 RESULT
 
 //copy ctr
-CHECK(Sample(const Sample& source))
+CHECK((Sample(const Sample& source)))
 	Sample s;
 
 	//basic stuff
@@ -313,7 +313,7 @@ CHECK(Sample(const Sample& source))
 RESULT
 
 //assignment operator
-CHECK(Sample& operator= (const Sample& source))
+CHECK((Sample& operator= (const Sample& source)))
 	Sample s;
 
 	//basic stuff
@@ -365,7 +365,7 @@ CHECK(Sample& operator= (const Sample& source))
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 RESULT
 
-CHECK(bool operator== (const Sample& rhs) const)
+CHECK((bool operator== (const Sample& rhs) const))
 	const Sample empty;
 	Sample edit;
 	

@@ -25,6 +25,8 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+
 if ( $argc<3 || $argc>4 || ( $argc==4 &&  $argv[$argc-1]!="-verbose") )
 {
 	print "\n\nUsage: correct_test.php <Absolut path to OpenMS> <Absolut path to header> [-verbose]\n\n";
@@ -62,6 +64,7 @@ if (!file_exists($check_test))
 	exit(1);
 }
 
+$methods = array();
 for ($i=1; $i< count($out); ++$i)
 {
 	$methods[] = substr(trim($out[$i]),1,-1);
@@ -71,7 +74,7 @@ for ($i=1; $i< count($out); ++$i)
 if ($verbose)
 {
 	print "\n\nDecalared methods:\n";
-	foreach ($methods as $m) print "  $m\n";
+	foreach ($methods as $m) print "  '$m'\n";
 }
 
 //parse test
@@ -84,6 +87,7 @@ if (!file_exists($test_name))
 }
 
 $test = file($test_name);
+$tests = array();
 foreach($test as $line)
 {
 	$line = trim($line);
@@ -99,9 +103,22 @@ foreach($test as $line)
 	}
 }
 
+if ($verbose)
+{
+	print "\n\nTests:\n";
+	foreach ($tests as $t) print "  '$t'\n";
+}
+
+if (count($tests)==0 || count($methods)==0)
+{
+	print "Nothing to do (no tests or methods)\n";
+	exit;
+}
+
 //calculate diff
 $replace_whitespaces = array("\t"=>""," "=>"");
 
+$dists = array();
 for($i=0; $i<count($tests); ++$i)
 {
 	for($j=0; $j<count($methods); ++$j)
@@ -143,7 +160,8 @@ for($i=0; $i<count($tests); ++$i)
 		}
 	}
 	print "\n[enter]  => 0\n";
-	print   "[x]      => do not change\n";
+	print   "[i]      => ignore this test\n";
+	print   "[x]      => make [EXTRA] test (is ignored by check_test)\n";
 	print   "[CTRL+C] => abort\n";
 	
 	//read in choise
@@ -151,11 +169,15 @@ for($i=0; $i<count($tests); ++$i)
 	{
 		$line = trim(fgets($fp));
 	}
-	while($line!="" AND !ereg("^[0-9]$",$line) AND $line!="x");
+	while($line!="" AND !ereg("^[0-9]$",$line) AND $line!="i" AND $line!="x");
 	
-	if ($line == "x")
+	if ($line == "i")
 	{
 		$replace[] = $tests[$i];
+	}
+	else if ($line == "x")
+	{
+		$replace[] = "[EXTRA]".$tests[$i];
 	}
 	else
 	{

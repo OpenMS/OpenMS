@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
 using namespace OpenMS;
@@ -55,11 +55,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileInfo
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPFileInfo()
-			: TOPPBase2("FileInfo","Shows basic information about the file e.g. data ranges and file type")
+			: TOPPBase("FileInfo","Shows basic information about the file e.g. data ranges and file type")
 		{
 			
 		}

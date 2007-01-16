@@ -59,8 +59,7 @@
 	- Debug-output abstellen
 	
 	TODO:
-	- checker.php (check_test)
-	- TOPPBase entfernen
+	- TOPPBase2 entfernen
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert

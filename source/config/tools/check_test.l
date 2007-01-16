@@ -12,6 +12,7 @@
 	#include <algorithm>
 	#include <set>
 	#include <list>
+	#include <vector>
 
 	using namespace std;
 	bool verbose = false;
@@ -1134,9 +1135,10 @@ void parseTestFile(const char* filename)
 	while (is)
 	{
 		getline(is, line);
-		if (line.find("CHECK(") == 0)
+		string::size_type check_pos = line.find("CHECK(");
+		if (check_pos != string::npos)
 		{
-			line.erase(0, 6);
+			line.erase(0,check_pos+6);
 			line.erase(line.length() - 1, 1);
 
 			// Remove round brackets
@@ -1291,13 +1293,20 @@ int main(int argc, char** argv)
 
     if (!missing.empty() && (argc > 2))
     {
-      cout << "Unknown methods in " << argv[2] << endl;
-      set<string>::iterator it(missing.begin());
-      for (; it != missing.end(); ++it)
+			//check if all missing methods are [EXTRA]
+			vector<string> no_extra;
+			for (set<string>::iterator it = missing.begin(); it != missing.end(); ++it)
       {
-				// Don't print tests with an "[EXTRA]" at their start
-				if (it->find("[EXTRA]") != 0)
+				if (it->find("[EXTRA]") == string::npos)
 				{
+					no_extra.push_back(*it);
+				}
+			}
+			if (no_extra.size()>0)
+			{
+	      cout << "Unknown methods in " << argv[2] << endl;
+	      for (vector<string>::iterator it = no_extra.begin(); it != no_extra.end(); ++it)
+	      {
 					cout << "- '" << esc(*it) << "'" << endl;
 				}
 			}

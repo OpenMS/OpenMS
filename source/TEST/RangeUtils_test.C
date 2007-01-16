@@ -44,16 +44,16 @@ using namespace std;
 //RTRange
 
 RTRange<DSpectrum<1> >* ptr = 0;
-CHECK(RTRange(double min, double max, bool reverse = false))
+CHECK((RTRange(double min, double max, bool reverse = false)))
 	ptr = new RTRange<DSpectrum<1> >(5,10,false);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~RTRange())
+CHECK(([EXTRA]~RTRange()))
 	delete ptr;
 RESULT
 
-CHECK(inline bool operator()(const SpectrumType& s) const)
+CHECK((bool operator()(const SpectrumType& s) const))
 	RTRange<DSpectrum<1> > r(5,10,false);
 	RTRange<DSpectrum<1> > r2(5,10,true);
 	DSpectrum<1> s;
@@ -78,17 +78,17 @@ RESULT
 //MSLevelRange
 
 MSLevelRange<DSpectrum<1> >* ptr2 = 0;
-CHECK(MSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false))
+CHECK((MSLevelRange(const std::vector<UnsignedInt>& levels, bool reverse = false)))
 	vector<UnsignedInt> tmp;
 	ptr2 = new MSLevelRange<DSpectrum<1> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(~MSLevelRange())
+CHECK(([EXTRA]~MSLevelRange()))
 	delete ptr2;
 RESULT
 
-CHECK(inline bool operator()(const SpectrumType& s) const)
+CHECK((bool operator()(const SpectrumType& s) const))
 	vector<UnsignedInt> tmp;
 	tmp.push_back(2);
 	tmp.push_back(3);
@@ -116,16 +116,16 @@ RESULT
 //ScanModePredicate
 
 ScanModePredicate<MSSpectrum<> >* ptr2_1 = 0;
-CHECK(ScanModePredicate(UnsignedInt mode, bool reverse = false))
+CHECK((ScanModePredicate(SignedInt mode, bool reverse = false)))
 	ptr2_1 = new ScanModePredicate<MSSpectrum<> >(1,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(~ScanModePredicate())
+CHECK(([EXTRA]~ScanModePredicate()))
 	delete ptr2_1;
 RESULT
 
-CHECK(inline bool operator()(const SpectrumType& s) const)
+CHECK((bool operator()(const SpectrumType& s) const))
 	ScanModePredicate<MSSpectrum<> > r(1,false);
 	ScanModePredicate<MSSpectrum<> > r2(2,true);
 	MSSpectrum<> s;
@@ -140,16 +140,16 @@ RESULT
 //MZRange
 
 MzRange<DPeak<1> >* ptr3 = 0;
-CHECK(MzRange(double min, double max, bool reverse = false))
+CHECK((MzRange(double min, double max, bool reverse = false)))
 	ptr3 = new MzRange<DPeak<1> >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr3, 0)
 RESULT
 
-CHECK(~MzRange())
+CHECK(([EXTRA]~MzRange()))
 	delete ptr3;
 RESULT
 
-CHECK(inline bool operator()(const PeakType& p) const)
+CHECK((bool operator()(const PeakType& p) const))
 	MzRange<DPeak<1> > r(5.0,10.0,false);
 	MzRange<DPeak<1> > r2(5.0,10.0,true);
 	DPeak<1> p;
@@ -173,16 +173,16 @@ RESULT
 //IntensityRange
 
 IntensityRange<DPeak<1> >* ptr4 = 0;
-CHECK(IntensityRange(double min, double max, bool reverse = false))
+CHECK((IntensityRange(double min, double max, bool reverse = false)))
 	ptr4 = new IntensityRange<DPeak<1> >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr4, 0)
 RESULT
 
-CHECK(~IntensityRange())
+CHECK(([EXTRA]~IntensityRange()))
 	delete ptr4;
 RESULT
 
-CHECK(inline bool operator()(const PeakType& p) const)
+CHECK((bool operator()(const PeakType& p) const))
 	IntensityRange<DPeak<1> > r(5.0,10.0,false);
 	IntensityRange<DPeak<1> > r2(5.0,10.0,true);
 	DPeak<1> p;
@@ -203,6 +203,29 @@ CHECK(inline bool operator()(const PeakType& p) const)
 	TEST_EQUAL(r2(p), true);	
 RESULT
 
+
+//SpectrumEmptyPredicate
+
+SpectrumEmptyPredicate<DSpectrum<1> >* ptr47 = 0;
+CHECK((SpectrumEmptyPredicate(bool reverse = false)))
+	ptr47 = new SpectrumEmptyPredicate<DSpectrum<1> >();
+	TEST_NOT_EQUAL(ptr47, 0)
+RESULT
+
+CHECK(([EXTRA]~SpectrumEmptyPredicate()))
+	delete ptr47;
+RESULT
+
+CHECK((bool operator()(const SpectrumType& s) const))
+	SpectrumEmptyPredicate<DSpectrum<1> > s;
+	SpectrumEmptyPredicate<DSpectrum<1> > s2(true);
+	DSpectrum<1> spec;
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);
+	spec.resize(5);
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);	
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

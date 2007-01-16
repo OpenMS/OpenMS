@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -47,11 +47,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPILISModel
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPPILISModel()
-			: TOPPBase2("PILISModel", "Used to trained the PILIS model with a given set of spectra an identifications")
+			: TOPPBase("PILISModel", "Used to trained the PILIS model with a given set of spectra an identifications")
 		{
 		}
 	

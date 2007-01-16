@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <map>
@@ -67,11 +67,11 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class MapStatistics
-  : public TOPPBase2
+  : public TOPPBase
 {
 public:
 	MapStatistics()
-	  : TOPPBase2("MapStatistics","Computes a five-number summary of peak intensities in a LC-MS map")
+	  : TOPPBase("MapStatistics","Computes a five-number summary of peak intensities in a LC-MS map")
 	{
 	}
 

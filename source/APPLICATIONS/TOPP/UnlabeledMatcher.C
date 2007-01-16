@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/FORMAT/DFeaturePairsFile.h>
 #include <OpenMS/FORMAT/DGridFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <sstream>
 
@@ -73,11 +73,11 @@ typedef DGrid<2> GridType;
 /// @cond TOPPCLASSES
 
 class TOPPUnlabeledMatcher
-	: public TOPPBase2
+	: public TOPPBase
 {
   public:
     TOPPUnlabeledMatcher()
-        : TOPPBase2("UnlabeledMatcher","matches common two-dimensional features/peaks of two LC/MS maps")
+        : TOPPBase("UnlabeledMatcher","matches common two-dimensional features/peaks of two LC/MS maps")
     {
     }
 

@@ -38,21 +38,21 @@ START_TEST(MaxReducer, "$Id$")
 
 MaxReducer * ptr = 0;
 
-CHECK(MaxReducer())
+CHECK((MaxReducer()))
  	ptr  = new MaxReducer();
   TEST_NOT_EQUAL(ptr,0)
 RESULT
 
-CHECK(~MaxReducer())
+CHECK((~MaxReducer()))
 			delete ptr;
 RESULT
 
-CHECK(static const  String getName())
+CHECK((static const String getName()))
 	 	MaxReducer m;
     TEST_EQUAL(m.getName(),"MaxReducer")	
 RESULT
 
-CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
+CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
 	
   DTA2DFile dta;
   MSExperiment<> in;
@@ -135,7 +135,10 @@ CHECK((virtual void applyReduction(const  MSExperiment<>& , MSExperiment<>&  )))
 	
 RESULT
 
-
+CHECK(static DataReducer* create())
+	DataReducer* ptr2 = MaxReducer::create();
+	TEST_EQUAL("MaxReducer",ptr2->getName());
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

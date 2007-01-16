@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
@@ -48,11 +48,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPILISIdentification
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPPILISIdentification()
-			: TOPPBase2("PILISIdentification", "performs an identification with the PILIS engine")
+			: TOPPBase("PILISIdentification", "performs an identification with the PILIS engine")
 		{
 		}
 	

@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
 using namespace OpenMS;
@@ -66,11 +66,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPResampler
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPResampler()
-	: TOPPBase2("Resampler", "transform an LC/MS map into a resampled map or a pgm image")
+	: TOPPBase("Resampler", "transform an LC/MS map into a resampled map or a pgm image")
 	{
 	}
 	
@@ -119,11 +119,11 @@ class TOPPResampler
 		inputFileReadable_(in);
 					
 		String out = getStringOption_("out");
-		TOPPBase2::ParameterInformation const & pi_out = findEntry_("out");
+		TOPPBase::ParameterInformation const & pi_out = findEntry_("out");
 		bool has_out = (out != pi_out.default_value);
 
 		String pgm = getStringOption_("pgm");
-		TOPPBase2::ParameterInformation const & pi_pgm = findEntry_("pgm");
+		TOPPBase::ParameterInformation const & pi_pgm = findEntry_("pgm");
 		bool has_pgm = (pgm != pi_pgm.default_value);
 
 		if ( !has_out && !has_pgm )

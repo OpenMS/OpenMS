@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace OpenMS;
@@ -63,11 +63,11 @@ using namespace std;
 
 
 class TOPPNoiseFilter
-      : public TOPPBase2
+      : public TOPPBase
 {
   public:
     TOPPNoiseFilter()
-        : TOPPBase2("NoiseFilter","remove the noise from LC/MS raw data")
+        : TOPPBase("NoiseFilter","remove the noise from LC/MS raw data")
     {
     }
 

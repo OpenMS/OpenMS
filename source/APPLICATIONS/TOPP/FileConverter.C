@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -55,11 +55,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileConverter
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPFileConverter()
-		: TOPPBase2("FileConverter","converts between different MS file formats")
+		: TOPPBase("FileConverter","converts between different MS file formats")
 	{
 			
 	}

@@ -27,7 +27,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -51,11 +51,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileFilter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase2("FileFilter","extracts portions of the data from an mzData file")
+			: TOPPBase("FileFilter","extracts portions of the data from an mzData file")
 		{
 			
 		}

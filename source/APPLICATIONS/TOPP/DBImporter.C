@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DBAdapter.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <qapplication.h>
 
@@ -47,11 +47,11 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class TOPPDBImporter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPDBImporter()
-			: TOPPBase2("DBImporter","Imports an mzData file to an OpenMS database")
+			: TOPPBase("DBImporter","Imports an mzData file to an OpenMS database")
 		{
 			
 		}

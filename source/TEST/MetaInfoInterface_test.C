@@ -41,85 +41,85 @@ using namespace std;
 using namespace OpenMS;
 
 MetaInfoInterface* test;
-CHECK(MetaInfoInterface())
+CHECK((MetaInfoInterface()))
 	test = new MetaInfoInterface;
 	TEST_NOT_EQUAL(test, 0)
 RESULT
 
 
-CHECK(~MetaInfoInterface())
+CHECK((~MetaInfoInterface()))
 	delete test;
 RESULT
 
 MetaInfoInterface mi;
 
-CHECK(MetaInfoRegistry& metaRegistry())
+CHECK((MetaInfoRegistry& metaRegistry()))
 	MetaInfoInterface mi2;
 	mi2.metaRegistry().registerName("testname","testdesc","testunit");
 	TEST_EQUAL(mi2.metaRegistry().getIndex("testname"),1024);
 	TEST_EQUAL(mi.metaRegistry().getIndex("testname"),1024);
 RESULT
 
-CHECK(void setMetaValue(UnsignedInt index, const std::string& value))
+CHECK((void setMetaValue(UnsignedInt index, const std::string& value)))
 	string tmp;
 	mi.setMetaValue(1024,string("testtesttest"));
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, const std::string& value))
+CHECK((void setMetaValue(const std::string& name, const std::string& value)))
 	string tmp;
 	mi.setMetaValue("testname",string("testtesttest2"));
 RESULT
 
-CHECK(DataValue getMetaValue(UnsignedInt index) const throw(Exception::InvalidValue))
+CHECK((const DataValue& getMetaValue(UnsignedInt index) const throw(Exception::InvalidValue)))
 	string tmp;
 	mi.setMetaValue(1024,string("testtesttest"));
 	tmp = string(mi.getMetaValue(1024));
 	TEST_EQUAL("testtesttest",tmp)
 RESULT
 
-CHECK(DataValue getMetaValue(const std::string& name) const throw(Exception::InvalidValue))
+CHECK((const DataValue& getMetaValue(const std::string& name) const throw(Exception::InvalidValue)))
 	string tmp;
 	mi.setMetaValue("testname",string("testtesttest2"));
 	tmp = string(mi.getMetaValue("testname"));
 	TEST_EQUAL("testtesttest2",tmp)
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, SignedInt value))
+CHECK((void setMetaValue(const std::string& name, SignedInt value)))
 	SignedInt tmp;
 	mi.setMetaValue("cluster_id",4711);
 	tmp = SignedInt(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4711)
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, double value))
+CHECK((void setMetaValue(const std::string& name, double value)))
 	double tmp;
 	mi.setMetaValue("cluster_id",4711.1234);
 	tmp = double(mi.getMetaValue("cluster_id"));
 	TEST_REAL_EQUAL(tmp,4711.1234)
 RESULT
 
-CHECK(void setMetaValue(UnsignedInt index, SignedInt value))
+CHECK((void setMetaValue(UnsignedInt index, SignedInt value)))
 	SignedInt tmp;
 	mi.setMetaValue(2,4712);
 	tmp = SignedInt(mi.getMetaValue("cluster_id"));
 	TEST_EQUAL(tmp,4712)
 RESULT
 
-CHECK(void setMetaValue(UnsignedInt index, double value))
+CHECK((void setMetaValue(UnsignedInt index, double value)))
 	double tmp;
 	mi.setMetaValue(2,4712.1234);
 	tmp = double(mi.getMetaValue("cluster_id"));
 	TEST_REAL_EQUAL(tmp,4712.1234)
 RESULT
 
-CHECK(bool isMetaEmpty() const)
+CHECK((bool isMetaEmpty() const))
 	MetaInfoInterface tmp;
 	TEST_EQUAL(tmp.isMetaEmpty(),true)
 	tmp.setMetaValue(1024,string("testtesttest"));
 	TEST_EQUAL(tmp.isMetaEmpty(),false)
 RESULT
 
-CHECK(MetaInfoInterface(const MetaInfoInterface& rhs))
+CHECK((MetaInfoInterface(const MetaInfoInterface& rhs)))
 	//test if copy worked
 	MetaInfoInterface mi3(mi);
 	TEST_REAL_EQUAL(double(mi3.getMetaValue("cluster_id")),4712.1234)
@@ -129,7 +129,7 @@ CHECK(MetaInfoInterface(const MetaInfoInterface& rhs))
 	TEST_REAL_EQUAL(double(mi3.getMetaValue("cluster_id")),11.9)	
 RESULT
 
-CHECK(MetaInfoInterface& operator = (const MetaInfoInterface& rhs))
+CHECK((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 	//test if copy worked
 	MetaInfoInterface mi3,mi4;
 	mi3 = mi;
@@ -150,21 +150,21 @@ CHECK(MetaInfoInterface& operator = (const MetaInfoInterface& rhs))
 	TEST_REAL_EQUAL(mi3.isMetaEmpty(),true)	
 RESULT
 
-CHECK(void setMetaValue(const std::string& name, const DataValue& value))
+CHECK((void setMetaValue(const std::string& name, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue("testname",tmp);
 	tmp = string(mi.getMetaValue("testname"));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK(void setMetaValue(UnsignedInt index, const DataValue& value))
+CHECK((void setMetaValue(UnsignedInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue(2,tmp);
 	tmp = string(mi.getMetaValue(2));
 	TEST_EQUAL("testtesttest3",tmp)
 RESULT
 
-CHECK(void getKeys(std::vector<std::string>& keys) const)
+CHECK((void getKeys(std::vector<std::string>& keys) const))
 	vector<string> tmp,tmp2;
 	tmp.push_back("cluster_id");
 	tmp.push_back("testname");
@@ -201,21 +201,21 @@ CHECK(void getKeys(std::vector<std::string>& keys) const)
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK(bool metaValueExists(const std::string& name) const)
+CHECK((bool metaValueExists(const std::string& name) const))
 	MetaInfoInterface mi4;
 	TEST_EQUAL(mi4.metaValueExists("cluster_id"),false)
 	mi4.setMetaValue("cluster_id",4712.1234);
 	TEST_EQUAL(mi4.metaValueExists("cluster_id"),true)
 RESULT
 
-CHECK(bool metaValueExists(UnsignedInt index) const)
+CHECK((bool metaValueExists(UnsignedInt index) const))
 	MetaInfoInterface mi4;
 	TEST_EQUAL(mi4.metaValueExists(2),false)
 	mi4.setMetaValue("cluster_id",4712.1234);
 	TEST_EQUAL(mi4.metaValueExists(2),true)
 RESULT
 
-CHECK([EXTRA] void getKeys(std::vector<std::string>& keys) const)
+CHECK(([EXTRA] void getKeys(std::vector<std::string>& keys) const))
 	std::vector<std::string> keys;
 	mi.getKeys(keys);	
 	TEST_EQUAL(keys.size(),2)
@@ -223,7 +223,7 @@ CHECK([EXTRA] void getKeys(std::vector<std::string>& keys) const)
 	TEST_EQUAL(keys[1],"testname")
 RESULT
 
-CHECK(void clearMetaInfo())
+CHECK((void clearMetaInfo()))
 	MetaInfoInterface i;
 	TEST_EQUAL(i.isMetaEmpty(),true)
 	i.setMetaValue("label",String("test"));
@@ -232,7 +232,7 @@ CHECK(void clearMetaInfo())
 	TEST_EQUAL(i.isMetaEmpty(),true)
 RESULT
 
-CHECK(bool operator== (const MetaInfoInterface& rhs) const)
+CHECK((bool operator== (const MetaInfoInterface& rhs) const))
 	MetaInfoInterface i,i2;
 	TEST_EQUAL(i==i2,true)
 	TEST_EQUAL(i2==i,true)
@@ -244,7 +244,7 @@ CHECK(bool operator== (const MetaInfoInterface& rhs) const)
 	TEST_EQUAL(i2==i,true)
 RESULT
 
-CHECK(bool operator!= (const MetaInfoInterface& rhs) const)
+CHECK((bool operator!= (const MetaInfoInterface& rhs) const))
 	MetaInfoInterface i,i2;
 	TEST_EQUAL(i!=i2,false)
 	TEST_EQUAL(i2!=i,false)
@@ -256,7 +256,7 @@ CHECK(bool operator!= (const MetaInfoInterface& rhs) const)
 	TEST_EQUAL(i2!=i,false)
 RESULT
 
-CHECK(void removeMetaValue(UnsignedInt index))
+CHECK((void removeMetaValue(UnsignedInt index)))
 	MetaInfoInterface i,i2;
 	
 	i.setMetaValue(1,String("bla"));
@@ -268,7 +268,7 @@ CHECK(void removeMetaValue(UnsignedInt index))
 	i.removeMetaValue(1234);
 RESULT
 
-CHECK(void removeMetaValue(const std::string& name))
+CHECK((void removeMetaValue(const std::string& name)))
 	MetaInfoInterface i,i2;
 	
 	i.setMetaValue("label",String("bla"));

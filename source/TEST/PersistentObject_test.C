@@ -80,27 +80,27 @@ START_TEST(PersistentObject, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Dummy* ptr = 0;
-CHECK(PersistentObject())
+CHECK((PersistentObject()))
 	ptr = new Dummy();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~PersistentObject())
+CHECK((~PersistentObject()))
 	delete ptr;
 RESULT
 
-CHECK(const UID& getPersistenceId() const)
+CHECK((const UID& getPersistenceId() const))
   Dummy tmp;
   TEST_EQUAL(tmp.getPersistenceId(),0)
 RESULT
 
-CHECK(void setPersistenceId(const UID& persistence_id))
+CHECK((void setPersistenceId(const UID& persistence_id)))
   Dummy tmp;
   tmp.setPersistenceId(4711);
   TEST_EQUAL(tmp.getPersistenceId(),4711)
 RESULT
 
-CHECK(void clearId(bool deep = true))
+CHECK((void clearId(bool deep = true)))
   Dummy tmp;
   tmp.setPersistenceId(4711);
   tmp.clearId(false);
@@ -113,7 +113,7 @@ CHECK(void clearId(bool deep = true))
   TEST_EQUAL(tmp.subobjectsClear(),true)
 RESULT
 
-CHECK(PersistentObject& operator= (const PersistentObject& rhs))
+CHECK((PersistentObject& operator= (const PersistentObject& rhs)))
   Dummy tmp;
   tmp.clearId(true);
   tmp.setPersistenceId(4711);
@@ -126,16 +126,6 @@ CHECK(PersistentObject& operator= (const PersistentObject& rhs))
   tmp2 = Dummy();
   TEST_EQUAL(tmp2.getPersistenceId(),0)
   TEST_EQUAL(tmp2.subobjectsClear(),false)
-RESULT
-
-// This method ist tested in PersistenceManger_test
-CHECK(void persistentRead(PersistenceManager& pm) throw(Exception::Base))
-  
-RESULT
-
-// This method ist tested in PersistenceManger_test
-CHECK(void persistentWrite(PersistenceManager& pm, const char* name=0) const throw(Exception::Base))
-  
 RESULT
 
 

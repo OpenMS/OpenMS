@@ -78,6 +78,9 @@ PairMatcher* ptr = 0;
 CHECK((PairMatcher(FeatureMapType& features)))
 	ptr = new PairMatcher(features);
 	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(static const String getName())
 	TEST_EQUAL(PairMatcher::getName(), "PairMatcher")
 RESULT
 

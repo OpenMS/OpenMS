@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -37,17 +37,17 @@ START_TEST(TOPPBase, "$Id$")
 
 //test class with optional parameters
 class TOPPBaseTest
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPBaseTest()
-			: TOPPBase2("TOPPBaseTest", "A test class")
+			: TOPPBase("TOPPBaseTest", "A test class")
 		{
 			main(0,0);
 		}
 		
 		TOPPBaseTest(int argc , char** argv)
-			: TOPPBase2("TOPPBaseTest", "A test class")
+			: TOPPBase("TOPPBaseTest", "A test class")
 		{
 			main(argc,argv);	
 		}
@@ -109,17 +109,17 @@ class TOPPBaseTest
 
 // Test class for no-optional parameters
 class TOPPBaseTestNOP
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPBaseTestNOP()
-			: TOPPBase2("TOPPBaseTest", "A test class with non-optional parameters")
+			: TOPPBase("TOPPBaseTest", "A test class with non-optional parameters")
 		{
 			main(0,0);
 		}
 		
 		TOPPBaseTestNOP(int argc , char** argv)
-			: TOPPBase2("TOPPBaseTestNOP", "A test class with non-optional parameters")
+			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters")
 		{
 			main(argc,argv);	
 		}
@@ -157,12 +157,12 @@ class TOPPBaseTestNOP
 /////////////////////////////////////////////////////////////
 
 TOPPBaseTest* ptr = 0;
-CHECK(TOPPBase())
+CHECK((TOPPBase(const String& tool_name, const String& tool_description)))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~TOPPBase())
+CHECK((~TOPPBase()))
 	delete ptr;
 RESULT
 
@@ -181,7 +181,7 @@ char* a13 ="4.5";
 char* a14 ="-intoption";
 char* a15 ="-doubleoption";
 
-CHECK(String const& getIniLocation_() const)
+CHECK(([EXTRA]String const& getIniLocation_() const))
 	//default 
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
@@ -191,7 +191,7 @@ CHECK(String const& getIniLocation_() const)
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
 RESULT
 
-CHECK(String getStringOption_(const String& name) const)
+CHECK(([EXTRA]String getStringOption_(const String& name) const))
 	//default 
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
@@ -232,7 +232,7 @@ CHECK(String getStringOption_(const String& name) const)
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
 RESULT
 
-CHECK(String getIntOption_(const String& name) const)
+CHECK(([EXTRA]String getIntOption_(const String& name) const))
 	//default 
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
@@ -250,7 +250,7 @@ CHECK(String getIntOption_(const String& name) const)
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getIntOption("intoption"));
 RESULT
 
-CHECK(String getDoubleOption_(const String& name) const)
+CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
 	//default 
 	TOPPBaseTest tmp;
 	TEST_REAL_EQUAL(tmp.getDoubleOption("doubleoption"),0.4711);
@@ -268,7 +268,7 @@ CHECK(String getDoubleOption_(const String& name) const)
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
 RESULT
 
-CHECK(bool getFlag_(const String& name) const)
+CHECK(([EXTRA]bool getFlag_(const String& name) const))
 	//default 
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getFlag("flag"),false);
@@ -281,14 +281,14 @@ CHECK(bool getFlag_(const String& name) const)
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getFlag("imleeewenit"));
 RESULT
 
-CHECK(void inputFileReadable_(const String& filename) const)
+CHECK(([EXTRA]void inputFileReadable_(const String& filename) const))
 	TEST_EXCEPTION(Exception::FileNotFound,TOPPBaseTest().inputFileReadable("/this/file/does/not/exist.txt"));
 	//TEST_EXCEPTION(Exception::FileNotReadable,);
 	TEST_EXCEPTION(Exception::FileEmpty,TOPPBaseTest().inputFileReadable("data/TOPPBase_empty.txt"));
 	TOPPBaseTest().inputFileReadable("data/TOPPBase_common.ini");
 RESULT
 
-CHECK(void outputFileWritable_(const String& filename) const)
+CHECK(([EXTRA]void outputFileWritable_(const String& filename) const))
 	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
 
 	String filename;
@@ -296,7 +296,7 @@ CHECK(void outputFileWritable_(const String& filename) const)
 	TOPPBaseTest().outputFileWritable(filename);
 RESULT
 
-CHECK(void parseRange_(const String& text, double& low, double& high) const)
+CHECK(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
@@ -323,7 +323,7 @@ CHECK(void parseRange_(const String& text, double& low, double& high) const)
 	TEST_REAL_EQUAL(b,7.5);
 RESULT
 
-CHECK(Param getParam_( const std::string& prefix ) const)
+CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
 	//TODO
 RESULT
 

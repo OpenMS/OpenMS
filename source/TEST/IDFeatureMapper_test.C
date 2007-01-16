@@ -46,16 +46,16 @@ using namespace std;
 
 
 IDFeatureMapper* ptr = 0;
-CHECK(IDFeatureMapper())
+CHECK((IDFeatureMapper()))
 	ptr = new IDFeatureMapper();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~IDFeatureMapper())
+CHECK(([EXTRA]~IDFeatureMapper()))
 	delete ptr;
 RESULT
 
-CHECK((void annotate(DFeatureMap<2> fm, const std::vector<Identification>& identifications)))
+CHECK((void annotate(DFeatureMap<2>& fm, const std::vector<IdentificationData>& ids, const std::vector<ProteinIdentification>& protein_ids) throw(Exception::Precondition)))
 
 //load id data
 vector<IdentificationData> identifications; 

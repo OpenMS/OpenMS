@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,11 +49,11 @@ using namespace std;
 /// @cond TOPPCLASSES 
 
 class TOPPDTAExtractor
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPDTAExtractor()
-			: TOPPBase2("DTAExtractor","extracts scans of an mzData file to several files in DTA format")
+			: TOPPBase("DTAExtractor","extracts scans of an mzData file to several files in DTA format")
 		{
 			
 		}

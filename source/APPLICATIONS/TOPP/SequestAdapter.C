@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase2.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
@@ -105,11 +105,11 @@ using namespace std;
 // @cond 
 
 class TOPPSequestAdapter
-	: public TOPPBase
+	: public TOPPBase2
 {
 	public:
 		TOPPSequestAdapter()
-			: TOPPBase("SequestAdapter")
+			: TOPPBase2("SequestAdapter")
 		{}
 	
 	protected:

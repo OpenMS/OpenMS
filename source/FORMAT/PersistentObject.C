@@ -53,11 +53,6 @@ namespace OpenMS
 		return persistence_id_;
 	}
 	
-	UID& PersistentObject::getPersistenceId()
-	{
-		return persistence_id_;
-	}
-	
   void PersistentObject::setPersistenceId(const UID& persistence_id)
 	{
 		persistence_id_ = persistence_id;

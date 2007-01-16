@@ -98,23 +98,23 @@ if (do_tests)
 	
 	DBAdapter* ptr = 0;
 
-	CHECK(DBAdapter(DBConnection& db_con))
+	CHECK((DBAdapter(DBConnection& db_con)))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 	RESULT
 		
-	CHECK(~DBAdapter())
+	CHECK((~DBAdapter()))
 		delete ptr;
 	RESULT
 
-	CHECK(void createDB())
+	CHECK((void createDB()))
   	DBAdapter a(con);
 		a.createDB();
 	RESULT
 
 	//check if the DB is up-to-date
 	bool db_up_to_date;
-	CHECK(bool checkDBVersion(bool warning))
+	CHECK((bool checkDBVersion(bool warning)))
 		DBAdapter a(con);
 		db_up_to_date = a.checkDBVersion(true);
 		TEST_EQUAL(db_up_to_date,true)
@@ -326,7 +326,7 @@ if (do_tests)
 		
 		// save newly created experiment - should be added to database.
 		// success is implicitly checked later when loading from database.
-		CHECK(template <class ExperimentType> void DBAdapter::storeExperiment(ExperimentType& exp))
+		CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
 			tmp_id = exp_original.getPersistenceId();
@@ -334,7 +334,7 @@ if (do_tests)
 		RESULT		
 	
 		// check if first spectrum of saved experiment can be loaded correctly
-		CHECK(template <class SpectrumType> void DBAdapter::loadSpectrum(UID id, SpectrumType& spec))
+		CHECK((template<class SpectrumType> void loadSpectrum(UID id, SpectrumType& spec)))
 	  	DBAdapter a(con);
 		  
 			MSSpectrum<> spec;
@@ -378,7 +378,7 @@ if (do_tests)
 		
 	  // load experiment from database
 		// (this implicitly checks if the new experiment was stored correctly)
-	  CHECK(template <class ExperimentType> void DBAdapter::loadExperiment(UID id, ExperimentType& exp))
+		CHECK((template<class ExperimentType> void loadExperiment(UID id, ExperimentType& exp)))
 		  DBAdapter a(con);
 		  MSExperiment<> exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
@@ -513,7 +513,7 @@ if (do_tests)
 	
 		// save modified version of already existing experiment - old records should be updated.
 		// no checks are run, results are implicitly checked later when loading
-		CHECK(template <class ExperimentType> void DBAdapter::storeExperiment(ExperimentType& exp))
+		CHECK([EXTRA](template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 			exp_original.setComment("blubb");
 	
 			// modify first spectrum
@@ -571,7 +571,7 @@ if (do_tests)
 	
 	  // load experiment from database
 		// (this implicitly checks if the existing experiment was updated correctly)
-	  CHECK(template <class ExperimentType> void DBAdapter::loadExperiment(UID id, ExperimentType& exp))
+		CHECK([EXTRA] (template<class ExperimentType> void loadExperiment(UID id, ExperimentType& exp)))
 		  DBAdapter a(con);
 		  MSExperiment<> exp_new;
 			
@@ -625,8 +625,8 @@ if (do_tests)
 			TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
 		RESULT
 	
-		CHECK([EXTRA] load and store of empty map)
-	  	DBAdapter a(con);
+		CHECK(([EXTRA] load and store of empty map))
+			DBAdapter a(con);
 		  MSExperiment<> in, out;
 		  a.storeExperiment(in);
 			a.loadExperiment(in.getPersistenceId(),out);

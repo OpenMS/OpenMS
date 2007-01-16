@@ -61,9 +61,6 @@ namespace OpenMS
       */
       const UID& getPersistenceId() const;
 
-      /// Returns a reference the persistence id
-      UID& getPersistenceId();
-
       /**
       	@brief Sets the persistence id
       	

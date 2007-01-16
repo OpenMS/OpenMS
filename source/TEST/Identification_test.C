@@ -211,7 +211,7 @@ CHECK((void insertProteinHit(const ProteinHit& input)))
 	TEST_EQUAL(*(ptr1->getProteinHits().begin()) == protein_hit, true)
 RESULT
 
-CHECK((void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits,  const std::vector<ProteinHit>& protein_hits)))
+CHECK((void setPeptideAndProteinHits(const std::vector<PeptideHit>& peptide_hits, const std::vector<ProteinHit>& protein_hits)))
 	ptr1 = new Identification();
 	ptr1->setPeptideAndProteinHits(peptide_hits, protein_hits);
 RESULT

@@ -31,7 +31,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -67,12 +67,12 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 /// @cond TOPPCLASSES
 
 class TOPPMapAlignment
-      : public TOPPBase2
+      : public TOPPBase
 {
 
   public:
     TOPPMapAlignment()
-        : TOPPBase2("MapAlignment","aligns multiple feature, peak or consensus maps")
+        : TOPPBase("MapAlignment","aligns multiple feature, peak or consensus maps")
     {}
 
   protected: 

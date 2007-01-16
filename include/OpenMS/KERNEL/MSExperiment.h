@@ -134,11 +134,6 @@ public:
     {
     }
 
-    /// Destructor
-    ~MSExperiment()
-    {
-    }
-
     /// Assignment operator
     MSExperiment& operator= (const MSExperiment& source)
     {

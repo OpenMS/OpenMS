@@ -446,7 +446,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK((template<typename MapType> void load(const String& filename, MSExperimentExtern& map) ))
+CHECK([EXTRA] load with DRawDataPoint)
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
@@ -498,7 +498,7 @@ CHECK((template<typename MapType> void load(const String& filename, MSExperiment
 RESULT  
 
 
-CHECK([EXTRA] load with metadata-only flag)
+CHECK(([EXTRA] load with metadata-only flag))
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
@@ -624,7 +624,7 @@ CHECK([EXTRA] load with metadata-only flag)
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK([EXTRA] load with selected MS levels)
+CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -651,7 +651,7 @@ CHECK([EXTRA] load with selected MS levels)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
 RESULT
 
-CHECK([EXTRA] load with RT range)
+CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -671,7 +671,7 @@ CHECK([EXTRA] load with RT range)
 	TEST_REAL_EQUAL(e[1].getRetentionTime(), 180)
 RESULT
 
-CHECK([EXTRA] load with MZ range)
+CHECK(([EXTRA] load with MZ range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -706,7 +706,7 @@ CHECK([EXTRA] load with MZ range)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
 RESULT
 
-CHECK([EXTRA] load with intensity range)
+CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
 	MSExperiment< DRawDataPoint<1> > e;
@@ -759,7 +759,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 RESULT
 
 // check load for 64Bit precision and endian conversion
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK([EXTRA] load with 64 bit )
 	PRECISION(0.01)
 
 	MSExperiment< DPickedPeak<1> > e;
@@ -809,7 +809,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 RESULT
 
 // check for Float Kernel traits
-CHECK([EXTRA] load/store for Float Kernel Traits)
+CHECK(([EXTRA] load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 
@@ -823,7 +823,7 @@ CHECK([EXTRA] load/store for Float Kernel Traits)
 RESULT
 
 // check for Float Kernel traits
-CHECK([EXTRA]  load/store for empty scans)
+CHECK(([EXTRA]  load/store for empty scans))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 

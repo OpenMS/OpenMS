@@ -243,19 +243,6 @@
 	{
 		$files_todo = $files;
 	}
-	if ($verbose)
-	{
-		print "Files:\n";
-		foreach ($files as $f)
-		{
-			print "  $f";
-			if (in_array($f,$files_todo))
-			{
-				print " (todo)";
-			}
-			print "\n";
-		}
-	}
 	
 	//maintainer summary
 	if ($user == "all")
@@ -285,15 +272,19 @@
 	{
 		if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:",$line,$parts))
 		{
-			$pos = strpos($parts[1],"source/");
-			if($pos!==FALSE)
+			//skip warning where doxygen cannot resolve members
+			if (strpos($line,"no uniquely matching class member")===FALSE && strpos($line,"no matching class member")===FALSE)
 			{
-				$doxygen_errors[] = substr($parts[1],$pos);
-			}
-			$pos = strpos($parts[1],"include/OpenMS/");
-			if($pos!==FALSE)
-			{
-				$doxygen_errors[] = substr($parts[1],$pos);
+				$pos = strpos($parts[1],"source/");
+				if($pos!==FALSE)
+				{
+					$doxygen_errors[] = substr($parts[1],$pos);
+				}
+				$pos = strpos($parts[1],"include/OpenMS/");
+				if($pos!==FALSE)
+				{
+					$doxygen_errors[] = substr($parts[1],$pos);
+				}
 			}
 		}
 	}
@@ -313,11 +304,6 @@
 		
 		// file content
 		$file = file($path."/".$f);
-		
-		if ($verbose)
-		{
-			print "Current File: $f\n";
-		}
 		
 		########################### guards ######################################
 		if ($test == "all" || $test == "guards")
@@ -452,12 +438,10 @@
 						#take the second line too in case : or { come in the next line
 						if (isset($file[$i+1]) && preg_match("/(class|struct)[\s]+([\w]+)[\s]*({|:[^:])/i",$file[$i].$file[$i+1],$parts))
 						{
-							if ($verbose) print "found class declaration in line $i\n";
 							$brief = false;
 							#search for /// comment
 							if (strpos($file[$i-1],"///")!==FALSE)
 							{
-								if ($verbose) print "found /// description in line $j\n";
 								$brief = true;
 							}
 							# backward search for @brief until comment closes 
@@ -465,7 +449,6 @@
 							{
 								if (strpos($file[$j],"@brief")!==FALSE)
 								{
-									if ($verbose) print "found @brief description in line $j\n";
 									$brief = true;
 									break;
 								}
@@ -494,9 +477,14 @@
 		}
 		
 		########################### check_test  #####################################
+		$dont_report = array(
+			"MathFunctions.h",
+			"ClassTest.h",
+			"RangeUtils.h",
+		);
 		if ($test == "all" || $test == "check_test")
 		{
-			if (endsWith($f,".h") && in_array($testname,$files))
+			if (endsWith($f,".h") && in_array($testname,$files) && !in_array($basename,$dont_report))
 			{
 				$result = array();
 				exec("$path/source/config/tools/check_test $path/$f $path/$testname 2>&1",$result);

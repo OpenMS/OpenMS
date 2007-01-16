@@ -32,7 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <map>
@@ -173,11 +173,11 @@ using namespace std;
 
 
 class TOPPMascotAdapter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPMascotAdapter()
-			: TOPPBase2("MascotAdapter","annotates MS/MS spectra using Mascot")
+			: TOPPBase("MascotAdapter","annotates MS/MS spectra using Mascot")
 		{
 		}
 	

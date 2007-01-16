@@ -42,59 +42,59 @@ START_TEST(DPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Param* d10_ptr = 0;
-CHECK(Param())
+CHECK((Param()))
 	d10_ptr = new Param();
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~Param())
+CHECK((~Param()))
 	delete d10_ptr;
 RESULT
 
-CHECK(const DataValue& getValue(const std::string& key) const)
+CHECK((const DataValue& getValue(const std::string& key) const))
 	Param p;
 	TEST_REAL_EQUAL(p.getValue("key")==DataValue::EMPTY, true)
 RESULT
 
-CHECK(void setValue(const std::string& key, const std::string& value))
+CHECK((void setValue(const std::string& key, const std::string& value)))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.getValue("key"), "value")
 RESULT
 
-CHECK(void setValue(const std::string& key, SignedInt value))
+CHECK((void setValue(const std::string& key, SignedInt value)))
 	Param p;
 	p.setValue("key",17);
 	TEST_EQUAL(SignedInt(p.getValue("key")), 17)
 RESULT
 
-CHECK(void setValue(const std::string& key, float value))
+CHECK((void setValue(const std::string& key, float value)))
 	Param p;
 	p.setValue("key",17.4f);
 	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
 RESULT
 
-CHECK(void setValue(const std::string& key, double value))
+CHECK((void setValue(const std::string& key, double value)))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
 RESULT
 
-CHECK(bool empty() const)
+CHECK((bool empty() const))
 	Param p;
 	TEST_EQUAL(p.empty(), true)
 	p.setValue("key",17.4f);
 	TEST_EQUAL(p.empty(), false)
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
 	Param p;
 	p.setValue("key",17.4);
 	p.clear();
 	TEST_EQUAL(p.empty(), true)
 RESULT
 
-CHECK(UnsignedInt size() const)
+CHECK((UnsignedInt size() const))
 	Param p;
 	TEST_EQUAL(p.size(), 0)
 	p.setValue("key",17.4f);
@@ -111,7 +111,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 
-CHECK(Param(const Param& rhs))
+CHECK((Param(const Param& rhs)))
 	Param p2(p);
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
@@ -121,7 +121,7 @@ CHECK(Param(const Param& rhs))
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK(Param& operator = (const Param& rhs))
+CHECK((Param& operator = (const Param& rhs)))
 	Param p2;
 	p2=p;
 	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
@@ -133,7 +133,7 @@ CHECK(Param& operator = (const Param& rhs))
 RESULT
 
 
-CHECK(void remove(const std::string& prefix))
+CHECK((void remove(const std::string& prefix)))
 	Param p2(p);
 	
 	p2.remove("test:float");
@@ -163,7 +163,7 @@ CHECK(void remove(const std::string& prefix))
 RESULT
 
 
-CHECK(bool operator == (const Param& rhs) const)
+CHECK((bool operator == (const Param& rhs) const))
 	Param p2(p);
 	TEST_EQUAL(p==p2, true)
 	p2.setValue("test:float",17.5f);
@@ -176,12 +176,12 @@ CHECK(bool operator == (const Param& rhs) const)
 	TEST_EQUAL(p==p2, false)
 RESULT
 
-CHECK(void load(const std::string& filename) throw(Exception::FileNotFound))
+CHECK((void load(const std::string& filename) throw(Exception::FileNotFound, Exception::ParseError)))
 	Param p2;
 	TEST_EXCEPTION(Exception::FileNotFound, p2.load("FileDoesNotExist.xml"))	
 RESULT
 
-CHECK(void store(const std::string& filename) const throw(Exception::UnableToCreateFile))
+CHECK((void store(const std::string& filename) const throw(Exception::UnableToCreateFile)))
 	Param p2(p);
 	
 	//exception
@@ -201,7 +201,7 @@ CHECK(void store(const std::string& filename) const throw(Exception::UnableToCre
 	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))	
 RESULT
 
-CHECK(void insert(const std::string& prefix, const Param& para))
+CHECK((void insert(String prefix, const Param& para)))
 	Param p2;
 	p2.insert("test3",p);
 	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
@@ -219,7 +219,7 @@ CHECK(void insert(const std::string& prefix, const Param& para))
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)	
 RESULT
 
-CHECK(Param copy(const std::string& prefix, bool remove_prefix=false, const std::string& new_prefix="") const)
+CHECK((Param copy(const std::string& prefix, bool remove_prefix=false, String new_prefix="") const))
 	Param p2;
 
 	p2 = p.copy("notthere:");
@@ -254,7 +254,7 @@ CHECK(Param copy(const std::string& prefix, bool remove_prefix=false, const std:
 	TEST_EQUAL(SignedInt(p2.getValue("test2:int")), 18)
 RESULT
 
-CHECK(Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const)
+CHECK((Param copyWithInherit(const std::string& old_prefix, const std::string& new_prefix="") const))
 {
 	Param p0;
 	p0.setValue("test:float",17.4f);
@@ -339,7 +339,7 @@ CHECK(Param copyWithInherit(const std::string& old_prefix, const std::string& ne
 }
 RESULT
 
-CHECK(void setDefaults(const Param& defaults, String prefix="", bool showMessage=true))
+CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessage=false)))
 	Param defaults;
 	defaults.setValue("float",1.0f);	
 	defaults.setValue("float2",2.0f);
@@ -406,7 +406,7 @@ command_line3[4] = a7;
 command_line3[5] = a8;
 
 
-CHECK(void parseCommandLine(const int argc, char** argv, const std::string& prefix = ""))
+CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -423,7 +423,7 @@ CHECK(void parseCommandLine(const int argc, char** argv, const std::string& pref
 	TEST_EQUAL(p20==p30,true)
 RESULT
 
-CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown"))
+CHECK((void parseCommandLine(const int argc, char** argv, const std::map<std::string, std::string>& options_with_argument, const std::map<std::string, std::string>& options_without_argument, const std::string& misc="misc", const std::string& unknown="unknown")))
 	map<string,string> with,without;
 	with["-a"]="a";
 	with["-b"]="b";
@@ -469,19 +469,19 @@ CHECK(void parseCommandLine(const int argc, char** argv, const std::map<std::str
 RESULT
 
 
-CHECK([EXTRA] ConstIterator begin() const)
+CHECK(([EXTRA] ConstIterator begin() const))
 	TEST_EQUAL("test2:float", p.begin()->first)
 	TEST_REAL_EQUAL(p.getValue("test2:float"), p.begin()->second)
 RESULT
 
-CHECK([EXTRA] ConstIterator end() const)
+CHECK(([EXTRA] ConstIterator end() const))
 	Param::ConstIterator it = p.end();
 	it--;
 	TEST_EQUAL("test:string", it->first)
 	TEST_EQUAL(p.getValue("test:string"), it->second)
 RESULT
 
-CHECK(friend std::ostream& operator << (std::ostream& os, const Param& param))
+CHECK([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& param)))
 	Param p;
 	p.setValue("key",17.4);
 	stringstream ss;
@@ -489,21 +489,21 @@ CHECK(friend std::ostream& operator << (std::ostream& os, const Param& param))
 	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\"\n")
 RESULT
 
-CHECK(ConstIterator begin() const)
+CHECK((ConstIterator begin() const))
 	Param p;
 	p.setValue("key",17.4);
 	TEST_EQUAL(p.begin()->first, "key")
 	TEST_EQUAL(double(p.begin()->second), 17.4)
 RESULT
 
-CHECK(ConstIterator end() const)
+CHECK((ConstIterator end() const))
 	Param p;
 	TEST_EQUAL(p.end()==p.begin(),true)
 	p.setValue("key",17.4);
 	TEST_EQUAL((--p.end())==p.begin(),true)
 RESULT
 
-CHECK(void checkDefaults(const Param& defaults, String prefix="", std::ostream& os=std::cout))
+CHECK((void checkDefaults(const Param& defaults, String prefix="", std::ostream& os = std::cout) const))
 	ostringstream os;
 	Param p,d;
 	p.setValue("string",String("bla"));

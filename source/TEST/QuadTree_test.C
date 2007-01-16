@@ -75,18 +75,18 @@ typedef Tree::AreaType Area;
 typedef Tree::PointType Point;
 Tree* quadtree_ptr;
 
-CHECK(constructor QuadTree())
+CHECK((constructor QuadTree()))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	TEST_NOT_EQUAL(quadtree_ptr, 0)
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), true)
 	TEST_EQUAL(quadtree_ptr->getArea() == Area(0, 0, 100, 100), true)
 RESULT
 
-CHECK(~QuadTree())
+CHECK((~QuadTree()))
 	delete quadtree_ptr;
 RESULT
 
-CHECK(insert())
+CHECK((insert()))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	quadtree_ptr->insert(Point(10, 10), new int(10));
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), false)
@@ -98,7 +98,7 @@ CHECK(insert())
 	delete quadtree_ptr;
 RESULT
 
-CHECK(multiple insert())
+CHECK((multiple insert()))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	for (int x = 5; x < 100; x += 10) {
 		for (int y = 5; y < 100; y += 10) {
@@ -120,7 +120,7 @@ CHECK(multiple insert())
 	delete quadtree_ptr;
 RESULT
 
-CHECK(random insert())
+CHECK((random insert()))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	Area area(10, 10, 20, 20);
 	int inarea = 0;

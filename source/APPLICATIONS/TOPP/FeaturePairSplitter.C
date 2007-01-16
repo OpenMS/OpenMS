@@ -29,7 +29,7 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/KERNEL/DimensionDescription.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 #include <iostream>
@@ -74,11 +74,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeaturePairSplitter
-      : public TOPPBase2
+      : public TOPPBase
 {
  public:
   TOPPFeaturePairSplitter()
-		: TOPPBase2("FeaturePairSplitter","split a feature pairs file into two feature files and a qualities file")
+		: TOPPBase("FeaturePairSplitter","split a feature pairs file into two feature files and a qualities file")
   {
   }
 

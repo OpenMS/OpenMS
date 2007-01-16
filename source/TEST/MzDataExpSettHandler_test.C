@@ -51,7 +51,7 @@ START_TEST(MzDataExpSettHandler, "$Id$")
 using namespace OpenMS; using namespace OpenMS::Internal; using namespace std; 
 using namespace xercesc;
 
-CHECK(MzDataExpSettHandler(ExperimentalSettings& exp))
+CHECK((MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)))
 	XMLPlatformUtils::Initialize();
 	SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
 	parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
@@ -180,7 +180,23 @@ CHECK(MzDataExpSettHandler(ExperimentalSettings& exp))
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK(MzDataExpSettHandler(const ExperimentalSettings& exp))
+CHECK(~MzDataExpSettHandler())
+	// implicitly tested in the test above
+RESULT
+
+CHECK(void characters(const XMLCh* const chars, const unsigned int length))
+	// implicitly tested in the test above
+RESULT
+
+CHECK(void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname))
+	// implicitly tested in the test above
+RESULT
+
+CHECK(void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes))
+	// implicitly tested in the test above
+RESULT
+
+CHECK((MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename)))
 	XMLPlatformUtils::Initialize();
 	SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
 	parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
@@ -209,6 +225,10 @@ CHECK(MzDataExpSettHandler(const ExperimentalSettings& exp))
 		getline(sstr,t);
 		TEST_EQUAL(s.trim(),t.trim())
 	}
+RESULT
+
+CHECK((void writeTo(std::ostream& os)))
+	// implicitly tested in the test above
 RESULT
 
 /////////////////////////////////////////////////////////////

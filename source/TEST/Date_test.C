@@ -42,16 +42,16 @@ START_TEST(Date, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Date* s_ptr = 0;
-CHECK(Date())
+CHECK((Date()))
 	s_ptr = new Date();
 	TEST_NOT_EQUAL(s_ptr, 0)
 RESULT
 
-CHECK(~Date())
+CHECK((~Date()))
 	delete s_ptr;
 RESULT
 
-CHECK(bool isLeapYear(UnsignedInt year) const)
+CHECK((bool isLeapYear(UnsignedInt year) const))
   Date d;
   TEST_EQUAL(d.isLeapYear(1999),false);
   TEST_EQUAL(d.isLeapYear(2000),true);
@@ -62,7 +62,7 @@ CHECK(bool isLeapYear(UnsignedInt year) const)
   TEST_EQUAL(d.isLeapYear(2400),true);
 RESULT
 
-CHECK(void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const)
+CHECK((void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const))
   Date date;
   UnsignedInt d,m,y;
   date.get(m,d,y);
@@ -71,7 +71,7 @@ CHECK(void get(UnsignedInt& month, UnsignedInt& day, UnsignedInt& year) const)
   TEST_EQUAL(y,0);
 RESULT
 
-CHECK(void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError))
+CHECK((void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Exception::ParseError)))
   Date date;
   UnsignedInt d,m,y;
   date.set(12,1,1977);
@@ -88,7 +88,7 @@ CHECK(void set(UnsignedInt month, UnsignedInt day, UnsignedInt year) throw(Excep
 	TEST_EXCEPTION(Exception::ParseError,date.set(02,29,2100));
 RESULT
 
-CHECK(bool operator == (const Date& rhs) const)
+CHECK((bool operator == (const Date& rhs) const))
   Date date, date2;
   TEST_EQUAL(date==date2,true);
   date.set(12,1,1977);
@@ -97,7 +97,7 @@ CHECK(bool operator == (const Date& rhs) const)
   TEST_EQUAL(date==date2,true);
 RESULT
 
-CHECK(bool operator != (const Date& rhs) const)
+CHECK((bool operator != (const Date& rhs) const))
   Date date, date2;
   TEST_EQUAL(date!=date2,false);
   date.set(12,1,1977);
@@ -106,7 +106,7 @@ CHECK(bool operator != (const Date& rhs) const)
   TEST_EQUAL(date!=date2,false);
 RESULT
 
-CHECK(Date& operator= (const Date& source))
+CHECK((Date& operator= (const Date& source)))
   Date date, date2;
   date.set(12,1,1977);
   TEST_EQUAL(date==date2,false);
@@ -114,14 +114,14 @@ CHECK(Date& operator= (const Date& source))
 	TEST_EQUAL(date==date2,true);
 RESULT
 
-CHECK(Date(const Date& date))
+CHECK((Date(const Date& date)))
   Date date;
   date.set(12,1,1977);
 	Date date2(date);
 	TEST_EQUAL(date==date2,true);
 RESULT
 
-CHECK(void set(const String& date) throw(Exception::ParseError))
+CHECK((void set(const String& date) throw(Exception::ParseError)))
   Date date;
   //german
   date.set("01.12.1977");
@@ -161,7 +161,7 @@ CHECK(void set(const String& date) throw(Exception::ParseError))
   TEST_EXCEPTION(Exception::ParseError,date.set("1135-64-3"));
 RESULT
 
-CHECK(void get(String& date) const)
+CHECK((void get(String& date) const))
   Date d;
   String s;
   d.get(s);
@@ -174,7 +174,7 @@ CHECK(void get(String& date) const)
   TEST_EQUAL(s,"0888-01-02");
 RESULT
 
-CHECK(void clear())
+CHECK((void clear()))
   Date d;
   String s;
   d.set("11.12.1977");
@@ -186,11 +186,11 @@ CHECK(void clear())
 RESULT
 
 CHECK(void today())
-//  Date d;
-//  d.today();
-//  String s;
-//  d.get(s);
-//  TEST_EQUAL(s,"01/25/2006");  
+	// not testable
+RESULT
+
+CHECK(static std::string now())
+	// not testable
 RESULT
 
 /////////////////////////////////////////////////////////////

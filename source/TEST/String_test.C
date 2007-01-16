@@ -42,16 +42,16 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 String* s_ptr = 0;
-CHECK(String())
+CHECK((String()))
 	s_ptr = new String;
 	TEST_NOT_EQUAL(s_ptr, 0)
 RESULT
 
-CHECK([EXTRA] ~String())
+CHECK(([EXTRA] ~String()))
 	delete s_ptr;
 RESULT
 
-CHECK(String(const char* s, SizeType length))
+CHECK((String(const char* s, SizeType length)))
 	String s("abcdedfg",5);
 	TEST_EQUAL(s,"abcde")
 
@@ -65,78 +65,83 @@ CHECK(String(const char* s, SizeType length))
 	TEST_EQUAL(s4,"abcdedfg")
 RESULT
 
-CHECK(String(const DataValue& d))
+CHECK((String(const DataValue& d)))
 	TEST_EQUAL(String(DataValue(1.4f)),"1.4")
 	TEST_EQUAL(String(DataValue("bla")),"bla")
 	TEST_EQUAL(String(DataValue(4711)),"4711")
 RESULT
 
-CHECK(String(const std::string& s))
+CHECK((String(const std::string& s)))
 	String s(string("blablabla"));
 	TEST_EQUAL(s,"blablabla")
 RESULT
 
-CHECK(String(const char* s))
+CHECK((String(const char* s)))
 	String s("blablabla");
 	TEST_EQUAL(s,"blablabla")
 RESULT
 
-CHECK(String(size_t len, char c))
+CHECK((String(size_t len, char c)))
 	String s(17,'b');
 	TEST_EQUAL(s,"bbbbbbbbbbbbbbbbb")
 RESULT
 
-CHECK(String(const char c))
+CHECK((String(const char c)))
 	String s('v');
 	TEST_EQUAL(s,"v")
 RESULT
 
-CHECK(String(int i))
+CHECK((String(int i)))
 	String s(int (-17));
 	TEST_EQUAL(s,"-17")
 RESULT
 
-CHECK(String(unsigned int i))
+CHECK((String(unsigned int i)))
 	String s((unsigned int) (17));
 	TEST_EQUAL(s,"17")
 RESULT
 
-CHECK(String(long int i))
+CHECK((String(long int i)))
 	String s((long int)(-17));
 	TEST_EQUAL(s,"-17")
 RESULT
 
-CHECK(String(long unsigned int i))
+CHECK((String(long unsigned int i)))
 	String s((long unsigned int)(17));
 	TEST_EQUAL(s,"17")
 RESULT
 
-CHECK(String(short int i))
+CHECK((String(short int i)))
 	String s((short int)(-17));
 	TEST_EQUAL(s,"-17")
 RESULT
 
-CHECK(String(short unsigned int i))
+CHECK((String(short unsigned int i)))
 	String s((short unsigned int)(17));
 	TEST_EQUAL(s,"17")
 RESULT
 
-CHECK(String(float f))
+CHECK((String(float f)))
 	String s(float(17.0123));
 	TEST_EQUAL(s,"17.0123")
 RESULT
 
-CHECK(String(double d))
+CHECK((String(double d)))
 	String s(double(17.012345));
 	TEST_EQUAL(s,"17.012345")
 RESULT
 
-CHECK(String(long double d))
+CHECK((String(long double d)))
 	String s((long double)(17.012345));
 	TEST_EQUAL(s,"17.012345")
 RESULT
 
-CHECK(String(double d, UnsignedInt size))
+CHECK((String(long long unsigned int i)))
+	String s((long long unsigned int)(12345678));
+	TEST_EQUAL(s,"12345678")
+RESULT
+
+CHECK((String(double d, UnsignedInt size)))
 	String s;
 	s = String(12345678.9123,11);
 	TEST_EQUAL(s,"12345678.91")
@@ -154,7 +159,7 @@ CHECK(String(double d, UnsignedInt size))
 	TEST_EQUAL(s,"-123.4e05")
 RESULT
 
-CHECK(template<class InputIterator> String(InputIterator first, InputIterator last))
+CHECK((template<class InputIterator> String(InputIterator first, InputIterator last)))
 	String s("ABCDEFGHIJKLMNOP");
 	String::Iterator i = s.begin();
 	String::Iterator j = s.end();
@@ -167,7 +172,7 @@ CHECK(template<class InputIterator> String(InputIterator first, InputIterator la
 RESULT
 
 String s("ACDEFGHIKLMNPQRSTVWY");
-CHECK(bool hasPrefix(const String& string) const)
+CHECK((bool hasPrefix(const String& string) const))
 	TEST_EQUAL(s.hasPrefix(""), true);
 	TEST_EQUAL(s.hasPrefix("ACDEF"), true);
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -175,7 +180,7 @@ CHECK(bool hasPrefix(const String& string) const)
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
 RESULT
 
-CHECK(bool hasSuffix(const String& string) const)
+CHECK((bool hasSuffix(const String& string) const))
 	TEST_EQUAL(s.hasSuffix(""), true);
 	TEST_EQUAL(s.hasSuffix("TVWY"), true);
 	TEST_EQUAL(s.hasSuffix("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -183,7 +188,7 @@ CHECK(bool hasSuffix(const String& string) const)
 	TEST_EQUAL(s.hasSuffix("ACDEFACDEFGHIKLMNPQRSTVWY"), false);
 RESULT
 
-CHECK(bool hasSubstring(const String& string) const)
+CHECK((bool hasSubstring(const String& string) const))
 	TEST_EQUAL(s.hasSubstring(""), true);
 	TEST_EQUAL(s.hasSubstring("GHIKLM"), true);
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWY"), true);
@@ -191,50 +196,50 @@ CHECK(bool hasSubstring(const String& string) const)
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
 RESULT
 
-CHECK(bool has(Byte byte) const)
+CHECK((bool has(Byte byte) const))
 	TEST_EQUAL(s.has('A'), true);
 	TEST_EQUAL(s.has('O'), false);
 RESULT
 
-CHECK(String prefix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+CHECK((String prefix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	TEST_EQUAL(s.prefix((SignedInt)4), "ACDE");
 	TEST_EQUAL(s.prefix((SignedInt)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 RESULT
 
-CHECK(String suffix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+CHECK((String suffix(SignedInt length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	TEST_EQUAL(s.suffix((SignedInt)4), "TVWY");
 	TEST_EQUAL(s.suffix((SignedInt)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
 RESULT
 
-CHECK(String prefix(SizeType length) const throw(Exception::IndexOverflow))
+CHECK((String prefix(SizeType length) const throw(Exception::IndexOverflow)))
 	TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
 	TEST_EQUAL(s.prefix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 RESULT
 
-CHECK(String suffix(SizeType length) const throw(Exception::IndexOverflow))
+CHECK((String suffix(SizeType length) const throw(Exception::IndexOverflow)))
 	TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
 	TEST_EQUAL(s.suffix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 
-CHECK(String prefix(char delim) const throw(Exception::ElementNotFound<char>))
+CHECK((String prefix(char delim) const throw(Exception::ElementNotFound<char>)))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK(String suffix(char delim) const throw(Exception::ElementNotFound<char>))
+CHECK((String suffix(char delim) const throw(Exception::ElementNotFound<char>)))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK(String substr(SignedInt start = 0, SignedInt n = NPOS) const)
+CHECK((String substr(SignedInt start = 0, SignedInt n = NPOS) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0),"abcdef");
@@ -265,7 +270,7 @@ CHECK(String substr(SignedInt start = 0, SignedInt n = NPOS) const)
 	TEST_EQUAL(s.substr(-3,-1),"de")
 RESULT
 
-CHECK(String& reverse())
+CHECK((String& reverse()))
 	s.reverse();
 	TEST_EQUAL(s, "YWVTSRQPNMLKIHGFEDCA");
 	s = "";
@@ -273,7 +278,7 @@ CHECK(String& reverse())
 	TEST_EQUAL(s, "");
 RESULT
 
-CHECK(String& trim())
+CHECK((String& trim()))
 	String s("\n\r\t test \n\r\t");
 	s.trim();	
 	TEST_EQUAL(s,"test");
@@ -293,7 +298,7 @@ CHECK(String& trim())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(String& fillLeft(char c, UnsignedInt size))
+CHECK((String& fillLeft(char c, UnsignedInt size)))
 	String s("TEST");
 	s.fillLeft('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -303,7 +308,7 @@ CHECK(String& fillLeft(char c, UnsignedInt size))
 	TEST_EQUAL(s,"zzyTEST")
 RESULT
 
-CHECK(String& fillRight(char c, UnsignedInt size))
+CHECK((String& fillRight(char c, UnsignedInt size)))
 	String s("TEST");
 	s.fillRight('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -313,7 +318,7 @@ CHECK(String& fillRight(char c, UnsignedInt size))
 	TEST_EQUAL(s,"TESTyzz")	
 RESULT
 
-CHECK(int toInt() const throw(Exception::ConversionError))
+CHECK((int toInt() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -329,7 +334,7 @@ CHECK(int toInt() const throw(Exception::ConversionError))
 	TEST_REAL_EQUAL(s.toInt(),73629);
 RESULT
 
-CHECK(float toFloat() const throw(Exception::ConversionError))
+CHECK((float toFloat() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toFloat(),123.456);
@@ -343,7 +348,7 @@ CHECK(float toFloat() const throw(Exception::ConversionError))
 	TEST_EQUAL(String(s.toFloat()),"47218.89");
 RESULT
 
-CHECK(double toDouble() const throw(Exception::ConversionError))
+CHECK((double toDouble() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);
@@ -357,13 +362,13 @@ CHECK(double toDouble() const throw(Exception::ConversionError))
 	TEST_EQUAL(String(s.toDouble()),"47218.89");
 RESULT
 
-CHECK(static String random(Size length))
+CHECK((static String random(Size length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);
 RESULT
 
-CHECK(bool split(char splitter, std::vector<String>& substrings) const)
+CHECK((bool split(char splitter, std::vector<String>& substrings) const))
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);
@@ -393,7 +398,7 @@ CHECK(bool split(char splitter, std::vector<String>& substrings) const)
 	TEST_EQUAL(split.size(),0);
 RESULT
 
-CHECK(void implode(std::vector<String>::iterator first, std::vector<String>::iterator last, const std::string& glue = ""))
+CHECK((void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "")))
 	vector<String> split;
 	String("1;2;3;4;5").split(';',split);
 	String s;
@@ -412,7 +417,7 @@ CHECK(void implode(std::vector<String>::iterator first, std::vector<String>::ite
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(String& toUpper())
+CHECK((String& toUpper()))
 	String s;
 	s = "test45%#.,";
 	s.toUpper();
@@ -422,7 +427,7 @@ CHECK(String& toUpper())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(String& toLower())
+CHECK((String& toLower()))
 	String s;
 	s = "TEST45%#.,";
 	s.toLower();
@@ -432,7 +437,7 @@ CHECK(String& toLower())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(String& firstToUpper())
+CHECK((String& firstToUpper()))
 	String s;
 	s = "test45%#.,";
 	s.firstToUpper();
@@ -445,7 +450,7 @@ CHECK(String& firstToUpper())
 	TEST_EQUAL(s,"");
 RESULT
 
-CHECK(String& substitute(char from, char to))
+CHECK((String& substitute(char from, char to)))
 	String s = "abcdefg";
 
 	s.substitute('a','x');
@@ -466,7 +471,7 @@ CHECK(String& substitute(char from, char to))
 	TEST_EQUAL(s,".....")
 RESULT
 
-CHECK(String& remove(char what))
+CHECK((String& remove(char what)))
 	String s = "abcabc";
 
 	s.remove('a');
@@ -479,7 +484,7 @@ CHECK(String& remove(char what))
 	TEST_EQUAL(s, "");
 RESULT
 
-CHECK(String& ensureLastChar(char end))
+CHECK((String& ensureLastChar(char end)))
 	String s = "/";
 	s.ensureLastChar('/');
 	TEST_EQUAL("/", s)
@@ -494,7 +499,7 @@ CHECK(String& ensureLastChar(char end))
 	TEST_EQUAL("/\\/", s)
 RESULT
 
-CHECK(String& removeWhitespaces())
+CHECK((String& removeWhitespaces()))
 	String s;
 	
 	s.removeWhitespaces();	
@@ -512,59 +517,59 @@ RESULT
 
 const String fixed("test");
 
-CHECK(String operator+ (int i) const)
+CHECK((String operator+ (int i) const))
 	TEST_EQUAL(fixed + (int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (unsigned int i) const)
+CHECK((String operator+ (unsigned int i) const))
 	TEST_EQUAL(fixed + (unsigned int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (short int i) const)
+CHECK((String operator+ (short int i) const))
 	TEST_EQUAL(fixed + (short int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (short unsigned int i) const)
+CHECK((String operator+ (short unsigned int i) const))
 	TEST_EQUAL(fixed + (short unsigned int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (long int i) const)
+CHECK((String operator+ (long int i) const))
 	TEST_EQUAL(fixed + (long int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (long unsigned int i) const)
+CHECK((String operator+ (long unsigned int i) const))
 	TEST_EQUAL(fixed + (long unsigned int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (long long unsigned int i) const)
+CHECK((String operator+ (long long unsigned int i) const))
 	TEST_EQUAL(fixed + (long long unsigned int)(4), "test4")
 RESULT
 
-CHECK(String operator+ (float i) const)
+CHECK((String operator+ (float f) const))
 	TEST_EQUAL(fixed + (float)(4), "test4")
 RESULT
 
-CHECK(String operator+ (double i) const)
+CHECK((String operator+ (double d) const))
 	TEST_EQUAL(fixed + (double)(4), "test4")
 RESULT
 
-CHECK(String operator+ (long double i) const)
+CHECK((String operator+ (long double d) const))
 	TEST_EQUAL(fixed + (long double)(4), "test4")
 RESULT
 
-CHECK(String operator+ (char i) const)
+CHECK((String operator+ (char c) const))
 	TEST_EQUAL(fixed + '4', "test4")
 RESULT
 
-CHECK(String operator+ (const char* s) const)
+CHECK((String operator+ (const char* s) const))
 	TEST_EQUAL(fixed + "bla4", "testbla4")
 RESULT
 
-CHECK(String operator+ (const String& s) const)
+CHECK((String operator+ (const String& s) const))
 	TEST_EQUAL(fixed + String("bla4"), "testbla4")
 RESULT
 
-CHECK(String operator+ (const std::string& s) const)
+CHECK((String operator+ (const std::string& s) const))
 	TEST_EQUAL(fixed + std::string("bla4"), "testbla4")
 RESULT
 

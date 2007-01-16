@@ -45,16 +45,16 @@ START_TEST(String, "$Id$")
 
 PeakTypeEstimator* ptr = 0;
 
-CHECK(PeakTypeEstimator())
+CHECK(([EXTRA]PeakTypeEstimator()))
 	ptr = new PeakTypeEstimator();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK([EXTRA] ~PeakTypeEstimator())
+CHECK(([EXTRA] ~PeakTypeEstimator()))
 	delete ptr;
 RESULT
 
-CHECK((template <typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
+CHECK((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
 	DTAFile file;
 	MSExperiment<> exp;
 	exp.resize(3);

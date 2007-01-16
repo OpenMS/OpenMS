@@ -60,14 +60,16 @@ RESULT
 
 // assignment operator
 CHECK((IndexSet& operator = (const IndexSet& source)))
-	IndexSet is1(10,20);	
-  is1.add(15).add(21);
-  is1.sort();
-  IndexSet is2(10,21);
-  IndexSet is3;
-  is3 = is1;
-  is1.clear();
-	TEST_EQUAL(is3, is2)
+	IndexSet is1(10,21);	
+  IndexSet is2;
+  is2 = is1;
+  TEST_EQUAL(is1, is2)
+RESULT
+
+CHECK(IndexSet(const IndexSet& source))
+	IndexSet is1(10,21);	
+  IndexSet is2(is1);
+  TEST_EQUAL(is1, is2)
 RESULT
 
 // construct set with index
@@ -334,7 +336,7 @@ CHECK((bool operator != (const IndexSetConstIterator& it) const))
   TEST_EQUAL( res, 0)
 RESULT
 
-CHECK((const UnsignedInt& operator * ()))
+CHECK((const UnsignedInt& operator * () const))
 	IndexSet s(5,10);
   Iterator it(5,0,&s);
 
@@ -391,6 +393,31 @@ CHECK((IndexSetConstIterator operator -- (int)))
 	Size i = *it--;
   TEST_EQUAL( i, 10)
 RESULT
+
+CHECK(Size size() const)
+	IndexSet s;
+	TEST_EQUAL(s.size(),0);
+	s.add(5).add(7).add(17);
+	TEST_EQUAL(s.size(),3);
+RESULT
+
+CHECK(bool isEmpty())
+	IndexSet s;
+	TEST_EQUAL(s.isEmpty(),true);
+	s.add(5);
+	TEST_EQUAL(s.isEmpty(),false);
+RESULT
+
+CHECK(void sort())
+	IndexSet s;
+	TEST_EQUAL(s.size(),0);
+	s.add(5,9).add(7);
+	TEST_EQUAL(s.size(),6);
+	s.sort();
+	TEST_EQUAL(s.size(),5);
+RESULT
+
+
 	 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

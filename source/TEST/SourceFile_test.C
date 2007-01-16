@@ -39,16 +39,16 @@ START_TEST(SourceFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SourceFile* ptr = 0;
-CHECK(SourceFile())
+CHECK((SourceFile()))
 	ptr = new SourceFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SourceFile())
+CHECK((~SourceFile()))
 	delete ptr;
 RESULT
 
-CHECK(bool isFileEmpty())
+CHECK((bool isFileEmpty() const))
   SourceFile * tmp = new SourceFile();
   TEST_EQUAL(tmp->isFileEmpty(),true);
   tmp->setFileSize(1);
@@ -64,62 +64,62 @@ CHECK(bool isFileEmpty())
   TEST_EQUAL(tmp->isFileEmpty(),false);
 RESULT
 
-CHECK(const float& getFileSize() const)
+CHECK((const float& getFileSize() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileSize(),0);
 RESULT
 
-CHECK(void setFileSize(const float& file_size))
+CHECK((void setFileSize(const float& file_size)))
   SourceFile tmp;
 	tmp.setFileSize(1.667);
   TEST_REAL_EQUAL(tmp.getFileSize(),1.667);
 RESULT
 
-CHECK(const String& getFileType() const)
+CHECK((const String& getFileType() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileType(), "");
 RESULT
 
-CHECK(void setFileType(const String& file_type))
+CHECK((void setFileType(const String& file_type)))
   SourceFile tmp;
 	tmp.setFileType("PEAKDATA");
   TEST_EQUAL(tmp.getFileType(), "PEAKDATA");
 RESULT
 
-CHECK(const String& getNameOfFile() const)
+CHECK((const String& getNameOfFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getNameOfFile(),"");
 RESULT
 
-CHECK(void setNameOfFile(const String& name_of_file))
+CHECK((void setNameOfFile(const String& name_of_file)))
   SourceFile tmp;
   tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
   TEST_EQUAL(tmp.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 RESULT
 
-CHECK(const String& getPathToFile() const)
+CHECK((const String& getPathToFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getPathToFile(),"");
 RESULT
 
-CHECK(void setPathToFile(const String& path_path_to_file))
+CHECK((void setPathToFile(const String& path_path_to_file)))
   SourceFile tmp;
   tmp.setPathToFile("/misc/sturm/mp3/");
   TEST_EQUAL(tmp.getPathToFile(),"/misc/sturm/mp3/");
 RESULT
 
-CHECK(const String& getSha1() const)
+CHECK((const String& getSha1() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getSha1(), "");
 RESULT
 
-CHECK(void setSha1(const String& sha1))
+CHECK((void setSha1(const String& sha1)))
   SourceFile tmp;
   tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
   TEST_EQUAL(tmp.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 RESULT
 
-CHECK(SourceFile(const SourceFile& source))
+CHECK((SourceFile(const SourceFile& source)))
 	SourceFile tmp;
 	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
@@ -133,7 +133,7 @@ CHECK(SourceFile(const SourceFile& source))
 	TEST_EQUAL(tmp2.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 RESULT
 
-CHECK(SourceFile& operator= (const SourceFile& source))
+CHECK((SourceFile& operator= (const SourceFile& source)))
 	SourceFile tmp;
 	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
@@ -156,7 +156,7 @@ CHECK(SourceFile& operator= (const SourceFile& source))
 	TEST_EQUAL(tmp2.getSha1(),"");
 RESULT
 
-CHECK(bool operator== (const SourceFile& rhs) const)
+CHECK((bool operator== (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -177,7 +177,7 @@ CHECK(bool operator== (const SourceFile& rhs) const)
 	TEST_EQUAL(tmp==tmp2, false);
 RESULT
 
-CHECK(bool operator!= (const SourceFile& rhs) const)
+CHECK((bool operator!= (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);

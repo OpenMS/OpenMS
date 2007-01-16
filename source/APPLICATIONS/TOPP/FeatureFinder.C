@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -86,11 +86,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinder
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPFeatureFinder()
-		: TOPPBase2("FeatureFinder","detects two-dimensional features in LC/MS data")
+		: TOPPBase("FeatureFinder","detects two-dimensional features in LC/MS data")
 	{
 			
 	}

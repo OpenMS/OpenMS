@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -95,11 +95,11 @@ using namespace std;
 
 
 class TOPPIDFilter
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase2("IDFilter","filters identification engine results by different criteria")
+		: TOPPBase("IDFilter","filters identification engine results by different criteria")
 	{
 		
 	}

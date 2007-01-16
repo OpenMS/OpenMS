@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/METADATA/Identification.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -51,11 +51,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPAnalysisXMLMerger
-	: public TOPPBase2
+	: public TOPPBase
 {
  public:
 	TOPPAnalysisXMLMerger()
-		: TOPPBase2("AnalysisXMLMerger","Merges several analysisXML files into one analysisXML file")
+		: TOPPBase("AnalysisXMLMerger","Merges several analysisXML files into one analysisXML file")
 	{
 			
 	}

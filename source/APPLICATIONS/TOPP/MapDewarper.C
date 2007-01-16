@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/DGridFile.h>
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -57,11 +57,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMapDewarper
-      : public TOPPBase2
+      : public TOPPBase
 {
 public:
   TOPPMapDewarper()
-      : TOPPBase2("MapDewarper","Dewarps a feature map by applying a transform to the coordinates")
+      : TOPPBase("MapDewarper","Dewarps a feature map by applying a transform to the coordinates")
   {
   }
 

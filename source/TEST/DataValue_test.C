@@ -42,55 +42,55 @@ using namespace OpenMS;
 
 // default ctor
 DataValue* dv_ptr = 0;
-CHECK(DataValue())
+CHECK((DataValue()))
 	dv_ptr = new DataValue;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 RESULT
 
 // destructor
-CHECK(~DataValue())
+CHECK((~DataValue()))
 	delete dv_ptr;
 RESULT
 
 // ctor for all supported types a DataValue object can hold
 
-CHECK(DataValue(double))
+CHECK((DataValue(double)))
 	double x = -3.0;
 	DataValue d(x);
 	TEST_REAL_EQUAL((double)d, -3.0)
 RESULT
 
-CHECK(DataValue(float))
+CHECK((DataValue(float)))
 	float x = 3.0;
 	DataValue d(x);
 	TEST_REAL_EQUAL((float)d, 3.0)
 RESULT
 
-CHECK(DataValue(long))
+CHECK((DataValue(long)))
 	long n = 100000000;
 	DataValue d(n);
 	TEST_EQUAL((long)d, 100000000)
 RESULT
 
-CHECK(DataValue(int))
+CHECK((DataValue(int)))
 	int n = -3000;
 	DataValue d(n);
 	TEST_EQUAL((int)d, -3000)
 RESULT
 
-CHECK(DataValue(short))
+CHECK((DataValue(short)))
 	short n = -3;
 	DataValue d(n);
 	TEST_EQUAL((short)d, -3)
 RESULT
 
-CHECK(DataValue(char*))
+CHECK((DataValue(char*)))
 	char* s = "test char";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test char")
 RESULT
 
-CHECK(DataValue(std::string))
+CHECK((DataValue(std::string)))
 	std::string s = "test string";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test string")
@@ -98,7 +98,7 @@ RESULT
 
 // copy ctor
 
-CHECK(DataValue(const DataValue&))
+CHECK((DataValue(const DataValue&)))
 	DataValue p1((double) 1.23);
 	DataValue p2((short) 3);
 	DataValue p3((float) 1.23);
@@ -127,7 +127,7 @@ RESULT
 
 // assignment operator
 
-CHECK(DataValue& operator = (const DataValue&))
+CHECK((DataValue& operator = (const DataValue&)))
 	DataValue p1((double) 1.23);
 	DataValue p2((short) 3);
 	DataValue p3((float) 1.23);
@@ -157,7 +157,7 @@ RESULT
 
 // Is DataValue object empty?
 
-CHECK(bool isEmpty() const)
+CHECK((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
 	TEST_NOT_EQUAL( res1, 0)
@@ -177,49 +177,49 @@ RESULT
 
 // conversion operators
 
-CHECK(operator std::string() const throw(Exception::ConversionError))
+CHECK((operator std::string() const throw(Exception::ConversionError)))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK(operator double() const throw(Exception::ConversionError))
+CHECK((operator double() const throw(Exception::ConversionError)))
 	DataValue d((double) 5.5);
 	double k = d;
 	TEST_REAL_EQUAL(k,5.5)
 RESULT
 
-CHECK(operator float() const throw(Exception::ConversionError))
+CHECK((operator float() const throw(Exception::ConversionError)))
 	DataValue d((float) 5.45);
 	float k = d;
 	TEST_REAL_EQUAL(k,5.45)
 RESULT
 
-CHECK(operator int() const throw(Exception::ConversionError))
+CHECK((operator int() const throw(Exception::ConversionError)))
 	DataValue d((int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
 RESULT
 
-CHECK(operator unsigned int() const throw(Exception::ConversionError))
+CHECK((operator unsigned int() const throw(Exception::ConversionError)))
 	DataValue d((int) 55);
 	unsigned int k = d;
 	TEST_EQUAL(k,55)
 RESULT
 
-CHECK(operator short() const throw(Exception::ConversionError))
+CHECK((operator short() const throw(Exception::ConversionError)))
 	DataValue d((short) 5);
 	short k = d;
 	TEST_EQUAL(k,5)
 RESULT
 
-CHECK(operator long() const throw(Exception::ConversionError))
+CHECK((operator long() const throw(Exception::ConversionError)))
 	DataValue d((long) 555);
 	long k = d;
 	TEST_EQUAL(k,555)
 RESULT
 
-CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354"))
+CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354")))
 	std::string s = "-123.0354";
 	DataValue d(s);
 	TEST_EQUAL((int)d,-123)
@@ -230,7 +230,7 @@ CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354"))
 	TEST_EQUAL((long)d,-123)
 RESULT
 
-CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354 Km"))
+CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354 Km")))
 	std::string s = "-123.0354 Km";
 	DataValue d(s);
 	TEST_EQUAL((int)d,-123)
@@ -241,7 +241,7 @@ CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354 Km"
 	TEST_EQUAL((long)d,-123)
 RESULT
 
-CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(double(-222.234)))
+CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(double(-222.234))))
 	DataValue d((double)(-222.234));
 	TEST_EQUAL((int)d,-222)
 	TEST_EQUAL((unsigned int)d,222)
@@ -251,7 +251,7 @@ CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(double(-222.23
 	TEST_EQUAL((long)d,-222)
 RESULT
 
-CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(float(-222.234)))
+CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(float(-222.234))))
 	float val = -222.234;
 	DataValue d(val);
 	TEST_EQUAL((int)d,-222)
@@ -262,7 +262,7 @@ CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(float(-222.234
 	TEST_EQUAL((long)d,-222)
 RESULT
 
-CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222)))
+CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222))))
 	int val = -222;
 	DataValue d(val);
 	TEST_EQUAL((int)d,-222)
@@ -273,7 +273,7 @@ CHECK([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222)))
 	TEST_EQUAL((long)d,-222)
 RESULT
 
-CHECK(friend bool operator==(const DataValue&, const DataValue&))
+CHECK((friend bool operator==(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
@@ -297,7 +297,7 @@ CHECK(friend bool operator==(const DataValue&, const DataValue&))
   TEST_EQUAL(a==b,false);
 RESULT
 
-CHECK(friend bool operator!=(const DataValue&, const DataValue&))
+CHECK((friend bool operator!=(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
@@ -307,7 +307,7 @@ CHECK(friend bool operator!=(const DataValue&, const DataValue&))
 
 RESULT
 
-CHECK(char* toChar() throw(Exception::ConversionError))
+CHECK((const char* toChar() const throw(Exception::ConversionError)))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");
@@ -316,7 +316,7 @@ CHECK(char* toChar() throw(Exception::ConversionError))
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
 RESULT
 
-CHECK(std::string toString() const)
+CHECK((std::string toString() const))
 	DataValue a;
   TEST_EQUAL(a.toString(), "")  
   a = DataValue("hello");
@@ -330,14 +330,14 @@ CHECK(std::string toString() const)
   
 RESULT
 
-CHECK(friend std::ostream& operator<<(std::ostream&, const DataValue&))
+CHECK((friend std::ostream& operator<<(std::ostream&, const DataValue&)))
 	DataValue a((int)5), b((long)100), c((double)1.111), d((float)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;
   TEST_EQUAL(os.str(),"51001.1111.1hello world")
 RESULT
 
-CHECK(DataType valueType() const)
+CHECK((DataType valueType() const))
 	DataValue a;
 	TEST_EQUAL(a.valueType(), DataValue::EMPTYVALUE);
 

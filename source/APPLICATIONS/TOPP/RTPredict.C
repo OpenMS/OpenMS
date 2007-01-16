@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/Identification.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <map>
 
@@ -61,11 +61,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPRTPredict
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPRTPredict()
-			: TOPPBase2("RTPredict","predicts retention times for peptides via the svm_model that is trained by RTModel")
+			: TOPPBase("RTPredict","predicts retention times for peptides via the svm_model that is trained by RTModel")
 		{
 			
 		}

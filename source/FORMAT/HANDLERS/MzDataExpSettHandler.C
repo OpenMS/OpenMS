@@ -59,7 +59,9 @@ namespace OpenMS
 		// fill maps with current schema
 	}
 
-  MzDataExpSettHandler::~MzDataExpSettHandler(){}
+  MzDataExpSettHandler::~MzDataExpSettHandler()
+  {	
+  }
 
   void MzDataExpSettHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {

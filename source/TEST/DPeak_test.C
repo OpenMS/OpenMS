@@ -40,16 +40,16 @@ START_TEST(DPeak<D>, "$Id$")
 using namespace OpenMS;
 
 DPeak<10>* d10_ptr = 0;
-CHECK(DPeak())
+CHECK((DPeak()))
 	d10_ptr = new DPeak<10>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~DPeak())
+CHECK((~DPeak()))
 	delete d10_ptr;
 RESULT
 
-CHECK(DPeak(DPeak const& p))
+CHECK((DPeak(DPeak const& p)))
 	DPeak<3> p;
 	p.getIntensity() = 123.456;
 	p.setMetaValue("cluster_id",4711);
@@ -60,7 +60,7 @@ CHECK(DPeak(DPeak const& p))
 	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
-CHECK(DPeak& operator = (const DPeak& rhs))
+CHECK((DPeak& operator = (const DPeak& rhs)))
 	DPeak<3> p;
 	p.getIntensity() = 123.456;
 	p.setMetaValue("cluster_id",4711);
@@ -72,7 +72,7 @@ CHECK(DPeak& operator = (const DPeak& rhs))
 	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
-CHECK(bool operator == (const DPeak& rhs) const)
+CHECK((bool operator == (const DPeak& rhs) const))
 	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1==p2, true)
 	
@@ -87,7 +87,7 @@ CHECK(bool operator == (const DPeak& rhs) const)
 	TEST_REAL_EQUAL(p1==p2, true)		
 RESULT
 
-CHECK(bool operator != (const DPeak& rhs) const)
+CHECK((bool operator != (const DPeak& rhs) const))
 	DPeak<1> p1, p2;
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
@@ -102,7 +102,7 @@ CHECK(bool operator != (const DPeak& rhs) const)
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 
-CHECK([EXTRA] meta info with copy constructor)
+CHECK(([EXTRA] meta info with copy constructor))
 	DPeak<1> p;
 	p.setMetaValue(2,std::string("bla"));
  	DPeak<1> p2(p);
@@ -113,7 +113,7 @@ CHECK([EXTRA] meta info with copy constructor)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-CHECK([EXTRA] meta info with assignment)
+CHECK(([EXTRA] meta info with assignment))
 	DPeak<1> p;
 	p.setMetaValue(2,std::string("bla"));
  	DPeak<1> p2 = p;

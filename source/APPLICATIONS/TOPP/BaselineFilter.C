@@ -28,7 +28,7 @@
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -58,12 +58,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPBaselineFilter
-	: public TOPPBase2
+class TOPPBase2lineFilter
+	: public TOPPBase
 {
  public:
-	TOPPBaselineFilter()
-		: TOPPBase2("BaselineFilter","top-hat filter for baseline reduction")
+	TOPPBase2lineFilter()
+		: TOPPBase("BaselineFilter","top-hat filter for baseline reduction")
 	{
 	}
 
@@ -167,7 +167,7 @@ class TOPPBaselineFilter
 
 int main( int argc, char ** argv )
 {
-    TOPPBaselineFilter tool;
+    TOPPBase2lineFilter tool;
     return tool.main(argc,argv);
 }
 
