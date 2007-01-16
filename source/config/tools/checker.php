@@ -411,6 +411,7 @@
 				"/config.h",
 				"source/config/tools/check_test.C",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+				"_registerChildren.h",
 				);
 
 			if (endsWith($f,".h") )

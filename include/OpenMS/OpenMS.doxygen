@@ -56,7 +56,8 @@
 	- Valgrind
 	- Test alle mit SVN-ID austatten
 	- HP updaten
-
+	- Debug-output abstellen
+	
 	TODO:
 	- checker.php (check_test)
 	- TOPPBase entfernen

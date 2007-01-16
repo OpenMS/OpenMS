@@ -592,7 +592,8 @@ namespace OpenMS
 			else
 			{
 				TextFile sql(sql_path);
-				for (TextFile::ConstReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
+				// ReverseIterator instead or ConstReverseIterator as rend() it non-const and operator!= fails (until gcc 4.0.x)
+				for (TextFile::ReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
 				{
 					if (it->hasSubstring("$Revision:"))
 					{
