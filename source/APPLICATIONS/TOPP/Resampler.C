@@ -90,11 +90,9 @@ class TOPPResampler
 		addText_("Parameters affecting the resampling:");
 		registerStringOption_("mz","[min]:[max]",":","mass-to-charge range in input to be resampled", false);
 		registerStringOption_("rt","[min]:[max]",":","retention time range in input to be resampled", false);
-		registerIntOption_("rows","<number>",101,"number of spectra in output (rows in image)", false);
-		registerIntOption_("cols","<number>",101,"peaks per spectrum in output (columns in image)", false);
-		registerFlag_("transpose","flag to transpose the resampled matrix (RT vs. m/z)\n"
-									"(Note that transposition flips the view around \"/\",\n"
-									"not \"\\\", since dimensions run bottom-up left-right)");
+		registerIntOption_("cols_mz","<number>",101,"peaks per spectrum in output (image width)", false);
+		registerIntOption_("rows_rt","<number>",101,"number of spectra in output (image height)", false);
+		registerFlag_("transpose","flag to transpose the resampled matrix (RT vs. m/z)");
 
 		addEmptyLine_();
 		addText_("Parameters affecting the conversion from intensity to brightness:");
@@ -102,6 +100,10 @@ class TOPPResampler
 		registerDoubleOption_("scale","<factor>",0,"scaling factor for brightness",false);
 		registerDoubleOption_("gamma","<value>",1.,"apply gamma correction",false);
 		registerFlag_("reverse","flag to switch on reverse video");
+
+		addEmptyLine_();
+		addText_("In mzData output, peaks are ordered ascending in RT and m/z.");
+		addText_("In pgm output, dimensions run bottom-up in RT and left-right in m/z.");
 	}
 
 	ExitCodes main_(int , char**)
@@ -188,14 +190,14 @@ class TOPPResampler
 			return ILLEGAL_PARAMETERS;			
 		}
 
-		int rows = getIntOption_("rows");
+		int rows = getIntOption_("rows_rt");
 		if ( rows < 1 )
 		{
 			writeLog_("Error: must have at least 1 row.");
 			return ILLEGAL_PARAMETERS;
 		}
 
-		int cols = getIntOption_("cols");
+		int cols = getIntOption_("cols_mz");
 		if ( cols < 1 )
 		{
 			writeLog_("Error: must have at least 1 column.");

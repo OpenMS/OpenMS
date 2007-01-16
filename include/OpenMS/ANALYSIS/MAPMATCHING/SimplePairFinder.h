@@ -150,13 +150,13 @@ namespace OpenMS
       return "simple";
     }
 
-    /// Get diff exponent
+    /// Get diff exponent. See @sa similarity_().
     double getDiffExponent(const UnsignedInt& dim)
     {
       return diff_exponent_[dim];
     }
 
-    /// Set diff exponent
+    /// Set diff exponent. See @sa similarity_().
     void setDiffExponent(const UnsignedInt& dim, const double& exponent)
     {
       diff_exponent_[dim] = exponent;
@@ -165,13 +165,13 @@ namespace OpenMS
       param_.setValue(param_name, exponent);
     }
 
-    /// Get diff intercept
+    /// Get diff intercept. See @sa similarity_().
     double getDiffIntercept(const UnsignedInt& dim)
     {
       return diff_intercept_[dim];
     }
 
-    /// Set diff intercept
+    /// Set diff intercept. See @sa similarity_().
     void setDiffIntercept(const UnsignedInt& dim, const double& intercept)
     {
       diff_intercept_[dim] = intercept;
@@ -198,7 +198,11 @@ namespace OpenMS
     //       void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)
     //       {}
 
-    /// Estimates the transformation for each grid cell
+    /** @brief Find pairs of elements in both maps.
+
+		For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
+		If two features point at each other, they become a pair.
+		*/
     virtual void findElementPairs()
     {
 #define V_findElementPairs(bla) V_SimplePairFinder(bla)
@@ -315,10 +319,10 @@ namespace OpenMS
 
 
   protected:
-    /// A parameter for similarity_().
+    /// A parameter for #similarity_().
     QualityType diff_exponent_[2];
 
-    /// A parameter for similarity_().
+    /// A parameter for #similarity_().
     QualityType diff_intercept_[2];
 
     /// A parameter for findElementPairs_().
@@ -399,7 +403,20 @@ namespace OpenMS
     The returned value should express our confidence that one element might
     possibly be matched to the other.
 
-    The details here are kind of alchemy ...
+		The similarity is computed as follows.
+		- For each dimension:
+		  - take the absolute difference of the coordinates
+		  - add #diff_intercept_ to it
+		  - raise the sum to power of #diff_exponent_
+		  .
+		- Multiply these numbers for both dimensions.
+		- Take the reciprocal value of the result.
+		.
+
+		The parameter #diff_exponent_ controls the asymptotic decay rate for large
+		differences.  The parameter #diff_intercept_ is important for small
+		differences.  
+
     */
     QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
     {

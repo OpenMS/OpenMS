@@ -66,7 +66,7 @@ typedef DGrid<2> GridType;
   a transform and to compute feature pairs based
   on this transform.
 	
-	@todo check that the example ini file still works and does not report any warnings (Eva, Clemens)
+	@todo check that the example ini file still works and does not report any warnings (Eva)
 */
 
 // We do not want this class to show up in the docu, thus:
