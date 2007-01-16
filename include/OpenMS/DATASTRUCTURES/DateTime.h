@@ -127,6 +127,11 @@ namespace OpenMS
 			*/
 			void getDate(String& date) const;
 			
+			/**
+				@brief Fills the arguments with the time
+			 	
+				The arguments are all UnsignedInts and the order is hour minute second
+			*/
 			void getTime(UnsignedInt& hour, UnsignedInt& minute, UnsignedInt& second) const;
 			
 			/**
