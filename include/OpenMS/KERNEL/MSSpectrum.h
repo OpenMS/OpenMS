@@ -129,7 +129,7 @@ namespace OpenMS
 		virtual void clearChildIds_()
 		{
 			//TODO Persistence
-		};
+		}
 
 	};
 

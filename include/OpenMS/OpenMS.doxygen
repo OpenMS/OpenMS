@@ -57,14 +57,17 @@
 	- Test alle mit SVN-ID austatten
 	- HP updaten
 	- Debug-output abstellen
-	
+	- Warnings der TOPP tests anschauen
+	- Update coding conventions mit neuen scripts und problemen von check_test
+  - Tutorial (FeatureFinder Bild) and TOPP docu korrekturlesen
+
 	TODO:
 	- TOPPBase2 entfernen
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert
 		- Preferences für Layers
-
+	
 	TODO (Hiwis):
 	- Base 64 verschnellern (gleich in MSExp schreiben nicht in double-Array)
 	- MSExperiment: AreaIterator mit min/max int als Filter, MS-level als Filter
@@ -74,5 +77,6 @@
 		- Visualisierung von FeaturePairs -> TOPP tool ändern
 		- Messen in 1D
 		- Reduktion in 2D
-
+		- TOPP Tools aus TOPPView aufrufen (system call)
+			- Param visuall editierbar
 */

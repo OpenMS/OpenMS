@@ -24,3 +24,7 @@ It fails under the following conditions:
   - Method arguments are distributed over several rows.
   
   - Nested class declarations.
+	
+	- Several variable declarations in one row (int a,b,c;)
+	
+	- Union declarations

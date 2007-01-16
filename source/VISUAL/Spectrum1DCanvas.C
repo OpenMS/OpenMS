@@ -481,7 +481,12 @@ namespace OpenMS
 		{
 			current_layer_ = getLayerCount()-1;
 		}
-	
+		//update nearest peak
+		nearest_peak_ = currentPeakData_()[0].end();
+		//clear selected peaks
+		selected_peaks_.clear();
+		selected_peaks_.push_back(currentPeakData_()[0].begin());
+		
 		if (layers_.empty())
 		{
 			resetRanges_();

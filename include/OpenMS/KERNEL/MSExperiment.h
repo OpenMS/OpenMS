@@ -650,7 +650,6 @@ protected:
     {
         //TODO Persistence
     }
-    ;
 
     ///Base class typedef
     typedef typename std::vector<MSSpectrum<PeakT> > Base_;

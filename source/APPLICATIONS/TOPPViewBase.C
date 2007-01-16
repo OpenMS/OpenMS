@@ -1528,6 +1528,7 @@ namespace OpenMS
         }
 
         w->widget()->canvas()->finishAdding();
+        w->widget()->canvas()->setCurrentLayerName(new_name);
       }
       // 2D window
       else
@@ -1662,7 +1663,7 @@ namespace OpenMS
         bool resampling_flag = dialog.getResampling();
 
         //add new layer
-        String new_name = w->widget()->canvas()->getCurrentLayer().name+" (smoothed)";
+        String new_name = w->widget()->canvas()->getCurrentLayer().name+" (basline)";
         Spectrum1DCanvas::ExperimentType& exp_filtered = w->widget()->canvas()->addEmptyPeakLayer();
 
         // add one spectrum
@@ -1705,7 +1706,7 @@ namespace OpenMS
           Spectrum2DWindow* w_tophat = new Spectrum2DWindow(ws_,"Spectrum2DWindow",WDestructiveClose);
           //set main preferences
           w_tophat->setMainPreferences(prefs_);
-          String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (filtered)";
+          String new_name = w2->widget()->canvas()->getCurrentLayer().name+" (basline)";
 
           Spectrum2DCanvas::ExperimentType& exp_filtered = w_tophat->widget()->canvas()->addEmptyPeakLayer();
 
@@ -1835,9 +1836,6 @@ namespace OpenMS
           addTab_(w_picked,new_name);
 
           w_picked->showMaximized();
-
-          //           String gradient_peaks("Linear|0,#dbffcf;100,#00ff00");
-          //           w_picked->widget()->canvas()->setDotGradient(gradient_peaks);
         }
       }
       updateLayerbar();

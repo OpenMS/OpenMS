@@ -1432,6 +1432,12 @@ namespace OpenMS
 		{
 			return;
 		}
+
+		//reset measurement
+		delete(measurement_start_);
+		measurement_start_ = 0;
+		delete(measurement_stop_);
+		measurement_stop_ = 0;
 	
 		//remove the data
 		layers_.erase(layers_.begin()+layer_index);

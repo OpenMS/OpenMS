@@ -106,7 +106,9 @@ namespace OpenMS
 			bool isLeapYear(UnsignedInt year) const;
 			
 		protected:
-			UnsignedInt day_, month_, year_;
+			UnsignedInt day_;
+			UnsignedInt month_;
+			UnsignedInt year_;
 	};
 } // namespace OPENMS
 
