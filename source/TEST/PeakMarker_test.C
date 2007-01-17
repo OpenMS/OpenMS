@@ -43,24 +43,28 @@ START_TEST(PeakMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakMarker* e_ptr = 0;
-CHECK(PeakMarker())
+CHECK((PeakMarker()))
 	e_ptr = new PeakMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~PeakMarker())
+CHECK((~PeakMarker()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new PeakMarker();
 
-CHECK(PeakMarker(const PeakMarker& source))
+CHECK((PeakMarker(const PeakMarker& source)))
 	PeakMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(PeakMarker& operator = (const PeakMarker& source))
+CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& /* marked */, SpectrumType& /* spectrum */)))
+	// nothing to check
+RESULT
+
+CHECK((PeakMarker& operator = (const PeakMarker& source)))
 	PeakMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())

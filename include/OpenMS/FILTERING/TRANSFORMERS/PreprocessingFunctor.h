@@ -65,7 +65,7 @@ namespace OpenMS
 		static void registerChildren();
 		
 		/// this is just an interface method, it must be implemented in the derived classes
-		template <typename SpectrumType> void filterSpectrum(SpectrumType& /* spectrum */) = 0;
+		template <typename SpectrumType> void filterSpectrum(SpectrumType& /*spectrum*/);
 
 		/// filters an MSSpectrum, this method should be overwritten in the derived classes
 		virtual void filterPeakSpectrum(PeakSpectrum& spectrum) = 0;

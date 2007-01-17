@@ -43,31 +43,31 @@ START_TEST(PeakDensityFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakDensityFilter* e_ptr = 0;
-CHECK(PeakDensityFilter())
+CHECK((PeakDensityFilter()))
 	e_ptr = new PeakDensityFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~PeakDensityFilter())
+CHECK((~PeakDensityFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new PeakDensityFilter();
 
-CHECK(PeakDensityFilter(const PeakDensityFilter& source))
+CHECK((PeakDensityFilter(const PeakDensityFilter& source)))
 	PeakDensityFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(PeakDensityFilter& operator = (const PeakDensityFilter& source))
+CHECK((PeakDensityFilter& operator = (const PeakDensityFilter& source)))
 	PeakDensityFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -76,14 +76,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_REAL_EQUAL(filter, 0.326687)
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = PeakDensityFilter::create();
 	PeakDensityFilter filter;
 	TEST_EQUAL(ff->getParam(), filter.getParam())
 	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "PeakDensityFilter");
 RESULT
 

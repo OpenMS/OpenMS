@@ -43,31 +43,31 @@ START_TEST(NeutralLossDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NeutralLossDiffFilter* e_ptr = 0;
-CHECK(NeutralLossDiffFilter())
+CHECK((NeutralLossDiffFilter()))
 	e_ptr = new NeutralLossDiffFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~NeutralLossDiffFilter())
+CHECK((~NeutralLossDiffFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new NeutralLossDiffFilter();
 
-CHECK(NeutralLossDiffFilter(const NeutralLossDiffFilter& source))
+CHECK((NeutralLossDiffFilter(const NeutralLossDiffFilter& source)))
 	NeutralLossDiffFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(NeutralLossDiffFilter& operator = (const NeutralLossDiffFilter& source))
+CHECK((NeutralLossDiffFilter& operator = (const NeutralLossDiffFilter& source)))
 	NeutralLossDiffFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -80,14 +80,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_REAL_EQUAL(filter, 2482.5)
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = NeutralLossDiffFilter::create();
 	NeutralLossDiffFilter filter;
 	TEST_EQUAL(ff->getParam(), filter.getParam())
 	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "NeutralLossDiffFilter");
 RESULT
 

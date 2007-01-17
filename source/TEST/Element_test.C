@@ -120,7 +120,7 @@ CHECK(Real getMonoWeight() const)
 	TEST_REAL_EQUAL(e_ptr->getMonoWeight(), 2.333)
 RESULT
 
-CHECK(const Element& operator = (const Element& element))
+CHECK(Element& operator = (const Element& element))
 	Element e = *e_ptr;
 	TEST_EQUAL(e == *e_ptr, true)
 RESULT

@@ -129,9 +129,12 @@ namespace OpenMS
 	{
 	}
 
-	HiddenMarkovModel::HiddenMarkovModel(const HiddenMarkovModel& /*hmm*/)
+	HiddenMarkovModel::HiddenMarkovModel(const HiddenMarkovModel& hmm)
+		:	trans_(hmm.trans_),
+			count_trans_(hmm.count_trans_),
+			name_to_state_(hmm.name_to_state_),
+			states_(hmm.states_)
 	{
-		cerr << "error: HiddenMarkovModel::HiddenMarkovModel(const HiddenMarkovModel& hmm) not implemented, only usable with empty source HMM" << endl;
 	}
 	
 	HiddenMarkovModel::~HiddenMarkovModel()

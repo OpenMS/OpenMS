@@ -43,31 +43,31 @@ START_TEST(ComplementFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ComplementFilter* e_ptr = 0;
-CHECK(ComplementFilter())
+CHECK((ComplementFilter()))
 	e_ptr = new ComplementFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~ComplementFilter())
+CHECK((~ComplementFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new ComplementFilter();
 
-CHECK(ComplementFilter(const ComplementFilter& source))
+CHECK((ComplementFilter(const ComplementFilter& source)))
 	ComplementFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(ComplementFilter& operator = (const ComplementFilter& source))
+CHECK((ComplementFilter& operator = (const ComplementFilter& source)))
 	ComplementFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> double apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -81,14 +81,14 @@ CHECK(template <typename SpectrumType> double apply(SpectrumType& spectrum))
 	
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = ComplementFilter::create();
 	ComplementFilter cf;
 	TEST_EQUAL(ff->getParam(), cf.getParam())
 	TEST_EQUAL(ff->getName(), cf.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "ComplementFilter")
 RESULT
 

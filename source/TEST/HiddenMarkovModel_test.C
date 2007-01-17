@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(HiddenMarkovModel, "$Id:$")
+START_TEST(HiddenMarkovModel, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -148,6 +148,10 @@ CHECK(HMMState* getState(const String& name))
 	TEST_EQUAL(ptr->getState("state_name_hidden"), state_ptr)
 RESULT
 
+CHECK(const HMMState* getState(const String& name) const)
+	TEST_EQUAL(ptr->getState("state_name_hidden"), state_ptr)
+RESULT
+
 CHECK(double getTransitionProbability(const String& s1, const String& s2) const)
 	TEST_REAL_EQUAL(ptr->getTransitionProbability("state_name_hidden", "state_name_emitting"), 0.0)
 RESULT
@@ -232,43 +236,56 @@ CHECK(void estimateUntrainedTransitions())
 RESULT
 
 CHECK(HMMState(const HMMState& state))
-	// TODO
+	HMMState copy(*state_ptr);
+	TEST_EQUAL(copy.getName(), state_ptr->getName())
+	TEST_EQUAL(copy.getSuccessorStates().size(), state_ptr->getSuccessorStates().size())
+	TEST_EQUAL(copy.getPredecessorStates().size(), state_ptr->getPredecessorStates().size())
+	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
 RESULT
 
 CHECK(HiddenMarkovModel(const HiddenMarkovModel& hmm_new))
-	// TODO
+	HiddenMarkovModel copy(*ptr);
+	TEST_EQUAL(copy.getNumberOfStates(), ptr->getNumberOfStates())
 RESULT
 
-CHECK(const HMMState& operator = (const HMMState&))
-	// TODO
+CHECK(HMMState& operator = (const HMMState&))
+	HMMState copy;
+	copy = *state_ptr;
+	TEST_EQUAL(copy.getName(), state_ptr->getName())
+	TEST_EQUAL(copy.getSuccessorStates().size(), state_ptr->getSuccessorStates().size())
+	TEST_EQUAL(copy.getPredecessorStates().size(), state_ptr->getPredecessorStates().size())
+	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
 RESULT
 
-CHECK(const HMMState* getState(const String& name) const)
-	// TODO
-RESULT
-
-CHECK(const HiddenMarkovModel& operator = (const HiddenMarkovModel&))
-	// TODO
+CHECK(HiddenMarkovModel& operator = (const HiddenMarkovModel&))
+	HiddenMarkovModel copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getNumberOfStates(), ptr->getNumberOfStates())
 RESULT
 
 CHECK(void clearInitialTransitionProbabilities())
 	// TODO
+	ptr->clearInitialTransitionProbabilities();
 RESULT
 
 CHECK(void clearTrainingEmissionProbabilities())
 	// TODO
+	ptr->clearTrainingEmissionProbabilities();
 RESULT
 
 CHECK(void dump())
-	// TODO
+	// nothing to test
 RESULT
 
 CHECK(void forwardDump())
-	// TODO
+	// nothing to test
 RESULT
 
 CHECK(void write(std::ostream& out))
 	// TODO
+	stringstream ss;
+	ptr->write(ss);
+
 RESULT
 
 CHECK(void writetoYGFFile(const String& filename))

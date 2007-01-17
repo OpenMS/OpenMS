@@ -45,31 +45,31 @@ START_TEST(IsotopeMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeMarker* e_ptr = 0;
-CHECK(IsotopeMarker())
+CHECK((IsotopeMarker()))
 	e_ptr = new IsotopeMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~IsotopeMarker())
+CHECK((~IsotopeMarker()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new IsotopeMarker();
 
-CHECK(IsotopeMarker(const IsotopeMarker& source))
+CHECK((IsotopeMarker(const IsotopeMarker& source)))
 	IsotopeMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(IsotopeMarker& operator=(const IsotopeMarker& source))
+CHECK((IsotopeMarker& operator=(const IsotopeMarker& source)))
 	IsotopeMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -85,14 +85,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	//TEST_EQUAL(spec.size(), 10)
 RESULT
 
-CHECK(static PeakMarker* create())
+CHECK((static PeakMarker* create()))
 	PeakMarker* pm = IsotopeMarker::create();
 	IsotopeMarker im;
 	TEST_EQUAL(pm->getParam(), im.getParam())
 	TEST_EQUAL(pm->getName(), im.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "IsotopeMarker")
 RESULT
 

@@ -43,31 +43,31 @@ START_TEST(ThresholdMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ThresholdMower* e_ptr = 0;
-CHECK(ThresholdMower())
+CHECK((ThresholdMower()))
 	e_ptr = new ThresholdMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~ThresholdMower())
+CHECK((~ThresholdMower()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new ThresholdMower();
 
-CHECK(ThresholdMower(const ThresholdMower& source))
+CHECK((ThresholdMower(const ThresholdMower& source)))
 	ThresholdMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(ThresholdMower& operator=(const ThresholdMower& source))
+CHECK((ThresholdMower& operator=(const ThresholdMower& source)))
 	ThresholdMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -84,18 +84,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL(spec.size(), 14)
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ThresholdMower::create();
 	ThresholdMower mower;
 	TEST_EQUAL(ppf->getParam(), mower.getParam())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "ThresholdMower")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -116,7 +116,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
 
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);

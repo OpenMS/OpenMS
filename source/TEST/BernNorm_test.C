@@ -43,31 +43,31 @@ START_TEST(BernNorm, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BernNorm* e_ptr = 0;
-CHECK(BernNorm())
+CHECK((BernNorm()))
 	e_ptr = new BernNorm;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~BernNorm())
+CHECK((~BernNorm()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new BernNorm();
 
-CHECK(BernNorm(const BernNorm& source))
+CHECK((BernNorm(const BernNorm& source)))
 	BernNorm copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(BernNorm& operator=(const BernNorm& source))
+CHECK((BernNorm& operator=(const BernNorm& source)))
 	BernNorm copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -85,18 +85,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = BernNorm::create();
 	BernNorm bern;
 	TEST_EQUAL(ppf->getParam(), bern.getParam())
 	TEST_EQUAL(ppf->getName(), bern.getName())
 RESULT
   
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "BernNorm")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new BernNorm();
 
@@ -121,7 +121,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
 
 RESULT
 			
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new BernNorm();
 

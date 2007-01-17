@@ -43,31 +43,31 @@ START_TEST(TICFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TICFilter* e_ptr = 0;
-CHECK(TICFilter())
+CHECK((TICFilter()))
 	e_ptr = new TICFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~TICFilter())
+CHECK((~TICFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new TICFilter();
 
-CHECK(TICFilter(const TICFilter& source))
+CHECK((TICFilter(const TICFilter& source)))
 	TICFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
-CHECK(TICFilter& operator=(const TICFilter& source))
+CHECK((TICFilter& operator=(const TICFilter& source)))
 	TICFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -76,11 +76,11 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_REAL_EQUAL(filter, 533.5)
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	// nothin to test only within factory test
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "TICFilter")
 RESULT
 

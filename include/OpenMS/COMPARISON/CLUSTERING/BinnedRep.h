@@ -36,17 +36,17 @@ namespace OpenMS
 {
   typedef double intensity;
   /**
-	  @brief Bin Representation of a 1D PeakSpectrum (stick spectrum)
+	  @brief Binned Representation of a PeakSpectrum (stick spectrum)
 	  
 	  Bin Dimensions: <br>
 	    BinSize = size of the bins <br>
 	    BinSpread > 0 adds peaks to more bins <br>
 	      expample: <br>
-	      spread 0:  | =>   # <br>
-	      spread 1:  | =>  ### <br>
-	      spread 2:  | =? ##### <br> <br>
-	  since small binsizes tend to produce very sparse Vectors ( < 1%)<br>
-	  a sparse Vector is used<br>
+	      spread 0:  | =>   #      <br>
+	      spread 1:  | =>  ###     <br>
+	      spread 2:  | =? #####    <br>
+	  since small binsizes tend to produce very sparse Vectors ( < 1%)
+	  a sparse Vector is used
   
   */
   class BinnedRep
@@ -54,77 +54,116 @@ namespace OpenMS
   public:
     typedef BinnedSparseVector::const_iterator const_iterator;
     typedef BinnedSparseVector::iterator iterator;
-    //typedef std::vector<double>::iterator iterator;
-    //typedef std::vector<double>::const_iterator const_iterator;
-    /** @brief standard constructor <br> */
+		typedef BinnedSparseVector::const_iterator ConstIterator;
+		typedef BinnedSparseVector::iterator Iterator;
+
+		/** @name Constructors and destructors
+		*/
+   	//@{
+		/// default constructor
     BinnedRep();
 
-    /** @brief constructor with declaration of bin dimensions<br> */
+    /// detailed constructor with declaration of bin dimensions
     BinnedRep(const double, const uint = 0);
 
+		/// detailed constructor with PeakSpectrum and bin settings
 		BinnedRep(const PeakSpectrum& spec, double binsize = 1.0, uint binspread = 0);
 		
-    /** @brief copy constructor <br> */
+    /// copy constructor
     BinnedRep(const BinnedRep& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~BinnedRep();
+		//@}
 
-    /** @brief assignment operator <br> */
+		/** @name Accessors
+		*/
+		//@{
+    /// assignment operator
     BinnedRep& operator = (const BinnedRep& source);
 
-    /** @name readonly accessors */
-    //@[
+		/// returns the id of the spectrum
     uint id() const{ return id_;}
+
+		/// returns the bin size of the spectrum
     double getBinSize() const{ return binsize_;}
+
+		/// returns the maximum of the m/z values
     double max() const{return end_;}
+
+		/// returns the minimum of the m/z values
     double min() const{return begin_;}
+
+		/// returns the retention time
     double getRetention() const { return retention_;}
+
+		/// returns the spreading of the bins
     unsigned int getBinSpread() const {return spread_;}
+
+		/// returns the mass-to-charge ratio of the parent ion
     double getParentmz() const { return parent_m_z_;}
+
+		/// returns the charge of the parent ion
     unsigned int getPrecursorPeakCharge() const {return precursorpeakcharge_;}
+
+		/// returns the number of bins
     unsigned int size() const {return bins_.size();}
-    String str() const ;
-    //@}
 
-    /** @name access to individual bins */
-    //@{
-    iterator begin() { return bins_.begin();}
-    iterator end() { return bins_.end();}
-    const_iterator begin() const{ return bins_.begin();}
-    const_iterator end() const{ return bins_.end();}
-    intensity operator[] (int) const ;
-    //@}
-    /** @brief fill bins with stick spectrum <br> */
-    friend void operator<<(BinnedRep&,const PeakSpectrum&);
+		/// converts it to a string
+    String str() const;
 
-    /** @brief scale all peaks from 0 to 1 */
+		/// returns an iterator pointing at the first bin
+    Iterator begin() { return bins_.begin();}
+
+		/// returns an end iterator
+    Iterator end() { return bins_.end();}
+
+		/// returns an constant begin iterator
+    ConstIterator begin() const{ return bins_.begin();}
+
+		/// returns an constant end Iterator
+    ConstIterator end() const{ return bins_.end();}
+
+		/// access to a bin with bracket operator
+    intensity operator[] (int) const;
+    //@}
+		//
+    /// fill bins with stick spectrum
+    friend void operator << (BinnedRep& bin_rep, const PeakSpectrum& spec);
+
+    /// scale all peaks from 0 to 1
     void normalize();
 
   private:
-    //std::vector<intensity> bins_;
-    /**
-    sparse vector containing the summed intensity <br>
-    */
+    
+    /// sparse vector containing the summed intensity <br>
     BinnedSparseVector bins_;
 
-    /** @name bin dimensions */
-    //@{
+    /// size of the bins
     double binsize_;
-    unsigned int spread_;
-    //@}
 
+		/// spreading of the bins
+    unsigned int spread_;
+
+		/// first m/z 
     double begin_;
+
+		/// last m/z
     double end_;
 
-    /** @name information about the source stick spectrum */
-    //@{
+    /// the spectrum id
     unsigned int id_;
-    double retention_;
-    double parent_m_z_;
-    unsigned int precursorpeakcharge_;
-    //@}
 
+		/// retention time of the spectrum
+    double retention_;
+
+		/// the m/z of the parent ion
+    double parent_m_z_;
+
+		/// charge of the parent ion
+    unsigned int precursorpeakcharge_;
+
+		/// clears all data
     void clear_();
 
   };

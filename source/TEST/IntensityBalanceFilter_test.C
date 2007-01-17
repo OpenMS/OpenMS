@@ -43,31 +43,31 @@ START_TEST(IntensityBalanceFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IntensityBalanceFilter* e_ptr = 0;
-CHECK(IntensityBalanceFilter())
+CHECK((IntensityBalanceFilter()))
 	e_ptr = new IntensityBalanceFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~IntensityBalanceFilter())
+CHECK((~IntensityBalanceFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new IntensityBalanceFilter();
 
-CHECK(IntensityBalanceFilter(const IntensityBalanceFilter& source))
+CHECK((IntensityBalanceFilter(const IntensityBalanceFilter& source)))
 	IntensityBalanceFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source))
+CHECK((IntensityBalanceFilter& operator=(const IntensityBalanceFilter& source)))
 	IntensityBalanceFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -77,14 +77,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = IntensityBalanceFilter::create();
 	IntensityBalanceFilter filter;
 	TEST_EQUAL(ff->getParam(), filter.getParam())
 	TEST_EQUAL(ff->getName(), filter.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "IntensityBalanceFilter")
 RESULT
 

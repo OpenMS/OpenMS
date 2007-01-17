@@ -43,31 +43,31 @@ START_TEST(ParentPeakMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ParentPeakMower* e_ptr = 0;
-CHECK(ParentPeakMower())
+CHECK((ParentPeakMower()))
 	e_ptr = new ParentPeakMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~ParentPeakMower())
+CHECK((~ParentPeakMower()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new ParentPeakMower();
 
-CHECK(ParentPeakMower(const ParentPeakMower& source))
+CHECK((ParentPeakMower(const ParentPeakMower& source)))
 	ParentPeakMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(ParentPeakMower& operator = (const ParentPeakMower& source))
+CHECK((ParentPeakMower& operator = (const ParentPeakMower& source)))
 	ParentPeakMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -109,18 +109,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ParentPeakMower::create();
 	ParentPeakMower ppm;
 	TEST_EQUAL(ppf->getParam(), ppm.getParam())
 	TEST_EQUAL(ppf->getName(), ppm.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "ParentPeakMower")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -167,7 +167,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
 
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);

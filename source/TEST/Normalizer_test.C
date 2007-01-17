@@ -43,31 +43,31 @@ START_TEST(Normalizer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Normalizer* e_ptr = 0;
-CHECK(Normalizer())
+CHECK((Normalizer()))
 	e_ptr = new Normalizer;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~Normalizer())
+CHECK((~Normalizer()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new Normalizer();
 
-CHECK(Normalizer(const Normalizer& source))
+CHECK((Normalizer(const Normalizer& source)))
 	Normalizer copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(Normalizer& operator = (const Normalizer& source))
+CHECK((Normalizer& operator = (const Normalizer& source)))
 	Normalizer copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -94,18 +94,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_REAL_EQUAL(sum, 1.0);	
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = Normalizer::create();
 	Normalizer norm;
 	TEST_EQUAL(ppf->getParam(), norm.getParam())
 	TEST_EQUAL(ppf->getName(), norm.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "Normalizer")
 RESULT
 	
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 
@@ -138,7 +138,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
   TEST_REAL_EQUAL(sum, 1.0);	
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 

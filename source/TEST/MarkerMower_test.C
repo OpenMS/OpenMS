@@ -43,31 +43,31 @@ START_TEST(MarkerMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MarkerMower* e_ptr = 0;
-CHECK(MarkerMower())
+CHECK((MarkerMower()))
 	e_ptr = new MarkerMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~MarkerMower())
+CHECK((~MarkerMower()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new MarkerMower();
 
-CHECK(MarkerMower(const MarkerMower& source))
+CHECK((MarkerMower(const MarkerMower& source)))
 	MarkerMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(MarkerMower& operator = (const MarkerMower& source))
+CHECK((MarkerMower& operator = (const MarkerMower& source)))
 	MarkerMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -78,18 +78,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL(spec.size(), 0)
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = MarkerMower::create();
 	MarkerMower mower;
 	TEST_EQUAL(ppf->getParam(), mower.getParam())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "MarkerMower")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
@@ -106,7 +106,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
   TEST_EQUAL(pm.begin()->size(), 0)
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
@@ -119,7 +119,7 @@ CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
   TEST_EQUAL(spec.size(), 0)
 RESULT
 			
-CHECK(void insertmarker(PeakMarker* peak_marker))
+CHECK((void insertmarker(PeakMarker* peak_marker)))
 	// TODO
 RESULT
 

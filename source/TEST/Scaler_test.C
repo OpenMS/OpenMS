@@ -45,31 +45,31 @@ START_TEST(Scaler, "$Id$")
 PRECISION(0.01)
 
 Scaler* e_ptr = 0;
-CHECK(Scaler())
+CHECK((Scaler()))
 	e_ptr = new Scaler;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~Scaler())
+CHECK((~Scaler()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new Scaler();
 
-CHECK(Scaler(const Scaler& source))
+CHECK((Scaler(const Scaler& source)))
 	Scaler copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(Scaler& operator = (const Scaler& source))
+CHECK((Scaler& operator = (const Scaler& source)))
 	Scaler copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -85,15 +85,15 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	// only tested within the factory
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "Scaler")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -112,7 +112,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
 
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);

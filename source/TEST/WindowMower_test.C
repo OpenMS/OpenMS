@@ -43,31 +43,31 @@ START_TEST(WindowMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 WindowMower* e_ptr = 0;
-CHECK(WindowMower())
+CHECK((WindowMower()))
 	e_ptr = new WindowMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~WindowMower())
+CHECK((~WindowMower()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new WindowMower();
 
-CHECK(WindowMower(const WindowMower& source))
+CHECK((WindowMower(const WindowMower& source)))
 	WindowMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(WindowMower& operator = (const WindowMower& source))
+CHECK((WindowMower& operator = (const WindowMower& source)))
 	WindowMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -82,18 +82,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = WindowMower::create();
 	WindowMower mower;
 	TEST_EQUAL(ppf->getParam(), mower.getParam())
 	TEST_EQUAL(ppf->getName(), mower.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "WindowMower")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -111,7 +111,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
   TEST_EQUAL(pm.begin()->size(), 56)
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);

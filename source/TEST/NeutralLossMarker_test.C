@@ -45,31 +45,31 @@ START_TEST(NeutralLossMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NeutralLossMarker* e_ptr = 0;
-CHECK(NeutralLossMarker())
+CHECK((NeutralLossMarker()))
 	e_ptr = new NeutralLossMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~NeutralLossMarker())
+CHECK((~NeutralLossMarker()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new NeutralLossMarker();
 
-CHECK(NeutralLossMarker(const NeutralLossMarker& source))
+CHECK((NeutralLossMarker(const NeutralLossMarker& source)))
 	NeutralLossMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(NeutralLossMarker& operator = (const NeutralLossMarker& source))
+CHECK((NeutralLossMarker& operator = (const NeutralLossMarker& source)))
 	NeutralLossMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -85,14 +85,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_EQUAL(marked.size(), 49)
 RESULT
 
-CHECK(static PeakMarker* create())
+CHECK((static PeakMarker* create()))
 	PeakMarker* pm = NeutralLossMarker::create();
 	NeutralLossMarker marker;
 	TEST_EQUAL(pm->getParam(), marker.getParam())
 	TEST_EQUAL(pm->getName(), marker.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "NeutralLossMarker")
 RESULT
 

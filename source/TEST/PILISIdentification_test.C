@@ -65,7 +65,7 @@ CHECK(PILISIdentification(const PILISIdentification& source))
 	TEST_EQUAL(copy.getScoringType(), "ZhangSimilarityScore")
 RESULT
 
-CHECK(const PILISIdentification& operator = (const PILISIdentification&))
+CHECK(PILISIdentification& operator = (const PILISIdentification&))
 	PILISIdentification copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParam(), ptr->getParam())

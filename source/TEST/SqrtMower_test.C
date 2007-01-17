@@ -44,29 +44,29 @@ START_TEST(SqrtMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SqrtMower* e_ptr = 0;
-CHECK(SqrtMower())
+CHECK((SqrtMower()))
 	e_ptr = new SqrtMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~SqrtMower())
+CHECK((~SqrtMower()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new SqrtMower();
 
-CHECK(SqrtMower(const SqrtMower& source))
+CHECK((SqrtMower(const SqrtMower& source)))
 	SqrtMower copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(SqrtMower& operator=(const SqrtMower& source))
+CHECK((SqrtMower& operator=(const SqrtMower& source)))
 	SqrtMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(*e_ptr == copy, true)
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -77,15 +77,15 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	// nothing to test, only with factory
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "SqrtMower")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -99,7 +99,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
 	TEST_EQUAL((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);

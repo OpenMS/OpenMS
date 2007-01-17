@@ -42,31 +42,35 @@ START_TEST(PreprocessingFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-CHECK(PreprocessingFunctor())
+CHECK((PreprocessingFunctor()))
 	// nothing to check
 RESULT
 
-CHECK(~PreprocessingFunctor())
+CHECK((~PreprocessingFunctor()))
 	// nothing to check
 RESULT
 
-CHECK(PreprocessingFunctor(const PreprocessingFunctor& source))
+CHECK((PreprocessingFunctor(const PreprocessingFunctor& source)))
 	// nothing to check
 RESULT
 
-CHECK(PreprocessingFunctor& operator = (const PreprocessingFunctor& source))
+CHECK((PreprocessingFunctor& operator = (const PreprocessingFunctor& source)))
 	// nothing to check
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	// nothing to check
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	// nothing to check
 RESULT
 
-CHECK(static void registerChildren())
+CHECK(template<typename SpectrumType> void filterSpectrum(SpectrumType& /*spectrum*/))
+	// nothing to check
+RESULT
+
+CHECK((static void registerChildren()))
 	PreprocessingFunctor* ppf = Factory<PreprocessingFunctor>::create("ThresholdMower");
 	ppf = Factory<PreprocessingFunctor>::create("WindowMower");
 	ppf = Factory<PreprocessingFunctor>::create("Scaler");

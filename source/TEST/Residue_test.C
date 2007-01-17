@@ -70,7 +70,7 @@ CHECK(Modification(const Modification& modification))
 	TEST_EQUAL(m == *m_ptr, true)
 RESULT
 
-CHECK(const Modification& operator = (const Modification& modification))
+CHECK(Modification& operator = (const Modification& modification))
 	Residue::Modification m;
 	m = *m_ptr;
 	TEST_EQUAL(m == *m_ptr, true)

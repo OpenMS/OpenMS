@@ -43,31 +43,36 @@ START_TEST(NLargest, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NLargest* e_ptr = 0;
-CHECK(NLargest())
+CHECK((NLargest()))
 	e_ptr = new NLargest;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~NLargest())
+CHECK(NLargest(Size n))
+	NLargest filter(10);
+	TEST_EQUAL((unsigned int)filter.getParam().getValue("n"), 10)
+RESULT
+
+CHECK((~NLargest()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new NLargest();
 
-CHECK(NLargest(const NLargest& source))
+CHECK((NLargest(const NLargest& source)))
 	NLargest copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(NLargest& operator=(const NLargest& source))
+CHECK((NLargest& operator=(const NLargest& source)))
 	NLargest copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -78,18 +83,18 @@ CHECK(template <typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL(spec.size(), 10)
 RESULT
 
-CHECK(static PreprocessingFunctor* create())
+CHECK((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = NLargest::create();
 	NLargest nlargest;
 	TEST_EQUAL(ppf->getParam(), nlargest.getParam())
 	TEST_EQUAL(ppf->getName(), nlargest.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "NLargest")
 RESULT
 
-CHECK(void filterPeakMap(PeakMap& exp))
+CHECK((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new NLargest();
   DTAFile dta_file;
@@ -106,7 +111,7 @@ CHECK(void filterPeakMap(PeakMap& exp))
   TEST_EQUAL(pm.begin()->size(), 10)
 RESULT
 
-CHECK(void filterPeakSpectrum(PeakSpectrum& spectrum))
+CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new NLargest();
   DTAFile dta_file;

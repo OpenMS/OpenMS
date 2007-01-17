@@ -43,31 +43,31 @@ START_TEST(GoodDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GoodDiffFilter* e_ptr = 0;
-CHECK(GoodDiffFilter())
+CHECK((GoodDiffFilter()))
 	e_ptr = new GoodDiffFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~GoodDiffFilter())
+CHECK((~GoodDiffFilter()))
 	delete e_ptr;
 RESULT
 
 e_ptr = new GoodDiffFilter();
 
-CHECK(GoodDiffFilter(const GoodDiffFilter& source))
+CHECK((GoodDiffFilter(const GoodDiffFilter& source)))
 	GoodDiffFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(GoodDiffFilter& operator=(const GoodDiffFilter& source))
+CHECK((GoodDiffFilter& operator=(const GoodDiffFilter& source)))
 	GoodDiffFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 RESULT
 
-CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
+CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -82,14 +82,14 @@ CHECK(template <typename SpectrumType> void apply(SpectrumType& spectrum))
 	TEST_REAL_EQUAL(filter, 0.811684)
 RESULT
 
-CHECK(static FilterFunctor* create())
+CHECK((static FilterFunctor* create()))
 	FilterFunctor* ff = GoodDiffFilter::create();
 	GoodDiffFilter good;
 	TEST_EQUAL(ff->getParam(), good.getParam())
 	TEST_EQUAL(ff->getName(), good.getName())
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
 	TEST_EQUAL(e_ptr->getName(), "GoodDiffFilter")
 RESULT
 

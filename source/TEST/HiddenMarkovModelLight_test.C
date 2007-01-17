@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(HiddenMarkovModelLight, "$Id:$")
+START_TEST(HiddenMarkovModelLight, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -55,18 +55,28 @@ CHECK(HMMStateLight())
 RESULT
 
 CHECK(HMMStateLight(const HMMStateLight& state))
-	// TODO
+	HMMStateLight copy(*state_ptr);
+	TEST_EQUAL(copy.getIdentifier(), state_ptr->getIdentifier())
+	TEST_EQUAL(copy.getSuccessorStates().size(), state_ptr->getSuccessorStates().size())
+	TEST_EQUAL(copy.getPredecessorStates().size(), state_ptr->getPredecessorStates().size())
+	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
+RESULT
+
+CHECK(HMMStateLight& operator = (const HMMStateLight&))
+	HMMStateLight copy;
+	copy = *state_ptr;
+	TEST_EQUAL(copy.getIdentifier(), state_ptr->getIdentifier())
+	TEST_EQUAL(copy.getSuccessorStates().size(), state_ptr->getSuccessorStates().size())
+	TEST_EQUAL(copy.getPredecessorStates().size(), state_ptr->getPredecessorStates().size())
+	TEST_EQUAL(copy.isHidden(), state_ptr->isHidden())
 RESULT
 
 CHECK(~HMMStateLight())
-	delete state_ptr;
+  delete state_ptr;
 RESULT
 
 state_ptr = 0;
 
-CHECK(const HMMStateLight& operator = (const HMMStateLight&))
-	// TODO
-RESULT
 
 CHECK(HMMStateLight(Size identifier, bool hidden = true))
 	state_ptr = new HMMStateLight(27, true);
@@ -136,7 +146,14 @@ CHECK(HiddenMarkovModelLight())
 RESULT
 
 CHECK(HiddenMarkovModelLight(const HiddenMarkovModelLight& hmm_new))
-	// TODO
+	HiddenMarkovModelLight copy(*ptr);
+	TEST_EQUAL(copy.getNumberOfStates(), ptr->getNumberOfStates())
+RESULT
+
+CHECK(HiddenMarkovModelLight& operator = (const HiddenMarkovModelLight&))
+  HiddenMarkovModelLight copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getNumberOfStates(), ptr->getNumberOfStates())
 RESULT
 
 CHECK(~HiddenMarkovModelLight())
@@ -144,10 +161,6 @@ CHECK(~HiddenMarkovModelLight())
 RESULT
 
 ptr = new HiddenMarkovModelLight();
-
-CHECK(const HiddenMarkovModelLight& operator = (const HiddenMarkovModelLight&))
-	// TODO
-RESULT
 
 CHECK(Size getNumberOfStates() const)
   TEST_EQUAL(ptr->getNumberOfStates(), 0)
@@ -264,11 +277,11 @@ CHECK(void addIdToName(Size id, const String& name))
 RESULT
 
 CHECK(void dump())
-	// TODO
+	// nothing to test
 RESULT
 
 CHECK(void forwardDump())
-	// TODO
+	// nothing to test
 RESULT
 
 CHECK(void write(std::ostream& out))
