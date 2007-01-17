@@ -491,26 +491,51 @@ namespace OpenMS
 		  oligo_value = 0;
 		  factor = 1;
 		  
-		  for(UnsignedInt k = right_border + k_mer_length; k > right_border; k--)
+		  if (k_mer_length > 1)
 		  {
-				oligo_value += factor * residue_values[sequence[k - 1]];
-				factor *= number_of_residues;
-			}
-		  factor /= number_of_residues;
-		  values.first = oligo_value + 2;
-		  values.second = right_border - sequence_length;
-		  ordered_tree.insert(values);
-		  for(UnsignedInt j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
-		  {
-				oligo_value -= factor * residue_values[sequence[j - 1]];
-				oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
-		
-				values.first = oligo_value + 2;
-				values.second = j - sequence_length;
-		
-				ordered_tree.insert(values);	
+			  for(int k = k_mer_length; k > 0; k--)
+			  {
+					oligo_value += factor * residue_values[sequence[sequence_length - k]];
+					factor *= number_of_residues;
+				}
+			  factor /= number_of_residues;
+			  values.first = ((SignedInt) (oligo_value + 2));
+			  values.second = 1;
+			  ordered_tree.insert(values);
+			
+			  for(UnsignedInt j = 1; j < left_border; j++)
+			  {
+					oligo_value -= factor * residue_values[sequence[sequence_length - j]];
+					oligo_value = oligo_value * number_of_residues + residue_values[sequence[sequence_length - k_mer_length - j]];
+			
+					values.first = ((SignedInt) (oligo_value + 2));
+					values.second = j + 1;
+			
+					ordered_tree.insert(values);	
+			  }
 		  }
-		  	
+		  else
+		  {
+			  for(UnsignedInt k = right_border + k_mer_length; k > right_border; k--)
+			  {
+					oligo_value += factor * residue_values[sequence[k - 1]];
+					factor *= number_of_residues;
+				}
+			  factor /= number_of_residues;
+			  values.first = oligo_value + 2;
+			  values.second = (right_border - sequence_length) * -1;
+			  ordered_tree.insert(values);
+			  for(UnsignedInt j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
+			  {
+					oligo_value -= factor * residue_values[sequence[j - 1]];
+					oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
+			
+					values.first = oligo_value + 2;
+					values.second = (j - sequence_length) * -1;
+			
+					ordered_tree.insert(values);	
+			  }
+			}		  	
 		  for(elements = ordered_tree.begin(); elements != ordered_tree.end(); ++elements)
 		  {
 				libsvm_vector.push_back(make_pair(elements->first, elements->second));	
@@ -549,6 +574,7 @@ namespace OpenMS
 	{
 		UnsignedInt i = 0;
 		
+		output.clear();
 		while (vector[i].index != -1)
 		{
 			output = output + "(" + String(vector[i].index) + ", " + String(vector[i].value) + ") ";
@@ -556,62 +582,11 @@ namespace OpenMS
 		}
 	}
 	
-	void LibSVMEncoder::oligoBorderVectorToString(svm_node* vector, UnsignedInt border_length, String& output)
-	{
-		multimap<SignedInt, DoubleReal> left_part;
-		multimap<SignedInt, DoubleReal> right_part;
-		
-		UnsignedInt i = 0;
-		UnsignedInt zero_counter = 0;
-		
-		output = "";
-		if (vector != NULL)
-		{
-
-			while(vector[i].index != -1 && vector[i].index < 0)
-			{
-				left_part.insert(make_pair(vector[i].index, -1 * vector[i].value));
-				++i;
-			}
-
-			while(vector[i].index != -1)
-			{
-				right_part.insert(make_pair(vector[i].index, vector[i].value));
-				++i;
-			}
-			i = 0;
-			for(map<SignedInt, DoubleReal>::iterator it = left_part.begin();
-					it != left_part.end();
-					++it)
-			{
-				output = output + String(it->first) + " ";
-				++i;
-			}
-			while(i < border_length)
-			{
-				output = output + "0 ";
-				++zero_counter;
-				++i;
-			}
-			while(zero_counter > 0)
-			{
-				output = output + "0 ";
-				--zero_counter;
-			}
-			for(map<SignedInt, DoubleReal>::iterator it = right_part.begin();
-					it != right_part.end();
-					++it)
-			{
-				output = output + String(it->first) + " ";
-			}
-		}
-	}
-	
 	void LibSVMEncoder::libSVMVectorsToString(svm_problem* vector, String& output)
 	{
 		String temp_string = "";
 		
-		output = "";
+		output.clear();
 		if (vector != NULL)
 		{
 			for(SignedInt i = 0; i < vector->l; ++i)
@@ -619,21 +594,6 @@ namespace OpenMS
 				libSVMVectorToString(vector->x[i], temp_string);
 				output = output + temp_string + "\n";
 				temp_string = "";
-			}
-		}
-	}
-	
-	void LibSVMEncoder::oligoBorderVectorsToString(svm_problem* vector, UnsignedInt border_length, String& output)
-	{
-		String temp_string = "";
-		
-		output = "";
-		if (vector != NULL)
-		{
-			for(SignedInt i = 0; i < vector->l; ++i)
-			{
-				oligoBorderVectorToString(vector->x[i], border_length, temp_string);
-				output = output + temp_string + "\n";
 			}
 		}
 	}

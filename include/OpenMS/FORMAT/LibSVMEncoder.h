@@ -131,17 +131,6 @@ namespace OpenMS
 																														 bool 													strict = false,
 																											 			 bool 													length_encoding = false);
 
-			/// stores a string representation of 'vector' in 'output'
-			void oligoBorderVectorToString(svm_node* vector, UnsignedInt border_length, String& output);
-
-      /**
- 				@brief stores a string representation of the encoded sequences in 'vectors' in 'output'
- 				
- 				This function can be used if one wants to print the feature vectors that are used in
- 				the oligo kernel. 'border_length' is the parameter with which the sequence had been encoded.
-			*/ 				
-			void oligoBorderVectorsToString(svm_problem* vector, UnsignedInt border_length, String& output);
-																																	 
       /**
  				@brief stores a string representation of the encoded sequence 'vector' in 'output'
  				
