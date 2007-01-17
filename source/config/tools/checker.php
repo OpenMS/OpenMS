@@ -668,10 +668,7 @@
 		print "\nMaintainers:\n";
 		foreach ($GLOBALS["maintainer_info"] as $m => $info)
 		{
-			$files = $info["files"];
-			$errors = $info["errors"];
-			$ratio = number_format($errors / $files,2);
-			print "  $m (Files: $files  Errors: $errors  Ratio: $ratio)\n";
+			print "  $m (Files: ".$info["files"]."  Errors: ".$info["errors"].")\n";
 		}
 	}
 

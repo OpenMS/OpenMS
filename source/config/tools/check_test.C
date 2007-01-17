@@ -1391,6 +1391,33 @@ char *yytext;
 		return tmp;
 	}
 
+  string trim(const std::string& s)
+  {
+  	//search for the begin of truncated string
+		std::string::const_iterator begin = s.begin();
+		while (begin!=s.end() && (*begin==' ' || *begin=='\t' || *begin=='\n'  || *begin=='\r' ))
+		{
+			++begin;
+		}
+		
+		//all characters are whitespaces
+		if (begin==s.end())
+		{
+			return "";
+		}
+		
+		//search for the end of truncated string
+		std::string::const_iterator end = s.end();
+		end--;
+		while (end!=begin && (*end==' ' || *end=='\n' || *end=='\t' || *end=='\r' ))
+		{
+			--end;
+		}
+		++end;
+		
+		return string(begin,end);
+  }
+
 #define RULE if(debug) cerr << "<" << __LINE__ << "/" << line << "/'" << esc(yytext) << "' -- name= " << name << "  type= " << type << "  args= " << args << "'>" << endl;
 
 #define GOTO(a) \
@@ -1642,7 +1669,7 @@ char *yytext;
 
 #define ClassForwardDecl 32
 
-#line 1646 "check_test.C"
+#line 1673 "check_test.C"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -1796,10 +1823,10 @@ YY_DECL
 	register char *yy_cp = NULL, *yy_bp = NULL;
 	register int yy_act;
 
-#line 300 "check_test.l"
+#line 327 "check_test.l"
 
 
-#line 1803 "check_test.C"
+#line 1830 "check_test.C"
 
 	if ( yy_init )
 		{
@@ -1885,21 +1912,21 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 302 "check_test.l"
+#line 329 "check_test.l"
 {RULE
 	countLine();
 	}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 306 "check_test.l"
+#line 333 "check_test.l"
 {RULE
 	countLine();
 	}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 310 "check_test.l"
+#line 337 "check_test.l"
 {RULE
 		// kill `#ifdef', `#ifndef'
 	countLine();
@@ -1907,7 +1934,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 315 "check_test.l"
+#line 342 "check_test.l"
 {RULE
 		// kill `#else', `#endif'
 	countLine();
@@ -1915,13 +1942,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 320 "check_test.l"
+#line 347 "check_test.l"
 {RULE
 	}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 323 "check_test.l"
+#line 350 "check_test.l"
 {RULE
 		// array inialization
 		skip_return = NextSemi;
@@ -1931,14 +1958,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 330 "check_test.l"
+#line 357 "check_test.l"
 {RULE
 		GOTO(FindMembersSuffix);
 	}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 334 "check_test.l"
+#line 361 "check_test.l"
 {RULE
 		if (debug) cerr << "Line " << line << ": definition for enumerator " << yytext << endl;
 		countLine();
@@ -1946,7 +1973,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 339 "check_test.l"
+#line 366 "check_test.l"
 {RULE
 		if(debug) cerr << "Line " << line << ": definition for enumerator " << yytext << endl;
 		countLine();
@@ -1954,7 +1981,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 344 "check_test.l"
+#line 371 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -1963,7 +1990,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 350 "check_test.l"
+#line 377 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -1971,7 +1998,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 355 "check_test.l"
+#line 382 "check_test.l"
 {RULE
 					program += yytext;
 					GOSUB(Comment);
@@ -1979,7 +2006,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 360 "check_test.l"
+#line 387 "check_test.l"
 {RULE
 					program += yytext;
 					++line;
@@ -1988,7 +2015,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 366 "check_test.l"
+#line 393 "check_test.l"
 {RULE		
 		countLine();
 		popType();
@@ -2001,14 +2028,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 376 "check_test.l"
+#line 403 "check_test.l"
 {RULE
 	countLine();
 }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 380 "check_test.l"
+#line 407 "check_test.l"
 {RULE
 		// public section
 		protection = PUBLIC;
@@ -2019,7 +2046,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 388 "check_test.l"
+#line 415 "check_test.l"
 {RULE
 		if ((test_class == "") || (test_class == getPath()))
 		{
@@ -2030,7 +2057,7 @@ YY_RULE_SETUP
 			{
 				args.erase(args.length() - 1, 1);
 			}
-			test_set.insert(name + args + ")");
+			test_set.insert(trim(name + args + ")"));
 			
 		}
 		else	
@@ -2049,14 +2076,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 415 "check_test.l"
+#line 442 "check_test.l"
 {RULE
 		args += yytext;
 	}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 419 "check_test.l"
+#line 446 "check_test.l"
 {RULE
 		name = yytext;
 		args.erase();
@@ -2066,7 +2093,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 426 "check_test.l"
+#line 453 "check_test.l"
 {RULE
 		name = yytext;
 		args.erase();
@@ -2076,7 +2103,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 433 "check_test.l"
+#line 460 "check_test.l"
 {RULE
 		// protected section
 		type.erase();
@@ -2087,7 +2114,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 441 "check_test.l"
+#line 468 "check_test.l"
 {RULE
 		// private section
 		type.erase();
@@ -2098,7 +2125,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 449 "check_test.l"
+#line 476 "check_test.l"
 {RULE
 		countLine();
 		GOTO(Namespace);
@@ -2106,7 +2133,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 454 "check_test.l"
+#line 481 "check_test.l"
 {RULE
 		// using namespace XXX
 		countLine();
@@ -2115,7 +2142,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 462 "check_test.l"
+#line 489 "check_test.l"
 {RULE
 		// template class forward declaration: ignore
 		skip_return = ClassForwardDecl;
@@ -2124,7 +2151,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 468 "check_test.l"
+#line 495 "check_test.l"
 {RULE
 		// ignore forward decl
 		name.erase();
@@ -2135,7 +2162,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 476 "check_test.l"
+#line 503 "check_test.l"
 {RULE
 		// class forward declaration: ignore
 		GOTO(FindMembers);
@@ -2143,7 +2170,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 481 "check_test.l"
+#line 508 "check_test.l"
 {RULE
 		// class definition
 		type.erase();
@@ -2155,7 +2182,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 490 "check_test.l"
+#line 517 "check_test.l"
 {RULE
 		// struct definition
 		pushType(STRUCT);
@@ -2165,7 +2192,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 497 "check_test.l"
+#line 524 "check_test.l"
 {RULE
 		// struct definition
 		pushType(STRUCT);
@@ -2175,7 +2202,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 504 "check_test.l"
+#line 531 "check_test.l"
 {RULE
 		// anonymous enum definition
 		pushType(ENUM);
@@ -2189,7 +2216,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 515 "check_test.l"
+#line 542 "check_test.l"
 {RULE
 		// enum definition
 		pushType(ENUM);
@@ -2199,7 +2226,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 522 "check_test.l"
+#line 549 "check_test.l"
 {RULE
 		// type definition
 		if (debug) cerr << "read typedef: " << yytext << endl;
@@ -2208,7 +2235,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 528 "check_test.l"
+#line 555 "check_test.l"
 {RULE
 		// union definition
 		pushType(UNION);
@@ -2218,42 +2245,42 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 535 "check_test.l"
+#line 562 "check_test.l"
 
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 536 "check_test.l"
+#line 563 "check_test.l"
 
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 537 "check_test.l"
+#line 564 "check_test.l"
 
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 538 "check_test.l"
+#line 565 "check_test.l"
 
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 539 "check_test.l"
+#line 566 "check_test.l"
 
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 540 "check_test.l"
+#line 567 "check_test.l"
 
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 541 "check_test.l"
+#line 568 "check_test.l"
 
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 542 "check_test.l"
+#line 569 "check_test.l"
 {RULE
 		// storage class specifiers
 		// and function specifiers
@@ -2265,7 +2292,7 @@ case 43:
 yy_c_buf_p = yy_cp = yy_bp + 8;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 548 "check_test.l"
+#line 575 "check_test.l"
 {RULE
 		// operator definition
 		if (name != "")
@@ -2278,7 +2305,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 558 "check_test.l"
+#line 585 "check_test.l"
 {RULE
 		countLine();
 		name += yytext;
@@ -2290,14 +2317,14 @@ case 45:
 yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 564 "check_test.l"
+#line 591 "check_test.l"
 {RULE
 		// kill obscure bit-width stuff
 	}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 568 "check_test.l"
+#line 595 "check_test.l"
 {RULE
 		// append to the current name
 		name += yytext;
@@ -2306,7 +2333,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 574 "check_test.l"
+#line 601 "check_test.l"
 {RULE
 		// Normal name
 		if (!name.empty())
@@ -2319,7 +2346,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 584 "check_test.l"
+#line 611 "check_test.l"
 {RULE
 		countLine();
 		if (getType() != NAMESPACE || !ignore_namespaces)
@@ -2332,7 +2359,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 594 "check_test.l"
+#line 621 "check_test.l"
 {RULE
 		countLine();
 		if (getType() == NAMESPACE || !ignore_namespaces)
@@ -2348,7 +2375,7 @@ case 50:
 yy_c_buf_p = yy_cp = yy_bp + 8;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 605 "check_test.l"
+#line 632 "check_test.l"
 {RULE
 		name += yytext;
 		GOTO(Operator);
@@ -2356,14 +2383,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 610 "check_test.l"
+#line 637 "check_test.l"
 {RULE
 		name += yytext;
 	}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 614 "check_test.l"
+#line 641 "check_test.l"
 {RULE
 		yyless(0);
 		GOTO(FindMembers);
@@ -2371,7 +2398,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 619 "check_test.l"
+#line 646 "check_test.l"
 {RULE
 		countLine();
 		GOTO(SkipCPP);
@@ -2379,19 +2406,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 624 "check_test.l"
+#line 651 "check_test.l"
 
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 625 "check_test.l"
+#line 652 "check_test.l"
 {RULE
 		countLine();
 	}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 629 "check_test.l"
+#line 656 "check_test.l"
 {RULE
 		line++;
 		GOTO(FindMembers);
@@ -2399,7 +2426,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 634 "check_test.l"
+#line 661 "check_test.l"
 {RULE
 		// #define
 		GOTO(Define);
@@ -2407,7 +2434,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 639 "check_test.l"
+#line 666 "check_test.l"
 {RULE
 		name = yytext;
 		GOTO(DefineEnd);
@@ -2415,14 +2442,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 644 "check_test.l"
+#line 671 "check_test.l"
 {RULE
 		GOTO(DefineEnd);
 	}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 648 "check_test.l"
+#line 675 "check_test.l"
 {RULE
 		countLine();
 		args = yytext;
@@ -2431,14 +2458,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 654 "check_test.l"
+#line 681 "check_test.l"
 {RULE
 		line++;
 	}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 658 "check_test.l"
+#line 685 "check_test.l"
 {RULE
 		line++;
 		GOTO(FindMembers);
@@ -2446,14 +2473,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 663 "check_test.l"
+#line 690 "check_test.l"
 {RULE
 		name += yytext;
 	}
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 667 "check_test.l"
+#line 694 "check_test.l"
 {RULE
 		GOTO(FindMembersSuffix);
 		if ((name != "") && (type != ""))
@@ -2476,7 +2503,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 687 "check_test.l"
+#line 714 "check_test.l"
 {RULE
 		args += yytext;
 		sharp_count = 1;
@@ -2485,7 +2512,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 693 "check_test.l"
+#line 720 "check_test.l"
 {RULE
 		args += *yytext;
 		if(--sharp_count <= 0)	GOTO(FindMembers);
@@ -2493,7 +2520,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 698 "check_test.l"
+#line 725 "check_test.l"
 {RULE
 		args += *yytext;
 		sharp_count++;
@@ -2501,7 +2528,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 703 "check_test.l"
+#line 730 "check_test.l"
 {RULE
 		countLine();
 		args += *yytext;
@@ -2509,7 +2536,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 708 "check_test.l"
+#line 735 "check_test.l"
 {RULE
 		if (!type.empty() && ((name[0] != '&') && (name[0] != '*'))) type += " ";
 		type += name;
@@ -2522,7 +2549,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 718 "check_test.l"
+#line 745 "check_test.l"
 {RULE
 		type += yytext;
 		if(--sharp_count <= 0) GOTO(skip_return);
@@ -2530,7 +2557,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 723 "check_test.l"
+#line 750 "check_test.l"
 {RULE
 					type += yytext;
 					sharp_count++;
@@ -2538,7 +2565,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 728 "check_test.l"
+#line 755 "check_test.l"
 {RULE
 					countLine();
 					type += *yytext;
@@ -2546,7 +2573,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 733 "check_test.l"
+#line 760 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -2554,7 +2581,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 738 "check_test.l"
+#line 765 "check_test.l"
 {RULE
 		countLine();
 					program += yytext;
@@ -2563,7 +2590,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 744 "check_test.l"
+#line 771 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -2571,7 +2598,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 749 "check_test.l"
+#line 776 "check_test.l"
 {RULE
 					program += yytext;
 					GOSUB(Comment);
@@ -2579,7 +2606,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 754 "check_test.l"
+#line 781 "check_test.l"
 {RULE
 					program += yytext;
 					++line;
@@ -2588,7 +2615,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 760 "check_test.l"
+#line 787 "check_test.l"
 {RULE
 		program += yytext;
 		pushCurly();
@@ -2599,7 +2626,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 768 "check_test.l"
+#line 795 "check_test.l"
 {RULE
 		popCurly();
 		popPath();
@@ -2615,7 +2642,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 782 "check_test.l"
+#line 809 "check_test.l"
 {RULE
 		program += yytext;
 		line++;
@@ -2623,7 +2650,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 787 "check_test.l"
+#line 814 "check_test.l"
 {RULE
 		countLine();
 		program += yytext;
@@ -2631,7 +2658,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 792 "check_test.l"
+#line 819 "check_test.l"
 {RULE
 		args = yytext;
 		GOSUB(Round);
@@ -2639,7 +2666,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 797 "check_test.l"
+#line 824 "check_test.l"
 {RULE
 		// back from Round
 		GOTO(Function);
@@ -2647,7 +2674,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 802 "check_test.l"
+#line 829 "check_test.l"
 {RULE
 		args += *yytext;
 		++round_bracket_count;
@@ -2655,7 +2682,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 807 "check_test.l"
+#line 834 "check_test.l"
 {RULE
 		args += *yytext;
 		if(round_bracket_count)
@@ -2671,7 +2698,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 821 "check_test.l"
+#line 848 "check_test.l"
 {RULE
 		countLine();
 		args += ", ";
@@ -2679,7 +2706,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 826 "check_test.l"
+#line 853 "check_test.l"
 {RULE
 		countLine();
 		args += ' ';
@@ -2687,7 +2714,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 831 "check_test.l"
+#line 858 "check_test.l"
 {RULE
 		countLine();
 		args += *yytext;
@@ -2695,7 +2722,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 836 "check_test.l"
+#line 863 "check_test.l"
 {RULE
 					args += " const ";
 					countLine();
@@ -2703,7 +2730,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 841 "check_test.l"
+#line 868 "check_test.l"
 {RULE
 		args += " throw(";
 		countLine();
@@ -2712,7 +2739,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 847 "check_test.l"
+#line 874 "check_test.l"
 {RULE
 		args += " const throw(";
 		countLine();
@@ -2721,7 +2748,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 853 "check_test.l"
+#line 880 "check_test.l"
 {RULE
 		type += name;
 		name = args;
@@ -2731,7 +2758,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 860 "check_test.l"
+#line 887 "check_test.l"
 {RULE
 		// document public methods only
 		if ((protection == PUBLIC) && (getType() == CLASS))
@@ -2747,7 +2774,7 @@ YY_RULE_SETUP
 				}
 									 
 				if (!type.empty()) type += " ";
-				test_set.insert(type + name + args);
+				test_set.insert(trim(type + name + args));
 			}
 			else	
 			{
@@ -2783,14 +2810,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 909 "check_test.l"
+#line 936 "check_test.l"
 {RULE
 	countLine();
 					}
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 913 "check_test.l"
+#line 940 "check_test.l"
 {RULE
 		yyless(0);
 		GOTO(FindMembers);
@@ -2798,7 +2825,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 918 "check_test.l"
+#line 945 "check_test.l"
 {RULE
 		countLine();
 		yyless(0);
@@ -2807,7 +2834,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 924 "check_test.l"
+#line 951 "check_test.l"
 {RULE
 		countLine();
 		yyless(0);
@@ -2816,7 +2843,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 930 "check_test.l"
+#line 957 "check_test.l"
 {RULE
 		yyless(0);
 		GOTO(FindMembers);
@@ -2824,7 +2851,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 935 "check_test.l"
+#line 962 "check_test.l"
 {RULE
 		skip_return = FindMembers;
 		skip_curly_start = curly_brackets.size();
@@ -2833,7 +2860,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 941 "check_test.l"
+#line 968 "check_test.l"
 {RULE
 		yyless(0);
 		GOTO(FindMembers);
@@ -2841,7 +2868,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 946 "check_test.l"
+#line 973 "check_test.l"
 {RULE
 		// skip this one...
 		pushCurly();
@@ -2849,7 +2876,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 951 "check_test.l"
+#line 978 "check_test.l"
 {RULE
 		if ((int)curly_brackets.size() > skip_curly_start)
 		{
@@ -2863,7 +2890,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 962 "check_test.l"
+#line 989 "check_test.l"
 {RULE
 		skip_return = SkipSemiAndCurly;
 		skip_curly_start = curly_brackets.size();
@@ -2872,14 +2899,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 968 "check_test.l"
+#line 995 "check_test.l"
 {RULE
 		GOTO(FindMembers);
 	}
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 972 "check_test.l"
+#line 999 "check_test.l"
 {RULE
 					yyless(0);
 					GOTO(FindMembers);
@@ -2887,7 +2914,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 977 "check_test.l"
+#line 1004 "check_test.l"
 {RULE
 		// i.e. a semicolon (or anything else)
 					if(*yytext != ';')
@@ -2898,19 +2925,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 107:
 YY_RULE_SETUP
-#line 985 "check_test.l"
+#line 1012 "check_test.l"
 
 	YY_BREAK
 
 case 108:
 YY_RULE_SETUP
-#line 987 "check_test.l"
+#line 1014 "check_test.l"
 
 	YY_BREAK
 
 case 109:
 YY_RULE_SETUP
-#line 990 "check_test.l"
+#line 1017 "check_test.l"
 {RULE
 		if ((name.length() > 0) && !current_type.empty() && (current_type.top() == UNION))
 		{
@@ -2939,7 +2966,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 1016 "check_test.l"
+#line 1043 "check_test.l"
 {RULE
 		sharp_count++;
 		skip_return = ClassName;
@@ -2948,7 +2975,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 1022 "check_test.l"
+#line 1049 "check_test.l"
 {RULE
 		args = ":";
 		GOTO(Bases);
@@ -2956,7 +2983,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 1027 "check_test.l"
+#line 1054 "check_test.l"
 {RULE
 		start_line = line;
 		pushCurly();
@@ -2973,7 +3000,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 1041 "check_test.l"
+#line 1068 "check_test.l"
 {RULE
 		start_line = line;
 		if (debug) cerr << "Line " << line << ": found forward class declaration of " << getPath() << yytext << endl;
@@ -2983,7 +3010,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 1048 "check_test.l"
+#line 1075 "check_test.l"
 {RULE
 					countLine();
 					args += ' ';
@@ -2992,14 +3019,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 1054 "check_test.l"
+#line 1081 "check_test.l"
 {RULE
 					args += ',';
 					}
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 1058 "check_test.l"
+#line 1085 "check_test.l"
 {RULE
 		countLine();
 		RETURN;
@@ -3007,7 +3034,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 1063 "check_test.l"
+#line 1090 "check_test.l"
 {RULE
 					program += yytext;
 					line++;
@@ -3015,7 +3042,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 1068 "check_test.l"
+#line 1095 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -3023,7 +3050,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 1073 "check_test.l"
+#line 1100 "check_test.l"
 {RULE
 					countLine();
 					program += yytext;
@@ -3032,7 +3059,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 1079 "check_test.l"
+#line 1106 "check_test.l"
 {RULE
 					countLine();
 					GOSUB(Comment);
@@ -3040,7 +3067,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 1084 "check_test.l"
+#line 1111 "check_test.l"
 {RULE
 					countLine();
 					GOSUB(LineComment);
@@ -3048,7 +3075,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 1089 "check_test.l"
+#line 1116 "check_test.l"
 {RULE
 		name = yytext;
 		print("found namespace ", yytext);
@@ -3064,7 +3091,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 1102 "check_test.l"
+#line 1129 "check_test.l"
 {RULE
 		pushCurly();
 		GOTO(FindMembers);
@@ -3072,45 +3099,45 @@ YY_RULE_SETUP
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 1107 "check_test.l"
+#line 1134 "check_test.l"
 {RULE
 		// using namespace : ignored
 	}
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 1111 "check_test.l"
+#line 1138 "check_test.l"
 {RULE
 		GOTO(FindMembers);
 	}
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 1115 "check_test.l"
+#line 1142 "check_test.l"
 {RULE
 		countLine();
 	}
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 1119 "check_test.l"
+#line 1146 "check_test.l"
 {RULE
 		countLine();
 	}
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 1123 "check_test.l"
+#line 1150 "check_test.l"
 {RULE
 		countLine();
 	}
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 1128 "check_test.l"
+#line 1155 "check_test.l"
 ECHO;
 	YY_BREAK
-#line 3114 "check_test.C"
+#line 3141 "check_test.C"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(Comment):
 case YY_STATE_EOF(LineComment):
@@ -4026,7 +4053,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 1128 "check_test.l"
+#line 1155 "check_test.l"
 
 
 set<string> tests_found;
@@ -4054,7 +4081,7 @@ void parseTestFile(const char* filename)
 			{
 				cout << "WARNING: duplicate test for " << line << " of " << filename << endl;
 			}
-			tests_found.insert(line);
+			tests_found.insert(trim(line));
 		}
 	}
 	is.close();

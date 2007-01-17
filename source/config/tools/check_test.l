@@ -72,6 +72,33 @@
 		return tmp;
 	}
 
+  string trim(const std::string& s)
+  {
+  	//search for the begin of truncated string
+		std::string::const_iterator begin = s.begin();
+		while (begin!=s.end() && (*begin==' ' || *begin=='\t' || *begin=='\n'  || *begin=='\r' ))
+		{
+			++begin;
+		}
+		
+		//all characters are whitespaces
+		if (begin==s.end())
+		{
+			return "";
+		}
+		
+		//search for the end of truncated string
+		std::string::const_iterator end = s.end();
+		end--;
+		while (end!=begin && (*end==' ' || *end=='\n' || *end=='\t' || *end=='\r' ))
+		{
+			--end;
+		}
+		++end;
+		
+		return string(begin,end);
+  }
+
 #define RULE if(debug) cerr << "<" << __LINE__ << "/" << line << "/'" << esc(yytext) << "' -- name= " << name << "  type= " << type << "  args= " << args << "'>" << endl;
 
 #define GOTO(a) \
@@ -395,7 +422,7 @@
 			{
 				args.erase(args.length() - 1, 1);
 			}
-			test_set.insert(name + args + ")");
+			test_set.insert(trim(name + args + ")"));
 			
 		}
 		else	
@@ -872,7 +899,7 @@
 				}
 									 
 				if (!type.empty()) type += " ";
-				test_set.insert(type + name + args);
+				test_set.insert(trim(type + name + args));
 			}
 			else	
 			{
@@ -1152,7 +1179,7 @@ void parseTestFile(const char* filename)
 			{
 				cout << "WARNING: duplicate test for " << line << " of " << filename << endl;
 			}
-			tests_found.insert(line);
+			tests_found.insert(trim(line));
 		}
 	}
 	is.close();
