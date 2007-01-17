@@ -130,12 +130,14 @@ namespace OpenMS
 		
 		for ( UnsignedInt i = 0; i < displayed_peptides; ++i, ++p_value )
 		{
+			++line_number;
 			// if less peptides were found than may be displayed, break
 			if ( !getline(result_file, line) ) break;
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
+			line.trim();
+			if ( line.empty() ) continue; // skip empty lines
 			
 			getColumns(line, substrings, number_of_columns, reference_column);
-			++line_number;
 			
 			// check whether the line has enough columns
 			if (substrings.size() < number_of_columns )
@@ -146,7 +148,7 @@ namespace OpenMS
 				result_file.clear();
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
 			}
-
+			
 			// check whether there are multiple proteins that belong to this peptide
 			if ( substrings[reference_column].find_last_of('+') != string::npos )
 			{
@@ -232,21 +234,25 @@ namespace OpenMS
 //		sequences.clear();
 //		found.clear();
 //		not_found.clear();
-
-		protein_identification.setProteinHits(protein_hits);
-		protein_identification.setDateTime(datetime);
-		protein_hits.clear();
+		
+		if ( protein_hits.empty() ) identifications.pop_back();
+		else
+		{
+			protein_identification.setProteinHits(protein_hits);
+			protein_identification.setDateTime(datetime);
+			protein_hits.clear();
+		}
 		
 		// if there's but one query the protein hits are inserted there instead of a ProteinIdentification object
-		if ( identifications.size() == 1 )
+		if ( !identifications.empty() )
 		{
-			query->setProteinHits(protein_hits);
-			query->setDateTime(datetime);
-			query->setPeptideSignificanceThreshold(p_value_threshold);
-		}
-		else // if several out-files were used, the first query owns a vector with protein hits
-		{
-			identifications.front().id.setProteinHits(vector< ProteinHit >());
+			if ( identifications.size() == 1 )
+			{
+				query->setProteinHits(protein_hits);
+				query->setDateTime(datetime);
+				query->setPeptideSignificanceThreshold(p_value_threshold);
+			}
+			else identifications.front().id.setProteinHits(vector< ProteinHit >()); // if several out-files were used, the first query owns a vector with protein hits
 		}
 		
 		peptide_hit.clear();

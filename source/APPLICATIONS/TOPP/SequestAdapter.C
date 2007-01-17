@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 
+#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase2.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -32,11 +33,9 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <stdlib.h>
 #include <vector>
@@ -109,218 +108,143 @@ class TOPPSequestAdapter
 {
 	public:
 		TOPPSequestAdapter()
-			: TOPPBase2("SequestAdapter")
+			: TOPPBase2("SequestAdapter", "annotates MS/MS spectra using Sequest.")
 		{}
 	
 	protected:
 		static const SignedInt max_peptide_mass_units = 2;
-		static const UnsignedInt max_dtas_per_run = 1000;
+		static const UnsignedInt max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
 		PointerSizeUInt dtas;
-		
-		struct SortRetentionTimes:
-				public binary_function<const pair< String, vector< DoubleReal > >, const pair< String, vector< DoubleReal > >, bool>
-		{
-			bool operator()(const pair< String, vector< DoubleReal > >& x, const pair< String, vector< DoubleReal > >& y)
-			{
-				return ( x.first < y.first );
-			}
-		};
-	
-		void printToolUsage_() const
-		{
-			cerr	<< endl
-						<< getToolName() << " -- annotates MS/MS spectra using Sequest" << endl
-						<< "Version: " << VersionInfo::getVersion() << endl
-						<< endl
-						<< "Usage:" << endl
-						<< " " << getToolName() << " [options]" << endl
-						<< endl
-						<< "Options are:" << endl
-						<< "  [the _network paramters correspond to the network path of the directory under windows;" << endl
-						<< "   rdesktop is used to connect to this computer" << endl << endl
-						<< "   Sequest writes a file named 'sequest.log' into the out_dir, so you must not name the log file alike]" << endl
-						<< "   The definitions for the parameters are taken from the site: http://www.grosse-coosmann.de/~florian/Parameters.html#file." << endl
-						<< "  -sequest_in           if this flag is set the SequestAdapter will create a sequest input file" << endl
-						<< "                        and create dta files from the given mzXML files" << endl
-						<< "  -sequest_out          if this flag is set the SequestAdapter will read in Sequest out files and write an analysis XML file" << endl
-						<< "  -in                   the comma-separated names of the mzXML files or name of the directory" << endl
-						<< "                        of the .out files when using sequest_out."
-						<< "  -mzXMLs               when using sequest_out the mzXML files (comma-separated) have to be given to"
-						<< "                        retrieve the retention times" << endl
-						<< "  -out                  the name of the analysis XML file" << endl
-						<< "  -show_enzyme_numbers  show a list with enzymes and corresponding numbers to choose from" << endl
-						<< "  -create_dtas          creates dta files from the mzXML files" << endl
-						<< "  -charge_states        comma-seperated list of charge state (or ranges) that are used if it is unknown for a scan" << endl
-						<< "                        ranges are two numbers seperated by a '>', e.g: 1>3,5 = 1,2,3,5"
-						<< "  -sequest_dir_win      the windows path where sequest.exe is located" << endl
-						<< "  -sequest_computer     the name of the computer in the network that hosts Sequest" << endl
-						<< "  -user                 user name for the sequest computer (has to have access to network!)" << endl
-						<< "  -password             password for this user (if not given, you have to enter it at promt)" << endl
-						<< "  -p_value              annotations with inferior p-value are ignored (default is 0.05)" << endl
-						<< "  -num_results          the maximal number of results (peptides) to show (per scan/dta)" << endl
-						<< "  -max_num_dif_AA_per_mod  limits the maximum total number of each single variable modification in one peptide" << endl
-						<< "  -max_num_dif_mods_per_peptide  limits the maximum total number of each single variable modification in one peptide" << endl
-						<< "  -pep_mass_tol         tolerance for a peptide ion" << endl
-						<< "  -frag_ion_tol         tolerance for a fragment ion" << endl
-						<< "  -match_peak_tol       the minimal space between two peaks" << endl
-						<< "  -enzyme_info          <name>,<cut direction: N to C?>,<cuts after>,<doesn't cut before>:next enzyme_info" << endl
-						<< "                        cuts after, doesn't cut before: amino acids in 1-letter code or '-' for unspecific cleavage" << endl
-						<< "  -enzyme_number        a number from the list (show_enzyme_numbers); if enzyme_info is used, this value is set accordingly" << endl
-						<< "  -neutral_loss_ABY     ABY: 0 or 1 whether neutral losses of the series should be honored, eg: 011" << endl
-						<< "  -ion_series_weights   abcdvwxyz: [0.0, 1.0] factor for the series, eg: 0,0.5,0,0,0,0,0,1.0,0" << endl
-						<< "  -sequest_in           the name of the sequest input file" << endl
-						<< "  -db                   the name of the database file" << endl
-						<< "  -snd_db               the name of the second database file" << endl
-						<< "  -temp_data_dir        the directory to store temporary data" << endl
-						<< "  -temp_data_dir_win    the directory' name when mounted under windows, e.g. X:\\temp_data_dir" << endl
-						<< "  -peptide_prophet_path the path where PeptideProphet is located" << endl
-						<< endl
-						<< "  For each windows drive, one corresponding network drive has to be given, so maybe you don't need to set all the parameters below" << endl
-						<< "  -temp_data_dir_network" << endl
-						<< "  -db_dir_network" << endl
-						<< "  -snd_db_dir_network" << endl
-						<< "  -sequest_in_dir_network" << endl;
-		}
 
-
-		void printToolHelpOpt_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr	<< endl
-			<< "  -ion_cutoff                    This value selects a cut-off below which a matching peptide is rejected." << endl
-			<< "                                 The value has to be in [0,1) and is compared with this value is the ratio" << endl
-			<< "                                 (# matching theoretical fragment peaks) / (# total theoretical fragment peaks)" << endl
-			<< "                                 which means that the user can select a minimum coverage of matching peaks." << endl
-			<< "  -pep_mass_unit                 peptide mass unit: 0=amu (atomic mass unit), 1=mmu (millimass unit), 2=ppm (parts per million)" << endl
-			<< "  -prot_mass                     protein mass / minimum protein mass (see below)" << endl
-			<< "  -max_prot_mass_or_tol          maximum protein mass or tolerance" << endl
-			<< "  -nuc_reading_frame             Format of the FASTA database:" << endl
-			<< "                                 0  The FASTA file contains amino acid codes. No translation is needed." << endl
-			<< "                                 1  The DNA sequence is scanned left to right (forward direction)." << endl
-			<< "                                    The amino acid code starts with the first DNA code." << cout
-			<< "                                 2  The DNA sequence is scanned left to right (forward direction)." << cout
-			<< "                                    The amino acid code starts with the second DNA code." << endl
-			<< "                                 3  The DNA sequence is scanned left to right (forward direction)." << cout
-			<< "                                    The amino acid code starts with the third DNA code." << cout
-			<< "                                 4  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the first DNA code." << cout
-			<< "                                 5  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the second DNA code." << cout
-			<< "                                 6  The DNA sequence is scanned right to left (backward direction for the complementary strand)." << cout
-			<< "                                    The amino acid code starts with the third DNA code." << cout
-			<< "                                 7  Use each of the DNA translations of the codes 1, 2, 3." << cout
-			<< "                                 8  Use each of the DNA translations of the codes 4, 5, 6." << cout
-			<< "                                 9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6." << cout
-			<< cout
-			<< "  -max_num_int_cleav_sites       This value is the number of cleavage positions that may have been ignored by the enzyme." << endl
-			<< "  -match_peak_count              The highest abundant experimental peaks are checked whether they are matched by the" << endl
-			<< "                                 theoretical ones. match_peak_count is the number of the top abundant peaks to check." << endl
-			<< "                                 A maximum of match_peak_allowed_error may lack this test." << endl
-			<< "  -match_peak_allowed_error      see match_peak_count" << endl
-			<< "  -show_fragment_ions            If set to 1 the fragment peaks of the top scored peptide are listed at the end of the output" << endl
-//			<< "  -use_phospho_fragmentation     ???" << endl
-			<< "  -remove_precursor_peak         If set to 1 the peaks near (15 amu) the precursor are removed." << endl
-			<< "  -mass_type_parent              A value of 1 selects monoisotopic masses, 0 selects average masses for calculating precursor peaks." << endl
-			<< "  -mass_type_fragment            A value of 1 selects monoisotopic masses, 0 selects average masses for calculating fragment peaks." << endl
-			<< "  -normalize_xcorr               Whether to use normalized xcorr values in the out files." << endl
-			<< "  -residues_in_upper_case        Whether the residues in the FASTA database are in upper case." << endl
-			<< "  -dyn_mods                      This value consists of colon-seperated pairs of variable modifications." << endl
-			<< "                                 Each pair has two comma-seperated elements: A mass and a list of amino acids." << endl
-			<< "                                 Sequest only applies the last modification character without warning." << endl
-			<< "                                 Don't use \"44 S 80 ST\". It is interpreted as \"80 ST\"!." << endl
-			<< "                                 Sequest won't apply any modification if the first two are null." << endl
-			<< "                                 Always put valid modifications first. Don't use \"0 X 0 X 16 M\"" << endl
-			<< "                                 Up to six modifications are allowed, if more are given, they are ignored." << endl
-			<< "  -dyn_N_term_mod                This is the modification (mass that may be added to each N-terminus)" << endl
-			<< "  -dyn_C_term_mod                This is the modification (mass that may be added to each C-terminus" << endl
-			<< "  -stat_N_term_mod               This value is the mass that is added to each peptide N-terminus" << endl
-			<< "  -stat_C_term_mod               This value is the mass that is added to each peptide C-terminus" << endl
-			<< "  -stat_N_term_prot_mod          This value is the mass that is added to each protein N-terminus" << endl
-			<< "  -stat_C_term_prot_mod          This value is the mass that is added to each protein C-terminus" << endl
-			<< "  -stat_mods                     This value consists of a colon-seperated list of amino acids in one letter code" << endl
-			<< "                                 and their corrpesponding mass added: <AA_1>,<mass_1>;<AA_2>,<mass_2>;..." << endl
-			<< "                                 (you can give several amino acids, if they shall have the same static modification, i.e. KRLNH,10.3)"
-			<< "  -partial_sequence              A comma delimited list of amino acid sequences that must occur in the theoretical spectra." << endl
-			<< "  -header_filter                 Several elements can be splitted by commas. Each element can be introduced" << endl
-			<< "                                 by an exclamation mark (!) meaning that this element must not appear" << endl
-			<< "                                 in the header of a protein or the protein will be skipped. This test is done first." << endl
-			<< "                                 Next, all other elements are tested. The protein is processed" << endl
-			<< "                                 if one filter string matches the header string." << endl
-			<< "                                 A filter string may contain a tilde (~). This is replaced by a blank during comparison." << endl
-			<< "  -keep_out_files                If set to 1, the Seuest .out-files are not removed (default for -sequest_out)" << endl
-			<< "  -keep_dta_files                If set to 1, the dta-files that were created from the mzXML-files are not removed" << endl
-			<< "                                 (default for -sequest_in)" << endl
-			<< "  -contactName                   " << endl
-			<< "  -contactInstitution            " << endl
-			<< "  -contactInfo                   " << endl;
-		}
-
-
-		void setOptionsAndFlags_()
-		{
-			flags_["-show_enzyme_numbers"] = "show_enzyme_numbers";
-			flags_["-create_dtas"] = "create_dtas";
-			options_["-contactName"] = "contactName";
-			options_["-contactInstitution"] = "contactInstitution";
-			options_["-contactInfo"] = "contactInfo";
-			options_["-log"] = "log";
-			options_["-sequest_dir_win"] = "sequest_dir_win";
-			options_["-user"] = "user";
-			options_["-password"] = "password";
-			options_["-temp_data_dir"] = "temp_data_dir";
-			options_["-temp_data_dir_win"] = "temp_data_dir_win";
-			options_["-temp_data_dir_network"] = "temp_data_dir_network";
-			options_["-sequest_input"] = "sequest_input";
-			options_["-sequest_in_dir_network"] = "sequest_in_dir_network";
-			options_["-db"] = "db";
-			options_["-db_dir_network"] = "db_dir_network";
-			options_["-snd_db"] = "snd_db";
-			options_["-snd_db_dir_network"] = "snd_db_dir_network";
-			options_["-sequest_computer"] = "sequest_computer";
-			flags_["-sequest_in"] = "sequest_in";
-			flags_["-sequest_out"] = "sequest_out";
-			options_["-in"] = "in";
-			options_["-pep_mass_tol"] = "pep_mass_tol";
-			options_["-frag_ion_tol"] = "frag_ion_tol";
-			options_["-match_peak_tol"] = "match_peak_tol";
-			options_["-ion_cutoff"] = "ion_cutoff";
-			options_["-pep_mass_unit"] = "pep_mass_unit";
-			options_["-num_results"] = "num_results";
-			options_["-enzyme_info"] = "enzyme_info";
-			options_["-enzyme_number"] = "enzyme_number";
-			options_["-min_prot_mass"] = "min_prot_mass";
-			options_["-max_prot_mass"] = "max_prot_mass";
-			options_["-max_num_dif_AA_per_mod"] = "max_num_dif_AA_per_mod";
-			options_["-max_num_dif_mods_per_peptide"] = "max_num_dif_mods_per_peptide";
-			options_["-nuc_reading_frame"] = "nuc_reading_frame";
-			options_["-max_num_int_cleav_sites"] = "max_num_int_cleav_sites";
-			options_["-match_peak_count"] = "match_peak_count";
-			options_["-match_peak_allowed_error"] = "match_peak_allowed_error";
-			flags_["-show_fragment_ions"] = "show_fragment_ions";
-// 			flags_["-use_phospho_fragmentation"] = "use_phospho_fragmentation";
-			flags_["-remove_precursor_peak"] = "remove_precursor_peak";
-			options_["-mass_type_parent"] = "mass_type_parent";
-			options_["-mass_type_fragment"] = "mass_type_fragment";
-			flags_["-normalize_xcorr"] = "normalize_xcorr";
-			flags_["-residues_in_upper_case"] = "residues_in_upper_case";
-			options_["-neutral_loss_ABY"] = "neutral_loss_ABY";
-			options_["-ion_series_weights"] = "ion_series_weights";
-			options_["-dyn_mods"] = "dyn_mods";
-			options_["-dyn_N_term_mod"] = "dyn_N_term_mod";
-			options_["-dyn_C_term_mod"] = "dyn_C_term_mod";
-			options_["-stat_N_term_mod"] = "stat_N_term_mod";
-			options_["-stat_C_term_mod"] = "stat_C_term_mod";
-			options_["-stat_N_term_prot_mod"] = "stat_N_term_prot_mod";
-			options_["-stat_C_term_prot_mod"] = "stat_C_term_prot_mod";
-			options_["-stat_mods"] = "stat_mods";
-			options_["-partial_sequence"] = "partial_sequence";
-			options_["-header_filter"] = "header_filter";
-			options_["-out"] = "out";
-			options_["-p_value"] = "p_value";
-			options_["-charge_states"] = "charge_states";
-			flags_["-keep_out_files"] = "keep_out_files";
-			flags_["-keep_dta_files"] = "keep_dta_files";
-			options_["-peptide_prophet_path"] = "peptide_prophet_path";
-			options_["-mzXMLs"] = "mzXMLs";
+			addText_("The definitions for the parameters are taken from the site:\n"
+										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
+			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			                                           "Note: In mode 'inspect_in' a Sequest input file is written.", false);
+			registerStringOption_("in", "<file>", "", "input file(s) in mzXML format (comma-separated).\n"
+					 																			"Note: In mode 'inspect_out' a directory with Sequest results files\n"
+																								"(.out) is read", false);
+			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML\n"
+																								"and write an Sequest input file\n"
+																								"and create dta files from the given mzXML files");
+			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
+																									"and write analysisXML");
+			registerStringOption_("mzXMLs", "<file>", "", "when using sequest_out the mzXML files (comma-separated)\n"
+																																						"have to be given to retrieve the retention times", false);
+			registerFlag_("show_enzyme_numbers", "show a list with enzymes and corresponding numbers to choose from");
+			registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"
+																															"(rdesktop is used to connect to this computer)", false);
+			registerStringOption_("sequest_directory_win", "<dir>", "", "the windows directory in which Sequest (sequest.exe) is located", false);
+			registerStringOption_("user", "<name>", "", "user name for the sequest computer (has to have access to network!)", false);
+			registerStringOption_("password", "<pw>", "", "password for this user (if not given, you have to enter it at promt)", false);
+			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
+			registerStringOption_("temp_data_directory_win", "<dir>", "", "windows path of the temporary data directory,\n"
+																																																			"e.g. X:\\temp_data_dir", false);
+			registerStringOption_("db", "<file>", "", "name of FASTA-database to search in", false);
+			registerStringOption_("sequest_input", "<file>", "", "name for the input file of Sequest (may only be used in a full run)", false);
+			addEmptyLine_();
+			addText_("For each directory, one corresponding network drive has to be given");
+			registerStringOption_("temp_data_directory_network", "<path>", "", "network path of the temporary data directory,\n"
+																																																			"e.g. \\\\computername\\username\\temp_data_dir", false);
+			registerStringOption_("db_directory_network", "<path>", "", "network path of the database directory", false);
+			registerStringOption_("sequest_input_directory_network", "<path>", "", "network path of the sequest input file directory", false);
+			registerStringOption_("peptide_prophet_directory", "<dir>", "", "the directory in which peptide prophet is located\n"
+																																"peptide prophet is used to compute the p-values,\n"
+																																"without it, all peptide found are accepted", false);
+			addEmptyLine_();
+			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
+			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
+			registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
+		  registerStringOption_("charges", "[1>3,5]", "", "comma-seperated list of charge states (or ranges)", false);
+			registerIntOption_("num_results", "<num>", 1, "the maximal number of results (peptides) to show (per scan/dta)", false);
+			registerIntOption_("cleavage", "<num>", -1, "the number of the enzyme used for digestion", false);
+			registerStringOption_("enzyme_info", "<>", "", "information about the enzyme used\n"
+																																							"<name>,<cut direction: N to C?>,<cuts after>,<doesn't cut before>\n"
+																																							"cuts after, doesn't cut before: amino acids in 1-letter code\n"
+																																							"or '-' for unspecific cleavage", false);
+			registerStringOption_("dyn_mods", "[44,s:80,TG]", "", "This value consists of colon-seperated pairs of variable modifications.\n"
+																								"Each pair has two comma-seperated elements: A mass and a list of amino acids.\n"
+																								"Sequest only applies the last modification character without warning.\n"
+																								"Don't use \"44,S:80,ST\". It is interpreted as \"80,ST\"!.\n"
+																								"Up to six modifications are allowed, if more are given, they are ignored.", false);
+			registerDoubleOption_("dyn_N_term_mod", "", 0, "This modification mass that may be added to each N-terminus", false);
+			registerDoubleOption_("dyn_C_term_mod", "", 0, "This modification mass that may be added to each C-terminus", false);
+			registerDoubleOption_("stat_N_term_mod", "", 0, "This mass is added to each peptide N-terminus", false);
+			registerDoubleOption_("stat_C_term_mod", "", 0, "This mass is added to each peptide C-terminus", false);
+			registerDoubleOption_("stat_N_term_prot_mod", "", 0, "This mass is added to each protein N-terminus", false);
+			registerDoubleOption_("stat_C_term_prot_mod", "", 0, "This mass is added to each protein C-terminus", false);
+			registerStringOption_("stat_mods", "", "", "This is a colon-seperated list of amino acids in one letter code\n"
+																								 "and their corrpesponding mass added: <AA_1>,<mass_1>:<AA_2>,<mass_2>:...\n"
+																								 "(if several amino acids shall have the same static modification: KRLNH,10.3)", false);
+			registerIntOption_("max_num_dif_AA_per_mod", "<num>", 0, "limits the maximum total number of\n"
+																																																			 "variable modifications per amino acid", false);
+			registerIntOption_("max_num_dif_mods_per_peptide", "<num>", 0, "limits the maximum total number of\n"
+																																																							 "each single variable modification in one peptide", false);
+			registerDoubleOption_("match_peak_tol", "", 0, "the minimal space between two peaks", false);
+			registerStringOption_("neutral_loss_ABY", "[ABY]", "011", "ABY: 0 or 1 whether neutral losses of the series should be honored,\n"
+																																												 "e.g.: 011", false);
+			registerStringOption_("ion_series_weights", "[abcdvwxyz]", "0,1.0,0,0,0,0,0,1.0,0", "[0.0, 1.0] factor for the series,\n"
+																																																			"e.g.: 0,0.5,0,0,0,0,0,1.0,0", false);
+			registerDoubleOption_("ion_cutoff", "<num>", 0.0, "This value selects a cut-off below which a matching peptide is rejected.\n"
+																											 "The value has to be in [0,1] and is compared with the ratio\n"
+																											 "(# matching theoretical fragment peaks)/(# total theoretical fragment peaks)\n"
+																											 "which means that one select a minimum coverage of matching peaks.", false);
+			registerIntOption_("pep_mass_unit", "<num>", 0, "peptide mass unit: 0=amu (atomic mass unit), 1=mmu (millimass unit),\n"
+																																									 "2=ppm (parts per million)", false);
+			registerDoubleOption_("prot_mass", "<num>", 0, "protein mass or minimum protein mass (see below)", false);
+			registerDoubleOption_("max_prot_mass_or_tol", "<num>", 0, "maximum protein mass or tolerance", false);
+			registerIntOption_("max_num_int_cleav_sites", "<num>", 0, "This value is the number of cleavage positions\n"
+																																																	 "that may have been ignored by the enzyme.", false);
+			registerIntOption_("match_peak_count", "<num>", 0, "The highest abundant experimental peaks are checked\n"
+																																													"whether they are matched by the theoretical ones.\n"
+																																													"match_peak_count is the number of the top abundant peaks to check.\n"
+																												"A maximum of match_peak_allowed_error may lack this test.\n", false);
+			registerIntOption_("match_peak_allowed_error", "<num>", 0, "see match_peak_count", false);
+			registerFlag_("show_fragment_ions", "If set the fragment peaks of the top scored peptide are listed\n"
+																																"at the end of the output");
+// 			registerFlag_("use_phospho_fragmentation", "?");
+			registerFlag_("remove_precursor_peak", "If set the peaks near (15 amu) the precursor are removed.");
+			registerFlag_("mass_type_precursor", "Set selects monoisotopic masses, not set selects average masses\n"
+																																 "for calculating precursor peaks.");
+			registerFlag_("mass_type_peak", "Set selects monoisotopic masses, not set selects average masses\n"
+																												 "for calculating peaks.");
+			registerFlag_("normalize_xcorr", "Whether to use normalized xcorr values in the out files.");
+			registerFlag_("residues_in_lower_case", "Whether the residues in the FASTA database are in lower case.");
+			registerStringOption_("partial_sequence", "<sequences>", "", "A comma delimited list of amino acid sequences that must occur\n"
+																																																		 "in the theoretical spectra.", false);
+			registerStringOption_("header_filter", "<sequences>", "", "Several elements can be splitted by commas.\n"
+																																															 "Each element can be introduced by an exclamation mark (!)\n"
+																																															 "meaning that this element must not appear in the header of\n"
+																																															"a protein or the protein will be skipped. This test is done first.\n"
+																																															"Next, all other elements are tested. The protein is processed\n"
+																																															"if one filter string matches the header string.\n"
+																																															"A tilde (~) in the filter string is replaced by a blank during comparison.", false);
+			registerFlag_("keep_out_files", "If set the Seuest .out-files are not removed");
+			registerFlag_("keep_dta_files", "If set the dta-files that were created from the mzXML-files are not removed");
+			registerIntOption_("nuc_reading_frame", "<num>", 0, "Format of the FASTA database:\n"
+																													 "0  The FASTA file contains amino acid codes. No translation is needed.\n"
+																													 "1  The DNA sequence is scanned left to right (forward direction).\n"
+																													 "The amino acid code starts with the first DNA code.\n"
+																													 "2  The DNA sequence is scanned left to right (forward direction).\n"
+																													 "The amino acid code starts with the second DNA code.\n"
+																													 "3  The DNA sequence is scanned left to right (forward direction).\n"
+																													 "The amino acid code starts with the third DNA code.\n"
+																													 "4  The DNA sequence is scanned right to left (backward direction\n"
+																													 "for the complementary strand).\n"
+																													 "The amino acid code starts with the first DNA code.\n"
+																													 "5  The DNA sequence is scanned right to left (backward direction\n"
+																													 "for the complementary strand).\n"
+																													 "The amino acid code starts with the second DNA code.\n"
+																													 "6  The DNA sequence is scanned right to left (backward direction\n"
+																													 "for the complementary strand).\n"
+																													 "The amino acid code starts with the third DNA code.\n"
+																													 "7  Use each of the DNA translations of the codes 1, 2, 3.\n"
+																													 "8  Use each of the DNA translations of the codes 4, 5, 6.\n"
+																													 "9  Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.\n", false);
+			registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
+			registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
+			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
 		bool isWinFormat(const string& name)
@@ -355,27 +279,6 @@ class TOPPSequestAdapter
 			if ( network_path.length() < backslashes+1 ) return false;
 			return true;
 		}
-		
-		PointerSizeInt fsize(const string& filename)
-		{
-			FILE* file = fopen(filename.c_str(), "r");
-			PointerSizeInt size = 0;
-			if ( file != NULL )
-			{
-				fseek(file, 0, SEEK_END);
-				size = ftell(file);
-				fclose(file);
-				return size;
-			}
-			return -1;
-		}
-		
-		inline bool
-		emptyFile(
-			const string& filename)
-		{
-			return ( fsize(filename) == 0 );
-		}
 
 		String getRandomFilename()
 		{
@@ -408,17 +311,19 @@ class TOPPSequestAdapter
 		void
 		deleteTempFiles(
 			const String& input_filename,
-			const String& logfile)
+			const String& logfile,
+			const String& batchfile)
 		{
 			if ( input_filename.hasSuffix("tmp.sequest.input") ) remove(input_filename.c_str());
 			if ( logfile.hasSuffix("tmp.sequest.log") ) remove(logfile.c_str());
+			if ( batchfile.hasSuffix("sequest_run.bat") ) remove(batchfile.c_str());
 		}
 
 		UnsignedInt
 		MSExperiment2DTAs(
 			MSExperiment<>& msexperiment,
 			const String& common_name,
-			const vector< SignedInt >& charge_states,
+			const vector< SignedInt >& charges,
 			map< String, DoubleReal >& filenames_and_precursor_retention_times,
 			bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
@@ -436,7 +341,7 @@ class TOPPSequestAdapter
 					++msms_spectra;
 					if ( spec_i->getPrecursorPeak().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+						filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 						if ( make_dtas )
 						{
 							++dtas;
@@ -447,9 +352,9 @@ class TOPPSequestAdapter
 					}
 					else
 					{
-						for ( vector< SignedInt >::const_iterator i = charge_states.begin(); i != charge_states.end(); ++i )
+						for ( vector< SignedInt >::const_iterator i = charges.begin(); i != charges.end(); ++i )
 						{
-							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+							filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 							if ( make_dtas )
 							{
 								++dtas;
@@ -482,29 +387,25 @@ class TOPPSequestAdapter
 				output_filename,
 				input_filename,
 				input_filename_win,
-				input_file_dir_network,
+				input_file_directory_network,
 				user, password,
 				sequest_computer,
-				temp_data_dir,
-				temp_data_dir_win,
-				temp_data_dir_network,
-				sequest_dir_win,
+				temp_data_directory,
+				temp_data_directory_win,
+				temp_data_directory_network,
+				sequest_directory_win,
 				database,
-				database_win,
-				database_dir_network,
-				snd_database,
-				snd_database_win,
-				snd_database_dir_network,
-				dta_dir,
-				dta_dir_win,
-				dta_dir_network,
-				out_dir,
-				out_dir_win,
-				out_dir_network,
+				database_directory_network,
+				dta_directory,
+				dta_directory_win,
+				dta_directory_network,
+				out_directory,
+				out_directory_win,
+				out_directory_network,
 				batch_filename,
 				string_buffer,
 				string_buffer2,
-				peptide_prophet_path;
+				peptide_prophet_directory;
 			
 			ContactPerson contact_person;
 			
@@ -519,7 +420,7 @@ class TOPPSequestAdapter
 				substrings2,
 				spectra;
 			
-			vector< SignedInt > charge_states;
+			vector< SignedInt > charges;
 			
 			char char_buffer;
 			
@@ -537,17 +438,25 @@ class TOPPSequestAdapter
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
-
+			
+			// only show the available enzymes, then quit
+			if ( getFlag_("show_enzyme_numbers") )
+			{
+				writeLog_("Option show_enzyme_numbers chosen.");
+				writeLog_(sequest_infile.getEnzymeInfo());
+				return EXECUTION_OK;
+			}
 			// (2.0) variables for running the program
-			sequest_in = getParamAsBool_("sequest_in");
-			sequest_out = getParamAsBool_("sequest_out");
+			sequest_in = getFlag_("sequest_in");
+			sequest_out = getFlag_("sequest_out");
 
 			// a 'normal' sequest run corresponds to both sequest_in and sequest_out set
 			if ( !sequest_in && !sequest_out ) sequest_in = sequest_out = true;
 			
-			logfile = getParamAsString_("log", "temp.sequest.log");
+			logfile = getStringOption_("log");
+			if ( logfile.empty() ) logfile = "temp.sequest.log";
 
-			string_buffer = getParamAsString_("charge_states");
+			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No charge states given. Aborting!");
@@ -567,8 +476,8 @@ class TOPPSequestAdapter
 						s_i->split('>', substrings2);
 						if ( substrings2.size() < 2 ) // only one number, no range
 						{
-							if ( (*s_i)[s_i->length()-1] == '-' ) charge_states.push_back(-1 * s_i->toInt());
-							else charge_states.push_back(s_i->toInt());
+							if ( (*s_i)[s_i->length()-1] == '-' ) charges.push_back(-1 * s_i->toInt());
+							else charges.push_back(s_i->toInt());
 						}
 						else // range of charge states
 						{
@@ -586,7 +495,7 @@ class TOPPSequestAdapter
 
 							for ( SignedInt i = min(range_start, range_end); i <= max(range_start, range_end); ++i )
 							{
-								if ( i ) charge_states.push_back(i);
+								if ( i ) charges.push_back(i);
 							}
 						}
 						
@@ -594,31 +503,24 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				if ( charge_states.empty() )
+				if ( charges.empty() )
 				{
 					writeLog_("No charges states given. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				sort(charge_states.begin(), charge_states.end());
-				for ( vector< SignedInt >::iterator i = charge_states.begin(); i != --charge_states.end(); )
+				sort(charges.begin(), charges.end());
+				for ( vector< SignedInt >::iterator i = charges.begin(); i != --charges.end(); )
 				{
-					if ( (*i) == (*(i+1)) ) charge_states.erase(i+1);
+					if ( (*i) == (*(i+1)) ) charges.erase(i+1);
 					else ++i;
 				}
 			}
-			
-			// only show the available enzymes, then quit
-			if ( getParamAsBool_("show_enzyme_numbers") )
-			{
-				writeLog_("Option show_enzyme_numbers chosen. Aborting.");
-				return EXECUTION_OK;
-			}
 
-			string_buffer = getParamAsString_("in");
+			string_buffer = getStringOption_("in");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
-				printUsage_();
+				//printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
 			else
@@ -628,16 +530,16 @@ class TOPPSequestAdapter
 					string_buffer.split(',', spectra);
 					if ( spectra.empty() ) spectra.push_back(string_buffer);
 				}
-				else // if only sequest_out is set, in is the out_dir
+				else // if only sequest_out is set, in is the out_directory
 				{
-					out_dir = string_buffer;
+					out_directory = string_buffer;
 					
 					// if only sequest_out is set, the mzXML files have to be given to retrieve the retention times
-					string_buffer = getParamAsString_("mzXMLs");
+					string_buffer = getStringOption_("mzXMLs");
 					if ( string_buffer.empty() )
 					{
 						writeLog_("No mzXML files specified. Aborting!");
-						printUsage_();
+      //printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
 					else
@@ -648,230 +550,161 @@ class TOPPSequestAdapter
 				}
 			}
 
-			keep_out_files = getParamAsBool_("keep_out_files");
+			keep_out_files = getFlag_("keep_out_files");
 			if ( sequest_out && !sequest_in ) keep_out_files = true;
 
-			keep_dta_files = getParamAsBool_("keep_dta_files");
+			keep_dta_files = getFlag_("keep_dta_files");
 			if ( sequest_in && !sequest_out ) keep_dta_files = true;
 			
-			temp_data_dir = getParamAsString_("temp_data_dir");
-			if ( temp_data_dir.empty() )
+			temp_data_directory = getStringOption_("temp_data_directory");
+			if ( temp_data_directory.empty() )
 			{
 				writeLog_("No directory for temporary files given. Aborting!");
-				printUsage_();
+    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-			temp_data_dir.ensureLastChar(separator);
-
-			// only create dta files from the mzXML files, then quit
-			if ( getParamAsBool_("create_dtas") )
-			{
-				bool make_dtas = true;
-				// if there are already .dta files in the folder, stop the adapter
-				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
-				if ( !qdir.entryList().empty() )
-				{
-					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
-					deleteTempFiles(input_filename, logfile);
-					return UNKNOWN_ERROR;
-				}
-
-				MSExperiment<> msexperiment;
-				UnsignedInt msms_spectra_in_file;
-				UnsignedInt msms_spectra_altogether = 0;
-				if ( make_dtas ) writeLog_("creating dta files");
-				dtas = 0;
-				QFileInfo file_info;
-				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
-				{
-					file_info.setFile(*spec_i);
-					String common_name = temp_data_dir + string(file_info.fileName().ascii());
-					
-					MzXMLFile().load(*spec_i, msexperiment);
-
-					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, charge_states, filenames_and_precursor_retention_times, make_dtas);
-					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + file_info.fileName().ascii());
-
-					msms_spectra_altogether += msms_spectra_in_file;
-				}
-
-				if ( !msms_spectra_altogether )
-				{
-					writeLog_("No MS/MS spectra found in any of the mzXML files. Aborting!");
-					return UNKNOWN_ERROR;
-				}
-
-				return EXECUTION_OK;
-			}
+			temp_data_directory.ensureLastChar(separator);
 			
-			temp_data_dir_win = getParamAsString_("temp_data_dir_win");
-			temp_data_dir_win.ensureLastChar('\\');
+			temp_data_directory_win = getStringOption_("temp_data_directory_win");
+			temp_data_directory_win.ensureLastChar('\\');
 			
-			if ( !isWinFormat(temp_data_dir_win) )
+			if ( !isWinFormat(temp_data_directory_win) )
 			{
-				writeLog_("Windows path for the directory for temporary files has wrong format. Aborting!");
-				printUsage_();
+				writeLog_("Windows path for the directory for temporary files has wrong format: " + temp_data_directory_win + ". Aborting!");
+    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-			temp_data_dir_network = getParamAsString_("temp_data_dir_network");
-			if ( temp_data_dir_network.empty() )
+			temp_data_directory_network = getStringOption_("temp_data_directory_network");
+			if ( temp_data_directory_network.empty() )
 			{
 				writeLog_("Network path for the directory for temporary files is empty. Aborting!");
-				printUsage_();
+    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-				if ( !correctNetworkPath(temp_data_dir_network) )
+			if ( !correctNetworkPath(temp_data_directory_network) )
 			{
-				writeLog_(temp_data_dir_network + "is no network path. Aborting!");
+				writeLog_(temp_data_directory_network + "is no network path. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
 			
-			contact_person.setName(getParamAsString_("contactName", "unknown"));
-			contact_person.setInstitution(getParamAsString_("contactInstitution", "unknown"));
-			contact_person.setContactInfo(getParamAsString_("contactInfo"));
+			contact_person.setName(getStringOption_("contact_name"));
+			contact_person.setInstitution(getStringOption_("contact_institution"));
+			contact_person.setContactInfo(getStringOption_("contact_info"));
 
 			if ( sequest_in )
 			{
 				if ( !sequest_out )
 				{
-					input_filename = getParamAsString_("out");
+					input_filename = getStringOption_("out");
 					if ( input_filename.empty() )
 					{
 						writeLog_("No output file specified. Aborting!");
-						printUsage_();
+      //printUsage_();
 						return ILLEGAL_PARAMETERS;
 					}
 				}
 				else
 				{
-					input_filename = getParamAsString_("sequest_input");
+					input_filename = getStringOption_("sequest_input");
 					if ( input_filename.empty() )
 					{
-						input_filename = temp_data_dir + "temp.sequest.in";
-						input_file_dir_network = temp_data_dir_network;
+						input_filename = temp_data_directory + "temp.sequest.in";
+						input_file_directory_network = temp_data_directory_network;
 					}
-					else input_file_dir_network = getParamAsString_("sequest_in_dir_network");
+					else input_file_directory_network = getStringOption_("sequest_in_directory_network");
 				}
 			}
 			
 			if ( sequest_in && sequest_out )
 			{
-				if ( !correctNetworkPath(input_file_dir_network) )
+				if ( !correctNetworkPath(input_file_directory_network) )
 				{
-					writeLog_(input_file_dir_network + "is no network path. Aborting!");
+					writeLog_(input_file_directory_network + "is no network path. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				QFileInfo file_info(input_filename);
 				string_buffer = file_info.fileName().ascii();
-				if ( !input_file_dir_network.hasSuffix(string_buffer) ) input_file_dir_network.append("\\" + string_buffer);
+				if ( !input_file_directory_network.hasSuffix(string_buffer) ) input_file_directory_network.append("\\" + string_buffer);
 				
-				user = getParamAsString_("user");
-				if ( user.empty() )
-				{
-					writeLog_("No user name for Sequest computer given. Aborting!");
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
+				user = getStringOption_("user");
 				
-				password = getParamAsString_("password");
+				password = getStringOption_("password");
 			
-				sequest_dir_win = getParamAsString_("sequest_dir_win");
-				sequest_dir_win.ensureLastChar('\\');
-				if ( !isWinFormat(sequest_dir_win) && !sequest_dir_win.empty() )
+				sequest_directory_win = getStringOption_("sequest_directory_win");
+				if ( !sequest_directory_win.hasSuffix("sequest.exe") ) sequest_directory_win.ensureLastChar('\\');
+				if ( !isWinFormat(sequest_directory_win) )
 				{
-					writeLog_("Windows path for the SEQUEST working directory has wrong format. Aborting!");
-					printUsage_();
+					writeLog_("Windows path for the SEQUEST working directory has wrong format: " + sequest_directory_win + ". Aborting!");
+     //printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				else if ( sequest_dir_win.empty() )
+				else if ( sequest_directory_win.empty() )
 				{
 					writeLog_("No windows path for the SEQUEST working directory given. Assuming PATH variable to be set accordingly!");
-					sequest_dir_win = "sequest";
-				}
-
-				peptide_prophet_path = getParamAsString_("peptide_prophet_path");
-				peptide_prophet_path.ensureLastChar(separator);
-				if ( !peptide_prophet_path.empty() )
-				{
-					writeLog_("No path for PeptideProphet given. Aborting!");
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
+					sequest_directory_win = "sequest";
 				}
 				
-				sequest_computer = getParamAsString_("sequest_computer");
+				peptide_prophet_directory = getStringOption_("peptide_prophet_directory");
+				if ( !peptide_prophet_directory.empty() ) peptide_prophet_directory.ensureLastChar(separator);
+				
+				sequest_computer = getStringOption_("sequest_computer");
 				if ( sequest_computer.empty() )
 				{
 					writeLog_("No sequest computer name given. Aborting!");
-					printUsage_();
+     //printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
 			}
 			
-			if ( logfile == temp_data_dir + "sequest.log")
+			if ( logfile == temp_data_directory + "sequest.log")
 			{
-				writeLog_("The logfile must not be named " + temp_data_dir + "sequest.log. Aborting!");
+				writeLog_("The logfile must not be named " + temp_data_directory + "sequest.log. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
 
-			batch_filename = getParamAsString_("batchfile");
+			//batch_filename = getStringOption_("batchfile");
 			if ( batch_filename.empty() ) batch_filename = "sequest_run.bat";
 			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");
 			
-			database = getParamAsString_("db");
+			database = getStringOption_("db");
 			if ( database.empty() )
 			{
 				writeLog_("No database specified. Aborting!");
-				printUsage_();
+    //printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-
-			snd_database = getParamAsString_("snd_db");
 			
 			if ( sequest_in )
 			{
-				database_dir_network = getParamAsString_("db_dir_network");
-				if ( !correctNetworkPath(database_dir_network) )
+				database_directory_network = getStringOption_("db_directory_network");
+				if ( !correctNetworkPath(database_directory_network) )
 				{
-					writeLog_(database_dir_network + "is no network path. Aborting!");
+					writeLog_(database_directory_network + "is no network path. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				QFileInfo file_info(database);
 				string_buffer = file_info.fileName().ascii();
-				if ( !database_dir_network.hasSuffix(string_buffer) ) database_dir_network.append("\\" + string_buffer);
-				sequest_infile.setDatabase(database_dir_network);
-
-				if ( !snd_database.empty() )
-				{
-					snd_database_dir_network = getParamAsString_("snd_db_dir_network");
-					if ( !correctNetworkPath(snd_database_dir_network) )
-					{
-						writeLog_(snd_database_dir_network + "is no network path. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					QFileInfo file_info(snd_database);
-					string_buffer = file_info.fileName().ascii();
-// 					if ( !snd_database_dir_network.hasSuffix(string_buffer) ) snd_database_dir_network.append("\\" + string_buffer);
-					sequest_infile.setSndDatabase(snd_database_dir_network);
-				}
+				if ( !database_directory_network.hasSuffix(string_buffer) ) database_directory_network.append("\\" + string_buffer);
+				sequest_infile.setDatabase(database_directory_network);
 				
-				DoubleReal_buffer = getParamAsDouble_("pep_mass_tol", -1);
+				DoubleReal_buffer = getDoubleOption_("precursor_mass_tolerance");
 				if ( DoubleReal_buffer == -1 )
 				{
-					writeLog_("No peptide mass tolerance specified. Aborting!");
+					writeLog_("No precursor mass tolerance specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				else if ( DoubleReal_buffer < 0 )
 				{
-					writeLog_("Peptide mass tolerance < 0. Aborting!");
+					writeLog_("Precursor mass tolerance < 0. Aborting!");
 
 					return ILLEGAL_PARAMETERS;
 				}
 				else sequest_infile.setPeptideMassTolerance(DoubleReal_buffer);
 				
-				DoubleReal_buffer = getParamAsDouble_("frag_ion_tol", -1);
+				DoubleReal_buffer = getDoubleOption_("peak_mass_tolerance");
 				if ( DoubleReal_buffer == -1 )
 				{
-					writeLog_("No fragment ion tolerance specified. Aborting!");
+					writeLog_("No peak mass tolerance specified. Aborting!");
 
 					return ILLEGAL_PARAMETERS;
 				}
@@ -883,7 +716,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setFragmentIonTolerance(DoubleReal_buffer);
 				
-				DoubleReal_buffer = getParamAsDouble_("match_peak_tol", -1);
+				DoubleReal_buffer = getDoubleOption_("match_peak_tol");
 				if ( DoubleReal_buffer == -1 )
 				{
 					writeLog_("No match peak tolerance specified. Aborting!");
@@ -898,16 +731,16 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setMatchPeakTolerance(DoubleReal_buffer);
 				
-				DoubleReal_buffer = getParamAsDouble_("ion_cutoff", 0);
-				if ( DoubleReal_buffer < 0 || DoubleReal_buffer >= 1 )
+				DoubleReal_buffer = getDoubleOption_("ion_cutoff");
+				if ( DoubleReal_buffer < 0 || DoubleReal_buffer > 1 )
 				{
-					writeLog_("Ion cutoff not in [0,1). Aborting!");
+					writeLog_("Ion cutoff not in [0,1]. Aborting!");
 
 					return ILLEGAL_PARAMETERS;
 				}
 				else sequest_infile.setIonCutoffPercentage(DoubleReal_buffer);
 				
-				int_buffer = getParamAsInt_("pep_mass_unit", 0);
+				int_buffer = getIntOption_("pep_mass_unit");
 				if ( (int_buffer < 0) || (int_buffer > max_peptide_mass_units) )
 				{
 					writeLog_("Illegal peptide mass unit (not in [0,2]). Aborting!");
@@ -916,7 +749,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setPeptideMassUnit(int_buffer);
 				
-				int_buffer = getParamAsInt_("num_results", 0);
+				int_buffer = getIntOption_("num_results");
 				if ( (int_buffer < 1) )
 				{
 					writeLog_("Illegal number of results (< 1). Aborting!");
@@ -925,7 +758,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setOutputLines(int_buffer);
 				
-				string_buffer = getParamAsString_("enzyme_info");
+				string_buffer = getStringOption_("enzyme_info");
 				if ( !string_buffer.empty() )
 				{
 					string_buffer.split(':', substrings);
@@ -954,7 +787,7 @@ class TOPPSequestAdapter
 				else
 				{
 					substrings.clear();
-					SignedInt highest_enzyme_number = sequest_infile.setEnzymeNumber(getParamAsInt_("enzyme_number"));
+					SignedInt highest_enzyme_number = sequest_infile.setEnzymeNumber(getIntOption_("cleavage"));
 					if ( highest_enzyme_number )
 					{
 						writeLog_("Enzyme number has to be in [0," + String(highest_enzyme_number) + "]. Aborting!");
@@ -962,7 +795,7 @@ class TOPPSequestAdapter
 					}
 				}
 				
-				DoubleReal_buffer = getParamAsDouble_("prot_mass");
+				DoubleReal_buffer = getDoubleOption_("prot_mass");
 				if ( DoubleReal_buffer < 0 )
 				{
 					writeLog_("Illegal minimum protein mass (< 0). Aborting!");
@@ -970,7 +803,7 @@ class TOPPSequestAdapter
 				}
 				else
 				{
-					DoubleReal_buffer2 = getParamAsDouble_("max_prot_mass_or_tol");
+					DoubleReal_buffer2 = getDoubleOption_("max_prot_mass_or_tol");
 					if ( DoubleReal_buffer2 < 0 )
 					{
 						writeLog_("Illegal maximum protein mass/ tolerance (< 0). Aborting!");
@@ -984,7 +817,7 @@ class TOPPSequestAdapter
 					else sequest_infile.setProteinMassFilter(String(DoubleReal_buffer) + " " +  String(DoubleReal_buffer2));
 				}
 				
-				int_buffer = getParamAsInt_("max_num_dif_AA_per_mod", -1);
+				int_buffer = getIntOption_("max_num_dif_AA_per_mod");
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of modified amino acids per different modification. Aborting!");
@@ -992,7 +825,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setMaxAAPerModPerPeptide(int_buffer);
 				
-				int_buffer = getParamAsInt_("max_num_dif_mods_per_peptide", -1);
+				int_buffer = getIntOption_("max_num_dif_mods_per_peptide");
 				if ( int_buffer < 0 )
 				{
 					writeLog_("No maximum number of differential modifications per peptide. Aborting!");
@@ -1000,7 +833,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setMaxModsPerPeptide(int_buffer);
 				
-				int_buffer = getParamAsInt_("nuc_reading_frame", 0);
+				int_buffer = getIntOption_("nuc_reading_frame");
 				if ( (int_buffer < 0) || (int_buffer > 9) )
 				{
 					writeLog_("Illegal number for nucleotide reading frame. Aborting!");
@@ -1008,7 +841,7 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setNucleotideReadingFrame(int_buffer);
 				
-				int_buffer = getParamAsInt_("max_num_int_cleav_sites", 0);
+				int_buffer = getIntOption_("max_num_int_cleav_sites");
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of maximum internal cleavage sites. Aborting!");
@@ -1016,15 +849,15 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setMaxInternalCleavageSites(int_buffer);
 				
-				int_buffer = getParamAsInt_("match_peak_count", 0);
-				if ( (int_buffer < 0) && (int_buffer > 5) )
+				int_buffer = getIntOption_("match_peak_count");
+				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of auto-detected peaks to try matching. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				else sequest_infile.setMatchPeakCount(int_buffer);
 				
-				int_buffer = getParamAsInt_("match_peak_allowed_error", 0);
+				int_buffer = getIntOption_("match_peak_allowed_error");
 				if ( int_buffer < 0 )
 				{
 					writeLog_("Illegal number of allowed errors in matching auto-detected peaks. Aborting!");
@@ -1032,15 +865,15 @@ class TOPPSequestAdapter
 				}
 				else sequest_infile.setMatchPeakAllowedError(int_buffer);
 				
-				sequest_infile.setShowFragmentIons(getParamAsBool_("show_fragment_ions"));
-// 				sequest_infile.setUsePhosphoFragmentation(getParamAsBool_("use_phospho_fragmentation"));
-				sequest_infile.setRemovePrecursorNearPeaks(getParamAsBool_("remove_precursor_peak"));
-				sequest_infile.setMassTypeParent(getParamAsBool_("mass_type_parent"));
-				sequest_infile.setMassTypeFragment(getParamAsBool_("mass_type_fragment"));
-				sequest_infile.setNormalizeXcorr(getParamAsBool_("normalize_xcorr"));
-				sequest_infile.setResiduesInUpperCase(getParamAsBool_("residues_in_upper_case", true));
+				sequest_infile.setShowFragmentIons(getFlag_("show_fragment_ions"));
+// 				sequest_infile.setUsePhosphoFragmentation(getFlag_("use_phospho_fragmentation"));
+				sequest_infile.setRemovePrecursorNearPeaks(getFlag_("remove_precursor_peak"));
+				sequest_infile.setMassTypeParent(getFlag_("mass_type_precursor"));
+				sequest_infile.setMassTypeFragment(getFlag_("mass_type_peak"));
+				sequest_infile.setNormalizeXcorr(getFlag_("normalize_xcorr"));
+				sequest_infile.setResiduesInUpperCase(!getFlag_("residues_in_lower_case"));
 				
-				string_buffer = getParamAsString_("neutral_loss_ABY");
+				string_buffer = getStringOption_("neutral_loss_ABY");
 				string_buffer2 = "01";
 				if ( (string_buffer.size() != 3) || (string_buffer2.find(string_buffer[0], 0) == string::npos) || (string_buffer2.find(string_buffer[1], 0) == string::npos) || (string_buffer2.find(string_buffer[2], 0) == string::npos) )
 				{
@@ -1055,7 +888,7 @@ class TOPPSequestAdapter
 					sequest_infile.setNeutralLossesForIons(string_buffer);
 				}
 				
-				string_buffer = getParamAsString_("ion_series_weights");
+				string_buffer = getStringOption_("ion_series_weights");
 				string_buffer.split(',', substrings);
 				if ( substrings.size() != 9 )
 				{
@@ -1081,7 +914,7 @@ class TOPPSequestAdapter
 					sequest_infile.setIonSeriesWeights(string_buffer);
 				}
 				
-				string_buffer = getParamAsString_("dyn_mods");
+				string_buffer = getStringOption_("dyn_mods");
 				if ( !string_buffer.empty() )
 				{
 					string_buffer.split(':', substrings);
@@ -1102,16 +935,16 @@ class TOPPSequestAdapter
 					sequest_infile.setDynMods(string_buffer);
 				}
 				
-				sequest_infile.setDynNTermMod(getParamAsDouble_("dyn_N_term_mod"));
-				sequest_infile.setDynCTermMod(getParamAsDouble_("dyn_C_term_mod"));
+				sequest_infile.setDynNTermMod(getDoubleOption_("dyn_N_term_mod"));
+				sequest_infile.setDynCTermMod(getDoubleOption_("dyn_C_term_mod"));
 				
-				sequest_infile.setStatNTermMod(getParamAsDouble_("stat_N_term_mod"));
-				sequest_infile.setStatCTermMod(getParamAsDouble_("stat_C_term_mod"));
+				sequest_infile.setStatNTermMod(getDoubleOption_("stat_N_term_mod"));
+				sequest_infile.setStatCTermMod(getDoubleOption_("stat_C_term_mod"));
 				
-				sequest_infile.setStatNTermProtMod(getParamAsDouble_("stat_N_term_prot_mod"));
-				sequest_infile.setStatCTermProtMod(getParamAsDouble_("stat_C_term_prot_mod"));
+				sequest_infile.setStatNTermProtMod(getDoubleOption_("stat_N_term_prot_mod"));
+				sequest_infile.setStatCTermProtMod(getDoubleOption_("stat_C_term_prot_mod"));
 				
-				string_buffer = getParamAsString_("stat_mods");
+				string_buffer = getStringOption_("stat_mods");
 				if ( !string_buffer.empty() )
 				{
 					string_buffer.split(':', substrings);
@@ -1124,7 +957,6 @@ class TOPPSequestAdapter
 						if ( substrings2.size() != 2 || substrings2[0].empty() || substrings2[1].empty() )
 						{
 							writeLog_("Unexpected format for static modification found. Aborting!");
-
 							return ILLEGAL_PARAMETERS;
 						}
 						ss_i = --substrings2[1].end();
@@ -1134,21 +966,20 @@ class TOPPSequestAdapter
 							substrings2[1].insert(0, "-");
 						}
 						char_buffer = sequest_infile.setStatMod(substrings2[0], substrings2[1].toFloat());
-						if ( !char_buffer )
+						if ( char_buffer )
 						{
 							writeLog_("Unknown amino acid (" + String(char_buffer) + ") given. Aborting!");
-
 							return ILLEGAL_PARAMETERS;
 						}
 					}
 				}
 				
-				string_buffer = getParamAsString_("partial_sequence");
+				string_buffer = getStringOption_("partial_sequence");
 				string_buffer.split(',', substrings);
 				string_buffer.implode(substrings.begin(), substrings.end(), " ");
 				sequest_infile.setPartialSequence(string_buffer);
 				
-				string_buffer = getParamAsString_("header_filter");
+				string_buffer = getStringOption_("header_filter");
 				string_buffer.split(',', substrings);
 				string_buffer.implode(substrings.begin(), substrings.end(), " ");
 				sequest_infile.setSequenceHeaderFilter(string_buffer);
@@ -1156,7 +987,7 @@ class TOPPSequestAdapter
 			
 			if ( sequest_out )
 			{
-				string_buffer = getParamAsString_("out");
+				string_buffer = getStringOption_("out");
 				if ( string_buffer.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
@@ -1165,8 +996,7 @@ class TOPPSequestAdapter
 				}
 				else output_filename = string_buffer;
 			
-				DoubleReal_buffer = getParamAsDouble_("p_value", -1.0);
-				if ( DoubleReal_buffer != -1.0 ) p_value = DoubleReal_buffer;
+				p_value = getDoubleOption_("p_value");
 				if ( (p_value <= 0) || (p_value > 1) )
 				{
 					writeLog_("P-value not in (0,1]. Aborting!");
@@ -1186,10 +1016,9 @@ class TOPPSequestAdapter
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, input_filename);
 				}
-
-				if ( !File::writable(temp_data_dir + batch_filename) )
+				if ( !File::writable(temp_data_directory + batch_filename) )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_dir + batch_filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_directory + batch_filename);
 				}
 			}
 			
@@ -1201,7 +1030,7 @@ class TOPPSequestAdapter
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, output_filename);
 				}
 				
-				// first database
+				// database
 				if ( !File::exists(database) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database);
@@ -1213,23 +1042,6 @@ class TOPPSequestAdapter
 				if ( File::empty(database) )
 				{
 					throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, database);
-				}
-				
-				// second database
-				if ( !snd_database.empty() )
-				{
-					if ( !File::exists(snd_database) )
-					{
-						throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database);
-					}
-					if ( !File::readable(snd_database) )
-					{
-						throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database);
-					}
-					if ( File::empty(snd_database) )
-					{
-						throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database);
-					}
 				}
 			}
 			
@@ -1243,11 +1055,11 @@ class TOPPSequestAdapter
 			// creating the dta files
 			if ( make_dtas ) // if there are already .dta files in the folder, stop the adapter
 			{
-				QDir qdir(temp_data_dir, "*.dta", QDir::Name, QDir::Files);
+				QDir qdir(temp_data_directory, "*.dta_*", QDir::Name, QDir::Files);
 				if ( !qdir.entryList().empty() )
 				{
-					writeLog_("There are already dta files in directory " + temp_data_dir + ". Aborting!");
-					deleteTempFiles(input_filename, logfile);
+					writeLog_("There are already dta files in directory " + temp_data_directory + ". Aborting!");
+					deleteTempFiles(input_filename, logfile, batch_filename);
 					return UNKNOWN_ERROR;
 				}
 			}
@@ -1261,11 +1073,11 @@ class TOPPSequestAdapter
 			for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
 			{
 				file_info.setFile(*spec_i);
-				String common_name = temp_data_dir + string(file_info.fileName().ascii());
+				String common_name = temp_data_directory + string(file_info.fileName().ascii());
 				
 				MzXMLFile().load(*spec_i, msexperiment);
 				
-				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, charge_states, filenames_and_precursor_retention_times, make_dtas);
+				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, common_name, charges, filenames_and_precursor_retention_times, make_dtas);
 				writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + file_info.fileName().ascii());
 
 				msms_spectra_altogether += msms_spectra_in_file;
@@ -1283,30 +1095,31 @@ class TOPPSequestAdapter
 			{
 				// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
 				String sequest_screen_output = getRandomFilename(); // direct the screen-output to a file
-				ofstream batchfile(String(temp_data_dir + batch_filename).c_str());
+				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
 				if ( !batchfile )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_dir + batch_filename);
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_directory + batch_filename);
 				}
-				String call = "rdesktop -u ";
-				call.append(user);
+				String call = "rdesktop";
+				if ( !user.empty() ) call.append(" -u " + user);
 				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
 				call.append(" -s cmd\\ /C\\ \"");
-				call.append(" net use " + temp_data_dir_win.substr(0,2) + " \\\\" + temp_data_dir_network + " && ");
-
-				batchfile << String(" cd " + temp_data_dir_win + " && " + temp_data_dir_win.substr(0,2));
+				call.append(" net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
+// 				call.append(" net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
+				
+				batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 				
 				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 				{
-					batchfile << String(" && " + sequest_dir_win + "sequest.exe -P" + input_file_dir_network + " " + temp_data_dir_network + "\\*.dta" + String(i) + " >  " +  temp_data_dir_network +"\\" + sequest_screen_output + " && move sequest.log sequest.log" + String(i));
+					batchfile << String(" && " + sequest_directory_win + "sequest.exe -P" + input_file_directory_network + " " + temp_data_directory_network + "\\*.dta_" + String(i) + " >  " +  temp_data_directory_network +"\\" + sequest_screen_output + " && move sequest.log sequest.log" + String(i));
 				}
-				batchfile << String(" && " + sequest_dir_win.substr(0,2) + " &&");
-				batchfile << String(" net use /delete " + temp_data_dir_win.substr(0,2));
+				batchfile << String(" && " + sequest_directory_win.substr(0,2) + " &&");
+				batchfile << String(" net use /delete " + temp_data_directory_win.substr(0,2));
 				batchfile << " && logoff";
 				batchfile.close();
 				batchfile.clear();
 				
-				call.append(temp_data_dir_win + batch_filename + "\" " + sequest_computer);
+				call.append(temp_data_directory_win + batch_filename + "\" " + sequest_computer);
 				writeLog_("System call: " + call);
 				int status = system(call.c_str());
 				remove(sequest_screen_output.c_str());
@@ -1314,13 +1127,28 @@ class TOPPSequestAdapter
 				if ( status != 0 )
 				{
 					writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-					deleteTempFiles(input_filename, logfile);
+					deleteTempFiles(input_filename, logfile, batch_filename);
+					// remove all dtas
+					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+					{
+						writeLog_("removing dta files");
+						QDir qdir(temp_data_directory, "*.dta_" + String(i) , QDir::Name, QDir::Files);
+						QStringList qlist = qdir.entryList();
+						
+						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+						{
+							if ( !File::remove(temp_data_directory + (*i).ascii()) )
+							{
+								writeLog_(string((*i).ascii()) + "could not be removed!");
+							}
+						}
+					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
-
+				
 				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 				{
-					ifstream sequest_log(string(temp_data_dir + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
+					ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
 					if ( !sequest_log )
 					{
 						writeLog_("No Sequest log found!");
@@ -1336,7 +1164,7 @@ class TOPPSequestAdapter
 						sequest_log.clear();
 						writeLog_(buffer);
 						delete(buffer);
-						remove(string(temp_data_dir + "sequest.log" + String(i)).c_str());
+						remove(string(temp_data_directory + "sequest.log" + String(i)).c_str());
 					}
 				}
 			}
@@ -1348,12 +1176,12 @@ class TOPPSequestAdapter
 					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
 						writeLog_("removing dta files");
-						QDir qdir(temp_data_dir, "*.dta" + String(i) , QDir::Name, QDir::Files);
+						QDir qdir(temp_data_directory, "*.dta_" + String(i) , QDir::Name, QDir::Files);
 						QStringList qlist = qdir.entryList();
 						
 						for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 						{
-							if ( !File::remove(temp_data_dir + (*i).ascii()) )
+							if ( !File::remove(temp_data_directory + (*i).ascii()) )
 							{
 								writeLog_(string((*i).ascii()) + "could not be removed!");
 							}
@@ -1364,70 +1192,85 @@ class TOPPSequestAdapter
 				SequestOutfile sequest_outfile;
 				vector< IdentificationData > identifications;
 				ProteinIdentification protein_identification;
+				UnsignedInt identification_size = identifications.size();
 				
-				QDir qdir(temp_data_dir, "*.out", QDir::Name, QDir::Files);
+				QDir qdir(temp_data_directory, "*.out", QDir::Name, QDir::Files);
 				QStringList qlist = qdir.entryList();
 				
 				if ( qlist.isEmpty() )
 				{
 					writeLog_("No .out found. Aborting!");
 					qlist.clear();
-					deleteTempFiles(input_filename, logfile);
+					deleteTempFiles(input_filename, logfile, batch_filename);
 					return UNKNOWN_ERROR;
 				}
 				
-				String summary = "tmp.summary.html";
-				bool append = false;
-				for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
-				{
-					sequest_outfile.out2SummaryHtml(temp_data_dir + string((*i).ascii()), summary, database, append);
-				}
-				//sequest_outfile.finishSummaryHtml(summary);
-				String call = "cd ";
-				call.append(peptide_prophet_path);
-				call.append("runPeptidProphet ");
-				call.append(summary);
-				SignedInt status = system(call.c_str());
-				if ( status != 0 )
-				{
-					writeLog_("Problems with Peptide Prophet. Aborting!");
-					qlist.clear();
-					deleteTempFiles(input_filename, logfile);
-					return UNKNOWN_ERROR;
-				}
-				map< String, vector< Real > > filenames_and_pvalues = sequest_outfile.getPeptidePValues(temp_data_dir, summary + ".prob");
+				String call;
+				map< String, vector< Real > > filenames_and_pvalues;
 				
-				remove(summary.c_str());
-				remove(String(summary + ".prob").c_str());
-				remove(String(summary + ".esi").c_str());
-				summary.replace(summary.length() - 4, 4, "model");
+				if ( !peptide_prophet_directory.empty() )
+				{
+					String summary = "tmp.summary.html";
+					bool append = false;
+					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
+					{
+						sequest_outfile.out2SummaryHtml(temp_data_directory + string((*i).ascii()), summary, database, append);
+					}
+					//sequest_outfile.finishSummaryHtml(summary);
+					
+					call = "cd ";
+					call.append(peptide_prophet_directory);
+					call.append("runPeptidProphet ");
+					call.append(summary);
+					SignedInt status = system(call.c_str());
+					if ( status != 0 )
+					{
+						writeLog_("Problems with Peptide Prophet. Aborting!");
+						qlist.clear();
+						deleteTempFiles(input_filename, logfile, batch_filename);
+						return UNKNOWN_ERROR;
+					}
+					filenames_and_pvalues = sequest_outfile.getPeptidePValues(temp_data_directory, summary + ".prob");
+					
+					remove(summary.c_str());
+					remove(String(summary + ".prob").c_str());
+					remove(String(summary + ".esi").c_str());
+					summary.replace(summary.length() - 4, 4, "model");
+					remove(summary.c_str());
+				}
 				String filename;
+				vector< Real > pvalues;
 				
 				for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 				{
-					filename = temp_data_dir + string((*i).ascii());
-					sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[temp_data_dir + string((*i).ascii())], database, snd_database);
+					filename = temp_data_directory + string((*i).ascii());
+					if ( filenames_and_pvalues.empty() ) sequest_outfile.load(filename, identifications, protein_identification, p_value, pvalues, database);
+					else sequest_outfile.load(filename, identifications, protein_identification, p_value, filenames_and_pvalues[temp_data_directory + string((*i).ascii())], database);
 					
 					// save the retention times
-					identifications.back().rt = filenames_and_precursor_retention_times[filename];
+					if ( identification_size != identifications.size() )
+					{
+						identification_size = identifications.size();
+						identifications.back().rt = filenames_and_precursor_retention_times[filename];
+					}
 				}
 				
 				vector< ProteinIdentification > pis;
 				pis.push_back(protein_identification);
-
+				
 				AnalysisXMLFile().store(output_filename, pis, identifications);
 				
 				// remove all outs
 				if ( !keep_out_files )
 				{
 					writeLog_("removing out files");
-					qdir.setPath(temp_data_dir);
+					qdir.setPath(temp_data_directory);
 					qlist = qdir.entryList("*.out", QDir::Files, QDir::Name);
 					QFile qfile;
 					
 					for ( QStringList::const_iterator i = qlist.constBegin(); i != qlist.constEnd(); ++i )
 					{
-						if ( !qfile.remove(QString(temp_data_dir.c_str() + *i)) ) writeLog_(string((*i).ascii()) + "could not be removed!");
+						if ( !qfile.remove(QString(temp_data_directory.c_str() + *i)) ) writeLog_(string((*i).ascii()) + "could not be removed!");
 					}
 				}
 				
@@ -1435,7 +1278,7 @@ class TOPPSequestAdapter
 			}
 			
 			// (3.3) deleting all temporary files
-			deleteTempFiles(input_filename, logfile);
+			deleteTempFiles(input_filename, logfile, batch_filename);
 			
 			return EXECUTION_OK;
 		}

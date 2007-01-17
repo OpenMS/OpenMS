@@ -28,7 +28,6 @@
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <stdlib.h>
@@ -81,8 +80,6 @@ using namespace std;
 						@code ./inspect -i  inputfilename -o outputfilename  @endcode
 					</li>
 				</ul>
-				(Inspect may be run from anywhere adding '-r inspect_directory' but at
-				the current version (20060620) this does not work properly)
 				Consult your Inspect reference manual for further details.
 				
 				This mode is selected by the <b>-inspect_in</b> option in the command line.
@@ -109,136 +106,78 @@ class TOPPInspectAdapter
 {
 	public:
 		TOPPInspectAdapter()
-			: TOPPBase2("InspectAdapter")
+			: TOPPBase2("InspectAdapter", "annotates MS/MS spectra using Inspect.")
 		{}
 	
 	protected:
-		void printToolUsage_() const
+		void registerOptionsAndFlags_()
 		{
-			cerr	<< endl
-						<< getToolName() << " -- annotates MS/MS spectra using Inspect" << endl
-						<< "Version: " << VersionInfo::getVersion() << endl
-						<< endl
-						<< "Usage:" << endl
-						<< " " << getToolName() << " [options]" << endl
-						<< endl
-						<< "Options are:" << endl
-						<< "  -in <file>          the input file OR directory to search (every file in that directory will be searched (non-recursively)" << endl
-						<< "                      supported file formats are .mzXML, .mzData" << endl
-						<< "                      Note: In mode 'inspect_out' an Inspect result file is read" << endl
-						<< "  -out <file>         output file in analysisXML" << endl
-						<< "  -inspect_in         if this flag is set the InspectAdapter will write an Inspect input file and generate a trie database" << endl
-						<< "  -inspect_out        if this flag is set the InspectAdapter will read an Inspect result  file and write an analysisXML file." << endl
-						<< "  -inspect_dir        the Inspect directory." << endl
-						<< "  -temp_data_dir      a directory in which some temporary files can be stored" << endl
-						<< "  -dbs <file1>,...    names of databases(s) (FASTA and SwissProt supported)" << endl
-						<< endl
-						<< "  OPTIONAL PARAMETERS" << endl
-						<< "  -inspect_output <file>  name for the output file of Inspect (may only be used in a full run)" << endl
-						<< "  -instr              the instrument that was used to measure the spectra" << endl
-						<< "                      (If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.)" << endl
-						<< "  -prcr_m_tol         the precursor mass tolerance" << endl
-						<< "  -pk_m_tol           the peak mass tolerance" << endl
-						<< "  -mods <MASS1>,<RESIDUES1>,<TYPE1>,<NAME1>:..." << endl
-						<< "                      modifications i.e. [80,STY,opt,phosphorylation]" << endl
-						<< "                      MASS and RESIDUES are mandatory" << endl
-						<< "                      Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\", and \"opt\" (the default)." << endl
-						<< "  -multicharge        attempt to guess the precursor charge and mass, and consider multiple charge states if feasible" << endl
-						<< "  -protease           the name of a protease. (\"Trypsin\", \"None\", or \"Chymotrypsin\")" << endl
-						<< "  -o <file>           direct output file from inspect" << endl
-						<< "  -trie_dbs <file1>,... names of database(s) in trie format" << endl
-						<< "  -max_mods_pp        number of PTMs permitted in a single peptide." << endl
-						<< "  -tag_count          number of tags to generate" << endl
-						<< "  -no_tmp_dbs         no temporary databases are used" << endl
-						<< "  -new_db             name of the merged trie database" << endl
-						<< "                      an index file with extension \".index\" will be created." << endl
-						<< "  -p_value            annotations with inferior p-value are ignored" << endl
-						<< endl
-						<< "  BLIND SEARCH" << endl
-						<< "  -blind              perform a blind search (allowing arbitrary modification masses), is preceeded by a normal search to gain a smaller database." << endl
-						<< "                      (can only be used in full mode)" << endl
-						<< "  -blind_only         like blind but no prior search is performed to reduce the database size" << endl
-						<< "  -p_value_blind      used for generating the minimized database" << endl
-						<< "  -min_spp            minimum number of spectra a protein has to annotate to be added to the database" << endl
-						<< "  -snd_db             name of the minimized trie database generated when using blind mode." << endl
-						<< "                      (-1 is #spectra / #proteins * 2)" << endl
-						<< "  -maxptmsize         maximum modification size (in Da) to consider" << endl;
+			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			                                           "Note: In mode 'inspect_in' an Inspect input file is written.");
+			registerStringOption_("in", "<file>", "", "input file in mzXML format OR directory to search in.\n"
+					 																			"Note: In mode 'inspect_out' an Inspect results file is read");
+			registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
+																							 "write an Inspect input file and generate a trie database");
+			registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
+																								 "and write analysisXML");
+			registerStringOption_("inspect_directory", "<dir>", "", "the directory in which Inspect is located");
+			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
+			registerStringOption_("dbs", "<file>", "", "name(s) of database(s) to search in (FASTA and SwissProt supported)", false);
+			registerStringOption_("trie_dbs", "<file>", "", "name(s) of databases(s) to search in (trie-format)", false);
+			registerStringOption_("new_db", "<file>", "", "name of the merged trie database", false);
+			registerStringOption_("instrument", "<i>", "", "the instrument that was used to measure the spectra\n"
+																										 "(If set to QTOF, uses a QTOF-derived fragmentation model,\n"
+																										 "and does not attempt to correct the parent mass.)", false);
+			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
+			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
+			registerStringOption_("modifications", "<mods>", "", "the modifications: <MASS>,<RESIDUES>,<TYPE>,<NAME>:...\n"
+																													 "i.e. 80,STY,opt,phosphorylation\n"
+																													 "MASS and RESIDUES are mandatory\n"
+																													 "Valid values for \"TYPE\" are \"fix\", \"cterminal\", \"nterminal\",\n"
+																													 "and \"opt\" (the default).\n", false);
+			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
+			registerStringOption_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
+			registerStringOption_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
+			registerFlag_("multicharge", "attempt to guess the precursor charge and mass,\n"
+																								 "and consider multiple charge states if feasible");
+			registerIntOption_("max_modifications_pp", "<num>", -1 ,"number of PTMs permitted in a single peptide.", false);
+			registerIntOption_("tag_count", "<num>", -1, "number of tags to generate", false);
+			registerFlag_("no_tmp_dbs", "no temporary databases are used");
+			registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
+			addEmptyLine_();
+			addText_("Options for blind search");
+			registerFlag_("blind", "perform a blind search (allowing arbitrary modification masses),\n"
+																			 "is preceeded by a normal search to gain a smaller database.\n"
+														 "(in full mode only)");
+			registerFlag_("blind_only", "like blind but no prior search is performed to reduce the database size");
+			registerDoubleOption_("p_value_blind", "<prob>", 1.0, "used for generating the minimized database", false);
+			registerIntOption_("min_spp", "<num>", -1, "minimum number of spectra a protein has to annotate\n"
+																																					 "to be added to the database", false);
+			registerStringOption_("snd_db", "<file>", "", "name of the minimized trie database generated when using blind mode.", false);
+			registerDoubleOption_("maxptmsize", "<num>", 250.0, "maximum modification size (in Da) to consider", false);
+			registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
+			registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
+			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-
-		void printToolHelpOpt_() const
+		void fileContent(const string& filename, string& content)
 		{
-			cerr	<< endl;
-		}
-
-
-		void setOptionsAndFlags_()
-		{
-			options_["-inspect_dir"] = "inspect_dir";
-			options_["-temp_data_dir"] = "temp_data_dir";
-			flags_["-inspect_in"] = "inspect_in";
-			flags_["-inspect_out"] = "inspect_out";
-			options_["-in"] = "in";
-			options_["-trie_dbs"] = "trie_dbs";
-			options_["-dbs"] = "dbs";
-			options_["-new_db"] = "new_db";
-			options_["-snd_db"] = "snd_db";
-			options_["-protease"] = "protease";
-			options_["-instrument"] = "instrument";
-			options_["-mods"] = "mods";
-			options_["-max_mods_pp"] = "max_mods_pp";
-			options_["-prcr_m_tol"] = "prcr_m_tol";
-			options_["-pk_m_tol"] = "pk_m_tol";
-			flags_["-multicharge"] = "multicharge";
-			options_["-tag_count"] = "tag_count";
-			options_["-out"] = "out";
-			options_["-inspect_output"] = "inspect_output";
-			flags_["-blind_only"] = "blind_only";
-			options_["-p_value"] = "p_value";
-			options_["-p_value_blind"] = "p_value_blind";
-			options_["-min_spp"] = "min_spp";
-			options_["-maxptmsize"] = "maxptmsize";
-			flags_["-blind"] = "blind";
-			flags_["-cmn_conts"] = "cmn_conts";
-			flags_["-no_tmp_dbs"] = "no_tmp_dbs";
-		}
-
-		long fsize(const string& filename)
-		{
-			FILE* file = fopen(filename.c_str(), "r");
-			long size = 0;
-			if ( file != NULL )
+			content.clear();
+			ifstream ifs(filename.c_str());
+			if ( !ifs )
 			{
-				fseek(file, 0, SEEK_END);
-				size = ftell(file);
-				fclose(file);
-				return size;
+				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 			}
-			return -1;
-		}
-		
-		inline bool emptyFile(const string& filename)
-		{
-			return ( fsize(filename) == 0 );
+			streampos sp = ifs.seekg(0, ios::end).tellg();
+			ifs.seekg(0, std::ios::beg);
+			char* cp = new char[sp];
+			ifs.read(cp, sp);
+			ifs.close();
+			ifs.clear();
+			content = string(cp);
+			delete(cp);
 		}
 
-		string fileContent(const string& filename)
-		{
-			long size = fsize(filename);
-			if ( size != -1 )
-			{
-				FILE* file = fopen(filename.c_str(), "r");
-				char* buffer = new char[size+1];
-				buffer[size] = 0;
-				fread (buffer, size, 1, file);
-				fclose(file);
-				string sbuffer = buffer;
-				delete(buffer);
-				return sbuffer;
-			}
-			else return string();
-		}
-		
 		// deleting all temporary files
 		void deleteTempFiles(const String& input_filename, const String& output_filename, const String& inspect_output_filename, const String& db_filename, const String& idx_filename, const String& snd_db_filename, const String& snd_idx_filename, const String& inspect_logfile)
 		{
@@ -250,11 +189,6 @@ class TOPPInspectAdapter
 			if ( snd_db_filename.hasSuffix("tmp.inspect.db.snd.trie") ) remove(snd_db_filename.c_str());
 			if ( snd_idx_filename.hasSuffix("tmp.inspect.db.snd.index") ) remove(snd_idx_filename.c_str());
  			if ( inspect_logfile.hasSuffix("tmp.inspect.log") ) remove(inspect_logfile.c_str());
-		}
-
-		inline void ensurePathChar(string& path, char path_char = '/')
-		{
-			if ( !path.empty() && (string("/\\").find(path[path.length()-1], 0) == string::npos) ) path.append(1, path_char);
 		}
 
 		ExitCodes main_(int , char**)
@@ -281,10 +215,10 @@ class TOPPInspectAdapter
 				snd_idx_filename,
 				inspect_logfile,
 				logfile,
-				inspect_dir,
-				temp_data_dir,
+				inspect_directory,
+				temp_data_directory,
 				snd_db,
-				snd_db_dir,
+				snd_db_directory,
 				output_filename,
 				inspect_input_filename,
 				inspect_output_filename;
@@ -299,18 +233,17 @@ class TOPPInspectAdapter
 			Real p_value_threshold = 1.0;
 			Real cutoff_p_value;
 			
-			SignedInt
-				min_annotated_spectra_per_protein;
-			
 			char separator = '/';
+			
+			ContactPerson contact_person;
 			
 			
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
 			
-			inspect_in = getParamAsBool_("inspect_in");
-			inspect_out = getParamAsBool_("inspect_out");
+			inspect_in = getFlag_("inspect_in");
+			inspect_out = getFlag_("inspect_out");
 			
 			if ( inspect_in && inspect_out )
 			{
@@ -322,18 +255,18 @@ class TOPPInspectAdapter
 			
 			if ( inspect_out && inspect_in )
 			{
-				temp_data_dir = getParamAsString_("temp_data_dir");
-				if ( temp_data_dir.empty() )
+				temp_data_directory = getStringOption_("temp_data_directory");
+				if ( temp_data_directory.empty() )
 				{
 					writeLog_("No directory for temporary files specified. Aborting!");
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				File::absolutePath(temp_data_dir);
-				temp_data_dir.ensureLastChar(separator);
+				File::absolutePath(temp_data_directory);
+				temp_data_directory.ensureLastChar(separator);
 			}
 			
-			string_buffer = getParamAsString_("in");
+			string_buffer = getStringOption_("in");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -346,13 +279,17 @@ class TOPPInspectAdapter
 				if ( inspect_in )
 				{
 					inspect_infile.setSpectra(string_buffer);
-					if ( inspect_out ) inspect_output_filename = getParamAsString_("inspect_output", temp_data_dir + "tmp.direct.inspect.output");
+					if ( inspect_out )
+					{
+						inspect_output_filename = getStringOption_("inspect_output");
+						if ( inspect_output_filename.empty() ) inspect_output_filename = temp_data_directory + "tmp.direct.inspect.output";
+					}
 				}
 				else inspect_output_filename = string_buffer;
 				File::absolutePath(inspect_output_filename);
 			}
 			
-			string_buffer = getParamAsString_("out");
+			string_buffer = getStringOption_("out");
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No output file specified. Aborting!");
@@ -367,26 +304,30 @@ class TOPPInspectAdapter
 			
 			if ( inspect_in && inspect_out )
 			{
-				inspect_input_filename = getParamAsString_("inspect_input");
-				if ( inspect_input_filename.empty() ) inspect_input_filename = temp_data_dir + "tmp.inspect.input";
+				inspect_input_filename = getStringOption_("inspect_input");
+				if ( inspect_input_filename.empty() ) inspect_input_filename = temp_data_directory + "tmp.inspect.input";
 				
 				File::absolutePath(inspect_input_filename);
 			}
 			
-			inspect_dir = getParamAsString_("inspect_dir");
-			if ( inspect_in && inspect_dir.empty() && inspect_out )
+			inspect_directory = getStringOption_("inspect_directory");
+			if ( inspect_in && inspect_directory.empty() && inspect_out )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			File::absolutePath(inspect_dir);
-			inspect_dir.ensureLastChar(separator);
+			File::absolutePath(inspect_directory);
+			inspect_directory.ensureLastChar(separator);
 			
-			blind_only = getParamAsBool_("blind_only");
+			blind_only = getFlag_("blind_only");
+			
+			contact_person.setName(getStringOption_("contact_name"));
+			contact_person.setInstitution(getStringOption_("contact_institution"));
+			contact_person.setContactInfo(getStringOption_("contact_info"));
 			
 			if ( inspect_in )
 			{
-				string_buffer = getParamAsString_("trie_dbs");
+				string_buffer = getStringOption_("trie_dbs");
 				if ( !string_buffer.empty() )
 				{
 					// get the single databases
@@ -394,7 +335,7 @@ class TOPPInspectAdapter
 					if ( dbs.empty() ) dbs.push_back(string_buffer);
 				}
 				
-				string_buffer = getParamAsString_("dbs");
+				string_buffer = getStringOption_("dbs");
 				if ( !string_buffer.empty() )
 				{
 					// get the single sequence files
@@ -409,17 +350,17 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				no_tmp_dbs = getParamAsBool_("no_tmp_dbs");
+				no_tmp_dbs = getFlag_("no_tmp_dbs");
 				
 				// blind - running inspect in blind mode after running a normal mode to minimize the database
-				blind = getParamAsBool_("blind");
+				blind = getFlag_("blind");
 				if ( blind && inspect_in && !inspect_out )
 				{
 					blind = false;
 					blind_only = true;
 				}
 				
-				db_filename = getParamAsString_("new_db");
+				db_filename = getStringOption_("new_db");
 				if ( db_filename.empty() && (!seq_files.empty() || dbs.size() != 1) )
 				{
 					if ( !inspect_out )
@@ -436,9 +377,9 @@ class TOPPInspectAdapter
 						}
 						else
 						{
-							db_filename = temp_data_dir + "tmp.inspect.db.trie";
+							db_filename = temp_data_directory + "tmp.inspect.db.trie";
 							inspect_infile.setDb(db_filename);
-							idx_filename = temp_data_dir + "tmp.inspect.db.index";
+							idx_filename = temp_data_directory + "tmp.inspect.db.index";
 						}
 					}
 				}
@@ -467,7 +408,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				snd_db = getParamAsString_("snd_db");
+				snd_db = getStringOption_("snd_db");
 				if ( no_tmp_dbs && blind && snd_db.empty() )
 				{
 					writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
@@ -475,8 +416,8 @@ class TOPPInspectAdapter
 				}
 				else if ( blind && snd_db.empty() )
 				{
-					snd_db_filename = temp_data_dir + "tmp.inspect.db.snd.trie";
-					snd_idx_filename = temp_data_dir + "tmp.inspect.db.snd.index";
+					snd_db_filename = temp_data_directory + "tmp.inspect.db.snd.trie";
+					snd_idx_filename = temp_data_directory + "tmp.inspect.db.snd.index";
 				}
 				else if ( blind )
 				{
@@ -496,7 +437,7 @@ class TOPPInspectAdapter
 				// get the single modifications
 				if ( !blind_only )
 				{
-					string_buffer = getParamAsString_("mods");
+					string_buffer = getStringOption_("modifications");
 					string_buffer.split(':', substrings);
 					
 					if ( substrings.empty() && !string_buffer.empty() ) substrings.push_back(string_buffer);
@@ -526,81 +467,62 @@ class TOPPInspectAdapter
 					inspect_infile.setMod(mod);
 				}
 				
-				inspect_infile.setProtease(getParamAsString_("protease"));
-				inspect_infile.setInstrument(getParamAsString_("instrument"));
+				inspect_infile.setProtease(getStringOption_("cleavage"));
+				inspect_infile.setInstrument(getStringOption_("instrument"));
 				
-				inspect_infile.setMods(getParamAsInt_("max_mods_pp", -1));
+				inspect_infile.setMods(getIntOption_("max_modifications_pp"));
 				if ( inspect_infile.getMods() < 1 && !mod.empty() )
 				{
-					writeLog_("Modifications specified, but max_mods_pp not set. Setting it to 1.");
+					writeLog_("Modifications specified, but max_modifications_pp not set. Setting it to 1.");
 					inspect_infile.setMods(1);
 				}
 				
-				string_buffer = getParamAsString_("prcr_m_tol");
-				if ( !string_buffer.empty() )
+				inspect_infile.setPMTolerance(getDoubleOption_("precursor_mass_tolerance"));
+				if ( (inspect_infile.getPMTolerance() < 0 && inspect_infile.getPMTolerance() != -1) )
 				{
-					inspect_infile.setPMTolerance(getParamAsDouble_("prcr_m_tol"));
-					if ( (inspect_infile.getPMTolerance() < 0) )
-					{
-						writeLog_("Illegal parent mass tolerance (<0) given. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-				}
-
-				string_buffer = getParamAsString_("pk_m_tol");
-				if ( !string_buffer.empty() )
-				{
-					inspect_infile.setIonTolerance( getParamAsDouble_("pk_m_tol") );
-					if ( (inspect_infile.getIonTolerance() < 0) )
-					{
-						writeLog_("Illegal ion mass tolerance (<0) given. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-				}
-
-				if ( getParamAsBool_("multicharge") ) inspect_infile.setMulticharge(1);
-
-				string_buffer = getParamAsString_("tag_count");
-				if ( !string_buffer.empty() )
-				{
-					inspect_infile.setTagCount(getParamAsInt_("tag_count"));
-					if ( (inspect_infile.getTagCount() < 0) )
-					{
-						writeLog_("Illegal number of tags (tag_count <0) given. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
+					writeLog_("Illegal precursor mass tolerance (<0) given. Aborting!");
+					return ILLEGAL_PARAMETERS;
 				}
 				
-				string_buffer = getParamAsString_("maxptmsize");
-				if ( !string_buffer.empty() )
+				inspect_infile.setIonTolerance( getDoubleOption_("peak_mass_tolerance") );
+				if ( (inspect_infile.getIonTolerance() < 0 && inspect_infile.getIonTolerance() != -1) )
 				{
-					inspect_infile.setMaxPTMsize(getParamAsDouble_("maxptmsize") );
-					if ( inspect_infile.getMaxPTMsize() < 0 )
-					{
-						writeLog_("Illegal maximum modification size (<0). Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
+					writeLog_("Illegal peak mass tolerance (<0) given. Aborting!");
+					return ILLEGAL_PARAMETERS;
 				}
 				
-				string_buffer = getParamAsString_("min_spp");
-				if ( !string_buffer.empty() ) min_annotated_spectra_per_protein = getParamAsInt_("min_spp");
+				if ( getFlag_("multicharge") ) inspect_infile.setMulticharge(1);
+				
+				inspect_infile.setTagCount(getIntOption_("tag_count"));
+				if ( (inspect_infile.getTagCount() < 0 && inspect_infile.getTagCount() != -1) )
+				{
+					writeLog_("Illegal number of tags (tag_count <0) given. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
+				
+				inspect_infile.setMaxPTMsize(getDoubleOption_("maxptmsize") );
+				if ( inspect_infile.getMaxPTMsize() < 0 && inspect_infile.getMaxPTMsize() != -1)
+				{
+					writeLog_("Illegal maximum modification size (<0). Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
 			}
 			
 			if ( inspect_out )
 			{
-				p_value_threshold = getParamAsDouble_("p_value", 1.0);
+				p_value_threshold = getDoubleOption_("p_value");
 				if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 				{
 					writeLog_("Illegal p-value. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
 				
-				inspect_logfile = temp_data_dir + "tmp.inspect.log";
+				inspect_logfile = temp_data_directory + "tmp.inspect.log";
 			}
 			
 			if ( blind && inspect_in )
 			{
-				cutoff_p_value = getParamAsDouble_("p_value_blind", p_value_threshold);
+				cutoff_p_value = getDoubleOption_("p_value_blind");
 				if ( (cutoff_p_value < 0) || (cutoff_p_value > 1) )
 				{
 					writeLog_("Illegal p-value for blind search. Aborting!");
@@ -720,7 +642,7 @@ class TOPPInspectAdapter
 					if ( !File::writable(inspect_logfile) )
 					{
 						writeLog_(String(" Could not write in temp data directory: ")
-								+ temp_data_dir + inspect_logfile
+								+ temp_data_directory + inspect_logfile
 								+ String(" Aborting!"));
 						return ILLEGAL_PARAMETERS;
 					}
@@ -758,11 +680,9 @@ class TOPPInspectAdapter
 			if ( blind && inspect_in && inspect_out )
 			{
 				String call;
-				call.append("cd ");
-				call.append(inspect_dir);
-				call.append(" && ./inspect");
-				//call.append("inspect -r ");
-				//call.append(inspect_dir);
+				call.append(inspect_directory);
+				call.append("inspect -r ");
+				call.append(inspect_directory);
 				call.append(" -i ");
 				call.append(inspect_input_filename);
 				call.append(" -o ");
@@ -772,12 +692,11 @@ class TOPPInspectAdapter
 				call.append(inspect_logfile);
 
 				int status = system(call.c_str());
-				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfile));
 
 				if (status != 0)
 				{
-					writeLog_("Inspect problem. Aborting!");
+					fileContent(inspect_logfile, string_buffer);
+					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -806,26 +725,23 @@ class TOPPInspectAdapter
 			if ( inspect_in && inspect_out )
 			{
 				String call;
-				call.append("cd ");
-				call.append(inspect_dir);
-				call.append(" && ./inspect");
-				//call.append("inspect -r ");
-				//call.append(inspect_dir);
-				
+				call.append(inspect_directory);
+				call.append("inspect -r ");
+				call.append(inspect_directory);
 				call.append(" -i ");
 				call.append(inspect_input_filename);
 				call.append(" -o ");
 				call.append(inspect_output_filename);
 				// writing the inspect output to a temporary file
-				call.append(" > ");
+				call.append(" -e ");
 				call.append(inspect_logfile);
 				
 				int status = system(call.c_str());
-				writeLog_("inspect output during running:\n");
-				writeLog_(fileContent(inspect_logfile));
+				
 				if (status != 0)
 				{
-					writeLog_("Inspect problem. Aborting!");
+					fileContent(inspect_logfile, string_buffer);
+					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 					deleteTempFiles(inspect_input_filename, output_filename, inspect_output_filename, db_filename, idx_filename, snd_db_filename, snd_idx_filename, inspect_logfile);
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -835,7 +751,7 @@ class TOPPInspectAdapter
 			{
 				AnalysisXMLFile analysisXML_file;
 				
-				if ( !emptyFile(inspect_output_filename) )
+				if ( !File::empty(inspect_output_filename) )
 				{
 					vector< IdentificationData > identifications;
 					ProteinIdentification protein_identification;

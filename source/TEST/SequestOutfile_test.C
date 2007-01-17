@@ -49,9 +49,13 @@ CHECK(void load(const string& result_filename, vector< IdentificationData >&	ide
 	vector< IdentificationData > identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;
+	
+	file.load("data/SequestOutfile2.out", identifications, protein_identification, 1.0, pvalues);
+	TEST_EQUAL(identifications.empty(), 1)
+	
 	file.load("data/SequestOutfile.out", identifications, protein_identification, 1.0, pvalues);
 	
-	TEST_EQUAL(identifications.size(), 1)	
+	TEST_EQUAL(identifications.size(), 1)
 	TEST_EQUAL(identifications[0].id.getPeptideHits().size(), 4)
 	TEST_REAL_EQUAL(identifications[0].id.getPeptideHits()[0].getScore(), 0.05)
 	TEST_EQUAL(identifications[0].id.getPeptideHits()[0].getSequence(), "ETQAWSIATILETLYDL")
