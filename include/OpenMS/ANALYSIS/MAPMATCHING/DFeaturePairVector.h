@@ -77,8 +77,8 @@ namespace OpenMS
 		/// Default constructor
 		DFeaturePairVector() {}
 		/// Copy constructor
-		DFeaturePairVector(const DFeaturePairVector& grid) :
-			Base(grid)
+		DFeaturePairVector(const DFeaturePairVector& vec) :
+			Base(vec)
 		{}
 		/// Destructor
 		virtual ~DFeaturePairVector() {}

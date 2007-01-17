@@ -198,7 +198,7 @@ public:
 		MapType& getData() { return map_; }
 		/// Const access to LC-MS map
 		const MapType& getData() const { return map_; }
-		
+			
     /// non-mutable access flag with index @p index .
     const Flag& getPeakFlag(const UnsignedInt index) const throw (Exception::IndexOverflow) {  return flags_.at(index); }
     /// mutable access flag with index @p index.
@@ -209,7 +209,7 @@ public:
     /// retrieve the number of peaks.
     const UnsignedInt getNumberOfPeaks()  { return map_.getSize(); }
 		/// Retrieve index datastructure 
-    const ScanIndexMSExperiment<MapType >& getScanIndex() { return scan_index_; }
+		const ScanIndexMSExperiment<MapType >& getScanIndex() { return scan_index_; }
 	
     /// access intensity of peak with index @p index.
     const IntensityType& getPeakIntensity(const UnsignedInt index) const throw (Exception::IndexOverflow) { return map_.getPeak(index).getIntensity(); }

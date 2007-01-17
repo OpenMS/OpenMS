@@ -54,7 +54,7 @@ public:
     typedef FeatureT FeatureType;
     typedef std::pair<FeatureType,FeatureType> Base;
     // CHANGED
-    typedef	typename FeatureType::TraitsType::QualityType QualityType;
+    typedef	 typename FeatureType::TraitsType::QualityType QualityType;
 
     /** @name Constructors and Destructor
      */

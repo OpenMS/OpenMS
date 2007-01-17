@@ -90,7 +90,6 @@ enum DimensionId
 	</li>
 	</ul>
 	
-	@todo check that the example ini file still works and does not report any warnings (Ole)
 */
 
 // We do not want this class to show up in the docu:

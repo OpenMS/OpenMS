@@ -141,6 +141,8 @@ IndexSet IsotopeWaveletSeeder::nextSeed() throw (NoSuccessor)
         // filter detected isotopic pattern
         filterHashByRTVotes();
 
+				// the following lines print the masses of all detected peak clusters
+				// it takes some time if many clusters were found, so we skip it.
 //				#ifdef DEBUG_FEATUREFINDER
 //         CoordinateType min_mass = traits_->getData().getMin().Y();
 // 
@@ -592,7 +594,8 @@ void IsotopeWaveletSeeder::identifyCharge (const std::vector<DPeakArray<1, PeakT
                 std::cout << "Quadro Zack!" << std::endl;
             }
 				}
-        
+       
+				// generate hash key 
 				c_hash_key = (UnsignedInt) ((traits_->getData()[scan].getContainer()[positions[0]-1].getPos() - traits_->getData().getMin().Y()) / avMZSpacing_);
 
         allZero=true;

@@ -41,7 +41,7 @@ namespace OpenMS
 		Factory<BaseQuality>::registerProduct("RankCorrelation", &RankCorrelation::create);
 	}
 
-	BaseQuality::BaseQuality(): FeaFiModule(), pval_(-1) {}
+	BaseQuality::BaseQuality(): FeaFiModule(), pval_(-1) { }
 
 	BaseQuality::BaseQuality(const BaseQuality& source)
 		: FeaFiModule(source)

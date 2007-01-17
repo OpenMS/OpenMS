@@ -38,8 +38,7 @@
 namespace OpenMS
 {
   /**
-    @brief Estimates the signal/noise ratio of each data point in a scan
-           based by using the median (histogram based)
+    @brief Estimates the signal/noise ratio of each data point in a scan by using the median (histogram based)
    
     For each datapoint in the given scan, we collect a range of data points around it (param: WindowLength).
     The noise for a datapoint is estimated to be the median of the intensities of the current window.

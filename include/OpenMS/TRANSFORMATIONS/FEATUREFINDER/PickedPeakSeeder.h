@@ -36,6 +36,9 @@
 #include <vector>
 #include <iostream>
 
+#include <map>
+
+
 namespace OpenMS
 {
 
@@ -57,9 +60,26 @@ namespace OpenMS
 class PickedPeakSeeder
             : public BaseSeeder
 {
+		 /// stores information about an isotopic cluser (i.e. potential peptide charge variant)
+    struct IsotopeCluster
+    {
+        IsotopeCluster()
+                : charge_(0), peaks_(), scans_()
+        {}
+
+        // predicted charge state of this peptide
+        UnsignedInt charge_;
+        // peaks in this cluster
+        IndexSet peaks_;
+        // scans containing peaks which belong to this cluster
+        std::vector<UnsignedInt> scans_;
+    };
+
     typedef FeaFiTraits::IntensityType IntensityType;
     typedef FeaFiTraits::CoordinateType CoordinateType;
     typedef KernelTraits::ProbabilityType ProbabilityType;
+		typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
+		typedef TableType::value_type TableEntry;
 
     enum DimensionId
     {
@@ -87,27 +107,14 @@ public:
         return "PickedPeakSeeder";
     }
 
-    /// stores information about an isotopic cluser (i.e. potential peptide charge variant)
-    struct IsotopeCluster
-    {
-        IsotopeCluster()
-                : charge_(0), peaks_(), scans_()
-        {}
-
-        // predicted charge state of this peptide
-        UnsignedInt charge_;
-        // peaks in this cluster
-        IndexSet peaks_;
-        // the scans of this cluster
-        std::vector<CoordinateType> scans_;
-    };
+   
 
 protected:
 
     /// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
     std::vector<double>::iterator searchInScan_(std::vector<CoordinateType>::iterator scan_begin,
-            std::vector<CoordinateType>::iterator scan_end ,
-            double current_mz)
+            																												std::vector<CoordinateType>::iterator scan_end ,
+            																												CoordinateType current_mz)
     {
 
         // perform binary search to find the neighbour in rt dimension
@@ -153,10 +160,10 @@ protected:
     void sweep_();
 
     /// stores the retention time of each isotopic cluster
-    std::map<CoordinateType,IsotopeCluster> iso_map_;
+    TableType iso_map_;
 
     /// Pointer to the current region
-    std::map<CoordinateType,IsotopeCluster>::const_iterator curr_region_;
+    TableType::const_iterator curr_region_;
 
     /// indicates whether the extender has been initialized
     bool is_initialized_;

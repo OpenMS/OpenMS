@@ -78,8 +78,11 @@ using namespace std;
 	- <b>isotope_model:stdev:last</b> last std deviation for isotope model peaks to try
 	- <b>isotope_model:stdev:step</b> steps in between first and last std deviation for isotope model peaks
 	- <b>intensity_cutoff_factor</b> intensity ratio (compared to seed)
+	- <b>tolerance_stdev_bounding_box</b> influence of the width of the bounding box during the fit
+	- <b>intensity_cutoff_factor</b> After fitting, the model is used to truncate the feature region and to remove points with low probability under the model. This is the corresponding threshold.
+	-<b>mz:interpolation_step</b> Gives the interpolation step size in m/z domain
+	-<b>rt:interpolation_step</b> interpolation step size in time domain
 	
-	@todo add more docu: tolerance_stdev_bounding_box, intensity_cutoff_factor, mz:interpolation_step, rt:interpolation_step (Ole)
 */
 
 // We do not want this class to show up in the docu:

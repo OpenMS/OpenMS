@@ -9,6 +9,8 @@ This folder contains some useful tools for developers:
   create_test.php    -  Creates a test for a file/class using 'check_test'.
 
   correct_test.php   -  Helps the user to correct CHECK macros of tests using 'check_test'.
+	                      Function names inside the CHECK macros are automatically replaced by
+												the correct declarations in the header file.
   
   check_includes.php -  Checks for unneeded includes.
 

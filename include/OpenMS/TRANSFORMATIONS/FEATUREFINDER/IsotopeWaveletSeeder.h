@@ -38,7 +38,6 @@
 // GSL includes
 #include <gsl/gsl_sf_gamma.h>
 
-
 #include <iostream>
 #include <fstream>
 #include <list>

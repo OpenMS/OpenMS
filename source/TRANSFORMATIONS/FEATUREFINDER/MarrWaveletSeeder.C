@@ -50,8 +50,8 @@ MarrWaveletSeeder::MarrWaveletSeeder()
     defaults_.setValue("charge4_ub",0.27f);
     defaults_.setValue("charge4_lb",0.23f);
     // charge 5
-    defaults_.setValue("charge5_ub",0.19f);
-    defaults_.setValue("charge5_lb",0.21f);
+    defaults_.setValue("charge5_ub",0.21f);
+    defaults_.setValue("charge5_lb",0.19f);
 
     // tolerance in m/z for an monoisotopic peak in the previous scan
     defaults_.setValue("tolerance_mz",0.5f);
@@ -213,10 +213,13 @@ void MarrWaveletSeeder::sweep_()
             if (current_charge > 0) // charge = 0 <=> no isotope
             {
 
-#ifdef DEBUG_FEATUREFINDER
+								#ifdef DEBUG_FEATUREFINDER
                 std::cout << "Isotopic pattern found ! " << std::endl;
                 std::cout << "We are at: " << current_rt << " " << curr_mz << std::endl;
-#endif
+								#endif
+								
+								// hash entry to write in
+								TableType::iterator entry_to_insert;		
 
                 if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
                 {
@@ -229,48 +232,74 @@ void MarrWaveletSeeder::sweep_()
                         mz_in_hash = curr_mz; // update current hash key
 
                         // create new isotopic cluster
-#ifdef DEBUG_FEATUREFINDER
+												#ifdef DEBUG_FEATUREFINDER
                         std::cout << "Last peak cluster too far, creating new cluster" << std::endl;
-#endif
-                        iso_map_[mz_in_hash] = IsotopeCluster();
+												#endif
+												
+                        IsotopeCluster isoclust;
+												isoclust.charge_ = current_charge;
+												isoclust.scans_.push_back( currscan_index );
 
-                        iso_map_[mz_in_hash].charge_  = current_charge;
-                        iso_map_[mz_in_hash].scans_.push_back( current_rt );
+												entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );   
                     }
                     else
                     {
-#ifdef DEBUG_FEATUREFINDER
-                        std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
-#endif
-                        mz_in_hash = *it;	// retrieve new hash key
-                        // save current rt and m/z
-                        iso_map_[mz_in_hash].scans_.push_back(current_rt);
+										#ifdef DEBUG_FEATUREFINDER
+                    std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
+										#endif
+										mz_in_hash = *it;	// retrieve hash key
+                   										
+										std::pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
+																														
+										if (range.first != range.second)		// several peak cluster at this m/z found
+										{
+												// we want to find the previous scan
+												UnsignedInt scan_wanted = (currscan_index - 1);
+																													
+												for (TableType::iterator iter = range.first; iter != range.second; ++iter)
+												{
+														// check if last scan of this cluster is the previous scan
+														if (	*( iter->second.scans_.end() - 1) == scan_wanted )
+                    				{
+                        			entry_to_insert	= iter;
+                        			continue;
+                    				}
+												}
+																				
+    								}
+										else	// only one cluster with this m/z
+										{
+											entry_to_insert	 = range.first;										
+										}
+                    // save current rt and m/z
+                    entry_to_insert->second.scans_.push_back( currscan_index );
 
-#ifdef DEBUG_FEATUREFINDER
-                        std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
-#endif
+										#ifdef DEBUG_FEATUREFINDER
+                    std::cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << std::endl;
+										#endif
                     }
 
                 }
                 else // last scan did not contain any isotopic cluster
                 {
-#ifdef DEBUG_FEATUREFINDER
-                    std::cout << "Last scan was empty => creating new cluster." << std::endl;
-                    std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
-#endif
+								#ifdef DEBUG_FEATUREFINDER
+                std::cout << "Last scan was empty => creating new cluster." << std::endl;
+                std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
+								#endif
 
-                    mz_in_hash = curr_mz; // update current hash key
+                mz_in_hash = curr_mz; // update current hash key
+								
+								IsotopeCluster isoclust;
+								isoclust.charge_ = current_charge;
+								isoclust.scans_.push_back( currscan_index );
 
-                    // create new isotopic cluster
-                    iso_map_[mz_in_hash] = IsotopeCluster();
-                    iso_map_[mz_in_hash].charge_  = current_charge;
-                    iso_map_[mz_in_hash].scans_.push_back( current_rt );
+								entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );          
 
                 } // end if (iso_last_scan.size() > 0)
 
-#ifdef DEBUG_FEATUREFINDER
+								#ifdef DEBUG_FEATUREFINDER
                 std::cout << "Storing found peak in current isotopic cluster" << std::endl;
-#endif
+								#endif
 								// store position of the the potential isotopic pattern
 								iso_curr_scan.push_back( mz_in_hash );
                 // walk a bit to the left: we include the five peaks to the left of the
@@ -280,7 +309,7 @@ void MarrWaveletSeeder::sweep_()
                 {
                     if ( (ind-p) > 0 && traits_->getPeakFlag( current_offset + (ind-p) ) == FeaFiTraits::UNUSED)
                     {
-                        iso_map_[mz_in_hash].peaks_.add( current_offset + ind-p );
+                        entry_to_insert->second.peaks_.add( current_offset + ind-p );
 												traits_->getPeakFlag( current_offset + (ind-p) ) = FeaFiTraits::SEED;
                     }
                 }
@@ -290,12 +319,12 @@ void MarrWaveletSeeder::sweep_()
                 {
                     for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                     {
-                        iso_map_[mz_in_hash].peaks_.add( current_offset + v );
+                        entry_to_insert->second.peaks_.add( current_offset + v );
 												traits_->getPeakFlag( current_offset + v ) = FeaFiTraits::SEED;
                     }
                 }
 
-                iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );
+                entry_to_insert->second.peaks_.add( current_offset + local_maxima[z] );
 								traits_->getPeakFlag( current_offset + local_maxima[z] ) = FeaFiTraits::SEED;
 
                 // check distance to next peak
@@ -311,11 +340,11 @@ void MarrWaveletSeeder::sweep_()
                     {
                         for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                         {
-                            iso_map_[mz_in_hash].peaks_.add( current_offset + v );
+                            entry_to_insert->second.peaks_.add( current_offset + v );
 														traits_->getPeakFlag(  current_offset + v ) = FeaFiTraits::SEED;
                         }
                     }
-                    iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );
+                    entry_to_insert->second.peaks_.add( current_offset + local_maxima[z] );
 										traits_->getPeakFlag(  current_offset + local_maxima[z]  ) = FeaFiTraits::SEED;
                     continue;
                 }
@@ -331,7 +360,7 @@ void MarrWaveletSeeder::sweep_()
                         mass_diff < 6 &&
                         traits_->getPeakFlag(local_maxima[z]) == FeaFiTraits::UNUSED)
                 {
-                    iso_map_[mz_in_hash].peaks_.add( current_offset + local_maxima[z] );				// save peak in cluster
+                    entry_to_insert->second.peaks_.add( current_offset + local_maxima[z] );				// save peak in cluster
 										traits_->getPeakFlag(  current_offset + local_maxima[z]  ) = FeaFiTraits::SEED;
                     ++z;
 
@@ -340,7 +369,7 @@ void MarrWaveletSeeder::sweep_()
                     {
                         for (int v = local_maxima[z-1];v <  local_maxima[z]; ++v)
                         {
-                            iso_map_[mz_in_hash].peaks_.add( current_offset + v );
+                            entry_to_insert->second.peaks_.add( current_offset + v );
 														traits_->getPeakFlag(  current_offset + v ) = FeaFiTraits::SEED;
                         }
                     }
@@ -368,6 +397,10 @@ void MarrWaveletSeeder::sweep_()
 								std::cout << "High peak in cwt !!" << std::endl;
                 UnsignedInt this_peak =  local_maxima[z];
 								CoordinateType this_mass     = current_scan[ this_peak ].getPos();
+								
+								// hash entry to write in
+								TableType::iterator entry_to_insert;		
+
 													
 								 if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
                 {
@@ -377,45 +410,72 @@ void MarrWaveletSeeder::sweep_()
 
                     if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
                     {
-                        mz_in_hash = this_mass; // update current hash key
+												mz_in_hash = this_mass; // update current hash key
 
                         // create new isotopic cluster
-#ifdef DEBUG_FEATUREFINDER
+												#ifdef DEBUG_FEATUREFINDER
                         std::cout << "Last peak cluster too far, creating new cluster" << std::endl;
-#endif
-                        iso_map_[mz_in_hash] = IsotopeCluster();
+												#endif
+												
+                        IsotopeCluster isoclust;
+												isoclust.charge_ = current_charge;
+												isoclust.scans_.push_back( currscan_index );
 
-                        iso_map_[mz_in_hash].charge_  = 1;
-                        iso_map_[mz_in_hash].scans_.push_back( current_rt );
+												entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );   
                     }
                     else
                     {
-#ifdef DEBUG_FEATUREFINDER
-                        std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
-#endif
-                        mz_in_hash = *it;	// retrieve new hash key
-                        // save current rt and m/z
-                        iso_map_[mz_in_hash].scans_.push_back(current_rt);
+												#ifdef DEBUG_FEATUREFINDER
+                    		std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
+												#endif
+												mz_in_hash = *it;	// retrieve hash key
+                   										
+												std::pair<TableType::iterator, TableType::iterator> range = iso_map_.equal_range(mz_in_hash);
+																														
+												if (range.first != range.second)		// several peak cluster at this m/z found
+												{
+														// we want to find the previous scan
+														UnsignedInt scan_wanted = (currscan_index - 1);
+																													
+														for (TableType::iterator iter = range.first; iter != range.second; ++iter)
+														{
+																// check if last scan of this cluster is the previous scan
+																if (	*( iter->second.scans_.end() - 1) == scan_wanted )
+                    						{
+                        						entry_to_insert	= iter;
+                        						continue;
+                    						}
+															}
+																				
+    											}
+													else	// only one cluster with this m/z
+													{
+															entry_to_insert	 = range.first;										
+													}
+                    			
+													// save current rt and m/z
+                    			entry_to_insert->second.scans_.push_back( currscan_index );
 
-#ifdef DEBUG_FEATUREFINDER
-                        std::cout << "Cluster with " << iso_map_[mz_in_hash].peaks_.size() << " peaks retrieved." << std::endl;
-#endif
-                    }
-
-                }
+												#ifdef DEBUG_FEATUREFINDER
+                    		std::cout << "Cluster with " << entry_to_insert->second.peaks_.size() << " peaks retrieved." << std::endl;
+												#endif
+                		} 
+								 }	
                 else // last scan did not contain any isotopic cluster
                 {
-#ifdef DEBUG_FEATUREFINDER
+										#ifdef DEBUG_FEATUREFINDER
                     std::cout << "Last scan was empty => creating new cluster." << std::endl;
                     std::cout << "Creating new cluster at m/z: " << this_mass << std::endl;
-#endif
+										#endif
 
                     mz_in_hash = this_mass; // update current hash key
 
                     // create new isotopic cluster
-                    iso_map_[mz_in_hash] = IsotopeCluster();
-                    iso_map_[mz_in_hash].charge_  = 1;
-                    iso_map_[mz_in_hash].scans_.push_back( current_rt );
+                    IsotopeCluster isoclust;
+										isoclust.charge_ = current_charge;
+										isoclust.scans_.push_back( currscan_index );
+										
+										entry_to_insert = iso_map_.insert( TableEntry(mz_in_hash, isoclust) );        
 
                 } // end if (iso_last_scan.size() > 0)
 
@@ -428,14 +488,14 @@ void MarrWaveletSeeder::sweep_()
 								
 								iso_curr_scan.push_back( current_scan[ local_maxima[z] ].getPos() );
 
-                iso_map_[mz_in_hash].peaks_.add(current_offset + this_peak);
+                entry_to_insert->second.peaks_.add(current_offset + this_peak);
 								traits_->getPeakFlag(  current_offset + this_peak) = FeaFiTraits::SEED;
 
                 // walk to the left
                 while ( this_peak > 0 && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
                 {
                     --this_peak;
-                    iso_map_[mz_in_hash].peaks_.add(current_offset + this_peak);
+                    entry_to_insert->second.peaks_.add(current_offset + this_peak);
 										traits_->getPeakFlag(  current_offset + this_peak) = FeaFiTraits::SEED;
 
 
@@ -449,7 +509,7 @@ void MarrWaveletSeeder::sweep_()
                 while ( this_peak < (current_scan.size()-1) && fabs(next_mass - mz_in_hash) < 4 && next_intensity > (this_intensity * 0.003)  )
                 {
                     ++this_peak;
-                    iso_map_[mz_in_hash].peaks_.add(current_offset + this_peak);
+                    entry_to_insert->second.peaks_.add(current_offset + this_peak);
 										traits_->getPeakFlag(  current_offset + this_peak) = FeaFiTraits::SEED;
 
                     next_mass     = current_scan[ this_peak ].getPos(); 

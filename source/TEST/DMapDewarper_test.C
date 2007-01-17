@@ -66,16 +66,16 @@ START_TEST(DMapDewarper<MapT>, "$Id$")
 
 
 DMapDewarper<>* pl_ptr = 0;
-CHECK(DFeatureMap<2>())
+CHECK((DMapDewarper()))
 	pl_ptr = new DMapDewarper<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK(~DMapDewarper<>())
+CHECK((~DMapDewarper()))
 	delete pl_ptr;
 RESULT
 
-CHECK(DMapDewarper<>(const DMapDewarper& p))
+CHECK((DMapDewarper(const DMapDewarper& source)))
 	
 	DFeature<2> feat1, feat2, feat3;
 	
@@ -106,7 +106,7 @@ CHECK(DMapDewarper<>(const DMapDewarper& p))
 				
 RESULT
 
-CHECK(operator =)
+CHECK((DMapDewarper& operator = (const DMapDewarper& source)))
 
 	DFeature<2> feat1, feat2, feat3;
 	
@@ -138,7 +138,7 @@ CHECK(operator =)
 RESULT
 
 
-CHECK(operator ==)
+CHECK((bool operator == (const DMapDewarper& rhs)))
 	
 	DFeature<2> feat1, feat2, feat3;
 	
@@ -171,7 +171,7 @@ CHECK(operator ==)
 RESULT
 
 
-CHECK(dewarp())
+CHECK((void dewarp()))
 	
 	// first pair
 	DFeaturePair<2> pair1;
@@ -254,6 +254,62 @@ CHECK(dewarp())
 	TEST_REAL_EQUAL(map_iter->getPosition()[0],13.0);
 	TEST_REAL_EQUAL(map_iter->getPosition()[1],6.0);	
 		
+RESULT
+
+CHECK((Grid& getGrid()))
+	Grid agrid;
+	DMapDewarper<> dewarper;
+	dewarper.setGrid(agrid);
+	
+	TEST_EQUAL( agrid == dewarper.getGrid(),true )
+	
+RESULT
+
+CHECK((const Grid& getGrid() const))
+	Grid agrid;
+	DMapDewarper<> dewarper;
+	dewarper.setGrid(agrid);	
+	const Grid agrid2 = dewarper.getGrid();
+	
+	TEST_EQUAL( agrid,agrid2 )
+	
+RESULT
+
+CHECK((void setGrid(Grid& g)))
+	Grid agrid;
+	DMapDewarper<> dewarper;
+	dewarper.setGrid(agrid);	
+	Grid agrid2 = dewarper.getGrid();
+	
+	TEST_EQUAL(agrid == agrid2,true)
+RESULT
+
+CHECK((MapType& getMap()))
+	DFeatureMap<2> map;
+	DMapDewarper<> dewarper;
+	dewarper.setMap(map);	
+		
+	TEST_EQUAL( map,dewarper.getMap() )
+	
+RESULT
+
+CHECK((void setMap(MapType& elem)))
+	DFeatureMap<2> map;
+	DMapDewarper<> dewarper;
+	dewarper.setMap(map);	
+		
+	TEST_EQUAL( map,dewarper.getMap() )
+	
+RESULT
+
+CHECK((const MapType& getMap() const))
+	DFeatureMap<2> map;
+	DMapDewarper<> dewarper;
+	dewarper.setMap(map);		
+	const  DFeatureMap<2> map2 = dewarper.getMap();
+	
+	TEST_EQUAL( map,map2 )
+	
 RESULT
 
 /////////////////////////////////////////////////////////////

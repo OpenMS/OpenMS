@@ -43,7 +43,7 @@ namespace OpenMS
 		Factory<BaseSeeder>::registerProduct(IsotopeWaveletSeeder::getName(), &IsotopeWaveletSeeder::create);
 	}	
 	
-	BaseSeeder::BaseSeeder(): FeaFiModule(){}
+	BaseSeeder::BaseSeeder(): FeaFiModule(){ }
 
 	BaseSeeder::BaseSeeder(const BaseSeeder& source)
 		: FeaFiModule(source)

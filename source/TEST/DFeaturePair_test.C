@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -50,7 +50,36 @@ CHECK(~DFeaturePair())
 	delete d10_ptr;
 RESULT
 
-CHECK(==)
+CHECK( DFeaturePair(const DFeaturePair& fp) )
+	DFeaturePair<2> p1;
+	p1.setQuality(5.0);
+	
+	DFeaturePair<2> p2(p1);
+	
+	TEST_REAL_EQUAL( p1.getQuality(),p2.getQuality() )
+
+RESULT
+
+CHECK( DFeaturePair(FeatureType const & first, FeatureType const & second, QualityType const & quality = QualityType(0)) )
+	DFeature<2> f1;
+	DFeature<2> f2;
+	
+	DFeaturePair<2> pair(f1,f2);
+	
+	TEST_EQUAL( f1, pair.getFirst() )
+	TEST_EQUAL( f2, pair.getSecond() )
+RESULT
+
+CHECK( DFeaturePair& operator = (const DFeaturePair& rhs) )
+	DFeaturePair<2> p1;
+	p1.setQuality( 5.0 );
+	
+	DFeaturePair<2> p2 = p1;
+	
+	TEST_REAL_EQUAL( p1.getQuality(),p2.getQuality() )
+RESULT
+
+CHECK(bool operator == (const DFeaturePair& rhs) const)
 
 	DFeaturePair<2> p1;
 	DFeature<2> f1;
@@ -77,10 +106,9 @@ CHECK(==)
 	p2.setQuality(5.0);
 	
 	TEST_EQUAL(p1==p2,true);
-
 RESULT
 
-CHECK(!=)
+CHECK(bool operator != (const DFeaturePair& rhs) const)
 
 	DFeaturePair<2> p1;
 	DFeature<2> f1;
@@ -135,7 +163,7 @@ CHECK(setQuality(QualityType))
 RESULT
 
 
-CHECK(setFirst())
+CHECK(FeatureType& getFirst())
 	DFeaturePair<2> p;
 	
 	DFeature<2> f1;
@@ -150,7 +178,7 @@ CHECK(setFirst())
 
 RESULT
 
-CHECK(setSecond())
+CHECK(FeatureType& getSecond())
 	DFeaturePair<2> p;
 	
 	DFeature<2> f1;
@@ -163,6 +191,65 @@ CHECK(setSecond())
 
 	TEST_EQUAL(f1,f2)
 
+RESULT
+
+CHECK(const FeatureType& getFirst() const)
+	DFeaturePair<2> p;
+	
+	DFeature<2> f1;
+	f1.getPosition()[0] = 1.0;
+	f1.getPosition()[1] = 2.0;
+	p.setFirst(f1);
+
+	const DFeature<2> f2 = p.getFirst();
+	TEST_EQUAL(f1,f2)
+
+RESULT
+
+CHECK(const FeatureType& getSecond() const)
+	DFeaturePair<2> p;
+	
+	DFeature<2> f1;
+	f1.getPosition()[0] = 1.0;
+	f1.getPosition()[1] = 2.0;
+	p.setSecond(f1);
+
+	const DFeature<2> f2 = p.getSecond();
+	TEST_EQUAL(f1,f2)
+	
+RESULT
+
+CHECK( const QualityType& getQuality() const )
+	DFeaturePair<2> p;
+	p.setQuality(3.0);
+	const DFeaturePair<2>::QualityType q = p.getQuality();
+	
+	TEST_REAL_EQUAL( q,p.getQuality() )
+
+RESULT
+
+CHECK( void setFirst(const FeatureType& frt) )
+	DFeaturePair<2> p;
+	const DFeature<2> f;
+	p.setFirst(f);
+	
+	TEST_EQUAL( f, p.getFirst() )
+RESULT
+
+CHECK( void setQuality(const QualityType& ql) )
+	DFeaturePair<2> p;
+	const DFeaturePair<2>::QualityType q = 10.0;
+	p.setQuality(q);
+	
+	TEST_EQUAL( q, p.getQuality() )	
+RESULT
+
+CHECK( void setSecond(const FeatureType& sec) )
+	DFeaturePair<2> p;
+	const DFeature<2> f;
+	p.setSecond(f);
+	
+	TEST_EQUAL( f, p.getSecond() )
 RESULT
 
 /////////////////////////////////////////////////////////////

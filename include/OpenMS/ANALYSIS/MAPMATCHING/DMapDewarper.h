@@ -141,7 +141,7 @@ namespace OpenMS
       */
       //@{
       /// Set grid
-      void setGrid(Grid& g)
+      void setGrid(Grid& g) 
       {
         grid_ = g;
       }
@@ -151,7 +151,7 @@ namespace OpenMS
         return grid_;
       }
       /// Get grid (non-mutable)
-      Grid& getGrid() const
+      const Grid& getGrid() const
       {
         return grid_;
       }
@@ -160,13 +160,13 @@ namespace OpenMS
       {
         elements_ = elem;
       }
-      /// Get grid
+      /// Get map
       MapType& getMap()
       {
         return elements_;
       }
-      /// Get grid (non-mutable)
-      MapType& getMap() const
+      /// Get map (non-mutable)
+      const MapType& getMap() const
       {
         return elements_;
       }

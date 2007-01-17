@@ -54,6 +54,7 @@ class TestQuality : public BaseQuality
   public:
 	TestQuality(): BaseQuality()
 	{
+		check_defaults_ = false;
 		name_ = TestQuality::getName();
 	}
 

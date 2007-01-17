@@ -40,7 +40,7 @@ typedef DFeatureMap<2, ElementType> ElementMapType;
 class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 {
   public:
-	TestSuperimposer() : BaseSuperimposer<ElementMapType>(){}
+	TestSuperimposer() : BaseSuperimposer<ElementMapType>(){ check_defaults_ = false; }
 	TestSuperimposer(const TestSuperimposer& bpf) : BaseSuperimposer<ElementMapType>(bpf){}
 	TestSuperimposer& operator=(const TestSuperimposer& bpf)
 	{

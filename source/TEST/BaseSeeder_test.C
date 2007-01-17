@@ -48,6 +48,7 @@ class TestSeeder : public BaseSeeder
   public:
 	TestSeeder(): BaseSeeder()
 	{
+		check_defaults_ = false;
 		name_ = TestSeeder::getName();
 	}
 	

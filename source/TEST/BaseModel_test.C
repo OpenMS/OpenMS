@@ -47,6 +47,7 @@ class TestModel : public BaseModel<3>
   public:
 	TestModel(): BaseModel<3>()
 	{
+		check_defaults_ = false;
 		name_ = TestModel::getName();
 	}
 

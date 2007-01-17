@@ -42,7 +42,7 @@ typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 class TestPairFinder : public BasePairFinder<ElementMapType>
 {
   public:
-	TestPairFinder() : BasePairFinder<ElementMapType>(){}
+	TestPairFinder() : BasePairFinder<ElementMapType>(){ check_defaults_ = false; }
 	TestPairFinder(const TestPairFinder& bpf) : BasePairFinder<ElementMapType>(bpf){}
 	TestPairFinder& operator=(const TestPairFinder& bpf)
 	{

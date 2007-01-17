@@ -43,7 +43,7 @@ typedef DPosition < 2, KernelTraits > PositionType;
 class TestPairwiseMapMatcher : public BasePairwiseMapMatcher<ElementMapType>
 {
   public:
-  TestPairwiseMapMatcher() : BasePairwiseMapMatcher<ElementMapType>(){}
+  TestPairwiseMapMatcher() : BasePairwiseMapMatcher<ElementMapType>(){ check_defaults_ = false; }
   TestPairwiseMapMatcher(const TestPairwiseMapMatcher& bpf) : BasePairwiseMapMatcher<ElementMapType>(bpf){}
   TestPairwiseMapMatcher& operator=(const TestPairwiseMapMatcher& bpf)
   {

@@ -47,6 +47,7 @@ class TestFitter : public BaseModelFitter
   public:
 	TestFitter(): BaseModelFitter()
 	{
+		check_defaults_ = false;
 		name_ = TestFitter::getName();
 	}
 

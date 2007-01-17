@@ -29,7 +29,7 @@
 
 namespace OpenMS
 {
-	FeaFiModule::FeaFiModule(): FactoryProduct(), traits_(0){}
+	FeaFiModule::FeaFiModule(): FactoryProduct(), traits_(0){ }
 
 	FeaFiModule::FeaFiModule(const FeaFiModule& source)
 		:FactoryProduct(source),

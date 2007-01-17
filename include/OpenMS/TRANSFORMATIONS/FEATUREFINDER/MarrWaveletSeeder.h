@@ -59,9 +59,27 @@ namespace OpenMS
   class MarrWaveletSeeder 
     : public BaseSeeder
   {
+	
 	typedef FeaFiTraits::IntensityType IntensityType;
   typedef FeaFiTraits::CoordinateType CoordinateType;
   typedef KernelTraits::ProbabilityType ProbabilityType;
+	
+	/// stores information about an isotopic cluser (i.e. potential peptide charge variant)
+    struct IsotopeCluster
+    {
+        IsotopeCluster()
+          : charge_(0), peaks_(), scans_()
+        {}
+     
+        // predicted charge state of this peptide
+        UnsignedInt charge_;
+        // peaks in this cluster
+        IndexSet peaks_;
+        // the scans of this cluster
+        std::vector<CoordinateType> scans_;
+    };
+	
+	
 
     enum DimensionId
     {
@@ -74,6 +92,8 @@ namespace OpenMS
 	typedef SpectrumType::ContainerType ContainerType;
 	typedef	 MapType::PeakType PeakType;
 	typedef SpectrumType::iterator RawDataPointIterator;
+	typedef std::multimap<CoordinateType,IsotopeCluster> TableType;
+	typedef TableType::value_type TableEntry;
 	
   public:
 	   /// standard constructor
@@ -95,20 +115,7 @@ namespace OpenMS
       return "MarrWaveletSeeder";
     }
 		
-		/// stores information about an isotopic cluser (i.e. potential peptide charge variant)
-    struct IsotopeCluster
-    {
-        IsotopeCluster()
-          : charge_(0), peaks_(), scans_()
-        {}
-     
-        // predicted charge state of this peptide
-        UnsignedInt charge_;
-        // peaks in this cluster
-        IndexSet peaks_;
-        // the scans of this cluster
-        std::vector<CoordinateType> scans_;
-    };
+		
 
   protected:
   	/// Finds the neighbour of the peak denoted by @p current_mz in the previous scan
@@ -169,10 +176,10 @@ namespace OpenMS
   void sweep_();
 
   /// stores the retention time of each isotopic cluster
-  std::map<CoordinateType,IsotopeCluster> iso_map_;
+  TableType iso_map_;
 
   /// Pointer to the current region
-  std::map<CoordinateType,IsotopeCluster>::const_iterator curr_region_;
+  TableType::const_iterator curr_region_;
 
   /// indicates whether the extender has been initialized
   bool is_initialized_;

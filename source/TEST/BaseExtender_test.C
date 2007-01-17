@@ -46,6 +46,7 @@ class TestExtender : public BaseExtender
   public:
 	TestExtender(): BaseExtender()
 	{
+		check_defaults_ = false;
 		name_ = TestExtender::getName();
 	}
 
