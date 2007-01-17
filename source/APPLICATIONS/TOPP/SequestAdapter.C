@@ -517,6 +517,7 @@ class TOPPSequestAdapter
 			}
 
 			string_buffer = getStringOption_("in");
+			writeDebug_(String("Input file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -596,6 +597,7 @@ class TOPPSequestAdapter
 				if ( !sequest_out )
 				{
 					input_filename = getStringOption_("out");
+					writeDebug_(String("Output file: ") + input_filename, 1);
 					if ( input_filename.empty() )
 					{
 						writeLog_("No output file specified. Aborting!");
@@ -631,6 +633,7 @@ class TOPPSequestAdapter
 				password = getStringOption_("password");
 			
 				sequest_directory_win = getStringOption_("sequest_directory_win");
+				writeDebug_(String("Sequest directory: ") + sequest_directory_win, 1);
 				if ( !sequest_directory_win.hasSuffix("sequest.exe") ) sequest_directory_win.ensureLastChar('\\');
 				if ( !isWinFormat(sequest_directory_win) )
 				{
@@ -988,6 +991,7 @@ class TOPPSequestAdapter
 			if ( sequest_out )
 			{
 				string_buffer = getStringOption_("out");
+				writeDebug_(String("Output file: ") + string_buffer, 1);
 				if ( string_buffer.empty() )
 				{
 					writeLog_("No output file specified. Aborting!");
@@ -1104,8 +1108,8 @@ class TOPPSequestAdapter
 				if ( !user.empty() ) call.append(" -u " + user);
 				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
 				call.append(" -s cmd\\ /C\\ \"");
-				call.append(" net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
-// 				call.append(" net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
+// 				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
+				call.append("net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
 				
 				batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 				

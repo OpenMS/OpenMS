@@ -250,12 +250,18 @@ class TOPPInspectAdapter
 				writeLog_("Both Inspect flags set. Only one of the two flags [-inspect_in|-inspect_out] can be set. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
+			
+			if ( inspect_in ) writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1);
+			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes analysisXML file)", 1);
+			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes analysisXML file", 1);
+			
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
 			if ( !inspect_in && !inspect_out ) inspect_in = inspect_out = true;
 			
 			if ( inspect_out && inspect_in )
 			{
 				temp_data_directory = getStringOption_("temp_data_directory");
+				writeDebug_(String("Temp directory: ") + temp_data_directory, 1);
 				if ( temp_data_directory.empty() )
 				{
 					writeLog_("No directory for temporary files specified. Aborting!");
@@ -267,6 +273,7 @@ class TOPPInspectAdapter
 			}
 			
 			string_buffer = getStringOption_("in");
+			writeDebug_(String("Input file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -290,6 +297,7 @@ class TOPPInspectAdapter
 			}
 			
 			string_buffer = getStringOption_("out");
+			writeDebug_(String("Output file: ") + string_buffer, 1);
 			if ( string_buffer.empty() )
 			{
 				writeLog_("No output file specified. Aborting!");
@@ -311,6 +319,7 @@ class TOPPInspectAdapter
 			}
 			
 			inspect_directory = getStringOption_("inspect_directory");
+			writeDebug_(String("Inspect directory: ") + inspect_directory, 1);
 			if ( inspect_in && inspect_directory.empty() && inspect_out )
 			{
 				writeLog_("No inspect directory file specified. Aborting!");
@@ -679,6 +688,8 @@ class TOPPInspectAdapter
 			// running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind && inspect_in && inspect_out )
 			{
+				writeDebug_("Searching and generating minimised database for blind mode ...", 1);
+				writeDebug_("The Inspect process created the following output:", 1);
 				String call;
 				call.append(inspect_directory);
 				call.append("inspect -r ");
@@ -724,6 +735,8 @@ class TOPPInspectAdapter
 			// writing the output of inspect into an analysisXML file
 			if ( inspect_in && inspect_out )
 			{
+				writeDebug_("Searching ...", 1);
+				writeDebug_("The Inspect process created the following output:", 1);
 				String call;
 				call.append(inspect_directory);
 				call.append("inspect -r ");
