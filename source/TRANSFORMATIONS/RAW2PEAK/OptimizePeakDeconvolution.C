@@ -362,10 +362,10 @@ namespace OpenMS
       
       int global_peak_number=0;
 
-      double min;
+      double min = DBL_MAX;
       int best_charge,num_peaks;
       int best_num_peaks;
-      gsl_vector *best_result;
+      gsl_vector *best_result=gsl_vector_alloc(2+2*OptimizationFunctions::peaks_DC_.size());;
 
 
       // try three different charge states : charge-1, charge, charge +1
@@ -399,7 +399,7 @@ namespace OpenMS
 	    }
 	    
 	  
-	  /** Initialize the parameters for the optimization **/
+	  // Initialize the parameters for the optimization 
 
 	  // all peaks shall have the same width
 	  double wl = OptimizationFunctions::peaks_DC_[0].left_width;
@@ -457,10 +457,10 @@ namespace OpenMS
 	  gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
 
 #ifdef DEBUG_DECONV
-	  /** initial norm **/
+	  // initial norm 
 	  std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
-	  /** Iteration **/
+	  // Iteration
 	  int iteration = 0;
 	  int status;
 
@@ -512,14 +512,14 @@ namespace OpenMS
 	   
 	}
       global_peak_number += best_num_peaks;
-      /** iterate over all peaks and store the optimized values in peaks **/
+      // iterate over all peaks and store the optimized values in peaks
       if(best_num_peaks > 0)
 	{
 	  peaks.resize(best_num_peaks);
 	  for (int current_peak = 0; current_peak < best_num_peaks; current_peak++)
 	    {
 	      
-	      /** Store the current parameters for this peak **/
+	      // Store the current parameters for this peak
 	      
 	      peaks[current_peak].left_width  = gsl_vector_get(best_result, 0);
 	      peaks[current_peak].right_width = gsl_vector_get(best_result, 1);
@@ -530,7 +530,7 @@ namespace OpenMS
 	    
 	  
 	      //	compute the area
-	      /** is it a Lorentz or a Sech - Peak? **/
+	      //  is it a Lorentz or a Sech - Peak? 
 	      if (peaks[current_peak].type == PeakShapeType::LORENTZ_PEAK)
 		{
 		  PeakShape p = peaks[current_peak];
