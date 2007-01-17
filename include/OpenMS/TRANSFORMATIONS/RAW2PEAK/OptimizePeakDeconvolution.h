@@ -52,18 +52,25 @@ namespace OpenMS
     extern std::vector<double> positions_DC_;
     extern std::vector<double> signal_DC_;
 
+		 /** @brief Class for the penalty factors used during the optimization.
+
+		 A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
+		 During the optimization negative heights may occur, they are penalised as well.
+
+ 				 
+		 */
     struct PenaltyFactorsInt : public PenaltyFactors
     {
       PenaltyFactorsInt():PenaltyFactors(),height(0){}
       PenaltyFactorsInt(const PenaltyFactorsInt& p) : PenaltyFactors(p), height(p.height) {}
       inline PenaltyFactorsInt& operator=(const PenaltyFactorsInt& p)
       {
-	height=p.height;
-	pos=p.pos;
-	lWidth=p.lWidth;
-	rWidth=p.rWidth;
-
-	return *this;
+				height=p.height;
+				pos=p.pos;
+				lWidth=p.lWidth;
+				rWidth=p.rWidth;
+				
+				return *this;
       }
       ~PenaltyFactorsInt(){}
 
@@ -85,7 +92,7 @@ namespace OpenMS
 	mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
 	peaks have all the same left and right width, respectively.
    	
-        @ingroup PeakPicking
+       
    */
   class OptimizePeakDeconvolution
   {

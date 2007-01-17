@@ -129,7 +129,7 @@ namespace OpenMS
        the left and right width, which shall be equal for a peak in all scans,
        and the peaks' heights.
        
-       @ingroup PeakPicking
+      
     */
     class TwoDOptimization
     {
