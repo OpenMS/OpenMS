@@ -90,7 +90,7 @@ class TOPPRTPredict
 			SVMWrapper svm;
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-			vector< vector< pair<UnsignedInt, DoubleReal> > >* encoded_composition_vectors;
+			vector< vector< pair<SignedInt, DoubleReal> > >* encoded_composition_vectors;
 			vector<svm_node*>* encoded_LibSVM_vectors;
 			vector<DoubleReal>* predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
