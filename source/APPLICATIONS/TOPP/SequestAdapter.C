@@ -26,7 +26,7 @@
 
 
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase2.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/SequestInfile.h>
@@ -104,11 +104,11 @@ using namespace std;
 // @cond 
 
 class TOPPSequestAdapter
-	: public TOPPBase2
+	: public TOPPBase
 {
 	public:
 		TOPPSequestAdapter()
-			: TOPPBase2("SequestAdapter", "annotates MS/MS spectra using Sequest.")
+			: TOPPBase("SequestAdapter", "annotates MS/MS spectra using Sequest.")
 		{}
 	
 	protected:

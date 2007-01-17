@@ -108,10 +108,6 @@ CHECK(void clear())
   // ???
 RESULT
 
-CHECK((void dump(::std::ostream& s = ::std::cout, Size depth = 0L) const))
-  // ???
-RESULT
-
 CHECK(void reset())
   // ???
 RESULT

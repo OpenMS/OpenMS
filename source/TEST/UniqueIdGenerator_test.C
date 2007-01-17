@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Knut Reinert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -38,8 +38,12 @@ START_TEST(UniqueIdGenerator, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
- 
-CHECK()
+
+CHECK(static UniqueIdGenerator& instance())
+	UniqueIdGenerator::instance();
+RESULT
+
+CHECK(UID getUID())
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),0);
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),1);
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),2);

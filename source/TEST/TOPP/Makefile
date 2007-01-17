@@ -51,11 +51,9 @@ UNCONDITIONAL_TESTS = \
 	NoiseFilter_test \
 	Resampler_test \
 	SequestAdapter_test\
+	PeakPicker_test \
 	SpectraFilter_test \
 	FeatureFinder_test
-
-# \
-#	PeakPicker_test
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \

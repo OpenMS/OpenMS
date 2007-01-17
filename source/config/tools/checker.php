@@ -59,6 +59,11 @@
 			print " (".$GLOBALS["file_maintainers"][$filename].")";
 		}
 		print "\n";
+		#error count
+		foreach (explode(", ",$GLOBALS["file_maintainers"][$filename]) as $u)
+		{
+			$GLOBALS["maintainer_info"][trim($u)]["errors"]++;
+		}
 	}
 	
 	########################declarations###############################
@@ -160,7 +165,40 @@
 		print "User: '$user'\n";
 		print "Test: '$test'\n";
 	}
-	
+
+	########################################################################
+	########################### NEEDED STUFF ###############################
+	########################################################################	
+	$abort = false;
+	if (!file_exists("$path/source/config/tools/check_test"))
+	{
+		print "Error: For this script, the file '$path/source/config/tools/check_test' is needed!\n";
+		print "       Please execute 'make' in '$path/source/config/tools/'.\n";
+		$abort = true;
+	}
+	if ($test == "all" || $test == "doxygen_errors")
+	{
+		if (!file_exists("$path/doc/doxygen-error.log"))
+		{
+			print "Error: For the 'doxygen_errors' test, the file '$path/doc/doxygen-error.log' is needed!\n";
+			print "       Please execute 'make idoc' in '$path/doc/'.\n";
+			$abort = true;
+		}
+	}
+	if ($test == "all" || $test == "test_output")
+	{
+		exec("cd $path/source/TEST/ && ls -a *.output | wc -l",$out);
+		if (trim($out[0]) < 100)
+		{
+			print "Error: For the 'test_output' test, test output files are needed!\n";
+			print "       Please execute 'make test' in '$path/source/'.\n";
+			$abort = true;
+		}
+	}
+	if ($abort)
+	{
+		exit;
+	}
 	########################################################################
 	########################### MAINTAINERS ################################
 	########################################################################
@@ -171,7 +209,7 @@
 	
 	//look up Maintainer in first 40 lines of files
 	
-	$all_maintainers = array();
+	$GLOBALS["maintainer_info"] = array();
 	$files_todo = array();
 	$GLOBALS["file_maintainers"] = array();
 	
@@ -213,11 +251,12 @@
 				#count files per maintainer
 				foreach ($maintainers as $m)
 				{
-					if (!isset($all_maintainers[$m]))
+					if (!isset($GLOBALS["maintainer_info"][$m]))
 					{
-						$all_maintainers[$m] = 0;
+						$GLOBALS["maintainer_info"][$m]["files"] = 0;
+						$GLOBALS["maintainer_info"][$m]["errors"] = 0;
 					}
-					$all_maintainers[$m]++;
+					$GLOBALS["maintainer_info"][$m]["files"]++;
 				}
 				#check for misspelled maintainers
 				if ($user!="all")
@@ -244,15 +283,6 @@
 		$files_todo = $files;
 	}
 	
-	//maintainer summary
-	if ($user == "all")
-	{
-		print "\nMaintainers:\n";
-		foreach ($all_maintainers as $m => $c)
-		{
-			print "  $m (File count: $c)\n";
-		}
-	}
 	########################################################################
 	########################### auxilary files #############################
 	########################################################################
@@ -406,6 +436,7 @@
 				"source/config/tools/check_test.C",
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				"_registerChildren.h",
+				"DataReducer.h",
 				);
 
 			if (endsWith($f,".h") )
@@ -499,7 +530,13 @@
 				if (count($result)!=0)
 				{
 					realOutput("check_test errors in '$f'",$user,$verbose,$f);
-					if ($verbose) print implode("\n",$result)."\n";
+					if ($verbose)
+					{
+						foreach ($result as $r)
+						{
+							print "  ".trim($r)."\n";
+						}
+					}
 				}
 			}
 		}
@@ -511,26 +548,50 @@
 			if (endsWith($f,".h") && in_array($testname,$files) && file_exists($outputfile))
 			{
 				$testfile = file($outputfile);
+				$errors = array();
 				foreach ($testfile as $line)
 				{
 					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
 					{
-						if ($verbose) print "$line\n";
-						realOutput("Error/warnings in test output of '$testname'",$user,$verbose,$testname);
-						break;
+						$errors[] = trim($line);
+					}
+				}
+				if (count($errors)!=0)
+				{
+					realOutput("Error/warnings in test output of '$testname'",$user,$verbose,$testname);
+					if ($verbose)
+					{
+						foreach ($errors as $e)
+						{
+							print "  '$e'\n";
+						}
 					}
 				}
 			}
 		}
 		
-		########################### warnings make  #####################################
-		//TODO (tee)
-		
-		########################### warnings TOPP  #####################################
-		//TODO (tee)
-		
 		########################### warnings TOPPtest  #################################
 		//TODO (tee)
+
+		######################### 'Id' keyword in tests  ###############################
+		//TODO
 		
 	}
+
+	################### doxygen errors in .doxygen-files  ##########################
+	//TODO
+
+	//maintainer summary
+	if ($user == "all")
+	{
+		print "\nMaintainers:\n";
+		foreach ($GLOBALS["maintainer_info"] as $m => $info)
+		{
+			$files = $info["files"];
+			$errors = $info["errors"];
+			$ratio = number_format($errors / $files,2);
+			print "  $m (Files: $files  Errors: $errors  Ratio: $ratio)\n";
+		}
+	}
+
 ?>

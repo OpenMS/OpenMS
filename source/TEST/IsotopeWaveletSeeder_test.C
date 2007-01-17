@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Ole Schulz-Trieglaff, Rene Hussong$
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -58,17 +57,17 @@ enum DimensionId
 
 // default ctor
 IsotopeWaveletSeeder* ptr = 0;
-CHECK(IsotopeWaveletSeeder())
+CHECK((IsotopeWaveletSeeder()))
 	ptr = new IsotopeWaveletSeeder();
   TEST_EQUAL(ptr->getName(), "IsotopeWaveletSeeder")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~IsotopeWaveletSeeder())
+CHECK((~IsotopeWaveletSeeder()))
 	delete ptr;
 RESULT
 
-CHECK(nextSeed())
+CHECK((IndexSet nextSeed() throw(NoSuccessor)))
   IsotopeWaveletSeeder seeder;
   FeaFiTraits* traits = new FeaFiTraits();
  
@@ -94,6 +93,16 @@ CHECK(nextSeed())
 	peak =  *(region.begin());
 	TEST_EQUAL(traits->getPeakIntensity(peak),1512);					
   
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(IsotopeWaveletSeeder::getName(),"IsotopeWaveletSeeder");
+RESULT
+
+CHECK(static BaseSeeder* create())
+	BaseSeeder* base = IsotopeWaveletSeeder::create();
+	TEST_NOT_EQUAL(base,0);
+	delete(base);
 RESULT
 
 /////////////////////////////////////////////////////////////

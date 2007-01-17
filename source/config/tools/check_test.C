@@ -4055,7 +4055,6 @@ void parseTestFile(const char* filename)
 				cout << "WARNING: duplicate test for " << line << " of " << filename << endl;
 			}
 			tests_found.insert(line);
-			//cout << "TEST FOUND: '" << line << "'" << endl;
 		}
 	}
 	is.close();
