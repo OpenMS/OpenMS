@@ -60,16 +60,16 @@ START_TEST(DSignalToNoiseEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSignalToNoiseEstimator* ptr = 0;
-CHECK(DSignalToNoiseEstimator())
+CHECK((DSignalToNoiseEstimator()))
 	ptr = new TestSignalToNoiseEstimator();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DSignalToNoiseEstimator())
+CHECK((~DSignalToNoiseEstimator()))
 	delete ptr;
 RESULT
 
-CHECK(DSignalToNoiseEstimator& operator=(const DSignalToNoiseEstimator& ne))
+CHECK((DSignalToNoiseEstimator& operator=(const DSignalToNoiseEstimator& ne)))
   TestSignalToNoiseEstimator sne;
   sne.getMZdim()=-1;
   sne.getRTdim()=0;
@@ -81,7 +81,7 @@ CHECK(DSignalToNoiseEstimator& operator=(const DSignalToNoiseEstimator& ne))
   TEST_REAL_EQUAL(sne_copy.getRTdim(),0)
 RESULT
 
-CHECK(DSignalToNoiseEstimator(const Param& parameters))
+CHECK((DSignalToNoiseEstimator(const Param& parameters)))
   Param param;
   param.setValue("bla",3);
   TestSignalToNoiseEstimator sne(param);
@@ -89,7 +89,7 @@ CHECK(DSignalToNoiseEstimator(const Param& parameters))
   TEST_EQUAL(sne.getParam() == param, true)
 RESULT
 
-CHECK(DSignalToNoiseEstimator(const DSignalToNoiseEstimator& ne))
+CHECK((DSignalToNoiseEstimator(const DSignalToNoiseEstimator& ne)))
   TestSignalToNoiseEstimator sne;
   sne.getMZdim()=-1;
   sne.getRTdim()=0;
@@ -100,7 +100,7 @@ CHECK(DSignalToNoiseEstimator(const DSignalToNoiseEstimator& ne))
   TEST_REAL_EQUAL(sne_copy.getRTdim(),0)
 RESULT
 
-CHECK(PeakIterator& getFirstDataPoint())
+CHECK((PeakIterator& getFirstDataPoint()))
   TestSignalToNoiseEstimator sne;
   RawSpectrum spec;
   sne.getFirstDataPoint() = spec.begin();
@@ -108,7 +108,7 @@ CHECK(PeakIterator& getFirstDataPoint())
   TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
 RESULT
 
-CHECK(PeakIterator& getLastDataPoint())
+CHECK((PeakIterator& getLastDataPoint()))
   TestSignalToNoiseEstimator sne;
   RawSpectrum spec;
   sne.getLastDataPoint() = spec.end();
@@ -116,7 +116,7 @@ CHECK(PeakIterator& getLastDataPoint())
   TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   Param param;
   param.setValue("bla",3);
   TestSignalToNoiseEstimator sne(param);
@@ -124,44 +124,44 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(sne.getParam() == param, true)
 RESULT
 
-CHECK(const PeakIterator& getFirstDataPoint() const)
+CHECK((const PeakIterator& getFirstDataPoint() const))
   TestSignalToNoiseEstimator sne;
   PeakIteratorType pit(0);
   
   TEST_EQUAL(sne.getFirstDataPoint() == pit, true)
 RESULT
 
-CHECK(const PeakIterator& getLastDataPoint() const)
+CHECK((const PeakIterator& getLastDataPoint() const))
   TestSignalToNoiseEstimator sne;
   PeakIteratorType pit(0);
   
   TEST_EQUAL(sne.getLastDataPoint() == pit, true)
 RESULT
 
-CHECK(const int getRTdim() const)
+CHECK((const int getRTdim() const))
   TestSignalToNoiseEstimator sne;
   
   TEST_REAL_EQUAL(sne.getRTdim(),-1)
 RESULT
 
-CHECK(const int& getMZdim() const)
+CHECK((const int& getMZdim() const))
   TestSignalToNoiseEstimator sne;
   
   TEST_REAL_EQUAL(sne.getMZdim(),0)
 RESULT
 
-CHECK(double getSignalToNoise(PeakIterator data_point))
+CHECK((double getSignalToNoise(PeakIterator data_point)))
  
 RESULT
 
-CHECK(int& getMZdim())
+CHECK((int& getMZdim()))
   TestSignalToNoiseEstimator sne;
   sne.getMZdim()=-1;
   
   TEST_REAL_EQUAL(sne.getMZdim(),-1)
 RESULT
 
-CHECK(int& getRTdim())
+CHECK((int& getRTdim()))
   TestSignalToNoiseEstimator sne;
   sne.getRTdim()=0;
   
@@ -176,7 +176,7 @@ CHECK((void init(PeakIterator it_begin, PeakIterator it_end)))
   TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
 RESULT
 
-CHECK(void setFirstDataPoint(const PeakIterator& first))
+CHECK((void setFirstDataPoint(const PeakIterator& first)))
   TestSignalToNoiseEstimator sne;
   RawSpectrum spec;
   sne.setFirstDataPoint(spec.begin());
@@ -184,7 +184,7 @@ CHECK(void setFirstDataPoint(const PeakIterator& first))
   TEST_EQUAL(sne.getFirstDataPoint() == spec.begin(), true)
 RESULT
 
-CHECK(void setLastDataPoint(const PeakIterator& last))
+CHECK((void setLastDataPoint(const PeakIterator& last)))
   TestSignalToNoiseEstimator sne;
   RawSpectrum spec;
   sne.setLastDataPoint(spec.end());
@@ -192,14 +192,14 @@ CHECK(void setLastDataPoint(const PeakIterator& last))
   TEST_EQUAL(sne.getLastDataPoint() == spec.end(), true)
 RESULT
 
-CHECK(void setMZdim(const int& mz_dim))
+CHECK((void setMZdim(const int& mz_dim)))
   TestSignalToNoiseEstimator sne;
   sne.setMZdim(-1);
   
   TEST_REAL_EQUAL(sne.getMZdim(),-1)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   Param param;
   param.setValue("bla",3);
   TestSignalToNoiseEstimator sne;
@@ -208,7 +208,7 @@ CHECK(void setParam(const Param& param))
   TEST_EQUAL(sne.getParam() == param, true)
 RESULT
 
-CHECK(void setRTdim(const int& rt_dim))
+CHECK((void setRTdim(const int& rt_dim)))
   TestSignalToNoiseEstimator sne;
   sne.setRTdim(0);
   

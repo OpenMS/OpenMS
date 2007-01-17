@@ -101,7 +101,7 @@ CHECK((void setOrder(const unsigned int& order)))
   TEST_EQUAL(sgolay.getOrder(),3);
 RESULT
 
-CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
+CHECK((void setParam(Param param) throw(Exception::InvalidValue)))
   Param p;
   p.setValue("polynomial_order",2);
   p.setValue("frame_length",3);

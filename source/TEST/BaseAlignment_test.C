@@ -64,16 +64,16 @@ START_TEST(BaseAlignment, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestAlignment* ptr = 0;
-CHECK(BaseAlignment())
+CHECK((BaseAlignment()))
   ptr = new TestAlignment();
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BaseAlignment())
+CHECK((~BaseAlignment()))
   delete ptr;
 RESULT
 
-CHECK(BaseAlignment& operator = (const BaseAlignment& source))
+CHECK((BaseAlignment& operator = (const BaseAlignment& source)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
@@ -111,7 +111,7 @@ CHECK(BaseAlignment& operator = (const BaseAlignment& source))
   TEST_EQUAL(al_copy.getMapType() == "feature_map", true)
 RESULT
 
-CHECK(BaseAlignment(const BaseAlignment& source))
+CHECK((BaseAlignment(const BaseAlignment& source)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
@@ -148,11 +148,11 @@ CHECK(BaseAlignment(const BaseAlignment& source))
   TEST_EQUAL(al_copy.getMapType() == "feature_map", true)
 RESULT
 
-CHECK(String getAlignmentTree() const)
+CHECK((String getAlignmentTree() const))
 
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
@@ -161,20 +161,20 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(al.getParam() == param, true)
 RESULT
 
-CHECK(const String& getMapType() const)
+CHECK((const String& getMapType() const))
   TestAlignment al;
   al.setMapType("feature_map");
 
   TEST_EQUAL(al.getMapType() == "feature_map", true)
 RESULT
 
-CHECK(const std::vector< ConsensusElementType >& getFinalConsensusMap() const)
+CHECK((const std::vector< ConsensusElementType >& getFinalConsensusMap() const))
   TestAlignment al;
   
   TEST_EQUAL(al.getFinalConsensusMap().size() == 0,true)
 RESULT
 
-CHECK(const std::vector< ElementContainerType* >& getElementMapVector() const)
+CHECK((const std::vector< ElementContainerType* >& getElementMapVector() const))
   TestAlignment al;
   vector<FeatureMap*> map_vector;
   FeatureMap map;
@@ -185,7 +185,7 @@ CHECK(const std::vector< ElementContainerType* >& getElementMapVector() const)
   TEST_EQUAL((al.getElementMapVector()[0]) == &map, true)
 RESULT
 
-CHECK(const std::vector< String >& getFileNames() const)
+CHECK((const std::vector< String >& getFileNames() const))
   TestAlignment al;
   String name="blub";
   vector<String> name_vector(1,name);
@@ -195,17 +195,17 @@ CHECK(const std::vector< String >& getFileNames() const)
   TEST_EQUAL((al.getFileNames())[0] == "blub", true)
 RESULT
 
-CHECK(const std::vector< GridType >& getTransformationVector() const)
+CHECK((const std::vector< GridType >& getTransformationVector() const))
   TestAlignment alignment;
   
   TEST_EQUAL(alignment.getTransformationVector().size() == 0, true)
 RESULT
 
-CHECK(void run() throw(Exception::InvalidValue))
+CHECK((void run() throw(Exception::InvalidValue)))
 
 RESULT
 
-CHECK(void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector))
+CHECK((void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector)))
   TestAlignment al;
   vector<FeatureMap*> map_vector;
   FeatureMap map;
@@ -216,7 +216,7 @@ CHECK(void setElementMapVector(const std::vector< ElementContainerType* >& eleme
   TEST_EQUAL(al.getElementMapVector()[0] == &map, true)
 RESULT
 
-CHECK(std::vector< ElementContainerType* >& getElementMapVector())
+CHECK((std::vector< ElementContainerType* >& getElementMapVector()))
   TestAlignment al;
   vector<FeatureMap*> map_vector;
   FeatureMap map;
@@ -227,7 +227,7 @@ CHECK(std::vector< ElementContainerType* >& getElementMapVector())
   TEST_EQUAL(al.getElementMapVector()[0] == &map, true)
 RESULT
 
-CHECK(void setFileNames(const std::vector< String >& file_names))
+CHECK((void setFileNames(const std::vector< String >& file_names)))
   TestAlignment al;
   String name="blub";
   vector<String> name_vector(1,name);
@@ -237,14 +237,14 @@ CHECK(void setFileNames(const std::vector< String >& file_names))
   TEST_EQUAL((al.getFileNames())[0] == "blub", true)
 RESULT
 
-CHECK(void setMapType(const String& map_type))
+CHECK((void setMapType(const String& map_type)))
   TestAlignment al;
   al.setMapType("peak_map");
 
   TEST_EQUAL(al.getMapType() == "peak_map", true)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   TestAlignment al;
   Param param;
   param.setValue("consensus_algorithm","delaunay");
@@ -253,7 +253,7 @@ CHECK(void setParam(const Param& param))
   TEST_EQUAL(al.getParam() == param,true)
 RESULT
 
-CHECK(void setFinalConsensusMap(const std::vector< ConsensusElementType >& final_consensus_map))
+CHECK((void setFinalConsensusMap(const std::vector < ConsensusElementType >& final_consensus_map)))
   TestAlignment al;
   std::vector<ConsensusFeatureType> cons_map(4);
   al.setFinalConsensusMap(cons_map);
@@ -261,7 +261,7 @@ CHECK(void setFinalConsensusMap(const std::vector< ConsensusElementType >& final
   TEST_EQUAL(al.getFinalConsensusMap().size() == 4,true)
 RESULT
 
-CHECK(void setTransformationVector(const std::vector< GridType >& transformations))
+CHECK((void setTransformationVector(const std::vector< GridType >& transformations)))
   TestAlignment alignment;
   std::vector< DGrid<2> > grid_vector(2);
   alignment.setTransformationVector(grid_vector);

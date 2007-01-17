@@ -41,61 +41,61 @@ START_TEST(DPickedPeak<D>, "$Id$")
 using namespace OpenMS;
 
 DPickedPeak<10>* d10_ptr = 0;
-CHECK(DPickedPeak())
+CHECK((DPickedPeak()))
 	d10_ptr = new DPickedPeak<10>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~DPickedPeak())
+CHECK((~DPickedPeak()))
 	delete d10_ptr;
 RESULT
 
-CHECK(const RValueType& rValue() const)
+CHECK((const RValueType& getRValue() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
-CHECK(const AreaType& getArea() const)
+CHECK((const AreaType& getArea() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
-CHECK(const FullWidthHalfMaxType& getFWHM() const)
+CHECK((const FullWidthHalfMaxType& getFWHM() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
-CHECK(const WidthType& getLeftWidthParameter() const)
+CHECK((const WidthType& getLeftWidthParameter() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
-CHECK(const WidthType& getRightWidthParameter() const)
+CHECK((const WidthType& getRightWidthParameter() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK(const PeakShapeType::Enum& getPeakShape() const)
+CHECK((const PeakShapeType::Enum& getPeakShape() const))
 	const DPickedPeak<10> p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 RESULT
 
-CHECK(const SignalToNoiseType& getSN() const)
+CHECK((const SignalToNoiseType& getSN() const))
 	const DPickedPeak<10> p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK(const ChargeType& getCharge() const)
+CHECK((const ChargeType& getCharge() const))
 	const DPickedPeak<10>	p;
 	TEST_EQUAL(p.getCharge(), 0)
 RESULT
 
-CHECK(const RValueType& getRValue() const)
+CHECK((const RValueType& getRValue() const))
 	DPickedPeak<10>	p;
 	TEST_EQUAL(p.getRValue(), 0)
 RESULT
 
-CHECK(RValueType& rvalue())
+CHECK((RValueType& getRValue()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 	p.getRValue() = 0.456;
@@ -106,7 +106,7 @@ CHECK(RValueType& rvalue())
 	TEST_REAL_EQUAL(p.getRValue(), 0.0)
 RESULT
 
-CHECK(AreaType& getArea())
+CHECK((AreaType& getArea()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 	p.getArea() = 123.456;
@@ -117,7 +117,7 @@ CHECK(AreaType& getArea())
 	TEST_REAL_EQUAL(p.getArea(), 0.0)
 RESULT
 
-CHECK(FullWidthHalfMaxType& getFWHM())
+CHECK((FullWidthHalfMaxType& getFWHM()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 	p.getFWHM() = 123.456;
@@ -128,7 +128,7 @@ CHECK(FullWidthHalfMaxType& getFWHM())
 	TEST_REAL_EQUAL(p.getFWHM(), 0.0)
 RESULT
 
-CHECK(WidthType& getLeftWidthParameter())
+CHECK((WidthType& getLeftWidthParameter()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 	p.getLeftWidthParameter() = 123.456;
@@ -139,7 +139,7 @@ CHECK(WidthType& getLeftWidthParameter())
 	TEST_REAL_EQUAL(p.getLeftWidthParameter(), 0.0)
 RESULT
 
-CHECK(WidthType& getRightWidthParameter())
+CHECK((WidthType& getRightWidthParameter()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 	p.getRightWidthParameter() = 123.456;
@@ -150,7 +150,7 @@ CHECK(WidthType& getRightWidthParameter())
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK(PeakShapeType& getPeakShape())
+CHECK((PeakShapeType::Enum& getPeakShape()))
 	DPickedPeak<3> p;
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
 	p.getPeakShape() = PeakShapeType::LORENTZ_PEAK;
@@ -159,7 +159,7 @@ CHECK(PeakShapeType& getPeakShape())
 	TEST_EQUAL(p.getPeakShape(), PeakShapeType::SECH_PEAK)
 RESULT
 
-CHECK(SignalToNoiseType& getSN())
+CHECK((SignalToNoiseType& getSN()))
 	DPickedPeak<3> p;
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 	p.getSN() = 123.456;
@@ -170,35 +170,7 @@ CHECK(SignalToNoiseType& getSN())
 	TEST_REAL_EQUAL(p.getSN(), 0.0)
 RESULT
 
-CHECK(IntensityType& getIntensity())
-	DPickedPeak<3> p;
-	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-	p.getIntensity() = 123.456;
-	TEST_REAL_EQUAL(p.getIntensity(), 123.456)
-	p.getIntensity() = -0.12345;
-	TEST_REAL_EQUAL(p.getIntensity(), -0.12345)
-	p.getIntensity() = 0.0;
-	TEST_REAL_EQUAL(p.getIntensity(), 0.0)
-RESULT
-
-CHECK(PositionType& getPosition())
-	DPickedPeak<3>::PositionType pos;
-	DPickedPeak<3> p;
-	pos = p.getPosition();
-	TEST_REAL_EQUAL(pos[0], 0.0)
-	TEST_REAL_EQUAL(pos[1], 0.0)
-	TEST_REAL_EQUAL(pos[2], 0.0)
-	pos[0] = 1.0;
-	pos[1] = 2.0;
-	pos[2] = 3.0;
-	p.getPosition() = pos;
-	DPickedPeak<3>::PositionType pos2(p.getPosition());
-	TEST_REAL_EQUAL(pos2[0], 1.0)
-	TEST_REAL_EQUAL(pos2[1], 2.0)
-	TEST_REAL_EQUAL(pos2[2], 3.0)	
-RESULT
-
-CHECK(ChargeType& getCharge())
+CHECK((ChargeType& getCharge()))
 	DPickedPeak<3> p;
 	TEST_EQUAL(p.getCharge(), 0.0)
 	p.getCharge() = 12;
@@ -210,7 +182,7 @@ CHECK(ChargeType& getCharge())
 RESULT
 
 
-CHECK(DPickedPeak(DPickedPeak const& p))
+CHECK((DPickedPeak(DPickedPeak const& p)))
 	DPickedPeak<3>::PositionType pos,pos2;
 
 	pos[0] = 21.21;
@@ -265,7 +237,7 @@ CHECK(DPickedPeak(DPickedPeak const& p))
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
-CHECK(DPickedPeak& operator = (const DPickedPeak& rhs))
+CHECK((DPickedPeak& operator = (const DPickedPeak& rhs)))
 DPickedPeak<3>::WidthType w;
 DPickedPeak<3>::PositionType pos, pos2;
 	w = 13.13;
@@ -323,7 +295,7 @@ DPickedPeak<3>::PositionType pos, pos2;
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4712));
 RESULT
 
-CHECK(bool operator == (const DPickedPeak& rhs) const)
+CHECK((bool operator == (const DPickedPeak& rhs) const))
 	DPickedPeak<1> p1;
 	DPickedPeak<1> p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
@@ -379,7 +351,7 @@ CHECK(bool operator == (const DPickedPeak& rhs) const)
 	TEST_REAL_EQUAL(p1==p2, true)	
 RESULT
 
-CHECK(bool operator != (const DPickedPeak& rhs) const)
+CHECK((bool operator != (const DPickedPeak& rhs) const))
 	DPickedPeak<1> p1;
 	DPickedPeak<1> p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
@@ -435,7 +407,7 @@ CHECK(bool operator != (const DPickedPeak& rhs) const)
 	TEST_REAL_EQUAL(p1!=p2, false)	
 RESULT
 
-CHECK(meta info with copy constructor)
+CHECK(([EXTRA]meta info with copy constructor))
 	DPickedPeak<1> p;
 	p.setMetaValue(2,std::string("bla"));
  	DPickedPeak<1> p2(p);
@@ -446,7 +418,7 @@ CHECK(meta info with copy constructor)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-CHECK(meta info with assignment)
+CHECK(([EXTRA]meta info with assignment))
 	DPickedPeak<1> p;
 	p.setMetaValue(2,std::string("bla"));
  	DPickedPeak<1> p2 = p;
@@ -457,40 +429,6 @@ CHECK(meta info with assignment)
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 RESULT
 
-CHECK(struct WidthLess)
-	DPickedPeak<1>::PositionType pos;
-	std::vector<DPickedPeak<1> > v;
-	
-  DPickedPeak<1> p;
-  
-  pos[0] = 0.;
-	
-  p.getIntensity() = 1.;
-  p.getPeakShape() = PeakShapeType::LORENTZ_PEAK;
-	
-	p.getLeftWidthParameter()=3.0;
-	p.getRightWidthParameter()=2.5;
-	
-	v.push_back(p);
-	
-	p.getLeftWidthParameter()=2.0;
-	p.getRightWidthParameter()=3.5;
-	v.push_back(p);
-
-	p.getLeftWidthParameter()=1.0;
-	p.getRightWidthParameter()=1.5;
-	v.push_back(p);
-
-	std::sort(v.begin(), v.end(), DPickedPeak<1>::WidthLess());
-
-	TEST_REAL_EQUAL(v[0].getLeftWidthParameter(), 3.0)
-	TEST_REAL_EQUAL(v[1].getLeftWidthParameter(), 2.0)
-	TEST_REAL_EQUAL(v[2].getLeftWidthParameter(), 1.0)
-	TEST_REAL_EQUAL(v[0].getRightWidthParameter(), 2.5)
-	TEST_REAL_EQUAL(v[1].getRightWidthParameter(), 3.5)
-	TEST_REAL_EQUAL(v[2].getRightWidthParameter(), 1.5)
-
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -80,7 +80,7 @@ CHECK((LinearResampler& operator= (const LinearResampler& source)))
   TEST_EQUAL(tmp2.getParam(),p);
 RESULT
 
-CHECK((template <typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first,InputSpectrumIterator last,  MSExperiment<OutputPeakType>& ms_exp_filtered)))
+CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
   MSExperiment< DRawDataPoint <1> > raw;
   raw.resize(1);
   MSExperiment< DRawDataPoint <1> > resampled;
@@ -176,7 +176,7 @@ CHECK((void setParam(const Param& param)))
   TEST_EQUAL(tmp.getParam(),p);
 RESULT
 
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
+CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
   MSSpectrum< DRawDataPoint<1> > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].getPos() = 0;
@@ -214,7 +214,7 @@ CHECK((void setSpacing(const double& spacing)))
   TEST_EQUAL(tmp.getSpacing(),0.1);
 RESULT
 
-CHECK((template< typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
+CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
   MSSpectrum< DRawDataPoint<1> > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].getPos() = 0;

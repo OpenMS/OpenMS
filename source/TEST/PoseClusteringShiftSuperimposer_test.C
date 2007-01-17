@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl, Eva Lange $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -180,8 +180,8 @@ RESULT
 CHECK(Size getElementBucketWindow(UnsignedInt dim) const)
   PoseClusteringShiftSuperimposer<FeatureMap> pcsi;
     
-  TEST_REAL_EQUAL(pcsi.getElementBucketWindow(0),150)
-  TEST_REAL_EQUAL(pcsi.getElementBucketWindow(1),4)
+  TEST_REAL_EQUAL(pcsi.getElementBucketWindow(0),2)
+  TEST_REAL_EQUAL(pcsi.getElementBucketWindow(1),1)
 RESULT
 
 CHECK(Size getShiftBucketWindow(UnsignedInt dim) const)

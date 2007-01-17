@@ -45,16 +45,16 @@ START_TEST(PoseClusteringPairwiseMapMatcher<ElementMapType>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PoseClusteringPairwiseMapMatcher<ElementMapType>* ptr = 0;
-CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>())
+CHECK((PoseClusteringPairwiseMapMatcher()))
 	ptr = new PoseClusteringPairwiseMapMatcher<ElementMapType>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~PoseClusteringPairwiseMapMatcher<ElementMapType>())
+CHECK((~PoseClusteringPairwiseMapMatcher()))
 	delete ptr;
 RESULT
 
-CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>& operator= (const PoseClusteringPairwiseMapMatcher<ElementMapType>& source))
+CHECK((PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -73,7 +73,7 @@ CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>& operator= (const PoseClu
   TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
 RESULT
 
-CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>(const PoseClusteringPairwiseMapMatcher<ElementMapType>& source))
+CHECK((PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -91,17 +91,17 @@ CHECK(PoseClusteringPairwiseMapMatcher<ElementMapType>(const PoseClusteringPairw
   TEST_EQUAL(&(pcpmm.getElementMap(1)) == &(pcpmm_copy.getElementMap(1)),true)
 RESULT
 
-CHECK(static BasePairwiseMapMatcher<MapT>* create())
+CHECK((static BasePairwiseMapMatcher<MapT>* create()))
   
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
   PoseClusteringPairwiseMapMatcher<ElementMapType> pcpmm;
   
   TEST_EQUAL(pcpmm.getName() == "poseclustering_pairwise",true)
 RESULT
 
-CHECK(void run())
+CHECK((void run()))
   Param param;
   param.setValue("superimposer","poseclustering_shift");
   param.setValue("pair_finder","delaunay");

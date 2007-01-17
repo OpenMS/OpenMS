@@ -61,240 +61,230 @@ namespace OpenMS
      the number of buckets in the RT as well as the MZ dimension. 
      Call initGridTransformation() before run()!
 
-		 @todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
+   @todo Avoid the "0.01 hack" in initGridTransformation(). (Eva)
      
      @ingroup Analysis
   **/
-  
+
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairwiseMapMatcher : public FactoryProduct
   {
-    public:
-      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-      
-      /// Defines the coordinates of elements
-      enum DimensionId
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
+  public:
+    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
+
+    /// Defines the coordinates of elements
+    enum DimensionId
+    {
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
-      /// Container for input elements
-      typedef MapT PointMapType;
+    /// Container for input elements
+    typedef MapT PointMapType;
 
-      /// Type of elements considered here
-      typedef typename PointMapType::value_type ElementType;
+    /// Type of elements considered here
+    typedef typename PointMapType::value_type ElementType;
 
-      /// Traits type
-      typedef typename ElementType::TraitsType TraitsType;
+    /// Traits type
+    typedef typename ElementType::TraitsType TraitsType;
 
-      /// Type of element pairs
-      typedef DFeaturePair < 2, ElementType > ElementPairType;
+    /// Type of element pairs
+    typedef DFeaturePair < 2, ElementType > ElementPairType;
 
-      /// Container for generated element pairs
-      typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
+    /// Container for generated element pairs
+    typedef DFeaturePairVector < 2, ElementType > ElementPairVectorType;
 
-      /// Grid
-      typedef DGrid<2> GridType;
+    /// Grid
+    typedef DGrid<2> GridType;
 
-      /// Position
-      typedef DPosition < 2, TraitsType > PositionType;
+    /// Position
+    typedef DPosition < 2, TraitsType > PositionType;
 
-      ///
-      typedef DBoundingBox< 2, TraitsType>  PositionBoundingBoxType;
+    ///
+    typedef DBoundingBox< 2, TraitsType>  PositionBoundingBoxType;
 
-      /// Coordinate
-      typedef typename TraitsType::CoordinateType CoordinateType;
+    /// Coordinate
+    typedef typename TraitsType::CoordinateType CoordinateType;
 
 
-      /// Constructor
-      BasePairwiseMapMatcher()
-          : FactoryProduct(),
-          param_()
-      {
-        element_map_[0] = 0;
-        element_map_[1] = 0;
-        number_buckets_[0] = 1;
-        number_buckets_[1] = 1;
-      }
+    /// Constructor
+    BasePairwiseMapMatcher()
+        : FactoryProduct()
+    {
+      element_map_[0] = 0;
+      element_map_[1] = 0;
+      number_buckets_[0] = 1;
+      number_buckets_[1] = 1;
+      FactoryProduct::name_ = "poseclustering_pairwise";
+    }
 
-      /// Copy constructor
-      BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
-          : FactoryProduct(source),
-          param_(source.param_),
-          all_element_pairs_(source.all_element_pairs_),
-          bounding_box_scene_map_(source.bounding_box_scene_map_),
-          box_size_(source.box_size_)
-      {
-        element_map_[0] = source.element_map_[0];
-        element_map_[1] = source.element_map_[1];
-        number_buckets_[0] = source.number_buckets_[0];
-        number_buckets_[1] = source.number_buckets_[1];
-        grid_ = source.grid_;
-      }
+    /// Copy constructor
+    BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)
+        : FactoryProduct(source),
+        all_element_pairs_(source.all_element_pairs_),
+        bounding_box_scene_map_(source.bounding_box_scene_map_),
+        box_size_(source.box_size_)
+    {
+      element_map_[0] = source.element_map_[0];
+      element_map_[1] = source.element_map_[1];
+      number_buckets_[0] = source.number_buckets_[0];
+      number_buckets_[1] = source.number_buckets_[1];
+      grid_ = source.grid_;
+    }
 
-      ///  Assignment operator
-      BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
-      {
-        FactoryProduct::operator = (source);
-
-        param_ = source.param_;
-        element_map_[0] = source.element_map_[0];
-        element_map_[1] = source.element_map_[1];
-        all_element_pairs_ = source.all_element_pairs_;
-        grid_ = source.grid_;
-        bounding_box_scene_map_ = source.bounding_box_scene_map_;
-        box_size_ = source.box_size_;
-        number_buckets_[0] = source.number_buckets_[0];
-        number_buckets_[1] = source.number_buckets_[1];
+    ///  Assignment operator
+    BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)
+    {
+      if (&source==this)
         return *this;
+
+      FactoryProduct::operator = (source);
+      element_map_[0] = source.element_map_[0];
+      element_map_[1] = source.element_map_[1];
+      all_element_pairs_ = source.all_element_pairs_;
+      grid_ = source.grid_;
+      bounding_box_scene_map_ = source.bounding_box_scene_map_;
+      box_size_ = source.box_size_;
+      number_buckets_[0] = source.number_buckets_[0];
+      number_buckets_[1] = source.number_buckets_[1];
+      return *this;
+    }
+
+    /// Destructor
+    virtual ~BasePairwiseMapMatcher()
+  {}
+    
+    /// Set parameters  
+    virtual void setParam(const Param& param)
+    {
+      FactoryProduct::setParam(param);
+    }
+  
+    /// Set element map
+    void setElementMap(Size const index, const PointMapType& element_map)
+    {
+      element_map_[index] = &element_map;
+    }
+
+    /// Get element map
+    const PointMapType& getElementMap(Size index) const
+    {
+      return *element_map_[index];
+    }
+
+    /// Get element pair list
+    const ElementPairVectorType& getElementPairs() const
+    {
+      return all_element_pairs_;
+    }
+
+    /// Get grid
+    const GridType& getGrid() const
+    {
+      return grid_;
+    }
+
+    /// Set number of buckets in dimension index
+    void setNumberBuckets(Size const index, UnsignedInt number)
+    {
+      number_buckets_[index] = number;
+    }
+
+    /// Get number of buckets in dimension index
+    UnsignedInt getNumberBuckets(Size index) const
+    {
+      return number_buckets_[index];
+    }
+
+    void clearGrid()
+    {
+      grid_.clear();
+    }
+
+    /// Register all derived classes here
+    static void registerChildren();
+
+    /// Determine corresponding elements (element pairs)
+    virtual void run() = 0;
+
+    /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
+    void initGridTransformation(const PointMapType& scene_map)
+    {
+      // compute the minimal and maximal positions of the second map (the map, which should be transformed)
+      for ( typename PointMapType::const_iterator fm_iter = scene_map.begin();
+            fm_iter != scene_map.end();
+            ++fm_iter
+          )
+      {
+        bounding_box_scene_map_.enlarge(fm_iter->getPosition());
       }
 
-      /// Destructor
-      virtual ~BasePairwiseMapMatcher()
-      {}
-      
-      /// Set param
-      void setParam(const Param& param)
+      // compute the grid sizes in each dimension
+      // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
+      // TODO: find a better way that does not use such a magic constant. As is, the bounding box reported in the output is incorrect!
+      for (Size i = 0; i < 2; ++i)
       {
-        param_ = param;
-        parseParam_();
+        box_size_[i] =
+          (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) /
+          ( number_buckets_[i] - 0.01 /* <- magic constant */);
       }
 
-      /// Get param (non-mutable)
-      const Param& getParam() const
+      // initialize the grid cells of the grid_
+      for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
       {
-        return param_;
-      }
-
-      /// Set element map
-      void setElementMap(Size const index, const PointMapType& element_map)
-      {
-        element_map_[index] = &element_map;
-      }
-
-      /// Get element map 
-      const PointMapType& getElementMap(Size index) const
-      {
-        return *element_map_[index];
-      }
-
-      /// Get element pair list 
-      const ElementPairVectorType& getElementPairs() const
-      {
-        return all_element_pairs_;
-      }
-
-      /// Get grid
-      const GridType& getGrid() const
-      {
-        return grid_;
-      }
-
-      /// Set number of buckets in dimension index
-      void setNumberBuckets(Size const index, UnsignedInt number)
-      {
-        number_buckets_[index] = number;
-      }
-
-      /// Get number of buckets in dimension index
-      UnsignedInt getNumberBuckets(Size index) const
-      {
-        return number_buckets_[index];
-      }
-      
-      void clearGrid()
-      {
-      	grid_.clear();
-      }
-
-      /// Register all derived classes here
-      static void registerChildren();
-
-      /// Determine corresponding elements (element pairs)
-      virtual void run() = 0;
-
-      /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
-      void initGridTransformation(const PointMapType& scene_map)
-      {
-        // compute the minimal and maximal positions of the second map (the map, which should be transformed)
-        for ( typename PointMapType::const_iterator fm_iter = scene_map.begin();
-              fm_iter != scene_map.end();
-              ++fm_iter
-            )
+        for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
         {
-          bounding_box_scene_map_.enlarge(fm_iter->getPosition());
+          CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
+          CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
+          CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
+          CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
+
+          grid_.push_back(DGridCell<2,TraitsType>(x_min, y_min, x_max, y_max));
         }
-
-        // compute the grid sizes in each dimension
-        // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
-        // TODO: find a better way that does not use such a magic constant. As is, the bounding box reported in the output is incorrect!
-        for (Size i = 0; i < 2; ++i)
-        {
-          box_size_[i] =
-						(bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) /
-						( number_buckets_[i] - 0.01 /* <- magic constant */);
-        }
-
-        // initialize the grid cells of the grid_
-        for (Size x_index = 0; x_index < number_buckets_[RT]; ++x_index)
-        {
-          for (Size y_index = 0; y_index < number_buckets_[MZ]; ++y_index)
-          {
-            CoordinateType x_min = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*x_index;
-            CoordinateType x_max = (bounding_box_scene_map_.min())[RT] + box_size_[RT]*(x_index+1);
-            CoordinateType y_min = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*y_index;
-            CoordinateType y_max = (bounding_box_scene_map_.min())[MZ] + box_size_[MZ]*(y_index+1);
-
-						grid_.push_back(DGridCell<2,TraitsType>(x_min, y_min, x_max, y_max));
-          }
-        }
-      } // initGridTransformation_
+      }
+    } // initGridTransformation_
 
 
 
-      //  int dumpElementPairs(const String& filename); // code is below
+    //  int dumpElementPairs(const String& filename); // code is below
 
-    protected:
-      /// Param class containing the parameters for the map matching phase
-      Param param_;
+  protected:
+    /// Two maps of elements to be matched
+    PointMapType const * element_map_[2];
 
-      /// Two maps of elements to be matched
-      PointMapType const * element_map_[2];
+    /// Each element of the vector corresponds to all element pairs of one gridcell
+    ElementPairVectorType all_element_pairs_;
 
-      /// Each element of the vector corresponds to all element pairs of one gridcell
-      ElementPairVectorType all_element_pairs_;
+    /// The estimated transformation between the two element maps
+    GridType grid_;
 
-      /// The estimated transformation between the two element maps
-      GridType grid_;
+    /// Bounding box of the second map
+    PositionBoundingBoxType bounding_box_scene_map_;
 
-      /// Bounding box of the second map
-      PositionBoundingBoxType bounding_box_scene_map_;
+    /// Size of the grid cells
+    PositionType box_size_;
 
-      /// Size of the grid cells
-      PositionType box_size_;
+    /// Number of buckets in each dimension
+    UnsignedInt number_buckets_[2];
 
-      /// Number of buckets in each dimension 
-      UnsignedInt number_buckets_[2];
-
-      /// Parses the parameters, assigns their values to instance members.
-      void parseParam_()
+    /// Parses the parameters, assigns their values to instance members.
+    void parseParam_()
+    {
+      /// Check the user defined size of the grid cells
+      std::string param_name_prefix = "number_buckets:";
+      PositionType number_buckets;
+      for ( Size dimension = 0; dimension < 2; ++dimension)
       {
-        /// Check the user defined size of the grid cells
-        std::string param_name_prefix = "number_buckets:";
-        PositionType number_buckets;
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        std::string param_name =
+          param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
+        DataValue data_value = param_.getValue(param_name);
+        if ( data_value != DataValue::EMPTY )
         {
-          std::string param_name =
-            param_name_prefix + DimensionDescriptionType::dimension_name_short[dimension];
-          DataValue data_value = param_.getValue(param_name);
-          if ( data_value != DataValue::EMPTY )
-          {
-            number_buckets_[dimension] = data_value;
-          }
+          number_buckets_[dimension] = data_value;
         }
-      } // parseParam_
- }
+      }
+    } // parseParam_
+  }
   ; // BasePairwiseMapMatcher
 
 

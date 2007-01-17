@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange, Clemens Groepl $
+// $Maintainer: Eva Lange$
 // --------------------------------------------------------------------------
 
 
@@ -52,147 +52,135 @@ namespace OpenMS
      
      Policy for copy constructor and assignment: element_map_ is
      maintained as pointer and taken shallow copy. 
-     But param_ is deep.
   **/
 
   template <typename MapT = DFeatureMap<2> >
   class BaseSuperimposer : public FactoryProduct
   {
-    public:
-      /// Defines the coordinates of elements.
-      enum DimensionId
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
+  public:
+    /// Defines the coordinates of elements.
+    enum DimensionId
+    {
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
-      /** Symbolic names for indices of element maps etc.
-      This should make things more understandable and maintainable. 
-      */
-      enum Maps
-      {
-        MODEL = 0,
-        SCENE = 1
+    /** Symbolic names for indices of element maps etc.
+    This should make things more understandable and maintainable. 
+    */
+    enum Maps
+    {
+      MODEL = 0,
+      SCENE = 1
     };
 
-      /// Container for input elements
-      typedef MapT PointMapType;
+    /// Container for input elements
+    typedef MapT PointMapType;
 
-      /// Type of elements considered here
-      typedef typename PointMapType::value_type PointType;
+    /// Type of elements considered here
+    typedef typename PointMapType::value_type PointType;
 
-      /// Traits type
-      typedef typename PointType::TraitsType TraitsType;
+    /// Traits type
+    typedef typename PointType::TraitsType TraitsType;
 
-      /// Quality type
-      typedef typename TraitsType::QualityType QualityType;
+    /// Quality type
+    typedef typename TraitsType::QualityType QualityType;
 
-      /// Position type
-      typedef DPosition < 2, TraitsType > PositionType;
+    /// Position type
+    typedef DPosition < 2, TraitsType > PositionType;
 
-      //// Intensity type
-      typedef typename TraitsType::IntensityType IntensityType;
+    //// Intensity type
+    typedef typename TraitsType::IntensityType IntensityType;
 
-      /// Type of estimated transformation
-      typedef DLinearMapping< 1, TraitsType > TransformationType;
+    /// Type of estimated transformation
+    typedef DLinearMapping< 1, TraitsType > TransformationType;
 
-      /// Constructor
-      BaseSuperimposer()
-          : FactoryProduct(),
-          param_(),
+    /// Constructor
+    BaseSuperimposer()
+        : FactoryProduct(),
           final_transformation_()
-      {
-        element_map_[MODEL] = 0;
-        element_map_[SCENE] = 0;
-      }
+    {
+      element_map_[MODEL] = 0;
+      element_map_[SCENE] = 0;
+      FactoryProduct::name_ = "poseclustering_shift";
+    }
 
-      /// Copy constructor
-      BaseSuperimposer(const BaseSuperimposer& source)
-          : FactoryProduct(source),
-          param_(source.param_)
-      {
-        element_map_[MODEL] = source.element_map_[MODEL];
-        element_map_[SCENE] = source.element_map_[SCENE];
-        final_transformation_[RT] = source.final_transformation_[RT];
-        final_transformation_[MZ] = source.final_transformation_[MZ];
-      }
+    /// Copy constructor
+    BaseSuperimposer(const BaseSuperimposer& source)
+        : FactoryProduct(source)
+    {
+      element_map_[MODEL] = source.element_map_[MODEL];
+      element_map_[SCENE] = source.element_map_[SCENE];
+      final_transformation_[RT] = source.final_transformation_[RT];
+      final_transformation_[MZ] = source.final_transformation_[MZ];
+    }
 
-      /// Assignment operator
-      virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
-      {
-        if (&source==this)
-          return *this;
-        
-        param_ = source.param_;
-        element_map_[MODEL] = source.element_map_[MODEL];
-        element_map_[SCENE] = source.element_map_[SCENE];
-        final_transformation_[RT] = source.final_transformation_[RT];
-        final_transformation_[MZ] = source.final_transformation_[MZ];
+    /// Assignment operator
+    virtual BaseSuperimposer& operator = (const BaseSuperimposer& source)
+    {
+      if (&source==this)
         return *this;
-      }
+        
+      FactoryProduct::operator=(source);
+      element_map_[MODEL] = source.element_map_[MODEL];
+      element_map_[SCENE] = source.element_map_[SCENE];
+      final_transformation_[RT] = source.final_transformation_[RT];
+      final_transformation_[MZ] = source.final_transformation_[MZ];
+      return *this;
+    }
 
-      /// Destructor
-      virtual ~BaseSuperimposer()
-    {}
+    /// Destructor
+    virtual ~BaseSuperimposer()
+  {}
 
-      /// Set param class
-      void setParam(const Param& param)
-      {
-        param_ = param;
-      }
+    virtual void setParam(const Param& param)
+    {
+      FactoryProduct::setParam(param);
+    }
 
-      /// Get param class (non-mutable)
-      const Param& getParam() const
-      {
-        return param_;
-      }
+    /// Set element map
+    void setElementMap(Size const index, const PointMapType& element_map)
+    {
+      element_map_[index] = &element_map;
+    }
 
-      /// Set element map
-      void setElementMap(Size const index, const PointMapType& element_map)
-      {
-        element_map_[index] = &element_map;
-      }
+    /// Get element map
+    const PointMapType& getElementMap(Size index)
+    {
+      return *element_map_[index];
+    }
 
-      /// Get element map
-      const PointMapType& getElementMap(Size index)
-      {
-        return *element_map_[index];
-      }
+    /// Get element maps (non-mutable)
+    const PointMapType& getElementMap(Size index) const
+    {
+      return *element_map_[index];
+    }
 
-      /// Get element maps (non-mutable)
-      const PointMapType& getElementMap(Size index) const
-      {
-        return *element_map_[index];
-      }
+    /// Set transformation
+    void setTransformation(Size dim, const TransformationType& trafo)
+    {
+      final_transformation_[dim] = trafo;
+    }
 
-      /// Set transformation
-      void setTransformation(Size dim, const TransformationType& trafo)
-      {
-        final_transformation_[dim] = trafo;
-      }
+    /// Get transformation
+    const TransformationType& getTransformation(Size dim) const
+    {
+      return final_transformation_[dim];
+    }
 
-      /// Get transformation
-      const TransformationType& getTransformation(Size dim) const
-      {
-        return final_transformation_[dim];
-      }
-
-      /// Estimates the transformation for each grid cell
-      virtual void run() = 0;
+    /// Estimates the transformation for each grid cell
+    virtual void run() = 0;
 
 
-      /// Register all derived classes here
-      static void registerChildren();
+    /// Register all derived classes here
+    static void registerChildren();
 
-    protected:
-      /// Param class containing the parameters for the map matching phase
-      Param param_;
+  protected:
+    /// Two maps of elements to be matched
+    PointMapType const * element_map_[2];
 
-      /// Two maps of elements to be matched
-      PointMapType const * element_map_[2];
-
-      /// Final transformation
-      TransformationType final_transformation_[2];
+    /// Final transformation
+    TransformationType final_transformation_[2];
   }
   ; // BaseSuperimposer
 

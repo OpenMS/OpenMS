@@ -113,7 +113,7 @@ CHECK((void setKernelWidth(const double& kernel_width)))
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),1.6);
 RESULT
 
-CHECK((void setParam(const Param& param) throw(Exception::InvalidValue)))
+CHECK((void setParam(Param param) throw(Exception::InvalidValue)))
   Param p;
   p.setValue("gaussian_width",1.6);
   GaussFilter gaussian;

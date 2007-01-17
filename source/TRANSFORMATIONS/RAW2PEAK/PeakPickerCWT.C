@@ -149,9 +149,6 @@ namespace OpenMS
 				cerr << "Warning: PeakPickerCWT option '2D_optimization:skip_optimization' should be 'yes' or 'no'!"
 						 << " It is set to '" << opt << "'" << endl;
 			}
-
-		
-
 	}
 	
 

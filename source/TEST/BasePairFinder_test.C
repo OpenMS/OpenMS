@@ -61,16 +61,16 @@ START_TEST(BasePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestPairFinder* ptr = 0;
-CHECK(BasePairFinder())
+CHECK((BasePairFinder()))
 	ptr = new TestPairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BasePairFinder())
+CHECK((~BasePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK(BasePairFinder& operator = (BasePairFinder source))
+CHECK((BasePairFinder& operator = (const BasePairFinder& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -92,7 +92,7 @@ CHECK(BasePairFinder& operator = (BasePairFinder source))
 	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
 RESULT
 
-CHECK(BasePairFinder(const BasePairFinder& source))
+CHECK((BasePairFinder(const BasePairFinder& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -113,7 +113,7 @@ CHECK(BasePairFinder(const BasePairFinder& source))
 	TEST_EQUAL(&(bpf.getElementPairs()) == &(bpf_copy.getElementPairs()),true)
 RESULT
 
-CHECK(const ElementPairVectorType getElementPairs() const)
+CHECK((const ElementPairVectorType& getElementPairs() const))
 	ElementPairVectorType pairs;
 	TestPairFinder bpf;
 	bpf.setElementPairs(pairs);
@@ -122,7 +122,7 @@ CHECK(const ElementPairVectorType getElementPairs() const)
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   Param param;
   param.setValue("bla",3);
   TestPairFinder bpf;
@@ -132,7 +132,7 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(bpf_copy.getParam() == param,true)
 RESULT
 
-CHECK(const PointMapType& getElementMap(Size index) const)
+CHECK((const PointMapType& getElementMap(Size index) const))
   ElementMapType map;
   TestPairFinder bpf;
   bpf.setElementMap(0,map);
@@ -140,22 +140,22 @@ CHECK(const PointMapType& getElementMap(Size index) const)
   TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(static void registerChildren())
+CHECK((static void registerChildren()))
   
 RESULT
 
-CHECK(void findElementPairs())
+CHECK((void findElementPairs()))
   
 RESULT
 
-CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
+CHECK((void setElementMap(Size const index, const PointMapType& element_map)))
   ElementMapType map;
   TestPairFinder bpf;
   bpf.setElementMap(0,map);
   TEST_EQUAL(&(bpf.getElementMap(0)) == &map,true)
 RESULT
 
-CHECK(void setElementPairs(ElementPairVectorType& Element_pairs))
+CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
   ElementPairVectorType pairs;
   TestPairFinder bpf;
   bpf.setElementPairs(pairs);
@@ -163,7 +163,7 @@ CHECK(void setElementPairs(ElementPairVectorType& Element_pairs))
   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   Param param;
   TestPairFinder bpf;
   param.setValue("bla",3);
@@ -182,7 +182,7 @@ CHECK((void setTransformation(Size dim, const TransformationType& trafo)))
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK(const TransformationType& getTransformation(Size dim) const)
+CHECK((const TransformationType& getTransformation(Size dim) const))
   TransformationType trafo(1.,2.);
   TestPairFinder bpf;
   bpf.setTransformation(0,trafo);

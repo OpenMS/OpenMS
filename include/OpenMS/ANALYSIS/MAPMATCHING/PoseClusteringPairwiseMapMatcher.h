@@ -68,226 +68,228 @@ namespace OpenMS
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class PoseClusteringPairwiseMapMatcher : public BasePairwiseMapMatcher<MapT>
   {
-    public:
-      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-      /// Defines the coordinates of elements
-      enum DimensionId
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
+  public:
+    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
+    /// Defines the coordinates of elements
+    enum DimensionId
+    {
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
     };
-      /** Symbolic names for indices of element maps etc.
-            This should make things more understandable and maintainable.
-             */
-      enum Maps
-      {
-        MODEL = 0,
-        SCENE = 1
+    /** Symbolic names for indices of element maps etc.
+          This should make things more understandable and maintainable.
+           */
+    enum Maps
+    {
+      MODEL = 0,
+      SCENE = 1
     };
 
-      /// Base
-      typedef BasePairwiseMapMatcher<MapT> Base;
+    /// Base
+    typedef BasePairwiseMapMatcher<MapT> Base;
 
-      typedef typename Base::PointMapType PointMapType;
-      typedef typename Base::ElementType ElementType;
-      typedef typename Base::TraitsType TraitsType;
-      typedef typename Base::PositionType PositionType;
-      typedef typename Base::CoordinateType CoordinateType;
+    typedef typename Base::PointMapType PointMapType;
+    typedef typename Base::ElementType ElementType;
+    typedef typename Base::TraitsType TraitsType;
+    typedef typename Base::PositionType PositionType;
+    typedef typename Base::CoordinateType CoordinateType;
 
-      typedef DLinearMapping<1, TraitsType> TransformationType;
+    typedef DLinearMapping<1, TraitsType> TransformationType;
 
-      typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
+    typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 
-      using Base::param_;
-      using Base::element_map_;
-      using Base::grid_;
-      using Base::all_element_pairs_;
-      using Base::bounding_box_scene_map_;
-      using Base::box_size_;
-      using Base::number_buckets_;
+    using Base::param_;
+    using Base::defaults_;
+    using Base::element_map_;
+    using Base::grid_;
+    using Base::all_element_pairs_;
+    using Base::bounding_box_scene_map_;
+    using Base::box_size_;
+    using Base::number_buckets_;
 
 
-      /// Constructor
-      PoseClusteringPairwiseMapMatcher()
-          : Base()
-      {
-        pair_finder_ = 0;
-        superimposer_ = 0;
-      }
+    /// Constructor
+    PoseClusteringPairwiseMapMatcher()
+        : Base()
+    {
+      pair_finder_ = 0;
+      superimposer_ = 0;
 
-      /// Copy constructor
-      PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
-          : Base(source)
-      {}
+      defaults_.setValue("pair_finder", "delaunay");
+      defaults_.setValue("superimposer", "");
 
-      ///  Assignment operator
-      PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)
-      {
-        if (&source==this)
-          return *this;
+      setParam(Param());
+    }
 
-        Base::operator = (source);
-
-        return *this;
-      }
-
-      /// Destructor
-      virtual ~PoseClusteringPairwiseMapMatcher()
+    /// Copy constructor
+    PoseClusteringPairwiseMapMatcher(const PoseClusteringPairwiseMapMatcher& source)
+        : Base(source)
     {}
 
-      /// Returns an instance of this class
-      static BasePairwiseMapMatcher<MapT>* create()
+    ///  Assignment operator
+    PoseClusteringPairwiseMapMatcher& operator= (const PoseClusteringPairwiseMapMatcher& source)
+    {
+      if (&source==this)
+        return *this;
+
+      Base::operator = (source);
+
+      return *this;
+    }
+
+    /// Destructor
+    virtual ~PoseClusteringPairwiseMapMatcher()
+  {}
+
+    /// Returns an instance of this class
+    static BasePairwiseMapMatcher<MapT>* create()
+    {
+      return new PoseClusteringPairwiseMapMatcher();
+    }
+
+    /// Returns the name of this module
+    static const String getName()
+    {
+      return "poseclustering_pairwise";
+    }
+
+    virtual void setParam(const Param& param)
+    {
+      Base::setParam(param);
+    }
+
+    /// Estimates the transformation for each grid cell and searches for element pairs.
+    virtual void run()
+    {
+      DataValue data_value = param_.getValue("pair_finder");
+      pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
+      pair_finder_->setParam(param_);
+
+      data_value = param_.getValue("superimposer");
+      if (data_value != DataValue::EMPTY)
       {
-        return new PoseClusteringPairwiseMapMatcher();
+        superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
+        superimposer_->setParam(param_);
       }
 
-      /// Returns the name of this module
-      static const String getName()
+      // compute the bounding boxes of the grid cells and initialize the grid transformation
+      if (grid_.size() == 0)
       {
-        return "poseclustering_pairwise";
+        initGridTransformation(*(element_map_[SCENE]));
       }
 
-      /// Estimates the transformation for each grid cell and searches for element pairs.
-      virtual void run()
-      {
-        DataValue data_value = param_.getValue("pair_finder");
-        if (data_value != DataValue::EMPTY)
-        {
-          pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
-          pair_finder_->setParam(param_);
-        }
-        else
-        {
-          pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create("simple");
-          param_.setValue("pair_finder","simple");
-          pair_finder_->setParam(param_);
-        }
+      // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
+      PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      Size number_grid_cells = grid_.size();
+      std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
+      buildGrid_(scene_pointer_map,scene_grid_maps);
 
-        data_value = param_.getValue("superimposer");
-        if (data_value != DataValue::EMPTY)
-        {
-          superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
-          superimposer_->setParam(param_);
-        }
+      // initialize a pointer map with the elements of the first (model or reference) map
+      PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
 
-        // compute the bounding boxes of the grid cells and initialize the grid transformation
-        if (grid_.size() == 0)
-        {
-          initGridTransformation(*(element_map_[SCENE]));
-        }
+      // compute the matching of each scene's grid cell elements and all the elements of the model map
+      computeMatching_(model_pointer_map,scene_grid_maps);
 
-        // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
-        PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-        Size number_grid_cells = grid_.size();
-        std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
-        buildGrid_(scene_pointer_map,scene_grid_maps);
+      //         String all_element_pairs_gnuplot_file =
+      //           param_.getValue("debug:all_element_pairs_gnuplot_file");
+      //         if ( !all_element_pairs_gnuplot_file.empty() )
+      //         {
+      //           pair_finder_->dumpFeaturePairs(all_element_pairs_gnuplot_file);
+      //         }
+    }
 
-        // initialize a pointer map with the elements of the first (model or reference) map
-        PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
+  protected:
+    /// This class computes the shift for the best mapping of one element map to another
+    BaseSuperimposer<PeakConstReferenceMapType>* superimposer_;
+    /// Given the shift, the pair_finder_ searches for corresponding elements in the two maps
+    BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
 
-        // compute the matching of each scene's grid cell elements and all the elements of the model map
-        computeMatching_(model_pointer_map,scene_grid_maps);
-
-        //         String all_element_pairs_gnuplot_file =
-        //           param_.getValue("debug:all_element_pairs_gnuplot_file");
-        //         if ( !all_element_pairs_gnuplot_file.empty() )
-        //         {
-        //           pair_finder_->dumpFeaturePairs(all_element_pairs_gnuplot_file);
-        //         }
-      }
-
-    protected:
-      /// This class computes the shift for the best mapping of one element map to another
-      BaseSuperimposer<PeakConstReferenceMapType>* superimposer_;
-      /// Given the shift, the pair_finder_ searches for corresponding elements in the two maps
-      BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
-
-      /// Computes the matching between each grid cell in the scene map and the model map
-      void computeMatching_(const PeakConstReferenceMapType& model_map, const std::vector<PeakConstReferenceMapType>& scene_grid_maps)
-      {
+    /// Computes the matching between each grid cell in the scene map and the model map
+    void computeMatching_(const PeakConstReferenceMapType& model_map, const std::vector<PeakConstReferenceMapType>& scene_grid_maps)
+    {
 #define V_computeMatching_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
 
-        pair_finder_->setElementMap(MODEL, model_map);
+      pair_finder_->setElementMap(MODEL, model_map);
 
-        if (superimposer_ !=0 )
+      if (superimposer_ !=0 )
+      {
+        // same model map for all superpositions
+        superimposer_->setElementMap(MODEL, model_map);
+      }
+
+      String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
+      String element_buckets_file = param_.getValue("debug:feature_buckets_file");
+
+      // iterate over all grid cells of the scene map
+      for (Size i = 0; i < scene_grid_maps.size(); ++i)
+      {
+        if (scene_grid_maps[i].size() > 0)
         {
-          // same model map for all superpositions
-          superimposer_->setElementMap(MODEL, model_map);
-        }
-
-        String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
-        String element_buckets_file = param_.getValue("debug:feature_buckets_file");
-
-        // iterate over all grid cells of the scene map
-        for (Size i = 0; i < scene_grid_maps.size(); ++i)
-        {
-          if (scene_grid_maps[i].size() > 0)
+          String algorithm = param_.getValue("superimposer");
+          if ( superimposer_ != 0 )
           {
-            String algorithm = param_.getValue("superimposer");
-            if ( superimposer_ != 0 )
+            V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
+
+            superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
+            superimposer_->run();
+
+            // ???? copy array to vector -- but the old Grid class will be replaced anyway
+            grid_[i].getMappings().resize(2,0);
+            for ( Size dim = 0; dim < 2; ++dim )
             {
-              V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
-
-              superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
-              superimposer_->run();
-
-              // ???? copy array to vector -- but the old Grid class will be replaced anyway
-              grid_[i].getMappings().resize(2,0);
-              for ( Size dim = 0; dim < 2; ++dim )
+              TransformationType const& trafo = superimposer_->getTransformation(dim);
+              if ( !grid_[i].getMappings()[dim] )
               {
-                TransformationType const& trafo = superimposer_->getTransformation(dim);
-                if ( !grid_[i].getMappings()[dim] )
-                {
-                  grid_[i].getMappings()[dim] = new TransformationType;
-                }
-                *grid_[i].getMappings()[dim] = trafo;
-                pair_finder_->setTransformation(dim, trafo);
+                grid_[i].getMappings()[dim] = new TransformationType;
               }
+              *grid_[i].getMappings()[dim] = trafo;
+              pair_finder_->setTransformation(dim, trafo);
             }
-            else
-            {
-              V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
-            }
-
-            pair_finder_->setElementPairs(all_element_pairs_);
-            pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
-
-            V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
-            pair_finder_->findElementPairs();
           }
+          else
+          {
+            V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
+          }
+
+          pair_finder_->setElementPairs(all_element_pairs_);
+          pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
+
+          V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
+          pair_finder_->findElementPairs();
         }
+      }
 #undef V_computeMatching_
 
+    }
+
+
+    /// Initializes a peak pointer map for each grid cell of the scene (second) map
+    void buildGrid_(const PeakConstReferenceMapType& scene_map, std::vector<PeakConstReferenceMapType>& scene_grid_maps)
+    {
+#define V_buildGrid_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
+      V_buildGrid_("PoseClusteringPairwiseMapMatcher: buildGrid_(): starting...");
+
+      for (Size i = 0; i < scene_map.size(); ++i)
+      {
+        CoordinateType x = scene_map[i].getPosition()[RT] - bounding_box_scene_map_.min()[RT];
+        CoordinateType y = scene_map[i].getPosition()[MZ] - bounding_box_scene_map_.min()[MZ];
+
+        Size grid_index = (int)(x / box_size_[RT]) + (int)(y / box_size_[MZ]) * (int)(number_buckets_[RT]);
+        scene_grid_maps[grid_index].push_back(scene_map[i]);
       }
 
-
-      /// Initializes a peak pointer map for each grid cell of the scene (second) map
-      void buildGrid_(const PeakConstReferenceMapType& scene_map, std::vector<PeakConstReferenceMapType>& scene_grid_maps)
+      for (Size i = 0; i < scene_grid_maps.size(); ++i)
       {
-#define V_buildGrid_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
-        V_buildGrid_("PoseClusteringPairwiseMapMatcher: buildGrid_(): starting...");
+        V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
 
-        for (Size i = 0; i < scene_map.size(); ++i)
+        for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
         {
-          CoordinateType x = scene_map[i].getPosition()[RT] - bounding_box_scene_map_.min()[RT];
-          CoordinateType y = scene_map[i].getPosition()[MZ] - bounding_box_scene_map_.min()[MZ];
-
-          Size grid_index = (int)(x / box_size_[RT]) + (int)(y / box_size_[MZ]) * (int)(number_buckets_[RT]);
-          scene_grid_maps[grid_index].push_back(scene_map[i]);
+          V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
         }
-
-        for (Size i = 0; i < scene_grid_maps.size(); ++i)
-        {
-          V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
-
-          for (Size j = 0; j < scene_grid_maps[i].size(); ++j)
-          {
-            V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
-          }
-        }
+      }
 #undef V_buildGrid_
 
-      }
+    }
   }
   ; // PoseClusteringPairwiseMapMatcher
 } // namespace OpenMS

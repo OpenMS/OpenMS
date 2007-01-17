@@ -61,192 +61,179 @@ namespace OpenMS
   template < typename MapT = DFeatureMap< 2, DFeature< 2, KernelTraits > > >
   class BasePairFinder : public FactoryProduct
   {
-    public:
-      /// Defines the coordinates of elements.
-      enum DimensionId
-      {
-        RT = DimensionDescription < LCMS_Tag >::RT,
-        MZ = DimensionDescription < LCMS_Tag >::MZ
+  public:
+    /// Defines the coordinates of elements.
+    enum DimensionId
+    {
+      RT = DimensionDescription < LCMS_Tag >::RT,
+      MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
-      /** Symbolic names for indices of element maps etc.
-            This should make things more understandable and maintainable.
-             */
-      enum Maps
-      {
-        MODEL = 0,
-        SCENE = 1
+    /** Symbolic names for indices of element maps etc.
+          This should make things more understandable and maintainable.
+           */
+    enum Maps
+    {
+      MODEL = 0,
+      SCENE = 1
     };
 
-      /// Container for input elements
-      typedef MapT PointMapType;
+    /// Container for input elements
+    typedef MapT PointMapType;
 
-      /// Type of elements considered here
-      typedef typename PointMapType::value_type PointType;
+    /// Type of elements considered here
+    typedef typename PointMapType::value_type PointType;
 
-      /// Traits type
-      typedef typename PointType::TraitsType TraitsType;
+    /// Traits type
+    typedef typename PointType::TraitsType TraitsType;
 
-      /// Position
-      typedef DPosition < 2, TraitsType > PositionType;
+    /// Position
+    typedef DPosition < 2, TraitsType > PositionType;
 
-      /// Quality
-      typedef typename TraitsType::QualityType QualityType;
+    /// Quality
+    typedef typename TraitsType::QualityType QualityType;
 
-      //// Intensity
-      typedef typename TraitsType::IntensityType IntensityType;
+    //// Intensity
+    typedef typename TraitsType::IntensityType IntensityType;
 
-      /// Type of element pairs
-      typedef DFeaturePair < 2, PointType > ElementPairType;
+    /// Type of element pairs
+    typedef DFeaturePair < 2, PointType > ElementPairType;
 
-      /// Container for generated element pairs
-      typedef DFeaturePairVector < 2, PointType > ElementPairVectorType;
+    /// Container for generated element pairs
+    typedef DFeaturePairVector < 2, PointType > ElementPairVectorType;
 
-      /// Type of estimated transformation
-      typedef DLinearMapping< 1, TraitsType > TransformationType;
+    /// Type of estimated transformation
+    typedef DLinearMapping< 1, TraitsType > TransformationType;
 
-      /// Constructor
-      BasePairFinder()
-          : FactoryProduct(),
-          param_(),
-          element_pairs_(0)
-      {
-        element_map_[MODEL] = 0;
-        element_map_[SCENE] = 0;
-        transformation_[RT].setSlope(1);
-        transformation_[RT].setIntercept(0);
-        transformation_[MZ].setSlope(1);
-        transformation_[MZ].setIntercept(0);
+    /// Constructor
+    BasePairFinder()
+        : FactoryProduct(),
+        element_pairs_(0)
+    {
+      element_map_[MODEL] = 0;
+      element_map_[SCENE] = 0;
+      transformation_[RT].setSlope(1);
+      transformation_[RT].setIntercept(0);
+      transformation_[MZ].setSlope(1);
+      transformation_[MZ].setIntercept(0);
+      FactoryProduct::name_ = "delaunay";
+    }
 
-      }
+    /// Copy constructor
+    BasePairFinder(const BasePairFinder& source)
+        : FactoryProduct(source),
+        element_pairs_(source.element_pairs_)
+    {
+      element_map_[MODEL] = source.element_map_[MODEL];
+      element_map_[SCENE] = source.element_map_[SCENE];
+      transformation_[RT] = source.transformation_[RT];
+      transformation_[MZ] = source.transformation_[MZ];
+    }
 
-      /// Copy constructor
-      BasePairFinder(const BasePairFinder& source)
-          : FactoryProduct(source),
-          param_(source.param_),
-          element_pairs_(source.element_pairs_)
-      {
-        element_map_[MODEL] = source.element_map_[MODEL];
-        element_map_[SCENE] = source.element_map_[SCENE];
-        transformation_[RT] = source.transformation_[RT];
-        transformation_[MZ] = source.transformation_[MZ];
-      }
-
-      ///  Assignment operator
-      BasePairFinder& operator = (const BasePairFinder& source)
-      {
-        if (&source==this)
-          return *this;
-
-        FactoryProduct::operator = (source);
-        element_map_[MODEL] = source.element_map_[MODEL];
-        element_map_[SCENE] = source.element_map_[SCENE];
-        element_pairs_ = source.element_pairs_;
-        transformation_[RT] = source.transformation_[RT];
-        transformation_[MZ] = source.transformation_[MZ];
+    ///  Assignment operator
+    BasePairFinder& operator = (const BasePairFinder& source)
+    {
+      if (&source==this)
         return *this;
-      }
 
-      /// Destructor
-      virtual ~BasePairFinder()
-    {}
+      FactoryProduct::operator = (source);
+      element_map_[MODEL] = source.element_map_[MODEL];
+      element_map_[SCENE] = source.element_map_[SCENE];
+      element_pairs_ = source.element_pairs_;
+      transformation_[RT] = source.transformation_[RT];
+      transformation_[MZ] = source.transformation_[MZ];
+      return *this;
+    }
 
-      /// Set param class
-      void setParam(const Param& param)
+    /// Destructor
+    virtual ~BasePairFinder()
+  {}
+
+    virtual void setParam(const Param& param)
+    {
+      FactoryProduct::setParam(param);
+    }
+
+    void setElementMap(Size const index, const PointMapType& element_map)
+    {
+      element_map_[index] = &element_map;
+    }
+
+    /// Get element maps by arg (non-mutable)
+    const PointMapType& getElementMap(Size index) const
+    {
+      return *element_map_[index];
+    }
+
+    /// Set element pair list
+    void setElementPairs(ElementPairVectorType& element_pairs)
+    {
+      element_pairs_ = &element_pairs;
+    }
+
+    /// Get element pair list (non-mutable)
+    const ElementPairVectorType& getElementPairs() const
+    {
+      return *element_pairs_;
+    }
+
+    /// Set transformation
+    void setTransformation(Size dim, const TransformationType& trafo)
+    {
+      transformation_[dim] = trafo;
+    }
+
+    /// Get transformation
+    const TransformationType& getTransformation(Size dim) const
+    {
+      return transformation_[dim];
+    }
+
+    /// Register all derived classes here
+    static void registerChildren();
+
+    /**@brief Write a debug dump of element pairs, e.g. for viewing the result
+       with Gnuplot.  The details (e.g. output destination) are controlled by
+       param_.  Returns 0 upon success and -1 if no debug dump was requested
+       according to param_.  You might invoke this at the end of run() in
+       derived classes.
+
+       The base class will treat parameter "debug:dump_element_pairs" as a
+       string, namely the filename for the element pair data and append ".gp"
+       to that filename for a gnuplot script.
+     */
+    virtual int dumpElementPairs(const String& filename); // code is below
+
+    /// Estimates the transformation for each grid cell
+    virtual void findElementPairs() = 0;
+
+  protected:
+    /// Two maps of elements to be matched
+    PointMapType const * element_map_[2];
+
+    /// Transformation in rt and mz dimension
+    TransformationType transformation_[2];
+
+    /// Vector of pairs of elements that have been identified by the element matcher
+    mutable ElementPairVectorType * element_pairs_;
+
+
+    /// Given a position element positoon this method computes the grid cell that covers this point.
+    SignedInt computeGridCellIndex_(const PositionType& pos, const DGrid<2>& grid) throw (Exception::InvalidValue)
+    {
+      UnsignedInt index = 0;
+      typename DGrid<2>::ConstIterator it = grid.begin();
+      while ( it != grid.end() )
       {
-        param_ = param;
-      }
-      
-      /// Get param class (non-mutable)
-      const Param& getParam() const
-      {
-        return param_;
-      }
-      
-      /// Set element map by arg
-      void setElementMap(Size const index, const PointMapType& element_map)
-      {
-        element_map_[index] = &element_map;
-      }
-
-      /// Get element maps by arg (non-mutable)
-      const PointMapType& getElementMap(Size index) const
-      {
-        return *element_map_[index];
-      }
-      
-      /// Set element pair list
-      void setElementPairs(ElementPairVectorType& element_pairs)
-      {
-        element_pairs_ = &element_pairs;
-      }
-
-      /// Get element pair list (non-mutable)
-      const ElementPairVectorType& getElementPairs() const
-      {
-        return *element_pairs_;
-      }
-      
-      /// Set transformation
-      void setTransformation(Size dim, const TransformationType& trafo)
-      {
-        transformation_[dim] = trafo;
-      }
-
-      /// Get transformation
-      const TransformationType& getTransformation(Size dim) const
-      {
-        return transformation_[dim];
-      }
-
-      /// Register all derived classes here
-      static void registerChildren();
-
-      /**@brief Write a debug dump of element pairs, e.g. for viewing the result
-         with Gnuplot.  The details (e.g. output destination) are controlled by
-         param_.  Returns 0 upon success and -1 if no debug dump was requested
-         according to param_.  You might invoke this at the end of run() in
-         derived classes.
-
-         The base class will treat parameter "debug:dump_element_pairs" as a
-         string, namely the filename for the element pair data and append ".gp"
-         to that filename for a gnuplot script.
-       */
-      virtual int dumpElementPairs(const String& filename); // code is below
-
-      /// Estimates the transformation for each grid cell
-      virtual void findElementPairs() = 0;
-
-    protected:
-      /// Param class containing the parameters for the map matching phase
-      Param param_;
-
-      /// Two maps of elements to be matched
-      PointMapType const * element_map_[2];
-
-      /// Transformation in rt and mz dimension
-      TransformationType transformation_[2];
-
-      /// Vector of pairs of elements that have been identified by the element matcher
-      mutable ElementPairVectorType * element_pairs_;
-
-
-      /// Given a position element positoon this method computes the grid cell that covers this point.
-      SignedInt computeGridCellIndex_(const PositionType& pos, const DGrid<2>& grid) throw (Exception::InvalidValue)
-      {
-        UnsignedInt index = 0;
-        typename DGrid<2>::ConstIterator it = grid.begin();
-        while ( it != grid.end() )
+        if (it->encloses(pos))
         {
-          if (it->encloses(pos))
-          {
-            return index;
-          }
-          ++it;
-          ++index;
+          return index;
         }
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The position is not contained in any of the grid cells.","") ;
+        ++it;
+        ++index;
       }
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The position is not contained in any of the grid cells.","") ;
+    }
   }
   ; // BasePairFinder
 

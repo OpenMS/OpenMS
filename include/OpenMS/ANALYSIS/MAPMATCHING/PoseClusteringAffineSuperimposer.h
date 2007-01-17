@@ -65,811 +65,757 @@ namespace OpenMS
   class PoseClusteringAffineSuperimposer
         : public BaseSuperimposer< MapT >
   {
-    public:
-      /// Defines the coordinates of elements.
-      typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
-      enum DimensionId
-      {
-        RT = DimensionDescriptionType::RT,
-        MZ = DimensionDescriptionType::MZ
+  public:
+    /// Defines the coordinates of elements.
+    typedef DimensionDescription<LCMS_Tag> DimensionDescriptionType;
+    enum DimensionId
+    {
+      RT = DimensionDescriptionType::RT,
+      MZ = DimensionDescriptionType::MZ
     };
 
-      enum HashMap
-      {
-        SHIFT = 0,
-        SCALING = 1
+    enum HashMap
+    {
+      SHIFT = 0,
+      SCALING = 1
     };
 
-      /** Symbolic names for indices of element maps etc.
-          This should make things more understandable and maintainable.
-           */
-      enum Maps
-      {
-        MODEL = 0,
-        SCENE = 1
+    /** Symbolic names for indices of element maps etc.
+        This should make things more understandable and maintainable.
+         */
+    enum Maps
+    {
+      MODEL = 0,
+      SCENE = 1
     };
 
-      typedef BaseSuperimposer< MapT > Base;
+    typedef BaseSuperimposer< MapT > Base;
 
-    protected:
-      // We need this to make the intensity bounding box use the intensity type
-      // instead of the coordinate type.
-    struct IntensityBoundingBoxTraits : Base::TraitsType
-      {
-        typedef typename Base::TraitsType::IntensityType CoordinateType;
-      };
+  protected:
 
-    public:
-      typedef typename Base::TraitsType TraitsType;
-      typedef typename Base::QualityType QualityType;
-      typedef typename Base::PositionType PositionType;
-      typedef typename Base::IntensityType IntensityType;
-      typedef typename Base::PointType PointType;
-      typedef typename Base::PointMapType PointMapType;
-      typedef typename PositionType::CoordinateType CoordinateType;
-      typedef DPeakConstReferenceArray< PointMapType > PeakPointerArray;
-      typedef DBoundingBox<2,TraitsType>  PositionBoundingBoxType;
-      typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
-      typedef DLinearMapping< 1, TraitsType > AffineTransformationType;
-      typedef std::pair<int,int> PairType;
-      typedef std::map< PairType, QualityType> AffineTransformationMapType;
+    /**
+    @brief Intensity bounding box
 
-      using Base::param_;
-      using Base::element_map_;
-      using Base::final_transformation_;
+     We need this to make the intensity bounding box use the intensity type
+     instead of the coordinate type.
+     */
+  struct IntensityBoundingBoxTraits : Base::TraitsType
+    {
+      typedef typename Base::TraitsType::IntensityType CoordinateType;
+    };
 
-      /// Constructor
-      PoseClusteringAffineSuperimposer()
-          : Base(),
-          mz_bucket_size_(0.2)
-      {
-        shift_bucket_size_[0] = 2;
-        shift_bucket_size_[1] = 0.1;
-        scaling_bucket_size_[0] = 2;
-        scaling_bucket_size_[1] = 0.1;
-        bucket_window_shift_[0] = 1;
-        bucket_window_shift_[1] = 1;
-        bucket_window_scaling_[0] = 1;
-        bucket_window_scaling_[1] = 1;
-      }
+  public:
+    typedef typename Base::TraitsType TraitsType;
+    typedef typename Base::QualityType QualityType;
+    typedef typename Base::PositionType PositionType;
+    typedef typename Base::IntensityType IntensityType;
+    typedef typename Base::PointType PointType;
+    typedef typename Base::PointMapType PointMapType;
+    typedef typename PositionType::CoordinateType CoordinateType;
+    typedef DPeakConstReferenceArray< PointMapType > PeakPointerArray;
+    typedef DBoundingBox<2,TraitsType>  PositionBoundingBoxType;
+    typedef DBoundingBox<1,IntensityBoundingBoxTraits> IntensityBoundingBoxType;
+    typedef DLinearMapping< 1, TraitsType > AffineTransformationType;
+    typedef std::pair<int,int> PairType;
+    typedef std::map< PairType, QualityType> AffineTransformationMapType;
 
+    using Base::param_;
+    using Base::setParam;
+    using Base::defaults_;
+    using Base::element_map_;
+    using Base::final_transformation_;
 
-      /// Copy constructor
-      PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)
-          : Base(source),
-          model_map_red_(source.model_map_red_),
-          scene_map_partners_(source.scene_map_partners_),
-          rt_hash_(source.rt_hash_),
-          mz_hash_(source.mz_hash_),
-          shift_bounding_box_(source.shift_bounding_box_),
-          scaling_bounding_box_(source.scaling_bounding_box_),
-          shift_bucket_size_(source.shift_bucket_size_),
-          scaling_bucket_size_(source.scaling_bucket_size_),
-          mz_bucket_size_(source.mz_bucket_size_)
+    /// Constructor
+    PoseClusteringAffineSuperimposer()
+        : Base(),
+        mz_bucket_size_(0.2)
+    {
+      shift_bucket_size_[0] = 2;
+      shift_bucket_size_[1] = 0.1;
+      scaling_bucket_size_[0] = 2;
+      scaling_bucket_size_[1] = 0.1;
+      bucket_window_shift_[0] = 1;
+      bucket_window_shift_[1] = 1;
+      bucket_window_scaling_[0] = 1;
+      bucket_window_scaling_[1] = 1;
+      
+      defaults_.setValue("tuple_search:mz_bucket_size",0.2);
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",2);
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",2);
+      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1);
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",1);
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
+      defaults_.setValue("transformation_space:bucket_window_scaling:RT",1);
+      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",1);
+      defaults_.setValue("transformation_space:min_shift:RT",-1000);
+      defaults_.setValue("transformation_space:min_shift:MZ",-5);
+      defaults_.setValue("transformation_space:max_shift:RT",1000);
+      defaults_.setValue("transformation_space:max_shift:MZ",5);
+      defaults_.setValue("transformation_space:min_scaling:RT",-3);
+      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
+      defaults_.setValue("transformation_space:max_scaling:RT",3);
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
+      
+      PositionType min;
+      PositionType max;
+      min[RT] = -3;
+      min[MZ] = -1.5;
+      max[RT] = 3;
+      max[MZ] = 1.5;
+      
+      scaling_bounding_box_.enlarge(min);
+      scaling_bounding_box_.enlarge(max);
+      
+      min[RT] = -1000;
+      min[MZ] = -5;
+      max[RT] = 1000;
+      max[MZ] = 5;
+      
+      shift_bounding_box_.enlarge(min);
+      shift_bounding_box_.enlarge(max);
+      
+      setParam(Param());
+    }
 
-      {
-        num_buckets_shift_[0] = source.num_buckets_shift_[0];
-        num_buckets_shift_[1] = source.num_buckets_shift_[1];
-        num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-        num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-        bucket_window_shift_[0] = source.bucket_window_shift_[0];
-        bucket_window_shift_[1] = source.bucket_window_shift_[1];
-        bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
-        bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
-      }
+    /// Copy constructor
+    PoseClusteringAffineSuperimposer(const PoseClusteringAffineSuperimposer& source)
+        : Base(source),
+        model_map_red_(source.model_map_red_),
+        scene_map_partners_(source.scene_map_partners_),
+        rt_hash_(source.rt_hash_),
+        mz_hash_(source.mz_hash_),
+        shift_bounding_box_(source.shift_bounding_box_),
+        scaling_bounding_box_(source.scaling_bounding_box_),
+        shift_bucket_size_(source.shift_bucket_size_),
+        scaling_bucket_size_(source.scaling_bucket_size_),
+        mz_bucket_size_(source.mz_bucket_size_)
 
-      ///  Assignment operator
-      PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)
-      {
-        if (&source==this)
-          return *this;
+    {
+      num_buckets_shift_[0] = source.num_buckets_shift_[0];
+      num_buckets_shift_[1] = source.num_buckets_shift_[1];
+      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
+      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
+      bucket_window_shift_[0] = source.bucket_window_shift_[0];
+      bucket_window_shift_[1] = source.bucket_window_shift_[1];
+      bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
+      bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
+    }
 
-        Base::operator=(source);
-        model_map_red_ = source.model_map_red_;
-        scene_map_partners_ = source.scene_map_partners_;
-        rt_hash_ = source.rt_hash_;
-        mz_hash_ = source.mz_hash_;
-        shift_bounding_box_ = source.shift_bounding_box_;
-        scaling_bounding_box_ = source.scaling_bounding_box_;
-        shift_bucket_size_ = source.shift_bucket_size_;
-        scaling_bucket_size_ = source.scaling_bucket_size_;
-        num_buckets_shift_[0] = source.num_buckets_shift_[0];
-        num_buckets_shift_[1] = source.num_buckets_shift_[1];
-        num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
-        num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
-        bucket_window_shift_[0] = source.bucket_window_shift_[0];
-        bucket_window_shift_[1] = source.bucket_window_shift_[1];
-        bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
-        bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
-        mz_bucket_size_ = source.mz_bucket_size_;
-
+    ///  Assignment operator
+    PoseClusteringAffineSuperimposer& operator = (const PoseClusteringAffineSuperimposer& source)
+    {
+      if (&source==this)
         return *this;
-      }
 
-      /// Destructor
-      virtual ~PoseClusteringAffineSuperimposer()
+      Base::operator=(source);
+      model_map_red_ = source.model_map_red_;
+      scene_map_partners_ = source.scene_map_partners_;
+      rt_hash_ = source.rt_hash_;
+      mz_hash_ = source.mz_hash_;
+      shift_bounding_box_ = source.shift_bounding_box_;
+      scaling_bounding_box_ = source.scaling_bounding_box_;
+      shift_bucket_size_ = source.shift_bucket_size_;
+      scaling_bucket_size_ = source.scaling_bucket_size_;
+      num_buckets_shift_[0] = source.num_buckets_shift_[0];
+      num_buckets_shift_[1] = source.num_buckets_shift_[1];
+      num_buckets_scaling_[0] = source.num_buckets_scaling_[0];
+      num_buckets_scaling_[1] = source.num_buckets_scaling_[1];
+      bucket_window_shift_[0] = source.bucket_window_shift_[0];
+      bucket_window_shift_[1] = source.bucket_window_shift_[1];
+      bucket_window_scaling_[0] = source.bucket_window_scaling_[0];
+      bucket_window_scaling_[1] = source.bucket_window_scaling_[1];
+      mz_bucket_size_ = source.mz_bucket_size_;
+
+      return *this;
+    }
+
+    /// Destructor
+    virtual ~PoseClusteringAffineSuperimposer()
+    {
+      V_PoseClusteringAffineSuperimposer("~PoseClusteringAffineSuperimposer");
+    }
+
+    /// Estimates the transformation for each grid cell
+    virtual void run()
+    {
+      if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
       {
-        V_PoseClusteringAffineSuperimposer("~PoseClusteringAffineSuperimposer");
+        preprocess_();
+        hashAffineTransformations_();
+        estimateFinalAffineTransformation_();
       }
-
-      /// Estimates the transformation for each grid cell
-      virtual void run()
+      else
       {
-        if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
-        {
-          parseParam_();
-          preprocess_();
-          hashAffineTransformations_();
-          estimateFinalAffineTransformation_();
-        }
-        else
-        {
-          std::cerr << "PoseClusteringAffineSuperimposer::run():  Oops, one of the element maps is empty!\n";
-        }
+        std::cerr << "PoseClusteringAffineSuperimposer::run():  Oops, one of the element maps is empty!\n";
       }
+    }
 
-      /// Returns an instance of this class
-      static BaseSuperimposer<PointMapType>* create()
-      {
-        return new PoseClusteringAffineSuperimposer();
-      }
+    /// Returns an instance of this class
+    static BaseSuperimposer<PointMapType>* create()
+    {
+      return new PoseClusteringAffineSuperimposer();
+    }
 
-      /// Returns the name of this module
-      static const String getName()
-      {
-        return "poseclustering_affine";
-      }
+    /// Returns the name of this module
+    static const String getName()
+    {
+      return "poseclustering_affine";
+    }
+    
+     /// Set parameters
+    virtual void setParam(const Param& param)
+    {
+      Base::setParam(param);
 
-      /// Set size of the mz tolerance of point partners
-      void setMzBucketSize(double mz_bucket_size)
-      {
-        mz_bucket_size_ = mz_bucket_size;
-        String param_name = "tuple_search:mz_bucket_size";
-        param_.setValue(param_name, mz_bucket_size);
-      }
+      shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
+      shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
+      scaling_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:RT");
+      scaling_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:MZ");
+      bucket_window_shift_[0]  = (Size)param_.getValue("transformation_space:bucket_window_shift:RT");
+      bucket_window_shift_[1]  = (Size)param_.getValue("transformation_space:bucket_window_shift:MZ");
+      bucket_window_scaling_[0] = (Size)param_.getValue("transformation_space:bucket_window_scaling:RT");
+      bucket_window_scaling_[1] = (Size)param_.getValue("transformation_space:bucket_window_scaling:MZ");
+      
+      defaults_.setValue("transformation_space:min_shift:RT",-1000);
+      defaults_.setValue("transformation_space:min_shift:MZ",-5);
+      defaults_.setValue("transformation_space:max_shift:RT",1000);
+      defaults_.setValue("transformation_space:max_shift:MZ",5);
+      defaults_.setValue("transformation_space:min_scaling:RT",-3);
+      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
+      defaults_.setValue("transformation_space:max_scaling:RT",3);
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
+      
+      PositionType min;
+      PositionType max;
+      min[RT] = (CoordinateType)param_.getValue("transformation_space:min_shift:RT");
+      min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_shift:MZ");
+      max[RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
+      max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
+      
+      scaling_bounding_box_.enlarge(min);
+      scaling_bounding_box_.enlarge(max);
+      
+      min[RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
+      min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
+      max[RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
+      max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
+      
+      shift_bounding_box_.enlarge(min);
+      shift_bounding_box_.enlarge(max);
+    }
 
-      /// Get size of the mz tolerance of point partners
-      double getMzBucketSize() const
-      {
-        return mz_bucket_size_;
-      }
+    /// Set size of the mz tolerance of point partners
+    void setMzBucketSize(double mz_bucket_size)
+    {
+      mz_bucket_size_ = mz_bucket_size;
+      String param_name = "tuple_search:mz_bucket_size";
+      param_.setValue(param_name, mz_bucket_size);
+    }
 
-      /// Set size of shift buckets (in dimension dim)
-      void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
-      {
-        shift_bucket_size_[dim] = shift_bucket_size;
-        String param_name_prefix = "transformation_space:shift_bucket_size:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, shift_bucket_size);
-      }
+    /// Get size of the mz tolerance of point partners
+    double getMzBucketSize() const
+    {
+      return mz_bucket_size_;
+    }
 
-      /// Get size of shift buckets (in dimension dim)
-      double getShiftBucketSize(UnsignedInt dim) const
-      {
-        return shift_bucket_size_[dim];
-      }
+    /// Set size of shift buckets (in dimension dim)
+    void setShiftBucketSize(UnsignedInt dim, double shift_bucket_size)
+    {
+      shift_bucket_size_[dim] = shift_bucket_size;
+      String param_name_prefix = "transformation_space:shift_bucket_size:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, shift_bucket_size);
+    }
 
-      /// Set size of scaling buckets (in dimension dim)
-      void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
-      {
-        scaling_bucket_size_[dim] = scaling_bucket_size;
-        String param_name_prefix = "transformation_space:scaling_bucket_size:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, scaling_bucket_size);
-      }
+    /// Get size of shift buckets (in dimension dim)
+    double getShiftBucketSize(UnsignedInt dim) const
+    {
+      return shift_bucket_size_[dim];
+    }
 
-      /// Get size of scaling buckets (in dimension dim)
-      double getScalingBucketSize(UnsignedInt dim) const
-      {
-        return scaling_bucket_size_[dim];
-      }
+    /// Set size of scaling buckets (in dimension dim)
+    void setScalingBucketSize(UnsignedInt dim, double scaling_bucket_size)
+    {
+      scaling_bucket_size_[dim] = scaling_bucket_size;
+      String param_name_prefix = "transformation_space:scaling_bucket_size:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, scaling_bucket_size);
+    }
 
-      /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-      void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
-      {
-        bucket_window_shift_[dim] = bucket_window_shift;
-        String param_name_prefix = "transformation_space:bucket_window_shift:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, (int)bucket_window_shift);
-      }
+    /// Get size of scaling buckets (in dimension dim)
+    double getScalingBucketSize(UnsignedInt dim) const
+    {
+      return scaling_bucket_size_[dim];
+    }
 
-      /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-      UnsignedInt getBucketWindowShift(UnsignedInt dim) const
-      {
-        return bucket_window_shift_[dim];
-      }
+    /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+    void setBucketWindowShift(UnsignedInt dim, UnsignedInt bucket_window_shift)
+    {
+      bucket_window_shift_[dim] = bucket_window_shift;
+      String param_name_prefix = "transformation_space:bucket_window_shift:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, (int)bucket_window_shift);
+    }
 
-      /// Set number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-      void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
-      {
-        bucket_window_scaling_[dim] = bucket_window_scaling;
-        String param_name_prefix = "transformation_space:bucket_window_scaling:";
-        String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
-        param_.setValue(param_name, (int)bucket_window_scaling);
-      }
+    /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
+    UnsignedInt getBucketWindowShift(UnsignedInt dim) const
+    {
+      return bucket_window_shift_[dim];
+    }
 
-      /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
-      UnsignedInt getBucketWindowScaling(UnsignedInt dim) const
-      {
-        return bucket_window_scaling_[dim];
-      }
+    /// Set number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
+    void setBucketWindowScaling(UnsignedInt dim, UnsignedInt bucket_window_scaling)
+    {
+      bucket_window_scaling_[dim] = bucket_window_scaling;
+      String param_name_prefix = "transformation_space:bucket_window_scaling:";
+      String param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[dim];
+      param_.setValue(param_name, (int)bucket_window_scaling);
+    }
+
+    /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)
+    UnsignedInt getBucketWindowScaling(UnsignedInt dim) const
+    {
+      return bucket_window_scaling_[dim];
+    }
 
 
-    protected:
-      /// Parses the parameter for this class
-      void parseParam_()
-      {
-#define V_parseParam_(bla)  V_PoseClusteringAffineSuperimposer(bla)
-        V_parseParam_("@@@ parseParam_()");
-
-        DataValue dv = param_.getValue("tuple_search:mz_bucket_size");
-        if (dv.isEmpty() || dv.toString() == "")
-          mz_bucket_size_ = 0.2;
-        else
-          mz_bucket_size_ = CoordinateType(dv);
-        V_parseParam_("mz_bucket_size_: " << dv << ' ' << mz_bucket_size_);
-
-        // Initialize shift_bucket_size_ with values from param_.
-        std::string tm_bs  = "transformation_space:shift_bucket_size:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          shift_bucket_size_[RT] = 2;
-        else
-          shift_bucket_size_[RT] = CoordinateType(dv);
-        V_parseParam_("shift_bucket_size_ rt: " << dv << ' ' << shift_bucket_size_[RT]);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          shift_bucket_size_[MZ] = 0.1;
-        else
-          shift_bucket_size_[MZ] = CoordinateType(dv);
-        V_parseParam_("shift_bucket_size_ mz: " << dv << ' ' << shift_bucket_size_[MZ]);
-
-        // Initialize scaling_bucket_size with values from param_.
-        tm_bs  = "transformation_space:scaling_bucket_size:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          scaling_bucket_size_[RT] = 2;
-        else
-          scaling_bucket_size_[RT] = CoordinateType(dv);
-        V_parseParam_("scaling_bucket_size_ rt: " << dv << ' ' << scaling_bucket_size_[RT]);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          scaling_bucket_size_[MZ] = 0.1;
-        else
-          scaling_bucket_size_[MZ] = CoordinateType(dv);
-        V_parseParam_("scaling_bucket_size_ mz: " << dv << ' ' << scaling_bucket_size_[MZ]);
-
-        // Initialize number of neigbouring  buckets to be considered for the estimation of the final transformation
-        tm_bs  = "transformation_space:bucket_window_shift:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          bucket_window_shift_[RT] = 1;
-        else
-          bucket_window_shift_[RT] = UnsignedInt(dv);
-        V_parseParam_("bucket_window_shift: " << dv << ' ' << bucket_window_shift_[RT] );
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          bucket_window_shift_[MZ] = 1;
-        else
-          bucket_window_shift_[MZ] = UnsignedInt(dv);
-        V_parseParam_("bucket_window_shift: " << dv << ' ' << bucket_window_shift_[MZ] );
-
-        // Initialize number of neigbouring  buckets to be considered for the estimation of the final transformation
-        tm_bs  = "transformation_space:bucket_window_scaling:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          bucket_window_scaling_[RT] = 1;
-        else
-          bucket_window_scaling_[RT] = UnsignedInt(dv);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          bucket_window_scaling_[MZ] = 1;
-        else
-          bucket_window_scaling_[MZ] = UnsignedInt(dv);
-        V_parseParam_("bucket_window_scaling: " << dv << ' ' << bucket_window_scaling_[RT] << ' ' << bucket_window_scaling_[MZ]);
-
-        // Initialize size of the shift_bounding_box_ and scaling_bounding_box_
-        PositionType min;
-        PositionType max;
-        tm_bs  = "transformation_space:min_shift:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          min[RT] = -100;
-        else
-          min[RT] = CoordinateType(dv);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          min[MZ] = -5;
-        else
-          min[MZ] = CoordinateType(dv);
-
-        tm_bs  = "transformation_space:max_shift:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          max[RT] = 100;
-        else
-          max[RT] = CoordinateType(dv);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          max[MZ] = 5;
-        else
-          max[MZ] = CoordinateType(dv);
-
-        shift_bounding_box_.enlarge(min);
-        shift_bounding_box_.enlarge(max);
-
-        // Initialize size of the shift_bounding_box_ and scaling_bounding_box_
-        tm_bs  = "transformation_space:min_scaling:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          min[RT] = -2;
-        else
-          min[RT] = CoordinateType(dv);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          min[MZ] = -2;
-        else
-          min[MZ] = CoordinateType(dv);
-
-        tm_bs  = "transformation_space:max_scaling:";
-        dv = param_.getValue(tm_bs + "RT");
-        if (dv.isEmpty() || dv.toString() == "")
-          max[RT] = 2;
-        else
-          max[RT] = CoordinateType(dv);
-
-        dv = param_.getValue(tm_bs + "MZ");
-        if (dv.isEmpty() || dv.toString() == "")
-          max[MZ] = 2;
-        else
-          max[MZ] = CoordinateType(dv);
-
-        scaling_bounding_box_.enlarge(min);
-        scaling_bounding_box_.enlarge(max);
-        V_parseParam_("shift_bounding_box_ enlarged: " << shift_bounding_box_);
-        V_parseParam_("scaling_bounding_box_ enlarged: " << scaling_bounding_box_);
-#undef V_parseParam_
-
-      }
-
-      /// To speed up the calculation of the final transformation, we confine the number of
-      /// considered point pairs. We match a point p in the modell map only onto those points p'
-      /// in the scene map that lie in a certain mz intervall.
-      /// If  (p_mz - mz_bucket_size_) <= p'_mz <= (p_mz mz_bucket_size_) then p and p' are partners.
-      void preprocess_()
-      {
+  protected:
+    /// To speed up the calculation of the final transformation, we confine the number of
+    /// considered point pairs. We match a point p in the modell map only onto those points p'
+    /// in the scene map that lie in a certain mz intervall.
+    /// If  (p_mz - mz_bucket_size_) <= p'_mz <= (p_mz mz_bucket_size_) then p and p' are partners.
+    void preprocess_()
+    {
 #define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
 
-        // build an array of pointer to all elements in the model map
-        PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
-        // build an array of pointer to all elements in the scene map
-        PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      // build an array of pointer to all elements in the model map
+      PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
+      // build an array of pointer to all elements in the scene map
+      PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
 
-        // for each element (rt_m,mz_m) of the model map
-        // search for corresponding elements (rt_i,mz_i) in the scene map
-        // which lie in a predefined mz intervall (mz_i in [mz_m-eps,mz_m+eps))
-        model_map.sortByNthPosition(MZ);
-        scene_map.sortByNthPosition(MZ);
+      // for each element (rt_m,mz_m) of the model map
+      // search for corresponding elements (rt_i,mz_i) in the scene map
+      // which lie in a predefined mz intervall (mz_i in [mz_m-eps,mz_m+eps))
+      model_map.sortByNthPosition(MZ);
+      scene_map.sortByNthPosition(MZ);
 
-        // take only elements of the model map which have partners in the scene map
-        typename PeakPointerArray::const_iterator it_first = scene_map.begin();
-        typename PeakPointerArray::const_iterator it_last = it_first;
-        UnsignedInt n = model_map.size();
-        for (UnsignedInt i = 0; i < n; ++i)
+      // take only elements of the model map which have partners in the scene map
+      typename PeakPointerArray::const_iterator it_first = scene_map.begin();
+      typename PeakPointerArray::const_iterator it_last = it_first;
+      UnsignedInt n = model_map.size();
+      for (UnsignedInt i = 0; i < n; ++i)
+      {
+        typename TraitsType::RealType act_mz = model_map[i].getPosition()[MZ];
+        typename TraitsType::RealType min_mz = act_mz - mz_bucket_size_;
+        typename TraitsType::RealType max_mz = act_mz + mz_bucket_size_;
+
+        std::vector< const PointType* > partners;
+        // search for the left end of the intervall
+        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getPosition()[MZ] < min_mz) && (it_first->getPosition()[MZ] < max_mz))
         {
-          typename TraitsType::RealType act_mz = model_map[i].getPosition()[MZ];
-          typename TraitsType::RealType min_mz = act_mz - mz_bucket_size_;
-          typename TraitsType::RealType max_mz = act_mz + mz_bucket_size_;
-
-          std::vector< const PointType* > partners;
-          // search for the left end of the intervall
-          while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getPosition()[MZ] < min_mz) && (it_first->getPosition()[MZ] < max_mz))
-          {
-            ++it_first;
-          }
-
-          it_last = it_first;
-
-          // search for the right end of the intervall
-          while ((it_last < scene_map.end()) && (it_last->getPosition()[MZ] < max_mz))
-          {
-            ++it_last;
-          }
-
-          for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
-          {
-            partners.push_back(&(*it));
-          }
-
-          if (partners.size() > 0)
-          {
-            model_map_red_.push_back(model_map[i]);
-            scene_map_partners_.push_back(partners);
-          }
+          ++it_first;
         }
-        std::cout.flush();
 
-        // Compute shift_bucket_size_ and num_buckets.
-        PositionType diagonal_shift = shift_bounding_box_.diagonal();
-        PositionType diagonal_scaling = scaling_bounding_box_.diagonal();
-        V_preprocessSceneMap("diagonal shift: " << diagonal_shift);
-        V_preprocessSceneMap("diagonal scaling: " << diagonal_scaling);
+        it_last = it_first;
 
-        for ( Size dimension = 0; dimension < 2; ++dimension)
+        // search for the right end of the intervall
+        while ((it_last < scene_map.end()) && (it_last->getPosition()[MZ] < max_mz))
         {
-          num_buckets_shift_[dimension] = (int)(ceil(diagonal_shift[dimension]/shift_bucket_size_[dimension]));
-          num_buckets_scaling_[dimension] = (int)(ceil(diagonal_scaling[dimension]/scaling_bucket_size_[dimension]));
-          shift_bucket_size_[dimension] = diagonal_shift[dimension] / (CoordinateType)num_buckets_shift_[dimension];
-          scaling_bucket_size_[dimension] = diagonal_scaling[dimension] / (CoordinateType)num_buckets_scaling_[dimension];
+          ++it_last;
         }
-        V_preprocessSceneMap("shift bucket size : " << shift_bucket_size_[RT] << ' ' << shift_bucket_size_[MZ]);
-        V_preprocessSceneMap("scaling bucket size : " << scaling_bucket_size_);
-        V_preprocessSceneMap("shift number_buckets: " << num_buckets_shift_[0] << ' ' << num_buckets_shift_[1]);
-        V_preprocessSceneMap("scaling number_buckets : " << num_buckets_scaling_[0] << ' ' << num_buckets_scaling_[1]);
+
+        for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
+        {
+          partners.push_back(&(*it));
+        }
+
+        if (partners.size() > 0)
+        {
+          model_map_red_.push_back(model_map[i]);
+          scene_map_partners_.push_back(partners);
+        }
+      }
+      std::cout.flush();
+
+      // Compute shift_bucket_size_ and num_buckets.
+      PositionType diagonal_shift = shift_bounding_box_.diagonal();
+      PositionType diagonal_scaling = scaling_bounding_box_.diagonal();
+      V_preprocessSceneMap("diagonal shift: " << diagonal_shift);
+      V_preprocessSceneMap("diagonal scaling: " << diagonal_scaling);
+
+      for ( Size dimension = 0; dimension < 2; ++dimension)
+      {
+        num_buckets_shift_[dimension] = (int)(ceil(diagonal_shift[dimension]/shift_bucket_size_[dimension]));
+        num_buckets_scaling_[dimension] = (int)(ceil(diagonal_scaling[dimension]/scaling_bucket_size_[dimension]));
+        shift_bucket_size_[dimension] = diagonal_shift[dimension] / (CoordinateType)num_buckets_shift_[dimension];
+        scaling_bucket_size_[dimension] = diagonal_scaling[dimension] / (CoordinateType)num_buckets_scaling_[dimension];
+      }
+      V_preprocessSceneMap("shift bucket size : " << shift_bucket_size_[RT] << ' ' << shift_bucket_size_[MZ]);
+      V_preprocessSceneMap("scaling bucket size : " << scaling_bucket_size_);
+      V_preprocessSceneMap("shift number_buckets: " << num_buckets_shift_[0] << ' ' << num_buckets_shift_[1]);
+      V_preprocessSceneMap("scaling number_buckets : " << num_buckets_scaling_[0] << ' ' << num_buckets_scaling_[1]);
 #undef V_preprocessSceneMap
 
-      } // preprocess_
+    } // preprocess_
 
-      /// Compute the transformations between each point pair in the modell map and each point pair in the scene map
-      /// and hash the affine transformation.
-      void hashAffineTransformations_()
-      {
+    /// Compute the transformations between each point pair in the modell map and each point pair in the scene map
+    /// and hash the affine transformation.
+    void hashAffineTransformations_()
+    {
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
-        std::ofstream rt_os("rt_matrix.dat", std::ios::out);
-        std::ofstream mz_os("mz_matrix.dat", std::ios::out);
 
-        // take each point pair in the model map
-        UnsignedInt n = model_map_red_.size();
-        for (UnsignedInt i = 0; i < n; ++i)
+#ifdef V_hashAffineTransformations_
+      std::ofstream rt_os("rt_matrix.dat", std::ios::out);
+      std::ofstream mz_os("mz_matrix.dat", std::ios::out);
+#endif
+
+      // take each point pair in the model map
+      UnsignedInt n = model_map_red_.size();
+      for (UnsignedInt i = 0; i < n; ++i)
+      {
+        for (UnsignedInt j = i+1; j < n; ++j)
         {
-          for (UnsignedInt j = i+1; j < n; ++j)
+          // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
+          // and point pairs with equal retention times (e.g. i_rt == j_rt)
+          PositionType diff = model_map_red_[i].getPosition() - model_map_red_[j].getPosition();
+          // and compute the affine transformation to all corresponding points pair in the scene map
+          std::vector< const PointType* >& partners_i = scene_map_partners_[i];
+          std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
+          UnsignedInt m = partners_i.size();
+          UnsignedInt p = partners_j.size();
+          for (UnsignedInt k = 0; k < m; ++k)
           {
-            // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
-            // and point pairs with equal retention times (e.g. i_rt == j_rt)
-            PositionType diff = model_map_red_[i].getPosition() - model_map_red_[j].getPosition();
-            // and compute the affine transformation to all corresponding points pair in the scene map
-            std::vector< const PointType* >& partners_i = scene_map_partners_[i];
-            std::vector< const PointType* >& partners_j  = scene_map_partners_[j];
-            UnsignedInt m = partners_i.size();
-            UnsignedInt p = partners_j.size();
-            for (UnsignedInt k = 0; k < m; ++k)
+            for (UnsignedInt l = 0; l < p; ++l)
             {
-              for (UnsignedInt l = 0; l < p; ++l)
+              if (((diff[RT] < 0) && (partners_i[k]->getPosition() < partners_j[l]->getPosition()))
+                  || ((diff[RT] > 0) && (partners_i[k]->getPosition() > partners_j[l]->getPosition())))
               {
-                if (((diff[RT] < 0) && (partners_i[k]->getPosition() < partners_j[l]->getPosition()))
-                    || ((diff[RT] > 0) && (partners_i[k]->getPosition() > partners_j[l]->getPosition())))
+                // compute the transformation (i,j) -> (k,l)
+                PositionType shift;
+                PositionType scaling;
+
+                if (fabs(diff[RT]) > 0.001)
                 {
-                  // compute the transformation (i,j) -> (k,l)
-                  PositionType shift;
-                  PositionType scaling;
+                  scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
+                                /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
 
-                  if (fabs(diff[RT]) > 0.001)
+                  shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
+                  /* if (scaling[RT] < scaling_bucket_size_[RT])
                   {
-                    scaling[RT] = (model_map_red_[j].getPosition()[RT] - model_map_red_[i].getPosition()[RT])
-                                  /(partners_j[l]->getPosition()[RT] - partners_i[k]->getPosition()[RT]);
+                    std::cout << "Match " << partners_j[l]->getPosition()[RT] << " and " << partners_i[k]->getPosition()[RT] << '\n'
+                    << " onto " << model_map_red_[j].getPosition()[RT] << " and " <<  model_map_red_[i].getPosition()[RT] << std::endl;
+                  } */
+                }
+                else
+                {
+                  scaling[RT] = 1.;
+                  shift[RT] = 0;
+                }
+                if (fabs(diff[MZ]) > 0.001)
+                {
+                  scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
+                                /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
 
-                    shift[RT] =  model_map_red_[i].getPosition()[RT] - partners_i[k]->getPosition()[RT]*scaling[RT];
-                    /* if (scaling[RT] < scaling_bucket_size_[RT])
-                    {
-                      std::cout << "Match " << partners_j[l]->getPosition()[RT] << " and " << partners_i[k]->getPosition()[RT] << '\n'
-                      << " onto " << model_map_red_[j].getPosition()[RT] << " and " <<  model_map_red_[i].getPosition()[RT] << std::endl;
-                    } */
+                  shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
+                }
+                else
+                {
+                  scaling[MZ] = 1.;
+                  shift[MZ] = 0;
+                }
+
+                // check if the transformation paramerters lie in the hash map
+                if (scaling_bounding_box_.encloses(scaling) && shift_bounding_box_.encloses(shift))
+                {
+                  // compute the hash indices
+                  int bucket_shift_index[2];
+                  int bucket_scaling_index[2];
+                  PositionType bucket_fraction_shift(0,0);
+                  PositionType bucket_fraction_scaling(0,0);
+                  for ( Size dimension = 0; dimension < 2; ++dimension )
+                  {
+                    bucket_fraction_shift[dimension] = (shift[dimension] - shift_bounding_box_.min()[dimension]) / shift_bucket_size_[dimension];  // floating point division
+                    bucket_fraction_scaling[dimension] = (scaling[dimension] - scaling_bounding_box_.min()[dimension]) / scaling_bucket_size_[dimension];  // floating point division
+                    //                       std::cout << "bucket_fraction_scaling " << bucket_fraction_scaling[dimension]<< std::endl;
+                    bucket_shift_index[dimension]    = (int) bucket_fraction_shift[dimension]; // round down (yes we are >= 0)
+                    //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[dimension] << std::endl;
+                    bucket_scaling_index[dimension]    = (int) bucket_fraction_scaling[dimension]; // round down (yes we are >= 0)
+                    //                       std::cout << "bucket_scaling_index " << bucket_shift_index[dimension] << std::endl;
+                    bucket_fraction_shift[dimension] -= bucket_shift_index[dimension];          // fractional part
+                    //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[dimension]<< std::endl;
+                    bucket_fraction_scaling[dimension] -= bucket_scaling_index[dimension];          // fractional part
+                    //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[dimension]<< std::endl;
                   }
-                  else
+                  //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
+                  //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+
+
+                  // hash the transformation if possible
+                  PositionType bucket_fraction_complement_shift(1,1);
+                  PositionType bucket_fraction_complement_scaling(1,1);
+                  bucket_fraction_complement_shift -= bucket_fraction_shift;
+                  bucket_fraction_complement_scaling -= bucket_fraction_scaling;
+                  // Distribute the vote of the shift among the four neighboring buckets.
+                  QualityType factor;
+
+                  if (scaling[RT] > 0.1 )
                   {
-                    scaling[RT] = 1.;
-                    shift[RT] = 0;
+                    // rt
+                    factor = bucket_fraction_complement_shift[RT] * bucket_fraction_complement_scaling[RT];
+                    rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT])] += factor;
+                    //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
+                    //                     std::cout << "hash scaling " << bucket_scaling_index[RT]*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
+                    //                     std::cout << "factor" << factor << std::endl;
+
+                    factor = bucket_fraction_complement_shift[RT] * bucket_fraction_scaling[RT];
+                    rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT] + 1 )] += factor;
+                    //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
+                    //                     std::cout << "hash scaling " << (bucket_scaling_index[RT]+1)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
+
+                    factor = bucket_fraction_shift[RT] * bucket_fraction_complement_scaling[RT];
+                    rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] )] += factor;
+
+                    factor = bucket_fraction_shift[RT] * bucket_fraction_scaling[RT];
+                    rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] + 1 )] += factor;
                   }
-                  if (fabs(diff[MZ]) > 0.001)
-                  {
-                    scaling[MZ] = (model_map_red_[j].getPosition()[MZ] - model_map_red_[i].getPosition()[MZ])
-                                  /(partners_j[l]->getPosition()[MZ] - partners_i[k]->getPosition()[MZ]);
 
-                    shift[MZ] =  model_map_red_[i].getPosition()[MZ] - partners_i[k]->getPosition()[MZ]*scaling[MZ];
+                  if (scaling[MZ] > 0.1 )
+                  {
+                    // mz
+                    factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_complement_scaling[MZ];
+                    mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] )] += factor;
+
+                    factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_scaling[MZ];
+                    mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] + 1 )] += factor;
+
+                    factor = bucket_fraction_shift[MZ] * bucket_fraction_complement_scaling[MZ];
+                    mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] )] += factor;
+
+                    factor = bucket_fraction_shift[MZ] * bucket_fraction_scaling[MZ];
+                    mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] + 1 )] += factor;
                   }
-                  else
-                  {
-                    scaling[MZ] = 1.;
-                    shift[MZ] = 0;
-                  }
+                } // if
+              } // for l
+            } // for k
+          } // if
+        } // for j
+      } // for i
 
-                  // check if the transformation paramerters lie in the hash map
-                  if (scaling_bounding_box_.encloses(scaling) && shift_bounding_box_.encloses(shift))
-                  {
-                    // compute the hash indices
-                    int bucket_shift_index[2];
-                    int bucket_scaling_index[2];
-                    PositionType bucket_fraction_shift(0,0);
-                    PositionType bucket_fraction_scaling(0,0);
-                    for ( Size dimension = 0; dimension < 2; ++dimension )
-                    {
-                      bucket_fraction_shift[dimension] = (shift[dimension] - shift_bounding_box_.min()[dimension]) / shift_bucket_size_[dimension];  // floating point division
-                      bucket_fraction_scaling[dimension] = (scaling[dimension] - scaling_bounding_box_.min()[dimension]) / scaling_bucket_size_[dimension];  // floating point division
-                      //                       std::cout << "bucket_fraction_scaling " << bucket_fraction_scaling[dimension]<< std::endl;
-                      bucket_shift_index[dimension]    = (int) bucket_fraction_shift[dimension]; // round down (yes we are >= 0)
-                      //                       std::cout << "bucket_shift_index " <<  bucket_shift_index[dimension] << std::endl;
-                      bucket_scaling_index[dimension]    = (int) bucket_fraction_scaling[dimension]; // round down (yes we are >= 0)
-                      //                       std::cout << "bucket_scaling_index " << bucket_shift_index[dimension] << std::endl;
-                      bucket_fraction_shift[dimension] -= bucket_shift_index[dimension];          // fractional part
-                      //                       std::cout << "bucket_fraction_shift " << bucket_fraction_shift[dimension]<< std::endl;
-                      bucket_fraction_scaling[dimension] -= bucket_scaling_index[dimension];          // fractional part
-                      //                       std::cout << "bucket_fraction_scaling" << bucket_fraction_scaling[dimension]<< std::endl;
-                    }
-                    //                     std::cout << "Buckets rt (" << bucket_shift_index[RT] << ',' << bucket_scaling_index[RT] << ')' << std::endl;
-                    //                     std::cout << "Buckets mz (" << bucket_shift_index[MZ] << ',' << bucket_scaling_index[MZ] << ')' << std::endl;
+#ifdef V_hashAffineTransformations_
+      typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
+      while (it != rt_hash_.end())
+      {
+        rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
+        << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
+        << it->second << '\n';
+        ++it;
+      }
 
-
-                    // hash the transformation if possible
-                    PositionType bucket_fraction_complement_shift(1,1);
-                    PositionType bucket_fraction_complement_scaling(1,1);
-                    bucket_fraction_complement_shift -= bucket_fraction_shift;
-                    bucket_fraction_complement_scaling -= bucket_fraction_scaling;
-                    // Distribute the vote of the shift among the four neighboring buckets.
-                    QualityType factor;
-
-                    if (scaling[RT] > 0.1 )
-                    {
-                      // rt
-                      factor = bucket_fraction_complement_shift[RT] * bucket_fraction_complement_scaling[RT];
-                      rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT])] += factor;
-                      //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                      //                     std::cout << "hash scaling " << bucket_scaling_index[RT]*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
-                      //                     std::cout << "factor" << factor << std::endl;
-
-                      factor = bucket_fraction_complement_shift[RT] * bucket_fraction_scaling[RT];
-                      rt_hash_[PairType(bucket_shift_index[RT], bucket_scaling_index[RT] + 1 )] += factor;
-                      //                     std::cout << "hash shift " << bucket_shift_index[RT]*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << std::endl;
-                      //                     std::cout << "hash scaling " << (bucket_scaling_index[RT]+1)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << std::endl;
-
-                      factor = bucket_fraction_shift[RT] * bucket_fraction_complement_scaling[RT];
-                      rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] )] += factor;
-
-                      factor = bucket_fraction_shift[RT] * bucket_fraction_scaling[RT];
-                      rt_hash_[PairType( bucket_shift_index[RT] + 1, bucket_scaling_index[RT] + 1 )] += factor;
-                    }
-
-                    if (scaling[MZ] > 0.1 )
-                    {
-                      // mz
-                      factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                      mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] )] += factor;
-
-                      factor = bucket_fraction_complement_shift[MZ] * bucket_fraction_scaling[MZ];
-                      mz_hash_[PairType( bucket_shift_index[MZ], bucket_scaling_index[MZ] + 1 )] += factor;
-
-                      factor = bucket_fraction_shift[MZ] * bucket_fraction_complement_scaling[MZ];
-                      mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] )] += factor;
-
-                      factor = bucket_fraction_shift[MZ] * bucket_fraction_scaling[MZ];
-                      mz_hash_[PairType( bucket_shift_index[MZ] + 1, bucket_scaling_index[MZ] + 1 )] += factor;
-                    }
-                  } // if
-                } // for l
-              } // for k
-            } // if
-          } // for j
-        } // for i
-
-        typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-        while (it != rt_hash_.end())
-        {
-          rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
-          << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
-          << it->second << '\n';
-          ++it;
-        }
-
-        it = mz_hash_.begin();
-        while (it != mz_hash_.end())
-        {
-          mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
-          << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
-          << it->second << '\n';
-          ++it;
-        }
-
-        rt_os.flush();
-        mz_os.flush();
+      it = mz_hash_.begin();
+      while (it != mz_hash_.end())
+      {
+        mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
+        << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
+        << it->second << '\n';
+        ++it;
+      }
+      rt_os.flush();
+      mz_os.flush();
+#endif
 #undef V_hashAffineTransformations_
 
-      } // hashAffineTransformations_
+    } // hashAffineTransformations_
 
 
-      /// After the hashing phase, the best transformation, that is the transformation with the most votes
-      /// is determined.
-      void estimateFinalAffineTransformation_()
-      {
+    /// After the hashing phase, the best transformation, that is the transformation with the most votes
+    /// is determined.
+    void estimateFinalAffineTransformation_()
+    {
 #define V_estimateFinalAffineTransformation_(bla) V_PoseClusteringAffineSuperimposer(bla)
-        V_estimateFinalAffineTransformation_("@@@ computeShift_()");
+      V_estimateFinalAffineTransformation_("@@@ computeShift_()");
 
-        // search for the maximal vote parameter of the rt transformation
-        PairType max_element_index_rt;
-        QualityType act_max_rt = 0;
-        for (typename AffineTransformationMapType::const_iterator it = rt_hash_.begin(); it != rt_hash_.end(); ++it)
+      // search for the maximal vote parameter of the rt transformation
+      PairType max_element_index_rt;
+      QualityType act_max_rt = 0;
+      for (typename AffineTransformationMapType::const_iterator it = rt_hash_.begin(); it != rt_hash_.end(); ++it)
+      {
+        if (it->second > act_max_rt)
         {
-          if (it->second > act_max_rt)
-          {
-            max_element_index_rt = it->first;
-            act_max_rt = it->second;
-          }
+          max_element_index_rt = it->first;
+          act_max_rt = it->second;
         }
+      }
 
-        V_estimateFinalAffineTransformation_("Max element in rt: Indizes: "<< max_element_index_rt.first << ' ' << max_element_index_rt.second
-                                             << " Votes: " << act_max_rt
-                                             << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
-                                             << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT]);
+      V_estimateFinalAffineTransformation_("Max element in rt: Indizes: "<< max_element_index_rt.first << ' ' << max_element_index_rt.second
+                                           << " Votes: " << act_max_rt
+                                           << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
+                                           << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT]);
 
 
-        // Compute a weighted average of the transformation parameters nearby the max_element_index.
-        PositionType rt_trafo;
-        PositionType rt_bounding_box_min(shift_bounding_box_.min()[RT],scaling_bounding_box_.min()[RT]);
-        int rt_run_indices[2];
-        QualityType quality = 0;
-        PositionType rt_window(bucket_window_shift_[RT],bucket_window_scaling_[RT]);
-        //         std::cout << "rt_window " << rt_window << std::endl;
-        for ( rt_run_indices[SHIFT]  = std::max ( int (max_element_index_rt.first - rt_window[SHIFT]), 0 );
-              rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RT] );
-              ++rt_run_indices[SHIFT])
+      // Compute a weighted average of the transformation parameters nearby the max_element_index.
+      PositionType rt_trafo;
+      PositionType rt_bounding_box_min(shift_bounding_box_.min()[RT],scaling_bounding_box_.min()[RT]);
+      int rt_run_indices[2];
+      QualityType quality = 0;
+      PositionType rt_window(bucket_window_shift_[RT],bucket_window_scaling_[RT]);
+      //         std::cout << "rt_window " << rt_window << std::endl;
+      for ( rt_run_indices[SHIFT]  = std::max ( int (max_element_index_rt.first - rt_window[SHIFT]), 0 );
+            rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RT] );
+            ++rt_run_indices[SHIFT])
+      {
+        for ( rt_run_indices[SCALING]  = std::max ( int (max_element_index_rt.second - rt_window[SCALING]), 0 );
+              rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RT] );
+              ++rt_run_indices[SCALING])
+
         {
-          for ( rt_run_indices[SCALING]  = std::max ( int (max_element_index_rt.second - rt_window[SCALING]), 0 );
-                rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RT] );
-                ++rt_run_indices[SCALING])
-
+          PositionType contribution_position(shift_bucket_size_[RT],scaling_bucket_size_[RT]);
+          // is the neighbouring bucket in the map?
+          typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[SHIFT], rt_run_indices[SCALING]));
+          if ( it != rt_hash_.end())
           {
-            PositionType contribution_position(shift_bucket_size_[RT],scaling_bucket_size_[RT]);
-            // is the neighbouring bucket in the map?
-            typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[SHIFT], rt_run_indices[SCALING]));
-            if ( it != rt_hash_.end())
+            for ( Size dimension = 0; dimension < 2; ++dimension)
             {
-              for ( Size dimension = 0; dimension < 2; ++dimension)
-              {
-                contribution_position[dimension] *= rt_run_indices[dimension];
-              }
-              contribution_position += rt_bounding_box_min;
-              // std::cout << "contribution_position " << contribution_position << std::endl;
-              QualityType contribution_quality = it->second;
-              // std::cout << "contribution_quality " << contribution_quality << std::endl;
-              quality += contribution_quality;
-              // std::cout << "quality " << quality << std::endl;
-              contribution_position *= contribution_quality;
-              // std::cout << "contribution_position " << contribution_position << std::endl;
-              rt_trafo += contribution_position;
-              // std::cout << "rt_trafo " << rt_trafo << std::endl;
+              contribution_position[dimension] *= rt_run_indices[dimension];
             }
+            contribution_position += rt_bounding_box_min;
+            // std::cout << "contribution_position " << contribution_position << std::endl;
+            QualityType contribution_quality = it->second;
+            // std::cout << "contribution_quality " << contribution_quality << std::endl;
+            quality += contribution_quality;
+            // std::cout << "quality " << quality << std::endl;
+            contribution_position *= contribution_quality;
+            // std::cout << "contribution_position " << contribution_position << std::endl;
+            rt_trafo += contribution_position;
+            // std::cout << "rt_trafo " << rt_trafo << std::endl;
           }
         }
+      }
 
-        if ( quality != 0 )
+      if ( quality != 0 )
+      {
+        rt_trafo /= quality;
+      }
+
+      // Assign the result.
+      // set slope and intercept
+      final_transformation_[RT].setParam( rt_trafo[SCALING], rt_trafo[SHIFT] );
+      V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt rt: " << rt_trafo);
+
+
+      // search for the maximal vote parameter of the mz transformation
+      PairType max_element_index_mz;
+      QualityType act_max_mz = 0;
+      for (typename AffineTransformationMapType::const_iterator it = mz_hash_.begin(); it != mz_hash_.end(); ++it)
+      {
+        if (it->second > act_max_mz)
         {
-          rt_trafo /= quality;
+          max_element_index_mz = it->first;
+          act_max_mz = it->second;
         }
+      }
 
-        // Assign the result.
-        // set slope and intercept
-        final_transformation_[RT].setParam( rt_trafo[SCALING], rt_trafo[SHIFT] );
-        V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt rt: " << rt_trafo);
+      V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
+                                           << " Votes: " << act_max_mz
+                                           << " shift: "  << max_element_index_mz.first*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ]
+                                           << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ]);
 
-
-        // search for the maximal vote parameter of the mz transformation
-        PairType max_element_index_mz;
-        QualityType act_max_mz = 0;
-        for (typename AffineTransformationMapType::const_iterator it = mz_hash_.begin(); it != mz_hash_.end(); ++it)
+      PositionType mz_trafo;
+      PositionType mz_bounding_box_min(shift_bounding_box_.min()[MZ],scaling_bounding_box_.min()[MZ]);
+      int mz_run_indices[2];
+      quality=0;
+      PositionType mz_window(bucket_window_shift_[MZ],bucket_window_scaling_[MZ]);
+      for ( mz_run_indices[SHIFT]  = std::max ( int (max_element_index_mz.first - mz_window[SHIFT]), 0 );
+            mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[MZ] );
+            ++mz_run_indices[SHIFT])
+      {
+        for ( mz_run_indices[SCALING]  = std::max ( int (max_element_index_mz.second - mz_window[SCALING]), 0 );
+              mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[MZ] );
+              ++mz_run_indices[SCALING])
         {
-          if (it->second > act_max_mz)
+          PositionType contribution_position(shift_bucket_size_[MZ],scaling_bucket_size_[MZ]);
+          // is the neighbouring bucket in the map?
+          typename AffineTransformationMapType::const_iterator it = mz_hash_.find(PairType(mz_run_indices[SHIFT], mz_run_indices[SCALING]));
+          if ( it != mz_hash_.end())
           {
-            max_element_index_mz = it->first;
-            act_max_mz = it->second;
-          }
-        }
-
-        V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
-                                             << " Votes: " << act_max_mz
-                                             << " shift: "  << max_element_index_mz.first*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ]
-                                             << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ]);
-
-        PositionType mz_trafo;
-        PositionType mz_bounding_box_min(shift_bounding_box_.min()[MZ],scaling_bounding_box_.min()[MZ]);
-        int mz_run_indices[2];
-        quality=0;
-        PositionType mz_window(bucket_window_shift_[MZ],bucket_window_scaling_[MZ]);
-        for ( mz_run_indices[SHIFT]  = std::max ( int (max_element_index_mz.first - mz_window[SHIFT]), 0 );
-              mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[MZ] );
-              ++mz_run_indices[SHIFT])
-        {
-          for ( mz_run_indices[SCALING]  = std::max ( int (max_element_index_mz.second - mz_window[SCALING]), 0 );
-                mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[MZ] );
-                ++mz_run_indices[SCALING])
-          {
-            PositionType contribution_position(shift_bucket_size_[MZ],scaling_bucket_size_[MZ]);
-            // is the neighbouring bucket in the map?
-            typename AffineTransformationMapType::const_iterator it = mz_hash_.find(PairType(mz_run_indices[SHIFT], mz_run_indices[SCALING]));
-            if ( it != mz_hash_.end())
+            for ( Size dimension = 0; dimension < 2; ++dimension)
             {
-              for ( Size dimension = 0; dimension < 2; ++dimension)
-              {
-                contribution_position[dimension] *= mz_run_indices[dimension];
-              }
-              contribution_position += mz_bounding_box_min;
-              //               std::cout << "contribution_position " << contribution_position << std::endl;
-              QualityType contribution_quality = it->second;
-              //               std::cout << "contribution_quality " << contribution_quality << std::endl;
-              quality += contribution_quality;
-              //               std::cout << "quality " << quality << std::endl;
-              contribution_position *= contribution_quality;
-              //               std::cout << "contribution_position " << contribution_position << std::endl;
-              mz_trafo += contribution_position;
-              //               std::cout << "mz_trafo " << mz_trafo << std::endl;
+              contribution_position[dimension] *= mz_run_indices[dimension];
             }
+            contribution_position += mz_bounding_box_min;
+            //               std::cout << "contribution_position " << contribution_position << std::endl;
+            QualityType contribution_quality = it->second;
+            //               std::cout << "contribution_quality " << contribution_quality << std::endl;
+            quality += contribution_quality;
+            //               std::cout << "quality " << quality << std::endl;
+            contribution_position *= contribution_quality;
+            //               std::cout << "contribution_position " << contribution_position << std::endl;
+            mz_trafo += contribution_position;
+            //               std::cout << "mz_trafo " << mz_trafo << std::endl;
           }
         }
-        if ( quality != 0 )
-        {
-          mz_trafo /= quality;
-        }
-        // set slope and intercept
-        final_transformation_[MZ].setParam( mz_trafo[SCALING], mz_trafo[SHIFT] );
-        V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt mz: " << mz_trafo);
+      }
+      if ( quality != 0 )
+      {
+        mz_trafo /= quality;
+      }
+      // set slope and intercept
+      final_transformation_[MZ].setParam( mz_trafo[SCALING], mz_trafo[SHIFT] );
+      V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt mz: " << mz_trafo);
 
-        //         std::ofstream rt_os("rt_matrix.pgm", std::ios::out);
-        //         std::ofstream mz_os("mz_matrix.pgm", std::ios::out);
-        //
-        //         typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-        //         while (it != rt_hash_.end())
-        //         {
-        //           rt_os << (it->first).first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
-        //           << ' ' << (it->first).second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << '\n';
-        //           ++it;
-        //         }
-        //         rt_os.flush();
+      //         std::ofstream rt_os("rt_matrix.pgm", std::ios::out);
+      //         std::ofstream mz_os("mz_matrix.pgm", std::ios::out);
+      //
+      //         typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
+      //         while (it != rt_hash_.end())
+      //         {
+      //           rt_os << (it->first).first*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT]
+      //           << ' ' << (it->first).second*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << '\n';
+      //           ++it;
+      //         }
+      //         rt_os.flush();
 #undef V_estimateFinalAffineTransformation_
 
-      } // estimateFinalAffineTransformation_
+    } // estimateFinalAffineTransformation_
 
-      /// Reduced model map which contains only elements of the model map which have a partner in the scene map
-      PeakPointerArray model_map_red_;
+    /// Reduced model map which contains only elements of the model map which have a partner in the scene map
+    PeakPointerArray model_map_red_;
 
-      /// Partner elements in the scene map
-      std::vector< std::vector< const PointType* > > scene_map_partners_;
+    /// Partner elements in the scene map
+    std::vector< std::vector< const PointType* > > scene_map_partners_;
 
-      /// Hash map of all transformations in the rt dimension (contains the affine transformation parameters)
-      AffineTransformationMapType rt_hash_;
+    /// Hash map of all transformations in the rt dimension (contains the affine transformation parameters)
+    AffineTransformationMapType rt_hash_;
 
-      /// Hash map of all transformations in the mz dimension (contains the affine transformation parameters)
-      AffineTransformationMapType mz_hash_;
+    /// Hash map of all transformations in the mz dimension (contains the affine transformation parameters)
+    AffineTransformationMapType mz_hash_;
 
-      /// Bounding box of the shift parameters
-      PositionBoundingBoxType shift_bounding_box_;
+    /// Bounding box of the shift parameters
+    PositionBoundingBoxType shift_bounding_box_;
 
-      /// Bounding box of the scaling parameters
-      PositionBoundingBoxType scaling_bounding_box_;
+    /// Bounding box of the scaling parameters
+    PositionBoundingBoxType scaling_bounding_box_;
 
-      /// Diagonal size of each shift bucket
-      PositionType shift_bucket_size_;
+    /// Diagonal size of each shift bucket
+    PositionType shift_bucket_size_;
 
-      /// Diagonal size of each scaling bucket
-      PositionType scaling_bucket_size_;
+    /// Diagonal size of each scaling bucket
+    PositionType scaling_bucket_size_;
 
-      /// Number of shift buckets
-      int num_buckets_shift_[2];
+    /// Number of shift buckets
+    int num_buckets_shift_[2];
 
-      /// Number of scaling buckets
-      int num_buckets_scaling_[2];
+    /// Number of scaling buckets
+    int num_buckets_scaling_[2];
 
-      /// Number of neighbouring shift buckets to be considered computing the final transformations
-      UnsignedInt bucket_window_shift_[2];
+    /// Number of neighbouring shift buckets to be considered computing the final transformations
+    UnsignedInt bucket_window_shift_[2];
 
-      /// Number of neighbouring scaling buckets to be considered computing the final transformations
-      UnsignedInt bucket_window_scaling_[2];
+    /// Number of neighbouring scaling buckets to be considered computing the final transformations
+    UnsignedInt bucket_window_scaling_[2];
 
-      /// Maximum deviation in mz of two partner points
-      CoordinateType mz_bucket_size_;
+    /// Maximum deviation in mz of two partner points
+    CoordinateType mz_bucket_size_;
   }
   ; // PoseClusteringAffineSuperimposer
 

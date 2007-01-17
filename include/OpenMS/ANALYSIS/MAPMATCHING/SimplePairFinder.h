@@ -86,6 +86,8 @@ namespace OpenMS
     typedef typename Base::TransformationType     TransformationType;
 
     using Base::param_;
+    using Base::defaults_;
+    using Base::setParam;
     using Base::element_map_;
     using Base::element_pairs_;
     using Base::transformation_;
@@ -99,6 +101,14 @@ namespace OpenMS
       diff_intercept_[MZ] = 0.1;
       diff_exponent_[RT] = 2;
       diff_exponent_[MZ] = 1;
+      
+      defaults_.setValue("similarity:diff_intercept:RT",1);
+      defaults_.setValue("similarity:diff_intercept:MZ",0.1);
+      defaults_.setValue("similarity:diff_exponent:RT",2);
+      defaults_.setValue("similarity:diff_exponent:MZ",1);
+      defaults_.setValue("similarity:pair_min_quality",0.01);  
+      
+      setParam(Param());          
     }
 
     /// Copy constructor
@@ -119,25 +129,32 @@ namespace OpenMS
       if (&source==this)
         return *this;
 
-      param_ = source.param_;
-      element_map_[MODEL] = source.element_map_[MODEL];
-      element_map_[SCENE] = source.element_map_[SCENE];
-      element_pairs_ = source.element_pairs_;
+      Base::operator=(source);
       diff_intercept_[RT] = source.diff_intercept_[RT];
       diff_intercept_[MZ] = source.diff_intercept_[MZ];
       diff_exponent_[RT] = source.diff_exponent_[RT];
       diff_exponent_[MZ] = source.diff_exponent_[MZ];
       pair_min_quality_ = source.pair_min_quality_;
       transformed_positions_second_map_ = source.transformed_positions_second_map_;
-      transformation_[RT] = source.transformation_[RT];
-      transformation_[MZ] = source.transformation_[MZ];
       return *this;
     }
 
     /// Destructor
     virtual ~SimplePairFinder()
   {}
-
+  
+    /// Set parameters
+    virtual void setParam(const Param& param)
+    {
+      Base::setParam(param);
+      
+      diff_intercept_[RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
+      diff_exponent_[RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
+      diff_exponent_[MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
+      pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
+    }
+  
     /// returns an instance of this class
     static BasePairFinder<PointMapType>* create()
     {
@@ -206,8 +223,6 @@ namespace OpenMS
     virtual void findElementPairs()
     {
 #define V_findElementPairs(bla) V_SimplePairFinder(bla)
-      parseParam_();
-
       Size n = element_map_[SCENE]->size();
 
       transformed_positions_second_map_.clear();
@@ -330,72 +345,6 @@ namespace OpenMS
 
     /// The vector of transformed element positions of the second map
     std::vector<PositionType> transformed_positions_second_map_;
-
-    /// Parses the parameters, assigns their values to instance members.
-    void parseParam_()
-    {
-#define V_parseParam_(bla) V_SimplePairFinder(bla)
-      V_parseParam_("@@@ parseParam_()");
-
-      String param_name_prefix = "similarity:diff_exponent:";
-      std::string param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[RT];
-      DataValue data_value = param_.getValue(param_name);
-      if ( data_value == DataValue::EMPTY )
-      {
-        diff_exponent_[RT] = 1;
-      }
-      else
-      {
-        diff_exponent_[RT] = data_value;
-      }
-
-      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[MZ];
-      data_value = param_.getValue(param_name);
-      if ( data_value == DataValue::EMPTY )
-      {
-        diff_exponent_[MZ] = 2;
-      }
-      else
-      {
-        diff_exponent_[MZ] = data_value;
-      }
-
-      param_name_prefix = "similarity:diff_intercept:";
-      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[0];
-      data_value = param_.getValue(param_name);
-      if ( data_value == DataValue::EMPTY )
-      {
-        diff_intercept_[RT] = 1;
-      }
-      else
-      {
-        diff_intercept_[RT] = data_value;
-      }
-
-      param_name = param_name_prefix + DimensionDescriptionType::dimension_name_short[1];
-      data_value = param_.getValue(param_name);
-      if ( data_value == DataValue::EMPTY )
-      {
-        diff_intercept_[MZ] = 0.1;
-      }
-      else
-      {
-        diff_intercept_[MZ] = data_value;
-      }
-
-      param_name = "similarity:pair_min_quality";
-      data_value = param_.getValue(param_name);
-      if ( data_value == DataValue::EMPTY )
-      {
-        pair_min_quality_ = 0.01;
-      }
-      else
-      {
-        pair_min_quality_ = data_value;
-      }
-#undef V_parseParam_
-
-    } // parseParam_
 
     /**@brief Compute the similarity for a pair of elements; larger quality
     values are better.
