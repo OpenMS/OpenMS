@@ -315,7 +315,7 @@ namespace OpenMS
         RawDataArrayType raw_peak_array;
         // signal to noise estimator
         DSignalToNoiseEstimatorMedian<1, typename RawDataArrayType::const_iterator> sne;
-				Param sne_param(param_.copy("SignalToNoiseEstimation"));
+				Param sne_param(param_.copy("signal_to_noise_estimation"));
 				if(sne_param.empty()) sne.setParam(Param());
 				else sne.setParam(sne_param);
 				 
