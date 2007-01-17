@@ -61,16 +61,16 @@ START_TEST(BasePairwiseMapMatcher, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestPairwiseMapMatcher* ptr = 0;
-CHECK(BasePairwiseMapMatcher())
+CHECK((BasePairwiseMapMatcher()))
 	ptr = new TestPairwiseMapMatcher();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~BasePairwiseMapMatcher())
+CHECK((~BasePairwiseMapMatcher()))
 	delete ptr;
 RESULT
 
-CHECK(BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source))
+CHECK((BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -89,7 +89,7 @@ CHECK(BasePairwiseMapMatcher& operator = (const BasePairwiseMapMatcher& source))
   TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
 RESULT
 
-CHECK(BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source))
+CHECK((BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source)))
   Param param;
   param.setValue("bla",3);
   ElementMapType first;
@@ -107,21 +107,21 @@ CHECK(BasePairwiseMapMatcher(const BasePairwiseMapMatcher& source))
   TEST_EQUAL(&(bpmm.getElementMap(1)) == &(bpmm_copy.getElementMap(1)),true)
 RESULT
 
-CHECK(const ElementPairVectorType& getElementPairs() const)
+CHECK((const ElementPairVectorType& getElementPairs() const))
   TestPairwiseMapMatcher bpmm;
   
   TEST_EQUAL(bpmm.getElementPairs().size() == 0,true)
 RESULT
 
 
-CHECK(const GridType& getGrid() const)
+CHECK((const GridType& getGrid() const))
   GridType grid;
   TestPairwiseMapMatcher bpmm;
     
   TEST_EQUAL(bpmm.getGrid() == grid,true) 
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
   Param param;
   param.setValue("bla",3);
   TestPairwiseMapMatcher bpmm;
@@ -131,7 +131,7 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(bpmm_copy.getParam() == param,true)
 RESULT
 
-CHECK(const PointMapType& getElementMap(Size index) const)
+CHECK((const PointMapType& getElementMap(Size index) const))
   ElementMapType first;
   ElementMapType second;
   
@@ -143,7 +143,7 @@ CHECK(const PointMapType& getElementMap(Size index) const)
   TEST_EQUAL(&(bpmm.getElementMap(1)) == &second,true)
 RESULT
 
-CHECK(void initGridTransformation(const PointMapType& scene_map))
+CHECK((void initGridTransformation(const PointMapType& scene_map)))
   ElementMapType scene;
   ElementType feat1;
   ElementType feat2;
@@ -162,7 +162,7 @@ CHECK(void initGridTransformation(const PointMapType& scene_map))
   TEST_EQUAL(bpmm.getGrid().size() == 1,true)   
 RESULT
 
-CHECK(UnsignedInt getNumberBuckets(Size index) const)
+CHECK((UnsignedInt getNumberBuckets(Size index) const))
   TestPairwiseMapMatcher bpmm;
     
   TEST_EQUAL(bpmm.getNumberBuckets(0) == 1,true)
@@ -178,15 +178,15 @@ CHECK((void setNumberBuckets(Size const index, UnsignedInt number)))
   TEST_EQUAL(bpmm.getNumberBuckets(1) == 4,true)
 RESULT 
 
-CHECK(void run())
+CHECK((void run()))
  
 RESULT
 
-CHECK(static void registerChildren())
+CHECK((static void registerChildren()))
   
 RESULT
 
-CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
+CHECK((void setElementMap(Size const index, const PointMapType& element_map)))
   ElementMapType first;
   TestPairwiseMapMatcher bpmm;
   bpmm.setElementMap(0,first);
@@ -194,7 +194,7 @@ CHECK((void setElementMap(Size const index, const PointMapType& Element_map)))
   TEST_EQUAL(&(bpmm.getElementMap(0)) == &first,true)
 RESULT
 
-CHECK(void setParam(const Param& param))
+CHECK((void setParam(const Param& param)))
   Param param;
   TestPairwiseMapMatcher bpmm;
   param.setValue("bla",3);

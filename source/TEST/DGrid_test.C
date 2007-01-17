@@ -48,16 +48,16 @@ START_TEST(DGrid<D>, "$Id$")
 
 
 DGrid<2>* pl_ptr = 0;
-CHECK(DGrid<2>())
+CHECK((DGrid()))
 	pl_ptr = new DGrid<2>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK(~DGrid<2>())
+CHECK((~DGrid()))
 	delete pl_ptr;
 RESULT
 
-CHECK(DGrid<2>(const DGrid& p))
+CHECK((DGrid(const DGrid& grid)))
 			
 	DGridCell<2> c1(0.0,0.0,2.0,2.0);
 	DGridCell<2> c2(3.0,3.0,6.0,6.0);
@@ -80,7 +80,7 @@ CHECK(DGrid<2>(const DGrid& p))
 	
 RESULT
 
-CHECK(operator=)
+CHECK((DGrid& operator = (const DGrid& rhs)))
 
 	DGridCell<2> c1(0.0,0.0,2.0,2.0);
 	DGridCell<2> c2(3.0,3.0,6.0,6.0);
@@ -103,7 +103,7 @@ CHECK(operator=)
 	
 RESULT
 
-CHECK(operator==)
+CHECK((bool operator == (const DGrid& rhs) const))
 
 	DGridCell<2> c1(0.0,0.0,2.0,2.0);
 	DGridCell<2> c2(3.0,3.0,6.0,6.0);

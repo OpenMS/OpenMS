@@ -48,16 +48,16 @@ typedef DBaseMapping<1> MappingType;
 typedef std::vector<MappingType*> MappingVector;
 
 DGridCell<10>* d10_ptr = 0;
-CHECK(DGridCell())
+CHECK((DGridCell()))
 	d10_ptr = new DGridCell<10>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~DGridCell())
+CHECK((~DGridCell()))
 	delete d10_ptr;
 RESULT
 
-CHECK(DGridCell(const DGridCell& gc))
+CHECK((DGridCell(const DGridCell& gc)))
 
 	DGridCell<2> c1(0.0, 0.0, 10.0, 10.0);
 	MappingType* m1 = new DLinearMapping<1>(3.0,4.0);
@@ -73,7 +73,7 @@ CHECK(DGridCell(const DGridCell& gc))
 
 RESULT
 
-CHECK(bool operator == (const DGridCell& rhs) const)
+CHECK((bool operator == (const DGridCell& rhs) const))
 
 	DGridCell<2> c1(0.0, 0.0, 10.0, 10.0);
 	DGridCell<2> c2(0.0, 0.0, 10.0, 10.0);
@@ -85,7 +85,7 @@ CHECK(bool operator == (const DGridCell& rhs) const)
 
 RESULT
 
-CHECK(getMappings())
+CHECK((MappingVector& getMappings()))
 
 	DGridCell<1> c1;
 	MappingType* m1 = new DLinearMapping<1>(3.0,4.0);

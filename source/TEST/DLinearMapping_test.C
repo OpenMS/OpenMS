@@ -44,16 +44,16 @@ using namespace std;
 
 
 DLinearMapping<10>* d10_ptr = 0;
-CHECK(DLinearMapping())
+CHECK((DLinearMapping()))
 	d10_ptr = new DLinearMapping<10>;
 	TEST_NOT_EQUAL(d10_ptr, 0)
 RESULT
 
-CHECK(~DLinearMapping())
+CHECK((~DLinearMapping()))
 	delete d10_ptr;
 RESULT
 
-CHECK(DLinearMapping(const DLinearMapping& gc))
+CHECK((DLinearMapping(const DLinearMapping& source)))
 
 	DLinearMapping<2> c1(0.0, 10.0);
 	DLinearMapping<2> c2(c1);
@@ -62,7 +62,7 @@ CHECK(DLinearMapping(const DLinearMapping& gc))
 
 RESULT
 
-CHECK(operator=)
+CHECK((DLinearMapping& operator = (const DLinearMapping& source)))
 	DLinearMapping<2> c1(0.0, 10.0);
 	DLinearMapping<2> c2 = c1;
 	
@@ -70,7 +70,7 @@ CHECK(operator=)
 
 RESULT
 
-CHECK(operator==)
+CHECK((bool operator == (const DLinearMapping& rhs)))
 	DLinearMapping<2> c1(0.0, 10.0);
 	DLinearMapping<2> c2(0.0, 10.0);
 	

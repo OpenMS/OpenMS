@@ -138,7 +138,7 @@ namespace OpenMS
       bucket_window_shift_[1] = 1;
       bucket_window_scaling_[0] = 1;
       bucket_window_scaling_[1] = 1;
-      
+
       defaults_.setValue("tuple_search:mz_bucket_size",0.2);
       defaults_.setValue("transformation_space:shift_bucket_size:RT",2);
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
@@ -156,25 +156,25 @@ namespace OpenMS
       defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
       defaults_.setValue("transformation_space:max_scaling:RT",3);
       defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
-      
+
       PositionType min;
       PositionType max;
       min[RT] = -3;
       min[MZ] = -1.5;
       max[RT] = 3;
       max[MZ] = 1.5;
-      
+
       scaling_bounding_box_.enlarge(min);
       scaling_bounding_box_.enlarge(max);
-      
+
       min[RT] = -1000;
       min[MZ] = -5;
       max[RT] = 1000;
       max[MZ] = 5;
-      
+
       shift_bounding_box_.enlarge(min);
       shift_bounding_box_.enlarge(max);
-      
+
       setParam(Param());
     }
 
@@ -262,12 +262,13 @@ namespace OpenMS
     {
       return "poseclustering_affine";
     }
-    
-     /// Set parameters
+
+    /// Set parameters
     virtual void setParam(const Param& param)
     {
       Base::setParam(param);
 
+ 			mz_bucket_size_ = (CoordinateType)param_.getValue("tuple_search:mz_bucket_size");
       shift_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:RT");
       shift_bucket_size_[1] = (CoordinateType)param_.getValue("transformation_space:shift_bucket_size:MZ");
       scaling_bucket_size_[0] = (CoordinateType)param_.getValue("transformation_space:scaling_bucket_size:RT");
@@ -276,31 +277,22 @@ namespace OpenMS
       bucket_window_shift_[1]  = (Size)param_.getValue("transformation_space:bucket_window_shift:MZ");
       bucket_window_scaling_[0] = (Size)param_.getValue("transformation_space:bucket_window_scaling:RT");
       bucket_window_scaling_[1] = (Size)param_.getValue("transformation_space:bucket_window_scaling:MZ");
-      
-      defaults_.setValue("transformation_space:min_shift:RT",-1000);
-      defaults_.setValue("transformation_space:min_shift:MZ",-5);
-      defaults_.setValue("transformation_space:max_shift:RT",1000);
-      defaults_.setValue("transformation_space:max_shift:MZ",5);
-      defaults_.setValue("transformation_space:min_scaling:RT",-3);
-      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5);
-      defaults_.setValue("transformation_space:max_scaling:RT",3);
-      defaults_.setValue("transformation_space:max_scaling:MZ",1.5);
-      
+
       PositionType min;
       PositionType max;
       min[RT] = (CoordinateType)param_.getValue("transformation_space:min_shift:RT");
       min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_shift:MZ");
       max[RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
       max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
-      
+
       scaling_bounding_box_.enlarge(min);
       scaling_bounding_box_.enlarge(max);
-      
+
       min[RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
       min[MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
       max[RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
       max[MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
-      
+
       shift_bounding_box_.enlarge(min);
       shift_bounding_box_.enlarge(max);
     }
@@ -469,6 +461,16 @@ namespace OpenMS
       std::ofstream rt_os("rt_matrix.dat", std::ios::out);
       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
 #endif
+
+      std::cout << mz_bucket_size_ << ' '
+      << shift_bucket_size_[0] << ' '
+      << shift_bucket_size_[1] << ' '
+      << scaling_bucket_size_[0] << ' '
+      << scaling_bucket_size_[1] << ' '
+      << bucket_window_shift_[0]  << ' '
+      << bucket_window_shift_[1]  << ' '
+      << bucket_window_scaling_[0] << ' '
+      << bucket_window_scaling_[1] << std::endl;
 
       // take each point pair in the model map
       UnsignedInt n = model_map_red_.size();

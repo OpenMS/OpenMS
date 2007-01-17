@@ -44,16 +44,16 @@ START_TEST(SimplePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SimplePairFinder<FeatureMap>* ptr = 0;
-CHECK(SimplePairFinder())
+CHECK((SimplePairFinder()))
 	ptr = new SimplePairFinder<FeatureMap>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~SimplePairFinder())
+CHECK((~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK(SimplePairFinder& operator = (SimplePairFinder source))
+CHECK((SimplePairFinder& operator = (SimplePairFinder source)))
   SimplePairFinder<FeatureMap> spf;
   spf.setDiffIntercept(0,10);
   spf.setDiffIntercept(1,15);
@@ -71,7 +71,7 @@ CHECK(SimplePairFinder& operator = (SimplePairFinder source))
   TEST_REAL_EQUAL(spf_copy.getPairMinQuality(),0.9)
 RESULT
 
-CHECK(SimplePairFinder(const SimplePairFinder& source))
+CHECK((SimplePairFinder(const SimplePairFinder& source)))
   SimplePairFinder<FeatureMap> spf;
   spf.setDiffIntercept(0,10);
   spf.setDiffIntercept(1,15);
@@ -88,21 +88,21 @@ CHECK(SimplePairFinder(const SimplePairFinder& source))
   TEST_REAL_EQUAL(spf_copy.getPairMinQuality(),0.9)
 RESULT
 
-CHECK(double getDiffExponent(const UnsignedInt& dim))
+CHECK((double getDiffExponent(const UnsignedInt& dim)))
   SimplePairFinder<FeatureMap> spf;
   
   TEST_REAL_EQUAL(spf.getDiffExponent(0),2)
   TEST_REAL_EQUAL(spf.getDiffExponent(1),1)
 RESULT
 
-CHECK(double getDiffIntercept(const UnsignedInt& dim))
+CHECK((double getDiffIntercept(const UnsignedInt& dim)))
   SimplePairFinder<FeatureMap> spf;
   
   TEST_REAL_EQUAL(spf.getDiffIntercept(0),1)
   TEST_REAL_EQUAL(spf.getDiffIntercept(1),0.1)
 RESULT
 
-CHECK(double getPairMinQuality())
+CHECK((double getPairMinQuality()))
   SimplePairFinder<FeatureMap> spf;
   
   TEST_REAL_EQUAL(spf.getPairMinQuality(),0.01)
@@ -126,24 +126,24 @@ CHECK((void setDiffIntercept(const UnsignedInt& dim, const double& intercept)))
   TEST_REAL_EQUAL(spf.getDiffIntercept(1),15)
 RESULT
 
-CHECK(void setPairMinQuality(const double& quality))
+CHECK((void setPairMinQuality(const double& quality)))
   SimplePairFinder<FeatureMap> spf;
   spf.setPairMinQuality(0.9);
   
   TEST_REAL_EQUAL(spf.getPairMinQuality(),0.9)
 RESULT
 
-CHECK(static BasePairFinder<PointMapType>* create())
+CHECK((static BasePairFinder<PointMapType>* create()))
   // 
 RESULT
 
-CHECK(static const String getName())
+CHECK((static const String getName()))
   SimplePairFinder<FeatureMap> spf;
   
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
-CHECK(void findElementPairs())
+CHECK((void findElementPairs()))
   FeatureMap scene;
   Feature feat1;
   Feature feat2;
