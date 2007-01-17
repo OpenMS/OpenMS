@@ -36,16 +36,17 @@ namespace OpenMS
 {
 	class DBAdapter;
 	
-/**
+	/** @brief This class represents a spectrum used for clustering with additional information associated with
+
   this class allows the use of Spectra without worrying about the
   used Representation<br>
   usually a ClusterSpectrum should only contain 1 Representation
-  if the other Representation is requested 2 things can happen:<Br>
+  if the other Representation is requested 2 things can happen:<br>
    - an Exception is thrown (wrong Representation)<br>
    - the appropriate Representation is created, this is done if a DBAdapter*<br>
      is given at Construction ( and needed ).
      (needs Database support)<br>
-  note that ClusterSpectrum takes Possession of the given pointers ( except DBAdapter )
+  note that ClusterSpectrum takes Possession of the given pointers (except DBAdapter)
   they are deleted on Destruction
   */
   class ClusterSpectrum
@@ -53,9 +54,12 @@ namespace OpenMS
   	
   public:
 
-    /**
-    this Exception indicates that a the BinnedRep and the DSpectrum in the Constructor dont represent the same Spectrum
-    */
+    
+    
+		/** @brief Exception which is thrown if the spectra a incompatible
+		
+				this Exception indicates that a the BinnedRep and the DSpectrum in the Constructor dont represent the same Spectrum
+		*/
     class DifferentSpectra : public Exception::Base
     {
     public:
@@ -63,8 +67,9 @@ namespace OpenMS
       virtual ~DifferentSpectra() throw();
     };
 
-    /**
-    the requested Representation is not available
+    /** @brief Exception which is thrown if the representation is not available
+	
+		    the requested Representation is not available
     */
     class WrongRepresentation : public Exception::Base
     {
@@ -74,58 +79,83 @@ namespace OpenMS
       virtual ~WrongRepresentation() throw();
     };
 
-    /**
-    allows a more convenient way of getting spectra from the db<br>
-    although it is more efficient to get the spectra in large chunks directly
+    
+		/** @name Constructors and destructors
+		*/
+		//@{
+		/** @brief constructor with database and binning parameters
+		
+    		allows a more convenient way of getting spectra from the db<br>
+    		although it is more efficient to get the spectra in large chunks directly
         with DBAdapter (ca 5% in simple benchmarks(10k spectra)), getting them on demand allows using less memory<br>
     */
     ClusterSpectrum(long id, DBAdapter* adapterp , double binsize_ = 0 , uint binspread_ = 0);
 
-    /** @brief standard constructor <br> */
+    /// default constructor
     ClusterSpectrum();
 
-    /** @brief copy spec <br> */
+    /// detailed constructor with PeakSpectrum, DBAdapter and binning parameters
     ClusterSpectrum(const PeakSpectrum& spec, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
-    /** @brief use specp <br> */
+    /// detailed constructor with PeakSpectrum pointer, DBAdapter and binning parameters
     ClusterSpectrum(PeakSpectrum* specp, DBAdapter* adapterp = 0, double binsize = 0, uint binspread = 0);
 
-    /** @brief use binrepp <br> */
+    /// detailed constructor with BinnedRep pointer and DBAdapter
     ClusterSpectrum(BinnedRep* binrepp, DBAdapter* adapterp = 0);
 
-    /** @brief use specp and binrepp <br> */
+    /// detailed constructor with PeakSpectrum pointer and BinnedRep pointer
     ClusterSpectrum(PeakSpectrum* specp, BinnedRep* binrepp);
 
-    /** @brief copy constructor <br> */
+    /// copy constructor
     ClusterSpectrum(const ClusterSpectrum& source);
 
-    /** @brief destructor <br> */
+    /// destructor
     virtual ~ClusterSpectrum();
+		//@}
 
-    /** @brief assignment operator <br> */
+		/** @name Accessors
+		*/
+		//@{
+    /// assignment operator
     ClusterSpectrum& operator=(const ClusterSpectrum& source);
 
-    /** @name read accessors <br> */
-    //@{
+		/// returns the id of the spectrum
     int id() const;
-    const double& getRetention() const;
-    const double& getParentMass() const;
-    const uint& getParentionCharge() const;
-    const double& getBinSize() const {return binsize_;}
-    const uint& getBinSpread() const { return binspread_;}
-    PeptideHit getTophit() const;
-    const BinnedRep& getBinrep() const;
-    const PeakSpectrum& getSpec() const;
-    //@}
 
-    /** @brief write accessor for stick spectrum <br> */
+		/// returns the retention time of the spectrum
+    const double& getRetention() const;
+
+		/// returns the parent mass of the parent ion
+    const double& getParentMass() const;
+
+		/// returns the charge of the parent ion
+    const uint& getParentionCharge() const;
+
+		/// returns the binning size of the binned spectrum
+    const double& getBinSize() const {return binsize_;}
+
+		/// returns the spreading of the binned spectrum
+    const uint& getBinSpread() const { return binspread_;}
+
+		/// return the top hit
+    PeptideHit getTophit() const;
+
+		/// returns the binned Representation of the spectrum
+    const BinnedRep& getBinrep() const;
+
+		/// returns the peak spectrum 
+    const PeakSpectrum& getSpec() const;
+
+    /// mutable access to the peak spectrum
     PeakSpectrum& spec();
 
-    /** @brief delete pointers to stick and bin spectrum <br> */
+    /// delete pointers to stick and bin spectrum
     void strip() const;
 
-    /** @brief access to peptide annotations <br> */
+    /// access to peptide annotations
     const std::vector<Identification>& getIdentification() const;
+		//@}
+
   private:
 
     void updatecache_() const;

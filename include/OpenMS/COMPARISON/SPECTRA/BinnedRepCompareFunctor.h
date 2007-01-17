@@ -85,7 +85,7 @@ namespace OpenMS
 		 */
 		//@{
     /// function call operator, calculates the similarity
-    virtual double operator () (const BinnedRep& s1, const BinnedRep& s1) const = 0;
+    virtual double operator () (const BinnedRep& s1, const BinnedRep& s2) const = 0;
 
     /// function call operator, calculates the self similarity
     virtual double operator () (const BinnedRep& a) const = 0;

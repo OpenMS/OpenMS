@@ -58,9 +58,9 @@ namespace OpenMS
     /// assignment operator 
     SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source);
 
-		double operator () (const PeakSpectrum&, const PeakSpectrum&) const;
+		double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const;
 
-		double operator () (const PeakSpectrum&) const;
+		double operator () (const PeakSpectrum& a) const;
 		// @}
 		
 		// @name Accessors

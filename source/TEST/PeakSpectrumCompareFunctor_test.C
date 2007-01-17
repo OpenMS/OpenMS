@@ -56,7 +56,7 @@ CHECK(PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& 
   // nothing to check
 RESULT
 
-CHECK(double operator () (const PeakSpectrum&, const PeakSpectrum&) const)
+CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
   // nothing to check
 RESULT
 

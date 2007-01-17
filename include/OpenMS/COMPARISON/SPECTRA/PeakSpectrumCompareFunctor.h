@@ -61,10 +61,10 @@ namespace OpenMS
     PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source);
 
     /// function call operator, calculates the similarity
-    virtual double operator () (const PeakSpectrum&, const PeakSpectrum&) const = 0;
+    virtual double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const = 0;
 
 		/// calculates self similarity
-		virtual double operator () (const PeakSpectrum&) const = 0;
+		virtual double operator () (const PeakSpectrum& a) const = 0;
 
 		/// registers all derived products 
 		static void registerChildren();

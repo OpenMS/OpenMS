@@ -55,10 +55,18 @@ e_ptr = new SpectrumPrecursorComparator();
 
 CHECK(SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source))
 	SpectrumPrecursorComparator copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 RESULT
 
-CHECK(double operator () (const PeakSpectrum& csa, const PeakSpectrum& csb) const)
+CHECK(SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source))
+	SpectrumPrecursorComparator copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
@@ -74,6 +82,26 @@ CHECK(double operator () (const PeakSpectrum& csa, const PeakSpectrum& csb) cons
 	score = (*e_ptr)(spec1, spec1);
 
 	TEST_REAL_EQUAL(score, 2)
+RESULT
+
+CHECK(double operator () (const PeakSpectrum& a) const)
+	DTAFile dta_file;
+	PeakSpectrum spec1;
+	dta_file.load("data/Transformers_tests.dta", spec1);
+
+	TEST_REAL_EQUAL((*e_ptr)(spec1), 2.0)
+
+RESULT
+
+CHECK(static PeakSpectrumCompareFunctor* create())
+	PeakSpectrumCompareFunctor* cf = SpectrumPrecursorComparator::create();
+	SpectrumPrecursorComparator pre_comp;
+	TEST_EQUAL(cf->getName(), pre_comp.getName())
+	TEST_EQUAL(cf->getParam(), pre_comp.getParam())
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "SpectrumPrecursorComparator")
 RESULT
 
 delete e_ptr;

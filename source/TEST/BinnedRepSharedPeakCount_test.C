@@ -56,7 +56,25 @@ e_ptr = new BinnedRepSharedPeakCount();
 
 CHECK(BinnedRepSharedPeakCount(const BinnedRepSharedPeakCount& source))
 	BinnedRepSharedPeakCount copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+RESULT
+
+CHECK(BinnedRepSharedPeakCount& operator=(const BinnedRepSharedPeakCount& source))
+	BinnedRepSharedPeakCount copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+RESULT
+
+CHECK(double operator () (const BinnedRep& a) const)
+	DTAFile dta_file;
+  PeakSpectrum spec1;
+  dta_file.load("data/Transformers_tests.dta", spec1);
+	BinnedRep br1(spec1, 1.0, 1);
+
+	TEST_REAL_EQUAL((*e_ptr)(br1), 242)
+
 RESULT
 
 CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
@@ -76,6 +94,16 @@ CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 	score = (*e_ptr)(br1, br1);
 
 	TEST_REAL_EQUAL(score, 242)
+RESULT
+
+CHECK(static BinnedRepCompareFunctor* create())
+	BinnedRepCompareFunctor* cf = BinnedRepSharedPeakCount::create();
+	BinnedRepSharedPeakCount spc;
+	TEST_EQUAL(cf->getName(), spc.getName())
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "BinnedRepSharedPeakCount")
 RESULT
 
 delete e_ptr;

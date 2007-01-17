@@ -56,11 +56,11 @@ CHECK(BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source
 	// nothing to check
 RESULT
 
-CHECK(double operator () (const BinnedRep&, const BinnedRep&) const = 0)
+CHECK(double operator () (const BinnedRep& s1, const BinnedRep& s2) const)
 	// nothing to check
 RESULT
 
-CHECK(double operator () (const BinnedRep& a) const = 0)
+CHECK(double operator () (const BinnedRep& a) const)
 	// nothing to check
 RESULT
 

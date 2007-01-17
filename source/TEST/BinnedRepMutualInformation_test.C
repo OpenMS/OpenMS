@@ -55,10 +55,19 @@ e_ptr = new BinnedRepMutualInformation();
 
 CHECK(BinnedRepMutualInformation(const BinnedRepMutualInformation& source))
 	BinnedRepMutualInformation copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 RESULT
 
-CHECK(double operator () (const BinnedRep& a, const BinnedRep& b))
+CHECK(BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source))
+	BinnedRepMutualInformation copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+RESULT
+			  
+
+CHECK(double operator () (const BinnedRep& a, const BinnedRep& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
@@ -73,6 +82,27 @@ CHECK(double operator () (const BinnedRep& a, const BinnedRep& b))
 	PRECISION(0.01)
 	TEST_REAL_EQUAL(score, 0.0322523)
 
+RESULT
+
+CHECK(double operator () (const BinnedRep& a) const)
+	DTAFile dta_file;
+  PeakSpectrum spec1;
+  dta_file.load("data/Transformers_tests.dta", spec1);
+  BinnedRep br1(spec1, 1.0, 1);
+
+
+	TEST_REAL_EQUAL((*e_ptr)(br1), 0.986786)
+RESULT
+
+CHECK(static BinnedRepCompareFunctor* create())
+	BinnedRepCompareFunctor* cf = BinnedRepMutualInformation::create();
+	BinnedRepMutualInformation mi;
+	TEST_EQUAL(cf->getName(), mi.getName())
+	TEST_EQUAL(cf->getParam(), mi.getParam())
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "BinnedRepMutualInformation")
 RESULT
 
 delete e_ptr;

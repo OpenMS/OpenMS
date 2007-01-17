@@ -56,10 +56,18 @@ e_ptr = new BinnedRepSpectrumContrastAngle();
 
 CHECK(BinnedRepSpectrumContrastAngle(const BinnedRepSpectrumContrastAngle& source))
 	BinnedRepSpectrumContrastAngle copy(*e_ptr);
-	TEST_EQUAL(*e_ptr == copy, true)
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
 RESULT
 
-CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
+CHECK(BinnedRepSpectrumContrastAngle& operator = (const BinnedRepSpectrumContrastAngle& source))
+	BinnedRepSpectrumContrastAngle copy;
+	copy = *e_ptr;
+	TEST_EQUAL(copy.getName(), e_ptr->getName())
+	TEST_EQUAL(copy.getParam(), e_ptr->getParam())
+RESULT
+
+CHECK(double operator () (const BinnedRep& a, const BinnedRep& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
@@ -70,7 +78,6 @@ CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 	dta_file.load("data/Transformers_tests_2.dta", spec2);
 	BinnedRep br2(spec2, 1.0, 1);
 	
-
 	double score = (*e_ptr)(br1, br2);
 	
 	TEST_REAL_EQUAL(score, 1.93279)
@@ -79,6 +86,25 @@ CHECK(double operator () (const BinnedRep& csa, const BinnedRep& csb) const)
 
 	TEST_REAL_EQUAL(score, 12.3812)
 	
+RESULT
+
+CHECK(static const String getName())
+	TEST_EQUAL(e_ptr->getName(), "BinnedRepSpectrumContrastAngle")
+RESULT
+
+CHECK(double operator () (const BinnedRep& a) const)
+	DTAFile dta_file;
+  PeakSpectrum spec1;
+  dta_file.load("data/Transformers_tests.dta", spec1);
+  BinnedRep br1(spec1, 1.0, 1);
+
+	TEST_REAL_EQUAL((*e_ptr)(br1), 12.3812)
+RESULT
+
+CHECK(static BinnedRepCompareFunctor* create())
+	BinnedRepCompareFunctor* cf = BinnedRepSpectrumContrastAngle::create();
+	BinnedRepSpectrumContrastAngle sca;
+	TEST_EQUAL(cf->getName(), sca.getName())
 RESULT
 
 delete e_ptr;

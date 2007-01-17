@@ -67,7 +67,7 @@ namespace OpenMS
     BinnedRepMutualInformation& operator = (const BinnedRepMutualInformation& source);
 
 		///
-		double operator () (const BinnedRep& csa, const BinnedRep& csb) const;
+		double operator () (const BinnedRep& a, const BinnedRep& b) const;
 
 		double operator () (const BinnedRep& a) const;
 		// @}
