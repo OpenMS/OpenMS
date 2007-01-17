@@ -326,10 +326,6 @@ CHECK((bool storeLibSVMProblem(const String& filename, const svm_problem* proble
 
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, bool strict = false, bool length_encoding = false)))
-  // ???
-RESULT
-
 CHECK(svm_problem* loadLibSVMProblem(const String& filename))
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
@@ -343,6 +339,21 @@ CHECK(svm_problem* loadLibSVMProblem(const String& filename))
 RESULT
 
 CHECK((void encodeOligoBorders(String sequence, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, std::vector< std::pair<SignedInt, DoubleReal> >& libsvm_vector, bool strict = false, bool length_encoding = false)))
+	String sequence = "ACNNGTATCA";
+	String allowed_characters = "ACNGT";
+	String output;
+	UnsignedInt border_length = 3;
+	vector< pair<SignedInt, DoubleReal> > encoded_sequence;
+	
+	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
+	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
+	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
+	encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
+	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
+	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
+RESULT
+
+CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, bool strict = false, bool length_encoding = false)))
   // ???
 RESULT
 
@@ -387,15 +398,6 @@ CHECK((void libSVMVectorsToString(svm_problem* vector, String& output)))
 	encoder.libSVMVectorsToString(problem, output);
 	TEST_EQUAL(output, correct_output)	
 RESULT
-
-CHECK((void oligoBorderVectorToString(svm_node* vector, UnsignedInt border_length, String& output)))
-  // ???
-RESULT
-
-CHECK((void oligoBorderVectorsToString(svm_problem* vector, UnsignedInt border_length, String& output)))
-  // ???
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
