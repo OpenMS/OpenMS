@@ -75,18 +75,18 @@ typedef Tree::AreaType Area;
 typedef Tree::PointType Point;
 Tree* quadtree_ptr;
 
-CHECK((constructor QuadTree()))
+CHECK(QuadTree(const AreaType& area))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	TEST_NOT_EQUAL(quadtree_ptr, 0)
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), true)
 	TEST_EQUAL(quadtree_ptr->getArea() == Area(0, 0, 100, 100), true)
 RESULT
 
-CHECK((~QuadTree()))
+CHECK(~QuadTree())
 	delete quadtree_ptr;
 RESULT
 
-CHECK((insert()))
+CHECK(void insert(const PointType& position, Data* data) throw (Exception::IllegalTreeOperation))
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	quadtree_ptr->insert(Point(10, 10), new int(10));
 	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), false)
@@ -98,7 +98,7 @@ CHECK((insert()))
 	delete quadtree_ptr;
 RESULT
 
-CHECK((multiple insert()))
+CHECK([EXTRA] multiple insert())
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	for (int x = 5; x < 100; x += 10) {
 		for (int y = 5; y < 100; y += 10) {
@@ -120,7 +120,7 @@ CHECK((multiple insert()))
 	delete quadtree_ptr;
 RESULT
 
-CHECK((random insert()))
+CHECK([EXTRA] random insert())
 	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
 	Area area(10, 10, 20, 20);
 	int inarea = 0;
@@ -142,21 +142,81 @@ CHECK((random insert()))
 	for (Tree::iterator i = quadtree_ptr->begin(area); i != quadtree_ptr->end(); ++i)
 		size++;
 	TEST_EQUAL(size, inarea)
-	
+	delete quadtree_ptr;
 RESULT
 
-// CHECK(SortedIterator)
-// 	std::vector<int> vi;
-// 	int num = 0;
-// 	for (Tree::SortedIterator i = quadtree_ptr->sortedBegin(quadtree_ptr->getArea()); i != quadtree_ptr->sortedEnd(); ++i, ++num)
-// 		vi.push_back(*(i->second));
-// 	
-// 	TEST_EQUAL(num, 10000)
-// 	TEST_EQUAL(is_sorted(vi.begin(), vi.end()), true);
-// 	
-// 	for (int i = 0; i != 100; i++)
-// 	  std::cout << vi[i] << std::endl;
-// RESULT
+CHECK(Iterator begin(const AreaType& area))
+	Area area(0, 0, 100, 100);
+	quadtree_ptr = new Tree(area);
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	TEST_EQUAL(quadtree_ptr->begin(area) == quadtree_ptr->begin(), false); // equality only when both iterators are end()
+	TEST_EQUAL(quadtree_ptr->begin(area) != quadtree_ptr->end(), true);
+	delete quadtree_ptr;
+RESULT
+
+CHECK(Iterator begin())
+	Area area(0, 0, 100, 100);
+	quadtree_ptr = new Tree(area);
+	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->end(), true);
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	TEST_EQUAL(quadtree_ptr->begin() == quadtree_ptr->begin(area), false); // equality only when both iterators are end()
+	TEST_EQUAL(quadtree_ptr->begin() != quadtree_ptr->end(), true);
+	delete quadtree_ptr;
+RESULT
+
+CHECK(Iterator end())
+	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
+	Tree::Iterator end = quadtree_ptr->end();
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	TEST_EQUAL(quadtree_ptr->end() == end, true);
+	delete quadtree_ptr;
+RESULT
+
+CHECK(ConstIterator begin(const AreaType& area) const)
+	Area area(0, 0, 100, 100);
+	quadtree_ptr = new Tree(area);
+	
+	const Tree* const const_tree = quadtree_ptr;
+	TEST_EQUAL(const_tree->begin(area) == const_tree->end(), true);
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	
+	TEST_EQUAL(const_tree->begin(area) == const_tree->begin(), false); // equality only when both iterators are end()
+	TEST_EQUAL(const_tree->begin(area) != const_tree->end(), true);
+	
+	delete quadtree_ptr;
+RESULT
+
+CHECK(Iterator begin())
+	Area area(0, 0, 100, 100);
+	quadtree_ptr = new Tree(area);
+	
+	const Tree* const const_tree = quadtree_ptr;
+	TEST_EQUAL(const_tree->begin() == const_tree->end(), true);
+	
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	TEST_EQUAL(const_tree->begin() == const_tree->begin(area), false); // equality only when both iterators are end()
+	TEST_EQUAL(const_tree->begin() != const_tree->end(), true);
+	delete quadtree_ptr;
+RESULT
+
+CHECK(ConstIterator end() const)
+	quadtree_ptr = new Tree(Area(0, 0, 100, 100));
+	
+	const Tree* const const_tree = quadtree_ptr;
+	Tree::ConstIterator end = const_tree->end();
+	
+	quadtree_ptr->insert(Point(10, 10), new int(10));
+	TEST_EQUAL(const_tree->end() == end, true);
+	
+	delete quadtree_ptr;
+RESULT
+
+CHECK(const AreaType& getArea() const)
+	Area area(0, 0, 100, 100);
+	quadtree_ptr = new Tree(area);
+	TEST_EQUAL(quadtree_ptr->getArea() == area, true);
+	delete quadtree_ptr;
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

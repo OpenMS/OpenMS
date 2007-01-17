@@ -288,8 +288,17 @@ namespace OpenMS
 		*/
 		inline AreaIterator(const AreaType& tree_area, const AreaType& area, NodePointer root_node);
 		
+		/**
+			Copy constructor. Copies the iterator @it into this.
+			@param it The area iterator to copy.
+		*/
 		inline AreaIterator(const AreaIterator& it);
 		
+		/**
+			Assignment operator. Copies the contents from @p it into
+			this.
+			@param it The iterator to assign from.
+		*/
 		inline AreaIterator& operator=(const AreaIterator& it);
 
 		/**
@@ -336,16 +345,7 @@ namespace OpenMS
 			items are discovered.
 		*/
 		inline AreaIterator& operator++();
-
-#if 0
-		/**
-			This is the post-increment operator. It behaves like the
-			pre-increment operator, except that it copies the iterator,
-			which can be costly. Unless you really need to copy the
-			iterator, use the pre-increment version instead.
-		*/
-		inline AreaIterator operator++(int);
-#endif
+		
 		/**
 			Checks this iterator and the @p it iterator for equality.
 			Two iterators are considered equal, if they point to the
@@ -369,23 +369,6 @@ namespace OpenMS
 		
 		std::vector<NodePointer> nodes_;
 		typename std::vector<NodePointer>::iterator current_;
-	
-#if 0
-		AreaType area_;
-		NodePointer current_;
-
-		struct StackEntry_ {
-			StackEntry_() : pointer(0), child(0) {}
-			StackEntry_(NodePointer p, int ch, const AreaType& ar)
-				: pointer(p), child(ch), area(ar) {}
-
-			NodePointer pointer;
-			int child;
-			AreaType area;
-		};
-
-		std::stack<StackEntry_> stack_;
-#endif
 	};
 
 	/**
@@ -547,7 +530,7 @@ namespace OpenMS
 			@sa AreaIterator
 		*/
 		inline Iterator begin();
-    
+		
 		/**
 			Constructs a mutable AreaIterator pointing to nowhere
 			(i.e. the element past the last element, in
@@ -566,7 +549,15 @@ namespace OpenMS
 			@sa begin()
 		*/
 		inline ConstIterator begin(const AreaType& area) const;
-
+		
+		/**
+			Constructs a mutable AreaIterator pointing to the first
+			point in the tree.
+			@return The iterator pointing to the first point.
+			@sa AreaIterator
+		*/
+		inline ConstIterator begin() const;
+		
 		/**
 			This is the const version of end().
 			@sa end()
@@ -747,12 +738,6 @@ inline OpenMS::AreaIterator<Type, Ref, Ptr>::AreaIterator()
 template<class Type, class Ref, class Ptr>
 inline OpenMS::AreaIterator<Type, Ref, Ptr>::AreaIterator(const DRange<2,AreaIterator<Type, Ref, Ptr>::Traits>& tree_area, const DRange<2,AreaIterator<Type, Ref, Ptr>::Traits>& area, NodePointer root_node)
 {
-#if 0
-	// bad hack ;-)
-	stack_.push(StackEntry_(root_node, -1, tree_area));
-	operator++();
-#endif
-
 	findNodes(area, root_node, tree_area);
 	current_ = nodes_.begin();
 }
@@ -785,131 +770,6 @@ inline typename OpenMS::AreaIterator<Type, Ref, Ptr>::Pointer
 {
 	return &(operator*());
 }
-
-#if 0
-template<class Type, class Ref, class Ptr>
-inline OpenMS::AreaIterator<Type, Ref, Ptr>&
-	OpenMS::AreaIterator<Type, Ref, Ptr>::operator++()
-{
-	// OK, this function is a little tricky. The idea is
-	// instead of using a recursive function to traverse
-	// the tree and copying all discovered points into
-	// a list, recursion is simulated by a stack, which
-	// is stored in the iterator object, so it is persistent
-	// between successive calls to this function.
-
-	// The stack stores the path to the current leaf, i.e.
-	// a node and the number of the node's child for the
-	// next step of the path.
-	StackEntry_ top;
-
-	// This outermost loop is needed since not every leaf
-	// discovered by the inner loops is in the area (see
-	// below)
-	do
-	{
-		// traverse upwards
-
-		// each iteration in this loop corresponds to a return
-		// statement in the recursive approach (hence, values
-		// are popped from the stack)
-		do
-		{
-			// if the stack is empty, all leafs in the area have
-			// already been visited.
-			if (stack_.empty())
-			{
-				current_ = 0;
-				return *this;
-			}
-
-			top = stack_.top();
-
-			if (top.pointer->isLeaf())
-			{
-				stack_.pop();
-				top = stack_.top();
-			}
-
-			// follow the stack upwards until a path to an
-			// unvisited leaf is discovered
-			stack_.pop();
-
-			// check all of the current node's children (if
-			// it is not a leaf)
-			++top.child;
-			while (top.child != 4)
-			{
-				// break if all children are discovered or if an
-				// undiscovered child whose area intersects with
-				// the iterator's area is found
-				if (!top.pointer->getChildren()[top.child].isNil() && area_.isIntersected(top.area)) break;
-				++top.child;
-			}
-		} while (top.child == 4);
-
-		// traverse downwards
-
-		// there must exist another leaf in the tree
-		// (otherwise the stack would have been empty
-		// and this function would have been left)
-		// So we are following the leftmost non-visited
-		// path.
-
-		typename Traits::CoordinateType mid_x = (top.area.minX() + top.area.maxX()) / 2.0;
-		typename Traits::CoordinateType mid_y = (top.area.minY() + top.area.maxY()) / 2.0;
-
-		// Each iteration in the following loop corresponds
-		// to a recursive call (and hence, values are pushed
-		// onto the stack)
-		while (true)
-		{
-			stack_.push(top);
-
-			// follow child # top.child and calculate area
-			switch (top.child)
-			{
-			case 0:
-				top = StackEntry_(top.pointer->getChildren(), 0, AreaType(top.area.minX(), top.area.minY(), mid_x, mid_y));
-				break;
-			case 1:
-				top = StackEntry_(top.pointer->getChildren() + 1, 0, AreaType(mid_x, top.area.minY(), top.area.maxX(), mid_y));
-				break;
-			case 2:
-				top = StackEntry_(top.pointer->getChildren() + 2, 0, AreaType(mid_x, mid_y, top.area.maxX(), top.area.maxY()));
-				break;
-			case 3:
-				top = StackEntry_(top.pointer->getChildren() + 3, 0, AreaType(top.area.minX(), mid_y, mid_x, top.area.maxY()));
-				break;
-
-			}
-
-			// is this a leaf? if so, we've found what we're
-			// looking for.
-			if (top.pointer->isLeaf()) break;
-
-			// choose the current node's left-most non-discovered
-			// child for the next iteration
-			while (top.pointer->getChildren()[top.child].isNil())
-			{
-				++top.child;
-				// the following can not happen since this would
-				// mean that there is no leaf left in the tree
-			}
-		}
-
-		// update the pointer to the current leaf
-		current_ = top.pointer;
-		stack_.push(top);
-
-		// if the areas have been intersecting, but this
-		// point lies outside of the area (which can actually
-		// happen), we have to find the next node.
-	} while (!area_.encloses(current_->data.first));
-
-	return *this;
-}
-#endif
 
 template<class Type, class Ref, class Ptr>
 inline void OpenMS::AreaIterator<Type, Ref, Ptr>::findNodes(const AreaType& area, NodePointer node, const AreaType& nodeArea)
@@ -945,18 +805,6 @@ inline OpenMS::AreaIterator<Type, Ref, Ptr>&
 	return *this;
 }
 
-#if 0
-template<class Type, class Ref, class Ptr>
-inline OpenMS::AreaIterator<Type, Ref, Ptr>
-	OpenMS::AreaIterator<Type, Ref, Ptr>::operator++(int)
-{
-	// copy the iterator, move the original and return the copy
-	AreaIterator tmp = *this;
-	operator++();
-	return tmp;
-}
-#endif
-
 template<class Type, class Ref, class Ptr>
 inline bool OpenMS::AreaIterator<Type, Ref, Ptr>::operator==(const AreaIterator& it)
 {
@@ -988,7 +836,6 @@ inline OpenMS::QuadTree<Traits, Data>::~QuadTree()
 template<typename Traits, typename Data>
 inline void OpenMS::QuadTree<Traits, Data>::insert(const OpenMS::QuadTree<Traits, Data>::PointType& position, /*const */Data* data) throw (Exception::IllegalTreeOperation)
 {
-	//std::cout << std::endl << std::endl << std::endl;
 	insert_(root_, area_, position, data);
 }
 
@@ -1003,10 +850,7 @@ template<typename Traits, typename Data>
 inline typename OpenMS::QuadTree<Traits, Data>::Iterator OpenMS::QuadTree<Traits, Data>::begin()
 {
 	if (root_->isEmpty()) return Iterator();
-	typename Traits::CoordinateType min = std::numeric_limits<typename Traits::CoordinateType>::min();
-	typename Traits::CoordinateType max = std::numeric_limits<typename Traits::CoordinateType>::max(); 
-	AreaType area(min, min, max, max);
-	return Iterator(area_, area, root_);
+	return Iterator(area_, area_, root_);
 }
 
 template<typename Traits, typename Data>
@@ -1018,7 +862,15 @@ inline typename OpenMS::QuadTree<Traits, Data>::Iterator OpenMS::QuadTree<Traits
 template<typename Traits, typename Data>
 inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::begin(const AreaType& area) const
 {
+	if (root_->isEmpty()) return ConstIterator();
 	return ConstIterator(area_, area, root_);
+}
+
+template<typename Traits, typename Data>
+inline typename OpenMS::QuadTree<Traits, Data>::ConstIterator OpenMS::QuadTree<Traits, Data>::begin() const
+{
+	if (root_->isEmpty()) return ConstIterator();
+	return ConstIterator(area_, area_, root_);
 }
 
 template<typename Traits, typename Data>
@@ -1040,11 +892,8 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 	typename Traits::CoordinateType mid_x = (area.minX() + area.maxX()) / 2.0;
 	typename Traits::CoordinateType mid_y = (area.minY() + area.maxY()) / 2.0;
   
-  //std::cout << "Area: " << mid_x << " " << mid_y << std::endl;
-  
 	if (node->isLeaf())              
 	{
-		//std::cout << "Leaf" << std::endl;
 		// if this is a leaf, we need to split the current node
 		// store the leaf's position and data for later re-insertion
 		PointType old_pos = node->data.first;
@@ -1066,15 +915,12 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 	} 
 	else 
 	{
-		//std::cout << "Not Leaf" << std::endl;
 		// check which child node to follow (or create)
 		// (I'm sure this can be optimized by size)
 		if (position.Y() < mid_y)
 		{
-			//std::cout << "position.Y() < mid_y" << std::endl;
 			if (position.X() < mid_x)
 			{
-				//std::cout << "position.X() < mid_x" << std::endl;
 				// left-top child (node->getChildren()[0])
 				if (!node->getChildren()[0].isNil())
 				{
@@ -1091,7 +937,6 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 			}
 			else
 			{
-				//std::cout << "position.X() >= mid_x" << std::endl;
 				// right-top child (node->getChildren()[1])
 				if (!node->getChildren()[1].isNil())
 				{
@@ -1106,10 +951,8 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 		}
 		else
 		{
-			//std::cout << "position.Y() >= mid_y" << std::endl;
 			if (position.X() > mid_x)
 			{
-				//std::cout << "position.X() < mid_x" << std::endl;
 				// right-bottom child (node->getChildren()[2])
 				if (!node->getChildren()[2].isNil())
 				{
@@ -1123,23 +966,19 @@ void OpenMS::QuadTree<Traits, Data>::insert_(NodePointer node, const AreaType& a
 			}
 			else
 			{
-				//std::cout << "position.X() >= mid_x" << std::endl;
 				// left-bottom child (node->getChildren()[3])
 				if (!node->getChildren()[3].isNil())
 				{
-					//std::cout << "NIL" << std::endl;
 					insert_(node->getChildren() + 3, AreaType(area.minX(), mid_y, mid_x, area.maxY()), position, data);
 				}
 				else
 				{
-					//std::cout << "NOT NIL" << std::endl;
 					node->getChildren()[3].data.first = position;
 					node->getChildren()[3].data.second = data;
 				}
 			}
 		}
 	}
-	//std::cout << std::endl;
 }
 
 #endif //OPENMS_DATASTRUCTURES_QUADTREE_H
