@@ -35,26 +35,26 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="4">J6FKRLi6SkTNzEpEzQxLRA==</data>
+				<data precision="32" endian="little" length="4">LKFKRL26SkTNzEpEzQxLRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="4">EfSpSEkRpkgAqUtIAEDeRg==</data>
+				<data precision="32" endian="little" length="4">rg+qSDxHpkgAqUtIAEDeRg==</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="4">wy8MSDb7CEhnKrBHnJ4aRg==</data>
+				<data precision="32" endian="little" length="4">yiMMSL0FCUhnKrBHnJ4aRg==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="4">6hy6Puocuj6qdc0+kJGdPg==</data>
+				<data precision="32" endian="little" length="4">0O65PtDuuT6qdc0+kJGdPg==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="4">MSNUQDEjVECA/R9BgP0fQQ==</data>
+				<data precision="32" endian="little" length="4">EgZUQBIGVECA/R9BgP0fQQ==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="4">GH0QQRh9EEEYIjRAqm2AQA==</data>
+				<data precision="32" endian="little" length="4">ajkRQWo5EUEYIjRAqm2AQA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="5">
 				<arrayName>charge</arrayName>
