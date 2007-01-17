@@ -48,7 +48,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AABWQwAAhkIAAAAAAAAAAAAAF0MAABBCAICCQwDAFUQAADdEAECxRACQE0UAcAhFAODRRADApEQA4IFEAMA2RACAi0MAAINDAIA8RABAIEQAAOpCAAAAQgAAjEIAAFRDAMA4RAAAXkMAACVD</data>
+				<data precision="32" endian="little" length="27">AABWQwAAhkIAAMhCAADIQgAAF0MAABBCAICCQwDAFUQAADdEAECxRACQE0UAcAhFAODRRADApEQA4IFEAMA2RACAi0MAAINDAIA8RABAIEQAAOpCAAAAQgAAjEIAAFRDAMA4RAAAXkMAACVD</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="3">
@@ -63,7 +63,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAAAnQwCgoEQAAIVDAIC1QwBAGUUA4ANFAIDaRADgs0QAQLREAIDfRAAgkEQAAAdEAAAYRAAAnkQAgDZEAAAAAAAAAAAAAJpCAABwQgCAo0MAAE9EAACfQwCA9UMAABtD</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAAAnQwCgoEQAAIVDAIC1QwBAGUUA4ANFAIDaRADgs0QAQLREAIDfRAAgkEQAAAdEAAAYRAAAnkQAgDZEAADIQgAAyEIAAJpCAABwQgCAo0MAAE9EAACfQwCA9UMAABtD</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="4">
@@ -78,7 +78,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAe0MAAEhDAAAAAACAmEMAQFFEANBDRQAwekUA4AJFAPAeRQAgpUQAgLVDAEBuRAAAAAAAwAREAKCiRAAAEkMAAAAAAAAfQwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM0MAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAe0MAAEhDAADIQgCAmEMAQFFEANBDRQAwekUA4AJFAPAeRQAgpUQAgLVDAEBuRAAAyEIAwAREAKCiRAAAEkMAAMhCAAAfQwAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAM0MAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="5">
@@ -93,7 +93,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAA0MAAAAAAAAAAAAAY0MAACFEANAwRQDQuEUAkFVFAJjORQDA/EQAAHBEAKDiRAAAc0QAYIxEACCNRACAmEMAwDpEAADnQwBAnEQAABxEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAA0MAAMhCAADIQgAAY0MAACFEANAwRQDQuEUAkFVFAJjORQDA/EQAAHBEAKDiRAAAc0QAYIxEACCNRACAmEMAwDpEAADnQwBAnEQAABxEAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="6">
@@ -108,7 +108,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAnUMAABJDAAAAAADgpkQAANhEAPC3RQCoz0UAaIZFACAbRgAwa0UAoDtFABAvRQAAd0QA4J9EAICzRAAAFkMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwB5EAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAnUMAABJDAADIQgDgpkQAANhEAPC3RQCoz0UAaIZFACAbRgAwa0UAoDtFABAvRQAAd0QA4J9EAICzRAAAFkMAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAwB5EAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="7">
@@ -123,7 +123,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAXQwAAAAAAAAAAAAAYQwDATkQAwCdEAAC+RQDgLUYA0OhFADQpRgDwZ0UAwPdEACCWRAAgkUQAgKFEAEAkRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AAAXQwAAyEIAAMhCAAAYQwDATkQAwCdEAAC+RQDgLUYA0OhFADQpRgDwZ0UAwPdEACCWRAAgkUQAgKFEAEAkRAAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="8">
@@ -138,7 +138,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAA8QwAAAAAAwLREAIDxQwBAIUQAsFpFANhXRgBYkUYAUAZGAMwmRgDA8EUAEIZFACiuRQBg+UQAgJ1DAAAAAACAIEQAQAlEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AAA8QwAAyEIAwLREAIDxQwBAIUQAsFpFANhXRgBYkUYAUAZGAMwmRgDA8EUAEIZFACiuRQBg+UQAgJ1DAADIQgCAIEQAQAlEAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="9">
@@ -153,7 +153,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAwCpEAAC8QwCQCkUAIIdEAJBYRgBq3EYA2FxGAMq7RgA4h0YANEBGAAh5RgDY6kUAMCpFAKCyRAAgrUQAIK9EAEAuRAAAgEMAAAAAAAAAAAAAAAAAAMBDAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAwCpEAAC8QwCQCkUAIIdEAJBYRgBq3EYA2FxGAMq7RgA4h0YANEBGAAh5RgDY6kUAMCpFAKCyRAAgrUQAIK9EAEAuRAAAgEMAAMhCAADIQgAAyEIAAMBDAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="10">
@@ -168,7 +168,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAACADEQAgIZDAAAAAAAAAAAAIBhFAOL3RgAPM0cA4LJGADoORwB6nEYA3AtGAGA3RgCgZEUAgIRFAJBdRQDA9EQAQEpEAMARRABADEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgCADEQAgIZDAADIQgAAyEIAIBhFAOL3RgAPM0cA4LJGADoORwB6nEYA3AtGAGA3RgCgZEUAgIRFAJBdRQDA9EQAQEpEAMARRABADEQAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="11">
@@ -183,7 +183,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AGDkRACANEQAgKlDAAAARAAAAAAAoClFAJDTRgDigkcA6hVHAClfRwD0FUcAAL9GAIzZRgDsJEYAOKtFALitRQBAEUUAkC9FAEANRAAAAAAAAAAAAAAAAAAAAAAAAAAAAIC/QwCgwUQAgAFE</data>
+				<data precision="32" endian="little" length="27">AGDkRACANEQAgKlDAAAARAAAyEIAoClFAJDTRgDigkcA6hVHAClfRwD0FUcAAL9GAIzZRgDsJEYAOKtFALitRQBAEUUAkC9FAEANRAAAyEIAAMhCAADIQgAAyEIAAMhCAIC/QwCgwUQAgAFE</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="12">
@@ -198,7 +198,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAADQRACADEUAyOtFAHpmRwCxrEcAIztHgIOBRwBRFkcAEOVGAOjcRgCQHEYAqM9FAHBIRQDAIUQAQG9EAEBCRABgzkQA4JZEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGFD</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAADQRACADEUAyOtFAHpmRwCxrEcAIztHgIOBRwBRFkcAEOVGAOjcRgCQHEYAqM9FAHBIRQDAIUQAQG9EAEBCRABgzkQA4JZEAADIQgAAyEIAAMhCAADIQgAAyEIAAGFD</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="13">
@@ -213,7 +213,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAgEZEAICARACgCkUAUJFFAGlzR4B35EcAoZNHAMKmRwBodkcAkhVHAD0bRwDcSUYApE9GAIDYRQCYiUUA4P5EAIBvRAAg20QAgAFFAAA3QwAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAgEZEAICARACgCkUAUJFFAGlzR4B35EcAoZNHAMKmRwBodkcAkhVHAD0bRwDcSUYApE9GAIDYRQCYiUUA4P5EAIBvRAAg20QAgAFFAAA3QwAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="14">
@@ -228,7 +228,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAADAn0QAQBxEAACKQwCApEMAwOJFAOJWRwDu20cAq5dHgJ69RwBfakcAeu5GAMsjRwDceUYA7AFGAEgMRgBAVUUAQBtFACDARACAukMAwANEAAAAAABAX0QAANlDAIC6QwAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgDAn0QAQBxEAACKQwCApEMAwOJFAOJWRwDu20cAq5dHgJ69RwBfakcAeu5GAMsjRwDceUYA7AFGAEgMRgBAVUUAQBtFACDARACAukMAwANEAADIQgBAX0QAANlDAIC6QwAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="15">
@@ -243,7 +243,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAMCiRACAhEQAcPdFALNtR4C6xUcAAFRHAMKdRwDiTUcAXRNHABTdRgD8MkYAKC5GAFB+RQCA50QAwD1FAEArRAAAAAAAACJDAACiQwAAt0MAAIJEAAAjQwAAAAAAII1E</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAMCiRACAhEQAcPdFALNtR4C6xUcAAFRHAMKdRwDiTUcAXRNHABTdRgD8MkYAKC5GAFB+RQCA50QAwD1FAEArRAAAyEIAACJDAACiQwAAt0MAAIJEAAAjQwAAyEIAII1E</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="16">
@@ -258,7 +258,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAAAAAAAAGEMAMMZFAA4iR4CtkEcAGBpHAAcpRwAIGEcAdLxGANC6RgCkAEYA6CtGAEjlRQAgGUUA4I5EAOCpRABAwkQAgFREAAC2QwAAAAAAAAAAAIDiQwAArEMAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAADIQgAAGEMAMMZFAA4iR4CtkEcAGBpHAAcpRwAIGEcAdLxGANC6RgCkAEYA6CtGAEjlRQAgGUUA4I5EAOCpRABAwkQAgFREAAC2QwAAyEIAAMhCAIDiQwAArEMAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="17">
@@ -273,7 +273,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAG9DAAAAAAAAqkMAYNNEAAqFRgCS4kYAuIRGAATdRgCsekYA8O1FAPQlRgCwiEUAQGBFAOC+RADA3kQAgJJDAABcQwCA0UMAAAAAAAAAAAAAAAAAAAAAAAD2QwCAGEQAAM1D</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAG9DAADIQgAAqkMAYNNEAAqFRgCS4kYAuIRGAATdRgCsekYA8O1FAPQlRgCwiEUAQGBFAOC+RADA3kQAgJJDAABcQwCA0UMAAMhCAADIQgAAyEIAAMhCAAD2QwCAGEQAAM1D</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="18">
@@ -288,7 +288,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAABhDAIAyRADAAEQAAKlDAPBfRQBo1UUAkGJFANj0RQBAWkUAADZFABA4RQBAJ0QAQAJFAADCRADAdUQAAAAAAAAAAAAACkMAwFVEAACFQwAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAABhDAIAyRADAAEQAAKlDAPBfRQBo1UUAkGJFANj0RQBAWkUAADZFABA4RQBAJ0QAQAJFAADCRADAdUQAAMhCAADIQgAACkMAwFVEAACFQwAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="19">
@@ -303,7 +303,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAAArQwAAAAAAAAAAAJBRRQBwHUUAAFZDAOCdRQBAH0UAYAVFAMALRAAANEMAAAAAAGCbRABAfkQAAB5DAAAAAABAWEQAADVEAAAAAACAWkQAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAAArQwAAyEIAAMhCAJBRRQBwHUUAAFZDAOCdRQBAH0UAYAVFAMALRAAANEMAAMhCAGCbRABAfkQAAB5DAADIQgBAWEQAADVEAADIQgCAWkQAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="20">
@@ -318,7 +318,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAPJDAAAAAAAAAAAAAAAAAOBBRQCgwkQAAAAAAADyQwAALEQAAAAAAAAAAAAAAAAAgIBEAAAAAAAAAAAAINJEAAAsRAAAAAAAAAAAAAAAAAAgikQAAKBDAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAPJDAADIQgAAyEIAAMhCAOBBRQCgwkQAAMhCAADyQwAALEQAAMhCAADIQgAAyEIAgIBEAADIQgAAyEIAINJEAAAsRAAAyEIAAMhCAADIQgAgikQAAKBDAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="21">
@@ -333,7 +333,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AMCcRAAAR0MAAAAAAICJQwBAY0QAAAAAAEBJRADAzEQAgI9DAIBXRADgL0UA4MJEAMBHRABAakQAQCBEAAAAAAAAAAAAAAAAAIDgRABAoEQAgIVDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AMCcRAAAR0MAAMhCAICJQwBAY0QAAMhCAEBJRADAzEQAgI9DAIBXRADgL0UA4MJEAMBHRABAakQAQCBEAADIQgAAyEIAAMhCAIDgRABAoEQAgIVDAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="22">
@@ -348,7 +348,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAACAEkQAAAAAAAAAAAAAAAAAAAAAAAAWRACAyUQAgD1EAAAAAAAglkQAgKNDAAAAAAAANEQAQCdEALAJRQDghkQAAAAAAICFQwAA6EMAgIhDAADoQwAAAAAAAAAAAICIQwAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgCAEkQAAMhCAADIQgAAyEIAAMhCAAAWRACAyUQAgD1EAADIQgAglkQAgKNDAADIQgAANEQAQCdEALAJRQDghkQAAMhCAICFQwAA6EMAgIhDAADoQwAAyEIAAMhCAICIQwAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="23">
@@ -363,7 +363,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB6QwCg9EQAwFtEAKCKRACA+0MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAQwCAuUQAAAlEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAAB6QwCg9EQAwFtEAKCKRACA+0MAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAACAQwCAuUQAAAlEAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="24">
@@ -378,7 +378,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAICSQwAAAAAAAAAAAIDpQwAAh0MAAAAAAAArQwAAAAAAACxDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAArQwAAAAAAAAAAAAAAAAAAAAAAgOpD</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAICSQwAAyEIAAMhCAIDpQwAAh0MAAMhCAAArQwAAyEIAACxDAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAAArQwAAyEIAAMhCAADIQgAAyEIAgOpD</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="25">
@@ -393,7 +393,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAAAAAAAAAAACAfUQAAAAAAMB+RADAcEQAAE5EABAhRQCgQEUAQBpEAAAAAAAAAAAAALFDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAAMhCAADIQgCAfUQAAMhCAMB+RADAcEQAAE5EABAhRQCgQEUAQBpEAADIQgAAyEIAALFDAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="26">
@@ -408,7 +408,7 @@
 				<data precision="32" endian="little" length="27">ZiYsRDMzLEQAQCxEzUwsRJpZLERmZixEM3MsRACALETNjCxEmpksRGamLEQzsyxEAMAsRM3MLESa2SxEZuYsRDPzLEQAAC1EzQwtRJoZLURmJi1EMzMtRABALUTNTC1EmlktRGZmLUQzcy1E</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="27">AAAAAAAAAAAAgNFDAAB2QwAAAAAAAAAAAICXQwAAAAAAAAAAAEA8RAAAikMAAN5DAAB2QwAAAAAAgIFDAABUQwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAICsQwAAAAAAAAAA</data>
+				<data precision="32" endian="little" length="27">AADIQgAAyEIAgNFDAAB2QwAAyEIAAMhCAICXQwAAyEIAAMhCAEA8RAAAikMAAN5DAAB2QwAAyEIAgIFDAABUQwAAyEIAAMhCAADIQgAAyEIAAMhCAADIQgAAyEIAAMhCAICsQwAAyEIAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>
