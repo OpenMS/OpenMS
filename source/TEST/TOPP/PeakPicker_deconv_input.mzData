@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="OpenMS:">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="0">
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<spectrumList count="1">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="685.447"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="30">zQxKRJoZSkRmJkpEMzNKRJpZSkRmZkpEM3NKRACASkTNjEpEmplKRGamSkQzs0pEAMBKRM3MSkSa2UpEZuZKRDPzSkQAAEtEzQxLRJoZS0RmJktEMzNLRABAS0TNTEtEmllLRGZmS0TNjEtEmplLRGamS0Qzs0tE</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="30">AIDhQwDga0UAwA1FAIA1RACAVkQAYJVEAAA8RACQYEYAAydIgAejSMCVp0hANpNIwANISACpS0gAA9ZHAOWMRwCVOkcAZspGAEDeRgC8bUYA2IBFAIDARACAlkMAQPxEAIDmRAAARUMAAOFDAID4RADgi0QAACxD</data>
+			</intenArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>
