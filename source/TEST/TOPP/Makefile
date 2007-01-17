@@ -169,7 +169,7 @@ ifdef VERBOSE
 RUN_PROG_OPT = $(RUN_PROG_OPT_INTERNAL)
 else
 # extra ( ) are used because the programm call might have its own indirection (e.g. FileInfo)
-RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > /dev/null 2>&1
+RUN_PROG_OPT = ( $(RUN_PROG_OPT_INTERNAL) ) > $(1).output 2>&1
 endif
 
 #######################################################################

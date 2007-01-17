@@ -29,7 +29,7 @@
 	
 	include "common_functions.php";
 	
-	########################helper functions###############################
+	######################## helper functions ###############################
 	function printUsage()
 	{
 		print "Usage: checker.php <Path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
@@ -54,19 +54,22 @@
 			print "------> ";
 		}
 		print $text;
-		if ($user=="all")
+		if ($user=="all" && $filename!="")
 		{
 			print " (".$GLOBALS["file_maintainers"][$filename].")";
 		}
 		print "\n";
 		#error count
-		foreach (explode(", ",$GLOBALS["file_maintainers"][$filename]) as $u)
+		if ($filename!="")
 		{
-			$GLOBALS["maintainer_info"][trim($u)]["errors"]++;
+			foreach (explode(", ",$GLOBALS["file_maintainers"][$filename]) as $u)
+			{
+				$GLOBALS["maintainer_info"][trim($u)]["errors"]++;
+			}
 		}
 	}
 	
-	########################declarations###############################
+	######################## declarations ###############################
 	$GLOBALS["tests"] = array(
 															"all"				     => "performs all tests (default)",
 															"guards"         => "check if header guards present and correct",
@@ -76,14 +79,16 @@
 															"brief"          => "check for doxygen tag @brief",
 															"doxygen_errors" => "check for errors in dogygen-error.log",
 															"check_test"     => "check the class test for completeness",
-															"test_output"    => "check test output for warnings and errors"
+															"test_output"    => "check test output for warnings and errors",
+															"topp_output"    => "check TOPP test output for warnings and errors",
+															"svn_keywords"   => "check if the SVN keywords are set for tests",
 														);
 	
 	$options = array("-u","-t");
 	
 	$flags = array("-v");
 	
-	########################parameter handling###############################
+	######################## parameter handling ###############################
 	
 	#no parameters
 	if ($argc==1 || in_array("--help",$argv))
@@ -166,9 +171,8 @@
 		print "Test: '$test'\n";
 	}
 
-	########################################################################
-	########################### NEEDED STUFF ###############################
-	########################################################################	
+	########################### NEEDED FILES ###############################
+	
 	$abort = false;
 	if (!file_exists("$path/source/config/tools/check_test"))
 	{
@@ -195,13 +199,23 @@
 			$abort = true;
 		}
 	}
+	if ($test == "all" || $test == "topp_output")
+	{
+		$out = array();
+		exec("cd $path/source/TEST/TOPP/ && ls -a *.output | wc -l",$out);
+		if (trim($out[0]) < 10)
+		{
+			print "Error: For the 'topp_output' test, TOPP test output files are needed!\n";
+			print "       Please execute 'make TOPPtest' in '$path/source/'.\n";
+			$abort = true;
+		}
+	}
 	if ($abort)
 	{
 		exit;
 	}
-	########################################################################
+	
 	########################### MAINTAINERS ################################
-	########################################################################
 	
 	$files=array();
 	exec("cd $path && find include/ -name \"*.h\" ! -name \"*Template.h\"", $files);
@@ -283,9 +297,7 @@
 		$files_todo = $files;
 	}
 	
-	########################################################################
 	########################### auxilary files #############################
-	########################################################################
 	$called_tests = array();
 	$makefile = file("$path/source/TEST/Makefile");
 	foreach($makefile as $line)
@@ -569,19 +581,88 @@
 				}
 			}
 		}
-		
-		########################### warnings TOPPtest  #################################
-		//TODO (tee)
 
 		######################### 'Id' keyword in tests  ###############################
-		//TODO
-		
+		if ($test == "all" || $test == "svn_keywords")
+		{
+			if (endsWith($f,".h") )
+			{
+				if (in_array($testname,$files))
+				{
+					$out = array();
+					exec("svn proplist -v $path/$testname",$out);
+					$kw = false;
+					foreach ($out as $line)
+					{
+						if (strpos($line,"svn:keywords")!==FALSE)
+						{
+							$kw = true;
+							if (strpos($line,"Id")===FALSE)
+							{
+								realOutput("svn:keyword 'Id' not set for '$testname'",$user,$verbose,$testname);
+							}
+						}
+					}
+					if (!$kw)
+					{
+						realOutput("svn:keyword 'Id' not set for '$testname'",$user,$verbose,$testname);
+					}
+				}	
+			}
+		}
 	}
 
 	################### doxygen errors in .doxygen-files  ##########################
-	//TODO
+	if ($user == "all" && ($test == "all" || $test == "doxygen_errors"))
+	{
+		$file = file("$path/doc/doxygen-error.log");
+		foreach ($file as $line)
+		{
+			$line = trim($line);
+			if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:",$line,$parts))
+			{
+				realOutput("Doxygen errors in '".$parts[1]."'",$user,$verbose,"");
+			}
+		}
+	}
 
-	//maintainer summary
+	
+	########################### warnings TOPPtest  #################################
+	if ($test == "all" || $test == "topp_output")
+	{
+		$out = array();
+		exec("cd $path/source/TEST/TOPP/ && ls -a *.output",$out);
+		foreach ($out as $file)
+		{
+			$file = trim($file);
+			$topp_file = "source/APPLICATIONS/TOPP/".substr($file,0,-6)."C";
+			if (in_array($topp_file,$files_todo))
+			{
+				$testfile = file("$path/source/TEST/TOPP/$file");
+				$errors = array();
+				foreach ($testfile as $line)
+				{
+					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
+					{
+						$errors[] = trim($line);
+					}
+				}
+				if (count($errors)!=0)
+				{
+					realOutput("Error/warnings in TOPP test output 'source/TEST/TOPP/$file'",$user,$verbose,$topp_file);
+					if ($verbose)
+					{
+						foreach ($errors as $e)
+						{
+							print "  '$e'\n";
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	########################### maintainer summary #################################
 	if ($user == "all")
 	{
 		print "\nMaintainers:\n";
