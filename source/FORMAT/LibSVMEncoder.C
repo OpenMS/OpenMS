@@ -474,7 +474,7 @@ namespace OpenMS
 				factor *= number_of_residues;
 			}
 		  factor /= number_of_residues;
-		  values.first = -1 * ((SignedInt) (oligo_value + 2));
+		  values.first = ((SignedInt) (oligo_value + 2));
 		  values.second = 1;
 		  ordered_tree.insert(values);
 		
@@ -483,7 +483,7 @@ namespace OpenMS
 				oligo_value -= factor * residue_values[sequence[j - 1]];
 				oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
 		
-				values.first = -1 * ((SignedInt) (oligo_value + 2));
+				values.first = ((SignedInt) (oligo_value + 2));
 				values.second = j + 1;
 		
 				ordered_tree.insert(values);	
