@@ -1108,8 +1108,8 @@ class TOPPSequestAdapter
 				if ( !user.empty() ) call.append(" -u " + user);
 				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
 				call.append(" -s cmd\\ /C\\ \"");
-// 				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
-				call.append("net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
+				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
+// 				call.append("net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
 				
 				batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 				
