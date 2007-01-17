@@ -153,8 +153,11 @@ namespace OpenMS
 		ProductModel<2> model2D_;
 		Math::BasicStatistics<> mz_stat_;
 		Math::AsymmetricStatistics<> rt_stat_;
-		double stdev_mz_, stdev_rt1_, stdev_rt2_;
-		PositionType min_, max_;
+		double stdev_mz_;
+		double stdev_rt1_;
+		double stdev_rt2_;
+		PositionType min_;
+		PositionType max_;
 	
 		unsigned int counter_;
   };

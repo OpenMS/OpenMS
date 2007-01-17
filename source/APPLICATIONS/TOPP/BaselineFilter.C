@@ -58,11 +58,11 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPBase2lineFilter
+class TOPPBaselineFilter
 	: public TOPPBase
 {
  public:
-	TOPPBase2lineFilter()
+	TOPPBaselineFilter()
 		: TOPPBase("BaselineFilter","top-hat filter for baseline reduction")
 	{
 	}
@@ -167,7 +167,7 @@ class TOPPBase2lineFilter
 
 int main( int argc, char ** argv )
 {
-    TOPPBase2lineFilter tool;
+    TOPPBaselineFilter tool;
     return tool.main(argc,argv);
 }
 

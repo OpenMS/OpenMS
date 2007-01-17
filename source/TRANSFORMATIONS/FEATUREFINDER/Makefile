@@ -66,5 +66,6 @@ ADD_INCLUDES=$(GUI_INCLUDES)
 include ../../common.mak
 -include .Dependencies
 
-# Uncomment this line to get the FeaFi debug output
-ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER
+# For debugging the FeatureFinder, please create the file 'Makefile_debug'
+# and add the line 'ADD_CXXFLAGS=-DDEBUG_FEATUREFINDER' to it
+-include Makefile_debug

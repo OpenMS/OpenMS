@@ -34,8 +34,7 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 THISLIB=$(LIBNAME)
 
 CPP_SOURCES=\
-	TOPPBase.C\
-	TOPPBase2.C
+	TOPPBase.C
 
 # These depend on QT:
 GUI_CPP_SOURCES=\

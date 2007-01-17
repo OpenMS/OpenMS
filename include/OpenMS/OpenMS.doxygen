@@ -58,11 +58,11 @@
 	- HP updaten
 	- Debug-output abstellen
 	- Warnings der TOPP tests anschauen
-	- Update coding conventions mit neuen scripts und problemen von check_test
-  - Tutorial (FeatureFinder Bild) and TOPP docu korrekturlesen
+  - Tutorial: FeatureFinder Bild
+  - Tutorial + TOPP Docu korrekturlesen
+  - SequestAdapter und InspectAdapter anschauen
 
 	TODO:
-	- TOPPBase2 entfernen
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert

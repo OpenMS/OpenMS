@@ -796,7 +796,10 @@ namespace OpenMS
              
              Left_behind_centroid points to the raw data point next to the estimates centroid position.
           */
-          RawDataPointIterator left, max, right, left_behind_centroid;
+          RawDataPointIterator left;
+          RawDataPointIterator max;
+          RawDataPointIterator right;
+          RawDataPointIterator left_behind_centroid;
           /// The estimated centroid position.
           DPosition<1> centroid_position;
       };
@@ -822,13 +825,7 @@ namespace OpenMS
         are relevant. If no peak is detected the method return false.
         For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
       */
-      bool getMaxPosition_(RawDataPointIterator first,
-                           RawDataPointIterator last,
-                           const ContinuousWaveletTransform& wt,
-                           PeakArea_& area,
-                           int distance_from_scan_border,
-                           int ms_level,
-                           int direction=1);
+      bool getMaxPosition_(RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
 
 
       /** @brief Determines a peaks's endpoints.
@@ -852,9 +849,7 @@ namespace OpenMS
         
           (2) analogous procedure to the right of x_r
       */
-      bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,
-                             PeakArea_ &area, int distance_from_scan_border,
-                             int& peak_left_index, int& peak_right_index);
+      bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
 
 
       /** @brief Estimates a peak's centroid position.
@@ -881,10 +876,7 @@ namespace OpenMS
 		
 		void deconvolutePeak_(PeakShape& shape,PeakArea_& area,std::vector<double> peak_endpoints);
 
-		int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last,
-													std::vector<double>& peak_values,
-													int direction,int resolution,
-													ContinuousWaveletTransformNumIntegration& wt);
+		int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values, int direction,int resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		int determineChargeState_(std::vector<double>& peak_values);
 

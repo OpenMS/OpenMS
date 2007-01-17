@@ -348,8 +348,10 @@ namespace OpenMS
 			/// @name Protected Members
 			//@{ 
 
-			RealType mean_, variance_, sum_;
-
+			RealType mean_;
+			RealType variance_;
+			RealType sum_;
+			
 		 private:
 			//@}
 

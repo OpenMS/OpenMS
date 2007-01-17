@@ -13,8 +13,6 @@ This folder contains some useful tools for developers:
   check_includes.php -  Checks for unneeded includes.
 
   checker.php        -  Reports errors in the code, test, documentation, ...
-	
-	svn_status.php     -  Makes the output of SVN status more readable.
 
 Unfortunately there are some bugs in the C++ parser 'check_test'.
 It fails under the following conditions:

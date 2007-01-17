@@ -276,38 +276,37 @@ namespace OpenMS
 
 			/// the static modifications (map of amino acids and corresponding modification)
 			std::map< char, Real > stat_mods_;
+
+			String enzyme_info_; ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
+			String database_; ///< database used
+			String snd_database_; ///< second database used
+			String neutral_losses_for_ions_; ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
+			String ion_series_weights_;///< weights for the a-; b-; c-; d-; v-; w-; x-; y- and z-ion series; space delimited
+			String dyn_mods_; ///< space-delimited list of dynamic modifications; each with weight and aas (space delimited)
+			String partial_sequence_; ///< space-delimited list of sequence parts that have to occur in the theortical spectra
+			String sequence_header_filter_;///< space-delimited list of sequences that have to occur or be absend (preceeded by a tilde) in a protein header; to be considered
+			String protein_mass_filter_;
 			
-			String
-				enzyme_info_, ///< an endline-delimited list of enzymes, each with cutting direction 0 (N to C) /1, cuts after (list of aa), doesn't cut before (list of aa), the attributes are tab-delimited
-				database_, ///< database used
-				snd_database_, ///< second database used
-				neutral_losses_for_ions_, ///< whether neutral losses are considered for the a-, b- and y-ions (e.g. 011 for b- and y-ions)
-				ion_series_weights_,///< weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series, space delimited
-				dyn_mods_, ///< space-delimited list of dynamic modifications, each with weight and aas (space delimited)
-				partial_sequence_, ///< space-delimited list of sequence parts that have to occur in the theortical spectra
-				sequence_header_filter_,///< space-delimited list of sequences that have to occur or be absend (preceeded by a tilde) in a protein header, to be considered
-				protein_mass_filter_;
 			
-			Real
-				peptide_mass_tolerance_,///< tolerance for matching a theoretical to an experimental peptide
-				fragment_ion_tolerance_,///< tolerance for matching a theoretical to an experimental peak
-				match_peak_tolerance_,///< minimum distance between two experimental peaks
-				ion_cutoff_percentage_,///< cutoff of the ratio matching theoretical peaks/theoretical peaks
-				dyn_n_term_mod_,///< dynamic modifications for the N-terminal of a peptide
-				dyn_c_term_mod_,///< dynamic modifications for the C-terminal of a peptide
-				stat_n_term_mod_,///< static modifications for the N-terminal of a peptide
-				stat_c_term_mod_,///< static modifications for the C-terminal of a peptide
-				stat_n_term_prot_mod_,///< static modifications for the N-terminal of a protein
-				stat_c_term_prot_mod_;///< static modifications for the C-terminal of a protein
+			Real peptide_mass_tolerance_;///< tolerance for matching a theoretical to an experimental peptide
+			Real fragment_ion_tolerance_;///< tolerance for matching a theoretical to an experimental peak
+			Real match_peak_tolerance_;///< minimum distance between two experimental peaks
+			Real ion_cutoff_percentage_;///< cutoff of the ratio matching theoretical peaks/theoretical peaks
+			Real dyn_n_term_mod_;///< dynamic modifications for the N-terminal of a peptide
+			Real dyn_c_term_mod_;///< dynamic modifications for the C-terminal of a peptide
+			Real stat_n_term_mod_;///< static modifications for the N-terminal of a peptide
+			Real stat_c_term_mod_;///< static modifications for the C-terminal of a peptide
+			Real stat_n_term_prot_mod_;///< static modifications for the N-terminal of a protein
+			Real stat_c_term_prot_mod_;///< static modifications for the C-terminal of a protein
 			
-			SignedInt
-				peptide_mass_unit_,///< peptide mass unit (0 = amu, 1 = mmu, 2 = ppm)
-				output_lines_,///< number of peptides to be displayed
-				enzyme_number_,///< number of the enzyme used for cleavage
-				highest_enzyme_number_,///< highest enzyme number
-				max_AA_per_mod_per_peptide_,///< maximum number of amino acids containing the same modification in a peptide
-				max_mods_per_peptide_,///< maximum number of modifications per peptide
-				nucleotide_reading_frame_,///< nucleotide reading frame:
+			
+			SignedInt peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
+			SignedInt output_lines_;///< number of peptides to be displayed
+			SignedInt enzyme_number_;///< number of the enzyme used for cleavage
+			SignedInt highest_enzyme_number_;///< highest enzyme number
+			SignedInt max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
+			SignedInt max_mods_per_peptide_;///< maximum number of modifications per peptide
+			SignedInt nucleotide_reading_frame_;///< nucleotide reading frame:
 					/// 0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 					/// 1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
 					/// 2 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
@@ -315,22 +314,22 @@ namespace OpenMS
 					/// 4 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the first DNA code.
 					/// 5 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the second DNA code.
 					/// 6 	The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the third DNA code.
-					/// 7 	Use each of the DNA translations of the codes 1, 2, 3.
-					/// 8 	Use each of the DNA translations of the codes 4, 5, 6.
-					/// 9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
-				max_internal_cleavage_sites_,///< maximum number of internal cleavage sites
-				match_peak_count_,///< number of the top abundant peaks to match with theoretical one
-				match_peak_allowed_error_;///< number of peaks that may lack this test
+					/// 7 	Use each of the DNA translations of the codes 1; 2; 3.
+					/// 8 	Use each of the DNA translations of the codes 4; 5; 6.
+					/// 9 	Use each of the DNA translations of the codes 1; 2; 3; 4; 5; 6.
+			SignedInt max_internal_cleavage_sites_;///< maximum number of internal cleavage sites
+			SignedInt match_peak_count_;///< number of the top abundant peaks to match with theoretical one
+			SignedInt match_peak_allowed_error_;///< number of peaks that may lack this test
 			
-			bool
-				show_fragment_ions_,///< wether to display fragment ions
-				print_duplicate_references_,///< whether all proteins containing a found peptide should be displayed
-//				use_phospho_fragmentation_,///< 
-				remove_precursor_near_peaks_,///< whether peaks near (15 amu) the precursor peak are removed
-				mass_type_parent_,///< mass type of the parent peak (0 - monoisotopic, 1 - average)
-				mass_type_fragment_,///< mass type of fragment peaks (0 - monoisotopic, 1 - average)
-				normalize_xcorr_,///< whether to display normalized xcorr values
-				residues_in_upper_case_;///< whether residues are in upper case
+			
+			bool show_fragment_ions_;///< wether to display fragment ions
+			bool print_duplicate_references_;///< whether all proteins containing a found peptide should be displayed
+//		bool use_phospho_fragmentation_;///< 
+			bool remove_precursor_near_peaks_;///< whether peaks near (15 amu) the precursor peak are removed
+			bool mass_type_parent_;///< mass type of the parent peak (0 - monoisotopic; 1 - average)
+			bool mass_type_fragment_;///< mass type of fragment peaks (0 - monoisotopic; 1 - average)
+			bool normalize_xcorr_;///< whether to display normalized xcorr values
+			bool residues_in_upper_case_;///< whether residues are in upper case
   };
 
 } // namespace OpenMS
