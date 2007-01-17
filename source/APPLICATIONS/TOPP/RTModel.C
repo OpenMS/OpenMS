@@ -333,7 +333,7 @@ class TOPPRTModel
 				training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 			}
 			encoded_training_sample = 
-				encoder.encodeLIBSVMProblemWithCompositionAndLengthVectors(training_peptides,
+				encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
 																																	&training_retention_times,
 																																	allowed_amino_acid_characters,
 																																	maximum_sequence_length);

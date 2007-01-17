@@ -209,7 +209,7 @@ CHECK( normalApproximation )
 }
 RESULT
 
-CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleReal meanSquareError( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )))
+CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
   std::list<DoubleReal> numbers1(20, 1.5);
   std::list<DoubleReal> numbers2(20, 1.3);
   DoubleReal result = 0;
@@ -221,7 +221,31 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleR
 
 RESULT
 
-CHECK((template< typename IteratorType1, typename IteratorType2 > static DoubleReal pearsonCorrelationCoefficient( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )))
+CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
+  std::vector<DoubleReal> numbers1(20, 1);
+  std::vector<DoubleReal> numbers2(20, 1);
+  DoubleReal result = 0;
+  
+  numbers1.resize(40, -1);
+  numbers2.resize(40, -1);
+  
+  numbers1[2] = -1;
+  numbers1[7] = -1;
+  numbers1[11] = -1;
+  numbers1[15] = -1;
+  numbers1[17] = -1;
+  numbers1[25] = 1;
+  numbers1[27] = 1;
+  numbers1[29] = 1;
+  numbers1[31] = 1;
+  numbers1[37] = 1;
+  
+  result = BasicStatistics<DoubleReal>::classificationRate(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
+  TEST_REAL_EQUAL(result, 0.75);
+
+RESULT
+
+CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
   std::vector<DoubleReal> numbers1(20, 1.5);
   std::vector<DoubleReal> numbers2(20, 1.3);
   DoubleReal result = 0;

@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_LIBSVMENCODER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <svm.h>
 
 #include <vector>
@@ -60,8 +61,8 @@ namespace OpenMS
  				'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::pair<UnsignedInt, DoubleReal> >* encodeCompositionVector(const String& sequence, 
-																												 								 			   const String& allowed_characters);      
+      std::vector< std::pair<SignedInt, DoubleReal> >* encodeCompositionVector(const String& sequence, 
+																												 								 			   const String& allowed_characters = "ACDEFGHIKLMNPQRSTVWY");      
 																																		  
       /**
  				@brief returns composition vector of the sequences given by 'sequence'
@@ -72,33 +73,101 @@ namespace OpenMS
  				'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding 
  				relative frequency...
 			*/ 				
-      std::vector< std::vector< std::pair<UnsignedInt, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
+      std::vector< std::vector< std::pair<SignedInt, DoubleReal> > >* encodeCompositionVectors(const std::vector<String>& sequences, 
 																												 								 			   						const String& allowed_characters);      
-			/// encodes the feature vector in LIBSVM compliant format																																		  
-      svm_node* encodeLIBSVMVector(
-      	const std::vector< std::pair<UnsignedInt, DoubleReal> >& feature_vector);
+			/// encodes the feature vector in LibSVM compliant format																																		  
+      svm_node* encodeLibSVMVector(
+      	const std::vector< std::pair<SignedInt, DoubleReal> >& feature_vector);
       
-			/// encodes the feature vectors in LIBSVM compliant format																																		  
-      std::vector<svm_node*>* encodeLIBSVMVectors(
-      	const std::vector< std::vector< std::pair<UnsignedInt, DoubleReal> > >& feature_vectors);
+			/// encodes the feature vectors in LibSVM compliant format																																		  
+      std::vector<svm_node*>* encodeLibSVMVectors(
+      	const std::vector< std::vector< std::pair<SignedInt, DoubleReal> > >& feature_vectors);
       
-			/// encodes the LIBSVM compliant vectors into a LIBSVM compliant structure																																		  
-      svm_problem* encodeLIBSVMProblem(const std::vector<svm_node*>&  vectors, 
+			/// encodes the LibSVM compliant vectors into a LibSVM compliant structure																																		  
+      svm_problem* encodeLibSVMProblem(const std::vector<svm_node*>&  vectors, 
       																 std::vector<DoubleReal>* 		  labels);
       
-      /// creates composition vectors for 'sequences' and stores them in LIBSVM compliant format
-			svm_problem* encodeLIBSVMProblemWithCompositionVectors(const std::vector<String>& sequences,
+      /// creates composition vectors for 'sequences' and stores them in LibSVM compliant format
+			svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector<String>& sequences,
 																														 std::vector<DoubleReal>*   labels,
 																														 const String&              allowed_characters);      
     
-      /// creates composition vectors with additional length information for 'sequences' and stores them in LIBSVM compliant format
-			svm_problem* encodeLIBSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences,
+      /// creates composition vectors with additional length information for 'sequences' and stores them in LibSVM compliant format
+			svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector<String>& sequences,
 																																			std::vector<DoubleReal>*   labels,
 																																			const String&              allowed_characters,
 																																			UnsignedInt                maximum_sequence_length);      
-    
-    protected:
+    	
+    	/// stores the LibSVM-encoded data in a text file that can be used by the LibSVM applications (svm-scale, svm-train,...)
+			bool storeLibSVMProblem(const String& filename, const svm_problem* problem) const;
 
+    	/// loads the LibSVM-encoded data stored in 'filename'
+			svm_problem* loadLibSVMProblem(const String& filename);
+
+    	/// encodes the borders of the sequence as k_mer oligos and stores them in 'libsvm_vector'
+			void encodeOligoBorders(String 																						 sequence,
+															UnsignedInt 																			 k_mer_length,
+															const String& 																		 allowed_characters,
+															UnsignedInt                                        border_length,
+															std::vector< std::pair<SignedInt, DoubleReal> >& libsvm_vector,
+															bool 																							 strict = false,
+															bool 																							 length_encoding = false);
+
+      /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
+			svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>&     sequences,
+																														 std::vector<DoubleReal>*  			labels,
+																														 UnsignedInt 										k_mer_length,
+																														 const String& 	 				  			allowed_characters,
+																														 UnsignedInt 										border_length,
+																											 			 bool 													strict = false,
+																											 			 bool 													length_encoding = false);
+
+      /// creates combined oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
+			svm_problem* encodeLibSVMProblemWithCombinedOligoBorderVectors(const std::vector<String>&     sequences,
+																														 std::vector<DoubleReal>*  			labels,
+																														 const std::vector<std::pair<UnsignedInt, UnsignedInt> >& parameters,
+																														 const std::vector<DoubleReal>& sigmas,
+																														 const String& 	 				  			allowed_characters,
+																														 bool 													strict = false,
+																											 			 bool 													length_encoding = false);
+
+			/// stores a string representation of 'vector' in 'output'
+			void oligoBorderVectorToString(svm_node* vector, UnsignedInt border_length, String& output);
+
+      /**
+ 				@brief stores a string representation of the encoded sequences in 'vectors' in 'output'
+ 				
+ 				This function can be used if one wants to print the feature vectors that are used in
+ 				the oligo kernel. 'border_length' is the parameter with which the sequence had been encoded.
+			*/ 				
+			void oligoBorderVectorsToString(svm_problem* vector, UnsignedInt border_length, String& output);
+																																	 
+      /**
+ 				@brief stores a string representation of the encoded sequence 'vector' in 'output'
+ 				
+ 				This function can be used if one wants to print one feature vector that is used in
+ 				the libsvm.
+			*/ 				
+			void libSVMVectorToString(svm_node* vector, String& output);
+
+      /**
+ 				@brief stores a string representation of the encoded sequences in 'vectors' in 'output'
+ 				
+ 				This function can be used if one wants to print the feature vectors that are used in
+ 				the libsvm.
+			*/ 				
+			void libSVMVectorsToString(svm_problem* vector, String& output);
+
+			typedef DoubleReal (*double_pt_2_string_double)(const String&, DoubleReal);				
+
+			static DoubleReal getPeptideCharge(const String& sequence, DoubleReal ph);
+				
+			static DoubleReal getPeptideWeight(const String& sequence, DoubleReal charge = 0);
+
+			static DoubleReal getPeptideSequenceIndex(const String& sequence, DoubleReal scale = 1);
+		
+			void encodeVector(const String& sequence, DoubleReal parameter, std::vector<double_pt_2_string_double> functions, std::vector< std::pair<SignedInt, DoubleReal> >& encoded_vector, UnsignedInt start_index = 1);	
+			
 
   };
  

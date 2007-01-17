@@ -33,6 +33,7 @@
 #include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
 #include <OpenMS/FORMAT/AnalysisXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/DSpectrum.h>
 
 ///////////////////////////
 
@@ -46,53 +47,81 @@ using namespace std;
 
 IDSpectrumMapper annotator;
 IDSpectrumMapper* ptr;
-MSExperiment< DPeak<1> > experiment;
 vector<IdentificationData> identifications; 
 vector<ProteinIdentification> protein_identifications;
 float precision = 0.1;
-MSSpectrum< DPeak<1> > spectrum;
-DPeak<1> peak;
-
-AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
-							protein_identifications, 
-				   		identifications);
-							
-peak.setPosition(0);
-
-spectrum.setRetentionTime(60);
-spectrum.push_back(peak);
-experiment.push_back(spectrum);							
-spectrum.setRetentionTime(120);
-experiment.push_back(spectrum);							
-spectrum.setRetentionTime(180);
-experiment.push_back(spectrum);							
-
-CHECK(IDSpectrumMapper())
+CHECK((IDSpectrumMapper()))
 	ptr = new IDSpectrumMapper();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<Identification>& identifications, const std::vector<float>& precursor_retention_times, const std::vector<float>& precursor_mz_values, float precision = 0.01f)))
+CHECK((template<class PeakT> UnsignedInt annotate(MSExperiment< PeakT >& experiment, const std::vector<IdentificationData>& identifications, float precision = 0.01f)))
 	vector<IdentificationData> identifications2; 
+	MSExperiment< DPeak<1> > experiment;
+	MSSpectrum< DPeak<1> > spectrum;
+	DSpectrum< 1 >::PrecursorPeakType peak;
+	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
+								protein_identifications, 
+					   		identifications);
+	
+	peak = spectrum.getPrecursorPeak();
+	peak.setPosition(0);
+	spectrum.setRetentionTime(60);
+	experiment.push_back(spectrum);							
+	experiment[0].setPrecursorPeak(peak);
+	peak.setPosition(20);
+	spectrum.setRetentionTime(181);
+	experiment.push_back(spectrum);							
+	experiment[1].setPrecursorPeak(peak);
+	peak.setPosition(11);
+	spectrum.setRetentionTime(120.0001);
+	experiment.push_back(spectrum);							
+	experiment[2].setPrecursorPeak(peak);
+	
 
 	annotator.annotate(experiment, identifications, precision);
   annotator.getAnnotations(experiment, identifications2);
-  TEST_EQUAL(identifications.size(), identifications2.size())
+  TEST_EQUAL(identifications2.size(), 2)
   PRECISION(precision);
-  TEST_REAL_EQUAL(identifications[0].rt, identifications2[0].rt)
-  TEST_REAL_EQUAL(identifications[0].mz, identifications2[0].mz)
+  TEST_REAL_EQUAL(identifications2[0].rt, identifications[0].rt)
+  TEST_REAL_EQUAL(identifications2[0].mz, identifications[0].mz)
+  TEST_REAL_EQUAL(identifications2[1].rt, identifications[1].rt)
+  TEST_REAL_EQUAL(identifications2[1].mz, identifications[1].mz)
 RESULT
 
-CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<Identification>* identifications, std::vector<float>* precursor_retention_times, std::vector<float>* precursor_mz_values)))
-	vector<IdentificationData> identifications3; 
-
-  annotator.getAnnotations(experiment,identifications3);
-  TEST_EQUAL(identifications.size(), identifications3.size())
+CHECK((template<class PeakT> void getAnnotations(const MSExperiment< PeakT >& experiment, std::vector<IdentificationData>& identifications)))
+	vector<IdentificationData> identifications2; 
+	MSExperiment< DPeak<1> > experiment;
+	MSSpectrum< DPeak<1> > spectrum;
+	DSpectrum< 1 >::PrecursorPeakType peak;
+	AnalysisXMLFile().load("data/IDSpectrumMapper_test.analysisXML",
+								protein_identifications, 
+					   		identifications);
+	
+	peak = spectrum.getPrecursorPeak();
+	peak.setPosition(0);
+	spectrum.setRetentionTime(60);
+	experiment.push_back(spectrum);							
+	experiment[0].setPrecursorPeak(peak);
+	peak.setPosition(11);
+	spectrum.setRetentionTime(120);
+	experiment.push_back(spectrum);							
+	experiment[1].setPrecursorPeak(peak);
+	peak.setPosition(20);
+	spectrum.setRetentionTime(180);
+	experiment.push_back(spectrum);							
+	experiment[2].setPrecursorPeak(peak);
+	
+	annotator.annotate(experiment, identifications, precision);
+  annotator.getAnnotations(experiment, identifications2);
+  TEST_EQUAL(identifications2.size(), identifications.size())
   PRECISION(precision);
-  TEST_REAL_EQUAL(identifications[0].rt, identifications3[0].rt)
-  TEST_REAL_EQUAL(identifications[0].mz, identifications3[0].mz)
-  TEST_REAL_EQUAL(identifications3[0].rt,60)
-  TEST_REAL_EQUAL(identifications[0].mz, 0)
+  TEST_REAL_EQUAL(identifications2[0].rt, identifications[0].rt)
+  TEST_REAL_EQUAL(identifications2[0].mz, identifications[0].mz)
+  TEST_REAL_EQUAL(identifications2[1].rt, identifications[1].rt)
+  TEST_REAL_EQUAL(identifications2[1].mz, identifications[1].mz)
+  TEST_REAL_EQUAL(identifications2[2].rt, identifications[2].rt)
+  TEST_REAL_EQUAL(identifications2[2].mz, identifications[2].mz)
 RESULT
 
 /////////////////////////////////////////////////////////////

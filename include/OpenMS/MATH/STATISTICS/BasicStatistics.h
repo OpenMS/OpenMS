@@ -277,6 +277,42 @@ namespace OpenMS
     	
 			}
 
+			/**@brief Calculates the classification rate for the values in [begin_a, end_a) and [begin_b, end_b)
+
+			Calculates the classification rate for the data given by the two iterator ranges. If
+			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
+			*/
+			template < typename IteratorType1, typename IteratorType2 >
+			static RealType classificationRate ( IteratorType1 begin_a, const IteratorType1 end_a,
+																						IteratorType2 begin_b, const IteratorType2 end_b
+																					)
+			{
+				SignedInt count = 0;
+				RealType error = 0;
+				IteratorType1 & it_a = begin_a;
+				IteratorType2 & it_b = begin_b;
+    	  
+    	  if (it_a == end_a || it_b == end_b)
+    	  {
+    	  	return 0;
+    	  }
+    	      	
+				while(it_a != end_a && it_b != end_b)
+				{
+					if ((*it_a < 0 && *it_b >= 0)
+							|| (*it_a >= 0 && *it_b < 0))
+					{
+						error += 1;
+					}
+					++count;
+					++it_a;
+					++it_b;      		
+				}
+    	
+				return (count - error) / count;
+    	
+			}			
+			
 			/**@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
 			Calculates the linear correlation coefficient for the data given by the two iterator ranges. If

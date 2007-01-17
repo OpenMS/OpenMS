@@ -94,7 +94,7 @@ namespace OpenMS
       /// filters an identification corresponding to the given proteins
 			void filterIdentificationsByProteins(const Identification& identification, Identification& filtered_identification);
 
-      /// filters a protein identification corresponding to the given proteins
+      /// filters a protein identification corresponding to the given proteins only proteins with the same accession
 			void filterIdentificationsByProteins(const ProteinIdentification&     identification, 
                                            ProteinIdentification&           filtered_identification);
         

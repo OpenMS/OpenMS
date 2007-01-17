@@ -103,8 +103,8 @@ RESULT
 
 CHECK((double getSVRProbability()))
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 100;
 	vector<DoubleReal> labels;
@@ -119,12 +119,12 @@ CHECK((double getSVRProbability()))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 	svm.setParameter(PROBABILITY, 1);
 	svm.train(problem);
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
@@ -248,8 +248,8 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 8;
 	vector<DoubleReal> labels;
@@ -266,12 +266,12 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 
 	start_values.insert(make_pair(C, 1));
 	step_sizes.insert(make_pair(C, 100));
@@ -292,8 +292,8 @@ RESULT
 
 CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 8;
 	vector<DoubleReal> labels;
@@ -309,12 +309,12 @@ CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 	svm.train(problem);
 	predicted_labels = svm.predict(*encoded_vectors);
 	TEST_NOT_EQUAL(predicted_labels->size(), 0)
@@ -323,8 +323,8 @@ RESULT
 
 CHECK((std::vector<DoubleReal>* predict(struct svm_problem* predictProblem)))
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 8;
 	vector<DoubleReal> labels;
@@ -340,12 +340,12 @@ CHECK((std::vector<DoubleReal>* predict(struct svm_problem* predictProblem)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 	svm.train(problem);
 	predicted_labels = svm.predict(problem);
 	TEST_NOT_EQUAL(predicted_labels->size(), 0)
@@ -354,8 +354,8 @@ RESULT
 
 CHECK((void loadModel(std::string modelFilename)))
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 8;
 	vector<DoubleReal> labels;
@@ -363,9 +363,6 @@ CHECK((void loadModel(std::string modelFilename)))
 	vector<DoubleReal>* predicted_labels2;
 	svm_problem* problem;
 	SVMWrapper svm2;
-
-  svm.setParameter(KERNEL_TYPE, POLY);
-  svm2.setParameter(KERNEL_TYPE, POLY);	
 	
 	for(UnsignedInt j = 0; j < count; j++)
 	{	
@@ -376,12 +373,12 @@ CHECK((void loadModel(std::string modelFilename)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 	svm.train(problem);
 	predicted_labels1 = svm.predict(problem);
 	
@@ -389,8 +386,6 @@ CHECK((void loadModel(std::string modelFilename)))
 	NEW_TMP_FILE(filename)
 	svm.saveModel(filename);
 	svm2.loadModel(filename);
-	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), POLY);
-	TEST_EQUAL(svm2.getIntParameter(KERNEL_TYPE), POLY);
 	predicted_labels2 = svm2.predict(problem);
 	TEST_NOT_EQUAL(predicted_labels1->size(), 0)
 	TEST_EQUAL(predicted_labels1->size(), predicted_labels2->size())
@@ -402,8 +397,8 @@ RESULT
 
 CHECK((void saveModel(std::string modelFilename)))
 	LibSVMEncoder encoder;
-	vector< vector< pair<UnsignedInt, DoubleReal> > > vectors;		
-	vector< pair<UnsignedInt, DoubleReal> > temp_vector;
+	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
+	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
 	UnsignedInt count = 8;
 	vector<DoubleReal> labels;
@@ -421,12 +416,12 @@ CHECK((void saveModel(std::string modelFilename)))
 		}
 		vectors.push_back(temp_vector);
 	}
-	encoded_vectors = encoder.encodeLIBSVMVectors(vectors);
+	encoded_vectors = encoder.encodeLibSVMVectors(vectors);
 	for(UnsignedInt i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
-	problem = encoder.encodeLIBSVMProblem(*encoded_vectors, &labels);
+	problem = encoder.encodeLibSVMProblem(*encoded_vectors, &labels);
 	svm.train(problem);
 	
 	String filename = "svm.model";

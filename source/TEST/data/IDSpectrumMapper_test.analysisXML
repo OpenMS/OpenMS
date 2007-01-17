@@ -17,7 +17,6 @@
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
 			<userParam name="date_group_0" value="2006-03-09 11:31:52"/>
-	    <userParam name="predicted_sigma" value="0.0852201" />
 		</settings>
 	</description>
 	<ident>
@@ -31,7 +30,6 @@
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="0" />
 					<userParam name="score" value="33.85" />
 					<userParam name="date_group_index" value="0"/>
@@ -42,7 +40,6 @@
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="0" />
 					<userParam name="score" value="33.12" />
 					<userParam name="date_group_index" value="0"/>
@@ -59,7 +56,6 @@
 					<userParam name="peptide_significance_threshold" value="31.8621"/>
 					<userParam name="precursor_charge" value="3" />
 					<userParam name="precursor_retention_time" value="60" />
-					<userParam name="predicted_precursor_retention_time" value="122.5" />
 					<userParam name="precursor_mz" value="0" />
 					<userParam name="score" value="33.85" />
 					<userParam name="date_group_index" value="0"/>
@@ -70,8 +66,7 @@
 					<userParam name="peptide_significance_threshold" value="12"/>
 					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="120" />
-					<userParam name="predicted_precursor_retention_time" value="62.5" />
-					<userParam name="precursor_mz" value="0" />
+					<userParam name="precursor_mz" value="11" />
 					<userParam name="score" value="43.9" />
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
@@ -86,8 +81,7 @@
 			<userParam name="peptide_significance_threshold" value="19"/>
 			<userParam name="precursor_charge" value="2" />
 			<userParam name="precursor_retention_time" value="180" />
-					<userParam name="predicted_precursor_retention_time" value="181.5" />
-			<userParam name="precursor_mz" value="0" />
+			<userParam name="precursor_mz" value="20" />
 			<userParam name="score" value="5.41" />
 			<userParam name="date_group_index" value="0"/>
 		</peptide>
@@ -97,8 +91,7 @@
 			<userParam name="peptide_significance_threshold" value="19"/>
 			<userParam name="precursor_charge" value="2" />
 			<userParam name="precursor_retention_time" value="180" />
-					<userParam name="predicted_precursor_retention_time" value="179.5" />
-			<userParam name="precursor_mz" value="0" />
+			<userParam name="precursor_mz" value="20" />
 			<userParam name="score" value="7.87" />
 			<userParam name="date_group_index" value="0"/>
 		</peptide>

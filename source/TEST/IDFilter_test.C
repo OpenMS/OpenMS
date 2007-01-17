@@ -400,6 +400,36 @@ CHECK((void filterIdentificationsByRetentionTimes(const Identification& identifi
 
 RESULT
 
+CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, ProteinIdentification& filtered_identification)))
+  vector< pair<String, String> > proteins;
+	vector<PeptideHit> peptide_hits;
+	vector<ProteinHit> protein_hits;
+	ProteinIdentification id;
+	ProteinIdentification filtered_id;
+	IDFilter filter;
+	
+  proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
+  proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
+
+	protein_hits.push_back(ProteinHit(22, "Mascot", 1, "Q824A5", "MSDB", "LHASGITVTEIPVTATNFK"));
+	protein_hits.push_back(ProteinHit(6, "Mascot", 5, "Q872T5", "MSDB", "THPYGHAIVAGIERYPSK"));
+	protein_hits.push_back(ProteinHit(16, "Mascot", 3, "Q164A5", "MSDB", "LHASGIRYKKAATNFK"));
+	protein_hits.push_back(ProteinHit(10, "Mascot", 4, "Q133A5", "MSDB", "LHASGGTRAYKPVTATNFK"));
+	protein_hits.push_back(ProteinHit(19, "Mascot", 2, "Q255A5", "MSDB", "LHYRTKLLIVTATNFK"));
+	protein_hits.push_back(ProteinHit(2, "Mascot", 6, "Q783A5", "MSDB", "LHAAELIIVTATNFK"));
+	
+	id.setProteinHits(protein_hits);
+	filter.setProteins(proteins);
+	filter.filterIdentificationsByProteins(id, filtered_id);
+	protein_hits.clear();
+	protein_hits = filtered_id.getProteinHits();
+	TEST_EQUAL(protein_hits.size(), 2) 
+	TEST_EQUAL(protein_hits[0].getAccession(), "Q824A5")
+	TEST_EQUAL(protein_hits[1].getAccession(), "Q872T5")
+	TEST_EQUAL(protein_hits[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(protein_hits[1].getSequence(), "THPYGHAIVAGIERYPSK")
+RESULT
+
 CHECK(~IDFilter())
 	ptr1 = new IDFilter();
 	delete ptr1;	

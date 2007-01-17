@@ -91,7 +91,7 @@ class TOPPRTPredict
 			LibSVMEncoder encoder;
 			String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 			vector< vector< pair<UnsignedInt, DoubleReal> > >* encoded_composition_vectors;
-			vector<svm_node*>* encoded_LIBSVM_vectors;
+			vector<svm_node*>* encoded_LibSVM_vectors;
 			vector<DoubleReal>* predicted_retention_times;
 			map< String, DoubleReal > predicted_data;
   
@@ -127,13 +127,13 @@ class TOPPRTPredict
 			}
 			
 			encoded_composition_vectors =  encoder.encodeCompositionVectors(peptides,  allowed_amino_acid_characters);
-			encoded_LIBSVM_vectors = encoder.encodeLIBSVMVectors(*encoded_composition_vectors);
+			encoded_LibSVM_vectors = encoder.encodeLibSVMVectors(*encoded_composition_vectors);
 		
 			svm.loadModel(svmfile_name);	
-			predicted_retention_times = svm.predict(*encoded_LIBSVM_vectors);
+			predicted_retention_times = svm.predict(*encoded_LibSVM_vectors);
 		
 			delete encoded_composition_vectors;
-			delete encoded_LIBSVM_vectors;
+			delete encoded_LibSVM_vectors;
 		
 			for(UnsignedInt i = 0; i < peptides.size(); i++)
 			{

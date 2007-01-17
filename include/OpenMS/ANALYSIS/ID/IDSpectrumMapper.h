@@ -63,7 +63,7 @@ namespace OpenMS
 				std::multimap<float, UnsignedInt>::iterator experiment_iterator;
 				std::multimap<float, UnsignedInt>::iterator identifications_iterator;
 				float temp_experiment_value;
-				float temp_db_search_value;
+				float temp_identification_value;
 				DPosition< 1 >::CoordinateType experiment_precursor_position;
 				DPosition< 1 >::CoordinateType identifications_precursor_position;
 				float temp;
@@ -80,38 +80,36 @@ namespace OpenMS
 					identifications_precursors.insert(std::make_pair(identifications[i].rt, i));
 				}
 				experiment_iterator = experiment_precursors.begin();
-				identifications_iterator = identifications_precursors.begin();
+				identifications_iterator = identifications_precursors.begin();	
+				
 				while(experiment_iterator != experiment_precursors.end()
 							&& identifications_iterator != identifications_precursors.end())
 				{
 					temp_experiment_value = experiment_iterator->first;
-					temp_db_search_value = identifications_iterator->first;
-					temp = temp_experiment_value - temp_db_search_value;
-					
-					/// testing whether the retention times are within the precision threshold
-					if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && (-1 * temp >= 0)))
+					while(identifications_iterator != identifications_precursors.end())
 					{
-						experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
-						identifications_precursor_position = identifications[identifications_iterator->second].mz;				
-						temp = identifications_precursor_position - experiment_precursor_position;
-						if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && (-1 * temp >= 0)))
+						temp_identification_value = identifications_iterator->first;
+						temp = temp_experiment_value - temp_identification_value;
+						
+						/// testing whether the retention times are within the precision threshold
+						if (((temp < precision) && temp >= 0) || (((-1 * temp) < precision) && temp < 0))
 						{
-							if (!identifications[identifications_iterator->second].id.empty())
+							experiment_precursor_position = experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0];
+							identifications_precursor_position = identifications[identifications_iterator->second].mz;				
+							temp = identifications_precursor_position - experiment_precursor_position;
+							if (((temp < precision) && temp >= 0) || ((-1 * temp < precision) && temp < 0))
 							{
-								experiment[experiment_iterator->second].getIdentifications().push_back(identifications[identifications_iterator->second].id);
-								counter++;
+								if (!identifications[identifications_iterator->second].id.empty())
+								{
+									experiment[experiment_iterator->second].getIdentifications().push_back(identifications[identifications_iterator->second].id);
+									counter++;
+								}
 							}
 						}
-						identifications_iterator++;
+						++identifications_iterator;
 					}
-					else if (temp_experiment_value < temp_db_search_value)
-					{
-						experiment_iterator++;
-					}
-					else
-					{
-						identifications_iterator++;
-					}
+					identifications_iterator = identifications_precursors.begin();	
+					++experiment_iterator;
 				}
 				return counter;  			
   		}
