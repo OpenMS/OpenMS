@@ -38,7 +38,7 @@ namespace OpenMS
     int half_width = wavelet_.size();
     int index_in_data = (int)floor((half_width*spacing_) / spacing_data);
     int offset_data_left = ((index - index_in_data) < 0) ? 0 : (index-index_in_data);
-    int offset_data_right = ((index + index_in_data) > (int)processed_input.size()) ? processed_input.size()-1 : (index+index_in_data);
+    int offset_data_right = ((index + index_in_data) > (int)processed_input.size()-1) ? processed_input.size()-2 : (index+index_in_data);
 
     // integrate from i until offset_data_left
     for (int i = index; i > offset_data_left; --i)
@@ -54,7 +54,7 @@ namespace OpenMS
     {
       int index_w_r = (int)round((((i+1)-index)*spacing_data)/spacing_);
       int index_w_l = (int)round(((i-index)*spacing_data)/spacing_);
-
+			
       v += spacing_data / 2.*( processed_input[i+1]*wavelet_[index_w_r] + processed_input[i]*wavelet_[index_w_l]);
     }
 

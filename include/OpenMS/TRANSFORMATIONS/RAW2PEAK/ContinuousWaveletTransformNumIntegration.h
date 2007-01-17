@@ -153,8 +153,7 @@ namespace OpenMS
 				// zero-padding at the ends?
 				if(zeros > 0)
 					{
-						std::cout << "zero-padding"<<zeros<<std::endl;
-						n += (2+zeros);
+						n += (2*zeros);
 					}
         
 
@@ -193,9 +192,16 @@ namespace OpenMS
           signal_[i].getIntensity() = integrate_(processed_input,spacing,i);
         }
 
-        // no zeropadding
-        begin_right_padding_=n;
-        end_left_padding_=-1;
+        if(zeros == 0)
+					{
+						begin_right_padding_=n;
+						end_left_padding_=-1;
+					}
+				else
+					{
+						begin_right_padding_=n-zeros;
+						end_left_padding_=zeros-1;
+					}
       }
     }
 
