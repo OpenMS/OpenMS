@@ -134,7 +134,6 @@ namespace OpenMS
     };
 
 
-
       /// (default) constructor
       /// accepts up to 5 parameters (for a description see above)
       /// This constructor does not accept a "max_intensity" parameter, so the algorithm will
@@ -614,6 +613,11 @@ namespace OpenMS
         is_result_valid_ = false;
       }
 
+      /** 
+        @brief protected struct to store parameters my, sigma for a gaussian distribution
+      
+        Accessors are : mean and variance      
+      */ 
       struct GaussianEstimate
       {
         double mean;

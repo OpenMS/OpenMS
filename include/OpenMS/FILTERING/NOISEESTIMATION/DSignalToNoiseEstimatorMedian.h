@@ -139,7 +139,6 @@ namespace OpenMS
       MZ = DimensionDescription < LCMS_Tag >::MZ
     };
 
-
     
     /// (default) constructor
     /// accepts up to 4 parameters (for a description see above)
@@ -504,6 +503,11 @@ namespace OpenMS
       is_result_valid_ = false;
     }
   
+    /** 
+      @brief protected struct to store parameters my, sigma for a gaussian distribution
+      
+      Accessors are : mean and variance      
+      **/ 
     struct GaussianEstimate 
     {
       double mean;

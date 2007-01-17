@@ -41,23 +41,15 @@ using namespace OpenMS;
 using namespace std;
 
 DSignalToNoiseEstimatorMeanIterative<1>* ptr;
-CHECK(DSignalToNoiseEstimatorMeanIterative())
-  ptr = new DSignalToNoiseEstimatorMeanIterative<1>;
-  TEST_NOT_EQUAL(ptr, 0)
-RESULT
 
-CHECK(~DSignalToNoiseEstimatorMeanIterative())
-  delete ptr;
-RESULT
 
 // CTORS
 
-CHECK(DSignalToNoiseEstimatorMeanIterative(
-            double win_len               = (double) DEFAULT_WINLEN,
-            int    bin_count             = DEFAULT_BINCOUNT,
-            double stdev                 = (double) DEFAULT_STDEV,
-            int    min_required_elements = DEFAULT_MIN_REQUIRED_ELEMENTS,
-            double noise_for_empty_window= (double) DEFAULT_NOISE_ON_EMTPY_WINDOW))
+CHECK((DSignalToNoiseEstimatorMeanIterative( double win_len = (double) DEFAULT_WINLEN, int bin_count = DEFAULT_BINCOUNT, double stdev = (double) DEFAULT_STDEV, int min_required_elements = DEFAULT_MIN_REQUIRED_ELEMENTS, double noise_for_empty_window= (double) DEFAULT_NOISE_ON_EMTPY_WINDOW)))
+  // include std ctor here (checker.php does not recognize this as default ctor)
+  ptr = new DSignalToNoiseEstimatorMeanIterative<1>;
+  TEST_NOT_EQUAL(ptr, 0)
+
   DSignalToNoiseEstimatorMeanIterative<1> sne(31.1, 33, 3.22);
   TEST_REAL_EQUAL(sne.getWinLen(), 31.1);
   TEST_EQUAL(sne.getBinCount(), 33);
@@ -69,41 +61,32 @@ CHECK(DSignalToNoiseEstimatorMeanIterative(
   TEST_REAL_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYSTDEV);
 RESULT
 
-CHECK(DSignalToNoiseEstimatorMeanIterative(
-            double win_len,
-            int    bin_count,
-            double stdev,
-            int    min_required_elements,
-            double noise_for_empty_window,
-            int    max_intensity))
-  DSignalToNoiseEstimatorMeanIterative<1> sne(31.1, 33, 3.22, 11, 2.1, 190);
-  TEST_REAL_EQUAL(sne.getWinLen(), 31.1);
-  TEST_EQUAL(sne.getBinCount(), 33);
-  TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3.22);
-  TEST_EQUAL(sne.getMinReqElements(), 11);
-  TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 2.1);
-  TEST_REAL_EQUAL(sne.getMaxIntensity(), 190);
-  TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MAXINTENSITY_BYSTDEV);
-  TEST_REAL_EQUAL(sne.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYSTDEV);
+CHECK(~DSignalToNoiseEstimatorMeanIterative())
+  delete ptr;
 RESULT
 
-CHECK(DSignalToNoiseEstimatorMeanIterative(
-            double win_len,
-            int    bin_count,
-            double stdev,
-            int    min_required_elements,
-            double noise_for_empty_window,
-            double auto_max_intensity,
-            int    auto_mode = AUTOMAXBYSTDEV))
-  DSignalToNoiseEstimatorMeanIterative<1> sne(31.1, 33, 3.22, 11, 2.1, 95.4, 1);
-  TEST_REAL_EQUAL(sne.getWinLen(), 31.1);
-  TEST_EQUAL(sne.getBinCount(), 33);
-  TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3.22);
-  TEST_EQUAL(sne.getMinReqElements(), 11);
-  TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 2.1);
-  TEST_REAL_EQUAL(sne.getMaxIntensity(), -1);
-  TEST_REAL_EQUAL(sne.getAutoMaxIntensity(), 95.4);
-  TEST_REAL_EQUAL(sne.getAutoMode(), 1);
+CHECK((DSignalToNoiseEstimatorMeanIterative( double win_len, int bin_count, double stdev, int min_required_elements, double noise_for_empty_window, int max_intensity)))
+  DSignalToNoiseEstimatorMeanIterative<1> sne2(31.1, 33, 3.22, 11, 2.1, 190);
+  TEST_REAL_EQUAL(sne2.getWinLen(), 31.1);
+  TEST_EQUAL(sne2.getBinCount(), 33);
+  TEST_REAL_EQUAL(sne2.getSTDEVMultiplier(), 3.22);
+  TEST_EQUAL(sne2.getMinReqElements(), 11);
+  TEST_REAL_EQUAL(sne2.getNoiseForEmtpyWindow(), 2.1);
+  TEST_REAL_EQUAL(sne2.getMaxIntensity(), 190);
+  TEST_REAL_EQUAL(sne2.getAutoMaxIntensity(), DSignalToNoiseEstimatorMeanIterative<>::DEFAULT_MAXINTENSITY_BYSTDEV);
+  TEST_REAL_EQUAL(sne2.getAutoMode(), DSignalToNoiseEstimatorMeanIterative<>::AUTOMAXBYSTDEV);
+RESULT
+
+CHECK((DSignalToNoiseEstimatorMeanIterative( double win_len, int bin_count, double stdev, int min_required_elements, double noise_for_empty_window, double auto_max_intensity, int auto_mode = AUTOMAXBYSTDEV)))
+  DSignalToNoiseEstimatorMeanIterative<1> sne3(31.1, 33, 3.22, 11, 2.1, 95.4, 1);
+  TEST_REAL_EQUAL(sne3.getWinLen(), 31.1);
+  TEST_EQUAL(sne3.getBinCount(), 33);
+  TEST_REAL_EQUAL(sne3.getSTDEVMultiplier(), 3.22);
+  TEST_EQUAL(sne3.getMinReqElements(), 11);
+  TEST_REAL_EQUAL(sne3.getNoiseForEmtpyWindow(), 2.1);
+  TEST_REAL_EQUAL(sne3.getMaxIntensity(), -1);
+  TEST_REAL_EQUAL(sne3.getAutoMaxIntensity(), 95.4);
+  TEST_REAL_EQUAL(sne3.getAutoMode(), 1);
 RESULT
 
 
