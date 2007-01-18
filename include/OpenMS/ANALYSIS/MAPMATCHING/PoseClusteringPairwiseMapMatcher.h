@@ -115,7 +115,7 @@ namespace OpenMS
       pair_finder_ = 0;
       superimposer_ = 0;
 
-      defaults_.setValue("pair_finder", "delaunay");
+      defaults_.setValue("pair_finder", "simple");
       defaults_.setValue("superimposer", "");
 
       setParam(Param());
