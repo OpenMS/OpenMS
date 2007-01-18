@@ -41,7 +41,8 @@ namespace OpenMS
       right_width(right_width_),
       area(area_),
       r_value(0),
-      type(type_)
+			signal_to_noise(0),
+			type(type_)
   {}
 
   PeakShape::PeakShape(const PeakShape& peakshape)
