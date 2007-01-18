@@ -184,7 +184,6 @@ CHECK((void findElementPairs()))
   DFeaturePairVector < 2, Feature > pairs;
   dpf.setElementPairs(pairs);
   dpf.findElementPairs();
-  std::cout << pairs.size() << std::endl;
   
   TEST_EQUAL((pairs.begin())->first == feat4, true)
   TEST_EQUAL((pairs.begin())->second == feat1, true)

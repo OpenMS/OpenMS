@@ -116,7 +116,7 @@ namespace OpenMS
       transformation_[RT].setIntercept(0);
       transformation_[MZ].setSlope(1);
       transformation_[MZ].setIntercept(0);
-      FactoryProduct::name_ = "delaunay";
+      FactoryProduct::name_ = "simple";
     }
 
     /// Copy constructor

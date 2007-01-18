@@ -116,6 +116,7 @@ namespace OpenMS
       number_buckets_[0] = 1;
       number_buckets_[1] = 1;
       FactoryProduct::name_ = "poseclustering_pairwise";
+      FactoryProduct::check_defaults_ = false;
     }
 
     /// Copy constructor

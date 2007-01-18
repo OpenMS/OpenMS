@@ -100,6 +100,7 @@ namespace OpenMS
 
     using Base::param_;
     using Base::defaults_;
+    using Base::getParam;
     using Base::element_map_;
     using Base::grid_;
     using Base::all_element_pairs_;
@@ -116,7 +117,6 @@ namespace OpenMS
       superimposer_ = 0;
 
       defaults_.setValue("pair_finder", "simple");
-      defaults_.setValue("superimposer", "");
 
       setParam(Param());
     }
@@ -156,20 +156,28 @@ namespace OpenMS
     virtual void setParam(const Param& param)
     {
       Base::setParam(param);
+
+      if (defaults_.getValue("pair_finder") == DataValue::EMPTY)
+      {
+        std::cout << "Warning: Unknown parameter 'pair_finder' found!" << std::endl;
+      }
     }
 
     /// Estimates the transformation for each grid cell and searches for element pairs.
     virtual void run()
     {
-      DataValue data_value = param_.getValue("pair_finder");
+      DataValue data_value = getParam().getValue("pair_finder");
       pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
-      pair_finder_->setParam(param_);
+      Param param_copy(getParam());
+      param_copy.remove("pair_finder");
+      param_copy.remove("superimposer");
+      pair_finder_->setParam(param_copy);
 
-      data_value = param_.getValue("superimposer");
+      data_value = getParam().getValue("superimposer");
       if (data_value != DataValue::EMPTY)
       {
         superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
-        superimposer_->setParam(param_);
+        superimposer_->setParam(param_copy);
       }
 
       // compute the bounding boxes of the grid cells and initialize the grid transformation
@@ -217,15 +225,15 @@ namespace OpenMS
         superimposer_->setElementMap(MODEL, model_map);
       }
 
-      String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
-      String element_buckets_file = param_.getValue("debug:feature_buckets_file");
+      String shift_buckets_file = getParam().getValue("debug:shift_buckets_file");
+      String element_buckets_file = getParam().getValue("debug:feature_buckets_file");
 
       // iterate over all grid cells of the scene map
       for (Size i = 0; i < scene_grid_maps.size(); ++i)
       {
         if (scene_grid_maps[i].size() > 0)
         {
-          String algorithm = param_.getValue("superimposer");
+          String algorithm = getParam().getValue("superimposer");
           if ( superimposer_ != 0 )
           {
             V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");

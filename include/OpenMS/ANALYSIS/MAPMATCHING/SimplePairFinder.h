@@ -147,7 +147,7 @@ namespace OpenMS
     virtual void setParam(const Param& param)
     {
       Base::setParam(param);
-      
+           
       diff_intercept_[RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
       diff_intercept_[MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
       diff_exponent_[RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");

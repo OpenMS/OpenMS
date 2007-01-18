@@ -246,7 +246,6 @@ namespace OpenMS
     /// Align all feature maps to the reference map
     void alignMultipleFeatureMaps_()
     {
-
 #ifdef DEBUG_ALIGNMENT
       std::cout << "*** Build a consensus map of the elements of the reference map (contains only singleton consensus elements) ***" << std::endl;
 #endif
@@ -256,7 +255,6 @@ namespace OpenMS
       final_consensus_map_ = cons_ref_map;
 
 #ifdef DEBUG_ALIGNMENT
-
       std::ofstream out("reference_map.dat", std::ios::out);
       for (UnsignedInt i = 0; i < cons_ref_map.size(); ++i)
       {
@@ -265,8 +263,6 @@ namespace OpenMS
       out.flush();
 
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
-
-
 #endif
       // compute the consensus map of all pairwise alignment
       Param param_matcher = param_.copy("matching:",true);
@@ -377,6 +373,8 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
+          param_matcher.remove("pair_finder");
+      		param_matcher.remove("superimposer");
           pair_finder.setParam(param_matcher);
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
@@ -586,6 +584,8 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
+          param_matcher.remove("pair_finder");
+      		param_matcher.remove("superimposer");
           pair_finder.setParam(param_matcher);
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 

@@ -152,6 +152,7 @@ CHECK(void run() throw(Exception::InvalidValue))
   alignment.setElementMapVector(map_vector);
   
   Param param;
+  param.setValue("map_type","feature_map");
   param.setValue("matching_algorithm","poseclustering_pairwise");
   param.setValue("consensus_algorithm","delaunay");
   param.setValue("matching:superimposer","poseclustering_affine");

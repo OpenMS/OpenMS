@@ -462,16 +462,6 @@ namespace OpenMS
       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
 #endif
 
-      std::cout << mz_bucket_size_ << ' '
-      << shift_bucket_size_[0] << ' '
-      << shift_bucket_size_[1] << ' '
-      << scaling_bucket_size_[0] << ' '
-      << scaling_bucket_size_[1] << ' '
-      << bucket_window_shift_[0]  << ' '
-      << bucket_window_shift_[1]  << ' '
-      << bucket_window_scaling_[0] << ' '
-      << bucket_window_scaling_[1] << std::endl;
-
       // take each point pair in the model map
       UnsignedInt n = model_map_red_.size();
       for (UnsignedInt i = 0; i < n; ++i)
