@@ -517,6 +517,11 @@ PeakPicker_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
 
+	@$(ECHO) ""
+	@$(ECHO) "-Test2 :PeakPicker with deconvolution"
+	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_deconv_parameters.ini -in PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
+	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.tmp, PeakPicker_deconv_output.mzData)
+
 
 Resampler_test: $(NUMERICDIFF)
 	@$(ECHO) ""
