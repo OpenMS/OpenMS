@@ -302,15 +302,13 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	DMapMatcherRegression_test\
 	DMapDewarper_test\
 	BasePairFinder_test\
-	DelaunayPairFinder_test\
 	SimplePairFinder_test\
 	BaseSuperimposer_test\
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test\
 	BasePairwiseMapMatcher_test\
 	PoseClusteringPairwiseMapMatcher_test\
-	BaseAlignment_test\
-	StarAlignment_test
+	BaseAlignment_test
 
 ifeq ($(CGAL_SUPPORT),true)
 EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL=\
