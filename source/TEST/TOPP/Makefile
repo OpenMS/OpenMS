@@ -573,8 +573,8 @@ SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 2: -filter WindowMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData,SpectraFilter_2_output.mzData.tmp)
-	@$(ECHO) "- Test 3: -filter ThresholdMower,SqrtMower -ini SpectraFilter_3_parameters.ini"
-	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini SpectraFilter_3_parameters.ini -filters SqrtMower)
+	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -filters WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
 
 

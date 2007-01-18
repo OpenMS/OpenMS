@@ -130,7 +130,7 @@ class TOPPSpectraFilter
 			String filter_command = getStringOption_("filters");
 			filter_command.split(',', filter_names);
 			if (filter_names.size() == 0)
-			{
+			{	
 				filter_names.push_back(filter_command);
 			}
 
@@ -142,6 +142,7 @@ class TOPPSpectraFilter
 			{
 				try 
 				{
+					writeDebug_("Trying to get filter '" + *it + "' from factory ", 3);
 					functors.push_back(factory->create(*it));
 				}
 				catch (Exception::Base& e)
@@ -167,7 +168,7 @@ class TOPPSpectraFilter
 			// for every filter
 			for (vector<PreprocessingFunctor*>::iterator it = functors.begin(); it != functors.end(); ++it)
 			{
-				Param filter_param = getParam_().copy((*it)->getName()+":");
+				Param filter_param = getParam_().copy((*it)->getName()+":", true);
 				writeDebug_("Used filter parameters", filter_param, 3);
 				writeDebug_("Applying filter: " +  (*it)->getName(), 1);
 				(*it)->setParam(filter_param);

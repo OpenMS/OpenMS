@@ -215,7 +215,7 @@
 				<data precision="32" endian="little" length="1">AADwQg==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="1">AAAgQQ==</data>
+				<data precision="32" endian="little" length="1">AADIQg==</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="2">
@@ -263,7 +263,7 @@
 				<data precision="32" endian="little" length="3">AADcQgAA8EIAAAJD</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="3">AAAgQTBGYkEAACBB</data>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="3">
@@ -284,7 +284,7 @@
 				<data precision="32" endian="little" length="5">AADIQgAA3EIAAPBCAAACQwAADEM=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="5">AAAgQTBGYkFnkIpBMEZiQQAAIEE=</data>
+				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>

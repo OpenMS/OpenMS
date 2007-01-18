@@ -73,13 +73,13 @@ namespace OpenMS
 			EmpiricalFormula();
 	
 			/// copy constructor
-			EmpiricalFormula(const EmpiricalFormula&);
+			EmpiricalFormula(const EmpiricalFormula& rhs);
 	
 			/// constructor from an OpenMS String
-			EmpiricalFormula(const String&) throw(Exception::ParseError);
+			EmpiricalFormula(const String& rhs) throw(Exception::ParseError);
 
 			/// constructor with element pointer and number
-			EmpiricalFormula(Size number, const Element* element, SignedInt charge=0);
+			EmpiricalFormula(Size number, const Element* element, SignedInt charge = 0);
 			
 			/// destructor
 			virtual ~EmpiricalFormula();
@@ -139,34 +139,34 @@ namespace OpenMS
 			*/
 			//@{
 			/// assignment operator 
-			EmpiricalFormula& operator = (const EmpiricalFormula&);
+			EmpiricalFormula& operator = (const EmpiricalFormula& rhs);
 	
 			/// assignment operator which assigns an string to the formula
-			EmpiricalFormula& operator = (const String&) throw(Exception::ParseError);
+			EmpiricalFormula& operator = (const String& rhs) throw(Exception::ParseError);
 	
 			/// adds the elements of the given formula 
-			EmpiricalFormula& operator += (const EmpiricalFormula&);
+			EmpiricalFormula& operator += (const EmpiricalFormula& rhs);
 
 			/// adds the elements from the given formula, which is given as a OpenMS String
-			EmpiricalFormula& operator += (const String&) throw(Exception::ParseError);
+			EmpiricalFormula& operator += (const String& rhs) throw(Exception::ParseError);
 	
 			/// adds the elements of the given formula and returns a new formula
-			EmpiricalFormula operator + (const EmpiricalFormula&) const;
+			EmpiricalFormula operator + (const EmpiricalFormula& rhs) const;
 
 			/// adds the elements of the given formula (given as a String) and returns a new formula
-			EmpiricalFormula operator + (const String&) const throw(Exception::ParseError);
+			EmpiricalFormula operator + (const String& rhs) const throw(Exception::ParseError);
 
 			/// subtracts the elements of a formula
-			EmpiricalFormula& operator -= (const EmpiricalFormula&) throw(Exception::SizeUnderflow);
+			EmpiricalFormula& operator -= (const EmpiricalFormula& rhs) throw(Exception::SizeUnderflow);
 
 			/// subtracts the elements of a formula given as string
-			EmpiricalFormula& operator -= (const String&) throw(Exception::ParseError, Exception::SizeUnderflow);
+			EmpiricalFormula& operator -= (const String& rhs) throw(Exception::ParseError, Exception::SizeUnderflow);
 
 			/// subtracts the elements of a formula an returns a new formula
-			EmpiricalFormula operator - (const EmpiricalFormula&) const throw(Exception::SizeUnderflow);
+			EmpiricalFormula operator - (const EmpiricalFormula& rhs) const throw(Exception::SizeUnderflow);
 
 			/// subtracts the elements of a formula given as a String and returns a new formula
-			EmpiricalFormula operator - (const String&) const throw(Exception::ParseError, Exception::SizeUnderflow);
+			EmpiricalFormula operator - (const String& rhs) const throw(Exception::ParseError, Exception::SizeUnderflow);
 			//@}
 
 			/**@name Predicates
@@ -188,16 +188,16 @@ namespace OpenMS
 			bool hasElement(Size atomic_number) const;
 			
 			/// returns true if the formulas contain equal elements in equal quantities
-			bool operator == (const EmpiricalFormula&) const;
+			bool operator == (const EmpiricalFormula& rhs) const;
 
 			/// returns true if the formulas contain equal elements in equal quantities
-			bool operator == (const String&) const throw(Exception::ParseError);
+			bool operator == (const String& rhs) const throw(Exception::ParseError);
 
 			/// returns true if the formulas differ in elements composition
-			bool operator != (const EmpiricalFormula&) const;
+			bool operator != (const EmpiricalFormula& rhs) const;
 			
 			/// returns true if the formulas differ in elements composition
-			bool operator != (const String&) const throw(Exception::ParseError);
+			bool operator != (const String& rhs) const throw(Exception::ParseError);
 			//@}
 
 			/// writes the formula to a stream
