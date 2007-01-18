@@ -84,102 +84,7 @@ namespace OpenMS
 		
 		return composition_vector;
 	}
-	
-	DoubleReal LibSVMEncoder::getPeptideCharge(const String& sequence, DoubleReal ph)
-	{
-		ResidueDB residue_db;
-		DoubleReal sum = 0;
-		DoubleReal temp = 0;
-		const Residue* temp_residue;		
 		
-		for(String::const_iterator it = sequence.begin(); it != sequence.end(); ++it)			
-		{
-			temp_residue = residue_db.getResidue(*it);
-			if (temp_residue->getOneLetterCode() == "E"
-					|| temp_residue->getOneLetterCode() == "D")
-			{
-				temp = temp_residue->getPka();
-				temp = pow(10, ph - temp);
-				sum += (temp / (1.0 + temp));
-			}
-			else if (temp_residue->getOneLetterCode() == "H"
-							|| temp_residue->getOneLetterCode() == "R"
-							|| temp_residue->getOneLetterCode() == "K")
-			{
-				temp = temp_residue->getPka();
-				temp = pow(10, ph - temp);
-				sum += (1.0 / (1 + temp));
-			}
-			
-		}
-		return sum;		
-		
-	}																							
-								
-	DoubleReal LibSVMEncoder::getPeptideWeight(const String& sequence, DoubleReal charge)
-	{
-		ResidueDB residue_db;
-		DoubleReal sum = 0;
-		const Residue* temp_residue = NULL;		
-		String::const_iterator it = sequence.begin();
-			
-		sum += residue_db.getResidue(*it)->getAverageWeight(Residue::NTerminal);
-		++it;			
-		
-		for(; it != sequence.end(); ++it)			
-		{
-			temp_residue = residue_db.getResidue(*it);
-			sum += temp_residue->getAverageWeight(Residue::Internal);						
-		}
-		sum -= temp_residue->getAverageWeight(Residue::Internal);	
-		sum += temp_residue->getAverageWeight(Residue::NTerminal);
-		return (sum + round(charge));	
-	}
-
-	DoubleReal LibSVMEncoder::getPeptideSequenceIndex(const String& sequence, DoubleReal scale)
-	{
-		ResidueDB residue_db;
-		DoubleReal sum = 0;
-		const Residue* temp_residue = NULL;	
-		DoubleReal pi1 = 0;
-		DoubleReal pi2 = 0;	
-		DoubleReal temp_sum = 0;
-		String::const_iterator it = sequence.begin();
-			
-		scale = 1;
-			
-		if (sequence.size() <= 1)
-		{
-			return 0.0;
-		}
-			
-		temp_residue = residue_db.getResidue(*it);
-		
-		pi1 = temp_residue->getPiValue();
-		++it;
-		temp_residue = residue_db.getResidue(*it);
-		pi2 = temp_residue->getPiValue();
-		++it;
-		for( ; it != sequence.end(); ++it)
-		{
-			pi1 = pi2;
-			temp_residue = residue_db.getResidue(*it);
-			pi2 = temp_residue->getPiValue();
-			temp_sum = pi1 + pi2;
-			sum = sum + temp_sum * temp_sum;			
-		}
-		return sqrt(sum / (sequence.size() - 1)) * scale;	
-	}
-
-	void LibSVMEncoder::encodeVector(const String& sequence, DoubleReal parameter, vector<double_pt_2_string_double> functions, vector< pair<SignedInt, DoubleReal> >& encoded_vector, UnsignedInt start_index)
-	{
-		
-		for(UnsignedInt i = 0; i < functions.size(); ++i)
-		{
-			encoded_vector.push_back(make_pair((i + start_index), (functions[i](sequence, parameter))));
-		}
-	}									
-																											 				 					    
 	vector< vector< pair<SignedInt, DoubleReal> > >* LibSVMEncoder::encodeCompositionVectors(const vector<String>& sequences, 
 																												 								 			   						 const String& allowed_characters)
 	{
@@ -197,7 +102,6 @@ namespace OpenMS
 					
 		return composition_vectors;
 	}      
-	
 	
 	svm_node* LibSVMEncoder::encodeLibSVMVector(const vector< pair<SignedInt, DoubleReal> >& feature_vector)
 	{

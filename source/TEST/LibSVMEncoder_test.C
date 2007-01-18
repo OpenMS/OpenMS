@@ -306,7 +306,7 @@ CHECK((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector<
 	delete problem;
 RESULT
 
-CHECK((bool storeLibSVMProblem(const String& filename, const svm_problem* problem, SignedInt number_of_combinations = 0) const))
+CHECK((bool storeLibSVMProblem(const String& filename, const svm_problem* problem) const))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
@@ -354,11 +354,23 @@ CHECK((void encodeOligoBorders(String sequence, UnsignedInt k_mer_length, const 
 RESULT
 
 CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>& sequences, std::vector<DoubleReal>* labels, UnsignedInt k_mer_length, const String& allowed_characters, UnsignedInt border_length, bool strict = false, bool length_encoding = false)))
-  // ???
-RESULT
+	vector<String> sequences;
+	String allowed_characters = "ACNGT";
+	String output;
+	UnsignedInt border_length = 3;
+	vector< pair<SignedInt, DoubleReal> > encoded_sequence;
+  vector<DoubleReal> labels;
+  struct svm_problem* data;
 
-CHECK((void encodeVector(const String& sequence, DoubleReal parameter, std::vector<double_pt_2_string_double> functions, std::vector< std::pair<SignedInt, DoubleReal> >& encoded_vector, UnsignedInt start_index = 1)))
-  // ???
+  labels.push_back(1);
+  labels.push_back(2);
+  sequences.push_back("ACNNGTATCA");
+  sequences.push_back("AACNNGTACCA");
+	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, &labels, 1, allowed_characters, border_length);
+	encoder.libSVMVectorToString(data->x[0], output);
+	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
+	encoder.libSVMVectorToString(data->x[1], output);
+	TEST_EQUAL(output, "(2, 1) (2, 2) (2, 1) (3, 3) (3, 3) (3, 2) ")
 RESULT
 
 CHECK((void libSVMVectorToString(svm_node* vector, String& output)))

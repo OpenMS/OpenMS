@@ -122,15 +122,6 @@ namespace OpenMS
 																											 			 bool 													strict = false,
 																											 			 bool 													length_encoding = false);
 
-      /// creates combined oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
-			svm_problem* encodeLibSVMProblemWithCombinedOligoBorderVectors(const std::vector<String>&     sequences,
-																														 std::vector<DoubleReal>*  			labels,
-																														 const std::vector<std::pair<UnsignedInt, UnsignedInt> >& parameters,
-																														 const std::vector<DoubleReal>& sigmas,
-																														 const String& 	 				  			allowed_characters,
-																														 bool 													strict = false,
-																											 			 bool 													length_encoding = false);
-
       /**
  				@brief stores a string representation of the encoded sequence 'vector' in 'output'
  				
@@ -145,18 +136,7 @@ namespace OpenMS
  				This function can be used if one wants to print the feature vectors that are used in
  				the libsvm.
 			*/ 				
-			void libSVMVectorsToString(svm_problem* vector, String& output);
-
-			typedef DoubleReal (*double_pt_2_string_double)(const String&, DoubleReal);				
-
-			static DoubleReal getPeptideCharge(const String& sequence, DoubleReal ph);
-				
-			static DoubleReal getPeptideWeight(const String& sequence, DoubleReal charge = 0);
-
-			static DoubleReal getPeptideSequenceIndex(const String& sequence, DoubleReal scale = 1);
-		
-			void encodeVector(const String& sequence, DoubleReal parameter, std::vector<double_pt_2_string_double> functions, std::vector< std::pair<SignedInt, DoubleReal> >& encoded_vector, UnsignedInt start_index = 1);	
-			
+			void libSVMVectorsToString(svm_problem* vector, String& output);			
 
   };
  
