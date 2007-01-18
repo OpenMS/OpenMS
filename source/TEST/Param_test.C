@@ -503,33 +503,33 @@ CHECK((ConstIterator end() const))
 	TEST_EQUAL((--p.end())==p.begin(),true)
 RESULT
 
-CHECK((void checkDefaults(const Param& defaults, String prefix="", std::ostream& os = std::cout) const))
+CHECK((void checkDefaults("Test",const Param& defaults, String prefix="", std::ostream& os = std::cout) const))
 	ostringstream os;
 	Param p,d;
 	p.setValue("string",String("bla"));
 	p.setValue("int",5);
 	p.setValue("double",47.11);
 	
-	p.checkDefaults(d,"",os);
-	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'double' found!\nWarning: Unknown parameter 'int' found!\nWarning: Unknown parameter 'string' found!\n");
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'double'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'string'!\n",true);
 	
 	d.setValue("int",5);
 	d.setValue("double",47.11);
 	os.str("");
-	p.checkDefaults(d,"",os);
-	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found!\n");
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\n",true);
 	
 	p.clear();
 	p.setValue("pref:string",String("bla"));
 	p.setValue("pref:int",5);
 	p.setValue("pref:double",47.11);
 	os.str("");
-	p.checkDefaults(d,"pref",os);
-	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found in 'pref:'!\n");
+	p.checkDefaults("Test",d,"pref",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
 
 	os.str("");
-	p.checkDefaults(d,"pref:",os);
-	TEST_EQUAL(os.str(),"Warning: Unknown parameter 'string' found in 'pref:'!\n");
+	p.checkDefaults("Test",d,"pref:",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
 RESULT
 
 /////////////////////////////////////////////////////////////

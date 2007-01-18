@@ -79,7 +79,7 @@ namespace OpenMS
 			}
 			param_ = p;
 			param_.setDefaults(defaults_,"",false);
-			param_.checkDefaults(defaults_,"");
+			param_.checkDefaults(getName(),defaults_,"");
 		}
 		else
 		{

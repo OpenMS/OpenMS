@@ -35,7 +35,7 @@
 #include <gsl/gsl_blas.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 
-#define DEBUG_DECONV
+//#define DEBUG_DECONV
 #include <iostream>
 #ifdef DEBUG_DECONV
 #include <iostream>
@@ -52,13 +52,14 @@ namespace OpenMS
     extern std::vector<double> positions_DC_;
     extern std::vector<double> signal_DC_;
 
-		 /** @brief Class for the penalty factors used during the optimization.
-
-		 A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
-		 During the optimization negative heights may occur, they are penalised as well.
-
- 				 
-		 */
+		/**
+			@brief Class for the penalty factors used during the optimization.
+			
+			A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised.
+			During the optimization negative heights may occur, they are penalised as well.
+		
+			 @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Alexandra)
+		*/
     struct PenaltyFactorsInt : public PenaltyFactors
     {
       PenaltyFactorsInt():PenaltyFactors(),height(0){}

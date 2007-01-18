@@ -48,9 +48,11 @@ namespace OpenMS
     NOTE: This algorithm works per scan ONLY i.e. you have to call init() with an iterator range
     for each scan, and not for the whole map.
 
-
-  TODO: This class is not bug free. Maintainer should check this (Eva)
-
+  	@todo This class is not bug free. Maintainer should check this (Eva)
+  	@todo This class is not used anymore. Remove? (Eva)
+		
+		@todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva)
+		
     @ingroup SignalToNoiseEstimators
   */
   template <Size D = 1 , typename PeakIterator = MSSpectrum<DRawDataPoint<1> >::const_iterator >
@@ -83,13 +85,13 @@ namespace OpenMS
           : DSignalToNoiseEstimator<D,PeakIterator>(parameters)
       {
         // if a parameter is missing in the param object, the value is substituted by a default value
-        DataValue dv = param_.getValue("signal_to_noise_estimation:bucket");
+        DataValue dv = param_.getValue("bucket");
         if (dv.isEmpty() || dv.toString() == "")
           bucket_size_ = 10;
         else
           bucket_size_ = (int)dv;
 
-        dv = param_.getValue("signal_to_noise_estimation:window");
+        dv = param_.getValue("window");
         if (dv.isEmpty() || dv.toString() == "")
           window_size_ = 700;
         else

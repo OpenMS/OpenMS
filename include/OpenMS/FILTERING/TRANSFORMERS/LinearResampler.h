@@ -35,7 +35,7 @@
 namespace OpenMS
 {
 	/**
-	  @brief Linear Resampling of raw data.
+	 @brief Linear Resampling of raw data.
 	 
 	 This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
 	 Therefore the intensity at every position x in the input raw data is spread to the two
@@ -45,7 +45,8 @@ namespace OpenMS
 	 
 	 @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
 	       The resampling rate should be >= the precision.
-	 	 
+	 
+	 @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva)
 	*/
 	class LinearResampler
 	{

@@ -122,11 +122,12 @@ namespace OpenMS
     /**
     	@brief Warns if a parameter is present for which no default value is specified.
     	
+    	@param name A name that is displayed in error messages.
     	@param defaults The default values. 
     	@param prefix The prefix where to check for the defaults. 
     	@param os The output stream for the warnings.
     */
-    void checkDefaults(const Param& defaults, String prefix="", std::ostream& os = std::cout) const;
+    void checkDefaults(const String& name, const Param& defaults, String prefix="", std::ostream& os = std::cout) const;
 
     /**
 			 @brief Returns a new Param object containing all entries that start with @p prefix.

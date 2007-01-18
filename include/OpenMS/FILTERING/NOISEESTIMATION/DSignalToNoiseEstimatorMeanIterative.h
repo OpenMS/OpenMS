@@ -57,13 +57,13 @@ namespace OpenMS
     Accepted Ini-File Parameters:
     <table>
     <tr><th>Parameter                                               </th><th>  Description                                </th></tr>
-    <tr><td> SignalToNoiseEstimationParameter:WindowLength          </td><td>  window length in Thomson                   </td></tr>
-    <tr><td> SignalToNoiseEstimationParameter:BinCount              </td><td>  number of bins used                        </td></tr>
-    <tr><td> SignalToNoiseEstimationParameter:StdevMP               </td><td>  multiplier for stdev                       </td></tr>
-    <tr><td> SignalToNoiseEstimationParameter:MinReqElementsInWindow</td><td>  minimum number of elements required in a window   </td></tr>
-    <tr><td> SignalToNoiseEstimationParameter:NoiseEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
+    <tr><td> WindowLength          </td><td>  window length in Thomson                   </td></tr>
+    <tr><td> BinCount              </td><td>  number of bins used                        </td></tr>
+    <tr><td> StdevMP               </td><td>  multiplier for stdev                       </td></tr>
+    <tr><td> MinReqElementsInWindow</td><td>  minimum number of elements required in a window   </td></tr>
+    <tr><td> NoiseEmptyWindow      </td><td>  noise value used for sparse windows        </td></tr>   
       
-    <tr><td> SignalToNoiseEstimationParameter:MaxIntensity          </td><td> maximal intensity used for histogram construction
+    <tr><td> MaxIntensity          </td><td> maximal intensity used for histogram construction
                                                                    If this parameter is given, the "AutoMode/AutoMaxIntensity" is ignored 
                                                                    Be aware though that choosing an adverse "MaxIntensity" might lead to bad results
                                                                    All intensities EQUAL/ABOVE "MaxIntensity" will not be added to the histogram. If you 
@@ -73,11 +73,11 @@ namespace OpenMS
                                                                                                                           </td></tr>
     <tr><td colspan=2> [The following 2 parameters belong together and should both be provided if <b>MaxIntensity</b> was NOT given]</td></tr>
 
-    <tr><td> SignalToNoiseEstimationParameter:AutoMode                 </td><td> method to use to determine "MaxIntensity": 
+    <tr><td> AutoMode                 </td><td> method to use to determine "MaxIntensity": 
                                                              <pre>0 [default]  use mean + "AutoMaxIntensity" * stdev</pre> 
                                                              <pre>1            "AutoMaxIntensity"th percentile</pre>
                                                                                                                           </td></tr>
-    <tr><td> SignalToNoiseEstimationParameter:AutoMaxIntensity         </td><td> parameter for "MaxIntensity" estimation; 
+    <tr><td> AutoMaxIntensity         </td><td> parameter for "MaxIntensity" estimation; 
                                                              <pre>if "AutoMode" == 0, default is "AutoMaxIntensity"=3</pre> 
                                                              <pre>else            the default is "AutoMaxIntensity"=95 (do NOT exceed 100)</pre>
                                                                                                                           </td></tr>
@@ -89,6 +89,8 @@ namespace OpenMS
               (noise estimates in those windows are simply a constant "NoiseEmptyWindow").   
     
   	@ingroup SignalToNoiseEstimators
+    
+    @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Chris)
     
   */
 
@@ -451,49 +453,49 @@ namespace OpenMS
       {
         param_ = param;
         // set params
-        DataValue dv = param_.getValue("SignalToNoiseEstimationParameter:WindowLength");
+        DataValue dv = param_.getValue("WindowLength");
         if (dv.isEmpty() || dv.toString() == "")
           win_len_ = (double) DEFAULT_WINLEN;
         else
           win_len_ = (double) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:BinCount");
+        dv = param_.getValue("BinCount");
         if (dv.isEmpty() || dv.toString() == "")
           bin_count_ = DEFAULT_BINCOUNT;
         else
           bin_count_ = (int) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:StdevMP");
+        dv = param_.getValue("StdevMP");
         if (dv.isEmpty() || dv.toString() == "")
           stdev_ = (double) DEFAULT_STDEV;
         else
           stdev_ = (double) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow");
+        dv = param_.getValue("MinReqElementsInWindow");
         if (dv.isEmpty() || dv.toString() == "")
           min_required_elements_ = DEFAULT_MIN_REQUIRED_ELEMENTS;
         else
           min_required_elements_ = (int) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow");
+        dv = param_.getValue("NoiseEmptyWindow");
         if (dv.isEmpty() || dv.toString() == "")
           noise_for_empty_window_ = (double) DEFAULT_NOISE_ON_EMTPY_WINDOW;
         else
           noise_for_empty_window_ = (double) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:MaxIntensity");
+        dv = param_.getValue("MaxIntensity");
         if (dv.isEmpty() || dv.toString() == "")
           max_intensity_ = -1.0;
         else
           max_intensity_ = (double) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:AutoMode");
+        dv = param_.getValue("AutoMode");
         if (dv.isEmpty() || dv.toString() == "" || (int) dv !=AUTOMAXBYPERCENT)
           auto_mode_ = AUTOMAXBYSTDEV;
         else
           auto_mode_ = (int) dv;
 
-        dv = param_.getValue("SignalToNoiseEstimationParameter:AutoMaxIntensity");
+        dv = param_.getValue("AutoMaxIntensity");
         if (dv.isEmpty() || dv.toString() == "")
         {
           if (auto_mode_==AUTOMAXBYSTDEV)
@@ -509,17 +511,17 @@ namespace OpenMS
         // print Warning message if there are unknown parameters (typos?)
         // ... define a default object
         Param default_p;
-        default_p.setValue("SignalToNoiseEstimationParameter:WindowLength", win_len_);
-        default_p.setValue("SignalToNoiseEstimationParameter:BinCount", (double) bin_count_);
-        default_p.setValue("SignalToNoiseEstimationParameter:StdevMP", stdev_);
-        default_p.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) min_required_elements_);
-        default_p.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", noise_for_empty_window_);
-        default_p.setValue("SignalToNoiseEstimationParameter:MaxIntensity", max_intensity_);
-        default_p.setValue("SignalToNoiseEstimationParameter:AutoMode", (double) auto_mode_);
-        default_p.setValue("SignalToNoiseEstimationParameter:AutoMaxIntensity", auto_max_intensity_);
+        default_p.setValue("WindowLength", win_len_);
+        default_p.setValue("BinCount", (double) bin_count_);
+        default_p.setValue("StdevMP", stdev_);
+        default_p.setValue("MinReqElementsInWindow", (double) min_required_elements_);
+        default_p.setValue("NoiseEmptyWindow", noise_for_empty_window_);
+        default_p.setValue("MaxIntensity", max_intensity_);
+        default_p.setValue("AutoMode", (double) auto_mode_);
+        default_p.setValue("AutoMaxIntensity", auto_max_intensity_);
 
         // ... and check it against current param object:
-        param_.checkDefaults(default_p);
+        param_.checkDefaults("DSignalToNoiseEstimatorIterative",default_p);
 
       }
 
@@ -601,14 +603,14 @@ namespace OpenMS
       void updateParam()
       {
         // update param-object
-        param_.setValue("SignalToNoiseEstimationParameter:WindowLength", win_len_);
-        param_.setValue("SignalToNoiseEstimationParameter:BinCount", (double) bin_count_);
-        param_.setValue("SignalToNoiseEstimationParameter:StdevMP", stdev_);
-        param_.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) min_required_elements_);
-        param_.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", noise_for_empty_window_);
-        param_.setValue("SignalToNoiseEstimationParameter:MaxIntensity", max_intensity_);
-        param_.setValue("SignalToNoiseEstimationParameter:AutoMode", (double) auto_mode_);
-        param_.setValue("SignalToNoiseEstimationParameter:AutoMaxIntensity", auto_max_intensity_);
+        param_.setValue("WindowLength", win_len_);
+        param_.setValue("BinCount", (double) bin_count_);
+        param_.setValue("StdevMP", stdev_);
+        param_.setValue("MinReqElementsInWindow", (double) min_required_elements_);
+        param_.setValue("NoiseEmptyWindow", noise_for_empty_window_);
+        param_.setValue("MaxIntensity", max_intensity_);
+        param_.setValue("AutoMode", (double) auto_mode_);
+        param_.setValue("AutoMaxIntensity", auto_max_intensity_);
 
         is_result_valid_ = false;
       }

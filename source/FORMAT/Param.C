@@ -535,7 +535,7 @@ namespace OpenMS
 		values_.clear();
 	}
 
-	void Param::checkDefaults(const Param& defaults, String prefix, std::ostream& os) const
+	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
 	{
 		//Extract right parameters
 		map<string,DataValue> check;
@@ -553,7 +553,7 @@ namespace OpenMS
 		{
 			if (defaults.values_.find(it->first)==defaults.values_.end())
 			{
-				os << "Warning: Unknown parameter '" << it->first << "' found";
+				os << "Warning: " << name << " received the unknown parameter '" << it->first << "'";
 				if (!prefix.empty()) os << " in '" << prefix << "'";
 				os << "!" << endl;
 			}

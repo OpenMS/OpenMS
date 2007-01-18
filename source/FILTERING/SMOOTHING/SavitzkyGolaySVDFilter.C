@@ -47,7 +47,7 @@ namespace OpenMS
   void SavitzkyGolaySVDFilter::setParam(Param param) throw (Exception::InvalidValue)
   {
 		param.setDefaults(defaults_);
-    param.checkDefaults(defaults_);
+    param.checkDefaults("SavitzkyGolaySVDFilter",defaults_);
     
     frame_size_ = (int)param.getValue("frame_length");
     if (!isOdd(frame_size_))

@@ -96,7 +96,7 @@ class TOPPPeakPicker
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
 							"<NODE algorithm>\n"
-							"  <NODE name=\"signal_to_noise_estimation\">\n"
+							"  <NODE name=\"SignalToNoiseEstimationParameter\">\n"
 							"    <ITEM name=\"bucket\" value=\"10\" type=\"int\" />\n"
 							"    <ITEM name=\"window\" value=\"700\" type=\"int\" />\n"
 							"  </NODE>\n"

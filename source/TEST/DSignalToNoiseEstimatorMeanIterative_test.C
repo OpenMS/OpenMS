@@ -92,14 +92,14 @@ RESULT
 
 CHECK(DSignalToNoiseEstimatorMeanIterative(const Param& parameters))
   Param p;
-  p.setValue("SignalToNoiseEstimationParameter:WindowLength", 31);
-  p.setValue("SignalToNoiseEstimationParameter:BinCount", 33);
-  p.setValue("SignalToNoiseEstimationParameter:StdevMP", 3);
-  p.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", 4);
-  p.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", 2);
-  p.setValue("SignalToNoiseEstimationParameter:MaxIntensity", 45);
-  p.setValue("SignalToNoiseEstimationParameter:AutoMode", 0);
-  p.setValue("SignalToNoiseEstimationParameter:AutoMaxIntensity", 3);
+  p.setValue("WindowLength", 31);
+  p.setValue("BinCount", 33);
+  p.setValue("StdevMP", 3);
+  p.setValue("MinReqElementsInWindow", 4);
+  p.setValue("NoiseEmptyWindow", 2);
+  p.setValue("MaxIntensity", 45);
+  p.setValue("AutoMode", 0);
+  p.setValue("AutoMaxIntensity", 3);
 
   DSignalToNoiseEstimatorMeanIterative<1> sne(p);
   TEST_REAL_EQUAL(sne.getWinLen(), 31);
@@ -395,14 +395,14 @@ RESULT
 CHECK(void setParam(const Param& param))
   DSignalToNoiseEstimatorMeanIterative<1> sne;
   Param param_;
-  param_.setValue("SignalToNoiseEstimationParameter:WindowLength", 32);
-  param_.setValue("SignalToNoiseEstimationParameter:BinCount", (double) 21);
-  param_.setValue("SignalToNoiseEstimationParameter:StdevMP", 3);
-  param_.setValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow", (double) 4);
-  param_.setValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow", 2.1);
-  param_.setValue("SignalToNoiseEstimationParameter:MaxIntensity", 1400);
-  param_.setValue("SignalToNoiseEstimationParameter:AutoMode", (double) 1);
-  param_.setValue("SignalToNoiseEstimationParameter:AutoMaxIntensity", 97);
+  param_.setValue("WindowLength", 32);
+  param_.setValue("BinCount", (double) 21);
+  param_.setValue("StdevMP", 3);
+  param_.setValue("MinReqElementsInWindow", (double) 4);
+  param_.setValue("NoiseEmptyWindow", 2.1);
+  param_.setValue("MaxIntensity", 1400);
+  param_.setValue("AutoMode", (double) 1);
+  param_.setValue("AutoMaxIntensity", 97);
   sne.setParam(param_);    
       
   TEST_EQUAL(sne.getParam(), param_);

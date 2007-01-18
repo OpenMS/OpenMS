@@ -906,12 +906,16 @@ namespace OpenMS
 						
 					}
 			}
-		std::cout << "Number of peaks: "<<peaks << std::endl;
+#ifdef DEBUG_PEAK_PICKING
+    	std::cout << "Number of peaks: "<<peaks << std::endl;
+#endif
 		// determine the probable charge state
 		// the best result from [charge-1,charge,charge+1] will be taken
 		// if charge equals zero, something bad happened
 		charge = determineChargeState_(peak_values);
-		std::cout << "charge "<<charge<<std::endl;
+#ifdef DEBUG_PEAK_PICKING
+    	std::cout << "charge "<<charge<<std::endl;
+#endif
 		// one peak needn't be deconvoluted
 		if (peaks > 1 && charge >0)
 			{

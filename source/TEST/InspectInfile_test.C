@@ -55,22 +55,22 @@ RESULT
 InspectInfile file;
 
 CHECK(void setSpectra(const string& spectra))
-	file.setSpectra("data/MzXMLFile_test_1.mzXML");
-	TEST_EQUAL(file.getSpectra(), "data/MzXMLFile_test_1.mzXML")
+	file.setSpectra("dummy4712");
+	TEST_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
 CHECK(const string& getSpectra() const)
-	TEST_EQUAL(file.getSpectra(), "data/MzXMLFile_test_1.mzXML")
+	TEST_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
 
 CHECK(void setDb(const String& db))
-	file.setDb("data/FASTAFile_test.trie");
-	TEST_EQUAL(file.getDb(), "data/FASTAFile_test.trie");
+	file.setDb("dummy4711");
+	TEST_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
 CHECK(const String& getDb() const)
-	TEST_EQUAL(file.getDb(), "data/FASTAFile_test.trie");
+	TEST_EQUAL(file.getDb(), "dummy4711");
 RESULT
 
 

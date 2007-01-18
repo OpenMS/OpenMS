@@ -106,6 +106,7 @@ namespace OpenMS
 		 <td>distance between two isotopes of charge +1</td></tr>
 		 </table>
 		 
+		 @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Clemens, Marcel)
   */
 
 

@@ -1,5 +1,5 @@
-spectra,data/MzXMLFile_test_1.mzXML
-db,data/FASTAFile_test.trie
+spectra,dummy4712
+db,dummy4711
 protease,Trypsin
 mod,+57,C,fix,carbamidomethylation
 mod,80,STY,opt,phosphorylation

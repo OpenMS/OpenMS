@@ -152,7 +152,7 @@ namespace OpenMS
       inline void setParam(Param param) throw (Exception::InvalidValue)
       {
       	param.setDefaults(defaults_);
-      	param.checkDefaults(defaults_);
+      	param.checkDefaults("GaussFilter", defaults_);
       	
         DataValue dv = param.getValue("gaussian_width");
         if (dv.toString() != "")

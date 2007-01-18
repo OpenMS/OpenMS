@@ -120,16 +120,16 @@ namespace OpenMS
   
     
     /**
-       @brief This class provides the two-dimensional optimization of the picked peak parameters.
+			@brief This class provides the two-dimensional optimization of the picked peak parameters.
+			
+			Given the picked peaks, this class optimizes the peak parameters of each isotope pattern using
+			a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occuring in
+			several scans has always the same m/z position. For the optimization the Levenberg-Marquardt algorithm
+			provided from the GSL is used. The optimized parameters are the m/z values,
+			the left and right width, which shall be equal for a peak in all scans,
+			and the peaks' heights.
        
-       Given the picked peaks, this class optimizes the peak parameters of each isotope pattern using
-       a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occuring in
-       several scans has always the same m/z position. For the optimization the Levenberg-Marquardt algorithm
-       provided from the GSL is used. The optimized parameters are the m/z values,
-       the left and right width, which shall be equal for a peak in all scans,
-       and the peaks' heights.
-       
-      
+      @todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Alexandra)
     */
     class TwoDOptimization
     {

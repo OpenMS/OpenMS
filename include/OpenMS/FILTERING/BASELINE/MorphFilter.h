@@ -33,18 +33,21 @@
 
 namespace OpenMS
 {
-  /**  @brief This class is the baseclass of morphological filters.
+  /**  
+  	@brief This class is the baseclass of morphological filters.
   
-       The basic idea of a morphological filter is to inhibit selected signal structures.
-       Such structures could be noise or some irrelevant signal structures like the baseline.
-       A morphological filter is an increasing operator and has the feature of idempotenz,
-       which means that structures which should be received will not be modified by more
-       applications of the filter.
-       This class provides the basic morphological operations Erosion and Dilatation with a
-       structuring element (a flat line) of length frameSize_.
-
-       Erosion and dilatation are implemented using van Herk's method.
-   */
+		The basic idea of a morphological filter is to inhibit selected signal structures.
+		Such structures could be noise or some irrelevant signal structures like the baseline.
+		A morphological filter is an increasing operator and has the feature of idempotenz,
+		which means that structures which should be received will not be modified by more
+		applications of the filter.
+		This class provides the basic morphological operations Erosion and Dilatation with a
+		structuring element (a flat line) of length frameSize_.
+		
+		Erosion and dilatation are implemented using van Herk's method.
+  	
+  	@todo use Param::setDefaults instead of if (dv.isEmpty() || dv.toString() == "") ... (Eva) 
+  */
 
   class MorphFilter
   {

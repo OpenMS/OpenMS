@@ -50,7 +50,7 @@ namespace OpenMS
   void SavitzkyGolayQRFilter::setParam(Param param) throw (Exception::InvalidValue)
   {
 		param.setDefaults(defaults_);
-    param.checkDefaults(defaults_);
+    param.checkDefaults("SavitzkyGolayQRFilter",defaults_);
     
     frame_size_ = (int)param.getValue("frame_length");
     if (!isOdd(frame_size_))
