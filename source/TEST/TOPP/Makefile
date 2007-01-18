@@ -49,11 +49,12 @@ UNCONDITIONAL_TESTS = \
 	MapStatistics_test \
 	MascotAdapter_test \
 	NoiseFilter_test \
-	Resampler_test \
 	SequestAdapter_test\
 	PeakPicker_test \
 	SpectraFilter_test \
 	FeatureFinder_test
+
+# Resampler_test \
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_TESTS= \

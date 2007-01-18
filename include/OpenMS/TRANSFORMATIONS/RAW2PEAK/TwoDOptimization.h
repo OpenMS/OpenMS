@@ -80,6 +80,11 @@ namespace OpenMS
       // the scans of this cluster
       std::vector<double> scans_;
     };
+    
+  /**
+  	@brief Namespace for all functions and classes needed for 2D optimization.
+	
+	*/
   namespace TwoDOptimizationFunctions
   {
   

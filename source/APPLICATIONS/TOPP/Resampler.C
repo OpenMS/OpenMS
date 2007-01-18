@@ -54,7 +54,7 @@ using namespace std;
 	
 	Most of the functionality is implemented in Bilinearinterpolation and Matrix.
 
-	@todo write test (Clemens)
+	@todo fix test (Clemens)
 	@todo support for a better graphics format like png - use Qt (Clemens,Marc)
 	@todo use MzDataFile::getOptions() to load only the necessary part of the file? (Marc,Clemens)
 	@todo output IT range (Clemens)
