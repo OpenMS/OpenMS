@@ -85,7 +85,7 @@ namespace OpenMS
         : param_()
     {}
 
-    /// Copy constructor (note: the pair_finder_ won't be copied)
+    /// Copy constructor 
     BaseAlignment(const BaseAlignment& source)
         : param_(source.param_),
         final_consensus_map_(source.final_consensus_map_),
@@ -95,7 +95,7 @@ namespace OpenMS
         map_type_(source.map_type_)
     {}
 
-    ///  Assignment operator (note: the pair_finder_ won't be copied)
+    ///  Assignment operator 
     virtual BaseAlignment& operator = (const BaseAlignment& source)
     {
       if (&source==this)
@@ -124,10 +124,6 @@ namespace OpenMS
     void setParam(const Param& param)
     {
       param_ = param;
-
-      DataValue data_value = param_.getValue("consensus_algorithm");
-      pair_finder_ = Factory<BasePairFinder< ConsensusMapType > >::create(data_value);
-
       map_type_ = param_.getValue("map_type");
     }
 
@@ -218,10 +214,6 @@ namespace OpenMS
 
     /// The map type
     String map_type_;
-
-    /// Pairfinder used to find corresponding elements (consensus elements)
-    BasePairFinder< ConsensusMapType >* pair_finder_;
-
 
     /// Build a consensus map of the map with index map_index (the set of grouped elements contains the element itself).
     void buildConsensusMapTypeInsertInGroup_(UnsignedInt map_index, std::vector< ConsensusElementType >& cons_map)

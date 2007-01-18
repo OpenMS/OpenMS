@@ -467,8 +467,8 @@ namespace OpenMS
       os << "\t</mapList>\n";
 
       os << "\t<alignmentMethod name=\"StarAlignmemt\">\n";
-      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParam().getValue("matching_algorithm") << "\"/>\n";
-      os << "\t\t<consensusAlgorithm name=\"" << calignment_->getParam().getValue("consensus_algorithm") << "\"/>\n";
+      os << "\t\t<matchingAlgorithm name=\"" << calignment_->getParam().getValue("matching_algorithm:type") << "\"/>\n";
+      os << "\t\t<consensusAlgorithm name=\"delaunay\"/>\n";
       os << "\t</alignmentMethod>\n";
 
       UnsignedInt ref_index = calignment_->getReferenceMapIndex();

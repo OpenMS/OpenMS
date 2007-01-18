@@ -55,8 +55,7 @@ RESULT
 CHECK(StarAlignment& operator = (StarAlignment source))
   StarAlignment< ConsensusFeature<FeatureMap> > alignment;
   Param param;
-  param.setValue("matching_algorithm","poseclustering_pairwise");
-  param.setValue("consensus_algorithm","delaunay");
+  param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
    
   vector<FeatureMap*> map_vector;
@@ -83,8 +82,7 @@ RESULT
 CHECK(StarAlignment(const StarAlignment& source))
   StarAlignment< ConsensusFeature<FeatureMap> > alignment;
   Param param;
-  param.setValue("matching_algorithm","poseclustering_pairwise");
-  param.setValue("consensus_algorithm","delaunay");
+  param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
   vector<FeatureMap*> map_vector;
   FeatureMap map;
@@ -153,10 +151,9 @@ CHECK(void run() throw(Exception::InvalidValue))
   
   Param param;
   param.setValue("map_type","feature_map");
-  param.setValue("matching_algorithm","poseclustering_pairwise");
-  param.setValue("consensus_algorithm","delaunay");
-  param.setValue("matching:superimposer","poseclustering_affine");
-  param.setValue("matching:pair_finder","delaunay");
+  param.setValue("matching_algorithm:type","poseclustering_pairwise");
+  param.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
+  param.setValue("matching_algorithm:pair_finder:type","delaunay");
   alignment.setParam(param);
   alignment.run();
   

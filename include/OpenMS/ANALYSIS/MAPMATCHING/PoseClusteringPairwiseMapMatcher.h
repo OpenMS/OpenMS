@@ -116,7 +116,7 @@ namespace OpenMS
       pair_finder_ = 0;
       superimposer_ = 0;
 
-      defaults_.setValue("pair_finder", "simple");
+      defaults_.setValue("pairfinder:type", "simple");
 
       setParam(Param());
     }
@@ -157,7 +157,7 @@ namespace OpenMS
     {
       Base::setParam(param);
 
-      if (defaults_.getValue("pair_finder") == DataValue::EMPTY)
+      if (defaults_.getValue("pairfinder:type") == DataValue::EMPTY)
       {
         std::cout << "Warning: Unknown parameter 'pair_finder' found!" << std::endl;
       }
@@ -166,17 +166,18 @@ namespace OpenMS
     /// Estimates the transformation for each grid cell and searches for element pairs.
     virtual void run()
     {
-      DataValue data_value = getParam().getValue("pair_finder");
+      DataValue data_value = getParam().getValue("pairfinder:type");
       pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(data_value);
-      Param param_copy(getParam());
-      param_copy.remove("pair_finder");
-      param_copy.remove("superimposer");
+      Param param_copy = getParam().copy("pairfinder:",true);
+      param_copy.remove("type");
       pair_finder_->setParam(param_copy);
-
-      data_value = getParam().getValue("superimposer");
+      
+      data_value = getParam().getValue("superimposer:type");
       if (data_value != DataValue::EMPTY)
       {
         superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(data_value);
+        Param param_copy = getParam().copy("superimposer:",true);	
+        param_copy.remove("type");
         superimposer_->setParam(param_copy);
       }
 
@@ -233,7 +234,7 @@ namespace OpenMS
       {
         if (scene_grid_maps[i].size() > 0)
         {
-          String algorithm = getParam().getValue("superimposer");
+          String algorithm = getParam().getValue("superimposer:type");
           if ( superimposer_ != 0 )
           {
             V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");

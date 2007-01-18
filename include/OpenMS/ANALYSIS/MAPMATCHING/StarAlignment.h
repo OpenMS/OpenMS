@@ -121,8 +121,7 @@ namespace OpenMS
     using Base::transformations_;
     using Base::file_names_;
     using Base::map_type_;
-    using Base::pair_finder_;
-
+    
     /// Constructor
     StarAlignment()
         : Base(),
@@ -265,13 +264,23 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching:",true);
+      Param param_matcher = param_.copy("matching_algorithm:",true);
       /// Pairwise map matcher
 
       BasePairwiseMapMatcher< ConsensusMapType >* pairwise_matcher_;
-      DataValue data_value = param_.getValue("matching_algorithm");
-      pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
-      pairwise_matcher_->setParam(param_matcher);
+      DataValue data_value = param_matcher.getValue("type");
+      if (data_value != DataValue::EMPTY)
+      {
+        pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
+        pairwise_matcher_->setParam(param_matcher);
+      }
+      else
+      {
+        pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusMapType > >::create(data_value);
+        param_.setValue("matching_algorithm:type","poseclustering_pairwise");
+        pairwise_matcher_->setParam(param_matcher);
+      }
+      
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
       DMapMatcherRegression<ConsensusElementType> lin_regression;
@@ -373,9 +382,7 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
-          param_matcher.remove("pair_finder");
-      		param_matcher.remove("superimposer");
-          pair_finder.setParam(param_matcher);
+          pair_finder.setParam(param_.copy("consensus_algorithm:",true));
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT
@@ -444,7 +451,6 @@ namespace OpenMS
     /// Align all peak maps to the reference map
     void alignMultiplePeakMaps_()
     {
-
 #ifdef DEBUG_ALIGNMENT
       std::cout << "*** Build a consensus map of the elements of the reference map (contains only singleton consensus elements) ***" << std::endl;
 #endif
@@ -465,8 +471,8 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching:",true);
-
+      Param param_matcher = param_.copy("matching_algorithm:",true);
+      
       // take the n-th most intensive Peaks of the reference map
       Size n = 50;
       PeakConstReferenceMapType reference_pointer_map((element_map_vector_[reference_map_index_])->begin(), (element_map_vector_[reference_map_index_])->end());
@@ -475,7 +481,7 @@ namespace OpenMS
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
       BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-      DataValue data_value = param_.getValue("matching_algorithm");
+      DataValue data_value = param_matcher.getValue("type");
       if (data_value != DataValue::EMPTY)
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
@@ -484,7 +490,7 @@ namespace OpenMS
       else
       {
         pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-        param_.setValue("matching_algorithm","poseclustering_pairwise");
+        param_.setValue("matching_algorithm:type","poseclustering_pairwise");
         pairwise_matcher_->setParam(param_matcher);
       }
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
@@ -584,9 +590,7 @@ namespace OpenMS
 #endif
           // compute the consensus of the reference map and map i
           DelaunayPairFinder<ConsensusMapType, ElementContainerType> pair_finder;
-          param_matcher.remove("pair_finder");
-      		param_matcher.remove("superimposer");
-          pair_finder.setParam(param_matcher);
+          pair_finder.setParam(param_.copy("consensus_algorithm:",true));
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT

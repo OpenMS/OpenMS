@@ -406,10 +406,10 @@ namespace OpenMS
         SignedInt pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
-          /*std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
-                    << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
-                    << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
-                    << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;       */
+//          std::cout << "Delaunay PUSH Pairs " << (*(all_element_pairs[pair_key].second)).getPosition()[RT] << ' '
+//                    << (*(all_element_pairs[pair_key].second)).getPosition()[MZ] << " and "
+//                    << (*(all_element_pairs[pair_key].first)).getPosition()[RT] << ' '
+//                    << (*(all_element_pairs[pair_key].first)).getPosition()[MZ]  << std::endl;       
 
           element_pairs_->push_back(ElementPairType(*(all_element_pairs[pair_key].second),*(all_element_pairs[pair_key].first)));
         }
@@ -464,91 +464,105 @@ namespace OpenMS
         std::vector< Vertex_handle > resulting_range;
         p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
 
-        Point nearest = resulting_range[0]->point();
-        Point second_nearest = resulting_range[1]->point();
-
-        if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
-             &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
-            && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
-                || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
-        {
-          all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
-          V_computeConsensusMap("Push first: " << *(nearest.element))
-          V_computeConsensusMap("Push second: " << second_map[fi1])
-
-          SignedInt element_key = resulting_range[0]->point().key;
-
-          // if the element a is already part of a ElementPair (a,b) do:
-          //    if (the element c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
-          //    --> push (a,c)
-          //    else
-          //    --> the value in the lookup_table becomes -2 because the mapping is not unique
-          if ( lookup_table[element_key] > -1)
-          {
-            SignedInt pair_key = lookup_table[element_key];
-            const PointType& first_map_a = *(all_element_pairs[pair_key].first);
-            PointType& second_map_b = *(all_element_pairs[pair_key].second);
-            PointType& second_map_c = second_map[fi1];
-
-            V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
-            V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
-
-            V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
-
-            if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
-                && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
-            {
-              lookup_table[element_key] = index_act_element_pair;
-              V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
-            }
-            else
-            {
-              // if second_map_b and second_map_c do not enclose first_map_a
-              if (!(second_map_b.getPositionRange().encloses(first_map_a.getPosition())
-                    && !second_map_c.getPositionRange().encloses(first_map_a.getPosition())))
-              {
-                V_computeConsensusMap(second_map_b.getPosition() << " and " << first_map_a.getPosition() << " are a pair, but check the distance between c and b");
-                // check the distance between second_map_b and second_map_c
-                if (fabs(second_map_b.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT])
-                         - second_map_c.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]))
-                    > max_pair_distance_[MZ])
-                {
-                  V_computeConsensusMap("distance ok");
-                  // and check which one of the elements lies closer to first_map_a
-                  if( sqrt(pow((first_map_a.getPosition()[RT] - second_map_b.getPosition()[RT]), 2)
-                           + pow((first_map_a.getPosition()[MZ] - second_map_b.getPosition()[RT]), 2))
-                      < sqrt(pow((first_map_a.getPosition()[RT] - second_map_c.getPosition()[RT]), 2)
-                             + pow((first_map_a.getPosition()[MZ] - second_map_c.getPosition()[RT]), 2)))
-                  {
-                    lookup_table[element_key] = index_act_element_pair;
-                    V_computeConsensusMap("take a and c");
-                  }
-                }
-                else
-                {
-                  lookup_table[element_key] = -2;
-                  ++trans_single;
-                }
-              }
-            }
-          }
-          // otherwise if the element is until now no part of a element pair,
-          // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
-          else
-          {
-            if ( lookup_table[element_key] == -1)
-            {
-              lookup_table[element_key] = index_act_element_pair;
-            }
-          }
-          ++index_act_element_pair;
-        }
-        // no corresponding element in reference map
-        // add a singleton consensus element
-        else
-        {
-          ++trans_single;
-        }
+				Point nearest; 
+				Point second_nearest;
+				if (resulting_range.size() == 1)
+					{
+        		nearest = resulting_range[0]->point();
+        		if ((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
+				             &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
+				             {
+        							all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
+        							}
+        	}
+        	else
+        		if (resulting_range.size() > 1)
+        			{
+				        second_nearest = resulting_range[1]->point();
+				
+				        if (((fabs(transformed_pos[RT] - nearest.hx())  < precision_[RT])
+				             &&  (fabs(transformed_pos[MZ] - nearest.hy())  < precision_[MZ]))
+				            && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RT])
+				                || (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[MZ])))
+				        {
+				          all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
+				          V_computeConsensusMap("Push first: " << *(nearest.element))
+				          V_computeConsensusMap("Push second: " << second_map[fi1])
+				
+				          SignedInt element_key = resulting_range[0]->point().key;
+				
+				          // if the element a is already part of a ElementPair (a,b) do:
+				          //    if (the element c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
+				          //    --> push (a,c)
+				          //    else
+				          //    --> the value in the lookup_table becomes -2 because the mapping is not unique
+				          if ( lookup_table[element_key] > -1)
+				          {
+				            SignedInt pair_key = lookup_table[element_key];
+				            const PointType& first_map_a = *(all_element_pairs[pair_key].first);
+				            PointType& second_map_b = *(all_element_pairs[pair_key].second);
+				            PointType& second_map_c = second_map[fi1];
+				
+				            V_computeConsensusMap("The element " << first_map_a.getPosition() << " has two element partners \n");
+				            V_computeConsensusMap(second_map_b.getPosition() << "  and  " << second_map_c.getPosition());
+				
+				            V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
+				
+				            if (second_map_c.getPositionRange().encloses(first_map_a.getPosition())
+				                && !second_map_b.getPositionRange().encloses(first_map_a.getPosition()))
+				            {
+				              lookup_table[element_key] = index_act_element_pair;
+				              V_computeConsensusMap(second_map_c.getPosition() << " and " << first_map_a.getPosition() << " are a pair");
+				            }
+				            else
+				            {
+				              // if second_map_b and second_map_c do not enclose first_map_a
+				              if (!(second_map_b.getPositionRange().encloses(first_map_a.getPosition())
+				                    && !second_map_c.getPositionRange().encloses(first_map_a.getPosition())))
+				              {
+				                V_computeConsensusMap(second_map_b.getPosition() << " and " << first_map_a.getPosition() << " are a pair, but check the distance between c and b");
+				                // check the distance between second_map_b and second_map_c
+				                if (fabs(second_map_b.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT])
+				                         - second_map_c.getPosition()[MZ] / (diff_intercept_[MZ]/diff_intercept_[RT]))
+				                    > max_pair_distance_[MZ])
+				                {
+				                  V_computeConsensusMap("distance ok");
+				                  // and check which one of the elements lies closer to first_map_a
+				                  if( sqrt(pow((first_map_a.getPosition()[RT] - second_map_b.getPosition()[RT]), 2)
+				                           + pow((first_map_a.getPosition()[MZ] - second_map_b.getPosition()[RT]), 2))
+				                      < sqrt(pow((first_map_a.getPosition()[RT] - second_map_c.getPosition()[RT]), 2)
+				                             + pow((first_map_a.getPosition()[MZ] - second_map_c.getPosition()[RT]), 2)))
+				                  {
+				                    lookup_table[element_key] = index_act_element_pair;
+				                    V_computeConsensusMap("take a and c");
+				                  }
+				                }
+				                else
+				                {
+				                  lookup_table[element_key] = -2;
+				                  ++trans_single;
+				                }
+				              }
+				            }
+				          }
+				          // otherwise if the element is until now no part of a element pair,
+				          // set the value in the lookup_table to the index of the pair in the all_element_pairs vector
+				          else
+				          {
+				            if ( lookup_table[element_key] == -1)
+				            {
+				              lookup_table[element_key] = index_act_element_pair;
+				            }
+				          }
+				          ++index_act_element_pair;
+				        }
+				        // no corresponding element in reference map
+				        // add a singleton consensus element
+				        else
+				        {
+				          ++trans_single;
+				        }
+      				}
       }
       V_computeConsensusMap("Insert elements ");
       std::vector< const PointType* > single_elements_first_map;
