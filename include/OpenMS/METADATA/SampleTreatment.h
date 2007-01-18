@@ -84,6 +84,12 @@ namespace OpenMS
 			*/
 			const String& getType() const;
 			
+    	/// returns the description of the sample treatment
+			const String& getComment() const;
+			
+      /// sets the description of the sample treatment
+      void setComment(const String& comment);
+			
 			/**
 				@brief A clone methode
 				
@@ -94,6 +100,7 @@ namespace OpenMS
 
     protected:
     	String type_;
+    	String comment_;
     
     private:
     	/// Default constructor hidden to force setting of a type

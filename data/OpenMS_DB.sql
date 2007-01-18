@@ -359,8 +359,6 @@ CREATE TABLE META_HPLC (
   fid_MSExperiment bigint(20) unsigned NOT NULL default '0',
   InstrumentName varchar(60) collate latin1_general_ci NOT NULL default '',
   ColumnName varchar(40) collate latin1_general_ci NOT NULL default '',
-  GradientBeginTime float unsigned default NULL,
-  GradientEndTime float unsigned default NULL,
   Description text collate latin1_general_ci NOT NULL,
   Flux int(11) NOT NULL default '0',
   Pressure int(11) NOT NULL default '0',
@@ -532,8 +530,8 @@ CREATE TABLE META_Modification (
   AffectedAminoAcids varchar(30) NOT NULL default '',
   SpecificityType enum('AA','AA_AT_CTERM','AA_AT_NTERM','CTERM','NTERM') NOT NULL default 'AA',
   Mass float NOT NULL default '0',
-  MassShift float NOT NULL default '0',
-  Variant enum('LIGHT','HEAVY') NOT NULL default 'LIGHT',
+  MassShift float default NULL,
+  Variant enum('LIGHT','HEAVY') default NULL,
   PRIMARY KEY  (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

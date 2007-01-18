@@ -221,7 +221,8 @@ class TOPPFileInfo
 				for (UnsignedInt i=0; i< exp_set->getContacts().size(); ++i)
 				{
 					cout << "Contact Person" << endl
-					     << "  Name             : " << exp_set->getContacts()[i].getName() << endl
+					     << "  First Name       : " << exp_set->getContacts()[i].getFirstName() << endl
+					     << "  Last Name        : " << exp_set->getContacts()[i].getLastName() << endl
 					     << "  Email            : " << exp_set->getContacts()[i].getEmail() << endl
 					     << endl;
 				}

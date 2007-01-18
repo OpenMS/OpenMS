@@ -110,16 +110,18 @@ namespace OpenMS
       /// sets the concentration (in mg/ml)
       void setConcentration(float concentration);
 
-			/// returns a vector of subsamples that were combined to create this sample
+			/// returns a mutable reference to the vector of subsamples that were combined to create this sample
 		  std::vector<Sample>& getSubsamples();
-		  /// returns a vector of subsamples that were combined to create this sample
+		  /// returns a const referenct to the vector of subsamples that were combined to create this sample
 		  const std::vector<Sample>& getSubsamples() const;
 		  /// sets the vector of subsamples that were combined to create this sample
 		  void setSubsamples(const std::vector<Sample>& subsamples);
 			
 			///adds a sample treatment before the given postion (default is the end of the list). Sample treatments are ordered in the order of application to the sample. If before_position is smaller than 0, the sample treatment is appended to the list.
 			void addTreatment(const SampleTreatment& treatment,SignedInt before_position=-1) throw (Exception::IndexOverflow);
-			/// returns the sample treatment at the given position
+			/// returns a mutable reference to the sample treatment at the given position
+			SampleTreatment& getTreatment(UnsignedInt position) throw (Exception::IndexOverflow);
+			/// returns a const reference to the sample treatment at the given position
 			const SampleTreatment& getTreatment(UnsignedInt position) const throw (Exception::IndexOverflow);
 			/// removes the sample treatment at the given position
 			void removeTreatment(UnsignedInt position) throw (Exception::IndexOverflow);

@@ -81,28 +81,54 @@ CHECK(void setInstitution(const String& institution))
   TEST_EQUAL(tmp.getInstitution(),"Uni Tuebingen");
 RESULT
 
-CHECK(const String& getName() const)
+CHECK(const String& getFirstName() const)
   ContactPerson tmp;
-  TEST_EQUAL(tmp.getName(),"");
+  TEST_EQUAL(tmp.getFirstName(),"");
+RESULT
+
+CHECK(void setFirstName(const String& name))
+  ContactPerson tmp;
+	tmp.setFirstName("Meike");
+  TEST_EQUAL(tmp.getFirstName(),"Meike");
+RESULT
+
+CHECK(const String& getLastName() const)
+  ContactPerson tmp;
+  TEST_EQUAL(tmp.getLastName(),"");
+RESULT
+
+CHECK(void setLastName(const String& name))
+  ContactPerson tmp;
+	tmp.setLastName("Meier");
+  TEST_EQUAL(tmp.getLastName(),"Meier");
 RESULT
 
 CHECK(void setName(const String& name))
   ContactPerson tmp;
-	tmp.setName("Meike");
-  TEST_EQUAL(tmp.getName(),"Meike");
+	tmp.setName("Diddl Maus");
+  TEST_EQUAL(tmp.getFirstName(),"Diddl");
+  TEST_EQUAL(tmp.getLastName(),"Maus");
+	tmp.setName("Normal, Otto");
+  TEST_EQUAL(tmp.getFirstName(),"Otto");
+  TEST_EQUAL(tmp.getLastName(),"Normal");
+	tmp.setName("Meiser, Hans F.");
+  TEST_EQUAL(tmp.getFirstName(),"Hans F.");
+  TEST_EQUAL(tmp.getLastName(),"Meiser");
 RESULT
 
 CHECK(ContactPerson(const ContactPerson& source))
 	ContactPerson tmp;
 	tmp.setEmail("ich@du.de");
-	tmp.setName("Meike");
+	tmp.setFirstName("Meike");
+	tmp.setLastName("Meier");
 	tmp.setInstitution("Uni Tuebingen");
 	tmp.setContactInfo("doo");
 	tmp.setMetaValue("label",String("label"));
 	
 	ContactPerson tmp2(tmp);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-  TEST_EQUAL(tmp2.getName(),"Meike");
+  TEST_EQUAL(tmp2.getFirstName(),"Meike");
+  TEST_EQUAL(tmp2.getLastName(),"Meier");
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
   TEST_EQUAL(tmp2.getInstitution(),"Uni Tuebingen");
   TEST_EQUAL(tmp2.getContactInfo(),"doo");
@@ -111,7 +137,8 @@ RESULT
 CHECK(ContactPerson& operator= (const ContactPerson& source))
  	ContactPerson tmp;
 	tmp.setEmail("ich@du.de");
-	tmp.setName("Meike");
+	tmp.setFirstName("Meike");
+	tmp.setLastName("Meier");
 	tmp.setInstitution("Uni Tuebingen");
 	tmp.setContactInfo("doo");
 	tmp.setMetaValue("label",String("label"));
@@ -120,7 +147,8 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
 	ContactPerson tmp2;
 	tmp2 = tmp;
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-  TEST_EQUAL(tmp2.getName(),"Meike");
+  TEST_EQUAL(tmp2.getFirstName(),"Meike");
+  TEST_EQUAL(tmp2.getLastName(),"Meier");
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
   TEST_EQUAL(tmp2.getInstitution(),"Uni Tuebingen");
   TEST_EQUAL(tmp2.getContactInfo(),"doo");
@@ -128,7 +156,8 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
 	//assignment of empty object
 	tmp2 = ContactPerson();
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
-  TEST_EQUAL(tmp2.getName(),"");
+  TEST_EQUAL(tmp2.getFirstName(),"");
+  TEST_EQUAL(tmp2.getLastName(),"");
   TEST_EQUAL(tmp2.getEmail(),"");
   TEST_EQUAL(tmp2.getInstitution(),"");
   TEST_EQUAL(tmp2.getContactInfo(),"");
@@ -143,7 +172,11 @@ CHECK(bool operator!= (const ContactPerson& rhs) const)
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setName("Meike");
+	tmp.setFirstName("Meike");
+	TEST_EQUAL(tmp==tmp2, false);
+	
+	tmp2 = tmp;
+	tmp.setLastName("Meier");
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -168,7 +201,11 @@ CHECK(bool operator== (const ContactPerson& rhs) const)
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
-	tmp.setName("Meike");
+	tmp.setFirstName("Meike");
+	TEST_EQUAL(tmp!=tmp2, true);
+	
+	tmp2 = tmp;
+	tmp.setLastName("Meier");
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;

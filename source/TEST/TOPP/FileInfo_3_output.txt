@@ -1,8 +1,8 @@
+
 -- General information --
 
 file name: FileInfo_3_input.feat
 file type: FeatureFile
-
 Number of features: 10
 
 retention time range: 537.41 / 539.232
@@ -29,9 +29,14 @@ Instument
   Mass Analyzer(s) : PAULIONTRAP, QUADRUPOLE, 
 
 Contact Person
-  Name             : John Doe
+  First Name       : John
+  Last Name        : Doe
   Email            : 
 
 Contact Person
-  Name             : Jane Doe
+  First Name       : Jane
+  Last Name        : Doe
   Email            : 
+
+
+

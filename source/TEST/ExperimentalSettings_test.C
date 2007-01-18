@@ -110,14 +110,18 @@ CHECK(void setContacts(const std::vector<ContactPerson>& contacts))
   ExperimentalSettings tmp;
   std::vector<ContactPerson> dummy;
   ContactPerson c;
-  c.setName("bla17");
+  c.setFirstName("bla17");
+  c.setLastName("blubb17");
   dummy.push_back(c);
-  c.setName("bla18");
+  c.setFirstName("bla18");
+  c.setLastName("blubb18");
   dummy.push_back(c);
   tmp.setContacts(dummy);
   TEST_EQUAL(tmp.getContacts().size(),2);
-  TEST_EQUAL(tmp.getContacts()[0].getName(),"bla17");
-  TEST_EQUAL(tmp.getContacts()[1].getName(),"bla18");
+  TEST_EQUAL(tmp.getContacts()[0].getFirstName(),"bla17");
+  TEST_EQUAL(tmp.getContacts()[1].getFirstName(),"bla18");
+  TEST_EQUAL(tmp.getContacts()[0].getLastName(),"blubb17");
+  TEST_EQUAL(tmp.getContacts()[1].getLastName(),"blubb18");
 RESULT
 
 CHECK(void setDate(const Date& date))
@@ -157,17 +161,17 @@ RESULT
 CHECK(void setSample(const Sample& sample))
   ExperimentalSettings tmp;
   Sample dummy;
-  dummy.setName("bla2");
+  dummy.setName("bla3");
   tmp.setSample(dummy);
-  TEST_EQUAL(tmp.getSample().getName(),"bla2");
+  TEST_EQUAL(tmp.getSample().getName(),"bla3");
 RESULT
 
 CHECK(void setSoftware(const Software& software))
   ExperimentalSettings tmp;
   Software dummy;
-  dummy.setName("bla3");
+  dummy.setName("bla33");
   tmp.setSoftware(dummy);
-  TEST_EQUAL(tmp.getSoftware().getName(),"bla3");
+  TEST_EQUAL(tmp.getSoftware().getName(),"bla33");
 RESULT
 
 CHECK(void setSourceFile(const SourceFile& source_file))
@@ -192,8 +196,8 @@ RESULT
 
 CHECK(Instrument& getInstrument())
   ExperimentalSettings tmp;
-  tmp.getInstrument().setName("bla");
-  TEST_EQUAL(tmp.getInstrument().getName(),"bla");
+  tmp.getInstrument().setName("bla55");
+  TEST_EQUAL(tmp.getInstrument().getName(),"bla55");
 RESULT
 
 CHECK(ProcessingMethod& getProcessingMethod())
@@ -223,13 +227,13 @@ RESULT
 CHECK(std::vector<ContactPerson>& getContacts())
   ExperimentalSettings tmp;
   ContactPerson c;
-  c.setName("bla17");
+  c.setFirstName("bla17");
   tmp.getContacts().push_back(c);
-  c.setName("bla18");
+  c.setFirstName("bla18");
   tmp.getContacts().push_back(c);
   TEST_EQUAL(tmp.getContacts().size(),2);
-  TEST_EQUAL(tmp.getContacts()[0].getName(),"bla17");
-  TEST_EQUAL(tmp.getContacts()[1].getName(),"bla18");
+  TEST_EQUAL(tmp.getContacts()[0].getFirstName(),"bla17");
+  TEST_EQUAL(tmp.getContacts()[1].getFirstName(),"bla18");
 RESULT
 
 CHECK(ExperimentalSettings(const ExperimentalSettings& source))

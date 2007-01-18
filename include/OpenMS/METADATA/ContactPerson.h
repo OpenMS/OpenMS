@@ -57,9 +57,17 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const ContactPerson& rhs) const;
 			
-			/// returns the name of the person
-      const String& getName() const;
-      /// sets the name of the person
+			/// returns the first name of the person
+      const String& getFirstName() const;
+      /// sets the first name of the person
+      void setFirstName(const String& name);
+			
+			/// returns the last name of the person
+      const String& getLastName() const;
+      /// sets the last name of the person
+      void setLastName(const String& name);
+			
+      /// sets the full name of the person (gets split into first and last name internally)
       void setName(const String& name);
 			
 			/// returns the affiliation
@@ -78,7 +86,8 @@ namespace OpenMS
       void setContactInfo(const String& contact_info);
 
     protected:
-			String name_;
+			String first_name_;
+			String last_name_;
 			String institution_;
 			String email_;
 			String contact_info_;

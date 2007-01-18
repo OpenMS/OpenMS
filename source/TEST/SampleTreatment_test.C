@@ -120,6 +120,14 @@ CHECK(const String& getType() const)
 	TEST_EQUAL(s.getType(),"Test")
 RESULT
 
+//getType
+CHECK(const String& getType() const)
+	Test s;
+	TEST_EQUAL(s.getComment(),"")
+	s.setComment("blubb");
+	TEST_EQUAL(s.getComment(),"blubb");
+RESULT
+
 //meta info
 CHECK([EXTRA] MetaInfo)
 	Test s;

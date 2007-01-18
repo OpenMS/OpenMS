@@ -347,10 +347,12 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getContacts().size(), 2);
   ABORT_IF(e.getContacts().size()!=2);
-  TEST_EQUAL(e.getContacts()[0].getName(), "John Doe");
+  TEST_EQUAL(e.getContacts()[0].getFirstName(), "John");
+  TEST_EQUAL(e.getContacts()[0].getLastName(), "Doe");
   TEST_EQUAL(e.getContacts()[0].getInstitution(), "department 1");
   TEST_EQUAL(e.getContacts()[0].getContactInfo(), "www.john.doe");
-  TEST_EQUAL(e.getContacts()[1].getName(), "Jane Doe");
+  TEST_EQUAL(e.getContacts()[1].getFirstName(), "Jane");
+  TEST_EQUAL(e.getContacts()[1].getLastName(), "Doe");
   TEST_EQUAL(e.getContacts()[1].getInstitution(), "department 2");
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 
@@ -525,10 +527,12 @@ CHECK(([EXTRA] load with metadata-only flag))
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getContacts().size(), 2);
   ABORT_IF(e.getContacts().size()!=2);
-  TEST_EQUAL(e.getContacts()[0].getName(), "John Doe");
+  TEST_EQUAL(e.getContacts()[0].getFirstName(), "John");
+  TEST_EQUAL(e.getContacts()[0].getLastName(), "Doe");
   TEST_EQUAL(e.getContacts()[0].getInstitution(), "department 1");
   TEST_EQUAL(e.getContacts()[0].getContactInfo(), "www.john.doe");
-  TEST_EQUAL(e.getContacts()[1].getName(), "Jane Doe");
+  TEST_EQUAL(e.getContacts()[1].getFirstName(), "Jane");
+  TEST_EQUAL(e.getContacts()[1].getLastName(), "Doe");
   TEST_EQUAL(e.getContacts()[1].getInstitution(), "department 2");
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 

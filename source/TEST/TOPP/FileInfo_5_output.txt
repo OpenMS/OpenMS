@@ -37,9 +37,14 @@ Instument
   Mass Analyzer(s) : PAULIONTRAP, QUADRUPOLE, 
 
 Contact Person
-  Name             : John Doe
+  First Name       : John
+  Last Name        : Doe
   Email            : 
 
 Contact Person
-  Name             : Jane Doe
+  First Name       : Jane
+  Last Name        : Doe
   Email            : 
+
+
+

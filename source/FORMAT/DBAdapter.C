@@ -416,6 +416,7 @@ namespace OpenMS
 		// a treatment can be a digestion or a modification
 		const Digestion* digestion;
 		const Modification* modification;
+		const Tagging* tagging;
 		
 		for (int i = 0; i != sample.countTreatments(); i++)
 		{
@@ -457,6 +458,25 @@ namespace OpenMS
 				
 				storeMetaInfo_("META_SampleTreatment", meta_id, *modification);
 			}
+			if (sample.getTreatment(i).getType() == "Tagging")
+			{
+							tagging = dynamic_cast<const Tagging*>(&sample.getTreatment(i));
+							// tagging goes into META_Modification
+							treatment_query << "INSERT INTO META_Modification SET ";
+							treatment_query << "ReagentName='" << tagging->getReagentName() << "'";
+							treatment_query << ",AffectedAminoAcids='" << tagging->getAffectedAminoAcids() << "'";
+							treatment_query << ",SpecificityType=" << (1u+tagging->getSpecificityType());
+							treatment_query << ",MassShift=" << tagging->getMassShift();
+							treatment_query << ",Variant=" << (1u+tagging->getVariant());
+							treatment_query << ",Mass=" << tagging->getMass();
+							db_con_.executeQuery(treatment_query.str(), result);
+
+							query << ",fid_Modification=" << db_con_.getAutoId();
+							db_con_.executeQuery(query.str(), result);
+							meta_id = db_con_.getAutoId();
+
+							storeMetaInfo_("META_SampleTreatment", meta_id, *tagging);
+			}
 		}
 		
 		// recursively save subsamples
@@ -470,13 +490,14 @@ namespace OpenMS
 	
 	void DBAdapter::loadSample_(const UID id, Sample& sample)
 	{
-		QSqlQuery result;
+		QSqlQuery result, sub_result;
 		stringstream query;
 		Sample subsample;
 		std::vector<Sample> subsamples;
+		UID meta_id;
 		
 		query.str("");
-		query << "SELECT Name,SampleID,Mass,Volume,Concentration,State-1,Organism,Description,fid_MetaInfo FROM META_Sample WHERE id='" << id << "'";
+		query << "SELECT Name,SampleID,Mass,Volume,Concentration,State-1,Organism,Description,fid_MetaInfo FROM META_Sample WHERE id=" << id;
 		db_con_.executeQuery(query.str(), result);
 		result.first();
 		
@@ -493,45 +514,68 @@ namespace OpenMS
 		// loading Treatments
 		Digestion digestion;
 		Modification modification;
+		Tagging tagging;
 		
 		query.str("");
 		query << "SELECT id,fid_Digestion,fid_Modification,Description,fid_MetaInfo FROM META_SampleTreatment WHERE fid_Sample=" << id;
 		db_con_.executeQuery(query.str(), result);
 		result.first();
-		
-		// we got a digestion
-		if (result.isValid() && result.value(1).asInt() > 0)
+
+		while (result.isValid())
 		{
-			loadMetaInfo_(result.value(4).asInt(), digestion);
-			
-			query.str("");
-			query << "SELECT Enzyme,DigestionTime,Ph,Temperature FROM META_Digestion WHERE id=" << result.value(1).asInt();
-			db_con_.executeQuery(query.str(), result);
-			result.first();
-			
-			digestion.setEnzyme(result.value(0).toString().ascii());
-			digestion.setDigestionTime(result.value(1).toDouble());
-			digestion.setPh(result.value(2).toDouble());
-			digestion.setTemperature(result.value(3).toDouble());
-			sample.addTreatment(digestion);
+			meta_id = result.value(4).asInt();
+			// we got a digestion
+			if (result.value(1).asInt() > 0)
+			{
+				loadMetaInfo_(meta_id, digestion);
+				
+				query.str("");
+				query << "SELECT Enzyme,DigestionTime,Ph,Temperature FROM META_Digestion WHERE id=" << result.value(1).asInt();
+				db_con_.executeQuery(query.str(), sub_result);
+				sub_result.first();
+				
+				digestion.setEnzyme(sub_result.value(0).toString().ascii());
+				digestion.setDigestionTime(sub_result.value(1).toDouble());
+				digestion.setPh(sub_result.value(2).toDouble());
+				digestion.setTemperature(sub_result.value(3).toDouble());
+				sample.addTreatment(digestion);
+			}
+			// we got a modification OR a tagging
+			else if (result.value(2).asInt() > 0)
+			{
+				// build query and boolean function to distinguish between tagging and modification (NULL values)
+				query.str("");
+				query << "SELECT ReagentName,AffectedAminoAcids,SpecificityType-1,Mass,MassShift,Variant-1,MassShift IS NOT NULL AND Variant IS NOT NULL FROM META_Modification WHERE id=" << result.value(2).asInt();
+				db_con_.executeQuery(query.str(), sub_result);
+				sub_result.first();
+
+				// distinguish whether we are dealing with a tagging
+				if (sub_result.value(6).asInt() == 1)
+				{
+					loadMetaInfo_(meta_id, tagging);
+					tagging.setReagentName(sub_result.value(0).toString().ascii());
+					tagging.setAffectedAminoAcids(sub_result.value(1).toString().ascii());
+					tagging.setSpecificityType((Modification::SpecificityType) sub_result.value(2).asInt());
+					tagging.setMass(sub_result.value(3).toDouble());
+					tagging.setMassShift(sub_result.value(4).toDouble());
+					tagging.setVariant((Tagging::IsotopeVariant) sub_result.value(5).asInt());
+					sample.addTreatment(tagging);
+				}
+				else
+				// we have a real modification
+				{
+					loadMetaInfo_(meta_id, modification);
+					modification.setReagentName(sub_result.value(0).toString().ascii());
+					modification.setAffectedAminoAcids(sub_result.value(1).toString().ascii());
+					modification.setSpecificityType((Modification::SpecificityType) sub_result.value(2).asInt());
+					modification.setMass(sub_result.value(3).toDouble());
+					sample.addTreatment(modification);
+				}
+			}
+
+			result.next();
 		}
-		// we got a modification
-		else if (result.isValid() && result.value(2).asInt() > 0)
-		{
-			loadMetaInfo_(result.value(4).asInt(), modification);
-			
-			query.str("");
-			query << "SELECT ReagentName,AffectedAminoAcids,SpecificityType-1,Mass,MassShift,Variant FROM META_Modification WHERE id=" << result.value(2).asInt();
-			db_con_.executeQuery(query.str(), result);
-			result.first();
-			
-			modification.setReagentName(result.value(0).toString().ascii());
-			modification.setAffectedAminoAcids(result.value(1).toString().ascii());
-			modification.setSpecificityType((Modification::SpecificityType) result.value(2).asInt());
-			modification.setMass(result.value(3).toDouble());
-			sample.addTreatment(modification);
-		}
-		
+
 		query.str("");
 		query << "SELECT id FROM META_Sample WHERE fid_Sample='" << id << "'";
 		db_con_.executeQuery(query.str(),result);

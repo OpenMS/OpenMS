@@ -673,7 +673,8 @@ namespace OpenMS
 					else
 					{
 						exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
-						exp_->getContacts().back().setName(first + " " + last);
+						exp_->getContacts().back().setFirstName(first);
+						exp_->getContacts().back().setLastName(last);
 						
 						tmp_str = getAttributeAsString(EMAIL);
 						if (tmp_str != "") // optional attribute
@@ -1090,23 +1091,8 @@ namespace OpenMS
 			{
 				const ContactPerson& cont = cexp_->getContacts()[0];
 				
-				os << "\t\t\t<operator first=\"";
-				std::vector<String> tmp;
-				if (cont.getName().split(',',tmp))
-				{
-					os << tmp[1] << "\" last=\"" << tmp[0];
-				}
-				else
-				{
-					if (cont.getName().split(' ',tmp))
-					{
-						os << tmp[0] << "\" last=\"" << tmp[1];
-					}
-					else
-					{
-						os << "\" last=\"" << cont.getName();
-					}
-				}
+				os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName();
+				
 				String info = cont.getContactInfo();
 				std::string::size_type phone = info.find("PHONE:");
 				std::string::size_type uri = info.find("URI:");

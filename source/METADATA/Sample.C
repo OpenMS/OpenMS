@@ -268,7 +268,20 @@ namespace OpenMS
 		return **it;
 	}
 	
-	
+	SampleTreatment& Sample::getTreatment(UnsignedInt position) throw (Exception::IndexOverflow)
+	{
+		if (position >= treatments_.size())
+		{
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,position,treatments_.size());
+		}
+		list<SampleTreatment*>::const_iterator it = treatments_.begin();
+		for (UnsignedInt i=0; i<position; ++i)
+		{
+			++it;
+		}
+		return **it;
+	}
+		
 	void Sample::removeTreatment(UnsignedInt position) throw (Exception::IndexOverflow)
 	{
 		if (position >= treatments_.size())

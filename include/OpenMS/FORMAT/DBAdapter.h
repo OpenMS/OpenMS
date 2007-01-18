@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/DBConnection.h>
 #include <OpenMS/METADATA/Digestion.h>
 #include <OpenMS/METADATA/Modification.h>
+#include <OpenMS/METADATA/Tagging.h>
 
 //QT includes
 #include <qsqlquery.h>
@@ -202,7 +203,7 @@ namespace OpenMS
 		
 		query.str("");
 		deleteMetaInfo_("META_Sample", "fid_MSExperiment=" + String(exp.getPersistenceId()));
-		// also delete all referenced content of META_SampleTreatment, META_Digestion and META_Modification
+		// this also deletes all references in META_SampleTreatment, META_Digestion and META_Modification by constraint
 		query << "DELETE FROM META_Sample WHERE fid_MSExperiment='" << exp.getPersistenceId() << "'";
 		storeSample_(exp.getSample(), exp.getPersistenceId(), 0);
 		
@@ -222,8 +223,8 @@ namespace OpenMS
 			query.str("");
 			query << "INSERT INTO META_ContactPerson SET ";
 			query << "fid_MSExperiment='" << exp.getPersistenceId() << "'";
-//			query << ",PreName='" << contact_it->getPreName() << "'";
-			query << ",LastName='" << contact_it->getName() << "'";
+			query << ",PreName='" << contact_it->getFirstName() << "'";
+			query << ",LastName='" << contact_it->getLastName() << "'";
 			query << ",Affiliation='" << contact_it->getInstitution() << "'";
 			query << ",Email='" << contact_it->getEmail() << "'";
 			query << ",Comment='" << contact_it->getContactInfo() << "'";
@@ -261,8 +262,6 @@ namespace OpenMS
 		
 		query << "InstrumentName='" << hplc.getInstrument() << "'";
 		query << ",ColumnName='" << hplc.getColumn() << "'";
-//		query << ",GradientBeginTime=" << hplc.getColumn();
-//		query << ",GradientEndTime=" << hplc.getColumn();
 		query << ",Description='" << hplc.getComment() << "'";
 		query << ",Flux=" << hplc.getFlux();
 		query << ",Pressure=" << hplc.getPressure();
@@ -287,14 +286,13 @@ namespace OpenMS
 		std::stringstream query_eluents, query_time, query_percentages;
 		UID eluents_id, time_id;
 		
+		// this also deletes all references in META_GradientPercentage by constraint
 		query.str("");
 		query << "DELETE FROM META_GradientEluent WHERE fid_HPLC=" << parent_id;
 		db_con_.executeQuery(query.str(),result);
 		query.str("");
 		query << "DELETE FROM META_GradientTime WHERE fid_HPLC=" << parent_id;
 		db_con_.executeQuery(query.str(),result);
-		
-		// also delete contents of META_GradientPercentage!
 		
 		if (! eluents.empty())
 		{
@@ -816,8 +814,8 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-	//		contact.setPreName(result.value(0).toString().ascii());
-			contact.setName(result.value(1).toString().ascii());
+			contact.setFirstName(result.value(0).toString().ascii());
+			contact.setLastName(result.value(1).toString().ascii());
 			contact.setInstitution(result.value(2).toString().ascii());
 			contact.setEmail(result.value(3).toString().ascii());
 			contact.setContactInfo(result.value(4).toString().ascii());
@@ -828,24 +826,22 @@ namespace OpenMS
 		
 		// HPLC
 		query.str("");
-		query << "SELECT id,InstrumentName,ColumnName,GradientBeginTime,GradientEndTime,Description,Flux,Pressure,Temperature FROM META_HPLC WHERE fid_MSExperiment='" << id << "'";
+		query << "SELECT id,InstrumentName,ColumnName,Description,Flux,Pressure,Temperature FROM META_HPLC WHERE fid_MSExperiment='" << id << "'";
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
 		parent_id=result.value(0).asInt();
 		exp.getHPLC().setInstrument(result.value(1).toString().ascii());
 		exp.getHPLC().setColumn(result.value(2).toString().ascii());
-//		exp.getHPLC().setGradientBeginTime(result.value(3).asInt());
-//		exp.getHPLC().setGradientEndTime(result.value(4).asInt());
-		exp.getHPLC().setComment(result.value(5).toString().ascii());
-		exp.getHPLC().setFlux(result.value(6).asInt());
-		exp.getHPLC().setPressure(result.value(7).asInt());
-		exp.getHPLC().setTemperature(result.value(8).asInt());
+		exp.getHPLC().setComment(result.value(3).toString().ascii());
+		exp.getHPLC().setFlux(result.value(4).asInt());
+		exp.getHPLC().setPressure(result.value(5).asInt());
+		exp.getHPLC().setTemperature(result.value(6).asInt());
 		
 		// Gradient*
 		// I tried taking the big query apart in order to skip the double join, but this leads to
 		// the problem of saving all requested keys in a vector in order to request the percentages (complex).
-		// I'll still preserve the code in order to optimize in the future. Maybe I was just being blind.
+		// I'll still preserve the code in order to optimize in the future. Maybe I was just being blind. ;-)
 		
 		String last_name;
 		bool timepoints_done;

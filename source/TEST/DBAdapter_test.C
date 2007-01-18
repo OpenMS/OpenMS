@@ -150,6 +150,11 @@ if (do_tests)
 		modification.setSpecificityType(Modification::CTERM);
 		modification.setMass(12.3);
 		subsample.addTreatment(modification);
+		Tagging tagging;
+		tagging.setReagentName("tagging");
+		tagging.setMassShift(0.123);
+		tagging.setVariant(Tagging::HEAVY);
+		subsample.addTreatment(tagging);
 		subsamples.push_back(subsample);
 		subsample = Sample();
 		subsample.setComment("nice");
@@ -158,8 +163,8 @@ if (do_tests)
 		exp_original.getSample().setSubsamples(subsamples);
 		
 		ContactPerson contact;
-		//contact.setPreName("Ferdinand");
-		contact.setName("Piech");
+		contact.setFirstName("Ferdinand");
+		contact.setLastName("Piech");
 		contact.setInstitution("aff");
 		exp_original.getContacts().push_back(contact);
 		contact = ContactPerson();	
@@ -392,8 +397,6 @@ if (do_tests)
 			TEST_REAL_EQUAL(exp_new.getSample().getMass(), 30.1 )
 			TEST_REAL_EQUAL(exp_new.getSample().getSubsamples()[0].getVolume(), 60.1 )
 			TEST_REAL_EQUAL(exp_new.getSample().getSubsamples()[0].getConcentration(), 101.1 )
-	//		SampleTreatment treatment;
-	//		treatment = ;
 			const Digestion* digestion = dynamic_cast<const Digestion*>(&exp_new.getSample().getSubsamples()[0].getTreatment(0));
 			TEST_EQUAL(digestion->getEnzyme(), "dhdh" )
 			TEST_REAL_EQUAL(digestion->getDigestionTime(), 36.6 )
@@ -407,11 +410,16 @@ if (do_tests)
 			TEST_EQUAL(modification->getAffectedAminoAcids(), "123" )
 			TEST_EQUAL(modification->getSpecificityType(), Modification::CTERM )
 			TEST_REAL_EQUAL(modification->getMass(), 12.3 )
+			const Tagging* tagging = dynamic_cast<const Tagging*>(&exp_new.getSample().getSubsamples()[1].getTreatment(1));
+			TEST_EQUAL(tagging->getReagentName(), "tagging" )
+			TEST_REAL_EQUAL(tagging->getMassShift(), 0.123 )
+			TEST_EQUAL(tagging->getVariant(), Tagging::HEAVY )
+
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[2].getComment(), "nice" )
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[2].getMetaValue("label"), "pink" )
 			
-	//		TEST_EQUAL(exp_new.getContactPerson()[0].getPreName() , "Ferdinand" )
-			TEST_EQUAL(exp_new.getContacts()[0].getName() , "Piech" )
+			TEST_EQUAL(exp_new.getContacts()[0].getFirstName() , "Ferdinand" )
+			TEST_EQUAL(exp_new.getContacts()[0].getLastName() , "Piech" )
 			TEST_EQUAL(exp_new.getContacts()[0].getInstitution() , "aff" )
 			TEST_EQUAL(exp_new.getContacts()[1].getEmail() , "ferdi@porsche.de" )
 			TEST_EQUAL(exp_new.getContacts()[1].getContactInfo() , "ttss" )

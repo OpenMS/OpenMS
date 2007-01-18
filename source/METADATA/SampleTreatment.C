@@ -70,6 +70,16 @@ namespace OpenMS
 		return type_;
 	}
 	
+	const String& SampleTreatment::getComment() const
+	{
+		return comment_;
+	}
+	
+	void SampleTreatment::setComment(const String& comment)
+	{
+		comment_ = comment;
+	}
+	
 	bool SampleTreatment::operator== (const SampleTreatment& rhs) const
 	{
 		return

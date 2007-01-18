@@ -57,19 +57,19 @@ RESULT
 CHECK((MSExperiment(const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setName("Name");
+  tmp.getContacts()[0].setFirstName("Name");
   tmp.resize(1);
   
   MSExperiment<> tmp2(tmp);
   TEST_EQUAL(tmp2.getContacts().size(),1);  
-  TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
+  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 RESULT
 
 CHECK((MSExperiment& operator= (const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setName("Name");
+  tmp.getContacts()[0].setFirstName("Name");
   tmp.resize(1);
   DPeak<1> p;
   p.setPos(5.0);
@@ -81,7 +81,7 @@ CHECK((MSExperiment& operator= (const MSExperiment& source)))
   MSExperiment<> tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);  
-  TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
+  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0);
 	TEST_REAL_EQUAL(tmp2.getMaxMZ(),10.0);

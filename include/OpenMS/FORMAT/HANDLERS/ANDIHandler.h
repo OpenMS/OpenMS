@@ -253,13 +253,13 @@ namespace OpenMS
 		exp_.getSourceFile().setFileType( string_(admin_data->source_file_format) );
 
 		ContactPerson contact;
-		contact.setName( string_(admin_data->operator_name) );
+		contact.setLastName( string_(admin_data->operator_name) );
 		contact.setMetaValue(userParams[CONTACT], std::string("Operator"));
 		exp_.getContacts().push_back(contact);
 
 		
 		contact = ContactPerson();
-		contact.setName( string_(admin_data->dataset_owner) );
+		contact.setLastName( string_(admin_data->dataset_owner) );
 		contact.setContactInfo( string_(admin_data->dataset_origin) );
 		contact.setMetaValue(userParams[CONTACT], std::string("Dataset owner"));
 		exp_.getContacts().push_back(contact);

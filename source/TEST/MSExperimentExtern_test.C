@@ -57,20 +57,20 @@ RESULT
 CHECK(MSExperimentExtern(const MSExperimentExtern& source))
   MSExperimentExtern<> tmp;
   tmp.getContacts().resize(1);
-  tmp.getContacts().at(0).setName("Name");
+  tmp.getContacts().at(0).setFirstName("Name");
   tmp.setBufferSize(1);
   tmp.updateBuffer();
   
   MSExperimentExtern<> tmp2(tmp);
   TEST_EQUAL(tmp2.getContacts().size(),1);  
-  TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
+  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.getBufferSize(),1);
 RESULT
 
 CHECK(MSExperimentExtern& operator= (const MSExperimentExtern& source))
   MSExperimentExtern<> tmp;
   tmp.getContacts().resize(1);
-  tmp.getContacts()[0].setName("Name");
+  tmp.getContacts()[0].setFirstName("Name");
   tmp.setBufferSize(1);
   tmp.updateBuffer();
   MSSpectrum<> spec;
@@ -85,7 +85,7 @@ CHECK(MSExperimentExtern& operator= (const MSExperimentExtern& source))
   MSExperimentExtern<> tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);  
-  TEST_EQUAL(tmp2.getContacts()[0].getName(),"Name");
+  TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.getBufferSize(),1);
 	TEST_REAL_EQUAL(tmp2.getMin()[1],5.0);
 	TEST_REAL_EQUAL(tmp2.getMax()[1],10.0);

@@ -39,7 +39,8 @@ namespace OpenMS
 	
 	ContactPerson::ContactPerson(const ContactPerson& source):
 		MetaInfoInterface(source),
-	  name_(source.name_),
+	  first_name_(source.first_name_),
+	  last_name_(source.last_name_),
 	  institution_(source.institution_),
 	  email_(source.email_),
 	  contact_info_(source.contact_info_)
@@ -56,7 +57,8 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
-    name_ = source.name_;
+    first_name_ = source.first_name_;
+    last_name_ = source.last_name_;
     institution_ = source.institution_;
     email_ = source.email_;
     contact_info_ = source.contact_info_;
@@ -68,7 +70,8 @@ namespace OpenMS
   bool ContactPerson::operator== (const ContactPerson& rhs) const
   {
   	return 
-	    name_ == rhs.name_ &&
+	    first_name_ == rhs.first_name_ &&
+	    last_name_ == rhs.last_name_ &&
 	    institution_ == rhs.institution_ &&
 	    email_ == rhs.email_ &&
 	    contact_info_ == rhs.contact_info_ &&
@@ -81,14 +84,46 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 	
-	const String& ContactPerson::getName() const 
+	const String& ContactPerson::getFirstName() const 
 	{
-	  return name_; 
+	  return first_name_; 
+	}
+	
+	void ContactPerson::setFirstName(const String& name)
+	{
+	  first_name_ = name; 
+	}
+	
+	const String& ContactPerson::getLastName() const 
+	{
+	  return last_name_; 
+	}
+	
+	void ContactPerson::setLastName(const String& name)
+	{
+	  last_name_ = name; 
 	}
 	
 	void ContactPerson::setName(const String& name)
 	{
-	  name_ = name; 
+		std::vector<String> tmp;
+		if (name.split(',',tmp))
+		{
+			first_name_ = tmp[1].trim();
+			last_name_ = tmp[0].trim();
+		}
+		else
+		{
+			if (name.split(' ',tmp))
+			{
+				first_name_ = tmp[0];
+				last_name_ = tmp[1];
+			}
+			else
+			{
+				last_name_ = name;
+			}
+		}
 	}
 	
 	const String& ContactPerson::getEmail() const 

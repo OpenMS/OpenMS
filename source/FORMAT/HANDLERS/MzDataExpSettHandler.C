@@ -95,7 +95,24 @@ namespace OpenMS
 					case NAME: 	// <name> is child of more than one other tags
 						if (is_parser_in_tag_[CONTACT])
 						{
-							contact_->setName( XMLString::transcode(chars) );
+							std::vector<String> tmp;
+							if (String(XMLString::transcode(chars)).split(',',tmp))
+							{
+								contact_->setFirstName(tmp[1]);
+								contact_->setLastName(tmp[0]);
+							}
+							else
+							{
+								if (String(XMLString::transcode(chars)).split(' ',tmp))
+								{
+									contact_->setFirstName(tmp[0]);
+									contact_->setLastName(tmp[1]);
+								}
+								else
+								{
+									contact_->setLastName(XMLString::transcode(chars));
+								}
+							}
 						}
 						else if (is_parser_in_tag_[SOFTWARE])
 						{
@@ -334,7 +351,7 @@ namespace OpenMS
 			for (UnsignedInt i=0; i < cexp_->getContacts().size(); ++i)
 			{
 				os << "\t\t\t<contact>\n"
-					 << "\t\t\t\t<name>" << cexp_->getContacts()[i].getName() << "</name>\n"
+					 << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
 					 << "\t\t\t\t<institution>" << cexp_->getContacts()[i].getInstitution() << "</institution>\n";
 				if (cexp_->getContacts()[i].getContactInfo()!="")
 					os << "\t\t\t\t<contactInfo>" << cexp_->getContacts()[i].getContactInfo() << "</contactInfo>\n";
