@@ -66,10 +66,11 @@ namespace OpenMS
     /// register all derived classes here  
     static void registerChildren();
 
-    /** @brief  extend given seed  
+    /** 
+    	@brief extend given seed  
     
-       \param seed index of peak that serves as seed for feature
-       \return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
+			@param seed_region index of peak that serves as seed for feature
+			@return IndexSet of peaks that could be part of a feature (only valid until next call to extend) 
     */
     virtual const IndexSet& extend(const IndexSet& seed_region)=0;
 			

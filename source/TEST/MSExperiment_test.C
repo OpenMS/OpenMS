@@ -241,7 +241,7 @@ CHECK((template<class Container> void set2DData(const Container& cont) throw(Exc
 	DPeakArray<2> output;
 	
 	exp.get2DData(output);
-	TEST_EQUAL(output,input);
+	TEST_EQUAL(output==input,true);
 	
 	//test precondition
 	input.push_back(p1);

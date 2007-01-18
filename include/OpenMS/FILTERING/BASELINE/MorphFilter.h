@@ -33,14 +33,6 @@
 
 namespace OpenMS
 {
-	/**
-    @defgroup Filtering Filtering
-    
-    @defgroup BaselineFilter Baseline Filters
-
-    @ingroup Filtering
-  */
-	
   /**  @brief This class is the baseclass of morphological filters.
   
        The basic idea of a morphological filter is to inhibit selected signal structures.
@@ -126,7 +118,6 @@ namespace OpenMS
         the structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
         \f[ [\delta_B(s)](x)=max_{b \in B} s(x+b). \f]
         \image html Dilation.png "Dilation with a structuring element of length 3"
-        \image latex Dilation.eps "Dilation with a structuring element of length 3"
     */
     template < typename InputPeakIterator, typename OutputPeakContainer >
     void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)
@@ -213,7 +204,6 @@ namespace OpenMS
        structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
        \f[ [\epsilon_B(s)](x)=min_{b \in B} s(x+b). \f]
        \image html Erosion.png "Erosion with a structuring element of length 3"
-       \image latex Erosion.eps "Erosion with a structuring element of length 3"
     */
     template < typename InputPeakIterator, typename OutputPeakContainer >
     void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)

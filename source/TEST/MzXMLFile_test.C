@@ -408,14 +408,14 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1, e2);
+	TEST_EQUAL(e1==e2, true);
 
 
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzXMLFile_test_2.mzXML",e1);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1, e2);
+	TEST_EQUAL(e1==e2,true);
 RESULT
 
 CHECK(([EXTRA] load/store for Float Kernel Traits))
@@ -428,7 +428,7 @@ CHECK(([EXTRA] load/store for Float Kernel Traits))
 	f.load("data/MzXMLFile_test_2.mzXML",e1);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1, e2);
+	TEST_EQUAL(e1==e2,true);
 RESULT
 
 // check for Float Kernel traits

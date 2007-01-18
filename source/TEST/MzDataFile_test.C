@@ -748,14 +748,14 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
  	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1, e2);
+	TEST_EQUAL(e1==e2,true);
 
 	MSExperiment< DRawDataPoint<1> > e3, e4;
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzDataFile_test_2.mzData",e3);
 	f.store(tmp_filename,e3);
 	f.load(tmp_filename,e4);
-	TEST_EQUAL(e3, e4);
+	TEST_EQUAL(e3==e4,true);
 RESULT
 
 // check load for 64Bit precision and endian conversion
@@ -819,7 +819,7 @@ CHECK(([EXTRA] load/store for Float Kernel Traits))
 	f.load("data/MzDataFile_test_2.mzData",e1);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1, e2);
+	TEST_EQUAL(e1==e2, true);
 RESULT
 
 // check for Float Kernel traits

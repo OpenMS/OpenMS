@@ -271,7 +271,7 @@ CHECK((const Grid& getGrid() const))
 	dewarper.setGrid(agrid);	
 	const Grid agrid2 = dewarper.getGrid();
 	
-	TEST_EQUAL( agrid,agrid2 )
+	TEST_EQUAL( agrid==agrid2, true )
 	
 RESULT
 
@@ -289,7 +289,7 @@ CHECK((MapType& getMap()))
 	DMapDewarper<> dewarper;
 	dewarper.setMap(map);	
 		
-	TEST_EQUAL( map,dewarper.getMap() )
+	TEST_EQUAL( map==dewarper.getMap(), true )
 	
 RESULT
 
@@ -298,7 +298,7 @@ CHECK((void setMap(MapType& elem)))
 	DMapDewarper<> dewarper;
 	dewarper.setMap(map);	
 		
-	TEST_EQUAL( map,dewarper.getMap() )
+	TEST_EQUAL( map==dewarper.getMap(), true )
 	
 RESULT
 
@@ -308,7 +308,7 @@ CHECK((const MapType& getMap() const))
 	dewarper.setMap(map);		
 	const  DFeatureMap<2> map2 = dewarper.getMap();
 	
-	TEST_EQUAL( map,map2 )
+	TEST_EQUAL( map==map2, true )
 	
 RESULT
 

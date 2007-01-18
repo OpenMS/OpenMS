@@ -289,7 +289,7 @@ namespace OpenMS
 		inline AreaIterator(const AreaType& tree_area, const AreaType& area, NodePointer root_node);
 		
 		/**
-			Copy constructor. Copies the iterator @it into this.
+			Copy constructor. Copies the iterator @p it into this.
 			@param it The area iterator to copy.
 		*/
 		inline AreaIterator(const AreaIterator& it);

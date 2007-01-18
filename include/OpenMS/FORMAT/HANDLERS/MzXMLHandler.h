@@ -225,10 +225,13 @@ namespace OpenMS
     
   	//std::cout << " -- Chars -- "<< xercesc::XMLString::transcode(chars) << " -- " << std::endl;
   		
-		if(is_parser_in_tag_[PEAKS] && !options_.getMetadataOnly())
+		if(is_parser_in_tag_[PEAKS])
 		{
-			//chars may be split to several chunks => concatenate them
-			char_rest_ += xercesc::XMLString::transcode(chars);
+			if (!options_.getMetadataOnly())
+			{
+				//chars may be split to several chunks => concatenate them
+				char_rest_ += xercesc::XMLString::transcode(chars);
+			}
 		}
 		else if (	is_parser_in_tag_[OFFSET] ||
 							is_parser_in_tag_[INDEXOFFSET] ||
@@ -236,9 +239,12 @@ namespace OpenMS
 		{
 			
 		}
-		else if (	is_parser_in_tag_[PRECURSORMZ] && !options_.getMetadataOnly() && spec_ != 0)
+		else if (	is_parser_in_tag_[PRECURSORMZ])
 		{
-			spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
+			if (spec_ != 0 && !options_.getMetadataOnly())
+			{
+				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
+			}
 		}
 		else if (	is_parser_in_tag_[COMMENT])
 		{
@@ -250,9 +256,12 @@ namespace OpenMS
 			{
 				setAddInfo(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
 			}
-			else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly() && spec_ != 0)
+			else if (is_parser_in_tag_[SCAN])
 			{
-				spec_->setComment( xercesc::XMLString::transcode(chars) );
+				if (spec_ != 0 && !options_.getMetadataOnly())
+				{
+					spec_->setComment( xercesc::XMLString::transcode(chars) );
+				}
 			}
 			else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
 			{
@@ -901,9 +910,12 @@ namespace OpenMS
 					{
 						setAddInfo(exp_->getInstrument(), name, value, "Instrument.Comment");
 					}
-					else if (is_parser_in_tag_[SCAN] && !options_.getMetadataOnly())
+					else if (is_parser_in_tag_[SCAN] )
 					{
-						setAddInfo(	*spec_, name, value, "Instrument.Comment");
+						if (!options_.getMetadataOnly())
+						{
+							setAddInfo(	*spec_, name, value, "Instrument.Comment");
+						}
 					}
 					else
 					{

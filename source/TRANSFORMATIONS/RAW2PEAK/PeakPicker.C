@@ -45,7 +45,10 @@ namespace OpenMS
 		//set mission defaults
 		param.setDefaults(defaults_);
 		//check given parameters
-		param.checkDefaults(defaults_);
+		//make a copy and remove the parameters for the signal-to-noise estimation
+		Param tmp = param;
+		tmp.remove("signal_to_noise_estimation");
+		tmp.checkDefaults(defaults_);
 		
 		//copy
   	param_ = param;

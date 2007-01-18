@@ -247,7 +247,7 @@ CHECK(template<class Container> void set2DData(Container& cont))
 	DPeakArray<2> output;
 	
 	exp.get2DData(output);
-	TEST_EQUAL(output,input);
+	TEST_EQUAL(output==input,true);
 RESULT
 
 

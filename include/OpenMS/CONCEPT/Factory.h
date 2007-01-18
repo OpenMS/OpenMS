@@ -48,7 +48,7 @@ namespace OpenMS
     friend class singletonsNeedNoFriends; //some versions of gcc would warn otherwise
 
   private:
-    /// \typedef Function signature of creator function 
+    /// Function signature of creator function 
     typedef FactoryProduct* (*FunctionType)();
     typedef std::map<std::string, FunctionType> Map;
     typedef typename Map::const_iterator MapIterator;

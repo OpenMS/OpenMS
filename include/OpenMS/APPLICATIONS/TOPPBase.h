@@ -77,8 +77,8 @@ namespace OpenMS
 	/**
 		 @brief Base class for TOPP Applications.
 		
-		 You have to implement the virtual methods @ref registerOptionsAndFlags_() 
-     and @ref main_() only.
+		 You have to implement the virtual methods registerOptionsAndFlags_
+     and main_ only.
 		 
 		 @todo complete the tests (Clemens)
 		 
@@ -134,8 +134,8 @@ namespace OpenMS
 				DOUBLE,  ///< Floating point number parameter
 				INT,     ///< Integer parameter
 				FLAG,    ///< Parameter without argument
-				TEXT,    ///< Left aligned text, see @ref addText_
-				NEWLINE  ///< An empty line, see @ref addEmptyLine_
+				TEXT,    ///< Left aligned text, see addText_
+				NEWLINE  ///< An empty line, see addEmptyLine_
 			};
 			
 			/// name of the parameter (internal and external)
@@ -324,11 +324,11 @@ namespace OpenMS
 		/** 
 			@name Parameter handling
 			
-			Use the methods @ref registerStringOption_, @ref registerDoubleOption_, @ref registerIntOption_ and @ref registerFlag_
-			in order to register parameters in @ref registerOptionsAndFlags_.
+			Use the methods registerStringOption_, registerDoubleOption_, registerIntOption_ and registerFlag_
+			in order to register parameters in registerOptionsAndFlags_.
 			
 			To access the values of registered parameters in the main_ method use methods 
-			@ref getStringOption_, @ref getDoubleOption_, @ref getIntOption_ and @ref getFlag_.
+			getStringOption_, getDoubleOption_, getIntOption_ and getFlag_.
 			
 			In order to format the help output the methods addEmptyLine_ and addText_ can be used.
 		 */

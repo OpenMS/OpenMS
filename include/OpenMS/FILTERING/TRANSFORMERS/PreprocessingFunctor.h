@@ -32,18 +32,8 @@
 
 namespace OpenMS
 {
-	/**
-    @defgroup Filtering Filtering
-    
-    @defgroup SpectraPreprocessing Spectra Preprocessors
-
-    @ingroup Filtering
-  */
 
 	/**
-	 */
-
-  /**
   	@brief Base class for MSSpectrum preprocessing classes
   */
   class PreprocessingFunctor : public FactoryProduct

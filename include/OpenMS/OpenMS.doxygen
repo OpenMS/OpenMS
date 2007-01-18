@@ -61,6 +61,10 @@
   - SequestAdapter und InspectAdapter anschauen (wenn Tests da)
 
 	TODO:
+	- FileConverter: FileTyp automatisch erkennen einbauen 
+	- FileInfo: FileTyp automatisch erkennen einbauen 
+	- MzXMLFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
+	- MzDataFile: Parsen bei MetaDataOnly abbrechen wenn die scans kommen (ohne error)
 	- TOPPView:
 		- FloatKernel statt DoubleKernel?
 		- Feature markiert -> konvexe Hülle markiert

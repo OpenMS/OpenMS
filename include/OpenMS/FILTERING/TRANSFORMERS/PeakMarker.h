@@ -59,7 +59,7 @@ namespace OpenMS
     /// assignment operator
     PeakMarker& operator = (const PeakMarker& source);
 
-		/// method to mark peaks, which are with their positions in @param marked afterwards
+		/// method to mark peaks
 		template <typename SpectrumType> void apply(std::map<double, bool>& /* marked */, SpectrumType& /* spectrum */) {}
   };
 

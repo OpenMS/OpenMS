@@ -51,12 +51,10 @@ namespace OpenMS
 		// @}
     
     /**
-     class DoubleProxy allows the BinnedSparseVector to differentiate between 
-     writing and reading, so zeros can be ignored<br>
-     see "more effective c++" section 30
-
-		 @todo fully class interface?
-     */
+			@brief class DoubleProxy allows the BinnedSparseVector to differentiate between writing and reading, so zeros can be ignored
+			
+			See "more effective c++" section 30
+    */
     class DoubleProxy
     {
 		
@@ -92,9 +90,7 @@ namespace OpenMS
     // forward declaration
     class BinnedSparseVectorConstIterator;
     
-    /**
-   	 		rudimentary iterator for BinnedSparseVector<br> 
-    */
+    /// iterator for BinnedSparseVector
     class BinnedSparseVectorIterator
     {
 			// @name Friends
@@ -160,9 +156,7 @@ namespace OpenMS
       std::map<uint,double>::const_iterator valit_;
     };
     
-    /**
-    rudimentary const_iterator for BinnedSparseVector<br> 
-    */
+    /// const_iterator for BinnedSparseVector
     class BinnedSparseVectorConstIterator
     {
 			// @name Friends

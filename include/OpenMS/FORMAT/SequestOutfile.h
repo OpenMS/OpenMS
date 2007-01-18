@@ -61,10 +61,9 @@ namespace OpenMS
 			 /**
 				@brief loads data from a Mascot outfile
 				
-				@param filename the file to be loaded
+				@param result_filename the file to be loaded
 				@param identifications the identifications
-				@param protein_identifications the protein identifications
-				@param precursor_mz_values the mz values of the precursors corresponding to the identifications
+				@param protein_identification the protein identifications
 				@param p_value_threshold the significance level (for the peptide hit scores)
 				
 				This class serves to read in a Sequest outfile. The information can be
