@@ -86,13 +86,13 @@ namespace OpenMS
     while (ait != a.end() && bit != b.end())
     {
       //we are at the same position (+- precision)
-      if (fabs((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) < 1e-8)
+      if ((ait.position() * a.getBinSize() + a.min()) == (bit.position() * b.getBinSize() + b.min()))
       {
-        uint int_a = (uint)(*ait * intervals + 0.5);
+        uint int_a = (int)floor(*ait * intervals + 0.5);
         if (int_a == intervals) int_a--;
-        uint int_b = (uint)(*bit * intervals + 0.5);
+        uint int_b = (int)floor(*bit * intervals + 0.5);
         if (int_b == intervals) int_b--;
-        if (*ait > 1e-8 || *bit > 1e-8)
+        if (*ait > 0 || *bit > 0)
         {
           n.at(int_a).at(int_b) += 1;
           nab++;
@@ -104,7 +104,7 @@ namespace OpenMS
       //ait lags
       else if (((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) < 0)
       {
-        uint int_a = (uint)(*ait * intervals + 0.5);
+        uint int_a =(int)floor(*ait * intervals + 0.5);
         if (int_a == intervals) int_a--;
         n.at(int_a).at(0) += 1;
         nab++;
@@ -113,7 +113,7 @@ namespace OpenMS
       //bit lags
       else if (((ait.position() * a.getBinSize() + a.min()) - (bit.position() * b.getBinSize() + b.min())) > 0)
       {
-        uint int_b = (uint)(*bit * intervals + 0.5);
+        uint int_b = (int)floor(*bit * intervals + 0.5);
         if (int_b == intervals) int_b--;
         n.at(0).at(int_b) += 1;
         nab++;
@@ -131,7 +131,7 @@ namespace OpenMS
 
     while (bit != b.end()) 
     {
-      uint int_b = (uint)(*bit * intervals + 0.5);
+      uint int_b = (int)floor(*bit * intervals + 0.5);
       if (int_b == intervals) int_b--;
 
       n.at(0).at(int_b) += 1;
@@ -141,7 +141,7 @@ namespace OpenMS
 		
     while (ait != a.end())
     {
-      uint int_a = (uint)(*ait * intervals + 0.5);
+      uint int_a = (int)floor(*ait * intervals + 0.5);
       if (int_a == intervals) int_a--;
 			
       n.at(int_a).at(0) += 1;
@@ -174,7 +174,7 @@ namespace OpenMS
       for (uint j = 0; j < intervals; ++j)
       {
         double tempresult = (n[i][j]/(double)nab) * log((n[i][j]/(double)nab) / (na[i] * nb[j])) / log(2.0f);
-        if (fabs(n[i][j]) > 1e-8) 
+        if (fabs(n[i][j]) > 0) 
 				{
 					result += tempresult;
 				}
