@@ -86,7 +86,7 @@ CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP
 TOPP = ${OPENMS_PATH}/bin/
 
 # Diff that allows for slight numeric differences
-REL_DEVIATION = 1.01 # relative deviation allowed
+REL_DEVIATION = 1.05 # relative deviation allowed
 ABS_DEVIATION = 0.01 # absolute deviation allowed
 DEVIATION = $(REL_DEVIATION) $(ABS_DEVIATION)
 NUMERICDIFF = NumericDiff
@@ -459,7 +459,7 @@ LabeledMatcher_test: $(NUMERICDIFF)
 
 MapAlignment_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-
+	@$(ECHO) "MapAlignment:"
 	@$(ECHO) "- Test 1: feature files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_consensus.xml, MapAlignment_1_feature_output.tmp)
@@ -512,12 +512,13 @@ NoiseFilter_test: $(NUMERICDIFF)
 
 PeakPicker_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "-Test 1: PeakPicker"
+	@$(ECHO) "PeakPicker:"
+	@$(ECHO) "-Test 1: without deconvolution"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
 
 	@$(ECHO) ""
-	@$(ECHO) "-Test2 :PeakPicker with deconvolution"
+	@$(ECHO) "-Test2 : with deconvolution"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_deconv_parameters.ini -in PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.tmp, PeakPicker_deconv_output.mzData)
 
