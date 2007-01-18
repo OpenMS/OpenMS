@@ -10,6 +10,14 @@
 		<sposition dim="1">712.891</sposition>
 	</second>
 	<mappinglist>
+		<mapping name="DLinearMapping">
+			<param name="DLinearMapping:intercept" value="-10.096"></param>
+			<param name="DLinearMapping:slope" value="1"></param>
+		</mapping>
+		<mapping name="DLinearMapping">
+			<param name="DLinearMapping:intercept" value="0.0392457"></param>
+			<param name="DLinearMapping:slope" value="1"></param>
+		</mapping>
 	</mappinglist>
 </cell>
 </celllist>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <pairlist>
 <pair nr="0">
-	<pairquality>0.198246</pairquality>
+	<pairquality>14.5253</pairquality>
 	<first>
 	<feature id="0">
 		<position dim="0">1241.19</position>
@@ -188,7 +188,7 @@
 	</second>
 </pair>
 <pair nr="1">
-	<pairquality>0.0997019</pairquality>
+	<pairquality>6.78962</pairquality>
 	<first>
 	<feature id="2">
 		<position dim="0">1242.34</position>
@@ -367,7 +367,7 @@
 	</second>
 </pair>
 <pair nr="2">
-	<pairquality>0.129052</pairquality>
+	<pairquality>2.05964</pairquality>
 	<first>
 	<feature id="4">
 		<position dim="0">1214.18</position>
@@ -534,7 +534,7 @@
 	</second>
 </pair>
 <pair nr="3">
-	<pairquality>0.19959</pairquality>
+	<pairquality>8.27765</pairquality>
 	<first>
 	<feature id="6">
 		<position dim="0">1276.25</position>
