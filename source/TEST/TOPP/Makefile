@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------
 #                   OpenMS Mass Spectrometry Framework
 # --------------------------------------------------------------------------
-#  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+#  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -80,7 +80,7 @@ CGAL_PIPELINE_TESTS = \
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS} ${CGAL_PIPELINE_TESTS}
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* cut* feature* model*
+CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP
 
 # Shortcut to TOPP bin path.
 TOPP = ${OPENMS_PATH}/bin/
@@ -105,6 +105,7 @@ default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
 
 clean:
 	@$(CLEANUP)
+	@${RM} -f *.output
 
 #######################################################################
 # HELP TARGET

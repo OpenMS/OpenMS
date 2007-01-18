@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------
 #                   OpenMS Mass Spectrometry Framework
 # --------------------------------------------------------------------------
-#  Copyright (C) 2004 -- Oliver Kohlbacher, Knut Reinert
+#  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -70,6 +70,7 @@ clean:
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
 	@cd $(OPENMS_PATH)/source/APPLICATIONS && make -f Makefile_SUBDIRS default_clean
 	@cd $(OPENMS_PATH)/source/TEST/TOPP/ && make clean
+	@${RM} -f $(OPENMS_PATH)/source/TEST/*.output
 
 distclean:	clean
 	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile ../doc/html/ config.h ../bin

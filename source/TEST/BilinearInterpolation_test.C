@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ using namespace OpenMS::Math;
 
 /////////////////////////////////////////////////////////////
 
-START_TEST( BilinearInterpolation, "$Id: BilinearInterpolation_test.C 805 2006-11-03 16:00:24Z groepl $" )
+START_TEST( BilinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

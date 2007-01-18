@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_2DOptimization_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_2DOptimization_H
+#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
+#define OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
 
 //#define DEBUG_2D
 #undef DEBUG_2D
@@ -684,4 +684,4 @@ namespace OpenMS
   
 }
 
-#endif //OPENMS_TRANSFORMATIONS_RAW2PEAK_TwoDOptimization_H
+#endif //OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
