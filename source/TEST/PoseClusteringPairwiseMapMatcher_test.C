@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// // -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -104,7 +104,7 @@ RESULT
 CHECK((void run()))
   Param param;
   param.setValue("superimposer","poseclustering_shift");
-  param.setValue("pair_finder","delaunay");
+  param.setValue("pair_finder","simple");
   ElementMapType scene;
   ElementType feat1;
   ElementType feat2;
