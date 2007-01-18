@@ -32,6 +32,7 @@ include ../../config_defs.mak
 
 ifeq ($(CGAL_SUPPORT),true)
 CGAL_SOURCES=\
+	BaseAlignment.C\
 	StarAlignment.C\
 	DelaunayPairFinder.C
 endif
@@ -55,7 +56,6 @@ CPP_SOURCES=\
 	SimplePairFinder.C\
 	Group.C\
 	IndexTuple.C\
-	BaseAlignment.C\
 	DMapMatcherRegression.C
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)

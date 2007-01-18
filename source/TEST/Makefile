@@ -307,11 +307,12 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test\
 	BasePairwiseMapMatcher_test\
-	PoseClusteringPairwiseMapMatcher_test\
-	BaseAlignment_test
+	PoseClusteringPairwiseMapMatcher_test
+
 
 ifeq ($(CGAL_SUPPORT),true)
 EXECUTABLES_ANALYSIS_MAPMATCHING_CGAL=\
+	BaseAlignment_test\
 	StarAlignment_test\
 	DelaunayPairFinder_test
 endif
