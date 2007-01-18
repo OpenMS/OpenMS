@@ -167,6 +167,14 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(s.getParam(), p)
 RESULT
 
+CHECK( Param& getParam() )
+	TestProduct1 s;
+  Param p;
+  p.setValue("value",1);
+	p.setValue("check",0);
+  TEST_EQUAL(s.getParam(), p)	
+RESULT
+
 CHECK(const String& getName() const)
 	TestProduct1 s;
   TEST_EQUAL(s.getName(), "TestProduct1")

@@ -136,11 +136,6 @@ CHECK(bool operator != (const DFeaturePair& rhs) const)
 
 RESULT
 
-CHECK(const QualityType& getOverallQuality() const)
-	const DFeature<10> p;
-	TEST_REAL_EQUAL(p.getOverallQuality(), 0.0)
-RESULT
-
 CHECK(QualityType& getQuality())
 	DFeaturePair<3> p;
 	TEST_REAL_EQUAL(p.getQuality(), 0.0)
@@ -152,7 +147,7 @@ CHECK(QualityType& getQuality())
 	TEST_REAL_EQUAL(p.getQuality(), 0.0)
 RESULT
 
-CHECK(setQuality(QualityType))
+CHECK(void setQuality(const QualityType& ql))
 	DFeaturePair<3> p;
 	p.setQuality(123.456);
 	TEST_REAL_EQUAL(p.getQuality(), 123.456)

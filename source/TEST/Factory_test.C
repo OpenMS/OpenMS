@@ -31,7 +31,10 @@
 
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
+
 #include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 
 ///////////////////////////
 
@@ -45,12 +48,22 @@ using namespace std;
 
 
 // Factory is singleton, therefore we don't test the constructor
-CHECK(Factory<DummyProduct>::create(name))
+CHECK(static FactoryProduct* create(const String& name))
 	DataReducer* p = Factory<DataReducer>::create("MaxReducer");
 	MaxReducer reducer;
 	TEST_EQUAL(*p,reducer);
 RESULT
 
+CHECK( static Factory* instance() )
+	Factory<DataReducer>* factory = Factory<DataReducer>::instance();
+	TEST_NOT_EQUAL(factory, 0)
+RESULT
+
+CHECK( static void registerProduct(const String& name, const FunctionType creator) )
+	Factory<BaseExtender>::registerProduct(SimpleExtender::getName(), &SimpleExtender::create);
+	BaseExtender* ext = Factory<BaseExtender>::create("SimpleExtender");
+	TEST_NOT_EQUAL(ext, 0)
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -95,17 +95,28 @@ dpa.push_back(peak4);
 
 ScanIndex<PeakVector> scani;
 	
-CHECK(init())
+CHECK(void init ( PeakIterator _begin, PeakIterator const _end ) throw ())
 	scani.init(dpa.begin(),dpa.end());
 	TEST_EQUAL(scani.size(),5);	
 RESULT
 
-CHECK(getRank())
+CHECK(typename ScanPositionContainerType::size_type getRank ( CoordinateType const & coord ) const throw())
 	TEST_EQUAL(scani.getRank(pos1[0]),0);	
 	TEST_EQUAL(scani.getRank(pos2[0]),1);	
 	TEST_EQUAL(scani.getRank(pos3[0]),2);
 	TEST_EQUAL(scani.getRank(pos4[0]),3);
 RESULT
+
+ScanIndex<PeakVector>::NoSuccessor* nosucc = new ScanIndex<PeakVector>::NoSuccessor("bla",666,"nix",5);
+
+CHECK( NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw() )
+	TEST_NOT_EQUAL(nosucc,0)
+RESULT
+
+CHECK( ~NoSuccessor() throw() )
+	delete nosucc ;
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 END_TEST

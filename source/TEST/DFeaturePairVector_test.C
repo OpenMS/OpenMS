@@ -101,7 +101,7 @@ CHECK( DFeaturePairVector& operator = (const DFeaturePairVector& rhs) )
 	
 RESULT
 
-CHECK(DFeaturePairVector<2>(const DFeaturePairVector& vec))
+CHECK(DFeaturePairVector(const DFeaturePairVector& vec))
 	
 	DFeaturePairVector<2> pvec;
 		
