@@ -47,27 +47,16 @@ using namespace std;
 SVMWrapper* ptr;
 SVMWrapper svm;
 
-CHECK((SVMWrapper()))
+CHECK((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
+  // ???
+RESULT
+
+CHECK(SVMWrapper())
 	ptr = new SVMWrapper();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~SVMWrapper()))
-	delete ptr;
-RESULT
-
-CHECK((double getDoubleParameter(SVM_parameter_type type)))
-	svm.setParameter(C, 1.0043);
-	svm.setParameter(NU, 0.0523);
-	svm.setParameter(P, 1.2319);
-	
-	TEST_REAL_EQUAL(svm.getDoubleParameter(C), 1.0043)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(NU), 0.0523)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(P), 1.2319)
-	
-RESULT
-
-CHECK((void setParameter(SVM_parameter_type type, double value)))
+CHECK(double getDoubleParameter(SVM_parameter_type type))
 	svm.setParameter(C, 1.0043);
 	svm.setParameter(NU, 0.0523);
 	svm.setParameter(P, 1.2319);
@@ -77,31 +66,7 @@ CHECK((void setParameter(SVM_parameter_type type, double value)))
 	TEST_REAL_EQUAL(svm.getDoubleParameter(P), 1.2319)
 RESULT
 
-CHECK((int getIntParameter(SVM_parameter_type type)))
-	svm.setParameter(SVM_TYPE, EPSILON_SVR);
-	svm.setParameter(KERNEL_TYPE, LINEAR);
-	svm.setParameter(DEGREE, 2);
-
-	TEST_EQUAL(svm.getIntParameter(SVM_TYPE), EPSILON_SVR);
-	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), LINEAR);
-	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
-RESULT
-
-CHECK((void setParameter(SVM_parameter_type type, int value)))
-	svm.setParameter(SVM_TYPE, EPSILON_SVR);
-	svm.setParameter(KERNEL_TYPE, LINEAR);
-	svm.setParameter(DEGREE, 2);
-	svm.setParameter(C, 23);
-	svm.setParameter(PROBABILITY, 1);
-
-	TEST_EQUAL(svm.getIntParameter(SVM_TYPE), EPSILON_SVR);
-	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), LINEAR);
-	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
-	TEST_EQUAL((int) svm.getDoubleParameter(C), 23);
-	TEST_EQUAL(svm.getIntParameter(PROBABILITY), 1)
-RESULT
-
-CHECK((double getSVRProbability()))
+CHECK(double getSVRProbability())
 	LibSVMEncoder encoder;
 	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
 	vector< pair<SignedInt, DoubleReal> > temp_vector;
@@ -130,7 +95,17 @@ CHECK((double getSVRProbability()))
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
 RESULT
 
-CHECK((int train(struct svm_problem* problem)))
+CHECK(int getIntParameter(SVM_parameter_type type))
+	svm.setParameter(SVM_TYPE, EPSILON_SVR);
+	svm.setParameter(KERNEL_TYPE, LINEAR);
+	svm.setParameter(DEGREE, 2);
+
+	TEST_EQUAL(svm.getIntParameter(SVM_TYPE), EPSILON_SVR);
+	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), LINEAR);
+	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
+RESULT
+
+CHECK(int train(struct svm_problem* problem))
 	svm_problem* problem = new svm_problem();
 	UnsignedInt count = 4;
 	svm_node** nodes = new svm_node*[count];
@@ -146,10 +121,13 @@ CHECK((int train(struct svm_problem* problem)))
 	problem->l = count;
 	problem->y = labels;
 	TEST_EQUAL(svm.train(problem), 1)
-	
 RESULT
 
-CHECK((static std::vector<DoubleReal>* getLabels(svm_problem* problem)))
+CHECK((static DoubleReal kernelOligo(const svm_node* x, const svm_node* y, const std::vector<DoubleReal>& gauss_table, DoubleReal sigma_square = 0, UnsignedInt max_distance = 50)))
+  // ???
+RESULT
+
+CHECK(static std::vector<DoubleReal>* getLabels(svm_problem* problem))
 	svm_problem* problem = new svm_problem();
 	UnsignedInt count = 4;
 	svm_node** nodes = new svm_node*[count];
@@ -243,7 +221,11 @@ CHECK((static svm_problem* mergePartitions(const std::vector<svm_problem*>* cons
 	}
 RESULT
 
-CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UnsignedInt number_of_partitions, UnsignedInt number_of_runs, bool additive_step_size = true, bool output = false)))
+CHECK((static void calculateGaussTable(UnsignedInt border_length, DoubleReal sigma, std::vector<DoubleReal>& gauss_table)))
+  // ???
+RESULT
+
+CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_problem* problem, std::map<SVM_parameter_type, DoubleReal>& start_values, std::map<SVM_parameter_type, DoubleReal>& step_sizes, std::map<SVM_parameter_type, DoubleReal>& end_values, DoubleReal* cv_quality, UnsignedInt number_of_partitions, UnsignedInt number_of_runs, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt")))
 	map<SVM_parameter_type, DoubleReal> start_values;
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
@@ -287,10 +269,9 @@ CHECK((std::map<SVM_parameter_type, DoubleReal>* performCrossValidation(svm_prob
 
 	parameters = svm.performCrossValidation(problem, start_values, step_sizes, end_values, &cv_quality, 2, 1, true, false);
 	TEST_NOT_EQUAL(parameters->size(), 0)
-
 RESULT
 
-CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
+CHECK(std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors))
 	LibSVMEncoder encoder;
 	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
 	vector< pair<SignedInt, DoubleReal> > temp_vector;
@@ -318,11 +299,10 @@ CHECK((std::vector<DoubleReal>* predict(const std::vector<svm_node*>& vectors)))
 	svm.train(problem);
 	predicted_labels = svm.predict(*encoded_vectors);
 	TEST_NOT_EQUAL(predicted_labels->size(), 0)
-	
 RESULT
 
-CHECK((std::vector<DoubleReal>* predict(struct svm_problem* predictProblem)))
-	LibSVMEncoder encoder;
+CHECK(std::vector<DoubleReal>* predict(struct svm_problem* predictProblem))
+ 	LibSVMEncoder encoder;
 	vector< vector< pair<SignedInt, DoubleReal> > > vectors;		
 	vector< pair<SignedInt, DoubleReal> > temp_vector;
 	vector<svm_node*>* encoded_vectors;
@@ -349,7 +329,54 @@ CHECK((std::vector<DoubleReal>* predict(struct svm_problem* predictProblem)))
 	svm.train(problem);
 	predicted_labels = svm.predict(problem);
 	TEST_NOT_EQUAL(predicted_labels->size(), 0)
+RESULT
 
+CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2)))
+  // ???
+RESULT
+
+CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values)))
+  // ???
+RESULT
+
+CHECK((void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UnsignedInt number_of_runs = 10, UnsignedInt number_of_partitions = 5, DoubleReal step_size = 0.01, UnsignedInt max_iterations = 1000000)))
+  // ???
+RESULT
+
+CHECK((void scaleData(svm_problem* data, UnsignedInt number_of_combinations = 1, UnsignedInt start_combination = 0, SignedInt max_scale_value = -1)))
+  // ???
+RESULT
+
+CHECK((void setParameter(SVM_parameter_type type, double value)))
+ 	svm.setParameter(C, 1.0043);
+	svm.setParameter(NU, 0.0523);
+	svm.setParameter(P, 1.2319);
+	
+	TEST_REAL_EQUAL(svm.getDoubleParameter(C), 1.0043)
+	TEST_REAL_EQUAL(svm.getDoubleParameter(NU), 0.0523)
+	TEST_REAL_EQUAL(svm.getDoubleParameter(P), 1.2319)
+RESULT
+
+CHECK((void setParameter(SVM_parameter_type type, int value)))
+	svm.setParameter(SVM_TYPE, EPSILON_SVR);
+	svm.setParameter(KERNEL_TYPE, LINEAR);
+	svm.setParameter(DEGREE, 2);
+	svm.setParameter(C, 23);
+	svm.setParameter(PROBABILITY, 1);
+
+	TEST_EQUAL(svm.getIntParameter(SVM_TYPE), EPSILON_SVR);
+	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), LINEAR);
+	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
+	TEST_EQUAL((int) svm.getDoubleParameter(C), 23);
+	TEST_EQUAL(svm.getIntParameter(PROBABILITY), 1)
+RESULT
+
+CHECK(void setTrainingSample(svm_problem* training_sample))
+  // ???
+RESULT
+
+CHECK(~SVMWrapper())
+	delete ptr;
 RESULT
 
 CHECK((void loadModel(std::string modelFilename)))

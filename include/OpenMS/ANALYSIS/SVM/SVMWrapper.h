@@ -57,9 +57,15 @@ namespace OpenMS
    	P:           	the epsilon parameter for epsilon-SVR
    	GAMMA:       	the gamma parameter of the POLY, RBF and SIGMOID kernel
 	*/
-	typedef enum{SVM_TYPE, KERNEL_TYPE, DEGREE, C, NU, P, GAMMA, PROBABILITY, SIGMA, BORDER_LENGTH}SVM_parameter_type;
+	typedef enum
+	{
+			SVM_TYPE, KERNEL_TYPE, DEGREE, C, NU, P, GAMMA, PROBABILITY, SIGMA, BORDER_LENGTH
+	} SVM_parameter_type;
 	
-	typedef enum{OLIGO = 19, OLIGO_COMBINED}SVM_kernel_type; /* kernel_type */
+	typedef enum
+	{
+			OLIGO = 19, OLIGO_COMBINED
+	} SVM_kernel_type; /* kernel_type */
 	
 	class SVMWrapper
 	{
