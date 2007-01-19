@@ -350,40 +350,6 @@ namespace OpenMS
     inline void setParam(const Param& param) 
     { 
       param_ = param; 
-      // set params
-      DataValue dv = param_.getValue("WindowLength");
-      if (dv.isEmpty() || dv.toString() == "") win_len_ = (double) DEFAULT_WINLEN;
-      else win_len_ = (double) dv;
-
-      dv = param_.getValue("BinCount");
-      if (dv.isEmpty() || dv.toString() == "") bin_count_ = DEFAULT_BINCOUNT;
-      else bin_count_ = (int) dv;
-      
-      dv = param_.getValue("MinReqElementsInWindow");
-      if (dv.isEmpty() || dv.toString() == "") min_required_elements_ = DEFAULT_MIN_REQUIRED_ELEMENTS;
-      else min_required_elements_ = (int) dv;
-      
-      dv = param_.getValue("NoiseEmptyWindow");
-      if (dv.isEmpty() || dv.toString() == "") noise_for_empty_window_ = (double) DEFAULT_NOISE_ON_EMTPY_WINDOW;
-      else noise_for_empty_window_ = (double) dv;
-      
-      dv = param_.getValue("MaxIntensity");
-      if (dv.isEmpty() || dv.toString() == "") max_intensity_ = -1.0;
-      else max_intensity_ = (double) dv;
-      
-      dv = param_.getValue("AutoMode");
-      if (dv.isEmpty() || dv.toString() == "" || (int) dv !=AUTOMAXBYPERCENT) auto_mode_ = AUTOMAXBYSTDEV;
-      else auto_mode_ = (int) dv;
-      
-      dv = param_.getValue("AutoMaxIntensity");
-      if (dv.isEmpty() || dv.toString() == "") 
-      {
-        if (auto_mode_==AUTOMAXBYSTDEV) auto_max_intensity_ = (double) DEFAULT_MAXINTENSITY_BYSTDEV;
-        else auto_max_intensity_ = (double) DEFAULT_MAXINTENSITY_BYPERCENT;
-      }
-      else auto_max_intensity_ = (double) dv;
-      
-      is_result_valid_ = false;
 
       // print Warning message if there are unknown parameters (typos?)
       // ... define a default object
@@ -396,13 +362,31 @@ namespace OpenMS
       default_p.setValue("AutoMode", (double) auto_mode_);
       default_p.setValue("AutoMaxIntensity", auto_max_intensity_);
       
+      param_.setDefaults(default_p);
       // ... and check it against current param object:
       param_.checkDefaults("DSignalToNoiseEstimatorMedian",default_p);
       
+      // set local members
+      win_len_ = (double) param_.getValue("SignalToNoiseEstimationParameter:WindowLength");
+
+      bin_count_ = (int) param_.getValue("SignalToNoiseEstimationParameter:BinCount");
+      
+      min_required_elements_ = (int) param_.getValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow");
+      
+      noise_for_empty_window_ = (double) param_.getValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow");
+      
+      max_intensity_ = (double) param_.getValue("SignalToNoiseEstimationParameter:MaxIntensity");
+      
+      auto_mode_ = (int) param_.getValue("SignalToNoiseEstimationParameter:AutoMode");
+      
+      auto_max_intensity_ = (double) param_.getValue("SignalToNoiseEstimationParameter:AutoMaxIntensity");
+      
+      is_result_valid_ = false;
+
     }
 
     /// Initialisation of the raw data interval and estimation of noise and baseline levels
-    /// @note: you can provide a "flat" 2D DPeakArray iterator. The class will evaluate the datapoints 
+    /// @note you can provide a "flat" 2D DPeakArray iterator. The class will evaluate the datapoints 
     /// scan by scan. A scan is found by collecting all items with the same (*iterator).getPosition()[rt_dim_]
     void init(PeakIterator it_begin, PeakIterator it_end)
     {
@@ -517,11 +501,11 @@ namespace OpenMS
     };
 
     /// calculate StN values for all datapoints given, by using a sliding window approach
-    /// @param : sparse_window_percent
-    ///          percent of windows that have less than "min_required_elements_" of elements
+    /// @param scan_first_ first element in the scan
+    /// @param scan_last_ last element in the scan (disregarded)
+    /// @param sparse_window_percent percent of windows that have less than "min_required_elements_" of elements
     ///          (noise estimates in those windows are simply a constant "noise_for_empty_window_")           
-    /// @param : histogram_oob_percent (oob=_out_of_bounds)
-    ///          percentage of median estimations that had to rely on the last(=rightmost) bin
+    /// @param histogram_oob_percent (oob=_out_of_bounds) percentage of median estimations that had to rely on the last(=rightmost) bin
     ///          which gives an unreliable result
     void shiftWindow_(const PeakIterator& scan_first_, const PeakIterator& scan_last_, double &sparse_window_percent, double &histogram_oob_percent)
     {
@@ -609,20 +593,20 @@ namespace OpenMS
          histogram[bin] = 0;
          bin_value[bin] = (bin + 0.5) * bin_size;           
       }
-      /// bin in which a datapoint would fall
+      // bin in which a datapoint would fall
       int to_bin;
 
-      /// index of bin where the median is located
+      // index of bin where the median is located
       int median_bin;
-      /// additive number of elements from left to x in histogram
+      // additive number of elements from left to x in histogram
       int element_inc_count;
       
-      /// tracks elements in current window, which may vary because of uneven spaced data
+      // tracks elements in current window, which may vary because of uneven spaced data
       int elements_in_window = 0;
-      /// number of windows
+      // number of windows
       int window_count = 0;
       
-      /// number of elements where we find the median
+      // number of elements where we find the median
       int element_in_window_half;
       
       double noise;    // noise value of a datapoint      
@@ -716,7 +700,7 @@ namespace OpenMS
     }
 
     /// stores the noise estimate for each peak
-    /// TODO: change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
+    ///@TODO change to std::hash_map<const char*, int, hash<const char*>, eqstr>  == the current one is SORTED (WHY??)!
     std::map< PeakType, double, typename PeakType::PositionLess > stn_estimates_;
     //HashMap <PeakType, double> stn_estimates_; // --> error cast to int
 
