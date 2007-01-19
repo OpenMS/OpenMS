@@ -174,20 +174,20 @@ RESULT
 CHECK((double getMzBucketSize() const))
   PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),0.2)
+  TEST_REAL_EQUAL(pcat_copy.getMzBucketSize(),1)
 RESULT
 
 CHECK((double getScalingBucketSize(UnsignedInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),2)
+  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),0.5)
   TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(1),0.1)
 RESULT
 
 CHECK((double getShiftBucketSize(UnsignedInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap> pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),2)
+  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),1)
   TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(1),0.1)
 RESULT
 

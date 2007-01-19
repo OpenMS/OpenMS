@@ -594,7 +594,6 @@ namespace OpenMS
           pair_finder.computeConsensusMap(map,final_consensus_map_);
 
 #ifdef DEBUG_ALIGNMENT
-
           std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
           ++number_alignments;
 #endif

@@ -143,17 +143,18 @@ CHECK(void run() throw(Exception::InvalidValue))
   file_name = "data/MapAlignmentFeatureMap2.xml";
   FeatureMap map2;
   feature_file.load(file_name,map2);
-  name_vector[0] = file_name;
+  name_vector[1] = file_name;
   vector<FeatureMap*> map_vector(2);
   map_vector[0] = &map1;
   map_vector[1] = &map2;
   alignment.setElementMapVector(map_vector);
+  alignment.setFileNames(name_vector);
   
   Param param;
   param.setValue("map_type","feature_map");
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   param.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
-  param.setValue("matching_algorithm:pair_finder:type","delaunay");
+  param.setValue("matching_algorithm:pairfinder:type","delaunay");
   alignment.setParam(param);
   alignment.run();
   

@@ -70,8 +70,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   
   StarAlignment< ConsensusFeature<FeatureMap> > alignment;
   Param param;
-  param.setValue("matching_algorithm","poseclustering_pairwise");
-  param.setValue("consensus_algorithm","delaunay");
+  param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParam(param);
   alignment.setTransformationVector(grid_vector);
   alignment.setFinalConsensusMap(cons_map);

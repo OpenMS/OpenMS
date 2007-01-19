@@ -39,8 +39,7 @@
 #include <map>
 #include <math.h>
 
-//#define V_PoseClusteringAffineSuperimposer(bla) std::cout << bla << std::endl;
-#define V_PoseClusteringAffineSuperimposer(bla)
+#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -125,21 +124,21 @@ namespace OpenMS
     /// Constructor
     PoseClusteringAffineSuperimposer()
         : Base(),
-        mz_bucket_size_(0.2)
+        mz_bucket_size_(1)
     {
-      shift_bucket_size_[0] = 2;
+      shift_bucket_size_[0] = 1;
       shift_bucket_size_[1] = 0.1;
-      scaling_bucket_size_[0] = 2;
+      scaling_bucket_size_[0] = 0.5;
       scaling_bucket_size_[1] = 0.1;
       bucket_window_shift_[0] = 1;
       bucket_window_shift_[1] = 1;
       bucket_window_scaling_[0] = 1;
       bucket_window_scaling_[1] = 1;
 
-      defaults_.setValue("tuple_search:mz_bucket_size",0.2);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",2);
+      defaults_.setValue("tuple_search:mz_bucket_size",1);
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",1);
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1);
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",2);
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.5);
       defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1);
       defaults_.setValue("transformation_space:bucket_window_shift:RT",1);
       defaults_.setValue("transformation_space:bucket_window_shift:MZ",1);
@@ -371,7 +370,7 @@ namespace OpenMS
 
   protected:
     /// To speed up the calculation of the final transformation, we confine the number of
-    /// considered point pairs. We match a point p in the modell map only onto those points p'
+    /// considered point pairs. We match a point p in the model map only onto those points p'
     /// in the scene map that lie in a certain mz intervall.
     /// If  (p_mz - mz_bucket_size_) <= p'_mz <= (p_mz mz_bucket_size_) then p and p' are partners.
     void preprocess_()
@@ -448,16 +447,12 @@ namespace OpenMS
 
     } // preprocess_
 
-    /// Compute the transformations between each point pair in the modell map and each point pair in the scene map
+    /// Compute the transformations between each point pair in the model map and each point pair in the scene map
     /// and hash the affine transformation.
     void hashAffineTransformations_()
     {
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
 
-#ifdef V_hashAffineTransformations_
-      std::ofstream rt_os("rt_matrix.dat", std::ios::out);
-      std::ofstream mz_os("mz_matrix.dat", std::ios::out);
-#endif
 
       // take each point pair in the model map
       UnsignedInt n = model_map_red_.size();
@@ -591,27 +586,29 @@ namespace OpenMS
         } // for j
       } // for i
 
-#ifdef V_hashAffineTransformations_
-      typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-      while (it != rt_hash_.end())
-      {
-        rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
-        << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
-        << it->second << '\n';
-        ++it;
-      }
+//       std::ofstream rt_os("rt_matrix.dat", std::ios::out);
+//       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
+// 
+//       typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
+//       while (it != rt_hash_.end())
+//       {
+//         rt_os << ((it->first).first)*shift_bucket_size_[RT] + shift_bounding_box_.min()[RT] << ' '
+//         << ((it->first).second)*scaling_bucket_size_[RT] + scaling_bounding_box_.min()[RT] << ' '
+//         << it->second << '\n';
+//         ++it;
+//       }
+// 
+//       it = mz_hash_.begin();
+//       while (it != mz_hash_.end())
+//       {
+//         mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
+//         << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
+//         << it->second << '\n';
+//         ++it;
+//       }
+//       rt_os.flush();
+//       mz_os.flush();
 
-      it = mz_hash_.begin();
-      while (it != mz_hash_.end())
-      {
-        mz_os << ((it->first).first)*shift_bucket_size_[MZ] + shift_bounding_box_.min()[MZ] << ' '
-        << ((it->first).second)*scaling_bucket_size_[MZ] + scaling_bounding_box_.min()[MZ] << ' '
-        << it->second << '\n';
-        ++it;
-      }
-      rt_os.flush();
-      mz_os.flush();
-#endif
 #undef V_hashAffineTransformations_
 
     } // hashAffineTransformations_
