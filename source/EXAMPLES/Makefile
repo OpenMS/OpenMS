@@ -29,23 +29,13 @@ DIRECTORY=EXAMPLES
 CPP_SOURCES= \
 	Serialization_example_GPS.C \
 	Serialization_example_KERNEL_1.C \
-	AverageNoiseEstimation_Test.C \
-	ExtractData.C \
-	FilterMap.C \
-	FilterMapDTA.C \
-	ConvertMap.C \
-	RAW2BMP.C \
-	StarAlignment_Main.C \
-	TestC.C 
-	
-	
+	FeatureFinder.C \
+	FeatureMapping.C \
 
 ### Apparently this one doesn't compile with g++ version 4.1.0.
 ### It used to compile with an earlier version...
 ### TODO fix that (Clemens).
 #	Serialization_example_KERNEL_2.C \
-#	FeatureFinder.C \
-#	FeatureMapping.C \
 
 
 OBJECTS=$(SOURCES:.C=.o)
@@ -75,32 +65,6 @@ FeatureFinder:	FeatureFinder.o
 FeatureMapping: FeatureMapping.o
 	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
 
-AverageNoiseEstimation_Test: AverageNoiseEstimation_Test.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-ExtractData: ExtractData.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-TestC: TestC.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-DSignalToNoiseEstimatorMeanIterative.C: DSignalToNoiseEstimatorMeanIterative.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-FilterMap: FilterMap.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-FilterMapDTA: FilterMapDTA.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-ConvertMap: ConvertMap.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS)
-
-RAW2BMP: RAW2BMP.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS) `Magick++-config --cppflags --cxxflags --ldflags --libs`
-
-StarAlignment_Main: StarAlignment_Main.o
-	$(CXX)	$(LDFLAGS) -o $@ $@.o $(LIBS) `Magick++-config --cppflags --cxxflags --ldflags --libs`
 
 # I admit that this is a weird hack, but we need to prefer "boost-1_33_1/boost" over "boost".
 # The .C.o rule is otherwise the same as in config.mak, which turns out not to be affected by configure (momentarily).
