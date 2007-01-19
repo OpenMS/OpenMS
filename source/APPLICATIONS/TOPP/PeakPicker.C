@@ -49,6 +49,8 @@ using namespace std;
 	The method uses the multiscale nature of spectrometric data by
 	first detecting the mass peaks in the wavelet-transformed signal
 	before a given asymmetric peak function is fitted to the raw data.
+	In case of low-resoluted data an optional step for the separation of
+	overlapping peaks can be added.
 	In an optional third stage, the resulting fit can be further improved using
 	techniques from nonlinear optimization.
 	
@@ -95,11 +97,15 @@ class TOPPPeakPicker
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file:\n"
 							"<NODE algorithm>\n"
-							"  <NODE name=\"SignalToNoiseEstimationParameter\">\n"
-							"    <ITEM name=\"bucket\" value=\"10\" type=\"int\" />\n"
-							"    <ITEM name=\"window\" value=\"700\" type=\"int\" />\n"
-							"  </NODE>\n"
-							"  <ITEM name=\"optimization\" value=\"off\" type=\"string\"/>\n"
+						 	" <NODE name=\"SignalToNoiseEstimationParameter\">\n "
+						  "   <ITEM name=\"WindowLength\" value=\"200\" type=\"int\" />\n "
+				      "   <ITEM name=\"BinCount\" value=\"30\" type=\"int\" />\n "
+        			"   <ITEM name=\"MinReqElementsInWindow\" value=\"10\" type=\"int\" />\n"
+						  "   <ITEM name=\"NoiseEmptyWindow\" value=\"2\" type=\"int\" /> \n"
+						  " </NODE> \n"
+						  " <NODE name=\"Optimization\"> \n"
+							"  <ITEM name=\"optimization\" value=\"no\" type=\"string\"/>\n"
+						  " </NODE> "
 							"  <NODE name=\"wavelet_transform\">\n"
 							"    <ITEM name=\"scale\" value=\"0.2\" type=\"float\" />\n"
 							"  </NODE>\n"
@@ -108,6 +114,9 @@ class TOPPPeakPicker
 							"    <ITEM name=\"peak_bound_ms2_level\" value=\"30\" type=\"float\" />\n"
 							"    <ITEM name=\"fwhm_bound\" value=\"0.1\" type=\"float\"/>\n"
 							"  </NODE>\n"
+						  " <NODE name=\"deconvolution\"> \n"
+						  "  <ITEM name=\"skip_deconvolution\" value=\"yes\" type=\"string\"/>\n"
+						  " </NODE>\n"
 							"</NODE>");
 		addEmptyLine_();
   	addText_("This application implements an algorithm for peak picking as\n"
