@@ -5,28 +5,28 @@
 			<sampleName> unknown </sampleName>
 		</admin>
 		<settings>
-			<userParam name="number_of_identifications" value="7" />
+			<userParam name="number_of_identifications" value="1" />
 			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
-			<userParam name="date_group_0" value="2007-01-17 00:12:18"/>
+			<userParam name="date_group_0" value="2007-01-19 10:51:45"/>
 		</settings>
 	</description>
 	<ident>
 		<proteinGroup count="0">
 			<protein>
 				<dbName>SwissProt</dbName>
-				<dbID>P68509</dbID>
+				<dbID>Q9CQV8</dbID>
 				<peptide>
-					<seq>EKIE</seq>
+					<seq>NQGD</seq>
 					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
+					<userParam name="peptide_significance_threshold" value="0.975"/>
 					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="42.964" />
-					<userParam name="precursor_mz" value="517.267" />
-					<userParam name="score" value="-2.47" />
+					<userParam name="precursor_retention_time" value="21.9494" />
+					<userParam name="precursor_mz" value="433.803" />
+					<userParam name="score" value="-12.839" />
 					<userParam name="score_type" value="Inspect"/>
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
@@ -35,76 +35,24 @@
 				<userParam name="score" value="0"/>
 				<userParam name="score_type" value=""/>
 			</protein>
+			<userParam name="proteins" value="all"/>
+		</proteinGroup>
+		<proteinGroup count="0">
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>P02666|CASB_BOVIN Beta-casein - Bos taurus (Bovine).</dbID>
+				<dbName>SwissProt</dbName>
+				<dbID>Q9CQV8</dbID>
 				<peptide>
-					<seq>PVPQK</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="1"/>
+					<seq>NQGD</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="0.975"/>
 					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="431.124" />
-					<userParam name="precursor_mz" value="568.509" />
-					<userParam name="score" value="3.056" />
+					<userParam name="precursor_retention_time" value="21.9494" />
+					<userParam name="precursor_mz" value="433.803" />
+					<userParam name="score" value="-12.839" />
 					<userParam name="score_type" value="Inspect"/>
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
-				<peptide>
-					<seq>HKEMPFPK</seq>
-					<userParam name="identification_index" value="3" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="522.58" />
-					<userParam name="precursor_mz" value="507.38" />
-					<userParam name="score" value="11.756" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>HKEMPFPK</seq>
-					<userParam name="identification_index" value="4" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="535.949" />
-					<userParam name="precursor_mz" value="507.088" />
-					<userParam name="score" value="8.248" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>LLYQEPVLGPVR</seq>
-					<userParam name="identification_index" value="6" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="1284.89" />
-					<userParam name="precursor_mz" value="692.728" />
-					<userParam name="score" value="11.875" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>YQEPVLGPVRGPFPIIV</seq>
-					<userParam name="identification_index" value="8" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="2" />
-					<userParam name="precursor_retention_time" value="2111.87" />
-					<userParam name="precursor_mz" value="941.508" />
-					<userParam name="score" value="2.606" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>SphosKV</seq>
-					<userParam name="identification_index" value="11" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="3977.79" />
-					<userParam name="precursor_mz" value="413.422" />
-					<userParam name="score" value="-6.702" />
-					<userParam name="score_type" value="Inspect"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="identification_index" value="0"/>
 				<userParam name="date_group_index" value="0"/>
 				<userParam name="score" value="0"/>
 				<userParam name="score_type" value=""/>
