@@ -62,8 +62,7 @@ namespace OpenMS
 		/// stores the map @p map in file with name @p filename. General case is not implemented!
 		template<Size D> 
 		void store(String filename, const DFeatureMap<D>& map) const throw (Exception::UnableToCreateFile);
-			
-		
+					
 		/// stores the map @p feature_map in file with name @p filename.
 		void store(String filename, const DFeatureMap<2>& feature_map) const throw (Exception::UnableToCreateFile);
 		//@}

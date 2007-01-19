@@ -29,6 +29,7 @@
 
 #include <OpenMS/FORMAT/DFeatureMapFile.h>
 #include <OpenMS/KERNEL/DFeatureMap.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 ///////////////////////////
 
@@ -41,16 +42,16 @@ using namespace OpenMS;
 using namespace std;
 
 DFeatureMapFile* ptr = 0;
-CHECK(DFeatureMapFile())
+CHECK((DFeatureMapFile()))
 	ptr = new DFeatureMapFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DFeatureMapFile())
+CHECK((~DFeatureMapFile()))
 	delete ptr;
 RESULT
  
-CHECK(void load(const String& filename, DFeatureMap& map) throw (Exception::FileNotFound))
+CHECK(void load(String filename, DFeatureMap<2>& feature_map) throw (Exception::FileNotFound, Exception::ParseError))
 	PRECISION(0.01)
 	
 	DFeatureMap<2> e;
@@ -175,7 +176,7 @@ CHECK(void load(const String& filename, DFeatureMap& map) throw (Exception::File
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK(void store(const String& filename, const DFeatureMap& map) const throw (Exception::UnableToCreateFile))
+CHECK((void store(String filename, const DFeatureMap<2>& feature_map) const throw(Exception::UnableToCreateFile)))
   
   std::string tmp_filename;
   DFeatureMap<2> e;
@@ -186,6 +187,13 @@ CHECK(void store(const String& filename, const DFeatureMap& map) const throw (Ex
   f.store(tmp_filename,e);
   TEST_FILE(tmp_filename.c_str(),"data/DFeatureMapFile.xml");
 
+RESULT
+
+CHECK(PeakFileOptions& getOptions())
+	DFeatureMapFile mf;
+	PeakFileOptions pfopt;
+	
+	TEST_EQUAL(mf.getOptions()==pfopt,true) 
 RESULT
 
 /////////////////////////////////////////////////////////////

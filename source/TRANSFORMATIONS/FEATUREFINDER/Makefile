@@ -56,8 +56,7 @@ CPP_SOURCES=\
 	MarrWaveletSeeder.C\
 	FeaFiTraits.C\
 	PickedPeakSeeder.C\
-	IsotopeWaveletSeeder.C\
-	MvAvgExtender.C
+	IsotopeWaveletSeeder.C
 
 
 ADD_CPP_SOURCES = $(CGAL_SOURCES)

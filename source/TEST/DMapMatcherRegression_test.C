@@ -65,16 +65,16 @@ START_TEST(DMapMatcherRegression<ElementT>, "$Id$")
 
 
 DMapMatcherRegression<>* pl_ptr = 0;
-CHECK(DFeatureMap<2>())
+CHECK((DMapMatcherRegression()))
 	pl_ptr = new DMapMatcherRegression<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 RESULT
 
-CHECK(~DMapMatcherRegression<>())
+CHECK((~DMapMatcherRegression()))
 	delete pl_ptr;
 RESULT
 
-CHECK(DMapMatcherRegression<>(const DMapMatcherRegression& p))
+CHECK((DMapMatcherRegression(const DMapMatcherRegression& source)))
 
 	// first pair
 	DFeaturePair<2> pair1;
@@ -124,7 +124,7 @@ CHECK(DMapMatcherRegression<>(const DMapMatcherRegression& p))
 		
 RESULT
 
-CHECK(operator =)
+CHECK((DMapMatcherRegression& operator = (const DMapMatcherRegression& source)))
 
 	// first pair
 	DFeaturePair<2> pair1;
@@ -175,7 +175,7 @@ CHECK(operator =)
 RESULT
 
 
-CHECK(operator ==)
+CHECK((bool operator == (const DMapMatcherRegression& rhs)))
 	
 	// first pair
 	DFeaturePair<2> pair1;
@@ -226,7 +226,7 @@ CHECK(operator ==)
 RESULT
 
 
-CHECK(estimateTransform() )
+CHECK((void estimateTransform()))
 
 	// first pair
 	DFeaturePair<2> pair1;

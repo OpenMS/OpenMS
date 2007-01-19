@@ -49,13 +49,13 @@ typedef DPeakArray<2> PeakVector;
 
 ScanIndex<PeakVector>* index_ptr = 0;
 
-CHECK(ScanIndex())
+CHECK((ScanIndex()))
 	index_ptr = new ScanIndex<PeakVector>;
 	TEST_NOT_EQUAL(index_ptr, 0)
 	TEST_EQUAL(index_ptr->size(), 0)
 RESULT
 
-CHECK(~ScanIndex())
+CHECK((~ScanIndex()))
 	delete index_ptr;
 RESULT
 
@@ -93,14 +93,54 @@ peak4.getIntensity() = 3.0;
 peak4.getPosition() = pos4;
 dpa.push_back(peak4);
 
+CHECK(ScanIndex(const ScanIndex& rhs ))
+	ScanIndex<PeakVector> ind1;
+	ind1.init(dpa.begin(),dpa.end());
+	
+	ScanIndex<PeakVector> ind2(ind1);
+	
+	TEST_EQUAL(ind1==ind2,true)
+
+RESULT
+
+CHECK(ScanIndex& operator = (const ScanIndex& rhs))
+	ScanIndex<PeakVector> ind1;
+	ind1.init(dpa.begin(),dpa.end());
+	
+	ScanIndex<PeakVector> ind2 = ind1;
+	
+	TEST_EQUAL(ind1==ind2,true)
+
+RESULT
+
+CHECK(bool operator != (const ScanIndex& rhs) const)
+	ScanIndex<PeakVector> ind1;
+	ind1.init(dpa.begin(),dpa.end());
+	ScanIndex<PeakVector> ind2;
+
+	TEST_EQUAL(ind1!=ind2,true)
+
+RESULT
+
+CHECK(bool operator == (const ScanIndex& rhs) const )
+	ScanIndex<PeakVector> ind1;
+	ind1.init(dpa.begin(),dpa.end());
+	
+	ScanIndex<PeakVector> ind2 = ind1;
+	
+	TEST_EQUAL(ind1==ind2,true)
+
+RESULT
+
+
 ScanIndex<PeakVector> scani;
 	
-CHECK(void init ( PeakIterator _begin, PeakIterator const _end ) throw ())
+CHECK(([EXTRA]void init ( PeakIterator _begin, PeakIterator const _end ) throw ()))
 	scani.init(dpa.begin(),dpa.end());
 	TEST_EQUAL(scani.size(),5);	
 RESULT
 
-CHECK(typename ScanPositionContainerType::size_type getRank ( CoordinateType const & coord ) const throw())
+CHECK(([EXTRA]typename ScanPositionContainerType::size_type getRank ( CoordinateType const & coord ) const throw()))
 	TEST_EQUAL(scani.getRank(pos1[0]),0);	
 	TEST_EQUAL(scani.getRank(pos2[0]),1);	
 	TEST_EQUAL(scani.getRank(pos3[0]),2);
@@ -109,11 +149,11 @@ RESULT
 
 ScanIndex<PeakVector>::NoSuccessor* nosucc = new ScanIndex<PeakVector>::NoSuccessor("bla",666,"nix",5);
 
-CHECK( NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw() )
+CHECK((NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw()))
 	TEST_NOT_EQUAL(nosucc,0)
 RESULT
 
-CHECK( ~NoSuccessor() throw() )
+CHECK((~NoSuccessor() throw()))
 	delete nosucc ;
 RESULT
 

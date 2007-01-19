@@ -46,16 +46,16 @@ using namespace OpenMS;
 using namespace std;
 
 DGridFile* ptr = 0;
-CHECK(DGridFile())
+CHECK((DGridFile()))
 	ptr = new DGridFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DGridFile())
+CHECK((~DGridFile()))
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, DGrid& grid) throw (Exception::FileNotFound))
+CHECK((template<Size D> void load(String filename, DGrid<D>& grid) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 	
 	DGrid<2> grid;
@@ -79,7 +79,7 @@ CHECK(void load(const String& filename, DGrid& grid) throw (Exception::FileNotFo
 	
 RESULT
 
-CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const throw (Exception::UnableToCreateFile))
+CHECK((template<Size D> void store(String filename, const DGrid<D>& grid) const throw(Exception::UnableToCreateFile)))
 	
 	std::string tmp_filename;
   DGrid<2> grid;

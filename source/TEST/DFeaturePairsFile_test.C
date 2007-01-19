@@ -41,16 +41,16 @@ using namespace OpenMS;
 using namespace std;
 
 DFeaturePairsFile* ptr = 0;
-CHECK(DFeatureMapFile())
+CHECK((DFeaturePairsFile()))
 	ptr = new DFeaturePairsFile();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~DFeaturePairsFile())
+CHECK((~DFeaturePairsFile()))
 	delete ptr;
 RESULT
 
-CHECK(void load(const String& filename, DFeaturePairVector& pairs) throw (Exception::FileNotFound))
+CHECK((template<Size D> void load(String filename, DFeaturePairVector<D>& pairs) throw(Exception::FileNotFound, Exception::ParseError)))
 	PRECISION(0.01)
 	
 	DFeaturePairVector<2> pvector;
@@ -72,7 +72,7 @@ CHECK(void load(const String& filename, DFeaturePairVector& pairs) throw (Except
 	
 RESULT
 
-CHECK(void store(const String& filename, const DFeaturePairVector& pairs) const throw (Exception::UnableToCreateFile))
+CHECK((template<Size D> void store(String filename, const DFeaturePairVector<D>& pairs) const throw(Exception::UnableToCreateFile)))
 	
 	std::string tmp_filename;
   DFeaturePairVector<2> pvector;

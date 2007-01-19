@@ -68,18 +68,29 @@ class TestProduct2 : public FactoryProduct
 
 // default ctor
 FactoryProduct* ptr = 0;
-CHECK(FactoryProduct())
+CHECK((FactoryProduct()))
 	ptr = new FactoryProduct();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
-CHECK(~FactoryProduct())
+CHECK((~FactoryProduct()))
 	delete ptr;
 RESULT
 
+CHECK(FactoryProduct(const Param& p))
+	
+  Param p;
+  p.setValue("check",1);
+  TestProduct1 fp1(p);
+
+  TestProduct1 fp2(p);
+
+	TEST_EQUAL(fp1,fp2)
+RESULT
+
 // assignment operator
-CHECK(FactoryProduct& operator = (const FactoryProduct& source))
+CHECK((FactoryProduct& operator = (const FactoryProduct& source)))
 	TestProduct1 fp1;
   Param p;
   p.setValue("check",1);
@@ -98,7 +109,7 @@ CHECK(FactoryProduct& operator = (const FactoryProduct& source))
 RESULT
 
 // copy constructor
-CHECK(FactoryProduct(const FactoryProduct& source))
+CHECK((FactoryProduct(const FactoryProduct& source)))
 	TestProduct1 fp1;
   Param p;
   p.setValue("check",1);
@@ -115,7 +126,7 @@ CHECK(FactoryProduct(const FactoryProduct& source))
 	TEST_EQUAL(fp2, fp3)
 RESULT
  
-CHECK(bool operator == (const FactoryProduct& rhs) const)
+CHECK((bool operator == (const FactoryProduct& rhs) const))
 	TestProduct1 s;
   Param p;
   p.setValue("check",1);
@@ -129,7 +140,7 @@ CHECK(bool operator == (const FactoryProduct& rhs) const)
 RESULT
 
 
-CHECK(bool operator != (const FactoryProduct& rhs) const)
+CHECK((bool operator != (const FactoryProduct& rhs) const))
 	TestProduct1 s;
   Param p;
   p.setValue("check",1);
@@ -145,7 +156,7 @@ CHECK(bool operator != (const FactoryProduct& rhs) const)
   TEST_EQUAL(res,true)
 RESULT
  
-CHECK( void setParam(const Param& p))
+CHECK((void setParam(const Param& p)))
 	TestProduct1 s;
   Param p;
 	p.setValue("value",1);
@@ -159,7 +170,7 @@ CHECK( void setParam(const Param& p))
   TEST_EQUAL(s.getParam(), q)
 RESULT
 
-CHECK(const Param& getParam() const)
+CHECK((const Param& getParam() const))
 	TestProduct1 s;
   Param p;
   p.setValue("value",1);
@@ -167,7 +178,7 @@ CHECK(const Param& getParam() const)
   TEST_EQUAL(s.getParam(), p)
 RESULT
 
-CHECK( Param& getParam() )
+CHECK((Param& getParam()))
 	TestProduct1 s;
   Param p;
   p.setValue("value",1);
@@ -175,7 +186,7 @@ CHECK( Param& getParam() )
   TEST_EQUAL(s.getParam(), p)	
 RESULT
 
-CHECK(const String& getName() const)
+CHECK((const String& getName() const))
 	TestProduct1 s;
   TEST_EQUAL(s.getName(), "TestProduct1")
 RESULT

@@ -61,13 +61,12 @@ namespace OpenMS
 		typedef PeakContainer_ PeakContainerType;
 		typedef typename PeakContainerType::PeakType PeakType;			
 		typedef typename PeakType::CoordinateType CoordinateType;
-		//typedef typename PeakContainerType::iterator PeakIterator;		
 		typedef PeakContainerIterator_ PeakIterator;
 		
 		typedef std::vector < CoordinateType > ScanPositionContainerType;
 		typedef std::vector < PeakIterator > ScanBeginContainerType;
 		typedef typename PeakType::template NthPositionLess<RT> RTless;
-    	typedef typename PeakType::template NthPositionLess<MZ> MZless;
+   	typedef typename PeakType::template NthPositionLess<MZ> MZless;
     
 		using ScanBeginContainerType::clear;
 		using ScanBeginContainerType::begin;
@@ -106,7 +105,7 @@ namespace OpenMS
 		/// Test for equality 
 		bool operator == (const ScanIndex& rhs) const
 		{
-			return (std::vector < PeakContainerIterator_ >::operator == (rhs) );	
+			return	std::operator==(*this, rhs)	;				
 		}
 
 		/// Test for inequality

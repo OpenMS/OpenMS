@@ -97,19 +97,63 @@ dpa.push_back(peak4);
 ExpType exp;
 exp.set2DData(dpa);
 
+CHECK(ScanIndexMSExperiment& operator = (const ScanIndexMSExperiment& rhs))
+	ScanIndexMSExperiment<ExpType> ind1;
+	scani.init(exp.peakBegin(),exp.peakEnd());
+	ScanIndexMSExperiment<ExpType> ind2 = ind1;
+	
+	TEST_EQUAL(ind1==ind2,true)
+		
+RESULT
+
+CHECK(ScanIndexMSExperiment(const ScanIndexMSExperiment& rhs ))
+	ScanIndexMSExperiment<ExpType> ind1;
+	scani.init(exp.peakBegin(),exp.peakEnd());
+	ScanIndexMSExperiment<ExpType> ind2(ind1);
+	
+	TEST_EQUAL(ind1==ind2,true)
+RESULT
+
+CHECK(bool operator != (const ScanIndexMSExperiment& rhs) const)
+	ScanIndexMSExperiment<ExpType> ind1;
+	scani.init(exp.peakBegin(),exp.peakEnd());
+	ScanIndexMSExperiment<ExpType> ind2;
+	
+	TEST_EQUAL(ind1!=ind2,true)
+RESULT
+
+CHECK(bool operator == (const ScanIndexMSExperiment& rhs) const)
+	ScanIndexMSExperiment<ExpType> ind1;
+	scani.init(exp.peakBegin(),exp.peakEnd());
+	ScanIndexMSExperiment<ExpType> ind2(ind1);
+	
+	TEST_EQUAL(ind1==ind2,true)
+RESULT
+
 ScanIndexMSExperiment<ExpType> scani;
 	
-CHECK(init())
+CHECK([EXTRA] void init ( PeakIterator _begin, PeakIterator const _end ) throw () )
 	scani.init(exp.peakBegin(),exp.peakEnd());
 	TEST_EQUAL(scani.size(),5);	
 RESULT
 
-CHECK(getRank())
+CHECK([EXTRA] typename ScanPositionContainerType::size_type getRank ( CoordinateType const & coord ) const throw())
 	TEST_EQUAL(scani.getRank(pos1[0]),0);	
 	TEST_EQUAL(scani.getRank(pos2[0]),1);	
 	TEST_EQUAL(scani.getRank(pos3[0]),2);
 	TEST_EQUAL(scani.getRank(pos4[0]),3);
 RESULT
+
+ScanIndexMSExperiment<ExpType>::NoSuccessor* nosucc = new ScanIndexMSExperiment<ExpType>::NoSuccessor("bla",666,"nix",5);
+
+CHECK( NoSuccessor(const char* file, int line, const char* function, const UnsignedInt& index) throw() )
+	TEST_NOT_EQUAL(nosucc,0)
+RESULT
+
+CHECK(~NoSuccessor() throw())
+	delete nosucc;
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 END_TEST

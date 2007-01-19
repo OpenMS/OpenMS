@@ -46,7 +46,7 @@ START_TEST(DFeatureMap<D>, "$Id$")
 
 
 DFeatureMap<2>* pl_ptr = 0;
-CHECK(DFeatureMap<2>())
+CHECK((DFeatureMap()))
 	pl_ptr = new DFeatureMap<2>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 
@@ -56,7 +56,7 @@ CHECK(DFeatureMap<2>())
 	TEST_REAL_EQUAL(pl_ptr->getMaxInt(), -numeric_limits<DFeatureMap<2>::IntensityType>::max())
 RESULT
 
-CHECK(~DFeatureMap<2>())
+CHECK((~DFeatureMap()))
 	delete pl_ptr;
 RESULT
 
@@ -75,7 +75,7 @@ feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.getIntensity() = 0.01;
 
-CHECK(void updateRanges())
+CHECK((updateRanges_(this->begin(), this->end())))
   DFeatureMap<2> s;
   s.push_back(feature1);
   s.push_back(feature2);
@@ -92,7 +92,7 @@ CHECK(void updateRanges())
   TEST_REAL_EQUAL(s.getMin()[1],0.0)
 RESULT
 
-CHECK(DFeatureMap<2>(const DFeatureMap& p))
+CHECK((DFeatureMap(const DFeatureMap& map)))
 	DFeatureMap<2> map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -107,7 +107,7 @@ CHECK(DFeatureMap<2>(const DFeatureMap& p))
   TEST_EQUAL(map2.getType(),ExperimentalSettings::MS)
 RESULT
 
-CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
+CHECK((DFeatureMap& operator = (const DFeatureMap& rhs)))
 	DFeatureMap<2> map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -132,7 +132,7 @@ CHECK(DFeatureMap& operator = (const DFeatureMap& rhs))
   TEST_EQUAL(map2.getType(),ExperimentalSettings::UNKNOWN)
 RESULT
 
-CHECK(bool operator == (const DFeatureMap& rhs) const)
+CHECK((bool operator == (const DFeatureMap& rhs) const))
 	DFeatureMap<2> empty,edit;
 	
 	TEST_EQUAL(empty==edit, true);
@@ -152,7 +152,7 @@ CHECK(bool operator == (const DFeatureMap& rhs) const)
 	TEST_EQUAL(empty==edit, false);
 RESULT
 
-CHECK(bool operator != (const DFeatureMap& rhs) const)
+CHECK((bool operator != (const DFeatureMap& rhs) const))
 	DFeatureMap<2> empty,edit;
 	
 	TEST_EQUAL(empty!=edit, false);
@@ -173,7 +173,7 @@ CHECK(bool operator != (const DFeatureMap& rhs) const)
 RESULT
 
 
-CHECK(void sortByIntensity() )
+CHECK((void sortByIntensity()))
 	
 	DFeatureMap<2> to_be_sorted;
 	
@@ -197,7 +197,7 @@ CHECK(void sortByIntensity() )
 	
 RESULT
 
-CHECK(void sortByPosition() )
+CHECK((void sortByPosition()))
 	
 	DFeatureMap<2> to_be_sorted;
 	
@@ -221,7 +221,7 @@ CHECK(void sortByPosition() )
 	
 RESULT
 
-CHECK(void sortByNthPosition(UnsignedInt i) )
+CHECK((void sortByNthPosition(UnsignedInt i) throw(Exception::NotImplemented)))
 	
 	DFeatureMap<2> to_be_sorted;
 	
@@ -252,6 +252,11 @@ CHECK(void sortByNthPosition(UnsignedInt i) )
 	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
 	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
 	
+RESULT
+
+CHECK(void sortByOverallQuality() )
+	
+
 RESULT
 
 
