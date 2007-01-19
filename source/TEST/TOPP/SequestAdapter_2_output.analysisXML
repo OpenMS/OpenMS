@@ -5,14 +5,14 @@
 			<sampleName> unknown </sampleName>
 		</admin>
 		<settings>
-			<userParam name="number_of_identifications" value="3" />
+			<userParam name="number_of_identifications" value="12" />
 			<userParam name="number_of_protein_identifications" value="1" />
 			<userParam name="retention_time_type" value="float" />
 			<userParam name="mz_type" value="float" />
 			<userParam name="retention_time_unit" value="seconds" />
 			<userParam name="mz_unit" value="Thomson" />
-			<userParam name="date_group_0" value="2004-03-16 14:32:00"/>
-			<userParam name="date_group_1" value="2007-01-17 01:18:16"/>
+			<userParam name="date_group_0" value="2007-01-17 17:29:00"/>
+# date group removed
 		</settings>
 	</description>
 	<ident>
@@ -24,9 +24,9 @@
 					<seq>ETQAWSIATILETLYDL</seq>
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
+					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.05" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -37,15 +37,34 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>1/80</dbID>
+				<dbName>gi</dbName>
+				<dbID>2136928</dbID>
 				<peptide>
 					<seq>ETQAWSIATILETLYDL</seq>
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
+					<userParam name="precursor_mz" value="866.606" />
+					<userParam name="score" value="0.05" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>294478</dbID>
+				<peptide>
+					<seq>ETQAWSIATILETLYDL</seq>
+					<userParam name="identification_index" value="0" />
+					<userParam name="peptide_significance_threshold" value="1"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.05" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -62,290 +81,10 @@
 					<seq>QVLNPLLVLIFIPLFDL</seq>
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
+					<userParam name="precursor_mz" value="866.606" />
 					<userParam name="score" value="0.04" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>2/85</dbID>
-				<peptide>
-					<seq>QVLNPLLVLIFIPLFDL</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.04" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>PID</dbName>
-				<dbID>e148876</dbID>
-				<peptide>
-					<seq>WVELGPSVLAGVGVM*VLLI</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.02" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>FVSDPNS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.02" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P20647</dbID>
-				<peptide>
-					<seq>FDEITAMTGDGVNDAPALK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.14" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>ENAIEALKEYEPEM*GKV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>4/1</dbID>
-				<peptide>
-					<seq>FDEITAMTGDGVNDAPALK</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.14" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P11716</dbID>
-				<peptide>
-					<seq>QHARDPVGGSVEFQFVPV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<peptide>
-					<seq>VLM*SDSGSE</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>5/260</dbID>
-				<peptide>
-					<seq>QHARDPVGGSVEFQFVPV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P48747</dbID>
-				<peptide>
-					<seq>ETSNFNANLALKFTPTEA</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>6/379</dbID>
-				<peptide>
-					<seq>ETSNFNANLALKFTPTEA</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>Q02344</dbID>
-				<peptide>
-					<seq>M*DPADDDGQFQEQRSLV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.08" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>7/8</dbID>
-				<peptide>
-					<seq>M*DPADDDGQFQEQRSLV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.08" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>8/324</dbID>
-				<peptide>
-					<seq>ENAIEALKEYEPEM*GKV</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P26203</dbID>
-				<peptide>
-					<seq>PLNFRIKETVCIFTLD</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.03" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>9/71</dbID>
-				<peptide>
-					<seq>PLNFRIKETVCIFTLD</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.03" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
@@ -356,53 +95,15 @@
 			</protein>
 			<protein>
 				<dbName>gi</dbName>
-				<dbID>1839256</dbID>
+				<dbID>975890</dbID>
 				<peptide>
-					<seq>DHSNDPKAIMFPTYGYI</seq>
+					<seq>QVLNPLLVLIFIPLFDL</seq>
 					<userParam name="identification_index" value="0" />
 					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.02" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>PID</dbName>
-				<dbID>d1024682</dbID>
-				<peptide>
-					<seq>KGMLPDPKNVHIIVSWM</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>PID</dbName>
-				<dbID>d1005682</dbID>
-				<peptide>
-					<seq>RYIDMVPNNVPHAVTQD</seq>
-					<userParam name="identification_index" value="0" />
-					<userParam name="peptide_significance_threshold" value="1"/>
-					<userParam name="precursor_charge" value="3" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="1966.79" />
-					<userParam name="score" value="0.08" />
+					<userParam name="precursor_mz" value="866.606" />
+					<userParam name="score" value="0.04" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
@@ -416,11 +117,11 @@
 				<dbID>627806</dbID>
 				<peptide>
 					<seq>WRAYTDM</seq>
-					<userParam name="identification_index" value="1" />
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -431,15 +132,15 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>1/154</dbID>
+				<dbName>gi</dbName>
+				<dbID>90139</dbID>
 				<peptide>
 					<seq>WRAYTDM</seq>
-					<userParam name="identification_index" value="1" />
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -450,129 +151,72 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>2/51</dbID>
+				<dbName>gi</dbName>
+				<dbID>299487</dbID>
+				<peptide>
+					<seq>WRAYTDM</seq>
+					<userParam name="identification_index" value="2" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="823.336" />
+					<userParam name="score" value="0" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>239908</dbID>
+				<peptide>
+					<seq>WRAYTDM</seq>
+					<userParam name="identification_index" value="2" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="823.336" />
+					<userParam name="score" value="0" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>517271</dbID>
+				<peptide>
+					<seq>WRAYTDM</seq>
+					<userParam name="identification_index" value="2" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="823.336" />
+					<userParam name="score" value="0" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>SwissProt</dbName>
+				<dbID>P11716</dbID>
 				<peptide>
 					<seq>VLM*SDSGSE</seq>
-					<userParam name="identification_index" value="1" />
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P29294</dbID>
-				<peptide>
-					<seq>YTCKAVNS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>3/280</dbID>
-				<peptide>
-					<seq>YTCKAVNS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P29751</dbID>
-				<peptide>
-					<seq>FYNELRV</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>4/11</dbID>
-				<peptide>
-					<seq>FYNELRV</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>gi</dbName>
-				<dbID>109369</dbID>
-				<peptide>
-					<seq>KGPAARPASS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>5/37</dbID>
-				<peptide>
-					<seq>KGPAARPASS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -584,90 +228,14 @@
 			</protein>
 			<protein>
 				<dbName>gi</dbName>
-				<dbID>2920522</dbID>
+				<dbID>482960</dbID>
 				<peptide>
-					<seq>YFSSYGMS</seq>
-					<userParam name="identification_index" value="1" />
+					<seq>VLM*SDSGSE</seq>
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>Q28691</dbID>
-				<peptide>
-					<seq>YM*YAGFSS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>7/60</dbID>
-				<peptide>
-					<seq>YM*YAGFSS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P12337</dbID>
-				<peptide>
-					<seq>TSYPPMCS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>8/89</dbID>
-				<peptide>
-					<seq>TSYPPMCS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -679,52 +247,14 @@
 			</protein>
 			<protein>
 				<dbName>gi</dbName>
-				<dbID>346611</dbID>
+				<dbID>226386</dbID>
 				<peptide>
-					<seq>FYSALIDL</seq>
-					<userParam name="identification_index" value="1" />
+					<seq>VLM*SDSGSE</seq>
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>9/6</dbID>
-				<peptide>
-					<seq>FYSALIDL</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P28863</dbID>
-				<peptide>
-					<seq>FYFFSGSS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -735,15 +265,15 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>10/28</dbID>
+				<dbName>gi</dbName>
+				<dbID>1714</dbID>
 				<peptide>
-					<seq>FYFFSGSS</seq>
-					<userParam name="identification_index" value="1" />
+					<seq>VLM*SDSGSE</seq>
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -754,53 +284,15 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P19134</dbID>
+				<dbName>gi</dbName>
+				<dbID>1710</dbID>
 				<peptide>
-					<seq>M*NGEADAMS</seq>
-					<userParam name="identification_index" value="1" />
+					<seq>VLM*SDSGSE</seq>
+					<userParam name="identification_index" value="2" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>11/18</dbID>
-				<peptide>
-					<seq>M*NGEADAMS</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>PID</dbName>
-				<dbID>e1186556</dbID>
-				<peptide>
-					<seq>PGRGGRPM*P</seq>
-					<userParam name="identification_index" value="1" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="942.689" />
+					<userParam name="precursor_mz" value="823.336" />
 					<userParam name="score" value="0" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -815,11 +307,11 @@
 				<dbID>P27884</dbID>
 				<peptide>
 					<seq>SNDASGNT</seq>
-					<userParam name="identification_index" value="2" />
+					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
+					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -830,243 +322,15 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>1/12</dbID>
+				<dbName>SwissProt</dbName>
+				<dbID>P27883</dbID>
 				<peptide>
 					<seq>SNDASGNT</seq>
-					<userParam name="identification_index" value="2" />
+					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P33674</dbID>
-				<peptide>
-					<seq>GSSSMPGGS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>3/27</dbID>
-				<peptide>
-					<seq>GSSSMPGGS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>Q28615</dbID>
-				<peptide>
-					<seq>GYALAKGS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>4/5</dbID>
-				<peptide>
-					<seq>GYALAKGS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P42072</dbID>
-				<peptide>
-					<seq>AAISSGLF</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>5/7</dbID>
-				<peptide>
-					<seq>AAISSGLF</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>Q10983</dbID>
-				<peptide>
-					<seq>NYTAPDS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>6/67</dbID>
-				<peptide>
-					<seq>NYTAPDS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>gi</dbName>
-				<dbID>1586679</dbID>
-				<peptide>
-					<seq>NTTPMTT</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>7/381</dbID>
-				<peptide>
-					<seq>NTTPMTT</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P48283</dbID>
-				<peptide>
-					<seq>VQDSDDS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0.01" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>8/44</dbID>
-				<peptide>
-					<seq>VQDSDDS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
+					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -1078,128 +342,14 @@
 			</protein>
 			<protein>
 				<dbName>gi</dbName>
-				<dbID>2384762</dbID>
+				<dbID>2136950</dbID>
 				<peptide>
-					<seq>AAHCAHV</seq>
-					<userParam name="identification_index" value="2" />
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>9/117</dbID>
-				<peptide>
-					<seq>AAHCAHV</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P00518</dbID>
-				<peptide>
-					<seq>EVDMWS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>10/216</dbID>
-				<peptide>
-					<seq>EVDMWS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P05773</dbID>
-				<peptide>
-					<seq>GSLSFGIS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>unknown</dbName>
-				<dbID>11/183</dbID>
-				<peptide>
-					<seq>GSLSFGIS</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
-					<userParam name="score" value="0" />
-					<userParam name="score_type" value="SEQUEST"/>
-					<userParam name="date_group_index" value="0"/>
-				</peptide>
-				<userParam name="protein_identification_index" value="0"/>
-				<userParam name="date_group_index" value="0"/>
-				<userParam name="score" value="0"/>
-				<userParam name="score_type" value=""/>
-			</protein>
-			<protein>
-				<dbName>SwissProt</dbName>
-				<dbID>P02645</dbID>
-				<peptide>
-					<seq>RVSADAM*</seq>
-					<userParam name="identification_index" value="2" />
-					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
-					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
+					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
@@ -1210,16 +360,187 @@
 				<userParam name="score_type" value=""/>
 			</protein>
 			<protein>
-				<dbName>unknown</dbName>
-				<dbID>12/40</dbID>
+				<dbName>gi</dbName>
+				<dbID>2136949</dbID>
 				<peptide>
-					<seq>RVSADAM*</seq>
-					<userParam name="identification_index" value="2" />
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
 					<userParam name="peptide_significance_threshold" value="0"/>
-					<userParam name="precursor_charge" value="1" />
+					<userParam name="precursor_charge" value="2" />
 					<userParam name="precursor_retention_time" value="0" />
-					<userParam name="precursor_mz" value="766.379" />
+					<userParam name="precursor_mz" value="863.966" />
 					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>2136948</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>2136947</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>1529</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>1527</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>1525</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>1523</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>227711</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>gi</dbName>
+				<dbID>227710</dbID>
+				<peptide>
+					<seq>SNDASGNT</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.01" />
+					<userParam name="score_type" value="SEQUEST"/>
+					<userParam name="date_group_index" value="0"/>
+				</peptide>
+				<userParam name="protein_identification_index" value="0"/>
+				<userParam name="date_group_index" value="0"/>
+				<userParam name="score" value="0"/>
+				<userParam name="score_type" value=""/>
+			</protein>
+			<protein>
+				<dbName>PID</dbName>
+				<dbID>e148876</dbID>
+				<peptide>
+					<seq>FVSDPNS</seq>
+					<userParam name="identification_index" value="4" />
+					<userParam name="peptide_significance_threshold" value="0"/>
+					<userParam name="precursor_charge" value="2" />
+					<userParam name="precursor_retention_time" value="0" />
+					<userParam name="precursor_mz" value="863.966" />
+					<userParam name="score" value="0.02" />
 					<userParam name="score_type" value="SEQUEST"/>
 					<userParam name="date_group_index" value="0"/>
 				</peptide>
