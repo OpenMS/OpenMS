@@ -125,7 +125,7 @@ class TOPPSequestAdapter
 			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
 			registerStringOption_("in", "<file>", "", "input file(s) in mzXML format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
-																								"(.out) is read", false);
+																								"(*.out) is read", false);
 			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML\n"
 																								"and write an Sequest input file\n"
 																								"and create dta files from the given mzXML files");
@@ -1176,7 +1176,6 @@ class TOPPSequestAdapter
 				{
 					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
-						writeLog_("removing dta files");
 						QDir qdir(temp_data_directory, "*.dta_" + String(i) , QDir::Name, QDir::Files);
 						QStringList qlist = qdir.entryList();
 						

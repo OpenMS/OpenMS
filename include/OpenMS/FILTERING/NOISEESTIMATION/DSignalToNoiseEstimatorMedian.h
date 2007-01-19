@@ -367,19 +367,19 @@ namespace OpenMS
       param_.checkDefaults("DSignalToNoiseEstimatorMedian",default_p);
       
       // set local members
-      win_len_ = (double) param_.getValue("SignalToNoiseEstimationParameter:WindowLength");
+      win_len_ = (double) param_.getValue("WindowLength");
 
-      bin_count_ = (int) param_.getValue("SignalToNoiseEstimationParameter:BinCount");
+      bin_count_ = (int) param_.getValue("BinCount");
       
-      min_required_elements_ = (int) param_.getValue("SignalToNoiseEstimationParameter:MinReqElementsInWindow");
+      min_required_elements_ = (int) param_.getValue("MinReqElementsInWindow");
       
-      noise_for_empty_window_ = (double) param_.getValue("SignalToNoiseEstimationParameter:NoiseEmptyWindow");
+      noise_for_empty_window_ = (double) param_.getValue("NoiseEmptyWindow");
       
-      max_intensity_ = (double) param_.getValue("SignalToNoiseEstimationParameter:MaxIntensity");
+      max_intensity_ = (double) param_.getValue("MaxIntensity");
       
-      auto_mode_ = (int) param_.getValue("SignalToNoiseEstimationParameter:AutoMode");
+      auto_mode_ = (int) param_.getValue("AutoMode");
       
-      auto_max_intensity_ = (double) param_.getValue("SignalToNoiseEstimationParameter:AutoMaxIntensity");
+      auto_max_intensity_ = (double) param_.getValue("AutoMaxIntensity");
       
       is_result_valid_ = false;
 

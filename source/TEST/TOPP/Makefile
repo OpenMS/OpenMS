@@ -560,7 +560,7 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.inspect_in,InspectAdapter_1_output.tmp)
 	
 	@$(ECHO) "- Test 2: -inspect_out"
-	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.output -out InspectAdapter_2_output.tmp -inspect_out)
+	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_2_output.tmp -inspect_out)
 	@$(SED) -i 's/^.*date_group_0.*$$/# date group removed/g' InspectAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.analysisXML,InspectAdapter_2_output.tmp)
 
