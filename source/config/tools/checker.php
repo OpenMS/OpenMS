@@ -449,6 +449,8 @@
 				"include/OpenMS/APPLICATIONS/TOPPViewBase.h",
 				"_registerChildren.h",
 				"DataReducer.h",
+				"SchemaFile.h",
+				"Serialization.h",
 				);
 
 			if (endsWith($f,".h") )

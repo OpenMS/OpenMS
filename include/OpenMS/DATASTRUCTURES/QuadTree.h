@@ -310,7 +310,8 @@ namespace OpenMS
 		inline Reference operator*() const;
 
 		/**
-			Returns a pointer to the data pointed to by the iterator.
+			@brief Returns a pointer to the data pointed to by the iterator.
+			
 			Note that for ConstIterators, this is a const pointer.
 			This function's usage is the same as for STL iterators.
 			This is used if the Type template parameter is an
